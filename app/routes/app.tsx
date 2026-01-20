@@ -417,7 +417,7 @@ export default function AppLayout() {
       {/* Sidebar - hide on builder routes */}
       {!isBuilderRoute && <aside
         className={`
-          fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-gray-200
+          fixed top-0 left-0 z-50 h-full w-64 bg-white/90 backdrop-blur-xl border-r border-white/20
           transform transition-transform duration-200 ease-in-out
           lg:translate-x-0
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -425,7 +425,7 @@ export default function AppLayout() {
       >
         <div className="flex flex-col h-full">
           {/* Logo/Store Header */}
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4 border-b border-white/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center">
@@ -450,7 +450,7 @@ export default function AppLayout() {
               href={storeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-3 flex items-center justify-center gap-2 w-full px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium rounded-lg transition text-sm"
+              className="mt-3 flex items-center justify-center gap-2 w-full px-3 py-2 bg-emerald-50/50 hover:bg-emerald-100/80 text-emerald-700 font-medium rounded-lg transition text-sm backdrop-blur-sm"
             >
               <ExternalLink className="w-4 h-4" />
               {t('goToStore')}
@@ -459,7 +459,7 @@ export default function AppLayout() {
 
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
+          <nav className="flex-1 p-4 space-y-4 overflow-y-auto custom-scrollbar">
             {navSections
               // Filter out entire sections that are storeOnly when store is disabled
               .filter(section => !section.storeOnly || store.storeEnabled)
@@ -516,8 +516,8 @@ export default function AppLayout() {
                             className={`
                               flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition
                               ${active
-                                ? 'bg-emerald-50 text-emerald-700'
-                                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                                ? 'bg-gradient-to-r from-emerald-50 to-teal-50/50 text-emerald-700 shadow-sm border border-emerald-100/50'
+                                : 'text-gray-600 hover:bg-gray-50/80 hover:text-gray-900'
                               }
                             `}
                           >
@@ -565,14 +565,14 @@ export default function AppLayout() {
           </nav>
 
           {/* User Info & Logout */}
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 border-t border-white/10 bg-white/30 backdrop-blur-sm">
             {/* Language Selector - Temporarily disabled - Bengali is default */}
             {/* <div className="mb-3">
               <LanguageSelector variant="pills" size="sm" className="w-full" />
             </div> */}
 
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center">
+              <div className="w-9 h-9 bg-white/50 backdrop-blur rounded-full flex items-center justify-center border border-white/20">
                 <span className="text-sm font-medium text-gray-600">
                   {user.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
                 </span>
@@ -587,7 +587,7 @@ export default function AppLayout() {
             <Form action="/auth/logout" method="post">
               <button
                 type="submit"
-                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition"
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50/50 rounded-lg transition"
               >
                 <LogOut className="w-4 h-4" />
                 {t('logout')}
@@ -601,7 +601,7 @@ export default function AppLayout() {
       <div className={isBuilderRoute ? '' : 'lg:pl-64'}>
         {/* Mobile Header - hide on builder routes */}
         {!isBuilderRoute && (
-          <header className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3">
+          <header className="lg:hidden sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-white/20 px-4 py-3">
             <div className="flex items-center justify-between">
               <button
                 onClick={() => setSidebarOpen(true)}
@@ -617,7 +617,7 @@ export default function AppLayout() {
 
         {/* Desktop Header with Language Toggle - hide on builder routes */}
         {!isBuilderRoute && (
-          <header className="hidden lg:block sticky top-0 z-30 bg-white border-b border-gray-200 px-8 py-3">
+          <header className="hidden lg:block sticky top-0 z-30 bg-white/60 backdrop-blur-xl border-b border-white/20 px-8 py-3">
             <div className="flex items-center justify-end">
               <LanguageSelector variant="pills" size="sm" />
             </div>
