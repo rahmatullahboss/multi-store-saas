@@ -57,7 +57,7 @@ export function GhorerBazarHeader({
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `/?search=${encodeURIComponent(searchQuery.trim())}`;
+      window.location.href = `?search=${encodeURIComponent(searchQuery.trim())}`;
     }
   };
 
@@ -154,39 +154,21 @@ export function GhorerBazarHeader({
               </Link>
             </div>
 
-            {/* Center: Desktop Navigation - Horizontal Mega Menu */}
-            <nav className="hidden lg:flex items-center gap-1">
-              {menuCategories.slice(0, 10).map((category) => (
+            {/* Center: Desktop Navigation - Horizontal Category Menu */}
+            <nav className="hidden lg:flex items-center gap-2 overflow-x-auto scrollbar-hide">
+              {menuCategories.map((category) => (
                 <Link
                   key={category}
                   to={`?category=${encodeURIComponent(category)}`}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap ${
+                  className={`px-2 py-2 text-sm font-semibold whitespace-nowrap transition border-b-2 ${
                     currentCategory === category 
-                      ? 'bg-white text-orange-600' 
-                      : 'text-white hover:bg-white/10'
+                      ? 'border-white text-white' 
+                      : 'border-transparent text-white/90 hover:text-white hover:border-white'
                   }`}
                 >
                   {category}
                 </Link>
               ))}
-              {menuCategories.length > 10 && (
-                <div className="relative group">
-                  <button className="px-3 py-2 text-sm font-medium text-white hover:bg-white/10 rounded-lg transition flex items-center gap-1">
-                    আরও <ChevronDown className="w-4 h-4" />
-                  </button>
-                  <div className="absolute top-full right-0 mt-1 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                    {menuCategories.slice(10).map((category) => (
-                      <Link
-                        key={category}
-                        to={`?category=${encodeURIComponent(category)}`}
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition"
-                      >
-                        {category}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
             </nav>
 
             {/* Right: Icons */}
@@ -202,7 +184,7 @@ export function GhorerBazarHeader({
 
               {/* Account - Desktop only */}
               <Link 
-                to="/account"
+                to="?page=account"
                 className="hidden md:flex p-2 text-white hover:bg-white/10 rounded-lg transition"
                 aria-label="Account"
               >
@@ -328,7 +310,7 @@ export function GhorerBazarHeader({
             {/* Account Links */}
             <div className="p-4 border-t" style={{ borderColor: theme.border }}>
               <Link 
-                to="/account"
+                to="?page=account"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg transition"
               >
@@ -399,7 +381,7 @@ export function GhorerBazarHeader({
                       type="button"
                       onClick={() => {
                         setSearchQuery(term);
-                        window.location.href = `/?search=${encodeURIComponent(term)}`;
+                        window.location.href = `?search=${encodeURIComponent(term)}`;
                       }}
                       className="px-3 py-1.5 text-sm rounded-full border hover:border-orange-400 hover:bg-orange-50 transition"
                       style={{ borderColor: theme.border }}

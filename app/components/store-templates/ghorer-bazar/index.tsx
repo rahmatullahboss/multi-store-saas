@@ -10,7 +10,8 @@ import { useState, createContext, useContext, useCallback } from 'react';
 import { 
   ShoppingCart, Eye, Star, ChevronRight, X,
   Plus, Minus, MessageCircle, Phone, Truck, Check,
-  Mail, MapPin, ChevronDown, Heart, Shield, Award, Leaf
+  Mail, MapPin, ChevronDown, Heart, Shield, Award, Leaf,
+  Search
 } from 'lucide-react';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
 import { GhorerBazarHeader } from './sections/Header';
@@ -159,11 +160,11 @@ function CouponInput() {
 // ============================================================================
 interface ProductCardProps {
   product: SerializedProduct;
-  isPreview?: boolean;
+  onProductClick?: (product: SerializedProduct) => void;
+  onQuickAdd?: (product: SerializedProduct) => void;
 }
 
-function GhorerBazarProductCard({ product, isPreview }: ProductCardProps) {
-  const cart = useCart();
+function GhorerBazarProductCard({ product, onProductClick, onQuickAdd }: ProductCardProps) {
   const [isAdding, setIsAdding] = useState(false);
   const theme = GHORER_BAZAR_THEME;
   
@@ -175,24 +176,23 @@ function GhorerBazarProductCard({ product, isPreview }: ProductCardProps) {
     e.preventDefault();
     e.stopPropagation();
     setIsAdding(true);
-    cart.addItem(product);
-    setTimeout(() => setIsAdding(false), 1000);
+    onQuickAdd?.(product);
+    setTimeout(() => setIsAdding(false), 800);
   };
-
-  const productUrl = isPreview ? '#' : `/products/${product.id}`;
 
   return (
     <div 
-      className="group bg-white rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg"
+      className="group bg-white rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer"
       style={{ 
         boxShadow: theme.shadowCard,
         fontFamily: GHORER_BAZAR_FONTS.body,
       }}
+      onClick={() => onProductClick?.(product)}
     >
       {/* Image Container */}
-      <Link to={productUrl} className="block relative aspect-square bg-gray-50 overflow-hidden">
+      <div className="block relative aspect-square bg-white overflow-hidden">
         <img 
-          src={product.imageUrl || 'https://placehold.co/400x400/f8f8f8/999999?text=No+Image'} 
+          src={product.imageUrl || 'https://placehold.co/400x400/ffffff/999999?text=No+Image'} 
           alt={product.title}
           className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
@@ -205,7 +205,7 @@ function GhorerBazarProductCard({ product, isPreview }: ProductCardProps) {
               className="px-2 py-0.5 text-[10px] font-bold text-white rounded"
               style={{ backgroundColor: theme.badgeSale }}
             >
-              -{discount}% OFF
+              SALE
             </span>
           )}
           {product.id % 4 === 0 && (
@@ -213,44 +213,21 @@ function GhorerBazarProductCard({ product, isPreview }: ProductCardProps) {
               className="px-2 py-0.5 text-[10px] font-bold text-white rounded"
               style={{ backgroundColor: theme.badgeStock }}
             >
-              In Stock
+              IN STOCK
             </span>
           )}
         </div>
-      </Link>
+      </div>
 
       {/* Product Info */}
       <div className="p-3">
-        {/* Category */}
-        {product.category && (
-          <span 
-            className="text-[10px] font-medium uppercase tracking-wide"
-            style={{ color: theme.textMuted }}
-          >
-            {product.category}
-          </span>
-        )}
-
         {/* Title */}
-        <Link to={productUrl}>
-          <h3 
-            className="mt-1 font-medium line-clamp-2 hover:text-orange-600 transition text-sm leading-tight min-h-[36px]"
-            style={{ color: theme.text }}
-          >
-            {product.title}
-          </h3>
-        </Link>
-
-        {/* Rating */}
-        <div className="flex items-center gap-0.5 mt-1.5">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Star 
-              key={star} 
-              className={`w-3 h-3 ${star <= 4 ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200'}`}
-            />
-          ))}
-          <span className="text-[10px] ml-1" style={{ color: theme.textMuted }}>(৪.৫)</span>
-        </div>
+        <h3 
+          className="mt-1 font-medium line-clamp-2 text-sm leading-tight min-h-[36px]"
+          style={{ color: theme.text }}
+        >
+          {product.title}
+        </h3>
 
         {/* Price */}
         <div className="flex items-center gap-2 mt-2">
@@ -258,14 +235,14 @@ function GhorerBazarProductCard({ product, isPreview }: ProductCardProps) {
             className="text-base font-bold"
             style={{ color: theme.text }}
           >
-            {formatPrice(product.price)}
+            Tk {product.price.toLocaleString('bn-BD')}
           </span>
           {product.compareAtPrice && (
             <span 
               className="text-xs line-through"
               style={{ color: theme.priceOld }}
             >
-              {formatPrice(product.compareAtPrice)}
+              Tk {product.compareAtPrice.toLocaleString('bn-BD')}
             </span>
           )}
         </div>
@@ -273,21 +250,10 @@ function GhorerBazarProductCard({ product, isPreview }: ProductCardProps) {
         {/* Quick Add Button */}
         <button
           onClick={handleQuickAdd}
-          disabled={isAdding}
-          className="w-full mt-3 py-2 rounded-lg font-medium text-sm text-white transition-all flex items-center justify-center gap-1.5 disabled:opacity-70"
+          className="w-full mt-3 py-2.5 rounded-lg font-bold text-sm text-white transition hover:opacity-90"
           style={{ backgroundColor: theme.primary }}
         >
-          {isAdding ? (
-            <>
-              <Check className="w-4 h-4" />
-              যোগ হয়েছে
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="w-4 h-4" />
-              Quick Add
-            </>
-          )}
+          {isAdding ? 'যোগ হচ্ছে...' : 'Quick Add'}
         </button>
       </div>
     </div>
@@ -338,7 +304,7 @@ function HeroSection({ storeName, config }: { storeName: string; config: any }) 
                 <ChevronRight className="w-4 h-4" />
               </Link>
               <Link
-                to="/?category=Offer Zone"
+                to="?category=Offer Zone"
                 className="px-6 py-3 rounded-lg font-semibold border-2 transition hover:bg-gray-50 flex items-center gap-2"
                 style={{ borderColor: theme.secondary, color: theme.secondary }}
               >
@@ -659,6 +625,569 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
 }
 
 // ============================================================================
+// PAGE: Product Details - Reference Bangladeshi Grocery Store Design
+// ============================================================================
+function ProductDetailPage({ 
+  product, 
+  products,
+  onAddToCart,
+  onBuyNow,
+  onProductClick,
+  businessInfo,
+  socialLinks,
+}: { 
+  product: SerializedProduct;
+  products: SerializedProduct[];
+  onAddToCart: (product: SerializedProduct, qty: number) => void;
+  onBuyNow: (product: SerializedProduct, qty: number) => void;
+  onProductClick: (product: SerializedProduct) => void;
+  businessInfo?: any;
+  socialLinks?: any;
+}) {
+  const theme = GHORER_BAZAR_THEME;
+  const [quantity, setQuantity] = useState(1);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [descExpanded, setDescExpanded] = useState(true);
+  const [benefitsExpanded, setBenefitsExpanded] = useState(false);
+
+  const discount = product.compareAtPrice 
+    ? Math.round((1 - product.price / product.compareAtPrice) * 100) 
+    : 0;
+
+  const whatsappNumber = socialLinks?.whatsapp || businessInfo?.phone || '01700000000';
+  const whatsappMessage = `হ্যালো, আমি "${product.title}" অর্ডার করতে চাই। দাম: ৳${product.price}`;
+
+  // Related products (same category)
+  const relatedProducts = products
+    .filter(p => p.id !== product.id && p.category === product.category)
+    .slice(0, 6);
+
+  return (
+    <div style={{ backgroundColor: theme.background }}>
+      <div className="max-w-7xl mx-auto px-4 py-6 md:py-10">
+        {/* Two Column Layout */}
+        <div className="grid md:grid-cols-2 gap-6 md:gap-10">
+          {/* LEFT: Product Image */}
+          <div 
+            className="relative bg-white rounded-2xl overflow-hidden cursor-zoom-in"
+            onMouseEnter={() => setIsZoomed(true)}
+            onMouseLeave={() => setIsZoomed(false)}
+          >
+            <div className="aspect-square">
+              <img 
+                src={product.imageUrl || 'https://placehold.co/600x600/fff/999?text=No+Image'}
+                alt={product.title}
+                className={`w-full h-full object-contain p-6 transition-transform duration-300 ${isZoomed ? 'scale-125' : 'scale-100'}`}
+              />
+            </div>
+            {/* Badges */}
+            {discount > 0 && (
+              <span 
+                className="absolute top-4 left-4 px-3 py-1 text-sm font-bold text-white rounded-lg"
+                style={{ backgroundColor: theme.badgeSale }}
+              >
+                -{discount}% OFF
+              </span>
+            )}
+          </div>
+
+          {/* RIGHT: Product Info */}
+          <div className="space-y-5">
+            {/* Category */}
+            {product.category && (
+              <span 
+                className="text-sm font-medium uppercase tracking-wide"
+                style={{ color: theme.primary }}
+              >
+                {product.category}
+              </span>
+            )}
+
+            {/* Title */}
+            <h1 
+              className="text-2xl md:text-3xl font-bold leading-tight"
+              style={{ color: theme.text, fontFamily: GHORER_BAZAR_FONTS.heading }}
+            >
+              {product.title}
+            </h1>
+
+            {/* Price */}
+            <div className="flex items-baseline gap-3">
+              <span 
+                className="text-3xl font-bold"
+                style={{ color: theme.text }}
+              >
+                ৳{product.price.toLocaleString()}
+              </span>
+              {product.compareAtPrice && (
+                <span 
+                  className="text-xl line-through"
+                  style={{ color: theme.textMuted }}
+                >
+                  ৳{product.compareAtPrice.toLocaleString()}
+                </span>
+              )}
+              {discount > 0 && (
+                <span 
+                  className="px-2 py-0.5 text-sm font-medium rounded"
+                  style={{ backgroundColor: theme.badgeSale, color: '#fff' }}
+                >
+                  {discount}% ছাড়
+                </span>
+              )}
+            </div>
+
+            {/* Quantity Selector */}
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: theme.text }}>
+                পরিমাণ
+              </label>
+              <div className="flex items-center gap-0 w-fit">
+                <button 
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="w-12 h-12 flex items-center justify-center border rounded-l-lg hover:bg-gray-50 transition"
+                  style={{ borderColor: theme.border }}
+                >
+                  <Minus className="w-5 h-5" />
+                </button>
+                <span 
+                  className="w-16 h-12 flex items-center justify-center border-t border-b text-lg font-medium"
+                  style={{ borderColor: theme.border }}
+                >
+                  {quantity}
+                </span>
+                <button 
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="w-12 h-12 flex items-center justify-center border rounded-r-lg hover:bg-gray-50 transition"
+                  style={{ borderColor: theme.border }}
+                >
+                  <Plus className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              {/* Add to Cart - Black */}
+              <button 
+                onClick={() => onAddToCart(product, quantity)}
+                className="w-full py-3.5 rounded-lg font-bold text-white transition hover:opacity-90 flex items-center justify-center gap-2"
+                style={{ backgroundColor: theme.secondary }}
+              >
+                <ShoppingCart className="w-5 h-5" />
+                কার্টে যোগ করুন
+              </button>
+
+              {/* Cash on Delivery Order - Orange */}
+              <button 
+                onClick={() => onBuyNow(product, quantity)}
+                className="w-full py-3.5 rounded-lg font-bold text-white transition hover:opacity-90 flex items-center justify-center gap-2"
+                style={{ backgroundColor: theme.primary }}
+              >
+                <Truck className="w-5 h-5" />
+                ক্যাশ অন ডেলিভারিতে অর্ডার করুন
+              </button>
+
+              {/* WhatsApp & Chat Buttons */}
+              <div className="grid grid-cols-2 gap-3">
+                <a 
+                  href={`https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(whatsappMessage)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-3 rounded-lg font-medium text-white transition hover:opacity-90 flex items-center justify-center gap-2"
+                  style={{ backgroundColor: '#25d366' }}
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  WhatsApp
+                </a>
+                <a 
+                  href={`?page=contact`}
+                  className="py-3 rounded-lg font-medium transition hover:opacity-90 flex items-center justify-center gap-2 border"
+                  style={{ borderColor: theme.border, color: theme.text }}
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  Chat করুন
+                </a>
+              </div>
+            </div>
+
+            {/* Description Accordion */}
+            <div className="border rounded-xl overflow-hidden" style={{ borderColor: theme.border }}>
+              {/* Description */}
+              <div className="border-b" style={{ borderColor: theme.border }}>
+                <button 
+                  onClick={() => setDescExpanded(!descExpanded)}
+                  className="w-full px-4 py-3 flex items-center justify-between bg-white"
+                >
+                  <span className="font-medium" style={{ color: theme.text }}>পণ্যের বিবরণ</span>
+                  <ChevronDown className={`w-5 h-5 transition-transform ${descExpanded ? 'rotate-180' : ''}`} style={{ color: theme.primary }} />
+                </button>
+                {descExpanded && (
+                  <div className="px-4 pb-4 bg-white space-y-3">
+                    <p className="text-sm leading-relaxed" style={{ color: theme.textSecondary }}>
+                      {product.description || 'এই পণ্যটি ১০০% খাঁটি এবং প্রাকৃতিক। কোনো কেমিক্যাল বা প্রিজার্ভেটিভ নেই। সরাসরি গ্রাম থেকে সংগৃহীত।'}
+                    </p>
+                    <div className="text-sm" style={{ color: theme.textSecondary }}>
+                      <strong>উৎস:</strong> গ্রামবাংলার কৃষক ও উৎপাদক
+                    </div>
+                    <div className="text-sm" style={{ color: theme.textSecondary }}>
+                      <strong>শুদ্ধতা:</strong> ১০০% খাঁটি, ভেজালমুক্ত
+                    </div>
+                    <div className="text-sm" style={{ color: theme.textSecondary }}>
+                      <strong>ব্যবহার:</strong> খাবারের সাথে, পানীয়তে বা দৈনন্দিন রান্নায়
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Benefits */}
+              <div>
+                <button 
+                  onClick={() => setBenefitsExpanded(!benefitsExpanded)}
+                  className="w-full px-4 py-3 flex items-center justify-between bg-white"
+                >
+                  <span className="font-medium" style={{ color: theme.text }}>উপকারিতা ও ব্যবহার</span>
+                  <ChevronDown className={`w-5 h-5 transition-transform ${benefitsExpanded ? 'rotate-180' : ''}`} style={{ color: theme.primary }} />
+                </button>
+                {benefitsExpanded && (
+                  <div className="px-4 pb-4 bg-white">
+                    <ul className="text-sm space-y-2" style={{ color: theme.textSecondary }}>
+                      <li className="flex items-start gap-2">
+                        <span style={{ color: theme.primary }}>✓</span>
+                        ১০০% প্রাকৃতিক ও ভেজালমুক্ত
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span style={{ color: theme.primary }}>✓</span>
+                        রোগ প্রতিরোধ ক্ষমতা বাড়ায়
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span style={{ color: theme.primary }}>✓</span>
+                        শক্তি ও পুষ্টি বৃদ্ধি করে
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span style={{ color: theme.primary }}>✓</span>
+                        ঘরে তৈরি খাবারে দারুণ স্বাদ
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Trust Strip */}
+        <div className="grid grid-cols-3 gap-4 mt-8 py-6 border-t border-b" style={{ borderColor: theme.border }}>
+          <div className="text-center">
+            <div className="text-2xl mb-1">📦</div>
+            <p className="text-sm font-medium" style={{ color: theme.text }}>নিরাপদ প্যাকেজিং</p>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl mb-1">🚚</div>
+            <p className="text-sm font-medium" style={{ color: theme.text }}>দ্রুত ডেলিভারি</p>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl mb-1">🌿</div>
+            <p className="text-sm font-medium" style={{ color: theme.text }}>১০০% প্রাকৃতিক</p>
+          </div>
+        </div>
+
+        {/* You Might Also Like */}
+        {relatedProducts.length > 0 && (
+          <div className="mt-10">
+            <h2 
+              className="text-xl font-bold mb-6"
+              style={{ color: theme.text, fontFamily: GHORER_BAZAR_FONTS.heading }}
+            >
+              আপনার পছন্দ হতে পারে
+            </h2>
+            <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
+              {relatedProducts.map(p => (
+                <div key={p.id} className="flex-shrink-0 w-44">
+                  <GhorerBazarProductCard 
+                    product={p} 
+                    onProductClick={onProductClick}
+                    onQuickAdd={(item) => onAddToCart(item, 1)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Mobile Sticky Add to Cart */}
+      <div 
+        className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t md:hidden z-40"
+        style={{ borderColor: theme.border }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <p className="text-sm" style={{ color: theme.textMuted }}>{product.title}</p>
+            <p className="font-bold" style={{ color: theme.primary }}>৳{product.price.toLocaleString()}</p>
+          </div>
+          <button 
+            onClick={() => onBuyNow(product, quantity)}
+            className="px-6 py-3 rounded-lg font-bold text-white"
+            style={{ backgroundColor: theme.primary }}
+          >
+            অর্ডার করুন
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// MODAL: Cart & Checkout - Popup with COD Form
+// ============================================================================
+function CartCheckoutModal({ 
+  isOpen, 
+  onClose,
+  items,
+  onUpdateQuantity,
+  onRemoveItem,
+  businessInfo,
+  socialLinks,
+}: { 
+  isOpen: boolean;
+  onClose: () => void;
+  items: any[];
+  onUpdateQuantity: (id: number, qty: number) => void;
+  onRemoveItem: (id: number) => void;
+  businessInfo?: any;
+  socialLinks?: any;
+}) {
+  const theme = GHORER_BAZAR_THEME;
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    address: '',
+    note: '',
+  });
+  const [deliveryZone, setDeliveryZone] = useState('dhaka');
+  const [couponCode, setCouponCode] = useState('');
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
+
+  const deliveryCharges: Record<string, number> = {
+    dhaka: 70,
+    chittagong: 70,
+    outside: 130,
+  };
+
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const deliveryCharge = deliveryCharges[deliveryZone];
+  const discount = couponApplied ? Math.round(subtotal * 0.1) : 0;
+  const total = subtotal + deliveryCharge - discount;
+
+  const handleApplyCoupon = () => {
+    if (couponCode.toUpperCase() === 'DEMO10') {
+      setCouponApplied(true);
+    } else {
+      alert('কুপন কোড সঠিক নয়। DEMO10 ট্রাই করুন।');
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setOrderSuccess(true);
+    }, 1500);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[500]" style={{ fontFamily: GHORER_BAZAR_FONTS.body }}>
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+
+      {/* Modal */}
+      <div className="absolute inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg bg-white rounded-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        {/* Header */}
+        <div 
+          className="px-5 py-4 flex items-center justify-between"
+          style={{ backgroundColor: theme.primary }}
+        >
+          <h2 className="text-lg font-bold text-white">
+            {orderSuccess ? 'অর্ডার সফল!' : 'ক্যাশ অন ডেলিভারিতে অর্ডার করুন'}
+          </h2>
+          <button onClick={onClose} className="p-1 text-white hover:bg-white/20 rounded-lg">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-5">
+          {orderSuccess ? (
+            <div className="text-center py-8">
+              <div 
+                className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
+                style={{ backgroundColor: theme.primaryLight }}
+              >
+                <Check className="w-10 h-10" style={{ color: theme.primary }} />
+              </div>
+              <h3 className="text-xl font-bold mb-2" style={{ color: theme.text }}>
+                ধন্যবাদ! 🎉
+              </h3>
+              <p className="mb-4" style={{ color: theme.textSecondary }}>
+                আপনার অর্ডার সফলভাবে গ্রহণ করা হয়েছে।<br />
+                শীঘ্রই আমরা আপনার সাথে যোগাযোগ করব।
+              </p>
+              <p className="text-sm mb-6 px-4 py-2 rounded-lg inline-block" style={{ backgroundColor: theme.primaryLight, color: theme.primary }}>
+                এটি ডেমো - কোনো অর্ডার তৈরি হয়নি
+              </p>
+              <button 
+                onClick={() => { setOrderSuccess(false); onClose(); }}
+                className="px-8 py-3 rounded-lg font-bold text-white"
+                style={{ backgroundColor: theme.primary }}
+              >
+                ঠিক আছে
+              </button>
+            </div>
+          ) : items.length === 0 ? (
+            <div className="text-center py-8">
+              <ShoppingCart className="w-16 h-16 mx-auto mb-4 opacity-30" style={{ color: theme.textMuted }} />
+              <p style={{ color: theme.textMuted }}>আপনার কার্ট খালি</p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Order Items */}
+              <div className="space-y-3">
+                {items.map(item => (
+                  <div key={item.id} className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: theme.background }}>
+                    <img src={item.imageUrl} alt={item.title} className="w-16 h-16 object-contain rounded-lg bg-white" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm line-clamp-1" style={{ color: theme.text }}>{item.title}</p>
+                      <p className="text-sm" style={{ color: theme.primary }}>৳{item.price}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <button type="button" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)} className="w-6 h-6 rounded border flex items-center justify-center" style={{ borderColor: theme.border }}>
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <span className="text-sm w-6 text-center">{item.quantity}</span>
+                        <button type="button" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)} className="w-6 h-6 rounded border flex items-center justify-center" style={{ borderColor: theme.border }}>
+                          <Plus className="w-3 h-3" />
+                        </button>
+                        <button type="button" onClick={() => onRemoveItem(item.id)} className="ml-2 text-red-500">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <p className="font-bold text-sm" style={{ color: theme.text }}>৳{item.price * item.quantity}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Customer Info */}
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>নাম *</label>
+                  <input type="text" required value={formData.name} onChange={(e) => setFormData(p => ({ ...p, name: e.target.value }))} placeholder="আপনার নাম" className="w-full px-3 py-2.5 rounded-lg border focus:outline-none focus:ring-2" style={{ borderColor: theme.border }} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>ফোন নম্বর *</label>
+                  <input type="tel" required value={formData.phone} onChange={(e) => setFormData(p => ({ ...p, phone: e.target.value }))} placeholder="01XXXXXXXXX" className="w-full px-3 py-2.5 rounded-lg border focus:outline-none focus:ring-2" style={{ borderColor: theme.border }} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>ঠিকানা *</label>
+                  <textarea required rows={2} value={formData.address} onChange={(e) => setFormData(p => ({ ...p, address: e.target.value }))} placeholder="বাড়ি, রাস্তা, এলাকা, শহর" className="w-full px-3 py-2.5 rounded-lg border focus:outline-none focus:ring-2" style={{ borderColor: theme.border }} />
+                </div>
+              </div>
+
+              {/* Delivery Zone */}
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: theme.text }}>ডেলিভারি এলাকা</label>
+                <div className="space-y-2">
+                  {[
+                    { id: 'dhaka', label: 'ঢাকা সিটি', cost: 70 },
+                    { id: 'chittagong', label: 'চট্টগ্রাম সিটি', cost: 70 },
+                    { id: 'outside', label: 'অন্যান্য এলাকা', cost: 130 },
+                  ].map(zone => (
+                    <label key={zone.id} className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer ${deliveryZone === zone.id ? 'ring-2' : ''}`} style={{ borderColor: deliveryZone === zone.id ? theme.primary : theme.border, ringColor: theme.primary }}>
+                      <div className="flex items-center gap-2">
+                        <input type="radio" name="delivery" value={zone.id} checked={deliveryZone === zone.id} onChange={() => setDeliveryZone(zone.id)} className="accent-orange-500" />
+                        <span className="text-sm">{zone.label}</span>
+                      </div>
+                      <span className="text-sm font-medium">৳{zone.cost}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Coupon */}
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>কুপন কোড</label>
+                <div className="flex gap-2">
+                  <input type="text" value={couponCode} onChange={(e) => setCouponCode(e.target.value)} placeholder="কুপন কোড" disabled={couponApplied} className="flex-1 px-3 py-2.5 rounded-lg border focus:outline-none disabled:bg-gray-100" style={{ borderColor: couponApplied ? '#22c55e' : theme.border }} />
+                  <button type="button" onClick={handleApplyCoupon} disabled={couponApplied} className="px-4 py-2.5 rounded-lg font-medium text-white disabled:opacity-50" style={{ backgroundColor: theme.primary }}>
+                    {couponApplied ? '✓' : 'Apply'}
+                  </button>
+                </div>
+                {couponApplied && <p className="text-xs mt-1 text-green-600">✓ ১০% ছাড় প্রয়োগ হয়েছে!</p>}
+              </div>
+
+              {/* Order Note */}
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>অর্ডার নোট (ঐচ্ছিক)</label>
+                <input type="text" value={formData.note} onChange={(e) => setFormData(p => ({ ...p, note: e.target.value }))} placeholder="বিশেষ কোনো নির্দেশনা" className="w-full px-3 py-2.5 rounded-lg border focus:outline-none" style={{ borderColor: theme.border }} />
+              </div>
+
+              {/* Upsell Checkbox */}
+              <label className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer" style={{ borderColor: theme.border }}>
+                <input type="checkbox" className="mt-1 accent-orange-500" />
+                <div>
+                  <p className="text-sm font-medium" style={{ color: theme.text }}>অতিরিক্ত পণ্য যোগ করুন</p>
+                  <p className="text-xs" style={{ color: theme.textMuted }}>সুন্দরবনের মধু ২৫০গ্রাম (+৳১৯৯)</p>
+                </div>
+              </label>
+
+              {/* Order Summary */}
+              <div className="p-4 rounded-xl" style={{ backgroundColor: theme.background }}>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between" style={{ color: theme.textSecondary }}>
+                    <span>সাবটোটাল</span>
+                    <span>৳{subtotal.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between" style={{ color: theme.textSecondary }}>
+                    <span>ডেলিভারি চার্জ</span>
+                    <span>৳{deliveryCharge}</span>
+                  </div>
+                  {couponApplied && (
+                    <div className="flex justify-between text-green-600">
+                      <span>ডিসকাউন্ট (১০%)</span>
+                      <span>-৳{discount}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-bold text-lg pt-2 border-t" style={{ borderColor: theme.border, color: theme.text }}>
+                    <span>মোট</span>
+                    <span style={{ color: theme.primary }}>৳{total.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="space-y-2">
+                <button type="submit" disabled={isSubmitting} className="w-full py-3.5 rounded-lg font-bold text-white transition hover:opacity-90 disabled:opacity-50" style={{ backgroundColor: theme.primary }}>
+                  {isSubmitting ? 'অর্ডার প্রসেস হচ্ছে...' : 'অর্ডার কনফার্ম করুন'}
+                </button>
+                <button type="button" onClick={() => alert('অনলাইন পেমেন্ট শীঘ্রই আসছে!')} className="w-full py-3.5 rounded-lg font-bold transition hover:opacity-90" style={{ backgroundColor: '#fbbf24', color: theme.secondary }}>
+                  💳 Pay Online (bKash/Nagad)
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // PAGE: About Us - Brand Story, Village Sourcing, Trust
 // ============================================================================
 function AboutPage({ storeName, businessInfo }: { storeName: string; businessInfo?: any }) {
@@ -907,6 +1436,287 @@ function FAQPage() {
 }
 
 // ============================================================================
+// PAGE: Search Results
+// ============================================================================
+function SearchResultsPage({ 
+  query, 
+  results,
+  onProductClick,
+  onAddToCart,
+}: { 
+  query: string;
+  results: SerializedProduct[];
+  onProductClick: (product: SerializedProduct) => void;
+  onAddToCart: (product: SerializedProduct, qty: number) => void;
+}) {
+  const theme = GHORER_BAZAR_THEME;
+  const [searchInput, setSearchInput] = useState(query);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchInput.trim()) {
+      window.location.href = `?search=${encodeURIComponent(searchInput.trim())}`;
+    }
+  };
+
+  return (
+    <div style={{ backgroundColor: theme.background }}>
+      {/* Search Header */}
+      <div className="py-8 px-4" style={{ backgroundColor: theme.primaryLight }}>
+        <div className="max-w-2xl mx-auto">
+          <form onSubmit={handleSearch} className="relative">
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="পণ্য খুঁজুন..."
+              className="w-full px-5 py-4 pr-14 rounded-xl border-2 focus:outline-none text-lg"
+              style={{ borderColor: theme.primary }}
+            />
+            <button 
+              type="submit"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-lg text-white"
+              style={{ backgroundColor: theme.primary }}
+            >
+              <Search className="w-5 h-5" />
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* Results */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <h1 className="text-xl font-bold mb-2" style={{ color: theme.text }}>
+          "{query}" এর জন্য সার্চ রেজাল্ট
+        </h1>
+        <p className="mb-6" style={{ color: theme.textMuted }}>
+          {results.length}টি পণ্য পাওয়া গেছে
+        </p>
+
+        {results.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+            {results.map(product => (
+              <GhorerBazarProductCard 
+                key={product.id} 
+                product={product} 
+                onProductClick={onProductClick}
+                onQuickAdd={(item) => onAddToCart(item, 1)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4">🔍</div>
+            <h2 className="text-xl font-bold mb-2" style={{ color: theme.text }}>
+              কোনো পণ্য পাওয়া যায়নি
+            </h2>
+            <p className="mb-6" style={{ color: theme.textMuted }}>
+              অন্য কিছু দিয়ে সার্চ করুন
+            </p>
+            <a 
+              href="?page=home"
+              className="inline-block px-6 py-3 rounded-lg font-medium text-white"
+              style={{ backgroundColor: theme.primary }}
+            >
+              সব পণ্য দেখুন
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// PAGE: Account - Login/Register with Phone OTP
+// ============================================================================
+function AccountPage() {
+  const theme = GHORER_BAZAR_THEME;
+  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
+  const [step, setStep] = useState<'phone' | 'otp' | 'success'>('phone');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSendOTP = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!phone || phone.length < 11) {
+      alert('সঠিক মোবাইল নম্বর দিন');
+      return;
+    }
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      setStep('otp');
+    }, 1000);
+  };
+
+  const handleVerifyOTP = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp.length < 4) {
+      alert('সঠিক OTP দিন');
+      return;
+    }
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      setStep('success');
+    }, 1000);
+  };
+
+  return (
+    <div style={{ backgroundColor: theme.background }} className="min-h-[70vh] flex items-center justify-center py-12 px-4">
+      <div className="w-full max-w-md">
+        {step === 'success' ? (
+          <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
+            <div 
+              className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
+              style={{ backgroundColor: theme.primaryLight }}
+            >
+              <Check className="w-10 h-10" style={{ color: theme.primary }} />
+            </div>
+            <h2 className="text-xl font-bold mb-2" style={{ color: theme.text }}>
+              সফলভাবে {activeTab === 'login' ? 'লগইন' : 'রেজিস্ট্রেশন'} হয়েছে!
+            </h2>
+            <p className="mb-6" style={{ color: theme.textMuted }}>
+              এটি ডেমো - কোনো অ্যাকাউন্ট তৈরি হয়নি
+            </p>
+            <a 
+              href="/"
+              className="inline-block px-8 py-3 rounded-lg font-bold text-white"
+              style={{ backgroundColor: theme.primary }}
+            >
+              শপিং করুন
+            </a>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+            {/* Tabs */}
+            <div className="flex border-b" style={{ borderColor: theme.border }}>
+              <button
+                onClick={() => { setActiveTab('login'); setStep('phone'); }}
+                className={`flex-1 py-4 font-medium text-center transition ${activeTab === 'login' ? 'border-b-2' : ''}`}
+                style={{ 
+                  borderColor: activeTab === 'login' ? theme.primary : 'transparent',
+                  color: activeTab === 'login' ? theme.primary : theme.textMuted,
+                }}
+              >
+                লগইন
+              </button>
+              <button
+                onClick={() => { setActiveTab('register'); setStep('phone'); }}
+                className={`flex-1 py-4 font-medium text-center transition ${activeTab === 'register' ? 'border-b-2' : ''}`}
+                style={{ 
+                  borderColor: activeTab === 'register' ? theme.primary : 'transparent',
+                  color: activeTab === 'register' ? theme.primary : theme.textMuted,
+                }}
+              >
+                রেজিস্টার
+              </button>
+            </div>
+
+            {/* Form */}
+            <div className="p-6">
+              <h2 className="text-xl font-bold mb-6 text-center" style={{ color: theme.text }}>
+                {activeTab === 'login' ? 'আপনার অ্যাকাউন্টে লগইন করুন' : 'নতুন অ্যাকাউন্ট তৈরি করুন'}
+              </h2>
+
+              {step === 'phone' ? (
+                <form onSubmit={handleSendOTP} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: theme.text }}>
+                      মোবাইল নম্বর
+                    </label>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="01XXXXXXXXX"
+                      maxLength={11}
+                      className="w-full px-4 py-3 rounded-lg border text-lg focus:outline-none focus:ring-2"
+                      style={{ borderColor: theme.border }}
+                    />
+                    <p className="text-xs mt-1" style={{ color: theme.textMuted }}>
+                      আমরা এই নম্বরে OTP পাঠাব
+                    </p>
+                  </div>
+
+                  {activeTab === 'register' && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2" style={{ color: theme.text }}>
+                        আপনার নাম
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="সম্পূর্ণ নাম"
+                        className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
+                        style={{ borderColor: theme.border }}
+                      />
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-3.5 rounded-lg font-bold text-white transition hover:opacity-90 disabled:opacity-50"
+                    style={{ backgroundColor: theme.primary }}
+                  >
+                    {isLoading ? 'অপেক্ষা করুন...' : 'OTP পাঠান'}
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyOTP} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: theme.text }}>
+                      OTP কোড
+                    </label>
+                    <input
+                      type="text"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                      placeholder="XXXX"
+                      maxLength={6}
+                      className="w-full px-4 py-3 rounded-lg border text-center text-2xl tracking-widest font-mono focus:outline-none focus:ring-2"
+                      style={{ borderColor: theme.border }}
+                    />
+                    <p className="text-xs mt-2 text-center" style={{ color: theme.textMuted }}>
+                      {phone} নম্বরে পাঠানো OTP দিন
+                    </p>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-3.5 rounded-lg font-bold text-white transition hover:opacity-90 disabled:opacity-50"
+                    style={{ backgroundColor: theme.primary }}
+                  >
+                    {isLoading ? 'যাচাই হচ্ছে...' : 'যাচাই করুন'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setStep('phone')}
+                    className="w-full py-2 text-sm font-medium"
+                    style={{ color: theme.primary }}
+                  >
+                    নম্বর পরিবর্তন করুন
+                  </button>
+                </form>
+              )}
+
+              {/* Demo Note */}
+              <p className="text-xs text-center mt-6 px-4 py-2 rounded-lg" style={{ backgroundColor: theme.primaryLight, color: theme.textMuted }}>
+                ডেমো: যেকোনো নম্বর ও OTP দিয়ে টেস্ট করুন
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // PAGE: Contact - Phone, WhatsApp, Contact Form
 // ============================================================================
 function ContactPage({ businessInfo, socialLinks }: { businessInfo?: any; socialLinks?: any }) {
@@ -1118,12 +1928,14 @@ function ContactPage({ businessInfo, socialLinks }: { businessInfo?: any; social
 function ProductsSection({ 
   title, 
   products, 
-  isPreview,
+  onProductClick,
+  onQuickAdd,
   viewAllLink = '/'
 }: { 
   title: string; 
   products: SerializedProduct[]; 
-  isPreview?: boolean;
+  onProductClick?: (product: SerializedProduct) => void;
+  onQuickAdd?: (product: SerializedProduct) => void;
   viewAllLink?: string;
 }) {
   const theme = GHORER_BAZAR_THEME;
@@ -1156,7 +1968,8 @@ function ProductsSection({
             <GhorerBazarProductCard 
               key={product.id} 
               product={product} 
-              isPreview={isPreview}
+              onProductClick={onProductClick}
+              onQuickAdd={onQuickAdd}
             />
           ))}
         </div>
@@ -1171,11 +1984,13 @@ function ProductsSection({
 function RecommendationSection({ 
   title, 
   products, 
-  isPreview 
+  onProductClick,
+  onQuickAdd,
 }: { 
   title: string; 
   products: SerializedProduct[]; 
-  isPreview?: boolean;
+  onProductClick?: (product: SerializedProduct) => void;
+  onQuickAdd?: (product: SerializedProduct) => void;
 }) {
   const theme = GHORER_BAZAR_THEME;
   
@@ -1197,10 +2012,145 @@ function RecommendationSection({
             <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
               <GhorerBazarProductCard 
                 product={product} 
-                isPreview={isPreview}
+                onProductClick={onProductClick}
+                onQuickAdd={onQuickAdd}
               />
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================================
+// CATEGORY SHORTCUT SECTION - Icon Cards
+// ============================================================================
+function CategoryShortcutSection({ 
+  categories,
+  onCategorySelect,
+}: { 
+  categories: string[];
+  onCategorySelect: (category: string) => void;
+}) {
+  const theme = GHORER_BAZAR_THEME;
+  const icons = ['🛢️', '🥜', '🍯', '🧈', '🍵', '🥭', '🌿', '🥗', '🫘', '🍬', '🫙', '🥘'];
+
+  return (
+    <section className="py-8 px-4 bg-white">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3">
+          {categories.slice(0, 12).map((category, index) => (
+            <button
+              key={category}
+              onClick={() => onCategorySelect(category)}
+              className="flex flex-col items-center gap-2 p-3 rounded-xl border hover:shadow-sm transition"
+              style={{ borderColor: theme.border }}
+            >
+              <div className="text-2xl">{icons[index % icons.length]}</div>
+              <span className="text-xs font-medium text-center" style={{ color: theme.text }}>
+                {category}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================================
+// CATEGORY LISTING - Breadcrumb + Sorting
+// ============================================================================
+function CategoryListingSection({
+  category,
+  products,
+  onProductClick,
+  onQuickAdd,
+}: {
+  category: string;
+  products: SerializedProduct[];
+  onProductClick: (product: SerializedProduct) => void;
+  onQuickAdd: (product: SerializedProduct) => void;
+}) {
+  const theme = GHORER_BAZAR_THEME;
+  const [sortBy, setSortBy] = useState('latest');
+
+  const sortedProducts = [...products].sort((a, b) => {
+    switch (sortBy) {
+      case 'price-low': return a.price - b.price;
+      case 'price-high': return b.price - a.price;
+      default: return b.id - a.id;
+    }
+  });
+
+  return (
+    <section className="py-6 px-4 bg-white">
+      <div className="max-w-7xl mx-auto">
+        {/* Breadcrumb */}
+        <div className="text-sm mb-4" style={{ color: theme.textMuted }}>
+          Home / {category}
+        </div>
+
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold" style={{ color: theme.text }}>
+            {category}
+          </h1>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="px-3 py-2 rounded-lg border text-sm"
+            style={{ borderColor: theme.border }}
+          >
+            <option value="latest">Latest</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+          </select>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+          {sortedProducts.map(product => (
+            <GhorerBazarProductCard
+              key={product.id}
+              product={product}
+              onProductClick={onProductClick}
+              onQuickAdd={onQuickAdd}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================================
+// TRUST BADGES SECTION
+// ============================================================================
+function TrustBadgesSection() {
+  const theme = GHORER_BAZAR_THEME;
+  return (
+    <section className="py-8 px-4 bg-white">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="flex items-center gap-4 p-4 rounded-xl border" style={{ borderColor: theme.border }}>
+          <div className="text-3xl">📦</div>
+          <div>
+            <h3 className="font-semibold" style={{ color: theme.text }}>Safe Packaging</h3>
+            <p className="text-sm" style={{ color: theme.textMuted }}>নিরাপদ প্যাকেজিং</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 p-4 rounded-xl border" style={{ borderColor: theme.border }}>
+          <div className="text-3xl">🚚</div>
+          <div>
+            <h3 className="font-semibold" style={{ color: theme.text }}>Fast Delivery</h3>
+            <p className="text-sm" style={{ color: theme.textMuted }}>দ্রুত ডেলিভারি</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 p-4 rounded-xl border" style={{ borderColor: theme.border }}>
+          <div className="text-3xl">🌿</div>
+          <div>
+            <h3 className="font-semibold" style={{ color: theme.text }}>100% Natural</h3>
+            <p className="text-sm" style={{ color: theme.textMuted }}>১০০% প্রাকৃতিক</p>
+          </div>
         </div>
       </div>
     </section>
@@ -1259,7 +2209,7 @@ function CategoryBadges({
 // ============================================================================
 // PAGE TYPES
 // ============================================================================
-type PageType = 'home' | 'about' | 'faq' | 'contact';
+type PageType = 'home' | 'about' | 'faq' | 'contact' | 'product' | 'cart' | 'account';
 
 // ============================================================================
 export function GhorerBazarTemplate({
@@ -1280,16 +2230,82 @@ export function GhorerBazarTemplate({
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryFilter = searchParams.get('category') || currentCategory;
   const currentPage = (searchParams.get('page') as PageType) || 'home';
+  const productId = searchParams.get('product');
+  const searchQuery = searchParams.get('search') || '';
   const theme = GHORER_BAZAR_THEME;
   
+  // Cart state
+  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+  
+  // Get current product for detail page
+  const currentProduct = productId ? products.find(p => p.id === Number(productId)) : null;
+  
+  // Search results
+  const searchResults = searchQuery 
+    ? products.filter(p => 
+        p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.category?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : [];
+  
+  // Cart functions
+  const addToCart = (product: SerializedProduct, qty: number = 1) => {
+    setCartItems(prev => {
+      const existing = prev.find(item => item.id === product.id);
+      if (existing) {
+        return prev.map(item => 
+          item.id === product.id 
+            ? { ...item, quantity: item.quantity + qty }
+            : item
+        );
+      }
+      return [...prev, { ...product, quantity: qty }];
+    });
+    setCartOpen(true);
+  };
+  
+  const updateCartQuantity = (id: number, qty: number) => {
+    if (qty <= 0) {
+      setCartItems(prev => prev.filter(item => item.id !== id));
+    } else {
+      setCartItems(prev => prev.map(item => 
+        item.id === id ? { ...item, quantity: qty } : item
+      ));
+    }
+  };
+  
+  const removeFromCart = (id: number) => {
+    setCartItems(prev => prev.filter(item => item.id !== id));
+  };
+  
   // Navigate to a page
-  const navigateTo = (page: PageType) => {
+  const navigateTo = (page: PageType, params?: Record<string, string>) => {
     const newParams = new URLSearchParams();
     if (page !== 'home') {
       newParams.set('page', page);
     }
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        newParams.set(key, value);
+      });
+    }
     setSearchParams(newParams);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  
+  // Navigate to product
+  const goToProduct = (product: SerializedProduct) => {
+    const newParams = new URLSearchParams();
+    newParams.set('product', String(product.id));
+    setSearchParams(newParams);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  
+  // Buy now (add to cart and open checkout)
+  const buyNow = (product: SerializedProduct, qty: number) => {
+    addToCart(product, qty);
+    setCartOpen(true);
   };
 
   // Filter products by category
@@ -1323,28 +2339,59 @@ export function GhorerBazarTemplate({
           currentCategory={categoryFilter}
           socialLinks={socialLinks}
           businessInfo={businessInfo}
-          onCartClick={() => {}}
+          onCartClick={() => setCartOpen(true)}
         />
 
         {/* Main Content */}
         <main>
+          {/* Product Detail Page */}
+          {currentProduct && (
+            <ProductDetailPage 
+              product={currentProduct}
+              products={products}
+              onAddToCart={addToCart}
+              onBuyNow={buyNow}
+              onProductClick={goToProduct}
+              businessInfo={businessInfo}
+              socialLinks={socialLinks}
+            />
+          )}
+          
+          {/* Search Results Page */}
+          {searchQuery && !currentProduct && (
+            <SearchResultsPage 
+              query={searchQuery}
+              results={searchResults}
+              onProductClick={goToProduct}
+              onAddToCart={addToCart}
+            />
+          )}
+          
+          {/* Account Page */}
+          {currentPage === 'account' && (
+            <AccountPage />
+          )}
+          
           {/* Static Pages */}
-          {currentPage === 'about' && (
+          {!currentProduct && !searchQuery && currentPage === 'about' && (
             <AboutPage storeName={storeName} businessInfo={businessInfo} />
           )}
-          {currentPage === 'faq' && (
+          {!currentProduct && !searchQuery && currentPage === 'faq' && (
             <FAQPage />
           )}
-          {currentPage === 'contact' && (
+          {!currentProduct && !searchQuery && currentPage === 'contact' && (
             <ContactPage businessInfo={businessInfo} socialLinks={socialLinks} />
           )}
           
-          {/* Home/Shop Content - Only show when on home page */}
-          {currentPage === 'home' && (
+          {/* Home/Shop Content - Only show when on home page and no product/search */}
+          {currentPage === 'home' && !currentProduct && !searchQuery && (
             <>
-              {/* Show Hero only when not filtering */}
+              {/* Hero + Category Shortcuts */}
               {!categoryFilter && (
-                <HeroSection storeName={storeName} config={config} />
+                <>
+                  <HeroSection storeName={storeName} config={config} />
+                  <CategoryShortcutSection categories={validCategories} onCategorySelect={(cat) => setSearchParams(new URLSearchParams({ category: cat }))} />
+                </>
               )}
 
               {/* Category Badges for Mobile */}
@@ -1353,64 +2400,57 @@ export function GhorerBazarTemplate({
                 currentCategory={categoryFilter}
               />
 
-          {/* Category Header when filtering */}
-          {categoryFilter && (
-            <div className="py-6 px-4 bg-white">
-              <div className="max-w-7xl mx-auto">
-                <h1 
-                  className="text-2xl font-bold"
-                  style={{ color: theme.text, fontFamily: GHORER_BAZAR_FONTS.heading }}
-                >
-                  {categoryFilter}
-                </h1>
-                <p className="text-sm mt-1" style={{ color: theme.textMuted }}>
-                  {filteredProducts.length}টি পণ্য পাওয়া গেছে
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Products */}
-          {categoryFilter ? (
-            <ProductsSection 
-              title={`${categoryFilter} (${filteredProducts.length})`}
-              products={filteredProducts}
-              isPreview={isPreview}
-            />
-          ) : (
-            <>
-              {/* Featured / All Products */}
-              <ProductsSection 
-                title="ALL PRODUCT"
-                products={featuredProducts}
-                isPreview={isPreview}
-              />
-              
-              {/* More Products */}
-              {moreProducts.length > 0 && (
-                <ProductsSection 
-                  title="আরও পণ্য"
-                  products={moreProducts}
-                  isPreview={isPreview}
+              {/* Category Listing */}
+              {categoryFilter ? (
+                <CategoryListingSection
+                  category={categoryFilter}
+                  products={filteredProducts}
+                  onProductClick={goToProduct}
+                  onQuickAdd={(item) => addToCart(item, 1)}
                 />
-              )}
+              ) : (
+                <>
+                  {/* ALL PRODUCT */}
+                  <ProductsSection 
+                    title="ALL PRODUCT"
+                    products={featuredProducts}
+                    onProductClick={goToProduct}
+                    onQuickAdd={(item) => addToCart(item, 1)}
+                  />
+                  
+                  {/* More Products */}
+                  {moreProducts.length > 0 && (
+                    <ProductsSection 
+                      title="আরও পণ্য"
+                      products={moreProducts}
+                      onProductClick={goToProduct}
+                      onQuickAdd={(item) => addToCart(item, 1)}
+                    />
+                  )}
 
-              {/* Recommendations */}
-              {recommendedProducts.length > 0 && (
-                <RecommendationSection 
-                  title="You Might Also Like"
-                  products={recommendedProducts}
-                  isPreview={isPreview}
-                />
-              )}
+                  {/* Recommendations */}
+                  {recommendedProducts.length > 0 && (
+                    <RecommendationSection 
+                      title="You Might Also Like"
+                      products={recommendedProducts}
+                      onProductClick={goToProduct}
+                      onQuickAdd={(item) => addToCart(item, 1)}
+                    />
+                  )}
 
-              {/* All remaining products */}
-              {!categoryFilter && products.length > 21 && (
-                <ProductsSection 
-                  title="Recently Viewed Products"
-                  products={products.slice(21, 29)}
-                  isPreview={isPreview}
-                />
+                  {/* Trust Badges */}
+                  <TrustBadgesSection />
+
+                  {/* Recently Viewed */}
+                  {products.length > 21 && (
+                    <ProductsSection 
+                      title="Recently Viewed Products"
+                      products={products.slice(21, 29)}
+                      onProductClick={goToProduct}
+                      onQuickAdd={(item) => addToCart(item, 1)}
+                    />
+                  )}
+                </>
               )}
             </>
           )}
@@ -1427,8 +2467,16 @@ export function GhorerBazarTemplate({
           planType={planType}
         />
 
-        {/* Cart Modal */}
-        <CartModal businessInfo={businessInfo} socialLinks={socialLinks} />
+        {/* Cart Checkout Modal */}
+        <CartCheckoutModal
+          isOpen={cartOpen}
+          onClose={() => setCartOpen(false)}
+          items={cartItems}
+          onUpdateQuantity={updateCartQuantity}
+          onRemoveItem={removeFromCart}
+          businessInfo={businessInfo}
+          socialLinks={socialLinks}
+        />
       </div>
     </CartProvider>
   );
