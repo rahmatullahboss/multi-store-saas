@@ -95,13 +95,13 @@ export default function ThankYouPage() {
     console.log('[Tracking] Purchase event fired:', order.orderNumber, order.total);
   }, [order, items, currency]);
 
-  const formatPrice = (priceInCents: number) => {
-    const displayPrice = priceInCents / 100;
+  const formatPrice = (price: number) => {
+    // Prices are stored in Taka (not cents)
     return new Intl.NumberFormat('bn-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
-    }).format(displayPrice);
+    }).format(price);
   };
 
   const formatDate = (date: string | Date) => {

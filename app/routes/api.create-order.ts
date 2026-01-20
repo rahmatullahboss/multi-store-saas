@@ -175,6 +175,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     if (!parseResult.success) {
       const errors = parseResult.error.flatten();
+      console.error('[VALIDATION] Order validation failed:', JSON.stringify(errors.fieldErrors));
       return json(
         {
           success: false,
