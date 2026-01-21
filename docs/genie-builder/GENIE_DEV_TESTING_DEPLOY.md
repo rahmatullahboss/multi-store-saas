@@ -1,4 +1,4 @@
-# QUICK_BUILDER_DEV_TESTING_DEPLOY.md
+# GENIE_DEV_TESTING_DEPLOY.md
 
 Ekta comprehensive guide for testing, debugging, deploying, aar code style enforcement for the Page Builder Worker at `apps/page-builder`.
 

@@ -22,7 +22,8 @@ import {
   generateOptimalSections, 
   generateDefaultContent,
   type Intent,
-  type QuickProduct 
+  type QuickProduct,
+  type StyleTokens,
 } from '~/utils/landing-builder/intentEngine';
 import { products } from '@db/schema';
 
@@ -95,12 +96,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return redirect(`/app/new-builder/${result.pageId}`);
     }
 
-    // NEW: Intent-based page creation from Quick Builder v2
+    // NEW: Intent-based page creation from Quick Builder v2 (Genie Builder)
     case 'create-from-intent': {
       const intentDataStr = formData.get('intentData') as string;
       const productStr = formData.get('product') as string;
       const productIdStr = formData.get('productId') as string;
       const templateId = formData.get('templateId') as string;
+      const styleTokensStr = formData.get('styleTokens') as string;
 
       if (!intentDataStr || !templateId) {
         return json({ error: 'Intent data and template are required' }, { status: 400 });
@@ -108,6 +110,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       try {
         const intentData: Intent = JSON.parse(intentDataStr);
+        const styleTokens: StyleTokens | undefined = styleTokensStr ? JSON.parse(styleTokensStr) : undefined;
         let product: QuickProduct | null = null;
         let linkedProductId: number | null = null;
 
@@ -182,6 +185,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           pageTitle,
           {
             intent: intentData,
+            styleTokens,
             optimizedSections,
             defaultContent,
             linkedProductId,
@@ -235,11 +239,13 @@ export default function NewBuilderIndex() {
     product: QuickProduct | null;
     productId: number | null;
     templateId: string;
+    styleTokens: StyleTokens;
   }) => {
     const formData = new FormData();
     formData.append('intent', 'create-from-intent');
     formData.append('intentData', JSON.stringify(data.intent));
     formData.append('templateId', data.templateId);
+    formData.append('styleTokens', JSON.stringify(data.styleTokens));
     
     if (data.productId) {
       formData.append('productId', String(data.productId));

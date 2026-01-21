@@ -480,4 +480,25 @@ export const landing = {
   landingOrderBump_offDiscount: '{{discount}}% OFF',
   landingOrderBump_youAreSaving: 'You are saving {{savings}}!',
   landingOrderBump_addAndSave: 'Add these to save even more!',
+
+  // BentoFeaturesSection
+  bentoBadge: 'Features',
+  bentoMainTitle_part1: 'Powerful Features,', // "Powerful Features,"
+  bentoMainTitle_part2: 'Simple Interface',   // "Simple Interface"
+  bentoTemplateLibrary_title: 'Template Library',
+  bentoTemplateLibrary_desc: 'Professional Templates in one click',
+  bentoLivePreview_title: 'Live Preview',
+  bentoLivePreview_desc: 'Real-time Editing',
+  bentoDragDrop_title: 'Drag & Drop',
+  bentoDragDrop_desc: 'Section Rearrange',
+  bentoBanglaSupport_title: '🇧🇩 Bangla Support',
+  bentoBanglaSupport_main: 'Full Bengali', // Or "Fully in Bengali"
+  bentoBanglaSupport_sub: 'Interface and Support',
+  bentoMobileReady_title: 'Mobile Ready',
+  bentoAllInOne_title: 'All-in-One Platform',
+  bentoAllInOne_desc: 'E-commerce and Landing Page - Together',
+  bentoAllInOne_badge: 'ONE SUBSCRIPTION',
+  bentoComingSoon_badge: 'Coming Soon',
+  bentoComingSoon_desc: 'Drag & Drop Builder, AI Content, Payment Gateway and much more...',
+  bentoComingSoon_placeholder: 'Email for updates',
 };

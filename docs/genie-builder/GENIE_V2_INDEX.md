@@ -1,12 +1,35 @@
-# Quick Builder v2 - Documentation Index
+# ✨ Genie - The Quick Builder
 
-Welcome! This is your central hub for Quick Builder v2 implementation documentation. Below you'll find all resources organized by type.
+> ম্যাজিক্যালি হাই-কনভার্টিং ল্যান্ডিং পেইজ তৈরি করুন
+
+## 🎯 Current Status: v2.1 - Production Ready ✅
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Intent Wizard (4-step) | ✅ Complete | Step 1: Intent, Step 2: Product, Step 3: Style, Step 4: Template |
+| Intent Engine | ✅ Complete | Auto-generates sections & content based on intent |
+| Style Preferences | ✅ Complete | Brand color, button style, font family |
+| Section Variants | ✅ Complete | Database column added, UI integrated |
+| Intent Persistence | ✅ Complete | `intent_json` & `style_tokens_json` in `builder_pages` |
+| Template Previews | ✅ Complete | Visual gradient + emoji previews |
+| New Builder Integration | ✅ Complete | Accessible via `/app/new-builder` |
+
+### Latest Changes (2026-01-21):
+- Added `variant` column to `builder_sections` table
+- Added `intent_json` and `style_tokens_json` columns to `builder_pages`
+- Added Step 3 (Style Preferences) to IntentWizard
+- Updated wizard to 4-step flow
+- Migration: `db/migrations/0064_genie_builder_enhancements.sql`
+
+---
+
+Welcome! This is your central hub for Genie (Quick Builder v2) implementation documentation. Below you'll find all resources organized by type.
 
 ---
 
 ## 📚 Core Documentation (4 Main Documents)
 
-### 1. **QUICK_BUILDER_V2_SPEC.md** - System Specification
+### 1. **GENIE_V2_SPEC.md** - System Specification
 **Purpose:** Complete overview of the Quick Builder v2 system  
 **Read this if:** You want to understand what we're building and why
 
@@ -33,7 +56,7 @@ Welcome! This is your central hub for Quick Builder v2 implementation documentat
 
 ---
 
-### 2. **QUICK_BUILDER_IMPLEMENTATION_PHASES.md** - Implementation Plan
+### 2. **GENIE_IMPLEMENTATION_PHASES.md** - Implementation Plan
 **Purpose:** Detailed 4-week phased implementation breakdown  
 **Read this if:** You're planning development sprints or assigning work
 
@@ -56,7 +79,7 @@ Welcome! This is your central hub for Quick Builder v2 implementation documentat
 
 ---
 
-### 3. **QUICK_BUILDER_USER_GUIDE.md** - User Guide (NEW!)
+### 3. **GENIE_USER_GUIDE.md** - User Guide (NEW!)
 **Purpose:** Step-by-step guide for using Quick Builder v2  
 **Read this if:** You want to learn how to use the system
 
@@ -71,7 +94,7 @@ Welcome! This is your central hub for Quick Builder v2 implementation documentat
 
 ---
 
-### 4. **QUICK_BUILDER_TECHNICAL_GUIDE.md** - Implementation Details
+### 4. **GENIE_TECHNICAL_GUIDE.md** - Implementation Details
 **Purpose:** Code-level technical specifications  
 **Read this if:** You're starting to code or need architecture details
 
@@ -98,7 +121,7 @@ Welcome! This is your central hub for Quick Builder v2 implementation documentat
 
 ---
 
-### 4. **QUICK_BUILDER_V2_TESTING_CHECKLIST.md** - QA & Testing
+### 4. **GENIE_V2_TESTING_CHECKLIST.md** - QA & Testing
 **Purpose:** Comprehensive testing requirements for all phases  
 **Read this if:** You're responsible for QA or testing
 
@@ -133,7 +156,7 @@ Welcome! This is your central hub for Quick Builder v2 implementation documentat
 
 These focused guides get developers productive fast:
 
-### 5. **QUICK_BUILDER_DEV_SETUP.md** - Setup & Environment
+### 5. **GENIE_DEV_SETUP.md** - Setup & Environment
 **Purpose:** Get up and running in 5 minutes  
 **Read this if:** You're a new developer starting on this project
 
@@ -148,7 +171,7 @@ These focused guides get developers productive fast:
 
 ---
 
-### 6. **QUICK_BUILDER_DEV_IMPLEMENTATION.md** - Implementation Patterns
+### 6. **GENIE_DEV_IMPLEMENTATION.md** - Implementation Patterns
 **Purpose:** Code examples for common tasks  
 **Read this if:** You're implementing features and need code patterns
 
@@ -162,7 +185,7 @@ These focused guides get developers productive fast:
 
 ---
 
-### 7. **QUICK_BUILDER_DEV_TESTING_DEPLOY.md** - Testing & Deployment
+### 7. **GENIE_DEV_TESTING_DEPLOY.md** - Testing & Deployment
 **Purpose:** Testing, debugging, and deployment workflows  
 **Read this if:** You need to test, debug, or deploy changes
 
@@ -176,7 +199,7 @@ These focused guides get developers productive fast:
 
 ---
 
-### 8. **QUICK_BUILDER_UI_UX_GUIDE.md** - UI/UX Design Guide
+### 8. **GENIE_UI_UX_GUIDE.md** - UI/UX Design Guide
 **Purpose:** Design specifications and component library  
 **Read this if:** You're building UI components or need design reference
 
@@ -198,24 +221,24 @@ These focused guides get developers productive fast:
 
 Before diving into v2, review these existing guides:
 
-1. **docs/QUICK_BUILDER_MVP_GUIDE.md**
+1. **docs/GENIE_MVP_GUIDE.md**
    - Existing v1 features
    - Current section architecture
    - Template system
    - Deployment notes
 
-2. **docs/QUICK_BUILDER_GAP_ANALYSIS.md**
+2. **docs/GENIE_GAP_ANALYSIS.md**
    - Analysis of what's missing in v1
    - Completed features tracker
    - Feature status matrix
 
-3. **docs/QUICK_BUILDER_TEMPLATE_GUIDE.md**
+3. **docs/GENIE_TEMPLATE_GUIDE.md**
    - Template building instructions
    - 10 predefined templates
    - Template metadata
    - Component registry
 
-4. **docs/QUICK_BUILDER_TESTING.md**
+4. **docs/GENIE_TESTING.md**
    - Current v1 testing approach
    - E2E test structure
 
@@ -226,38 +249,38 @@ Before diving into v2, review these existing guides:
 ### For Different Roles
 
 #### **Product Manager**
-Start with: **QUICK_BUILDER_V2_SPEC.md**
+Start with: **GENIE_V2_SPEC.md**
 - Read: System Overview + Target Users + Feature List
 - Time: 15 minutes
 
 #### **Engineering Lead**
-Start with: **QUICK_BUILDER_IMPLEMENTATION_PHASES.md**
+Start with: **GENIE_IMPLEMENTATION_PHASES.md**
 - Read: All 4 phases with daily breakdowns
-- Cross-ref: **QUICK_BUILDER_TECHNICAL_GUIDE.md** for architecture
+- Cross-ref: **GENIE_TECHNICAL_GUIDE.md** for architecture
 - Time: 45 minutes
 
 #### **Frontend Developer**
-Start with: **QUICK_BUILDER_TECHNICAL_GUIDE.md**
+Start with: **GENIE_TECHNICAL_GUIDE.md**
 - Read: File Structure + Component Architecture + Interfaces
-- Cross-ref: **QUICK_BUILDER_IMPLEMENTATION_PHASES.md** for phase work
+- Cross-ref: **GENIE_IMPLEMENTATION_PHASES.md** for phase work
 - Time: 60 minutes
 
 #### **Backend Developer**
-Start with: **QUICK_BUILDER_TECHNICAL_GUIDE.md**
+Start with: **GENIE_TECHNICAL_GUIDE.md**
 - Read: API Routes + Database Schema + Utility Functions
-- Cross-ref: **QUICK_BUILDER_V2_SPEC.md** for API endpoints
+- Cross-ref: **GENIE_V2_SPEC.md** for API endpoints
 - Time: 45 minutes
 
 #### **QA / Tester**
-Start with: **QUICK_BUILDER_V2_TESTING_CHECKLIST.md**
+Start with: **GENIE_V2_TESTING_CHECKLIST.md**
 - Read: All sections
-- Cross-ref: **QUICK_BUILDER_V2_SPEC.md** for features
+- Cross-ref: **GENIE_V2_SPEC.md** for features
 - Time: 50 minutes
 
 #### **Designer**
-Start with: **QUICK_BUILDER_V2_SPEC.md**
+Start with: **GENIE_V2_SPEC.md**
 - Read: Core Principles + Section Variants
-- Cross-ref: **QUICK_BUILDER_TECHNICAL_GUIDE.md** for component list
+- Cross-ref: **GENIE_TECHNICAL_GUIDE.md** for component list
 - Time: 20 minutes
 
 ---
@@ -314,10 +337,10 @@ Start with: **QUICK_BUILDER_V2_SPEC.md**
 ### Week 0: Preparation & Alignment
 
 **Monday:**
-- [x] Product team: Review QUICK_BUILDER_V2_SPEC.md
-- [x] Engineering team: Review QUICK_BUILDER_IMPLEMENTATION_PHASES.md
+- [x] Product team: Review GENIE_V2_SPEC.md
+- [x] Engineering team: Review GENIE_IMPLEMENTATION_PHASES.md
 - [x] Design team: Review variant components section
-- [x] QA team: Review QUICK_BUILDER_V2_TESTING_CHECKLIST.md
+- [x] QA team: Review GENIE_V2_TESTING_CHECKLIST.md
 
 **Tuesday:**
 - [x] Team alignment meeting (30 min)
@@ -345,25 +368,25 @@ Start with: **QUICK_BUILDER_V2_SPEC.md**
 ## 📖 How to Use This Documentation
 
 ### If you're starting development:
-1. Read **QUICK_BUILDER_V2_SPEC.md** (system overview)
-2. Read **QUICK_BUILDER_TECHNICAL_GUIDE.md** (architecture)
-3. Read **QUICK_BUILDER_IMPLEMENTATION_PHASES.md** (your phase breakdown)
+1. Read **GENIE_V2_SPEC.md** (system overview)
+2. Read **GENIE_TECHNICAL_GUIDE.md** (architecture)
+3. Read **GENIE_IMPLEMENTATION_PHASES.md** (your phase breakdown)
 4. Start coding with your phase checklist
 
 ### If you're joining mid-project:
-1. Read **QUICK_BUILDER_V2_SPEC.md** (quick overview)
+1. Read **GENIE_V2_SPEC.md** (quick overview)
 2. Ask engineering lead: "Which phase are we in?"
-3. Read that phase in **QUICK_BUILDER_IMPLEMENTATION_PHASES.md**
-4. Read **QUICK_BUILDER_TECHNICAL_GUIDE.md** (reference)
+3. Read that phase in **GENIE_IMPLEMENTATION_PHASES.md**
+4. Read **GENIE_TECHNICAL_GUIDE.md** (reference)
 
 ### If you're testing:
-1. Read **QUICK_BUILDER_V2_TESTING_CHECKLIST.md** (full checklist)
-2. Read **QUICK_BUILDER_V2_SPEC.md** (feature details)
+1. Read **GENIE_V2_TESTING_CHECKLIST.md** (full checklist)
+2. Read **GENIE_V2_SPEC.md** (feature details)
 3. Create test cases from checklist
 4. Test each phase as it completes
 
 ### If you're reviewing code:
-1. Read **QUICK_BUILDER_TECHNICAL_GUIDE.md** (architecture)
+1. Read **GENIE_TECHNICAL_GUIDE.md** (architecture)
 2. Check: File structure matches
 3. Check: TypeScript interfaces match
 4. Check: API routes follow spec
@@ -424,12 +447,12 @@ By end of Phase 4 (Week 4), we should have:
 
 | Question | Answer Location |
 |----------|-----------------|
-| What are we building? | QUICK_BUILDER_V2_SPEC.md → System Overview |
-| When is launch? | QUICK_BUILDER_IMPLEMENTATION_PHASES.md → Week 4 |
-| What files do I create? | QUICK_BUILDER_TECHNICAL_GUIDE.md → File Structure |
-| What do I test? | QUICK_BUILDER_V2_TESTING_CHECKLIST.md |
-| What's the timeline? | QUICK_BUILDER_IMPLEMENTATION_PHASES.md → 4-week plan |
-| What are the APIs? | QUICK_BUILDER_V2_SPEC.md → API Endpoints |
+| What are we building? | GENIE_V2_SPEC.md → System Overview |
+| When is launch? | GENIE_IMPLEMENTATION_PHASES.md → Week 4 |
+| What files do I create? | GENIE_TECHNICAL_GUIDE.md → File Structure |
+| What do I test? | GENIE_V2_TESTING_CHECKLIST.md |
+| What's the timeline? | GENIE_IMPLEMENTATION_PHASES.md → 4-week plan |
+| What are the APIs? | GENIE_V2_SPEC.md → API Endpoints |
 
 ---
 
@@ -437,10 +460,10 @@ By end of Phase 4 (Week 4), we should have:
 
 | Document | Version | Date | Status |
 |----------|---------|------|--------|
-| QUICK_BUILDER_V2_SPEC.md | 1.0 | 2024-01-20 | ✅ Ready |
-| QUICK_BUILDER_IMPLEMENTATION_PHASES.md | 1.0 | 2024-01-20 | ✅ Ready |
-| QUICK_BUILDER_TECHNICAL_GUIDE.md | 1.0 | 2024-01-20 | ✅ Ready |
-| QUICK_BUILDER_V2_TESTING_CHECKLIST.md | 1.0 | 2024-01-20 | ✅ Ready |
+| GENIE_V2_SPEC.md | 1.0 | 2024-01-20 | ✅ Ready |
+| GENIE_IMPLEMENTATION_PHASES.md | 1.0 | 2024-01-20 | ✅ Ready |
+| GENIE_TECHNICAL_GUIDE.md | 1.0 | 2024-01-20 | ✅ Ready |
+| GENIE_V2_TESTING_CHECKLIST.md | 1.0 | 2024-01-20 | ✅ Ready |
 
 ---
 
@@ -448,10 +471,10 @@ By end of Phase 4 (Week 4), we should have:
 
 If you find issues or need clarifications:
 
-1. **For spec issues:** Create issue in QUICK_BUILDER_V2_SPEC.md
-2. **For implementation:** Update QUICK_BUILDER_IMPLEMENTATION_PHASES.md
-3. **For technical:** Update QUICK_BUILDER_TECHNICAL_GUIDE.md
-4. **For testing:** Update QUICK_BUILDER_V2_TESTING_CHECKLIST.md
+1. **For spec issues:** Create issue in GENIE_V2_SPEC.md
+2. **For implementation:** Update GENIE_IMPLEMENTATION_PHASES.md
+3. **For technical:** Update GENIE_TECHNICAL_GUIDE.md
+4. **For testing:** Update GENIE_V2_TESTING_CHECKLIST.md
 
 ---
 

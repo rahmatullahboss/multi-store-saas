@@ -1,11 +1,11 @@
-# Quick Builder v2 - User Guide
+# ✨ Genie - The Quick Builder User Guide
 
 ## Overview
-Quick Builder v2 helps you create high-converting landing pages in 3 simple steps.
+Genie helps you create high-converting landing pages in 3 simple steps. ম্যাজিক্যালি তৈরি করুন!
 
 ## How to Access
 1. Go to `/app/new-builder`
-2. Click "কুইক বিল্ডার দিয়ে তৈরি করুন" (green button)
+2. Click "✨ Genie দিয়ে তৈরি করুন" (purple button)
 
 ## Step-by-Step Guide
 

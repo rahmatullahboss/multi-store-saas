@@ -60,12 +60,31 @@ export interface BuilderSectionRow {
 }
 
 /**
+ * Section variant types for each section.
+ * Each section can have multiple visual variants.
+ */
+export type SectionVariant = 
+  // Hero variants
+  | 'product-focused' | 'offer-focused' | 'video-focused' | 'text-focused'
+  // Testimonials variants
+  | 'cards' | 'carousel' | 'avatars' | 'screenshots' | 'star-rating'
+  // CTA variants
+  | 'button-only' | 'with-trust' | 'urgency'
+  // Features variants
+  | 'grid-3' | 'grid-4' | 'list'
+  // Social proof variants
+  | 'counter' | 'live-feed' | 'badges'
+  // Default
+  | 'default';
+
+/**
  * Parsed section ready for UI consumption.
  */
 export interface BuilderSection {
   id: string;
   pageId: string;
   type: SectionType;
+  variant?: SectionVariant | null; // Section visual variant
   enabled: boolean;
   sortOrder: number;
   props: Record<string, unknown>;
@@ -94,6 +113,26 @@ export interface BuilderPageRow {
 }
 
 /**
+ * Genie Builder Intent - User's selling intent from wizard
+ */
+export interface PageIntent {
+  productType: 'single' | 'multiple';
+  goal: 'direct_sales' | 'lead_whatsapp';
+  trafficSource: 'facebook' | 'tiktok' | 'organic';
+  createdAt?: string;
+}
+
+/**
+ * Style Tokens - Global style preferences for the page
+ */
+export interface StyleTokens {
+  primaryColor: string;        // Brand color (hex)
+  buttonStyle: 'rounded' | 'sharp' | 'pill';
+  fontFamily: 'default' | 'bengali' | 'modern' | 'classic';
+  darkMode?: boolean;
+}
+
+/**
  * Parsed page with sections.
  */
 export interface BuilderPage {
@@ -108,6 +147,9 @@ export interface BuilderPage {
   ogImage?: string | null;
   templateId?: string | null; // Template ID for custom layouts
   publishedAt?: Date | null;
+  // Genie Builder (Quick Builder v2) data
+  intent?: PageIntent | null;
+  styleTokens?: StyleTokens | null;
   // Floating button settings - WhatsApp
   whatsappEnabled?: number | null;
   whatsappNumber?: string | null;

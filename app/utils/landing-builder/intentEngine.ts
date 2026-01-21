@@ -41,6 +41,22 @@ export interface QuickProduct {
   }>;
 }
 
+// Style Tokens for page styling (from Style Preferences step)
+export interface StyleTokens {
+  primaryColor: string;        // Brand color (hex)
+  buttonStyle: 'rounded' | 'sharp' | 'pill';
+  fontFamily: 'default' | 'bengali' | 'modern' | 'classic';
+  darkMode?: boolean;
+}
+
+// Default style tokens
+export const DEFAULT_STYLE_TOKENS: StyleTokens = {
+  primaryColor: '#10B981', // Emerald
+  buttonStyle: 'rounded',
+  fontFamily: 'default',
+  darkMode: false,
+};
+
 /**
  * Generate optimal section order based on intent
  * Different intents require different section priorities

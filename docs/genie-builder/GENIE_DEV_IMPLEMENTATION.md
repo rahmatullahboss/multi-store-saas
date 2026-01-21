@@ -1,4 +1,4 @@
-# QUICK_BUILDER_DEV_IMPLEMENTATION.md
+# GENIE_DEV_IMPLEMENTATION.md
 
 Practical implementation guide for Quick Builder developers. Heavy on code, light on prose.
 

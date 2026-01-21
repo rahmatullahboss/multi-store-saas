@@ -12,6 +12,7 @@ import {
   ShoppingCart, FileText, Sparkles, Bell, ArrowRight,
   Check, Layout, Type, Image as LucideImage, Star
 } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 // ============================================================================
 // DESIGN TOKENS
@@ -38,6 +39,7 @@ const TemplateLibraryCard = () => {
     { name: 'Fresh', color: '#3B82F6', icon: LucideImage },
   ];
   
+  const { t } = useTranslation();
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
@@ -64,8 +66,8 @@ const TemplateLibraryCard = () => {
           <Palette className="w-6 h-6 text-emerald-400" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-white font-bengali">Template Library</h3>
-          <p className="text-sm text-white/50 font-bengali">Professional Templates একটা ক্লিকে</p>
+          <h3 className="text-xl font-bold text-white font-bengali">{t('bentoTemplateLibrary_title')}</h3>
+          <p className="text-sm text-white/50 font-bengali">{t('bentoTemplateLibrary_desc')}</p>
         </div>
       </div>
 
@@ -153,6 +155,7 @@ const TemplateLibraryCard = () => {
 // LIVE PREVIEW CARD
 // ============================================================================
 const LivePreviewCard = () => {
+  const { t } = useTranslation();
   const [text, setText] = useState('Welcome');
   const [textIndex, setTextIndex] = useState(0);
 
@@ -175,8 +178,8 @@ const LivePreviewCard = () => {
           <Eye className="w-5 h-5 text-blue-400" />
         </div>
         <div>
-          <h3 className="text-base font-bold text-white">Live Preview</h3>
-          <p className="text-xs text-white/50 font-bengali">Real-time Editing</p>
+          <h3 className="text-base font-bold text-white">{t('bentoLivePreview_title')}</h3>
+          <p className="text-xs text-white/50 font-bengali">{t('bentoLivePreview_desc')}</p>
         </div>
       </div>
 
@@ -217,6 +220,7 @@ const LivePreviewCard = () => {
 // SECTION REARRANGE CARD
 // ============================================================================
 const SectionRearrangeCard = () => {
+  const { t } = useTranslation();
   const [order, setOrder] = useState([0, 1, 2]);
 
   useEffect(() => {
@@ -249,8 +253,8 @@ const SectionRearrangeCard = () => {
           <GripVertical className="w-5 h-5 text-purple-400" />
         </div>
         <div>
-          <h3 className="text-base font-bold text-white">Drag & Drop</h3>
-          <p className="text-xs text-white/50 font-bengali">Section Rearrange</p>
+          <h3 className="text-base font-bold text-white">{t('bentoDragDrop_title')}</h3>
+          <p className="text-xs text-white/50 font-bengali">{t('bentoDragDrop_desc')}</p>
         </div>
       </div>
 
@@ -279,47 +283,52 @@ const SectionRearrangeCard = () => {
 // ============================================================================
 // BANGLA SUPPORT CARD
 // ============================================================================
-const BanglaSupportCard = () => (
-  <motion.div
-    className="group relative h-full p-6 rounded-[32px] overflow-hidden cursor-pointer border border-white/10 bg-white/[0.03]"
-    whileHover={{ scale: 1.02 }}
-  >
-    <div className="absolute top-0 right-0 w-32 h-32 bg-green-600/10 blur-[50px] rounded-full" />
-    
-    <div className="flex items-center gap-3 mb-6 relative z-10">
-      <div className="w-10 h-10 rounded-xl bg-green-600/10 flex items-center justify-center border border-green-600/20">
-        <Languages className="w-5 h-5 text-green-500" />
+const BanglaSupportCard = () => {
+  const { t } = useTranslation();
+  return (
+    <motion.div
+      className="group relative h-full p-6 rounded-[32px] overflow-hidden cursor-pointer border border-white/10 bg-white/[0.03]"
+      whileHover={{ scale: 1.02 }}
+    >
+      <div className="absolute top-0 right-0 w-32 h-32 bg-green-600/10 blur-[50px] rounded-full" />
+      
+      <div className="flex items-center gap-3 mb-6 relative z-10">
+        <div className="w-10 h-10 rounded-xl bg-green-600/10 flex items-center justify-center border border-green-600/20">
+          <Languages className="w-5 h-5 text-green-500" />
+        </div>
+        <h3 className="text-base font-bold text-white">{t('bentoBanglaSupport_title')}</h3>
       </div>
-      <h3 className="text-base font-bold text-white">🇧🇩 বাংলা Support</h3>
-    </div>
 
-    <div className="text-center py-6 relative">
-       <motion.div
-         animate={{ opacity: [0.5, 1, 0.5] }}
-         transition={{ duration: 2, repeat: Infinity }}
-         className="text-2xl font-bold text-white/90 font-bengali mb-1"
-       >
-         সম্পূর্ণ বাংলায়
-       </motion.div>
-       <p className="text-sm text-green-400/60 font-bengali">ইন্টারফেস এবং সাপোর্ট</p>
-    </div>
-  </motion.div>
-);
+      <div className="text-center py-6 relative">
+         <motion.div
+           animate={{ opacity: [0.5, 1, 0.5] }}
+           transition={{ duration: 2, repeat: Infinity }}
+           className="text-2xl font-bold text-white/90 font-bengali mb-1"
+         >
+           {t('bentoBanglaSupport_main')}
+         </motion.div>
+         <p className="text-sm text-green-400/60 font-bengali">{t('bentoBanglaSupport_sub')}</p>
+      </div>
+    </motion.div>
+  );
+};
 
 // ============================================================================
 // MOBILE RESPONSIVE CARD
 // ============================================================================
-const MobileResponsiveCard = () => (
-  <motion.div
-    className="group relative h-full p-6 rounded-[32px] overflow-hidden cursor-pointer border border-white/10 bg-white/[0.03]"
-    whileHover={{ scale: 1.02 }}
-  >
-    <div className="flex items-center gap-3 mb-6">
-      <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
-        <Smartphone className="w-5 h-5 text-orange-400" />
+const MobileResponsiveCard = () => {
+  const { t } = useTranslation();
+  return (
+    <motion.div
+      className="group relative h-full p-6 rounded-[32px] overflow-hidden cursor-pointer border border-white/10 bg-white/[0.03]"
+      whileHover={{ scale: 1.02 }}
+    >
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
+          <Smartphone className="w-5 h-5 text-orange-400" />
+        </div>
+        <h3 className="text-base font-bold text-white">{t('bentoMobileReady_title')}</h3>
       </div>
-      <h3 className="text-base font-bold text-white">Mobile Ready</h3>
-    </div>
 
     <div className="flex justify-center items-end h-[100px] gap-2 pb-2">
        <motion.div 
@@ -330,49 +339,54 @@ const MobileResponsiveCard = () => (
        <div className="w-16 h-12 border-2 border-white/20 rounded-md bg-white/5 mb-2" />
     </div>
   </motion.div>
-);
+  );
+};
 
 // ============================================================================
 // COMBO CARD
 // ============================================================================
-const ComboPlatformCard = () => (
-  <motion.div
-    className="group relative p-8 rounded-[32px] border border-white/10 bg-white/[0.03] overflow-hidden"
-    whileHover={{ scale: 1.01 }}
-  >
-    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-blue-500/5 to-purple-500/5 opacity-50" />
-    
-    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-             <ShoppingCart className="w-8 h-8 text-emerald-400" />
+const ComboPlatformCard = () => {
+  const { t } = useTranslation();
+  return (
+    <motion.div
+      className="group relative p-8 rounded-[32px] border border-white/10 bg-white/[0.03] overflow-hidden"
+      whileHover={{ scale: 1.01 }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-blue-500/5 to-purple-500/5 opacity-50" />
+      
+      <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+               <ShoppingCart className="w-8 h-8 text-emerald-400" />
+            </div>
+            <span className="text-2xl font-light text-white/20">+</span>
+            <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+               <FileText className="w-8 h-8 text-blue-400" />
+            </div>
           </div>
-          <span className="text-2xl font-light text-white/20">+</span>
-          <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-             <FileText className="w-8 h-8 text-blue-400" />
+          
+          <div className="h-12 w-px bg-white/10 hidden md:block" />
+          
+          <div>
+            <h3 className="text-xl font-bold text-white mb-1 font-bengali">{t('bentoAllInOne_title')}</h3>
+            <p className="text-white/50 font-bengali">{t('bentoAllInOne_desc')}</p>
           </div>
         </div>
-        
-        <div className="h-12 w-px bg-white/10 hidden md:block" />
-        
-        <div>
-          <h3 className="text-xl font-bold text-white mb-1 font-bengali">All-in-One Platform</h3>
-          <p className="text-white/50 font-bengali">E-commerce এবং Landing Page - একই সাথে</p>
-        </div>
-      </div>
 
-      <div className="px-6 py-3 rounded-full bg-white/5 border border-white/10 text-white font-bold backdrop-blur-md">
-        ONE SUBSCRIPTION
+        <div className="px-6 py-3 rounded-full bg-white/5 border border-white/10 text-white font-bold backdrop-blur-md">
+          {t('bentoAllInOne_badge')}
+        </div>
       </div>
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 // ============================================================================
 // COMING SOON TEASER
 // ============================================================================
 const ComingSoonTeaser = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
@@ -396,17 +410,17 @@ const ComingSoonTeaser = () => {
         <div>
           <div className="flex items-center gap-2 mb-2 text-amber-400">
             <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-bold uppercase tracking-wider">Coming Soon</span>
+            <span className="text-sm font-bold uppercase tracking-wider">{t('bentoComingSoon_badge')}</span>
           </div>
           <p className="text-white/60 text-sm font-bengali max-w-md">
-            Drag & Drop Builder, AI Content, Payment Gateway এবং আরো অনেক কিছু...
+            {t('bentoComingSoon_desc')}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex gap-2 w-full md:w-auto relative">
           <input 
             type="email" 
-            placeholder="Email for updates" 
+            placeholder={t('bentoComingSoon_placeholder')} 
             value={email}
             onChange={e => setEmail(e.target.value)}
             disabled={status !== 'idle'}
@@ -428,6 +442,7 @@ const ComingSoonTeaser = () => {
 // MAIN COMPONENT
 // ============================================================================
 export function BentoFeaturesSection() {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   
   return (
@@ -447,11 +462,11 @@ export function BentoFeaturesSection() {
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6 backdrop-blur-sm">
             <Sparkles className="w-4 h-4 text-emerald-400" />
-            <span className="text-sm font-medium text-emerald-300">Features</span>
+            <span className="text-sm font-medium text-emerald-300">{t('bentoBadge')}</span>
           </div>
           
           <h2 className="text-3xl md:text-5xl font-bold text-white font-bengali leading-tight mb-4">
-            Powerful Features, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Simple Interface</span>
+            {t('bentoMainTitle_part1')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">{t('bentoMainTitle_part2')}</span>
           </h2>
         </motion.div>
 

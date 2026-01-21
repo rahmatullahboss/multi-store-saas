@@ -480,4 +480,25 @@ export const landing = {
   landingOrderBump_offDiscount: '{{discount}}% ছাড়',
   landingOrderBump_youAreSaving: 'আপনি {{savings}} সাশ্রয় করছেন!',
   landingOrderBump_addAndSave: 'আরো সাশ্রয় করতে এগুলো যোগ করুন!',
+
+  // BentoFeaturesSection
+  bentoBadge: 'ফিচার',
+  bentoMainTitle_part1: 'শক্তিশালী ফিচার,',
+  bentoMainTitle_part2: 'সহজ ইন্টারফেস', // "Powerful Features, Simple Interface"
+  bentoTemplateLibrary_title: 'টেমপ্লেট লাইব্রেরি',
+  bentoTemplateLibrary_desc: 'প্রফেশনাল টেমপ্লেটস একটা ক্লিকে',
+  bentoLivePreview_title: 'লাইভ প্রিভিউ',
+  bentoLivePreview_desc: 'রিয়েল-টাইম এডিটিং',
+  bentoDragDrop_title: 'ড্র্যাগ অ্যান্ড ড্রপ',
+  bentoDragDrop_desc: 'সেকশন রিঅ্যারেঞ্জ',
+  bentoBanglaSupport_title: '🇧🇩 বাংলা সাপোর্ট',
+  bentoBanglaSupport_main: 'সম্পূর্ণ বাংলায়',
+  bentoBanglaSupport_sub: 'ইন্টারফেস এবং সাপোর্ট',
+  bentoMobileReady_title: 'মোবাইল রেডি',
+  bentoAllInOne_title: 'অল-ইন-ওয়ান প্ল্যাটফর্ম',
+  bentoAllInOne_desc: 'E-commerce এবং Landing Page - একই সাথে',
+  bentoAllInOne_badge: 'একটি সাবস্ক্রিপশন',
+  bentoComingSoon_badge: 'শীঘ্রই আসছে',
+  bentoComingSoon_desc: 'ড্র্যাগ অ্যান্ড ড্রপ বিল্ডার, AI কন্টেন্ট, পেমেন্ট গেটওয়ে এবং আরও অনেক কিছু...',
+  bentoComingSoon_placeholder: 'আপডেটের জন্য ইমেইল দিন',
 };

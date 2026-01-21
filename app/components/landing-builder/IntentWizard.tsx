@@ -25,8 +25,8 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { cn } from '~/utils/cn';
-import type { Intent, QuickProduct } from '~/utils/landing-builder/intentEngine';
-import { getTemplateSuggestions } from '~/utils/landing-builder/intentEngine';
+import type { Intent, QuickProduct, StyleTokens } from '~/utils/landing-builder/intentEngine';
+import { getTemplateSuggestions, DEFAULT_STYLE_TOKENS } from '~/utils/landing-builder/intentEngine';
 
 // Step indicator component
 function StepIndicator({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
@@ -409,27 +409,153 @@ function Step2ProductConnection({
   );
 }
 
-// Step 3: Template Preview
-interface Step3Props {
+// Step 3: Style Preferences
+interface Step3StyleProps {
+  styleTokens: StyleTokens;
+  onUpdate: (updates: Partial<StyleTokens>) => void;
+}
+
+const COLOR_PRESETS = [
+  { color: '#10B981', name: 'সবুজ' },      // Emerald
+  { color: '#6366F1', name: 'নীল' },       // Indigo
+  { color: '#EC4899', name: 'গোলাপি' },    // Pink
+  { color: '#F59E0B', name: 'কমলা' },      // Amber
+  { color: '#EF4444', name: 'লাল' },       // Red
+  { color: '#8B5CF6', name: 'বেগুনি' },    // Purple
+];
+
+function Step3StylePreferences({ styleTokens, onUpdate }: Step3StyleProps) {
+  return (
+    <div className="space-y-8">
+      {/* Brand Color */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">
+          ব্র্যান্ড কালার
+        </h3>
+        <p className="text-sm text-gray-500 mb-4">
+          আপনার বাটন এবং গুরুত্বপূর্ণ এলিমেন্টের জন্য রং বেছে নিন
+        </p>
+        <div className="flex flex-wrap gap-3">
+          {COLOR_PRESETS.map((preset) => (
+            <button
+              key={preset.color}
+              type="button"
+              onClick={() => onUpdate({ primaryColor: preset.color })}
+              className={cn(
+                'w-12 h-12 rounded-xl transition-all flex items-center justify-center',
+                styleTokens.primaryColor === preset.color
+                  ? 'ring-2 ring-offset-2 ring-gray-900 scale-110'
+                  : 'hover:scale-105'
+              )}
+              style={{ backgroundColor: preset.color }}
+              title={preset.name}
+            >
+              {styleTokens.primaryColor === preset.color && (
+                <Check className="w-5 h-5 text-white" />
+              )}
+            </button>
+          ))}
+          {/* Custom color input */}
+          <label className="relative w-12 h-12 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
+            <input
+              type="color"
+              value={styleTokens.primaryColor}
+              onChange={(e) => onUpdate({ primaryColor: e.target.value })}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            <span className="text-xs text-gray-400">+</span>
+          </label>
+        </div>
+      </div>
+
+      {/* Button Style */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">
+          বাটন স্টাইল
+        </h3>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { value: 'rounded', label: 'রাউন্ডেড', preview: 'rounded-lg' },
+            { value: 'sharp', label: 'শার্প', preview: 'rounded-none' },
+            { value: 'pill', label: 'পিল', preview: 'rounded-full' },
+          ].map((style) => (
+            <button
+              key={style.value}
+              type="button"
+              onClick={() => onUpdate({ buttonStyle: style.value as StyleTokens['buttonStyle'] })}
+              className={cn(
+                'p-4 border-2 rounded-xl transition-all text-center',
+                styleTokens.buttonStyle === style.value
+                  ? 'border-emerald-500 bg-emerald-50'
+                  : 'border-gray-200 hover:border-emerald-300'
+              )}
+            >
+              <div
+                className={cn('w-full py-2 mb-2 text-white text-sm font-medium', style.preview)}
+                style={{ backgroundColor: styleTokens.primaryColor }}
+              >
+                অর্ডার করুন
+              </div>
+              <span className="text-sm text-gray-700">{style.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Font Style */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">
+          ফন্ট স্টাইল
+        </h3>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { value: 'default', label: 'ডিফল্ট', sample: 'Aa বাংলা', className: 'font-sans' },
+            { value: 'bengali', label: 'বাংলা', sample: 'Aa বাংলা', className: 'font-bengali' },
+            { value: 'modern', label: 'মডার্ন', sample: 'Aa বাংলা', className: 'font-sans tracking-tight' },
+            { value: 'classic', label: 'ক্লাসিক', sample: 'Aa বাংলা', className: 'font-serif' },
+          ].map((font) => (
+            <button
+              key={font.value}
+              type="button"
+              onClick={() => onUpdate({ fontFamily: font.value as StyleTokens['fontFamily'] })}
+              className={cn(
+                'p-4 border-2 rounded-xl transition-all text-center',
+                styleTokens.fontFamily === font.value
+                  ? 'border-emerald-500 bg-emerald-50'
+                  : 'border-gray-200 hover:border-emerald-300'
+              )}
+            >
+              <div className={cn('text-2xl mb-1', font.className)}>{font.sample}</div>
+              <span className="text-sm text-gray-700">{font.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Step 4: Template Preview
+interface Step4Props {
   intent: Intent;
   selectedTemplate: string;
   onSelectTemplate: (templateId: string) => void;
 }
 
-function Step3TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: Step3Props) {
+function Step4TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: Step4Props) {
   const suggestions = getTemplateSuggestions(intent);
 
-  const templateInfo: Record<string, { name: string; description: string }> = {
-    'premium-bd': { name: 'প্রিমিয়াম BD', description: 'প্রফেশনাল, বিস্তারিত' },
-    'flash-sale': { name: 'ফ্ল্যাশ সেল', description: 'আর্জেন্সি, অফার ফোকাস' },
-    'mobile-first': { name: 'মোবাইল ফার্স্ট', description: 'ক্লিন, মোবাইল অপ্টিমাইজড' },
-    'luxe': { name: 'লাক্স', description: 'প্রিমিয়াম, এলিগ্যান্ট' },
-    'organic': { name: 'অর্গানিক', description: 'ন্যাচারাল, সফট' },
-    'modern-dark': { name: 'মডার্ন ডার্ক', description: 'ডার্ক থিম, মডার্ন' },
-    'minimal-light': { name: 'মিনিমাল লাইট', description: 'সিম্পল, ক্লিন' },
-    'video-focus': { name: 'ভিডিও ফোকাস', description: 'ভিডিও প্রমিনেন্ট' },
-    'showcase': { name: 'শোকেস', description: 'প্রোডাক্ট হাইলাইট' },
-    'trust-first': { name: 'ট্রাস্ট ফার্স্ট', description: 'বিশ্বাসযোগ্যতা ফোকাস' },
+  const templateInfo: Record<string, { name: string; description: string; gradient: string; emoji: string }> = {
+    'premium-bd': { name: 'প্রিমিয়াম BD', description: 'প্রফেশনাল, বিস্তারিত', gradient: 'from-emerald-600 to-emerald-800', emoji: '🇧🇩' },
+    'flash-sale': { name: 'ফ্ল্যাশ সেল', description: 'আর্জেন্সি, অফার ফোকাস', gradient: 'from-red-500 to-orange-500', emoji: '⚡' },
+    'mobile-first': { name: 'মোবাইল ফার্স্ট', description: 'ক্লিন, মোবাইল অপ্টিমাইজড', gradient: 'from-blue-500 to-cyan-500', emoji: '📱' },
+    'luxe': { name: 'লাক্স', description: 'প্রিমিয়াম, এলিগ্যান্ট', gradient: 'from-amber-600 to-yellow-500', emoji: '✨' },
+    'organic': { name: 'অর্গানিক', description: 'ন্যাচারাল, সফট', gradient: 'from-green-500 to-lime-500', emoji: '🌿' },
+    'modern-dark': { name: 'মডার্ন ডার্ক', description: 'ডার্ক থিম, মডার্ন', gradient: 'from-slate-700 to-slate-900', emoji: '🖤' },
+    'minimal-light': { name: 'মিনিমাল লাইট', description: 'সিম্পল, ক্লিন', gradient: 'from-gray-100 to-gray-300', emoji: '⚪' },
+    'video-focus': { name: 'ভিডিও ফোকাস', description: 'ভিডিও প্রমিনেন্ট', gradient: 'from-purple-500 to-pink-500', emoji: '🎬' },
+    'showcase': { name: 'শোকেস', description: 'প্রোডাক্ট হাইলাইট', gradient: 'from-indigo-500 to-purple-500', emoji: '🎯' },
+    'trust-first': { name: 'ট্রাস্ট ফার্স্ট', description: 'বিশ্বাসযোগ্যতা ফোকাস', gradient: 'from-teal-500 to-emerald-500', emoji: '🛡️' },
   };
 
   return (
@@ -446,7 +572,7 @@ function Step3TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: St
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {suggestions.map((templateId, index) => {
-          const info = templateInfo[templateId] || { name: templateId, description: '' };
+          const info = templateInfo[templateId] || { name: templateId, description: '', gradient: 'from-gray-400 to-gray-600', emoji: '🎨' };
           return (
             <button
               key={templateId}
@@ -464,8 +590,11 @@ function Step3TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: St
                   সাজেস্টেড
                 </span>
               )}
-              <div className="w-full h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg mb-3 flex items-center justify-center">
-                <span className="text-2xl">🎨</span>
+              <div className={cn(
+                'w-full h-24 rounded-lg mb-3 flex items-center justify-center bg-gradient-to-br',
+                info.gradient
+              )}>
+                <span className="text-3xl drop-shadow-lg">{info.emoji}</span>
               </div>
               <h4 className="font-semibold text-gray-900">{info.name}</h4>
               <p className="text-xs text-gray-500">{info.description}</p>
@@ -494,7 +623,13 @@ function Step3TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: St
 // Main Intent Wizard Component
 interface IntentWizardProps {
   existingProducts?: Array<{ id: number; title: string; price: number; imageUrl?: string }>;
-  onComplete: (data: { intent: Intent; product: QuickProduct | null; productId: number | null; templateId: string }) => void;
+  onComplete: (data: { 
+    intent: Intent; 
+    product: QuickProduct | null; 
+    productId: number | null; 
+    templateId: string;
+    styleTokens: StyleTokens;
+  }) => void;
   onImageUpload?: (file: File) => Promise<string>;
   isSubmitting?: boolean;
 }
@@ -513,6 +648,7 @@ export function IntentWizard({
   });
   const [product, setProduct] = useState<Partial<QuickProduct> | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [styleTokens, setStyleTokens] = useState<StyleTokens>(DEFAULT_STYLE_TOKENS);
   const [selectedTemplate, setSelectedTemplate] = useState('');
 
   // Set default template when intent is complete
@@ -537,13 +673,17 @@ export function IntentWizard({
       return selectedProductId || (product?.name && product?.price && product.price > 0);
     }
     if (step === 3) {
+      // Style preferences - always valid since we have defaults
+      return styleTokens.primaryColor && styleTokens.buttonStyle && styleTokens.fontFamily;
+    }
+    if (step === 4) {
       return selectedTemplate;
     }
     return false;
   };
 
   const handleNext = () => {
-    if (step < 3) {
+    if (step < 4) {
       setStep(step + 1);
     } else {
       // Complete wizard
@@ -552,6 +692,7 @@ export function IntentWizard({
         product: selectedProductId ? null : (product as QuickProduct),
         productId: selectedProductId,
         templateId: selectedTemplate,
+        styleTokens,
       });
     }
   };
@@ -564,7 +705,7 @@ export function IntentWizard({
 
   return (
     <div className="max-w-2xl mx-auto">
-      <StepIndicator currentStep={step} totalSteps={3} />
+      <StepIndicator currentStep={step} totalSteps={4} />
 
       {/* Step Content */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
@@ -585,7 +726,14 @@ export function IntentWizard({
         )}
 
         {step === 3 && (
-          <Step3TemplatePreview
+          <Step3StylePreferences
+            styleTokens={styleTokens}
+            onUpdate={(updates) => setStyleTokens((prev) => ({ ...prev, ...updates }))}
+          />
+        )}
+
+        {step === 4 && (
+          <Step4TemplatePreview
             intent={intent as Intent}
             selectedTemplate={selectedTemplate}
             onSelectTemplate={setSelectedTemplate}
@@ -633,7 +781,7 @@ export function IntentWizard({
               <Loader2 className="w-4 h-4 animate-spin" />
               তৈরি হচ্ছে...
             </>
-          ) : step === 3 ? (
+          ) : step === 4 ? (
             <>
               ল্যান্ডিং পেইজ তৈরি করুন
               <ArrowRight className="w-4 h-4" />

@@ -1,5 +1,22 @@
 # 🔍 Quick Builder MVP - Gap Analysis & Comparison
 
+> **Last Updated:** 2026-01-21
+> **Status:** ✅ All P0/P1 Gaps Closed
+
+## 🎉 Recent Updates (v2.1)
+
+### ✅ Gaps Fixed in This Release:
+1. **Section Variant Persistence** - Added `variant` column to `builder_sections` table
+2. **Style Preferences Step** - Added Step 3 to IntentWizard (Brand Color, Button Style, Font)
+3. **Intent Data Persistence** - Added `intent_json` and `style_tokens_json` columns to `builder_pages`
+4. **Template Visual Previews** - Added gradient backgrounds and emoji icons for templates
+5. **4-Step Wizard Flow** - Intent → Product → Style → Template
+
+### Database Migration Added:
+- `db/migrations/0064_genie_builder_enhancements.sql`
+
+---
+
 ## Guide vs Our Implementation
 
 > Document last updated: 2026-01-14

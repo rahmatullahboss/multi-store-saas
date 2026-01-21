@@ -10,7 +10,7 @@ import { eq, and, asc, sql, desc } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { builderPages, builderSections } from '@db/schema_page_builder';
 import { getDefaultProps, validateSectionProps, isValidSectionType } from './registry';
-import type { BuilderSection, BuilderPage, SectionType } from './types';
+import type { BuilderSection, BuilderPage, SectionType, SectionVariant, PageIntent, StyleTokens } from './types';
 
 // ============================================================================
 // HELPER: Parse section row
@@ -27,6 +27,7 @@ function parseSection(row: typeof builderSections.$inferSelect): BuilderSection 
     id: row.id,
     pageId: row.pageId,
     type: row.type as SectionType,
+    variant: (row.variant as SectionVariant) || null,
     enabled: Boolean(row.enabled),
     sortOrder: row.sortOrder,
     props,
@@ -52,11 +53,36 @@ function parseSectionPublished(row: typeof builderSections.$inferSelect): Builde
     id: row.id,
     pageId: row.pageId,
     type: row.type as SectionType,
+    variant: (row.variant as SectionVariant) || null,
     enabled: Boolean(row.enabled),
     sortOrder: row.sortOrder,
     props,
     version: row.version,
   };
+}
+
+/**
+ * Parse intent JSON from page row
+ */
+function parseIntent(intentJson: string | null): PageIntent | null {
+  if (!intentJson) return null;
+  try {
+    return JSON.parse(intentJson) as PageIntent;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Parse style tokens JSON from page row
+ */
+function parseStyleTokens(styleTokensJson: string | null): StyleTokens | null {
+  if (!styleTokensJson) return null;
+  try {
+    return JSON.parse(styleTokensJson) as StyleTokens;
+  } catch {
+    return null;
+  }
 }
 
 // ============================================================================
@@ -121,6 +147,10 @@ export async function getPageWithSections(
     title: page.title,
     productId: page.productId,
     status: page.status ?? 'draft',
+    // Template & Genie Builder data
+    templateId: page.templateId,
+    intent: parseIntent(page.intentJson),
+    styleTokens: parseStyleTokens(page.styleTokensJson),
     // Floating button settings - WhatsApp
     whatsappEnabled: page.whatsappEnabled,
     whatsappNumber: page.whatsappNumber,
@@ -134,7 +164,6 @@ export async function getPageWithSections(
     orderBgColor: page.orderBgColor,
     orderTextColor: page.orderTextColor,
     buttonPosition: page.buttonPosition,
-    templateId: page.templateId,
     sections: sections.map(parseSection),
   };
 }
@@ -215,6 +244,10 @@ export async function getPublishedPageBySlug(
     seoDescription: page.seoDescription,
     ogImage: page.ogImage,
     publishedAt: page.publishedAt,
+    // Template & Genie Builder data
+    templateId: page.templateId,
+    intent: parseIntent(page.intentJson),
+    styleTokens: parseStyleTokens(page.styleTokensJson),
     // Floating button settings - WhatsApp
     whatsappEnabled: page.whatsappEnabled,
     whatsappNumber: page.whatsappNumber,
@@ -228,7 +261,6 @@ export async function getPublishedPageBySlug(
     orderBgColor: page.orderBgColor,
     orderTextColor: page.orderTextColor,
     buttonPosition: page.buttonPosition,
-    templateId: page.templateId,
     sections: sections.map(parseSectionPublished), // Use published props!
   };
 }
@@ -697,14 +729,11 @@ export async function initializePageWithDefaults(
 }
 
 /**
- * Intent data for Quick Builder v2
+ * Intent data for Quick Builder v2 (Genie Builder)
  */
 interface IntentData {
-  intent?: {
-    productType: 'single' | 'multiple';
-    goal: 'direct_sales' | 'lead_whatsapp';
-    trafficSource: 'facebook' | 'tiktok' | 'organic';
-  };
+  intent?: PageIntent;
+  styleTokens?: StyleTokens;
   optimizedSections?: string[];
   defaultContent?: Record<string, unknown>;
   linkedProductId?: number | null;
@@ -741,7 +770,7 @@ export async function createPageFromTemplate(
   const drizzleDb = drizzle(db);
   const pageId = nanoid();
   
-  // Create page with product link if provided
+  // Create page with product link and Genie Builder data if provided
   await drizzleDb.insert(builderPages).values({
     id: pageId,
     storeId,
@@ -750,6 +779,12 @@ export async function createPageFromTemplate(
     status: 'draft',
     templateId,
     productId: intentData?.linkedProductId || null,
+    // Genie Builder (Quick Builder v2) data
+    intentJson: intentData?.intent ? JSON.stringify({
+      ...intentData.intent,
+      createdAt: new Date().toISOString(),
+    }) : null,
+    styleTokensJson: intentData?.styleTokens ? JSON.stringify(intentData.styleTokens) : null,
   });
   
   // Determine which sections to create

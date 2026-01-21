@@ -34,6 +34,12 @@ export const builderPages = sqliteTable('builder_pages', {
   // Template (optional - for pre-defined layouts)
   templateId: text('template_id'),
   
+  // Genie Builder (Quick Builder v2) - Intent & Style
+  // Intent data from wizard: { productType, goal, trafficSource }
+  intentJson: text('intent_json'),
+  // Style tokens from style preferences: { primaryColor, buttonStyle, fontFamily }
+  styleTokensJson: text('style_tokens_json'),
+  
   // SEO
   seoTitle: text('seo_title'),
   seoDescription: text('seo_description'),
@@ -81,6 +87,10 @@ export const builderSections = sqliteTable('builder_sections', {
   // Section type (maps to registry)
   type: text('type').notNull(), // 'hero' | 'features' | 'testimonials' | 'faq' | etc.
   
+  // Section variant (e.g., 'product-focused', 'offer-focused', 'video-focused' for hero)
+  // Allows different visual presentations of the same section type
+  variant: text('variant'), // null = default variant
+  
   // Visibility toggle
   enabled: integer('enabled').notNull().default(1), // 0 = hidden, 1 = visible
   
@@ -100,6 +110,7 @@ export const builderSections = sqliteTable('builder_sections', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index('idx_builder_sections_order').on(table.pageId, table.sortOrder),
+  index('idx_builder_sections_variant').on(table.pageId, table.variant),
 ]);
 
 // ============================================================================

@@ -149,10 +149,10 @@ interface LandingConfig {
 ### Documentation
 ```
 docs/
-├── QUICK_BUILDER_DEV_SETUP.md  # This file
-├── QUICK_BUILDER_TECHNICAL_GUIDE.md
-├── QUICK_BUILDER_TEMPLATE_GUIDE.md
-├── QUICK_BUILDER_V2_SPEC.md
+├── GENIE_DEV_SETUP.md  # This file
+├── GENIE_TECHNICAL_GUIDE.md
+├── GENIE_TEMPLATE_GUIDE.md
+├── GENIE_V2_SPEC.md
 ├── API_REFERENCE.md
 └── ARCHITECTURE.md
 ```
@@ -237,8 +237,8 @@ npm run db:studio
 
 ### Documentation Links
 - **Architecture Overview**: `docs/ARCHITECTURE.md`
-- **Builder Technical Details**: `docs/QUICK_BUILDER_TECHNICAL_GUIDE.md`
-- **Template Customization**: `docs/QUICK_BUILDER_TEMPLATE_GUIDE.md`
+- **Builder Technical Details**: `docs/GENIE_TECHNICAL_GUIDE.md`
+- **Template Customization**: `docs/GENIE_TEMPLATE_GUIDE.md`
 - **API Reference**: `docs/API_REFERENCE.md`
 - **Project Rules**: `.agent/rules/PROJECT_RULES.md`
 
@@ -261,7 +261,7 @@ npm run db:studio
 ### Where to Ask
 - **Bug/Feature**: GitHub Issues
 - **Architecture questions**: `docs/ARCHITECTURE.md` & team chat
-- **Builder-specific**: `docs/QUICK_BUILDER_V2_SPEC.md`
+- **Builder-specific**: `docs/GENIE_V2_SPEC.md`
 - **Code style**: `.agent/rules/PROJECT_RULES.md`
 
 ---
@@ -273,6 +273,6 @@ npm run db:studio
 3. ✅ Initialize database: `npm run db:migrate:local`
 4. ✅ Start dev: `npm run dev`
 5. ✅ Open browser: `http://localhost:5173`
-6. 📖 Read: `docs/QUICK_BUILDER_TECHNICAL_GUIDE.md`
+6. 📖 Read: `docs/GENIE_TECHNICAL_GUIDE.md`
 
 Happy coding! 🚀
