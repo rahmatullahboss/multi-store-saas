@@ -131,6 +131,11 @@ const LogisticsOperationsSection = lazy(() => import('~/components/landing/Logis
 const BusinessManagementSection = lazy(() => import('~/components/landing/BusinessManagementSection').then(m => ({ default: m.BusinessManagementSection })));
 const CustomerExperienceSection = lazy(() => import('~/components/landing/CustomerExperienceSection').then(m => ({ default: m.CustomerExperienceSection })));
 
+// NEW EXTRA SECTIONS (From Prompts 16, 21, 22)
+const AnalyticsInsightsSection = lazy(() => import('~/components/landing/AnalyticsInsightsSection').then(m => ({ default: m.AnalyticsInsightsSection })));
+const UseCaseScenariosSection = lazy(() => import('~/components/landing/UseCaseScenariosSection').then(m => ({ default: m.UseCaseScenariosSection })));
+const FeatureMatrixSection = lazy(() => import('~/components/landing/FeatureMatrixSection').then(m => ({ default: m.FeatureMatrixSection })));
+
 
 // ============================================================================
 // Simple Section Skeleton
@@ -262,6 +267,13 @@ export function MarketingLanding() {
         </Suspense>
       </LazySection>
 
+      {/* NEW FEATURES: Analytics & Data (Prompt 16) */}
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <AnalyticsInsightsSection />
+        </Suspense>
+      </LazySection>
+
       {/* Infrastructure - Multiple sections */}
       <LazySection minHeight="500px">
         <Suspense fallback={<SectionSkeleton />}>
@@ -324,6 +336,13 @@ export function MarketingLanding() {
         </Suspense>
       </LazySection>
 
+      {/* NEW FEATURES: Feature Matrix (Prompt 21) */}
+      <LazySection minHeight="800px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <FeatureMatrixSection />
+        </Suspense>
+      </LazySection>
+
       {/* Interactive Demo */}
       <LazySection minHeight="600px">
         <Suspense fallback={<SectionSkeleton />}>
@@ -373,6 +392,13 @@ export function MarketingLanding() {
       <LazySection minHeight="600px">
         <Suspense fallback={<SectionSkeleton />}>
           <SecuritySpeedInfrastructure />
+        </Suspense>
+      </LazySection>
+
+      {/* NEW FEATURES: Use Cases (Prompt 22) */}
+      <LazySection minHeight="700px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <UseCaseScenariosSection />
         </Suspense>
       </LazySection>
 

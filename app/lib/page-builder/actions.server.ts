@@ -697,27 +697,51 @@ export async function initializePageWithDefaults(
 }
 
 /**
+ * Intent data for Quick Builder v2
+ */
+interface IntentData {
+  intent?: {
+    productType: 'single' | 'multiple';
+    goal: 'direct_sales' | 'lead_whatsapp';
+    trafficSource: 'facebook' | 'tiktok' | 'organic';
+  };
+  optimizedSections?: string[];
+  defaultContent?: Record<string, unknown>;
+  linkedProductId?: number | null;
+}
+
+/**
  * Create a page from a template preset.
+ * 
+ * UPGRADED: Now supports intent-based creation from Quick Builder v2.
+ * When intentData is provided, uses optimized sections and default content.
  */
 export async function createPageFromTemplate(
   db: D1Database,
   storeId: number,
   templateId: string,
   slug: string,
-  title?: string
+  title?: string,
+  intentData?: IntentData
 ): Promise<{ pageId: string; sections: BuilderSection[] } | { error: string }> {
   // Import template dynamically to avoid circular deps
-  const { getTemplateById } = await import('./templates');
+  const { getTemplateById, getAllTemplates } = await import('./templates');
   
-  const template = getTemplateById(templateId);
+  let template = getTemplateById(templateId);
+  
+  // Fallback to first template if not found
   if (!template) {
-    return { error: `Template not found: ${templateId}` };
+    const allTemplates = getAllTemplates();
+    template = allTemplates[0];
+    if (!template) {
+      return { error: `No templates available` };
+    }
   }
   
   const drizzleDb = drizzle(db);
   const pageId = nanoid();
   
-  // Create page
+  // Create page with product link if provided
   await drizzleDb.insert(builderPages).values({
     id: pageId,
     storeId,
@@ -725,18 +749,107 @@ export async function createPageFromTemplate(
     title: title || template.name,
     status: 'draft',
     templateId,
+    productId: intentData?.linkedProductId || null,
   });
   
-  // Create sections from template
+  // Determine which sections to create
+  let sectionsToCreate = template.sections;
+  
+  // If intent-based sections provided, use those instead
+  if (intentData?.optimizedSections && intentData.optimizedSections.length > 0) {
+    // Map optimized section types to template section format
+    sectionsToCreate = intentData.optimizedSections.map((sectionType) => {
+      // Find matching section in template for props
+      const templateMatch = template!.sections.find(s => s.type === sectionType);
+      return {
+        type: sectionType as SectionType,
+        props: templateMatch?.props || {},
+      };
+    });
+  }
+  
+  // Create sections
   const sections: BuilderSection[] = [];
   
-  for (let i = 0; i < template.sections.length; i++) {
-    const templateSection = template.sections[i];
+  for (let i = 0; i < sectionsToCreate.length; i++) {
+    const templateSection = sectionsToCreate[i];
     const id = nanoid();
     
     // Merge template props with default props
     const defaultProps = getDefaultProps(templateSection.type);
-    const mergedProps = { ...defaultProps, ...templateSection.props };
+    let mergedProps = { ...defaultProps, ...templateSection.props };
+    
+    // If intent default content provided, merge it into relevant sections
+    if (intentData?.defaultContent) {
+      const content = intentData.defaultContent;
+      
+      // Hero section - apply headline, subheadline, etc.
+      if (templateSection.type === 'hero') {
+        mergedProps = {
+          ...mergedProps,
+          headline: content.headline || mergedProps.headline,
+          subheadline: content.subheadline || mergedProps.subheadline,
+          ctaText: content.ctaText || mergedProps.ctaText,
+          badgeText: content.heroBadgeText || mergedProps.badgeText,
+          urgencyText: content.urgencyText || mergedProps.urgencyText,
+          showCountdown: content.countdownEnabled ?? mergedProps.showCountdown,
+          showStockCounter: content.showStockCounter ?? mergedProps.showStockCounter,
+        };
+      }
+      
+      // Trust badges section
+      if (templateSection.type === 'trust-badges' && content.trustBadges) {
+        mergedProps = {
+          ...mergedProps,
+          badges: content.trustBadges,
+        };
+      }
+      
+      // Features/Benefits section
+      if ((templateSection.type === 'features' || templateSection.type === 'benefits') && content.benefits) {
+        mergedProps = {
+          ...mergedProps,
+          features: content.benefits,
+        };
+      }
+      
+      // FAQ section
+      if (templateSection.type === 'faq' && content.faq) {
+        mergedProps = {
+          ...mergedProps,
+          items: content.faq,
+        };
+      }
+      
+      // CTA section
+      if (templateSection.type === 'cta') {
+        mergedProps = {
+          ...mergedProps,
+          buttonText: content.ctaText || mergedProps.buttonText,
+          subtext: content.ctaSubtext || mergedProps.subtext,
+          productId: intentData?.linkedProductId || mergedProps.productId,
+          whatsappEnabled: content.whatsappEnabled ?? mergedProps.whatsappEnabled,
+          whatsappMessage: content.whatsappMessage || mergedProps.whatsappMessage,
+        };
+      }
+      
+      // Social proof section
+      if (templateSection.type === 'social-proof' && content.socialProof) {
+        mergedProps = {
+          ...mergedProps,
+          count: content.socialProof.count || mergedProps.count,
+          text: content.socialProof.text || mergedProps.text,
+        };
+      }
+      
+      // Guarantee section
+      if (templateSection.type === 'guarantee' && content.guaranteeText) {
+        mergedProps = {
+          ...mergedProps,
+          text: content.guaranteeText,
+        };
+      }
+    }
     
     await drizzleDb.insert(builderSections).values({
       id,

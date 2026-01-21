@@ -20,11 +20,15 @@ import { useEffect } from 'react';
 import { parseThemeConfig } from '@db/types';
 
 export const links: LinksFunction = () => [
+  // LCP Preload - Hero logo (Largest Contentful Paint optimization)
+  { rel: 'preload', as: 'image', href: '/brand/logo-white.webp', type: 'image/webp' },
   // DNS prefetch and preconnect for faster font loading
   { rel: 'dns-prefetch', href: 'https://fonts.googleapis.com' },
   { rel: 'dns-prefetch', href: 'https://fonts.gstatic.com' },
+  { rel: 'dns-prefetch', href: 'https://images.unsplash.com' },
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
   { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
+  { rel: 'preconnect', href: 'https://images.unsplash.com', crossOrigin: 'anonymous' },
   // Preload fonts CSS for parallel download
   { 
     rel: 'preload',

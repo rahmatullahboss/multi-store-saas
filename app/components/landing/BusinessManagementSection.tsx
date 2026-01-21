@@ -1,6 +1,6 @@
 
 import { motion } from 'framer-motion';
-import { Shield, Users, FileBarChart, Terminal, Lock, Download } from 'lucide-react';
+import { Shield, Users, Terminal, Lock, TrendingUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const LOGS = [
@@ -141,36 +141,30 @@ export function BusinessManagementSection() {
             </div>
           </motion.div>
 
-          {/* Card 3: Tax Reports - Premium Glass */}
+          {/* Card 3: Staff Performance - Premium Glass */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-[32px] p-8 hover:border-purple-500/30 transition-all duration-500 group h-full shadow-2xl relative overflow-hidden"
+            className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-[32px] p-8 hover:border-emerald-500/30 transition-all duration-500 group h-full shadow-2xl relative overflow-hidden"
           >
              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-            <div className="w-14 h-14 bg-gradient-to-br from-purple-500/20 to-fuchsia-500/20 rounded-2xl flex items-center justify-center mb-8 text-purple-400 group-hover:scale-110 transition-transform duration-500 border border-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.15)] relative z-10">
-              <FileBarChart className="w-7 h-7" />
+            <div className="w-14 h-14 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-2xl flex items-center justify-center mb-8 text-emerald-400 group-hover:scale-110 transition-transform duration-500 border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.15)] relative z-10">
+              <TrendingUp className="w-7 h-7" />
             </div>
             
-            <h3 className="text-xl font-bold text-white mb-6 relative z-10">Auto Tax Reports</h3>
+            <h3 className="text-xl font-bold text-white mb-6 relative z-10">Staff Performance</h3>
             
-            <div className="bg-black/40 rounded-2xl p-5 border border-white/10 mb-6 relative z-10 group-hover:border-white/20 transition-colors backdrop-blur-md">
-               <div className="flex justify-between items-center mb-3">
-                 <span className="text-xs font-medium text-gray-400 uppercase tracking-widest">Tax Year 2024-25</span>
-                 <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/20 flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" /> READY
-                 </span>
-               </div>
-               <div className="text-3xl font-bold text-white mb-1 tracking-tight">৳ ১,৫০,০০০<span className="text-white/30 text-lg">.০০</span></div>
-               <div className="text-xs text-gray-500 font-medium">Total Tax Collected</div>
+            <div className="space-y-4 relative z-10">
+              <PerformanceItem name="Rahat Ahmed" sales="৳ 50,000" target={80} />
+              <PerformanceItem name="Karim Ullah" sales="৳ 32,500" target={65} />
+              <PerformanceItem name="Mitu Akter" sales="৳ 28,000" target={45} />
             </div>
 
-            <button className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold flex items-center justify-center gap-2.5 transition-all duration-300 shadow-lg shadow-purple-900/40 relative z-10 group/btn overflow-hidden">
-               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300" />
-               <Download className="w-4 h-4" /> Download Report PDF
+            <button className="w-full mt-6 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold flex items-center justify-center gap-2.5 transition-all duration-300 border border-white/10 group/btn">
+               View Full Report
             </button>
           </motion.div>
 
@@ -204,6 +198,27 @@ function RoleItem({ role, access, color }: RoleItemProps) {
         <span className="text-white/90 font-bold text-sm group-hover/item:text-white transition-colors">{role}</span>
       </div>
       <span className="text-xs text-gray-500 font-medium bg-black/20 px-2 py-1 rounded border border-white/5">{access}</span>
+    </div>
+  );
+}
+
+
+interface PerformanceItemProps {
+  name: string;
+  sales: string;
+  target: number;
+}
+
+function PerformanceItem({ name, sales, target }: PerformanceItemProps) {
+  return (
+    <div className="bg-black/20 rounded-xl p-3 border border-white/5">
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-white font-medium text-sm">{name}</span>
+        <span className="text-emerald-400 font-bold text-sm">{sales}</span>
+      </div>
+      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${target}%` }} />
+      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Palette, ShoppingBag, Moon, Sun, MessageSquare, Bell, ArrowRight, Smartphone, CreditCard } from 'lucide-react';
+import { Bot, Palette, ShoppingBag, Moon, Sun, Bell, ArrowRight } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useIsMobile } from '~/hooks/useIsMobile';
 
@@ -222,7 +222,7 @@ export function AIMagicSection() {
                   
                   <div className="relative bg-[#000000] border-4 border-[#222] rounded-[2.5rem] p-3 max-w-sm mx-auto shadow-2xl h-[450px] flex flex-col">
                      {/* Lock Screen UI */}
-                     <div className="flex-1 rounded-[2rem] overflow-hidden relative bg-[url('https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center">
+                     <div className="flex-1 rounded-[2rem] overflow-hidden relative bg-[url('https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?fm=webp&q=80&w=1000&fit=crop')] bg-cover bg-center">
                         <div className="absolute inset-0 bg-black/40" />
                         
                         <div className="absolute top-12 left-0 right-0 text-center text-white z-10">

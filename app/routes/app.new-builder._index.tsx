@@ -2,18 +2,29 @@
  * Page Builder v2 - Page List (Index)
  * 
  * Lists all builder pages for the store and allows creating new pages from templates.
+ * 
+ * UPGRADED: Now uses Intent Wizard for smart, conversion-optimized page creation.
  */
 
 import { useState } from 'react';
 import { json, redirect } from '@remix-run/cloudflare';
 import { useLoaderData, useNavigate, useFetcher } from '@remix-run/react';
 import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/cloudflare';
-import { Plus, Edit, Trash2, Eye, FileText, ExternalLink } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, FileText, ExternalLink, X, Sparkles } from 'lucide-react';
+import { drizzle } from 'drizzle-orm/d1';
+import { eq } from 'drizzle-orm';
 
 import { requireAuth } from '~/lib/auth.server';
 import { listPages, createPageFromTemplate, deletePage } from '~/lib/page-builder/actions.server';
 import { getAllTemplates } from '~/lib/page-builder/templates';
-import { TemplateGallery } from '~/components/page-builder/TemplateGallery';
+import { IntentWizard } from '~/components/landing-builder/IntentWizard';
+import { 
+  generateOptimalSections, 
+  generateDefaultContent,
+  type Intent,
+  type QuickProduct 
+} from '~/utils/landing-builder/intentEngine';
+import { products } from '@db/schema';
 
 // ============================================================================
 // LOADER
@@ -22,14 +33,34 @@ import { TemplateGallery } from '~/components/page-builder/TemplateGallery';
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { store } = await requireAuth(request, context);
   const db = context.cloudflare.env.DB;
+  const drizzleDb = drizzle(db);
   
   const pages = await listPages(db, store.id);
   const templates = getAllTemplates();
+  
+  // Fetch existing products for Intent Wizard
+  const existingProducts = await drizzleDb
+    .select({
+      id: products.id,
+      title: products.title,
+      price: products.price,
+      imageUrl: products.imageUrl,
+    })
+    .from(products)
+    .where(eq(products.storeId, store.id))
+    .limit(50);
   
   return json({ 
     pages, 
     templates,
     storeSlug: store.slug,
+    storeId: store.id,
+    existingProducts: existingProducts.map(p => ({
+      id: p.id,
+      title: p.title,
+      price: p.price,
+      imageUrl: p.imageUrl || undefined,
+    })),
   });
 }
 
@@ -40,11 +71,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export async function action({ request, context }: ActionFunctionArgs) {
   const { store } = await requireAuth(request, context);
   const db = context.cloudflare.env.DB;
+  const drizzleDb = drizzle(db);
   
   const formData = await request.formData();
-  const intent = formData.get('intent');
+  const actionIntent = formData.get('intent');
   
-  switch (intent) {
+  switch (actionIntent) {
     case 'create': {
       const templateId = formData.get('templateId') as string;
       const slug = formData.get('slug') as string;
@@ -61,6 +93,114 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
       
       return redirect(`/app/new-builder/${result.pageId}`);
+    }
+
+    // NEW: Intent-based page creation from Quick Builder v2
+    case 'create-from-intent': {
+      const intentDataStr = formData.get('intentData') as string;
+      const productStr = formData.get('product') as string;
+      const productIdStr = formData.get('productId') as string;
+      const templateId = formData.get('templateId') as string;
+
+      if (!intentDataStr || !templateId) {
+        return json({ error: 'Intent data and template are required' }, { status: 400 });
+      }
+
+      try {
+        const intentData: Intent = JSON.parse(intentDataStr);
+        let product: QuickProduct | null = null;
+        let linkedProductId: number | null = null;
+
+        // Get product info
+        if (productIdStr) {
+          linkedProductId = Number(productIdStr);
+          const productResult = await drizzleDb
+            .select()
+            .from(products)
+            .where(eq(products.id, linkedProductId))
+            .limit(1);
+
+          if (productResult[0]) {
+            const p = productResult[0];
+            product = {
+              name: p.title,
+              price: p.price,
+              compareAtPrice: p.compareAtPrice || undefined,
+              image: p.imageUrl || undefined,
+            };
+          }
+        } else if (productStr) {
+          product = JSON.parse(productStr);
+          
+          // Create quick product in database
+          if (product) {
+            const slug = product.name
+              .toLowerCase()
+              .replace(/[^a-z0-9\s-]/g, '')
+              .replace(/\s+/g, '-')
+              .substring(0, 50);
+
+            const newProduct = await drizzleDb
+              .insert(products)
+              .values({
+                storeId: store.id,
+                title: product.name,
+                price: product.price,
+                compareAtPrice: product.compareAtPrice || null,
+                imageUrl: product.image || null,
+                slug: slug + '-' + Date.now(),
+                description: '',
+                inventory: 100,
+                isPublished: true,
+              })
+              .returning({ id: products.id });
+
+            linkedProductId = newProduct[0]?.id || null;
+          }
+        }
+
+        if (!product) {
+          return json({ error: 'Product is required' }, { status: 400 });
+        }
+
+        // Generate optimized sections based on intent
+        const optimizedSections = generateOptimalSections(intentData);
+        const defaultContent = generateDefaultContent(intentData, product);
+
+        // Generate page title and slug
+        const pageTitle = product.name || 'Landing Page';
+        const pageSlug = product.name
+          ? product.name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').substring(0, 30) + '-' + Date.now()
+          : 'landing-' + Date.now();
+
+        // Create page with intent-optimized template
+        const result = await createPageFromTemplate(
+          db, 
+          store.id, 
+          templateId, 
+          pageSlug, 
+          pageTitle,
+          {
+            intent: intentData,
+            optimizedSections,
+            defaultContent,
+            linkedProductId,
+          }
+        );
+
+        if ('error' in result) {
+          return json({ error: result.error }, { status: 400 });
+        }
+
+        return json({
+          success: true,
+          pageId: result.pageId,
+          redirectTo: `/app/new-builder/${result.pageId}`,
+        });
+      } catch (error) {
+        console.error('Intent-based creation error:', error);
+        return json({ error: 'Failed to create page' }, { status: 500 });
+      }
     }
     
     case 'delete': {
@@ -83,17 +223,62 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // ============================================================================
 
 export default function NewBuilderIndex() {
-  const { pages, templates, storeSlug } = useLoaderData<typeof loader>();
+  const { pages, templates, storeSlug, storeId, existingProducts } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
-  const fetcher = useFetcher();
-  const [showTemplateGallery, setShowTemplateGallery] = useState(false);
+  const fetcher = useFetcher<{ success?: boolean; redirectTo?: string; error?: string }>();
+  const [showIntentWizard, setShowIntentWizard] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
+  // Handle Intent Wizard completion
+  const handleIntentComplete = (data: {
+    intent: Intent;
+    product: QuickProduct | null;
+    productId: number | null;
+    templateId: string;
+  }) => {
+    const formData = new FormData();
+    formData.append('intent', 'create-from-intent');
+    formData.append('intentData', JSON.stringify(data.intent));
+    formData.append('templateId', data.templateId);
+    
+    if (data.productId) {
+      formData.append('productId', String(data.productId));
+    } else if (data.product) {
+      formData.append('product', JSON.stringify(data.product));
+    }
+
+    fetcher.submit(formData, { method: 'POST' });
+  };
+
+  // Handle redirect after successful creation
+  if (fetcher.data?.success && fetcher.data.redirectTo) {
+    navigate(fetcher.data.redirectTo);
+  }
+
+  // Legacy handler for old template gallery (kept for backwards compatibility)
   const handleCreatePage = (templateId: string, slug: string, title: string) => {
     fetcher.submit(
       { intent: 'create', templateId, slug, title },
       { method: 'POST' }
     );
+  };
+
+  // Image upload handler for Intent Wizard
+  const handleImageUpload = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('storeId', String(storeId));
+
+    const response = await fetch('/api/upload-image', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const result = await response.json();
+    if (result.success && result.url) {
+      return result.url;
+    }
+    throw new Error('Upload failed');
   };
 
   const handleDeletePage = (pageId: string) => {
@@ -115,11 +300,11 @@ export default function NewBuilderIndex() {
               <p className="text-gray-500 mt-1">আপনার ল্যান্ডিং পেজ তৈরি ও ম্যানেজ করুন</p>
             </div>
             <button
-              onClick={() => setShowTemplateGallery(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-medium"
+              onClick={() => setShowIntentWizard(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg hover:shadow-xl font-medium"
             >
-              <Plus size={20} />
-              নতুন পেজ তৈরি করুন
+              <Sparkles size={20} />
+              কুইক বিল্ডার দিয়ে তৈরি করুন
             </button>
           </div>
         </div>
@@ -138,11 +323,11 @@ export default function NewBuilderIndex() {
               আপনার প্রথম ল্যান্ডিং পেজ তৈরি করুন এবং আপনার পণ্য বা সেবা প্রচার করুন
             </p>
             <button
-              onClick={() => setShowTemplateGallery(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
+              onClick={() => setShowIntentWizard(true)}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-medium"
             >
-              <Plus size={20} />
-              প্রথম পেজ তৈরি করুন
+              <Sparkles size={20} />
+              কুইক বিল্ডার দিয়ে শুরু করুন
             </button>
           </div>
         ) : (
@@ -224,14 +409,59 @@ export default function NewBuilderIndex() {
         )}
       </div>
 
-      {/* Template Gallery Modal */}
-      {showTemplateGallery && (
-        <TemplateGallery
-          templates={templates}
-          onSelect={handleCreatePage}
-          onClose={() => setShowTemplateGallery(false)}
-          isSubmitting={fetcher.state === 'submitting'}
-        />
+      {/* Intent Wizard Modal (Quick Builder v2) */}
+      {showIntentWizard && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm" 
+            onClick={() => setShowIntentWizard(false)} 
+          />
+          
+          {/* Modal */}
+          <div className="relative min-h-screen flex items-center justify-center p-4">
+            <div className="relative bg-gradient-to-br from-emerald-50 via-white to-blue-50 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              {/* Close button */}
+              <button
+                onClick={() => setShowIntentWizard(false)}
+                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors z-10"
+              >
+                <X size={20} />
+              </button>
+              
+              {/* Wizard Header */}
+              <div className="text-center pt-8 pb-4 px-6">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Sparkles className="w-6 h-6 text-emerald-500" />
+                  <span className="text-sm font-medium text-emerald-600">কুইক বিল্ডার</span>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                  ল্যান্ডিং পেজ তৈরি করুন
+                </h2>
+                <p className="text-gray-500">
+                  ৩টি সহজ ধাপে হাই-কনভার্টিং ল্যান্ডিং পেজ
+                </p>
+              </div>
+              
+              {/* Intent Wizard */}
+              <div className="px-6 pb-8">
+                <IntentWizard
+                  existingProducts={existingProducts}
+                  onComplete={handleIntentComplete}
+                  onImageUpload={handleImageUpload}
+                  isSubmitting={fetcher.state === 'submitting'}
+                />
+              </div>
+              
+              {/* Error message */}
+              {fetcher.data?.error && (
+                <div className="mx-6 mb-6 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+                  {fetcher.data.error}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Delete Confirmation Modal */}
