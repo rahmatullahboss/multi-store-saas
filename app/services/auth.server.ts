@@ -47,6 +47,11 @@ export function getSessionStorage(env: Env) {
     throw new Error('SESSION_SECRET must be set in your environment variables.');
   }
 
+  // Check if we're in development mode
+  // SAAS_DOMAIN will be 'localhost:5173' or similar in dev, 'ozzyl.com' in prod
+  const saasDomain = env.SAAS_DOMAIN || 'ozzyl.com';
+  const isLocalhost = saasDomain.includes('localhost') || saasDomain.includes('127.0.0.1');
+  
   return createCookieSessionStorage<SessionData, SessionFlashData>({
     cookie: {
       name: '__session',
@@ -54,10 +59,12 @@ export function getSessionStorage(env: Env) {
       path: '/',
       sameSite: 'lax',
       secrets: [env.SESSION_SECRET],
-      secure: true,
+      // Only require HTTPS in production (localhost uses HTTP)
+      secure: !isLocalhost,
       maxAge: 60 * 60 * 24 * 7, // 7 days
-      // Enable cross-subdomain access (e.g., builder.ozzyl.com)
-      domain: '.ozzyl.com',
+      // Only set domain in production for cross-subdomain access
+      // In dev mode, omitting domain allows cookies to work on localhost
+      ...(isLocalhost ? {} : { domain: '.ozzyl.com' }),
     },
   });
 }
