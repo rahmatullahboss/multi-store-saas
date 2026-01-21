@@ -12,6 +12,7 @@ import {
   CreditCard, Globe, BarChart3, MessageSquare, 
   ArrowRight, Layout
 } from 'lucide-react';
+import { BRAND } from '~/config/branding';
 import { useLanguage, useFormatPrice } from '~/contexts/LanguageContext';
 
 // ============================================================================
@@ -417,11 +418,11 @@ export function PricingSection() {
             <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-500/20 blur-[100px]" />
 
             <div className="relative z-10 text-center">
-              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 mb-8 transform rotate-3">
-                 <img src="/ozzyl-logo.png" alt="Ozil" className="w-12 h-12 object-contain" />
+              <div className="w-24 h-24 mx-auto bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 mb-8 transform rotate-3">
+                 <img src={BRAND.logo} alt={BRAND.name} className="w-16 h-16 object-contain brightness-0 invert" />
               </div>
 
-              <h3 className="text-3xl font-bold text-white mb-2">Ozil</h3>
+              <h3 className="text-3xl font-bold text-white mb-2">{BRAND.name}</h3>
               <p className="text-emerald-300 font-medium mb-8">{TEXT.brandSub}</p>
 
               <div className={`text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-200 to-emerald-400 mb-4 tracking-tight pt-2 pb-1 leading-normal ${lang === 'bn' ? 'font-bengali' : ''}`}>
