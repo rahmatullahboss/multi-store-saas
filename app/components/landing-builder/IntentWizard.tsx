@@ -591,6 +591,13 @@ export function IntentWizard({
             onSelectTemplate={setSelectedTemplate}
           />
         )}
+        
+        {/* Genie Branding */}
+        <div className="text-center pt-4 border-t border-gray-100 mt-6">
+          <p className="text-xs text-gray-400">
+            ✨ Powered by <span className="font-semibold text-purple-500">Genie</span>
+          </p>
+        </div>
       </div>
 
       {/* Navigation */}

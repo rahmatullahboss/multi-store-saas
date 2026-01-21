@@ -33,7 +33,7 @@ export function AllInOneSolution() {
             <Layers className="w-4 h-4 text-emerald-500" />
             <span className="text-sm font-medium text-emerald-400">All-in-One Platform</span>
           </motion.div>
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-relaxed py-2">
             ভিন্ন ভিন্ন টুলসের দিন শেষ,<br />
             <span className="text-emerald-500">Ozzyl</span> এই সবকিছু একসাথেই বেশ!
           </h2>

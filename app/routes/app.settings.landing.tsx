@@ -218,25 +218,25 @@ export default function LandingSettingsPage() {
         </div>
       )}
 
-      {/* Quick Builder CTA Card */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 text-white">
+      {/* Genie - Quick Builder CTA Card */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 text-white">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="w-5 h-5" />
-            <span className="text-sm font-medium text-emerald-100">নতুন!</span>
+            <span className="text-sm font-medium text-purple-200">✨ Genie</span>
           </div>
-          <h3 className="text-xl font-bold mb-2">কুইক বিল্ডার দিয়ে শুরু করুন</h3>
-          <p className="text-emerald-100 mb-4 max-w-md">
+          <h3 className="text-xl font-bold mb-2">Genie দিয়ে ম্যাজিক্যালি তৈরি করুন</h3>
+          <p className="text-purple-100 mb-4 max-w-md">
             মাত্র ৩টি ধাপে হাই-কনভার্টিং ল্যান্ডিং পেইজ তৈরি করুন। 
             আপনার ইন্টেন্ট অনুযায়ী অটোমেটিক সেকশন ও টেমপ্লেট সাজেশন পাবেন।
           </p>
           <Link
-            to="/app/quick-builder/new"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-emerald-600 rounded-lg font-semibold hover:bg-emerald-50 transition-colors shadow-lg"
+            to="/app/new-builder"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-purple-600 rounded-lg font-semibold hover:bg-purple-50 transition-colors shadow-lg"
           >
-            কুইক বিল্ডার শুরু করুন
+            ✨ Genie শুরু করুন
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

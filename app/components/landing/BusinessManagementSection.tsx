@@ -35,7 +35,7 @@ export function BusinessManagementSection() {
             <Shield className="w-4 h-4 text-purple-500" />
             <span className="text-sm font-medium text-purple-400">Enterprise Control</span>
           </motion.div>
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-relaxed py-2">
             আপনার ফুল টিম,<br />
             <span className="text-purple-500">এক ড্যাশবোর্ডে</span>
           </h2>

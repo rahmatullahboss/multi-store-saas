@@ -15,20 +15,7 @@ export function VisitorAIShowcase() {
     { text: t('landingOzzylChat_suggestHowToStart'), action: 3 }
   ];
 
-  const conversationFlows = {
-    1: {
-      user: t('landingOzzylChat_suggestWhatIs'),
-      ai: t('landingMagic_desc'), // Reuse existing high-quality description
-    },
-    2: {
-      user: t('landingOzzylChat_suggestPricing'),
-      ai: t('landingOzzylChat_suggestPricing'), // In a real demo this would be more detailed
-    },
-    3: {
-      user: t('landingOzzylChat_suggestHowToStart'),
-      ai: t('landingVisitorAi_feature4Desc'),
-    }
-  };
+
 
   // Override AI responses for better demo flow if needed, but using existing keys is better for consistency
   const getAIResponse = (action: number) => {
@@ -84,7 +71,7 @@ export function VisitorAIShowcase() {
             <span className="text-sm font-medium text-emerald-300">{t('landingVisitorAi_newFeature')}</span>
           </motion.div>
           
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-relaxed py-2">
             {t('landingVisitorAi_askAiTitle')}
           </h2>
           

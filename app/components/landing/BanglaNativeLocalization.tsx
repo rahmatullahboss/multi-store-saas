@@ -140,7 +140,7 @@ export function BanglaNativeLocalization() {
               <span className="text-sm font-medium text-emerald-400">Proudly Made for Bangladesh</span>
             </motion.div>
 
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-8 leading-tight">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-8 leading-relaxed py-2">
               আপনার ভাষায়,<br /> 
               আপনার <span className="text-emerald-500">বিজনেস</span>
             </h2>

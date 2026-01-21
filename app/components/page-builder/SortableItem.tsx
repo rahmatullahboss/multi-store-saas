@@ -157,6 +157,20 @@ export function SortableItem({
           <Copy size={14} />
         </button>
         
+        {/* Variant Selector - Only for sections with variants */}
+        {hasVariants(section.type) && onVariantClick && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onVariantClick();
+            }}
+            className="p-1 text-purple-500 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors"
+            title="স্টাইল পরিবর্তন"
+          >
+            <Palette size={14} />
+          </button>
+        )}
+        
         {/* Delete */}
         <button
           onClick={(e) => {

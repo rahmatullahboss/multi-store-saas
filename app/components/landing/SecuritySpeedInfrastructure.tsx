@@ -35,7 +35,7 @@ export function SecuritySpeedInfrastructure() {
             <ShieldCheck className="w-4 h-4 text-blue-500" />
             <span className="text-sm font-medium text-blue-400">Enterprise Infrastructure</span>
           </motion.div>
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-relaxed py-2">
             দুর্ভেদ্য নিরাপত্তা, <span className="text-blue-500">Unmatched</span> গতি<br />
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">

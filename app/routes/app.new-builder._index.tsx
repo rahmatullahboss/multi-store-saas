@@ -301,10 +301,10 @@ export default function NewBuilderIndex() {
             </div>
             <button
               onClick={() => setShowIntentWizard(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg hover:shadow-xl font-medium"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl font-medium"
             >
               <Sparkles size={20} />
-              কুইক বিল্ডার দিয়ে তৈরি করুন
+              ✨ Genie দিয়ে তৈরি করুন
             </button>
           </div>
         </div>
@@ -324,10 +324,10 @@ export default function NewBuilderIndex() {
             </p>
             <button
               onClick={() => setShowIntentWizard(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-medium"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-colors font-medium"
             >
               <Sparkles size={20} />
-              কুইক বিল্ডার দিয়ে শুরু করুন
+              ✨ Genie দিয়ে শুরু করুন
             </button>
           </div>
         ) : (
@@ -432,11 +432,11 @@ export default function NewBuilderIndex() {
               {/* Wizard Header */}
               <div className="text-center pt-8 pb-4 px-6">
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <Sparkles className="w-6 h-6 text-emerald-500" />
-                  <span className="text-sm font-medium text-emerald-600">কুইক বিল্ডার</span>
+                  <Sparkles className="w-6 h-6 text-purple-500" />
+                  <span className="text-sm font-medium text-purple-600">✨ Genie</span>
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-1">
-                  ল্যান্ডিং পেজ তৈরি করুন
+                  ম্যাজিক্যালি ল্যান্ডিং পেইজ তৈরি করুন
                 </h2>
                 <p className="text-gray-500">
                   ৩টি সহজ ধাপে হাই-কনভার্টিং ল্যান্ডিং পেজ

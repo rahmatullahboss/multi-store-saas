@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Sparkles, MessageSquare, BrainCircuit, Bot, Zap, Check, Send, Search, Menu, BarChart3, TrendingUp, Users, Package, Shirt, Footprints, AlertCircle, Phone, HelpCircle } from 'lucide-react';
+import { ShoppingBag, Sparkles, MessageSquare, BrainCircuit, Bot, Check, Send, Search, BarChart3, TrendingUp, Users, Package, Shirt, Footprints, HelpCircle } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useIsMobile } from '~/hooks/useIsMobile';
 
@@ -72,7 +72,7 @@ export function AIShowcaseSection() {
              <span className="text-sm font-medium text-emerald-200">{t('landingShowcase_suite')}</span>
            </motion.div>
            
-           <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+           <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-relaxed py-2">
              {t('landingShowcase_title')}
            </h2>
            <p className="text-lg text-white/60 max-w-2xl mx-auto">

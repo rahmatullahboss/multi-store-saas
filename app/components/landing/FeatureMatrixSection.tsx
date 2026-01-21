@@ -114,7 +114,7 @@ export function FeatureMatrixSection() {
     <section className="py-24 bg-[#0A0F0D] border-t border-white/5">
       <div className="max-w-4xl mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">{TEXT.title}</h2>
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-relaxed py-2">{TEXT.title}</h2>
           <p className="text-white/60 text-lg">{TEXT.subtitle}</p>
         </div>
 

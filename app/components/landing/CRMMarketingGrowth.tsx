@@ -23,7 +23,7 @@ export function CRMMarketingGrowth() {
               <span className="text-sm font-medium text-indigo-400">Marketing & Growth</span>
             </motion.div>
 
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-8 leading-tight">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-8 leading-relaxed py-2">
               কাস্টমার রিলেশনশিপ হোক <br /> আরও <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">গভীর</span>
             </h2>
 
