@@ -1,6 +1,6 @@
 
 import { motion } from 'framer-motion';
-import { Mail, MessageCircle, MessageSquare, Zap, Send, MousePointerClick } from 'lucide-react';
+import { Mail, MessageCircle, MessageSquare, Zap } from 'lucide-react';
 import { useState, useEffect, type ComponentType } from 'react';
 
 export function MarketingAutomationSection() {
@@ -45,119 +45,136 @@ export function MarketingAutomationSection() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Interactive Visual Side */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="relative h-[500px] rounded-3xl bg-white/5 border border-white/10 overflow-hidden p-8 flex flex-col"
-          >
-            {/* Top Bar simulating a device/app */}
-            <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-500 ${
-                  activeChannel === 'email' ? 'bg-emerald-500/20 text-emerald-500' :
-                  activeChannel === 'whatsapp' ? 'bg-[#25D366]/20 text-[#25D366]' :
-                  'bg-[#0084FF]/20 text-[#0084FF]'
-                }`}>
-                  {activeChannel === 'email' && <Mail className="w-5 h-5" />}
-                  {activeChannel === 'whatsapp' && <MessageCircle className="w-5 h-5" />}
-                  {activeChannel === 'messenger' && <MessageSquare className="w-5 h-5" />}
+            {/* Active Channel Display - Premium Glass Card */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative h-[500px] rounded-[32px] bg-white/[0.03] backdrop-blur-2xl border border-white/10 overflow-hidden p-8 flex flex-col shadow-2xl"
+            >
+              {/* Internal Glow */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 blur-[80px] rounded-full pointer-events-none" />
+
+              {/* Top Bar */}
+              <div className="relative z-10 flex items-center justify-between mb-8 pb-4 border-b border-white/10">
+                <div className="flex items-center gap-4">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-lg ${
+                    activeChannel === 'email' ? 'bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-400 shadow-emerald-500/10' :
+                    activeChannel === 'whatsapp' ? 'bg-gradient-to-br from-[#25D366]/20 to-green-500/20 text-[#25D366] shadow-[#25D366]/10' :
+                    'bg-gradient-to-br from-blue-500/20 to-indigo-500/20 text-blue-400 shadow-blue-500/10'
+                  }`}>
+                    {activeChannel === 'email' && <Mail className="w-6 h-6" />}
+                    {activeChannel === 'whatsapp' && <MessageCircle className="w-6 h-6" />}
+                    {activeChannel === 'messenger' && <MessageSquare className="w-6 h-6" />}
+                  </div>
+                  <div>
+                    <h4 className="text-white font-bold text-lg tracking-tight">
+                      {activeChannel === 'email' ? 'Email Campaign' :
+                       activeChannel === 'whatsapp' ? 'WhatsApp Business' :
+                       'Facebook Messenger'}
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      </span>
+                      <p className="text-xs text-white/50 font-medium uppercase tracking-wider">Active Automation</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-white font-bold">
-                    {activeChannel === 'email' ? 'Email Campaign' :
-                     activeChannel === 'whatsapp' ? 'WhatsApp Business' :
-                     'Facebook Messenger'}
-                  </h4>
-                  <p className="text-xs text-white/50">Automated System</p>
+                <div className="flex gap-2 p-2 rounded-full bg-white/5 border border-white/5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/80 shadow-sm shadow-red-500/20" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80 shadow-sm shadow-yellow-500/20" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/80 shadow-sm shadow-green-500/20" />
                 </div>
               </div>
-              <div className="flex gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500/50" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
-                <div className="w-3 h-3 rounded-full bg-green-500/50" />
+
+              {/* Chat Area */}
+              <div className="flex-1 flex flex-col justify-center space-y-6 relative z-10 pl-4 pr-2">
+                 
+                 {/* Trigger Node */}
+                 <motion.div
+                  key={`${activeChannel}-trigger`}
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  className="self-start max-w-[85%]"
+                 >
+                   <div className="flex items-center gap-2 mb-2 ml-1">
+                     <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded-full border border-white/5">Trigger</span>
+                   </div>
+                   <div className="bg-[#1A1F25]/80 backdrop-blur-md border border-white/10 rounded-2xl rounded-tl-sm p-4 text-sm text-white/80 shadow-lg">
+                     {activeChannel === 'email' ? '🛒 Customer abandoned cart (Premium Watch)' :
+                      activeChannel === 'whatsapp' ? '📦 Order #2034 placed successfully' :
+                      '💬 Customer asked "Price please?"'}
+                   </div>
+                 </motion.div>
+
+                 {/* Flow Connector */}
+                 <motion.div 
+                   className="pl-8 -my-2 opacity-30"
+                   initial={{ opacity: 0, height: 0 }}
+                   animate={{ opacity: 0.3, height: 'auto' }}
+                   transition={{ delay: 0.2 }}
+                 >
+                   <div className="w-0.5 h-8 bg-gradient-to-b from-white/50 to-emerald-500/50 ml-0.5" />
+                 </motion.div>
+
+                 {/* Logic Node */}
+                 <motion.div
+                   key={`${activeChannel}-logic`}
+                   initial={{ opacity: 0, scale: 0.8 }}
+                   animate={{ opacity: 1, scale: 1 }}
+                   transition={{ duration: 0.4, delay: 0.3 }}
+                   className="self-center"
+                 >
+                   <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                     <Zap className="w-3 h-3" />
+                     <span>Running Automation Workflow...</span>
+                   </div>
+                 </motion.div>
+
+                 {/* Flow Connector */}
+                 <motion.div 
+                   className="pl-8 -my-2 opacity-30"
+                   initial={{ opacity: 0, height: 0 }}
+                   animate={{ opacity: 0.3, height: 'auto' }}
+                   transition={{ delay: 0.4 }}
+                 >
+                   <div className="w-0.5 h-8 bg-gradient-to-b from-emerald-500/50 to-white/50 ml-0.5" />
+                 </motion.div>
+
+                 {/* Response Node */}
+                 <motion.div
+                  key={`${activeChannel}-response`}
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.6, ease: "easeOut" }}
+                  className="self-end max-w-[85%]"
+                 >
+                    <div className="flex items-center justify-end gap-2 mb-2 mr-1">
+                     <span className="text-[10px] font-bold text-emerald-400/80 uppercase tracking-widest bg-emerald-500/5 px-2 py-0.5 rounded-full border border-emerald-500/10">Sent</span>
+                   </div>
+                   <div 
+                    className="backdrop-blur-xl border rounded-2xl rounded-tr-sm p-4 text-sm shadow-xl"
+                    style={{
+                      background: activeChannel === 'email' ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 78, 59, 0.2))' : 
+                                  activeChannel === 'whatsapp' ? 'linear-gradient(135deg, rgba(37, 211, 102, 0.15), rgba(20, 83, 45, 0.2))' : 
+                                  'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(30, 58, 138, 0.2))',
+                      borderColor: activeChannel === 'email' ? 'rgba(16, 185, 129, 0.2)' : 
+                                   activeChannel === 'whatsapp' ? 'rgba(37, 211, 102, 0.2)' : 
+                                   'rgba(59, 130, 246, 0.2)',
+                    }}
+                   >
+                     <p className="text-white font-medium leading-relaxed">
+                       {activeChannel === 'email' ? 'Hey! You left something special behind. Complete your order now for 5% OFF!' :
+                        activeChannel === 'whatsapp' ? 'Thanks! Your order is confirmed. Track it here: ozzyl.com/t/2034 🚚' :
+                        'The Premium Watch is ৳2,500. Order now for free delivery! 🛍️'}
+                     </p>
+                   </div>
+                 </motion.div>
               </div>
-            </div>
-
-            {/* Simulated Chat/Content Area */}
-            <div className={`flex-1 flex flex-col justify-center space-y-4 transition-all duration-500 relative`}>
-               {/* Background Elements */}
-               <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/20 pointer-events-none" />
-               
-               {/* Message Bubble 1 (Trigger) */}
-               <motion.div
-                key={`${activeChannel}-trigger`}
-                initial={{ opacity: 0, x: -20, scale: 0.9 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                transition={{ duration: 0.4 }}
-                className="bg-white/10 rounded-2xl p-4 max-w-[80%] self-start border border-white/5 ml-2"
-               >
-                 <div className="flex items-center gap-2 mb-2 text-xs text-white/40">
-                   <MousePointerClick className="w-3 h-3" /> Trigger Event
-                 </div>
-                 <p className="text-sm text-white/90">
-                   {activeChannel === 'email' ? 'Customer abandoned cart containing "Premium Watch"' :
-                    activeChannel === 'whatsapp' ? 'Order #2034 placed successfully' :
-                    'Customer asked "What is the price?"'}
-                 </p>
-               </motion.div>
-
-               {/* Connection Line */}
-               <motion.div
-                 initial={{ height: 0 }}
-                 animate={{ height: 40 }}
-                 className="w-px bg-white/20 self-center border-l border-dashed border-white/30"
-               />
-
-               {/* Action Node */}
-               <motion.div
-                 key={`${activeChannel}-action`}
-                 initial={{ opacity: 0, scale: 0.8 }}
-                 animate={{ opacity: 1, scale: 1 }}
-                 transition={{ duration: 0.4, delay: 0.3 }}
-                 className="self-center bg-emerald-500/20 text-emerald-400 px-4 py-1.5 rounded-full text-xs font-mono border border-emerald-500/30 flex items-center gap-2"
-               >
-                 <Zap className="w-3 h-3" /> Sending Automated Reply...
-               </motion.div>
-
-               {/* Connection Line */}
-               <motion.div
-                 initial={{ height: 0 }}
-                 animate={{ height: 40 }}
-                 className="w-px bg-white/20 self-center border-l border-dashed border-white/30"
-               />
-
-               {/* Message Bubble 2 (Response) */}
-               <motion.div
-                key={`${activeChannel}-response`}
-                initial={{ opacity: 0, x: 20, scale: 0.9 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                transition={{ duration: 0.4, delay: 0.6 }}
-                className="rounded-2xl p-4 max-w-[80%] self-end border ml-auto mr-2 shadow-lg"
-                style={{
-                  backgroundColor: activeChannel === 'email' ? 'rgba(16, 185, 129, 0.1)' : 
-                                  activeChannel === 'whatsapp' ? 'rgba(37, 211, 102, 0.1)' : 
-                                  'rgba(0, 132, 255, 0.1)',
-                  borderColor: activeChannel === 'email' ? 'rgba(16, 185, 129, 0.3)' : 
-                               activeChannel === 'whatsapp' ? 'rgba(37, 211, 102, 0.3)' : 
-                               'rgba(0, 132, 255, 0.3)',
-                }}
-               >
-                 <div className="flex items-center gap-2 mb-2 text-xs opacity-60">
-                   <Send className="w-3 h-3" /> Sent Successfully
-                 </div>
-                 <p className="text-sm text-white/90 font-medium">
-                   {activeChannel === 'email' ? 'Forgot something? Complete your purchase now and get 5% OFF!' :
-                    activeChannel === 'whatsapp' ? 'Thanks for your order! Track your delivery here: ozzyl.com/t/2034' :
-                    'The price for Premium Watch is 2500 BDT. Would you like to order now?'}
-                 </p>
-                 {activeChannel === 'email' && (
-                    <div className="mt-2 text-xs bg-emerald-500 text-black px-3 py-1 rounded inline-block font-bold">Shop Now</div>
-                 )}
-               </motion.div>
-            </div>
-          </motion.div>
+            </motion.div>
 
           {/* Features Grid Side */}
           <div className="space-y-6">

@@ -67,7 +67,17 @@ export interface Block {
 
 // Reusable validators
 const colorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/i).or(z.literal('')).optional();
-const urlSchema = z.string().url().or(z.literal('')).optional();
+const urlSchema = z
+  .string()
+  .refine(
+    (val) =>
+      val === '' ||
+      val.startsWith('/') ||
+      val.startsWith('#') ||
+      /^https?:\/\//.test(val),
+    'Invalid URL format'
+  )
+  .optional();
 const imageSchema = z.string().url().or(z.literal('')).optional();
 
 // Button Block Schema

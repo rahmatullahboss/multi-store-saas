@@ -16,11 +16,12 @@
  */
 
 import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motion';
-import { useEffect, useRef, useState, ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from '@remix-run/react';
-import { Play, Check, ArrowRight, Sparkles, MousePointer2, Type, Palette, Globe } from 'lucide-react';
+import { Check, ArrowRight, Sparkles, MousePointer2, Type, Palette, Globe, Rocket } from 'lucide-react';
 import { useIsMobile } from '~/hooks/useIsMobile';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { ClientOnly } from '~/components/LazySection';
 
 // ============================================================================
 // TYPES
@@ -123,56 +124,59 @@ const FloatingBengaliText = ({ isMobile = false }: { isMobile?: boolean }) => {
 };
 
 // ============================================================================
-// GRADIENT MESH BACKGROUND (Dark Theme)
+// GRADIENT MESH BACKGROUND (Dark Theme - Liquid Glass)
 // ============================================================================
 const GradientMeshBackground = ({ isMobile = false }: { isMobile?: boolean }) => (
   <div className="absolute inset-0 overflow-hidden">
-    {/* Primary green gradient orb */}
+    {/* Liquid Primary Orb */}
     <motion.div
-      className="absolute -top-1/4 -left-1/4 w-[800px] h-[800px] rounded-full"
+      className="absolute -top-[20%] -left-[10%] w-[1000px] h-[1000px] rounded-full mix-blend-screen opacity-40 blur-[100px]"
       style={{
-        background: `radial-gradient(circle, ${COLORS.primary}40 0%, transparent 70%)`,
+        background: `radial-gradient(circle, ${COLORS.primary} 0%, transparent 70%)`,
       }}
       animate={isMobile ? {} : {
-        scale: [1, 1.15, 1],
-        x: [0, 60, 0],
-        y: [0, 40, 0],
+        scale: [1, 1.2, 0.9, 1],
+        x: [0, 100, -50, 0],
+        y: [0, 50, 100, 0],
+      }}
+      transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
+    />
+
+    {/* Liquid Blue Orb */}
+    <motion.div
+      className="absolute top-[20%] -right-[10%] w-[800px] h-[800px] rounded-full mix-blend-screen opacity-30 blur-[120px]"
+      style={{
+        background: 'radial-gradient(circle, #2563EB 0%, transparent 70%)',
+      }}
+      animate={isMobile ? {} : {
+        scale: [1.1, 0.9, 1.2, 1.1],
+        x: [0, -70, 30, 0],
+        y: [0, -100, 50, 0],
+      }}
+      transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
+    />
+
+    {/* Golden Accent Orb */}
+    <motion.div
+      className="absolute bottom-0 left-[20%] w-[600px] h-[600px] rounded-full mix-blend-screen opacity-20 blur-[90px]"
+      style={{
+        background: `radial-gradient(circle, ${COLORS.accent} 0%, transparent 70%)`,
+      }}
+      animate={isMobile ? {} : {
+        scale: [0.9, 1.1, 0.9],
+        opacity: [0.2, 0.4, 0.2],
       }}
       transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
     />
 
-    {/* Deep blue gradient orb */}
-    <motion.div
-      className="absolute -bottom-1/4 -right-1/4 w-[700px] h-[700px] rounded-full"
-      style={{
-        background: 'radial-gradient(circle, rgba(30, 58, 138, 0.35) 0%, transparent 70%)',
-      }}
-      animate={isMobile ? {} : {
-        scale: [1.1, 1, 1.1],
-        x: [0, -40, 0],
-        y: [0, -60, 0],
-      }}
-      transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
-    />
-
-    {/* Golden accent orb */}
-    <motion.div
-      className="absolute top-1/3 right-1/4 w-[300px] h-[300px] rounded-full"
-      style={{
-        background: `radial-gradient(circle, ${COLORS.accent}20 0%, transparent 70%)`,
-      }}
-      animate={isMobile ? {} : {
-        scale: [1, 1.3, 1],
-        opacity: [0.3, 0.5, 0.3],
-      }}
-      transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-    />
-
-    {/* Gradient overlay */}
+    {/* Noise Texture */}
+    <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] brightness-100 contrast-150" />
+    
+    {/* Gradient Overlay for Depth */}
     <div
       className="absolute inset-0"
       style={{
-        background: `linear-gradient(135deg, ${COLORS.background} 0%, ${COLORS.backgroundAlt} 50%, rgba(10, 30, 50, 0.95) 100%)`,
+        background: `radial-gradient(circle at center, transparent 0%, #0A0F0D 90%)`,
       }}
     />
   </div>
@@ -247,7 +251,7 @@ const LightGradientBackground = ({ isMobile = false }: { isMobile?: boolean }) =
 // MAGNETIC BUTTON COMPONENT
 // ============================================================================
 interface MagneticProps {
-  children: ReactNode;
+  children: React.ReactNode;
   className?: string;
 }
 
@@ -317,9 +321,6 @@ const StaggeredText = ({ text, className = '', delay = 0 }: { text: string; clas
 // ============================================================================
 // LIVE SIGNUP COUNTER
 // ============================================================================
-// ============================================================================
-// LIVE SIGNUP COUNTER
-// ============================================================================
 const LiveSignupCounter = ({ count = 0 }: { count?: number }) => {
   const { t } = useTranslation();
   return (
@@ -346,15 +347,19 @@ const LiveSignupCounter = ({ count = 0 }: { count?: number }) => {
 };
 
 // ============================================================================
-// BUILDER MOCKUP - ANIMATED DEMO
+// BUILDER MOCKUP - PREMIUM GLASS & 3D
 // ============================================================================
 const BuilderMockup = () => {
   const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [isPublished, setIsPublished] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
 
   // Cycle through builder demo steps
   useEffect(() => {
+    // ... (existing timer logic)
     const timer = setTimeout(() => {
       if (step < 4) {
         setStep(step + 1);
@@ -366,9 +371,25 @@ const BuilderMockup = () => {
         }, 3000);
       }
     }, step === 0 ? 1500 : 2000);
-
     return () => clearTimeout(timer);
   }, [step]);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!containerRef.current) return;
+    const { left, top, width, height } = containerRef.current.getBoundingClientRect();
+    const x = (e.clientX - left) / width - 0.5;
+    const y = (e.clientY - top) / height - 0.5;
+    mouseX.set(x * 10); // Rotate max 5 deg
+    mouseY.set(y * 10);
+  };
+  
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  }
+
+  const rotateX = useSpring(mouseY, { stiffness: 100, damping: 20 });
+  const rotateY = useSpring(mouseX, { stiffness: 100, damping: 20 });
 
   const templates = [
     { name: 'মডার্ন স্টোর', color: '#006A4E', active: step >= 1 },
@@ -378,262 +399,268 @@ const BuilderMockup = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 60, rotateY: -15 }}
-      animate={{ opacity: 1, x: 0, rotateY: 0 }}
-      transition={{ duration: 1, delay: 0.6 }}
-      className="relative"
-      style={{ perspective: '1000px' }}
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      initial={{ opacity: 0, scale: 0.9, rotateX: 10 }}
+      animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+      transition={{ duration: 1, delay: 0.4, ease: "circOut" }}
+      className="relative perspective-[2000px] group"
     >
-      {/* Browser chrome */}
-      <div className="relative backdrop-blur-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.03] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
-        {/* Browser header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/[0.02]">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500/70" />
-            <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
-            <div className="w-3 h-3 rounded-full bg-green-500/70" />
-          </div>
-          <div className="flex items-center gap-2 px-4 py-1.5 bg-black/30 rounded-lg text-xs text-white/40 min-w-[200px]">
-            <Globe className="w-3 h-3" />
-            <span>your-store.bikrimart.com</span>
-          </div>
-          <div className="w-16" />
-        </div>
+      {/* 3D Container */}
+      <motion.div
+         style={{ rotateX: rotateX, rotateY: rotateY, transformStyle: "preserve-3d" }}
+         className="relative transition-shadow duration-500"
+      >
+          {/* Glass Card */}
+          <div className="relative backdrop-blur-3xl bg-white/[0.03] border border-white/10 rounded-[24px] shadow-2xl overflow-hidden ring-1 ring-white/5 group-hover:ring-white/10 transition-all duration-500">
+            
+            {/* Glossy Reflection */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none z-20" />
 
-        {/* Builder interface */}
-        <div className="p-4 min-h-[380px]">
-          {/* Template selection step */}
-          <AnimatePresence mode="wait">
-            {step === 0 && (
-              <motion.div
-                key="templates"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="space-y-3"
-              >
-                <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="w-4 h-4 text-[#F9A825]" />
-                  <span className="text-white/70 text-sm">{t('heroDemoTemplate')}</span>
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  {templates.map((tmpl, i) => (
-                    <motion.div
-                      key={i}
-                      className={`relative p-4 rounded-xl border ${i === 0 ? 'border-[#006A4E] bg-[#006A4E]/10' : 'border-white/10 bg-white/[0.02]'} cursor-pointer`}
-                      whileHover={{ scale: 1.02 }}
-                    >
-                      <div
-                        className="w-full h-28 rounded-lg mb-3"
-                        style={{ background: `linear-gradient(135deg, ${tmpl.color}40, ${tmpl.color}20)` }}
-                      />
-                      <p className="text-sm text-white/70 font-medium">{tmpl.name}</p>
-                      {i === 0 && (
+            {/* Browser header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-black/20">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[#FF5F56] shadow-sm" />
+                <div className="w-3 h-3 rounded-full bg-[#FFBD2E] shadow-sm" />
+                <div className="w-3 h-3 rounded-full bg-[#27C93F] shadow-sm" />
+              </div>
+              <div className="flex items-center gap-2 px-4 py-1.5 bg-black/40 rounded-full text-[10px] text-white/40 border border-white/5 shadow-inner min-w-[200px] justify-center font-mono">
+                <Globe className="w-3 h-3 opacity-50" />
+                <span>store.bikrimart.com</span>
+              </div>
+              <div className="w-16" />
+            </div>
+
+            {/* Builder interface */}
+            <div className="p-6 min-h-[420px] bg-gradient-to-b from-transparent to-black/40 relative">
+              {/* Template selection step */}
+              <AnimatePresence mode="wait">
+                {step === 0 && (
+                  <motion.div
+                    key="templates"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 1.05 }}
+                    className="space-y-4"
+                  >
+                    <div className="flex items-center gap-2 mb-6">
+                      <div className="p-1.5 bg-amber-500/10 rounded-lg">
+                         <Sparkles className="w-4 h-4 text-amber-500" />
+                      </div>
+                      <span className="text-white/80 font-medium">{t('heroDemoTemplate')}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      {templates.map((tmpl, i) => (
                         <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="absolute -top-1 -right-1 w-5 h-5 bg-[#006A4E] rounded-full flex items-center justify-center"
+                          key={i}
+                          className={`relative p-3 rounded-2xl border transition-all duration-300 ${i === 0 ? 'border-emerald-500/50 bg-emerald-500/10 shadow-[0_0_20px_rgba(16,185,129,0.2)]' : 'border-white/5 bg-white/[0.02] hover:bg-white/5'} cursor-pointer group/card`}
+                          whileHover={{ y: -5 }}
                         >
-                          <Check className="w-3 h-3 text-white" />
+                          <div
+                            className="w-full h-32 rounded-xl mb-3 overflow-hidden relative"
+                          >
+                             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50 z-10" />
+                             <div style={{ background: tmpl.color }} className="w-full h-full opacity-30 group-hover/card:opacity-50 transition-opacity" />
+                          </div>
+                          <p className="text-xs text-white/70 font-medium text-center">{tmpl.name}</p>
+                          {i === 0 && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-[#0A0F0D] shadow-lg"
+                            >
+                              <Check className="w-3 h-3 text-white" />
+                            </motion.div>
+                          )}
                         </motion.div>
-                      )}
-                    </motion.div>
-                  ))}
-                </div>
+                      ))}
+                    </div>
 
-                {/* Animated cursor */}
-                <motion.div
-                  className="absolute"
-                  initial={{ x: 200, y: 200, opacity: 0 }}
-                  animate={{ x: 60, y: 130, opacity: 1 }}
-                  transition={{ delay: 0.5, duration: 0.8, ease: 'easeOut' }}
-                >
-                  <MousePointer2 className="w-5 h-5 text-white drop-shadow-lg" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.5))' }} />
-                </motion.div>
-              </motion.div>
-            )}
-
-            {step >= 1 && step < 4 && (
-              <motion.div
-                key="editing"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="space-y-4"
-              >
-                {/* Store preview */}
-                <div className="rounded-xl border border-white/10 overflow-hidden">
-                  {/* Store header */}
-                  <div
-                    className="p-4 transition-all duration-500"
-                    style={{
-                      background: step >= 2
-                        ? `linear-gradient(135deg, ${COLORS.primary}80, ${COLORS.primary}40)`
-                        : 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))'
-                    }}
-                  >
-                    <motion.h3
-                      className="text-lg font-bold text-white"
-                      key={step}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
+                    {/* Animated cursor */}
+                    <motion.div
+                      className="absolute z-50 pointer-events-none"
+                      initial={{ left: "80%", top: "80%", opacity: 0 }}
+                      animate={{ left: "20%", top: "40%", opacity: 1 }}
+                      transition={{ delay: 0.5, duration: 1, ease: 'circOut' }}
                     >
-                      {step >= 3 ? t('heroDemoStoreName') : t('heroDemoStorePlaceholder')}
-                    </motion.h3>
-                    <p className="text-sm text-white/60">
-                      {step >= 3 ? t('heroDemoStoreSlogan') : t('heroDemoSloganPlaceholder')}
-                    </p>
-                  </div>
-
-                  {/* Products grid */}
-                  <div className="p-3 bg-black/20 grid grid-cols-3 gap-2">
-                    {[1, 2, 3].map((_, i) => (
-                      <motion.div
-                        key={i}
-                        className="aspect-square rounded-lg bg-gradient-to-br from-white/10 to-white/5 border border-white/5"
-                        initial={{ opacity: 0.3 }}
-                        animate={{ opacity: step >= 3 ? 1 : 0.5 }}
-                        transition={{ delay: i * 0.1 }}
-                      >
-                        <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">
-                          📦
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Editor tools */}
-                <div className="flex items-center gap-2">
-                  <motion.div
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs ${step === 2 ? 'bg-[#006A4E]/20 border border-[#006A4E]/50 text-[#006A4E]' : 'bg-white/5 text-white/50'}`}
-                    animate={step === 2 ? { scale: [1, 1.05, 1] } : {}}
-                  >
-                    <Palette className="w-3 h-3" />
-                    <span>{t('heroDemoTheme')}</span>
-                  </motion.div>
-                  <motion.div
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs ${step === 3 ? 'bg-[#F9A825]/20 border border-[#F9A825]/50 text-[#F9A825]' : 'bg-white/5 text-white/50'}`}
-                    animate={step === 3 ? { scale: [1, 1.05, 1] } : {}}
-                  >
-                    <Type className="w-3 h-3" />
-                    <span>{t('heroDemoContent')}</span>
-                  </motion.div>
-                </div>
-
-                {/* Live editing cursor */}
-                {step >= 2 && step < 4 && (
-                  <motion.div
-                    className="absolute"
-                    initial={{ x: step === 2 ? 60 : 130, y: 250, opacity: 1 }}
-                    animate={{
-                      x: step === 3 ? 130 : 60,
-                      y: step === 3 ? 250 : 250,
-                    }}
-                    transition={{ duration: 0.6, ease: 'easeInOut' }}
-                  >
-                    <MousePointer2 className="w-5 h-5 text-white drop-shadow-lg" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.5))' }} />
+                      <MousePointer2 className="w-6 h-6 text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] fill-black/20" />
+                    </motion.div>
                   </motion.div>
                 )}
-              </motion.div>
-            )}
 
-            {step === 4 && !isPublished && (
-              <motion.div
-                key="publishing"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex flex-col items-center justify-center h-[300px] gap-4"
-              >
-                <motion.div
-                  className="w-16 h-16 rounded-full border-4 border-[#006A4E]/30 border-t-[#006A4E]"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                />
-                <p className="text-white/60">{t('heroDemoPublishing')}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                {step >= 1 && step < 4 && (
+                  <motion.div
+                    key="editing"
+                    className="space-y-4"
+                  >
+                    {/* Store preview */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="rounded-xl border border-white/10 overflow-hidden shadow-2xl bg-[#050505]"
+                    >
+                      {/* Store header */}
+                      <div
+                        className="p-6 transition-all duration-700"
+                        style={{
+                          background: step >= 2
+                            ? `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryDark} 100%)`
+                            : '#111'
+                        }}
+                      >
+                        <motion.h3
+                          className="text-xl font-bold text-white mb-1"
+                          key={step}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                        >
+                          {step >= 3 ? t('heroDemoStoreName') : t('heroDemoStorePlaceholder')}
+                        </motion.h3>
+                        <p className="text-xs text-white/60">
+                          {step >= 3 ? t('heroDemoStoreSlogan') : t('heroDemoSloganPlaceholder')}
+                        </p>
+                      </div>
 
-          {/* Published success overlay */}
-          <AnimatePresence>
-            {isPublished && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm rounded-2xl"
-              >
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: [0, 1.2, 1] }}
-                  transition={{ duration: 0.5 }}
-                  className="w-20 h-20 rounded-full bg-gradient-to-br from-[#006A4E] to-[#00875F] flex items-center justify-center mb-4"
-                >
-                  <Check className="w-10 h-10 text-white" />
-                </motion.div>
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="text-2xl font-bold text-white mb-2"
-                >
-                  ✓ {t('heroDemoPublished')}
-                </motion.p>
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className="text-white/60"
-                >
-                  {t('heroDemoLive')} 🎉
-                </motion.p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
+                      {/* Products grid */}
+                      <div className="p-4 bg-[#0A0A0A] grid grid-cols-3 gap-3">
+                        {[1, 2, 3].map((_, i) => (
+                          <motion.div
+                            key={i}
+                            className="aspect-[4/5] rounded-lg bg-white/[0.03] border border-white/5 relative overflow-hidden group/product"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: step >= 3 ? 1 : 0.3, y: step >= 3 ? 0 : 10 }}
+                            transition={{ delay: i * 0.1 }}
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover/product:opacity-100 transition-opacity" />
+                            <div className="absolute bottom-2 left-2 w-12 h-1.5 bg-white/20 rounded-full" />
+                            <div className="absolute bottom-2 right-2 w-4 h-4 rounded-full bg-emerald-500/20" />
+                          </motion.div>
+                        ))}
+                      </div>
+                    </motion.div>
+
+                    {/* Editor tools - Floating Palette */}
+                    <div className="absolute -right-4 top-1/2 -translate-y-1/2 flex flex-col gap-2">
+                       {['Themes', 'Content', 'Layout'].map((tool, idx) => (
+                          <motion.div
+                             key={tool}
+                             initial={{ x: 20, opacity: 0 }}
+                             animate={{ x: 0, opacity: 1 }}
+                             transition={{ delay: 0.2 + idx * 0.1 }}
+                             className={`p-2 rounded-lg backdrop-blur-md border border-white/10 shadow-lg ${
+                                (step === 2 && idx === 0) || (step === 3 && idx === 1) 
+                                ? 'bg-emerald-500 text-white' 
+                                : 'bg-black/40 text-white/40'
+                             }`}
+                          >
+                             {idx === 0 && <Palette className="w-4 h-4" />}
+                             {idx === 1 && <Type className="w-4 h-4" />}
+                             {idx === 2 && <Globe className="w-4 h-4" />}
+                          </motion.div>
+                       ))}
+                    </div>
+
+                    {/* Live editing cursor */}
+                    {step >= 2 && step < 4 && (
+                      <motion.div
+                        className="absolute z-50 pointer-events-none"
+                        initial={{ left: "90%", top: "40%" }}
+                        animate={{
+                          left: step === 3 ? "90%" : "90%",
+                          top: step === 3 ? "55%" : "45%",
+                        }}
+                        transition={{ duration: 0.8, ease: 'easeInOut' }}
+                      >
+                         <MousePointer2 className="w-6 h-6 text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] fill-black/20" />
+                      </motion.div>
+                    )}
+                  </motion.div>
+                )}
+
+                {step === 4 && !isPublished && (
+                  <motion.div
+                    key="publishing"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex flex-col items-center justify-center h-[340px] gap-6"
+                  >
+                    <div className="relative">
+                        <motion.div
+                          className="w-20 h-20 rounded-full border-4 border-emerald-500/20 border-t-emerald-500"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <Rocket className="w-8 h-8 text-emerald-500 animate-pulse" />
+                        </div>
+                    </div>
+                    <p className="text-white/60 text-sm font-mono tracking-widest uppercase">{t('heroDemoPublishing')}...</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Published success overlay */}
+              <AnimatePresence>
+                {isPublished && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-md z-50 rounded-[24px]"
+                  >
+                    <motion.div
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                      className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(16,185,129,0.4)]"
+                    >
+                      <Check className="w-12 h-12 text-white" />
+                    </motion.div>
+                    <motion.h3
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="text-3xl font-bold text-white mb-2"
+                    >
+                      {t('heroDemoPublished')}
+                    </motion.h3>
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.4 }}
+                      className="text-white/60"
+                    >
+                      {t('heroDemoLive')} 🚀
+                    </motion.p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+      </motion.div>
 
       {/* Floating notification */}
       <motion.div
-        initial={{ opacity: 0, x: 30, y: -20 }}
-        animate={{ opacity: 1, x: 0, y: 0 }}
-        transition={{ delay: 1.8 }}
-        className="absolute -right-4 top-20"
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 1.5, type: "spring" }}
+        className="absolute -right-8 top-16 z-30 hidden md:block"
       >
         <motion.div
-          animate={{ y: [0, -6, 0] }}
-          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-          className="backdrop-blur-xl bg-white/10 border border-white/10 rounded-xl p-3 shadow-xl"
+          animate={{ y: [0, -10, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          className="backdrop-blur-xl bg-white/[0.05] border border-white/20 rounded-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.2)] flex items-center gap-3"
         >
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#F9A825] to-[#FFB74D] flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-black" />
-            </div>
-            <div>
-              <p className="text-white text-xs font-medium">{t('heroDemoReady')}</p>
-              <p className="text-white/50 text-[10px]">{t('heroDemoNoCoding')}</p>
-            </div>
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
+            <Sparkles className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p className="text-white text-sm font-bold">{t('heroDemoReady')}</p>
+            <p className="text-white/50 text-xs">{t('heroDemoNoCoding')}</p>
           </div>
         </motion.div>
-      </motion.div>
-
-      {/* Step indicator */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.2 }}
-        className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2"
-      >
-        {[0, 1, 2, 3, 4].map((s) => (
-          <motion.div
-            key={s}
-            className={`h-1.5 rounded-full transition-all duration-300 ${s <= step ? 'bg-[#006A4E]' : 'bg-white/20'
-              }`}
-            style={{ width: s === step ? 24 : 8 }}
-          />
-        ))}
       </motion.div>
     </motion.div>
   );
@@ -823,7 +850,7 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
             </motion.div>
           </div>
 
-          {/* RIGHT: Builder Demo Mockup */}
+          {/* RIGHT: Builder Demo Mockup - Client Only for 3D/Glass effects */}
           <div className="hidden lg:block">
             {/* Light theme: white card with shadow wrapping the mockup */}
             {isLight ? (
@@ -833,10 +860,14 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
                   boxShadow: '0 10px 40px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04)',
                 }}
               >
-                <BuilderMockup />
+                <ClientOnly fallback={<div className="h-[600px] w-full bg-white/5 animate-pulse rounded-2xl" />}>
+                   <BuilderMockup />
+                </ClientOnly>
               </div>
             ) : (
-              <BuilderMockup />
+               <ClientOnly fallback={<div className="h-[600px] w-full bg-white/5 animate-pulse rounded-2xl" />}>
+                  <BuilderMockup />
+               </ClientOnly>
             )}
           </div>
         </div>
