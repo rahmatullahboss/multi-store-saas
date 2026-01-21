@@ -8,7 +8,7 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { 
-  Check, Sparkles, Zap, Shield, Rocket, 
+  Check, Sparkles, Zap, Shield, 
   CreditCard, Globe, BarChart3, MessageSquare, 
   ArrowRight, Layout
 } from 'lucide-react';
@@ -194,7 +194,6 @@ const PricingCard = ({
 // ============================================================================
 export function PricingSection() {
   const { lang } = useLanguage();
-  const formatPrice = useFormatPrice();
   const [isAnnual, setIsAnnual] = useState(false);
 
   const TEXT = {
@@ -419,13 +418,13 @@ export function PricingSection() {
 
             <div className="relative z-10 text-center">
               <div className="w-20 h-20 mx-auto bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 mb-8 transform rotate-3">
-                 <Rocket className="w-10 h-10 text-black" />
+                 <img src="/ozzyl-logo.png" alt="Ozil" className="w-12 h-12 object-contain" />
               </div>
 
-              <img src="/ozzyl-logo.png" alt="Ozil" className="h-10 mx-auto mb-4" />
+              <h3 className="text-3xl font-bold text-white mb-2">Ozil</h3>
               <p className="text-emerald-300 font-medium mb-8">{TEXT.brandSub}</p>
 
-              <div className={`text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-200 to-emerald-400 mb-4 tracking-tight ${lang === 'bn' ? 'font-bengali' : ''}`}>
+              <div className={`text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-200 to-emerald-400 mb-4 tracking-tight pt-2 pb-1 leading-normal ${lang === 'bn' ? 'font-bengali' : ''}`}>
                 {TEXT.startPrice}
               </div>
               <p className="text-white/50 uppercase tracking-widest text-xs font-bold mb-10">{TEXT.startSub}</p>
