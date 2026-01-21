@@ -12,7 +12,7 @@
  * - Undo/Redo
  */
 
-import { useEditor, EditorContent, type Editor } from '@tiptap/react';
+import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -23,8 +23,8 @@ import {
     Link as LinkIcon,
     Undo, Redo,
     AlignLeft, AlignCenter, AlignRight,
-    Heading1, Heading2, Heading3,
-    Quote, Code, Minus
+    Heading1, Heading2,
+    Quote
 } from 'lucide-react';
 import { useCallback } from 'react';
 
@@ -69,6 +69,7 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write somethi
         extensions: [
             StarterKit.configure({
                 heading: { levels: [1, 2, 3] },
+                // Disable link in StarterKit to avoid duplicate with our custom Link extension below
             }),
             Link.configure({ openOnClick: false }),
             Placeholder.configure({ placeholder }),
@@ -83,6 +84,8 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write somethi
         onUpdate: ({ editor }) => {
             onChange(editor.getHTML());
         },
+        // Fix SSR hydration mismatch
+        immediatelyRender: false,
     });
 
     const setLink = useCallback(() => {
