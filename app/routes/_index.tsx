@@ -590,7 +590,7 @@ export default function Index() {
         // Testimonials Section
         testimonials: [
           { name: 'রহিম উদ্দিন', imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop', text: 'অসাধারণ প্রোডাক্ট! ৫ স্টার রেটিং দিলাম।' },
-          { name: 'সাবিনা আক্তার', imageUrl: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop', text: 'দারুণ কোয়ালিটি, দাম অনুযায়ী সেরা।' },
+          { name: 'সাবিনা আক্তার', imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop', text: 'দারুণ কোয়ালিটি, দাম অনুযায়ী সেরা।' },
           { name: 'করিম সাহেব', imageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop', text: 'দ্রুত ডেলিভারি পেয়েছি, খুব খুশি।' },
         ],
         

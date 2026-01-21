@@ -414,7 +414,7 @@ export function PricingSection() {
             className="relative p-8 rounded-[40px] border border-emerald-500/30 bg-gradient-to-br from-emerald-900/10 to-teal-900/10 backdrop-blur-md overflow-hidden"
           >
             {/* Background Beams */}
-            <div className="absolute inset-0 bg-[url('/assets/grid.svg')] opacity-20" />
+            <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20" />
             <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-500/20 blur-[100px]" />
 
             <div className="relative z-10 text-center">

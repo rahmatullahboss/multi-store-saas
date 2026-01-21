@@ -10,7 +10,7 @@ const REVIEWS = [
     rating: 5, 
     comment: 'প্রোডাক্ট কোয়ালিটি খুবই ভালো। ডেলিভারিও সুপার ফাস্ট ছিল। আবারো অর্ডার করবো!',
     product: 'Premium Silk Saree',
-    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&fm=webp&q=80',
+    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&fm=webp&q=80',
     likes: 12
   },
   { 
