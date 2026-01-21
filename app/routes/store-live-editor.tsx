@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, products, marketplaceThemes } from '@db/schema';
+import { themes, themeTemplates, templateSectionsDraft, templateSectionsPublished, themeSettingsDraft, themeSettingsPublished } from '@db/schema_templates';
+import { templateVersions } from '@db/schema_versions';
 import { parseThemeConfig, defaultThemeConfig, type ThemeConfig, type TypographySettings, parseSocialLinks } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import { getAllStoreTemplates, DEFAULT_STORE_TEMPLATE_ID, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';
@@ -24,13 +26,35 @@ import {
   ArrowLeft, Monitor, Smartphone, Tablet, Save, Plus, Trash2, GripVertical, 
   Undo2, Redo2, ExternalLink, Sparkles, AlertCircle, CheckCircle2,
   Layout, Type, Image as ImageIcon, Palette, Menu, Settings, Database, Loader2,
-  Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, Store, ShoppingCart, Search, Rows, PlusCircle, CheckCircle, Code, User, ChevronDown, ChevronRight, Wand2, X
+  Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, Store, ShoppingCart, Search, Rows, PlusCircle, CheckCircle, Code, User, ChevronDown, ChevronRight, ChevronUp, Wand2, X
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { StoreImageUpload } from '~/components/StoreImageUpload';
 import { useEditorHistory, useEditorKeyboardShortcuts } from '~/hooks/useEditorHistory';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { StoreSection, DEFAULT_SECTIONS, SECTION_REGISTRY, SectionSettings } from '~/components/store-sections/registry';
+import { 
+  BLOCK_REGISTRY, 
+  type Block, 
+  getBlockDefaults, 
+  getBlockDefinition,
+  validateBlock,
+  createBlock 
+} from '~/lib/block-registry';
+import { 
+  getSectionDefinition, 
+  getAllowedBlocks, 
+  getMaxBlocks,
+  validateSection 
+} from '~/lib/section-schemas';
+import { 
+  addBlockToSection, 
+  removeBlockFromSection, 
+  reorderBlocks,
+  updateBlockSettings,
+  validateForPublish,
+  type SectionWithBlocks 
+} from '~/lib/theme-validation';
 import { StoreAIAssistant } from '~/components/store-builder/StoreAIAssistant';
 
 // dnd-kit imports
@@ -130,7 +154,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       id: store[0].id,
       name: store[0].name,
       subdomain: store[0].subdomain,
-      mode: store[0].mode || 'store',
+      mode: 'store',
       logo: store[0].logo || '',
       fontFamily: store[0].fontFamily || 'inter',
       businessInfo: store[0].businessInfo ? JSON.parse(store[0].businessInfo) : {},
@@ -290,14 +314,290 @@ export async function action({ request, context }: ActionFunctionArgs) {
     seo: seo?.metaTitle || seo?.metaDescription ? seo : undefined,
   };
 
+  // ============================================================================
+  // LEGACY THEMECONFIG SAVE - DISABLED (Migration complete)
+  // Keeping store metadata updates only (logo, font, business info, social links)
+  // Theme sections/settings now saved to draft tables below
+  // ============================================================================
   await db.update(stores).set({ 
-    themeConfig: JSON.stringify(updatedConfig),
+    // themeConfig: JSON.stringify(updatedConfig), // DISABLED - now using draft tables
     fontFamily,
     logo: logo || null,
     businessInfo: JSON.stringify({ phone, email, address }),
     socialLinks: JSON.stringify({ facebook, instagram, whatsapp }),
     updatedAt: new Date() 
   }).where(eq(stores.id, storeId));
+
+  // ============================================================================
+  // SAVE TO NEW DRAFT TABLES (Shopify-like draft/publish system)
+  // ============================================================================
+  const actionType = formData.get('_action') as string;
+  
+  try {
+    // Step 1: Ensure theme exists for this store
+    let existingTheme = await db.select().from(themes).where(eq(themes.shopId, storeId)).limit(1);
+    let themeId: string;
+    
+    if (existingTheme.length === 0) {
+      // Create new theme
+      themeId = `theme_${storeId}_${Date.now()}`;
+      await db.insert(themes).values({
+        id: themeId,
+        shopId: storeId,
+        name: 'Default Theme',
+        presetId: storeTemplateId,
+        isActive: 1,
+      });
+    } else {
+      themeId = existingTheme[0].id;
+    }
+
+    // Step 2: Get or create templates for all page types
+    const pageTypes = ['home', 'product', 'collection', 'cart', 'checkout'] as const;
+    const templateIds: Record<string, string> = {};
+    
+    for (const pageType of pageTypes) {
+      const existingTemplate = await db.select().from(themeTemplates)
+        .where(and(
+          eq(themeTemplates.themeId, themeId),
+          eq(themeTemplates.templateKey, pageType)
+        ))
+        .limit(1);
+      
+      if (existingTemplate.length === 0) {
+        const newTemplateId = `template_${storeId}_${pageType}_${Date.now()}`;
+        await db.insert(themeTemplates).values({
+          id: newTemplateId,
+          shopId: storeId,
+          themeId: themeId,
+          templateKey: pageType,
+          title: `${pageType.charAt(0).toUpperCase() + pageType.slice(1)} Page`,
+        });
+        templateIds[pageType] = newTemplateId;
+      } else {
+        templateIds[pageType] = existingTemplate[0].id;
+      }
+    }
+    
+    const templateId = templateIds['home']; // Keep for backward compatibility
+
+    // Step 3: Save sections for ALL page types to draft tables
+    // Get sections for each page type from form data
+    const pageSectionsData: Record<string, any[]> = {
+      home: sections, // home sections from main 'sections' field
+      product: JSON.parse((formData.get('productSections') as string) || '[]'),
+      collection: JSON.parse((formData.get('collectionSections') as string) || '[]'),
+      cart: JSON.parse((formData.get('cartSections') as string) || '[]'),
+      checkout: JSON.parse((formData.get('checkoutSections') as string) || '[]'),
+    };
+
+    for (const pageType of pageTypes) {
+      const pageTemplateId = templateIds[pageType];
+      const pageSections = pageSectionsData[pageType] || [];
+      
+      // Delete existing draft sections for this template
+      await db.delete(templateSectionsDraft).where(eq(templateSectionsDraft.templateId, pageTemplateId));
+      
+      // Insert new sections
+      if (pageSections.length > 0) {
+        for (let i = 0; i < pageSections.length; i++) {
+          const section = pageSections[i];
+          await db.insert(templateSectionsDraft).values({
+            id: `draft_${section.id}_${Date.now()}_${i}`,
+            shopId: storeId,
+            templateId: pageTemplateId,
+            type: section.type,
+            enabled: 1,
+            sortOrder: i,
+            propsJson: JSON.stringify(section.settings || {}),
+            blocksJson: JSON.stringify(section.blocks || []),
+            version: 1,
+          });
+        }
+      }
+    }
+
+    // Step 4: Save theme settings to draft
+    const themeSettings = {
+      primaryColor,
+      accentColor,
+      backgroundColor,
+      textColor,
+      borderColor,
+      typography,
+      fontFamily,
+      bannerUrl,
+      bannerText,
+      customCSS,
+      headerLayout,
+      headerShowSearch,
+      headerShowCart,
+      footerDescription,
+      copyrightText,
+      footerColumns,
+      floatingWhatsappEnabled,
+      floatingWhatsappNumber,
+      floatingWhatsappMessage,
+      floatingCallEnabled,
+      floatingCallNumber,
+      checkoutStyle: (formData.get('checkoutStyle') as string) || 'standard',
+      flashSale,
+      trustBadges,
+      marketingPopup,
+      seo,
+    };
+
+    // Upsert theme settings draft
+    const existingSettingsDraft = await db.select().from(themeSettingsDraft)
+      .where(eq(themeSettingsDraft.themeId, themeId))
+      .limit(1);
+    
+    if (existingSettingsDraft.length === 0) {
+      await db.insert(themeSettingsDraft).values({
+        id: `settings_draft_${themeId}_${Date.now()}`,
+        shopId: storeId,
+        themeId: themeId,
+        settingsJson: JSON.stringify(themeSettings),
+        version: 1,
+      });
+    } else {
+      await db.update(themeSettingsDraft).set({
+        settingsJson: JSON.stringify(themeSettings),
+        version: (existingSettingsDraft[0].version || 1) + 1,
+        updatedAt: new Date(),
+      }).where(eq(themeSettingsDraft.themeId, themeId));
+    }
+
+    // Step 5: Handle PUBLISH action - copy draft to published
+    if (actionType === 'publish') {
+      // VALIDATION: Validate sections and settings before publishing
+      const sectionsForValidation = sections.map((s: any) => ({
+        id: s.id,
+        type: s.type,
+        settings: s.settings || {},
+        blocks: s.blocks || [],
+      }));
+      
+      const validationResult = validateForPublish(sectionsForValidation, themeSettings);
+      
+      if (!validationResult.valid) {
+        // Return validation errors
+        const errorMessages = validationResult.errors.slice(0, 5).map(e => e.message).join('; ');
+        return json({ 
+          success: false, 
+          error: `Validation failed: ${errorMessages}`,
+          validationErrors: validationResult.errors 
+        }, { status: 400 });
+      }
+      
+      // Log warnings but proceed
+      if (validationResult.warnings.length > 0) {
+        console.warn('Publish warnings:', validationResult.warnings);
+      }
+
+      // VERSION HISTORY: Save current published state before overwriting
+      for (const pageType of pageTypes) {
+        const pageTemplateId = templateIds[pageType];
+        
+        // Get current published sections for this template
+        const currentPublished = await db.select().from(templateSectionsPublished)
+          .where(eq(templateSectionsPublished.templateId, pageTemplateId));
+        
+        if (currentPublished.length > 0) {
+          // Get current version number
+          const existingVersions = await db.select().from(templateVersions)
+            .where(eq(templateVersions.templateId, pageTemplateId));
+          
+          const maxVersion = existingVersions.reduce((max, v) => Math.max(max, v.version), 0);
+          const nextVersion = maxVersion + 1;
+          
+          // Save current state as a version
+          const sectionsSnapshot = currentPublished.map(s => ({
+            id: s.id,
+            type: s.type,
+            settings: s.propsJson ? JSON.parse(s.propsJson) : {},
+            blocks: s.blocksJson ? JSON.parse(s.blocksJson) : [],
+          }));
+          
+          // Get current settings
+          const currentSettings = await db.select().from(themeSettingsPublished)
+            .where(eq(themeSettingsPublished.themeId, themeId))
+            .limit(1);
+          
+          await db.insert(templateVersions).values({
+            id: `ver_${storeId}_${pageType}_v${nextVersion}_${Date.now()}`,
+            storeId: storeId,
+            templateId: pageTemplateId,
+            themeId: themeId,
+            version: nextVersion,
+            sectionsJson: JSON.stringify(sectionsSnapshot),
+            settingsJson: currentSettings.length > 0 ? currentSettings[0].settingsJson : null,
+            publishedBy: user?.email || null,
+          });
+        }
+      }
+
+      // Copy sections from draft to published
+      await db.delete(templateSectionsPublished).where(eq(templateSectionsPublished.templateId, templateId));
+      
+      const draftSections = await db.select().from(templateSectionsDraft)
+        .where(eq(templateSectionsDraft.templateId, templateId));
+      
+      for (const section of draftSections) {
+        await db.insert(templateSectionsPublished).values({
+          id: `pub_${section.id}_${Date.now()}`,
+          shopId: storeId,
+          templateId: templateId,
+          type: section.type,
+          enabled: section.enabled,
+          sortOrder: section.sortOrder,
+          propsJson: section.propsJson,
+          blocksJson: section.blocksJson,
+        });
+      }
+
+      // Copy theme settings from draft to published
+      await db.delete(themeSettingsPublished).where(eq(themeSettingsPublished.themeId, themeId));
+      
+      const draftSettings = await db.select().from(themeSettingsDraft)
+        .where(eq(themeSettingsDraft.themeId, themeId))
+        .limit(1);
+      
+      if (draftSettings.length > 0) {
+        await db.insert(themeSettingsPublished).values({
+          id: `settings_pub_${themeId}_${Date.now()}`,
+          shopId: storeId,
+          themeId: themeId,
+          settingsJson: draftSettings[0].settingsJson,
+        });
+      }
+
+      // Invalidate KV cache for published template
+      try {
+        const KV = (context.cloudflare?.env as { KV?: KVNamespace })?.KV;
+        if (KV) {
+          // Delete all cached template keys for this store
+          await Promise.all([
+            KV.delete(`store:${storeId}:template:home:published`),
+            KV.delete(`store:${storeId}:template:product:published`),
+            KV.delete(`store:${storeId}:template:collection:published`),
+            KV.delete(`store:${storeId}:template:cart:published`),
+            KV.delete(`store:${storeId}:template:checkout:published`),
+            KV.delete(`store:${storeId}:theme:settings:published`),
+          ]);
+          console.log(`KV cache invalidated for store ${storeId}`);
+        }
+      } catch (kvError) {
+        console.error('KV cache invalidation failed (non-blocking):', kvError);
+      }
+
+      return json({ success: true, message: 'Theme published successfully!' });
+    }
+
+  } catch (draftError) {
+    console.error('Failed to save to draft tables (non-blocking):', draftError);
+    // Don't fail the request - legacy save already succeeded
+  }
 
   // Handle explicit marketplace publishing
   const publishToMarketplace = formData.get('publishToMarketplace') === 'true';
@@ -453,9 +753,11 @@ export default function StoreLiveEditor() {
   const { demoProductId } = useLoaderData<typeof loader>();
   
   // Page State
-  const [currentPage, setCurrentPage] = useState<'home' | 'product'>('home');
+  // Multi-page support: home, product, collection, cart, checkout
+  type PageType = 'home' | 'product' | 'collection' | 'cart' | 'checkout';
+  const [currentPage, setCurrentPage] = useState<PageType>('home');
   
-  // Sections state - defined separately for Home and Product pages
+  // Sections state - defined separately for each page type
   const [homeSections, setHomeSections] = useState<StoreSection[]>((themeConfig as any).sections || DEFAULT_SECTIONS);
   const [productSections, setProductSections] = useState<StoreSection[]>((themeConfig as any).productSections || [
     { id: 'p-header', type: 'product-header', settings: {} },
@@ -463,15 +765,33 @@ export default function StoreLiveEditor() {
     { id: 'p-info', type: 'product-info', settings: {} },
     { id: 'p-reviews', type: 'product-reviews', settings: {} },
   ]);
+  const [collectionSections, setCollectionSections] = useState<StoreSection[]>((themeConfig as any).collectionSections || [
+    { id: 'c-header', type: 'collection-header', settings: {} },
+    { id: 'c-products', type: 'collection-products', settings: {} },
+    { id: 'c-filters', type: 'collection-filters', settings: {} },
+  ]);
+  const [cartSections, setCartSections] = useState<StoreSection[]>((themeConfig as any).cartSections || [
+    { id: 'cart-items', type: 'cart-items', settings: {} },
+    { id: 'cart-summary', type: 'cart-summary', settings: {} },
+  ]);
+  const [checkoutSections, setCheckoutSections] = useState<StoreSection[]>((themeConfig as any).checkoutSections || [
+    { id: 'checkout-form', type: 'checkout-form', settings: {} },
+    { id: 'checkout-summary', type: 'checkout-summary', settings: {} },
+  ]);
+
+  // Page sections map for easy access
+  const pageSectionsMap: Record<PageType, { get: StoreSection[]; set: React.Dispatch<React.SetStateAction<StoreSection[]>> }> = {
+    home: { get: homeSections, set: setHomeSections },
+    product: { get: productSections, set: setProductSections },
+    collection: { get: collectionSections, set: setCollectionSections },
+    cart: { get: cartSections, set: setCartSections },
+    checkout: { get: checkoutSections, set: setCheckoutSections },
+  };
 
   // Active sections proxy
-  const sections = currentPage === 'home' ? homeSections : productSections;
+  const sections = pageSectionsMap[currentPage].get;
   const setSections = (newSections: StoreSection[] | ((prev: StoreSection[]) => StoreSection[])) => {
-    if (currentPage === 'home') {
-      setHomeSections(newSections);
-    } else {
-      setProductSections(newSections);
-    }
+    pageSectionsMap[currentPage].set(newSections);
   };
 
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
@@ -628,8 +948,8 @@ export default function StoreLiveEditor() {
     redo,
     canUndo,
     canRedo,
-    saveCheckpoint,
-  } = useEditorHistory(initialSnapshot.current, { maxHistory: 20, debounceMs: 500 });
+    pushHistory,
+  } = useEditorHistory(initialSnapshot.current, { maxHistory: 20 });
 
   // Apply state from history
   const applyHistoryState = useCallback((snapshot: typeof historyState) => {
@@ -706,13 +1026,28 @@ export default function StoreLiveEditor() {
   }, [selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns, floatingWhatsappEnabled, floatingWhatsappNumber, floatingWhatsappMessage, floatingCallEnabled, floatingCallNumber, checkoutStyle, sections]);
 
 
-  // Show success message
+  // Show success/error message
   useEffect(() => {
-    if (actionData && 'success' in actionData && actionData.success) {
-      setShowSuccess(true);
-      setHasChanges(false);
-      const timer = setTimeout(() => setShowSuccess(false), 3000);
-      return () => clearTimeout(timer);
+    if (actionData && 'success' in actionData) {
+      if (actionData.success) {
+        setShowSuccess(true);
+        setHasChanges(false);
+        toast.success(actionData.message || 'Changes saved!');
+        const timer = setTimeout(() => setShowSuccess(false), 3000);
+        return () => clearTimeout(timer);
+      } else if ('error' in actionData) {
+        // Show validation errors
+        toast.error(actionData.error as string);
+        
+        // Show detailed validation errors if available
+        if ('validationErrors' in actionData && Array.isArray(actionData.validationErrors)) {
+          (actionData.validationErrors as Array<{path: string; message: string}>).slice(0, 3).forEach((err, i) => {
+            setTimeout(() => {
+              toast.error(`${err.path}: ${err.message}`, { duration: 5000 });
+            }, (i + 1) * 500);
+          });
+        }
+      }
     }
   }, [actionData]);
 
@@ -1186,13 +1521,38 @@ export default function StoreLiveEditor() {
              <span className="hidden sm:inline">AI Designer</span>
           </button>
 
+          {/* Save Draft Button */}
           <button
             onClick={() => (document.getElementById('editor-form') as HTMLFormElement)?.requestSubmit()}
             disabled={isSubmitting}
             className="flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg text-sm font-semibold shadow-lg shadow-gray-200 transition-all disabled:opacity-50 active:scale-95"
           >
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            <span className="hidden sm:inline">Save</span>
+            <span className="hidden sm:inline">Save Draft</span>
+          </button>
+
+          {/* Publish Button - Copies draft to published */}
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm('Publish changes to your live store? This will make all changes visible to customers.')) {
+                const form = document.getElementById('editor-form') as HTMLFormElement;
+                if (form) {
+                  const input = document.createElement('input');
+                  input.type = 'hidden';
+                  input.name = '_action';
+                  input.value = 'publish';
+                  form.appendChild(input);
+                  form.requestSubmit();
+                  setTimeout(() => input.remove(), 100);
+                }
+              }
+            }}
+            disabled={isSubmitting}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold shadow-lg shadow-green-200 transition-all disabled:opacity-50 active:scale-95"
+          >
+            <CheckCircle className="w-4 h-4" />
+            <span className="hidden sm:inline">Publish</span>
           </button>
         </div>
       </div>
@@ -1266,11 +1626,38 @@ export default function StoreLiveEditor() {
 
 
             {/* SECTIONS LIST */}
+            {/* All page sections */}
             <input type="hidden" name="sections" value={JSON.stringify(homeSections)} />
             <input type="hidden" name="productSections" value={JSON.stringify(productSections)} />
+            <input type="hidden" name="collectionSections" value={JSON.stringify(collectionSections)} />
+            <input type="hidden" name="cartSections" value={JSON.stringify(cartSections)} />
+            <input type="hidden" name="checkoutSections" value={JSON.stringify(checkoutSections)} />
+            
+            {/* Page Type Tabs */}
+            <div className="mb-4 p-1 bg-gray-100 rounded-lg">
+              <div className="flex gap-1">
+                {(['home', 'product', 'collection', 'cart', 'checkout'] as PageType[]).map((pageType) => (
+                  <button
+                    key={pageType}
+                    type="button"
+                    onClick={() => {
+                      setCurrentPage(pageType);
+                      setSelectedSectionId(null);
+                    }}
+                    className={`flex-1 px-2 py-1.5 text-xs font-medium rounded-md transition-all ${
+                      currentPage === pageType 
+                        ? 'bg-white text-purple-700 shadow-sm' 
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+                    }`}
+                  >
+                    {pageType.charAt(0).toUpperCase() + pageType.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
             
             <AccordionSection
-              title={currentPage === 'home' ? "Sections (Home)" : "Sections (Product)"}
+              title={`Sections (${currentPage.charAt(0).toUpperCase() + currentPage.slice(1)})`}
               icon={Rows}
               isOpen={openSection === 'sections'}
               onToggle={() => setOpenSection(openSection === 'sections' ? '' : 'sections')}
@@ -1655,6 +2042,308 @@ export default function StoreLiveEditor() {
                                </div>
                              );
                           });
+                        })()}
+
+                        {/* ============================================ */}
+                        {/* BLOCK EDITOR UI (Shopify-style) */}
+                        {/* ============================================ */}
+                        {(() => {
+                          const sectionDef = getSectionDefinition(section.type);
+                          const allowedBlocks = getAllowedBlocks(section.type);
+                          const maxBlocks = getMaxBlocks(section.type);
+                          const currentBlocks: Block[] = section.blocks || [];
+                          
+                          // Only show block editor if section supports blocks
+                          if (allowedBlocks.length === 0) return null;
+                          
+                          return (
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                              <div className="flex items-center justify-between mb-3">
+                                <h5 className="text-xs font-bold text-gray-500 uppercase">
+                                  Blocks ({currentBlocks.length}{maxBlocks ? `/${maxBlocks}` : ''})
+                                </h5>
+                                <div className="relative group">
+                                  <button
+                                    type="button"
+                                    disabled={maxBlocks ? currentBlocks.length >= maxBlocks : false}
+                                    className="text-xs text-purple-600 hover:text-purple-800 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    <PlusCircle className="w-3 h-3" />
+                                    Add Block
+                                  </button>
+                                  {/* Dropdown for block types */}
+                                  <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50 hidden group-hover:block">
+                                    {allowedBlocks.map(blockType => {
+                                      const blockDef = getBlockDefinition(blockType);
+                                      if (!blockDef) return null;
+                                      
+                                      // Check block-specific limit
+                                      const sameTypeCount = currentBlocks.filter(b => b.type === blockType).length;
+                                      const atLimit = blockDef.limit ? sameTypeCount >= blockDef.limit : false;
+                                      
+                                      return (
+                                        <button
+                                          key={blockType}
+                                          type="button"
+                                          disabled={atLimit}
+                                          onClick={() => {
+                                            const newBlock = createBlock(blockType);
+                                            const updatedBlocks = [...currentBlocks, newBlock];
+                                            updateSectionSettings(section.id, { blocks: updatedBlocks });
+                                          }}
+                                          className="w-full text-left px-3 py-2 text-xs hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
+                                        >
+                                          <span>{blockDef.name}</span>
+                                          {blockDef.limit && (
+                                            <span className="text-gray-400">
+                                              {sameTypeCount}/{blockDef.limit}
+                                            </span>
+                                          )}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Block List */}
+                              {currentBlocks.length === 0 ? (
+                                <p className="text-xs text-gray-400 italic text-center py-4">
+                                  No blocks yet. Click "Add Block" to add content.
+                                </p>
+                              ) : (
+                                <div className="space-y-2">
+                                  {currentBlocks.map((block, index) => {
+                                    const blockDef = getBlockDefinition(block.type);
+                                    if (!blockDef) return null;
+                                    
+                                    return (
+                                      <div 
+                                        key={block.id} 
+                                        className="border border-gray-200 rounded-lg bg-gray-50 overflow-hidden"
+                                      >
+                                        {/* Block Header */}
+                                        <div className="flex items-center justify-between px-3 py-2 bg-white border-b border-gray-100">
+                                          <div className="flex items-center gap-2">
+                                            <GripVertical className="w-3 h-3 text-gray-400 cursor-grab" />
+                                            <span className="text-xs font-medium">{blockDef.name}</span>
+                                          </div>
+                                          <div className="flex items-center gap-1">
+                                            {/* Move Up */}
+                                            <button
+                                              type="button"
+                                              disabled={index === 0}
+                                              onClick={() => {
+                                                const newBlocks = [...currentBlocks];
+                                                [newBlocks[index - 1], newBlocks[index]] = [newBlocks[index], newBlocks[index - 1]];
+                                                updateSectionSettings(section.id, { blocks: newBlocks });
+                                              }}
+                                              className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                                            >
+                                              <ChevronUp className="w-3 h-3" />
+                                            </button>
+                                            {/* Move Down */}
+                                            <button
+                                              type="button"
+                                              disabled={index === currentBlocks.length - 1}
+                                              onClick={() => {
+                                                const newBlocks = [...currentBlocks];
+                                                [newBlocks[index], newBlocks[index + 1]] = [newBlocks[index + 1], newBlocks[index]];
+                                                updateSectionSettings(section.id, { blocks: newBlocks });
+                                              }}
+                                              className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                                            >
+                                              <ChevronDown className="w-3 h-3" />
+                                            </button>
+                                            {/* Delete */}
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                if (confirm('Remove this block?')) {
+                                                  const newBlocks = currentBlocks.filter(b => b.id !== block.id);
+                                                  updateSectionSettings(section.id, { blocks: newBlocks });
+                                                }
+                                              }}
+                                              className="p-1 text-gray-400 hover:text-red-500"
+                                            >
+                                              <Trash2 className="w-3 h-3" />
+                                            </button>
+                                          </div>
+                                        </div>
+                                        
+                                        {/* Block Settings */}
+                                        <div className="px-3 py-2 space-y-2">
+                                          {blockDef.settings.map(setting => {
+                                            const value = block.settings[setting.id] ?? setting.default ?? '';
+                                            
+                                            return (
+                                              <div key={setting.id} className="flex flex-col gap-1">
+                                                <label className="text-[10px] font-medium text-gray-500 uppercase">
+                                                  {setting.label}
+                                                </label>
+                                                
+                                                {/* Text Input */}
+                                                {(setting.type === 'text' || setting.type === 'url') && (
+                                                  <input
+                                                    type={setting.type === 'url' ? 'url' : 'text'}
+                                                    value={value as string}
+                                                    placeholder={setting.placeholder || ''}
+                                                    onChange={(e) => {
+                                                      const newBlocks = currentBlocks.map(b => 
+                                                        b.id === block.id 
+                                                          ? { ...b, settings: { ...b.settings, [setting.id]: e.target.value } }
+                                                          : b
+                                                      );
+                                                      updateSectionSettings(section.id, { blocks: newBlocks });
+                                                    }}
+                                                    className="w-full text-xs border border-gray-300 rounded p-1.5 focus:ring-1 focus:ring-purple-500"
+                                                  />
+                                                )}
+                                                
+                                                {/* Textarea */}
+                                                {(setting.type === 'textarea' || setting.type === 'richtext') && (
+                                                  <textarea
+                                                    value={value as string}
+                                                    placeholder={setting.placeholder || ''}
+                                                    rows={2}
+                                                    onChange={(e) => {
+                                                      const newBlocks = currentBlocks.map(b => 
+                                                        b.id === block.id 
+                                                          ? { ...b, settings: { ...b.settings, [setting.id]: e.target.value } }
+                                                          : b
+                                                      );
+                                                      updateSectionSettings(section.id, { blocks: newBlocks });
+                                                    }}
+                                                    className="w-full text-xs border border-gray-300 rounded p-1.5 focus:ring-1 focus:ring-purple-500"
+                                                  />
+                                                )}
+                                                
+                                                {/* Image Picker */}
+                                                {setting.type === 'image_picker' && (
+                                                  <div className="flex gap-2">
+                                                    <input
+                                                      type="url"
+                                                      value={value as string}
+                                                      placeholder="Image URL"
+                                                      onChange={(e) => {
+                                                        const newBlocks = currentBlocks.map(b => 
+                                                          b.id === block.id 
+                                                            ? { ...b, settings: { ...b.settings, [setting.id]: e.target.value } }
+                                                            : b
+                                                        );
+                                                        updateSectionSettings(section.id, { blocks: newBlocks });
+                                                      }}
+                                                      className="flex-1 text-xs border border-gray-300 rounded p-1.5 focus:ring-1 focus:ring-purple-500"
+                                                    />
+                                                    {value && (
+                                                      <img src={value as string} alt="" className="w-8 h-8 object-cover rounded" />
+                                                    )}
+                                                  </div>
+                                                )}
+                                                
+                                                {/* Select */}
+                                                {setting.type === 'select' && setting.options && (
+                                                  <select
+                                                    value={value as string}
+                                                    onChange={(e) => {
+                                                      const newBlocks = currentBlocks.map(b => 
+                                                        b.id === block.id 
+                                                          ? { ...b, settings: { ...b.settings, [setting.id]: e.target.value } }
+                                                          : b
+                                                      );
+                                                      updateSectionSettings(section.id, { blocks: newBlocks });
+                                                    }}
+                                                    className="w-full text-xs border border-gray-300 rounded p-1.5 focus:ring-1 focus:ring-purple-500"
+                                                  >
+                                                    {setting.options.map(opt => (
+                                                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                    ))}
+                                                  </select>
+                                                )}
+                                                
+                                                {/* Checkbox */}
+                                                {setting.type === 'checkbox' && (
+                                                  <label className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                      type="checkbox"
+                                                      checked={!!value}
+                                                      onChange={(e) => {
+                                                        const newBlocks = currentBlocks.map(b => 
+                                                          b.id === block.id 
+                                                            ? { ...b, settings: { ...b.settings, [setting.id]: e.target.checked } }
+                                                            : b
+                                                        );
+                                                        updateSectionSettings(section.id, { blocks: newBlocks });
+                                                      }}
+                                                      className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                                    />
+                                                    <span className="text-xs text-gray-600">{setting.info || ''}</span>
+                                                  </label>
+                                                )}
+                                                
+                                                {/* Number/Range */}
+                                                {(setting.type === 'number' || setting.type === 'range') && (
+                                                  <input
+                                                    type={setting.type === 'range' ? 'range' : 'number'}
+                                                    value={value as number}
+                                                    min={setting.min}
+                                                    max={setting.max}
+                                                    step={setting.step || 1}
+                                                    onChange={(e) => {
+                                                      const newBlocks = currentBlocks.map(b => 
+                                                        b.id === block.id 
+                                                          ? { ...b, settings: { ...b.settings, [setting.id]: parseFloat(e.target.value) } }
+                                                          : b
+                                                      );
+                                                      updateSectionSettings(section.id, { blocks: newBlocks });
+                                                    }}
+                                                    className="w-full text-xs border border-gray-300 rounded p-1.5 focus:ring-1 focus:ring-purple-500"
+                                                  />
+                                                )}
+                                                
+                                                {/* Color */}
+                                                {setting.type === 'color' && (
+                                                  <div className="flex gap-2 items-center">
+                                                    <input
+                                                      type="color"
+                                                      value={value as string || '#000000'}
+                                                      onChange={(e) => {
+                                                        const newBlocks = currentBlocks.map(b => 
+                                                          b.id === block.id 
+                                                            ? { ...b, settings: { ...b.settings, [setting.id]: e.target.value } }
+                                                            : b
+                                                        );
+                                                        updateSectionSettings(section.id, { blocks: newBlocks });
+                                                      }}
+                                                      className="w-8 h-8 rounded cursor-pointer"
+                                                    />
+                                                    <input
+                                                      type="text"
+                                                      value={value as string || ''}
+                                                      placeholder="#000000"
+                                                      onChange={(e) => {
+                                                        const newBlocks = currentBlocks.map(b => 
+                                                          b.id === block.id 
+                                                            ? { ...b, settings: { ...b.settings, [setting.id]: e.target.value } }
+                                                            : b
+                                                        );
+                                                        updateSectionSettings(section.id, { blocks: newBlocks });
+                                                      }}
+                                                      className="flex-1 text-xs border border-gray-300 rounded p-1.5"
+                                                    />
+                                                  </div>
+                                                )}
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
                         })()}
 
                         <button 

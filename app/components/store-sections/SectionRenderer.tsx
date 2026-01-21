@@ -94,10 +94,14 @@ export function SectionRenderer(props: SectionRendererProps) {
         });
       }
 
+      // Pass blocks to section component if available
+      const sectionBlocks = section.blocks || [];
+
       return (
         <SectionComponent 
           key={section.id} 
-          settings={hydratedSettings} 
+          settings={hydratedSettings}
+          blocks={sectionBlocks}
           {...passThroughProps} 
         />
       );

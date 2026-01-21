@@ -8,7 +8,7 @@
  * - Reduced initial JS bundle
  */
 
-import { lazy, Suspense, useState, useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Link, useFetcher } from '@remix-run/react';
 import { Rocket } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -115,6 +115,22 @@ const OzzylAIChatWidget = lazy(() =>
   import('~/components/landing/OzzylAIChatWidget').then(m => ({ default: m.OzzylAIChatWidget }))
 );
 
+// New Award-Winning Sections (Extra Features)
+const AllInOneSolution = lazy(() => import('~/components/landing/AllInOneSolution').then(m => ({ default: m.AllInOneSolution })));
+const PaymentIntegrationSection = lazy(() => import('~/components/landing/PaymentIntegrationSection').then(m => ({ default: m.PaymentIntegrationSection })));
+const InventoryOrderManagement = lazy(() => import('~/components/landing/InventoryOrderManagement').then(m => ({ default: m.InventoryOrderManagement })));
+const StorefrontUXShowcase = lazy(() => import('~/components/landing/StorefrontUXShowcase').then(m => ({ default: m.StorefrontUXShowcase })));
+const CRMMarketingGrowth = lazy(() => import('~/components/landing/CRMMarketingGrowth').then(m => ({ default: m.CRMMarketingGrowth })));
+const BanglaNativeLocalization = lazy(() => import('~/components/landing/BanglaNativeLocalization').then(m => ({ default: m.BanglaNativeLocalization })));
+const SecuritySpeedInfrastructure = lazy(() => import('~/components/landing/SecuritySpeedInfrastructure').then(m => ({ default: m.SecuritySpeedInfrastructure })));
+const PricingSection = lazy(() => import('~/components/PricingSection').then(m => ({ default: m.PricingSection })));
+
+// New Feature Sections (Project 10 Features)
+const MarketingAutomationSection = lazy(() => import('~/components/landing/MarketingAutomationSection').then(m => ({ default: m.MarketingAutomationSection })));
+const LogisticsOperationsSection = lazy(() => import('~/components/landing/LogisticsOperationsSection').then(m => ({ default: m.LogisticsOperationsSection })));
+const BusinessManagementSection = lazy(() => import('~/components/landing/BusinessManagementSection').then(m => ({ default: m.BusinessManagementSection })));
+const CustomerExperienceSection = lazy(() => import('~/components/landing/CustomerExperienceSection').then(m => ({ default: m.CustomerExperienceSection })));
+
 
 // ============================================================================
 // Simple Section Skeleton
@@ -140,7 +156,6 @@ function SectionSkeleton() {
 // ============================================================================
 export function MarketingLanding() {
   const { t } = useTranslation();
-  const isDarkMode = true; // Always dark mode for landing
   
   // Fetch real marketing stats from API
   const statsFetcher = useFetcher<MarketingStats>();
@@ -219,6 +234,34 @@ export function MarketingLanding() {
         </Suspense>
       </LazySection>
 
+      {/* NEW FEATURES: Marketing Automation (Sales/Growth) */}
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <MarketingAutomationSection />
+        </Suspense>
+      </LazySection>
+
+      {/* NEW FEATURES: Logistics (Operations) */}
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <LogisticsOperationsSection />
+        </Suspense>
+      </LazySection>
+
+      {/* NEW FEATURES: Customer Experience (Social Proof) */}
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <CustomerExperienceSection />
+        </Suspense>
+      </LazySection>
+
+      {/* NEW FEATURES: Business Management (Control/Admin) */}
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <BusinessManagementSection />
+        </Suspense>
+      </LazySection>
+
       {/* Infrastructure - Multiple sections */}
       <LazySection minHeight="500px">
         <Suspense fallback={<SectionSkeleton />}>
@@ -287,6 +330,59 @@ export function MarketingLanding() {
           <InteractiveStoreDemo />
         </Suspense>
       </LazySection>
+
+      {/* ================================================================
+          NEW FEATURES (Award-Winning Extras)
+          ================================================================ */}
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <AllInOneSolution />
+        </Suspense>
+      </LazySection>
+
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <PaymentIntegrationSection />
+        </Suspense>
+      </LazySection>
+
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <InventoryOrderManagement />
+        </Suspense>
+      </LazySection>
+
+      <LazySection minHeight="700px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <StorefrontUXShowcase />
+        </Suspense>
+      </LazySection>
+
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <CRMMarketingGrowth />
+        </Suspense>
+      </LazySection>
+
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <BanglaNativeLocalization />
+        </Suspense>
+      </LazySection>
+
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <SecuritySpeedInfrastructure />
+        </Suspense>
+      </LazySection>
+
+      <LazySection minHeight="800px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <PricingSection />
+        </Suspense>
+      </LazySection>
+
+
 
       {/* FAQ */}
       <LazySection minHeight="500px">

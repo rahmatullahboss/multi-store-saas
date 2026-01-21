@@ -13,6 +13,7 @@ import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, type Store } from '@db/schema';
 import { 
+  type ResolvedSection,
   resolveTemplate, 
   type TemplateResolution,
   type ThemeSettings,
@@ -195,11 +196,107 @@ export async function resolveStoreWithTemplate(
   // Resolve template for the requested page type
   const template = await resolveTemplate(db, storeContext.storeId, templateKey);
   
+  // FALLBACK: If no published template, try to build from themeConfig
+  if (!template || !template.sections || template.sections.length === 0) {
+    const themeConfigFallback = buildTemplateFromThemeConfig(storeContext.store, templateKey);
+    if (themeConfigFallback) {
+      return {
+        ...storeContext,
+        template: themeConfigFallback,
+        theme: themeConfigFallback.settings || null,
+      };
+    }
+  }
+  
   return {
     ...storeContext,
     template,
     theme: template?.settings || null,
   };
+}
+
+/**
+ * Build template resolution from legacy themeConfig (fallback)
+ * This ensures backward compatibility during migration
+ */
+function buildTemplateFromThemeConfig(
+  store: Store,
+  templateKey: TemplateKey
+): TemplateResolution | null {
+  try {
+    const themeConfigRaw = (store as unknown as { themeConfig?: string }).themeConfig;
+    if (!themeConfigRaw) return null;
+    
+    const themeConfig = typeof themeConfigRaw === 'string' 
+      ? JSON.parse(themeConfigRaw) 
+      : themeConfigRaw;
+    
+    // Only handle 'home' template for now
+    if (templateKey !== 'home') return null;
+    
+    // Get sections from themeConfig
+    const sections = themeConfig.sections || [];
+    if (sections.length === 0) return null;
+    
+    // Build settings from themeConfig
+    const settings: ThemeSettings = {
+      colors: {
+        primary: themeConfig.primaryColor || '#000000',
+        secondary: themeConfig.accentColor || '#666666',
+        accent: themeConfig.accentColor || '#ff6b00',
+        background: themeConfig.backgroundColor || '#ffffff',
+        text: themeConfig.textColor || '#333333',
+        muted: themeConfig.mutedColor || '#f5f5f5',
+      },
+      typography: {
+        fontFamily: themeConfig.typography?.fontFamily || 'Inter',
+        headingFont: themeConfig.typography?.headingFont || 'Inter',
+        baseFontSize: themeConfig.typography?.baseFontSize || '16px',
+      },
+      layout: {
+        containerWidth: themeConfig.layout?.containerWidth || '1280px',
+        sidebarPosition: themeConfig.layout?.sidebarPosition || 'left',
+      },
+    };
+    
+    // Convert sections to ResolvedSection format
+    const resolvedSections: ResolvedSection[] = sections.map((section: { id: string; type: string; settings?: Record<string, unknown> }, index: number) => ({
+      id: section.id || `section_${index}`,
+      type: section.type,
+      sortOrder: index,
+      enabled: true,
+      props: section.settings || {},
+      blocks: [],
+    }));
+    
+    // Build full TemplateResolution structure
+    return {
+      theme: {
+        id: `fallback_theme_${store.id}`,
+        shopId: store.id,
+        name: 'Fallback Theme',
+        presetId: themeConfig.templateId || 'starter-store',
+        isActive: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      template: {
+        id: `fallback_${store.id}_${templateKey}`,
+        shopId: store.id,
+        themeId: `fallback_theme_${store.id}`,
+        templateKey,
+        title: templateKey === 'home' ? 'Home Page' : templateKey,
+        description: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      sections: resolvedSections,
+      settings,
+    };
+  } catch (error) {
+    console.error('Failed to build template from themeConfig:', error);
+    return null;
+  }
 }
 
 /**

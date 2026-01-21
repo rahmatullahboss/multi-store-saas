@@ -1,5 +1,7 @@
 
 import type { ComponentType } from 'react';
+import type { z } from 'zod';
+import type { Block, BlockDefinition } from '~/lib/block-registry';
 
 // ============================================================================
 // SECTION TYPES & SETTINGS SCHEMA
@@ -103,7 +105,7 @@ export interface StoreSection {
   id: string; // Unique instance ID
   type: SectionType;
   settings: SectionSettings;
-  blocks?: any[]; // For nested content like slides
+  blocks?: Block[]; // Shopify-style blocks for nested content
 }
 
 export interface SectionDefinition {
@@ -115,6 +117,10 @@ export interface SectionDefinition {
   component: ComponentType<any>;
   allowedPages?: ('home' | 'product' | 'collection' | 'page' | 'cart')[];
   aiSchema?: any; // Added for AI Action Layer
+  // Shopify-style block support
+  blocks?: BlockDefinition[];
+  maxBlocks?: number;
+  schema?: z.ZodSchema; // Zod validation schema
 }
 
 
