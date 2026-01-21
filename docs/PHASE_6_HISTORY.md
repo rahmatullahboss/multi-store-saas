@@ -1,24 +1,41 @@
 # PHASE 6: HISTORY & REVISIONS - DETAILED SPECIFICATIONS
 
-> **Duration**: 1 week (unchanged)  
+> **Duration**: 1 week → **Actual: 0.5 days** ✅  
 > **Priority**: P3 - Low  
-> **Status**: ⬜ PENDING  
-> **Depends on**: Phase 1 ✅, Phase 2-5  
+> **Status**: ✅ COMPLETE  
+> **Depends on**: Phase 1-5 ✅  
 > **Assigned to**: Frontend Engineer  
+> **Completed**: 2026-01-21
 
 ---
 
-## ⚠️ REALITY CHECK UPDATE
+## ✅ IMPLEMENTATION COMPLETE
 
-This feature is **actually missing** from the current system. No changes to scope.
+### Files Created/Modified:
+| File | Description |
+|------|-------------|
+| `db/migrations/0063_page_builder_enhancements.sql` | Added `page_revisions` table |
+| `apps/page-builder/db/schema_page_builder.ts` | Added `pageRevisions` schema |
+| `apps/page-builder/app/routes/api.page-revisions.ts` | Revisions API (list/create/restore) |
+| `apps/page-builder/app/components/page-builder/HistoryPanel.tsx` | History modal UI |
+| `apps/page-builder/app/components/page-builder/Toolbar.tsx` | Added history button + modal integration |
+| `apps/page-builder/app/components/page-builder/Editor.tsx` | Auto-save revisions on storage end |
 
-### ❌ Does Not Exist
-- ❌ Revision tracking in database
-- ❌ Auto-save revisions
-- ❌ History panel UI
-- ❌ Restore to previous version
+### Features Implemented:
+- ✅ **Revision Table**: `page_revisions` with indexes
+- ✅ **API Endpoints**:
+  - `GET /api/page-revisions?pageId=...` (list)
+  - `POST /api/page-revisions` (create)
+  - `POST /api/page-revisions?action=restore&id=...` (restore)
+- ✅ **History Panel UI**: List revisions + restore button
+- ✅ **Auto-save Logic**: Debounced save after storage end (2 min interval)
+- ✅ **Toolbar Integration**: Clock icon opens HistoryPanel
+- ✅ **Local & Prod Migration**: Applied successfully
 
-**Effort**: 1 week (no change)  
+### Notes
+- Uses simple time-ago formatter (no date-fns dependency)
+- Auto-save uses content length hash to avoid duplicate revisions
+- Keeps last 50 revisions per page  
 
 ---
 

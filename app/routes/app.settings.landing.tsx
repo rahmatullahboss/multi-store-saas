@@ -19,8 +19,10 @@ import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@d
 import { getStoreId } from '~/services/auth.server';
 import { 
   Loader2, CheckCircle, Play, MessageSquare, Zap, ArrowLeft, 
-  Plus, Trash2, Target, Video, Users, Sparkles, ArrowRight 
+  Plus, Trash2, Target, Video, Users, Sparkles, ArrowRight, ShoppingBag, Palette 
 } from 'lucide-react';
+import { StyleWizard } from '~/components/landing-builder';
+import type { StyleWizardSettings } from '@db/types';
 import { useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -89,8 +91,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const urgencyText = formData.get('urgencyText') as string;
   const guaranteeText = formData.get('guaranteeText') as string;
   const testimonialsJson = formData.get('testimonials') as string;
+  const checkoutModalEnabled = formData.get('checkoutModalEnabled') === 'true';
+  const styleWizardJson = formData.get('styleWizard') as string;
 
   let testimonials: LandingConfig['testimonials'] = [];
+  let styleWizard: StyleWizardSettings | undefined;
+  
+  try {
+    if (styleWizardJson) {
+      styleWizard = JSON.parse(styleWizardJson);
+    }
+  } catch {
+    // Invalid JSON, ignore
+  }
   try {
     if (testimonialsJson) {
       testimonials = JSON.parse(testimonialsJson);
@@ -108,6 +121,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     urgencyText: urgencyText || '',
     guaranteeText: guaranteeText || '',
     testimonials,
+    checkoutModalEnabled, // Quick Builder v2
+    styleWizard, // Quick Builder v2 - Style settings
   };
 
   const db = drizzle(context.cloudflare.env.DB);
@@ -136,6 +151,14 @@ export default function LandingSettingsPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   
   const [mode, setMode] = useState(store.mode);
+  const [featuredProductId, setFeaturedProductId] = useState<number | null>(store.featuredProductId || null);
+  const [checkoutModalEnabled, setCheckoutModalEnabled] = useState(landingConfig.checkoutModalEnabled ?? false);
+  const [styleWizard, setStyleWizard] = useState<StyleWizardSettings>(landingConfig.styleWizard ?? {
+    brandColor: '#10b981',
+    buttonStyle: 'rounded',
+    fontFamily: 'system',
+    darkMode: false,
+  });
   const [testimonials, setTestimonials] = useState<LandingConfig['testimonials']>(
     store.landingConfig.testimonials || []
   );
@@ -297,7 +320,8 @@ export default function LandingSettingsPage() {
               {storeProducts.length > 0 ? (
                 <select
                   name="featuredProductId"
-                  defaultValue={store.featuredProductId || ''}
+                  value={featuredProductId || ''}
+                  onChange={(e) => setFeaturedProductId(e.target.value ? Number(e.target.value) : null)}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
                 >
                   <option value="">{t('selectAProduct')}</option>
@@ -319,6 +343,101 @@ export default function LandingSettingsPage() {
                   </Link>
                 </div>
               )}
+            </div>
+
+            {/* Checkout Mode Toggle - Quick Builder v2 */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <ShoppingBag className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">চেকআউট মোড</h2>
+                  <p className="text-sm text-gray-500">কাস্টমার কিভাবে অর্ডার করবে সেট করুন</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label
+                  className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition ${
+                    !checkoutModalEnabled ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="checkoutModalEnabled"
+                    value="false"
+                    checked={!checkoutModalEnabled}
+                    onChange={() => setCheckoutModalEnabled(false)}
+                    className="sr-only"
+                  />
+                  <span className="text-2xl mb-2">🔗</span>
+                  <span className="font-semibold text-gray-900">রিডাইরেক্ট চেকআউট</span>
+                  <span className="text-sm text-gray-500">আলাদা চেকআউট পেইজে নিয়ে যাবে</span>
+                  {!checkoutModalEnabled && (
+                    <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-emerald-600" />
+                  )}
+                </label>
+
+                <label
+                  className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition ${
+                    checkoutModalEnabled ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="checkoutModalEnabled"
+                    value="true"
+                    checked={checkoutModalEnabled}
+                    onChange={() => setCheckoutModalEnabled(true)}
+                    className="sr-only"
+                  />
+                  <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-purple-500 text-white text-xs font-medium rounded-full">
+                    নতুন!
+                  </div>
+                  <span className="text-2xl mb-2">⚡</span>
+                  <span className="font-semibold text-gray-900">মোডাল চেকআউট</span>
+                  <span className="text-sm text-gray-500">পেইজেই পপআপে অর্ডার ফর্ম দেখাবে - দ্রুত কনভার্শন</span>
+                  {checkoutModalEnabled && (
+                    <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-emerald-600" />
+                  )}
+                </label>
+              </div>
+
+              {checkoutModalEnabled && (
+                <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                  <p className="text-sm text-purple-700">
+                    ✨ মোডাল চেকআউট চালু করলে কাস্টমার পেইজ না ছেড়েই অর্ডার করতে পারবে। 
+                    এতে কনভার্শন রেট বাড়ে!
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Style Wizard - Quick Builder v2 */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+                  <Palette className="w-5 h-5 text-pink-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">স্টাইল সেটিংস</h2>
+                  <p className="text-sm text-gray-500">ব্র্যান্ড কালার, বাটন ও ফন্ট কাস্টমাইজ করুন</p>
+                </div>
+              </div>
+
+              <StyleWizard
+                value={styleWizard}
+                onChange={setStyleWizard}
+                compact={false}
+              />
+              
+              {/* Hidden input to submit styleWizard as JSON */}
+              <input 
+                type="hidden" 
+                name="styleWizard" 
+                value={JSON.stringify(styleWizard)} 
+              />
             </div>
 
             {/* Headline & Copy */}

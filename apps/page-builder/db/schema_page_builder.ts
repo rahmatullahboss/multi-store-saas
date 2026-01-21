@@ -125,9 +125,88 @@ export const builderSectionsRelations = relations(builderSections, ({ one }) => 
 }));
 
 // ============================================================================
+// SAVED BLOCKS TABLE - Reusable block templates per store
+// ============================================================================
+export const savedBlocks = sqliteTable('saved_blocks', {
+  id: text('id').primaryKey(), // UUID
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  
+  // Block metadata
+  name: text('name').notNull(), // User-given name: "My Hero Section"
+  category: text('category').notNull().default('custom'), // 'hero', 'features', 'cta', 'custom'
+  description: text('description'), // Optional description
+  
+  // Block content (GrapesJS JSON format)
+  content: text('content').notNull(), // JSON string of GrapesJS components
+  
+  // Preview thumbnail (optional - for visual selection)
+  thumbnail: text('thumbnail'), // Base64 or URL to preview image
+  
+  // Usage tracking
+  usageCount: integer('usage_count').notNull().default(0),
+  
+  // Timestamps
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_saved_blocks_store').on(table.storeId),
+  index('idx_saved_blocks_category').on(table.storeId, table.category),
+]);
+
+// Saved Blocks Relations
+export const savedBlocksRelations = relations(savedBlocks, ({ one }) => ({
+  store: one(stores, {
+    fields: [savedBlocks.storeId],
+    references: [stores.id],
+  }),
+}));
+
+// ============================================================================
+// PAGE REVISIONS TABLE - Version history for pages
+// ============================================================================
+export const pageRevisions = sqliteTable('page_revisions', {
+  id: text('id').primaryKey(), // UUID
+  pageId: text('page_id').notNull().references(() => builderPages.id, { onDelete: 'cascade' }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  
+  // Revision content (full GrapesJS project data)
+  content: text('content').notNull(),
+  
+  // Revision metadata
+  revisionType: text('revision_type').notNull().default('auto'), // 'auto', 'manual', 'publish'
+  description: text('description'), // User-provided description
+  
+  // Who created this revision (optional)
+  createdBy: integer('created_by'),
+  
+  // Timestamps
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_page_revisions_page').on(table.pageId),
+  index('idx_page_revisions_store').on(table.storeId),
+  index('idx_page_revisions_created').on(table.pageId, table.createdAt),
+]);
+
+// Page Revisions Relations
+export const pageRevisionsRelations = relations(pageRevisions, ({ one }) => ({
+  page: one(builderPages, {
+    fields: [pageRevisions.pageId],
+    references: [builderPages.id],
+  }),
+  store: one(stores, {
+    fields: [pageRevisions.storeId],
+    references: [stores.id],
+  }),
+}));
+
+// ============================================================================
 // TYPE EXPORTS
 // ============================================================================
 export type BuilderPage = typeof builderPages.$inferSelect;
 export type NewBuilderPage = typeof builderPages.$inferInsert;
 export type BuilderSection = typeof builderSections.$inferSelect;
 export type NewBuilderSection = typeof builderSections.$inferInsert;
+export type SavedBlock = typeof savedBlocks.$inferSelect;
+export type NewSavedBlock = typeof savedBlocks.$inferInsert;
+export type PageRevision = typeof pageRevisions.$inferSelect;
+export type NewPageRevision = typeof pageRevisions.$inferInsert;

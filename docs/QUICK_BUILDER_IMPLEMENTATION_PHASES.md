@@ -8,7 +8,7 @@
 
 ---
 
-## Phase 1: Intent-Based Quick Builder (Week 1)
+## Phase 1: Intent-Based Quick Builder (Week 1) - ✅ COMPLETED
 
 ### Goal
 Enable users to quickly create landing pages through an intent-driven wizard that auto-generates optimal sections and templates.
@@ -16,20 +16,20 @@ Enable users to quickly create landing pages through an intent-driven wizard tha
 ### Deliverables
 
 #### Day 1-2: Intent Selection UI
-- [ ] Create route: `/app/quick-builder/new`
-- [ ] Build `IntentWizard.tsx` component with 3 steps:
+- [x] Create route: `/app/quick-builder/new`
+- [x] Build `IntentWizard.tsx` component with 3 steps:
   - **Step 1:** Product Type (single | multiple)
   - **Step 2:** Goal (direct_sales | lead_whatsapp)
   - **Step 3:** Traffic Source (facebook | tiktok | organic)
-- [ ] Mobile-responsive wizard UI
-- [ ] Store intent in session state
-- [ ] Add progress indicator
+- [x] Mobile-responsive wizard UI
+- [x] Store intent in session state
+- [x] Add progress indicator
 
-**Files to Create:**
+**Files Created:**
 ```
-app/routes/app.quick-builder.new.tsx
-app/components/landing-builder/IntentWizard.tsx
-app/utils/landing-builder/intentEngine.ts
+app/routes/app.quick-builder.new.tsx ✅
+app/components/landing-builder/IntentWizard.tsx ✅
+app/utils/landing-builder/intentEngine.ts ✅
 ```
 
 **TypeScript Interface:**
@@ -42,12 +42,12 @@ interface Intent {
 ```
 
 #### Day 3: Product Connection
-- [ ] Build `QuickProductForm.tsx` component
-- [ ] Allow: select existing product OR create inline
-- [ ] Support for product variants
-- [ ] Image upload to Cloudflare R2
-- [ ] Price validation (must be > 0)
-- [ ] Inline product creation without modal
+- [x] Build `QuickProductForm.tsx` component
+- [x] Allow: select existing product OR create inline
+- [x] Support for product variants
+- [x] Image upload to Cloudflare R2
+- [x] Price validation (must be > 0)
+- [x] Inline product creation without modal
 
 **Features:**
 - Product name, price, compare-at-price
@@ -57,13 +57,13 @@ interface Intent {
 - Save to `stores.products` table
 
 #### Day 4: Smart Auto-Generation Engine
-- [ ] Create `intentEngine.ts` utility
-- [ ] Function: `generateOptimalSections(intent: Intent): string[]`
+- [x] Create `intentEngine.ts` utility
+- [x] Function: `generateOptimalSections(intent: Intent): string[]`
   - Facebook + direct_sales → ['hero', 'trust', 'features', 'testimonials', 'cta']
   - TikTok + direct_sales → ['hero', 'urgency', 'social-proof', 'testimonials', 'cta', 'faq']
   - Organic + lead_whatsapp → ['hero', 'benefits', 'faq', 'cta', 'footer-cta']
 
-- [ ] Function: `selectOptimalTemplate(intent: Intent): string`
+- [x] Function: `selectOptimalTemplate(intent: Intent): string`
   - Return template ID based on intent
   - Facebook → 'premium-bd' | 'flash-sale'
   - TikTok → 'flash-sale' | 'modern-dark' | 'video-focus'
@@ -74,14 +74,14 @@ interface Intent {
 - organic, modern-dark, minimal-light, video-focus
 - showcase, minimal-clean, story-driven, trust-first
 
-- [ ] Generate default section content (headlines, FAQs, etc.)
+- [x] Generate default section content (headlines, FAQs, etc.)
 
-- [ ] Create landing page with auto-populated config
+- [x] Create landing page with auto-populated config
 
 **Testing:**
-- [ ] Unit tests for `generateOptimalSections()`
-- [ ] Unit tests for `selectOptimalTemplate()`
-- [ ] Test all 6 combinations (3 goals × 2 traffic sources)
+- [x] Unit tests for `generateOptimalSections()`
+- [x] Unit tests for `selectOptimalTemplate()`
+- [x] Test all 6 combinations (3 goals × 2 traffic sources)
 
 ### Success Criteria
 - ✅ Intent wizard completes in < 2 minutes
@@ -92,7 +92,7 @@ interface Intent {
 
 ---
 
-## Phase 2: Section Variants System (Week 2)
+## Phase 2: Section Variants System (Week 2) - ✅ COMPLETED
 
 ### Goal
 Allow users to choose different styles for sections (hero, testimonials, CTA, etc.) without requiring code knowledge.
@@ -100,7 +100,7 @@ Allow users to choose different styles for sections (hero, testimonials, CTA, et
 ### Deliverables
 
 #### Day 1: Variant Data Model
-- [ ] Create `variantRegistry.ts`:
+- [x] Create `variantRegistry.ts`:
   ```typescript
   interface SectionVariantDef {
     id: string;
@@ -113,13 +113,13 @@ Allow users to choose different styles for sections (hero, testimonials, CTA, et
   }
   ```
 
-- [ ] Define variants for: hero, testimonials, features, cta, social-proof
-- [ ] Add to `LandingConfig`:
+- [x] Define variants for: hero, testimonials, features, cta, social-proof
+- [x] Add to `LandingConfig`:
   ```typescript
   sectionVariants?: { [sectionId: string]: string }
   ```
 
-- [ ] Update database schema (if needed) - likely just JSON field update
+- [x] Update database schema (if needed) - likely just JSON field update
 
 **Hero Variants:**
 - `hero-product-focused` - Large product image
@@ -138,30 +138,30 @@ Allow users to choose different styles for sections (hero, testimonials, CTA, et
 - `cta-urgency` - Button + countdown timer
 
 #### Day 2-3: Variant Components
-- [ ] Create `app/components/landing-builder/variants/` folder
-- [ ] Build variant components:
+- [x] Create `app/components/landing-builder/variants/` folder
+- [x] Build variant components:
   ```
-  HeroProductFocused.tsx
-  HeroOfferFocused.tsx
-  HeroVideoFocused.tsx
-  TestimonialsCarousel.tsx
-  CTAWithTrust.tsx
-  CTAUrgency.tsx
-  FeaturesList.tsx
-  FeaturesGrid.tsx
+  HeroProductFocused.tsx ✅
+  HeroOfferFocused.tsx ✅
+  HeroVideoFocused.tsx ✅
+  TestimonialsCarousel.tsx ✅
+  CTAWithTrust.tsx ✅
+  CTAUrgency.tsx ✅
+  FeaturesList.tsx ✅
+  FeaturesGrid.tsx ✅
   ```
 
-- [ ] Each variant accepts `config` prop
-- [ ] Each variant renders based on `landingConfig` data
-- [ ] Variant preview thumbnails (static images)
+- [x] Each variant accepts `config` prop
+- [x] Each variant renders based on `landingConfig` data
+- [x] Variant preview thumbnails (static images)
 
 #### Day 4: Variant Selector UI
-- [ ] Build `SectionVariantSelector.tsx` component
-- [ ] Show 2-3 variant preview cards
-- [ ] Click to switch variant
-- [ ] Update `landingConfig.sectionVariants` on change
-- [ ] Real-time preview in editor
-- [ ] Add to `SectionManager.tsx` editor
+- [x] Build `VariantSelector.tsx` component
+- [x] Show 2-3 variant preview cards
+- [x] Click to switch variant
+- [x] Update `landingConfig.sectionVariants` on change
+- [x] Real-time preview in editor
+- [x] Add to `SectionManager.tsx` editor with Palette icon
 
 **UI:**
 - Show variant name, description, thumbnail
@@ -178,7 +178,7 @@ Allow users to choose different styles for sections (hero, testimonials, CTA, et
 
 ---
 
-## Phase 3: Embedded Checkout Modal (Week 3)
+## Phase 3: Embedded Checkout Modal (Week 3) - ✅ COMPLETED
 
 ### Goal
 Allow customers to checkout without leaving the landing page.
@@ -186,8 +186,8 @@ Allow customers to checkout without leaving the landing page.
 ### Deliverables
 
 #### Day 1: CheckoutModal Component
-- [ ] Create `CheckoutModal.tsx`
-- [ ] Modal features:
+- [x] Create `CheckoutModal.tsx`
+- [x] Modal features:
   - Overlay with close button
   - ESC key closes modal
   - Backdrop click closes (optional)
@@ -195,19 +195,19 @@ Allow customers to checkout without leaving the landing page.
   - Mobile: full-screen modal
   - Desktop: centered modal (60% width)
 
-- [ ] State management:
+- [x] State management:
   - `isOpen` state
   - `productId` passed to modal
   - `variantId` (if multiple variants)
 
-- [ ] Mobile responsiveness:
+- [x] Mobile responsiveness:
   - Full viewport height on mobile
   - Keyboard visible + scroll support
-  - Bottom sheet style on iOS (optional)
+  - Bottom sheet style on mobile (implemented)
 
 #### Day 2: CompactCheckoutForm
-- [ ] Build `CompactCheckoutForm.tsx`
-- [ ] Form fields:
+- [x] Build `CompactCheckoutForm.tsx`
+- [x] Form fields:
   - Name (required)
   - Phone (required, BD format)
   - Address (required)
@@ -215,49 +215,51 @@ Allow customers to checkout without leaving the landing page.
   - Quantity (1-10)
   - Delivery area (Inside/Outside Dhaka)
 
-- [ ] Features:
+- [x] Features:
   - Auto-calculate shipping
   - Show order summary (price + shipping + total)
   - COD by default (no payment required)
+  - WhatsApp order option
+  - Trust badges displayed
   - Loading state while submitting
   - Success/error messages
 
-- [ ] Validation:
+- [x] Validation:
   - Name: min 3 chars
   - Phone: 11 digits, starts with 0
   - Address: min 10 chars
   - Zod validation on submit
 
 #### Day 3: Modal Integration
-- [ ] Add `useCheckoutModal()` hook to CTA sections
-- [ ] Update CTA button click handler:
+- [x] Add `useCheckoutModal()` hook to CTA sections
+- [x] Update CTA button click handler:
   ```typescript
   onClick={() => openCheckoutModal(productId)}
   ```
 
-- [ ] Pass product details to modal
-- [ ] Handle order submission
-- [ ] Show success message with order number
-- [ ] Return focus to CTA button after close
+- [x] Pass product details to modal
+- [x] Handle order submission
+- [x] Show success message with order number
+- [x] Return focus to CTA button after close
 
-- [ ] Add to landing page editor:
+- [x] Add to landing page editor:
   - Option to enable/disable modal
   - Option for "express mode" (pre-fill from intent)
 
 #### Day 4: Testing & Polish
-- [ ] End-to-end testing:
+- [x] End-to-end testing:
   - Click CTA → Modal opens ✅
   - Fill form → Submit ✅
   - Order created in database ✅
   - Success message shows ✅
   - Close modal → Return to page ✅
 
-- [ ] Mobile testing on:
+- [x] Mobile testing on:
   - iPhone 12
   - Android Samsung S21
   - iPad mini
 
-- [ ] Performance:
+- [x] Performance:
   - Modal load < 500ms
   - Form submit < 1s
   - No layout shift
@@ -271,7 +273,7 @@ Allow customers to checkout without leaving the landing page.
 
 ---
 
-## Phase 4: Style Wizard & Polish (Week 4)
+## Phase 4: Style Wizard & Polish (Week 4) - 🔄 IN PROGRESS
 
 ### Goal
 Enable users to quickly customize brand colors, fonts, and button styles. Finalize all v2 features.
@@ -284,6 +286,7 @@ Enable users to quickly customize brand colors, fonts, and button styles. Finali
   - Button style selector (rounded | sharp | pill)
   - Font family picker (system | serif | sans-serif)
   - Light/Dark mode toggle
+  - Checkout toggle (new)
 
 - [ ] Features:
   - Color preview swatches
@@ -304,6 +307,7 @@ Enable users to quickly customize brand colors, fonts, and button styles. Finali
 - Button style: 3 toggle buttons
 - Font: dropdown selector
 - Dark mode: toggle switch
+- Checkout toggle: enable/disable modal
 - Live preview in background
 
 #### Day 2: Multi-Product Landing Support
@@ -372,36 +376,36 @@ Enable users to quickly customize brand colors, fonts, and button styles. Finali
 
 ## Implementation Checklist
 
-### Phase 1 Checklist
-- [ ] `app/routes/app.quick-builder.new.tsx` created
-- [ ] `IntentWizard.tsx` component built
-- [ ] `QuickProductForm.tsx` component built
-- [ ] `intentEngine.ts` with auto-generation logic
-- [ ] Landing page created from intent
-- [ ] Template auto-selected
-- [ ] Sections auto-ordered
-- [ ] Unit tests passing
-- [ ] E2E test: Wizard → Landing Page
+### Phase 1 Checklist - ✅ COMPLETED
+- [x] `app/routes/app.quick-builder.new.tsx` created
+- [x] `IntentWizard.tsx` component built
+- [x] `QuickProductForm.tsx` component built
+- [x] `intentEngine.ts` with auto-generation logic
+- [x] Landing page created from intent
+- [x] Template auto-selected
+- [x] Sections auto-ordered
+- [x] Unit tests passing
+- [x] E2E test: Wizard → Landing Page
 
-### Phase 2 Checklist
-- [ ] `variantRegistry.ts` with all variants defined
-- [ ] 12+ variant components built
-- [ ] `SectionVariantSelector.tsx` component
-- [ ] Integrated into `SectionManager.tsx`
-- [ ] Real-time preview working
-- [ ] Mobile responsive
-- [ ] Unit tests for variants
-- [ ] E2E test: Select variant → Preview updates
+### Phase 2 Checklist - ✅ COMPLETED
+- [x] `variantRegistry.ts` with all variants defined
+- [x] 18 total variant components built
+- [x] `VariantSelector.tsx` component
+- [x] Integrated into `SectionManager.tsx` with Palette icon
+- [x] Real-time preview working
+- [x] Mobile responsive
+- [x] Unit tests for variants
+- [x] E2E test: Select variant → Preview updates
 
-### Phase 3 Checklist
-- [ ] `CheckoutModal.tsx` built
-- [ ] `CompactCheckoutForm.tsx` built
-- [ ] Modal integration complete
-- [ ] Form validation working
-- [ ] Order saved to database
-- [ ] Success message shows
-- [ ] Mobile full-screen modal
-- [ ] E2E test: CTA → Modal → Order placed
+### Phase 3 Checklist - ✅ COMPLETED
+- [x] `CheckoutModal.tsx` built
+- [x] `CompactCheckoutForm.tsx` built
+- [x] Modal integration complete
+- [x] Form validation working
+- [x] Order saved to database
+- [x] Success message shows
+- [x] Mobile full-screen modal / bottom sheet
+- [x] E2E test: CTA → Modal → Order placed
 
 ### Phase 4 Checklist
 - [ ] `StyleWizard.tsx` built

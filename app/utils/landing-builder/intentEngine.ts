@@ -47,10 +47,11 @@ export interface QuickProduct {
  */
 export function generateOptimalSections(intent: Intent): string[] {
   const { productType, goal, trafficSource } = intent;
+  let sections: string[] = [];
 
   // Facebook Ads - Short attention span, urgency & trust focused
   if (trafficSource === 'facebook' && goal === 'direct_sales') {
-    return [
+    sections = [
       'hero',
       'trust',
       'social',        // Social proof early
@@ -64,8 +65,8 @@ export function generateOptimalSections(intent: Intent): string[] {
   }
 
   // TikTok - Video-first, quick engagement, urgency
-  if (trafficSource === 'tiktok' && goal === 'direct_sales') {
-    return [
+  else if (trafficSource === 'tiktok' && goal === 'direct_sales') {
+    sections = [
       'hero',
       'video',         // Video prominent for TikTok users
       'trust',
@@ -78,8 +79,8 @@ export function generateOptimalSections(intent: Intent): string[] {
   }
 
   // Organic/Search - More time to read, detailed info, SEO focused
-  if (trafficSource === 'organic') {
-    return [
+  else if (trafficSource === 'organic') {
+    sections = [
       'hero',
       'problem-solution',  // Detailed problem/solution
       'features',
@@ -95,8 +96,8 @@ export function generateOptimalSections(intent: Intent): string[] {
   }
 
   // Lead Generation + WhatsApp - WhatsApp CTA prominent
-  if (goal === 'lead_whatsapp') {
-    return [
+  else if (goal === 'lead_whatsapp') {
+    sections = [
       'hero',
       'trust',
       'benefits',
@@ -107,32 +108,28 @@ export function generateOptimalSections(intent: Intent): string[] {
     ];
   }
 
-  // Multiple products - Show product showcase
-  if (productType === 'multiple') {
-    return [
+  // Default fallback (single product, direct sales)
+  else {
+    sections = [
       'hero',
       'trust',
-      'showcase',      // Product showcase for multiple
       'features',
+      'benefits',
       'testimonials',
-      'comparison',
+      'social',
+      'guarantee',
       'cta',
       'faq',
     ];
   }
 
-  // Default fallback (single product, direct sales)
-  return [
-    'hero',
-    'trust',
-    'features',
-    'benefits',
-    'testimonials',
-    'social',
-    'guarantee',
-    'cta',
-    'faq',
-  ];
+  // Ensure showcase section for multiple products (regardless of traffic source)
+  if (productType === 'multiple' && !sections.includes('showcase')) {
+    const insertIndex = sections.includes('trust') ? sections.indexOf('trust') + 1 : 1;
+    sections.splice(insertIndex, 0, 'showcase');
+  }
+
+  return sections;
 }
 
 /**

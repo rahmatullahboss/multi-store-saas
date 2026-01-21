@@ -8,7 +8,9 @@ import {
   Layers, 
   Scissors,
   Clipboard,
-  Move
+  Move,
+  Save,
+  Loader2
 } from 'lucide-react';
 import type { Editor } from 'grapesjs';
 import { toast } from 'sonner';
@@ -24,6 +26,10 @@ export default function ContextMenu({ editor, position, onClose }: ContextMenuPr
   const { t } = useTranslation();
   const menuRef = useRef<HTMLDivElement>(null);
   const [selectedComponent, setSelectedComponent] = useState<any>(null);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [saveBlockName, setSaveBlockName] = useState('');
+  const [saveBlockCategory, setSaveBlockCategory] = useState('custom');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (!editor || !position) return;
@@ -102,8 +108,62 @@ export default function ContextMenu({ editor, position, onClose }: ContextMenuPr
          // Custom event to tell sidebar to switch tab
          window.dispatchEvent(new CustomEvent('switch-sidebar-tab', { detail: 'structure' }));
          break;
+      case 'save-block':
+         // Show save dialog instead of closing
+         setShowSaveDialog(true);
+         const compName = component.get('name') || component.get('type') || 'Block';
+         setSaveBlockName(`My ${compName}`);
+         return; // Don't close menu yet
     }
     onClose();
+  };
+
+  // Handle saving component as reusable block
+  const handleSaveBlock = async () => {
+    if (!saveBlockName.trim()) {
+      toast.error('Block এর নাম দিন');
+      return;
+    }
+
+    const component = editor.getSelected();
+    if (!component) {
+      toast.error('কোনো element সিলেক্ট করা নেই');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Get component JSON (GrapesJS format)
+      const componentJson = JSON.stringify(component.toJSON());
+
+      const response = await fetch('/api/saved-blocks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: saveBlockName.trim(),
+          category: saveBlockCategory,
+          content: componentJson,
+        }),
+      });
+
+      const result = await response.json() as { error?: string };
+
+      if (response.ok) {
+        toast.success(`"${saveBlockName}" সেভ হয়েছে!`);
+        // Trigger refresh of saved blocks panel
+        window.dispatchEvent(new CustomEvent('refresh-saved-blocks'));
+        setShowSaveDialog(false);
+        setSaveBlockName('');
+        onClose();
+      } else {
+        toast.error(result.error || 'Block সেভ করতে ব্যর্থ');
+      }
+    } catch (error) {
+      console.error('Save block error:', error);
+      toast.error('Block সেভ করতে ব্যর্থ');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const isPasteAvailable = true; // GrapesJS internal clipboard state is hard to check, assuming true for UX
@@ -163,6 +223,14 @@ export default function ContextMenu({ editor, position, onClose }: ContextMenuPr
         <div className="h-px bg-gray-100 my-1" />
 
         <MenuItem 
+            icon={<Save size={14} />} 
+            label="Save as Block" 
+            onClick={() => handleAction('save-block')} 
+        />
+        
+        <div className="h-px bg-gray-100 my-1" />
+
+        <MenuItem 
             icon={<Trash2 size={14} />} 
             label={t('delete') || 'Delete'} 
             shortcut="Del" 
@@ -170,6 +238,69 @@ export default function ContextMenu({ editor, position, onClose }: ContextMenuPr
             onClick={() => handleAction('delete')} 
         />
       </div>
+
+      {/* Save Block Dialog */}
+      {showSaveDialog && (
+        <div className="absolute top-0 left-full ml-2 w-64 bg-white rounded-xl border border-gray-200 shadow-xl p-4 animate-in fade-in slide-in-from-left-2 duration-150">
+          <h4 className="font-semibold text-sm mb-3">Block হিসেবে সেভ করুন</h4>
+          
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">নাম</label>
+              <input
+                type="text"
+                value={saveBlockName}
+                onChange={(e) => setSaveBlockName(e.target.value)}
+                placeholder="Block এর নাম..."
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">ক্যাটাগরি</label>
+              <select
+                value={saveBlockCategory}
+                onChange={(e) => setSaveBlockCategory(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+              >
+                <option value="custom">Custom</option>
+                <option value="hero">Hero</option>
+                <option value="features">Features</option>
+                <option value="cta">CTA</option>
+                <option value="testimonials">Testimonials</option>
+                <option value="footer">Footer</option>
+              </select>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => {
+                  setShowSaveDialog(false);
+                  onClose();
+                }}
+                className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+              >
+                বাতিল
+              </button>
+              <button
+                onClick={handleSaveBlock}
+                disabled={isSaving || !saveBlockName.trim()}
+                className="flex-1 px-3 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    <span>সেভ হচ্ছে...</span>
+                  </>
+                ) : (
+                  'সেভ করুন'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

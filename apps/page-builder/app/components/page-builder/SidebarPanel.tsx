@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
-import { Box, Palette, Settings2, Layers, PaintBucket, LayoutTemplate } from 'lucide-react';
+import { Box, Palette, Settings2, Layers, PaintBucket, LayoutTemplate, Package } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import ThemePanel from './ThemePanel';
 import TemplatesPanel from './TemplatesPanel';
 import PageSettingsPanel from './PageSettingsPanel';
 import StateSelector from './StateSelector';
 import StyleControls from './StyleControls';
+import SavedBlocksPanel from './SavedBlocksPanel';
 
 interface SidebarPanelProps {
   themeConfig?: any;
@@ -426,6 +427,20 @@ function SidebarPanelBase({
                 <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('availableWidgets')}</h3>
               </div>
               <div className="flex-1 overflow-y-auto custom-scrollbar">
+                {/* Saved Blocks Section */}
+                {editor && (
+                  <details className="group border-b border-gray-100">
+                    <summary className="p-4 cursor-pointer flex items-center gap-2 hover:bg-gray-50/50 transition">
+                      <Package size={14} className="text-primary" />
+                      <span className="text-[10px] font-black text-primary uppercase tracking-widest">Saved Blocks</span>
+                      <span className="ml-auto text-gray-400 group-open:rotate-90 transition-transform">▶</span>
+                    </summary>
+                    <div className="max-h-64 overflow-y-auto border-t border-gray-100">
+                      <SavedBlocksPanel editor={editor} />
+                    </div>
+                  </details>
+                )}
+                
                 <div className="p-4 space-y-6">
                   {Object.entries(categories).map(([catLabel, catBlocks]) => (
                     <div key={catLabel}>

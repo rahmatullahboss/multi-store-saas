@@ -18,12 +18,14 @@ import {
   Layout,
   ExternalLink,
   Link2,
-  Menu
+  Menu,
+  Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '~/contexts/LanguageContext';
 import CodeEditor from './CodeEditor';
 import ButtonConnectorModal from './ButtonConnectorModal';
+import HistoryPanel from './HistoryPanel';
 
 export default function EditorToolbar({ 
   isAiLocked = false,
@@ -50,6 +52,7 @@ export default function EditorToolbar({
   const [isConnectorModalOpen, setIsConnectorModalOpen] = useState(false);
   const [connectedButtonsCount, setConnectedButtonsCount] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const [selectedComponent, setSelectedComponent] = useState<any>(null);
 
@@ -419,6 +422,14 @@ export default function EditorToolbar({
         </button>
 
         <div className="w-[1px] h-6 bg-gray-200 mx-1" />
+
+        <button
+          onClick={() => setIsHistoryOpen(true)}
+          className="p-2 hover:bg-gray-100 rounded-lg transition group"
+          title="Revision History"
+        >
+          <Clock size={16} className="text-gray-500 group-hover:text-emerald-600" />
+        </button>
 
         {selectedComponent ? (
           <button 
@@ -818,6 +829,13 @@ export default function EditorToolbar({
             toast.error(t('errorApplyingConnections') || 'Failed to apply connections');
           }
         }}
+      />
+
+      <HistoryPanel
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        pageId={pageId}
+        editor={editor}
       />
     </div>
   );

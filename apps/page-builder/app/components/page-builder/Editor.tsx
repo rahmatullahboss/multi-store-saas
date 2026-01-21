@@ -111,6 +111,13 @@ export default function GrapesEditor({
   
   const pageConfigRef = useRef(pageConfig);
   const themeConfigRef = useRef(themeConfig);
+
+  // Revision autosave tracking
+  const lastRevisionAtRef = useRef<number>(0);
+  const lastRevisionHashRef = useRef<string>('');
+  const revisionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const REVISION_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
+  const REVISION_DEBOUNCE_MS = 4000; // 4 seconds after save
   
   // Keep refs in sync
   useEffect(() => { pageConfigRef.current = pageConfig; }, [pageConfig]);
@@ -352,6 +359,41 @@ export default function GrapesEditor({
       editorInstance.on('storage:end', () => {
         onStorageStatusChange?.('saved');
         setTimeout(() => onStorageStatusChange?.('idle'), 2000);
+
+        // Auto-create revision after saves (debounced)
+        if (revisionTimerRef.current) {
+          clearTimeout(revisionTimerRef.current);
+        }
+        revisionTimerRef.current = setTimeout(async () => {
+          try {
+            if (!pageId) return;
+            const now = Date.now();
+            if (now - lastRevisionAtRef.current < REVISION_INTERVAL_MS) return;
+
+            const projectData = editorInstance.getProjectData();
+            const content = JSON.stringify(projectData);
+            const contentHash = String(content.length);
+
+            if (contentHash === lastRevisionHashRef.current) return;
+
+            const res = await fetch('/api/page-revisions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                pageId,
+                content,
+                revisionType: 'auto',
+              })
+            });
+
+            if (res.ok) {
+              lastRevisionAtRef.current = now;
+              lastRevisionHashRef.current = contentHash;
+            }
+          } catch (err) {
+            console.error('Auto revision save failed:', err);
+          }
+        }, REVISION_DEBOUNCE_MS);
       });
       
       editorInstance.on('storage:error', (err: any) => {
@@ -473,6 +515,10 @@ export default function GrapesEditor({
         // Cleanup keyboard shortcuts
         if ((editorInstance as any)._keyboardCleanup) {
           (editorInstance as any)._keyboardCleanup();
+        }
+        // Cleanup revision timer
+        if (revisionTimerRef.current) {
+          clearTimeout(revisionTimerRef.current);
         }
         editorInstance.destroy();
       }

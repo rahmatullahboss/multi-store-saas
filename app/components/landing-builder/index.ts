@@ -12,3 +12,4 @@ export { VersionHistory } from './VersionHistory';
 // Quick Builder v2 Components
 export { IntentWizard } from './IntentWizard';
 export { VariantSelector, VariantSelectorModal } from './VariantSelector';
+export { StyleWizard, ColorPicker, ButtonStyleSelector, FontFamilySelector, DarkModeToggle } from './StyleWizard';
