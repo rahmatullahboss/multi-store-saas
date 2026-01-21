@@ -28,10 +28,12 @@ import {
   Tag,
   ListOrdered,
   Box,
+  Palette,
   type LucideIcon,
 } from 'lucide-react';
 import type { BuilderSection } from '~/lib/page-builder/types';
 import { getSectionMeta } from '~/lib/page-builder/registry';
+import { hasVariants } from '~/utils/landing-builder/variantRegistry';
 
 // Icon mapping
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -61,6 +63,7 @@ interface SortableItemProps {
   onToggle: (enabled: boolean) => void;
   onDelete: () => void;
   onDuplicate: () => void;
+  onVariantClick?: () => void;
 }
 
 export function SortableItem({
@@ -70,6 +73,7 @@ export function SortableItem({
   onToggle,
   onDelete,
   onDuplicate,
+  onVariantClick,
 }: SortableItemProps) {
   const {
     attributes,

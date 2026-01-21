@@ -148,7 +148,7 @@ export function SecuritySpeedInfrastructure() {
              {/* Cloudflare Badge Accent */}
              <div className="col-span-1 sm:col-span-2 mt-8 p-6 rounded-2xl bg-gradient-to-r from-[#F38020]/10 to-transparent border border-[#F38020]/20 flex items-center gap-6">
                  <div className="w-16 h-16 bg-white rounded-xl p-3 flex items-center justify-center shrink-0">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/94/Cloudflare_Logo.png" alt="Cloudflare" className="grayscale contrast-125 brightness-0" />
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/94/Cloudflare_Logo.png" alt="Cloudflare" className="grayscale contrast-125 brightness-0" loading="lazy" decoding="async" />
                  </div>
                  <p className="text-sm text-gray-500 leading-relaxed">
                     <span className="font-bold text-white">Cloudflare Partner:</span> আমরা সরাসরি ক্লাউডফ্লেয়ারের ইনফ্রাস্ট্রাকচার ব্যবহার করি যা আপনার স্টোরকে দেয় গ্লোবাল স্ট্যান্ডার্ড সিকিউরিটি এবং অবিশ্বাস্য স্পিড।

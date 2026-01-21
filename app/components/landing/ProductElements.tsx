@@ -154,6 +154,8 @@ export function ProductGallery({
             isZoomed ? 'scale-150 cursor-zoom-out' : 'cursor-zoom-in'
           }`}
           onClick={() => enableZoom && setIsZoomed(!isZoomed)}
+          loading="lazy"
+          decoding="async"
         />
 
         {/* Navigation Arrows (show if multiple images) */}
@@ -206,6 +208,8 @@ export function ProductGallery({
                 src={image}
                 alt={`${productName} - Thumbnail ${index + 1}`}
                 className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
               />
             </button>
           ))}

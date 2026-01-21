@@ -16,7 +16,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useFetcher } from '@remix-run/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Send, X, Bot, User, Loader2, Sparkles, ArrowRight, Phone, MessageCircle } from 'lucide-react';
+import { Send, X, User, Loader2, ArrowRight, Phone } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { AIResponseRendererDark } from '~/components/ui/AIResponseRenderer';
 
@@ -254,6 +254,8 @@ export function OzzylAIChatWidget() {
                       src="/ozzyl-logo-small.png" 
                       alt="Ozzyl" 
                       className="w-10 h-10 rounded-xl shadow-lg"
+                      loading="lazy"
+                      decoding="async"
                     />
                     <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#051510] animate-pulse" />
                   </div>
@@ -300,6 +302,8 @@ export function OzzylAIChatWidget() {
                 src="/ozzyl-logo-small-black.png" 
                 alt="Ozzyl AI" 
                 className="w-14 h-14 relative z-10 object-contain"
+                loading="lazy"
+                decoding="async"
               />
               {/* Online indicator */}
               <span className="absolute top-0 right-0 w-4 h-4 bg-green-400 rounded-full border-2 border-white z-20 animate-pulse" />
@@ -332,6 +336,8 @@ export function OzzylAIChatWidget() {
                       src="/ozzyl-logo-small-black.png" 
                       alt="Ozzyl" 
                       className="w-full h-full rounded-[10px] object-cover"
+                      loading="lazy"
+                      decoding="async"
                     />
                   </div>
                   <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0A0F0D]" />
