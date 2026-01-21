@@ -277,13 +277,13 @@ export function PricingSection() {
       price: { monthly: 999, annual: 799 },
       features: lang === 'bn' ? [
         '৫০টি প্রোডাক্ট',
-        'আনলিমিটেড অর্ডার',
+        '১,০০০ অর্ডার লিমিট',
         '৩টি প্রিমিয়াম থিম',
         'কাস্টম ডোমেইন',
         'স্ট্যান্ডার্ড অ্যানালিটিক্স'
       ] : [
         '50 Products',
-        'Unlimited Orders',
+        '1,000 Orders Limit',
         '3 Premium Themes',
         'Custom Domain',
         'Standard Analytics'
@@ -297,13 +297,13 @@ export function PricingSection() {
       price: { monthly: 1500, annual: 1200 },
       features: lang === 'bn' ? [
         'আনলিমিটেড প্রোডাক্ট',
-        'আনলিমিটেড অর্ডার',
+        '৩,০০০ অর্ডার লিমিট',
         'সব প্রিমিয়াম থিম',
         'মার্কেটিং অটোমেশন',
         'প্রায়োরিটি সাপোর্ট'
       ] : [
         'Unlimited Products',
-        'Unlimited Orders',
+        '3,000 Orders Limit',
         'All Premium Themes',
         'Marketing Automation',
         'Priority Support'
