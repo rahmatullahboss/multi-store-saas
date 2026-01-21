@@ -314,6 +314,28 @@ export const CTAPropsSchema = z.object({
   showTrustBadges: z.boolean().optional().default(true),
   codLabel: z.string().optional().default('ক্যাশ অন ডেলিভারি'),
   secureLabel: z.string().optional().default('১০০% সিকিউর অর্ডার'),
+  
+  // ============================================================================
+  // URGENCY & SOCIAL PROOF (Seller must enable and set REAL data - no fake numbers!)
+  // ============================================================================
+  // Urgency Banner - OFF by default, seller enables and sets real stock info
+  showUrgencyBanner: z.boolean().optional().default(false),
+  urgencyText: z.string().optional().default(''), // e.g., "মাত্র ১৫টি বাকি আছে" - MUST be real!
+  useRealStockCount: z.boolean().optional().default(false), // Auto-generate from products.stock (real DB data)
+  
+  // Social Proof - OFF by default, seller enables and sets real data
+  showSocialProof: z.boolean().optional().default(false),
+  socialProofText: z.string().optional().default(''), // e.g., "আজ ২৩ জন অর্ডার করেছেন" - MUST be real!
+  useRealOrderCount: z.boolean().optional().default(false), // Auto-generate from recent orders (real DB data)
+  
+  // Free Shipping Progress - ON by default, threshold configurable
+  showFreeShippingProgress: z.boolean().optional().default(true),
+  // freeShippingThreshold already exists above
+  
+  // Delivery Estimate - ON by default, days configurable
+  showDeliveryEstimate: z.boolean().optional().default(true),
+  deliveryEstimateDhaka: z.string().optional().default('১-২ দিন'),
+  deliveryEstimateOutside: z.string().optional().default('৩-৫ দিন'),
 });
 export type CTAProps = z.infer<typeof CTAPropsSchema>;
 
@@ -427,7 +449,7 @@ export const HowToOrderPropsSchema = z.object({
 export type HowToOrderProps = z.infer<typeof HowToOrderPropsSchema>;
 
 // ============================================================================
-// SHOWCASE SECTION
+// SHOWCASE SECTION (Single Product)
 // ============================================================================
 export const ShowcasePropsSchema = z.object({
   title: z.string().optional().default('প্রোডাক্ট ডিটেইলস'),
@@ -435,6 +457,55 @@ export const ShowcasePropsSchema = z.object({
   features: z.array(z.string()).default([]),
 });
 export type ShowcaseProps = z.infer<typeof ShowcasePropsSchema>;
+
+// ============================================================================
+// PRODUCT GRID SECTION (Multiple Products)
+// ============================================================================
+const ProductItemSchema = z.object({
+  id: z.number().optional(),
+  name: z.string(),
+  price: z.number(),
+  compareAtPrice: z.number().optional(),
+  image: z.string().optional(),
+  badge: z.string().optional(), // e.g., "বেস্ট সেলার", "নতুন"
+});
+
+export const ProductGridPropsSchema = z.object({
+  // Header
+  title: z.string().optional().default('আমাদের প্রোডাক্ট'),
+  subtitle: z.string().optional().default('সেরা মানের পণ্য সমূহ'),
+  
+  // Products - can be loaded from DB or manually added
+  products: z.array(ProductItemSchema).default([]),
+  productIds: z.array(z.number()).optional().default([]), // For dynamic loading from DB
+  
+  // Layout
+  columns: z.enum(['2', '3', '4']).optional().default('3'),
+  variant: z.enum(['grid', 'carousel', 'featured']).optional().default('grid'),
+  
+  // Card Style
+  showPrice: z.boolean().default(true),
+  showComparePrice: z.boolean().default(true),
+  showBadge: z.boolean().default(true),
+  showAddToCart: z.boolean().default(true),
+  
+  // CTA
+  buttonText: z.string().default('অর্ডার করুন'),
+  buttonStyle: z.enum(['solid', 'outline']).optional().default('solid'),
+  
+  // Styling
+  bgColor: z.string().default('#FFFFFF'),
+  cardBgColor: z.string().default('#F9FAFB'),
+  textColor: z.string().default('#111827'),
+  priceColor: z.string().default('#10B981'),
+  buttonBgColor: z.string().default('#6366F1'),
+  buttonTextColor: z.string().default('#FFFFFF'),
+  
+  // Image
+  imageAspectRatio: z.enum(['square', 'portrait', 'landscape']).optional().default('square'),
+  imageRounded: z.boolean().default(true),
+});
+export type ProductGridProps = z.infer<typeof ProductGridPropsSchema>;
 // ============================================================================
 // CUSTOM HTML SECTION
 // ============================================================================
@@ -689,6 +760,7 @@ export const SectionSchemas: Record<string, z.ZodTypeAny> = {
   'pricing': PricingPropsSchema,
   'how-to-order': HowToOrderPropsSchema,
   'showcase': ShowcasePropsSchema,
+  'product-grid': ProductGridPropsSchema, // Multi-product showcase
   'custom-html': CustomHtmlPropsSchema,
   'order-button': OrderButtonPropsSchema,
   'header': HeaderPropsSchema,

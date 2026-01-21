@@ -25,6 +25,7 @@ import { ProblemSolutionPreview } from './sections/ProblemSolutionPreview';
 import { PricingSectionPreview } from './sections/PricingSectionPreview';
 import { HowToOrderPreview } from './sections/HowToOrderPreview';
 import { ShowcaseSectionPreview } from './sections/ShowcaseSectionPreview';
+import { ProductGridSectionPreview } from './sections/ProductGridSectionPreview';
 import { CustomHtmlSectionPreview } from './sections/CustomHtmlSectionPreview';
 import { OrderButtonSectionPreview } from './sections/OrderButtonSectionPreview';
 import { HeaderSectionPreview } from './sections/HeaderSectionPreview';
@@ -57,6 +58,19 @@ interface SectionRendererProps {
   storeId?: number;
   productId?: number;
   product?: ProductData | null;
+  // Multiple products for product-grid section
+  selectedProducts?: Array<{
+    id: number;
+    title: string;
+    price: number;
+    compareAtPrice?: number | null;
+    imageUrl?: string | null;
+  }>;
+  // Real data for urgency/social proof (from DB - no fake numbers!)
+  realData?: {
+    stockCount: number | null;
+    recentOrderCount: number;
+  };
 }
 
 export function SectionRenderer({ 
@@ -66,6 +80,8 @@ export function SectionRenderer({
   storeId,
   productId,
   product,
+  selectedProducts = [],
+  realData,
 }: SectionRendererProps) {
   // Sort by sortOrder
   const sortedSections = [...sections].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -85,6 +101,8 @@ export function SectionRenderer({
           storeId={storeId}
           productId={productId}
           product={product}
+          selectedProducts={selectedProducts}
+          realData={realData}
         />
       ))}
       
@@ -105,14 +123,25 @@ interface SectionWrapperProps {
   storeId?: number;
   productId?: number;
   product?: ProductData | null;
+  selectedProducts?: Array<{
+    id: number;
+    title: string;
+    price: number;
+    compareAtPrice?: number | null;
+    imageUrl?: string | null;
+  }>;
+  realData?: {
+    stockCount: number | null;
+    recentOrderCount: number;
+  };
 }
 
-function SectionWrapper({ section, isActive, onClick, isEditorMode, storeId, productId, product }: SectionWrapperProps) {
+function SectionWrapper({ section, isActive, onClick, isEditorMode, storeId, productId, product, selectedProducts = [], realData }: SectionWrapperProps) {
   const meta = getSectionMeta(section.type);
   
   // Only apply editor styling when in editor mode
   if (!isEditorMode) {
-    return <SectionContent section={section} storeId={storeId} productId={productId} product={product} />;
+    return <SectionContent section={section} storeId={storeId} productId={productId} product={product} selectedProducts={selectedProducts} realData={realData} />;
   }
   
   return (
@@ -133,7 +162,7 @@ function SectionWrapper({ section, isActive, onClick, isEditorMode, storeId, pro
       </div>
       
       {/* Actual section content */}
-      <SectionContent section={section} storeId={storeId} productId={productId} product={product} />
+      <SectionContent section={section} storeId={storeId} productId={productId} product={product} selectedProducts={selectedProducts} realData={realData} />
     </div>
   );
 }
@@ -143,9 +172,20 @@ interface SectionContentProps {
   storeId?: number;
   productId?: number;
   product?: ProductData | null;
+  selectedProducts?: Array<{
+    id: number;
+    title: string;
+    price: number;
+    compareAtPrice?: number | null;
+    imageUrl?: string | null;
+  }>;
+  realData?: {
+    stockCount: number | null;
+    recentOrderCount: number;
+  };
 }
 
-function SectionContent({ section, storeId, productId, product }: SectionContentProps) {
+function SectionContent({ section, storeId, productId, product, selectedProducts = [], realData }: SectionContentProps) {
   const { type, props } = section;
   
   switch (type) {
@@ -160,7 +200,7 @@ function SectionContent({ section, storeId, productId, product }: SectionContent
     case 'trust-badges':
       return <TrustBadgesSectionPreview props={props} />;
     case 'cta':
-      return <CTASectionPreview props={props} storeId={storeId} productId={productId} product={product} />;
+      return <CTASectionPreview props={props} storeId={storeId} productId={productId} product={product} selectedProducts={selectedProducts} realData={realData} />;
     case 'video':
       return <VideoSectionPreview props={props} />;
     case 'guarantee':
@@ -181,6 +221,19 @@ function SectionContent({ section, storeId, productId, product }: SectionContent
       return <HowToOrderPreview props={props} />;
     case 'showcase':
       return <ShowcaseSectionPreview props={props} />;
+    case 'product-grid':
+      // Merge selectedProducts into props for real data display
+      const productGridProps = {
+        ...props,
+        products: selectedProducts.length > 0 ? selectedProducts.map(p => ({
+          id: p.id,
+          name: p.title,
+          price: p.price,
+          compareAtPrice: p.compareAtPrice,
+          image: p.imageUrl,
+        })) : props.products,
+      };
+      return <ProductGridSectionPreview props={productGridProps} />;
     case 'custom-html':
       return <CustomHtmlSectionPreview {...props as any} />;
     case 'order-button':

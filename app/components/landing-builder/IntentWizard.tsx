@@ -208,16 +208,21 @@ interface Step2Props {
   product: Partial<QuickProduct> | null;
   existingProducts: Array<{ id: number; title: string; price: number; imageUrl?: string }>;
   selectedProductId: number | null;
+  selectedProductIds: number[]; // NEW: Multiple product selection
   onSelectProduct: (id: number | null) => void;
+  onSelectProducts: (ids: number[]) => void; // NEW: Multiple product handler
   onUpdateProduct: (product: Partial<QuickProduct>) => void;
   onImageUpload?: (file: File) => Promise<string>;
 }
 
 function Step2ProductConnection({
+  intent,
   product,
   existingProducts,
   selectedProductId,
+  selectedProductIds,
   onSelectProduct,
+  onSelectProducts,
   onUpdateProduct,
   onImageUpload,
 }: Step2Props) {
@@ -225,6 +230,9 @@ function Step2ProductConnection({
     existingProducts.length > 0 ? 'select' : 'create'
   );
   const [uploading, setUploading] = useState(false);
+  
+  const isMultiple = intent.productType === 'multiple';
+  const maxProducts = 3; // Maximum products for multiple selection
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -241,6 +249,17 @@ function Step2ProductConnection({
     }
   };
 
+  // Handle multiple product selection toggle
+  const handleMultipleSelect = (productId: number) => {
+    if (selectedProductIds.includes(productId)) {
+      // Remove from selection
+      onSelectProducts(selectedProductIds.filter(id => id !== productId));
+    } else if (selectedProductIds.length < maxProducts) {
+      // Add to selection
+      onSelectProducts([...selectedProductIds, productId]);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Mode Toggle */}
@@ -248,7 +267,7 @@ function Step2ProductConnection({
         <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
           <button
             type="button"
-            onClick={() => { setMode('select'); onSelectProduct(null); }}
+            onClick={() => { setMode('select'); onSelectProduct(null); onSelectProducts([]); }}
             className={cn(
               'flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all',
               mode === 'select'
@@ -260,7 +279,7 @@ function Step2ProductConnection({
           </button>
           <button
             type="button"
-            onClick={() => { setMode('create'); onSelectProduct(null); }}
+            onClick={() => { setMode('create'); onSelectProduct(null); onSelectProducts([]); }}
             className={cn(
               'flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all',
               mode === 'create'
@@ -273,44 +292,127 @@ function Step2ProductConnection({
         </div>
       )}
 
-      {/* Select Existing Product */}
+      {/* Select Existing Product(s) */}
       {mode === 'select' && (
         <div className="space-y-3">
-          <p className="text-sm text-gray-600">একটি প্রোডাক্ট সিলেক্ট করুন:</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto">
-            {existingProducts.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => onSelectProduct(p.id)}
-                className={cn(
-                  'flex items-center gap-3 p-3 rounded-lg border-2 text-left transition-all',
-                  selectedProductId === p.id
-                    ? 'border-emerald-500 bg-emerald-50'
-                    : 'border-gray-200 hover:border-emerald-300'
-                )}
-              >
-                {p.imageUrl ? (
-                  <img
-                    src={p.imageUrl}
-                    alt={p.title}
-                    className="w-12 h-12 rounded-lg object-cover"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
-                    <Package className="w-6 h-6 text-gray-400" />
+          {isMultiple ? (
+            <>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  ২-৩টি প্রোডাক্ট সিলেক্ট করুন:
+                </p>
+                <span className="text-xs text-emerald-600 font-medium bg-emerald-50 px-2 py-1 rounded-full">
+                  {selectedProductIds.length}/{maxProducts} সিলেক্টেড
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-72 overflow-y-auto">
+                {existingProducts.map((p) => {
+                  const isSelected = selectedProductIds.includes(p.id);
+                  const isDisabled = !isSelected && selectedProductIds.length >= maxProducts;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => handleMultipleSelect(p.id)}
+                      disabled={isDisabled}
+                      className={cn(
+                        'flex items-center gap-3 p-3 rounded-lg border-2 text-left transition-all',
+                        isSelected
+                          ? 'border-emerald-500 bg-emerald-50'
+                          : isDisabled
+                          ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
+                          : 'border-gray-200 hover:border-emerald-300'
+                      )}
+                    >
+                      {p.imageUrl ? (
+                        <img
+                          src={p.imageUrl}
+                          alt={p.title}
+                          className="w-12 h-12 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                          <Package className="w-6 h-6 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 truncate">{p.title}</p>
+                        <p className="text-sm text-emerald-600">৳{p.price}</p>
+                      </div>
+                      <div className={cn(
+                        'w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all',
+                        isSelected
+                          ? 'border-emerald-500 bg-emerald-500'
+                          : 'border-gray-300'
+                      )}>
+                        {isSelected && <Check className="w-4 h-4 text-white" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedProductIds.length > 0 && (
+                <div className="bg-emerald-50 rounded-lg p-3 mt-2">
+                  <p className="text-sm text-emerald-700 font-medium mb-1">সিলেক্টেড প্রোডাক্ট:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedProductIds.map(id => {
+                      const p = existingProducts.find(prod => prod.id === id);
+                      return p ? (
+                        <span key={id} className="inline-flex items-center gap-1 bg-white px-2 py-1 rounded-md text-xs border border-emerald-200">
+                          {p.title}
+                          <button
+                            type="button"
+                            onClick={() => handleMultipleSelect(id)}
+                            className="text-gray-400 hover:text-red-500"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ) : null;
+                    })}
                   </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 truncate">{p.title}</p>
-                  <p className="text-sm text-emerald-600">৳{p.price}</p>
                 </div>
-                {selectedProductId === p.id && (
-                  <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                )}
-              </button>
-            ))}
-          </div>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-gray-600">একটি প্রোডাক্ট সিলেক্ট করুন:</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto">
+                {existingProducts.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => onSelectProduct(p.id)}
+                    className={cn(
+                      'flex items-center gap-3 p-3 rounded-lg border-2 text-left transition-all',
+                      selectedProductId === p.id
+                        ? 'border-emerald-500 bg-emerald-50'
+                        : 'border-gray-200 hover:border-emerald-300'
+                    )}
+                  >
+                    {p.imageUrl ? (
+                      <img
+                        src={p.imageUrl}
+                        alt={p.title}
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                        <Package className="w-6 h-6 text-gray-400" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 truncate">{p.title}</p>
+                      <p className="text-sm text-emerald-600">৳{p.price}</p>
+                    </div>
+                    {selectedProductId === p.id && (
+                      <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -626,7 +728,8 @@ interface IntentWizardProps {
   onComplete: (data: { 
     intent: Intent; 
     product: QuickProduct | null; 
-    productId: number | null; 
+    productId: number | null;
+    productIds: number[]; // NEW: Multiple product IDs
     templateId: string;
     styleTokens: StyleTokens;
   }) => void;
@@ -648,6 +751,7 @@ export function IntentWizard({
   });
   const [product, setProduct] = useState<Partial<QuickProduct> | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]); // NEW: Multiple selection
   const [styleTokens, setStyleTokens] = useState<StyleTokens>(DEFAULT_STYLE_TOKENS);
   const [selectedTemplate, setSelectedTemplate] = useState('');
 
@@ -670,6 +774,11 @@ export function IntentWizard({
       return intent.productType && intent.goal && intent.trafficSource;
     }
     if (step === 2) {
+      // For multiple products, need at least 2 selected
+      if (intent.productType === 'multiple') {
+        return selectedProductIds.length >= 2;
+      }
+      // For single product
       return selectedProductId || (product?.name && product?.price && product.price > 0);
     }
     if (step === 3) {
@@ -689,8 +798,9 @@ export function IntentWizard({
       // Complete wizard
       onComplete({
         intent: intent as Intent,
-        product: selectedProductId ? null : (product as QuickProduct),
-        productId: selectedProductId,
+        product: selectedProductId || selectedProductIds.length > 0 ? null : (product as QuickProduct),
+        productId: intent.productType === 'single' ? selectedProductId : (selectedProductIds[0] || null),
+        productIds: selectedProductIds,
         templateId: selectedTemplate,
         styleTokens,
       });
@@ -719,7 +829,9 @@ export function IntentWizard({
             product={product}
             existingProducts={existingProducts}
             selectedProductId={selectedProductId}
+            selectedProductIds={selectedProductIds}
             onSelectProduct={setSelectedProductId}
+            onSelectProducts={setSelectedProductIds}
             onUpdateProduct={(updates) => setProduct((prev) => ({ ...prev, ...updates }))}
             onImageUpload={onImageUpload}
           />

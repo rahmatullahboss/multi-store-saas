@@ -884,6 +884,20 @@ export async function createPageFromTemplate(
           text: content.guaranteeText,
         };
       }
+      
+      // Product Grid section (multi-product showcase)
+      if (templateSection.type === 'product-grid') {
+        // Get productIds from intent
+        const productIds = intentData?.intent?.productIds || [];
+        mergedProps = {
+          ...mergedProps,
+          productIds: productIds,
+          // Set title based on number of products
+          title: productIds.length > 0 
+            ? `আমাদের ${productIds.length}টি সেরা প্রোডাক্ট` 
+            : mergedProps.title,
+        };
+      }
     }
     
     await drizzleDb.insert(builderSections).values({

@@ -1,19 +1,32 @@
 # 🔍 Quick Builder MVP - Gap Analysis & Comparison
 
-> **Last Updated:** 2026-01-21
-> **Status:** ✅ All P0/P1 Gaps Closed
+> **Last Updated:** 2026-01-22
+> **Status:** ✅ All P0/P1 Gaps Closed + Advanced Features Implemented
 
-## 🎉 Recent Updates (v2.1)
+## 🎉 Recent Updates (v2.2)
 
 ### ✅ Gaps Fixed in This Release:
 1. **Section Variant Persistence** - Added `variant` column to `builder_sections` table
-2. **Style Preferences Step** - Added Step 3 to IntentWizard (Brand Color, Button Style, Font)
+2. **Style Preferences Step** - Added Step 3 to IntentWizard (6 brand color presets + custom, button styles, fonts)
 3. **Intent Data Persistence** - Added `intent_json` and `style_tokens_json` columns to `builder_pages`
 4. **Template Visual Previews** - Added gradient backgrounds and emoji icons for templates
 5. **4-Step Wizard Flow** - Intent → Product → Style → Template
+6. **Multi-Product Support** - Select 2-3 products with auto-applied combo discounts
+7. **Product Grid Section** - New `ProductGridSectionPreview.tsx` for multi-product displays
+8. **Combo Discount System** - 2 products: 10%, 3+ products: 15% (auto-validated in backend)
+9. **Best Practices Configuration** - Urgency, Social Proof, Free Shipping, Delivery Estimates (all configurable)
+10. **Real Data Integration** - Real stock counts & order counts (no fake numbers, sourced from DB)
 
-### Database Migration Added:
-- `db/migrations/0064_genie_builder_enhancements.sql`
+### Database Schema Updates:
+- `builder_sections.variant` - Stores section variant ID
+- `builder_pages.intent_json` - Stores user intent data (product type, goal, traffic source)
+- `builder_pages.style_tokens_json` - Stores style preferences (colors, fonts, button style)
+- Migration: `db/migrations/0064_genie_builder_enhancements.sql`
+
+### Data Flow Improvements:
+- Real stock: `products.stock` → `realData.stock` → components
+- Real orders: `orders` table (last 24h) → `realData.orderCount` → components
+- No mock data in production
 
 ---
 

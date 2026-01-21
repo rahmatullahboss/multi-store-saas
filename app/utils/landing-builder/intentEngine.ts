@@ -139,10 +139,23 @@ export function generateOptimalSections(intent: Intent): string[] {
     ];
   }
 
-  // Ensure showcase section for multiple products (regardless of traffic source)
-  if (productType === 'multiple' && !sections.includes('showcase')) {
-    const insertIndex = sections.includes('trust') ? sections.indexOf('trust') + 1 : 1;
-    sections.splice(insertIndex, 0, 'showcase');
+  // For multiple products, use product-grid section instead of showcase
+  if (productType === 'multiple') {
+    // Remove 'showcase' if present (since we'll use product-grid)
+    const showcaseIndex = sections.indexOf('showcase');
+    if (showcaseIndex > -1) {
+      sections.splice(showcaseIndex, 1);
+    }
+    
+    // Add product-grid after hero/trust for multi-product display
+    if (!sections.includes('product-grid')) {
+      const insertIndex = sections.includes('trust') 
+        ? sections.indexOf('trust') + 1 
+        : sections.includes('hero') 
+          ? sections.indexOf('hero') + 1 
+          : 1;
+      sections.splice(insertIndex, 0, 'product-grid');
+    }
   }
 
   return sections;

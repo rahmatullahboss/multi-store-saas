@@ -23,6 +23,15 @@ interface ProductInfo {
   }>;
 }
 
+// Selected product for multi-product pages
+interface SelectedProductInfo {
+  id: number;
+  title: string;
+  price: number;
+  compareAtPrice?: number | null;
+  imageUrl?: string | null;
+}
+
 interface CTASectionPreviewProps {
   props: Record<string, unknown>;
   theme?: SectionTheme;
@@ -30,9 +39,16 @@ interface CTASectionPreviewProps {
   storeId?: number;
   productId?: number;
   product?: ProductInfo | null;
+  // Multiple products for dropdown in multi-product pages
+  selectedProducts?: SelectedProductInfo[];
+  // Real data from DB for urgency/social proof (no fake numbers!)
+  realData?: {
+    stockCount: number | null;
+    recentOrderCount: number;
+  };
 }
 
-export function CTASectionPreview({ props, theme, storeId, productId, product }: CTASectionPreviewProps) {
+export function CTASectionPreview({ props, theme, storeId, productId, product, selectedProducts, realData }: CTASectionPreviewProps) {
   return (
     <OrderFormSection 
       props={props}
@@ -40,6 +56,8 @@ export function CTASectionPreview({ props, theme, storeId, productId, product }:
       storeId={storeId}
       productId={productId}
       product={product}
+      selectedProducts={selectedProducts}
+      realData={realData}
     />
   );
 }

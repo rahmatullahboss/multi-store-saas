@@ -25,6 +25,7 @@ import { ProblemSolutionPreview } from './sections/ProblemSolutionPreview';
 import { PricingSectionPreview } from './sections/PricingSectionPreview';
 import { HowToOrderPreview } from './sections/HowToOrderPreview';
 import { ShowcaseSectionPreview } from './sections/ShowcaseSectionPreview';
+import { ProductGridSectionPreview } from './sections/ProductGridSectionPreview';
 import { PlaceholderSection } from './sections/PlaceholderSection';
 
 interface TemplatePreviewRendererProps {
@@ -120,6 +121,8 @@ function SectionContent({ section, theme }: SectionContentProps) {
       return <HowToOrderPreview props={props} />;
     case 'showcase':
       return <ShowcaseSectionPreview props={props} />;
+    case 'product-grid':
+      return <ProductGridSectionPreview props={props} />;
     default:
       return <PlaceholderSection type={type} />;
   }

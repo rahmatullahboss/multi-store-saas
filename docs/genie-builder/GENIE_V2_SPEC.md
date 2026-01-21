@@ -362,18 +362,33 @@ Future support for:
   - Bottom sheet on iOS
 
 ### Phase 4: Style Wizard & Polish (Week 4)
-**Priority: P1 (High)**
+**Priority: P0/P1 (Critical + High)**
 
-- [ ] **Quick Style Wizard**
-  - Brand color picker (5 quick presets + custom)
+- [x] **Quick Style Wizard (COMPLETED)**
+  - Brand color picker (6 presets + custom color picker)
   - Button style (rounded | sharp | pill)
-  - Font choice (system | serif | sans-serif)
-  - Light/Dark mode toggle
+  - Font choice (default | bengali | modern | classic)
+  - Light/Dark mode toggle (prepared for future)
 
-- [ ] **Multi-Product Landing Support**
+- [x] **Multi-Product Landing Support (COMPLETED)**
   - Select 1-3 products instead of just 1
-  - Product switcher UI
-  - Variant selector per product
+  - Automatic ProductGrid section insertion
+  - Multi-select checkboxes in checkout
+  - Automatic combo discount calculation (10% for 2, 15% for 3+)
+
+- [x] **Best Practices Configuration (COMPLETED)**
+  - Urgency Banner (OFF by default, shows real stock)
+  - Social Proof (OFF by default, shows real order count from last 24h)
+  - Free Shipping Progress (customizable threshold)
+  - Delivery Estimate (separate Dhaka/Outside Dhaka)
+  - Trust Badges (always visible)
+  - All configurable in editor
+
+- [x] **Real Data Integration (COMPLETED)**
+  - Real stock count from `products.stock`
+  - Real order count from `orders` table (24h)
+  - Real customer names for testimonials
+  - No fake/cached data in production
 
 - [ ] **Performance**
   - Critical CSS inlining

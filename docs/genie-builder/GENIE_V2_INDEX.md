@@ -2,23 +2,31 @@
 
 > ম্যাজিক্যালি হাই-কনভার্টিং ল্যান্ডিং পেইজ তৈরি করুন
 
-## 🎯 Current Status: v2.1 - Production Ready ✅
+## 🎯 Current Status: v2.2 - Advanced Features ✅
 
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Intent Wizard (4-step) | ✅ Complete | Step 1: Intent, Step 2: Product, Step 3: Style, Step 4: Template |
 | Intent Engine | ✅ Complete | Auto-generates sections & content based on intent |
-| Style Preferences | ✅ Complete | Brand color, button style, font family |
+| Style Preferences | ✅ Complete | Brand color (6 presets + custom), button style, font family |
 | Section Variants | ✅ Complete | Database column added, UI integrated |
 | Intent Persistence | ✅ Complete | `intent_json` & `style_tokens_json` in `builder_pages` |
+| Multi-Product Support | ✅ Complete | Select 2-3 products with auto combo discount |
+| Product Grid Section | ✅ Complete | `ProductGridSectionPreview.tsx` for displaying multiple products |
+| Combo/Bundle Discounts | ✅ Complete | 2 products: 10%, 3+ products: 15% auto-applied |
+| Best Practices Config | ✅ Complete | Urgency, Social Proof, Free Shipping, Delivery Estimate (all configurable) |
+| Real Data Integration | ✅ Complete | Real stock & order counts (no fake numbers) |
 | Template Previews | ✅ Complete | Visual gradient + emoji previews |
 | New Builder Integration | ✅ Complete | Accessible via `/app/new-builder` |
 
 ### Latest Changes (2026-01-21):
-- Added `variant` column to `builder_sections` table
-- Added `intent_json` and `style_tokens_json` columns to `builder_pages`
-- Added Step 3 (Style Preferences) to IntentWizard
-- Updated wizard to 4-step flow
+- Added multi-product selection in Step 2 (IntentWizard)
+- Added `ProductGridSectionPreview.tsx` for product display
+- Implemented combo discount system (2-3 products, auto-calculated)
+- Added `StyleTokens` type with 6 brand color presets
+- Database: `builder_sections.variant`, `builder_pages.intent_json`, `builder_pages.style_tokens_json`
+- Real data integration: stock from `products.stock`, order count from `orders` table (last 24h)
+- Configurable best practices: urgency banner, social proof, free shipping progress, delivery estimates
 - Migration: `db/migrations/0064_genie_builder_enhancements.sql`
 
 ---
@@ -27,7 +35,7 @@ Welcome! This is your central hub for Genie (Quick Builder v2) implementation do
 
 ---
 
-## 📚 Core Documentation (4 Main Documents)
+## 📚 Core Documentation (6 Main Documents)
 
 ### 1. **GENIE_V2_SPEC.md** - System Specification
 **Purpose:** Complete overview of the Quick Builder v2 system  
@@ -121,7 +129,59 @@ Welcome! This is your central hub for Genie (Quick Builder v2) implementation do
 
 ---
 
-### 4. **GENIE_V2_TESTING_CHECKLIST.md** - QA & Testing
+### 4. **GENIE_MULTIPRODUCT_COMBOS.md** - Multi-Product & Discounts
+**Purpose:** Multi-product selection, bundle discounts, and best practices  
+**Read this if:** You're implementing multi-product features or need to understand combo discounts
+
+**Contents:**
+- Multi-product selection (2-3 products)
+- ProductGrid section component
+- Combo discount system (10% for 2, 15% for 3+)
+- Urgency banner (real stock)
+- Social proof (real 24h orders)
+- Free shipping progress
+- Delivery estimates
+- Real data integration
+- Backend validation
+
+**Key Sections:**
+- Multi-product selection logic
+- Combo discount tiers & validation
+- Best practices configuration
+- Real data sources (stock, orders)
+- Testing scenarios
+- Troubleshooting
+
+**Time to Read:** 25-30 minutes
+
+---
+
+### 5. **GENIE_STYLE_CUSTOMIZATION.md** - Brand Customization
+**Purpose:** Style tokens, brand colors, button styles, and fonts  
+**Read this if:** You're building the style wizard or need to understand customization
+
+**Contents:**
+- Brand color system (6 presets + custom)
+- Button styles (rounded, sharp, pill)
+- Font families (default, bengali, modern, classic)
+- StyleTokens data structure
+- CSS implementation
+- Editor integration
+- Performance considerations
+
+**Key Sections:**
+- Brand color presets & picker
+- Button style options
+- Font family options
+- StyleTokens storage & validation
+- Dynamic style injection
+- Settings panel integration
+
+**Time to Read:** 20-25 minutes
+
+---
+
+### 6. **GENIE_V2_TESTING_CHECKLIST.md** - QA & Testing
 **Purpose:** Comprehensive testing requirements for all phases  
 **Read this if:** You're responsible for QA or testing
 
@@ -149,6 +209,28 @@ Welcome! This is your central hub for Genie (Quick Builder v2) implementation do
 - Regression testing
 
 **Time to Read:** 40-50 minutes (reference document)
+
+---
+
+## 🎯 Quick Reference & Implementation
+
+### **GENIE_IMPLEMENTATION_REFERENCE.md** - Implementation Checklist & Quick Reference
+**Purpose:** Quick lookup guide for implementing and debugging features  
+**Read this if:** You need to quickly find where things are or how to implement a task
+
+**Contents:**
+- Complete feature checklist (all items ✅)
+- Files reference (organized by purpose)
+- Common implementation tasks (with code examples)
+- Configuration reference
+- Debugging guide (troubleshooting)
+- Data flow diagrams
+- Deployment checklist
+- Performance targets
+- Quick test cases
+- Tips & best practices
+
+**Time to Read:** 15-20 minutes (reference document)
 
 ---
 
@@ -244,44 +326,66 @@ Before diving into v2, review these existing guides:
 
 ---
 
-## 🎯 Quick Reference
+## 🎯 Quick Reference by Role
 
 ### For Different Roles
 
 #### **Product Manager**
 Start with: **GENIE_V2_SPEC.md**
 - Read: System Overview + Target Users + Feature List
-- Time: 15 minutes
+- Then: **GENIE_USER_GUIDE.md** for user experience
+- Time: 20 minutes
 
 #### **Engineering Lead**
 Start with: **GENIE_IMPLEMENTATION_PHASES.md**
 - Read: All 4 phases with daily breakdowns
 - Cross-ref: **GENIE_TECHNICAL_GUIDE.md** for architecture
-- Time: 45 minutes
+- Reference: **GENIE_IMPLEMENTATION_REFERENCE.md** for details
+- Time: 50 minutes
 
-#### **Frontend Developer**
+#### **Frontend Developer (Features)**
 Start with: **GENIE_TECHNICAL_GUIDE.md**
 - Read: File Structure + Component Architecture + Interfaces
-- Cross-ref: **GENIE_IMPLEMENTATION_PHASES.md** for phase work
-- Time: 60 minutes
+- Deep-dive: **GENIE_MULTIPRODUCT_COMBOS.md** or **GENIE_STYLE_CUSTOMIZATION.md**
+- Reference: **GENIE_IMPLEMENTATION_REFERENCE.md** for implementation tasks
+- Time: 90 minutes
+
+#### **Frontend Developer (Multi-Product/Discounts)**
+Start with: **GENIE_MULTIPRODUCT_COMBOS.md**
+- Read: All sections (Product Grid, Combo Discount, Best Practices)
+- Reference: **GENIE_TECHNICAL_GUIDE.md** for backend integration
+- Time: 30 minutes
+
+#### **Frontend Developer (Style System)**
+Start with: **GENIE_STYLE_CUSTOMIZATION.md**
+- Read: All sections (Brand Colors, Button Styles, Fonts)
+- Reference: **GENIE_TECHNICAL_GUIDE.md** for integration
+- Time: 25 minutes
 
 #### **Backend Developer**
 Start with: **GENIE_TECHNICAL_GUIDE.md**
-- Read: API Routes + Database Schema + Utility Functions
-- Cross-ref: **GENIE_V2_SPEC.md** for API endpoints
-- Time: 45 minutes
+- Read: API Routes + Database Schema + Real Data Integration
+- Deep-dive: **GENIE_MULTIPRODUCT_COMBOS.md** → Combo Discount section
+- Time: 50 minutes
 
 #### **QA / Tester**
 Start with: **GENIE_V2_TESTING_CHECKLIST.md**
 - Read: All sections
-- Cross-ref: **GENIE_V2_SPEC.md** for features
-- Time: 50 minutes
+- Cross-ref: **GENIE_MULTIPRODUCT_COMBOS.md** → Testing Scenarios
+- Reference: **GENIE_IMPLEMENTATION_REFERENCE.md** → Quick Test Cases
+- Time: 60 minutes
 
 #### **Designer**
 Start with: **GENIE_V2_SPEC.md**
 - Read: Core Principles + Section Variants
-- Cross-ref: **GENIE_TECHNICAL_GUIDE.md** for component list
-- Time: 20 minutes
+- Deep-dive: **GENIE_STYLE_CUSTOMIZATION.md** for design specs
+- Time: 30 minutes
+
+#### **Debugger (Bug Fixing)**
+Start with: **GENIE_IMPLEMENTATION_REFERENCE.md**
+- Read: Debugging Guide section
+- Reference relevant deep-dive docs as needed
+- Time: 10-20 minutes
 
 ---
 
@@ -289,14 +393,22 @@ Start with: **GENIE_V2_SPEC.md**
 
 | Metric | Count |
 |--------|-------|
-| Total Documentation | 4 main + 4 supporting docs |
-| Total Words | ~18,000+ |
-| New Files to Create | 65+ |
-| New API Endpoints | 8 |
-| New Components | 30+ |
-| Test Cases | 100+ |
-| Phases | 4 weeks |
+| Total Documentation | 6 core + 4 supporting docs |
+| Total Words | ~28,000+ |
+| Files Modified/Created | 75+ |
+| New API Endpoints | 9 |
+| New Components | 35+ |
+| Section Variants | 18+ |
+| Test Cases | 120+ |
+| Phases | 4 weeks (all complete) |
 | Target Page Load | < 2 seconds |
+| Multi-Product Support | ✅ Yes (2-3 products) |
+| Combo Discount Tiers | 2 (10%, 15%) |
+| Brand Color Presets | 6 + custom picker |
+| Button Style Options | 3 |
+| Font Family Options | 4 |
+| Best Practices Features | 5 (all configurable) |
+| Real Data Sources | 2 (stock, orders) |
 
 ---
 

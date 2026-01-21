@@ -423,30 +423,98 @@ export function OrderFormFields({
           </div>
         )}
         
-        {/* Price Breakdown */}
+        {/* Order Summary Preview */}
         <div 
-          className="p-4 rounded-xl space-y-2"
-          style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F9FAFB' }}
+          className="p-4 rounded-xl space-y-3"
+          style={{ 
+            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F9FAFB',
+            border: `1px solid ${cardBorder}`,
+          }}
         >
-          <div className="flex justify-between text-sm">
-            <span style={{ color: mutedColor }}>{subtotalLabel}</span>
-            <span className="font-semibold" style={{ color: textColor }}>{formatPrice(subtotal)}</span>
+          {/* Header */}
+          <div className="flex items-center gap-2 pb-2 border-b" style={{ borderColor: cardBorder }}>
+            <Package size={16} style={{ color: primaryColor }} />
+            <span className="font-semibold text-sm" style={{ color: textColor }}>অর্ডার সামারি</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span style={{ color: mutedColor }}>{deliveryLabel}</span>
-            <span className="font-semibold" style={{ color: textColor }}>{formatPrice(deliveryCharge)}</span>
-          </div>
-          <div 
-            className="flex justify-between pt-2 border-t"
-            style={{ borderColor: cardBorder }}
-          >
-            <span className="font-bold" style={{ color: textColor }}>{totalLabel}</span>
-            <span 
-              className="font-bold text-xl"
-              style={{ color: primaryColor }}
+          
+          {/* Customer Info Preview */}
+          {(state.customerName || state.phone) && (
+            <div className="space-y-1 pb-2 border-b" style={{ borderColor: cardBorder }}>
+              {state.customerName && (
+                <div className="flex items-center gap-2 text-xs">
+                  <span style={{ color: mutedColor }}>নাম:</span>
+                  <span className="font-medium" style={{ color: textColor }}>{state.customerName}</span>
+                </div>
+              )}
+              {state.phone && (
+                <div className="flex items-center gap-2 text-xs">
+                  <span style={{ color: mutedColor }}>ফোন:</span>
+                  <span className="font-medium" style={{ color: textColor }}>{state.phone}</span>
+                  {state.phoneError ? (
+                    <span className="text-red-500">❌</span>
+                  ) : state.phone.length >= 11 && validateBDPhone(state.phone) ? (
+                    <span className="text-green-500">✓</span>
+                  ) : null}
+                </div>
+              )}
+              {state.selectedDistrictId && (
+                <div className="flex items-center gap-2 text-xs">
+                  <span style={{ color: mutedColor }}>এলাকা:</span>
+                  <span className="font-medium" style={{ color: textColor }}>
+                    {DISTRICTS.find(d => d.id === state.selectedDistrictId)?.name || ''} 
+                    {state.selectedUpazilaId && availableUpazilas.find(u => u.id === state.selectedUpazilaId)?.name ? 
+                      `, ${availableUpazilas.find(u => u.id === state.selectedUpazilaId)?.name}` : ''}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Price Breakdown */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span style={{ color: mutedColor }}>{subtotalLabel}</span>
+              <span className="font-semibold" style={{ color: textColor }}>{formatPrice(subtotal)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span style={{ color: mutedColor }}>
+                {deliveryLabel} 
+                <span className="text-xs ml-1">
+                  ({calculatedShippingZone === 'dhaka' ? insideDhakaLabel : outsideDhakaLabel})
+                </span>
+              </span>
+              <span className="font-semibold" style={{ color: textColor }}>{formatPrice(deliveryCharge)}</span>
+            </div>
+            
+            {/* Free shipping indicator - using configurable threshold */}
+            {props.showFreeShippingProgress !== false && props.freeShippingThreshold && subtotal >= props.freeShippingThreshold && (
+              <div className="flex justify-between text-sm">
+                <span className="text-green-600">🎁 ফ্রি ডেলিভারি ছাড়</span>
+                <span className="text-green-600 font-semibold">-{formatPrice(deliveryCharge)}</span>
+              </div>
+            )}
+            
+            <div 
+              className="flex justify-between pt-2 border-t"
+              style={{ borderColor: cardBorder }}
             >
-              {formatPrice(total)}
-            </span>
+              <span className="font-bold" style={{ color: textColor }}>{totalLabel}</span>
+              <span 
+                className="font-bold text-xl"
+                style={{ color: primaryColor }}
+              >
+                {formatPrice(props.showFreeShippingProgress !== false && props.freeShippingThreshold && subtotal >= props.freeShippingThreshold ? subtotal : total)}
+              </span>
+            </div>
+          </div>
+          
+          {/* Payment Method */}
+          <div 
+            className="flex items-center justify-center gap-2 pt-2 border-t text-xs"
+            style={{ borderColor: cardBorder, color: mutedColor }}
+          >
+            <span>💵</span>
+            <span>ক্যাশ অন ডেলিভারি - ডেলিভারি ম্যানকে টাকা দিবেন</span>
           </div>
         </div>
         

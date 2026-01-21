@@ -32,6 +32,7 @@ export type SectionType =
   | 'pricing'
   | 'how-to-order'
   | 'showcase'
+  | 'product-grid'
   | 'custom-html'
   | 'order-button'
   | 'header'
@@ -119,6 +120,7 @@ export interface PageIntent {
   productType: 'single' | 'multiple';
   goal: 'direct_sales' | 'lead_whatsapp';
   trafficSource: 'facebook' | 'tiktok' | 'organic';
+  productIds?: number[]; // Multiple product IDs for multi-product landing pages
   createdAt?: string;
 }
 

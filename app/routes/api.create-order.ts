@@ -499,8 +499,34 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const shippingResult = calculateShipping(shippingConfig, input.division, subtotal);
     const shipping = shippingResult.cost;
     const tax = 0;
+    
+    // ============================================================================
+    // COMBO/BUNDLE DISCOUNT - Apply discount for multiple unique products
+    // ============================================================================
+    // Count unique products in order
+    const uniqueProductIds = new Set(orderItems.map(item => item.productId));
+    const uniqueProductCount = uniqueProductIds.size;
+    
+    // Combo discount rates:
+    // - 2 unique products: 10% off
+    // - 3+ unique products: 15% off
+    let comboDiscountRate = 0;
+    let comboDiscountAmount = 0;
+    
+    if (uniqueProductCount >= 3) {
+      comboDiscountRate = 0.15; // 15%
+    } else if (uniqueProductCount === 2) {
+      comboDiscountRate = 0.10; // 10%
+    }
+    
+    if (comboDiscountRate > 0) {
+      comboDiscountAmount = Math.round(subtotal * comboDiscountRate);
+    }
+    
+    // Apply combo discount to subtotal
+    const discountedSubtotal = subtotal - comboDiscountAmount;
 
-    const total = subtotal + tax + shipping;
+    const total = discountedSubtotal + tax + shipping;
 
     // Generate order number
     const orderNumber = generateOrderNumber();
@@ -570,10 +596,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
         customerEmail: input.customer_email || '',
         shippingAddress: input.address,
         billingAddress: null,
-        subtotal,
+        subtotal: discountedSubtotal, // After combo discount
         tax,
         shipping,
         total,
+        // Store combo discount info in pricingJson
+        pricingJson: JSON.stringify({
+          originalSubtotal: subtotal,
+          comboDiscount: comboDiscountAmount,
+          comboDiscountRate: comboDiscountRate,
+          uniqueProductCount: uniqueProductCount,
+          discountedSubtotal: discountedSubtotal,
+          shipping,
+          tax,
+          total,
+          isFreeShipping: shippingResult.isFree || false,
+        }),
         notes: input.notes || null,
         landingPageId: input.landing_page_id || null, // ATTRIBUTION
         createdAt: now,

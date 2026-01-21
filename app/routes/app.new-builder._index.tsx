@@ -101,6 +101,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const intentDataStr = formData.get('intentData') as string;
       const productStr = formData.get('product') as string;
       const productIdStr = formData.get('productId') as string;
+      const productIdsStr = formData.get('productIds') as string; // NEW: Multiple products
       const templateId = formData.get('templateId') as string;
       const styleTokensStr = formData.get('styleTokens') as string;
 
@@ -111,11 +112,34 @@ export async function action({ request, context }: ActionFunctionArgs) {
       try {
         const intentData: Intent = JSON.parse(intentDataStr);
         const styleTokens: StyleTokens | undefined = styleTokensStr ? JSON.parse(styleTokensStr) : undefined;
+        const productIds: number[] = productIdsStr ? JSON.parse(productIdsStr) : []; // NEW: Parse multiple products
         let product: QuickProduct | null = null;
         let linkedProductId: number | null = null;
 
-        // Get product info
-        if (productIdStr) {
+        // Get product info - handle multiple products first
+        if (productIds.length > 0) {
+          // Multiple products selected - use first one as primary
+          linkedProductId = productIds[0];
+          const productResult = await drizzleDb
+            .select()
+            .from(products)
+            .where(eq(products.id, linkedProductId))
+            .limit(1);
+
+          if (productResult[0]) {
+            const p = productResult[0];
+            product = {
+              name: p.title,
+              price: p.price,
+              compareAtPrice: p.compareAtPrice || undefined,
+              image: p.imageUrl || undefined,
+            };
+          }
+          
+          // TODO: Store all productIds in page metadata for multi-product landing pages
+          // This can be used later to render multiple product showcases
+        } else if (productIdStr) {
+          // Single product selected
           linkedProductId = Number(productIdStr);
           const productResult = await drizzleDb
             .select()
@@ -177,6 +201,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
           : 'landing-' + Date.now();
 
         // Create page with intent-optimized template
+        // Include productIds in intent for multi-product pages
+        const intentWithProducts = {
+          ...intentData,
+          productIds: productIds.length > 0 ? productIds : (linkedProductId ? [linkedProductId] : []),
+        };
+        
         const result = await createPageFromTemplate(
           db, 
           store.id, 
@@ -184,7 +214,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           pageSlug, 
           pageTitle,
           {
-            intent: intentData,
+            intent: intentWithProducts,
             styleTokens,
             optimizedSections,
             defaultContent,
@@ -238,6 +268,7 @@ export default function NewBuilderIndex() {
     intent: Intent;
     product: QuickProduct | null;
     productId: number | null;
+    productIds: number[];
     templateId: string;
     styleTokens: StyleTokens;
   }) => {
@@ -247,7 +278,10 @@ export default function NewBuilderIndex() {
     formData.append('templateId', data.templateId);
     formData.append('styleTokens', JSON.stringify(data.styleTokens));
     
-    if (data.productId) {
+    // Handle multiple products
+    if (data.productIds.length > 0) {
+      formData.append('productIds', JSON.stringify(data.productIds));
+    } else if (data.productId) {
       formData.append('productId', String(data.productId));
     } else if (data.product) {
       formData.append('product', JSON.stringify(data.product));

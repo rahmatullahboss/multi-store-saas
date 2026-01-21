@@ -16,8 +16,8 @@ import { useLoaderData } from '@remix-run/react';
 import { useEffect, useState } from 'react';
 import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq } from 'drizzle-orm';
-import { products, productVariants } from '@db/schema';
+import { eq, and, gte, sql } from 'drizzle-orm';
+import { products, productVariants, orders } from '@db/schema';
 
 import { getPageWithSections } from '~/lib/page-builder/actions.server';
 import { requireAuth } from '~/lib/auth.server';
@@ -105,6 +105,57 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     }
   }
   
+  // Fetch multiple products for product-grid section from intent.productIds
+  let selectedProducts: Array<{
+    id: number;
+    title: string;
+    price: number;
+    compareAtPrice?: number | null;
+    imageUrl?: string | null;
+  }> = [];
+  
+  const intentProductIds = page.intent?.productIds || [];
+  if (intentProductIds.length > 0) {
+    const odb = drizzle(db);
+    const allProducts = await odb.select({
+      id: products.id,
+      title: products.title,
+      price: products.price,
+      compareAtPrice: products.compareAtPrice,
+      imageUrl: products.imageUrl,
+    }).from(products).where(eq(products.storeId, auth.store.id));
+    
+    // Filter and maintain order from intentProductIds
+    selectedProducts = intentProductIds
+      .map(id => allProducts.find(p => p.id === id))
+      .filter((p): p is NonNullable<typeof p> => p !== undefined);
+  }
+  
+  // ============================================================================
+  // REAL DATA FOR URGENCY/SOCIAL PROOF - No fake numbers!
+  // ============================================================================
+  const odb = drizzle(db);
+  
+  // Get real stock count for the product
+  let realStockCount: number | null = null;
+  if (effectiveProductId) {
+    const [stockResult] = await odb.select({ inventory: products.inventory })
+      .from(products)
+      .where(eq(products.id, effectiveProductId))
+      .limit(1);
+    realStockCount = stockResult?.inventory ?? null;
+  }
+  
+  // Get real order count for last 24 hours (for social proof)
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const recentOrdersResult = await odb.select({ count: sql<number>`count(*)` })
+    .from(orders)
+    .where(and(
+      eq(orders.storeId, auth.store.id),
+      gte(orders.createdAt, twentyFourHoursAgo)
+    ));
+  const recentOrderCount = recentOrdersResult[0]?.count || 0;
+  
   return json({
     sections: page.sections.filter(s => s.enabled),
     pageSettings: {
@@ -125,9 +176,16 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     templateId: page.templateId || 'default',
     // Product data for CTA section
     initialProduct: productData,
+    // Multiple products for product-grid section
+    selectedProducts,
     // Store and product IDs for CTA section order form
     storeId: auth.store.id,
     productId: effectiveProductId || null,
+    // REAL DATA for urgency/social proof
+    realData: {
+      stockCount: realStockCount, // Real stock from products table
+      recentOrderCount: recentOrderCount, // Real orders in last 24h
+    },
   });
 }
 
@@ -149,6 +207,18 @@ export default function PreviewPage() {
     variants?: Array<{ id: number; name: string; price: number }>;
   } | null>(loaderData.initialProduct || null);
   
+  // Multiple products for product-grid section
+  const [liveProducts, setLiveProducts] = useState<Array<{
+    id: number;
+    title: string;
+    price: number;
+    compareAtPrice?: number | null;
+    imageUrl?: string | null;
+  }>>(loaderData.selectedProducts || []);
+  
+  // Real data for urgency/social proof
+  const realData = loaderData.realData || { stockCount: null, recentOrderCount: 0 };
+  
   // Listen for live updates from parent window (receives sections data directly)
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -162,9 +232,13 @@ export default function PreviewPage() {
           ...event.data.settings,
         });
       }
-      // Handle product update for real-time preview
+      // Handle product update for real-time preview (single product)
       if (event.data?.type === 'PRODUCT_UPDATE') {
         setLiveProduct(event.data.product || null);
+      }
+      // Handle multiple products update for product-grid section
+      if (event.data?.type === 'PRODUCTS_UPDATE') {
+        setLiveProducts(event.data.products || []);
       }
     };
     
@@ -197,6 +271,8 @@ export default function PreviewPage() {
         storeId={loaderData.storeId}
         productId={loaderData.productId || undefined}
         product={liveProduct}
+        selectedProducts={liveProducts}
+        realData={realData}
       />
       
       {/* Powered by Ozzyl branding */}

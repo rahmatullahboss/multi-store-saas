@@ -110,6 +110,14 @@ interface BuilderLayoutProps {
   products?: Product[];
   // Selected product for preview (page-level productId)
   selectedProduct?: SelectedProduct | null;
+  // Multiple selected products for product-grid section (from intent.productIds)
+  selectedProducts?: Array<{
+    id: number;
+    title: string;
+    price: number;
+    compareAtPrice?: number | null;
+    imageUrl?: string | null;
+  }>;
   // Undo/Redo
   onUndo?: () => void;
   onRedo?: () => void;
@@ -141,6 +149,7 @@ export function BuilderLayout({
   availableSections,
   products = [],
   selectedProduct,
+  selectedProducts = [],
   lastSaved,
   onUndo,
   onRedo,
@@ -197,14 +206,24 @@ export function BuilderLayout({
   // Send initial product data to preview iframe when it loads
   // This ensures product shows on page load without re-selecting in editor
   useEffect(() => {
-    if (selectedProduct && iframeRef.current) {
+    if ((selectedProduct || selectedProducts.length > 0) && iframeRef.current) {
       // Wait for iframe to load before sending product data
       const handleIframeLoad = () => {
         if (iframeRef.current?.contentWindow) {
-          iframeRef.current.contentWindow.postMessage({
-            type: 'PRODUCT_UPDATE',
-            product: selectedProduct,
-          }, '*');
+          // Send single selected product
+          if (selectedProduct) {
+            iframeRef.current.contentWindow.postMessage({
+              type: 'PRODUCT_UPDATE',
+              product: selectedProduct,
+            }, '*');
+          }
+          // Send multiple selected products for product-grid
+          if (selectedProducts.length > 0) {
+            iframeRef.current.contentWindow.postMessage({
+              type: 'PRODUCTS_UPDATE',
+              products: selectedProducts,
+            }, '*');
+          }
         }
       };
       
@@ -214,10 +233,18 @@ export function BuilderLayout({
       // Also send immediately in case iframe is already loaded
       const timer = setTimeout(() => {
         if (iframeRef.current?.contentWindow) {
-          iframeRef.current.contentWindow.postMessage({
-            type: 'PRODUCT_UPDATE',
-            product: selectedProduct,
-          }, '*');
+          if (selectedProduct) {
+            iframeRef.current.contentWindow.postMessage({
+              type: 'PRODUCT_UPDATE',
+              product: selectedProduct,
+            }, '*');
+          }
+          if (selectedProducts.length > 0) {
+            iframeRef.current.contentWindow.postMessage({
+              type: 'PRODUCTS_UPDATE',
+              products: selectedProducts,
+            }, '*');
+          }
         }
       }, 500);
       
@@ -226,7 +253,7 @@ export function BuilderLayout({
         clearTimeout(timer);
       };
     }
-  }, [selectedProduct]);
+  }, [selectedProduct, selectedProducts]);
   
   const [showNewPageModal, setShowNewPageModal] = useState(isNew);
   

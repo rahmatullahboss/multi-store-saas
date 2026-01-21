@@ -107,6 +107,32 @@ export interface OrderFormProps {
   showTrustBadges?: boolean;
   codLabel?: string;
   secureLabel?: string;
+  
+  // Urgency/Scarcity Settings (Editable - No fake data!)
+  showUrgencyBanner?: boolean;
+  urgencyText?: string; // e.g., "সীমিত স্টক! মাত্র ২৩টি বাকি আছে" - seller sets real number
+  
+  // Social Proof Settings (Editable - Must be real data!)
+  showSocialProof?: boolean;
+  socialProofText?: string; // e.g., "গত ২৪ ঘণ্টায় ৪৭ জন অর্ডার করেছেন" - seller sets real number
+  
+  // Free Shipping Settings
+  showFreeShippingProgress?: boolean;
+  freeShippingThreshold?: number; // e.g., 2000
+  
+  // Delivery Estimate Settings
+  showDeliveryEstimate?: boolean;
+  deliveryEstimateDhaka?: string; // e.g., "১-২ দিন"
+  deliveryEstimateOutside?: string; // e.g., "৩-৫ দিন"
+}
+
+// Selected product for multi-product landing pages
+export interface SelectedProductInfo {
+  id: number;
+  title: string;
+  price: number;
+  compareAtPrice?: number | null;
+  imageUrl?: string | null;
 }
 
 export interface OrderFormComponentProps {
@@ -115,4 +141,11 @@ export interface OrderFormComponentProps {
   storeId?: number;
   productId?: number;
   product?: ProductInfo | null;
+  // Multiple products for dropdown selection in multi-product pages
+  selectedProducts?: SelectedProductInfo[];
+  // Real data from DB for urgency/social proof (no fake numbers!)
+  realData?: {
+    stockCount: number | null;
+    recentOrderCount: number;
+  };
 }

@@ -123,6 +123,18 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     variants?: Array<{ id: number; name: string; price: number }>;
   } | null = null;
   
+  // Fetch multiple selected products from intent.productIds (for multi-product landing pages)
+  let selectedProducts: Array<{
+    id: number;
+    title: string;
+    price: number;
+    compareAtPrice?: number | null;
+    imageUrl?: string | null;
+  }> = [];
+  
+  // Get productIds from intent
+  const intentProductIds = page.intent?.productIds || [];
+  
   if (page.productId) {
     const [productRow] = await odb.select().from(products).where(eq(products.id, page.productId)).limit(1);
     if (productRow) {
@@ -159,6 +171,23 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     }
   }
   
+  // Fetch multiple products if intent has productIds
+  if (intentProductIds.length > 0) {
+    // Fetch all products that match the IDs
+    const multipleProductRows = await odb.select({
+      id: products.id,
+      title: products.title,
+      price: products.price,
+      compareAtPrice: products.compareAtPrice,
+      imageUrl: products.imageUrl,
+    }).from(products).where(eq(products.storeId, store.id));
+    
+    // Filter to only include products in intentProductIds and maintain order
+    selectedProducts = intentProductIds
+      .map(id => multipleProductRows.find(p => p.id === id))
+      .filter((p): p is NonNullable<typeof p> => p !== undefined);
+  }
+  
   return json({
     page,
     sections: page.sections,
@@ -178,6 +207,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     },
     products: storeProducts,
     product: selectedProduct,
+    selectedProducts, // Multiple products for product-grid section
     isNew: false,
   });
 }
@@ -403,7 +433,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 // COMPONENT
 // ============================================================================
 export default function NewBuilderPage() {
-  const { page, sections: initialSections, store, products, product, isNew } = useLoaderData<typeof loader>();
+  const { page, sections: initialSections, store, products, product, selectedProducts, isNew } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<ActionData>();
   const navigate = useNavigate();
   
@@ -624,6 +654,7 @@ export default function NewBuilderPage() {
       availableSections={AVAILABLE_SECTIONS}
       products={products}
       selectedProduct={product}
+      selectedProducts={selectedProducts || []}
       lastSaved={lastSaved}
       onUndo={undo}
       onRedo={redo}
