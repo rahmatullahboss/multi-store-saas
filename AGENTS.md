@@ -1,29 +1,122 @@
 # AGENTS.md — Multi Store SaaS
 
-## 🏆 Agent Identity
+## � Mission Statement
+
+> **Build the Shopify of Bangladesh** — A world-class, multi-tenant e-commerce SaaS platform that empowers millions of merchants to sell online with zero technical knowledge, just like Shopify revolutionized e-commerce globally.
 
 This AI Agent is a **World-Class, Award-Winning Software Engineer** with deep expertise in the Cloudflare native stack and modern web development. The agent operates with the precision, creativity, and architectural wisdom of a seasoned principal engineer who has shipped production-grade systems at scale.
 
-### Core Expertise & Technologies
+### 🏆 Our Vision: Shopify-Level Excellence
 
-| Category                 | Technologies                                                    |
-| ------------------------ | --------------------------------------------------------------- |
-| **Edge Runtime**         | Cloudflare Workers, Cloudflare Pages, Hono.js, Wrangler CLI     |
-| **Full-Stack Framework** | Remix (SSR/Islands), React 19, TypeScript 5.x                   |
-| **Database & SQL**       | Cloudflare D1 (SQLite), Drizzle ORM, Hyperdrive                 |
-| **Storage**              | Cloudflare R2 (Object Storage), KV (Key-Value), Durable Objects |
-| **AI & ML**              | Cloudflare AI (Workers AI), Vectorize (Vector DB), AI Gateway   |
-| **DevOps & CI/CD**       | Wrangler, GitHub Actions, Cloudflare Zero Trust                 |
-| **Performance**          | Edge Caching, Smart Placement, Tiered Caching                   |
-| **Security**             | WAF, Bot Management, DDoS Protection, Turnstile                 |
+| Shopify Standard          | Our Implementation                                  |
+| ------------------------- | --------------------------------------------------- |
+| **99.99% Uptime**         | Cloudflare's global edge network (300+ cities)      |
+| **Sub-100ms TTFB**        | Edge-first architecture with D1 + KV caching        |
+| **Infinite Scale**        | Workers auto-scale, D1 read replicas worldwide      |
+| **No-Code Store Builder** | GrapesJS visual page builder                        |
+| **Merchant Dashboard**    | Full-featured Remix SSR dashboard                   |
+| **Payment Processing**    | bKash, Nagad, Stripe integrations                   |
+| **AI-Powered Features**   | Workers AI + Vectorize for search & recommendations |
 
-### Engineering Philosophy
+---
 
-- **Edge-First Architecture**: Leverage Cloudflare's global edge network for sub-50ms latency worldwide
-- **Zero Cold Starts**: Optimize Workers for instant execution with proper bundling and lazy loading
-- **Multi-Tenant Safety**: Always scope queries by `store_id`; never trust client input
-- **Type-Safe Everything**: TypeScript + Zod validation across the entire stack
-- **Performance Obsession**: Every millisecond counts; profile, measure, optimize
+## 🛠️ Core Expertise & Technologies (Context7 Verified Latest)
+
+| Category                 | Technologies                         | Latest Features (2025)                                           |
+| ------------------------ | ------------------------------------ | ---------------------------------------------------------------- |
+| **Edge Runtime**         | Cloudflare Workers, Cloudflare Pages | Smart Placement, Observability, `compatibility_date: 2025-04-14` |
+| **Full-Stack Framework** | Remix SSR, React 19, TypeScript 5.x  | `defer()` streaming, `createPagesFunctionHandler`                |
+| **Database**             | Cloudflare D1 (SQLite)               | **Sessions API**, Read Replication, Time Travel, Bookmarks       |
+| **ORM**                  | Drizzle ORM                          | Type-safe migrations, batch operations                           |
+| **Object Storage**       | Cloudflare R2                        | Direct uploads, signed URLs, CORS                                |
+| **Key-Value**            | Cloudflare KV                        | Global replication, TTL caching                                  |
+| **Vector Database**      | Cloudflare Vectorize                 | Semantic search, AI embeddings                                   |
+| **AI/ML**                | Workers AI, AI Gateway               | Llama 3.1, embedding models, rate limiting                       |
+| **API Framework**        | Hono.js                              | Edge-native, middleware, OpenAPI                                 |
+| **Security**             | WAF, Turnstile, Zero Trust           | Bot protection, DDoS mitigation                                  |
+
+---
+
+## 🆕 Latest Cloudflare Features (Context7 Verified)
+
+### D1 Sessions API (Read Replication)
+
+```typescript
+// Sequential consistency with read replicas
+const bookmark = request.headers.get('x-d1-bookmark') ?? 'first-primary';
+const session = env.DB.withSession(bookmark);
+
+const result = await session
+  .prepare(`SELECT * FROM products WHERE store_id = ?`)
+  .bind(storeId)
+  .run();
+
+// Pass bookmark for next request
+response.headers.set('x-d1-bookmark', session.getBookmark() ?? '');
+```
+
+### Workers AI with AI Gateway
+
+```typescript
+// AI Gateway for rate limiting and observability
+const response = await env.AI.gateway('my-gateway').run({
+  provider: 'workers-ai',
+  endpoint: '@cf/meta/llama-3.1-8b-instruct',
+  query: { prompt: 'Generate product description for: ' + productName },
+});
+```
+
+### Remix Streaming with defer()
+
+```typescript
+import { defer } from '@remix-run/cloudflare';
+
+export async function loader({ params }: LoaderFunctionArgs) {
+  // Critical data - await immediately
+  const product = await db.getProduct(params.productId);
+
+  // Non-critical - stream later
+  const reviewsPromise = db.getReviews(params.productId);
+
+  return defer({
+    product,
+    reviews: reviewsPromise, // Streamed!
+  });
+}
+```
+
+### Modern wrangler.toml Configuration
+
+```toml
+"$schema" = "node_modules/wrangler/config-schema.json"
+name = "multi-store-saas"
+main = "src/index.ts"
+compatibility_date = "2025-04-14"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "multi-store-prod"
+database_id = "your-database-id"
+
+[[r2_buckets]]
+bucket_name = "store-assets"
+binding = "R2"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "your-kv-id"
+
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "product-embeddings"
+```
 
 ---
 
@@ -38,7 +131,7 @@ This AI Agent is a **World-Class, Award-Winning Software Engineer** with deep ex
 ## Quick Context
 
 - **Architecture**: Multi-tenant e-commerce SaaS on Cloudflare (Workers/Pages + D1 + R2 + KV).
-- **Frontend**: Remix SSR with progressive enhancement.
+- **Frontend**: Remix SSR with progressive enhancement and streaming.
 - **Backend**: Hono.js API routes with edge-native bindings.
 - **Page Builder**: Separate GrapesJS worker at `apps/page-builder`.
 
@@ -100,6 +193,15 @@ npm run db:migrate:local   # Local migrations
 npm run db:migrate:prod    # Production migrations
 ```
 
+### D1 Sessions API (Read Replication)
+
+```typescript
+// Use sessions for read-after-write consistency
+const session = env.DB.withSession('first-primary');
+const result = await session.prepare(`SELECT * FROM stores`).run();
+const bookmark = session.getBookmark(); // Store for next request
+```
+
 ### R2 (Object Storage)
 
 - Used for product images, builder assets, and media
@@ -133,22 +235,24 @@ npm run test:all          # Full test suite
 ## Deployment Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Cloudflare Global Edge                   │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │ Pages (SSR) │  │ Workers API │  │ Page Builder Worker │  │
-│  │   Remix     │  │    Hono     │  │      GrapesJS       │  │
-│  └──────┬──────┘  └──────┬──────┘  └──────────┬──────────┘  │
-│         │                │                     │            │
-│  ┌──────┴────────────────┴─────────────────────┴──────┐     │
-│  │                   Bindings Layer                   │     │
-│  │  ┌────┐  ┌────┐  ┌────┐  ┌──────────┐  ┌────────┐  │     │
-│  │  │ D1 │  │ R2 │  │ KV │  │ Vectorize│  │Workers │  │     │
-│  │  │    │  │    │  │    │  │          │  │   AI   │  │     │
-│  │  └────┘  └────┘  └────┘  └──────────┘  └────────┘  │     │
-│  └────────────────────────────────────────────────────┘     │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Cloudflare Global Edge (300+ Cities)             │
+├─────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐          │
+│  │ Pages (SSR) │  │ Workers API │  │ Page Builder Worker │          │
+│  │   Remix     │  │    Hono     │  │      GrapesJS       │          │
+│  │  Streaming  │  │  REST/RPC   │  │   Visual Editor     │          │
+│  └──────┬──────┘  └──────┬──────┘  └──────────┬──────────┘          │
+│         │                │                     │                    │
+│  ┌──────┴────────────────┴─────────────────────┴──────────────┐     │
+│  │                   Edge Bindings Layer                      │     │
+│  │  ┌────┐  ┌────┐  ┌────┐  ┌──────────┐  ┌────────┐ ┌──────┐ │     │
+│  │  │ D1 │  │ R2 │  │ KV │  │ Vectorize│  │Workers │ │  AI  │ │     │
+│  │  │Read│  │    │  │    │  │          │  │   AI   │ │Gateway│ │     │
+│  │  │Repl│  │    │  │    │  │          │  │        │ │      │ │     │
+│  │  └────┘  └────┘  └────┘  └──────────┘  └────────┘ └──────┘ │     │
+│  └────────────────────────────────────────────────────────────┘     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Deployment Commands
@@ -164,6 +268,7 @@ npm run test:all          # Full test suite
 ### Data Safety
 
 - ✅ Always scope DB queries by `store_id` (multi-tenant safety)
+- ✅ Use D1 Sessions API for read-after-write consistency
 - ✅ Use server-side Zod validation for all writes
 - ✅ Sanitize and rate-limit all inputs
 - ❌ Never trust client-side data without validation
@@ -171,6 +276,7 @@ npm run test:all          # Full test suite
 ### Remix Patterns
 
 - ✅ Use `loader`/`action` for data fetching
+- ✅ Use `defer()` for streaming non-critical data
 - ✅ Use `<Form>` or `useFetcher` for mutations
 - ❌ Avoid `useEffect` for page data loading
 
@@ -200,12 +306,16 @@ npm run test:all          # Full test suite
 
 ## Advanced Cloudflare Patterns
 
-### Smart Placement
+### Smart Placement & Observability
 
 ```toml
 # wrangler.toml
 [placement]
 mode = "smart"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
 ```
 
 ### Tiered Caching
@@ -231,15 +341,29 @@ const batch = db.batch([
 await batch;
 ```
 
+### Cloudflare Pages Handler
+
+```typescript
+import { createPagesFunctionHandler } from '@remix-run/cloudflare-pages';
+import * as build from '../build/server';
+import { getLoadContext } from '../load-context';
+
+export const onRequest = createPagesFunctionHandler({
+  build,
+  getLoadContext,
+});
+```
+
 ---
 
 ## Skills & Context7 References
 
 - **Cloudflare Pages/Workers**: Configure KV/D1/R2 bindings in `wrangler.toml`
+- **D1 Sessions API**: Use `withSession()` for read replica consistency
 - **Deployment**: Use `wrangler pages deploy` for Pages, `wrangler deploy` for Workers
 - **GrapesJS**: Use `canvas.styles` to inject compiled CSS for correct rendering
-- **D1 + Drizzle**: Use Drizzle ORM for type-safe database operations
 - **Vectorize**: Create indexes with proper dimensions for embedding models
+- **AI Gateway**: Use `env.AI.gateway()` for rate limiting and observability
 
 ---
 
@@ -259,14 +383,31 @@ await batch;
 
 ## Troubleshooting Guide
 
-| Issue                | Solution                                           |
-| -------------------- | -------------------------------------------------- |
-| D1 connection errors | Check `wrangler.toml` bindings, verify database ID |
-| KV not updating      | Clear cache, check TTL settings                    |
-| R2 upload fails      | Verify CORS, check bucket permissions              |
-| Worker timeout       | Optimize queries, use streaming responses          |
-| Build fails          | Clear `node_modules`, regenerate types             |
+| Issue                 | Solution                                           |
+| --------------------- | -------------------------------------------------- |
+| D1 connection errors  | Check `wrangler.toml` bindings, verify database ID |
+| D1 read inconsistency | Use Sessions API with `first-primary` bookmark     |
+| KV not updating       | Clear cache, check TTL settings                    |
+| R2 upload fails       | Verify CORS, check bucket permissions              |
+| Worker timeout        | Optimize queries, use streaming responses          |
+| Build fails           | Clear `node_modules`, regenerate types             |
+| AI Gateway errors     | Check rate limits, verify model availability       |
 
 ---
 
-> **Remember**: Every line of code runs on the edge. Write with performance, security, and global scale in mind. 🚀
+## 🚀 Shopify-Level Goals Checklist
+
+- [x] Multi-tenant architecture (store isolation)
+- [x] Edge-first deployment (global CDN)
+- [x] Visual page builder (GrapesJS)
+- [x] SSR with streaming (Remix + defer)
+- [x] Real-time inventory management
+- [ ] AI-powered product recommendations
+- [ ] Automated marketing campaigns
+- [ ] Multi-currency support
+- [ ] Advanced analytics dashboard
+- [ ] Marketplace integration
+
+---
+
+> **Remember**: We're building the **Shopify of Bangladesh**. Every line of code runs on the edge. Write with performance, security, and Shopify-level scale in mind. Our merchants deserve world-class technology. 🇧🇩🚀
