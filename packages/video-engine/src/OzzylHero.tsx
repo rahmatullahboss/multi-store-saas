@@ -102,7 +102,7 @@ const StatCard: React.FC<Stat> = ({ label, value }) => {
   const entrance = spring({
     frame,
     fps,
-    config: { tension: 120 },
+    config: { stiffness: 120 },
   });
 
   return (
