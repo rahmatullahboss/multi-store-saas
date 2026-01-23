@@ -38,7 +38,7 @@ const bdPhoneRegex = /^(\+880|880|0)?1[3-9]\d{8}$/;
 // Valid division values
 const validDivisions = BD_DIVISIONS.map(d => d.value);
 
-const OrderSchema = z.object({
+export const OrderSchema = z.object({
   store_id: z.number().int().positive('Store ID is required'),
   product_id: z.number().int().positive('Product ID is required'),
   // Combo discount settings (client input ignored; server authoritative)
@@ -69,9 +69,12 @@ const OrderSchema = z.object({
   }).optional(),
   bump_ids: z.array(z.number().int().positive()).optional(), // Order bump product IDs
   landing_page_id: z.number().int().optional(), // Campaign Page ID for attribution
+  // Attribution (UTM Parameters)
+  utm_source: z.string().max(100).optional(),
+  utm_medium: z.string().max(100).optional(),
+  utm_campaign: z.string().max(100).optional(),
 });
 
-type OrderInput = z.infer<typeof OrderSchema>;
 
 // ============================================================================
 // GENERATE ORDER NUMBER
@@ -114,6 +117,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
               body[key] = parsed;
             }
           }
+        } else if (['utm_source', 'utm_medium', 'utm_campaign'].includes(key)) {
+           body[key] = (value as string).trim();
         } else if (key === 'cart_items') {
           try {
             body[key] = JSON.parse(value as string);
@@ -137,7 +142,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // ========================================================================
     // If the hidden 'website' field is filled, it's likely a bot
     if (body.website && String(body.website).trim() !== '') {
-      console.log('[SPAM] Honeypot triggered from:', request.headers.get('CF-Connecting-IP') || 'unknown');
+      // console.log('[SPAM] Honeypot triggered from:', request.headers.get('CF-Connecting-IP') || 'unknown');
       return json(
         { success: false, error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে।' },
         { status: 400 }
@@ -262,7 +267,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
         
         if (duplicateCheck.length > 0) {
           const existingOrder = duplicateCheck[0];
-          console.log('[DUPLICATE] Potential duplicate order detected:', {
+          // Duplicate order detected, log to console.warn instead of console.log
+          console.warn('[DUPLICATE] Potential duplicate order detected:', {
             phone: input.phone,
             existingOrderId: existingOrder.id,
             existingOrderNumber: existingOrder.orderNumber
@@ -649,7 +655,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         orderNumber,
         status: 'pending',
         paymentStatus: 'pending',
-        paymentMethod: input.payment_method,
+        paymentMethod: input.payment_method as any,
         transactionId: input.transaction_id || null,
         manualPaymentDetails: input.manual_payment_details ? JSON.stringify(input.manual_payment_details) : null,
         customerName: input.customer_name,
@@ -676,6 +682,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }),
         notes: input.notes || null,
         landingPageId: input.landing_page_id || null, // ATTRIBUTION
+        utmSource: input.utm_source || null,
+        utmMedium: input.utm_medium || null,
+        utmCampaign: input.utm_campaign || null,
         createdAt: now,
         updatedAt: now,
       }).returning({ id: orders.id });
@@ -777,8 +786,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // ============================================================================
     // CUSTOMER CREATION/UPDATE (For Segmentation & Marketing)
     // ============================================================================
-    let finalCustomerId: number | undefined;
-
+    // let finalCustomerId: number | undefined;
+    
     context.cloudflare.ctx.waitUntil((async () => {
       try {
         // Check if customer exists (by phone or email)
@@ -798,7 +807,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         if (existingCustomer.length > 0) {
           // UPDATE existing customer stats
           const customer = existingCustomer[0];
-          finalCustomerId = customer.id;
+          // finalCustomerId = customer.id;
           const newTotalOrders = (customer.totalOrders || 0) + 1;
           const newTotalSpent = (customer.totalSpent || 0) + total;
 
@@ -841,8 +850,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
             lastOrderAt: now,
             segment: 'regular', // First order = regular
           }).returning({ id: customers.id });
-
-          finalCustomerId = newCustomer.id;
+          
+          // finalCustomerId = newCustomer.id;
 
           // Link customer to order
           await db.update(orders)

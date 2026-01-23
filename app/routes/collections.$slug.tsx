@@ -7,12 +7,12 @@
  */
 
 import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { useLoaderData, Link, useSearchParams } from '@remix-run/react';
+import { useLoaderData, useSearchParams } from '@remix-run/react';
 import { eq, and, desc, like, asc, gte, lte } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/d1';
-import { products, stores, type Store } from '@db/schema';
-import { parseThemeConfig, parseSocialLinks, type ThemeConfig } from '@db/types';
+import { products, stores, productCollections, type Store } from '@db/schema';
+import { parseThemeConfig, parseSocialLinks } from '@db/types';
 import { resolveStore } from '~/lib/store.server';
+import { createDb } from '~/lib/db.server';
 import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { DarazPageWrapper, DARAZ_THEME } from '~/components/store-layouts/DarazPageWrapper';
@@ -33,8 +33,9 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     throw new Response('Store not found', { status: 404 });
   }
   
-  const { storeId, store } = storeContext;
-  const db = drizzle(context.cloudflare.env.DB);
+  
+  const { storeId } = storeContext;
+  const db = createDb(context.cloudflare.env.DB);
   
   // Fetch store data for config
   const storeResult = await db
@@ -44,6 +45,10 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     .limit(1);
   
   const storeData = storeResult[0] as Store | undefined;
+  // Check if store exists
+  if (!storeData) {
+    throw new Response('Store not found', { status: 404 });
+  }
   const themeConfig = parseThemeConfig(storeData?.themeConfig as string | null);
   const socialLinks = parseSocialLinks(storeData?.socialLinks as string | null);
   const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
@@ -55,7 +60,9 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     if (storeData?.businessInfo) {
       businessInfo = JSON.parse(storeData.businessInfo as string);
     }
-  } catch {}
+  } catch {
+    // Ignore JSON parse errors
+  }
 
   // Load customer session for Google Sign-In header
   const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
@@ -86,23 +93,112 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
   if (slug === 'all') {
     collectionProducts = await db
-      .select()
+      .select({
+         id: products.id,
+         storeId: products.storeId,
+         title: products.title,
+         description: products.description,
+         price: products.price,
+         compareAtPrice: products.compareAtPrice,
+         inventory: products.inventory,
+         sku: products.sku,
+         imageUrl: products.imageUrl,
+         images: products.images,
+         category: products.category,
+         tags: products.tags,
+         isPublished: products.isPublished,
+         seoTitle: products.seoTitle,
+         seoDescription: products.seoDescription,
+         seoKeywords: products.seoKeywords,
+         bundlePricing: products.bundlePricing,
+         createdAt: products.createdAt,
+         updatedAt: products.updatedAt,
+      })
       .from(products)
       .where(and(...(baseFilters as any)))
       .limit(50)
       .orderBy(orderByClause);
   } else {
-    collectionProducts = await db
-      .select()
-      .from(products)
-      .where(
-        and(
-          ...(baseFilters as any),
-          like(products.category, slug)
-        )
-      )
-      .limit(50)
-      .orderBy(orderByClause);
+    // Phase 26: Hybrid Query - Support both Relational Collections AND Legacy String Categories
+    // 1. Try to find a relational collection first
+    const collectionData = await db.query.collections.findFirst({
+        where: (collections, { eq, and }) => and(eq(collections.slug, slug), eq(collections.storeId, storeId)),
+        columns: { id: true, title: true, description: true }
+    });
+
+    if (collectionData) {
+        // Relational Query
+        const relationalProducts = await db
+            .select({
+                id: products.id,
+                storeId: products.storeId,
+                title: products.title,
+                description: products.description,
+                price: products.price,
+                compareAtPrice: products.compareAtPrice,
+                inventory: products.inventory,
+                sku: products.sku,
+                imageUrl: products.imageUrl,
+                images: products.images,
+                category: products.category,
+                tags: products.tags,
+                isPublished: products.isPublished,
+                seoTitle: products.seoTitle,
+                seoDescription: products.seoDescription,
+                seoKeywords: products.seoKeywords,
+                bundlePricing: products.bundlePricing,
+                createdAt: products.createdAt,
+                updatedAt: products.updatedAt,
+            })
+            .from(products)
+            .innerJoin(productCollections, eq(products.id, productCollections.productId))
+            .where(
+                and(
+                    eq(productCollections.collectionId, collectionData.id),
+                    ...(baseFilters as any)
+                )
+            )
+            .limit(50)
+            .orderBy(orderByClause);
+            
+         collectionProducts = relationalProducts;
+         
+         // Override title/desc from DB if available
+         // This allows the admin title to override the slug-based fallback
+    } else {
+        // Fallback: Legacy String Match
+        collectionProducts = await db
+          .select({
+            id: products.id,
+            storeId: products.storeId,
+            title: products.title,
+            description: products.description,
+            price: products.price,
+            compareAtPrice: products.compareAtPrice,
+            inventory: products.inventory,
+            sku: products.sku,
+            imageUrl: products.imageUrl,
+            images: products.images,
+            category: products.category,
+            tags: products.tags,
+            isPublished: products.isPublished,
+            seoTitle: products.seoTitle,
+            seoDescription: products.seoDescription,
+            seoKeywords: products.seoKeywords,
+            bundlePricing: products.bundlePricing,
+            createdAt: products.createdAt,
+            updatedAt: products.updatedAt,
+          })
+          .from(products)
+          .where(
+            and(
+              ...(baseFilters as any),
+              like(products.category, slug)
+            )
+          )
+          .limit(50)
+          .orderBy(orderByClause);
+    }
   }
   
   // Mock collection object for header

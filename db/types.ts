@@ -71,6 +71,11 @@ export interface LandingConfig {
   headline: string;
   subheadline?: string;
   
+  // === Combo Discount Strategy ===
+  enableComboDiscount?: boolean;
+  comboDiscount2Products?: number; // % discount for 2 items
+  comboDiscount3Products?: number; // % discount for 3+ items
+
   // === Quick Builder v2 Fields ===
   intent?: LandingIntent;
   sectionVariants?: Record<string, string>; // { hero: 'product-focused', cta: 'with-trust' }
@@ -337,8 +342,6 @@ export interface ThemeConfig {
   accentColor: string;
   customAccentColor?: string; // Override preset accent color
   headerMenu?: Array<{ label: string; url: string; children?: Array<{ label: string; url: string; children?: Array<{ label: string; url: string }> }> }>;
-  footerColumns?: Array<{ title: string; links: Array<{ label: string; url: string }> }>;
-  footerDescription?: string;
   // Extended Colors (Phase 1)
   backgroundColor?: string; // Page background
   textColor?: string;       // Main text color

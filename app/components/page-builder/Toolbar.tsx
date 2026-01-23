@@ -16,16 +16,13 @@ import {
   Check,
   Lock,
   Layout,
-  Copy,
   ExternalLink,
   Link2,
-  PanelRightOpen
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from '~/contexts/LanguageContext';
 import CodeEditor from './CodeEditor';
-import ButtonConnectorModal, { type ButtonConnection } from './ButtonConnectorModal';
-import { generateHandlerScript } from './ButtonActionHandler';
+import ButtonConnectorModal from './ButtonConnectorModal';
 
 export default function EditorToolbar({ 
   isAiLocked = false,
@@ -44,7 +41,7 @@ export default function EditorToolbar({
   pageId?: string,
   editor?: any
 }) {
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   const [codeContent, setCodeContent] = useState('');
   const [isConnectorModalOpen, setIsConnectorModalOpen] = useState(false);
@@ -289,7 +286,7 @@ export default function EditorToolbar({
             if (pad !== 0) {
                 pad -= 1;
             }
-        } else if (node.match(/^<\w[^>]*[^\/]>.*$/)) {
+        } else if (node.match(/^<\w[^>]*[^/]>.*$/)) {
             indent = 1;
         } else {
             indent = 0;
@@ -585,7 +582,6 @@ export default function EditorToolbar({
             connections.forEach(conn => {
               // Find components matching the selector pattern
               const allComponents = wrapper.findType('*');
-              let matched = false;
               
               const components = allComponents.filter((comp: any) => {
                 const tagName = (comp.get('tagName') || '').toLowerCase();
@@ -595,7 +591,6 @@ export default function EditorToolbar({
                 
                 // Match by ID
                 if (conn.selector.startsWith('#') && id === conn.selector.slice(1)) {
-                  matched = true;
                   return true;
                 }
                 
@@ -609,7 +604,6 @@ export default function EditorToolbar({
                   const hasClasses = selectorClasses.every(c => classes.includes(c));
                   
                   if (hasTag && hasClasses) {
-                    matched = true;
                     return true;
                   }
                 }
@@ -620,7 +614,6 @@ export default function EditorToolbar({
                   if (tagName === selectorTag) {
                     // For nth-of-type, we need to check all and match first one
                     // This is a simplified match
-                    matched = true;
                     return true;
                   }
                 }
@@ -628,7 +621,7 @@ export default function EditorToolbar({
                 // Text-based fallback for buttons
                 // If the button text matches patterns, connect it
                 if (text && text.length < 50) {
-                  const lowerSelector = conn.selector.toLowerCase();
+                  // const lowerSelector = conn.selector.toLowerCase(); // Unused
                   if (text.includes('অর্ডার') && conn.actionType === 'order') return true;
                   if (text.includes('order') && conn.actionType === 'order') return true;
                   if (text.includes('whatsapp') && conn.actionType === 'whatsapp') return true;
@@ -640,7 +633,7 @@ export default function EditorToolbar({
                 return false;
               });
               
-              console.log(`[ButtonConnector] Selector: ${conn.selector}, Matched: ${components.length}`);
+              // console.log(`[ButtonConnector] Selector: ${conn.selector}, Matched: ${components.length}`);
               
               // Apply attributes to matched components
               components.forEach((comp: any) => {
@@ -650,7 +643,7 @@ export default function EditorToolbar({
                   ...(conn.phoneNumber && { 'data-ozzyl-phone': conn.phoneNumber }),
                   ...(conn.messageTemplate && { 'data-ozzyl-message': conn.messageTemplate })
                 });
-                console.log(`[ButtonConnector] Applied ${conn.actionType} to component`);
+                // console.log(`[ButtonConnector] Applied ${conn.actionType} to component`);
               });
             });
             
@@ -659,7 +652,7 @@ export default function EditorToolbar({
             
             // CRITICAL: Explicitly trigger storage to persist changes
             editor.store().then(() => {
-              console.log('[ButtonConnector] Changes stored successfully');
+              // console.log('[ButtonConnector] Changes stored successfully');
             }).catch((err: any) => {
               console.error('[ButtonConnector] Failed to store changes:', err);
             });

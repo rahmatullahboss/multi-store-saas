@@ -276,6 +276,7 @@ export const orders = sqliteTable('orders', {
   tax: real('tax').default(0),
   shipping: real('shipping').default(0),
   total: real('total').notNull(),
+  pricingJson: text('pricing_json'), // Detailed breakdown: { subtotal, tax, shipping, discounts, ... }
   notes: text('notes'),
   // Marketing Automation (Phase 11)
   reviewRequestSent: integer('review_request_sent', { mode: 'boolean' }).default(false),
