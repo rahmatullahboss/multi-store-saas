@@ -69,8 +69,19 @@ export function validateSectionWithBlocks(section: SectionWithBlocks): Validatio
 
     // Validate each block
     for (const block of section.blocks) {
+      // If section doesn't support blocks, any block is invalid
+      if (allowedBlocks.length === 0) {
+        errors.push({
+          path: `sections.${section.id}.blocks.${block.id}`,
+          message: `Section "${section.type}" does not support blocks`,
+          sectionId: section.id,
+          blockId: block.id,
+        });
+        continue;
+      }
+
       // Check if block type is allowed in this section
-      if (allowedBlocks.length > 0 && !allowedBlocks.includes(block.type)) {
+      if (!allowedBlocks.includes(block.type)) {
         errors.push({
           path: `sections.${section.id}.blocks.${block.id}`,
           message: `Block type "${block.type}" is not allowed in section "${section.type}"`,

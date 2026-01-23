@@ -3,14 +3,48 @@
  * Facebook/social media style with reviews, reactions, and social proof
  */
 
-import { useState } from 'react';
 import { ThumbsUp, MessageCircle, Share2, Star, Users, Heart, CheckCircle } from 'lucide-react';
 import type { OrderFormComponentProps } from './types';
 import { useOrderForm } from './useOrderForm';
 import { OrderFormFields } from './OrderFormFields';
+import { MultiProductSelector, useMultiProductSelection } from './MultiProductSelector';
 
-export function SocialProofOrderForm({ props, theme, storeId, productId, product }: OrderFormComponentProps) {
-  const { fetcher, state, actions, calculations, props: typedProps } = useOrderForm(props, product);
+export function SocialProofOrderForm({ props, theme, storeId, productId, product, selectedProducts = [], realData }: OrderFormComponentProps) {
+  // Multi-product support with configurable combo discount
+  const {
+    enableComboDiscount = true,
+    comboDiscount2Products = 10,
+    comboDiscount3Products = 15,
+  } = props as Record<string, unknown>;
+  
+  const multiProduct = useMultiProductSelection(selectedProducts, {
+    enableComboDiscount: enableComboDiscount as boolean,
+    comboDiscount2Products: comboDiscount2Products as number,
+    comboDiscount3Products: comboDiscount3Products as number,
+  });
+  const { isMultiProduct, primaryProduct, finalTotal, selectedIds } = multiProduct;
+  
+  // Create effective product for useOrderForm
+  // NOTE: Don't pass variants here - useOrderForm will use product.variants from DB/settings
+  const effectiveProduct = isMultiProduct && primaryProduct ? {
+    id: primaryProduct.id,
+    title: multiProduct.selectedProductsData.length > 1 
+      ? `${multiProduct.selectedProductsData.length}টি প্রোডাক্ট` 
+      : primaryProduct.title,
+    price: finalTotal,
+    compareAtPrice: multiProduct.selectedProductsData.reduce((sum, p) => sum + (p.compareAtPrice || p.price), 0),
+    images: primaryProduct.imageUrl ? [primaryProduct.imageUrl] : [],
+  } : product;
+  
+  const { fetcher, state, actions, calculations, props: typedProps } = useOrderForm(props, effectiveProduct);
+
+  const cartItems = isMultiProduct
+    ? multiProduct.selectedProductsData.map((p) => ({ productId: p.id, quantity: state.quantity }))
+    : undefined;
+
+  const comboSummary = multiProduct.comboSavings > 0
+    ? { savings: multiProduct.comboSavings, rate: Math.round(multiProduct.comboDiscount.rate * 100), discountedSubtotal: multiProduct.comboTotal }
+    : undefined;
   
   const {
     headline = 'হাজারো গ্রাহকের পছন্দ',
@@ -25,9 +59,9 @@ export function SocialProofOrderForm({ props, theme, storeId, productId, product
   const primaryColor = '#1877F2';
   const accentColor = '#42B72A';
   
-  // Fake social stats
-  const [likes] = useState(() => Math.floor(Math.random() * 2000) + 3000);
-  const [shares] = useState(() => Math.floor(Math.random() * 500) + 200);
+  // Real social stats (no fake numbers)
+  const likes = realData?.recentOrderCount ?? null;
+  const shares = realData?.recentOrderCount ?? null;
   
   // Fake reviews
   const reviews = [
@@ -109,20 +143,28 @@ export function SocialProofOrderForm({ props, theme, storeId, productId, product
           )}
           
           {/* Reactions bar */}
-          <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200">
-            <div className="flex items-center gap-1">
-              <div className="flex -space-x-1">
-                <span className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-[10px]">👍</span>
-                <span className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-[10px]">❤️</span>
-                <span className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center text-[10px]">😍</span>
+          {(likes !== null || shares !== null) && (
+            <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200">
+              <div className="flex items-center gap-1">
+                <div className="flex -space-x-1">
+                  <span className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-[10px]">👍</span>
+                  <span className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-[10px]">❤️</span>
+                  <span className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center text-[10px]">😍</span>
+                </div>
+                {likes !== null && (
+                  <span className="text-sm text-gray-500 ml-1">{likes.toLocaleString()}</span>
+                )}
               </div>
-              <span className="text-sm text-gray-500 ml-1">{likes.toLocaleString()}</span>
+              <div className="flex items-center gap-3 text-sm text-gray-500">
+                {realData?.recentOrderCount ? (
+                  <span>{realData.recentOrderCount} কমেন্ট</span>
+                ) : null}
+                {shares !== null && (
+                  <span>{shares} শেয়ার</span>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-3 text-sm text-gray-500">
-              <span>৪৫২ কমেন্ট</span>
-              <span>{shares} শেয়ার</span>
-            </div>
-          </div>
+          )}
           
           {/* Action buttons */}
           <div className="flex items-center justify-around py-1 border-b border-gray-200">
@@ -190,15 +232,25 @@ export function SocialProofOrderForm({ props, theme, storeId, productId, product
           >
             <Users size={18} className="text-white" />
             <span className="text-white font-medium text-sm">
-              আজ {Math.floor(Math.random() * 50) + 30} জন অর্ডার করেছে
+              {realData?.recentOrderCount ? `আজ ${realData.recentOrderCount} জন অর্ডার করেছে` : ''}
             </span>
           </div>
           
           <div className="grid md:grid-cols-2">
             {/* Left - Variants & Quantity */}
             <div className="p-6 border-b md:border-b-0 md:border-r border-gray-200">
+              {/* Multi-Product Selector */}
+              <MultiProductSelector
+                selectedProducts={selectedProducts}
+                primaryColor={primaryColor}
+                textColor="#111827"
+                mutedColor="#6B7280"
+                inputBg="#F9FAFB"
+                inputBorder="#E5E7EB"
+              />
+              
               {/* Product title */}
-              {actualProductTitle && (
+              {!isMultiProduct && actualProductTitle && (
                 <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   {actualProductTitle}
                   <CheckCircle size={20} className="text-blue-500" />
@@ -307,7 +359,9 @@ export function SocialProofOrderForm({ props, theme, storeId, productId, product
                 props={typedProps}
                 fetcher={fetcher}
                 storeId={storeId}
-                productId={productId}
+                productId={isMultiProduct ? selectedIds[0] : productId}
+                cartItems={cartItems}
+                comboSummary={comboSummary}
                 inputBg="#FFFFFF"
                 inputBorder="#DADDE1"
                 inputText="#1C1E21"

@@ -7,9 +7,46 @@ import { Sparkles } from 'lucide-react';
 import type { OrderFormComponentProps } from './types';
 import { useOrderForm } from './useOrderForm';
 import { OrderFormFields } from './OrderFormFields';
+import { MultiProductSelector, useMultiProductSelection } from './MultiProductSelector';
 
-export function GlassmorphismOrderForm({ props, theme, storeId, productId, product }: OrderFormComponentProps) {
-  const { fetcher, state, actions, calculations, props: typedProps } = useOrderForm(props, product);
+export function GlassmorphismOrderForm({ props, theme, storeId, productId, product, selectedProducts = [], realData }: OrderFormComponentProps) {
+  // Multi-product support with configurable combo discount
+  const {
+    enableComboDiscount = true,
+    comboDiscount2Products = 10,
+    comboDiscount3Products = 15,
+  } = props as Record<string, unknown>;
+  
+  const multiProduct = useMultiProductSelection(selectedProducts, {
+    enableComboDiscount: enableComboDiscount as boolean,
+    comboDiscount2Products: comboDiscount2Products as number,
+    comboDiscount3Products: comboDiscount3Products as number,
+  });
+  const { isMultiProduct, primaryProduct, finalTotal, selectedIds, comboDiscount, comboSavings, comboTotal, selectedProductsData } = multiProduct;
+  
+  // Create effective product for useOrderForm
+  // NOTE: Don't pass variants here - useOrderForm will use product.variants from DB/settings
+  // This ensures variant pricing (1 pis, 2 pis, 3 pis) syncs with settings page
+  const effectiveProduct = isMultiProduct && primaryProduct ? {
+    id: primaryProduct.id,
+    title: multiProduct.selectedProductsData.length > 1 
+      ? `${multiProduct.selectedProductsData.length}টি প্রোডাক্ট` 
+      : primaryProduct.title,
+    price: finalTotal,
+    compareAtPrice: multiProduct.selectedProductsData.reduce((sum, p) => sum + (p.compareAtPrice || p.price), 0),
+    images: primaryProduct.imageUrl ? [primaryProduct.imageUrl] : [],
+    // variants intentionally not set - will use default from settings
+  } : product;
+  
+  const { fetcher, state, actions, calculations, props: typedProps } = useOrderForm(props, effectiveProduct);
+
+  const cartItems = isMultiProduct
+    ? selectedProductsData.map((p) => ({ productId: p.id, quantity: state.quantity }))
+    : undefined;
+
+  const comboSummary = comboSavings > 0
+    ? { savings: comboSavings, rate: Math.round(comboDiscount.rate * 100), discountedSubtotal: comboTotal }
+    : undefined;
   
   const {
     headline = 'এখনই অর্ডার করুন',
@@ -97,8 +134,18 @@ export function GlassmorphismOrderForm({ props, theme, storeId, productId, produ
               className="p-8 md:p-10 border-b md:border-b-0 md:border-r"
               style={{ borderColor: 'rgba(255,255,255,0.1)' }}
             >
+              {/* Multi-Product Selector */}
+              <MultiProductSelector
+                selectedProducts={selectedProducts}
+                primaryColor={primaryColor}
+                textColor="#FFFFFF"
+                mutedColor="rgba(255,255,255,0.6)"
+                inputBg="rgba(255,255,255,0.05)"
+                inputBorder="rgba(255,255,255,0.1)"
+              />
+              
               {/* Product Card */}
-              {(actualProductImage || actualProductTitle) && (
+              {!isMultiProduct && (actualProductImage || actualProductTitle) && (
                 <div 
                   className="mb-8 p-6 rounded-2xl text-center"
                   style={{
@@ -241,7 +288,9 @@ export function GlassmorphismOrderForm({ props, theme, storeId, productId, produ
                 props={typedProps}
                 fetcher={fetcher}
                 storeId={storeId}
-                productId={productId}
+                productId={isMultiProduct ? selectedIds[0] : productId}
+                cartItems={cartItems}
+                comboSummary={comboSummary}
                 inputBg="rgba(255,255,255,0.05)"
                 inputBorder="rgba(255,255,255,0.15)"
                 inputText="#FFFFFF"

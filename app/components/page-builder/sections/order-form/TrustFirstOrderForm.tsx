@@ -7,9 +7,44 @@ import { Shield, CheckCircle2, Award, BadgeCheck, Truck, Clock } from 'lucide-re
 import type { OrderFormComponentProps } from './types';
 import { useOrderForm } from './useOrderForm';
 import { OrderFormFields } from './OrderFormFields';
+import { MultiProductSelector, useMultiProductSelection } from './MultiProductSelector';
 
-export function TrustFirstOrderForm({ props, theme, storeId, productId, product }: OrderFormComponentProps) {
-  const { fetcher, state, actions, calculations, props: typedProps } = useOrderForm(props, product);
+export function TrustFirstOrderForm({ props, theme, storeId, productId, product, selectedProducts = [], realData }: OrderFormComponentProps) {
+  // Multi-product support with configurable combo discount
+  const {
+    enableComboDiscount = true,
+    comboDiscount2Products = 10,
+    comboDiscount3Products = 15,
+  } = props as Record<string, unknown>;
+  
+  const multiProduct = useMultiProductSelection(selectedProducts, {
+    enableComboDiscount: enableComboDiscount as boolean,
+    comboDiscount2Products: comboDiscount2Products as number,
+    comboDiscount3Products: comboDiscount3Products as number,
+  });
+  const { isMultiProduct, primaryProduct, finalTotal, selectedIds } = multiProduct;
+  
+  // Create effective product for useOrderForm
+  // NOTE: Don't pass variants here - useOrderForm will use product.variants from DB/settings
+  const effectiveProduct = isMultiProduct && primaryProduct ? {
+    id: primaryProduct.id,
+    title: multiProduct.selectedProductsData.length > 1 
+      ? `${multiProduct.selectedProductsData.length}টি প্রোডাক্ট` 
+      : primaryProduct.title,
+    price: finalTotal,
+    compareAtPrice: multiProduct.selectedProductsData.reduce((sum, p) => sum + (p.compareAtPrice || p.price), 0),
+    images: primaryProduct.imageUrl ? [primaryProduct.imageUrl] : [],
+  } : product;
+  
+  const { fetcher, state, actions, calculations, props: typedProps } = useOrderForm(props, effectiveProduct);
+
+  const cartItems = isMultiProduct
+    ? multiProduct.selectedProductsData.map((p) => ({ productId: p.id, quantity: state.quantity }))
+    : undefined;
+
+  const comboSummary = multiProduct.comboSavings > 0
+    ? { savings: multiProduct.comboSavings, rate: Math.round(multiProduct.comboDiscount.rate * 100), discountedSubtotal: multiProduct.comboTotal }
+    : undefined;
   
   const {
     headline = 'নিরাপদে অর্ডার করুন',
@@ -92,8 +127,18 @@ export function TrustFirstOrderForm({ props, theme, storeId, productId, product 
           <div className="grid md:grid-cols-2">
             {/* Left - Product */}
             <div className="p-8 border-b md:border-b-0 md:border-r border-gray-100">
+              {/* Multi-Product Selector */}
+              <MultiProductSelector
+                selectedProducts={selectedProducts}
+                primaryColor={primaryColor}
+                textColor="#064E3B"
+                mutedColor="#065F46"
+                inputBg="#ECFDF5"
+                inputBorder="#A7F3D0"
+              />
+              
               {/* Product Card with verification */}
-              {(actualProductImage || actualProductTitle) && (
+              {!isMultiProduct && (actualProductImage || actualProductTitle) && (
                 <div className="mb-8 text-center">
                   <div className="relative inline-block">
                     {actualProductImage && (
@@ -234,7 +279,9 @@ export function TrustFirstOrderForm({ props, theme, storeId, productId, product 
                 props={typedProps}
                 fetcher={fetcher}
                 storeId={storeId}
-                productId={productId}
+                productId={isMultiProduct ? selectedIds[0] : productId}
+                cartItems={cartItems}
+                comboSummary={comboSummary}
                 inputBg="#FFFFFF"
                 inputBorder="#E5E7EB"
                 inputText="#111827"

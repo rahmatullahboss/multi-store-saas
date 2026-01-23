@@ -7,68 +7,39 @@ import { useState } from 'react';
 import type { OrderFormComponentProps } from './types';
 import { useOrderForm } from './useOrderForm';
 import { OrderFormFields } from './OrderFormFields';
+import { useMultiProductSelection } from './MultiProductSelector';
 
 export function DefaultOrderForm({ props, theme, storeId, productId, product, selectedProducts = [], realData }: OrderFormComponentProps) {
-  // Is this a multi-product page?
-  const isMultiProduct = selectedProducts.length > 1;
-  
-  // State for multi-product selection (can select multiple products)
-  const [selectedIds, setSelectedIds] = useState<number[]>(
-    selectedProducts.length > 0 ? [selectedProducts[0].id] : (productId ? [productId] : [])
-  );
-  
-  // Toggle product selection
-  const toggleProductSelection = (id: number) => {
-    setSelectedIds(prev => {
-      if (prev.includes(id)) {
-        // Don't allow deselecting if only one selected
-        if (prev.length === 1) return prev;
-        return prev.filter(pid => pid !== id);
-      } else {
-        return [...prev, id];
-      }
-    });
-  };
-  
-  // Get selected products data
-  const selectedProductsData = selectedProducts.filter(p => selectedIds.includes(p.id));
-  
-  // Calculate regular total (without combo discount)
-  const regularTotal = selectedProductsData.reduce((sum, p) => sum + p.price, 0);
-  
-  // Combo discount rates based on number of products selected
-  const getComboDiscount = (count: number): { rate: number; label: string } => {
-    if (count >= 3) return { rate: 0.15, label: '১৫% কম্বো ছাড়' }; // 15% off for 3+
-    if (count === 2) return { rate: 0.10, label: '১০% কম্বো ছাড়' }; // 10% off for 2
-    return { rate: 0, label: '' }; // No discount for 1
-  };
-  
-  const comboDiscount = getComboDiscount(selectedIds.length);
-  const comboSavings = Math.round(regularTotal * comboDiscount.rate);
-  const comboTotal = regularTotal - comboSavings;
-  
-  // Use combo total for multi-product, regular for single
-  const multiProductTotal = isMultiProduct && selectedIds.length > 1 ? comboTotal : regularTotal;
-  
-  // For form submission - use first selected product as primary
-  const primaryProduct = selectedProductsData[0] || null;
-  
-  // Generate dynamic variants based on selected product price
+  const typedProps = props as Record<string, unknown>;
+  const enableComboDiscount = (typedProps.enableComboDiscount as boolean) ?? true;
+  const comboDiscount2Products = (typedProps.comboDiscount2Products as number) ?? 10;
+  const comboDiscount3Products = (typedProps.comboDiscount3Products as number) ?? 15;
+
+  const multiProduct = useMultiProductSelection(selectedProducts, {
+    enableComboDiscount,
+    comboDiscount2Products,
+    comboDiscount3Products,
+  });
+  const {
+    selectedIds,
+    isMultiProduct,
+    toggleProductSelection,
+    selectedProductsData,
+    regularTotal,
+    comboDiscount,
+    comboSavings,
+    comboTotal,
+    finalTotal: multiProductTotal,
+    primaryProduct,
+  } = multiProduct;
+
   // For multi-product: use combo total
   // For single product: use that product's price
   const basePrice = isMultiProduct ? multiProductTotal : (primaryProduct?.price || product?.price || 1490);
   
-  // Calculate dynamic variant prices with quantity discounts
-  const quantityDiscount2 = Math.round(basePrice * 2 * 0.07); // 7% discount for 2 pcs
-  const quantityDiscount3 = Math.round(basePrice * 3 * 0.12); // 12% discount for 3 pcs
-  
-  const dynamicVariants = [
-    { id: 1, name: '১ পিস', price: basePrice },
-    { id: 2, name: `২ পিস (সেভ ৳${quantityDiscount2})`, price: Math.round(basePrice * 2 - quantityDiscount2) },
-    { id: 3, name: `৩ পিস (সেভ ৳${quantityDiscount3})`, price: Math.round(basePrice * 3 - quantityDiscount3) },
-  ];
-  
   // Create a product object compatible with useOrderForm
+  // NOTE: Don't pass variants here - useOrderForm will use product.variants from DB/settings
+  // This ensures variant pricing (1 pis, 2 pis, 3 pis) syncs with settings page
   const effectiveProduct = primaryProduct ? {
     id: primaryProduct.id,
     title: selectedProductsData.length > 1 
@@ -77,10 +48,18 @@ export function DefaultOrderForm({ props, theme, storeId, productId, product, se
     price: basePrice,
     compareAtPrice: selectedProductsData.reduce((sum, p) => sum + (p.compareAtPrice || p.price), 0),
     images: primaryProduct.imageUrl ? [primaryProduct.imageUrl] : [],
-    variants: dynamicVariants, // Pass dynamic variants
+    // variants intentionally not set - will use default from settings
   } : product;
   
-  const { fetcher, state, actions, calculations, props: typedProps } = useOrderForm(props, effectiveProduct);
+  const { fetcher, state, actions, calculations, props: orderProps } = useOrderForm(props, effectiveProduct);
+
+  const cartItems = isMultiProduct
+    ? selectedProductsData.map((p) => ({ productId: p.id, quantity: state.quantity }))
+    : undefined;
+
+  const comboSummary = comboSavings > 0
+    ? { savings: comboSavings, rate: Math.round(comboDiscount.rate * 100), discountedSubtotal: comboTotal }
+    : undefined;
   
   const {
     headline = 'এখনই অর্ডার করুন',
@@ -103,7 +82,11 @@ export function DefaultOrderForm({ props, theme, storeId, productId, product, se
     showDeliveryEstimate = true,
     deliveryEstimateDhaka = '১-২ দিন',
     deliveryEstimateOutside = '৩-৫ দিন',
-  } = typedProps;
+    // Combo Discount Settings (editable from editor)
+    enableComboDiscount = true,
+    comboDiscount2Products = 10,
+    comboDiscount3Products = 15,
+  } = orderProps;
   
   const { actualVariants, actualProductImage, actualProductTitle, actualPrice, actualComparePrice, formatPrice } = calculations;
   
@@ -335,9 +318,9 @@ export function DefaultOrderForm({ props, theme, storeId, productId, product, se
                         )}
                         
                         {/* Upsell message for 2 products */}
-                        {selectedIds.length === 2 && selectedProducts.length > 2 && (
+                        {selectedIds.length === 2 && selectedProducts.length > 2 && enableComboDiscount && (
                           <p className="text-xs mt-2" style={{ color: mutedColor }}>
-                            💡 ৩টি নিলে আরও ৫% বেশি ছাড়!
+                            💡 ৩টি নিলে আরও {Math.max(0, comboDiscount3Products - comboDiscount2Products)}% বেশি ছাড়!
                           </p>
                         )}
                       </div>
@@ -553,10 +536,12 @@ export function DefaultOrderForm({ props, theme, storeId, productId, product, se
                 state={state}
                 actions={actions}
                 calculations={calculations}
-                props={typedProps}
+                props={orderProps}
                 fetcher={fetcher}
                 storeId={storeId}
                 productId={isMultiProduct ? selectedIds[0] : productId}
+                cartItems={cartItems}
+                comboSummary={comboSummary}
                 inputBg={inputBg}
                 inputBorder={inputBorder}
                 inputText={inputText}

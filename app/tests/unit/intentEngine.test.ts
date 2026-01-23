@@ -98,8 +98,8 @@ describe('Intent Engine', () => {
 
       const sections = generateOptimalSections(intent);
 
-      // Multiple products = showcase section
-      expect(sections).toContain('showcase');
+      // Multiple products = product-grid section (not showcase)
+      expect(sections).toContain('product-grid');
     });
   });
 

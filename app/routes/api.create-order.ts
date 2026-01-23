@@ -41,6 +41,10 @@ const validDivisions = BD_DIVISIONS.map(d => d.value);
 const OrderSchema = z.object({
   store_id: z.number().int().positive('Store ID is required'),
   product_id: z.number().int().positive('Product ID is required'),
+  // Combo discount settings (client input ignored; server authoritative)
+  combo_discount_enabled: z.string().optional(),
+  combo_discount_2: z.preprocess((v) => Number(v), z.number().min(0).max(100)).optional(),
+  combo_discount_3: z.preprocess((v) => Number(v), z.number().min(0).max(100)).optional(),
   customer_name: z.string().min(2, 'নাম কমপক্ষে ২ অক্ষর হতে হবে').max(100),
   phone: z.string()
     .min(10, 'মোবাইল নম্বর কমপক্ষে ১০ সংখ্যা হতে হবে')
@@ -109,6 +113,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
             if (!isNaN(parsed)) {
               body[key] = parsed;
             }
+          }
+        } else if (key === 'cart_items') {
+          try {
+            body[key] = JSON.parse(value as string);
+          } catch {
+            body[key] = [];
           }
         } else if (key === 'bump_ids') {
           try {
@@ -195,22 +205,33 @@ export async function action({ request, context }: ActionFunctionArgs) {
                      request.headers.get('X-Forwarded-For')?.split(',')[0] || 
                      'unknown';
     
-    // Check rate limit in KV (if available) or use in-memory for dev
-    const rateLimitKey = `order_rate:${clientIP}`;
     const RATE_LIMIT_MAX = 5; // Max orders per window
-    const RATE_LIMIT_WINDOW = 10 * 60 * 1000; // 10 minutes in ms
+    const RATE_LIMIT_WINDOW_MINUTES = 10;
     
-    // Use D1 for rate limiting (simple approach - can use KV for production)
+    // Use D1 for rate limiting (per-phone or per-IP per-store)
     try {
-      const recentOrdersFromIP = await db.select({ id: orders.id })
+      const phoneOrIp = (body.phone && String(body.phone).trim()) || clientIP;
+      const recentOrderCountResult = await db.select({ count: sql<number>`count(*)` })
         .from(orders)
         .where(
-          sql`${orders.createdAt} > datetime('now', '-10 minutes')`
-        )
-        .limit(RATE_LIMIT_MAX + 1);
-      
-      // Note: This is a simplified check. For production, filter by IP stored in orders
-      // or use Cloudflare Rate Limiting / KV
+          and(
+            eq(orders.storeId, input.store_id),
+            sql`${orders.createdAt} > datetime('now', ${`-${RATE_LIMIT_WINDOW_MINUTES} minutes`})`,
+            // Match by phone when available, otherwise by stored clientIP
+            sql`(
+              ${orders.customerPhone} = ${phoneOrIp} OR 
+              json_extract(${orders.pricingJson}, '$.clientIP') = ${phoneOrIp}
+            )`
+          )
+        );
+
+      const recentOrderCount = recentOrderCountResult[0]?.count ?? 0;
+      if (recentOrderCount >= RATE_LIMIT_MAX) {
+        return json(
+          { success: false, error: 'অতিরিক্ত অর্ডার অনুরোধ। কিছুক্ষণ পর আবার চেষ্টা করুন।' },
+          { status: 429 }
+        );
+      }
     } catch (e) {
       // Don't block on rate limit check failure
       console.error('[Rate Limit] Check failed:', e);
@@ -504,19 +525,59 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // COMBO/BUNDLE DISCOUNT - Apply discount for multiple unique products
     // ============================================================================
     // Count unique products in order
-    const uniqueProductIds = new Set(orderItems.map(item => item.productId));
+    const uniqueProductIds = new Set(orderItemsData.map(item => item.productId));
     const uniqueProductCount = uniqueProductIds.size;
     
-    // Combo discount rates:
-    // - 2 unique products: 10% off
-    // - 3+ unique products: 15% off
+    // Combo discount rates (server-authoritative)
     let comboDiscountRate = 0;
     let comboDiscountAmount = 0;
+
+    // Defaults
+    let comboDiscountEnabled = true;
+    let comboDiscount2 = 10;
+    let comboDiscount3 = 15;
+
+    // 1) Landing page override (if landing_page_id)
+    if (input.landing_page_id) {
+      const landingConfigRow = await db
+        .select({ landingConfig: savedLandingConfigs.landingConfig })
+        .from(savedLandingConfigs)
+        .where(and(
+          eq(savedLandingConfigs.id, input.landing_page_id),
+          eq(savedLandingConfigs.storeId, input.store_id)
+        ))
+        .limit(1);
+
+      if (landingConfigRow.length > 0) {
+        const landingConfig = parseLandingConfig(landingConfigRow[0].landingConfig);
+        if (landingConfig) {
+          comboDiscountEnabled = landingConfig.enableComboDiscount !== false;
+          comboDiscount2 = landingConfig.comboDiscount2Products ?? comboDiscount2;
+          comboDiscount3 = landingConfig.comboDiscount3Products ?? comboDiscount3;
+        }
+      }
+    }
+
+    // 2) Store default fallback (if landing override not set)
+    if (comboDiscount2 === 10 && comboDiscount3 === 15) {
+      const storeLandingConfig = parseLandingConfig(storeData.landingConfig as string | null);
+      if (storeLandingConfig) {
+        comboDiscountEnabled = storeLandingConfig.enableComboDiscount !== false;
+        comboDiscount2 = storeLandingConfig.comboDiscount2Products ?? comboDiscount2;
+        comboDiscount3 = storeLandingConfig.comboDiscount3Products ?? comboDiscount3;
+      }
+    }
+
+    // Cap to safe max (50%) to prevent abuse
+    comboDiscount2 = Math.min(Math.max(comboDiscount2, 0), 50);
+    comboDiscount3 = Math.min(Math.max(comboDiscount3, 0), 50);
     
-    if (uniqueProductCount >= 3) {
-      comboDiscountRate = 0.15; // 15%
-    } else if (uniqueProductCount === 2) {
-      comboDiscountRate = 0.10; // 10%
+    if (comboDiscountEnabled) {
+      if (uniqueProductCount >= 3) {
+        comboDiscountRate = comboDiscount3 / 100;
+      } else if (uniqueProductCount === 2) {
+        comboDiscountRate = comboDiscount2 / 100;
+      }
     }
     
     if (comboDiscountRate > 0) {
@@ -611,6 +672,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           tax,
           total,
           isFreeShipping: shippingResult.isFree || false,
+          clientIP,
         }),
         notes: input.notes || null,
         landingPageId: input.landing_page_id || null, // ATTRIBUTION

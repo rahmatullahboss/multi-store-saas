@@ -1,10 +1,11 @@
 /**
  * Intent Wizard Component for Quick Builder v2
  * 
- * 3-step wizard for creating landing pages:
+ * 4-step wizard for creating landing pages:
  * Step 1: Select intent (product type, goal, traffic source)
  * Step 2: Connect product (select existing or create new)
- * Step 3: Preview & confirm template
+ * Step 3: Style preferences (colors, fonts, button styles)
+ * Step 4: Preview & confirm template
  */
 
 import { useState } from 'react';
@@ -28,39 +29,47 @@ import { cn } from '~/utils/cn';
 import type { Intent, QuickProduct, StyleTokens } from '~/utils/landing-builder/intentEngine';
 import { getTemplateSuggestions, DEFAULT_STYLE_TOKENS } from '~/utils/landing-builder/intentEngine';
 
-// Step indicator component
+// Step indicator component with accessibility
 function StepIndicator({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
+  const stepLabels = ['ইন্টেন্ট', 'প্রোডাক্ট', 'স্টাইল', 'টেমপ্লেট'];
+  
   return (
-    <div className="flex items-center justify-center gap-2 mb-8">
-      {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
-        <div key={step} className="flex items-center">
-          <div
-            className={cn(
-              'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all',
-              step === currentStep
-                ? 'bg-emerald-500 text-white scale-110'
-                : step < currentStep
-                ? 'bg-emerald-100 text-emerald-600'
-                : 'bg-gray-100 text-gray-400'
-            )}
-          >
-            {step < currentStep ? <Check className="w-4 h-4" /> : step}
-          </div>
-          {step < totalSteps && (
+    <nav aria-label="Wizard progress" className="flex items-center justify-center gap-2 mb-8">
+      <ol className="flex items-center gap-2" role="list">
+        {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
+          <li key={step} className="flex items-center">
             <div
+              role="listitem"
+              aria-current={step === currentStep ? 'step' : undefined}
+              aria-label={`ধাপ ${step}: ${stepLabels[step - 1]} ${step < currentStep ? '(সম্পন্ন)' : step === currentStep ? '(বর্তমান)' : '(বাকি)'}`}
               className={cn(
-                'w-12 h-1 mx-1 rounded transition-all',
-                step < currentStep ? 'bg-emerald-300' : 'bg-gray-200'
+                'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all',
+                step === currentStep
+                  ? 'bg-emerald-500 text-white scale-110'
+                  : step < currentStep
+                  ? 'bg-emerald-100 text-emerald-600'
+                  : 'bg-gray-100 text-gray-400'
               )}
-            />
-          )}
-        </div>
-      ))}
-    </div>
+            >
+              {step < currentStep ? <Check className="w-4 h-4" aria-hidden="true" /> : step}
+            </div>
+            {step < totalSteps && (
+              <div
+                aria-hidden="true"
+                className={cn(
+                  'w-12 h-1 mx-1 rounded transition-all',
+                  step < currentStep ? 'bg-emerald-300' : 'bg-gray-200'
+                )}
+              />
+            )}
+          </li>
+        ))}
+      </ol>
+    </nav>
   );
 }
 
-// Option card for selections
+// Option card for selections with accessibility
 interface OptionCardProps {
   icon: React.ReactNode;
   title: string;
@@ -75,21 +84,26 @@ function OptionCard({ icon, title, description, selected, onClick, badge }: Opti
     <button
       type="button"
       onClick={onClick}
+      role="option"
+      aria-selected={selected}
+      aria-label={`${title}: ${description}${badge ? ` (${badge})` : ''}`}
       className={cn(
         'relative p-4 rounded-xl border-2 text-left transition-all w-full',
         'hover:border-emerald-300 hover:bg-emerald-50/50',
+        'focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2',
         selected
           ? 'border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200'
           : 'border-gray-200 bg-white'
       )}
     >
       {badge && (
-        <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-amber-400 text-amber-900 text-xs font-medium rounded-full">
+        <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-amber-400 text-amber-900 text-xs font-medium rounded-full" aria-hidden="true">
           {badge}
         </span>
       )}
       <div className="flex items-start gap-3">
         <div
+          aria-hidden="true"
           className={cn(
             'p-2 rounded-lg',
             selected ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-600'
@@ -104,7 +118,7 @@ function OptionCard({ icon, title, description, selected, onClick, badge }: Opti
           <p className="text-sm text-gray-500 mt-0.5">{description}</p>
         </div>
         {selected && (
-          <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+          <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" aria-hidden="true" />
         )}
       </div>
     </button>
@@ -860,20 +874,22 @@ export function IntentWizard({
         </div>
       </div>
 
-      {/* Navigation */}
-      <div className="flex items-center justify-between mt-6">
+      {/* Navigation with accessibility */}
+      <nav aria-label="Wizard navigation" className="flex items-center justify-between mt-6">
         <button
           type="button"
           onClick={handleBack}
           disabled={step === 1}
+          aria-label={step === 1 ? 'পিছনে যাওয়া অক্ষম - এটি প্রথম ধাপ' : 'পিছনে যান'}
           className={cn(
             'flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all',
+            'focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2',
             step === 1
               ? 'text-gray-300 cursor-not-allowed'
               : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
           )}
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-4 h-4" aria-hidden="true" />
           পিছনে
         </button>
 
@@ -881,8 +897,17 @@ export function IntentWizard({
           type="button"
           onClick={handleNext}
           disabled={!canProceed() || isSubmitting}
+          aria-label={
+            isSubmitting 
+              ? 'ল্যান্ডিং পেইজ তৈরি হচ্ছে, অপেক্ষা করুন' 
+              : step === 4 
+                ? 'ল্যান্ডিং পেইজ তৈরি করুন' 
+                : `ধাপ ${step + 1} এ যান`
+          }
+          aria-busy={isSubmitting}
           className={cn(
             'flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all',
+            'focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2',
             canProceed() && !isSubmitting
               ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-200'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
@@ -890,22 +915,22 @@ export function IntentWizard({
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
               তৈরি হচ্ছে...
             </>
           ) : step === 4 ? (
             <>
               ল্যান্ডিং পেইজ তৈরি করুন
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </>
           ) : (
             <>
               পরবর্তী
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4" aria-hidden="true" />
             </>
           )}
         </button>
-      </div>
+      </nav>
     </div>
   );
 }

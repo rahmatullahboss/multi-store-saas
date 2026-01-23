@@ -124,6 +124,11 @@ export interface OrderFormProps {
   showDeliveryEstimate?: boolean;
   deliveryEstimateDhaka?: string; // e.g., "১-২ দিন"
   deliveryEstimateOutside?: string; // e.g., "৩-৫ দিন"
+  
+  // Combo/Bundle Discount Settings (Editable from editor, syncs to backend)
+  enableComboDiscount?: boolean;
+  comboDiscount2Products?: number; // Percentage discount for 2 products (e.g., 10 = 10%)
+  comboDiscount3Products?: number; // Percentage discount for 3+ products (e.g., 15 = 15%)
 }
 
 // Selected product for multi-product landing pages

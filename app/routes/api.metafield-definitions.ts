@@ -11,9 +11,9 @@
 
 import { json, type ActionFunction, type LoaderFunction } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { getSession } from '~/services/auth.server';
-import { metafieldDefinitions, type MetafieldDefinition, type MetafieldOwnerType, type MetafieldType } from '@db/schema_metafields';
+import { metafieldDefinitions, metafields, type MetafieldDefinition, type MetafieldOwnerType, type MetafieldType } from '@db/schema_metafields';
 import { z } from 'zod';
 
 // Validation schema
@@ -90,6 +90,22 @@ export const action: ActionFunction = async ({ request, context }) => {
     
     if (!id) {
       return json({ error: 'Missing id parameter' }, { status: 400 });
+    }
+
+    // Guard: prevent delete if values exist
+    const valueCount = await db.select({ count: sql<number>`count(*)` })
+      .from(metafields)
+      .where(and(
+        eq(metafields.definitionId, id),
+        eq(metafields.storeId, session.storeId)
+      ));
+
+    const existingCount = valueCount[0]?.count ?? 0;
+    if (existingCount > 0) {
+      return json({ 
+        error: 'Cannot delete definition with existing values',
+        count: existingCount 
+      }, { status: 409 });
     }
 
     await db.delete(metafieldDefinitions)

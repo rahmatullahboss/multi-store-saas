@@ -7,9 +7,44 @@ import { Zap, Star } from 'lucide-react';
 import type { OrderFormComponentProps } from './types';
 import { useOrderForm } from './useOrderForm';
 import { OrderFormFields } from './OrderFormFields';
+import { MultiProductSelector, useMultiProductSelection } from './MultiProductSelector';
 
-export function NeubrutalistOrderForm({ props, theme, storeId, productId, product }: OrderFormComponentProps) {
-  const { fetcher, state, actions, calculations, props: typedProps } = useOrderForm(props, product);
+export function NeubrutalistOrderForm({ props, theme, storeId, productId, product, selectedProducts = [], realData }: OrderFormComponentProps) {
+  // Multi-product support with configurable combo discount
+  const {
+    enableComboDiscount = true,
+    comboDiscount2Products = 10,
+    comboDiscount3Products = 15,
+  } = props as Record<string, unknown>;
+  
+  const multiProduct = useMultiProductSelection(selectedProducts, {
+    enableComboDiscount: enableComboDiscount as boolean,
+    comboDiscount2Products: comboDiscount2Products as number,
+    comboDiscount3Products: comboDiscount3Products as number,
+  });
+  const { isMultiProduct, primaryProduct, finalTotal, selectedIds, comboDiscount, comboSavings, comboTotal, selectedProductsData } = multiProduct;
+  
+  // Create effective product for useOrderForm
+  // NOTE: Don't pass variants here - useOrderForm will use product.variants from DB/settings
+  const effectiveProduct = isMultiProduct && primaryProduct ? {
+    id: primaryProduct.id,
+    title: multiProduct.selectedProductsData.length > 1 
+      ? `${multiProduct.selectedProductsData.length}টি প্রোডাক্ট` 
+      : primaryProduct.title,
+    price: finalTotal,
+    compareAtPrice: multiProduct.selectedProductsData.reduce((sum, p) => sum + (p.compareAtPrice || p.price), 0),
+    images: primaryProduct.imageUrl ? [primaryProduct.imageUrl] : [],
+  } : product;
+  
+  const { fetcher, state, actions, calculations, props: typedProps } = useOrderForm(props, effectiveProduct);
+
+  const cartItems = isMultiProduct
+    ? selectedProductsData.map((p) => ({ productId: p.id, quantity: state.quantity }))
+    : undefined;
+
+  const comboSummary = comboSavings > 0
+    ? { savings: comboSavings, rate: Math.round(comboDiscount.rate * 100), discountedSubtotal: comboTotal }
+    : undefined;
   
   const {
     headline = 'এখনই অর্ডার করুন',
@@ -116,8 +151,18 @@ export function NeubrutalistOrderForm({ props, theme, storeId, productId, produc
               className="p-8 border-b md:border-b-0 md:border-r"
               style={{ borderColor: '#000', borderWidth: '3px' }}
             >
+              {/* Multi-Product Selector */}
+              <MultiProductSelector
+                selectedProducts={selectedProducts}
+                primaryColor={primaryColor}
+                textColor="#000000"
+                mutedColor="#666666"
+                inputBg="#FFFFFF"
+                inputBorder="#000000"
+              />
+              
               {/* Product Card */}
-              {(actualProductImage || actualProductTitle) && (
+              {!isMultiProduct && (actualProductImage || actualProductTitle) && (
                 <div 
                   className="mb-8 p-4 text-center -rotate-1"
                   style={{
@@ -284,7 +329,9 @@ export function NeubrutalistOrderForm({ props, theme, storeId, productId, produc
                 props={typedProps}
                 fetcher={fetcher}
                 storeId={storeId}
-                productId={productId}
+                productId={isMultiProduct ? selectedIds[0] : productId}
+                cartItems={cartItems}
+                comboSummary={comboSummary}
                 inputBg="#fff"
                 inputBorder="#000"
                 inputText="#000"

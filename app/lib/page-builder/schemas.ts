@@ -336,6 +336,16 @@ export const CTAPropsSchema = z.object({
   showDeliveryEstimate: z.boolean().optional().default(true),
   deliveryEstimateDhaka: z.string().optional().default('১-২ দিন'),
   deliveryEstimateOutside: z.string().optional().default('৩-৫ দিন'),
+  
+  // ============================================================================
+  // COMBO/BUNDLE DISCOUNT SETTINGS (Editable from editor, syncs to backend)
+  // ============================================================================
+  // Enable/disable combo discount feature
+  enableComboDiscount: z.boolean().optional().default(true),
+  // Discount rate for 2 products (percentage, e.g., 10 = 10%)
+  comboDiscount2Products: z.number().optional().default(10),
+  // Discount rate for 3+ products (percentage, e.g., 15 = 15%)
+  comboDiscount3Products: z.number().optional().default(15),
 });
 export type CTAProps = z.infer<typeof CTAPropsSchema>;
 

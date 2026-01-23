@@ -102,7 +102,10 @@ export const action: ActionFunction = async ({ request, context }) => {
     if (target === 'draft' || target === 'both') {
       // Delete current draft sections
       await db.delete(templateSectionsDraft)
-        .where(eq(templateSectionsDraft.templateId, ver.templateId));
+        .where(and(
+          eq(templateSectionsDraft.templateId, ver.templateId),
+          eq(templateSectionsDraft.shopId, session.storeId!)
+        ));
 
       // Insert version sections to draft
       for (let i = 0; i < sections.length; i++) {
@@ -127,7 +130,10 @@ export const action: ActionFunction = async ({ request, context }) => {
             settingsJson: JSON.stringify(settings),
             updatedAt: new Date().toISOString(),
           })
-          .where(eq(themeSettingsDraft.themeId, ver.themeId));
+          .where(and(
+            eq(themeSettingsDraft.themeId, ver.themeId),
+            eq(themeSettingsDraft.shopId, session.storeId!)
+          ));
       }
     }
 
@@ -135,7 +141,10 @@ export const action: ActionFunction = async ({ request, context }) => {
     if (target === 'published' || target === 'both') {
       // Delete current published sections
       await db.delete(templateSectionsPublished)
-        .where(eq(templateSectionsPublished.templateId, ver.templateId));
+        .where(and(
+          eq(templateSectionsPublished.templateId, ver.templateId),
+          eq(templateSectionsPublished.shopId, session.storeId!)
+        ));
 
       // Insert version sections to published
       for (let i = 0; i < sections.length; i++) {
@@ -158,7 +167,10 @@ export const action: ActionFunction = async ({ request, context }) => {
           .set({
             settingsJson: JSON.stringify(settings),
           })
-          .where(eq(themeSettingsPublished.themeId, ver.themeId));
+          .where(and(
+            eq(themeSettingsPublished.themeId, ver.themeId),
+            eq(themeSettingsPublished.shopId, session.storeId!)
+          ));
       }
     }
 

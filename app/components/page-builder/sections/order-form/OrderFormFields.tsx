@@ -17,6 +17,14 @@ interface FormFieldsProps {
   fetcher: any;
   storeId?: number;
   productId?: number;
+  // Multi-product cart items
+  cartItems?: Array<{ productId: number; quantity: number; variantId?: number }>;
+  // Combo discount summary for order preview
+  comboSummary?: {
+    savings: number;
+    rate: number;
+    discountedSubtotal: number;
+  };
   // Styling
   inputBg: string;
   inputBorder: string;
@@ -38,6 +46,8 @@ export function OrderFormFields({
   fetcher,
   storeId,
   productId,
+  cartItems,
+  comboSummary,
   inputBg,
   inputBorder,
   inputText,
@@ -140,25 +150,30 @@ export function OrderFormFields({
       >
         {/* Hidden inputs */}
         <input type="hidden" name="store_id" value={storeId || ''} />
-        <input type="hidden" name="product_id" value={productId || ''} />
+        <input type="hidden" name="product_id" value={cartItems && cartItems.length > 0 ? '' : (productId || '')} />
         <input type="hidden" name="quantity" value={state.quantity} />
+        {cartItems && cartItems.length > 0 && (
+          <input type="hidden" name="cart_items" value={JSON.stringify(cartItems)} />
+        )}
         <input type="hidden" name="payment_method" value="cod" />
         <input type="hidden" name="division" value={calculatedShippingZone === 'dhaka' ? 'dhaka' : 'outside_dhaka'} />
+        {/* Combo discount settings are server-authoritative (no client inputs) */}
         <input type="hidden" name="district" value={state.selectedDistrictId} />
         <input type="hidden" name="upazila" value={state.selectedUpazilaId} />
         {state.selectedVariant?.id && (
           <input type="hidden" name="variant_id" value={state.selectedVariant.id} />
         )}
-        {/* Honeypot */}
-        <input
-          type="text"
-          name="website"
-          value={state.honeypot}
-          onChange={(e) => actions.setHoneypot(e.target.value)}
-          style={{ display: 'none' }}
-          tabIndex={-1}
-          autoComplete="off"
-        />
+        {/* Honeypot (offscreen, not display:none) */}
+        <div className="sr-only" aria-hidden="true">
+          <input
+            type="text"
+            name="website"
+            value={state.honeypot}
+            onChange={(e) => actions.setHoneypot(e.target.value)}
+            tabIndex={-1}
+            autoComplete="new-password"
+          />
+        </div>
         
         {/* Name */}
         <div>
@@ -474,8 +489,16 @@ export function OrderFormFields({
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span style={{ color: mutedColor }}>{subtotalLabel}</span>
-              <span className="font-semibold" style={{ color: textColor }}>{formatPrice(subtotal)}</span>
+              <span className="font-semibold" style={{ color: textColor }}>
+                {formatPrice(comboSummary?.discountedSubtotal ?? subtotal)}
+              </span>
             </div>
+            {comboSummary && comboSummary.savings > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-green-600">🎁 কম্বো ছাড় ({comboSummary.rate}%)</span>
+                <span className="text-green-600 font-semibold">-{formatPrice(comboSummary.savings)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-sm">
               <span style={{ color: mutedColor }}>
                 {deliveryLabel} 
@@ -503,7 +526,7 @@ export function OrderFormFields({
                 className="font-bold text-xl"
                 style={{ color: primaryColor }}
               >
-                {formatPrice(props.showFreeShippingProgress !== false && props.freeShippingThreshold && subtotal >= props.freeShippingThreshold ? subtotal : total)}
+                {formatPrice(props.showFreeShippingProgress !== false && props.freeShippingThreshold && subtotal >= props.freeShippingThreshold ? (comboSummary?.discountedSubtotal ?? subtotal) : (comboSummary?.discountedSubtotal ? comboSummary.discountedSubtotal + deliveryCharge : total))}
               </span>
             </div>
           </div>

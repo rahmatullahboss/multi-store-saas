@@ -130,6 +130,7 @@ export default function GrapesEditor({
     // Reset mount tracking
     mountedRef.current = true;
     let editorInstance: any = null;
+    let desktopObserver: MutationObserver | null = null;
     
     // Delay initialization to handle React Strict Mode's double-invoke pattern
     const initTimeout = setTimeout(() => {
@@ -414,8 +415,6 @@ export default function GrapesEditor({
       });
 
       // -- Device Change Handler (for Desktop full width) --
-      let desktopObserver: MutationObserver | null = null;
-      
       const setDeviceAttribute = (device: string) => {
         // Set on our container (which we control)
         if (containerRef.current) {
@@ -509,6 +508,12 @@ export default function GrapesEditor({
     return () => {
       mountedRef.current = false;
       clearTimeout(initTimeout);
+      
+      // Cleanup MutationObserver for desktop device
+      if (desktopObserver) {
+        desktopObserver.disconnect();
+        desktopObserver = null;
+      }
       
       if (editorInstance) {
         console.log('Cleanup: Destroying GrapesJS editor...');

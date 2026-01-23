@@ -78,12 +78,19 @@ describe('IntentWizard', () => {
       target: { value: '500' },
     });
 
-    // Step 2 -> Step 3
+    // Step 2 -> Step 3 (Style Preferences)
     fireEvent.click(screen.getByText('পরবর্তী'));
 
+    // Step 3 shows style preferences - verify style step is shown
+    expect(screen.getByText('ব্র্যান্ড কালার')).toBeInTheDocument();
+
+    // Step 3 -> Step 4 (Template Selection)
+    fireEvent.click(screen.getByText('পরবর্তী'));
+
+    // Step 4 shows template selection
     expect(screen.getByText('আপনার জন্য সেরা টেমপ্লেট')).toBeInTheDocument();
 
-    // Select suggested template
+    // Select suggested template (flash-sale is default for facebook + direct_sales)
     fireEvent.click(screen.getByText('ফ্ল্যাশ সেল'));
 
     // Finish wizard
@@ -122,10 +129,17 @@ describe('IntentWizard', () => {
     // Select product
     fireEvent.click(screen.getByText('প্রোডাক্ট A'));
 
-    // Step 2 -> Step 3
+    // Step 2 -> Step 3 (Style Preferences)
     fireEvent.click(screen.getByText('পরবর্তী'));
 
-    // Select suggested template
+    // Verify style step is shown
+    expect(screen.getByText('ব্র্যান্ড কালার')).toBeInTheDocument();
+
+    // Step 3 -> Step 4 (Template Selection)
+    fireEvent.click(screen.getByText('পরবর্তী'));
+
+    // Verify template step and select template
+    expect(screen.getByText('আপনার জন্য সেরা টেমপ্লেট')).toBeInTheDocument();
     fireEvent.click(screen.getByText('ফ্ল্যাশ সেল'));
 
     // Finish wizard

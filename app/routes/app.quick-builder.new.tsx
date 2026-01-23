@@ -3,16 +3,17 @@
  * 
  * Route: /app/quick-builder/new
  * 
- * 3-step intent-driven wizard for creating landing pages:
+ * 4-step intent-driven wizard for creating landing pages:
  * 1. Select intent (product type, goal, traffic source)
  * 2. Connect product (existing or create new)
- * 3. Preview & confirm template
+ * 3. Style preferences (colors, fonts, button styles)
+ * 4. Preview & confirm template
  */
 
 import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher, useNavigate } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { stores, products } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
@@ -22,6 +23,26 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Link } from '@remix-run/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { z } from 'zod';
+
+// Zod schemas for input validation
+const IntentSchema = z.object({
+  productType: z.enum(['single', 'multiple']),
+  goal: z.enum(['direct_sales', 'lead_whatsapp']),
+  trafficSource: z.enum(['facebook', 'tiktok', 'organic']),
+});
+
+const QuickProductSchema = z.object({
+  name: z.string().min(1).max(200),
+  price: z.number().positive(),
+  compareAtPrice: z.number().positive().optional(),
+  image: z.string().url().optional(),
+  variants: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    price: z.number().optional(),
+  })).optional(),
+});
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -84,7 +105,23 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   try {
-    const intent: Intent = JSON.parse(intentStr as string);
+    // Validate intent with Zod schema
+    let parsedIntent;
+    try {
+      parsedIntent = JSON.parse(intentStr as string);
+    } catch {
+      return json({ success: false, error: 'Invalid intent JSON format' }, { status: 400 });
+    }
+    
+    const intentResult = IntentSchema.safeParse(parsedIntent);
+    if (!intentResult.success) {
+      return json({ 
+        success: false, 
+        error: 'Invalid intent data: ' + intentResult.error.issues.map(i => i.message).join(', ') 
+      }, { status: 400 });
+    }
+    const intent: Intent = intentResult.data;
+    
     let product: QuickProduct | null = null;
     let linkedProductId: number | null = null;
 
@@ -92,25 +129,50 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (productIdStr) {
       linkedProductId = Number(productIdStr);
       
-      // Fetch product details
+      if (isNaN(linkedProductId) || linkedProductId <= 0) {
+        return json({ success: false, error: 'Invalid product ID' }, { status: 400 });
+      }
+      
+      // Fetch product details with storeId validation (security: prevent cross-store access)
       const productResult = await db
         .select()
         .from(products)
-        .where(eq(products.id, linkedProductId))
+        .where(
+          and(
+            eq(products.id, linkedProductId),
+            eq(products.storeId, storeId)  // Critical: ensure product belongs to this store
+          )
+        )
         .limit(1);
 
-      if (productResult[0]) {
-        const p = productResult[0];
-        product = {
-          name: p.title,
-          price: p.price,
-          compareAtPrice: p.compareAtPrice || undefined,
-          image: p.imageUrl || undefined,
-        };
+      if (!productResult[0]) {
+        return json({ success: false, error: 'Product not found or access denied' }, { status: 404 });
       }
+      
+      const p = productResult[0];
+      product = {
+        name: p.title,
+        price: p.price,
+        compareAtPrice: p.compareAtPrice || undefined,
+        image: p.imageUrl || undefined,
+      };
     } else if (productStr) {
-      // New product from wizard
-      product = JSON.parse(productStr as string);
+      // New product from wizard - validate with Zod
+      let parsedProduct;
+      try {
+        parsedProduct = JSON.parse(productStr as string);
+      } catch {
+        return json({ success: false, error: 'Invalid product JSON format' }, { status: 400 });
+      }
+      
+      const productValidation = QuickProductSchema.safeParse(parsedProduct);
+      if (!productValidation.success) {
+        return json({ 
+          success: false, 
+          error: 'Invalid product data: ' + productValidation.error.issues.map(i => i.message).join(', ') 
+        }, { status: 400 });
+      }
+      product = productValidation.data;
       
       // Create the product in database
       if (product) {
@@ -271,7 +333,7 @@ export default function QuickBuilderNew() {
             ল্যান্ডিং পেইজ তৈরি করুন
           </h1>
           <p className="text-gray-500">
-            ৩টি সহজ ধাপে আপনার প্রোডাক্টের জন্য হাই-কনভার্টিং ল্যান্ডিং পেইজ
+            ৪টি সহজ ধাপে আপনার প্রোডাক্টের জন্য হাই-কনভার্টিং ল্যান্ডিং পেইজ
           </p>
         </div>
 

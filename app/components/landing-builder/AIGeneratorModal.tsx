@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Form } from '@remix-run/react';
 import { Loader2, Sparkles, X } from 'lucide-react';
 
@@ -12,14 +12,7 @@ interface AIGeneratorModalProps {
 export default function AIGeneratorModal({ isOpen, onClose, language }: AIGeneratorModalProps) {
   const [loading, setLoading] = useState(false);
   const [prompt, setPrompt] = useState('');
-  
-  if (!isOpen) return null;
-
-  const handleSubmit = () => {
-    setLoading(true);
-    // The actual submission will be handled by the parent component or Remix Form
-    // This state is just for immediate UI feedback
-  };
+  const [currentStep, setCurrentStep] = useState(0);
 
   const steps = [
     { text: language === 'bn' ? 'মার্কেট রিসার্চ এনালাইসিস' : 'Analyzing market research...', delay: 0 },
@@ -28,14 +21,34 @@ export default function AIGeneratorModal({ isOpen, onClose, language }: AIGenera
     { text: language === 'bn' ? 'লেআউট সাজানো হচ্ছে' : 'Structuring landing page...', delay: 7000 },
   ];
 
-  const [currentStep, setCurrentStep] = useState(0);
+  // Simulate progress when loading - with proper cleanup to prevent memory leaks
+  useEffect(() => {
+    if (!loading || currentStep >= steps.length - 1) return;
+    
+    const timer = setTimeout(() => {
+      setCurrentStep(prev => prev + 1);
+    }, 2500);
+    
+    // Cleanup: clear timeout if component unmounts or loading stops
+    return () => clearTimeout(timer);
+  }, [loading, currentStep, steps.length]);
 
-  // Simulate progress when loading starts
-  if (loading) {
-    if (currentStep < steps.length - 1) {
-      setTimeout(() => setCurrentStep(prev => prev + 1), 2500);
+  // Reset step when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setCurrentStep(0);
+      setLoading(false);
     }
-  }
+  }, [isOpen]);
+  
+  if (!isOpen) return null;
+
+  const handleSubmit = () => {
+    setLoading(true);
+    setCurrentStep(0);
+    // The actual submission will be handled by the parent component or Remix Form
+    // This state is just for immediate UI feedback
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">

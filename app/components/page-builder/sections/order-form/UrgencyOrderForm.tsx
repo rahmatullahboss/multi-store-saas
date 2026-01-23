@@ -3,14 +3,49 @@
  * FOMO-driven design with countdown, warnings, and scarcity indicators
  */
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { AlertTriangle, Clock, Flame, Users, Zap, TrendingUp } from 'lucide-react';
 import type { OrderFormComponentProps } from './types';
 import { useOrderForm } from './useOrderForm';
 import { OrderFormFields } from './OrderFormFields';
+import { MultiProductSelector, useMultiProductSelection } from './MultiProductSelector';
 
-export function UrgencyOrderForm({ props, theme, storeId, productId, product }: OrderFormComponentProps) {
-  const { fetcher, state, actions, calculations, props: typedProps } = useOrderForm(props, product);
+export function UrgencyOrderForm({ props, theme, storeId, productId, product, selectedProducts = [], realData }: OrderFormComponentProps) {
+  // Multi-product support with configurable combo discount
+  const {
+    enableComboDiscount = true,
+    comboDiscount2Products = 10,
+    comboDiscount3Products = 15,
+  } = props as Record<string, unknown>;
+  
+  const multiProduct = useMultiProductSelection(selectedProducts, {
+    enableComboDiscount: enableComboDiscount as boolean,
+    comboDiscount2Products: comboDiscount2Products as number,
+    comboDiscount3Products: comboDiscount3Products as number,
+  });
+  const { isMultiProduct, primaryProduct, finalTotal, selectedIds } = multiProduct;
+  
+  // Create effective product for useOrderForm
+  // NOTE: Don't pass variants here - useOrderForm will use product.variants from DB/settings
+  const effectiveProduct = isMultiProduct && primaryProduct ? {
+    id: primaryProduct.id,
+    title: multiProduct.selectedProductsData.length > 1 
+      ? `${multiProduct.selectedProductsData.length}টি প্রোডাক্ট` 
+      : primaryProduct.title,
+    price: finalTotal,
+    compareAtPrice: multiProduct.selectedProductsData.reduce((sum, p) => sum + (p.compareAtPrice || p.price), 0),
+    images: primaryProduct.imageUrl ? [primaryProduct.imageUrl] : [],
+  } : product;
+  
+  const { fetcher, state, actions, calculations, props: typedProps } = useOrderForm(props, effectiveProduct);
+
+  const cartItems = isMultiProduct
+    ? multiProduct.selectedProductsData.map((p) => ({ productId: p.id, quantity: state.quantity }))
+    : undefined;
+
+  const comboSummary = multiProduct.comboSavings > 0
+    ? { savings: multiProduct.comboSavings, rate: Math.round(multiProduct.comboDiscount.rate * 100), discountedSubtotal: multiProduct.comboTotal }
+    : undefined;
   
   const {
     headline = '⚡ শেষ সুযোগ!',
@@ -45,8 +80,8 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product }: 
   }, []);
   
   // Random stock count
-  const [stockLeft] = useState(() => Math.floor(Math.random() * 5) + 3);
-  const [viewingNow] = useState(() => Math.floor(Math.random() * 20) + 15);
+  const stockLeft = realData?.stockCount ?? null;
+  const viewingNow = realData?.recentOrderCount ?? null;
   
   return (
     <section 
@@ -73,17 +108,23 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product }: 
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-500 rounded-full opacity-10 blur-[150px] animate-pulse" />
       
       <div className="relative z-10 max-w-5xl mx-auto">
-        {/* Urgency bar */}
-        <div className="flex flex-wrap justify-center gap-4 mb-6">
-          <div className="flex items-center gap-2 px-4 py-2 bg-red-900/50 rounded-lg border border-red-500/50 animate-pulse">
-            <Users size={18} className="text-red-400" />
-            <span className="text-red-300 font-medium">{viewingNow} জন এখন দেখছে</span>
+        {/* Urgency bar (real data only) */}
+        {(viewingNow !== null || stockLeft !== null) && (
+          <div className="flex flex-wrap justify-center gap-4 mb-6">
+            {viewingNow !== null && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-red-900/50 rounded-lg border border-red-500/50 animate-pulse">
+                <Users size={18} className="text-red-400" />
+                <span className="text-red-300 font-medium">{viewingNow} জন এখন দেখছে</span>
+              </div>
+            )}
+            {stockLeft !== null && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-yellow-900/50 rounded-lg border border-yellow-500/50">
+                <AlertTriangle size={18} className="text-yellow-400" />
+                <span className="text-yellow-300 font-medium">মাত্র {stockLeft}টি বাকি!</span>
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-yellow-900/50 rounded-lg border border-yellow-500/50">
-            <AlertTriangle size={18} className="text-yellow-400" />
-            <span className="text-yellow-300 font-medium">মাত্র {stockLeft}টি বাকি!</span>
-          </div>
-        </div>
+        )}
         
         {/* Countdown Timer */}
         <div className="flex justify-center mb-8">
@@ -164,8 +205,18 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product }: 
           <div className="grid md:grid-cols-2">
             {/* Left - Product */}
             <div className="p-8 border-b md:border-b-0 md:border-r border-red-900/50">
+              {/* Multi-Product Selector */}
+              <MultiProductSelector
+                selectedProducts={selectedProducts}
+                primaryColor={primaryColor}
+                textColor="#FFFFFF"
+                mutedColor="rgba(255,255,255,0.7)"
+                inputBg="rgba(255,255,255,0.1)"
+                inputBorder="rgba(255,255,255,0.2)"
+              />
+              
               {/* Product Card */}
-              {(actualProductImage || actualProductTitle) && (
+              {!isMultiProduct && (actualProductImage || actualProductTitle) && (
                 <div className="mb-8 text-center relative">
                   {/* Sale badge */}
                   <div 
@@ -310,7 +361,9 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product }: 
                 props={typedProps}
                 fetcher={fetcher}
                 storeId={storeId}
-                productId={productId}
+                productId={isMultiProduct ? selectedIds[0] : productId}
+                cartItems={cartItems}
+                comboSummary={comboSummary}
                 inputBg="rgba(255,255,255,0.05)"
                 inputBorder="rgba(255,255,255,0.15)"
                 inputText="#FFFFFF"

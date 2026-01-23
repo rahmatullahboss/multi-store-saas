@@ -471,7 +471,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Step 5: Handle PUBLISH action - copy draft to published
     if (actionType === 'publish') {
       // VALIDATION: Validate sections and settings before publishing
-      const sectionsForValidation = sections.map((s: any) => ({
+      const allSectionsForValidation = ([] as any[]).concat(
+        pageSectionsData.home || [],
+        pageSectionsData.product || [],
+        pageSectionsData.collection || [],
+        pageSectionsData.cart || [],
+        pageSectionsData.checkout || []
+      );
+
+      const sectionsForValidation = allSectionsForValidation.map((s: any) => ({
         id: s.id,
         type: s.type,
         settings: s.settings || {},
@@ -534,6 +542,27 @@ export async function action({ request, context }: ActionFunctionArgs) {
             settingsJson: currentSettings.length > 0 ? currentSettings[0].settingsJson : null,
             publishedBy: user?.email || null,
           });
+
+          // Retention policy: keep latest 50 versions
+          const retentionLimit = 50;
+          const allVersions = await db.select({ id: templateVersions.id, version: templateVersions.version })
+            .from(templateVersions)
+            .where(and(
+              eq(templateVersions.templateId, pageTemplateId),
+              eq(templateVersions.storeId, storeId)
+            ));
+
+          if (allVersions.length > retentionLimit) {
+            const sorted = allVersions.sort((a, b) => b.version - a.version);
+            const toDelete = sorted.slice(retentionLimit);
+            for (const oldVer of toDelete) {
+              await db.delete(templateVersions)
+                .where(and(
+                  eq(templateVersions.id, oldVer.id),
+                  eq(templateVersions.storeId, storeId)
+                ));
+            }
+          }
         }
       }
 
