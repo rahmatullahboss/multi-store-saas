@@ -4,9 +4,27 @@ description: Comprehensive code review workflow for TypeScript, React, Remix, an
 
 # Code Review Workflow
 
-Quick, actionable checklist for reviewing code in the Multi Store SaaS platform.
+This workflow provides a comprehensive checklist and process for reviewing code in the Multi Store SaaS platform, covering TypeScript, React, Remix, and Cloudflare-specific patterns.
 
-## Step 1: Run Automated Checks
+## Prerequisites
+
+- Understand the business context
+- Read the PR description
+- Have access to run code locally
+
+---
+
+## Step 1: Pre-Review Setup
+
+### 1.1 Checkout Branch
+
+// turbo
+
+```bash
+git fetch origin && git checkout <branch-name> && npm install
+```
+
+### 1.2 Automated Checks
 
 // turbo
 
@@ -14,78 +32,265 @@ Quick, actionable checklist for reviewing code in the Multi Store SaaS platform.
 npm run typecheck && npm run lint && npm run test
 ```
 
----
-
-## Step 2: TypeScript Checklist
-
-| ✅ Do                       | ❌ Don't                   |
-| --------------------------- | -------------------------- |
-| Explicit return types       | Use `any` type             |
-| Use `?.` and `??` for nulls | Type assertions (`as Foo`) |
-| Union types for states      | Implicit any in parameters |
-| Zod validation              | Trust unvalidated data     |
+Request fixes for any failures before proceeding.
 
 ---
 
-## Step 3: React/Remix Checklist
+## Step 2: High-Level Assessment
 
-| ✅ Do                      | ❌ Don't                    |
-| -------------------------- | --------------------------- |
-| Use `loader` for GET data  | useEffect for data fetching |
-| Use `action` for mutations | Array index as key          |
-| `defer()` for slow data    | Heavy logic in render       |
-| `useFetcher` for non-nav   | Prop drilling               |
+1. **Problem Solving**: Does it solve the issue described?
+2. **Scope**: is the PR focused?
+3. **Architecture**: Is the approach sound?
+4. **Breaking Changes**: Are they flagged?
 
 ---
 
-## Step 4: Cloudflare Security Checklist
+## Step 3: TypeScript Review
 
-### 🔴 CRITICAL: SQL Injection Prevention
+### Type Safety Checklist
+
+| ✅ Do                                | ❌ Don't                   |
+| ------------------------------------ | -------------------------- |
+| **Explicit return types** on exports | Use `any` type             |
+| **Strict null checks**               | Type assertions (`as Foo`) |
+| **Union types** for states           | Implicit any               |
+| **Generics** for reusable logic      | Duplicate types            |
+| **Zod schemas** for implementation   | Trust `unknown` data       |
+
+### Code Examples
+
+```typescript
+// ❌ Bad: Avoiding types with any
+function process(data: any) { ... }
+
+// ✅ Good: Typed input
+function process(data: ProductInput) { ... }
+
+// ❌ Bad: Type assertion masking errors
+const product = response as Product;
+
+// ✅ Good: Type guard or Zod parse
+if (!isProduct(response)) throw new Error('Invalid');
+// OR
+const product = productSchema.parse(response);
+```
+
+---
+
+## Step 4: React Component Review
+
+### Component Checklist
+
+| ✅ Do                     | ❌ Don't                        |
+| ------------------------- | ------------------------------- |
+| **Single Responsibility** | Mega-components                 |
+| **Minimal Props**         | Prop drilling (use Composition) |
+| **Scoped State**          | Global state for local UI       |
+| **Hooks Rules**           | Conditional hooks               |
+| **Stable Keys**           | Array index as key              |
+
+### Performance Checklist
+
+| ✅ Do                     | ❌ Don't                   |
+| ------------------------- | -------------------------- |
+| **Memoize** expensive ops | Premature optimization     |
+| **Stable callbacks**      | Inline functions in render |
+| **Virtualize** long lists | Render 1000+ nodes         |
+| **Lazy load** heavy parts | Huge initial bundles       |
+
+### Code Examples
+
+```tsx
+// ❌ Bad: Index as key causing re-render bugs
+{
+  items.map((item, i) => <Item key={i} {...item} />);
+}
+
+// ✅ Good: Stable unique ID
+{
+  items.map((item) => <Item key={item.id} {...item} />);
+}
+
+// ❌ Bad: Heavy calculation in render
+const sorted = expensiveSort(items);
+
+// ✅ Good: Memoized calculation
+const sorted = useMemo(() => expensiveSort(items), [items]);
+```
+
+---
+
+## Step 5: Remix & Data Loading
+
+### Pattern Checklist
+
+| ✅ Do                        | ❌ Don't             |
+| ---------------------------- | -------------------- |
+| **Loaders** for GET data     | `useEffect` fetching |
+| **Actions** for mutations    | Client-side `fetch`  |
+| **`defer()`** for slow data  | Blocking UI          |
+| **`useFetcher`** for non-nav | Full page reloads    |
+| **Resource Routes** for APIs | Inline API handlers  |
+
+### Code Examples
+
+```tsx
+// ❌ Bad: Client-side fetching waterfall
+function Product() {
+  const [data, setData] = useState(null);
+  useEffect(() => {
+    fetch('/api').then(setData);
+  }, []);
+  if (!data) return <Spinner />;
+}
+
+// ✅ Good: Server-side loading
+export async function loader({ context }: LoaderFunctionArgs) {
+  return json(await getData(context));
+}
+function Product() {
+  const data = useLoaderData<typeof loader>();
+  return <View data={data} />;
+}
+```
+
+---
+
+## Step 6: Cloudflare Security
+
+### 🔴 CRITICAL: D1 SQL Injection
 
 ```typescript
 // ❌ NEVER: String concatenation
-await env.DB.prepare(`SELECT * FROM x WHERE id = '${id}'`).all();
+const query = `SELECT * FROM users WHERE id = '${id}'`;
+await env.DB.prepare(query).run();
 
-// ✅ ALWAYS: Prepared statements with bind()
-await env.DB.prepare(`SELECT * FROM x WHERE id = ? AND store_id = ?`).bind(id, storeId).all();
+// ❌ NEVER: Template literals
+await env.DB.prepare(`SELECT * FROM users WHERE id = ${id}`).run();
+
+// ✅ ALWAYS: Prepared statements
+await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(id).run();
+
+// ✅ ALWAYS: Scope by store_id
+await env.DB.prepare('SELECT * FROM products WHERE id = ? AND store_id = ?')
+  .bind(id, storeId)
+  .run();
 ```
 
-| ✅ Do                       | ❌ Don't               |
-| --------------------------- | ---------------------- |
-| `.prepare().bind()`         | String concat in SQL   |
-| Always filter by `store_id` | Query without store_id |
-| Validate with Zod           | Trust client input     |
-| Rate limit AI endpoints     | Unlimited AI calls     |
+### Security Checklist
+
+| Check                | Requirement                              |
+| -------------------- | ---------------------------------------- |
+| **Input Validation** | Validate ALL inputs with Zod             |
+| **SQL Injection**    | Use `.bind()` for ALL user inputs        |
+| **Multi-tenancy**    | ALWAYS filter by `store_id`              |
+| **R2 Uploads**       | Validate file type & size server-side    |
+| **Secrets**          | Use `env` bindings, never commit secrets |
+| **Rate Limiting**    | Protect AI & heavy endpoints             |
 
 ---
 
-## Step 5: Performance Checklist
+## Step 7: AI & LLM Best Practices
 
-| ✅ Do                     | ❌ Don't          |
-| ------------------------- | ----------------- |
-| Batch DB operations       | N+1 queries       |
-| Use indexes               | Full table scans  |
-| Lazy load components      | Import everything |
-| Sessions API after writes | Read stale data   |
+### Safety & Performance
+
+| Check             | Requirement                             |
+| ----------------- | --------------------------------------- |
+| **Sanitization**  | Sanitize user input before prompting    |
+| **System Prompt** | Hardcode constraints (don't trust user) |
+| **Validation**    | Parse & validate LLM JSON output        |
+| **Caching**       | Cache equivalent prompts in KV          |
+| **Streaming**     | Stream long responses for UX            |
+
+### Code Examples
+
+```typescript
+// ❌ Bad: Direct injection
+const prompt = `Translate this: ${userInput}`;
+
+// ✅ Good: Structured prompt
+const response = await env.AI.run('@cf/meta/llama-3', {
+  messages: [
+    { role: 'system', content: 'You are a translator. Only output JSON.' },
+    { role: 'user', content: sanitize(userInput) },
+  ],
+});
+```
 
 ---
 
-## Step 6: Provide Feedback
+## Step 8: Accessibility (a11y)
 
-| Prefix            | Meaning                  |
-| ----------------- | ------------------------ |
-| 🔴 **CRITICAL**   | Security/data - must fix |
-| 🟠 **ISSUE**      | Bug - should fix         |
-| 🟡 **SUGGESTION** | Improvement - consider   |
-| 🟢 **NIT**        | Style - optional         |
+| Check             | Look For                       |
+| ----------------- | ------------------------------ |
+| **Semantic HTML** | `<button>` vs `<div onClick>`  |
+| **Alt Text**      | Meaningful alt for images      |
+| **Labels**        | Form inputs have labels        |
+| **Keyboard**      | Interactive elements focusable |
+| **Contrast**      | Colors are readable            |
 
 ---
 
-## Quick Red Flags
+## Step 9: Documentation & Testing
 
-- SQL with `${variable}` or `+` concatenation
-- Missing `store_id` in queries
-- `any` type usage
-- useEffect for data fetching
-- Array index as React key
-- Secrets in code/prompts
+| Check          | Look For                            |
+| -------------- | ----------------------------------- |
+| **Tests**      | Unit tests for logic, E2E for flows |
+| **Edge Cases** | Null, empty, error states tested    |
+| **Comments**   | "Why" explained, not just "What"    |
+| **README**     | Updated if setup changed            |
+
+---
+
+## Step 10: Providing Feedback
+
+### Feedback Guidelines
+
+1. **Be Constructive**: Suggest solutions, don't just criticize.
+2. **Explain Why**: Link to docs or explain the valid reason.
+3. **Distinguish**: Separate blocking issues from nitpicks.
+
+### Standard Prefixes
+
+| Prefix            | Meaning                                | Action         |
+| ----------------- | -------------------------------------- | -------------- |
+| 🔴 **CRITICAL**   | Security/Data loss risk                | **Must Fix**   |
+| 🟠 **ISSUE**      | Functional bug / Spec deviation        | **Should Fix** |
+| 🟡 **SUGGESTION** | Refactor / Performance / Best Practice | **Consider**   |
+| 🟢 **NIT**        | Formatting / Naming / Typo             | **Optional**   |
+| 💬 **QUESTION**   | Need clarification                     | **Reply**      |
+| 👍 **PRAISE**     | Clever solution / Great code           | **No Action**  |
+
+---
+
+## Step 11: Final Verification
+
+### Pre-Merge Checklist
+
+- [ ] automated checks passed (`npm run check`)
+- [ ] critical security issues resolved
+- [ ] functionality verified locally
+- [ ] tests added/updated
+- [ ] code style guidelines followed
+
+### Merge Strategy
+
+// turbo
+
+```bash
+git merge <branch> --no-ff
+```
+
+---
+
+## Quick Reference: Red Flags
+
+| Category     | Flag                                        |
+| ------------ | ------------------------------------------- |
+| **Security** | SQL string concatenation                    |
+| **Security** | Missing `store_id` filter                   |
+| **Security** | Secrets in source code                      |
+| **Platform** | Node.js APIs (fs, child_process) in Workers |
+| **React**    | `useEffect` data fetching                   |
+| **Types**    | `any` usage without comment                 |
+| **Perf**     | N+1 queries in loops                        |
