@@ -154,8 +154,8 @@ export default function EditorToolbar({
 
       let htmlToApply = codeContent;
       let cssToApply = '';
-      let bodyAttrs: Record<string, string> = {};
-      let bodyClasses: string[] = [];
+      const bodyAttrs: Record<string, string> = {};
+      const bodyClasses: string[] = [];
       let isFullDocument = false;
 
       // Check if it's a full document

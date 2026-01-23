@@ -121,7 +121,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const r2UrlClean = context.cloudflare.env.R2_PUBLIC_URL?.replace(/\/$/, '');
     
     let finalHtml = data['html'] || '';
-    let finalCss = data['css'] || '';
+    const finalCss = data['css'] || '';
     let finalProjectDataStr = JSON.stringify(projectDataOnly);
 
     if (r2 && r2UrlClean) {

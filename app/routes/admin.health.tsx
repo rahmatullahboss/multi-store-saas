@@ -90,7 +90,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   estimatedCost.total = estimatedCost.compute + estimatedCost.storage + estimatedCost.database;
   
   // Logs Query
-  let query = drizzleDb.select().from(systemLogs);
+  const query = drizzleDb.select().from(systemLogs);
   
   // Apply Filters
   const filters = [];

@@ -26,7 +26,7 @@ export async function getProductsByStore(db: Database, storeId: number, options?
 }) {
   const { category, limit = 50, offset = 0 } = options || {};
   
-  let query = db.query.products.findMany({
+  const query = db.query.products.findMany({
     where: (products, { eq, and }) => 
       and(
         eq(products.storeId, storeId),

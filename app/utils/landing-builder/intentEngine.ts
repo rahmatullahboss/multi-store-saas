@@ -211,7 +211,7 @@ export function getTemplateSuggestions(intent: Intent): string[] {
   const others = allTemplates.filter(t => t !== primary);
   
   // Pick based on intent characteristics
-  let suggestions = [primary];
+  const suggestions = [primary];
   
   if (intent.trafficSource === 'facebook') {
     suggestions.push('premium-bd', 'modern-dark');

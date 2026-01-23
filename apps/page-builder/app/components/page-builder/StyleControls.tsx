@@ -136,7 +136,7 @@ export default function StyleControls({ editor }: StyleControlsProps) {
       const mediaParams = deviceConfig.mediaQuery.replace(/[()]/g, '').replace('@media ', '');
       
       // Get existing rule or create new one
-      let rule = css.getRule(selector, { atRuleType: 'media', atRuleParams: mediaParams });
+      const rule = css.getRule(selector, { atRuleType: 'media', atRuleParams: mediaParams });
       const existingStyles = rule ? (rule.getStyle() as Record<string, string>) : {};
       
       // Set rule with merged styles

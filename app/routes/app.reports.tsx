@@ -61,7 +61,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   switch (reportType) {
     case 'sales': {
-      let query = db
+      const query = db
         .select({
           id: orders.id,
           orderNumber: orders.orderNumber,

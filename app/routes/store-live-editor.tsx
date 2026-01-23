@@ -335,7 +335,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   
   try {
     // Step 1: Ensure theme exists for this store
-    let existingTheme = await db.select().from(themes).where(eq(themes.shopId, storeId)).limit(1);
+    const existingTheme = await db.select().from(themes).where(eq(themes.shopId, storeId)).limit(1);
     let themeId: string;
     
     if (existingTheme.length === 0) {

@@ -111,7 +111,7 @@ export const action: ActionFunction = async ({ request, context }) => {
         }
 
         // Step 1: Ensure theme exists
-        let existingTheme = await db.select().from(themes)
+        const existingTheme = await db.select().from(themes)
           .where(eq(themes.shopId, store.id))
           .limit(1);
         
@@ -130,7 +130,7 @@ export const action: ActionFunction = async ({ request, context }) => {
         }
 
         // Step 2: Ensure home template exists
-        let existingTemplate = await db.select().from(themeTemplates)
+        const existingTemplate = await db.select().from(themeTemplates)
           .where(eq(themeTemplates.themeId, themeId))
           .limit(1);
         

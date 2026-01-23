@@ -90,7 +90,7 @@ export async function migrateThemeConfigs(
   console.log(`   Options: autoPublish=${autoPublish}, dryRun=${dryRun}`);
 
   // Get all stores (or specific ones)
-  let storeQuery = db.select().from(stores);
+  const storeQuery = db.select().from(stores);
   const allStores = await storeQuery;
   
   const storesToMigrate = storeIds?.length 
@@ -130,7 +130,7 @@ export async function migrateThemeConfigs(
       }
 
       // Step 1: Ensure theme exists
-      let existingTheme = await db.select().from(themes)
+      const existingTheme = await db.select().from(themes)
         .where(eq(themes.shopId, store.id))
         .limit(1);
       
@@ -151,7 +151,7 @@ export async function migrateThemeConfigs(
       }
 
       // Step 2: Ensure home template exists
-      let existingTemplate = await db.select().from(themeTemplates)
+      const existingTemplate = await db.select().from(themeTemplates)
         .where(eq(themeTemplates.themeId, themeId))
         .limit(1);
       

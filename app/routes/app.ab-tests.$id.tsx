@@ -58,7 +58,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   // Calculate significance
   let significance = { significant: false, confidence: 0 };
   let bestVariant = variantsWithStats[0];
-  let controlVariant = variantsWithStats.find(v => v.name.toLowerCase().includes('control')) || variantsWithStats[0];
+  const controlVariant = variantsWithStats.find(v => v.name.toLowerCase().includes('control')) || variantsWithStats[0];
   
   if (variantsWithStats.length >= 2) {
     const variant = variantsWithStats.find(v => v.id !== controlVariant?.id);

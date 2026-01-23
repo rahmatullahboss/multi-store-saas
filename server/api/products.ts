@@ -50,7 +50,7 @@ productsApi.get('/', async (c) => {
   }
   
   // Build query with store_id filter (crucial for multi-tenancy!)
-  let query = db
+  const query = db
     .select()
     .from(products)
     .where(

@@ -93,7 +93,7 @@ export async function sendWhatsApp(db: Database, env: Env, { to, templateName, t
 
   const url = `https://graph.facebook.com/v18.0/${phoneId}/messages`;
   
-  let body: any = {
+  const body: any = {
     messaging_product: "whatsapp",
     to: to,
   };

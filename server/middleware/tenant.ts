@@ -158,7 +158,7 @@ export const tenantMiddleware = (): MiddlewareHandler<{ Bindings: TenantEnv; Var
       ? `${CACHE_KEYS.TENANT_SUBDOMAIN}${value}`
       : `${CACHE_KEYS.TENANT_DOMAIN}${value}`;
     
-    let isCustomDomain = type === 'custom';
+    const isCustomDomain = type === 'custom';
     
     // Try KV cache first (fastest ~10ms)
     if (kvCache) {

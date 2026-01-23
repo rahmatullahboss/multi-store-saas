@@ -150,7 +150,7 @@ export async function getCartWithItems(
     .filter((i) => i.item.variantId)
     .map((i) => i.item.variantId as number);
 
-  let variantsMap: Map<number, any> = new Map();
+  const variantsMap: Map<number, any> = new Map();
   if (variantIds.length > 0) {
     const variants = await drizzleDb
       .select()
