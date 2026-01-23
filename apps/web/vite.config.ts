@@ -13,6 +13,12 @@ const CDN_BASE_URL = process.env.NODE_ENV === 'production'
   : '/';
 
 export default defineConfig({
+  server: {
+    fs: {
+      // Allow serving files from one level up to the project root
+      allow: [".."],
+    },
+  },
   // In production, assets are served from CDN domain
   // This means HTML from subdomains will reference assets from the main domain
   base: CDN_BASE_URL,
