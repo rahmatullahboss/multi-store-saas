@@ -82,10 +82,6 @@ export function DefaultOrderForm({ props, theme, storeId, productId, product, se
     showDeliveryEstimate = true,
     deliveryEstimateDhaka = '১-২ দিন',
     deliveryEstimateOutside = '৩-৫ দিন',
-    // Combo Discount Settings (editable from editor)
-    enableComboDiscount = true,
-    comboDiscount2Products = 10,
-    comboDiscount3Products = 15,
   } = orderProps;
   
   const { actualVariants, actualProductImage, actualProductTitle, actualPrice, actualComparePrice, formatPrice } = calculations;
