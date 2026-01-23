@@ -21,7 +21,7 @@ pages_build_output_dir = "build/client"
 binding = "DB"
 database_name = "multi-store-saas-db"
 database_id = "bf882d16-d67a-4007-b503-33646bd693af"
-migrations_dir = "db/migrations"
+migrations_dir = "../../packages/database/src/migrations"
 
 # R2 Storage binding
 # Create bucket first: wrangler r2 bucket create multi-store-saas-media

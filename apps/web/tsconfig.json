@@ -18,7 +18,7 @@
     "paths": {
       "~/*": ["./app/*"],
       "@server/*": ["./server/*"],
-      "@db/*": ["./db/*"]
+      "@db/*": ["../../packages/database/src/*"]
     },
     "baseUrl": "."
   },
