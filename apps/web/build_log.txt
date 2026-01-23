@@ -1,0 +1,736 @@
+npm warn Unknown project config "node-linker". This will stop working in the next major version of npm.
+
+> build
+> remix vite:build
+
+vite v6.4.1 building for production...
+transforming...
+✓ 4293 modules transformed.
+Generated an empty chunk: "resources.order-invoice._orderId".
+Generated an empty chunk: "api.generate-marketing-message".
+Generated an empty chunk: "resources.invoice._paymentId".
+Generated an empty chunk: "store.auth.google.callback".
+Generated an empty chunk: "api.cron.checkout-cleanup".
+Generated an empty chunk: "api.metafield-definitions".
+Generated an empty chunk: "admin.stop-impersonation".
+Generated an empty chunk: "api.admin.migrate-themes".
+Generated an empty chunk: "api.newsletter.subscribe".
+Generated an empty chunk: "api.page-builder.storage".
+Generated an empty chunk: "api.recalculate-segments".
+Generated an empty chunk: "api.admin.export-stores".
+Generated an empty chunk: "api.marketplace.publish".
+Generated an empty chunk: "api.analytics.forecast".
+Generated an empty chunk: "manifest_._webmanifest".
+Generated an empty chunk: "api.courier.steadfast".
+Generated an empty chunk: "api.marketplace.apply".
+Generated an empty chunk: "api.template-versions".
+Generated an empty chunk: "auth.google.callback".
+Generated an empty chunk: "api.check-low-stock".
+Generated an empty chunk: "api.marketing-stats".
+Generated an empty chunk: "api.products.export".
+Generated an empty chunk: "api.recommendations".
+Generated an empty chunk: "api.decline-upsell".
+Generated an empty chunk: "api.marketing-lead".
+Generated an empty chunk: "api.push.subscribe".
+Generated an empty chunk: "api.accept-upsell".
+Generated an empty chunk: "api.agent.webhook".
+Generated an empty chunk: "api.store-context".
+Generated an empty chunk: "api.v1.orders._id".
+Generated an empty chunk: "store.auth.google".
+Generated an empty chunk: "store.auth.logout".
+Generated an empty chunk: "api.delete-image".
+Generated an empty chunk: "api.upload-image".
+Generated an empty chunk: "api.visitor-chat".
+Generated an empty chunk: "api.proxy-image".
+Generated an empty chunk: "api.track-visit".
+Generated an empty chunk: "api.v1.products".
+Generated an empty chunk: "preview._pageId".
+Generated an empty chunk: "api.agent.chat".
+Generated an empty chunk: "api.domain.add".
+Generated an empty chunk: "api.metafields".
+Generated an empty chunk: "api.track-cart".
+Generated an empty chunk: "api.ai.action".
+Generated an empty chunk: "api.push.send".
+Generated an empty chunk: "api.scheduler".
+Generated an empty chunk: "api.subscribe".
+Generated an empty chunk: "api.v1.orders".
+Generated an empty chunk: "sitemap_._xml".
+Generated an empty chunk: "api.products".
+Generated an empty chunk: "api.push.key".
+Generated an empty chunk: "api.ai.chat".
+Generated an empty chunk: "api.reviews".
+Generated an empty chunk: "auth.google".
+Generated an empty chunk: "auth.logout".
+Generated an empty chunk: "product._id".
+Generated an empty chunk: "app._index".
+Generated an empty chunk: "api.cart".
+Generated an empty chunk: "api.chat".
+rendering chunks...
+computing gzip size...
+build/client/.vite/manifest.json                                                  324.53 kB │ gzip:  29.35 kB
+build/client/assets/root-CmrWdkvK.css                                             415.33 kB │ gzip:  47.27 kB
+build/client/assets/resources.order-invoice._orderId-l0sNRNKZ.js                    0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.generate-marketing-message-l0sNRNKZ.js                      0.00 kB │ gzip:   0.02 kB
+build/client/assets/resources.invoice._paymentId-l0sNRNKZ.js                        0.00 kB │ gzip:   0.02 kB
+build/client/assets/store.auth.google.callback-l0sNRNKZ.js                          0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.cron.checkout-cleanup-l0sNRNKZ.js                           0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.metafield-definitions-l0sNRNKZ.js                           0.00 kB │ gzip:   0.02 kB
+build/client/assets/admin.stop-impersonation-l0sNRNKZ.js                            0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.admin.migrate-themes-l0sNRNKZ.js                            0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.newsletter.subscribe-l0sNRNKZ.js                            0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.page-builder.storage-l0sNRNKZ.js                            0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.recalculate-segments-l0sNRNKZ.js                            0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.admin.export-stores-l0sNRNKZ.js                             0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.marketplace.publish-l0sNRNKZ.js                             0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.analytics.forecast-l0sNRNKZ.js                              0.00 kB │ gzip:   0.02 kB
+build/client/assets/manifest_._webmanifest-l0sNRNKZ.js                              0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.courier.steadfast-l0sNRNKZ.js                               0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.marketplace.apply-l0sNRNKZ.js                               0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.template-versions-l0sNRNKZ.js                               0.00 kB │ gzip:   0.02 kB
+build/client/assets/auth.google.callback-l0sNRNKZ.js                                0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.check-low-stock-l0sNRNKZ.js                                 0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.marketing-stats-l0sNRNKZ.js                                 0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.products.export-l0sNRNKZ.js                                 0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.recommendations-l0sNRNKZ.js                                 0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.decline-upsell-l0sNRNKZ.js                                  0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.marketing-lead-l0sNRNKZ.js                                  0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.push.subscribe-l0sNRNKZ.js                                  0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.accept-upsell-l0sNRNKZ.js                                   0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.agent.webhook-l0sNRNKZ.js                                   0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.store-context-l0sNRNKZ.js                                   0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.v1.orders._id-l0sNRNKZ.js                                   0.00 kB │ gzip:   0.02 kB
+build/client/assets/store.auth.google-l0sNRNKZ.js                                   0.00 kB │ gzip:   0.02 kB
+build/client/assets/store.auth.logout-l0sNRNKZ.js                                   0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.delete-image-l0sNRNKZ.js                                    0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.upload-image-l0sNRNKZ.js                                    0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.visitor-chat-l0sNRNKZ.js                                    0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.proxy-image-l0sNRNKZ.js                                     0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.track-visit-l0sNRNKZ.js                                     0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.v1.products-l0sNRNKZ.js                                     0.00 kB │ gzip:   0.02 kB
+build/client/assets/preview._pageId-l0sNRNKZ.js                                     0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.agent.chat-l0sNRNKZ.js                                      0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.domain.add-l0sNRNKZ.js                                      0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.metafields-l0sNRNKZ.js                                      0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.track-cart-l0sNRNKZ.js                                      0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.ai.action-l0sNRNKZ.js                                       0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.push.send-l0sNRNKZ.js                                       0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.scheduler-l0sNRNKZ.js                                       0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.subscribe-l0sNRNKZ.js                                       0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.v1.orders-l0sNRNKZ.js                                       0.00 kB │ gzip:   0.02 kB
+build/client/assets/sitemap_._xml-l0sNRNKZ.js                                       0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.products-l0sNRNKZ.js                                        0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.push.key-l0sNRNKZ.js                                        0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.ai.chat-l0sNRNKZ.js                                         0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.reviews-l0sNRNKZ.js                                         0.00 kB │ gzip:   0.02 kB
+build/client/assets/auth.google-l0sNRNKZ.js                                         0.00 kB │ gzip:   0.02 kB
+build/client/assets/auth.logout-l0sNRNKZ.js                                         0.00 kB │ gzip:   0.02 kB
+build/client/assets/product._id-l0sNRNKZ.js                                         0.00 kB │ gzip:   0.02 kB
+build/client/assets/app._index-l0sNRNKZ.js                                          0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.cart-l0sNRNKZ.js                                            0.00 kB │ gzip:   0.02 kB
+build/client/assets/api.chat-l0sNRNKZ.js                                            0.00 kB │ gzip:   0.02 kB
+build/client/assets/app.campaigns-CxL3TaTd.js                                       0.19 kB │ gzip:   0.17 kB
+build/client/assets/app.products-D6bEvFOQ.js                                        0.19 kB │ gzip:   0.17 kB
+build/client/assets/app.settings-qWhyizSs.js                                        0.19 kB │ gzip:   0.17 kB
+build/client/assets/app.orders-OKukZrRS.js                                          0.19 kB │ gzip:   0.17 kB
+build/client/assets/products-D6bEvFOQ.js                                            0.19 kB │ gzip:   0.17 kB
+build/client/assets/theme--qwUNbgw.js                                               0.21 kB │ gzip:   0.16 kB
+build/client/assets/theme-DTkJVKst.js                                               0.25 kB │ gzip:   0.18 kB
+build/client/assets/client-only-DYoONxQC.js                                         0.27 kB │ gzip:   0.20 kB
+build/client/assets/useWishlist-BJSOJg_n.js                                         0.29 kB │ gzip:   0.22 kB
+build/client/assets/minus-5ZHIiPlY.js                                               0.30 kB │ gzip:   0.24 kB
+build/client/assets/check-DpaGCS0_.js                                               0.30 kB │ gzip:   0.25 kB
+build/client/assets/theme-BrNMFHJE.js                                               0.31 kB │ gzip:   0.22 kB
+build/client/assets/chevron-up-DaRqPyRt.js                                          0.31 kB │ gzip:   0.25 kB
+build/client/assets/chevron-down-MED5kYbE.js                                        0.31 kB │ gzip:   0.25 kB
+build/client/assets/chevron-right-DFExnxWl.js                                       0.31 kB │ gzip:   0.25 kB
+build/client/assets/chevron-left-sE9lkNwx.js                                        0.31 kB │ gzip:   0.25 kB
+build/client/assets/loader-circle--FtPhC3g.js                                       0.32 kB │ gzip:   0.26 kB
+build/client/assets/square-CXj3FITr.js                                              0.33 kB │ gzip:   0.26 kB
+build/client/assets/plus-WMD4RvkR.js                                                0.34 kB │ gzip:   0.26 kB
+build/client/assets/x-CQyeAmda.js                                                   0.34 kB │ gzip:   0.26 kB
+build/client/assets/cloud-BL_VKN0F.js                                               0.34 kB │ gzip:   0.27 kB
+build/client/assets/code-CCsLp5YF.js                                                0.35 kB │ gzip:   0.26 kB
+build/client/assets/terminal-DydwqmJF.js                                            0.35 kB │ gzip:   0.27 kB
+build/client/assets/clock-DHH1MSCu.js                                               0.35 kB │ gzip:   0.27 kB
+build/client/assets/arrow-left-CSGCHFLa.js                                          0.35 kB │ gzip:   0.27 kB
+build/client/assets/arrow-right-DDigIyxV.js                                         0.35 kB │ gzip:   0.27 kB
+build/client/assets/arrow-down-CHLqQWS1.js                                          0.35 kB │ gzip:   0.27 kB
+build/client/assets/arrow-up-right-DxrE5Vqj.js                                      0.35 kB │ gzip:   0.27 kB
+build/client/assets/search-DH4BlDwf.js                                              0.35 kB │ gzip:   0.28 kB
+build/client/assets/arrow-down-right-CQBpICRo.js                                    0.35 kB │ gzip:   0.27 kB
+build/client/assets/circle-check-CE4fRS0d.js                                        0.36 kB │ gzip:   0.28 kB
+build/client/assets/trending-up-D7vxfNV8.js                                         0.36 kB │ gzip:   0.28 kB
+build/client/assets/ban-jDI09-vh.js                                                 0.36 kB │ gzip:   0.28 kB
+build/client/assets/facebook-CD-NXXk3.js                                            0.36 kB │ gzip:   0.29 kB
+build/client/assets/trending-down-BFWVBJel.js                                       0.36 kB │ gzip:   0.28 kB
+build/client/assets/menu-DOeLlVp-.js                                                0.37 kB │ gzip:   0.27 kB
+build/client/assets/circle-check-big-D0o2lswT.js                                    0.37 kB │ gzip:   0.29 kB
+build/client/assets/play-BzOty5zd.js                                                0.37 kB │ gzip:   0.29 kB
+build/client/assets/theme-Bpf_Q7sZ.js                                               0.37 kB │ gzip:   0.28 kB
+build/client/assets/user-DSzkDrXr.js                                                0.38 kB │ gzip:   0.29 kB
+build/client/assets/PreviewSafeLink-O14qFMPg.js                                     0.38 kB │ gzip:   0.26 kB
+build/client/assets/flame-C_iYh7yn.js                                               0.38 kB │ gzip:   0.29 kB
+build/client/assets/toggle-right-CD_lvpet.js                                        0.38 kB │ gzip:   0.29 kB
+build/client/assets/smartphone-Bgxca9Gn.js                                          0.38 kB │ gzip:   0.29 kB
+build/client/assets/info-B2yWQDP_.js                                                0.38 kB │ gzip:   0.28 kB
+build/client/assets/toggle-left-aFpe-pg8.js                                         0.38 kB │ gzip:   0.30 kB
+build/client/assets/rotate-ccw-BeRh3l_A.js                                          0.38 kB │ gzip:   0.29 kB
+build/client/assets/lock-BTzYucFL.js                                                0.39 kB │ gzip:   0.30 kB
+build/client/assets/circle-x-BxywBgIg.js                                            0.39 kB │ gzip:   0.28 kB
+build/client/assets/circle-plus-BkkEQfoP.js                                         0.39 kB │ gzip:   0.28 kB
+build/client/assets/credit-card-CKpwHQae.js                                         0.39 kB │ gzip:   0.30 kB
+build/client/assets/undo-2-dDPe6xKg.js                                              0.39 kB │ gzip:   0.29 kB
+build/client/assets/pause-C5yh7J5E.js                                               0.40 kB │ gzip:   0.28 kB
+build/client/assets/chart-no-axes-column-increasing-Ci_f42nR.js                     0.40 kB │ gzip:   0.29 kB
+build/client/assets/tablet-tcRaM5c8.js                                              0.40 kB │ gzip:   0.30 kB
+build/client/assets/mail-uuEZ7oda.js                                                0.40 kB │ gzip:   0.31 kB
+build/client/assets/debug-env-DEr69HaS.js                                           0.40 kB │ gzip:   0.29 kB
+build/client/assets/dollar-sign-D9DITFjA.js                                         0.40 kB │ gzip:   0.30 kB
+build/client/assets/type-DyEWQfsG.js                                                0.40 kB │ gzip:   0.29 kB
+build/client/assets/target-DEEtcfVA.js                                              0.41 kB │ gzip:   0.27 kB
+build/client/assets/panels-top-left-_HNpDFxn.js                                     0.41 kB │ gzip:   0.30 kB
+build/client/assets/folder-BH89iVC3.js                                              0.41 kB │ gzip:   0.30 kB
+build/client/assets/log-out-DseRjisg.js                                             0.41 kB │ gzip:   0.30 kB
+build/client/assets/upload-D6PhvHum.js                                              0.41 kB │ gzip:   0.30 kB
+build/client/assets/copy-D0KgKab5.js                                                0.42 kB │ gzip:   0.32 kB
+build/client/assets/download-BWO2yJKl.js                                            0.42 kB │ gzip:   0.30 kB
+build/client/assets/theme-Bk4fXhk_.js                                               0.42 kB │ gzip:   0.30 kB
+build/client/assets/message-square-DjKb2Q8Y.js                                      0.42 kB │ gzip:   0.31 kB
+build/client/assets/activity-BrGsrh_H.js                                            0.42 kB │ gzip:   0.31 kB
+build/client/assets/pen-CJTSjbDH.js                                                 0.42 kB │ gzip:   0.31 kB
+build/client/assets/globe-madMPSfc.js                                               0.42 kB │ gzip:   0.30 kB
+build/client/assets/headphones-Cr2AXgQO.js                                          0.42 kB │ gzip:   0.29 kB
+build/client/assets/percent-CosQCrr2.js                                             0.42 kB │ gzip:   0.30 kB
+build/client/assets/history-DmONKaN3.js                                             0.42 kB │ gzip:   0.31 kB
+build/client/assets/banknote-C3eAe5mb.js                                            0.42 kB │ gzip:   0.31 kB
+build/client/assets/message-circle-DgM2i25d.js                                      0.43 kB │ gzip:   0.32 kB
+build/client/assets/circle-question-mark-BPdEFfgs.js                                0.43 kB │ gzip:   0.31 kB
+build/client/assets/database-DmnhOFfs.js                                            0.43 kB │ gzip:   0.31 kB
+build/client/assets/twitter-CiTf1yOf.js                                             0.43 kB │ gzip:   0.33 kB
+build/client/assets/theme-C63a0gQL.js                                               0.43 kB │ gzip:   0.31 kB
+build/client/assets/circle-alert-DSOk8Tu8.js                                        0.43 kB │ gzip:   0.30 kB
+build/client/assets/eye-DgY6GkMO.js                                                 0.44 kB │ gzip:   0.31 kB
+build/client/assets/chart-column-JGUGZ3dP.js                                        0.44 kB │ gzip:   0.30 kB
+build/client/assets/external-link-OqX9GuXW.js                                       0.44 kB │ gzip:   0.31 kB
+build/client/assets/funnel-CUtLYm8N.js                                              0.44 kB │ gzip:   0.32 kB
+build/client/assets/map-pin-qy--dtm7.js                                             0.44 kB │ gzip:   0.33 kB
+build/client/assets/link-DYND2zx4.js                                                0.44 kB │ gzip:   0.30 kB
+build/client/assets/calendar-T4nrmrK2.js                                            0.44 kB │ gzip:   0.31 kB
+build/client/assets/heart-azQs--M8.js                                               0.44 kB │ gzip:   0.32 kB
+build/client/assets/monitor-BjnF-J7a.js                                             0.44 kB │ gzip:   0.32 kB
+build/client/assets/key-BNx5vQ8Z.js                                                 0.44 kB │ gzip:   0.32 kB
+build/client/assets/utensils-DvHsGLu6.js                                            0.45 kB │ gzip:   0.32 kB
+build/client/assets/zap-DCYXdvQu.js                                                 0.45 kB │ gzip:   0.32 kB
+build/client/assets/triangle-alert-D3UDAeqD.js                                      0.45 kB │ gzip:   0.32 kB
+build/client/assets/leaf-ClpHHNLq.js                                                0.45 kB │ gzip:   0.34 kB
+build/client/assets/shield-BHFi3Gr6.js                                              0.45 kB │ gzip:   0.33 kB
+build/client/assets/image-BVAoFYFI.js                                               0.45 kB │ gzip:   0.33 kB
+build/client/assets/award-CecqGh4O.js                                               0.45 kB │ gzip:   0.33 kB
+build/client/assets/coins-DAUzcQ8a.js                                               0.46 kB │ gzip:   0.33 kB
+build/client/assets/pencil-NHEnnMcE.js                                              0.46 kB │ gzip:   0.33 kB
+build/client/assets/book-open-DwBkSu3j.js                                           0.46 kB │ gzip:   0.32 kB
+build/client/assets/house-DZWbEmE2.js                                               0.47 kB │ gzip:   0.32 kB
+build/client/assets/lightbulb-CRFZQMje.js                                           0.47 kB │ gzip:   0.33 kB
+build/client/assets/shirt-CVgrEJDg.js                                               0.47 kB │ gzip:   0.34 kB
+build/client/assets/wallet-C_SMuAAl.js                                              0.47 kB │ gzip:   0.32 kB
+build/client/assets/inbox-DF6bEKUu.js                                               0.47 kB │ gzip:   0.34 kB
+build/client/assets/layout-template-IqbEziwq.js                                     0.47 kB │ gzip:   0.30 kB
+build/client/assets/shopping-cart-D2i7AuM3.js                                       0.47 kB │ gzip:   0.34 kB
+build/client/assets/send-BTNQCTay.js                                                0.47 kB │ gzip:   0.34 kB
+build/client/assets/bell-CrgJ4v6D.js                                                0.47 kB │ gzip:   0.34 kB
+build/client/assets/grid-3x3-B9lhk4nK.js                                            0.48 kB │ gzip:   0.32 kB
+build/client/assets/instagram-BKU9q0_d.js                                           0.48 kB │ gzip:   0.34 kB
+build/client/assets/thumbs-up-BxUr7cgv.js                                           0.49 kB │ gzip:   0.35 kB
+build/client/assets/list-D6yCHcZD.js                                                0.49 kB │ gzip:   0.30 kB
+build/client/assets/laptop-B4w_N2qf.js                                              0.49 kB │ gzip:   0.34 kB
+build/client/assets/users-crPJ3U-R.js                                               0.49 kB │ gzip:   0.33 kB
+build/client/assets/user-plus-Cq0-qh-_.js                                           0.49 kB │ gzip:   0.34 kB
+build/client/assets/box-CnvnfxCv.js                                                 0.49 kB │ gzip:   0.33 kB
+build/client/assets/badge-check-D2dXwp9X.js                                         0.50 kB │ gzip:   0.32 kB
+build/client/assets/shield-check-DxV2hMhh.js                                        0.50 kB │ gzip:   0.36 kB
+build/client/assets/languages-BOCmtQb4.js                                           0.50 kB │ gzip:   0.33 kB
+build/client/assets/printer-BCE82Kt-.js                                             0.50 kB │ gzip:   0.34 kB
+build/client/assets/square-pen-DT6u7Wy4.js                                          0.50 kB │ gzip:   0.34 kB
+build/client/assets/refresh-cw-C-Cw0H1P.js                                          0.51 kB │ gzip:   0.33 kB
+build/client/assets/tag-CyJViq0v.js                                                 0.51 kB │ gzip:   0.35 kB
+build/client/assets/refresh-ccw-CuYW5u-Y.js                                         0.51 kB │ gzip:   0.33 kB
+build/client/assets/ticket-DS2m6IJO.js                                              0.51 kB │ gzip:   0.32 kB
+build/client/assets/phone-j4bICseM.js                                               0.51 kB │ gzip:   0.34 kB
+build/client/assets/save-Dpy6uCmQ.js                                                0.51 kB │ gzip:   0.33 kB
+build/client/assets/trash-2-BiDKHe29.js                                             0.51 kB │ gzip:   0.32 kB
+build/client/assets/youtube-Cj96CHEI.js                                             0.51 kB │ gzip:   0.33 kB
+build/client/assets/bot-CkrR5iNC.js                                                 0.51 kB │ gzip:   0.34 kB
+build/client/assets/use-track-visit-CKywpztt.js                                     0.52 kB │ gzip:   0.38 kB
+build/client/assets/server-COsQrpjl.js                                              0.52 kB │ gzip:   0.32 kB
+build/client/assets/shopping-bag-BQCAMn6P.js                                        0.52 kB │ gzip:   0.35 kB
+build/client/assets/layout-dashboard-By-w4EyD.js                                    0.54 kB │ gzip:   0.32 kB
+build/client/assets/share-2-CFiIVX5p.js                                             0.54 kB │ gzip:   0.34 kB
+build/client/assets/shield-alert-Ba0UzFjw.js                                        0.54 kB │ gzip:   0.37 kB
+build/client/assets/gift-D81Cgeq5.js                                                0.54 kB │ gzip:   0.36 kB
+build/client/assets/list-ordered-DPhOWlcd.js                                        0.54 kB │ gzip:   0.34 kB
+build/client/assets/crown-DH9ePgy0.js                                               0.55 kB │ gzip:   0.37 kB
+build/client/assets/package-CutqUn2k.js                                             0.56 kB │ gzip:   0.37 kB
+build/client/assets/radio-hfAsRK4d.js                                               0.56 kB │ gzip:   0.36 kB
+build/client/assets/warehouse-B2G6MIXN.js                                           0.56 kB │ gzip:   0.36 kB
+build/client/assets/file-text-DpesbL2o.js                                           0.57 kB │ gzip:   0.36 kB
+build/client/assets/quote-DrBQdJxW.js                                               0.57 kB │ gzip:   0.31 kB
+build/client/assets/hard-drive-477Nepiu.js                                          0.58 kB │ gzip:   0.38 kB
+build/client/assets/useCartCount-C9cGSpdq.js                                        0.58 kB │ gzip:   0.35 kB
+build/client/assets/truck-Dt7tEfAJ.js                                               0.59 kB │ gzip:   0.37 kB
+build/client/assets/layers-rw39qWQF.js                                              0.61 kB │ gzip:   0.35 kB
+build/client/assets/package-x-CXG0t7K_.js                                           0.61 kB │ gzip:   0.40 kB
+build/client/assets/file-spreadsheet-BAWJbLPz.js                                    0.61 kB │ gzip:   0.37 kB
+build/client/assets/eye-off-Bc01Xmz3.js                                             0.61 kB │ gzip:   0.38 kB
+build/client/assets/theme-DpPqLr7p.js                                               0.61 kB │ gzip:   0.41 kB
+build/client/assets/theme-BplavEWn.js                                               0.62 kB │ gzip:   0.38 kB
+build/client/assets/rocket-BwrTHc_9.js                                              0.64 kB │ gzip:   0.42 kB
+build/client/assets/image-off-CHYgh1Y1.js                                           0.66 kB │ gzip:   0.41 kB
+build/client/assets/star-D_0Zt3W2.js                                                0.66 kB │ gzip:   0.41 kB
+build/client/assets/trophy-DDuWdXYO.js                                              0.66 kB │ gzip:   0.39 kB
+build/client/assets/WishlistContext-BRtDNyK_.js                                     0.67 kB │ gzip:   0.42 kB
+build/client/assets/settings-BTG3BYHE.js                                            0.67 kB │ gzip:   0.36 kB
+build/client/assets/sparkles-Cd1m-W_R.js                                            0.68 kB │ gzip:   0.39 kB
+build/client/assets/store-CNpa3Pbf.js                                               0.68 kB │ gzip:   0.40 kB
+build/client/assets/palette-BDeGlrs6.js                                             0.69 kB │ gzip:   0.39 kB
+build/client/assets/wand-sparkles-DXeY2I4k.js                                       0.70 kB │ gzip:   0.40 kB
+build/client/assets/RichTextSection-CLSCIDl9.js                                     0.71 kB │ gzip:   0.44 kB
+build/client/assets/GlassCard-DlXBANxn.js                                           0.81 kB │ gzip:   0.47 kB
+build/client/assets/cpu-3mouoACD.js                                                 0.83 kB │ gzip:   0.40 kB
+build/client/assets/use-in-view-DIz3pJBc.js                                         0.84 kB │ gzip:   0.49 kB
+build/client/assets/SectionRenderer-BvmVJRNA.js                                     0.85 kB │ gzip:   0.54 kB
+build/client/assets/offline-DDAHMCUI.js                                             0.89 kB │ gzip:   0.51 kB
+build/client/assets/party-popper-NZ_rc8S8.js                                        0.91 kB │ gzip:   0.52 kB
+build/client/assets/EmptyState-JWE63Y-H.js                                          0.95 kB │ gzip:   0.45 kB
+build/client/assets/SkeletonLoader-Cl6KReLD.js                                      0.98 kB │ gzip:   0.39 kB
+build/client/assets/context-BjotSpcd.js                                             0.99 kB │ gzip:   0.59 kB
+build/client/assets/AreaChartImpl-BuwlEU55.js                                       1.00 kB │ gzip:   0.56 kB
+build/client/assets/sun-C6OGuZvc.js                                                 1.00 kB │ gzip:   0.47 kB
+build/client/assets/money-0d3pnw6_.js                                               1.03 kB │ gzip:   0.57 kB
+build/client/assets/LowStockAlertBanner-CGUFVTbQ.js                                 1.03 kB │ gzip:   0.52 kB
+build/client/assets/imageCompression-SJLftJrj.js                                    1.12 kB │ gzip:   0.60 kB
+build/client/assets/ScrollReveal-BhfLSDJi.js                                        1.14 kB │ gzip:   0.46 kB
+build/client/assets/shipping-Bo0snAiV.js                                            1.17 kB │ gzip:   0.56 kB
+build/client/assets/preload-helper-D_9y8gQZ.js                                      1.18 kB │ gzip:   0.69 kB
+build/client/assets/StatCard-D92F-CyQ.js                                            1.18 kB │ gzip:   0.55 kB
+build/client/assets/CollectionHeaderSection-CnRwzpwj.js                             1.19 kB │ gzip:   0.62 kB
+build/client/assets/activity-DSdaCLQP.js                                            1.21 kB │ gzip:   0.45 kB
+build/client/assets/pages._slug-dIuDs6VD.js                                         1.27 kB │ gzip:   0.69 kB
+build/client/assets/LazySection-D6nbWfP6.js                                         1.29 kB │ gzip:   0.66 kB
+build/client/assets/FeaturesSection-CU9i3wEe.js                                     1.41 kB │ gzip:   0.73 kB
+build/client/assets/FAQSection-BZM4ioUc.js                                          1.41 kB │ gzip:   0.73 kB
+build/client/assets/api.create-order-oiXqj38R.js                                    1.54 kB │ gzip:   0.73 kB
+build/client/assets/useEditorHistory-DUl7-vTd.js                                    1.67 kB │ gzip:   0.88 kB
+build/client/assets/RichTextEditor.lazy-C9dmIYwR.js                                 1.69 kB │ gzip:   0.67 kB
+build/client/assets/PageHeader-T_IYuG5Y.js                                          1.71 kB │ gzip:   0.63 kB
+build/client/assets/TrustBadgesSection-BonHh7OS.js                                  1.80 kB │ gzip:   0.79 kB
+build/client/assets/checkout.cancelled-zblKExYH.js                                  1.80 kB │ gzip:   0.79 kB
+build/client/assets/CartUpsellSection-BRpuF4by.js                                   1.82 kB │ gzip:   0.89 kB
+build/client/assets/TestimonialsSection-BzPZAhRE.js                                 1.84 kB │ gzip:   0.87 kB
+build/client/assets/StatusTabs-D_DkaUFH.js                                          1.86 kB │ gzip:   0.90 kB
+build/client/assets/createLucideIcon-C8T5I6tr.js                                    1.86 kB │ gzip:   0.80 kB
+build/client/assets/store-template-preview._templateId-DgdjEwAA.js                  1.90 kB │ gzip:   0.98 kB
+build/client/assets/CollectionListSection-D5kZV9n2.js                               1.98 kB │ gzip:   0.97 kB
+build/client/assets/tracking-CExoZHNl.js                                            1.99 kB │ gzip:   0.55 kB
+build/client/assets/RelatedProductsSection-BQ0YrXBN.js                              2.01 kB │ gzip:   0.99 kB
+build/client/assets/HeroSection-C8kYpMCk.js                                         2.09 kB │ gzip:   0.98 kB
+build/client/assets/NewsletterSection-Dy4w3Oaj.js                                   2.15 kB │ gzip:   1.12 kB
+build/client/assets/CheckoutSummarySection-BmUruQaG.js                              2.36 kB │ gzip:   0.97 kB
+build/client/assets/Header-DON7wBWX.js                                              2.51 kB │ gzip:   1.13 kB
+build/client/assets/CartSummarySection-DRoBHQQ3.js                                  2.55 kB │ gzip:   0.95 kB
+build/client/assets/AddToCartButton-Co0b-764.js                                     2.69 kB │ gzip:   1.24 kB
+build/client/assets/checkout.failed-W-w_ne-d.js                                     2.77 kB │ gzip:   1.13 kB
+build/client/assets/ProductDescriptionSection-CPJVdMKr.js                           2.79 kB │ gzip:   1.19 kB
+build/client/assets/unsubscribe-CaKsvkk8.js                                         2.92 kB │ gzip:   1.12 kB
+build/client/assets/builder-preview._pageId-DGtivInU.js                             3.01 kB │ gzip:   1.34 kB
+build/client/assets/_index-buuNn90v.js                                              3.02 kB │ gzip:   1.34 kB
+build/client/assets/app.quick-builder.new-e27jAMBL.js                               3.09 kB │ gzip:   1.47 kB
+build/client/assets/checkout.success-DosvfNjW.js                                    3.16 kB │ gzip:   1.20 kB
+build/client/assets/auth.forgot-password-xRdOdu3g.js                                3.22 kB │ gzip:   1.31 kB
+build/client/assets/Footer-Bp6e3oQc.js                                              3.22 kB │ gzip:   1.23 kB
+build/client/assets/store.home-Dg73Y0xk.js                                          3.26 kB │ gzip:   1.48 kB
+build/client/assets/app.pages.new-CtXUUgPC.js                                       3.27 kB │ gzip:   1.24 kB
+build/client/assets/StoreImageUpload-CRUmbqCU.js                                    3.29 kB │ gzip:   1.57 kB
+build/client/assets/Header-u6kV5YVi.js                                              3.48 kB │ gzip:   1.42 kB
+build/client/assets/o._slug-CBeqRVOn.js                                             3.53 kB │ gzip:   1.70 kB
+build/client/assets/admin.visitor-chats-CmMPT6wK.js                                 3.58 kB │ gzip:   1.18 kB
+build/client/assets/Footer-CeCPozvo.js                                              3.59 kB │ gzip:   1.28 kB
+build/client/assets/app.collections-rey537ly.js                                     3.65 kB │ gzip:   1.30 kB
+build/client/assets/Header-DxeGzG4C.js                                              3.67 kB │ gzip:   1.39 kB
+build/client/assets/app.agent.config-DQ5IIIfA.js                                    3.69 kB │ gzip:   1.24 kB
+build/client/assets/Header-Cv42Ki7U.js                                              3.73 kB │ gzip:   1.49 kB
+build/client/assets/ProductGridSection-fncNpNJO.js                                  3.73 kB │ gzip:   1.48 kB
+build/client/assets/account.orders-BakRwhND.js                                      3.77 kB │ gzip:   1.56 kB
+build/client/assets/CartItemsSection-DpEpiBWF.js                                    3.86 kB │ gzip:   1.44 kB
+build/client/assets/store-template-preview._templateId_.products._id-Bdhwn-wW.js    3.88 kB │ gzip:   1.58 kB
+build/client/assets/Header-Bmt2TPlP.js                                              3.98 kB │ gzip:   1.49 kB
+build/client/assets/ProductReviewsSection-BEY6pEsu.js                               4.00 kB │ gzip:   1.51 kB
+build/client/assets/app.agent.chat-ByU0rFFs.js                                      4.11 kB │ gzip:   1.68 kB
+build/client/assets/Header-BK1PFCfX.js                                              4.22 kB │ gzip:   1.51 kB
+build/client/assets/Footer-CHpruUkt.js                                              4.27 kB │ gzip:   1.43 kB
+build/client/assets/auth.reset-password-D-jzebEF.js                                 4.36 kB │ gzip:   1.48 kB
+build/client/assets/account-A3zGqODI.js                                             4.42 kB │ gzip:   1.40 kB
+build/client/assets/MarketingFooter-DAokkd3C.js                                     4.42 kB │ gzip:   1.43 kB
+build/client/assets/Header-CFuvrVnP.js                                              4.48 kB │ gzip:   1.62 kB
+build/client/assets/Footer-f4CmYE11.js                                              4.54 kB │ gzip:   1.67 kB
+build/client/assets/policies._type-CmlvFkOf.js                                      4.55 kB │ gzip:   1.75 kB
+build/client/assets/Header--lQZfY80.js                                              4.57 kB │ gzip:   1.73 kB
+build/client/assets/app.push-D9c4Er2P.js                                            4.58 kB │ gzip:   1.66 kB
+build/client/assets/Footer-BjRNxd4o.js                                              4.72 kB │ gzip:   1.37 kB
+build/client/assets/app.settings.messaging-UMIsNJPd.js                              4.73 kB │ gzip:   1.43 kB
+build/client/assets/preview-frame-hrRej48l.js                                       4.75 kB │ gzip:   2.18 kB
+build/client/assets/Footer-D84DqK_I.js                                              4.76 kB │ gzip:   1.38 kB
+build/client/assets/app.ai-setup-7wKdIEDJ.js                                        4.90 kB │ gzip:   1.88 kB
+build/client/assets/Header-CEd8M4WE.js                                              4.96 kB │ gzip:   1.64 kB
+build/client/assets/app.theme-store-DybLekGp.js                                     4.98 kB │ gzip:   1.86 kB
+build/client/assets/auth.login-BgM8yRBD.js                                          5.00 kB │ gzip:   1.92 kB
+build/client/assets/index-CF0rpzs1.js                                               5.02 kB │ gzip:   2.29 kB
+build/client/assets/template-preview._templateId-B9QjIlvJ.js                        5.06 kB │ gzip:   2.20 kB
+build/client/assets/app.returns-CopI37Rx.js                                         5.07 kB │ gzip:   1.85 kB
+build/client/assets/Footer-C2a-SQJR.js                                              5.13 kB │ gzip:   1.86 kB
+build/client/assets/admin._index-BHcPPusx.js                                        5.17 kB │ gzip:   1.69 kB
+build/client/assets/Header-BZuwzsQV.js                                              5.23 kB │ gzip:   1.88 kB
+build/client/assets/Footer-Ba-odV29.js                                              5.32 kB │ gzip:   1.66 kB
+build/client/assets/products._id-CP1KUEgK.js                                        5.34 kB │ gzip:   2.34 kB
+build/client/assets/app.my-themes-Cl4upCHs.js                                       5.41 kB │ gzip:   1.84 kB
+build/client/assets/FAQSection-D_U5nWMK.js                                          5.49 kB │ gzip:   1.87 kB
+build/client/assets/InfrastructureCTA-CK7EkpJl.js                                   5.49 kB │ gzip:   1.87 kB
+build/client/assets/Header-DYCMTuJK.js                                              5.58 kB │ gzip:   1.84 kB
+build/client/assets/CartPage-CCWAG2PB.js                                            5.77 kB │ gzip:   1.74 kB
+build/client/assets/app.abandoned-carts-D2swNN8-.js                                 5.82 kB │ gzip:   1.97 kB
+build/client/assets/app.agent.history-BCEvo4pF.js                                   5.84 kB │ gzip:   2.04 kB
+build/client/assets/app.campaigns.new-DFcw0CFu.js                                   5.85 kB │ gzip:   1.82 kB
+build/client/assets/UseCaseScenariosSection-CK0-pmDJ.js                             5.96 kB │ gzip:   2.53 kB
+build/client/assets/app.settings.payment-sijXybAu.js                                5.96 kB │ gzip:   1.32 kB
+build/client/assets/AISocialProofSection-CvNqX8-K.js                                6.00 kB │ gzip:   1.91 kB
+build/client/assets/app.campaigns._id-DnFzumPv.js                                   6.03 kB │ gzip:   1.87 kB
+build/client/assets/app.customers._index-BmuvBg9j.js                                6.10 kB │ gzip:   1.95 kB
+build/client/assets/Footer-VDxHWGVV.js                                              6.10 kB │ gzip:   1.79 kB
+build/client/assets/FeatureMatrixSection-BqDa3eSM.js                                6.10 kB │ gzip:   2.23 kB
+build/client/assets/Header-DC62hZHn.js                                              6.11 kB │ gzip:   1.99 kB
+build/client/assets/cart-C1oCODPg.js                                                6.16 kB │ gzip:   2.29 kB
+build/client/assets/Footer-v5aLr33-.js                                              6.17 kB │ gzip:   1.89 kB
+build/client/assets/admin.security-D9mftScg.js                                      6.22 kB │ gzip:   1.95 kB
+build/client/assets/CheckoutFormSection-D4fT2vI9.js                                 6.28 kB │ gzip:   1.93 kB
+build/client/assets/auth.register-DIEk09Wd.js                                       6.29 kB │ gzip:   1.81 kB
+build/client/assets/Footer-CuZ938UP.js                                              6.29 kB │ gzip:   1.87 kB
+build/client/assets/complete-profile-OR1K7dtW.js                                    6.32 kB │ gzip:   2.34 kB
+build/client/assets/ProductMainSection-D3ZxSPVA.js                                  6.36 kB │ gzip:   2.26 kB
+build/client/assets/variantRegistry-CWtQjCGB.js                                     6.38 kB │ gzip:   2.11 kB
+build/client/assets/app.settings.shipping-C3Htbvf7.js                               6.47 kB │ gzip:   1.84 kB
+build/client/assets/index-BG1-vEci.js                                               6.53 kB │ gzip:   2.81 kB
+build/client/assets/app.reviews-CClbZDwt.js                                         6.54 kB │ gzip:   1.90 kB
+build/client/assets/app.settings.legal-D1zmXPJN.js                                  6.55 kB │ gzip:   2.24 kB
+build/client/assets/app.ab-tests.new-DRL3tdXQ.js                                    6.57 kB │ gzip:   2.15 kB
+build/client/assets/admin.broadcasts-CkWQoueD.js                                    6.60 kB │ gzip:   1.92 kB
+build/client/assets/Footer-Bji_MGX2.js                                              6.64 kB │ gzip:   2.14 kB
+build/client/assets/invite._token-Dq12c_8A.js                                       6.68 kB │ gzip:   1.83 kB
+build/client/assets/Header-BYrjRiP8.js                                              6.70 kB │ gzip:   2.01 kB
+build/client/assets/thank-you._orderId-Cu4AUxdC.js                                  6.71 kB │ gzip:   2.17 kB
+build/client/assets/AIPoweredFinalCTA-cX1vqRYj.js                                   6.71 kB │ gzip:   2.25 kB
+build/client/assets/Footer-COoDEefH.js                                              6.74 kB │ gzip:   1.93 kB
+build/client/assets/use-scroll-rcjG1TnD.js                                          6.76 kB │ gzip:   2.82 kB
+build/client/assets/app.settings.activity-DRDO7pgh.js                               6.83 kB │ gzip:   2.31 kB
+build/client/assets/app.inventory.import-DCA8jOdY.js                                6.84 kB │ gzip:   2.43 kB
+build/client/assets/AllInOneSolution-32JiTYvN.js                                    6.86 kB │ gzip:   2.33 kB
+build/client/assets/index-BOrS6_f_.js                                               6.88 kB │ gzip:   2.63 kB
+build/client/assets/InfrastructureSection-C5H0CgSY.js                               6.89 kB │ gzip:   2.69 kB
+build/client/assets/upsell._token-C3xgVYMx.js                                       6.93 kB │ gzip:   2.50 kB
+build/client/assets/app.pages-CFAIEjiu.js                                           7.00 kB │ gzip:   2.07 kB
+build/client/assets/Header-CHVFap19.js                                              7.20 kB │ gzip:   2.19 kB
+build/client/assets/app.admin.payouts-CCONpyRr.js                                   7.29 kB │ gzip:   1.96 kB
+build/client/assets/AIResponseRenderer-ZfCLs-yy.js                                  7.34 kB │ gzip:   2.08 kB
+build/client/assets/index-C-6kTLOa.js                                               7.38 kB │ gzip:   3.13 kB
+build/client/assets/privacy-i1oGHm7r.js                                             7.41 kB │ gzip:   2.47 kB
+build/client/assets/app.agent-C8KiBGN4.js                                           7.43 kB │ gzip:   2.40 kB
+build/client/assets/app.settings.homepage-BeGr56QT.js                               7.49 kB │ gzip:   2.44 kB
+build/client/assets/app.campaigns._index-1Dexle1r.js                                7.55 kB │ gzip:   2.07 kB
+build/client/assets/admin.marketplace-themes-BIvBZr0t.js                            7.58 kB │ gzip:   2.31 kB
+build/client/assets/MarketingHeader-4VBwFO5j.js                                     7.64 kB │ gzip:   2.65 kB
+build/client/assets/ProductPage-CAO5s54Q.js                                         7.66 kB │ gzip:   2.35 kB
+build/client/assets/LiveDashboard-BZm42yU7.js                                       7.68 kB │ gzip:   2.65 kB
+build/client/assets/app.customers._id-B_0S4N3X.js                                   7.70 kB │ gzip:   2.17 kB
+build/client/assets/refund-BFgTxoNm.js                                              7.70 kB │ gzip:   2.49 kB
+build/client/assets/index-B4TX7X2S.js                                               7.70 kB │ gzip:   2.91 kB
+build/client/assets/ProductPage-CUEwc_RE.js                                         7.71 kB │ gzip:   2.43 kB
+build/client/assets/p._slug-BqrHPysl.js                                             7.74 kB │ gzip:   2.97 kB
+build/client/assets/offers._productId-vnvg1l2-.js                                   7.76 kB │ gzip:   3.26 kB
+build/client/assets/app.theme._index-BvsssM4O.js                                    7.77 kB │ gzip:   2.34 kB
+build/client/assets/FinalCTA-0ESFkMFP.js                                            7.80 kB │ gzip:   2.61 kB
+build/client/assets/RichTextEditor--rrL937u.js                                      7.83 kB │ gzip:   2.15 kB
+build/client/assets/InventoryOrderManagement-DPqkXeWp.js                            7.87 kB │ gzip:   2.55 kB
+build/client/assets/app.analytics.templates-CR9CznTj.js                             7.88 kB │ gzip:   2.84 kB
+build/client/assets/admin.team-DwRmaBsZ.js                                          7.92 kB │ gzip:   2.33 kB
+build/client/assets/StorefrontUXShowcase-Ba8Ikq9t.js                                8.06 kB │ gzip:   2.64 kB
+build/client/assets/PaymentIntegrationSection-Br19UG4L.js                           8.06 kB │ gzip:   2.63 kB
+build/client/assets/admin.audit-logs-C1KP8MwL.js                                    8.10 kB │ gzip:   2.37 kB
+build/client/assets/SecuritySpeedInfrastructure-DrrQu0vQ.js                         8.12 kB │ gzip:   2.71 kB
+build/client/assets/index-Dmctoz33.js                                               8.41 kB │ gzip:   3.22 kB
+build/client/assets/index-DJvsgnhJ.js                                               8.42 kB │ gzip:   3.32 kB
+build/client/assets/Footer-CLh8jqpA.js                                              8.46 kB │ gzip:   2.39 kB
+build/client/assets/app.marketing.ai-campaigns-BKK8_Ik_.js                          8.46 kB │ gzip:   2.99 kB
+build/client/assets/app.credits-DzhxlJl4.js                                         8.53 kB │ gzip:   2.45 kB
+build/client/assets/app.subscribers-C1Q6ldMv.js                                     8.59 kB │ gzip:   2.10 kB
+build/client/assets/CRMMarketingGrowth-Cw8afZJz.js                                  8.61 kB │ gzip:   2.80 kB
+build/client/assets/app.settings.order-bumps-DN2_RA86.js                            8.61 kB │ gzip:   2.33 kB
+build/client/assets/app.settings.discounts-CgWpuihh.js                              8.68 kB │ gzip:   2.31 kB
+build/client/assets/app.collections.new-4tqt3VeM.js                                 8.68 kB │ gzip:   2.78 kB
+build/client/assets/ProblemSolutionSection-BExg7fJm.js                              8.69 kB │ gzip:   2.99 kB
+build/client/assets/app.page-builder-DBRe68YC.js                                    8.75 kB │ gzip:   2.44 kB
+build/client/assets/app.new-builder._index-D9Rf4WHv.js                              8.77 kB │ gzip:   2.96 kB
+build/client/assets/index-jVTnWLFR.js                                               8.77 kB │ gzip:   3.20 kB
+build/client/assets/app.automations-BT5HMfIk.js                                     8.78 kB │ gzip:   2.49 kB
+build/client/assets/Header-Dc0IGwxd.js                                              8.84 kB │ gzip:   2.76 kB
+build/client/assets/admin.health-D03JB4PF.js                                        8.86 kB │ gzip:   2.78 kB
+build/client/assets/app.settings.seo-BI0qyUnt.js                                    8.87 kB │ gzip:   2.74 kB
+build/client/assets/CartPage-B_29rBYO.js                                            8.91 kB │ gzip:   2.34 kB
+build/client/assets/BusinessManagementSection-DAzbs1gt.js                           9.33 kB │ gzip:   2.85 kB
+build/client/assets/app.admin.domains-DMQdEdlc.js                                   9.41 kB │ gzip:   2.20 kB
+build/client/assets/terms-ChR0ITr0.js                                               9.49 kB │ gzip:   2.93 kB
+build/client/assets/app.ab-tests-BaRuAawG.js                                        9.54 kB │ gzip:   2.39 kB
+build/client/assets/app.ab-tests._id-CdyrJnrl.js                                    9.54 kB │ gzip:   2.41 kB
+build/client/assets/app.inventory-vmjdEL4t.js                                       9.62 kB │ gzip:   3.03 kB
+build/client/assets/BanglaNativeLocalization-DezWRhpV.js                            9.71 kB │ gzip:   3.56 kB
+build/client/assets/admin.marketing-pF-b3XYQ.js                                     9.88 kB │ gzip:   2.61 kB
+build/client/assets/index-Bl_dydNt.js                                               9.94 kB │ gzip:   3.83 kB
+build/client/assets/policies.fair-usage-CZ0fKzb4.js                                10.03 kB │ gzip:   2.53 kB
+build/client/assets/app.page-builder_.preview._pageId-DIpf2vEW.js                  10.19 kB │ gzip:   3.30 kB
+build/client/assets/AnalyticsInsightsSection-B0xcQE5H.js                           10.24 kB │ gzip:   3.79 kB
+build/client/assets/app.automations.new-D_lp-3Kq.js                                10.25 kB │ gzip:   2.90 kB
+build/client/assets/app.settings.team-wSQfN_DU.js                                  10.26 kB │ gzip:   2.58 kB
+build/client/assets/browser-ponyfill-Bv6BJ6b2.js                                   10.30 kB │ gzip:   3.52 kB
+build/client/assets/app.settings.tracking-pYY8Ro2c.js                              10.32 kB │ gzip:   2.68 kB
+build/client/assets/app.agent.knowledge-5pSwcf8Z.js                                10.52 kB │ gzip:   2.64 kB
+build/client/assets/index-BTQaxTpT.js                                              10.65 kB │ gzip:   4.14 kB
+build/client/assets/app.settings.navigation-bC0lpZCr.js                            10.66 kB │ gzip:   2.54 kB
+build/client/assets/admin.storage-BuhWvvVl.js                                      10.74 kB │ gzip:   3.28 kB
+build/client/assets/Footer-CxYEwUZ0.js                                             10.80 kB │ gzip:   2.61 kB
+build/client/assets/app.settings.upsells-DUGFZmQ4.js                               10.86 kB │ gzip:   2.55 kB
+build/client/assets/products._index-CKQwkk_V.js                                    10.90 kB │ gzip:   3.08 kB
+build/client/assets/app.settings.courier-CEfmjEUm.js                               10.92 kB │ gzip:   2.84 kB
+build/client/assets/contact-CvbXhGwZ.js                                            10.94 kB │ gzip:   3.47 kB
+build/client/assets/admin.audience-insights-B_tqiSxm.js                            10.96 kB │ gzip:   2.76 kB
+build/client/assets/app.discounts-bywExSh6.js                                      11.12 kB │ gzip:   2.92 kB
+build/client/assets/app.settings.webhooks-BcaFt2nY.js                              11.15 kB │ gzip:   3.59 kB
+build/client/assets/app.settings.domain-oTXgh5Ng.js                                11.32 kB │ gzip:   3.04 kB
+build/client/assets/app.orders._index-ZGa4XTXE.js                                  11.37 kB │ gzip:   3.59 kB
+build/client/assets/tutorials-kdnj0Wl6.js                                          11.46 kB │ gzip:   4.01 kB
+build/client/assets/app.products.new-D4BvlUU7.js                                   11.52 kB │ gzip:   3.45 kB
+build/client/assets/app.settings.developer-D0mHO7ti.js                             11.82 kB │ gzip:   3.05 kB
+build/client/assets/CloudflareBenefitsCards-BTP2foX1.js                            11.84 kB │ gzip:   3.98 kB
+build/client/assets/DragDropBuilderShowcase-uBIuFV67.js                            11.91 kB │ gzip:   4.06 kB
+build/client/assets/EditorModeComparison-CGeRud5f.js                               11.92 kB │ gzip:   3.23 kB
+build/client/assets/app.settings.metafields-BiU8OMHd.js                            11.99 kB │ gzip:   3.46 kB
+build/client/assets/TechnicalSpecs-q4XdIQ62.js                                     12.02 kB │ gzip:   4.18 kB
+build/client/assets/LogisticsOperationsSection-Bik8JrKz.js                         12.12 kB │ gzip:   3.65 kB
+build/client/assets/admin.ai-requests-vJ2F3pzf.js                                  12.35 kB │ gzip:   3.16 kB
+build/client/assets/MarketingAutomationSection-kNCsmR5l.js                         12.38 kB │ gzip:   4.29 kB
+build/client/assets/AIMagicSection-DOwhT3nM.js                                     12.58 kB │ gzip:   3.91 kB
+build/client/assets/AIHeroSection-D68xEp74.js                                      13.31 kB │ gzip:   4.62 kB
+build/client/assets/useUnsavedChanges-_92BsaGJ.js                                  13.36 kB │ gzip:   4.07 kB
+build/client/assets/ComparisonSection-BOWskURB.js                                  13.38 kB │ gzip:   3.99 kB
+build/client/assets/app.design-evuCvI5_.js                                         13.57 kB │ gzip:   4.79 kB
+build/client/assets/CustomerExperienceSection-DE7f7427.js                          13.57 kB │ gzip:   4.31 kB
+build/client/assets/app.reports-B6nPsvpe.js                                        13.57 kB │ gzip:   3.27 kB
+build/client/assets/index-DDFYmgpR.js                                              13.59 kB │ gzip:   4.54 kB
+build/client/assets/collections._slug-BwNwmpjS.js                                  13.70 kB │ gzip:   4.05 kB
+build/client/assets/InteractiveStoreDemo-B7aYTQyG.js                               13.72 kB │ gzip:   3.96 kB
+build/client/assets/about-BWs9Hcys.js                                              13.75 kB │ gzip:   4.17 kB
+build/client/assets/app.analytics-ZZ3GmHJA.js                                      13.99 kB │ gzip:   3.20 kB
+build/client/assets/CDNExplainer-5mIT8XIe.js                                       14.05 kB │ gzip:   4.95 kB
+build/client/assets/app.upgrade-CnvKwugm.js                                        14.10 kB │ gzip:   4.21 kB
+build/client/assets/admin.domains-CZqpT7x5.js                                      14.78 kB │ gzip:   3.78 kB
+build/client/assets/OzzylAIChatWidget-DRlj6ylU.js                                  14.88 kB │ gzip:   4.95 kB
+build/client/assets/BentoFeaturesSection-C8CT8xIg.js                               15.14 kB │ gzip:   3.84 kB
+build/client/assets/admin.ai-command-center-IybI0LcI.js                            15.43 kB │ gzip:   4.73 kB
+build/client/assets/app.theme.templates._templateId-B5igXa1_.js                    15.54 kB │ gzip:   4.72 kB
+build/client/assets/admin.tutorials-CsBd0YP3.js                                    15.56 kB │ gzip:   4.88 kB
+build/client/assets/CodeEditor-D4AD7cuV.js                                         15.91 kB │ gzip:   5.64 kB
+build/client/assets/SpeedImpact-B7Klx0M2.js                                        16.41 kB │ gzip:   5.94 kB
+build/client/assets/SpeedComparison-CLOHA81n.js                                    16.59 kB │ gzip:   4.92 kB
+build/client/assets/PricingSection-DX_X3apC.js                                     16.66 kB │ gzip:   5.11 kB
+build/client/assets/app.products._index-SsG11-El.js                                16.83 kB │ gzip:   4.69 kB
+build/client/assets/app.billing-B20wbTU7.js                                        17.35 kB │ gzip:   4.59 kB
+build/client/assets/admin.stores-C6-0qoku.js                                       17.93 kB │ gzip:   4.00 kB
+build/client/assets/app.admin.plans-DjyA3JTf.js                                    18.13 kB │ gzip:   4.84 kB
+build/client/assets/app.products._id-CbPIK5Jp.js                                   18.46 kB │ gzip:   5.27 kB
+build/client/assets/root-DmpA0RE9.js                                               18.73 kB │ gzip:   5.57 kB
+build/client/assets/index-AgGsbwFT.js                                              18.99 kB │ gzip:   4.43 kB
+build/client/assets/StorePageWrapper-DfZ5UsFE.js                                   19.21 kB │ gzip:   6.25 kB
+build/client/assets/TrustSection-CE-PDIOL.js                                       21.25 kB │ gzip:   5.74 kB
+build/client/assets/store-preview-frame-DagMmftf.js                                21.47 kB │ gzip:   5.44 kB
+build/client/assets/StoreSectionRenderer-D8hpU7bP.js                               21.89 kB │ gzip:   6.44 kB
+build/client/assets/onboarding-1wxiZKVL.js                                         21.93 kB │ gzip:   5.76 kB
+build/client/assets/AIShowcaseSection-DkDBSZtL.js                                  23.09 kB │ gzip:   6.04 kB
+build/client/assets/registry-D3mEwfTC.js                                           23.36 kB │ gzip:   6.33 kB
+build/client/assets/admin.analytics-BWgQlsa5.js                                    23.62 kB │ gzip:   5.30 kB
+build/client/assets/app-vvN2Giv_.js                                                23.82 kB │ gzip:   7.08 kB
+build/client/assets/IntentWizard-DtwYWbRQ.js                                       24.03 kB │ gzip:   6.24 kB
+build/client/assets/cn-BOv3Qla9.js                                                 25.19 kB │ gzip:   8.06 kB
+build/client/assets/admin.billing-BStnTmEs.js                                      26.24 kB │ gzip:   5.38 kB
+build/client/assets/app.settings.landing-DqooNZ8S.js                               27.03 kB │ gzip:   5.95 kB
+build/client/assets/app.dashboard-CVr4Kr6y.js                                      27.03 kB │ gzip:   7.29 kB
+build/client/assets/app.orders._id-BFrjj1LA.js                                     27.66 kB │ gzip:   7.47 kB
+build/client/assets/pricing-yZs3hfll.js                                            27.91 kB │ gzip:   7.44 kB
+build/client/assets/store-registry-CTuS0LjS.js                                     27.96 kB │ gzip:   8.25 kB
+build/client/assets/checkout-DqQNmHGS.js                                           28.42 kB │ gzip:   5.88 kB
+build/client/assets/app.tutorials-B17bfTxw.js                                      29.00 kB │ gzip:   7.37 kB
+build/client/assets/store-preview-data-BTrTkeII.js                                 32.25 kB │ gzip:   7.90 kB
+build/client/assets/app.store-design-UyEMvJA_.js                                   32.88 kB │ gzip:   7.97 kB
+build/client/assets/app.settings._index-BjAvffIV.js                                34.29 kB │ gzip:   8.06 kB
+build/client/assets/index-CAsWLi08.js                                              35.23 kB │ gzip:   8.75 kB
+build/client/assets/sortable.esm-BeOcK7m4.js                                       46.43 kB │ gzip:  15.53 kB
+build/client/assets/index-CV0nMfGM.js                                              47.68 kB │ gzip:  13.02 kB
+build/client/assets/types-lSNCvkhu.js                                              53.47 kB │ gzip:  12.22 kB
+build/client/assets/index-CWOsoJ6D.js                                              53.91 kB │ gzip:  10.11 kB
+build/client/assets/components-DzUBFTpD.js                                         54.03 kB │ gzip:  17.89 kB
+build/client/assets/_index-BExN7mK4.js                                             57.91 kB │ gzip:  15.95 kB
+build/client/assets/index-C4RMtFIh.js                                              58.92 kB │ gzip:  12.63 kB
+build/client/assets/admin-DH80G4Cl.js                                              61.42 kB │ gzip:  19.61 kB
+build/client/assets/index-DMAi4jIP.js                                              62.34 kB │ gzip:  21.35 kB
+build/client/assets/d3-Cry7bLXb.js                                                 63.18 kB │ gzip:  20.83 kB
+build/client/assets/registry-adIHEZmt.js                                           75.03 kB │ gzip:  19.81 kB
+build/client/assets/SectionManager-DpX7skU7.js                                     77.60 kB │ gzip:  13.44 kB
+build/client/assets/store-live-editor-BksTX9Gu.js                                  97.89 kB │ gzip:  24.17 kB
+build/client/assets/app.new-builder._pageId-mcLN5JbP.js                           114.71 kB │ gzip:  24.47 kB
+build/client/assets/proxy-CuKbYOYr.js                                             121.14 kB │ gzip:  40.05 kB
+build/client/assets/entry.client-C4izo-W2.js                                      206.08 kB │ gzip:  67.38 kB
+build/client/assets/TemplateLayoutRenderer-D-EV-hZx.js                            285.24 kB │ gzip:  56.75 kB
+build/client/assets/LanguageContext-D0qKEnLx.js                                   286.95 kB │ gzip:  76.50 kB
+build/client/assets/tiptap-wg_Sk1-e.js                                            367.97 kB │ gzip: 117.15 kB
+build/client/assets/registry-C3tUo1rQ.js                                          528.15 kB │ gzip: 106.56 kB
+build/client/assets/recharts-zvgFsi7V.js                                          607.11 kB │ gzip: 172.49 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 8.62s
+vite v6.4.1 building SSR bundle for production...
+transforming...
+✓ 209 modules transformed.
+✗ Build failed in 962ms
+[vite]: Rollup failed to resolve import "db/schema" from "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.ai.chat.ts".
+This is most likely unintended because it can break your application at runtime.
+If you do want to externalize this module explicitly add it to
+`build.rollupOptions.external`
+    at viteLog (file:///Users/rahmatullahzisan/Desktop/Dev/Multi%20Store%20Saas/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:46374:15)
+    at file:///Users/rahmatullahzisan/Desktop/Dev/Multi%20Store%20Saas/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:46432:18
+    at onwarn (/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/node_modules/@remix-run/dev/dist/vite/plugin.js:630:13)
+    at file:///Users/rahmatullahzisan/Desktop/Dev/Multi%20Store%20Saas/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:46430:7
+    at onRollupLog (file:///Users/rahmatullahzisan/Desktop/Dev/Multi%20Store%20Saas/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:46422:5)
+    at onLog (file:///Users/rahmatullahzisan/Desktop/Dev/Multi%20Store%20Saas/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:46072:7)
+    at file:///Users/rahmatullahzisan/Desktop/Dev/Multi%20Store%20Saas/node_modules/rollup/dist/es/shared/node-entry.js:21037:32
+    at Object.logger [as onLog] (file:///Users/rahmatullahzisan/Desktop/Dev/Multi%20Store%20Saas/node_modules/rollup/dist/es/shared/node-entry.js:22924:9)
+    at ModuleLoader.handleInvalidResolvedId (file:///Users/rahmatullahzisan/Desktop/Dev/Multi%20Store%20Saas/node_modules/rollup/dist/es/shared/node-entry.js:21668:26)
+    at file:///Users/rahmatullahzisan/Desktop/Dev/Multi%20Store%20Saas/node_modules/rollup/dist/es/shared/node-entry.js:21626:26 {
+  watchFiles: [
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.page-builder_.preview.$pageId.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/resources.order-invoice.$orderId.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.theme.templates.$templateId.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.generate-marketing-message.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/store-template-preview.$templateId_.products.$id.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/store-template-preview.$templateId.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/root.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/template-preview.$templateId.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.marketing.ai-campaigns.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.cron.checkout-cleanup.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.metafield-definitions.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/store.auth.google.callback.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/admin.marketplace-themes.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/admin.stop-impersonation.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.admin.migrate-themes.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/resources.invoice.$paymentId.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.order-bumps.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.recalculate-segments.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.page-builder.storage.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.admin.export-stores.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/admin.ai-command-center.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/admin.audience-insights.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.marketplace.publish.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.analytics.templates.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.new-builder.$pageId.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.navigation.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/builder-preview.$pageId.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.analytics.forecast.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.newsletter.subscribe.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.developer.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.discounts.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.messaging.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.new-builder._index.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/manifest[.]webmanifest.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.courier.steadfast.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.quick-builder.new.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/entry.server.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.template-versions.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.marketplace.apply.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.homepage.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.activity.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.shipping.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.customers._index.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.tracking.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.inventory.import.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.landing.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.payment.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/auth.forgot-password.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.courier.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.upsells.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/auth.google.callback.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.marketing-stats.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/admin.visitor-chats.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.check-low-stock.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.recommendations.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.webhooks.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.products.export.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.agent.knowledge.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.metafields.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/auth.reset-password.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.abandoned-carts.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.campaigns._index.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.collections.new.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/policies.fair-usage.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.domain.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.products._index.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.push.subscribe.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/checkout.cancelled.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.marketing-lead.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.automations.new.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/thank-you.$orderId.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.accept-upsell.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.legal.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/store-preview-frame.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.agent.webhook.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.store-context.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings._index.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.v1.orders.$id.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/admin.ai-requests.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.decline-upsell.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.admin.payouts.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.agent.history.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.campaigns.new.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.customers.$id.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.campaigns.$id.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.settings.team.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.orders._index.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.admin.domains.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/store.auth.logout.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/store.auth.google.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/collections.$slug.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.create-order.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/admin.audit-logs.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/admin.broadcasts.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.delete-image.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.upload-image.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/api.visitor-chat.ts',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.ab-tests.new.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/store-live-editor.tsx',
+    '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.agent.config.tsx',
+    ... 221 more items
+  ]
+}
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
+npm error workspace @ozzyl/web
+npm error location /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
+npm error command failed
+npm error command sh -c remix vite:build
