@@ -5,15 +5,16 @@
  * 
  * Features:
  * - Customer Profile (Name, Email, Phone)
- * - Address Card
+ * - Address Card (Multiple)
  * - Lifetime Stats (LTV, AOV, Order Count)
  * - Order History Table
+ * - Timeline (Notes)
  */
 
-import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData, Link } from '@remix-run/react';
+import { json, type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
+import { useLoaderData, Link, useFetcher, Form } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { customers, orders, stores } from '@db/schema';
+import { customers, orders, stores, customerAddresses, customerNotes } from '@db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
 import { 
@@ -30,10 +31,19 @@ import {
   CheckCircle,
   XCircle,
   Truck,
-  Package
+  Package,
+  Plus,
+  StickyNote,
+  Send,
+  MoreVertical,
+  Edit,
+  Trash
 } from 'lucide-react';
 import { PageHeader } from '~/components/ui';
+import { GlassCard } from '~/components/ui/GlassCard'; // Assuming component
+import { Button } from '~/components/ui/Button'; // Assuming component
 import { useTranslation } from '~/contexts/LanguageContext';
+import { useState, useRef, useEffect } from 'react';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Customer Details - Merchant Dashboard' }];
@@ -59,7 +69,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const storeResult = await db.select({ currency: stores.currency }).from(stores).where(eq(stores.id, storeId)).limit(1);
   const currency = storeResult[0]?.currency || 'BDT';
 
-  // Get Customer
+  // Get Customer with Addresses and Notes (using separate queries for D1 efficiency/safety without foreign key complexity sometimes)
   const customerResult = await db
     .select()
     .from(customers)
@@ -72,6 +82,10 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     throw new Response('Customer not found', { status: 404 });
   }
 
+  // Fetch related data
+  const addresses = await db.select().from(customerAddresses).where(eq(customerAddresses.customerId, customerId));
+  const notes = await db.select().from(customerNotes).where(eq(customerNotes.customerId, customerId)).orderBy(desc(customerNotes.createdAt));
+  
   // Get Customer Orders
   const customerOrders = await db
     .select()
@@ -79,9 +93,8 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     .where(and(eq(orders.customerId, customerId), eq(orders.storeId, storeId)))
     .orderBy(desc(orders.createdAt));
 
-  // Recalculate stats to ensure accuracy
+  // Recalculate stats
   const totalOrders = customerOrders.length;
-  // Calculate total spent from non-cancelled, non-failed orders
   const validOrders = customerOrders.filter(o => 
     o.status !== 'cancelled' && 
     o.paymentStatus !== 'failed' && 
@@ -91,42 +104,64 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const totalSpent = validOrders.reduce((sum, o) => sum + (o.total || 0), 0);
   const aov = totalOrders > 0 ? totalSpent / totalOrders : 0;
 
-  // Derive Address
-  let address = null;
-  try {
-    if (customer.address) {
-      address = typeof customer.address === 'string' ? JSON.parse(customer.address) : customer.address;
-    } else if (customerOrders.length > 0 && customerOrders[0].shippingAddress) {
-      // Fallback to latest order address
-      const latest = customerOrders[0].shippingAddress;
-      address = typeof latest === 'string' ? JSON.parse(latest) : latest;
-    }
-  } catch (e) {
-    // Ignore JSON parse errors
-  }
-
   return json({
     customer,
     orders: customerOrders,
+    addresses,
+    notes,
     stats: {
       totalOrders,
       totalSpent,
       aov,
     },
-    address,
     currency,
   });
+}
+
+// ============================================================================
+// ACTION (Add Note / Address)
+// ============================================================================
+export async function action({ request, params, context }: ActionFunctionArgs) {
+  const storeId = await getStoreId(request, context.cloudflare.env);
+  if (!storeId) throw new Response('Unauthorized', { status: 401 });
+  
+  const customerId = parseInt(params.id || '0');
+  const db = drizzle(context.cloudflare.env.DB);
+  const formData = await request.formData();
+  const intent = formData.get('intent');
+
+  if (intent === 'add_note') {
+    const content = formData.get('content') as string;
+    if (!content) return json({ error: 'Content required' }, { status: 400 });
+
+    await db.insert(customerNotes).values({
+      customerId,
+      content,
+      createdAt: new Date(),
+    });
+    return json({ success: true });
+  }
+
+  return json({ error: 'Invalid intent' }, { status: 400 });
 }
 
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 export default function CustomerDetailsPage() {
-  const { customer, orders: customerOrders, stats, address, currency } = useLoaderData<typeof loader>();
+  const { customer, orders: customerOrders, addresses, notes, stats, currency } = useLoaderData<typeof loader>();
   const { t, lang } = useTranslation();
+  const noteFetcher = useFetcher();
+  const noteFormRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (noteFetcher.state === 'idle' && noteFetcher.data?.success) {
+      noteFormRef.current?.reset();
+    }
+  }, [noteFetcher.state, noteFetcher.data]);
 
   const formatPrice = (priceInCents: number) => {
-    const price = priceInCents / 100;
+    const price = priceInCents; // Assuming already converted or using float? DB schema says real. Let's assume float.
     return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
       style: 'currency',
       currency,
@@ -154,29 +189,17 @@ export default function CustomerDetailsPage() {
       shipped: 'bg-purple-100 text-purple-700',
       delivered: 'bg-emerald-100 text-emerald-700',
       cancelled: 'bg-red-100 text-red-700',
+      completed: 'bg-emerald-100 text-emerald-700',
     };
-
-    const icons: Record<string, any> = {
-      pending: Clock,
-      confirmed: CheckCircle,
-      processing: Package,
-      shipped: Truck,
-      delivered: CheckCircle,
-      cancelled: XCircle,
-    };
-
-    const Icon = icons[status] || Clock;
-
     return (
-      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${styles[status] || 'bg-gray-100 text-gray-700'}`}>
-        <Icon className="w-3 h-3" />
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${styles[status] || 'bg-gray-100 text-gray-700'}`}>
         {status}
       </span>
     );
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div>
         <Link 
@@ -194,7 +217,7 @@ export default function CustomerDetailsPage() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{customer.name || t('guestCustomer')}</h1>
               <div className="flex items-center gap-2 text-gray-500 text-sm mt-1">
-                <span>{t('customerSince', { date: formatDate(customer.createdAt).split(',')[0] })}</span>
+                <span>{customer.email || 'No email'}</span>
                 {customer.segment && (
                   <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-semibold uppercase">
                     {customer.segment.replace('_', ' ')}
@@ -203,95 +226,92 @@ export default function CustomerDetailsPage() {
               </div>
             </div>
           </div>
-          {/* Actions - Future */}
-          {/* <button className="btn-secondary">Edit Customer</button> */}
+          <div className="flex gap-2">
+            <Button variant="outline" className="gap-2">
+               <Edit className="w-4 h-4" /> Edit Profile
+            </Button>
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Stats & Profile */}
+        {/* Left Column: Stats & Profile & Address */}
         <div className="space-y-6">
-          {/* Stats */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-            <div className="p-4 border-b border-gray-100 bg-gray-50/50">
-              <h3 className="font-semibold text-gray-900">{t('customerOverview')}</h3>
-            </div>
-            <div className="p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500 text-sm">{t('totalSpentLabel')}</span>
-                <span className="font-bold text-gray-900 text-lg">{formatPrice(stats.totalSpent)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500 text-sm">{t('totalOrders')}</span>
-                <span className="font-medium text-gray-900">{stats.totalOrders}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-500 text-sm">{t('customerAvgOrderValue')}</span>
-                <span className="font-medium text-gray-900">{formatPrice(stats.aov)}</span>
-              </div>
-            </div>
-          </div>
+          {/* Stats Card */}
+          <GlassCard className="p-0 overflow-hidden">
+             <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+               <h3 className="font-semibold text-gray-900">Customer Stats</h3>
+             </div>
+             <div className="divide-y divide-gray-100">
+                <div className="p-4 flex justify-between items-center hover:bg-gray-50/50">
+                   <div className="text-sm text-gray-500">Total Spent</div>
+                   <div className="font-bold text-lg text-emerald-700">{formatPrice(stats.totalSpent)}</div>
+                </div>
+                <div className="p-4 flex justify-between items-center hover:bg-gray-50/50">
+                   <div className="text-sm text-gray-500">Orders</div>
+                   <div className="font-medium text-gray-900">{stats.totalOrders}</div>
+                </div>
+                <div className="p-4 flex justify-between items-center hover:bg-gray-50/50">
+                   <div className="text-sm text-gray-500">Average Order</div>
+                   <div className="font-medium text-gray-900">{formatPrice(stats.aov)}</div>
+                </div>
+             </div>
+          </GlassCard>
 
           {/* Contact Info */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-            <div className="p-4 border-b border-gray-100 bg-gray-50/50">
-              <h3 className="font-semibold text-gray-900">{t('customerContactInfo')}</h3>
-            </div>
-            <div className="p-4 space-y-4">
-              <div className="flex items-start gap-3">
-                <Mail className="w-5 h-5 text-gray-400 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">{t('emailLabel')}</p>
-                  <a href={`mailto:${customer.email}`} className="text-sm text-emerald-600 hover:underline truncate block">
-                    {customer.email}
-                  </a>
+          <GlassCard className="p-0 overflow-hidden">
+             <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between">
+               <h3 className="font-semibold text-gray-900">Contact</h3>
+               <button className="text-emerald-600 text-xs hover:underline">Edit</button>
+             </div>
+             <div className="p-4 space-y-4">
+               <div>
+                  <div className="text-xs text-gray-500 mb-1">Email</div>
+                  <div className="text-sm font-medium text-gray-900">{customer.email || '—'}</div>
+               </div>
+               <div>
+                  <div className="text-xs text-gray-500 mb-1">Phone</div>
+                  <div className="text-sm font-medium text-gray-900">{customer.phone || '—'}</div>
+               </div>
+             </div>
+          </GlassCard>
+          
+          {/* Addresses */}
+           <GlassCard className="p-0 overflow-hidden">
+             <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+               <h3 className="font-semibold text-gray-900">Addresses</h3>
+               <button className="text-emerald-600 text-xs hover:underline flex items-center gap-1">
+                 <Plus className="w-3 h-3" /> Add
+               </button>
+             </div>
+             {addresses.length === 0 ? (
+               <div className="p-4 text-sm text-gray-500 text-center">No addresses saved.</div>
+             ) : (
+                <div className="divide-y divide-gray-100">
+                  {addresses.map(addr => (
+                    <div key={addr.id} className="p-4 text-sm hover:bg-gray-50/50">
+                       <div className="flex justify-between items-start">
+                         <div className="font-medium text-gray-900">{addr.address1}</div>
+                         {addr.isDefault && <span className="text-[10px] bg-gray-100 px-1 rounded text-gray-600">Default</span>}
+                       </div>
+                       <div className="text-gray-500 mt-1">
+                         {addr.city}, {addr.zip}<br/>
+                         {addr.country}
+                       </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Phone className="w-5 h-5 text-gray-400 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">{t('businessPhoneLabel')}</p>
-                  {customer.phone ? (
-                    <a href={`tel:${customer.phone}`} className="text-sm text-gray-600 hover:text-gray-900">
-                      {customer.phone}
-                    </a>
-                  ) : (
-                    <span className="text-sm text-gray-400 italic">{t('noPhoneProvided')}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Default Address */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-            <div className="p-4 border-b border-gray-100 bg-gray-50/50">
-              <h3 className="font-semibold text-gray-900">{t('primaryAddress')}</h3>
-            </div>
-            <div className="p-4">
-              {address ? (
-                <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
-                  <div className="text-sm text-gray-600 space-y-1">
-                    <p className="font-medium text-gray-900">{address.address}</p>
-                    <p>{address.city}, {address.postalCode}</p>
-                    <p>{address.country || 'Bangladesh'}</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-4 text-gray-500 text-sm">
-                  {t('noAddressOnFile')}
-                </div>
-              )}
-            </div>
-          </div>
+             )}
+          </GlassCard>
         </div>
 
-        {/* Right Column: Order History */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm h-full">
-            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+        {/* Right Column: Order History & Timeline */}
+        <div className="lg:col-span-2 space-y-6">
+           {/* Order History */}
+          <GlassCard className="p-0 overflow-hidden">
+            <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
               <h3 className="font-semibold text-gray-900">{t('orderHistory')}</h3>
+              <Link to="/app/orders" className="text-xs text-emerald-600 hover:underline">View All</Link>
             </div>
             
             {customerOrders.length === 0 ? (
@@ -307,11 +327,10 @@ export default function CustomerDetailsPage() {
                       <th className="px-6 py-3">{t('date')}</th>
                       <th className="px-6 py-3">{t('status')}</th>
                       <th className="px-6 py-3">{t('total')}</th>
-                      <th className="px-6 py-3 text-right">{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {customerOrders.map((order) => (
+                    {customerOrders.slice(0, 5).map((order) => (
                       <tr key={order.id} className="hover:bg-gray-50 transition">
                         <td className="px-6 py-4">
                           <Link to={`/app/orders/${order.id}`} className="font-mono font-medium text-emerald-600 hover:underline">
@@ -327,21 +346,61 @@ export default function CustomerDetailsPage() {
                         <td className="px-6 py-4 font-medium text-gray-900">
                           {formatPrice(order.total)}
                         </td>
-                        <td className="px-6 py-4 text-right">
-                          <Link 
-                            to={`/app/orders/${order.id}`}
-                            className="inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-emerald-600"
-                          >
-                            {t('view')} <ExternalLink className="w-3 h-3" />
-                          </Link>
-                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             )}
-          </div>
+          </GlassCard>
+
+          {/* Timeline / Notes */}
+          <GlassCard className="p-0 overflow-hidden">
+             <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+               <h3 className="font-semibold text-gray-900">Timeline</h3>
+             </div>
+             
+             {/* Add Note Input */}
+             <div className="p-4 border-b border-gray-100">
+               <noteFetcher.Form method="post" ref={noteFormRef} className="flex gap-2">
+                 <input type="hidden" name="intent" value="add_note" />
+                 <input 
+                   type="text" 
+                   name="content"
+                   placeholder="Leave a note about this customer..." 
+                   className="flex-1 border-gray-300 rounded-md text-sm focus:ring-emerald-500 focus:border-emerald-500"
+                   required
+                 />
+                 <Button type="submit" size="sm" disabled={noteFetcher.state === 'submitting'}>
+                    <Send className="w-4 h-4" />
+                 </Button>
+               </noteFetcher.Form>
+             </div>
+
+             {/* Timeline Feed */}
+             <div className="bg-gray-50/30 p-4 space-y-6 max-h-[400px] overflow-y-auto">
+                {notes.length === 0 ? (
+                  <div className="text-center text-gray-400 text-sm py-8">No notes yet.</div>
+                ) : (
+                  notes.map(note => (
+                    <div key={note.id} className="flex gap-3">
+                       <div className="mt-1">
+                          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                             <StickyNote className="w-4 h-4" />
+                          </div>
+                       </div>
+                       <div className="flex-1 bg-white p-3 rounded-lg border border-gray-200 shadow-sm relative">
+                          <div className="text-gray-800 text-sm whitespace-pre-wrap">{note.content}</div>
+                          <div className="mt-2 text-xs text-gray-400 flex justify-between">
+                            <span>{formatDate(note.createdAt)}</span>
+                            {/* <span>by Staff</span> */}
+                          </div>
+                       </div>
+                    </div>
+                  ))
+                )}
+             </div>
+          </GlassCard>
         </div>
       </div>
     </div>

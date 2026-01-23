@@ -24,6 +24,7 @@ export interface TenantEnv {
   R2: R2Bucket;
   SAAS_DOMAIN: string;
   STORE_CACHE?: KVNamespace; // KV for fast caching
+  WEBHOOK_QUEUE: Queue;
 }
 
 /**

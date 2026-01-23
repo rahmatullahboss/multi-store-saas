@@ -23,51 +23,131 @@ interface WhatsAppPayload {
   storeId: number;
 }
 
+interface SMSResponse {
+  success: boolean;
+  provider: string;
+  data?: any;
+  error?: string;
+  messageId?: string;
+}
 
-// === SMS GATEWAY INTEGRATIONS (SSL Wireless / BulkSMS BD) ===
+// === SMS PROVIDER ABSTRACTION ===
 
-export async function sendSMS(db: Database, env: Env, { to, message, storeId }: SMSPayload) {
-  // 1. Get Store SMS Config (Future: Fetch from DB)
-  // For now, we assume global ENV variables for the platform's gateway
-  const apiToken = env.SSL_SMS_API_TOKEN;
-  const sid = env.SSL_SMS_SID;
-  const domain = env.SSL_SMS_DOMAIN || "https://smsplus.sslwireless.com";
+interface ISMSProvider {
+  send(payload: SMSPayload): Promise<SMSResponse>;
+}
 
-  if (!apiToken || !sid) {
-    console.warn("[SMS] SSL Wireless credentials not found in ENV. Simulating send.");
-    console.log(`[SMS][SIMULATION] To: ${to}, Message: ${message}`);
-    return { success: true, provider: "simulator" };
-  }
+class SSLWirelessProvider implements ISMSProvider {
+  constructor(private env: Env) {}
 
-  try {
-    const csmsId = crypto.randomUUID().slice(0, 15); // Unique ID per SMS
-    const response = await fetch(`${domain}/api/v3/send-sms`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        api_token: apiToken,
-        sid: sid,
-        msisdn: to,
-        sms: message,
-        csms_id: csmsId
-      })
-    });
+  async send({ to, message }: SMSPayload): Promise<SMSResponse> {
+    const apiToken = this.env.SSL_SMS_API_TOKEN;
+    const sid = this.env.SSL_SMS_SID;
+    const domain = this.env.SSL_SMS_DOMAIN || "https://smsplus.sslwireless.com";
 
-    const data = await response.json() as any;
-    
-    // SSL Wireless Success Response usually has status_code 200 and 'success' string
-    if (data?.status_code === 200 || data?.status === "SUCCESS") {
-        console.log(`[SMS][SSL] Sent to ${to}. Ref: ${data?.smsinfo?.[0]?.sms_status}`);
-        return { success: true, provider: "ssl_wireless", data };
-    } else {
-        console.error(`[SMS][SSL] Failed: ${JSON.stringify(data)}`);
-        return { success: false, error: data?.error_message || "Gateway Error" };
+    if (!apiToken || !sid) {
+        return { success: false, provider: "ssl_wireless", error: "Missing Credentials" };
     }
 
-  } catch (error) {
-    console.error("[SMS][SSL] Network Error:", error);
-    return { success: false, error: "Network Error" };
+    try {
+      const csmsId = crypto.randomUUID().slice(0, 15); // Unique ID per SMS
+      const response = await fetch(`${domain}/api/v3/send-sms`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          api_token: apiToken,
+          sid: sid,
+          msisdn: to,
+          sms: message,
+          csms_id: csmsId
+        })
+      });
+
+      const data = await response.json() as any;
+      console.log(`[SMS][SSL] Response:`, JSON.stringify(data));
+      
+      // SSL Wireless Success checks
+      if (data?.status_code === 200 || data?.status === "SUCCESS") {
+          return { success: true, provider: "ssl_wireless", data, messageId: data?.smsinfo?.[0]?.sms_status };
+      } else {
+          return { success: false, provider: "ssl_wireless", error: data?.error_message || "Gateway Error", data };
+      }
+
+    } catch (error: any) {
+      console.error("[SMS][SSL] Network Error:", error);
+      return { success: false, provider: "ssl_wireless", error: error.message || "Network Error" };
+    }
   }
+}
+
+class BulkSMSBDProvider implements ISMSProvider {
+  constructor(private env: Env) {}
+
+  async send({ to, message }: SMSPayload): Promise<SMSResponse> {
+    const apiKey = this.env.BULKSMS_BD_API_KEY;
+    const senderId = this.env.BULKSMS_BD_SENDER_ID;
+    
+    // Using standard BulkSMS BD endpoint (may need adjustment based on specific reseller)
+    const baseUrl = "https://bulksmsbd.net/api/smsapi"; 
+
+    if (!apiKey || !senderId) {
+        return { success: false, provider: "bulksms_bd", error: "Missing Credentials" };
+    }
+
+    try {
+      // BulkSMS BD usually uses GET or POST with url-encoded params
+      const params = new URLSearchParams({
+        api_key: apiKey,
+        type: "text",
+        number: to,
+        senderid: senderId,
+        message: message,
+      });
+
+      const response = await fetch(`${baseUrl}?${params.toString()}`, {
+        method: "GET", // Most support GET
+      });
+
+      const data = await response.json() as any;
+      console.log(`[SMS][BulkSMS] Response:`, JSON.stringify(data));
+
+      // Check success (Response format varies, usually has response_code 202 or similar)
+      if (data?.response_code === 202 || data?.success === true) {
+          return { success: true, provider: "bulksms_bd", data, messageId: data?.message_id };
+      } else {
+          return { success: false, provider: "bulksms_bd", error: data?.error_message || "Gateway Error", data };
+      }
+    } catch (error: any) {
+       console.error("[SMS][BulkSMS] Network Error:", error);
+       return { success: false, provider: "bulksms_bd", error: error.message || "Network Error" };
+    }
+  }
+}
+
+class SimulatorProvider implements ISMSProvider {
+  async send({ to, message }: SMSPayload): Promise<SMSResponse> {
+    console.log(`[SMS][SIMULATION] To: ${to}, Message: ${message}`);
+    return { success: true, provider: "simulator", messageId: "sim_" + crypto.randomUUID() };
+  }
+}
+
+// === FACTORY ===
+
+function getSMSProvider(env: Env): ISMSProvider {
+    const provider = env.SMS_PROVIDER || 'simulator';
+    
+    if (provider === 'ssl_wireless') return new SSLWirelessProvider(env);
+    if (provider === 'bulksms_bd') return new BulkSMSBDProvider(env);
+    
+    return new SimulatorProvider();
+}
+
+
+// === EXPORTED DUAL-CHANNEL FUNCTIONS ===
+
+export async function sendSMS(db: Database, env: Env, payload: SMSPayload) {
+  const provider = getSMSProvider(env);
+  return await provider.send(payload);
 }
 
 // === WHATSAPP BUSINESS API (Cloud API) ===
@@ -82,7 +162,8 @@ export async function sendWhatsApp(db: Database, env: Env, { to, templateName, t
     }
   });
 
-  const phoneId = agent?.whatsappPhoneId;
+  // Prefer DB config, fallback to ENV (Platform Account)
+  const phoneId = agent?.whatsappPhoneId || env.META_WHATSAPP_PHONE_ID;
   const accessToken = env.META_WHATSAPP_TOKEN;
 
   if (!phoneId || !accessToken) {
@@ -131,7 +212,7 @@ export async function sendWhatsApp(db: Database, env: Env, { to, templateName, t
         return { success: false, error: data?.error?.message || "Meta API Error" };
     }
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("[WhatsApp][Meta] Network Error:", error);
     return { success: false, error: "Network Error" };
   }
@@ -142,7 +223,6 @@ export async function sendWhatsApp(db: Database, env: Env, { to, templateName, t
  * SMART NOTIFIER
  * Decides whether to send SMS, WhatsApp or Both based on customer activity
  */
-// ...
 export async function sendSmartNotification(
   db: Database,
   env: Env,
@@ -151,7 +231,7 @@ export async function sendSmartNotification(
   type: 'ORDER_CONFIRMATION' | 'ABANDONED_CART' | 'WELCOME' | 'WINBACK_OFFER' | 'REVIEW_REQUEST',
   data: any
 ) {
-  // 1. Fetch Customer Preferences (if any)
+  // 1. Fetch Customer Preferences (Future)
   // ...
 
   let messageText = `Update: ${type}`;
@@ -166,6 +246,7 @@ export async function sendSmartNotification(
   });
 
   if (!whatsAppResult.success) {
+    console.log(`[SmartNotifier] WhatsApp failed (${whatsAppResult.error}), falling back to SMS.`);
     // Fallback to SMS
     await sendSMS(db, env, {
       to: data.phone,
@@ -173,7 +254,6 @@ export async function sendSmartNotification(
       storeId
     });
   }
-
 
   return { success: true };
 }

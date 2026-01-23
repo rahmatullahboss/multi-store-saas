@@ -22,6 +22,9 @@ import { standardApiLimit, authLimit, orderLimit, aiChatLimit } from './middlewa
 import { productsApi } from './api/products';
 import { ordersApi } from './api/orders';
 import { storesApi } from './api/stores';
+import { graphqlApi } from './api/graphql';
+import { oauthApi } from './api/oauth';
+import customersApi from './api/routes/customers';
 
 // Type definitions for Cloudflare bindings
 interface Env extends TenantEnv {
@@ -198,6 +201,9 @@ app.get('/api/store', (c) => {
 app.route('/api/products', productsApi);
 app.route('/api/orders', ordersApi);
 app.route('/api/stores', storesApi);
+app.route('/api/graphql', graphqlApi);
+app.route('/api/oauth', oauthApi);
+app.route('/api/customers', customersApi);
 
 // ============================================================================
 // CACHING - For public product pages

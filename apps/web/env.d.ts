@@ -52,12 +52,18 @@ declare global {
     MASTER_FACEBOOK_PIXEL_ID?: string;
 
     // SMS Gateway (SSL Wireless)
+    SMS_PROVIDER?: 'ssl_wireless' | 'bulksms_bd' | 'simulator';
     SSL_SMS_API_TOKEN?: string;
     SSL_SMS_SID?: string;
     SSL_SMS_DOMAIN?: string;
+    
+    // SMS Gateway (BulkSMS BD)
+    BULKSMS_BD_API_KEY?: string;
+    BULKSMS_BD_SENDER_ID?: string;
 
     // WhatsApp Cloud API
     META_WHATSAPP_TOKEN?: string;
+    META_WHATSAPP_PHONE_ID?: string;
   }
 }
 

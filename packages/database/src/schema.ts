@@ -215,7 +215,12 @@ export const customers = sqliteTable('customers', {
   email: text('email'), // Optional - BD customers usually only provide phone
   name: text('name'),
   phone: text('phone'),
-  address: text('address'), // JSON object with address details
+  address: text('address'), // Legacy JSON object, migrating to customer_addresses table
+  
+  // New Fields for CRM
+  tags: text('tags'), // JSON array of strings e.g. ["VIP", "Wholesale"]
+  status: text('status').$type<'active' | 'inactive' | 'banned' | 'archived'>().default('active'),
+  notes: text('notes'), // Internal notes (legacy simple field)
 
   // === CUSTOMER AUTHENTICATION (Premium/Business only) ===
   passwordHash: text('password_hash'), // For email/password login
@@ -233,7 +238,6 @@ export const customers = sqliteTable('customers', {
   // Segment: vip (>3 orders OR >10k spent), churn_risk (>60 days inactive), 
   // window_shopper (has abandoned carts, 0 orders), new (0 orders), regular (default)
   segment: text('segment').$type<'vip' | 'churn_risk' | 'window_shopper' | 'new' | 'regular'>().default('new'),
-  tags: text('tags'), // JSON array for manual tagging ["high-value", "repeat-buyer"]
 
   // === LOYALTY FIELDS (Phase 10) ===
   loyaltyPoints: integer('loyalty_points').default(0),
@@ -377,6 +381,86 @@ export const customersRelations = relations(customers, ({ one, many }) => ({
     references: [stores.id],
   }),
   orders: many(orders),
+  addresses: many(customerAddresses),
+  notes: many(customerNotes),
+}));
+
+// ============================================================================
+// CUSTOMER ADDRESSES TABLE - Multiple addresses per customer
+// ============================================================================
+export const customerAddresses = sqliteTable('customer_addresses', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  customerId: integer('customer_id').notNull().references(() => customers.id, { onDelete: 'cascade' }),
+  type: text('type').$type<'shipping' | 'billing'>().default('shipping'),
+  
+  firstName: text('first_name'),
+  lastName: text('last_name'),
+  company: text('company'),
+  address1: text('address1'),
+  address2: text('address2'),
+  city: text('city'),
+  province: text('province'), // State/Division
+  zip: text('zip'),
+  country: text('country'),
+  phone: text('phone'),
+  
+  isDefault: integer('is_default', { mode: 'boolean' }).default(false),
+  
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_customer_addresses_customer').on(table.customerId),
+]);
+
+export const customerAddressesRelations = relations(customerAddresses, ({ one }) => ({
+  customer: one(customers, {
+    fields: [customerAddresses.customerId],
+    references: [customers.id],
+  }),
+}));
+
+// ============================================================================
+// CUSTOMER NOTES TABLE - Timeline/CRM notes
+// ============================================================================
+export const customerNotes = sqliteTable('customer_notes', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  customerId: integer('customer_id').notNull().references(() => customers.id, { onDelete: 'cascade' }),
+  content: text('content').notNull(),
+  authorName: text('author_name'), // Name of the staff member who added the note
+  isPinned: integer('is_pinned', { mode: 'boolean' }).default(false),
+  
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_customer_notes_customer').on(table.customerId),
+]);
+
+export const customerNotesRelations = relations(customerNotes, ({ one }) => ({
+  customer: one(customers, {
+    fields: [customerNotes.customerId],
+    references: [customers.id],
+  }),
+}));
+
+// ============================================================================
+// CUSTOMER SEGMENTS TABLE - Saved searches/groups
+// ============================================================================
+export const customerSegments = sqliteTable('customer_segments', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  query: text('query').notNull(), // JSON criteria e.g. { totalSpent: { gt: 1000 } }
+  
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_customer_segments_store').on(table.storeId),
+]);
+
+export const customerSegmentsRelations = relations(customerSegments, ({ one }) => ({
+  store: one(stores, {
+    fields: [customerSegments.storeId],
+    references: [stores.id],
+  }),
 }));
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
@@ -1418,28 +1502,83 @@ export type ApiKey = typeof apiKeys.$inferSelect;
 export type NewApiKey = typeof apiKeys.$inferInsert;
 
 // ============================================================================
-// PHASE 6: WEBHOOKS
+// PHASE 4: APP ECOSYSTEM & WEBHOOKS
+// ============================================================================
+
+export const apps = sqliteTable('apps', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  handle: text('handle').notNull().unique(), // unique identifier for the app
+  clientId: text('client_id').notNull().unique(),
+  clientSecret: text('client_secret').notNull(), // Encrypted/Hashed
+  redirectUrl: text('redirect_url').notNull(),
+  scopes: text('scopes'), // JSON array of allowed scopes ['read_products', 'write_orders']
+  developerId: integer('developer_id'), // User ID of the developer
+  isPublic: integer('is_public', { mode: 'boolean' }).default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
+export const appInstallations = sqliteTable('app_installations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  appId: integer('app_id').notNull().references(() => apps.id, { onDelete: 'cascade' }),
+  accessToken: text('access_token').notNull(),
+  refreshToken: text('refresh_token'),
+  scopes: text('scopes'), // Granted scopes
+  status: text('status').$type<'active' | 'suspended'>().default('active'),
+  installedAt: integer('installed_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, (table) => [
+  index('app_installations_store_id_idx').on(table.storeId),
+  index('app_installations_app_id_idx').on(table.appId),
+]);
+
+// ============================================================================
+// WEBHOOKS
 // ============================================================================
 export const webhooks = sqliteTable('webhooks', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id),
+  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+  appInstallationId: integer('app_installation_id').references(() => appInstallations.id, { onDelete: 'cascade' }), // Nullable for manual webhooks
+  topic: text('topic').notNull(), // 'orders/create', 'products/update'
   url: text('url').notNull(),
-  topics: text('topics').notNull(), // JSON array ["order.created", "inventory.low"]
-  secret: text('secret').notNull(), // HMAC secret
+  secret: text('secret'), // HMAC secret
+  format: text('format').$type<'json' | 'xml'>().default('json'),
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
-  failureCount: integer('failure_count').default(0),
+  failureCount: integer('failure_count').default(0), // Keep this field
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-});
+}, (table) => [
+  index('webhooks_store_id_idx').on(table.storeId),
+  index('webhooks_topic_idx').on(table.storeId, table.topic),
+]);
+
+// Relations
+export const appsRelations = relations(apps, ({ many }) => ({
+  installations: many(appInstallations),
+}));
+
+export const appInstallationsRelations = relations(appInstallations, ({ one, many }) => ({
+  store: one(stores, { fields: [appInstallations.storeId], references: [stores.id] }),
+  app: one(apps, { fields: [appInstallations.appId], references: [apps.id] }),
+  webhooks: many(webhooks),
+}));
 
 export const webhooksRelations = relations(webhooks, ({ one }) => ({
-  store: one(stores, {
-    fields: [webhooks.storeId],
-    references: [stores.id],
-  }),
+  store: one(stores, { fields: [webhooks.storeId], references: [stores.id] }),
+  appInstallation: one(appInstallations, { fields: [webhooks.appInstallationId], references: [appInstallations.id] }),
 }));
+
+export type App = typeof apps.$inferSelect;
+export type NewApp = typeof apps.$inferInsert;
+
+export type AppInstallation = typeof appInstallations.$inferSelect;
+export type NewAppInstallation = typeof appInstallations.$inferInsert;
 
 export type Webhook = typeof webhooks.$inferSelect;
 export type NewWebhook = typeof webhooks.$inferInsert;
+
+
 
 // ============================================================================
 // WEBHOOK DELIVERY LOGS - Track delivery attempts

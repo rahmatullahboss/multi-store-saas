@@ -163,7 +163,7 @@
 
 ### Phase 17: Advanced Marketing Integrations (Planned) 🚧
 
-- [ ] **SMS Gateway Integration**: Native integration with SSL Wireless / BulkSMS BD for real SMS delivery.
+- [x] **SMS Gateway Integration**: Native integration with SSL Wireless / BulkSMS BD for real SMS delivery.
 - [ ] **WhatsApp Business API**: Direct integration for official Template Messages (Order Confirm, Shipping).
 - [ ] **Catalog Sync**: Sync Product Catalog with WhatsApp/Facebook Shops.
 - [ ] **Smart Discount Rules**: Time-based (Flash Sale) and Behavior-based (Cart Abandonment) dynamic discounts.
@@ -239,3 +239,11 @@
 - [x] **Campaign Attribution**: Implemented full order tracking linking specific campaign pages to orders and revenue metrics.
 - [x] **Hybrid Rendering Engine**: Seamless integration of React-based templates and GrapesJS builder for maximum flexibility.
 - [x] **Store Template Refinement**: Refactored `StarterStoreTemplate` for Live/Preview modes and extracted modular Header/Footer components.
+
+### Phase 27: App Ecosystem & APIs (Partial Complete) 🔌
+
+- [x] **App Ecosystem Schema**: Added `apps`, `app_installations`, and `webhooks` tables.
+- [x] **Public GraphQL API**: Implemented Storefront API (`/api/graphql`) for products and collections.
+- [x] **OAuth2 Authorization**: implemented standard OAuth2 flow (`/authorize`, `/approve`, `/token`).
+- [x] **App Install UI**: Frontend consent screen for merchants.
+- [x] **Webhook Dispatcher**: Cloudflare Queues consumer to send webhooks.

@@ -186,6 +186,39 @@ ordersApi.post('/', async (c) => {
       }))
     )
     .returning();
+
+  // Dispatch Webhook Event
+  try {
+    if (c.env.WEBHOOK_QUEUE) {
+      await c.env.WEBHOOK_QUEUE.send({
+        topic: 'orders/create',
+        storeId,
+        payload: {
+          id: order.id,
+          order_number: order.orderNumber,
+          total: order.total,
+          currency: 'BDT', // TODO: Fetch from store config
+          customer: {
+            name: order.customerName,
+            email: order.customerEmail,
+          },
+          items: items.map(i => ({
+            id: i.id,
+            product_id: i.productId,
+            quantity: i.quantity,
+            price: i.price
+          })),
+          created_at: order.createdAt
+        }
+      });
+      console.log(`[Webhook] Dispatched orders/create for Order #${order.id}`);
+    } else {
+      console.warn('[Webhook] WEBHOOK_QUEUE not bound');
+    }
+  } catch (err) {
+    console.error('[Webhook] Failed to dispatch event:', err);
+    // Non-blocking error
+  }
   
   return c.json({ order, items }, 201);
 });

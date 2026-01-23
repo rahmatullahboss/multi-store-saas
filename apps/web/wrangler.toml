@@ -91,3 +91,10 @@ GOOGLE_CLIENT_ID = "477759293578-24qqc1l4mg7dtm2f44vtqbrme6p9cqa3.apps.googleuse
 [dev]
 port = 8787
 local_protocol = "http"
+
+# ============================================================================
+# QUEUES
+# ============================================================================
+[[queues.producers]]
+  queue = "webhook-queue"
+  binding = "WEBHOOK_QUEUE"
