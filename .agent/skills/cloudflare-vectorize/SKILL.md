@@ -292,17 +292,37 @@ export async function searchWithFilters(
 }
 ```
 
-### Filter Operators
+### Filter Operators (Updated 2025)
 
-| Operator | Description      | Example                                |
-| -------- | ---------------- | -------------------------------------- |
-| `$eq`    | Equals           | `{ category: { $eq: 'Electronics' } }` |
-| `$ne`    | Not equals       | `{ status: { $ne: 'archived' } }`      |
-| `$gt`    | Greater than     | `{ price: { $gt: 100 } }`              |
-| `$gte`   | Greater or equal | `{ price: { $gte: 100 } }`             |
-| `$lt`    | Less than        | `{ price: { $lt: 500 } }`              |
-| `$lte`   | Less or equal    | `{ price: { $lte: 500 } }`             |
-| `$in`    | In array         | `{ category: { $in: ['A', 'B'] } }`    |
+> **Important**: You must explicitly create a metadata index for properties you want to filter on. Up to 10 metadata indexes per Vectorize index are supported.
+
+| Operator | Description      | Example                                      |
+| -------- | ---------------- | -------------------------------------------- |
+| `$eq`    | Equals           | `{ category: { $eq: 'Electronics' } }`       |
+| `$ne`    | Not equals       | `{ status: { $ne: 'archived' } }`            |
+| `$gt`    | Greater than     | `{ price: { $gt: 100 } }`                    |
+| `$gte`   | Greater or equal | `{ price: { $gte: 100 } }`                   |
+| `$lt`    | Less than        | `{ price: { $lt: 500 } }`                    |
+| `$lte`   | Less or equal    | `{ price: { $lte: 500 } }`                   |
+| `$in`    | In array         | `{ category: { $in: ['A', 'B'] } }`          |
+| `$nin`   | Not in array     | `{ status: { $nin: ['deleted', 'draft'] } }` |
+
+### Create Metadata Index (CLI)
+
+```bash
+# Create index for filtering on specific properties
+npx wrangler vectorize create-metadata-index product-embeddings \
+  --property-name=storeId \
+  --type=string
+
+npx wrangler vectorize create-metadata-index product-embeddings \
+  --property-name=price \
+  --type=number
+
+npx wrangler vectorize create-metadata-index product-embeddings \
+  --property-name=category \
+  --type=string
+```
 
 ---
 

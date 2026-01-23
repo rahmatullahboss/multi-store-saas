@@ -24,15 +24,20 @@ interface Env {
 }
 ```
 
-### Available Model Categories
+### Available Model Categories (Updated 2025)
 
-| Category             | Models                                                                   | Use Case                 |
-| -------------------- | ------------------------------------------------------------------------ | ------------------------ |
-| **Text Generation**  | `@cf/meta/llama-3.1-8b-instruct`, `@cf/mistral/mistral-7b-instruct-v0.1` | Chat, content generation |
-| **Text Embeddings**  | `@cf/baai/bge-base-en-v1.5`, `@cf/baai/bge-large-en-v1.5`                | Semantic search, RAG     |
-| **Image Generation** | `@cf/stabilityai/stable-diffusion-xl-base-1.0`                           | Image creation           |
-| **Speech-to-Text**   | `@cf/openai/whisper`                                                     | Audio transcription      |
-| **Translation**      | `@cf/meta/m2m100-1.2b`                                                   | Language translation     |
+| Category             | Models                                                                                 | Use Case                 |
+| -------------------- | -------------------------------------------------------------------------------------- | ------------------------ |
+| **Text Generation**  | `@cf/meta/llama-3.1-8b-instruct`, `@cf/mistral/mistral-7b-instruct-v0.2`               | Chat, content generation |
+| **Text Embeddings**  | `@cf/baai/bge-base-en-v1.5`, `@cf/baai/bge-large-en-v1.5`, `@cf/baai/bge-m3`           | Semantic search, RAG     |
+| **Reranking**        | `@cf/baai/bge-reranker-base`                                                           | Improve RAG relevance    |
+| **Image Generation** | `@cf/black-forest-labs/flux-1-schnell`, `@cf/stabilityai/stable-diffusion-xl-base-1.0` | Image creation           |
+| **Speech-to-Text**   | `@cf/openai/whisper-large-v3-turbo`, `@cf/openai/whisper`                              | Audio transcription      |
+| **Text-to-Speech**   | `@cf/myshell-ai/melotts`                                                               | Voice audio generation   |
+| **Translation**      | `@cf/meta/m2m100-1.2b`                                                                 | Language translation     |
+| **Vision**           | `@cf/uform/uform-gen`                                                                  | Image captioning, VQA    |
+
+> **New in 2025**: Multi-lingual embeddings (`bge-m3` - 100+ languages), reranking for RAG, TTS, and Flux image models.
 
 ---
 
@@ -129,11 +134,33 @@ export async function generateEmbeddings(env: Env, texts: string[]): Promise<num
 
 ### Embedding Model Comparison
 
-| Model               | Dimensions | Speed   | Quality | Use Case                |
-| ------------------- | ---------- | ------- | ------- | ----------------------- |
-| `bge-base-en-v1.5`  | 768        | Fast    | Good    | General semantic search |
-| `bge-large-en-v1.5` | 1024       | Slower  | Better  | High-quality RAG        |
-| `bge-small-en-v1.5` | 384        | Fastest | Basic   | Resource-constrained    |
+| Model               | Dimensions | Speed   | Quality   | Use Case                           |
+| ------------------- | ---------- | ------- | --------- | ---------------------------------- |
+| `bge-base-en-v1.5`  | 768        | Fast    | Good      | General semantic search            |
+| `bge-large-en-v1.5` | 1024       | Slower  | Better    | High-quality RAG                   |
+| `bge-small-en-v1.5` | 384        | Fastest | Basic     | Resource-constrained               |
+| `bge-m3`            | 1024       | Medium  | Excellent | **Multi-lingual (100+ languages)** |
+
+### Reranking for Better RAG Results
+
+```typescript
+// Use reranker to improve search result relevance
+export async function rerankResults(
+  env: Env,
+  query: string,
+  documents: string[]
+): Promise<Array<{ index: number; score: number }>> {
+  const response = await env.AI.run('@cf/baai/bge-reranker-base', {
+    query,
+    documents,
+  });
+
+  // Returns scores for each document
+  return response.data
+    .map((score: number, index: number) => ({ index, score }))
+    .sort((a, b) => b.score - a.score);
+}
+```
 
 ---
 
