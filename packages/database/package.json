@@ -11,10 +11,10 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "drizzle-orm": "^0.38.0"
+    "drizzle-orm": "^0.45.1"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.30.0",
+    "drizzle-kit": "^0.31.8",
     "wrangler": "^3.114.17",
     "typescript": "^5.7.0"
   }
