@@ -73,7 +73,7 @@ type AppEnv = {
 const app = new Hono<AppEnv>();
 
 // Helper to parse JSON body with Zod
-async function parseBody<T>(c: any, schema: z.ZodSchema<T>): Promise<T> {
+async function parseBody<T>(c: any, schema: z.ZodType<T, any, any>): Promise<T> {
   const body = await c.req.json();
   const result = schema.safeParse(body);
   if (!result.success) {

@@ -127,7 +127,7 @@ app.use('/', async (c) => {
     fetchAPI: { Response }
   })
 
-  return yoga.handle(c.req.raw, c.env)
+  return yoga.handle({ request: c.req.raw }, {})
 })
 
 export { app as graphqlApi }

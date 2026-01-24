@@ -36,7 +36,33 @@ Request fixes for any failures before proceeding.
 
 ---
 
-## Step 2: High-Level Assessment
+
+---
+
+## Step 2: Manual Code Review Strategy
+
+### 2.1 Identify & Load Skills
+Before reviewing line-by-line, the agent MUST identify the technology stack used in the changed files and load specific "Antigravity Skills" (frontend or backend) to guide the review.
+
+| Changed Code Type | Relevant Skills to Check |
+| :--- | :--- |
+| **Backend / API** | `backend-dev-guidelines`, `api-security-best-practices`, `nodejs-best-practices` |
+| **Frontend / UI** | `frontend-dev-guidelines`, `react-patterns`, `react-ui-patterns`, `tailwind-patterns` |
+| **Database / Drizzle** | `database-design`, `backend-dev-guidelines` |
+| **Testing** | `testing-patterns`, `tdd-workflow` |
+| **Workflows / CI** | `github-workflow-automation`, `deployment-procedures` |
+
+**Action:** Read the relevant SKILL.md files to refresh on project-specific patterns (like "Use Hono Zod Validator" or "Use Remix Loaders").
+
+### 2.2 Compare with Similar Code
+Check existing codebases or patterns to ensure consistency.
+
+- **Grepping**: Search for similar implementations in the codebase to see if the new code matches existing patterns.
+- **Consistency**: Ensure variable naming, folder structure, and architecture align with the rest of the project.
+
+---
+
+## Step 3: High-Level Assessment
 
 1. **Problem Solving**: Does it solve the issue described?
 2. **Scope**: is the PR focused?
@@ -45,7 +71,7 @@ Request fixes for any failures before proceeding.
 
 ---
 
-## Step 3: TypeScript Review
+## Step 4: TypeScript Review
 
 ### Type Safety Checklist
 
@@ -77,7 +103,7 @@ const product = productSchema.parse(response);
 
 ---
 
-## Step 4: React Component Review
+## Step 5: React Component Review
 
 ### Component Checklist
 
@@ -120,7 +146,7 @@ const sorted = useMemo(() => expensiveSort(items), [items]);
 
 ---
 
-## Step 5: Remix & Data Loading
+## Step 6: Remix & Data Loading
 
 ### Pattern Checklist
 
@@ -156,7 +182,7 @@ function Product() {
 
 ---
 
-## Step 6: Cloudflare Security
+## Step 7: Cloudflare Security
 
 ### 🔴 CRITICAL: D1 SQL Injection
 
@@ -190,7 +216,7 @@ await env.DB.prepare('SELECT * FROM products WHERE id = ? AND store_id = ?')
 
 ---
 
-## Step 7: AI & LLM Best Practices
+## Step 8: AI & LLM Best Practices
 
 ### Safety & Performance
 
@@ -219,7 +245,7 @@ const response = await env.AI.run('@cf/meta/llama-3', {
 
 ---
 
-## Step 8: Accessibility (a11y)
+## Step 9: Accessibility (a11y)
 
 | Check             | Look For                       |
 | ----------------- | ------------------------------ |
@@ -231,7 +257,7 @@ const response = await env.AI.run('@cf/meta/llama-3', {
 
 ---
 
-## Step 9: Documentation & Testing
+## Step 10: Documentation & Testing
 
 | Check          | Look For                            |
 | -------------- | ----------------------------------- |
@@ -242,7 +268,7 @@ const response = await env.AI.run('@cf/meta/llama-3', {
 
 ---
 
-## Step 10: Providing Feedback
+## Step 11: Providing Feedback
 
 ### Feedback Guidelines
 
@@ -263,7 +289,7 @@ const response = await env.AI.run('@cf/meta/llama-3', {
 
 ---
 
-## Step 11: Final Verification
+## Step 12: Final Verification
 
 ### Pre-Merge Checklist
 

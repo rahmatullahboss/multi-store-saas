@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '~/components/ui';
 import { GlassCard } from '~/components/ui/GlassCard';
-import { Button } from '~/components/ui/Button';
+import { Button } from '~/components/ui/button';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {

@@ -10,6 +10,8 @@ import { relations, sql } from 'drizzle-orm';
 export * from './schema_agent';
 export * from './schema_templates';
 
+export type CustomerSegment = 'vip' | 'churn_risk' | 'window_shopper' | 'new' | 'regular';
+
 // ============================================================================
 // STORES TABLE - Core tenant table with Hybrid Mode support
 // ============================================================================
@@ -237,7 +239,7 @@ export const customers = sqliteTable('customers', {
   lastOrderAt: integer('last_order_at', { mode: 'timestamp' }), // Last purchase date
   // Segment: vip (>3 orders OR >10k spent), churn_risk (>60 days inactive), 
   // window_shopper (has abandoned carts, 0 orders), new (0 orders), regular (default)
-  segment: text('segment').$type<'vip' | 'churn_risk' | 'window_shopper' | 'new' | 'regular'>().default('new'),
+  segment: text('segment').$type<CustomerSegment>().default('new'),
 
   // === LOYALTY FIELDS (Phase 10) ===
   loyaltyPoints: integer('loyalty_points').default(0),

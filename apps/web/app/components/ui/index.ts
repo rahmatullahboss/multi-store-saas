@@ -8,3 +8,4 @@ export { SearchInput } from './SearchInput';
 export { EmptyState } from './EmptyState';
 export { StatusTabs } from './StatusTabs';
 export { StatCard } from './StatCard';
+export { Button } from './button';
