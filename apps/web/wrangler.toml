@@ -103,8 +103,9 @@ binding = "ORDER_PROCESSOR_SERVICE"
 service = "order-processor"
 
 # ============================================================================
-# QUEUES (Optional - if you have paid plan)
+# QUEUES (Disabled - using Durable Objects instead for FREE plan)
 # ============================================================================
-[[queues.producers]]
-  queue = "webhook-queue"
-  binding = "WEBHOOK_QUEUE"
+# Uncomment below if you have Workers Paid plan and want to use Queues
+# [[queues.producers]]
+#   queue = "webhook-queue"
+#   binding = "WEBHOOK_QUEUE"
