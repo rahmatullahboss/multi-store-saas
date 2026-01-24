@@ -15,6 +15,13 @@
       "when": 1769186232315,
       "tag": "0001_petite_bloodstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1769213457864,
+      "tag": "0002_reflective_strong_guy",
+      "breakpoints": true
     }
   ]
 }

@@ -6,6 +6,7 @@
 
 import { drizzle } from 'drizzle-orm/d1';
 import * as schema from '@db/schema';
+import { getActiveFlashSale } from '~/../server/services/discount.service';
 
 export type Database = ReturnType<typeof createDb>;
 
@@ -38,14 +39,40 @@ export async function getProductsByStore(db: Database, storeId: number, options?
     orderBy: (products, { desc }) => [desc(products.createdAt)],
   });
   
-  return query;
+  const products = await query;
+  
+  // Calculate Flash Sale Pricing
+  const flashSale = await getActiveFlashSale(db, storeId);
+  
+  if (flashSale) {
+    return products.map(p => {
+      let flashPrice = p.price;
+      if (flashSale.type === 'percentage') {
+        const discountAmount = (p.price * flashSale.value) / 100;
+        const cappedDiscount = flashSale.maxDiscountAmount 
+          ? Math.min(discountAmount, flashSale.maxDiscountAmount) 
+          : discountAmount;
+        flashPrice = p.price - cappedDiscount;
+      } else {
+        flashPrice = Math.max(0, p.price - flashSale.value);
+      }
+      
+      return {
+        ...p,
+        flashSalePrice: Math.floor(flashPrice),
+        flashSaleLabel: flashSale.flashSaleTitle || 'Flash Sale'
+      };
+    });
+  }
+
+  return products.map(p => ({ ...p, flashSalePrice: null, flashSaleLabel: null }));
 }
 
 /**
  * Get a single product by ID and store
  */
 export async function getProductById(db: Database, productId: number, storeId: number) {
-  return db.query.products.findFirst({
+  const product = await db.query.products.findFirst({
     where: (products, { eq, and }) => 
       and(
         eq(products.id, productId),
@@ -53,6 +80,29 @@ export async function getProductById(db: Database, productId: number, storeId: n
         eq(products.isPublished, true)
       ),
   });
+
+  if (!product) return undefined;
+
+  const flashSale = await getActiveFlashSale(db, storeId);
+  let flashSalePrice = null;
+  let flashSaleLabel = null;
+
+  if (flashSale) {
+    let flashPrice = product.price;
+    if (flashSale.type === 'percentage') {
+        const discountAmount = (product.price * flashSale.value) / 100;
+        const cappedDiscount = flashSale.maxDiscountAmount 
+          ? Math.min(discountAmount, flashSale.maxDiscountAmount) 
+          : discountAmount;
+        flashPrice = product.price - cappedDiscount;
+    } else {
+        flashPrice = Math.max(0, product.price - flashSale.value);
+    }
+    flashSalePrice = Math.floor(flashPrice);
+    flashSaleLabel = flashSale.flashSaleTitle || 'Flash Sale';
+  }
+
+  return { ...product, flashSalePrice, flashSaleLabel };
 }
 
 /**

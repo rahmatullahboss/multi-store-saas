@@ -49,7 +49,7 @@ export async function registerWebhook(
     .values({
       storeId,
       url,
-      topics: JSON.stringify(topics),
+      topic: topics[0] || 'order.created', // Schema uses single topic
       secret,
     })
     .returning();
@@ -81,9 +81,8 @@ export async function dispatchWebhook(
 
   // 2. Send to each URL
   const promises = hooks.map(async (hook) => {
-    // Check if topic is subscribed
-    const topics = JSON.parse(hook.topics as string) as string[];
-    if (!topics.includes(topic)) return;
+    // Check if topic matches (schema uses single topic field)
+    if (hook.topic !== topic) return;
 
     let statusCode: number | null = null;
     let responseBody: string | null = null;
@@ -91,7 +90,7 @@ export async function dispatchWebhook(
     let errorMessage: string | null = null;
 
     try {
-      const signature = await signPayload(payloadString, hook.secret);
+      const signature = await signPayload(payloadString, hook.secret || '');
       
       const response = await fetch(hook.url, {
         method: 'POST',

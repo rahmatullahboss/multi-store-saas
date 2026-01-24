@@ -38,11 +38,11 @@ export function LandingPageTemplate(props: LandingPageTemplateProps) {
   // Build product from config for checkout
   const checkoutProduct = {
     id: props.product?.id || 0,
-    name: props.product?.title || config.productName || 'Product',
-    price: props.product?.price || config.productPrice || 0,
-    compareAtPrice: props.product?.compareAtPrice || config.productCompareAtPrice,
-    image: props.product?.imageUrl || config.heroImage,
-    variants: config.productVariants || [],
+    name: props.product?.title || 'Product',
+    price: props.product?.price || 0,
+    compareAtPrice: props.product?.compareAtPrice,
+    image: props.product?.imageUrl,
+    variants: props.productVariants || [],
   };
 
   // Handler to open checkout modal (passed to template components)
@@ -96,8 +96,8 @@ export function LandingPageTemplate(props: LandingPageTemplateProps) {
           isOpen={isCheckoutOpen}
           onClose={() => setIsCheckoutOpen(false)}
           product={checkoutProduct}
-          storeId={props.store?.id || 0}
-          storeName={props.store?.name}
+          storeId={props.storeId || 0}
+          storeName={props.storeName}
           shippingOptions={config.shippingConfig ? [
             { id: 'dhaka', name: 'ঢাকার ভিতরে', fee: config.shippingConfig.insideDhaka || 60 },
             { id: 'outside', name: 'ঢাকার বাইরে', fee: config.shippingConfig.outsideDhaka || 120 },

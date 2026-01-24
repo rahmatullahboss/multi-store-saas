@@ -1,8 +1,8 @@
 /**
  * Activity Logs Page
- * 
+ *
  * Route: /app/settings/activity
- * 
+ *
  * Features:
  * - Timeline of store activities
  * - Filter by user/action type
@@ -17,12 +17,10 @@ import { eq, desc } from 'drizzle-orm';
 import { activityLogs, users } from '@db/schema';
 import { requireUserId, getStoreId } from '~/services/auth.server';
 import { getActionLabel, getActionColor } from '~/lib/activity';
-import { 
-  Activity, Filter, User, ChevronDown, ChevronUp,
-  Clock, FileText
-} from 'lucide-react';
+import { Activity, Filter, User, ChevronDown, ChevronUp, Clock, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { GlassCard } from '~/components/ui/GlassCard';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Activity Log - Ozzyl' }];
@@ -34,7 +32,7 @@ export const meta: MetaFunction = () => {
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const userId = await requireUserId(request, context.cloudflare.env);
   const storeId = await getStoreId(request, context.cloudflare.env);
-  
+
   if (!storeId) {
     throw new Response('Store not found', { status: 404 });
   }
@@ -72,14 +70,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // Apply filters
   let filteredLogs = allLogs;
-  
+
   if (filterUser) {
     const filterUserId = parseInt(filterUser, 10);
-    filteredLogs = filteredLogs.filter(log => log.userId === filterUserId);
+    filteredLogs = filteredLogs.filter((log) => log.userId === filterUserId);
   }
-  
+
   if (filterAction) {
-    filteredLogs = filteredLogs.filter(log => log.action === filterAction);
+    filteredLogs = filteredLogs.filter((log) => log.action === filterAction);
   }
 
   // Paginate
@@ -87,15 +85,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const totalPages = Math.ceil(filteredLogs.length / limit);
 
   // Enrich logs with user info
-  const userMap = new Map(teamMembers.map(u => [u.id, u]));
-  const enrichedLogs = paginatedLogs.map(log => ({
+  const userMap = new Map(teamMembers.map((u) => [u.id, u]));
+  const enrichedLogs = paginatedLogs.map((log) => ({
     ...log,
     user: log.userId ? userMap.get(log.userId) : null,
     parsedDetails: log.details ? JSON.parse(log.details) : null,
   }));
 
   // Get unique actions for filter
-  const uniqueActions = [...new Set(allLogs.map(l => l.action))];
+  const uniqueActions = [...new Set(allLogs.map((l) => l.action))];
 
   return json({
     logs: enrichedLogs,
@@ -175,12 +173,6 @@ export default function ActivityLogsPage() {
         <p className="text-gray-600">{t('activityLogsDesc')}</p>
       </div>
 
-import { GlassCard } from '~/components/ui/GlassCard';
-
-/* ... imports ... */
-
-/* ... inside component ... */
-
       {/* Filters */}
       <GlassCard className="p-4">
         <div className="flex items-center gap-3 mb-4">
@@ -239,7 +231,6 @@ import { GlassCard } from '~/components/ui/GlassCard';
           </button>
         )}
       </GlassCard>
-
       {/* Activity Timeline */}
       <GlassCard className="p-6">
         <div className="flex items-center gap-3 mb-6">
@@ -248,7 +239,9 @@ import { GlassCard } from '~/components/ui/GlassCard';
           </div>
           <div>
             <h2 className="text-lg font-semibold text-gray-900">{t('recentActivity')}</h2>
-            <p className="text-sm text-gray-500">{pagination.total} {t('activitiesFound')}</p>
+            <p className="text-sm text-gray-500">
+              {pagination.total} {t('activitiesFound')}
+            </p>
           </div>
         </div>
 
@@ -261,17 +254,16 @@ import { GlassCard } from '~/components/ui/GlassCard';
         ) : (
           <div className="space-y-4">
             {logs.map((log, index) => (
-              <div
-                key={log.id}
-                className="relative pl-8 pb-4 last:pb-0"
-              >
+              <div key={log.id} className="relative pl-8 pb-4 last:pb-0">
                 {/* Timeline line */}
                 {index < logs.length - 1 && (
                   <div className="absolute left-3 top-6 bottom-0 w-0.5 bg-gray-200/50" />
                 )}
-                
+
                 {/* Timeline dot */}
-                <div className={`absolute left-0 top-1 w-6 h-6 rounded-full ${getActionColor(log.action)} flex items-center justify-center`}>
+                <div
+                  className={`absolute left-0 top-1 w-6 h-6 rounded-full ${getActionColor(log.action)} flex items-center justify-center`}
+                >
                   <div className="w-2 h-2 bg-current rounded-full opacity-60" />
                 </div>
 
@@ -280,7 +272,9 @@ import { GlassCard } from '~/components/ui/GlassCard';
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${getActionColor(log.action)}`}>
+                        <span
+                          className={`px-2 py-0.5 rounded text-xs font-medium ${getActionColor(log.action)}`}
+                        >
                           {t(log.action as any)}
                         </span>
                         {log.entityType && (
@@ -290,7 +284,7 @@ import { GlassCard } from '~/components/ui/GlassCard';
                           </span>
                         )}
                       </div>
-                      
+
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         {log.user ? (
                           <>
@@ -348,7 +342,9 @@ import { GlassCard } from '~/components/ui/GlassCard';
         {pagination.totalPages > 1 && (
           <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200/50">
             <p className="text-sm text-gray-500">
-              {t('pageOf').replace('{page}', String(pagination.page)).replace('{total}', String(pagination.totalPages))}
+              {t('pageOf')
+                .replace('{page}', String(pagination.page))
+                .replace('{total}', String(pagination.totalPages))}
             </p>
             <div className="flex gap-2">
               {pagination.page > 1 && (

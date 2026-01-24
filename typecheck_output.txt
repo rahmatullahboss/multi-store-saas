@@ -1,0 +1,431 @@
+• Packages in scope: @ozzyl/web
+• Running typecheck in 1 packages
+• Remote caching disabled
+@ozzyl/web:typecheck: cache miss, executing 344781023cb127ee
+@ozzyl/web:typecheck: npm warn Unknown project config "node-linker". This will stop working in the next major version of npm.
+@ozzyl/web:typecheck: 
+@ozzyl/web:typecheck: > typecheck
+@ozzyl/web:typecheck: > tsc --noEmit
+@ozzyl/web:typecheck: 
+@ozzyl/web:typecheck: app/components/page-builder/hooks/index.ts(5,30): error TS2307: Cannot find module './useSelection' or its corresponding type declarations.
+@ozzyl/web:typecheck: app/components/page-builder/hooks/index.ts(6,27): error TS2307: Cannot find module './useAIChat' or its corresponding type declarations.
+@ozzyl/web:typecheck: app/components/page-builder/sections/order-form/DefaultOrderForm.tsx(76,5): error TS2339: Property 'useRealStockCount' does not exist on type 'OrderFormProps'.
+@ozzyl/web:typecheck: app/components/page-builder/sections/order-form/DefaultOrderForm.tsx(77,5): error TS2339: Property 'useRealOrderCount' does not exist on type 'OrderFormProps'.
+@ozzyl/web:typecheck: app/components/page-builder/sections/order-form/DefaultOrderForm.tsx(95,62): error TS18048: 'realData' is possibly 'undefined'.
+@ozzyl/web:typecheck: app/components/page-builder/sections/order-form/DefaultOrderForm.tsx(96,30): error TS18048: 'realData' is possibly 'undefined'.
+@ozzyl/web:typecheck: app/components/page-builder/sections/order-form/UrgencyOrderForm.tsx(64,35): error TS2304: Cannot find name 'useState'.
+@ozzyl/web:typecheck: app/components/page-builder/sections/order-form/UrgencyOrderForm.tsx(68,19): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+@ozzyl/web:typecheck: app/components/page-builder/SidebarPanel.tsx(8,27): error TS2307: Cannot find module './StyleControls' or its corresponding type declarations.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(4,55): error TS2307: Cannot find module '~/lib/grapesjs/template-configs' or its corresponding type declarations.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(31,45): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(32,43): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(33,40): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(33,56): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(34,47): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(34,70): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(38,20): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(44,48): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(46,43): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(52,58): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(52,99): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(59,48): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(77,59): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(77,95): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(92,20): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(93,20): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(94,20): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(95,20): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(109,48): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(116,20): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/page-builder/TemplatesPanel.tsx(116,61): error TS18046: 'template' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/store-layouts/UnifiedStoreLayout.tsx(469,34): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
+@ozzyl/web:typecheck: app/components/store-sections/BlockRenderer.tsx(67,11): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+@ozzyl/web:typecheck: app/components/store-sections/BlockRenderer.tsx(87,11): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+@ozzyl/web:typecheck: app/components/store-sections/BlockRenderer.tsx(99,13): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+@ozzyl/web:typecheck: app/components/store-sections/BlockRenderer.tsx(104,13): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+@ozzyl/web:typecheck: app/components/store-sections/BlockRenderer.tsx(109,13): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+@ozzyl/web:typecheck: app/components/store-sections/BlockRenderer.tsx(134,11): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+@ozzyl/web:typecheck: app/components/store-sections/BlockRenderer.tsx(137,11): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+@ozzyl/web:typecheck: app/components/store-sections/BlockRenderer.tsx(152,11): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+@ozzyl/web:typecheck: app/components/store-sections/BlockRenderer.tsx(164,13): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+@ozzyl/web:typecheck: app/components/store-sections/BlockRenderer.tsx(173,15): error TS2322: Type 'unknown' is not assignable to type 'string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined'.
+@ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(387,15): error TS2322: Type '{}' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
+@ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1171,13): error TS2322: Type 'ThemeConfig | null' is not assignable to type 'Record<string, unknown>'.
+@ozzyl/web:typecheck:   Type 'null' is not assignable to type 'Record<string, unknown>'.
+@ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1223,13): error TS2322: Type 'ThemeConfig | null' is not assignable to type 'Record<string, unknown>'.
+@ozzyl/web:typecheck:   Type 'null' is not assignable to type 'Record<string, unknown>'.
+@ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/index.tsx(1111,250): error TS2353: Object literal may only specify known properties, and 'ringColor' does not exist in type 'Properties<string | number, string & {}>'.
+@ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/sections/Footer.tsx(177,31): error TS2339: Property 'youtube' does not exist on type 'SocialLinks'.
+@ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/sections/Footer.tsx(179,39): error TS2339: Property 'youtube' does not exist on type 'SocialLinks'.
+@ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/sections/Header.tsx(258,23): error TS2353: Object literal may only specify known properties, and 'focusRing' does not exist in type 'Properties<string | number, string & {}>'.
+@ozzyl/web:typecheck: app/components/store-templates/turbo-sale/sections/Footer.tsx(17,30): error TS2339: Property 'footerText' does not exist on type '{ primary: string; secondary: string; accent: string; background: string; surface: string; text: string; textMuted: string; border: string; headerBg: string; footerBg: string; fontFamily: string; }'.
+@ozzyl/web:typecheck: app/components/store/rovo/index.tsx(12,6): error TS2322: Type '{ children: Element[]; storeName: string; storeId: number; logo?: string | null | undefined; theme?: string | null | undefined; fontFamily?: string | null | undefined; products: SerializedProduct[]; ... 8 more ...; isPreview?: boolean | undefined; }' is not assignable to type 'RovoLayoutProps'.
+@ozzyl/web:typecheck:   Types of property 'categories' are incompatible.
+@ozzyl/web:typecheck:     Type '(string | null)[]' is not assignable to type 'string[]'.
+@ozzyl/web:typecheck:       Type 'string | null' is not assignable to type 'string'.
+@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string'.
+@ozzyl/web:typecheck: app/components/store/sections/checkout/CheckoutFormSection.tsx(71,46): error TS18046: 'data' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/store/StorePushPrompt.tsx(48,25): error TS18046: 'keyJson' is of type 'unknown'.
+@ozzyl/web:typecheck: app/components/templates/LandingPageTemplate.tsx(41,42): error TS2339: Property 'productName' does not exist on type 'LandingConfig'.
+@ozzyl/web:typecheck: app/components/templates/LandingPageTemplate.tsx(42,43): error TS2339: Property 'productPrice' does not exist on type 'LandingConfig'.
+@ozzyl/web:typecheck: app/components/templates/LandingPageTemplate.tsx(43,61): error TS2339: Property 'productCompareAtPrice' does not exist on type 'LandingConfig'.
+@ozzyl/web:typecheck: app/components/templates/LandingPageTemplate.tsx(44,46): error TS2339: Property 'heroImage' does not exist on type 'LandingConfig'.
+@ozzyl/web:typecheck: app/components/templates/LandingPageTemplate.tsx(99,26): error TS2551: Property 'store' does not exist on type 'LandingPageTemplateProps'. Did you mean 'storeId'?
+@ozzyl/web:typecheck: app/components/templates/LandingPageTemplate.tsx(100,28): error TS2551: Property 'store' does not exist on type 'LandingPageTemplateProps'. Did you mean 'storeId'?
+@ozzyl/web:typecheck: app/lib/metafields.server.ts(56,26): error TS2345: Argument of type '{ id: string; createdAt: string | null; updatedAt: string | null; storeId: number; type: string; key: string; value: string; namespace: string; ownerType: string; definitionId: string | null; ownerId: string; }[]' is not assignable to parameter of type 'Metafield[]'.
+@ozzyl/web:typecheck:   Type '{ id: string; createdAt: string | null; updatedAt: string | null; storeId: number; type: string; key: string; value: string; namespace: string; ownerType: string; definitionId: string | null; ownerId: string; }' is not assignable to type 'Metafield'.
+@ozzyl/web:typecheck:     Types of property 'type' are incompatible.
+@ozzyl/web:typecheck:       Type 'string' is not assignable to type 'MetafieldType'.
+@ozzyl/web:typecheck: app/lib/metafields.server.ts(270,3): error TS2484: Export declaration conflicts with exported declaration of 'MetafieldMap'.
+@ozzyl/web:typecheck: app/lib/metafields.server.ts(271,3): error TS2484: Export declaration conflicts with exported declaration of 'ParsedMetafield'.
+@ozzyl/web:typecheck: app/lib/page-builder/actions.server.ts(692,23): error TS2345: Argument of type '{ id: string; pageId: string; type: string; enabled: number; sortOrder: number; propsJson: string; publishedPropsJson: null; publishedAt: null; version: number; createdAt: Date; updatedAt: Date; }' is not assignable to parameter of type '{ id: string; createdAt: Date | null; updatedAt: Date | null; type: string; enabled: number; sortOrder: number; propsJson: string; version: number; publishedAt: Date | null; variant: string | null; pageId: string; publishedPropsJson: string | null; }'.
+@ozzyl/web:typecheck:   Property 'variant' is missing in type '{ id: string; pageId: string; type: string; enabled: number; sortOrder: number; propsJson: string; publishedPropsJson: null; publishedAt: null; version: number; createdAt: Date; updatedAt: Date; }' but required in type '{ id: string; createdAt: Date | null; updatedAt: Date | null; type: string; enabled: number; sortOrder: number; propsJson: string; version: number; publishedAt: Date | null; variant: string | null; pageId: string; publishedPropsJson: string | null; }'.
+@ozzyl/web:typecheck: app/lib/page-builder/actions.server.ts(872,11): error TS2367: This comparison appears to be unintentional because the types 'SectionType' and '"social-proof"' have no overlap.
+@ozzyl/web:typecheck: app/lib/page-builder/actions.server.ts(875,38): error TS2339: Property 'count' does not exist on type '{}'.
+@ozzyl/web:typecheck: app/lib/page-builder/actions.server.ts(876,37): error TS2339: Property 'text' does not exist on type '{}'.
+@ozzyl/web:typecheck: app/lib/template-builder/actions.server.ts(140,7): error TS2769: No overload matches this call.
+@ozzyl/web:typecheck:   Overload 1 of 3, '(left: SQLiteColumn<{ name: "template_key"; tableName: "theme_templates"; dataType: "string"; columnType: "SQLiteText"; data: TemplateKey; driverParam: string; notNull: true; hasDefault: false; ... 6 more ...; generated: undefined; }, {}, { ...; }>, right: SQLWrapper | TemplateKey): SQL<...>', gave the following error.
+@ozzyl/web:typecheck:     Argument of type 'string' is not assignable to parameter of type 'SQLWrapper | TemplateKey'.
+@ozzyl/web:typecheck:   Overload 2 of 3, '(left: Aliased<string>, right: string | SQLWrapper): SQL<unknown>', gave the following error.
+@ozzyl/web:typecheck:     Argument of type 'SQLiteColumn<{ name: "template_key"; tableName: "theme_templates"; dataType: "string"; columnType: "SQLiteText"; data: TemplateKey; driverParam: string; notNull: true; hasDefault: false; ... 6 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'Aliased<string>'.
+@ozzyl/web:typecheck:       Type 'SQLiteColumn<{ name: "template_key"; tableName: "theme_templates"; dataType: "string"; columnType: "SQLiteText"; data: TemplateKey; driverParam: string; notNull: true; hasDefault: false; ... 6 more ...; generated: undefined; }, {}, { ...; }>' is missing the following properties from type 'Aliased<string>': sql, fieldAlias
+@ozzyl/web:typecheck:   Overload 3 of 3, '(left: never, right: unknown): SQL<unknown>', gave the following error.
+@ozzyl/web:typecheck:     Argument of type 'SQLiteColumn<{ name: "template_key"; tableName: "theme_templates"; dataType: "string"; columnType: "SQLiteText"; data: TemplateKey; driverParam: string; notNull: true; hasDefault: false; ... 6 more ...; generated: undefined; }, {}, { ...; }>' is not assignable to parameter of type 'never'.
+@ozzyl/web:typecheck: app/lib/template-builder/actions.server.ts(600,48): error TS2322: Type '"newsletter"' is not assignable to type 'SectionType'.
+@ozzyl/web:typecheck: app/lib/template-builder/actions.server.ts(601,15): error TS2322: Type '"product-header"' is not assignable to type 'SectionType'.
+@ozzyl/web:typecheck: app/lib/template-builder/actions.server.ts(601,33): error TS2322: Type '"product-gallery"' is not assignable to type 'SectionType'.
+@ozzyl/web:typecheck: app/lib/template-builder/actions.server.ts(601,52): error TS2322: Type '"product-info"' is not assignable to type 'SectionType'.
+@ozzyl/web:typecheck: app/lib/template-builder/actions.server.ts(601,68): error TS2322: Type '"product-description"' is not assignable to type 'SectionType'.
+@ozzyl/web:typecheck: app/lib/template-builder/actions.server.ts(601,91): error TS2322: Type '"related-products"' is not assignable to type 'SectionType'.
+@ozzyl/web:typecheck: app/lib/template-builder/actions.server.ts(602,18): error TS2322: Type '"collection-header"' is not assignable to type 'SectionType'.
+@ozzyl/web:typecheck: app/lib/template-builder/actions.server.ts(603,12): error TS2322: Type '"cart-items"' is not assignable to type 'SectionType'.
+@ozzyl/web:typecheck: app/lib/template-builder/actions.server.ts(603,26): error TS2322: Type '"cart-summary"' is not assignable to type 'SectionType'.
+@ozzyl/web:typecheck: app/lib/template-builder/actions.server.ts(605,20): error TS2322: Type '"rich-text"' is not assignable to type 'SectionType'.
+@ozzyl/web:typecheck: app/routes/account.orders.tsx(76,25): error TS2339: Property 'storeTemplateId' does not exist on type '{ id: number; name: string; subdomain: string; customDomain: string | null; customDomainRequest: string | null; customDomainStatus: "none" | "pending" | "approved" | "rejected" | null; ... 61 more ...; updatedAt: Date | null; }'.
+@ozzyl/web:typecheck: app/routes/account.orders.tsx(85,25): error TS2339: Property 'itemsCount' does not exist on type '{ id: number; paymentStatus: "pending" | "failed" | "paid" | "refunded" | "reversed" | null; createdAt: Date | null; updatedAt: Date | null; storeId: number; customerPhone: string | null; ... 24 more ...; utmCampaign: string | null; }'.
+@ozzyl/web:typecheck: app/routes/account.tsx(82,25): error TS2339: Property 'storeTemplateId' does not exist on type '{ id: number; name: string; subdomain: string; customDomain: string | null; customDomainRequest: string | null; customDomainStatus: "none" | "pending" | "approved" | "rejected" | null; ... 61 more ...; updatedAt: Date | null; }'.
+@ozzyl/web:typecheck: app/routes/admin.apps.install.tsx(4,10): error TS2305: Module '"~/services/auth.server"' has no exported member 'requireAuth'.
+@ozzyl/web:typecheck: app/routes/api.cron.smart-triggers.ts(12,21): error TS18046: 'context.env' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/api.cron.smart-triggers.ts(18,22): error TS18046: 'context.env' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/api.cron.smart-triggers.ts(44,13): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Env'.
+@ozzyl/web:typecheck: app/routes/api.cron.smart-triggers.ts(51,41): error TS18046: 'context.env' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/api.cron.smart-triggers.ts(86,11): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Env'.
+@ozzyl/web:typecheck: app/routes/api.cron.smart-triggers.ts(93,35): error TS18046: 'context.env' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/api.metafield-definitions.ts(46,17): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafield-definitions.ts(55,53): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafield-definitions.ts(60,50): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafield-definitions.ts(79,17): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafield-definitions.ts(100,40): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafield-definitions.ts(114,50): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafield-definitions.ts(134,27): error TS18046: 'body' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/api.metafield-definitions.ts(148,37): error TS18046: 'body' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/api.metafield-definitions.ts(149,50): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafield-definitions.ts(156,29): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafield-definitions.ts(161,24): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafields.ts(49,17): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafields.ts(65,40): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafields.ts(91,40): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafields.ts(109,40): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafields.ts(128,17): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafields.ts(147,40): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafields.ts(171,50): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafields.ts(190,27): error TS18046: 'body' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/api.metafields.ts(200,27): error TS18046: 'body' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/api.metafields.ts(201,40): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafields.ts(210,38): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafields.ts(233,28): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.metafields.ts(237,22): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.template-versions.ts(20,17): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.template-versions.ts(39,46): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.template-versions.ts(47,46): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.template-versions.ts(68,17): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.template-versions.ts(88,44): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.template-versions.ts(107,52): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.template-versions.ts(115,27): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.template-versions.ts(131,13): error TS2322: Type 'string' is not assignable to type 'SQL<unknown> | Date | SQLiteColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | null | undefined'.
+@ozzyl/web:typecheck: app/routes/api.template-versions.ts(135,51): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.template-versions.ts(146,56): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.template-versions.ts(154,27): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/api.template-versions.ts(172,55): error TS2339: Property 'storeId' does not exist on type 'Session<SessionData, SessionFlashData>'.
+@ozzyl/web:typecheck: app/routes/app.agent.tsx(217,25): error TS2322: Type 'unknown[]' is not assignable to type 'Record<string, unknown>[]'.
+@ozzyl/web:typecheck:   Type 'unknown' is not assignable to type 'Record<string, unknown>'.
+@ozzyl/web:typecheck: app/routes/app.customers.$id.tsx(44,24): error TS1149: File name '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/components/ui/Button.tsx' differs from already included file name '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/components/ui/button.tsx' only in casing.
+@ozzyl/web:typecheck:   The file is in the program because:
+@ozzyl/web:typecheck:     Imported via './button' from file '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/components/ui/index.ts'
+@ozzyl/web:typecheck:     Matched by include pattern '**/*.tsx' in '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/tsconfig.json'
+@ozzyl/web:typecheck:     Imported via '~/components/ui/Button' from file '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.customers.$id.tsx'
+@ozzyl/web:typecheck:     Imported via '~/components/ui/Button' from file '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.customers._index.tsx'
+@ozzyl/web:typecheck:     Imported via '~/components/ui/button' from file '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.customers.new.tsx'
+@ozzyl/web:typecheck: app/routes/app.customers.$id.tsx(158,59): error TS2339: Property 'success' does not exist on type '{}'.
+@ozzyl/web:typecheck: app/routes/app.customers._index.tsx(38,23): error TS2307: Cannot find module '~/components/ui/Badge' or its corresponding type declarations.
+@ozzyl/web:typecheck: app/routes/app.customers._index.tsx(39,24): error TS1149: File name '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/components/ui/Button.tsx' differs from already included file name '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/components/ui/button.tsx' only in casing.
+@ozzyl/web:typecheck:   The file is in the program because:
+@ozzyl/web:typecheck:     Imported via './button' from file '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/components/ui/index.ts'
+@ozzyl/web:typecheck:     Matched by include pattern '**/*.tsx' in '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/tsconfig.json'
+@ozzyl/web:typecheck:     Imported via '~/components/ui/Button' from file '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.customers.$id.tsx'
+@ozzyl/web:typecheck:     Imported via '~/components/ui/Button' from file '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.customers._index.tsx'
+@ozzyl/web:typecheck:     Imported via '~/components/ui/button' from file '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/app.customers.new.tsx'
+@ozzyl/web:typecheck: app/routes/app.customers._index.tsx(40,23): error TS2307: Cannot find module '~/components/ui/Input' or its corresponding type declarations.
+@ozzyl/web:typecheck: app/routes/app.customers._index.tsx(48,8): error TS2307: Cannot find module '~/components/ui/DropdownMenu' or its corresponding type declarations.
+@ozzyl/web:typecheck: app/routes/app.customers._index.tsx(81,11): error TS2339: Property 'where' does not exist on type 'Omit<SQLiteSelectBase<"customers", "async", D1Response & { results: unknown[]; }, { id: SQLiteColumn<{ name: "id"; tableName: "customers"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; ... 22 more ...; updatedAt: SQLiteColumn<......'.
+@ozzyl/web:typecheck: app/routes/app.customers._index.tsx(99,13): error TS2339: Property 'where' does not exist on type 'Omit<SQLiteSelectBase<"customers", "async", D1Response & { results: unknown[]; }, { id: SQLiteColumn<{ name: "id"; tableName: "customers"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; ... 22 more ...; updatedAt: SQLiteColumn<......'.
+@ozzyl/web:typecheck: app/routes/app.customers._index.tsx(101,13): error TS2339: Property 'where' does not exist on type 'Omit<SQLiteSelectBase<"customers", "async", D1Response & { results: unknown[]; }, { id: SQLiteColumn<{ name: "id"; tableName: "customers"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; ... 22 more ...; updatedAt: SQLiteColumn<......'.
+@ozzyl/web:typecheck: app/routes/app.new-builder.$pageId.tsx(436,70): error TS2339: Property 'selectedProducts' does not exist on type 'JsonifyObject<{ page: null; sections: never[]; store: { id: number; name: string; subdomain: string; facebookPixelId: string | null; googleAnalyticsId: string | null; logo: string | null; favicon: string | null; fontFamily: string | null; themeConfig: string | null; businessInfo: string | null; }; products: { ...; }...'.
+@ozzyl/web:typecheck: app/routes/app.new-builder._index.tsx(172,16): error TS2769: No overload matches this call.
+@ozzyl/web:typecheck:   Overload 1 of 2, '(value: { storeId: number | SQL<unknown> | Placeholder<string, any>; title: string | SQL<unknown> | Placeholder<string, any>; price: number | SQL<unknown> | Placeholder<...>; ... 15 more ...; bundlePricing?: string | ... 3 more ... | undefined; }): SQLiteInsertBase<...>', gave the following error.
+@ozzyl/web:typecheck:     Object literal may only specify known properties, and 'slug' does not exist in type '{ storeId: number | SQL<unknown> | Placeholder<string, any>; title: string | SQL<unknown> | Placeholder<string, any>; price: number | SQL<unknown> | Placeholder<string, any>; ... 15 more ...; bundlePricing?: string | ... 3 more ... | undefined; }'.
+@ozzyl/web:typecheck:   Overload 2 of 2, '(values: { storeId: number | SQL<unknown> | Placeholder<string, any>; title: string | SQL<unknown> | Placeholder<string, any>; price: number | SQL<unknown> | Placeholder<...>; ... 15 more ...; bundlePricing?: string | ... 3 more ... | undefined; }[]): SQLiteInsertBase<...>', gave the following error.
+@ozzyl/web:typecheck:     Object literal may only specify known properties, and 'storeId' does not exist in type '{ storeId: number | SQL<unknown> | Placeholder<string, any>; title: string | SQL<unknown> | Placeholder<string, any>; price: number | SQL<unknown> | Placeholder<string, any>; ... 15 more ...; bundlePricing?: string | ... 3 more ... | undefined; }[]'.
+@ozzyl/web:typecheck: app/routes/app.new-builder._index.tsx(318,9): error TS18046: 'result' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/app.new-builder._index.tsx(318,27): error TS18046: 'result' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/app.new-builder._index.tsx(319,14): error TS18046: 'result' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/app.push.tsx(76,11): error TS18046: 'data' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/app.push.tsx(82,18): error TS18046: 'data' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/app.quick-builder.new.tsx(187,12): error TS2769: No overload matches this call.
+@ozzyl/web:typecheck:   Overload 1 of 2, '(value: { storeId: number | SQL<unknown> | Placeholder<string, any>; title: string | SQL<unknown> | Placeholder<string, any>; price: number | SQL<unknown> | Placeholder<...>; ... 15 more ...; bundlePricing?: string | ... 3 more ... | undefined; }): SQLiteInsertBase<...>', gave the following error.
+@ozzyl/web:typecheck:     Object literal may only specify known properties, and 'slug' does not exist in type '{ storeId: number | SQL<unknown> | Placeholder<string, any>; title: string | SQL<unknown> | Placeholder<string, any>; price: number | SQL<unknown> | Placeholder<string, any>; ... 15 more ...; bundlePricing?: string | ... 3 more ... | undefined; }'.
+@ozzyl/web:typecheck:   Overload 2 of 2, '(values: { storeId: number | SQL<unknown> | Placeholder<string, any>; title: string | SQL<unknown> | Placeholder<string, any>; price: number | SQL<unknown> | Placeholder<...>; ... 15 more ...; bundlePricing?: string | ... 3 more ... | undefined; }[]): SQLiteInsertBase<...>', gave the following error.
+@ozzyl/web:typecheck:     Object literal may only specify known properties, and 'storeId' does not exist in type '{ storeId: number | SQL<unknown> | Placeholder<string, any>; title: string | SQL<unknown> | Placeholder<string, any>; price: number | SQL<unknown> | Placeholder<string, any>; ... 15 more ...; bundlePricing?: string | ... 3 more ... | undefined; }[]'.
+@ozzyl/web:typecheck: app/routes/app.quick-builder.new.tsx(237,9): error TS2322: Type 'string' is not assignable to type 'SQL<unknown> | Date | SQLiteColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | null | undefined'.
+@ozzyl/web:typecheck: app/routes/app.quick-builder.new.tsx(302,9): error TS18046: 'result' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/app.quick-builder.new.tsx(302,27): error TS18046: 'result' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/app.quick-builder.new.tsx(303,14): error TS18046: 'result' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/app.settings.activity.tsx(178,10): error TS2304: Cannot find name 'GlassCard'.
+@ozzyl/web:typecheck: app/routes/app.settings.activity.tsx(185,8): error TS2304: Cannot find name 'GlassCard'.
+@ozzyl/web:typecheck: app/routes/app.settings.activity.tsx(241,9): error TS2304: Cannot find name 'GlassCard'.
+@ozzyl/web:typecheck: app/routes/app.settings.activity.tsx(244,8): error TS2304: Cannot find name 'GlassCard'.
+@ozzyl/web:typecheck: app/routes/app.settings.activity.tsx(379,9): error TS2304: Cannot find name 'GlassCard'.
+@ozzyl/web:typecheck: app/routes/app.settings.landing.tsx(66,19): error TS2339: Property 'mode' does not exist on type '{ id: number; name: string; subdomain: string; customDomain: string | null; customDomainRequest: string | null; customDomainStatus: "none" | "pending" | "approved" | "rejected" | null; ... 61 more ...; updatedAt: Date | null; }'.
+@ozzyl/web:typecheck: app/routes/app.settings.landing.tsx(133,7): error TS2353: Object literal may only specify known properties, and 'mode' does not exist in type '{ name?: string | SQL<unknown> | SQLiteColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | undefined; subdomain?: string | SQL<...> | SQLiteColumn<...> | undefined; ... 65 more ...; updatedAt?: SQL<...> | ... 3 more ... | undefined; }'.
+@ozzyl/web:typecheck: app/routes/app.settings.landing.tsx(155,68): error TS2304: Cannot find name 'landingConfig'.
+@ozzyl/web:typecheck: app/routes/app.settings.landing.tsx(156,71): error TS2304: Cannot find name 'landingConfig'.
+@ozzyl/web:typecheck: app/routes/app.settings.webhooks.tsx(98,31): error TS2769: No overload matches this call.
+@ozzyl/web:typecheck:   Overload 1 of 2, '(value: { storeId: number | SQL<unknown> | Placeholder<string, any>; url: string | SQL<unknown> | Placeholder<string, any>; topic: string | SQL<unknown> | Placeholder<...>; ... 6 more ...; failureCount?: number | ... 3 more ... | undefined; }): SQLiteInsertBase<...>', gave the following error.
+@ozzyl/web:typecheck:     Object literal may only specify known properties, but 'topics' does not exist in type '{ storeId: number | SQL<unknown> | Placeholder<string, any>; url: string | SQL<unknown> | Placeholder<string, any>; topic: string | SQL<unknown> | Placeholder<string, any>; ... 6 more ...; failureCount?: number | ... 3 more ... | undefined; }'. Did you mean to write 'topic'?
+@ozzyl/web:typecheck:   Overload 2 of 2, '(values: { storeId: number | SQL<unknown> | Placeholder<string, any>; url: string | SQL<unknown> | Placeholder<string, any>; topic: string | SQL<unknown> | Placeholder<...>; ... 6 more ...; failureCount?: number | ... 3 more ... | undefined; }[]): SQLiteInsertBase<...>', gave the following error.
+@ozzyl/web:typecheck:     Object literal may only specify known properties, and 'storeId' does not exist in type '{ storeId: number | SQL<unknown> | Placeholder<string, any>; url: string | SQL<unknown> | Placeholder<string, any>; topic: string | SQL<unknown> | Placeholder<string, any>; ... 6 more ...; failureCount?: number | ... 3 more ... | undefined; }[]'.
+@ozzyl/web:typecheck: app/routes/app.settings.webhooks.tsx(289,49): error TS2551: Property 'topics' does not exist on type 'JsonifyObject<{ id: number; isActive: boolean | null; createdAt: Date | null; storeId: number; url: string; appInstallationId: number | null; topic: string; secret: string | null; format: "json" | "xml" | null; failureCount: number | null; }>'. Did you mean 'topic'?
+@ozzyl/web:typecheck: app/routes/app.settings.webhooks.tsx(337,58): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+@ozzyl/web:typecheck:   Type 'null' is not assignable to type 'string'.
+@ozzyl/web:typecheck: app/routes/app.store-design.tsx(73,25): error TS2339: Property 'mode' does not exist on type '{ id: number; name: string; subdomain: string; customDomain: string | null; customDomainRequest: string | null; customDomainStatus: "none" | "pending" | "approved" | "rejected" | null; ... 61 more ...; updatedAt: Date | null; }'.
+@ozzyl/web:typecheck: app/routes/cart.tsx(386,40): error TS2554: Expected 2-3 arguments, but got 1.
+@ozzyl/web:typecheck: app/routes/p.$slug.tsx(81,27): error TS2638: Type '{}' may represent a primitive value, which is not permitted as the right operand of the 'in' operator.
+@ozzyl/web:typecheck: app/routes/p.$slug.tsx(85,12): error TS2339: Property 'type' does not exist on type '{}'.
+@ozzyl/web:typecheck: app/routes/p.$slug.tsx(86,24): error TS2339: Property 'page' does not exist on type '{}'.
+@ozzyl/web:typecheck: app/routes/p.$slug.tsx(86,46): error TS2339: Property 'page' does not exist on type '{}'.
+@ozzyl/web:typecheck: app/routes/p.$slug.tsx(87,30): error TS2339: Property 'page' does not exist on type '{}'.
+@ozzyl/web:typecheck: app/routes/p.$slug.tsx(93,16): error TS2339: Property 'page' does not exist on type '{}'.
+@ozzyl/web:typecheck: app/routes/p.$slug.tsx(93,70): error TS2339: Property 'page' does not exist on type '{}'.
+@ozzyl/web:typecheck: app/routes/p.$slug.tsx(98,25): error TS2339: Property 'page' does not exist on type '{}'.
+@ozzyl/web:typecheck: app/routes/p.$slug.tsx(276,7): error TS18046: 'data' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/p.$slug.tsx(277,33): error TS2322: Type 'unknown' is not assignable to type 'BuilderPageData'.
+@ozzyl/web:typecheck: app/routes/p.$slug.tsx(281,36): error TS18046: 'data' is of type 'unknown'.
+@ozzyl/web:typecheck: app/routes/pages.$slug.tsx(50,18): error TS2339: Property 'phone' does not exist on type '{ id: number; name: string; subdomain: string; customDomain: string | null; customDomainRequest: string | null; customDomainStatus: "none" | "pending" | "approved" | "rejected" | null; ... 61 more ...; updatedAt: Date | null; }'.
+@ozzyl/web:typecheck: app/routes/pages.$slug.tsx(51,18): error TS2339: Property 'email' does not exist on type '{ id: number; name: string; subdomain: string; customDomain: string | null; customDomainRequest: string | null; customDomainStatus: "none" | "pending" | "approved" | "rejected" | null; ... 61 more ...; updatedAt: Date | null; }'.
+@ozzyl/web:typecheck: app/routes/pages.$slug.tsx(52,20): error TS2339: Property 'address' does not exist on type '{ id: number; name: string; subdomain: string; customDomain: string | null; customDomainRequest: string | null; customDomainStatus: "none" | "pending" | "approved" | "rejected" | null; ... 61 more ...; updatedAt: Date | null; }'.
+@ozzyl/web:typecheck: app/routes/pages.$slug.tsx(90,28): error TS2339: Property 'storeTemplateId' does not exist on type '{ id: number; name: string; subdomain: string; customDomain: string | null; customDomainRequest: string | null; customDomainStatus: "none" | "pending" | "approved" | "rejected" | null; ... 61 more ...; updatedAt: Date | null; }'.
+@ozzyl/web:typecheck: app/routes/pages.$slug.tsx(125,7): error TS2322: Type 'JsonifyObject<ThemeConfig>' is not assignable to type 'StoreTemplateTheme | undefined'.
+@ozzyl/web:typecheck: app/routes/pages.$slug.tsx(135,13): error TS2322: Type '{ key: any; section: any; currency: string; storeId: number; storeName: string; }' is not assignable to type 'IntrinsicAttributes & StoreSectionRendererProps'.
+@ozzyl/web:typecheck:   Property 'section' does not exist on type 'IntrinsicAttributes & StoreSectionRendererProps'. Did you mean 'sections'?
+@ozzyl/web:typecheck: app/routes/products.$id.tsx(105,7): error TS2740: Type 'Omit<SQLiteSelectBase<"products", "async", D1Response & { results: unknown[]; }, { id: SQLiteColumn<{ name: "id"; tableName: "products"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; ... 17 more ...; updatedAt: SQLiteColumn<...>;...' is missing the following properties from type 'SQLiteSelectBuilder<SelectedFields, "async", D1Result<unknown>, "db">': fields, session, dialect, withList, and 2 more.
+@ozzyl/web:typecheck: app/routes/products.$id.tsx(113,9): error TS2345: Argument of type 'Omit<SQLiteSelectBase<"reviews", "async", D1Response & { results: unknown[]; }, { id: SQLiteColumn<{ name: "id"; tableName: "reviews"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; customerName: SQLiteColumn<...>; rating: SQLiteC...' is not assignable to parameter of type 'SQLiteSelectBuilder<SelectedFields, "async", D1Result<unknown>, "db">'.
+@ozzyl/web:typecheck:   Type 'Omit<SQLiteSelectBase<"reviews", "async", D1Response & { results: unknown[]; }, { id: SQLiteColumn<{ name: "id"; tableName: "reviews"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; customerName: SQLiteColumn<...>; rating: SQLiteC...' is missing the following properties from type 'SQLiteSelectBuilder<SelectedFields, "async", D1Result<unknown>, "db">': fields, session, dialect, withList, and 2 more.
+@ozzyl/web:typecheck: app/routes/products.$id.tsx(129,9): error TS2345: Argument of type 'Omit<SQLiteSelectBase<"products", "async", D1Response & { results: unknown[]; }, { category: SQLiteColumn<{ name: "category"; tableName: "products"; dataType: "string"; columnType: "SQLiteText"; data: string; driverParam: string; ... 8 more ...; generated: undefined; }, {}, { ...; }>; }, ... 5 more ..., { ...; }>, "...' is not assignable to parameter of type 'SQLiteSelectBuilder<SelectedFields, "async", D1Result<unknown>, "db">'.
+@ozzyl/web:typecheck:   Type 'Omit<SQLiteSelectBase<"products", "async", D1Response & { results: unknown[]; }, { category: SQLiteColumn<{ name: "category"; tableName: "products"; dataType: "string"; columnType: "SQLiteText"; data: string; driverParam: string; ... 8 more ...; generated: undefined; }, {}, { ...; }>; }, ... 5 more ..., { ...; }>, "...' is missing the following properties from type 'SQLiteSelectBuilder<SelectedFields, "async", D1Result<unknown>, "db">': fields, session, dialect, withList, and 2 more.
+@ozzyl/web:typecheck: app/routes/products.$id.tsx(135,41): error TS2352: Conversion of type 'SQLiteSelectBuilder<SelectedFields, "async", D1Result<unknown>, "db">[]' to type 'readonly [BatchItem<"sqlite">, ...BatchItem<"sqlite">[]]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+@ozzyl/web:typecheck:   Source provides no match for required element at position 0 in target.
+@ozzyl/web:typecheck: app/routes/products.$id.tsx(402,11): error TS2322: Type 'JsonifyObject<ResolvedSection>[] | { enabled: true; sortOrder: number; props: SectionSettings; id: string; type: SectionType; settings: SectionSettings; blocks?: Block[] | undefined; }[]' is not assignable to type 'ResolvedSection[]'.
+@ozzyl/web:typecheck:   Type '{ enabled: true; sortOrder: number; props: SectionSettings; id: string; type: SectionType; settings: SectionSettings; blocks?: Block[] | undefined; }[]' is not assignable to type 'ResolvedSection[]'.
+@ozzyl/web:typecheck:     Type '{ enabled: true; sortOrder: number; props: SectionSettings; id: string; type: SectionType; settings: SectionSettings; blocks?: Block[]; }' is not assignable to type 'ResolvedSection'.
+@ozzyl/web:typecheck:       Types of property 'blocks' are incompatible.
+@ozzyl/web:typecheck:         Type 'Block[] | undefined' is not assignable to type '{ id: string; type: string; props: Record<string, unknown>; }[] | undefined'.
+@ozzyl/web:typecheck:           Type 'Block[]' is not assignable to type '{ id: string; type: string; props: Record<string, unknown>; }[]'.
+@ozzyl/web:typecheck:             Property 'props' is missing in type 'Block' but required in type '{ id: string; type: string; props: Record<string, unknown>; }'.
+@ozzyl/web:typecheck: app/routes/products._index.tsx(92,71): error TS2345: Argument of type 'DrizzleD1Database<typeof import("/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/packages/database/src/schema")> & { $client: D1Database; }' is not assignable to parameter of type 'D1Database'.
+@ozzyl/web:typecheck:   Type 'DrizzleD1Database<typeof import("/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/packages/database/src/schema")> & { $client: D1Database; }' is missing the following properties from type 'D1Database': prepare, exec, withSession, dump
+@ozzyl/web:typecheck: app/routes/store-live-editor.tsx(361,16): error TS2304: Cannot find name 'and'.
+@ozzyl/web:typecheck: app/routes/store-live-editor.tsx(543,26): error TS2552: Cannot find name 'user'. Did you mean 'User'?
+@ozzyl/web:typecheck: app/routes/store-live-editor.tsx(550,20): error TS2304: Cannot find name 'and'.
+@ozzyl/web:typecheck: app/routes/store-live-editor.tsx(560,24): error TS2304: Cannot find name 'and'.
+@ozzyl/web:typecheck: app/services/auth.server.ts(524,56): error TS2769: No overload matches this call.
+@ozzyl/web:typecheck:   Overload 1 of 2, '(value: { name: string | SQL<unknown> | Placeholder<string, any>; subdomain: string | SQL<unknown> | Placeholder<string, any>; id?: number | SQL<unknown> | Placeholder<...> | undefined; ... 64 more ...; updatedAt?: SQL<...> | ... 3 more ... | undefined; }): SQLiteInsertBase<...>', gave the following error.
+@ozzyl/web:typecheck:     Object literal may only specify known properties, and 'mode' does not exist in type '{ name: string | SQL<unknown> | Placeholder<string, any>; subdomain: string | SQL<unknown> | Placeholder<string, any>; id?: number | SQL<unknown> | Placeholder<string, any> | undefined; ... 64 more ...; updatedAt?: SQL<...> | ... 3 more ... | undefined; }'.
+@ozzyl/web:typecheck:   Overload 2 of 2, '(values: { name: string | SQL<unknown> | Placeholder<string, any>; subdomain: string | SQL<unknown> | Placeholder<string, any>; id?: number | SQL<unknown> | Placeholder<...> | undefined; ... 64 more ...; updatedAt?: SQL<...> | ... 3 more ... | undefined; }[]): SQLiteInsertBase<...>', gave the following error.
+@ozzyl/web:typecheck:     Object literal may only specify known properties, and 'name' does not exist in type '{ name: string | SQL<unknown> | Placeholder<string, any>; subdomain: string | SQL<unknown> | Placeholder<string, any>; id?: number | SQL<unknown> | Placeholder<string, any> | undefined; ... 64 more ...; updatedAt?: SQL<...> | ... 3 more ... | undefined; }[]'.
+@ozzyl/web:typecheck: app/services/auth.server.ts(667,56): error TS2769: No overload matches this call.
+@ozzyl/web:typecheck:   Overload 1 of 2, '(value: { name: string | SQL<unknown> | Placeholder<string, any>; subdomain: string | SQL<unknown> | Placeholder<string, any>; id?: number | SQL<unknown> | Placeholder<...> | undefined; ... 64 more ...; updatedAt?: SQL<...> | ... 3 more ... | undefined; }): SQLiteInsertBase<...>', gave the following error.
+@ozzyl/web:typecheck:     Object literal may only specify known properties, and 'mode' does not exist in type '{ name: string | SQL<unknown> | Placeholder<string, any>; subdomain: string | SQL<unknown> | Placeholder<string, any>; id?: number | SQL<unknown> | Placeholder<string, any> | undefined; ... 64 more ...; updatedAt?: SQL<...> | ... 3 more ... | undefined; }'.
+@ozzyl/web:typecheck:   Overload 2 of 2, '(values: { name: string | SQL<unknown> | Placeholder<string, any>; subdomain: string | SQL<unknown> | Placeholder<string, any>; id?: number | SQL<unknown> | Placeholder<...> | undefined; ... 64 more ...; updatedAt?: SQL<...> | ... 3 more ... | undefined; }[]): SQLiteInsertBase<...>', gave the following error.
+@ozzyl/web:typecheck:     Object literal may only specify known properties, and 'name' does not exist in type '{ name: string | SQL<unknown> | Placeholder<string, any>; subdomain: string | SQL<unknown> | Placeholder<string, any>; id?: number | SQL<unknown> | Placeholder<string, any> | undefined; ... 64 more ...; updatedAt?: SQL<...> | ... 3 more ... | undefined; }[]'.
+@ozzyl/web:typecheck: app/services/store-config.server.ts(27,7): error TS2353: Object literal may only specify known properties, and 'mode' does not exist in type '{ id?: boolean | undefined; name?: boolean | undefined; subdomain?: boolean | undefined; customDomain?: boolean | undefined; customDomainRequest?: boolean | undefined; customDomainStatus?: boolean | undefined; ... 61 more ...; updatedAt?: boolean | undefined; }'.
+@ozzyl/web:typecheck: app/services/webhook.server.ts(49,6): error TS2769: No overload matches this call.
+@ozzyl/web:typecheck:   Overload 1 of 2, '(value: { storeId: number | SQL<unknown> | Placeholder<string, any>; url: string | SQL<unknown> | Placeholder<string, any>; topic: string | SQL<unknown> | Placeholder<...>; ... 6 more ...; failureCount?: number | ... 3 more ... | undefined; }): SQLiteInsertBase<...>', gave the following error.
+@ozzyl/web:typecheck:     Object literal may only specify known properties, but 'topics' does not exist in type '{ storeId: number | SQL<unknown> | Placeholder<string, any>; url: string | SQL<unknown> | Placeholder<string, any>; topic: string | SQL<unknown> | Placeholder<string, any>; ... 6 more ...; failureCount?: number | ... 3 more ... | undefined; }'. Did you mean to write 'topic'?
+@ozzyl/web:typecheck:   Overload 2 of 2, '(values: { storeId: number | SQL<unknown> | Placeholder<string, any>; url: string | SQL<unknown> | Placeholder<string, any>; topic: string | SQL<unknown> | Placeholder<...>; ... 6 more ...; failureCount?: number | ... 3 more ... | undefined; }[]): SQLiteInsertBase<...>', gave the following error.
+@ozzyl/web:typecheck:     Object literal may only specify known properties, and 'storeId' does not exist in type '{ storeId: number | SQL<unknown> | Placeholder<string, any>; url: string | SQL<unknown> | Placeholder<string, any>; topic: string | SQL<unknown> | Placeholder<string, any>; ... 6 more ...; failureCount?: number | ... 3 more ... | undefined; }[]'.
+@ozzyl/web:typecheck: app/services/webhook.server.ts(85,36): error TS2551: Property 'topics' does not exist on type '{ id: number; isActive: boolean | null; createdAt: Date | null; storeId: number; url: string; appInstallationId: number | null; topic: string; secret: string | null; format: "json" | "xml" | null; failureCount: number | null; }'. Did you mean 'topic'?
+@ozzyl/web:typecheck: app/services/webhook.server.ts(94,58): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+@ozzyl/web:typecheck:   Type 'null' is not assignable to type 'string'.
+@ozzyl/web:typecheck: app/tests/unit/CheckoutModal.test.tsx(2,18): error TS2305: Module '"@testing-library/react"' has no exported member 'screen'.
+@ozzyl/web:typecheck: app/tests/unit/CheckoutModal.test.tsx(2,26): error TS2305: Module '"@testing-library/react"' has no exported member 'fireEvent'.
+@ozzyl/web:typecheck: app/tests/unit/IntentWizard.test.tsx(2,18): error TS2305: Module '"@testing-library/react"' has no exported member 'screen'.
+@ozzyl/web:typecheck: app/tests/unit/IntentWizard.test.tsx(2,26): error TS2305: Module '"@testing-library/react"' has no exported member 'fireEvent'.
+@ozzyl/web:typecheck: app/tests/unit/SectionManagerVariants.test.tsx(2,18): error TS2305: Module '"@testing-library/react"' has no exported member 'screen'.
+@ozzyl/web:typecheck: app/tests/unit/SectionManagerVariants.test.tsx(2,26): error TS2305: Module '"@testing-library/react"' has no exported member 'fireEvent'.
+@ozzyl/web:typecheck: app/tests/unit/StyleWizard.test.tsx(2,18): error TS2305: Module '"@testing-library/react"' has no exported member 'screen'.
+@ozzyl/web:typecheck: app/tests/unit/StyleWizard.test.tsx(2,26): error TS2305: Module '"@testing-library/react"' has no exported member 'fireEvent'.
+@ozzyl/web:typecheck: app/utils/store-preview-data.ts(825,3): error TS2353: Object literal may only specify known properties, and 'youtube' does not exist in type 'SocialLinks'.
+@ozzyl/web:typecheck: capacitor.config.ts(1,38): error TS2307: Cannot find module '@capacitor/cli' or its corresponding type declarations.
+@ozzyl/web:typecheck: server/api/oauth.ts(5,28): error TS2307: Cannot find module '@hono/zod-validator' or its corresponding type declarations.
+@ozzyl/web:typecheck: server/api/oauth.ts(69,44): error TS2345: Argument of type '"json"' is not assignable to parameter of type 'never'.
+@ozzyl/web:typecheck: server/api/oauth.ts(94,58): error TS2345: Argument of type '"json"' is not assignable to parameter of type 'never'.
+@ozzyl/web:typecheck: tests/api/metafields.api.test.ts(26,22): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ metafield_definitions: never[]; metafields: never[]; }'.
+@ozzyl/web:typecheck: tests/api/metafields.api.test.ts(36,9): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ metafield_definitions: never[]; metafields: never[]; }'.
+@ozzyl/web:typecheck: tests/api/metafields.api.test.ts(48,9): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ metafield_definitions: never[]; metafields: never[]; }'.
+@ozzyl/web:typecheck: tests/api/metafields.api.test.ts(84,26): error TS18047: 'response' is possibly 'null'.
+@ozzyl/web:typecheck: tests/api/metafields.api.test.ts(84,35): error TS2339: Property 'json' does not exist on type '{} | Response'.
+@ozzyl/web:typecheck:   Property 'json' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/api/metafields.api.test.ts(89,28): error TS18047: 'listRes' is possibly 'null'.
+@ozzyl/web:typecheck: tests/api/metafields.api.test.ts(89,36): error TS2339: Property 'json' does not exist on type '{} | Response'.
+@ozzyl/web:typecheck:   Property 'json' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/api/metafields.api.test.ts(107,27): error TS18047: 'defRes' is possibly 'null'.
+@ozzyl/web:typecheck: tests/api/metafields.api.test.ts(107,34): error TS2339: Property 'json' does not exist on type '{} | Response'.
+@ozzyl/web:typecheck:   Property 'json' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/api/metafields.api.test.ts(124,29): error TS18047: 'valueRes' is possibly 'null'.
+@ozzyl/web:typecheck: tests/api/metafields.api.test.ts(124,38): error TS2339: Property 'json' does not exist on type '{} | Response'.
+@ozzyl/web:typecheck:   Property 'json' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/api/metafields.api.test.ts(129,27): error TS18047: 'getRes' is possibly 'null'.
+@ozzyl/web:typecheck: tests/api/metafields.api.test.ts(129,34): error TS2339: Property 'json' does not exist on type '{} | Response'.
+@ozzyl/web:typecheck:   Property 'json' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/api/metafields.api.test.ts(147,27): error TS18047: 'defRes' is possibly 'null'.
+@ozzyl/web:typecheck: tests/api/metafields.api.test.ts(147,34): error TS2339: Property 'json' does not exist on type '{} | Response'.
+@ozzyl/web:typecheck:   Property 'json' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/api/metafields.api.test.ts(168,12): error TS18047: 'delRes' is possibly 'null'.
+@ozzyl/web:typecheck: tests/api/metafields.api.test.ts(168,19): error TS2339: Property 'status' does not exist on type '{} | Response'.
+@ozzyl/web:typecheck:   Property 'status' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/api/template-versions.api.test.ts(28,22): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ template_versions: never[]; template_sections_draft: never[]; template_sections_published: never[]; theme_settings_draft: never[]; theme_settings_published: never[]; }'.
+@ozzyl/web:typecheck: tests/api/template-versions.api.test.ts(37,9): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ template_versions: never[]; template_sections_draft: never[]; template_sections_published: never[]; theme_settings_draft: never[]; theme_settings_published: never[]; }'.
+@ozzyl/web:typecheck: tests/api/template-versions.api.test.ts(49,9): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ template_versions: never[]; template_sections_draft: never[]; template_sections_published: never[]; theme_settings_draft: never[]; theme_settings_published: never[]; }'.
+@ozzyl/web:typecheck: tests/api/template-versions.api.test.ts(75,42): error TS2345: Argument of type '{ id: string; storeId: number; templateId: string; themeId: string; version: number; sectionsJson: string; }' is not assignable to parameter of type 'never'.
+@ozzyl/web:typecheck: tests/api/template-versions.api.test.ts(86,24): error TS18047: 'res' is possibly 'null'.
+@ozzyl/web:typecheck: tests/api/template-versions.api.test.ts(86,28): error TS2339: Property 'json' does not exist on type '{} | Response'.
+@ozzyl/web:typecheck:   Property 'json' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/api/template-versions.api.test.ts(92,42): error TS2345: Argument of type '{ id: string; storeId: number; templateId: string; themeId: string; version: number; sectionsJson: string; }' is not assignable to parameter of type 'never'.
+@ozzyl/web:typecheck: tests/api/template-versions.api.test.ts(108,24): error TS18047: 'res' is possibly 'null'.
+@ozzyl/web:typecheck: tests/api/template-versions.api.test.ts(108,28): error TS2339: Property 'json' does not exist on type '{} | Response'.
+@ozzyl/web:typecheck:   Property 'json' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/integration/store-live-editor.validation.test.ts(32,22): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ stores: { id: number; name: string; subdomain: string; themeConfig: null; }[]; themes: never[]; theme_templates: never[]; template_sections_draft: never[]; template_sections_published: never[]; theme_settings_draft: never[]; theme_settings_published: never[]; template_versions: never[]; }'.
+@ozzyl/web:typecheck: tests/integration/store-live-editor.validation.test.ts(41,9): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ stores: { id: number; name: string; subdomain: string; themeConfig: null; }[]; themes: never[]; theme_templates: never[]; template_sections_draft: never[]; template_sections_published: never[]; theme_settings_draft: never[]; theme_settings_published: never[]; template_versions: never[]; }'.
+@ozzyl/web:typecheck: tests/integration/store-live-editor.validation.test.ts(53,9): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ stores: { id: number; name: string; subdomain: string; themeConfig: null; }[]; themes: never[]; theme_templates: never[]; template_sections_draft: never[]; template_sections_published: never[]; theme_settings_draft: never[]; theme_settings_published: never[]; template_versions: never[]; }'.
+@ozzyl/web:typecheck: tests/integration/store-live-editor.validation.test.ts(108,17): error TS2339: Property 'success' does not exist on type '{ error: string; } | { success: boolean; message: string; }'.
+@ozzyl/web:typecheck:   Property 'success' does not exist on type '{ error: string; }'.
+@ozzyl/web:typecheck: tests/theme-switch.test.tsx(1,18): error TS2305: Module '"@testing-library/react"' has no exported member 'screen'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(58,14): error TS7053: Element implicitly has an 'any' type because expression of type '"@context"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property '@context' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(59,14): error TS7053: Element implicitly has an 'any' type because expression of type '"@type"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property '@type' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(60,14): error TS7053: Element implicitly has an 'any' type because expression of type '"name"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'name' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(61,14): error TS7053: Element implicitly has an 'any' type because expression of type '"url"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'url' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(66,14): error TS7053: Element implicitly has an 'any' type because expression of type '"logo"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'logo' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(67,14): error TS7053: Element implicitly has an 'any' type because expression of type '"logo"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'logo' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(72,14): error TS7053: Element implicitly has an 'any' type because expression of type '"telephone"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'telephone' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(73,14): error TS7053: Element implicitly has an 'any' type because expression of type '"email"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'email' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(78,14): error TS7053: Element implicitly has an 'any' type because expression of type '"address"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'address' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(79,14): error TS7053: Element implicitly has an 'any' type because expression of type '"address"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'address' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(80,14): error TS7053: Element implicitly has an 'any' type because expression of type '"address"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'address' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(85,14): error TS7053: Element implicitly has an 'any' type because expression of type '"sameAs"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'sameAs' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(86,14): error TS7053: Element implicitly has an 'any' type because expression of type '"sameAs"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'sameAs' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(93,14): error TS7053: Element implicitly has an 'any' type because expression of type '"@context"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property '@context' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(94,14): error TS7053: Element implicitly has an 'any' type because expression of type '"@type"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property '@type' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(95,14): error TS7053: Element implicitly has an 'any' type because expression of type '"name"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'name' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(100,14): error TS7053: Element implicitly has an 'any' type because expression of type '"potentialAction"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'potentialAction' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(101,14): error TS7053: Element implicitly has an 'any' type because expression of type '"potentialAction"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'potentialAction' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(108,14): error TS7053: Element implicitly has an 'any' type because expression of type '"@context"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property '@context' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(109,14): error TS7053: Element implicitly has an 'any' type because expression of type '"@type"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property '@type' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(110,14): error TS7053: Element implicitly has an 'any' type because expression of type '"name"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'name' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(115,14): error TS7053: Element implicitly has an 'any' type because expression of type '"offers"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'offers' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(116,14): error TS7053: Element implicitly has an 'any' type because expression of type '"offers"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'offers' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(117,14): error TS7053: Element implicitly has an 'any' type because expression of type '"offers"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'offers' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(118,14): error TS7053: Element implicitly has an 'any' type because expression of type '"offers"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'offers' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(123,14): error TS7053: Element implicitly has an 'any' type because expression of type '"offers"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'offers' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(128,14): error TS7053: Element implicitly has an 'any' type because expression of type '"brand"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'brand' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(129,14): error TS7053: Element implicitly has an 'any' type because expression of type '"brand"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'brand' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(134,14): error TS7053: Element implicitly has an 'any' type because expression of type '"aggregateRating"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'aggregateRating' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(135,14): error TS7053: Element implicitly has an 'any' type because expression of type '"aggregateRating"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'aggregateRating' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(136,14): error TS7053: Element implicitly has an 'any' type because expression of type '"aggregateRating"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'aggregateRating' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(141,14): error TS7053: Element implicitly has an 'any' type because expression of type '"sku"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'sku' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(153,14): error TS7053: Element implicitly has an 'any' type because expression of type '"@context"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property '@context' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(154,14): error TS7053: Element implicitly has an 'any' type because expression of type '"@type"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property '@type' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(155,14): error TS7053: Element implicitly has an 'any' type because expression of type '"itemListElement"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'itemListElement' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(164,14): error TS7053: Element implicitly has an 'any' type because expression of type '"itemListElement"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'itemListElement' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(165,14): error TS7053: Element implicitly has an 'any' type because expression of type '"itemListElement"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'itemListElement' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(178,14): error TS7053: Element implicitly has an 'any' type because expression of type '"@context"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property '@context' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(179,14): error TS7053: Element implicitly has an 'any' type because expression of type '"@type"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property '@type' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(180,14): error TS7053: Element implicitly has an 'any' type because expression of type '"name"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'name' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(181,14): error TS7053: Element implicitly has an 'any' type because expression of type '"numberOfItems"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property 'numberOfItems' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(253,14): error TS7053: Element implicitly has an 'any' type because expression of type '"@type"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property '@type' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(254,14): error TS7053: Element implicitly has an 'any' type because expression of type '"@type"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property '@type' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(262,14): error TS7053: Element implicitly has an 'any' type because expression of type '"@type"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property '@type' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/unit/seo.test.ts(272,14): error TS7053: Element implicitly has an 'any' type because expression of type '"@type"' can't be used to index type '{}'.
+@ozzyl/web:typecheck:   Property '@type' does not exist on type '{}'.
+@ozzyl/web:typecheck: tests/utils/d1.ts(1,21): error TS2307: Cannot find module 'cloudflare:test' or its corresponding type declarations.
+@ozzyl/web:typecheck: tests/utils/mock-db.ts(37,24): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ metafield_definitions: MockTable; metafields: MockTable; template_versions: MockTable; template_sections_draft: MockTable; template_sections_published: MockTable; ... 4 more ...; stores: MockTable; }'.
+@ozzyl/web:typecheck:   No index signature with a parameter of type 'string' was found on type '{ metafield_definitions: MockTable; metafields: MockTable; template_versions: MockTable; template_sections_draft: MockTable; template_sections_published: MockTable; ... 4 more ...; stores: MockTable; }'.
+@ozzyl/web:typecheck: tests/utils/mock-db.ts(54,11): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ metafield_definitions: MockTable; metafields: MockTable; template_versions: MockTable; template_sections_draft: MockTable; template_sections_published: MockTable; ... 4 more ...; stores: MockTable; }'.
+@ozzyl/web:typecheck: tests/utils/mock-db.ts(71,11): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ metafield_definitions: MockTable; metafields: MockTable; template_versions: MockTable; template_sections_draft: MockTable; template_sections_published: MockTable; ... 4 more ...; stores: MockTable; }'.
+@ozzyl/web:typecheck: npm error Lifecycle script `typecheck` failed with error:
+@ozzyl/web:typecheck: npm error code 2
+@ozzyl/web:typecheck: npm error path /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
+@ozzyl/web:typecheck: npm error workspace @ozzyl/web
+@ozzyl/web:typecheck: npm error location /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
+@ozzyl/web:typecheck: npm error command failed
+@ozzyl/web:typecheck: npm error command sh -c tsc --noEmit
+
+ Tasks:    0 successful, 1 total
+Cached:    0 cached, 1 total
+  Time:    45.569s 
+Failed:    @ozzyl/web#typecheck
+

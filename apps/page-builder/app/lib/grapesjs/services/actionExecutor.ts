@@ -1,17 +1,17 @@
 /**
  * Action Executor Service
- * 
+ *
  * Safely applies AI actions to GrapeJS components
  * with undo support.
  */
 
-import type { 
-  AIResponse, 
-  AIAction, 
-  ExecutionResult, 
+import type {
+  AIResponse,
+  AIAction,
+  ExecutionResult,
   ActionResult,
   ComponentState,
-  UndoItem
+  UndoItem,
 } from '../types';
 import { ContextBuilder } from './contextBuilder';
 
@@ -41,12 +41,12 @@ export class ActionExecutor {
 
     for (const action of response.actions) {
       const component = this.getComponent(action.targetId);
-      
+
       if (!component) {
-        results.push({ 
-          action, 
-          success: false, 
-          error: `Component not found: ${action.targetId}` 
+        results.push({
+          action,
+          success: false,
+          error: `Component not found: ${action.targetId}`,
         });
         continue;
       }
@@ -63,10 +63,10 @@ export class ActionExecutor {
         await this.executeAction(component, action);
         results.push({ action, success: true });
       } catch (error) {
-        results.push({ 
-          action, 
-          success: false, 
-          error: error instanceof Error ? error.message : String(error) 
+        results.push({
+          action,
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
         });
       }
     }
@@ -79,7 +79,7 @@ export class ActionExecutor {
     }
 
     return {
-      success: results.every(r => r.success),
+      success: results.every((r) => r.success),
       results,
     };
   }
@@ -92,24 +92,24 @@ export class ActionExecutor {
       case 'updateContent':
         if (action.changes.content !== undefined) {
           const newContent = action.changes.content;
-          
+
           // SAFETY: Never set empty content
           if (!newContent || newContent.trim() === '') {
             console.warn('[ActionExecutor] Blocked empty content update');
             throw new Error('Content cannot be empty');
           }
-          
-          console.log('[ActionExecutor] Updating content:', { 
+
+          console.log('[ActionExecutor] Updating content:', {
             componentId: component.getId?.() || 'unknown',
             oldContent: component.get('content'),
-            newContent 
+            newContent,
           });
-          
+
           // Try multiple methods to set content (GrapesJS compatibility)
           try {
             // Method 1: Direct content property (for text components)
             component.set('content', newContent);
-            
+
             // Method 2: Also try components() for wrapper types
             const textNode = component.components();
             if (textNode && textNode.length === 0) {
@@ -146,7 +146,7 @@ export class ActionExecutor {
 
       case 'addClass':
         if (action.changes.addClass) {
-          action.changes.addClass.forEach(className => {
+          action.changes.addClass.forEach((className) => {
             component.addClass(className);
           });
         }
@@ -154,7 +154,7 @@ export class ActionExecutor {
 
       case 'removeClass':
         if (action.changes.removeClass) {
-          action.changes.removeClass.forEach(className => {
+          action.changes.removeClass.forEach((className) => {
             component.removeClass(className);
           });
         }
@@ -191,8 +191,10 @@ export class ActionExecutor {
     // Get current classes properly from GrapesJS component
     const currentClassesRaw = component.getClasses();
     // GrapesJS returns array of objects or strings depending on version/context
-    const currentClasses: string[] = Array.isArray(currentClassesRaw) 
-      ? currentClassesRaw.map((c: any) => typeof c === 'string' ? c : c.id || c.name || '').filter(Boolean)
+    const currentClasses: string[] = Array.isArray(currentClassesRaw)
+      ? currentClassesRaw
+          .map((c: any) => (typeof c === 'string' ? c : c.id || c.name || ''))
+          .filter(Boolean)
       : [];
 
     const classesToRemove: string[] = [];
@@ -201,68 +203,126 @@ export class ActionExecutor {
     if (newStyles['background-color'] || newStyles['background']) {
       // Remove bg-{color}-{shade} but keep gradients/opacity if possible
       // Safe bet: remove any 'bg-' that isn't 'bg-gradient'
-      classesToRemove.push(...currentClasses.filter(c => 
-        (c.startsWith('bg-') && !c.includes('gradient') && !c.includes('opacity')) ||
-        c === 'bg-white' || c === 'bg-black' || c === 'bg-transparent'
-      ));
+      classesToRemove.push(
+        ...currentClasses.filter(
+          (c) =>
+            (c.startsWith('bg-') && !c.includes('gradient') && !c.includes('opacity')) ||
+            c === 'bg-white' ||
+            c === 'bg-black' ||
+            c === 'bg-transparent'
+        )
+      );
     }
 
     // 2. Text Color Conflicts
     if (newStyles['color']) {
       // Remove text-{color}-{shade}
       // Exclude text-alignment classes (text-center, text-left, etc.) and size (text-xl)
-      const alignmentClasses = ['text-left', 'text-center', 'text-right', 'text-justify', 'text-start', 'text-end'];
-      const sizeClasses = ['text-xs', 'text-sm', 'text-base', 'text-lg', 'text-xl', 'text-2xl', 'text-3xl', 'text-4xl', 'text-5xl', 'text-6xl', 'text-7xl', 'text-8xl', 'text-9xl'];
-      
-      classesToRemove.push(...currentClasses.filter(c => 
-        c.startsWith('text-') && 
-        !alignmentClasses.includes(c) && 
-        !sizeClasses.includes(c) &&
-        !c.startsWith('text-[') // arbitrary values might be size or color, easier to assume color if valid hex
-      ));
+      const alignmentClasses = [
+        'text-left',
+        'text-center',
+        'text-right',
+        'text-justify',
+        'text-start',
+        'text-end',
+      ];
+      const sizeClasses = [
+        'text-xs',
+        'text-sm',
+        'text-base',
+        'text-lg',
+        'text-xl',
+        'text-2xl',
+        'text-3xl',
+        'text-4xl',
+        'text-5xl',
+        'text-6xl',
+        'text-7xl',
+        'text-8xl',
+        'text-9xl',
+      ];
+
+      classesToRemove.push(
+        ...currentClasses.filter(
+          (c) =>
+            c.startsWith('text-') &&
+            !alignmentClasses.includes(c) &&
+            !sizeClasses.includes(c) &&
+            !c.startsWith('text-[') // arbitrary values might be size or color, easier to assume color if valid hex
+        )
+      );
     }
 
     // 3. Font Size Conflicts
     if (newStyles['font-size']) {
-      classesToRemove.push(...currentClasses.filter(c => 
-        c.startsWith('text-') && 
-        ['xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl', '7xl', '8xl', '9xl'].some(s => c.endsWith(s))
-      ));
+      classesToRemove.push(
+        ...currentClasses.filter(
+          (c) =>
+            c.startsWith('text-') &&
+            [
+              'xs',
+              'sm',
+              'base',
+              'lg',
+              'xl',
+              '2xl',
+              '3xl',
+              '4xl',
+              '5xl',
+              '6xl',
+              '7xl',
+              '8xl',
+              '9xl',
+            ].some((s) => c.endsWith(s))
+        )
+      );
     }
 
     // 4. Padding Conflicts
     if (newStyles['padding']) {
-      classesToRemove.push(...currentClasses.filter(c => c.startsWith('p-') || c.startsWith('px-') || c.startsWith('py-')));
+      classesToRemove.push(
+        ...currentClasses.filter(
+          (c) => c.startsWith('p-') || c.startsWith('px-') || c.startsWith('py-')
+        )
+      );
     }
     if (newStyles['padding-left'] || newStyles['padding-right']) {
-      classesToRemove.push(...currentClasses.filter(c => c.startsWith('px-') || c.startsWith('p-')));
+      classesToRemove.push(
+        ...currentClasses.filter((c) => c.startsWith('px-') || c.startsWith('p-'))
+      );
     }
     if (newStyles['padding-top'] || newStyles['padding-bottom']) {
-      classesToRemove.push(...currentClasses.filter(c => c.startsWith('py-') || c.startsWith('p-')));
+      classesToRemove.push(
+        ...currentClasses.filter((c) => c.startsWith('py-') || c.startsWith('p-'))
+      );
     }
 
     // 5. Margin Conflicts
     if (newStyles['margin']) {
-      classesToRemove.push(...currentClasses.filter(c => c.startsWith('m-') || c.startsWith('mx-') || c.startsWith('my-')));
+      classesToRemove.push(
+        ...currentClasses.filter(
+          (c) => c.startsWith('m-') || c.startsWith('mx-') || c.startsWith('my-')
+        )
+      );
     }
 
     // 6. Border Radius Conflicts
     if (newStyles['border-radius']) {
-      classesToRemove.push(...currentClasses.filter(c => c.startsWith('rounded')));
+      classesToRemove.push(...currentClasses.filter((c) => c.startsWith('rounded')));
     }
 
     // 7. Width/Height Conflicts
     if (newStyles['width']) {
-      classesToRemove.push(...currentClasses.filter(c => c.startsWith('w-')));
+      classesToRemove.push(...currentClasses.filter((c) => c.startsWith('w-')));
     }
     if (newStyles['height']) {
-      classesToRemove.push(...currentClasses.filter(c => c.startsWith('h-')));
+      classesToRemove.push(...currentClasses.filter((c) => c.startsWith('h-')));
     }
 
     // Apply removal
     if (classesToRemove.length > 0) {
       console.log(`[ActionExecutor] Resolving conflicts. Removing: ${classesToRemove.join(', ')}`);
-      classesToRemove.forEach(className => component.removeClass(className));
+      classesToRemove.forEach((className) => component.removeClass(className));
     }
   }
 
@@ -290,9 +350,16 @@ export class ActionExecutor {
   }
 
   /**
-   * Recursively find component by ID
+   * Recursively find component by ID with depth limit to prevent infinite loops
    */
-  private findComponentById(component: any, id: string): any {
+  private findComponentById(component: any, id: string, depth: number = 0): any {
+    // Prevent infinite recursion from circular references or corrupted data
+    const MAX_DEPTH = 100;
+    if (depth > MAX_DEPTH) {
+      console.warn('[ActionExecutor] Max depth reached, possible circular reference');
+      return null;
+    }
+
     if (component.getId?.() === id || component.cid === id) {
       return component;
     }
@@ -302,7 +369,7 @@ export class ActionExecutor {
 
     for (let i = 0; i < children.length; i++) {
       const child = children.at(i);
-      const found = this.findComponentById(child, id);
+      const found = this.findComponentById(child, id, depth + 1);
       if (found) return found;
     }
 
@@ -323,7 +390,7 @@ export class ActionExecutor {
     component.set('content', lastUndo.state.content);
     component.setStyle(lastUndo.state.styles);
     component.setAttributes(lastUndo.state.attributes);
-    
+
     // Restore classes
     const currentClasses = component.getClasses() || [];
     currentClasses.forEach((c: any) => component.removeClass(c.id || c));
@@ -337,7 +404,7 @@ export class ActionExecutor {
    */
   undoToPoint(targetUndoCount: number): number {
     let undoneCount = 0;
-    
+
     while (this.undoStack.length > targetUndoCount) {
       if (this.undo()) {
         undoneCount++;

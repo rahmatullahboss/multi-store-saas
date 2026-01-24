@@ -466,7 +466,7 @@ function TemplateFooter({
   const footerBg = isColorDark(settings.backgroundColor || '#FFFFFF')
     ? settings.backgroundColor
     : '#1F2937';
-  const footerText = isColorDark(footerBg) ? '#FFFFFF' : '#1F2937';
+  const footerText = isColorDark(footerBg || '#1F2937') ? '#FFFFFF' : '#1F2937';
   
   return (
     <footer style={{ backgroundColor: footerBg, color: footerText }}>

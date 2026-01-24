@@ -1,3 +1,4 @@
+// @ts-expect-error - cloudflare:test is only available in Cloudflare Workers test environment
 import { env } from 'cloudflare:test';
 import { drizzle } from 'drizzle-orm/d1';
 import { vi } from 'vitest';
@@ -21,7 +22,7 @@ export async function execSql(sql: string) {
   // Split on semicolons for multiple statements
   const statements = sql
     .split(';')
-    .map(s => s.trim())
+    .map((s) => s.trim())
     .filter(Boolean);
 
   for (const statement of statements) {

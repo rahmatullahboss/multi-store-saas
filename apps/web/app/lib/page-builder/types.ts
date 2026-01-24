@@ -1,6 +1,6 @@
 /**
  * Page Builder v2 - Type Definitions
- * 
+ *
  * Core types for the schema-driven page builder architecture.
  */
 
@@ -16,6 +16,7 @@ import type { z } from 'zod';
  * Add new section types here and in the registry.
  */
 export type SectionType =
+  // Core sections
   | 'hero'
   | 'features'
   | 'testimonials'
@@ -39,7 +40,24 @@ export type SectionType =
   | 'countdown'
   | 'stats'
   | 'contact'
-  | 'footer';
+  | 'footer'
+  // Social proof
+  | 'social-proof'
+  // Newsletter
+  | 'newsletter'
+  // Product page sections
+  | 'product-header'
+  | 'product-gallery'
+  | 'product-info'
+  | 'product-description'
+  | 'related-products'
+  // Collection page sections
+  | 'collection-header'
+  // Cart page sections
+  | 'cart-items'
+  | 'cart-summary'
+  // Order form variants
+  | 'order-form';
 
 // ============================================================================
 // DATABASE TYPES
@@ -64,17 +82,30 @@ export interface BuilderSectionRow {
  * Section variant types for each section.
  * Each section can have multiple visual variants.
  */
-export type SectionVariant = 
+export type SectionVariant =
   // Hero variants
-  | 'product-focused' | 'offer-focused' | 'video-focused' | 'text-focused'
+  | 'product-focused'
+  | 'offer-focused'
+  | 'video-focused'
+  | 'text-focused'
   // Testimonials variants
-  | 'cards' | 'carousel' | 'avatars' | 'screenshots' | 'star-rating'
+  | 'cards'
+  | 'carousel'
+  | 'avatars'
+  | 'screenshots'
+  | 'star-rating'
   // CTA variants
-  | 'button-only' | 'with-trust' | 'urgency'
+  | 'button-only'
+  | 'with-trust'
+  | 'urgency'
   // Features variants
-  | 'grid-3' | 'grid-4' | 'list'
+  | 'grid-3'
+  | 'grid-4'
+  | 'list'
   // Social proof variants
-  | 'counter' | 'live-feed' | 'badges'
+  | 'counter'
+  | 'live-feed'
+  | 'badges'
   // Default
   | 'default';
 
@@ -128,7 +159,7 @@ export interface PageIntent {
  * Style Tokens - Global style preferences for the page
  */
 export interface StyleTokens {
-  primaryColor: string;        // Brand color (hex)
+  primaryColor: string; // Brand color (hex)
   buttonStyle: 'rounded' | 'sharp' | 'pill';
   fontFamily: 'default' | 'bengali' | 'modern' | 'classic';
   darkMode?: boolean;
@@ -178,11 +209,11 @@ export interface BuilderPage {
  */
 export interface SectionDefinition<TProps = Record<string, unknown>> {
   type: SectionType;
-  name: string;       // Bengali name
-  nameEn: string;     // English name
+  name: string; // Bengali name
+  nameEn: string; // English name
   description: string;
   descriptionEn: string;
-  icon: string;       // Lucide icon name
+  icon: string; // Lucide icon name
   schema: z.ZodType<TProps>;
   defaultProps: TProps;
   // Component is loaded dynamically
@@ -270,26 +301,26 @@ export type EditorAction =
 export interface SectionTheme {
   id: string;
   name: string;
-  
+
   // Colors
-  primaryColor: string;      // Main brand color (e.g., button backgrounds)
-  accentColor: string;       // Secondary accent color
-  bgColor: string;           // Background color for sections
-  bgGradient?: string;       // Optional gradient (Tailwind format)
-  textColor: string;         // Primary text color
-  mutedTextColor: string;    // Secondary/muted text
-  
+  primaryColor: string; // Main brand color (e.g., button backgrounds)
+  accentColor: string; // Secondary accent color
+  bgColor: string; // Background color for sections
+  bgGradient?: string; // Optional gradient (Tailwind format)
+  textColor: string; // Primary text color
+  mutedTextColor: string; // Secondary/muted text
+
   // Component styling
-  cardBg: string;            // Card/item background
-  cardBorder: string;        // Card border color
-  badgeBg: string;           // Badge background
-  badgeText: string;         // Badge text color
-  
+  cardBg: string; // Card/item background
+  cardBorder: string; // Card border color
+  badgeBg: string; // Badge background
+  badgeText: string; // Badge text color
+
   // Button styling
-  buttonBg: string;          // CTA button background (can be gradient)
-  buttonText: string;        // CTA button text
-  buttonHoverBg: string;     // Button hover state
-  
+  buttonBg: string; // CTA button background (can be gradient)
+  buttonText: string; // CTA button text
+  buttonHoverBg: string; // Button hover state
+
   // Style variant
   style: 'urgent' | 'premium' | 'nature' | 'minimal' | 'dark' | 'professional' | 'default';
 }
@@ -317,7 +348,7 @@ export const THEME_PRESETS: Record<string, SectionTheme> = {
     buttonHoverBg: '#C1121F',
     style: 'professional',
   },
-  
+
   // 🔥 Flash Sale - Urgent Red/Yellow
   'flash-sale': {
     id: 'flash-sale',
@@ -337,7 +368,7 @@ export const THEME_PRESETS: Record<string, SectionTheme> = {
     buttonHoverBg: '#F59E0B',
     style: 'urgent',
   },
-  
+
   // 🇧🇩 Premium BD - Dark with Emerald
   'premium-bd': {
     id: 'premium-bd',
@@ -357,7 +388,7 @@ export const THEME_PRESETS: Record<string, SectionTheme> = {
     buttonHoverBg: '#059669',
     style: 'premium',
   },
-  
+
   // 🖤 Modern Dark - Dark with Pink accent
   'modern-dark': {
     id: 'modern-dark',
@@ -377,9 +408,9 @@ export const THEME_PRESETS: Record<string, SectionTheme> = {
     buttonHoverBg: '#C23B51',
     style: 'dark',
   },
-  
+
   // 🌿 Organic - Nature Green
-  'organic': {
+  organic: {
     id: 'organic',
     name: 'Organic Green',
     primaryColor: '#16A34A',
@@ -397,7 +428,7 @@ export const THEME_PRESETS: Record<string, SectionTheme> = {
     buttonHoverBg: '#15803D',
     style: 'nature',
   },
-  
+
   // ✨ Minimal - Clean white
   'minimal-clean': {
     id: 'minimal-clean',
@@ -417,9 +448,9 @@ export const THEME_PRESETS: Record<string, SectionTheme> = {
     buttonHoverBg: '#4F46E5',
     style: 'minimal',
   },
-  
+
   // Default fallback
-  'default': {
+  default: {
     id: 'default',
     name: 'Default',
     primaryColor: '#6366F1',
@@ -445,4 +476,3 @@ export const THEME_PRESETS: Record<string, SectionTheme> = {
 export function getThemeForTemplate(templateId: string): SectionTheme {
   return THEME_PRESETS[templateId] || THEME_PRESETS['default'];
 }
-

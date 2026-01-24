@@ -112,6 +112,10 @@ export const stores = sqliteTable('stores', {
   customGoogleClientId: text('custom_google_client_id'), // Store's own Google OAuth Client ID
   customGoogleClientSecret: text('custom_google_client_secret'), // Store's own Google OAuth Secret (encrypted)
 
+  // === MARKETING & LOYALTY CONFIG (Phase 14) ===
+  marketingConfig: text('marketing_config'), // JSON: { sslWireless: {...}, meta: {...} }
+  loyaltyConfig: text('loyalty_config'), // JSON: { pointsPerUnit: 1, tiers: {...} }
+
   // === SUBSCRIPTION PAYMENT TRACKING (bKash Manual Verification) ===
   paymentTransactionId: text('payment_transaction_id'), // bKash TRX ID
   paymentStatus: text('payment_status').$type<'pending_verification' | 'verified' | 'rejected' | 'none'>().default('none'),
@@ -254,6 +258,7 @@ export const customers = sqliteTable('customers', {
   index('customers_segment_idx').on(table.storeId, table.segment),
   index('customers_google_id_idx').on(table.storeId, table.googleId),
 ]);
+
 
 // ============================================================================
 // ORDERS TABLE - Store orders with store_id isolation
@@ -1895,13 +1900,15 @@ export const loyaltyTransactions = sqliteTable('loyalty_transactions', {
   customerId: integer('customer_id').notNull().references(() => customers.id, { onDelete: 'cascade' }),
 
   points: integer('points').notNull(), // Positive = Earned, Negative = Redeemed
-  type: text('type').$type<'purchase' | 'referral' | 'signup' | 'redemption' | 'manual_adjustment'>().notNull(),
+  type: text('type').$type<'purchase' | 'referral' | 'signup' | 'redemption' | 'manual_adjustment' | 'tier_bonus' | 'review_reward'>().notNull(),
+  referenceId: text('reference_id'), // Link to order_id or other entity
   description: text('description'), // "Order #1234", "Referral Bonus"
 
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, (table) => [
   index('loyalty_tx_customer_idx').on(table.customerId),
   index('loyalty_tx_store_idx').on(table.storeId),
+  index('loyalty_tx_type_idx').on(table.storeId, table.type),
 ]);
 
 export const loyaltyTransactionsRelations = relations(loyaltyTransactions, ({ one }) => ({

@@ -1,0 +1,29 @@
+
+import { drizzle } from 'drizzle-orm/d1';
+import * as schema from '../../packages/database/src/schema'; // Adjust path for dev script
+import { processOrderLoyalty } from './server/services/loyalty';
+import { sendSmartNotification } from './app/services/messaging.server';
+
+// Mock Env
+const env = {
+  DB: process.env.DB, // Valid D1 binding needed
+  SMS_PROVIDER: 'simulator',
+  META_WHATSAPP_TOKEN: 'test',
+  META_WHATSAPP_PHONE_ID: 'test'
+};
+
+/*
+ * USAGE:
+ * Copy this content to a temporary file e.g., `scripts/verify-phase14.ts`
+ * Run with `npx tsx scripts/verify-phase14.ts` (Requires DB binding setup or run inside worker)
+ * 
+ * BETTER WAY:
+ * Create a specialized Route for manual triggering or use the existing cron endpoint with curl.
+ */
+
+console.log("To verify Phase 14:");
+console.log("1. Trigger Cron Manual:");
+console.log("   curl 'http://localhost:8787/api/cron/smart-triggers?secret=development-secret'");
+console.log("");
+console.log("2. Check Logs:");
+console.log("   Looking for [SMS][SIMULATION] or [WhatsApp][SIMULATION] outputs.");

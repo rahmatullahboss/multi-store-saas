@@ -11,77 +11,108 @@ const popupPlugin: Plugin = (editor) => {
         // Hidden by default in final view, but should be visible if selected in editor?
         // Actually, for editor UX, we might want it visible.
         // Strategy: Add a class 'is-editor' when in editor, handle visibility.
-        classes: ['popup-overlay', 'fixed', 'inset-0', 'z-[9999]', 'bg-black/50', 'flex', 'items-center', 'justify-center', 'hidden'],
+        classes: [
+          'popup-overlay',
+          'fixed',
+          'inset-0',
+          'z-[9999]',
+          'bg-black/50',
+          'flex',
+          'items-center',
+          'justify-center',
+          'hidden',
+        ],
         attributes: {
-            id: 'my-popup',
-            'data-trigger': 'click'
+          id: 'my-popup',
+          'data-trigger': 'click',
         },
         traits: [
           {
             type: 'text',
             name: 'id',
             label: 'Popup ID',
-            placeholder: 'my-popup'
+            placeholder: 'my-popup',
           },
           {
             type: 'select',
             name: 'data-trigger',
             label: 'Trigger On',
             options: [
-                { id: 'click', value: 'click', name: 'Click (ID Target)' },
-                { id: 'load', value: 'load', name: 'Page Load' },
-            ]
-          }
+              { id: 'click', value: 'click', name: 'Click (ID Target)' },
+              { id: 'load', value: 'load', name: 'Page Load' },
+            ],
+          },
         ],
-        script: function() {
-            // @ts-ignore
-            const el = this as HTMLElement;
-            const id = el.id;
-            const trigger = el.getAttribute('data-trigger');
-            
-            // Close logic
-            const close = () => {
-                el.classList.add('hidden');
-                el.classList.remove('flex');
+        script: function () {
+          // @ts-ignore
+          const el = this as HTMLElement;
+          const id = el.id;
+          const trigger = el.getAttribute('data-trigger');
+
+          // Prevent duplicate initialization
+          // @ts-ignore
+          if (el._popupInitialized) return;
+          // @ts-ignore
+          el._popupInitialized = true;
+
+          // Close logic
+          const close = () => {
+            el.classList.add('hidden');
+            el.classList.remove('flex');
+          };
+
+          const open = () => {
+            el.classList.remove('hidden');
+            el.classList.add('flex');
+          };
+
+          // Close button listener
+          const closeBtn = el.querySelector('.popup-close');
+          if (closeBtn) closeBtn.addEventListener('click', close);
+
+          // Overlay click listener
+          el.addEventListener('click', (e) => {
+            if (e.target === el) close();
+          });
+
+          // Trigger Logic
+          if (trigger === 'load') {
+            setTimeout(open, 1000); // 1s delay
+          } else {
+            // Named handler for proper cleanup
+            const handleDocClick = (e: Event) => {
+              const target = e.target as HTMLElement;
+              const link =
+                target.closest(`a[href="#${id}"]`) ||
+                target.closest(`button[data-target="#${id}"]`);
+              if (link) {
+                e.preventDefault();
+                open();
+              }
             };
 
-            const open = () => {
-                el.classList.remove('hidden');
-                el.classList.add('flex');
-            };
+            document.addEventListener('click', handleDocClick);
 
-            // Close button listener
-            const closeBtn = el.querySelector('.popup-close');
-            if (closeBtn) closeBtn.addEventListener('click', close);
-
-            // Overlay click listener
-            el.addEventListener('click', (e) => {
-                if (e.target === el) close();
+            // Cleanup when element is removed from DOM
+            const cleanupObserver = new MutationObserver(() => {
+              if (!document.body.contains(el)) {
+                document.removeEventListener('click', handleDocClick);
+                cleanupObserver.disconnect();
+                // @ts-ignore
+                el._popupInitialized = false;
+              }
             });
-
-            // Trigger Logic
-            if (trigger === 'load') {
-                setTimeout(open, 1000); // 1s delay
-            } else {
-                // Listen for clicks on links identifying this popup
-                document.addEventListener('click', (e) => {
-                    const target = e.target as HTMLElement;
-                    const link = target.closest(`a[href="#${id}"]`) || target.closest(`button[data-target="#${id}"]`);
-                    if (link) {
-                        e.preventDefault();
-                        open();
-                    }
-                });
-            }
-        }
+            cleanupObserver.observe(document.body, { childList: true, subtree: true });
+          }
+        },
       },
     },
     view: {
-        onRender({ el }) {
-            // Force show in editor if selected, else might be hard to edit
-            // For now, rely on layer manager to select it.
-        }
-    }
+      onRender({ el }) {
+        // Force show in editor if selected, else might be hard to edit
+        // For now, rely on layer manager to select it.
+      },
+    },
   });
 
   Blocks.add('popup-block', {
@@ -99,7 +130,7 @@ const popupPlugin: Plugin = (editor) => {
             <button class="w-full bg-primary text-white py-3 rounded-xl font-bold hover:opacity-90 transition">Claim Offer</button>
          </div>
       </div>
-    `
+    `,
   });
 };
 

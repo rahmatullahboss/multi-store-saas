@@ -4,23 +4,23 @@
 
 // Typography settings for editors
 export interface TypographySettings {
-  headingSize?: 'small' | 'medium' | 'large';  // H1: 24/32/40px
-  bodySize?: 'small' | 'medium' | 'large';     // 14/16/18px
+  headingSize?: 'small' | 'medium' | 'large'; // H1: 24/32/40px
+  bodySize?: 'small' | 'medium' | 'large'; // 14/16/18px
   lineHeight?: 'compact' | 'normal' | 'relaxed'; // 1.4/1.6/1.8
-  letterSpacing?: 'tight' | 'normal' | 'wide';   // -0.02/0/0.02em
+  letterSpacing?: 'tight' | 'normal' | 'wide'; // -0.02/0/0.02em
 }
 
 // Typography CSS values mapping
 export const TYPOGRAPHY_VALUES = {
   headingSize: {
-    small: { fontSize: '1.5rem', lineHeight: '1.3' },   // 24px
-    medium: { fontSize: '2rem', lineHeight: '1.25' },   // 32px
-    large: { fontSize: '2.5rem', lineHeight: '1.2' },   // 40px
+    small: { fontSize: '1.5rem', lineHeight: '1.3' }, // 24px
+    medium: { fontSize: '2rem', lineHeight: '1.25' }, // 32px
+    large: { fontSize: '2.5rem', lineHeight: '1.2' }, // 40px
   },
   bodySize: {
-    small: '0.875rem',  // 14px
-    medium: '1rem',     // 16px
-    large: '1.125rem',  // 18px
+    small: '0.875rem', // 14px
+    medium: '1rem', // 16px
+    large: '1.125rem', // 18px
   },
   lineHeight: {
     compact: '1.4',
@@ -70,7 +70,7 @@ export interface LandingConfig {
   templateId?: string; // Template ID (e.g., 'modern-dark', 'minimal-light', 'video-focus')
   headline: string;
   subheadline?: string;
-  
+
   // === Combo Discount Strategy ===
   enableComboDiscount?: boolean;
   comboDiscount2Products?: number; // % discount for 2 items
@@ -150,11 +150,11 @@ export interface LandingConfig {
   };
   // Color Theme Customization
   primaryColor?: string; // Main brand color (buttons, accents)
-  accentColor?: string;  // Secondary accent color
+  accentColor?: string; // Secondary accent color
   // Extended Colors (Phase 1)
   backgroundColor?: string; // Page background
-  textColor?: string;       // Main text color
-  borderColor?: string;     // Border/divider color
+  textColor?: string; // Main text color
+  borderColor?: string; // Border/divider color
   // Typography Settings (Phase 1)
   typography?: TypographySettings;
   // Order Form Layout Variant
@@ -186,15 +186,15 @@ export interface LandingConfig {
   benefitsTitle?: string;
   comparisonTitle?: string;
   testimonialsTitle?: string; // "What They Say"
-  reviewsSubtitle?: string;   // "Patron Reviews"
-  faqTitle?: string;          // "Concierge Service"
-  faqSubtitle?: string;       // "Frequently Asked Questions"
+  reviewsSubtitle?: string; // "Patron Reviews"
+  faqTitle?: string; // "Concierge Service"
+  faqSubtitle?: string; // "Frequently Asked Questions"
   galleryTitle?: string;
   videoTitle?: string;
   socialProofTitle?: string;
-  featuresTitle?: string;     // "Exclusive Features"
+  featuresTitle?: string; // "Exclusive Features"
   guaranteeBadgeLabel?: string;
-  establishedDate?: string;   // "Est. 2024"
+  establishedDate?: string; // "Est. 2024"
   shippingConfig?: {
     insideDhaka: number;
     outsideDhaka: number;
@@ -256,7 +256,7 @@ export interface LandingConfig {
     shippingLabel?: string;
     totalLabel?: string;
     codLabel?: string;
-    
+
     // Delivery & Shipping Labels
     deliveryAreaLabel?: string;
     insideDhakaLabel?: string;
@@ -274,24 +274,24 @@ export interface LandingConfig {
 
     // Section Titles
     billingInfoTitle?: string;
-    
+
     // Buttons
     placeOrderButtonLabel?: string;
     submitButtonText?: string;
     processingButtonText?: string;
-    
+
     // Placeholders
     namePlaceholder?: string;
     phonePlaceholder?: string;
     addressPlaceholder?: string;
-    
+
     // Footer
     footerTagline?: string;
     copyrightText?: string;
     footerCopyright?: string;
     secureCheckoutLabel?: string;
   };
-  
+
   // SEO Settings for Landing Page
   seoTitle?: string;
   seoDescription?: string;
@@ -301,20 +301,20 @@ export interface LandingConfig {
 export interface LandingProductVariant {
   id: string;
   name: string;
-  price?: number;        // Price override for this variant
+  price?: number; // Price override for this variant
   compareAtPrice?: number; // Compare at price override
 }
 
 // Custom HTML Section with position support
-export type CustomSectionPosition = 
-  | 'before-hero' 
-  | 'after-hero' 
-  | 'before-features' 
-  | 'after-features' 
-  | 'before-testimonials' 
-  | 'after-testimonials' 
-  | 'before-form' 
-  | 'after-form' 
+export type CustomSectionPosition =
+  | 'before-hero'
+  | 'after-hero'
+  | 'before-features'
+  | 'after-features'
+  | 'before-testimonials'
+  | 'after-testimonials'
+  | 'before-form'
+  | 'after-form'
   | 'before-footer';
 
 export interface CustomSection {
@@ -341,11 +341,19 @@ export interface ThemeConfig {
   primaryColor: string;
   accentColor: string;
   customAccentColor?: string; // Override preset accent color
-  headerMenu?: Array<{ label: string; url: string; children?: Array<{ label: string; url: string; children?: Array<{ label: string; url: string }> }> }>;
+  headerMenu?: Array<{
+    label: string;
+    url: string;
+    children?: Array<{
+      label: string;
+      url: string;
+      children?: Array<{ label: string; url: string }>;
+    }>;
+  }>;
   // Extended Colors (Phase 1)
   backgroundColor?: string; // Page background
-  textColor?: string;       // Main text color
-  borderColor?: string;     // Border/divider color
+  textColor?: string; // Main text color
+  borderColor?: string; // Border/divider color
   // Typography Settings (Phase 1)
   typography?: TypographySettings;
   fontFamily?: string; // Global font family
@@ -424,6 +432,9 @@ export interface SocialLinks {
   instagram?: string;
   whatsapp?: string;
   twitter?: string;
+  youtube?: string;
+  tiktok?: string;
+  linkedin?: string;
 }
 
 // Footer customization configuration
@@ -496,146 +507,178 @@ export function parseManualPaymentConfig(json: string | null): ManualPaymentConf
 
 // Default landing config for new stores
 export const defaultLandingConfig: LandingConfig = {
-  headline: "আপনার পণ্যের আকর্ষণীয় শিরোনাম এখানে দিন",
-  subheadline: "আপনার পণ্যের প্রধান বৈশিষ্ট্য বা অফার সম্পর্কে সংক্ষেপে লিখুন",
-  ctaText: "অর্ডার করতে ক্লিক করুন",
-  ctaSubtext: "ক্যাশ অন ডেলিভারি সুবিধা",
-  urgencyText: "সীমিত সময়ের অফার!",
-  guaranteeText: "১০০% অরিজিনাল পন্যের নিশ্চয়তা। পন্য হাতে পেয়ে পেমেন্ট করার সুবিধা।",
-  sectionOrder: ['hero', 'video', 'trust', 'problem-solution', 'features', 'benefits', 'showcase', 'comparison', 'gallery', 'social', 'testimonials', 'delivery', 'pricing', 'guarantee', 'how-to-order', 'cta', 'faq'],
+  headline: 'আপনার পণ্যের আকর্ষণীয় শিরোনাম এখানে দিন',
+  subheadline: 'আপনার পণ্যের প্রধান বৈশিষ্ট্য বা অফার সম্পর্কে সংক্ষেপে লিখুন',
+  ctaText: 'অর্ডার করতে ক্লিক করুন',
+  ctaSubtext: 'ক্যাশ অন ডেলিভারি সুবিধা',
+  urgencyText: 'সীমিত সময়ের অফার!',
+  guaranteeText: '১০০% অরিজিনাল পন্যের নিশ্চয়তা। পন্য হাতে পেয়ে পেমেন্ট করার সুবিধা।',
+  sectionOrder: [
+    'hero',
+    'video',
+    'trust',
+    'problem-solution',
+    'features',
+    'benefits',
+    'showcase',
+    'comparison',
+    'gallery',
+    'social',
+    'testimonials',
+    'delivery',
+    'pricing',
+    'guarantee',
+    'how-to-order',
+    'cta',
+    'faq',
+  ],
   trustBadges: [
     { icon: '✅', text: 'অরিজিনাল প্রোডাক্ট' },
     { icon: '🚚', text: 'দ্রুত ডেলিভারি' },
-    { icon: '🔒', text: 'নিরাপদ পেমেন্ট' }
+    { icon: '🔒', text: 'নিরাপদ পেমেন্ট' },
   ],
   benefits: [
     { icon: '💎', title: 'সেরা মান', description: 'আমরা দিচ্ছি সেরা মানের নিশ্চয়তা' },
     { icon: '💰', title: 'সাশ্রয়ী মূল্য', description: 'বাজেটের মধ্যে সেরা পন্য' },
-    { icon: '⭐', title: 'প্রিমিয়াম সার্ভিস', description: 'কাস্টমারদের জন্য থাকছে সর্বোচ্চ গুরুত্ব' }
+    {
+      icon: '⭐',
+      title: 'প্রিমিয়াম সার্ভিস',
+      description: 'কাস্টমারদের জন্য থাকছে সর্বোচ্চ গুরুত্ব',
+    },
   ],
   deliveryInfo: {
-    title: "সারাদেশে ক্যাশ অন ডেলিভারি",
-    description: "ঢাকায় ১-২ দিন, ঢাকার বাইরে ২-৩ দিনের মধ্যে ডেলিভারি",
-    areas: ["ঢাকা", "চট্টগ্রাম", "সিলেট", "রাজশাহী", "খুলনা", "বরিশাল", "রংপুর"]
+    title: 'সারাদেশে ক্যাশ অন ডেলিভারি',
+    description: 'ঢাকায় ১-২ দিন, ঢাকার বাইরে ২-৩ দিনের মধ্যে ডেলিভারি',
+    areas: ['ঢাকা', 'চট্টগ্রাম', 'সিলেট', 'রাজশাহী', 'খুলনা', 'বরিশাল', 'রংপুর'],
   },
   socialProof: {
     count: 250,
-    text: "জনেরও বেশি কাস্টমার আমাদের থেকে কিনেছেন"
+    text: 'জনেরও বেশি কাস্টমার আমাদের থেকে কিনেছেন',
   },
   comparison: {
-    beforeLabel: "আগে",
-    afterLabel: "পরে",
-    description: "আমাদের পন্য ব্যবহারের আগের এবং পরের পার্থক্য দেখুন"
+    beforeLabel: 'আগে',
+    afterLabel: 'পরে',
+    description: 'আমাদের পন্য ব্যবহারের আগের এবং পরের পার্থক্য দেখুন',
   },
-  videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-  trustTitle: "আমাদের ওপর কেন ভরসা করবেন?",
-  benefitsTitle: "কেন আমাদের থেকে কিনবেন?",
-  comparisonTitle: "পার্থক্য নিজেই দেখুন",
-  testimonialsTitle: "কাস্টমারদের মতামত",
-  faqTitle: "সাধারণ কিছু জিজ্ঞাসা",
-  galleryTitle: "পন্যের কিছু ছবি",
-  videoTitle: "ভিডিও রিভিউ",
-  socialProofTitle: "কাস্টমার রিভিউ",
-  guaranteeBadgeLabel: "১০০% নিরাপদ ও নির্ভরযোগ্য",
+  videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  trustTitle: 'আমাদের ওপর কেন ভরসা করবেন?',
+  benefitsTitle: 'কেন আমাদের থেকে কিনবেন?',
+  comparisonTitle: 'পার্থক্য নিজেই দেখুন',
+  testimonialsTitle: 'কাস্টমারদের মতামত',
+  faqTitle: 'সাধারণ কিছু জিজ্ঞাসা',
+  galleryTitle: 'পন্যের কিছু ছবি',
+  videoTitle: 'ভিডিও রিভিউ',
+  socialProofTitle: 'কাস্টমার রিভিউ',
+  guaranteeBadgeLabel: '১০০% নিরাপদ ও নির্ভরযোগ্য',
   shippingConfig: {
     insideDhaka: 60,
     outsideDhaka: 120,
     freeShippingAbove: 0,
-    enabled: true
+    enabled: true,
   },
-  heroBadgeText: "সীমিত অফার",
-  heroCtaText: "এখনই অর্ডার করুন",
-  heroPriceLabel: "মূল্য:",
+  heroBadgeText: 'সীমিত অফার',
+  heroCtaText: 'এখনই অর্ডার করুন',
+  heroPriceLabel: 'মূল্য:',
   heroFeatures: [
-    { icon: "✓", text: "১০০% অরিজিনাল পণ্য" },
-    { icon: "✓", text: "ক্যাশ অন ডেলিভারি" },
-    { icon: "✓", text: "দ্রুত ডেলিভারি" }
+    { icon: '✓', text: '১০০% অরিজিনাল পণ্য' },
+    { icon: '✓', text: 'ক্যাশ অন ডেলিভারি' },
+    { icon: '✓', text: 'দ্রুত ডেলিভারি' },
   ],
   productVariants: [
     { id: 'v1', name: '১ কেজি' },
-    { id: 'v2', name: '২ কেজি', price: 1.8 }
+    { id: 'v2', name: '২ কেজি', price: 1.8 },
   ],
   // New Sections Defaults
   problemSolution: {
     problems: [
-      "নকল পণ্যের ভিড়ে আসল পণ্য খুঁজে পাচ্ছেন না?",
-      "পণ্যের গুণমান নিয়ে চিন্তিত?",
-      "ডেলিভারি পেতে অনেক সময় লাগে?"
+      'নকল পণ্যের ভিড়ে আসল পণ্য খুঁজে পাচ্ছেন না?',
+      'পণ্যের গুণমান নিয়ে চিন্তিত?',
+      'ডেলিভারি পেতে অনেক সময় লাগে?',
     ],
     solutions: [
-      "আমরা দিচ্ছি ১০০% অরিজিনাল পণ্যের গ্যারান্টি।",
-      "আমাদের প্রতিটি পণ্য কড়া মান নিয়ন্ত্রণ করে পাঠানো হয়।",
-      "আমরা দিচ্ছি দ্রুততম হোম ডেলিভারি সুবিধা।"
-    ]
+      'আমরা দিচ্ছি ১০০% অরিজিনাল পণ্যের গ্যারান্টি।',
+      'আমাদের প্রতিটি পণ্য কড়া মান নিয়ন্ত্রণ করে পাঠানো হয়।',
+      'আমরা দিচ্ছি দ্রুততম হোম ডেলিভারি সুবিধা।',
+    ],
   },
   showcaseData: {
     features: [
-      "প্রিমিয়াম ডিজাইন ও ফিনিশিং",
-      "হাই কোয়ালিটি মেটেরিয়াল দিয়ে তৈরি",
-      "লং লাস্টিং ও টেকসই",
-      "অত্যাধুনিক প্রযুক্তির ব্যবহার"
-    ]
+      'প্রিমিয়াম ডিজাইন ও ফিনিশিং',
+      'হাই কোয়ালিটি মেটেরিয়াল দিয়ে তৈরি',
+      'লং লাস্টিং ও টেকসই',
+      'অত্যাধুনিক প্রযুক্তির ব্যবহার',
+    ],
   },
   pricingData: {
     features: [
-      "১০০% অরিজিনাল প্রোডাক্ট",
-      "সারা দেশে ফ্রি হোম ডেলিভারি",
-      "৭ দিনের রিপ্লেসমেন্ট গ্যারান্টি",
-      "২৪/৭ কাস্টমার সাপোর্ট"
-    ]
+      '১০০% অরিজিনাল প্রোডাক্ট',
+      'সারা দেশে ফ্রি হোম ডেলিভারি',
+      '৭ দিনের রিপ্লেসমেন্ট গ্যারান্টি',
+      '২৪/৭ কাস্টমার সাপোর্ট',
+    ],
   },
   howToOrderData: {
     steps: [
-      { title: "অর্ডার করুন", description: "নিচের ফর্মটি পূরণ করে 'অর্ডার করুন' বাটনে ক্লিক করুন" },
-      { title: "কনফার্মেশন", description: "আমাদের প্রতিনিধি আপনাকে কল করে অর্ডার কনফার্ম করবেন" },
-      { title: "ডেলিভারি", description: "আপনার ঠিকানায় পণ্য পৌঁছে যাবে, চেক করে পেমেন্ট করুন" }
-    ]
-  }
+      { title: 'অর্ডার করুন', description: "নিচের ফর্মটি পূরণ করে 'অর্ডার করুন' বাটনে ক্লিক করুন" },
+      { title: 'কনফার্মেশন', description: 'আমাদের প্রতিনিধি আপনাকে কল করে অর্ডার কনফার্ম করবেন' },
+      { title: 'ডেলিভারি', description: 'আপনার ঠিকানায় পণ্য পৌঁছে যাবে, চেক করে পেমেন্ট করুন' },
+    ],
+  },
 };
 
 // Default theme config for new stores
 // Default theme config for new stores (Rich Preset)
 export const defaultThemeConfig: ThemeConfig = {
-  primaryColor: "#4f46e5", // Indigo-600 (More professional than 500)
+  primaryColor: '#4f46e5', // Indigo-600 (More professional than 500)
   headerMenu: [
     { label: 'Home', url: '/' },
-    { label: 'Shop', url: '/products', children: [
-      { label: 'New Arrivals', url: '/products?sort=newest' },
-      { label: 'Best Sellers', url: '/products?sort=popular' },
-    ]},
+    {
+      label: 'Shop',
+      url: '/products',
+      children: [
+        { label: 'New Arrivals', url: '/products?sort=newest' },
+        { label: 'Best Sellers', url: '/products?sort=popular' },
+      ],
+    },
     { label: 'About', url: '/pages/about' },
     { label: 'Contact', url: '/pages/contact' },
   ],
   footerColumns: [
-    { title: 'Shop', links: [
-      { label: 'All Products', url: '/products' },
-      { label: 'New Arrivals', url: '/products?sort=newest' },
-      { label: 'Best Sellers', url: '/products?sort=popular' },
-    ]},
-    { title: 'Company', links: [
-      { label: 'About Us', url: '/pages/about' },
-      { label: 'Contact', url: '/pages/contact' },
-      { label: 'Terms', url: '/policies/terms' },
-    ]},
+    {
+      title: 'Shop',
+      links: [
+        { label: 'All Products', url: '/products' },
+        { label: 'New Arrivals', url: '/products?sort=newest' },
+        { label: 'Best Sellers', url: '/products?sort=popular' },
+      ],
+    },
+    {
+      title: 'Company',
+      links: [
+        { label: 'About Us', url: '/pages/about' },
+        { label: 'Contact', url: '/pages/contact' },
+        { label: 'Terms', url: '/policies/terms' },
+      ],
+    },
   ],
   footerDescription: 'Quality products with excellent customer service.',
-  accentColor: "#f59e0b",  // Amber-500
-  backgroundColor: "#ffffff",
-  textColor: "#1f2937",    // Gray-800
-  borderColor: "#e5e7eb",  // Gray-200
+  accentColor: '#f59e0b', // Amber-500
+  backgroundColor: '#ffffff',
+  textColor: '#1f2937', // Gray-800
+  borderColor: '#e5e7eb', // Gray-200
   fontFamily: 'inter',
   typography: {
     headingSize: 'medium',
     bodySize: 'medium',
     lineHeight: 'normal',
-    letterSpacing: 'normal'
+    letterSpacing: 'normal',
   },
   checkoutStyle: 'standard',
   headerLayout: 'centered', // Modern default
   headerShowSearch: true,
   headerShowCart: true,
-  bannerText: "Free delivery inside Dhaka on orders over 2000 BDT! 🚚",
-  
+  bannerText: 'Free delivery inside Dhaka on orders over 2000 BDT! 🚚',
+
   // Day 1 Ready Content:
   sections: [
     {
@@ -643,27 +686,32 @@ export const defaultThemeConfig: ThemeConfig = {
       type: 'hero',
       settings: {
         title: 'Premium Quality, Delivered.',
-        subtitle: 'Experience the best shopping experience with our curated collection of authentic products.',
+        subtitle:
+          'Experience the best shopping experience with our curated collection of authentic products.',
         buttonText: 'Shop All Products',
         buttonLink: '/products',
         align: 'center',
         overlayOpacity: 50,
         height: 'large',
-        image: '' // Fallback to gray placeholder in component if empty
-      }
+        image: '', // Fallback to gray placeholder in component if empty
+      },
     },
     {
-        id: 'default-features',
-        type: 'features',
-        settings: {
-            title: 'Why Shop With Us?',
-            columns: 3,
-            features: [
-                { icon: 'ShieldCheck', title: '100% Authentic', description: 'Original products guaranteed.' },
-                { icon: 'Truck', title: 'Fast Delivery', description: '24H delivery inside Dhaka.' },
-                { icon: 'Headphones', title: 'Support 24/7', description: 'Always here to help you.' }
-            ]
-        }
+      id: 'default-features',
+      type: 'features',
+      settings: {
+        title: 'Why Shop With Us?',
+        columns: 3,
+        features: [
+          {
+            icon: 'ShieldCheck',
+            title: '100% Authentic',
+            description: 'Original products guaranteed.',
+          },
+          { icon: 'Truck', title: 'Fast Delivery', description: '24H delivery inside Dhaka.' },
+          { icon: 'Headphones', title: 'Support 24/7', description: 'Always here to help you.' },
+        ],
+      },
     },
     {
       id: 'default-products',
@@ -673,9 +721,9 @@ export const defaultThemeConfig: ThemeConfig = {
         collectionId: 'all',
         limit: 8,
         columns: 4,
-        showViewAll: true
-      }
-    }
+        showViewAll: true,
+      },
+    },
   ],
-  copyrightText: "© 2024. All Rights Reserved."
+  copyrightText: '© 2024. All Rights Reserved.',
 };

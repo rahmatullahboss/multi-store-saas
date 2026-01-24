@@ -5,7 +5,7 @@
 
 import type { SectionTheme } from '~/lib/page-builder/types';
 
-export type OrderFormVariant = 
+export type OrderFormVariant =
   | 'default'
   | 'glassmorphism'
   | 'neubrutalism'
@@ -39,31 +39,31 @@ export interface OrderFormProps {
   headline?: string;
   subheadline?: string;
   buttonText?: string;
-  
+
   // Visual variant
   variant?: OrderFormVariant;
-  
+
   // Template layout (legacy support)
   template?: 'minimal' | 'premium' | 'urgent' | 'singleColumn' | 'withImage';
-  
+
   // Placeholders
   phonePlaceholder?: string;
   addressPlaceholder?: string;
-  
+
   // Pricing
   productPrice?: number;
   discountedPrice?: number;
   insideDhakaCharge?: number;
   outsideDhakaCharge?: number;
-  
+
   // Product info from section props
   productImage?: string | null;
   productTitle?: string | null;
-  
+
   // Variants
   variants?: ProductVariant[];
   variantLabel?: string;
-  
+
   // Labels
   quantityLabel?: string;
   insideDhakaLabel?: string;
@@ -71,7 +71,7 @@ export interface OrderFormProps {
   subtotalLabel?: string;
   deliveryLabel?: string;
   totalLabel?: string;
-  
+
   // BD Address System
   showDistrictField?: boolean;
   showUpazilaField?: boolean;
@@ -81,7 +81,7 @@ export interface OrderFormProps {
   districtPlaceholder?: string;
   upazilaPlaceholder?: string;
   shippingZoneMode?: 'auto' | 'manual';
-  
+
   // Field Builder
   showEmailField?: boolean;
   showAltPhoneField?: boolean;
@@ -94,7 +94,7 @@ export interface OrderFormProps {
   altPhonePlaceholder?: string;
   noteLabel?: string;
   notePlaceholder?: string;
-  
+
   // Thank You Page
   thankYouHeadline?: string;
   thankYouMessage?: string;
@@ -102,33 +102,37 @@ export interface OrderFormProps {
   showOrderDetails?: boolean;
   showWhatsAppButton?: boolean;
   whatsAppNumber?: string;
-  
+
   // Trust badges
   showTrustBadges?: boolean;
   codLabel?: string;
   secureLabel?: string;
-  
+
   // Urgency/Scarcity Settings (Editable - No fake data!)
   showUrgencyBanner?: boolean;
   urgencyText?: string; // e.g., "সীমিত স্টক! মাত্র ২৩টি বাকি আছে" - seller sets real number
-  
+
   // Social Proof Settings (Editable - Must be real data!)
   showSocialProof?: boolean;
   socialProofText?: string; // e.g., "গত ২৪ ঘণ্টায় ৪৭ জন অর্ডার করেছেন" - seller sets real number
-  
+
   // Free Shipping Settings
   showFreeShippingProgress?: boolean;
   freeShippingThreshold?: number; // e.g., 2000
-  
+
   // Delivery Estimate Settings
   showDeliveryEstimate?: boolean;
   deliveryEstimateDhaka?: string; // e.g., "১-২ দিন"
   deliveryEstimateOutside?: string; // e.g., "৩-৫ দিন"
-  
+
   // Combo/Bundle Discount Settings (Editable from editor, syncs to backend)
   enableComboDiscount?: boolean;
   comboDiscount2Products?: number; // Percentage discount for 2 products (e.g., 10 = 10%)
   comboDiscount3Products?: number; // Percentage discount for 3+ products (e.g., 15 = 15%)
+
+  // Real data flags - use actual stock/order data from DB
+  useRealStockCount?: boolean;
+  useRealOrderCount?: boolean;
 }
 
 // Selected product for multi-product landing pages

@@ -1,6 +1,6 @@
 /**
  * Page Builder Edit Route
- * 
+ *
  * Main editor route for GrapesJS page builder.
  * Accessed via: builder.ozzyl.com/edit/:pageId
  */
@@ -17,6 +17,19 @@ import { useLanguage } from '~/contexts/LanguageContext';
 
 // Lazy load the GrapesJS editor
 const GrapesEditor = lazy(() => import('~/components/page-builder/Editor'));
+import EditorErrorBoundary from '~/components/page-builder/EditorErrorBoundary';
+
+// Loader data type
+interface LoaderData {
+  pageId: string;
+  pageName: string;
+  pageSlug: string;
+  isPublished: boolean;
+  planType: string;
+  publishedBaseUrl: string;
+  initialProjectData: unknown;
+  mainAppUrl: string;
+}
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Page Builder | Ozzyl' }];
@@ -25,32 +38,30 @@ export const meta: MetaFunction = () => {
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const env = (context as any).cloudflare.env;
   const pageId = params.pageId;
-  
+
   if (!pageId) {
     throw new Response('Page ID required', { status: 400 });
   }
-  
+
   // Check auth
   const user = await getAuthFromSession(request, env);
   if (!user?.storeId) {
     // Redirect to main app login
     const mainAppUrl = env.MAIN_APP_URL || 'https://ozzyl.com';
-    return Response.redirect(`${mainAppUrl}/auth/login?redirect=/app/page-builder?id=${pageId}`, 302);
+    return Response.redirect(
+      `${mainAppUrl}/auth/login?redirect=/app/page-builder?id=${pageId}`,
+      302
+    );
   }
-  
+
   const db = drizzle(env.DB);
-  
+
   // Fetch page data
   const [page, store] = await Promise.all([
     db
       .select()
       .from(landingPages)
-      .where(
-        and(
-          eq(landingPages.id, parseInt(pageId)),
-          eq(landingPages.storeId, user.storeId)
-        )
-      )
+      .where(and(eq(landingPages.id, parseInt(pageId)), eq(landingPages.storeId, user.storeId)))
       .get(),
     db
       .select({
@@ -62,11 +73,11 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       .where(eq(stores.id, user.storeId))
       .get(),
   ]);
-  
+
   if (!page) {
     throw new Response('Page not found', { status: 404 });
   }
-  
+
   // Parse project data
   let initialProjectData = null;
   if (page.projectData) {
@@ -76,13 +87,13 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       console.warn('Failed to parse projectData');
     }
   }
-  
+
   // Generate published URL
   const saasDomain = env.SAAS_DOMAIN || 'ozzyl.com';
   const publishedBaseUrl = store?.customDomain
     ? `https://${store.customDomain}`
     : `https://${store?.subdomain}.${saasDomain}`;
-  
+
   return json({
     pageId,
     pageName: page.name,
@@ -96,15 +107,15 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 }
 
 export default function EditPage() {
-  const data = useLoaderData<typeof loader>();
+  const data = useLoaderData<typeof loader>() as LoaderData;
   const { lang, toggleLang, t } = useLanguage();
   const [storageStatus, setStorageStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isMounted, setIsMounted] = useState(false);
-  
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
-  
+
   if (!isMounted) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-900">
@@ -115,7 +126,7 @@ export default function EditPage() {
       </div>
     );
   }
-  
+
   return (
     <div className="fixed inset-0 z-[100] bg-white flex flex-col overflow-hidden">
       {/* Editor Header */}
@@ -137,7 +148,7 @@ export default function EditPage() {
             </h2>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {/* Language Toggle */}
           <button
@@ -148,7 +159,7 @@ export default function EditPage() {
             <Globe size={12} className="text-gray-400" />
             <span className="text-gray-300">{lang === 'en' ? 'EN' : 'বাং'}</span>
           </button>
-          
+
           <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800 rounded-full min-w-[120px] justify-center">
             {storageStatus === 'saving' ? (
               <>
@@ -172,7 +183,7 @@ export default function EditPage() {
               </>
             )}
           </div>
-          
+
           {data.isPublished && (
             <a
               href={`${data.publishedBaseUrl}/p/${data.pageSlug}`}
@@ -186,31 +197,33 @@ export default function EditPage() {
           )}
         </div>
       </div>
-      
+
       {/* Editor Canvas */}
       <div className="flex-1 relative flex flex-col overflow-hidden">
-        <Suspense
-          fallback={
-            <div className="flex items-center justify-center h-full bg-gray-50/50">
-              <div className="animate-pulse flex flex-col items-center gap-4">
-                <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
-                  <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+        <EditorErrorBoundary>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center h-full bg-gray-50/50">
+                <div className="animate-pulse flex flex-col items-center gap-4">
+                  <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                  <p className="text-gray-400 font-medium">Loading Canvas...</p>
                 </div>
-                <p className="text-gray-400 font-medium">Loading Canvas...</p>
               </div>
-            </div>
-          }
-        >
-          <GrapesEditor
-            pageId={data.pageId}
-            planType={data.planType}
-            onStorageStatusChange={setStorageStatus}
-            publishedBaseUrl={data.publishedBaseUrl}
-            pageSlug={data.pageSlug}
-            initialProjectData={data.initialProjectData}
-            mainAppUrl={data.mainAppUrl}
-          />
-        </Suspense>
+            }
+          >
+            <GrapesEditor
+              pageId={data.pageId}
+              planType={data.planType}
+              onStorageStatusChange={setStorageStatus}
+              publishedBaseUrl={data.publishedBaseUrl}
+              pageSlug={data.pageSlug}
+              initialProjectData={data.initialProjectData}
+              mainAppUrl={data.mainAppUrl}
+            />
+          </Suspense>
+        </EditorErrorBoundary>
       </div>
     </div>
   );

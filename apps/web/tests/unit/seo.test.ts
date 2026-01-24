@@ -17,6 +17,9 @@ import {
   type ProductInfo,
 } from '~/lib/seo.server';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type JsonLdSchema = Record<string, any>;
+
 describe('SEO Utilities', () => {
   const mockStore: StoreInfo = {
     name: 'Test Store',
@@ -54,7 +57,7 @@ describe('SEO Utilities', () => {
 
   describe('generateOrganizationSchema', () => {
     it('should generate valid organization schema', () => {
-      const schema = generateOrganizationSchema(mockStore);
+      const schema = generateOrganizationSchema(mockStore) as JsonLdSchema;
       expect(schema['@context']).toBe('https://schema.org');
       expect(schema['@type']).toBe('Organization');
       expect(schema['name']).toBe('Test Store');
@@ -62,26 +65,26 @@ describe('SEO Utilities', () => {
     });
 
     it('should include logo when provided', () => {
-      const schema = generateOrganizationSchema(mockStore);
+      const schema = generateOrganizationSchema(mockStore) as JsonLdSchema;
       expect(schema['logo']).toBeDefined();
       expect(schema['logo']['url']).toBe('https://example.com/logo.png');
     });
 
     it('should include contact info', () => {
-      const schema = generateOrganizationSchema(mockStore);
+      const schema = generateOrganizationSchema(mockStore) as JsonLdSchema;
       expect(schema['telephone']).toBe('+8801234567890');
       expect(schema['email']).toBe('test@store.com');
     });
 
     it('should include address', () => {
-      const schema = generateOrganizationSchema(mockStore);
+      const schema = generateOrganizationSchema(mockStore) as JsonLdSchema;
       expect(schema['address']).toBeDefined();
       expect(schema['address']['@type']).toBe('PostalAddress');
       expect(schema['address']['addressLocality']).toBe('Dhaka');
     });
 
     it('should include social links as sameAs', () => {
-      const schema = generateOrganizationSchema(mockStore);
+      const schema = generateOrganizationSchema(mockStore) as JsonLdSchema;
       expect(schema['sameAs']).toBeDefined();
       expect(schema['sameAs']).toContain('https://facebook.com/teststore');
     });
@@ -89,14 +92,14 @@ describe('SEO Utilities', () => {
 
   describe('generateWebSiteSchema', () => {
     it('should generate valid website schema', () => {
-      const schema = generateWebSiteSchema(mockStore);
+      const schema = generateWebSiteSchema(mockStore) as JsonLdSchema;
       expect(schema['@context']).toBe('https://schema.org');
       expect(schema['@type']).toBe('WebSite');
       expect(schema['name']).toBe('Test Store');
     });
 
     it('should include search action', () => {
-      const schema = generateWebSiteSchema(mockStore);
+      const schema = generateWebSiteSchema(mockStore) as JsonLdSchema;
       expect(schema['potentialAction']).toBeDefined();
       expect(schema['potentialAction']['@type']).toBe('SearchAction');
     });
@@ -104,14 +107,14 @@ describe('SEO Utilities', () => {
 
   describe('generateProductSchema', () => {
     it('should generate valid product schema', () => {
-      const schema = generateProductSchema(mockProduct, mockStore);
+      const schema = generateProductSchema(mockProduct, mockStore) as JsonLdSchema;
       expect(schema['@context']).toBe('https://schema.org');
       expect(schema['@type']).toBe('Product');
       expect(schema['name']).toBe('Test Product');
     });
 
     it('should include offers with price', () => {
-      const schema = generateProductSchema(mockProduct, mockStore);
+      const schema = generateProductSchema(mockProduct, mockStore) as JsonLdSchema;
       expect(schema['offers']).toBeDefined();
       expect(schema['offers']['@type']).toBe('Offer');
       expect(schema['offers']['price']).toBe(1000);
@@ -119,25 +122,25 @@ describe('SEO Utilities', () => {
     });
 
     it('should include availability', () => {
-      const schema = generateProductSchema(mockProduct, mockStore);
+      const schema = generateProductSchema(mockProduct, mockStore) as JsonLdSchema;
       expect(schema['offers']['availability']).toContain('InStock');
     });
 
     it('should include brand', () => {
-      const schema = generateProductSchema(mockProduct, mockStore);
+      const schema = generateProductSchema(mockProduct, mockStore) as JsonLdSchema;
       expect(schema['brand']).toBeDefined();
       expect(schema['brand']['name']).toBe('Test Brand');
     });
 
     it('should include aggregate rating', () => {
-      const schema = generateProductSchema(mockProduct, mockStore);
+      const schema = generateProductSchema(mockProduct, mockStore) as JsonLdSchema;
       expect(schema['aggregateRating']).toBeDefined();
       expect(schema['aggregateRating']['ratingValue']).toBe(4.5);
       expect(schema['aggregateRating']['reviewCount']).toBe(100);
     });
 
     it('should include SKU', () => {
-      const schema = generateProductSchema(mockProduct, mockStore);
+      const schema = generateProductSchema(mockProduct, mockStore) as JsonLdSchema;
       expect(schema['sku']).toBe('SKU-123');
     });
   });
@@ -149,7 +152,7 @@ describe('SEO Utilities', () => {
         { name: 'Electronics', url: 'https://test-store.com/collections/electronics' },
         { name: 'Test Product', url: 'https://test-store.com/products/test-product' },
       ];
-      const schema = generateBreadcrumbSchema(breadcrumbs);
+      const schema = generateBreadcrumbSchema(breadcrumbs) as JsonLdSchema;
       expect(schema['@context']).toBe('https://schema.org');
       expect(schema['@type']).toBe('BreadcrumbList');
       expect(schema['itemListElement']).toHaveLength(3);
@@ -160,7 +163,7 @@ describe('SEO Utilities', () => {
         { name: 'Home', url: 'https://test-store.com' },
         { name: 'Category', url: 'https://test-store.com/category' },
       ];
-      const schema = generateBreadcrumbSchema(breadcrumbs);
+      const schema = generateBreadcrumbSchema(breadcrumbs) as JsonLdSchema;
       expect(schema['itemListElement'][0]['position']).toBe(1);
       expect(schema['itemListElement'][1]['position']).toBe(2);
     });
@@ -174,7 +177,7 @@ describe('SEO Utilities', () => {
         url: 'https://test-store.com/collections/electronics',
         productCount: 50,
       };
-      const schema = generateCollectionSchema(collection, mockStore);
+      const schema = generateCollectionSchema(collection, mockStore) as JsonLdSchema;
       expect(schema['@context']).toBe('https://schema.org');
       expect(schema['@type']).toBe('CollectionPage');
       expect(schema['name']).toBe('Electronics');
@@ -185,46 +188,46 @@ describe('SEO Utilities', () => {
   describe('generateMetaTags', () => {
     it('should generate description meta tag', () => {
       const tags = generateMetaTags({ description: 'Test description' });
-      const descTag = tags.find(t => t.name === 'description');
+      const descTag = tags.find((t) => t.name === 'description');
       expect(descTag).toBeDefined();
       expect(descTag?.content).toBe('Test description');
     });
 
     it('should generate keywords meta tag', () => {
       const tags = generateMetaTags({ keywords: ['test', 'keywords'] });
-      const keywordsTag = tags.find(t => t.name === 'keywords');
+      const keywordsTag = tags.find((t) => t.name === 'keywords');
       expect(keywordsTag).toBeDefined();
       expect(keywordsTag?.content).toBe('test, keywords');
     });
 
     it('should generate robots meta tag', () => {
       const tags = generateMetaTags({ noIndex: true, noFollow: true });
-      const robotsTag = tags.find(t => t.name === 'robots');
+      const robotsTag = tags.find((t) => t.name === 'robots');
       expect(robotsTag).toBeDefined();
       expect(robotsTag?.content).toContain('noindex');
       expect(robotsTag?.content).toContain('nofollow');
     });
 
     it('should generate Open Graph tags', () => {
-      const tags = generateMetaTags({ 
-        title: 'Test Title', 
+      const tags = generateMetaTags({
+        title: 'Test Title',
         description: 'Test Description',
         ogImage: 'https://example.com/og.jpg',
         ogType: 'product',
       });
-      expect(tags.find(t => t.property === 'og:title')).toBeDefined();
-      expect(tags.find(t => t.property === 'og:description')).toBeDefined();
-      expect(tags.find(t => t.property === 'og:image')).toBeDefined();
-      expect(tags.find(t => t.property === 'og:type')).toBeDefined();
+      expect(tags.find((t) => t.property === 'og:title')).toBeDefined();
+      expect(tags.find((t) => t.property === 'og:description')).toBeDefined();
+      expect(tags.find((t) => t.property === 'og:image')).toBeDefined();
+      expect(tags.find((t) => t.property === 'og:type')).toBeDefined();
     });
 
     it('should generate Twitter card tags', () => {
-      const tags = generateMetaTags({ 
+      const tags = generateMetaTags({
         title: 'Test Title',
         twitterCard: 'summary_large_image',
       });
-      expect(tags.find(t => t.name === 'twitter:card')).toBeDefined();
-      expect(tags.find(t => t.name === 'twitter:title')).toBeDefined();
+      expect(tags.find((t) => t.name === 'twitter:card')).toBeDefined();
+      expect(tags.find((t) => t.name === 'twitter:title')).toBeDefined();
     });
   });
 
@@ -248,7 +251,7 @@ describe('SEO Utilities', () => {
 
   describe('generateHomePageSchemas', () => {
     it('should return organization and website schemas', () => {
-      const schemas = generateHomePageSchemas(mockStore);
+      const schemas = generateHomePageSchemas(mockStore) as JsonLdSchema[];
       expect(schemas).toHaveLength(2);
       expect(schemas[0]['@type']).toBe('Organization');
       expect(schemas[1]['@type']).toBe('WebSite');
@@ -257,7 +260,7 @@ describe('SEO Utilities', () => {
 
   describe('generateProductPageSchemas', () => {
     it('should return product schema', () => {
-      const schemas = generateProductPageSchemas(mockProduct, mockStore);
+      const schemas = generateProductPageSchemas(mockProduct, mockStore) as JsonLdSchema[];
       expect(schemas.length).toBeGreaterThanOrEqual(1);
       expect(schemas[0]['@type']).toBe('Product');
     });
@@ -267,7 +270,11 @@ describe('SEO Utilities', () => {
         { name: 'Home', url: 'https://test-store.com' },
         { name: 'Product', url: 'https://test-store.com/products/test' },
       ];
-      const schemas = generateProductPageSchemas(mockProduct, mockStore, breadcrumbs);
+      const schemas = generateProductPageSchemas(
+        mockProduct,
+        mockStore,
+        breadcrumbs
+      ) as JsonLdSchema[];
       expect(schemas).toHaveLength(2);
       expect(schemas[1]['@type']).toBe('BreadcrumbList');
     });

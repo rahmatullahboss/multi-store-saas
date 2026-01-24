@@ -266,7 +266,4 @@ function isMetafieldReference(value: unknown): boolean {
 // EXPORT ALL
 // ============================================================================
 
-export {
-  type MetafieldMap,
-  type ParsedMetafield,
-};
+// Types already exported inline above

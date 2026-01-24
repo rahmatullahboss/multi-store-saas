@@ -3,69 +3,102 @@
  * FOMO-driven design with countdown, warnings, and scarcity indicators
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AlertTriangle, Clock, Flame, Users, Zap, TrendingUp } from 'lucide-react';
 import type { OrderFormComponentProps } from './types';
 import { useOrderForm } from './useOrderForm';
 import { OrderFormFields } from './OrderFormFields';
 import { MultiProductSelector, useMultiProductSelection } from './MultiProductSelector';
 
-export function UrgencyOrderForm({ props, theme, storeId, productId, product, selectedProducts = [], realData }: OrderFormComponentProps) {
+export function UrgencyOrderForm({
+  props,
+  theme,
+  storeId,
+  productId,
+  product,
+  selectedProducts = [],
+  realData,
+}: OrderFormComponentProps) {
   // Multi-product support with configurable combo discount
   const {
     enableComboDiscount = true,
     comboDiscount2Products = 10,
     comboDiscount3Products = 15,
   } = props as Record<string, unknown>;
-  
+
   const multiProduct = useMultiProductSelection(selectedProducts, {
     enableComboDiscount: enableComboDiscount as boolean,
     comboDiscount2Products: comboDiscount2Products as number,
     comboDiscount3Products: comboDiscount3Products as number,
   });
   const { isMultiProduct, primaryProduct, finalTotal, selectedIds } = multiProduct;
-  
+
   // Create effective product for useOrderForm
   // NOTE: Don't pass variants here - useOrderForm will use product.variants from DB/settings
-  const effectiveProduct = isMultiProduct && primaryProduct ? {
-    id: primaryProduct.id,
-    title: multiProduct.selectedProductsData.length > 1 
-      ? `${multiProduct.selectedProductsData.length}টি প্রোডাক্ট` 
-      : primaryProduct.title,
-    price: finalTotal,
-    compareAtPrice: multiProduct.selectedProductsData.reduce((sum, p) => sum + (p.compareAtPrice || p.price), 0),
-    images: primaryProduct.imageUrl ? [primaryProduct.imageUrl] : [],
-  } : product;
-  
-  const { fetcher, state, actions, calculations, props: typedProps } = useOrderForm(props, effectiveProduct);
+  const effectiveProduct =
+    isMultiProduct && primaryProduct
+      ? {
+          id: primaryProduct.id,
+          title:
+            multiProduct.selectedProductsData.length > 1
+              ? `${multiProduct.selectedProductsData.length}টি প্রোডাক্ট`
+              : primaryProduct.title,
+          price: finalTotal,
+          compareAtPrice: multiProduct.selectedProductsData.reduce(
+            (sum, p) => sum + (p.compareAtPrice || p.price),
+            0
+          ),
+          images: primaryProduct.imageUrl ? [primaryProduct.imageUrl] : [],
+        }
+      : product;
+
+  const {
+    fetcher,
+    state,
+    actions,
+    calculations,
+    props: typedProps,
+  } = useOrderForm(props, effectiveProduct);
 
   const cartItems = isMultiProduct
     ? multiProduct.selectedProductsData.map((p) => ({ productId: p.id, quantity: state.quantity }))
     : undefined;
 
-  const comboSummary = multiProduct.comboSavings > 0
-    ? { savings: multiProduct.comboSavings, rate: Math.round(multiProduct.comboDiscount.rate * 100), discountedSubtotal: multiProduct.comboTotal }
-    : undefined;
-  
+  const comboSummary =
+    multiProduct.comboSavings > 0
+      ? {
+          savings: multiProduct.comboSavings,
+          rate: Math.round(multiProduct.comboDiscount.rate * 100),
+          discountedSubtotal: multiProduct.comboTotal,
+        }
+      : undefined;
+
   const {
     headline = '⚡ শেষ সুযোগ!',
     subheadline = 'এই অফার আর থাকবে না!',
     variantLabel = 'প্যাকেজ নির্বাচন করুন',
     quantityLabel = 'পরিমাণ',
   } = typedProps;
-  
-  const { actualVariants, actualProductImage, actualProductTitle, actualPrice, actualComparePrice, formatPrice } = calculations;
-  
+
+  const {
+    actualVariants,
+    actualProductImage,
+    actualProductTitle,
+    actualPrice,
+    actualComparePrice,
+    formatPrice,
+  } = calculations;
+
   // Urgency colors
   const primaryColor = '#DC2626';
   const accentColor = '#EF4444';
-  
+
   // Countdown timer
   const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 47, seconds: 33 });
-  
+
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(prev => {
+      setTimeLeft((prev) => {
         if (prev.seconds > 0) {
           return { ...prev, seconds: prev.seconds - 1 };
         } else if (prev.minutes > 0) {
@@ -78,35 +111,37 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product, se
     }, 1000);
     return () => clearInterval(timer);
   }, []);
-  
+
   // Random stock count
   const stockLeft = realData?.stockCount ?? null;
   const viewingNow = realData?.recentOrderCount ?? null;
-  
+
   return (
-    <section 
-      id="order-form" 
+    <section
+      id="order-form"
       className="relative py-16 px-4 overflow-hidden"
       style={{ background: 'linear-gradient(180deg, #0A0A0A 0%, #1C1917 50%, #0A0A0A 100%)' }}
       data-section-type="cta"
     >
       {/* Animated warning stripes */}
-      <div 
+      <div
         className="absolute top-0 left-0 right-0 h-2"
         style={{
-          background: 'repeating-linear-gradient(90deg, #DC2626, #DC2626 20px, #FCD34D 20px, #FCD34D 40px)',
+          background:
+            'repeating-linear-gradient(90deg, #DC2626, #DC2626 20px, #FCD34D 20px, #FCD34D 40px)',
         }}
       />
-      <div 
+      <div
         className="absolute bottom-0 left-0 right-0 h-2"
         style={{
-          background: 'repeating-linear-gradient(90deg, #FCD34D, #FCD34D 20px, #DC2626 20px, #DC2626 40px)',
+          background:
+            'repeating-linear-gradient(90deg, #FCD34D, #FCD34D 20px, #DC2626 20px, #DC2626 40px)',
         }}
       />
-      
+
       {/* Pulsing glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-500 rounded-full opacity-10 blur-[150px] animate-pulse" />
-      
+
       <div className="relative z-10 max-w-5xl mx-auto">
         {/* Urgency bar (real data only) */}
         {(viewingNow !== null || stockLeft !== null) && (
@@ -125,12 +160,12 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product, se
             )}
           </div>
         )}
-        
+
         {/* Countdown Timer */}
         <div className="flex justify-center mb-8">
-          <div 
+          <div
             className="inline-flex items-center gap-4 px-8 py-4 rounded-xl"
-            style={{ 
+            style={{
               background: 'linear-gradient(135deg, #7F1D1D, #450A0A)',
               border: '2px solid #DC2626',
               boxShadow: '0 0 30px rgba(220, 38, 38, 0.3)',
@@ -145,7 +180,7 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product, se
                 { value: timeLeft.seconds, label: 'সেকেন্ড' },
               ].map((item, i) => (
                 <div key={i} className="text-center">
-                  <div 
+                  <div
                     className="text-2xl md:text-3xl font-black text-white px-3 py-1 rounded"
                     style={{ background: 'rgba(0,0,0,0.5)' }}
                   >
@@ -157,7 +192,7 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product, se
             </div>
           </div>
         </div>
-        
+
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 rounded-full mb-4 animate-bounce">
@@ -165,7 +200,7 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product, se
             <span className="text-white font-bold">ফ্ল্যাশ সেল!</span>
             <Flame size={18} className="text-white" />
           </div>
-          <h2 
+          <h2
             className="text-4xl md:text-5xl font-black mb-3"
             style={{
               background: 'linear-gradient(135deg, #FEF08A, #FBBF24, #F59E0B)',
@@ -176,13 +211,11 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product, se
           >
             {headline}
           </h2>
-          {subheadline && (
-            <p className="text-xl text-red-300">{subheadline}</p>
-          )}
+          {subheadline && <p className="text-xl text-red-300">{subheadline}</p>}
         </div>
-        
+
         {/* Main Card */}
-        <div 
+        <div
           className="rounded-2xl overflow-hidden"
           style={{
             background: 'rgba(0,0,0,0.6)',
@@ -191,7 +224,7 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product, se
           }}
         >
           {/* Warning banner */}
-          <div 
+          <div
             className="flex items-center justify-center gap-3 py-3 px-4"
             style={{ background: 'linear-gradient(90deg, #DC2626, #B91C1C)' }}
           >
@@ -201,7 +234,7 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product, se
             </span>
             <Zap size={18} className="text-yellow-300" />
           </div>
-          
+
           <div className="grid md:grid-cols-2">
             {/* Left - Product */}
             <div className="p-8 border-b md:border-b-0 md:border-r border-red-900/50">
@@ -214,29 +247,29 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product, se
                 inputBg="rgba(255,255,255,0.1)"
                 inputBorder="rgba(255,255,255,0.2)"
               />
-              
+
               {/* Product Card */}
               {!isMultiProduct && (actualProductImage || actualProductTitle) && (
                 <div className="mb-8 text-center relative">
                   {/* Sale badge */}
-                  <div 
+                  <div
                     className="absolute -top-2 -right-2 z-10 px-3 py-1 rounded-full font-black text-sm animate-pulse"
                     style={{ background: '#DC2626' }}
                   >
                     <span className="text-white">
-                      {actualComparePrice > actualPrice 
-                        ? `-${Math.round((1 - actualPrice / actualComparePrice) * 100)}%` 
+                      {actualComparePrice > actualPrice
+                        ? `-${Math.round((1 - actualPrice / actualComparePrice) * 100)}%`
                         : 'সেল!'}
                     </span>
                   </div>
-                  
+
                   {actualProductImage && (
                     <div className="relative inline-block">
-                      <img 
-                        src={actualProductImage} 
-                        alt={actualProductTitle || 'প্রোডাক্ট'} 
+                      <img
+                        src={actualProductImage}
+                        alt={actualProductTitle || 'প্রোডাক্ট'}
                         className="w-40 h-40 mx-auto rounded-xl object-cover"
-                        style={{ 
+                        style={{
                           border: '3px solid #DC2626',
                           boxShadow: '0 0 30px rgba(220, 38, 38, 0.4)',
                         }}
@@ -244,9 +277,7 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product, se
                     </div>
                   )}
                   {actualProductTitle && (
-                    <h3 className="text-xl font-bold text-white mt-4 mb-2">
-                      {actualProductTitle}
-                    </h3>
+                    <h3 className="text-xl font-bold text-white mt-4 mb-2">{actualProductTitle}</h3>
                   )}
                   <div className="flex items-center justify-center gap-3">
                     {actualComparePrice > actualPrice && (
@@ -254,14 +285,11 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product, se
                         ৳{actualComparePrice}
                       </span>
                     )}
-                    <span 
-                      className="text-4xl font-black"
-                      style={{ color: '#FBBF24' }}
-                    >
+                    <span className="text-4xl font-black" style={{ color: '#FBBF24' }}>
                       ৳{actualPrice}
                     </span>
                   </div>
-                  
+
                   {/* Savings indicator */}
                   {actualComparePrice > actualPrice && (
                     <div className="mt-2 inline-flex items-center gap-1 px-3 py-1 bg-green-900/50 rounded-full">
@@ -273,7 +301,7 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product, se
                   )}
                 </div>
               )}
-              
+
               {/* Variant Selection */}
               {actualVariants.length > 0 && (
                 <div className="mb-6">
@@ -288,18 +316,25 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product, se
                         onClick={() => actions.setSelectedVariant(variant)}
                         className="w-full flex items-center justify-between p-4 rounded-xl transition-all"
                         style={{
-                          background: state.selectedVariant?.id === variant.id 
-                            ? 'rgba(220, 38, 38, 0.3)' 
-                            : 'rgba(255,255,255,0.05)',
+                          background:
+                            state.selectedVariant?.id === variant.id
+                              ? 'rgba(220, 38, 38, 0.3)'
+                              : 'rgba(255,255,255,0.05)',
                           border: `2px solid ${state.selectedVariant?.id === variant.id ? '#DC2626' : 'rgba(255,255,255,0.1)'}`,
                         }}
                       >
                         <div className="flex items-center gap-3">
-                          <div 
+                          <div
                             className="w-5 h-5 rounded-full border-2 flex items-center justify-center"
-                            style={{ 
-                              borderColor: state.selectedVariant?.id === variant.id ? '#DC2626' : 'rgba(255,255,255,0.3)',
-                              backgroundColor: state.selectedVariant?.id === variant.id ? '#DC2626' : 'transparent',
+                            style={{
+                              borderColor:
+                                state.selectedVariant?.id === variant.id
+                                  ? '#DC2626'
+                                  : 'rgba(255,255,255,0.3)',
+                              backgroundColor:
+                                state.selectedVariant?.id === variant.id
+                                  ? '#DC2626'
+                                  : 'transparent',
                             }}
                           >
                             {state.selectedVariant?.id === variant.id && (
@@ -316,15 +351,15 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product, se
                   </div>
                 </div>
               )}
-              
+
               {/* Quantity */}
               <div>
                 <label className="block text-sm font-bold mb-3 text-yellow-400 uppercase">
                   {quantityLabel}
                 </label>
-                <div 
+                <div
                   className="flex items-center justify-between p-4 rounded-xl"
-                  style={{ 
+                  style={{
                     background: 'rgba(255,255,255,0.05)',
                     border: '1px solid rgba(255,255,255,0.1)',
                   }}
@@ -337,9 +372,7 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product, se
                   >
                     −
                   </button>
-                  <span className="text-3xl font-black text-white">
-                    {state.quantity}
-                  </span>
+                  <span className="text-3xl font-black text-white">{state.quantity}</span>
                   <button
                     type="button"
                     onClick={() => actions.setQuantity(state.quantity + 1)}
@@ -351,7 +384,7 @@ export function UrgencyOrderForm({ props, theme, storeId, productId, product, se
                 </div>
               </div>
             </div>
-            
+
             {/* Right - Form */}
             <div className="p-8">
               <OrderFormFields

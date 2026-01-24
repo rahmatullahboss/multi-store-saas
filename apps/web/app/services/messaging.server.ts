@@ -18,7 +18,7 @@ interface WhatsAppPayload {
   to: string;
   templateName?: string;
   templateLanguage?: string;
-  components?: any[];
+  components?: Record<string, unknown>[];
   text?: string;
   storeId: number;
 }
@@ -26,9 +26,26 @@ interface WhatsAppPayload {
 interface SMSResponse {
   success: boolean;
   provider: string;
-  data?: any;
+  data?: unknown;
   error?: string;
   messageId?: string;
+}
+
+// === CONFIG INTERFACE ===
+interface MarketingConfig {
+  sslWireless?: {
+    apiToken: string;
+    sid: string;
+    domain?: string;
+  };
+  bulkSmsBd?: {
+    apiKey: string;
+    senderId: string;
+  };
+  meta?: {
+    phoneId: string;
+    accessToken: string;
+  };
 }
 
 // === SMS PROVIDER ABSTRACTION ===
@@ -38,12 +55,13 @@ interface ISMSProvider {
 }
 
 class SSLWirelessProvider implements ISMSProvider {
-  constructor(private env: Env) {}
+  constructor(private env: Env, private config?: MarketingConfig['sslWireless']) {}
 
   async send({ to, message }: SMSPayload): Promise<SMSResponse> {
-    const apiToken = this.env.SSL_SMS_API_TOKEN;
-    const sid = this.env.SSL_SMS_SID;
-    const domain = this.env.SSL_SMS_DOMAIN || "https://smsplus.sslwireless.com";
+    // Priority: DB Config > Env Config
+    const apiToken = this.config?.apiToken || this.env.SSL_SMS_API_TOKEN;
+    const sid = this.config?.sid || this.env.SSL_SMS_SID;
+    const domain = this.config?.domain || this.env.SSL_SMS_DOMAIN || "https://smsplus.sslwireless.com";
 
     if (!apiToken || !sid) {
         return { success: false, provider: "ssl_wireless", error: "Missing Credentials" };
@@ -109,7 +127,7 @@ class BulkSMSBDProvider implements ISMSProvider {
       });
 
       const data = await response.json() as any;
-      console.log(`[SMS][BulkSMS] Response:`, JSON.stringify(data));
+      console.warn(`[SMS][BulkSMS] Response:`, JSON.stringify(data));
 
       // Check success (Response format varies, usually has response_code 202 or similar)
       if (data?.response_code === 202 || data?.success === true) {
@@ -126,17 +144,36 @@ class BulkSMSBDProvider implements ISMSProvider {
 
 class SimulatorProvider implements ISMSProvider {
   async send({ to, message }: SMSPayload): Promise<SMSResponse> {
-    console.log(`[SMS][SIMULATION] To: ${to}, Message: ${message}`);
+    console.warn(`[SMS][SIMULATION] To: ${to}, Message: ${message}`);
     return { success: true, provider: "simulator", messageId: "sim_" + crypto.randomUUID() };
   }
 }
 
 // === FACTORY ===
 
-function getSMSProvider(env: Env): ISMSProvider {
+// === FACTORY ===
+
+async function getSMSProvider(db: Database, env: Env, storeId: number): Promise<ISMSProvider> {
+    // Fetch Store Config
+    const store = await db.query.stores.findFirst({
+        where: eq(stores.id, storeId),
+        columns: { marketingConfig: true }
+    });
+    
+    let config: MarketingConfig = {};
+    if (store?.marketingConfig) {
+        try { config = JSON.parse(store.marketingConfig); } catch (e) {
+          console.error("Failed to parse marketingConfig", e);
+        }
+    }
+
+    // Determine Provider Preference (could be added to DB later, using Env for now or presence of keys)
     const provider = env.SMS_PROVIDER || 'simulator';
     
-    if (provider === 'ssl_wireless') return new SSLWirelessProvider(env);
+    if (config.sslWireless?.apiToken || provider === 'ssl_wireless') {
+        return new SSLWirelessProvider(env, config.sslWireless);
+    }
+    // Implement BulkSMS update similarly if needed
     if (provider === 'bulksms_bd') return new BulkSMSBDProvider(env);
     
     return new SimulatorProvider();
@@ -146,7 +183,7 @@ function getSMSProvider(env: Env): ISMSProvider {
 // === EXPORTED DUAL-CHANNEL FUNCTIONS ===
 
 export async function sendSMS(db: Database, env: Env, payload: SMSPayload) {
-  const provider = getSMSProvider(env);
+  const provider = await getSMSProvider(db, env, payload.storeId);
   return await provider.send(payload);
 }
 
@@ -156,25 +193,35 @@ export async function sendWhatsApp(db: Database, env: Env, { to, templateName, t
   // 1. Get Agent/Store WhatsApp Config
   const agent = await db.query.agents.findFirst({
     where: eq(agents.storeId, storeId),
-    columns: {
-      whatsappPhoneId: true,
-      // In production, accessToken should be in DB. For now, fallback to ENV.
-    }
+    columns: { whatsappPhoneId: true }
   });
 
-  // Prefer DB config, fallback to ENV (Platform Account)
-  const phoneId = agent?.whatsappPhoneId || env.META_WHATSAPP_PHONE_ID;
-  const accessToken = env.META_WHATSAPP_TOKEN;
+  const store = await db.query.stores.findFirst({
+      where: eq(stores.id, storeId),
+      columns: { marketingConfig: true }
+  });
+
+  let config: MarketingConfig = {};
+  if (store?.marketingConfig) {
+      try { config = JSON.parse(store.marketingConfig); } catch (e) {
+        console.error("Failed to parse marketingConfig for WhatsApp", e);
+      }
+  }
+
+
+  // Priority: Agent specific > Store Config > Env (Platform)
+  const phoneId = agent?.whatsappPhoneId || config.meta?.phoneId || env.META_WHATSAPP_PHONE_ID;
+  const accessToken = config.meta?.accessToken || env.META_WHATSAPP_TOKEN;
 
   if (!phoneId || !accessToken) {
     console.warn(`[WhatsApp] Configuration missing for store ${storeId}. PhoneID: ${phoneId}, Token: ${!!accessToken}`);
-    console.log(`[WhatsApp][SIMULATION] To: ${to}, Template: ${templateName}, Text: ${text}`);
+    console.warn(`[WhatsApp][SIMULATION] To: ${to}, Template: ${templateName}, Text: ${text}`);
     return { success: false, error: "not_configured" };
   }
 
   const url = `https://graph.facebook.com/v18.0/${phoneId}/messages`;
   
-  const body: any = {
+  const body: Record<string, unknown> = {
     messaging_product: "whatsapp",
     to: to,
   };
@@ -229,7 +276,7 @@ export async function sendSmartNotification(
   customerId: number, 
   storeId: number, 
   type: 'ORDER_CONFIRMATION' | 'ABANDONED_CART' | 'WELCOME' | 'WINBACK_OFFER' | 'REVIEW_REQUEST',
-  data: any
+  data: Record<string, any>
 ) {
   // 1. Fetch Customer Preferences (Future)
   // ...
@@ -246,7 +293,7 @@ export async function sendSmartNotification(
   });
 
   if (!whatsAppResult.success) {
-    console.log(`[SmartNotifier] WhatsApp failed (${whatsAppResult.error}), falling back to SMS.`);
+    console.warn(`[SmartNotifier] WhatsApp failed (${whatsAppResult.error}), falling back to SMS.`);
     // Fallback to SMS
     await sendSMS(db, env, {
       to: data.phone,

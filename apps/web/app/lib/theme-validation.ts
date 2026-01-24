@@ -313,7 +313,7 @@ export const ThemeSettingsSchema = z.object({
   fontFamily: z.string().optional(),
 
   // Header
-  headerLayout: z.enum(['default', 'centered', 'minimal']).optional(),
+  headerLayout: z.enum(['default', 'centered', 'minimal', 'left-logo']).optional(),
   headerShowSearch: z.boolean().optional(),
   headerShowCart: z.boolean().optional(),
 
@@ -330,7 +330,7 @@ export const ThemeSettingsSchema = z.object({
   floatingCallNumber: z.string().optional(),
 
   // Features
-  checkoutStyle: z.enum(['standard', 'express', 'one-page']).optional(),
+  checkoutStyle: z.enum(['standard', 'express', 'one-page', 'minimal', 'one_page']).optional(),
   flashSale: z.any().optional(),
   trustBadges: z.any().optional(),
   marketingPopup: z.any().optional(),

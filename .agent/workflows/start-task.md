@@ -1,54 +1,107 @@
 ---
-description: Universal entry point for any complex task. Helps the agent select and load the right skills before starting value work.
+description: Implements Manus-style file-based planning for complex tasks. Creates task_plan.md, findings.md, and progress.md.
 ---
 
-# Start Task Workflow
+# Start Task: Manus File-Based Planning
 
-Use this workflow at the beginning of ANY complex task (coding, debugging, planning, or architecture) to ensure you are using the best available knowledge and skills.
+This workflow implements the **Manus Pattern** for managing complex tasks. Instead of relying solely on context, we explicitly manage state in three markdown files in the project root.
 
-## 1. Analyze the Request
+**Use this for:** Any task requiring >5 steps, research, refactoring, or complex feature implementation.
 
-- What is the core domain? (e.g., specific framework, database, business logic)
-- What technologies are involved? (e.g., Remix, Cloudflare, Prisma, Stripe)
-- What is the nature of the task? (e.g., debugging, new feature, refactoring)
+## Step 1: Initialize Planning Files
 
-## 2. Identify Relevant Skills
+Create the following three files in the root of the workspace if they don't exist.
 
-Check the `.agent/skills/` directory for relevant skills.
+### 1.1 Create `task_plan.md` (The "Brain")
+This is your master checklist. It must be updated after every phase.
 
-- **Web/Frontend**: `remix-development`, `react-ui-patterns`, `tailwind-patterns`
-- **Backend/API**: `backend-dev-guidelines`, `api-patterns`
-- **Database**: `database-design`, `prisma-expert`
-- **Cloudflare**: `cloudflare-d1`, `remix-development` (includes CF specifics)
-- **Business**: `micro-saas-launcher`, `stripe-integration`
-- **Workflow**: `git-pushing`, `systematic-debugging`
+```markdown
+# Task Plan: [Task Name]
 
-## 3. Load Skills (CRITICAL)
+## Goal
+[One clear sentence describing the successfully completed state]
 
-**You MUST read the content of the selected skills.**
-Use `view_file` to read the `SKILL.md` (or equivalent) for each identified skill.
+## Success Criteria
+- [ ] Criterion 1
+- [ ] Criterion 2
 
-> [!IMPORTANT]
-> Do not just guess standard practices. The skills contain project-specific and "Antigravity-optimized" patterns that you must follow.
+## Phases
+### Phase 1: Context & Research
+- [ ] [CONTEXT] Read relevant files `[file1, file2]`
+- [ ] [RESEARCH] Check documentation for [library/API]
 
-```bash
-# Example: If task is "Build a new Remix route with D1"
-view_file .agent/skills/remix-development/SKILL.md
-view_file .agent/skills/database-design/SKILL.md
+### Phase 2: Implementation
+- [ ] [CODE] Create `src/foo.ts`
+- [ ] [CODE] Update `src/bar.ts`
+
+### Phase 3: Verification
+- [ ] [TEST] Run `npm test`
+- [ ] [VERIFY] Manual check of feature
 ```
 
-## 4. Resolve Unknowns (Context7)
+### 1.2 Create `findings.md` (The "Knowledge Base")
+Store all research, documentation snippets, and existing code patterns here.
 
-If the task requires knowledge NOT present in the skills (e.g., a specific library version or new API):
+```markdown
+# Findings
 
-1.  Use `context7` tool to resolve the library ID.
-2.  Query `context7` for the specific documentation.
-3.  (Optional) Suggest creating a new skill if this knowledge will be reusable.
+## Relevant Code
+- `src/existing.ts`: Implements similar logic in `processData()` function.
 
-## 5. Create a Plan
+## Documentation
+- **API Endpoint**: `POST /api/v1/users` requires `Authorization` header.
 
-Once skills are loaded:
+## Decisions
+- [ ] Decision 1: Use Library X because Y.
+```
 
-1.  Create a strict step-by-step plan in `task.md` (or `implementation_plan.md` for larger features).
-2.  Align the plan with the patterns found in the loaded skills.
-3.  Proceed to `task_boundary` and execution.
+### 1.3 Create `progress.md` (The "Log")
+Log every action, valid output, and error here.
+
+```markdown
+# Progress Log
+
+## Session 1
+- **Action**: Ran `npm run build`
+- **Result**: Failed with error `TS2345`
+- **Fix**: Updated type definition in `types.ts`
+```
+
+---
+
+## Step 2: Load Skills
+
+Before acting, identify and read relevant "Antigravity Skills" to ensure best practices.
+
+**Required check:**
+- Is this React/Remix? -> Load `frontend-dev-guidelines`, `remix-development`
+- Is this Backend? -> Load `backend-dev-guidelines`, `api-patterns`
+- Is this Database? -> Load `database-design`
+
+```bash
+view_file .agent/skills/relevant-skill/SKILL.md
+```
+
+---
+
+## Step 3: Execution Loop (The "Manus Cycle")
+
+Follow this loop for every phase:
+
+1.  **READ**: Read `task_plan.md` to confirm the next step.
+2.  **ACT**: Perform the tool call (Edit, Run, etc.).
+3.  **LOG**: Append the result to `progress.md`.
+4.  **UPDATE**: If a step is done, mark `[x]` in `task_plan.md`.
+5.  **FINDING**: If you learned something new, append to `findings.md`.
+
+**CRITICAL RULE**: "After every 2 tool calls, update your files."
+
+---
+
+## Step 4: Completion
+
+When the task is done:
+
+1.  Verify all SUCCESS CRITERIA in `task_plan.md` are checked.
+2.  Summarize the final state in `progress.md`.
+3.  Notify the user.

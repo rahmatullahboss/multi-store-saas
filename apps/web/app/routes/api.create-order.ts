@@ -28,6 +28,7 @@ import { addLoyaltyPoints } from '~/services/loyalty.server';
 import { triggerAutomation } from '~/services/automation.server';
 import { parseLandingConfig } from '@db/types';
 import { generateCheckoutIdempotencyKey } from '~/services/webhook-utils.server';
+import { validateDiscount, incrementDiscountUsage } from '~/../server/services/discount.service';
 
 
 // ============================================================================
@@ -73,6 +74,7 @@ export const OrderSchema = z.object({
   utm_source: z.string().max(100).optional(),
   utm_medium: z.string().max(100).optional(),
   utm_campaign: z.string().max(100).optional(),
+  discount_code: z.string().max(50).optional(), // Coupon Code
 });
 
 
@@ -591,9 +593,31 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
     
     // Apply combo discount to subtotal
-    const discountedSubtotal = subtotal - comboDiscountAmount;
+    const discountedSubtotalBeforeCoupon = subtotal - comboDiscountAmount;
 
-    const total = discountedSubtotal + tax + shipping;
+    // ============================================================================
+    // COUPON DISCOUNT - Apply manual discount code
+    // ============================================================================
+    let couponDiscountAmount = 0;
+    let appliedCouponId: number | undefined;
+
+    if (input.discount_code) {
+      const discountResult = await validateDiscount(db, input.store_id, input.discount_code, discountedSubtotalBeforeCoupon);
+      
+      if (discountResult.isValid && discountResult.discount) {
+        couponDiscountAmount = discountResult.discount.amount;
+        appliedCouponId = discountResult.discount.id;
+      } else {
+        // Return 400 if code provided but invalid (Strict mode)
+        return json(
+            { success: false, error: discountResult.error || 'Invalid Discount Code' }, 
+            { status: 400 }
+        );
+      }
+    }
+
+    const finalSubtotal = Math.max(0, discountedSubtotalBeforeCoupon - couponDiscountAmount);
+    const total = finalSubtotal + tax + shipping;
 
     // Generate order number
     const orderNumber = generateOrderNumber();
@@ -663,7 +687,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         customerEmail: input.customer_email || '',
         shippingAddress: input.address,
         billingAddress: null,
-        subtotal: discountedSubtotal, // After combo discount
+        subtotal: finalSubtotal, // After combo AND coupon
         tax,
         shipping,
         total,
@@ -679,6 +703,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
           total,
           isFreeShipping: shippingResult.isFree || false,
           clientIP,
+          couponCode: input.discount_code,
+          couponDiscount: couponDiscountAmount
         }),
         notes: input.notes || null,
         landingPageId: input.landing_page_id || null, // ATTRIBUTION
@@ -766,6 +792,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
           updatedAt: now,
         }).catch(e => console.error('[Checkout Session] Creation failed:', e))
       );
+
+      // ========== DISCOUNT USAGE INCREMENT ==========
+      if (appliedCouponId) {
+        context.cloudflare.ctx.waitUntil(
+            incrementDiscountUsage(db, appliedCouponId).catch(e => console.error('Failed to increment discount usage:', e))
+        );
+      }
 
     } catch (orderError) {
       console.error('Order creation failed, rolling back inventory:', orderError);

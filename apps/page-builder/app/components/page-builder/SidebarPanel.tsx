@@ -1,5 +1,13 @@
 import { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
-import { Box, Palette, Settings2, Layers, PaintBucket, LayoutTemplate, Package } from 'lucide-react';
+import {
+  Box,
+  Palette,
+  Settings2,
+  Layers,
+  PaintBucket,
+  LayoutTemplate,
+  Package,
+} from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import ThemePanel from './ThemePanel';
 import TemplatesPanel from './TemplatesPanel';
@@ -27,10 +35,12 @@ function SidebarPanelBase({
   onLoadTemplate,
   activeTab,
   onTabChange,
-  editor
+  editor,
 }: SidebarPanelProps) {
   const { t } = useTranslation();
-  const [activeDesignSubTab, setActiveDesignSubTab] = useState<'styles' | 'theme' | 'templates'>('styles');
+  const [activeDesignSubTab, setActiveDesignSubTab] = useState<'styles' | 'theme' | 'templates'>(
+    'styles'
+  );
 
   const traitsContainerRef = useRef<HTMLDivElement>(null);
   const stylesContainerRef = useRef<HTMLDivElement>(null);
@@ -47,14 +57,14 @@ function SidebarPanelBase({
     const selected = editor.getSelected();
     if (selected) {
       const newSelectors = selected.getSelectors().models || [];
-      setSelectors(prev => {
+      setSelectors((prev) => {
         // Only update if different
         if (prev.length !== newSelectors.length) return newSelectors;
         const same = prev.every((s: any, i: number) => s === newSelectors[i]);
         return same ? prev : newSelectors;
       });
     } else {
-      setSelectors(prev => prev.length === 0 ? prev : []);
+      setSelectors((prev) => (prev.length === 0 ? prev : []));
     }
   }, [editor]);
 
@@ -71,7 +81,7 @@ function SidebarPanelBase({
       // Only update if blocks actually changed
       if (newBlockIds !== oldBlockIds) {
         blocksRef.current = [...allBlocks];
-        setBlocksVersion(v => v + 1);
+        setBlocksVersion((v) => v + 1);
       }
     };
 
@@ -136,17 +146,23 @@ function SidebarPanelBase({
         }
       }
     } catch (e) {
-      console.warn('SidebarPanel: Error rendering GrapesJS managers, editor may not be fully initialized', e);
+      console.warn(
+        'SidebarPanel: Error rendering GrapesJS managers, editor may not be fully initialized',
+        e
+      );
     }
   }, [editor, activeTab, activeDesignSubTab]);
 
-  // CATEGORIZE BLOCKS
-  const categories: Record<string, any[]> = {};
-  blocks.forEach((block) => {
-    const cat = block.getCategoryLabel() || t('uncategorized');
-    if (!categories[cat]) categories[cat] = [];
-    categories[cat].push(block);
-  });
+  // CATEGORIZE BLOCKS - memoized to prevent recalculation on every render
+  const categories = useMemo(() => {
+    const cats: Record<string, any[]> = {};
+    blocks.forEach((block) => {
+      const cat = block.getCategoryLabel() || t('uncategorized');
+      if (!cats[cat]) cats[cat] = [];
+      cats[cat].push(block);
+    });
+    return cats;
+  }, [blocks, t]);
 
   const handleDragStart = (block: any, ev: React.DragEvent) => {
     // Use GrapesJS BlockManager's built-in drag functionality
@@ -169,30 +185,30 @@ function SidebarPanelBase({
   // Click-to-insert for mobile devices (since drag/drop doesn't work on touch)
   const handleBlockClick = (block: any) => {
     if (!editor) return;
-    
+
     try {
       let content = block.get?.('content') || block.getContent?.();
-      
+
       // Handle lazy content (function)
       if (typeof content === 'function') {
         content = content();
       }
-      
+
       if (!content) {
         console.warn('Block has no content');
         return;
       }
-      
+
       // Add block to canvas
       const components = editor.addComponents(content);
-      
+
       // Scroll to and select the new component
       if (components && components.length > 0) {
         const lastComp = components[components.length - 1];
         editor.select(lastComp);
         lastComp.scrollIntoView?.();
       }
-      
+
       // Close sidebar on mobile after inserting
       if (window.innerWidth < 768) {
         // Trigger sidebar close if we're on mobile
@@ -205,8 +221,9 @@ function SidebarPanelBase({
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{
-        __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         .custom-scrollbar::-webkit-scrollbar {
           width: 10px;
         }
@@ -385,7 +402,9 @@ function SidebarPanelBase({
         .gjs-sm-property .gjs-sm-icon {
           display: none !important;
         }
-      `}} />
+      `,
+        }}
+      />
 
       <div className="flex flex-col h-full bg-white border-r border-gray-200 w-80 shadow-sm min-h-0">
         {/* Tab Switcher - Elementor Style */}
@@ -424,7 +443,9 @@ function SidebarPanelBase({
           {activeTab === 'widgets' && (
             <div className="absolute inset-0 flex flex-col overflow-hidden animate-in fade-in duration-300">
               <div className="p-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
-                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('availableWidgets')}</h3>
+                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                  {t('availableWidgets')}
+                </h3>
               </div>
               <div className="flex-1 overflow-y-auto custom-scrollbar">
                 {/* Saved Blocks Section */}
@@ -432,15 +453,19 @@ function SidebarPanelBase({
                   <details className="group border-b border-gray-100">
                     <summary className="p-4 cursor-pointer flex items-center gap-2 hover:bg-gray-50/50 transition">
                       <Package size={14} className="text-primary" />
-                      <span className="text-[10px] font-black text-primary uppercase tracking-widest">Saved Blocks</span>
-                      <span className="ml-auto text-gray-400 group-open:rotate-90 transition-transform">▶</span>
+                      <span className="text-[10px] font-black text-primary uppercase tracking-widest">
+                        Saved Blocks
+                      </span>
+                      <span className="ml-auto text-gray-400 group-open:rotate-90 transition-transform">
+                        ▶
+                      </span>
                     </summary>
                     <div className="max-h-64 overflow-y-auto border-t border-gray-100">
                       <SavedBlocksPanel editor={editor} />
                     </div>
                   </details>
                 )}
-                
+
                 <div className="p-4 space-y-6">
                   {Object.entries(categories).map(([catLabel, catBlocks]) => (
                     <div key={catLabel}>
@@ -466,9 +491,12 @@ function SidebarPanelBase({
                             <div
                               className="text-gray-300 group-hover:text-indigo-600 mb-2 transition transform group-hover:scale-110 pointer-events-none"
                               dangerouslySetInnerHTML={{
-                                __html: block.getMedia() || `
+                                __html:
+                                  block.getMedia() ||
+                                  `
                                   <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect width="18" height="18" x="3" y="3" rx="2" stroke="currentColor"/></svg>
-                                ` }}
+                                `,
+                              }}
                             />
                             <span className="text-[9px] font-black text-gray-500 group-hover:text-indigo-700 text-center line-clamp-1 uppercase pointer-events-none">
                               {block.getLabel()}
@@ -520,16 +548,23 @@ function SidebarPanelBase({
                     <div className="bg-blue-50/30 rounded-2xl p-4 border border-blue-50">
                       <div className="space-y-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-black text-blue-800 uppercase tracking-widest">{t('activeElement')}</span>
+                          <span className="text-[10px] font-black text-blue-800 uppercase tracking-widest">
+                            {t('activeElement')}
+                          </span>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          {selectors.map(sel => (
-                            <span key={sel.getLabel()} className="px-2.5 py-1 bg-white text-blue-600 rounded-lg text-[10px] font-black border border-blue-100 shadow-sm">
+                          {selectors.map((sel) => (
+                            <span
+                              key={sel.getLabel()}
+                              className="px-2.5 py-1 bg-white text-blue-600 rounded-lg text-[10px] font-black border border-blue-100 shadow-sm"
+                            >
                               #{sel.getLabel()}
                             </span>
                           ))}
                           {selectors.length === 0 && (
-                            <p className="text-gray-400 text-[10px] font-medium italic">{t('selectElementHint')}</p>
+                            <p className="text-gray-400 text-[10px] font-medium italic">
+                              {t('selectElementHint')}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -537,13 +572,17 @@ function SidebarPanelBase({
 
                     {/* Traits Manager */}
                     <div className="space-y-4">
-                      <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest border-l-4 border-blue-500 pl-3">{t('attributes')}</h4>
+                      <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest border-l-4 border-blue-500 pl-3">
+                        {t('attributes')}
+                      </h4>
                       <div ref={traitsContainerRef} className="gjs-traits-wrap" />
                     </div>
 
                     {/* Style Manager - Custom "Elementor-like" Controls */}
                     <div className="space-y-4 pb-10">
-                      <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest border-l-4 border-blue-500 pl-3">{t('visualStyle')}</h4>
+                      <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest border-l-4 border-blue-500 pl-3">
+                        {t('visualStyle')}
+                      </h4>
                       {editor && <StyleControls editor={editor} />}
                     </div>
                   </div>
@@ -563,7 +602,9 @@ function SidebarPanelBase({
           {activeTab === 'structure' && (
             <div className="absolute inset-0 flex flex-col overflow-hidden animate-in slide-in-from-right-4 duration-300">
               <div className="p-4 border-b border-gray-50 bg-gray-50/30">
-                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('docStructure')}</h3>
+                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                  {t('docStructure')}
+                </h3>
               </div>
               <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                 <div ref={layersContainerRef} className="gjs-layers-wrap" />
@@ -574,7 +615,9 @@ function SidebarPanelBase({
           {activeTab === 'settings' && pageConfig && onPageConfigChange && (
             <div className="absolute inset-0 flex flex-col overflow-hidden animate-in slide-in-from-right-4 duration-300 text-sm">
               <div className="p-4 border-b border-gray-50 bg-gray-50/30">
-                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('pageSettings')}</h3>
+                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                  {t('pageSettings')}
+                </h3>
               </div>
               <div className="flex-1 overflow-y-auto relative">
                 <PageSettingsPanel config={pageConfig} onChange={onPageConfigChange} />

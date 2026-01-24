@@ -46,10 +46,11 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
   const themeConfig = parseThemeConfig(store.themeConfig as string | null) || defaultThemeConfig;
   const socialLinks = parseSocialLinks(store.socialLinks as string | null);
+  const storeAny = store as Record<string, unknown>;
   const businessInfo = {
-    phone: store.phone || null,
-    email: store.email || null,
-    address: store.address || null,
+    phone: (storeAny.phone as string) || null,
+    email: (storeAny.email as string) || null,
+    address: (storeAny.address as string) || null,
   };
 
   // Resolve template system
@@ -87,7 +88,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     storeName: store.name,
     logo: store.logo,
     currency: store.currency || 'BDT',
-    storeTemplateId: store.storeTemplateId || 'default',
+    storeTemplateId: (storeAny.storeTemplateId as string) || 'default',
     theme: themeConfig,
     socialLinks,
     businessInfo,
@@ -122,10 +123,10 @@ export default function CustomPageRoute() {
       logo={logo}
       currency={currency}
       storeTemplateId={storeTemplateId}
-      theme={theme}
+      theme={theme as Record<string, unknown>}
       socialLinks={socialLinks}
       businessInfo={businessInfo}
-      config={themeConfig}
+      config={themeConfig as Record<string, unknown>}
       planType={planType}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -133,9 +134,6 @@ export default function CustomPageRoute() {
           <StoreSectionRenderer
             key={section.id}
             section={section}
-            currency={currency}
-            storeId={0}
-            storeName={storeName}
           />
         ))}
       </div>

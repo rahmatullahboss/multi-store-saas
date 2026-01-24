@@ -276,9 +276,9 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
   },
   'category-list': {
     type: 'category-list',
-    name: 'Category List',
+    name: 'Collection List',
     icon: 'Grid3X3', // String name of Lucide icon
-    description: 'Display your product categories.',
+    description: 'Display your product collections.',
     defaultSettings: {
       heading: 'Shop by Category',
       layout: 'grid', // grid, tabs, pills, scroll

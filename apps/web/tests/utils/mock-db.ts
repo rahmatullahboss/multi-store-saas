@@ -1,5 +1,6 @@
 import { selectRows } from './mock-db.helpers';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type MockTable = Record<string, any>[];
 
 export interface MockDbTables {
@@ -15,6 +16,10 @@ export interface MockDbTables {
   stores?: MockTable;
 }
 
+type TablesRecord = {
+  [key: string]: MockTable;
+};
+
 export function createMockDb(tables: MockDbTables = {}) {
   const db = {
     tables: {
@@ -28,17 +33,21 @@ export function createMockDb(tables: MockDbTables = {}) {
       themes: tables.themes ?? [],
       theme_templates: tables.theme_templates ?? [],
       stores: tables.stores ?? [],
-    },
+    } as TablesRecord,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     select(fields?: Record<string, any>) {
       const state = { table: null as string | null, fields };
       return {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         from: (table: any) => {
           state.table = resolveTableName(table);
           const rows = db.tables[state.table as string];
           return {
             where: () => ({
               limit: async (n: number) => selectRows(rows, state.fields).slice(0, n),
-              orderBy: () => ({ limit: async (n: number) => selectRows(rows, state.fields).slice(0, n) }),
+              orderBy: () => ({
+                limit: async (n: number) => selectRows(rows, state.fields).slice(0, n),
+              }),
             }),
             orderBy: () => ({
               limit: async (n: number) => selectRows(rows, state.fields).slice(0, n),
@@ -47,15 +56,18 @@ export function createMockDb(tables: MockDbTables = {}) {
         },
       };
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     insert(table: any) {
       const tableName = resolveTableName(table);
       return {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         values: async (row: any) => {
           db.tables[tableName].push(row);
           return { success: true };
         },
       };
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     update(table: any) {
       const tableName = resolveTableName(table);
       return {
@@ -64,6 +76,7 @@ export function createMockDb(tables: MockDbTables = {}) {
         }),
       };
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete(table: any) {
       const tableName = resolveTableName(table);
       return {
@@ -77,7 +90,8 @@ export function createMockDb(tables: MockDbTables = {}) {
   return db;
 }
 
-function resolveTableName(table: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function resolveTableName(table: any): string {
   if (typeof table === 'string') return table;
   if (table?.[Symbol.for('drizzle:Name')]) return table[Symbol.for('drizzle:Name')];
   if (table?.name) return table.name;

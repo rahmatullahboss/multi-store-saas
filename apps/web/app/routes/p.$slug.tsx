@@ -78,24 +78,25 @@ interface BuilderPageData {
 type LoaderData = CustomPageData | BuilderPageData;
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  if (!data || 'error' in data) {
+  const loaderData = data as LoaderData | undefined;
+  if (!loaderData || 'error' in loaderData) {
     return [{ title: 'Page Not Found' }];
   }
 
-  if (data.type === 'builder') {
-    const title = data.page.seoTitle || data.page.title || 'Landing Page';
-    const description = data.page.seoDescription || '';
+  if (loaderData.type === 'builder') {
+    const title = loaderData.page.seoTitle || loaderData.page.title || 'Landing Page';
+    const description = loaderData.page.seoDescription || '';
     return [
       { title },
       { name: 'description', content: description },
       { property: 'og:title', content: title },
       { property: 'og:description', content: description },
-      ...(data.page.ogImage ? [{ property: 'og:image', content: data.page.ogImage }] : []),
+      ...(loaderData.page.ogImage ? [{ property: 'og:image', content: loaderData.page.ogImage }] : []),
     ];
   }
 
   // Custom page (GrapesJS)
-  return [{ title: data.page.name || 'Page' }];
+  return [{ title: loaderData.page.name || 'Page' }];
 };
 
 export async function loader({ params, context, request: _request }: LoaderFunctionArgs) {
@@ -271,7 +272,7 @@ export async function loader({ params, context, request: _request }: LoaderFunct
 }
 
 export default function PublishedPageRoute() {
-  const data = useLoaderData<typeof loader>();
+  const data = useLoaderData<typeof loader>() as LoaderData;
 
   if (data.type === 'builder') {
     return <BuilderPageRenderer data={data} />;

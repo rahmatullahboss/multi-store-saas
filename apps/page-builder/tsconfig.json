@@ -1,9 +1,6 @@
 {
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "./db/**/*.ts"
-  ],
+  "include": ["**/*.ts", "**/*.tsx", "./db/**/*.ts"],
+  "exclude": ["node_modules", "build", "worker.ts", "functions/**/*"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "types": ["@remix-run/cloudflare", "vite/client", "@cloudflare/workers-types"],
@@ -26,4 +23,3 @@
     "noEmit": true
   }
 }
-

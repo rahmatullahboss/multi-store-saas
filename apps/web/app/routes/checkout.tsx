@@ -11,7 +11,7 @@
  */
 
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, useNavigate, Link } from '@remix-run/react';
+import { useLoaderData, useFetcher, useNavigate, Link, useSearchParams } from '@remix-run/react';
 import { eq, and, inArray, desc } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { products, stores, orderBumps, type Store } from '@db/schema';
@@ -26,6 +26,8 @@ import { Loader2, ArrowLeft, ShoppingBag, ShieldCheck, Truck, CheckCircle } from
 import { getCustomer } from '~/services/customer-auth.server';
 import { resolveTemplate } from '~/lib/template-resolver.server';
 import { toast } from 'sonner';
+import { validateDiscount } from '~/../server/services/discount.service';
+import { TicketPercent } from 'lucide-react';
 
 export const meta: MetaFunction = () => {
     return [{ title: 'Checkout - Secure Payment' }];
@@ -154,6 +156,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
     
     return json({ products: cartProducts });
   }
+
+  if (intent === 'apply-coupon') {
+    const code = formData.get('code')?.toString();
+    const subtotal = Number(formData.get('subtotal'));
+    
+    if (!code) return json({ error: 'Code required' });
+
+    const db = drizzle(cloudflare.env.DB);
+    const result = await validateDiscount(db, storeId as number, code, subtotal);
+    
+    return json({ discountResult: result });
+  }
   
   return json({ error: 'Invalid intent' }, { status: 400 });
 }
@@ -170,6 +184,7 @@ export default function Checkout() {
   const fetcher = useFetcher();
   const orderFetcher = useFetcher(); // Dedicated fetcher for order submission
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t, lang } = useTranslation();
   
   // State
@@ -192,6 +207,11 @@ export default function Checkout() {
   // Order Bumps
   const [selectedBumps, setSelectedBumps] = useState<number[]>([]);
 
+  // Discount
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+
   const primaryColor = theme.primary;
 
   // Load cart from local storage
@@ -212,11 +232,39 @@ export default function Checkout() {
     }
   }, []);
 
+  // Auto-apply Discount from URL
+  useEffect(() => {
+    const urlCode = searchParams.get('discount');
+    if (urlCode && !appliedCoupon && !isApplyingCoupon && subtotal > 0) {
+        setCouponCode(urlCode);
+        // We can't call handleApplyCoupon directly because state update might lag? 
+        // Actually we can, but let's just trigger fetcher.
+        setIsApplyingCoupon(true);
+        fetcher.submit(
+            { intent: 'apply-coupon', code: urlCode, subtotal: String(subtotal) }, 
+            { method: 'post' }
+        );
+    }
+  }, [searchParams, subtotal]); 
+
   // Handle fetcher response for products
   useEffect(() => {
-    if (fetcher.data && (fetcher.data as any).products) {
-      setCartProducts((fetcher.data as any).products);
-      setIsLoading(false);
+    if (fetcher.data) {
+        const data = fetcher.data as any;
+        if (data.products) {
+            setCartProducts(data.products);
+            setIsLoading(false);
+        }
+        if (data.discountResult) {
+            setIsApplyingCoupon(false);
+            if (data.discountResult.isValid) {
+                setAppliedCoupon(data.discountResult.discount);
+                toast.success('Coupon applied!');
+            } else {
+                setAppliedCoupon(null);
+                toast.error(data.discountResult.error || 'Invalid Coupon');
+            }
+        }
     }
   }, [fetcher.data]);
 
@@ -282,7 +330,16 @@ export default function Checkout() {
     }, 0);
   }, [selectedBumps, bumpProducts]);
 
-  const total = subtotal + shippingCost + bumpTotal;
+  const total = Math.max(0, subtotal + shippingCost + bumpTotal - (appliedCoupon?.amount || 0));
+
+  const handleApplyCoupon = () => {
+    if (!couponCode) return;
+    setIsApplyingCoupon(true);
+    fetcher.submit(
+        { intent: 'apply-coupon', code: couponCode, subtotal: String(subtotal) }, 
+        { method: 'post' }
+    );
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -341,7 +398,8 @@ export default function Checkout() {
         payment_method: paymentMethod,
         transaction_id: trxId,
         manual_payment_details: { senderNumber, method: paymentMethod },
-        bump_ids: selectedBumps
+        bump_ids: selectedBumps,
+        discount_code: appliedCoupon?.code
     };
 
     orderFetcher.submit(
@@ -543,6 +601,38 @@ export default function Checkout() {
                             <span>+ {currency} {bumpTotal}</span>
                         </div>
                     )}
+                    
+                    {/* Discount Input */}
+                    <div className="pt-2">
+                        {appliedCoupon ? (
+                            <div className="flex justify-between items-center text-sm text-green-600 bg-green-50 p-2 rounded border border-green-200">
+                                <span className="flex items-center gap-1"><TicketPercent className="w-4 h-4"/> code: {appliedCoupon.code}</span>
+                                <div className="flex items-center gap-2">
+                                    <span>- {currency} {appliedCoupon.amount}</span>
+                                    <button onClick={() => setAppliedCoupon(null)} className="text-gray-400 hover:text-red-500">×</button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex gap-2">
+                                <input 
+                                    type="text" 
+                                    value={couponCode}
+                                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                    placeholder={t('discountCode') || "Promo Code"}
+                                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                                <button 
+                                    type="button"
+                                    onClick={handleApplyCoupon}
+                                    disabled={!couponCode || isApplyingCoupon}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-700 disabled:opacity-50"
+                                >
+                                    {isApplyingCoupon ? '...' : t('apply') || 'Apply'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
                     <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-200">
                         <span>{t('total')}</span>
                         <span style={{ color: primaryColor }}>{currency} {total}</span>

@@ -14,7 +14,8 @@ interface TurboSaleFooterProps {
 }
 
 export function TurboSaleFooter({ storeName, logo, socialLinks, footerConfig, businessInfo, categories, planType = 'free' }: TurboSaleFooterProps) {
-  const { primary, footerBg, footerText, accent, secondary } = TURBO_SALE_THEME;
+  const { primary, footerBg, accent, secondary, text } = TURBO_SALE_THEME;
+  const footerText = '#FFFFFF'; // Footer has dark bg, so white text
 
   return (
     <footer className="border-t-4" style={{ backgroundColor: footerBg, borderColor: primary }}>

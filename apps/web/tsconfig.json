@@ -22,10 +22,14 @@
     },
     "baseUrl": "."
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "env.d.ts"
-  ],
-  "exclude": ["node_modules", "build", ".wrangler", "functions"]
+  "include": ["**/*.ts", "**/*.tsx", "env.d.ts"],
+  "exclude": [
+    "node_modules",
+    "build",
+    ".wrangler",
+    "functions",
+    "tests/**/*",
+    "app/tests/**/*",
+    "capacitor.config.ts"
+  ]
 }
