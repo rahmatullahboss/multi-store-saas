@@ -1,11 +1,11 @@
 import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/cloudflare";
 import { useLoaderData, Form, useActionData, useNavigation } from "@remix-run/react";
 import { ShieldCheck, AlertCircle, Check } from "lucide-react";
-import { requireAuth } from "~/services/auth.server";
+import { requireSuperAdmin } from "~/services/auth.server";
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
-  // Require authentication - user must be logged in
-  await requireAuth(request, context.cloudflare.env, context.cloudflare.env.DB);
+  // Require authentication - user must be logged in (admin only)
+  await requireSuperAdmin(request, context.cloudflare.env, context.cloudflare.env.DB);
 
   const url = new URL(request.url);
   const clientId = url.searchParams.get("client_id");
@@ -22,8 +22,8 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
-  // Require authentication for action as well
-  await requireAuth(request, context.cloudflare.env, context.cloudflare.env.DB);
+  // Require authentication for action as well (admin only)
+  await requireSuperAdmin(request, context.cloudflare.env, context.cloudflare.env.DB);
 
   const formData = await request.formData();
   const clientId = formData.get("client_id") as string;
