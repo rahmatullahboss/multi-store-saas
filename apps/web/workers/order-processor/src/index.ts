@@ -50,6 +50,8 @@ const CONFIG = {
   // Batch settings (KEY COST OPTIMIZATION)
   BATCH_SIZE: 50,                    // Increased from 10 - process more per alarm
   BATCH_WINDOW_MS: 500,              // Collect tasks for 500ms before processing
+  MAX_PENDING_BATCH: 100,            // 🔴 FIX: Max pending requests (memory safety)
+  MAX_TASKS_PER_REQUEST: 100,        // 🔴 FIX: Max tasks per enqueue request
   
   // Cleanup settings  
   CLEANUP_DAYS: 3,                   // Reduced from 7 to save storage
@@ -61,6 +63,9 @@ const CONFIG = {
   // Memory cache settings
   MEMORY_CACHE_SIZE: 100,            // Cache recent task results
 } as const;
+
+// Valid task types for validation
+const VALID_TASK_TYPES = ['email', 'webhook', 'inventory', 'notification'] as const;
 
 // ============================================================================
 // TYPES
@@ -232,9 +237,39 @@ export class OrderProcessor extends DurableObject<Env> {
         const body = await request.json() as {
           orderId: number;
           storeId: number;
-          tasks: Array<{ type: OrderTask['type']; payload: Record<string, unknown> }>;
+          tasks: Array<{ type: string; payload: Record<string, unknown> }>;
         };
-        const results = await this.processOrderTasks(body);
+        
+        // 🔴 FIX: Input validation for /process too
+        if (!body.orderId || !body.storeId || !Array.isArray(body.tasks)) {
+          return Response.json({ 
+            success: false, 
+            error: 'Invalid request: orderId, storeId, and tasks array required' 
+          }, { status: 400 });
+        }
+        
+        if (body.tasks.length > CONFIG.MAX_TASKS_PER_REQUEST) {
+          return Response.json({ 
+            success: false, 
+            error: `Too many tasks: max ${CONFIG.MAX_TASKS_PER_REQUEST} per request` 
+          }, { status: 400 });
+        }
+        
+        const validatedTasks = body.tasks.filter(t => 
+          t && typeof t.type === 'string' && VALID_TASK_TYPES.includes(t.type as any)
+        );
+        
+        if (validatedTasks.length === 0) {
+          return Response.json({ 
+            success: false, 
+            error: `No valid tasks. Valid types: ${VALID_TASK_TYPES.join(', ')}` 
+          }, { status: 400 });
+        }
+        
+        const results = await this.processOrderTasks({
+          ...body,
+          tasks: validatedTasks as Array<{ type: OrderTask['type']; payload: Record<string, unknown> }>,
+        });
         return Response.json({ success: true, results });
       }
 
@@ -244,11 +279,42 @@ export class OrderProcessor extends DurableObject<Env> {
         const body = await request.json() as {
           orderId: number;
           storeId: number;
-          tasks: Array<{ type: OrderTask['type']; payload: Record<string, unknown> }>;
+          tasks: Array<{ type: string; payload: Record<string, unknown> }>;
         };
         
+        // 🔴 FIX: Input validation
+        if (!body.orderId || !body.storeId || !Array.isArray(body.tasks)) {
+          return Response.json({ 
+            success: false, 
+            error: 'Invalid request: orderId, storeId, and tasks array required' 
+          }, { status: 400 });
+        }
+        
+        // 🔴 FIX: Limit tasks per request
+        if (body.tasks.length > CONFIG.MAX_TASKS_PER_REQUEST) {
+          return Response.json({ 
+            success: false, 
+            error: `Too many tasks: max ${CONFIG.MAX_TASKS_PER_REQUEST} per request` 
+          }, { status: 400 });
+        }
+        
+        // 🔴 FIX: Validate task types
+        const validatedTasks = body.tasks.filter(t => 
+          t && typeof t.type === 'string' && VALID_TASK_TYPES.includes(t.type as any)
+        );
+        
+        if (validatedTasks.length === 0) {
+          return Response.json({ 
+            success: false, 
+            error: `No valid tasks. Valid types: ${VALID_TASK_TYPES.join(', ')}` 
+          }, { status: 400 });
+        }
+        
         // Cost Optimization: Batch multiple enqueue requests
-        const result = await this.enqueueBatched(body);
+        const result = await this.enqueueBatched({
+          ...body,
+          tasks: validatedTasks as Array<{ type: OrderTask['type']; payload: Record<string, unknown> }>,
+        });
         return Response.json(result);
       }
 
@@ -324,6 +390,12 @@ export class OrderProcessor extends DurableObject<Env> {
     tasks: Array<{ type: string; payload: Record<string, unknown> }>;
   }): Promise<ProcessResult> {
     return new Promise((resolve) => {
+      // 🔴 FIX: Memory safety - reject if batch queue is full
+      if (this.pendingBatch.length >= CONFIG.MAX_PENDING_BATCH) {
+        // Flush immediately and retry
+        this.flushBatch();
+      }
+      
       // Add to batch queue
       this.pendingBatch.push({ ...body, resolve });
       
@@ -333,7 +405,7 @@ export class OrderProcessor extends DurableObject<Env> {
       }
       
       // If batch is full, flush immediately
-      if (this.pendingBatch.length >= 20) {
+      if (this.pendingBatch.length >= CONFIG.MAX_PENDING_BATCH) {
         if (this.batchTimer) {
           clearTimeout(this.batchTimer);
           this.batchTimer = null;
