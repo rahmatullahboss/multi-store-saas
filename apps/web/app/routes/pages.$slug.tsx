@@ -104,6 +104,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
 export default function CustomPageRoute() {
   const {
+    storeId,
     storeName,
     logo,
     currency,
@@ -120,22 +121,25 @@ export default function CustomPageRoute() {
   return (
     <StorePageWrapper
       storeName={storeName}
+      storeId={storeId}
       logo={logo}
       currency={currency}
-      storeTemplateId={storeTemplateId}
+      templateId={storeTemplateId}
       theme={theme as any}
-      socialLinks={socialLinks}
+      socialLinks={socialLinks as any}
       businessInfo={businessInfo as any}
       config={themeConfig as any}
       planType={planType}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {sections.map((section: any) => (
-          <StoreSectionRenderer
-            key={section.id}
-            section={section}
-          />
-        ))}
+        <StoreSectionRenderer
+          sections={sections as any}
+          context={{
+            storeName,
+            currency,
+            theme: theme as any,
+          } as any}
+        />
       </div>
     </StorePageWrapper>
   );

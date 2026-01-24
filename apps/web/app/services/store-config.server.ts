@@ -24,7 +24,6 @@ export async function getStoreConfig(db: Database, cache: D1Cache, storeId: numb
     where: (s, { eq }) => eq(s.id, storeId),
     columns: {
       themeConfig: true,
-      mode: true,
       businessInfo: true,
       shippingConfig: true,
       landingConfig: true,

@@ -57,7 +57,8 @@ export type SectionType =
   | 'cart-items'
   | 'cart-summary'
   // Order form variants
-  | 'order-form';
+  | 'order-form'
+  | 'rich-text';
 
 // ============================================================================
 // DATABASE TYPES

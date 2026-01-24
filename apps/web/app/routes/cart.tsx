@@ -383,16 +383,11 @@ export default function CartPage() {
                     <a
                       href="/checkout"
                       onClick={() => {
-                        trackingEvents.initiateCheckout({
-                          items: cart.map(item => ({
-                            id: String(item.productId),
-                            name: item.title,
-                            price: item.price,
-                            quantity: item.quantity,
-                          })),
-                          total: subtotal,
-                          currency,
-                        });
+                        trackingEvents.initiateCheckout(
+                          cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
+                          cart.reduce((sum, item) => sum + item.quantity, 0),
+                          currency
+                        );
                       }}
                       className="w-full py-3 rounded-xl text-white font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition"
                       style={{ backgroundColor: theme.primary }}

@@ -11,6 +11,11 @@ interface RovoLayoutProps {
   businessInfo?: unknown;
   config?: unknown;
   products?: unknown[];
+  theme?: string | null;
+  fontFamily?: string | null;
+  isPreview?: boolean;
+  planType?: string;
+  [key: string]: unknown; // Allow additional props
 }
 
 export function RovoLayout({ children, storeName, logo }: RovoLayoutProps) {

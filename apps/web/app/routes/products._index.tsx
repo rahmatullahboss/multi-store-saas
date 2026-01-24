@@ -89,7 +89,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const { minPrice, maxPrice } = parsePriceRange(url.searchParams.get('minPrice'), url.searchParams.get('maxPrice'));
   
   // Load customer session for Google Sign-In header
-  const customer = await getCustomer(request, context.cloudflare.env, db);
+  const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
   
   // Determine sort order
   const orderByClause = sortBy === 'price-low' 

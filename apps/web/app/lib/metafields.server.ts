@@ -53,7 +53,7 @@ export async function getMetafieldsForEntity(
       eq(metafields.ownerType, ownerType)
     ));
 
-  return metafieldsToMap(results);
+  return metafieldsToMap(results as unknown as Metafield[]);
 }
 
 /**

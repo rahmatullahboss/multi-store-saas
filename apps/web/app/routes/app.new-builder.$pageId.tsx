@@ -433,7 +433,9 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 // COMPONENT
 // ============================================================================
 export default function NewBuilderPage() {
-  const { page, sections: initialSections, store, products, product, selectedProducts, isNew } = useLoaderData<typeof loader>();
+  const loaderData = useLoaderData<typeof loader>() as any;
+  const { page, sections: initialSections, store, products, product, isNew } = loaderData;
+  const selectedProducts = loaderData.selectedProducts || [];
   const fetcher = useFetcher<ActionData>();
   const navigate = useNavigate();
   

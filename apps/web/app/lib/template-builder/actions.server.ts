@@ -132,7 +132,7 @@ export async function getTemplateByKey(
 ): Promise<TemplateWithSections | null> {
   const drizzleDb = drizzle(db);
   
-  const [template] = await drizzleDb
+  const templates = await drizzleDb
     .select()
     .from(themeTemplates)
     .where(and(
@@ -141,6 +141,7 @@ export async function getTemplateByKey(
       eq(themeTemplates.shopId, storeId)
     ));
   
+  const template = templates[0];
   if (!template) return null;
   
   return getTemplateWithSections(db, template.id, storeId);

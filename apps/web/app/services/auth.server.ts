@@ -525,7 +525,6 @@ export async function register({ email, password, name, phone, storeName, subdom
       name: storeName,
       subdomain,
       currency: 'BDT',
-      mode: 'landing',
     }).returning({ id: stores.id });
     
     if (!storeResult || storeResult.length === 0) {
@@ -668,9 +667,8 @@ export async function completeGoogleUserProfile({
       name: storeName,
       subdomain: subdomain.toLowerCase(),
       currency: 'BDT',
-      mode: 'landing',
       onboardingStatus: 'completed',
-    }).returning({ id: stores.id });
+    } as any).returning({ id: stores.id });
     
     if (!storeResult || storeResult.length === 0) {
       return { error: 'Failed to create store', storeId: null };
