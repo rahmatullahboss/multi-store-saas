@@ -255,7 +255,6 @@ export function GhorerBazarHeader({
                     className="w-full pl-4 pr-10 py-2.5 rounded-lg border focus:outline-none focus:ring-2"
                     style={{ 
                       borderColor: theme.border,
-                      focusRing: theme.primary,
                     }}
                   />
                   <button 

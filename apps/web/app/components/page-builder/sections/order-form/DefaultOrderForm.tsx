@@ -92,7 +92,7 @@ export function DefaultOrderForm({ props, theme, storeId, productId, product, se
   // Determine final urgency text - prefer manual text, fallback to auto-generated
   const finalUrgencyText = urgencyText 
     ? urgencyText 
-    : (useRealStockCount && realData?.stockCount !== null && realData.stockCount <= 50)
+    : (useRealStockCount && realData && realData.stockCount !== null && realData.stockCount <= 50)
       ? `সীমিত স্টক! মাত্র ${realData.stockCount}টি বাকি আছে`
       : '';
       

@@ -17,7 +17,8 @@ import { templateSectionsDraft, templateSectionsPublished, themeSettingsDraft, t
 // GET: List versions for a template
 export const loader: LoaderFunction = async ({ request, context }) => {
   const session = await getSession(request, context.cloudflare.env);
-  if (!session?.storeId) {
+  const storeId = session.get('storeId');
+  if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -36,7 +37,7 @@ export const loader: LoaderFunction = async ({ request, context }) => {
   if (templateId) {
     query = db.select().from(templateVersions)
       .where(and(
-        eq(templateVersions.storeId, session.storeId!),
+        eq(templateVersions.storeId, storeId),
         eq(templateVersions.templateId, templateId)
       ))
       .orderBy(desc(templateVersions.version))
@@ -44,7 +45,7 @@ export const loader: LoaderFunction = async ({ request, context }) => {
   } else {
     query = db.select().from(templateVersions)
       .where(and(
-        eq(templateVersions.storeId, session.storeId!),
+        eq(templateVersions.storeId, storeId),
         eq(templateVersions.themeId, themeId!)
       ))
       .orderBy(desc(templateVersions.version))
@@ -65,7 +66,8 @@ export const loader: LoaderFunction = async ({ request, context }) => {
 // POST: Rollback to a specific version
 export const action: ActionFunction = async ({ request, context }) => {
   const session = await getSession(request, context.cloudflare.env);
-  if (!session?.storeId) {
+  const storeId = session.get('storeId');
+  if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -85,7 +87,7 @@ export const action: ActionFunction = async ({ request, context }) => {
   const version = await db.select().from(templateVersions)
     .where(and(
       eq(templateVersions.id, versionId),
-      eq(templateVersions.storeId, session.storeId!)
+      eq(templateVersions.storeId, storeId)
     ))
     .limit(1);
 
@@ -104,7 +106,7 @@ export const action: ActionFunction = async ({ request, context }) => {
       await db.delete(templateSectionsDraft)
         .where(and(
           eq(templateSectionsDraft.templateId, ver.templateId),
-          eq(templateSectionsDraft.shopId, session.storeId!)
+          eq(templateSectionsDraft.shopId, storeId)
         ));
 
       // Insert version sections to draft
@@ -112,7 +114,7 @@ export const action: ActionFunction = async ({ request, context }) => {
         const section = sections[i];
         await db.insert(templateSectionsDraft).values({
           id: `draft_${section.id}_${Date.now()}_${i}`,
-          shopId: session.storeId!,
+          shopId: storeId,
           templateId: ver.templateId,
           type: section.type,
           enabled: 1,
@@ -128,11 +130,11 @@ export const action: ActionFunction = async ({ request, context }) => {
         await db.update(themeSettingsDraft)
           .set({
             settingsJson: JSON.stringify(settings),
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString() as unknown as Date,
           })
           .where(and(
             eq(themeSettingsDraft.themeId, ver.themeId),
-            eq(themeSettingsDraft.shopId, session.storeId!)
+            eq(themeSettingsDraft.shopId, storeId)
           ));
       }
     }
@@ -143,7 +145,7 @@ export const action: ActionFunction = async ({ request, context }) => {
       await db.delete(templateSectionsPublished)
         .where(and(
           eq(templateSectionsPublished.templateId, ver.templateId),
-          eq(templateSectionsPublished.shopId, session.storeId!)
+          eq(templateSectionsPublished.shopId, storeId)
         ));
 
       // Insert version sections to published
@@ -151,7 +153,7 @@ export const action: ActionFunction = async ({ request, context }) => {
         const section = sections[i];
         await db.insert(templateSectionsPublished).values({
           id: `pub_${section.id}_${Date.now()}_${i}`,
-          shopId: session.storeId!,
+          shopId: storeId,
           templateId: ver.templateId,
           type: section.type,
           enabled: 1,
@@ -169,7 +171,7 @@ export const action: ActionFunction = async ({ request, context }) => {
           })
           .where(and(
             eq(themeSettingsPublished.themeId, ver.themeId),
-            eq(themeSettingsPublished.shopId, session.storeId!)
+            eq(themeSettingsPublished.shopId, storeId)
           ));
       }
     }

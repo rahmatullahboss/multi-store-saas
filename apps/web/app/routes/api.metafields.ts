@@ -46,7 +46,8 @@ const MetafieldSchema = z.object({
 // GET: List metafields for an entity
 export const loader: LoaderFunction = async ({ request, context }) => {
   const session = await getSession(request, context.cloudflare.env);
-  if (!session?.storeId) {
+  const storeId = session.get('storeId');
+  if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -62,7 +63,7 @@ export const loader: LoaderFunction = async ({ request, context }) => {
   if (ownerId && ownerType && namespace && key) {
     const result = await db.select().from(metafields)
       .where(and(
-        eq(metafields.storeId, session.storeId),
+        eq(metafields.storeId, storeId),
         eq(metafields.ownerId, ownerId),
         eq(metafields.ownerType, ownerType),
         eq(metafields.namespace, namespace),
@@ -88,7 +89,7 @@ export const loader: LoaderFunction = async ({ request, context }) => {
   if (ownerId && ownerType) {
     const results = await db.select().from(metafields)
       .where(and(
-        eq(metafields.storeId, session.storeId),
+        eq(metafields.storeId, storeId),
         eq(metafields.ownerId, ownerId),
         eq(metafields.ownerType, ownerType)
       ));
@@ -106,7 +107,7 @@ export const loader: LoaderFunction = async ({ request, context }) => {
   if (ownerType) {
     const results = await db.select().from(metafields)
       .where(and(
-        eq(metafields.storeId, session.storeId),
+        eq(metafields.storeId, storeId),
         eq(metafields.ownerType, ownerType)
       ));
 
@@ -125,7 +126,8 @@ export const loader: LoaderFunction = async ({ request, context }) => {
 // POST/PUT/DELETE: Manage metafields
 export const action: ActionFunction = async ({ request, context }) => {
   const session = await getSession(request, context.cloudflare.env);
-  if (!session?.storeId) {
+  const storeId = session.get('storeId');
+  if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -144,7 +146,7 @@ export const action: ActionFunction = async ({ request, context }) => {
     await db.delete(metafields)
       .where(and(
         eq(metafields.id, id),
-        eq(metafields.storeId, session.storeId)
+        eq(metafields.storeId, storeId)
       ));
 
     return json({ success: true, message: 'Metafield deleted' });
@@ -168,7 +170,7 @@ export const action: ActionFunction = async ({ request, context }) => {
     const def = await db.select().from(metafieldDefinitions)
       .where(and(
         eq(metafieldDefinitions.id, data.definitionId),
-        eq(metafieldDefinitions.storeId, session.storeId)
+        eq(metafieldDefinitions.storeId, storeId)
       ))
       .limit(1);
 
@@ -197,8 +199,8 @@ export const action: ActionFunction = async ({ request, context }) => {
         updatedAt: new Date().toISOString(),
       })
       .where(and(
-        eq(metafields.id, body.id),
-        eq(metafields.storeId, session.storeId)
+        eq(metafields.id, body.id as string),
+        eq(metafields.storeId, storeId)
       ));
 
     return json({ success: true, message: 'Metafield updated' });
@@ -207,7 +209,7 @@ export const action: ActionFunction = async ({ request, context }) => {
   // POST: Create or update (upsert)
   const existingMetafield = await db.select().from(metafields)
     .where(and(
-      eq(metafields.storeId, session.storeId),
+      eq(metafields.storeId, storeId),
       eq(metafields.ownerId, data.ownerId),
       eq(metafields.ownerType, data.ownerType),
       eq(metafields.namespace, data.namespace),
@@ -230,11 +232,11 @@ export const action: ActionFunction = async ({ request, context }) => {
   }
 
   // Create new
-  const id = `mf_${session.storeId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const id = `mf_${storeId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
   await db.insert(metafields).values({
     id,
-    storeId: session.storeId,
+    storeId: storeId,
     definitionId: data.definitionId || null,
     namespace: data.namespace,
     key: data.key,

@@ -1108,7 +1108,7 @@ function CartCheckoutModal({
                     { id: 'chittagong', label: 'চট্টগ্রাম সিটি', cost: 70 },
                     { id: 'outside', label: 'অন্যান্য এলাকা', cost: 130 },
                   ].map(zone => (
-                    <label key={zone.id} className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer ${deliveryZone === zone.id ? 'ring-2' : ''}`} style={{ borderColor: deliveryZone === zone.id ? theme.primary : theme.border, ringColor: theme.primary }}>
+                    <label key={zone.id} className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer ${deliveryZone === zone.id ? 'ring-2' : ''}`} style={{ borderColor: deliveryZone === zone.id ? theme.primary : theme.border, outline: theme.primary }}>
                       <div className="flex items-center gap-2">
                         <input type="radio" name="delivery" value={zone.id} checked={deliveryZone === zone.id} onChange={() => setDeliveryZone(zone.id)} className="accent-orange-500" />
                         <span className="text-sm">{zone.label}</span>
