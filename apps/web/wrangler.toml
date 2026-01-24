@@ -93,7 +93,17 @@ port = 8787
 local_protocol = "http"
 
 # ============================================================================
-# QUEUES
+# SERVICE BINDINGS (External Workers)
+# ============================================================================
+# Order Processor Worker with Durable Objects (FREE plan - SQLite backend)
+# Deploy first: cd workers/order-processor && wrangler deploy
+
+[[services]]
+binding = "ORDER_PROCESSOR_SERVICE"
+service = "order-processor"
+
+# ============================================================================
+# QUEUES (Optional - if you have paid plan)
 # ============================================================================
 [[queues.producers]]
   queue = "webhook-queue"

@@ -32,6 +32,8 @@ declare global {
     BKASH_PASSWORD?: string;
     // Cloudflare Queue
     EMAIL_QUEUE?: Queue<unknown>;
+    // Service Bindings (External Workers)
+    ORDER_PROCESSOR_SERVICE?: Fetcher; // Order processor worker with Durable Objects
     // KV Namespace for AI Rate Limiting
     AI_RATE_LIMIT?: KVNamespace;
     // KV Namespace for Store/Page Caching

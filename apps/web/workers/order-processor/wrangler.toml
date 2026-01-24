@@ -1,0 +1,37 @@
+#:schema node_modules/wrangler/config-schema.json
+
+name = "order-processor"
+main = "src/index.ts"
+compatibility_date = "2024-11-18"
+compatibility_flags = ["nodejs_compat"]
+
+# ============================================================================
+# DURABLE OBJECTS (FREE Plan - SQLite Backend)
+# ============================================================================
+
+[[durable_objects.bindings]]
+name = "ORDER_PROCESSOR"
+class_name = "OrderProcessor"
+
+# Migration for SQLite-backed Durable Object (FREE plan compatible)
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["OrderProcessor"]
+
+# ============================================================================
+# BINDINGS
+# ============================================================================
+
+# D1 Database (for inventory updates)
+[[d1_databases]]
+binding = "DB"
+database_name = "multi-store-saas-db"
+database_id = "bf882d16-d67a-4007-b503-33646bd693af"
+
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
+[vars]
+WORKER_ENV = "production"
+
+# RESEND_API_KEY - SET IN CLOUDFLARE DASHBOARD (secret)
