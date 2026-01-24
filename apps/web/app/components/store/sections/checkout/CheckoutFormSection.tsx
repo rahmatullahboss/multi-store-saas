@@ -66,7 +66,7 @@ export default function CheckoutFormSection({ sectionId, props, context }: Check
       });
       
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as { orderId?: number };
         localStorage.removeItem('cart');
         window.location.href = `/thank-you/${data.orderId}`;
       }

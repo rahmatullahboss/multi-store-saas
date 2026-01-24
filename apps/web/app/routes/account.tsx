@@ -79,7 +79,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       id: store.id,
       name: store.name,
       logo: store.logo,
-      templateId: store.storeTemplateId || 'modern-starter',
+      templateId: (store as any).storeTemplateId || 'modern-starter',
       currency: store.currency || 'BDT',
       planType: store.planType || 'free',
     },

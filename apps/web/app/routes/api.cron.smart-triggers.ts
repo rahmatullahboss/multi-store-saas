@@ -12,7 +12,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   // In production, Cloudflare Cron Triggers send their own headers or we use a query param
   const url = new URL(request.url);
   const secret = url.searchParams.get("secret");
-  const envSecret = env.CRON_SECRET || "development-secret";
+  const envSecret = (env as unknown as Record<string, string>).CRON_SECRET || "development-secret";
   
   if (secret !== envSecret) {
     return json({ error: "Unauthorized" }, { status: 401 });

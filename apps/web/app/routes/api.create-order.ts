@@ -697,7 +697,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           comboDiscount: comboDiscountAmount,
           comboDiscountRate: comboDiscountRate,
           uniqueProductCount: uniqueProductCount,
-          discountedSubtotal: discountedSubtotal,
+          discountedSubtotal: finalSubtotal,
           shipping,
           tax,
           total,

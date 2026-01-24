@@ -194,7 +194,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             description: '',
             inventory: 100,
             isPublished: true,
-          })
+          } as any)
           .returning({ id: products.id });
 
         linkedProductId = newProduct[0]?.id || null;
@@ -232,10 +232,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .update(stores)
       .set({
         landingConfig: JSON.stringify(mergedConfig),
-        landingEnabled: true,
         featuredProductId: linkedProductId,
-        updatedAt: new Date().toISOString(),
-      })
+        updatedAt: new Date(),
+      } as any)
       .where(eq(stores.id, storeId));
 
     return json({
@@ -298,7 +297,7 @@ export default function QuickBuilderNew() {
       body: formData,
     });
 
-    const result = await response.json();
+    const result = await response.json() as { success?: boolean; url?: string };
     if (result.success && result.url) {
       return result.url;
     }

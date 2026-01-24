@@ -693,6 +693,7 @@ export async function duplicateSection(
     id,
     pageId: original.pageId,
     type: original.type,
+    variant: null,
     enabled: original.enabled,
     sortOrder: nextOrder,
     propsJson: original.propsJson,
@@ -870,10 +871,12 @@ export async function createPageFromTemplate(
       
       // Social proof section
       if (templateSection.type === 'social-proof' && content.socialProof) {
+        const socialProof = content.socialProof as { count?: number; text?: string };
+        const currentProps = mergedProps as Record<string, unknown>;
         mergedProps = {
           ...mergedProps,
-          count: content.socialProof.count || mergedProps.count,
-          text: content.socialProof.text || mergedProps.text,
+          count: socialProof.count || currentProps.count,
+          text: socialProof.text || currentProps.text,
         };
       }
       

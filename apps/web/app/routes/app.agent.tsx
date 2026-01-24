@@ -214,7 +214,7 @@ export default function AgentDashboard() {
                 <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                     <h3 className="text-lg font-bold text-gray-900 mb-6">{t('activityOverview7Days')}</h3>
                     <LazyAreaChart
-                        data={stats?.daily && stats.daily.length > 0 ? stats.daily : [{date: 'Today', count: 0}]}
+                        data={(stats?.daily && stats.daily.length > 0 ? stats.daily : [{date: 'Today', count: 0}]) as Record<string, unknown>[]}
                         height={300}
                         dataKey="count"
                         xAxisKey="date"

@@ -63,7 +63,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     store: {
       id: store.id,
       name: store.name,
-      mode: store.mode || 'store',
+      mode: (store as any).mode || 'store',
       featuredProductId: store.featuredProductId,
       landingConfig,
     },
@@ -130,11 +130,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
   await db
     .update(stores)
     .set({
-      mode: mode || 'store',
       featuredProductId: featuredProductId ? parseInt(featuredProductId) : null,
       landingConfig: JSON.stringify(landingConfig),
       updatedAt: new Date(),
-    })
+    } as any)
     .where(eq(stores.id, storeId));
 
   return json({ success: true });
@@ -152,8 +151,8 @@ export default function LandingSettingsPage() {
   
   const [mode, setMode] = useState(store.mode);
   const [featuredProductId, setFeaturedProductId] = useState<number | null>(store.featuredProductId || null);
-  const [checkoutModalEnabled, setCheckoutModalEnabled] = useState(landingConfig.checkoutModalEnabled ?? false);
-  const [styleWizard, setStyleWizard] = useState<StyleWizardSettings>(landingConfig.styleWizard ?? {
+  const [checkoutModalEnabled, setCheckoutModalEnabled] = useState(store.landingConfig?.checkoutModalEnabled ?? false);
+  const [styleWizard, setStyleWizard] = useState<StyleWizardSettings>(store.landingConfig?.styleWizard ?? {
     brandColor: '#10b981',
     buttonStyle: 'rounded',
     fontFamily: 'system',

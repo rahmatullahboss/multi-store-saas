@@ -95,7 +95,7 @@ export function LandingPageTemplate(props: LandingPageTemplateProps) {
         <CheckoutModal
           isOpen={isCheckoutOpen}
           onClose={() => setIsCheckoutOpen(false)}
-          product={checkoutProduct}
+          product={checkoutProduct as any}
           storeId={props.storeId || 0}
           storeName={props.storeName}
           shippingOptions={config.shippingConfig ? [

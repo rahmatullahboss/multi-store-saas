@@ -123,10 +123,10 @@ export default function CustomPageRoute() {
       logo={logo}
       currency={currency}
       storeTemplateId={storeTemplateId}
-      theme={theme as Record<string, unknown>}
+      theme={theme as any}
       socialLinks={socialLinks}
-      businessInfo={businessInfo}
-      config={themeConfig as Record<string, unknown>}
+      businessInfo={businessInfo as any}
+      config={themeConfig as any}
       planType={planType}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

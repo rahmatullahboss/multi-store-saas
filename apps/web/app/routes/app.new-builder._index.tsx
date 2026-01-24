@@ -179,7 +179,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
                 description: '',
                 inventory: 100,
                 isPublished: true,
-              })
+              } as any)
               .returning({ id: products.id });
 
             linkedProductId = newProduct[0]?.id || null;
@@ -314,7 +314,7 @@ export default function NewBuilderIndex() {
       body: formData,
     });
 
-    const result = await response.json();
+    const result = await response.json() as { success?: boolean; url?: string };
     if (result.success && result.url) {
       return result.url;
     }

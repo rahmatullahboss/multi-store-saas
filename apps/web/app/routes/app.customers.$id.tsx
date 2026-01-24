@@ -177,7 +177,7 @@ export default function CustomerDetailsPage() {
   const noteFormRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (noteFetcher.state === 'idle' && noteFetcher.data?.success) {
+    if (noteFetcher.state === 'idle' && (noteFetcher.data as { success?: boolean })?.success) {
       noteFormRef.current?.reset();
     }
   }, [noteFetcher.state, noteFetcher.data]);

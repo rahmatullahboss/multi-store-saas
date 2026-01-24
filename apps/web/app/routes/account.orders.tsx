@@ -73,7 +73,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       id: store.id,
       name: store.name,
       logo: store.logo,
-      templateId: store.storeTemplateId || 'modern-starter',
+      templateId: (store as any).storeTemplateId || 'modern-starter',
       currency: store.currency || 'BDT',
       planType: store.planType || 'free',
     },
@@ -82,7 +82,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       orderNumber: order.orderNumber || `#${order.id}`,
       status: order.status,
       total: order.total,
-      itemsCount: order.itemsCount,
+      itemsCount: (order as any).itemsCount || 0,
       createdAt: order.createdAt?.toISOString(),
     })),
   });

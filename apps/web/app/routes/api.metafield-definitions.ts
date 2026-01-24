@@ -133,7 +133,8 @@ export const action: ActionFunction = async ({ request, context }) => {
   const data = validation.data;
 
   // PUT: Update existing
-  if (method === 'PUT' && body.id) {
+  const bodyWithId = body as { id?: string };
+  if (method === 'PUT' && bodyWithId.id) {
     await db.update(metafieldDefinitions)
       .set({
         namespace: data.namespace,
@@ -147,7 +148,7 @@ export const action: ActionFunction = async ({ request, context }) => {
         updatedAt: new Date().toISOString(),
       })
       .where(and(
-        eq(metafieldDefinitions.id, body.id as string),
+        eq(metafieldDefinitions.id, bodyWithId.id as string),
         eq(metafieldDefinitions.storeId, storeId)
       ));
 

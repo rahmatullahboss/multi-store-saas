@@ -44,7 +44,7 @@ export function StorePushPrompt({ storeName }: { storeName: string }) {
 
       const registration = await navigator.serviceWorker.register('/sw.js');
       const keyResponse = await fetch('/api/push/key');
-      const keyJson = await keyResponse.json();
+      const keyJson = await keyResponse.json() as { publicKey?: string };
       const publicKey = keyJson.publicKey;
 
       if (!publicKey) {

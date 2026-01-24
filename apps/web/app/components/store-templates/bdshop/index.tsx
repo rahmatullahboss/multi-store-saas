@@ -1168,7 +1168,7 @@ function PreviewBDShopStore(props: StoreTemplateProps) {
             products={products} 
             categories={validCategories}
             currency={currency}
-            config={config}
+            config={(config || {}) as unknown as Record<string, unknown>}
             onNavigate={navigate}
           />
         );
@@ -1220,7 +1220,7 @@ function PreviewBDShopStore(props: StoreTemplateProps) {
             products={products} 
             categories={validCategories}
             currency={currency}
-            config={config}
+            config={(config || {}) as unknown as Record<string, unknown>}
             onNavigate={navigate}
           />
         );

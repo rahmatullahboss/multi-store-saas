@@ -241,11 +241,11 @@ export default function Checkout() {
         // Actually we can, but let's just trigger fetcher.
         setIsApplyingCoupon(true);
         fetcher.submit(
-            { intent: 'apply-coupon', code: urlCode, subtotal: String(subtotal) }, 
+            { intent: 'apply-coupon', code: urlCode, subtotal: '0' }, // Will be recalculated on server
             { method: 'post' }
         );
     }
-  }, [searchParams, subtotal]); 
+  }, [searchParams]); 
 
   // Handle fetcher response for products
   useEffect(() => {

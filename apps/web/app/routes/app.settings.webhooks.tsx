@@ -98,7 +98,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     await db.insert(webhooks).values({
       storeId,
       url,
-      topics: JSON.stringify(selectedEvents),
+      topic: selectedEvents[0] || 'order.created', // Schema uses single topic
       secret,
       isActive: true,
     });
@@ -286,7 +286,7 @@ export default function WebhookSettings() {
         ) : (
           <div className="divide-y divide-gray-100">
             {webhookList.map((webhook) => {
-              const topics = JSON.parse(webhook.topics as string) as string[];
+              const topics = [webhook.topic]; // Schema uses single topic
               const isVisible = showSecrets[webhook.id];
               
               return (
@@ -334,7 +334,7 @@ export default function WebhookSettings() {
                           {isVisible ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                         </button>
                         <button
-                          onClick={() => copyToClipboard(webhook.secret, webhook.id)}
+                          onClick={() => copyToClipboard(webhook.secret || '', webhook.id)}
                           className="text-gray-400 hover:text-gray-600"
                         >
                           {copiedId === webhook.id ? (

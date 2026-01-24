@@ -189,7 +189,8 @@ export const action: ActionFunction = async ({ request, context }) => {
   const serializedValue = serializeMetafieldValue(data.value, data.type as MetafieldType);
 
   // PUT: Update existing
-  if (method === 'PUT' && body.id) {
+  const bodyWithId = body as { id?: string };
+  if (method === 'PUT' && bodyWithId.id) {
     await db.update(metafields)
       .set({
         namespace: data.namespace,
@@ -199,7 +200,7 @@ export const action: ActionFunction = async ({ request, context }) => {
         updatedAt: new Date().toISOString(),
       })
       .where(and(
-        eq(metafields.id, body.id as string),
+        eq(metafields.id, bodyWithId.id as string),
         eq(metafields.storeId, storeId)
       ));
 

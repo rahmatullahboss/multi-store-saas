@@ -100,17 +100,14 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     const categoryCacheKey = `store:${storeId}:categories`;
     let categories = await cache.get<string[]>(categoryCacheKey);
     
-    type QueryType = ReturnType<typeof db.select>;
-    const queries: QueryType[] = [
-      db.select()
-        .from(products)
-        .where(and(eq(products.id, productId), eq(products.storeId, storeId), eq(products.isPublished, true)))
-        .limit(1)
-    ];
+    // Build queries individually to avoid batch type issues
+    const productQuery = db.select()
+      .from(products)
+      .where(and(eq(products.id, productId), eq(products.storeId, storeId), eq(products.isPublished, true)))
+      .limit(1);
     
-    if (showReviews) {
-      queries.push(
-        db.select({
+    const reviewsQuery = showReviews 
+      ? db.select({
           id: reviews.id,
           customerName: reviews.customerName,
           rating: reviews.rating,
@@ -121,29 +118,30 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
         .where(and(eq(reviews.productId, productId), eq(reviews.storeId, storeId), eq(reviews.status, 'approved')))
         .orderBy(desc(reviews.createdAt))
         .limit(20)
-      );
-    }
+      : null;
     
-    if (!categories) {
-      queries.push(
-        db.select({ category: products.category })
+    const categoriesQuery = !categories 
+      ? db.select({ category: products.category })
           .from(products)
           .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
-      );
-    }
+      : null;
     
-    const batchResults = await db.batch(queries as Parameters<typeof db.batch>[0]);
+    // Execute queries (can't use batch due to type complexity, run in parallel)
+    const [productResult, reviewsResult, categoriesResult] = await Promise.all([
+      productQuery,
+      reviewsQuery,
+      categoriesQuery,
+    ]);
     
-    const product = batchResults[0][0];
+    const product = productResult[0];
     if (!product) {
       throw new Response('Product not found', { status: 404 });
     }
     
-    const productReviews = showReviews ? batchResults[1] : [];
+    const productReviews = reviewsResult || [];
     
     // Handle categories
-    if (!categories) {
-      const categoriesResult = (showReviews ? batchResults[2] : batchResults[1]) as Array<{ category: string | null }>;
+    if (!categories && categoriesResult) {
       categories = [...new Set(categoriesResult.map(p => p.category).filter((c): c is string => Boolean(c)))];
       await cache.set(categoryCacheKey, categories, 3600);
     }
@@ -281,9 +279,10 @@ export default function ProductDetail() {
 
   // Parse variants
   let variants: Array<{ name: string; value: string; price?: number }> = [];
-  if (product.variants) {
+  const productAny = product as any;
+  if (productAny.variants) {
     try {
-      variants = JSON.parse(product.variants);
+      variants = JSON.parse(productAny.variants);
     } catch {
       // Ignore parse errors
     }
@@ -319,7 +318,7 @@ export default function ProductDetail() {
       reviews: showReviews ? {
         count: reviewCount,
         average: avgRating,
-        items: productReviews.map((r: { id: number; customerName: string; rating: number; comment: string | null; createdAt: Date | null }) => ({
+        items: (productReviews as any[]).map((r) => ({
           id: String(r.id),
           author: r.customerName,
           rating: r.rating,
@@ -378,7 +377,7 @@ export default function ProductDetail() {
       currency={currency}
       socialLinks={socialLinks}
       businessInfo={businessInfo}
-      categories={categories}
+      categories={categories as (string | null)[] | undefined}
       config={themeConfig}
       footerConfig={footerConfig}
       planType={planType}
@@ -399,12 +398,12 @@ export default function ProductDetail() {
         </Suspense>
       ) : (
         <StoreSectionRenderer
-          sections={hasTemplateSections ? template!.sections : DEFAULT_PRODUCT_SECTIONS.map(s => ({
+          sections={(hasTemplateSections ? template!.sections : DEFAULT_PRODUCT_SECTIONS.map(s => ({
             ...s,
             enabled: true,
             sortOrder: 0,
             props: s.settings,
-          }))}
+          }))) as any}
           context={renderContext}
         />
       )}

@@ -70,7 +70,7 @@ export const loader = async ({ request, context }: any) => {
     })),
     storeSubdomain: store[0].subdomain,
     storeName: store[0].name,
-    storeMode: store[0].mode || 'store',
+    storeMode: (store[0] as any).mode || 'store',
     storeLogo: store[0].logo || '',
     businessInfo: store[0].businessInfo ? JSON.parse(store[0].businessInfo) : { phone: '', email: '', address: '' },
     socialLinks: parseSocialLinks(store[0].socialLinks as string | null) || { facebook: '', instagram: '', whatsapp: '' },
