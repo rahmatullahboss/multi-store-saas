@@ -9,7 +9,7 @@ export function RovoTemplate(props: StoreTemplateProps) {
   const filteredCategories = props.categories.filter((c): c is string => c !== null);
 
   return (
-    <RovoLayout {...props}>
+    <RovoLayout {...(props as any)}>
       <RovoHeader 
         storeName={props.storeName} 
         logo={props.logo} 

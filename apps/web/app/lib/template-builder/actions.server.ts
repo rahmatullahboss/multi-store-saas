@@ -132,14 +132,17 @@ export async function getTemplateByKey(
 ): Promise<TemplateWithSections | null> {
   const drizzleDb = drizzle(db);
   
-  const templates = await drizzleDb
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const whereCondition: any = and(
+    eq(themeTemplates.themeId, themeId),
+    eq(themeTemplates.templateKey, templateKey as any),
+    eq(themeTemplates.shopId, storeId)
+  );
+  
+  const templates = await (drizzleDb
     .select()
-    .from(themeTemplates)
-    .where(and(
-      eq(themeTemplates.themeId, themeId),
-      eq(themeTemplates.templateKey, templateKey),
-      eq(themeTemplates.shopId, storeId)
-    ));
+    .from(themeTemplates) as any)
+    .where(whereCondition);
   
   const template = templates[0];
   if (!template) return null;

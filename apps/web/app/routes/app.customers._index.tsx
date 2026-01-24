@@ -101,19 +101,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Segment Filter
   if (segment !== 'all') {
     if (segment === 'vip') {
-      conditions.push(eq(customers.segment, 'vip'));
+      conditions.push(eq(customers.segment, 'vip' as any));
     } else if (segment === 'new') {
-      conditions.push(eq(customers.segment, 'new'));
+      conditions.push(eq(customers.segment, 'new' as any));
     } else if (segment === 'returning') {
-      conditions.push(eq(customers.segment, 'returning'));
+      conditions.push(eq(customers.segment, 'returning' as any));
     }
   }
 
-  // Execute Query with all conditions
-  const allCustomers = await db
+  // Execute Query with all conditions  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const whereCondition: any = conditions.length === 1 ? conditions[0] : and(...conditions);
+  const allCustomers: typeof customers.$inferSelect[] = await (db
     .select()
-    .from(customers)
-    .where(and(...conditions))
+    .from(customers) as any)
+    .where(whereCondition)
     .orderBy(desc(customers.createdAt))
     .limit(limit)
     .offset(offset);

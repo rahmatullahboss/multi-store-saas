@@ -384,7 +384,7 @@ function PreviewHomePage({
               স্টক এভেইলেবল
             </span>
             <h1 className="text-2xl md:text-4xl font-bold text-white mb-3">
-              {config?.bannerText || 'ইলেক্ট্রনিক পণ্যে সেরা ছাড়'}
+              {(config?.bannerText || 'ইলেক্ট্রনিক পণ্যে সেরা ছাড়') as string}
             </h1>
             <p className="text-white/80 text-sm md:text-base mb-5">
               সেরা ব্র্যান্ড, সেরা কোয়ালিটি, সেরা দাম
