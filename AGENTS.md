@@ -330,6 +330,27 @@ const response = await fetch(request, {
 });
 ```
 
+### Durable Objects (Order Processing)
+
+```typescript
+// Enqueue order tasks for background processing
+import { enqueueOrderTasks } from '~/services/order-processor.server';
+
+await enqueueOrderTasks(env, orderId, storeId, [
+  { type: 'email', payload: { to, subject, html } },
+  { type: 'webhook', payload: { url, payload, secret } },
+  { type: 'inventory', payload: { productId, quantity } },
+]);
+```
+
+**Architecture:**
+- Separate worker: `apps/web/workers/order-processor/`
+- SQLite backend (FREE plan compatible)
+- Per-store isolation via DO naming
+- Exponential backoff retries
+
+**See:** `docs/DURABLE_OBJECTS_GUIDE.md` for full documentation.
+
 ### D1 Batch Operations
 
 ```typescript
