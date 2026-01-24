@@ -1,8 +1,28 @@
 /**
- * Order Processor Worker
+ * Order Processor Worker - World-Class Cost Optimized
  * 
  * Separate worker that exports the OrderProcessor Durable Object
  * This allows Pages Functions to use DO via service binding
+ * 
+ * ============================================================================
+ * COST OPTIMIZATION STRATEGIES (FREE Plan - Zero Extra Cost)
+ * ============================================================================
+ * 
+ * 1. BATCH PROCESSING: Process multiple tasks per alarm (reduces requests)
+ * 2. SMART BATCHING: Collect tasks before processing (fewer DO invocations)
+ * 3. MINIMAL SQL QUERIES: Use single queries with JOINs where possible
+ * 4. EFFICIENT INDEXES: Only index what's queried frequently
+ * 5. AGGRESSIVE CLEANUP: Remove completed tasks quickly to save storage
+ * 6. REQUEST COALESCING: Batch incoming requests in memory before DB write
+ * 7. ALARM DEBOUNCING: Don't set new alarm if one is already scheduled
+ * 8. LAZY INITIALIZATION: Only create tables when first task arrives
+ * 
+ * FREE TIER LIMITS (Daily):
+ * - Requests: 1M/day
+ * - Duration: 400K GB-s/day  
+ * - SQLite Rows Read: 5M/day
+ * - SQLite Rows Written: 100K/day
+ * - Storage: 1 GB total
  * 
  * Best Practices Applied (Context7 Verified):
  * - SQLite backend for FREE plan compatibility
@@ -15,19 +35,31 @@
 import { DurableObject } from "cloudflare:workers";
 
 // ============================================================================
-// CONSTANTS (Best Practice: Define retry/timing constants)
+// CONSTANTS (Cost-Optimized Values)
 // ============================================================================
 
 const SECONDS = 1000;
 const MINUTES = 60 * SECONDS;
 
 const CONFIG = {
-  MAX_RETRIES: 5,                    // Max retry attempts
-  INITIAL_DELAY: 1 * SECONDS,        // Initial retry delay
-  MAX_DELAY: 5 * MINUTES,            // Max retry delay (exponential backoff cap)
-  BATCH_SIZE: 10,                    // Tasks per alarm cycle
-  CLEANUP_DAYS: 7,                   // Days to keep completed tasks
-  ALARM_INTERVAL: 100,               // Ms between alarm and processing
+  // Retry settings
+  MAX_RETRIES: 3,                    // Reduced from 5 to save requests
+  INITIAL_DELAY: 2 * SECONDS,        // Slightly longer to batch retries
+  MAX_DELAY: 2 * MINUTES,            // Reduced from 5 min
+  
+  // Batch settings (KEY COST OPTIMIZATION)
+  BATCH_SIZE: 50,                    // Increased from 10 - process more per alarm
+  BATCH_WINDOW_MS: 500,              // Collect tasks for 500ms before processing
+  
+  // Cleanup settings  
+  CLEANUP_DAYS: 3,                   // Reduced from 7 to save storage
+  CLEANUP_BATCH: 100,                // Delete in batches
+  
+  // Alarm settings
+  ALARM_DEBOUNCE_MS: 1000,           // Minimum time between alarms
+  
+  // Memory cache settings
+  MEMORY_CACHE_SIZE: 100,            // Cache recent task results
 } as const;
 
 // ============================================================================
@@ -52,6 +84,14 @@ interface AlarmInfo {
   isRetry: boolean;
 }
 
+interface ProcessResult {
+  success: boolean;
+  results?: Array<{ type: string; success: boolean; error?: string }>;
+  taskIds?: string[];
+  message?: string;
+  error?: string;
+}
+
 interface Env {
   ORDER_PROCESSOR: DurableObjectNamespace;
   DB: D1Database;
@@ -64,15 +104,37 @@ interface Env {
 
 export class OrderProcessor extends DurableObject<Env> {
   private sql!: SqlStorage;
+  private initialized = false;
+  
+  // Cost Optimization: In-memory batch queue to reduce DB writes
+  private pendingBatch: Array<{
+    orderId: number;
+    storeId: number;
+    tasks: Array<{ type: string; payload: Record<string, unknown> }>;
+    resolve: (value: ProcessResult) => void;
+  }> = [];
+  private batchTimer: ReturnType<typeof setTimeout> | null = null;
+  
+  // Cost Optimization: Memory cache for recent results (avoids re-queries)
+  private resultCache = new Map<string, { result: unknown; timestamp: number }>();
+  
+  // Cost Optimization: Track last alarm time to prevent redundant alarms
+  private lastAlarmSet = 0;
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
     this.sql = ctx.storage.sql;
-    this.initializeSchema();
+    // Lazy init - don't create tables until first task
   }
 
-  private initializeSchema() {
-    // Best Practice: Use proper schema with indexes for performance
+  /**
+   * Lazy initialization - only create tables when needed
+   * Cost Optimization: Saves SQLite writes if DO is never used
+   */
+  private ensureInitialized() {
+    if (this.initialized) return;
+    
+    // Single CREATE TABLE with all columns
     this.sql.exec(`
       CREATE TABLE IF NOT EXISTS tasks (
         id TEXT PRIMARY KEY,
@@ -88,23 +150,75 @@ export class OrderProcessor extends DurableObject<Env> {
         error TEXT
       )
     `);
-    // Best Practice: Create indexes for frequent queries
-    this.sql.exec(`CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status)`);
-    this.sql.exec(`CREATE INDEX IF NOT EXISTS idx_tasks_next_retry ON tasks(next_retry)`);
-    this.sql.exec(`CREATE INDEX IF NOT EXISTS idx_tasks_store ON tasks(store_id)`);
+    
+    // Cost Optimization: Only ONE index on composite (status, next_retry)
+    // This covers both status-only and status+next_retry queries
+    this.sql.exec(`
+      CREATE INDEX IF NOT EXISTS idx_tasks_status_retry 
+      ON tasks(status, next_retry)
+    `);
+    
+    this.initialized = true;
   }
 
   /**
    * Calculate exponential backoff delay
-   * Best Practice: Use exponential backoff with jitter for retries
+   * Cost Optimization: Larger delays = fewer retries = fewer requests
    */
   private calculateBackoff(attempts: number): number {
-    // Exponential backoff: 1s, 2s, 4s, 8s, 16s... capped at MAX_DELAY
+    // Exponential: 2s, 4s, 8s capped at 2 min
     const baseDelay = CONFIG.INITIAL_DELAY * Math.pow(2, attempts);
     const cappedDelay = Math.min(baseDelay, CONFIG.MAX_DELAY);
-    // Add jitter (±10%) to prevent thundering herd
-    const jitter = cappedDelay * 0.1 * (Math.random() * 2 - 1);
+    // Larger jitter (±20%) to spread out retries more
+    const jitter = cappedDelay * 0.2 * (Math.random() * 2 - 1);
     return Math.floor(cappedDelay + jitter);
+  }
+
+  /**
+   * Smart alarm scheduling with debouncing
+   * Cost Optimization: Prevents setting multiple alarms
+   */
+  private async scheduleAlarmIfNeeded(delayMs: number = CONFIG.ALARM_DEBOUNCE_MS) {
+    const now = Date.now();
+    const targetTime = now + delayMs;
+    
+    // Don't set alarm if we recently set one
+    if (this.lastAlarmSet > now - CONFIG.ALARM_DEBOUNCE_MS) {
+      return;
+    }
+    
+    // Check if alarm already exists
+    const existingAlarm = await this.ctx.storage.getAlarm();
+    if (existingAlarm && existingAlarm <= targetTime + CONFIG.ALARM_DEBOUNCE_MS) {
+      return; // Alarm already scheduled soon enough
+    }
+    
+    await this.ctx.storage.setAlarm(targetTime);
+    this.lastAlarmSet = now;
+  }
+
+  /**
+   * Clean expired cache entries
+   * Cost Optimization: Prevents memory bloat
+   */
+  private cleanCache() {
+    const now = Date.now();
+    const maxAge = 60 * SECONDS; // 1 minute cache
+    
+    for (const [key, value] of this.resultCache) {
+      if (now - value.timestamp > maxAge) {
+        this.resultCache.delete(key);
+      }
+    }
+    
+    // Limit cache size
+    if (this.resultCache.size > CONFIG.MEMORY_CACHE_SIZE) {
+      const entries = [...this.resultCache.entries()];
+      entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+      for (let i = 0; i < entries.length - CONFIG.MEMORY_CACHE_SIZE; i++) {
+        this.resultCache.delete(entries[i][0]);
+      }
+    }
   }
 
   async fetch(request: Request): Promise<Response> {
@@ -112,8 +226,9 @@ export class OrderProcessor extends DurableObject<Env> {
     const path = url.pathname;
 
     try {
-      // POST /process - Process immediately
+      // POST /process - Process immediately (sync)
       if (request.method === 'POST' && path === '/process') {
+        this.ensureInitialized();
         const body = await request.json() as {
           orderId: number;
           storeId: number;
@@ -123,30 +238,73 @@ export class OrderProcessor extends DurableObject<Env> {
         return Response.json({ success: true, results });
       }
 
-      // POST /enqueue - Queue for background processing
+      // POST /enqueue - Queue for background processing (async, batched)
       if (request.method === 'POST' && path === '/enqueue') {
+        this.ensureInitialized();
         const body = await request.json() as {
           orderId: number;
           storeId: number;
           tasks: Array<{ type: OrderTask['type']; payload: Record<string, unknown> }>;
         };
-        const taskIds = await this.enqueueTasks(body);
-        await this.ctx.storage.setAlarm(Date.now() + 100);
-        return Response.json({ success: true, taskIds, message: 'Tasks queued' });
+        
+        // Cost Optimization: Batch multiple enqueue requests
+        const result = await this.enqueueBatched(body);
+        return Response.json(result);
       }
 
-      // GET /status - Get task counts
+      // GET /status - Get task counts (cached)
       if (request.method === 'GET' && path === '/status') {
-        const pending = this.sql.exec(`SELECT COUNT(*) as count FROM tasks WHERE status = 'pending'`).one();
-        const failed = this.sql.exec(`SELECT COUNT(*) as count FROM tasks WHERE status = 'failed'`).one();
-        return Response.json({ pending: pending?.count || 0, failed: failed?.count || 0 });
+        // Cost Optimization: Cache status for 5 seconds
+        const cacheKey = 'status';
+        const cached = this.resultCache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < 5 * SECONDS) {
+          return Response.json(cached.result);
+        }
+        
+        this.ensureInitialized();
+        // Cost Optimization: Single query for both counts
+        const stats = this.sql.exec(`
+          SELECT 
+            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed
+          FROM tasks
+        `).one() as { pending: number; failed: number } | null;
+        
+        const result = { pending: stats?.pending || 0, failed: stats?.failed || 0 };
+        this.resultCache.set(cacheKey, { result, timestamp: Date.now() });
+        
+        return Response.json(result);
       }
 
       // POST /retry - Retry failed tasks
       if (request.method === 'POST' && path === '/retry') {
-        this.sql.exec(`UPDATE tasks SET status = 'pending', attempts = 0 WHERE status = 'failed'`);
-        await this.ctx.storage.setAlarm(Date.now() + 100);
-        return Response.json({ success: true, message: 'Failed tasks queued for retry' });
+        this.ensureInitialized();
+        // Cost Optimization: Single UPDATE instead of SELECT + UPDATE
+        const result = this.sql.exec(`
+          UPDATE tasks 
+          SET status = 'pending', attempts = 0, next_retry = NULL, error = NULL
+          WHERE status = 'failed'
+          RETURNING id
+        `).toArray();
+        
+        if (result.length > 0) {
+          await this.scheduleAlarmIfNeeded(100);
+        }
+        
+        return Response.json({ 
+          success: true, 
+          message: `${result.length} failed tasks queued for retry` 
+        });
+      }
+
+      // GET /health - Health check (no DB access)
+      if (request.method === 'GET' && path === '/health') {
+        return Response.json({ 
+          status: 'ok', 
+          initialized: this.initialized,
+          cacheSize: this.resultCache.size,
+          pendingBatch: this.pendingBatch.length,
+        });
       }
 
       return Response.json({ error: 'Not found' }, { status: 404 });
@@ -156,6 +314,85 @@ export class OrderProcessor extends DurableObject<Env> {
     }
   }
 
+  /**
+   * Batched enqueue - collects requests and writes in bulk
+   * Cost Optimization: Reduces SQLite writes by batching
+   */
+  private enqueueBatched(body: {
+    orderId: number;
+    storeId: number;
+    tasks: Array<{ type: string; payload: Record<string, unknown> }>;
+  }): Promise<ProcessResult> {
+    return new Promise((resolve) => {
+      // Add to batch queue
+      this.pendingBatch.push({ ...body, resolve });
+      
+      // If this is the first item, start batch timer
+      if (!this.batchTimer) {
+        this.batchTimer = setTimeout(() => this.flushBatch(), CONFIG.BATCH_WINDOW_MS);
+      }
+      
+      // If batch is full, flush immediately
+      if (this.pendingBatch.length >= 20) {
+        if (this.batchTimer) {
+          clearTimeout(this.batchTimer);
+          this.batchTimer = null;
+        }
+        this.flushBatch();
+      }
+    });
+  }
+
+  /**
+   * Flush pending batch to database
+   * Cost Optimization: Single INSERT for multiple tasks
+   */
+  private async flushBatch() {
+    this.batchTimer = null;
+    
+    if (this.pendingBatch.length === 0) return;
+    
+    const batch = this.pendingBatch.splice(0);
+    const now = new Date().toISOString();
+    const allTaskIds: string[] = [];
+    
+    // Cost Optimization: Build single INSERT with multiple VALUES
+    const values: string[] = [];
+    const params: (string | number)[] = [];
+    
+    for (const item of batch) {
+      for (const task of item.tasks) {
+        const id = `t_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+        allTaskIds.push(id);
+        values.push('(?, ?, ?, ?, ?, ?)');
+        params.push(id, item.orderId, item.storeId, task.type, JSON.stringify(task.payload), now);
+      }
+    }
+    
+    if (values.length > 0) {
+      // Single INSERT for all tasks
+      this.sql.exec(`
+        INSERT INTO tasks (id, order_id, store_id, type, payload, created_at)
+        VALUES ${values.join(', ')}
+      `, ...params);
+      
+      // Schedule alarm (debounced)
+      await this.scheduleAlarmIfNeeded(CONFIG.BATCH_WINDOW_MS);
+    }
+    
+    // Resolve all promises
+    let idx = 0;
+    for (const item of batch) {
+      const taskIds = allTaskIds.slice(idx, idx + item.tasks.length);
+      idx += item.tasks.length;
+      item.resolve({ success: true, taskIds, message: 'Tasks queued' });
+    }
+  }
+
+  /**
+   * Process tasks immediately (synchronous)
+   * Cost Optimization: Direct execution, no DB writes for temporary tasks
+   */
   private async processOrderTasks(body: {
     orderId: number;
     storeId: number;
@@ -166,153 +403,174 @@ export class OrderProcessor extends DurableObject<Env> {
     for (const task of body.tasks) {
       try {
         await this.executeTask({
-          id: `task_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+          id: `sync_${Date.now().toString(36)}`,
           orderId: body.orderId,
           storeId: body.storeId,
           type: task.type,
           payload: task.payload,
           attempts: 0,
-          createdAt: new Date().toISOString(),
+          createdAt: '',
         });
         results.push({ type: task.type, success: true });
       } catch (error) {
-        results.push({ type: task.type, success: false, error: String(error) });
+        results.push({ 
+          type: task.type, 
+          success: false, 
+          error: (error instanceof Error ? error.message : String(error)).slice(0, 200)
+        });
       }
     }
     return results;
   }
 
-  private async enqueueTasks(body: {
-    orderId: number;
-    storeId: number;
-    tasks: Array<{ type: OrderTask['type']; payload: Record<string, unknown> }>;
-  }): Promise<string[]> {
-    const taskIds: string[] = [];
-    const now = new Date().toISOString();
-
-    for (const task of body.tasks) {
-      const id = `task_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-      this.sql.exec(
-        `INSERT INTO tasks (id, order_id, store_id, type, payload, created_at, status) VALUES (?, ?, ?, ?, ?, ?, 'pending')`,
-        id, body.orderId, body.storeId, task.type, JSON.stringify(task.payload), now
-      );
-      taskIds.push(id);
-    }
-    return taskIds;
-  }
-
   /**
    * Alarm handler - processes pending tasks
-   * Best Practice: Use alarmInfo for retry tracking
+   * Cost Optimization: Process large batches, minimal queries
    */
   async alarm(alarmInfo?: AlarmInfo): Promise<void> {
-    const now = new Date().toISOString();
+    // Cost Optimization: Quick exit if not initialized (no tasks ever)
+    if (!this.initialized) {
+      return;
+    }
     
-    // Best Practice: Log retry attempts for debugging
-    if (alarmInfo?.retryCount && alarmInfo.retryCount > 0) {
-      console.log(`OrderProcessor alarm retry #${alarmInfo.retryCount}`);
-    } else {
+    const now = Date.now();
+    const nowIso = new Date(now).toISOString();
+    
+    // Log only on first attempt (save console output)
+    if (!alarmInfo?.retryCount) {
       console.log('OrderProcessor alarm triggered');
     }
 
-    // Best Practice: Only fetch tasks that are ready for processing
-    // (pending status AND next_retry is null or in the past)
+    // Cost Optimization: Single query to get pending tasks
+    // Uses composite index (status, next_retry)
     const pendingTasks = this.sql.exec(`
-      SELECT * FROM tasks 
+      SELECT id, order_id, store_id, type, payload, attempts
+      FROM tasks 
       WHERE status = 'pending' 
         AND (next_retry IS NULL OR next_retry <= ?)
       ORDER BY created_at ASC 
       LIMIT ?
-    `, now, CONFIG.BATCH_SIZE).toArray() as unknown as Array<{
+    `, nowIso, CONFIG.BATCH_SIZE).toArray() as unknown as Array<{
       id: string; order_id: number; store_id: number;
-      type: string; payload: string; attempts: number; created_at: string;
+      type: string; payload: string; attempts: number;
     }>;
 
-    let successCount = 0;
-    let failCount = 0;
+    if (pendingTasks.length === 0) {
+      // Cost Optimization: Run cleanup only when no tasks to process
+      this.runCleanup();
+      return;
+    }
 
+    // Cost Optimization: Batch all updates
+    const completedIds: string[] = [];
+    const failedUpdates: Array<{ id: string; attempts: number; error: string }> = [];
+    const retryUpdates: Array<{ id: string; attempts: number; nextRetry: string; error: string }> = [];
+
+    // Process tasks
     for (const row of pendingTasks) {
-      const task: OrderTask = {
-        id: row.id,
-        orderId: row.order_id,
-        storeId: row.store_id,
-        type: row.type as OrderTask['type'],
-        payload: JSON.parse(row.payload),
-        attempts: row.attempts,
-        createdAt: row.created_at,
-      };
-
       try {
-        await this.executeTask(task);
+        await this.executeTask({
+          id: row.id,
+          orderId: row.order_id,
+          storeId: row.store_id,
+          type: row.type as OrderTask['type'],
+          payload: JSON.parse(row.payload),
+          attempts: row.attempts,
+          createdAt: '', // Not needed for execution
+        });
         
-        // Best Practice: Mark as completed with timestamp
-        this.sql.exec(`
-          UPDATE tasks 
-          SET status = 'completed', last_attempt = ?, error = NULL 
-          WHERE id = ?
-        `, now, task.id);
-        
-        successCount++;
+        completedIds.push(row.id);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        const newAttempts = task.attempts + 1;
+        const errorMessage = (error instanceof Error ? error.message : String(error)).slice(0, 200);
+        const newAttempts = row.attempts + 1;
         
-        // Best Practice: Use exponential backoff for retries
         if (newAttempts >= CONFIG.MAX_RETRIES) {
-          // Max retries reached - mark as failed
-          this.sql.exec(`
-            UPDATE tasks 
-            SET status = 'failed', attempts = ?, last_attempt = ?, error = ? 
-            WHERE id = ?
-          `, newAttempts, now, errorMessage, task.id);
-          
-          console.error(`Task ${task.id} failed permanently after ${newAttempts} attempts: ${errorMessage}`);
+          failedUpdates.push({ id: row.id, attempts: newAttempts, error: errorMessage });
         } else {
-          // Schedule retry with exponential backoff
           const backoffMs = this.calculateBackoff(newAttempts);
-          const nextRetry = new Date(Date.now() + backoffMs).toISOString();
-          
-          this.sql.exec(`
-            UPDATE tasks 
-            SET attempts = ?, last_attempt = ?, next_retry = ?, error = ? 
-            WHERE id = ?
-          `, newAttempts, now, nextRetry, errorMessage, task.id);
-          
-          console.warn(`Task ${task.id} failed (attempt ${newAttempts}/${CONFIG.MAX_RETRIES}), retry at ${nextRetry}`);
+          const nextRetry = new Date(now + backoffMs).toISOString();
+          retryUpdates.push({ id: row.id, attempts: newAttempts, nextRetry, error: errorMessage });
         }
-        
-        failCount++;
       }
     }
 
-    console.log(`Alarm completed: ${successCount} succeeded, ${failCount} failed`);
-
-    // Best Practice: Schedule next alarm if there are pending tasks
-    const remaining = this.sql.exec(`
-      SELECT 
-        COUNT(*) as total,
-        MIN(next_retry) as next_time
-      FROM tasks 
-      WHERE status = 'pending'
-    `).one() as { total: number; next_time: string | null } | null;
-
-    if (remaining && remaining.total > 0) {
-      // Schedule alarm for the earliest retry time, or 1 second if tasks are ready now
-      let nextAlarmTime = Date.now() + SECONDS;
-      
-      if (remaining.next_time) {
-        const nextRetryTime = new Date(remaining.next_time).getTime();
-        if (nextRetryTime > Date.now()) {
-          nextAlarmTime = nextRetryTime;
-        }
-      }
-      
-      await this.ctx.storage.setAlarm(nextAlarmTime);
+    // Cost Optimization: Batch UPDATE completed tasks (single query)
+    if (completedIds.length > 0) {
+      const placeholders = completedIds.map(() => '?').join(',');
+      this.sql.exec(`
+        UPDATE tasks 
+        SET status = 'completed', last_attempt = ?
+        WHERE id IN (${placeholders})
+      `, nowIso, ...completedIds);
     }
 
-    // Best Practice: Cleanup old completed tasks periodically
+    // Cost Optimization: Batch UPDATE failed tasks
+    for (const update of failedUpdates) {
+      this.sql.exec(`
+        UPDATE tasks 
+        SET status = 'failed', attempts = ?, last_attempt = ?, error = ?
+        WHERE id = ?
+      `, update.attempts, nowIso, update.error, update.id);
+    }
+
+    // Cost Optimization: Batch UPDATE retry tasks
+    for (const update of retryUpdates) {
+      this.sql.exec(`
+        UPDATE tasks 
+        SET attempts = ?, last_attempt = ?, next_retry = ?, error = ?
+        WHERE id = ?
+      `, update.attempts, nowIso, update.nextRetry, update.error, update.id);
+    }
+
+    // Minimal logging
+    if (failedUpdates.length > 0) {
+      console.log(`Processed: ${completedIds.length} ok, ${retryUpdates.length} retry, ${failedUpdates.length} failed`);
+    }
+
+    // Cost Optimization: Smart alarm scheduling
+    // Only query if we might have more tasks
+    if (pendingTasks.length >= CONFIG.BATCH_SIZE || retryUpdates.length > 0) {
+      const remaining = this.sql.exec(`
+        SELECT MIN(next_retry) as next_time
+        FROM tasks 
+        WHERE status = 'pending'
+      `).one() as { next_time: string | null } | null;
+
+      if (remaining?.next_time) {
+        const nextTime = new Date(remaining.next_time).getTime();
+        const delay = Math.max(nextTime - now, CONFIG.ALARM_DEBOUNCE_MS);
+        await this.scheduleAlarmIfNeeded(delay);
+      } else {
+        // Tasks ready now
+        await this.scheduleAlarmIfNeeded(CONFIG.ALARM_DEBOUNCE_MS);
+      }
+    }
+
+    // Cleanup cache periodically
+    this.cleanCache();
+  }
+
+  /**
+   * Cleanup old tasks
+   * Cost Optimization: Run infrequently, delete in batches
+   */
+  private runCleanup() {
     const cleanupThreshold = new Date(Date.now() - CONFIG.CLEANUP_DAYS * 24 * 60 * 60 * 1000).toISOString();
-    this.sql.exec(`DELETE FROM tasks WHERE status = 'completed' AND created_at < ?`, cleanupThreshold);
+    
+    // Cost Optimization: Delete in batches to avoid large transactions
+    this.sql.exec(`
+      DELETE FROM tasks 
+      WHERE status = 'completed' AND created_at < ?
+      LIMIT ?
+    `, cleanupThreshold, CONFIG.CLEANUP_BATCH);
+    
+    // Also clean very old failed tasks (>30 days)
+    const oldFailedThreshold = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    this.sql.exec(`
+      DELETE FROM tasks 
+      WHERE status = 'failed' AND created_at < ?
+      LIMIT ?
+    `, oldFailedThreshold, CONFIG.CLEANUP_BATCH);
   }
 
   /**
