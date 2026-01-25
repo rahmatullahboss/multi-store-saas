@@ -46,14 +46,23 @@ export default defineConfig({
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
         // Split heavy client-only libraries into separate chunks
-        // NOTE: Do NOT put React into a separate chunk - it breaks initialization order
+        // IMPORTANT: Never put react/react-dom in separate chunks - causes hydration errors!
         manualChunks(id) {
+          // CRITICAL: Keep React in the main bundle - never split it!
+          // This prevents duplicate React instances which cause Error #418
+          if (id.includes('node_modules/react/') || 
+              id.includes('node_modules/react-dom/') ||
+              id.includes('node_modules/react-is/') ||
+              id.includes('node_modules/scheduler/')) {
+            return undefined; // Let Rollup handle naturally (stays in main bundle)
+          }
+          
           // GrapesJS and related plugins - ~1.4MB
           if (id.includes('grapesjs')) {
             return 'grapesjs';
           }
-          // Recharts - ~315KB
-          if (id.includes('recharts')) {
+          // Recharts - ~315KB (but NOT its React dependencies)
+          if (id.includes('recharts') && !id.includes('react')) {
             return 'recharts';
           }
           // D3 libraries (used by recharts) - separate chunk
