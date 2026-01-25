@@ -23,7 +23,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Rate limiting check could go here
 
-  const result = await requestPasswordReset(email, context.cloudflare.env.DB, context.cloudflare.env);
+  const result = await requestPasswordReset(
+    email, 
+    context.cloudflare.env.DB, 
+    context.cloudflare.env,
+    context.cloudflare.ctx
+  );
 
   if (!result.success) {
     return json<ActionData>({ success: false, error: result.error || 'Failed to send reset link.' }, { status: 500 });

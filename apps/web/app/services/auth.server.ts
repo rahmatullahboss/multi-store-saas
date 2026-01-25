@@ -370,7 +370,12 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
  * Request a password reset
  * Generates a token and sends an email
  */
-export async function requestPasswordReset(email: string, db: D1Database, env: Env): Promise<{ success: boolean; error?: string }> {
+export async function requestPasswordReset(
+  email: string, 
+  db: D1Database, 
+  env: Env,
+  ctx?: { waitUntil: (promise: Promise<any>) => void }
+): Promise<{ success: boolean; error?: string }> {
   try {
     const drizzleDb = drizzle(db);
     
@@ -408,11 +413,19 @@ export async function requestPasswordReset(email: string, db: D1Database, env: E
     console.log('[auth.server] Created password reset token for user:', user.id);
     
     // Send email
-    const emailResult = await sendPasswordResetEmail(email.toLowerCase(), token, env);
+    const emailPromise = sendPasswordResetEmail(email.toLowerCase(), token, env);
     
-    if (!emailResult.success) {
-      console.error('[auth.server] Failed to send reset email:', emailResult.error);
-      return { success: false, error: 'Failed to send email. Please try again later.' };
+    if (ctx && typeof ctx.waitUntil === 'function') {
+      // Non-blocking: Send in background
+      ctx.waitUntil(emailPromise);
+      console.log('[auth.server] Email sending delegated to background worker');
+    } else {
+      // Blocking: Wait for completion (fallback)
+      const emailResult = await emailPromise;
+      if (!emailResult.success) {
+        console.error('[auth.server] Failed to send reset email:', emailResult.error);
+        return { success: false, error: 'Failed to send email. Please try again later.' };
+      }
     }
     
     return { success: true };
