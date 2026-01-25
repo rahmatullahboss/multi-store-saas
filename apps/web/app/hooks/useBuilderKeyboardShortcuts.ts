@@ -73,7 +73,7 @@ export function useBuilderKeyboardShortcuts(config: KeyboardShortcutsConfig) {
 
   // Detect Mac vs Windows/Linux
   const isMac =
-    typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    typeof navigator !== 'undefined' && (navigator.platform?.toUpperCase() || '').indexOf('MAC') >= 0;
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
