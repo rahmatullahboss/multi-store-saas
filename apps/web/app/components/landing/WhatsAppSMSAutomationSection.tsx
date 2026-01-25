@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { MessageCircle, Smartphone, Bell, Clock, Zap, ShoppingCart, Truck, Gift, Check } from 'lucide-react';
+import { MessageCircle, Bell, Zap, ShoppingCart, Truck, Gift, Check } from 'lucide-react';
 
 export function WhatsAppSMSAutomationSection() {
   const containerRef = useRef<HTMLDivElement>(null);

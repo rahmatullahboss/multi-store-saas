@@ -1,5 +1,5 @@
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and, gt, lt, isNull, or, desc } from 'drizzle-orm';
+import { eq, and, gt, lt, desc } from 'drizzle-orm';
 import { discounts } from '@db/schema';
 
 export type DiscountResult = {
@@ -42,7 +42,7 @@ export async function validateDiscount(
   storeId: number,
   code: string,
   cartTotal: number,
-  customerEmail?: string
+  _customerEmail?: string
 ): Promise<DiscountResult> {
   const discount = await db
     .select()

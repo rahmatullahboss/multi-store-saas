@@ -5,9 +5,9 @@
  */
 
 import { Hono } from 'hono';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { customers, orders, orderItems, products, type NewOrder, type NewOrderItem } from '@db/schema';
+import { customers, orders, orderItems, products, type NewOrderItem } from '@db/schema';
 import type { TenantEnv, TenantContext } from '../../middleware/tenant';
 import { recalculateCustomerSegment } from '../../services/customer-segmentation';
 
@@ -123,7 +123,8 @@ ordersApi.post('/', async (c) => {
     .from(products)
     .where(
       and(
-        eq(products.storeId, storeId)
+        eq(products.storeId, storeId),
+        inArray(products.id, productIds)
       )
     );
   
@@ -268,7 +269,7 @@ ordersApi.post('/', async (c) => {
           created_at: order.createdAt
         }
       });
-      console.log(`[Webhook] Dispatched orders/create for Order #${order.id}`);
+      // console.log(`[Webhook] Dispatched orders/create for Order #${order.id}`);
     } else {
       console.warn('[Webhook] WEBHOOK_QUEUE not bound');
     }

@@ -1,7 +1,6 @@
 import { useRef } from 'react';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
-import { Truck, Package, MapPin, Printer, CheckCircle2, Clock, ArrowRight, Wallet, BarChart3, MessageSquare } from 'lucide-react';
-import { OptimizedImage } from '~/components/OptimizedImage';
+import { Truck, Package, MapPin, Printer, CheckCircle2, Wallet } from 'lucide-react';
 
 export function CourierIntegrationSection() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -62,7 +61,7 @@ export function CourierIntegrationSection() {
                 Integrated Partners
               </h3>
               <div className="grid grid-cols-3 gap-6">
-                {couriers.map((courier, idx) => (
+                {couriers.map((courier) => (
                   <motion.div
                     key={courier.name}
                     whileHover={{ scale: 1.05 }}

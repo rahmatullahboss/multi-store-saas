@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Users, Shield, Lock, Eye, CheckCircle2, UserPlus } from 'lucide-react';
+import { Users, Shield, Lock, CheckCircle2, UserPlus } from 'lucide-react';
 
 export function TeamManagementSection() {
   const containerRef = useRef<HTMLDivElement>(null);

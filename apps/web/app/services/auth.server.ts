@@ -7,7 +7,7 @@
  * Uses Web Crypto API for password hashing (Cloudflare Workers compatible)
  */
 
-import { createCookieSessionStorage, redirect } from '@remix-run/cloudflare';
+import { createCookieSessionStorage, redirect, type Session } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { users, stores, adminRoles, passwordResets } from '@db/schema';
@@ -77,12 +77,12 @@ export async function getSession(request: Request, env: Env) {
   return storage.getSession(request.headers.get('Cookie'));
 }
 
-export async function commitSession(session: any, env: Env) {
+export async function commitSession(session: Session, env: Env) {
   const storage = getSessionStorage(env);
   return storage.commitSession(session);
 }
 
-export async function destroySession(session: any, env: Env) {
+export async function destroySession(session: Session, env: Env) {
   const storage = getSessionStorage(env);
   return storage.destroySession(session);
 }
@@ -206,7 +206,7 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
   errorDetails?: string;
 }> {
   const normalizedEmail = email.toLowerCase().trim();
-  console.log('[login] Attempting login for email:', normalizedEmail);
+  // console.log('[login] Attempting login for email:', normalizedEmail);
   const { logSystemEvent } = await import('./logger.server');
   const { checkLoginAnomalies } = await import('./security.server');
 
@@ -215,7 +215,7 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
     const drizzleDb = drizzle(db);
     
     // Step 1: Find user by email
-    console.log('[login] Step 1: Querying database for user...');
+    // console.log('[login] Step 1: Querying database for user...');
     let userResult;
     try {
       userResult = await drizzleDb
@@ -223,7 +223,7 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
         .from(users)
         .where(eq(users.email, normalizedEmail))
         .limit(1);
-      console.log('[login] User query completed. Found:', userResult.length, 'user(s)');
+      // console.log('[login] User query completed. Found:', userResult.length, 'user(s)');
     } catch (dbError) {
       console.error('[login] Database error during user lookup:', dbError);
       const errorMessage = dbError instanceof Error ? dbError.message : String(dbError);
@@ -236,7 +236,7 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
     
     // Step 2: Check if user exists
     if (!userResult || userResult.length === 0) {
-      console.log('[login] User not found for email:', normalizedEmail);
+      console.warn('[login] User not found for email:', normalizedEmail);
 
       // Log security event
       await logSystemEvent(
@@ -259,7 +259,7 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
     }
     
     const user = userResult[0];
-    console.log('[login] User found - ID:', user.id, ', Role:', user.role, ', StoreID:', user.storeId);
+    // console.log('[login] User found - ID:', user.id, ', Role:', user.role, ', StoreID:', user.storeId);
     
     // Step 3: Check if user has a store (for merchants)
     if (user.role === 'merchant' && !user.storeId) {
@@ -272,11 +272,9 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
     }
     
     // Step 4: Verify password
-    console.log('[login] Step 4: Verifying password...');
     let isValid;
     try {
       isValid = await verifyPassword(password, user.passwordHash);
-      console.log('[login] Password verification result:', isValid ? 'VALID' : 'INVALID');
     } catch (cryptoError) {
       console.error('[login] Crypto error during password verification:', cryptoError);
       const errorMessage = cryptoError instanceof Error ? cryptoError.message : String(cryptoError);
@@ -288,7 +286,7 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
     }
     
     if (!isValid) {
-      console.log('[login] Invalid password for user:', user.id);
+      console.warn('[login] Invalid password for user:', user.id);
 
       // Log security event
       await logSystemEvent(
@@ -312,7 +310,7 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
     
     // Step 5: Check if user's store exists (for merchants)
     if (user.role === 'merchant' && user.storeId) {
-      console.log('[login] Step 5: Verifying store exists...');
+      // console.log('[login] Step 5: Verifying store exists...');
       try {
         const storeResult = await drizzleDb
           .select({ id: stores.id, name: stores.name, subdomain: stores.subdomain })
@@ -328,7 +326,7 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
             errorDetails: `Store ${user.storeId} not found for user ${user.id}`,
           };
         }
-        console.log('[login] Store verified:', storeResult[0].name, '(', storeResult[0].subdomain, ')');
+        // console.log('[login] Store verified:', storeResult[0].name, '(', storeResult[0].subdomain, ')');
       } catch (storeError) {
         console.error('[login] Database error during store lookup:', storeError);
         // Don't block login for store lookup errors, just log it
@@ -336,7 +334,7 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
       }
     }
     
-    console.log('[login] Login successful for user:', user.id);
+    console.warn('[login] Login successful for user:', user.id);
     return { user };
     
   } catch (error) {
@@ -374,7 +372,7 @@ export async function requestPasswordReset(
   email: string, 
   db: D1Database, 
   env: Env,
-  ctx?: { waitUntil: (promise: Promise<any>) => void }
+  ctx?: { waitUntil: (promise: Promise<unknown>) => void }
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const drizzleDb = drizzle(db);
@@ -389,7 +387,7 @@ export async function requestPasswordReset(
     if (!userResult || userResult.length === 0) {
       // Security: Don't reveal if user exists. Pretend success.
       // Log for debugging/audit
-      console.log('[auth.server] Password reset requested for non-existent email:', email);
+      console.warn('[auth.server] Password reset requested for non-existent email:', email);
       return { success: true };
     }
     
@@ -410,7 +408,7 @@ export async function requestPasswordReset(
       expiresAt,
     });
     
-    console.log('[auth.server] Created password reset token for user:', user.id);
+    console.info('[auth.server] Created password reset token for user:', user.id);
     
     // Send email
     const emailPromise = sendPasswordResetEmail(email.toLowerCase(), token, env);
@@ -418,7 +416,7 @@ export async function requestPasswordReset(
     if (ctx && typeof ctx.waitUntil === 'function') {
       // Non-blocking: Send in background
       ctx.waitUntil(emailPromise);
-      console.log('[auth.server] Email sending delegated to background worker');
+      // console.log('[auth.server] Email sending delegated to background worker');
     } else {
       // Blocking: Wait for completion (fallback)
       const emailResult = await emailPromise;
@@ -480,7 +478,7 @@ export async function resetPassword(token: string, newPassword: string, db: D1Da
     await drizzleDb.delete(passwordResets)
       .where(eq(passwordResets.id, reset.id));
       
-    console.log('[auth.server] Password successfully reset for user:', reset.userId);
+    console.warn('[auth.server] Password successfully reset for user:', reset.userId);
     
     return { success: true };
     
@@ -505,7 +503,7 @@ export async function register({ email, password, name, phone, storeName, subdom
       .limit(1);
     
     if (existingUser.length > 0) {
-      console.log('[register] Email already exists:', email.toLowerCase());
+      console.warn('[register] Email already exists:', email.toLowerCase());
       return { error: 'Email already registered' };
     }
     
@@ -529,7 +527,7 @@ export async function register({ email, password, name, phone, storeName, subdom
       .limit(1);
     
     if (existingStore.length > 0) {
-      console.log('[register] Subdomain already taken:', subdomain);
+      console.warn('[register] Subdomain already taken:', subdomain);
       return { error: `The subdomain "${subdomain}" is already taken. Please choose a different one.` };
     }
     
@@ -626,7 +624,7 @@ export async function createGoogleUser(email: string, name: string, db: D1Databa
       return { error: 'Failed to create user', user: null };
     }
     
-    console.log('[createGoogleUser] Created Google user:', email);
+    console.warn('[createGoogleUser] Created Google user:', email);
     return { user: result[0], error: null };
   } catch (error) {
     console.error('[createGoogleUser] Error:', error);
@@ -681,7 +679,7 @@ export async function completeGoogleUserProfile({
       subdomain: subdomain.toLowerCase(),
       currency: 'BDT',
       onboardingStatus: 'completed',
-    } as any).returning({ id: stores.id });
+    }).returning({ id: stores.id });
     
     if (!storeResult || storeResult.length === 0) {
       return { error: 'Failed to create store', storeId: null };
@@ -695,7 +693,7 @@ export async function completeGoogleUserProfile({
       .set({ storeId, phone })
       .where(eq(users.id, userId));
     
-    console.log('[completeGoogleUserProfile] Completed profile for user:', userId, 'store:', storeId);
+    console.warn('[completeGoogleUserProfile] Completed profile for user:', userId, 'store:', storeId);
     return { storeId, error: null };
   } catch (error) {
     console.error('[completeGoogleUserProfile] Error:', error);

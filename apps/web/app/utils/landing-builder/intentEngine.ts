@@ -222,7 +222,11 @@ export function getTemplateSuggestions(intent: Intent): string[] {
   }
 
   // Ensure unique and max 3
-  return Array.from(new Set(suggestions)).slice(0, 3);
+  // return Array.from(new Set(suggestions)).slice(0, 3);
+  
+  // NEW: Return ALL templates, but prioritize suggestions at the top
+  const finalSuggestions = Array.from(new Set([...suggestions, ...allTemplates]));
+  return finalSuggestions;
 }
 
 /**
