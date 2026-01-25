@@ -19,7 +19,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, products, users } from '@db/schema';
 import { accountInfoSchema, storeInfoSchema, bdPhoneSchema, emailSchema } from '~/lib/validations/auth';
-import { getUserId, register, createUserSession } from '~/services/auth.server';
+import { getUserId, register, createUserSession, getSession, commitSession } from '~/services/auth.server';
 import { seedDefaultTheme } from '~/lib/theme-seeding.server';
 import { OnboardingSteps } from '~/components/onboarding/OnboardingSteps';
 import { AISetupProgress } from '~/components/onboarding/AISetupProgress';
@@ -415,13 +415,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       console.log('[Onboarding] Store created successfully:', storeName, '| Plan:', selectedPlan, '| TRX:', transactionId || 'N/A');
 
-      // 7. Create session and redirect
-      return await createUserSession(
-        result.user!.id,
-        storeId,
-        '/app/orders?onboarding=success',
-        env
-      );
+      // 7. Create session and return JSON for client-side hard redirect
+      // We use a hard redirect (window.location) to prevent White Screen/Hydration issues
+      // that can occur with soft navigation after heavy onboarding operations.
+      // NOTE: We create a fresh session to ensure clean state
+      const session = await getSession(new Request('http://localhost'), env);
+      session.set('userId', result.user!.id);
+      session.set('storeId', storeId);
+      
+      return json({
+        success: true,
+        redirectUrl: '/app/orders?onboarding=success',
+      }, {
+        headers: {
+          'Set-Cookie': await commitSession(session, env),
+        }
+      });
     } catch (error) {
       console.error('[Onboarding] Error:', error);
       return json({
@@ -437,6 +446,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
+  const [animationDone, setAnimationDone] = useState(false);
   const [copied, setCopied] = useState(false);
 
   // Form state including plan and payment
@@ -457,7 +468,7 @@ export default function OnboardingPage() {
   const [storeCreationFailed, setStoreCreationFailed] = useState(false);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const [isCheckingSubdomain, setIsCheckingSubdomain] = useState(false);
-  const fetcher = useFetcher<{ success?: boolean; error?: string; errorEn?: string; step?: number; emailExists?: boolean; phoneExists?: boolean; emailAvailable?: boolean; subdomainAvailable?: boolean; subdomainTaken?: boolean }>();
+  const fetcher = useFetcher<{ success?: boolean; error?: string; errorEn?: string; step?: number; emailExists?: boolean; phoneExists?: boolean; emailAvailable?: boolean; subdomainAvailable?: boolean; subdomainTaken?: boolean; redirectUrl?: string }>();
 
   const { t, lang: language } = useTranslation();
 
@@ -469,6 +480,11 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (fetcher.data === lastFetcherData.current) return;
     lastFetcherData.current = fetcher.data;
+
+    // FIX: Force hard redirect on success to prevent White Screen/Hydration issues
+    if (fetcher.data?.redirectUrl) {
+      setPendingRedirect(fetcher.data.redirectUrl);
+    }
 
     if (fetcher.data?.emailAvailable) {
       setIsCheckingEmail(false);
@@ -496,6 +512,13 @@ export default function OnboardingPage() {
       }
     }
   }, [fetcher.data]);
+
+  // Execute redirect when both server is ready and animation is done
+  useEffect(() => {
+    if (pendingRedirect && animationDone) {
+      window.location.href = pendingRedirect;
+    }
+  }, [pendingRedirect, animationDone]);
 
   // Track if subdomain was manually edited
   const [subdomainManuallyEdited, setSubdomainManuallyEdited] = useState(false);
@@ -1019,7 +1042,7 @@ export default function OnboardingPage() {
                 isGenerating={isGenerating || isSubmitting}
                 hasError={storeCreationFailed}
                 errorMessage={errors.form}
-                onComplete={() => { }}
+                onComplete={() => setAnimationDone(true)}
               />
 
               {/* Payment Pending Notice (for paid plans) */}

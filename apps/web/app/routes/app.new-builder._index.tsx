@@ -6,7 +6,7 @@
  * UPGRADED: Now uses Intent Wizard for smart, conversion-optimized page creation.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { json, redirect } from '@remix-run/cloudflare';
 import { useLoaderData, useNavigate, useFetcher } from '@remix-run/react';
 import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/cloudflare';
@@ -291,9 +291,12 @@ export default function NewBuilderIndex() {
   };
 
   // Handle redirect after successful creation
-  if (fetcher.data?.success && fetcher.data.redirectTo) {
-    navigate(fetcher.data.redirectTo);
-  }
+  useEffect(() => {
+    if (fetcher.data?.success && fetcher.data.redirectTo) {
+      // FORCE RELOAD to avoid white screen issue in Builder
+      window.location.href = fetcher.data.redirectTo;
+    }
+  }, [fetcher.data]);
 
   // Legacy handler for old template gallery (kept for backwards compatibility)
   const handleCreatePage = (templateId: string, slug: string, title: string) => {
