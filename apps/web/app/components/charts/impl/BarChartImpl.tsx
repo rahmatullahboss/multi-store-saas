@@ -38,7 +38,7 @@ export default function BarChartImpl({
   showLegend = false,
 }: BarChartImplProps) {
   return (
-    <ResponsiveContainer width="100%" height={height}>
+    <ResponsiveContainer width="100%" height={height} initialDimension={{ width: 500, height }}>
       <BarChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
         {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />}
         <XAxis dataKey={xAxisKey} stroke="#9ca3af" fontSize={12} />

@@ -52,7 +52,7 @@ const RechartsComponents = lazy(() =>
     default: ({ data, formatCurrency }: { data: any[]; formatCurrency: (val: number) => string }) => {
       const { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = mod;
       return (
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 500, height: 300 }}>
           <AreaChart data={data}>
             <defs>
               <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">

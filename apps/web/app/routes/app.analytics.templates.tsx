@@ -6,17 +6,6 @@ import { eq, desc, sql } from 'drizzle-orm';
 import { stores, templateAnalytics } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  Legend
-} from 'recharts';
-import {
   TrendingUp,
   ShoppingCart,
   Eye,
@@ -28,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { LANDING_TEMPLATES } from '~/components/landing-builder';
-import { ClientOnly } from '~/components/LazySection';
+import { ClientChart } from '~/components/charts/ClientCharts';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Template Analytics - Ozzyl' }];
@@ -184,31 +173,33 @@ export default function TemplateAnalyticsPage() {
           </h2>
           <div className="h-[350px] w-full">
             {chartData.length > 0 ? (
-              <ClientOnly fallback={<div className="h-[350px] bg-gray-50 rounded animate-pulse" />}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                    <XAxis
-                      dataKey="name"
-                      angle={-45}
-                      textAnchor="end"
-                      interval={0}
-                      height={80}
-                      tick={{ fontSize: 12, fill: '#64748b' }}
-                    />
-                    <YAxis tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val) => `${val}%`} />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(243, 244, 246, 0.5)' }}
-                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                    />
-                    <Bar dataKey="convRate" name="Conv. Rate" radius={[4, 4, 0, 0]} barSize={40}>
-                      {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </ClientOnly>
+              <ClientChart height={350} fallback={<div className="h-[350px] bg-gray-50 rounded animate-pulse" />}>
+                {({ BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell }) => (
+                  <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 500, height: 350 }}>
+                    <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                      <XAxis
+                        dataKey="name"
+                        angle={-45}
+                        textAnchor="end"
+                        interval={0}
+                        height={80}
+                        tick={{ fontSize: 12, fill: '#64748b' }}
+                      />
+                      <YAxis tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val: number) => `${val}%`} />
+                      <Tooltip
+                        cursor={{ fill: 'rgba(243, 244, 246, 0.5)' }}
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                      />
+                      <Bar dataKey="convRate" name="Conv. Rate" radius={[4, 4, 0, 0]} barSize={40}>
+                        {chartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </ClientChart>
             ) : (
               <div className="h-full flex items-center justify-center text-gray-400">
                 {lang === 'bn' ? 'পর্যাপ্ত ডাটা নেই' : 'No data available yet'}
