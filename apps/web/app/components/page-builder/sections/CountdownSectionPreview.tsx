@@ -22,8 +22,8 @@ interface TimeLeft {
 
 function calculateTimeLeft(endDate: string, endTime: string): TimeLeft {
   if (!endDate) {
-    // Demo mode - show sample countdown
-    return { days: 2, hours: 14, minutes: 30, seconds: 45, isExpired: false };
+    // No end date provided - default to 0 (expired) to avoid fake urgency by default
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true };
   }
   
   const targetDate = new Date(`${endDate}T${endTime || '23:59'}:00`);

@@ -76,6 +76,7 @@ const STORE_SECTION_COMPONENTS: Record<string, React.LazyExoticComponent<React.C
   'features': React.lazy(() => import('./sections/common/FeaturesSection')),
   'testimonials': React.lazy(() => import('./sections/common/TestimonialsSection')),
   'faq': React.lazy(() => import('./sections/common/FAQSection')),
+  'social-proof': React.lazy(() => import('./sections/common/SocialProofSection')),
 };
 
 // ============================================================================

@@ -711,9 +711,80 @@ export const ContactPropsSchema = z.object({
 });
 export type ContactProps = z.infer<typeof ContactPropsSchema>;
 
+
 // ============================================================================
-// FOOTER SECTION - Page footer with social links and contact info
+// SOCIAL PROOF SECTION - New Configurable Section
 // ============================================================================
+export const SocialProofPropsSchema = z.object({
+  // Display Toggles
+  display: z.object({
+    social: z.boolean().default(true),
+    features: z.boolean().default(true),
+    testimonials: z.boolean().default(true),
+    gallery: z.boolean().default(true),
+  }).default({
+    social: true,
+    features: true,
+    testimonials: true,
+    gallery: true,
+  }),
+
+  // Style Config
+  style: z.enum(['default', 'dark', 'brand', 'green', 'red']).default('default'),
+  
+  // Custom Override Colors (Optional)
+  customColors: z.object({
+    background: z.string().optional(),
+    text: z.string().optional(),
+  }).optional(),
+
+  // Content for each subsection
+  // 1. Social Stats
+  socialTitle: z.string().default('Trusted by thousands'),
+  socialStats: z.array(z.object({
+    value: z.string(),
+    label: z.string(),
+    icon: z.string().optional(),
+  })).default([
+      { value: '1,200+', label: 'Happy Customers', icon: 'Users' },
+      { value: '500+', label: 'Orders This Month', icon: 'ShoppingBag' },
+      { value: '4.9/5', label: 'Average Rating', icon: 'Star' },
+  ]),
+
+  // 2. Features (Why Buy)
+  featuresTitle: z.string().default('Why Buy From Us?'),
+  features: z.array(z.object({
+    title: z.string(),
+    description: z.string(),
+    icon: z.string().optional(),
+  })).default([
+      { title: 'Premium Quality', description: 'Certified authentic products', icon: 'Award' },
+      { title: 'Fast Delivery', description: '24-48 hours delivery time', icon: 'Truck' },
+      { title: 'Best Support', description: '24/7 customer support', icon: 'Headphones' },
+  ]),
+
+  // 3. Testimonials
+  testimonialsTitle: z.string().default('Customer Stories'),
+  testimonials: z.array(z.object({
+    name: z.string(),
+    text: z.string(),
+    rating: z.number().default(5),
+    avatar: z.string().optional(),
+  })).default([
+    { name: 'Rahim Ahmed', text: 'Amazing product! Delivered very fast.', rating: 5 },
+    { name: 'Karim Uddin', text: 'Best quality I have seen in a while.', rating: 5 },
+  ]),
+
+  // 4. Gallery
+  galleryTitle: z.string().default('Customer Photos'),
+  galleryImages: z.array(z.string()).default([
+    'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&q=80',
+    'https://images.unsplash.com/photo-1610465299993-e634709fdb1e?w=800&q=80',
+    'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80'
+  ]),
+});
+export type SocialProofProps = z.infer<typeof SocialProofPropsSchema>;
+
 const SocialLinkSchema = z.object({
   platform: z.enum(['facebook', 'instagram', 'youtube', 'tiktok', 'whatsapp', 'telegram']),
   url: z.string(),
@@ -762,6 +833,7 @@ export const SectionSchemas: Record<string, z.ZodTypeAny> = {
   'video': VideoPropsSchema,
   'cta': CTAPropsSchema,
   'trust-badges': TrustBadgesPropsSchema,
+  'trust': TrustBadgesPropsSchema,
   'benefits': BenefitsPropsSchema,
   'comparison': ComparisonPropsSchema,
   'delivery': DeliveryPropsSchema,
@@ -776,6 +848,8 @@ export const SectionSchemas: Record<string, z.ZodTypeAny> = {
   'header': HeaderPropsSchema,
   'countdown': CountdownPropsSchema,
   'stats': StatsPropsSchema,
+  'social': StatsPropsSchema, // Alias for legacy social proof stats
+  'social-proof': SocialProofPropsSchema, // New full social proof section
   'contact': ContactPropsSchema,
   'footer': FooterPropsSchema,
 };
@@ -790,7 +864,7 @@ export function validateSectionProps(type: string, props: unknown) {
     return { success: false as const, error: `Unknown section type: ${type}` };
   }
   
-  const result = schema.safeParse(props);
+  const result = (schema as z.AnyZodObject).passthrough().safeParse(props);
   if (result.success) {
     return { success: true as const, data: result.data };
   }

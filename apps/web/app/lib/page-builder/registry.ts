@@ -129,6 +129,16 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
     schema: TrustBadgesPropsSchema,
     defaultProps: TrustBadgesPropsSchema.parse({}),
   },
+  'trust': {
+    type: 'trust-badges',
+    name: 'ট্রাস্ট ব্যাজ',
+    nameEn: 'Trust Badges',
+    description: 'গ্যারান্টি ও নিরাপত্তা',
+    descriptionEn: 'Guarantee & safety',
+    icon: 'ShieldCheck',
+    schema: TrustBadgesPropsSchema,
+    defaultProps: TrustBadgesPropsSchema.parse({}),
+  },
   'benefits': {
     type: 'benefits',
     name: 'কেন কিনবেন',
@@ -290,6 +300,16 @@ export const SECTION_REGISTRY: Record<SectionType, SectionRegistryEntry> = {
     defaultProps: FooterPropsSchema.parse({}),
   },
   'social-proof': {
+    type: 'social-proof',
+    name: 'সোশ্যাল প্রুফ',
+    nameEn: 'Social Proof',
+    description: 'বিশ্বাসযোগ্যতা বাড়াতে সোশ্যাল প্রুফ',
+    descriptionEn: 'Social proof for credibility',
+    icon: 'Users',
+    schema: StatsPropsSchema, // Reuse stats schema
+    defaultProps: { count: 1000, text: 'সন্তুষ্ট গ্রাহক' },
+  },
+  'social': {
     type: 'social-proof',
     name: 'সোশ্যাল প্রুফ',
     nameEn: 'Social Proof',

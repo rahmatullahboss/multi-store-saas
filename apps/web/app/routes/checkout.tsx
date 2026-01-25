@@ -16,6 +16,58 @@ import { eq, and, inArray, desc } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { products, stores, orderBumps, type Store } from '@db/schema';
 import { parseThemeConfig, parseSocialLinks } from '@db/types';
+
+interface CartItem {
+    productId: number;
+    quantity: number;
+    variantId?: number;
+}
+
+interface CartProduct {
+    id: number;
+    title: string;
+    price: number;
+    imageUrl: string | null;
+    inventory: number;
+    isPublished: boolean;
+}
+
+interface BumpProduct {
+    id: number;
+    title?: string;
+    productTitle?: string;
+    productImage?: string | null;
+    originalPrice: number;
+    discountedPrice: number;
+    discount: number;
+}
+
+interface Discount {
+    code: string;
+    amount: number;
+}
+
+interface FetcherData {
+    products?: CartProduct[];
+    discountResult?: {
+        isValid: boolean;
+        error?: string;
+        discount?: Discount;
+    };
+}
+
+interface OrderFetcherData {
+    success?: boolean;
+    orderId?: string;
+    total?: number;
+    upsellUrl?: string;
+    orderNumber?: string;
+    error?: string;
+}
+
+interface ManualPaymentConfig {
+    [key: string]: string | number | boolean | null | undefined;
+}
 import { useTranslation } from '~/contexts/LanguageContext';
 import { trackingEvents } from '~/utils/tracking';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
@@ -85,7 +137,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .limit(3);
   
   // Fetch details for bump products
-  let bumpProducts: any[] = [];
+  let bumpProducts: BumpProduct[] = [];
   if (bumps.length > 0) {
     const bumpProductIds = bumps.map(b => b.bumpProductId);
     const pResults = await db.select().from(products)
@@ -99,9 +151,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
             productTitle: product.title,
             productImage: product.imageUrl,
             originalPrice: product.price,
-            discountedPrice: bump.discount ? Math.round(product.price * (1 - bump.discount / 100)) : product.price
+            discountedPrice: bump.discount ? Math.round(product.price * (1 - bump.discount / 100)) : product.price,
+            discount: bump.discount || 0
         };
-    }).filter(Boolean);
+    }).filter(Boolean) as BumpProduct[];
   }
 
   // Load customer session for Google Sign-In header
@@ -175,7 +228,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export default function Checkout() {
   const { 
     storeId, storeName, logo, currency, storeTemplateId, theme, 
-    socialLinks, businessInfo, shippingConfig, manualPaymentConfig, bumpProducts, facebookPixelId,
+    socialLinks, businessInfo, shippingConfig, manualPaymentConfig, bumpProducts,
     themeConfig,
     planType,
     customer
@@ -188,8 +241,8 @@ export default function Checkout() {
   const { t, lang } = useTranslation();
   
   // State
-  const [cartItems, setCartItems] = useState<any[]>([]);
-  const [cartProducts, setCartProducts] = useState<any[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartProducts, setCartProducts] = useState<CartProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   // Form State
@@ -209,10 +262,33 @@ export default function Checkout() {
 
   // Discount
   const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<Discount | null>(null);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   const primaryColor = theme.primary;
+
+  // Calculations
+  const subtotal = useMemo(() => {
+    return cartItems.reduce((sum, item) => {
+        const product = cartProducts.find(p => p.id === item.productId);
+        return sum + (product ? product.price * item.quantity : 0);
+    }, 0);
+  }, [cartItems, cartProducts]);
+
+  const shippingCost = useMemo(() => {
+    if (!shippingConfig.enabled) return 0;
+    if (shippingConfig.freeShippingAbove && subtotal >= shippingConfig.freeShippingAbove) return 0;
+    return division === 'dhaka' ? shippingConfig.insideDhaka : shippingConfig.outsideDhaka;
+  }, [subtotal, division, shippingConfig]);
+
+  const bumpTotal = useMemo(() => {
+    return selectedBumps.reduce((sum, bumpId) => {
+        const bump = bumpProducts.find((b) => b.id === bumpId);
+        return sum + (bump ? bump.discountedPrice : 0);
+    }, 0);
+  }, [selectedBumps, bumpProducts]);
+
+  const total = Math.max(0, subtotal + shippingCost + bumpTotal - (appliedCoupon?.amount || 0));
 
   // Load cart from local storage
   useEffect(() => {
@@ -222,7 +298,7 @@ export default function Checkout() {
       if (parsed.length > 0) {
         setCartItems(parsed);
         // Fetch product details
-        const ids = parsed.map((item: any) => item.productId).join(',');
+        const ids = parsed.map((item: CartItem) => item.productId).join(',');
         fetcher.submit({ intent: 'get-products', productIds: ids }, { method: 'post' });
       } else {
         setIsLoading(false);
@@ -230,7 +306,7 @@ export default function Checkout() {
     } else {
       setIsLoading(false);
     }
-  }, []);
+  }, [fetcher]);
 
   // Auto-apply Discount from URL
   useEffect(() => {
@@ -245,12 +321,12 @@ export default function Checkout() {
             { method: 'post' }
         );
     }
-  }, [searchParams]); 
+  }, [searchParams, appliedCoupon, isApplyingCoupon, subtotal, fetcher]); 
 
   // Handle fetcher response for products
   useEffect(() => {
     if (fetcher.data) {
-        const data = fetcher.data as any;
+        const data = fetcher.data as FetcherData;
         if (data.products) {
             setCartProducts(data.products);
             setIsLoading(false);
@@ -258,7 +334,7 @@ export default function Checkout() {
         if (data.discountResult) {
             setIsApplyingCoupon(false);
             if (data.discountResult.isValid) {
-                setAppliedCoupon(data.discountResult.discount);
+                setAppliedCoupon(data.discountResult.discount || null); // FIX: handle undefined
                 toast.success('Coupon applied!');
             } else {
                 setAppliedCoupon(null);
@@ -271,7 +347,7 @@ export default function Checkout() {
   // Handle Order Submission Response
   useEffect(() => {
     if (orderFetcher.data) {
-        const data = orderFetcher.data as any;
+        const data = orderFetcher.data as OrderFetcherData;
         if (data.success) {
             
             // Fire Purchase Event
@@ -288,8 +364,8 @@ export default function Checkout() {
             });
 
             trackingEvents.purchase({
-                orderId: data.orderId,
-                value: data.total,
+                orderId: data.orderId || '',
+                value: data.total || 0,
                 currency: currency,
                 items: trackingItems
             });
@@ -309,28 +385,7 @@ export default function Checkout() {
     }
   }, [orderFetcher.data, navigate, currency, cartItems, cartProducts]);
 
-  // Calculations
-  const subtotal = useMemo(() => {
-    return cartItems.reduce((sum, item) => {
-        const product = cartProducts.find(p => p.id === item.productId);
-        return sum + (product ? product.price * item.quantity : 0);
-    }, 0);
-  }, [cartItems, cartProducts]);
-
-  const shippingCost = useMemo(() => {
-    if (!shippingConfig.enabled) return 0;
-    if (shippingConfig.freeShippingAbove && subtotal >= shippingConfig.freeShippingAbove) return 0;
-    return division === 'dhaka' ? shippingConfig.insideDhaka : shippingConfig.outsideDhaka;
-  }, [subtotal, division, shippingConfig]);
-
-  const bumpTotal = useMemo(() => {
-    return selectedBumps.reduce((sum, bumpId) => {
-        const bump = (bumpProducts as any[]).find((b: any) => b.id === bumpId);
-        return sum + (bump ? bump.discountedPrice : 0);
-    }, 0);
-  }, [selectedBumps, bumpProducts]);
-
-  const total = Math.max(0, subtotal + shippingCost + bumpTotal - (appliedCoupon?.amount || 0));
+  // Calculations already defined above
 
   const handleApplyCoupon = () => {
     if (!couponCode) return;
@@ -513,7 +568,7 @@ export default function Checkout() {
                     {lang === 'bn' ? 'পেমেন্ট মেথড' : 'Payment Method'}
                 </h2>
                 <PaymentMethodSelector 
-                    config={manualPaymentConfig as any}
+                    config={manualPaymentConfig as ManualPaymentConfig}
                     selectedMethod={paymentMethod}
                     onMethodChange={setPaymentMethod}
                     onTransactionIdChange={setTrxId}
@@ -558,7 +613,7 @@ export default function Checkout() {
                             🔥 {lang === 'bn' ? 'স্পেশাল অফার!' : 'Limited Time Offer!'}
                         </p>
                         <div className="space-y-3">
-                            {bumpProducts.map((bump: any) => (
+                            {bumpProducts.map((bump) => (
                                 <label key={bump.id} className="flex items-start gap-3 cursor-pointer group">
                                     <input 
                                         type="checkbox" 
@@ -741,7 +796,7 @@ export default function Checkout() {
                             {lang === 'bn' ? 'পেমেন্ট মেথড' : 'Payment Method'}
                         </h2>
                         <PaymentMethodSelector 
-                            config={manualPaymentConfig as any}
+                            config={manualPaymentConfig as ManualPaymentConfig}
                             selectedMethod={paymentMethod}
                             onMethodChange={setPaymentMethod}
                             onTransactionIdChange={setTrxId}
@@ -777,7 +832,7 @@ export default function Checkout() {
                             <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                                 <p className="text-sm font-bold text-yellow-800 mb-3">🔥 {lang === 'bn' ? 'স্পেশাল অফার!' : 'Limited Time Offer!'}</p>
                                 <div className="space-y-3">
-                                    {bumpProducts.map((bump: any) => (
+                                    {bumpProducts.map((bump) => (
                                         <label key={bump.id} className="flex items-start gap-3 cursor-pointer group">
                                             <input type="checkbox" checked={selectedBumps.includes(bump.id)} onChange={() => toggleBump(bump.id)} className="mt-1 w-4 h-4 text-blue-600 rounded border-gray-300" />
                                             <div className="flex-1"><p className="text-sm font-medium text-gray-800">{bump.title || bump.productTitle}</p><div className="flex items-center gap-2 mt-0.5"><span className="text-sm font-bold text-red-600">{currency} {bump.discountedPrice}</span>{bump.discount > 0 && <span className="text-xs text-gray-400 line-through">{currency} {bump.originalPrice}</span>}</div></div>{bump.productImage && <img src={bump.productImage} alt="" className="w-10 h-10 rounded object-cover" />}
@@ -855,7 +910,7 @@ export default function Checkout() {
                              <ShieldCheck className="w-5 h-5 text-blue-600" /> {lang === 'bn' ? 'পেমেন্ট' : 'Payment'}
                         </h2>
                         <PaymentMethodSelector 
-                            config={manualPaymentConfig as any}
+                            config={manualPaymentConfig as ManualPaymentConfig}
                             selectedMethod={paymentMethod}
                             onMethodChange={setPaymentMethod}
                             onTransactionIdChange={setTrxId}

@@ -49,13 +49,15 @@ export function SocialProofTestimonials({ title, testimonials }: SocialProofTest
                     )}
                   </div>
                   
-                  {/* Like count */}
+
+                  
+                  {/* Like count - OPTIONAL or default to 0 */}
                   <div className="flex items-center gap-1 mt-2 px-2">
                     <div className="flex -space-x-1">
                       <span className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-white text-[8px]">👍</span>
                       <span className="w-4 h-4 rounded-full bg-red-500 flex items-center justify-center text-white text-[8px]">❤️</span>
                     </div>
-                    <span className="text-xs text-gray-500">{Math.floor(Math.random() * 50) + 10}</span>
+                    <span className="text-xs text-gray-500">0</span>
                   </div>
                 </div>
               </div>

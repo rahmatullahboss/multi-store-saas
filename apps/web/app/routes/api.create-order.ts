@@ -451,7 +451,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // Fetch variants if involved
     const variantIds = orderItemsData.map(i => i.variantId).filter(Boolean) as number[];
-    let dbVariants: any[] = [];
+    let dbVariants: (typeof productVariants.$inferSelect)[] = [];
     if (variantIds.length > 0) {
       dbVariants = await db.select().from(productVariants)
         .where(inArray(productVariants.id, variantIds));
@@ -748,7 +748,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         orderNumber,
         status: 'pending',
         paymentStatus: 'pending',
-        paymentMethod: input.payment_method as any,
+        paymentMethod: input.payment_method as 'cod' | 'bkash' | 'nagad',
         transactionId: input.transaction_id || null,
         manualPaymentDetails: input.manual_payment_details ? JSON.stringify(input.manual_payment_details) : null,
         customerName: input.customer_name,

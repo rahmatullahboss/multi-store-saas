@@ -237,7 +237,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 type NavItem = {
   to: string;
   labelKey: TranslationKey;
-  icon: typeof LayoutDashboard;
+  icon: typeof LayoutDashboard | React.ComponentType<{ className?: string }>;
   isPaidOnly?: boolean; // Feature requires paid plan
   storeOnly?: boolean; // Only show when storeEnabled=true
   isExternal?: boolean; // Opens in new tab (for builder.ozzyl.com)
@@ -295,7 +295,7 @@ const navSections: NavSection[] = [
     titleKey: 'sidebarMarketing',
     items: [
       { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail },
-      { to: '/app/agent', labelKey: 'landingFinalCTA_aiAssistantName', icon: OzzylIcon as any },
+      { to: '/app/agent', labelKey: 'landingFinalCTA_aiAssistantName', icon: OzzylIcon },
       { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail },
       { to: '/app/push', labelKey: 'navPushNotifications', icon: Bell },
       { to: '/app/discounts', labelKey: 'navDiscounts', icon: Tag },

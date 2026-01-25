@@ -33,7 +33,10 @@ export type SectionType =
   | 'zenith-hero'
   | 'zenith-features'
   | 'turbo-hero'
-  | 'urgency-bar';
+  | 'turbo-hero'
+  | 'urgency-bar'
+  | 'social-proof';
+
 
 
 export interface SectionAction {
@@ -153,7 +156,9 @@ import { RelatedProductsSection } from './RelatedProductsSection';
 import { CollectionHeaderSection } from './CollectionHeaderSection';
 import { CartItemsSection } from './CartItemsSection';
 import { CartSummarySection } from './CartSummarySection';
-import { Layout, ShoppingBag, Mail, Grid3X3, Zap, Shield, Image, HelpCircle, FileText, Type, ImageIcon, Info, MessageSquare, Calculator, Star } from 'lucide-react';
+import { Layout, ShoppingBag, Mail, Grid3X3, Zap, Shield, Image, HelpCircle, FileText, Type, ImageIcon, Info, MessageSquare, Calculator, Star, Users } from 'lucide-react';
+import { SocialProofSectionPreview } from '../page-builder/sections/SocialProofSectionPreview';
+
 
 // We will populate this as we implement components
 export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
@@ -492,7 +497,23 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
     },
     component: FeaturesSection, // Placeholder
     allowedPages: ['home']
- }
+ },
+ 'social-proof': {
+    type: 'social-proof',
+    name: 'Social Proof',
+    icon: 'Users',
+    description: 'Build trust with stats, reviews, and media.',
+    defaultSettings: {
+      display: { social: true, features: true, testimonials: true, gallery: true },
+      style: 'default',
+      socialTitle: 'Trusted by thousands',
+      featuresTitle: 'Why Buy From Us?',
+      testimonialsTitle: 'Customer Stories',
+      galleryTitle: 'Customer Photos'
+    },
+    component: SocialProofSectionPreview as any,
+    allowedPages: ['home', 'product']
+  }
 };
 
 
