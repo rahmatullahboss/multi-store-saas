@@ -1,6 +1,6 @@
 /**
  * Products Listing Page (Storefront)
- * 
+ *
  * Public-facing products catalog page for customers.
  * Uses StorePageWrapper for consistent template styling.
  * Supports category filtering via URL params.
@@ -8,6 +8,7 @@
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import { useLoaderData, Link, useSearchParams } from '@remix-run/react';
+import { useTranslation } from 'react-i18next';
 import { eq, and, desc, asc, gte, lte } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { resolveStore } from '~/lib/store.server';
@@ -15,7 +16,14 @@ import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { getStoreConfig } from '~/services/store-config.server';
 import { products, stores } from '@db/schema';
-import { parseThemeConfig, parseSocialLinks, parseFooterConfig, type ThemeConfig, type SocialLinks, type FooterConfig } from '@db/types';
+import {
+  parseThemeConfig,
+  parseSocialLinks,
+  parseFooterConfig,
+  type ThemeConfig,
+  type SocialLinks,
+  type FooterConfig,
+} from '@db/types';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { ShoppingBag, Filter, ChevronRight, Grid, List } from 'lucide-react';
@@ -45,32 +53,29 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data?.storeName) {
     return [{ title: 'Products' }];
   }
-  
-  const title = data.currentCategory 
+
+  const title = data.currentCategory
     ? `${data.currentCategory} - ${data.storeName}`
     : `All Products - ${data.storeName}`;
-  
-  return [
-    { title },
-    { name: 'description', content: `Shop all products at ${data.storeName}` },
-  ];
+
+  return [{ title }, { name: 'description', content: `Shop all products at ${data.storeName}` }];
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   // Resolve store (handles both production and development mode)
   const storeContext = await resolveStore(context, request);
-  
+
   if (!storeContext) {
     throw new Response('Store not found. Please check your store configuration.', { status: 404 });
   }
-  
+
   const { storeId, store } = storeContext;
   const db = createDb(context.cloudflare.env.DB);
   const cache = new D1Cache(db);
-  
+
   // Use cached store configuration
   const storeConfig = await getStoreConfig(db, cache, storeId);
-  
+
   if (!storeConfig) {
     throw new Response('Store configuration not found', { status: 404 });
   }
@@ -78,26 +83,32 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const { themeConfig, businessInfo, footerConfig } = storeConfig;
   const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
   const theme = getStoreTemplateTheme(storeTemplateId);
-  const socialLinks = storeConfig.socialLinks ? storeConfig.socialLinks : parseSocialLinks(store.socialLinks as string | null);
-  
+  const socialLinks = storeConfig.socialLinks
+    ? storeConfig.socialLinks
+    : parseSocialLinks(store.socialLinks as string | null);
+
   // Get category filter from URL
   const url = new URL(request.url);
   const category = url.searchParams.get('category');
   const sortBy = url.searchParams.get('sort') || 'newest';
   const inStock = url.searchParams.get('inStock') === 'true';
   const onSale = url.searchParams.get('onSale') === 'true';
-  const { minPrice, maxPrice } = parsePriceRange(url.searchParams.get('minPrice'), url.searchParams.get('maxPrice'));
-  
+  const { minPrice, maxPrice } = parsePriceRange(
+    url.searchParams.get('minPrice'),
+    url.searchParams.get('maxPrice')
+  );
+
   // Load customer session for Google Sign-In header
   const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
-  
+
   // Determine sort order
-  const orderByClause = sortBy === 'price-low' 
-    ? asc(products.price)
-    : sortBy === 'price-high'
-      ? desc(products.price)
-      : desc(products.createdAt);
-  
+  const orderByClause =
+    sortBy === 'price-low'
+      ? asc(products.price)
+      : sortBy === 'price-high'
+        ? desc(products.price)
+        : desc(products.createdAt);
+
   // Fetch products with optional category filter and sorting
   const allProducts = await db
     .select()
@@ -115,15 +126,17 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     )
     .orderBy(orderByClause)
     .limit(100);
-  
+
   // Get all unique categories
   const categoriesResult = await db
     .select({ category: products.category })
     .from(products)
     .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)));
-  
-  const categories = [...new Set(categoriesResult.map(p => p.category).filter((c): c is string => Boolean(c)))];
-  
+
+  const categories = [
+    ...new Set(categoriesResult.map((p) => p.category).filter((c): c is string => Boolean(c))),
+  ];
+
   return json({
     products: allProducts,
     storeName: store?.name || 'Store',
@@ -149,7 +162,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export default function ProductsIndex() {
-  const { 
+  const {
     products,
     storeName,
     logo,
@@ -169,34 +182,28 @@ export default function ProductsIndex() {
     minPrice,
     maxPrice,
     planType,
-    customer
+    customer,
   } = useLoaderData<typeof loader>();
-  
+  const { t } = useTranslation();
+
   const [searchParams, setSearchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  
+
   const isDarkTheme = storeTemplateId === 'modern-premium' || storeTemplateId === 'tech-modern';
-  
+
   // Theme-aware styles
   const bgColor = isDarkTheme ? 'bg-gray-900' : 'bg-gray-50';
   const textPrimary = isDarkTheme ? 'text-white' : 'text-gray-900';
   const textMuted = isDarkTheme ? 'text-gray-400' : 'text-gray-600';
   const cardBg = isDarkTheme ? 'bg-gray-800' : 'bg-white';
   const borderColor = isDarkTheme ? 'border-gray-700' : 'border-gray-200';
-  
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-    }).format(price);
-  };
-  
+
   const handleSortChange = (newSort: string) => {
     const params = new URLSearchParams(searchParams);
     params.set('sort', newSort);
     setSearchParams(params);
   };
-  
+
   const handleCategoryChange = (cat: string | null) => {
     const params = new URLSearchParams(searchParams);
     if (cat) {
@@ -259,9 +266,14 @@ export default function ProductsIndex() {
         <nav className={`border-b ${borderColor} ${cardBg}`}>
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center gap-2 text-sm">
-              <Link to="/" className={`${textMuted} hover:${theme.primary ? `text-[${theme.primary}]` : 'text-emerald-500'} transition`}>Home</Link>
+              <Link
+                to="/"
+                className={`${textMuted} hover:${theme.primary ? `text-[${theme.primary}]` : 'text-emerald-500'} transition`}
+              >
+                {t('home')}
+              </Link>
               <ChevronRight className={`w-4 h-4 ${textMuted}`} />
-              <span className={textPrimary}>Products</span>
+              <span className={textPrimary}>{t('products')}</span>
               {currentCategory && (
                 <>
                   <ChevronRight className={`w-4 h-4 ${textMuted}`} />
@@ -277,13 +289,13 @@ export default function ProductsIndex() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div>
               <h1 className={`text-2xl md:text-3xl font-bold ${textPrimary}`}>
-                {currentCategory || 'All Products'}
+                {currentCategory || t('all_products')}
               </h1>
               <p className={`mt-1 ${textMuted}`}>
-                {products.length} product{products.length !== 1 ? 's' : ''} found
+                {products.length} {t('products_found')}
               </p>
             </div>
-            
+
             {/* Controls */}
             <div className="flex flex-wrap items-center gap-3">
               {/* View Mode Toggle */}
@@ -301,16 +313,16 @@ export default function ProductsIndex() {
                   <List className="w-5 h-5" />
                 </button>
               </div>
-              
+
               {/* Sort */}
               <select
                 value={sortBy}
                 onChange={(e) => handleSortChange(e.target.value)}
                 className={`px-3 py-2 rounded-lg border ${borderColor} ${cardBg} ${textPrimary} text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500`}
               >
-                <option value="newest">Newest First</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
+                <option value="newest">{t('newest_first')}</option>
+                <option value="price-low">{t('price_low_high')}</option>
+                <option value="price-high">{t('price_high_low')}</option>
               </select>
 
               {/* Stock */}
@@ -321,7 +333,7 @@ export default function ProductsIndex() {
                   onChange={(e) => handleInStockToggle(e.target.checked)}
                   className="rounded border-gray-300"
                 />
-                In stock
+                {t('in_stock')}
               </label>
 
               {/* On Sale */}
@@ -332,7 +344,7 @@ export default function ProductsIndex() {
                   onChange={(e) => handleOnSaleToggle(e.target.checked)}
                   className="rounded border-gray-300"
                 />
-                On sale
+                {t('on_sale')}
               </label>
 
               {/* Price Range */}
@@ -341,14 +353,14 @@ export default function ProductsIndex() {
                   type="number"
                   value={minPrice ?? ''}
                   onChange={(e) => handlePriceChange('min', e.target.value)}
-                  placeholder="Min"
+                  placeholder={t('min')}
                   className={`w-24 px-2 py-2 rounded-lg border ${borderColor} ${cardBg} ${textPrimary} text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500`}
                 />
                 <input
                   type="number"
                   value={maxPrice ?? ''}
                   onChange={(e) => handlePriceChange('max', e.target.value)}
-                  placeholder="Max"
+                  placeholder={t('max')}
                   className={`w-24 px-2 py-2 rounded-lg border ${borderColor} ${cardBg} ${textPrimary} text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500`}
                 />
               </div>
@@ -362,19 +374,19 @@ export default function ProductsIndex() {
                 <div className={`${cardBg} rounded-xl p-4 border ${borderColor} sticky top-4`}>
                   <h2 className={`font-semibold ${textPrimary} mb-3 flex items-center gap-2`}>
                     <Filter className="w-4 h-4" />
-                    Categories
+                    {t('categories')}
                   </h2>
                   <ul className="space-y-1">
                     <li>
                       <button
                         onClick={() => handleCategoryChange(null)}
                         className={`w-full text-left px-3 py-2 rounded-lg transition ${
-                          !currentCategory 
-                            ? 'bg-emerald-500 text-white' 
+                          !currentCategory
+                            ? 'bg-emerald-500 text-white'
                             : `${textMuted} hover:${cardBg}`
                         }`}
                       >
-                        All Products
+                        {t('all_products')}
                       </button>
                     </li>
                     {categories.map((cat) => (
@@ -382,8 +394,8 @@ export default function ProductsIndex() {
                         <button
                           onClick={() => handleCategoryChange(cat)}
                           className={`w-full text-left px-3 py-2 rounded-lg transition ${
-                            currentCategory === cat 
-                              ? 'bg-emerald-500 text-white' 
+                            currentCategory === cat
+                              ? 'bg-emerald-500 text-white'
                               : `${textMuted} hover:${cardBg}`
                           }`}
                         >
@@ -405,20 +417,20 @@ export default function ProductsIndex() {
                     <button
                       onClick={() => handleCategoryChange(null)}
                       className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition ${
-                        !currentCategory 
-                          ? 'bg-emerald-500 text-white' 
+                        !currentCategory
+                          ? 'bg-emerald-500 text-white'
                           : `${cardBg} ${textMuted} border ${borderColor}`
                       }`}
                     >
-                      All
+                      {t('all')}
                     </button>
                     {categories.map((cat) => (
                       <button
                         key={cat}
                         onClick={() => handleCategoryChange(cat)}
                         className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition ${
-                          currentCategory === cat 
-                            ? 'bg-emerald-500 text-white' 
+                          currentCategory === cat
+                            ? 'bg-emerald-500 text-white'
                             : `${cardBg} ${textMuted} border ${borderColor}`
                         }`}
                       >
@@ -432,28 +444,29 @@ export default function ProductsIndex() {
               {products.length === 0 ? (
                 <div className={`text-center py-16 ${cardBg} rounded-xl border ${borderColor}`}>
                   <ShoppingBag className={`w-16 h-16 mx-auto ${textMuted} mb-4`} />
-                  <h3 className={`text-xl font-semibold ${textPrimary} mb-2`}>No products found</h3>
+                  <h3 className={`text-xl font-semibold ${textPrimary} mb-2`}>
+                    {t('no_products_found')}
+                  </h3>
                   <p className={textMuted}>
-                    {currentCategory 
-                      ? `No products in "${currentCategory}" category.`
-                      : 'This store has no products yet.'
-                    }
+                    {currentCategory
+                      ? t('no_products_category', { category: currentCategory })
+                      : t('no_products_store')}
                   </p>
                   {currentCategory && (
                     <button
                       onClick={() => handleCategoryChange(null)}
                       className="mt-4 px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition"
                     >
-                      View All Products
+                      {t('view_all_products')}
                     </button>
                   )}
                 </div>
               ) : viewMode === 'grid' ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {products.map((product) => (
-                    <ProductCard 
-                      key={product.id} 
-                      product={product} 
+                    <ProductCard
+                      key={product.id}
+                      product={product}
                       currency={currency}
                       theme={theme}
                       isDark={isDarkTheme}
@@ -463,9 +476,9 @@ export default function ProductsIndex() {
               ) : (
                 <div className="space-y-4">
                   {products.map((product) => (
-                    <ProductListItem 
-                      key={product.id} 
-                      product={product} 
+                    <ProductListItem
+                      key={product.id}
+                      product={product}
                       currency={currency}
                       theme={theme}
                       isDark={isDarkTheme}
@@ -482,32 +495,34 @@ export default function ProductsIndex() {
 }
 
 // Product Card Component (Grid View)
-function ProductCard({ 
-  product, 
+function ProductCard({
+  product,
   currency,
   theme,
-  isDark 
-}: { 
-  product: SerializedProduct; 
+  isDark,
+}: {
+  product: SerializedProduct;
   currency: string;
   theme: any;
   isDark: boolean;
 }) {
+  const { t } = useTranslation();
   const cardBg = isDark ? 'bg-gray-800' : 'bg-white';
   const textPrimary = isDark ? 'text-white' : 'text-gray-900';
   const textMuted = isDark ? 'text-gray-400' : 'text-gray-600';
   const borderColor = isDark ? 'border-gray-700' : 'border-gray-200';
-  
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency,
     }).format(price);
   };
-  
-  const discount = product.compareAtPrice && product.compareAtPrice > product.price
-    ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
-    : null;
+
+  const discount =
+    product.compareAtPrice && product.compareAtPrice > product.price
+      ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+      : null;
 
   return (
     <Link
@@ -527,32 +542,32 @@ function ProductCard({
             <ShoppingBag className={`w-12 h-12 ${isDark ? 'text-gray-700' : 'text-gray-300'}`} />
           </div>
         )}
-        
+
         {/* Discount Badge */}
         {discount && (
           <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
             -{discount}%
           </div>
         )}
-        
+
         {/* Out of Stock */}
         {(!product.inventory || product.inventory <= 0) && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <span className="bg-white text-gray-900 px-3 py-1 rounded-full text-sm font-medium">
-              Out of Stock
+              {t('out_of_stock')}
             </span>
           </div>
         )}
       </div>
-      
+
       {/* Content */}
       <div className="p-3 md:p-4">
         {product.category && (
-          <span className={`text-xs ${textMuted} uppercase tracking-wide`}>
-            {product.category}
-          </span>
+          <span className={`text-xs ${textMuted} uppercase tracking-wide`}>{product.category}</span>
         )}
-        <h3 className={`font-medium ${textPrimary} mt-1 line-clamp-2 group-hover:text-emerald-500 transition`}>
+        <h3
+          className={`font-medium ${textPrimary} mt-1 line-clamp-2 group-hover:text-emerald-500 transition`}
+        >
           {product.title}
         </h3>
         <div className="mt-2 flex items-center gap-2">
@@ -571,32 +586,34 @@ function ProductCard({
 }
 
 // Product List Item Component (List View)
-function ProductListItem({ 
-  product, 
+function ProductListItem({
+  product,
   currency,
   theme,
-  isDark 
-}: { 
-  product: SerializedProduct; 
+  isDark,
+}: {
+  product: SerializedProduct;
   currency: string;
   theme: any;
   isDark: boolean;
 }) {
+  const { t } = useTranslation();
   const cardBg = isDark ? 'bg-gray-800' : 'bg-white';
   const textPrimary = isDark ? 'text-white' : 'text-gray-900';
   const textMuted = isDark ? 'text-gray-400' : 'text-gray-600';
   const borderColor = isDark ? 'border-gray-700' : 'border-gray-200';
-  
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency,
     }).format(price);
   };
-  
-  const discount = product.compareAtPrice && product.compareAtPrice > product.price
-    ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
-    : null;
+
+  const discount =
+    product.compareAtPrice && product.compareAtPrice > product.price
+      ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+      : null;
 
   return (
     <Link
@@ -616,28 +633,26 @@ function ProductListItem({
             <ShoppingBag className={`w-8 h-8 ${isDark ? 'text-gray-700' : 'text-gray-300'}`} />
           </div>
         )}
-        
+
         {discount && (
           <div className="absolute top-1 left-1 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded">
             -{discount}%
           </div>
         )}
       </div>
-      
+
       {/* Content */}
       <div className="flex-1 min-w-0">
         {product.category && (
-          <span className={`text-xs ${textMuted} uppercase tracking-wide`}>
-            {product.category}
-          </span>
+          <span className={`text-xs ${textMuted} uppercase tracking-wide`}>{product.category}</span>
         )}
-        <h3 className={`font-medium ${textPrimary} mt-1 group-hover:text-emerald-500 transition line-clamp-1`}>
+        <h3
+          className={`font-medium ${textPrimary} mt-1 group-hover:text-emerald-500 transition line-clamp-1`}
+        >
           {product.title}
         </h3>
         {product.description && (
-          <p className={`text-sm ${textMuted} mt-1 line-clamp-2`}>
-            {product.description}
-          </p>
+          <p className={`text-sm ${textMuted} mt-1 line-clamp-2`}>{product.description}</p>
         )}
         <div className="mt-2 flex items-center gap-2">
           <span className={`font-bold ${textPrimary}`} style={{ color: theme.primary }}>
@@ -649,16 +664,16 @@ function ProductListItem({
             </span>
           )}
         </div>
-        
+
         {/* Stock Status */}
         <div className="mt-2">
           {product.inventory && product.inventory > 0 ? (
             <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
-              In Stock
+              {t('in_stock')}
             </span>
           ) : (
             <span className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded-full">
-              Out of Stock
+              {t('out_of_stock')}
             </span>
           )}
         </div>

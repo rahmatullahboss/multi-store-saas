@@ -5,6 +5,7 @@
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import { useLoaderData, Link } from '@remix-run/react';
+import { useTranslation } from 'react-i18next';
 import { eq, and, or, like, sql } from 'drizzle-orm';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
@@ -14,13 +15,12 @@ import { getStoreConfig } from '~/services/store-config.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { parseSocialLinks } from '@db/types';
-import { Link as RemixLink } from '@remix-run/react';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data || !data.categoryName) {
     return [{ title: 'Category Not Found' }];
   }
-  
+
   return [
     { title: `${data.categoryName} | ${data.storeName}` },
     { name: 'description', content: `Shop ${data.categoryName} products at ${data.storeName}` },
@@ -29,62 +29,65 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const slug = params.slug || '';
-  
+
   if (!slug) {
     throw new Response('Category slug required', { status: 400 });
   }
-  
+
   const storeContext = await resolveStore(context, request);
-  
+
   if (!storeContext) {
     throw new Response('Store not found', { status: 404 });
   }
-  
+
   const { storeId, store } = storeContext;
   const db = createDb(context.cloudflare.env.DB);
   const cache = new D1Cache(db);
-  
+
   // Get store config
   const storeConfig = await getStoreConfig(db, cache, storeId);
-  
+
   if (!storeConfig) {
     throw new Response('Store configuration not found', { status: 404 });
   }
-  
+
   const { themeConfig, businessInfo, footerConfig } = storeConfig;
   const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
   const theme = getStoreTemplateTheme(storeTemplateId);
-  const socialLinks = storeConfig.socialLinks || parseSocialLinks(store.socialLinks as string | null);
-  
+  const socialLinks =
+    storeConfig.socialLinks || parseSocialLinks(store.socialLinks as string | null);
+
   // Convert slug back to potential category names
   // e.g., "t-shirts" could be "T-Shirts", "t shirts", "T shirts", etc.
   const slugVariants = [
     slug,
     slug.replace(/-/g, ' '),
-    slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), // Title Case
+    slug.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()), // Title Case
   ];
-  
+
   // Find products matching the category (case-insensitive)
   const categoryProducts = await db
     .select()
     .from(products)
-    .where(and(
-      eq(products.storeId, storeId),
-      eq(products.isPublished, true),
-      or(
-        ...slugVariants.map(v => like(products.category, v)),
-        sql`LOWER(${products.category}) = LOWER(${slug.replace(/-/g, ' ')})`
+    .where(
+      and(
+        eq(products.storeId, storeId),
+        eq(products.isPublished, true),
+        or(
+          ...slugVariants.map((v) => like(products.category, v)),
+          sql`LOWER(${products.category}) = LOWER(${slug.replace(/-/g, ' ')})`
+        )
       )
-    ))
+    )
     .limit(100);
-  
+
   if (categoryProducts.length === 0) {
     throw new Response('Category not found', { status: 404 });
   }
-  
+
   // Get the actual category name from the first product
   const categoryName = categoryProducts[0].category || slug;
-  
+
   // Get all categories for navigation
   const allCategories = await db
     .select({
@@ -92,19 +95,24 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       count: sql<number>`count(*)`.as('count'),
     })
     .from(products)
-    .where(and(
-      eq(products.storeId, storeId),
-      eq(products.isPublished, true),
-      sql`${products.category} IS NOT NULL AND ${products.category} != ''`
-    ))
+    .where(
+      and(
+        eq(products.storeId, storeId),
+        eq(products.isPublished, true),
+        sql`${products.category} IS NOT NULL AND ${products.category} != ''`
+      )
+    )
     .groupBy(products.category);
-  
-  const categories = allCategories.map(c => ({
+
+  const categories = allCategories.map((c) => ({
     name: c.category as string,
-    slug: (c.category as string).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+    slug: (c.category as string)
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, ''),
     productCount: Number(c.count),
   }));
-  
+
   return json({
     categoryName,
     categorySlug: slug,
@@ -121,20 +129,21 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 }
 
 export default function CategoryPage() {
-  const { 
-    categoryName, 
+  const {
+    categoryName,
     categorySlug,
-    products: categoryProducts, 
+    products: categoryProducts,
     categories,
-    storeName, 
-    store, 
-    theme, 
-    socialLinks, 
-    businessInfo, 
-    footerConfig, 
-    storeConfig 
+    storeName,
+    store,
+    theme,
+    socialLinks,
+    businessInfo,
+    footerConfig,
+    storeConfig,
   } = useLoaderData<typeof loader>();
-  
+  const { t } = useTranslation();
+
   return (
     <StorePageWrapper
       storeName={store.name}
@@ -146,20 +155,24 @@ export default function CategoryPage() {
       socialLinks={socialLinks}
       businessInfo={businessInfo}
       footerConfig={footerConfig}
-      categories={categories.map(c => c.name)}
+      categories={categories.map((c) => c.name)}
       currentCategory={categoryName}
       planType={store.planType || 'free'}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
-        <nav className="flex mb-6" aria-label="Breadcrumb">
+        <nav className="flex mb-6" aria-label={t('breadcrumb')}>
           <ol className="inline-flex items-center space-x-1 md:space-x-3">
             <li>
-              <Link to="/" className="text-gray-500 hover:text-gray-700">Home</Link>
+              <Link to="/" className="text-gray-500 hover:text-gray-700">
+                {t('home')}
+              </Link>
             </li>
             <li>
               <span className="mx-2 text-gray-400">/</span>
-              <Link to="/categories" className="text-gray-500 hover:text-gray-700">Categories</Link>
+              <Link to="/categories" className="text-gray-500 hover:text-gray-700">
+                {t('categories')}
+              </Link>
             </li>
             <li>
               <span className="mx-2 text-gray-400">/</span>
@@ -171,7 +184,7 @@ export default function CategoryPage() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar - Categories */}
           <aside className="lg:w-64 flex-shrink-0">
-            <h2 className="font-semibold text-gray-900 mb-4">Categories</h2>
+            <h2 className="font-semibold text-gray-900 mb-4">{t('categories')}</h2>
             <ul className="space-y-2">
               {categories.map((cat) => (
                 <li key={cat.slug}>
@@ -196,24 +209,31 @@ export default function CategoryPage() {
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-2xl font-bold text-gray-900">{categoryName}</h1>
               <p className="text-gray-500">
-                {categoryProducts.length} {categoryProducts.length === 1 ? 'product' : 'products'}
+                {categoryProducts.length} {t('products_found')}
               </p>
             </div>
 
             {categoryProducts.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-500">No products found in this category.</p>
-                <Link to="/products" className="mt-4 inline-block text-indigo-600 hover:text-indigo-500">
-                  Browse all products →
+                <p className="text-gray-500">{t('no_products_category')}</p>
+                <Link
+                  to="/products"
+                  className="mt-4 inline-block text-indigo-600 hover:text-indigo-500"
+                >
+                  {t('browse_all_products')} →
                 </Link>
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {categoryProducts.map((product) => {
-                  const productSlug = product.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                  const productSlug = product.title
+                    .toLowerCase()
+                    .replace(/\s+/g, '-')
+                    .replace(/[^a-z0-9-]/g, '');
                   const currencySymbol = store.currency === 'BDT' ? '৳' : '$';
-                  const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
-                  
+                  const hasDiscount =
+                    product.compareAtPrice && product.compareAtPrice > product.price;
+
                   return (
                     <Link
                       key={product.id}
@@ -230,8 +250,18 @@ export default function CategoryPage() {
                         </div>
                       ) : (
                         <div className="aspect-square bg-gray-100 flex items-center justify-center">
-                          <svg className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          <svg
+                            className="w-12 h-12 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
                           </svg>
                         </div>
                       )}
@@ -241,11 +271,13 @@ export default function CategoryPage() {
                         </h3>
                         <div className="mt-1 flex items-center gap-2">
                           <span className="font-semibold text-gray-900">
-                            {currencySymbol}{product.price.toLocaleString()}
+                            {currencySymbol}
+                            {product.price.toLocaleString()}
                           </span>
                           {hasDiscount && (
                             <span className="text-sm text-gray-500 line-through">
-                              {currencySymbol}{product.compareAtPrice?.toLocaleString()}
+                              {currencySymbol}
+                              {product.compareAtPrice?.toLocaleString()}
                             </span>
                           )}
                         </div>
