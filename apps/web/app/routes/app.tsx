@@ -574,7 +574,7 @@ export default function AppLayout() {
             <div className="flex items-center gap-3 mb-3">
               <div className="w-9 h-9 bg-white/50 backdrop-blur rounded-full flex items-center justify-center border border-white/20">
                 <span className="text-sm font-medium text-gray-600">
-                  {user.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
+                  {user.name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
