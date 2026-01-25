@@ -289,4 +289,5 @@ export const common = {
   invalidCredentials: 'Invalid email or password',
   orContinueWith: 'Or continue with',
   continueWithGoogle: 'Continue with Google',
+  pendingOrders: 'Pending Orders',
 };

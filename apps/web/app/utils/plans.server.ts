@@ -571,6 +571,13 @@ export function canUseCAPI(planType: PlanType): boolean {
 }
 
 // ============================================================================
+// UTILITY: Check if store can export customers (Premium+ only - ২০০০+ টাকা)
+// ============================================================================
+export function canExportCustomers(planType: PlanType): boolean {
+  return planType === 'premium' || planType === 'business';
+}
+
+// ============================================================================
 // UTILITY: Check if store has priority support
 // ============================================================================
 export function hasPrioritySupport(planType: PlanType): boolean {

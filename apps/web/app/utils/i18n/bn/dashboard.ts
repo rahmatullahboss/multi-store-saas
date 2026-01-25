@@ -962,6 +962,16 @@ export const dashboard = {
   saveAsDraft: 'ড্রাফট হিসেবে সেভ করুন',
   sendNow: 'এখনই পাঠান',
   sending: 'পাঠানো হচ্ছে...',
+  campaignSentSuccess: 'ক্যাম্পেইন {{count}} জন সাবস্ক্রাইবারকে সফলভাবে পাঠানো হয়েছে!',
+  clicks: 'ক্লিক',
+  emailContent: 'ইমেইল কন্টেন্ট',
+  failed: 'ব্যর্থ',
+  favicon: 'ফেভিকন',
+  noTransactionHistory: 'এখনও কোনো লেনদেনের ইতিহাস নেই।',
+  opens: 'ওপেন',
+  scheduled: 'নির্ধারিত',
+  sendTo: 'প্রেরণ করুন',
+  sent: 'পাঠানো হয়েছে',
 
   // AI Agent - General
   aiAgentManager: 'AI এজেন্ট ম্যানেজার',

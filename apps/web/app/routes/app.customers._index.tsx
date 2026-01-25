@@ -24,6 +24,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { customers, orders, stores } from '@db/schema';
 import { eq, desc, and, or, like, sql } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
+import { canExportCustomers, type PlanType } from '~/utils/plans.server';
 import {
   Users,
   Search,
@@ -75,13 +76,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const limit = 20;
   const offset = (page - 1) * limit;
 
-  // Get Store Info (Currency)
+  // Get Store Info (Currency & Plan)
   const storeResult = await db
-    .select({ currency: stores.currency })
+    .select({ currency: stores.currency, planType: stores.planType })
     .from(stores)
     .where(eq(stores.id, storeId))
     .limit(1);
   const currency = storeResult[0]?.currency || 'BDT';
+  const planType = (storeResult[0]?.planType as PlanType) || 'free';
 
   // Build dynamic conditions array
   const conditions = [eq(customers.storeId, storeId)];
@@ -106,6 +108,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       conditions.push(eq(customers.segment, 'new' as any));
     } else if (segment === 'returning') {
       conditions.push(eq(customers.segment, 'returning' as any));
+    } else if (segment === 'window_shopper') {
+      // Window Shoppers = customers who browsed but never ordered (totalOrders = 0)
+      conditions.push(eq(customers.totalOrders, 0));
     }
   }
 
@@ -131,6 +136,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     customers: allCustomers,
     currency,
     filters: { search, segment, page },
+    canExport: canExportCustomers(planType),
+    planType,
     // total: totalCount?.count || 0
   });
 }
@@ -139,7 +146,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // MAIN COMPONENT
 // ============================================================================
 export default function CustomersListPage() {
-  const { customers: allCustomers, currency, filters } = useLoaderData<typeof loader>();
+  const { customers: allCustomers, currency, filters, canExport, planType } = useLoaderData<typeof loader>();
   const { t, lang } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const submit = useSubmit();
@@ -203,11 +210,21 @@ export default function CustomersListPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <PageHeader title={t('customersTitle')} description={t('customersDescription')} />
         <div className="flex items-center gap-2">
-          {/* Export Button */}
-          <Button variant="outline" size="sm" className="gap-2">
-            <Download className="w-4 h-4" />
-            {t('export')}
-          </Button>
+          {/* Export Button - Premium+ only */}
+          {canExport ? (
+            <Button variant="outline" size="sm" className="gap-2">
+              <Download className="w-4 h-4" />
+              {t('export')}
+            </Button>
+          ) : (
+            <Link to="/app/upgrade">
+              <Button variant="outline" size="sm" className="gap-2 text-amber-600 border-amber-300 hover:bg-amber-50">
+                <Download className="w-4 h-4" />
+                {t('export')}
+                <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full ml-1">Premium</span>
+              </Button>
+            </Link>
+          )}
           {/* Add Customer Button */}
           <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
             <UserPlus className="w-4 h-4" />

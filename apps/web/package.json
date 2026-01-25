@@ -26,7 +26,9 @@
     "e2e:headed": "playwright test --headed",
     "e2e:debug": "playwright test --debug",
     "e2e:report": "playwright show-report",
-    "ci:local": "npm run test:all && npm run e2e"
+    "ci:local": "npm run test:all && npm run e2e",
+    "i18n:extract": "npx i18next-parser 'app/**/*.{ts,tsx}' --config i18next-parser.config.js",
+    "i18n:scan": "npx i18next-parser 'app/**/*.{ts,tsx}' --config i18next-parser.config.js --fail-on-update"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -97,6 +99,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "happy-dom": "^20.1.0",
+    "i18next-parser": "^9.0.2",
     "jsdom": "^27.4.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^4.0.0",
