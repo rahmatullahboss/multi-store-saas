@@ -25,6 +25,11 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 
+// Track hydration state globally - only updates once after initial hydration
+// This is the Remix-recommended pattern for client-only components
+// @see https://v2.remix.run/docs/guides/migrating-react-router-app#client-only-components
+let isHydrating = true;
+
 // Types for recharts components we use
 type RechartsModule = typeof import('recharts');
 
@@ -36,28 +41,31 @@ interface ClientChartProps {
 
 /**
  * Generic client-only chart wrapper that dynamically imports recharts
+ * Uses hydration tracking to prevent SSR rendering
  */
 export function ClientChart({ children, fallback, height = 300 }: ClientChartProps) {
   const [recharts, setRecharts] = useState<RechartsModule | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(!isHydrating);
 
   useEffect(() => {
-    setMounted(true);
-    // Dynamic import - only happens on client
+    isHydrating = false;
+    setIsHydrated(true);
+    // Dynamic import - only happens on client after hydration
     import('recharts').then((mod) => {
       setRecharts(mod);
     });
   }, []);
 
-  if (!mounted || !recharts) {
+  // Don't render during SSR or before hydration
+  if (!isHydrated || !recharts) {
     return (
       <>
         {fallback || (
           <div 
-            className="animate-pulse bg-slate-800/50 rounded flex items-center justify-center"
+            className="animate-pulse bg-slate-800/50 dark:bg-slate-800/50 bg-gray-100 rounded flex items-center justify-center"
             style={{ height }}
           >
-            <span className="text-slate-500 text-sm">Loading chart...</span>
+            <span className="text-slate-500 dark:text-slate-500 text-gray-400 text-sm">Loading chart...</span>
           </div>
         )}
       </>
