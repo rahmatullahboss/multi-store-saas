@@ -30,8 +30,9 @@ import { useEffect, useState, type ReactNode } from 'react';
 // @see https://v2.remix.run/docs/guides/migrating-react-router-app#client-only-components
 let isHydrating = true;
 
-// Types for recharts components we use
-type RechartsModule = typeof import('recharts');
+// Use 'any' to avoid static type import which can cause bundling issues
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type RechartsModule = any;
 
 interface ClientChartProps {
   children: (recharts: RechartsModule) => ReactNode;

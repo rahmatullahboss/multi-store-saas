@@ -75,11 +75,11 @@ export default defineConfig({
     },
     // Externalize heavy client-only dependencies from SSR bundle
     // These will be resolved at runtime (client-side only)
+    // NOTE: recharts removed from external - using dynamic imports with hydration checks instead
     external: [
       'grapesjs',
       'grapesjs-blocks-basic',
       'grapesjs-plugin-forms',
-      'recharts',
       '@tiptap/react',
       '@tiptap/starter-kit',
       '@tiptap/extension-link',
