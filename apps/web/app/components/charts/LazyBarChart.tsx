@@ -1,18 +1,16 @@
 /**
  * Lazy-loaded Bar Chart Component (Client-Only)
  * 
- * Uses the Remix-recommended hydration tracking pattern to ensure
- * charts are only rendered on the client, preventing SSR hydration errors.
+ * Uses dynamic imports inside useEffect to ensure recharts is NEVER
+ * processed during SSR. This prevents hydration errors completely.
  * 
  * @see https://v2.remix.run/docs/guides/migrating-react-router-app#client-only-components
  */
 
-import { lazy, Suspense, useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 
 // Track hydration state globally - only updates once after initial hydration
 let isHydrating = true;
-
-const BarChartImpl = lazy(() => import('./impl/BarChartImpl'));
 
 interface LazyBarChartProps {
   data: Record<string, unknown>[];
@@ -40,23 +38,53 @@ function ChartSkeleton({ height = 300 }: { height?: number }) {
   );
 }
 
-export function LazyBarChart(props: LazyBarChartProps) {
-  // Use hydration tracking to prevent SSR rendering of charts
+export function LazyBarChart({
+  data,
+  height = 300,
+  bars,
+  xAxisKey = 'name',
+  showGrid = true,
+  showTooltip = true,
+  showLegend = false,
+}: LazyBarChartProps) {
   const [isHydrated, setIsHydrated] = useState(!isHydrating);
+  const [chartContent, setChartContent] = useState<ReactNode>(null);
 
   useEffect(() => {
     isHydrating = false;
     setIsHydrated(true);
-  }, []);
 
-  // Don't render chart during SSR or before hydration
-  if (!isHydrated) {
-    return <ChartSkeleton height={props.height} />;
+    // Dynamic import - ONLY happens on client, never processed during SSR
+    import('recharts').then((recharts) => {
+      const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = recharts;
+      
+      setChartContent(
+        <ResponsiveContainer width="100%" height={height} initialDimension={{ width: 500, height }}>
+          <BarChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />}
+            <XAxis dataKey={xAxisKey} stroke="#9ca3af" fontSize={12} />
+            <YAxis stroke="#9ca3af" fontSize={12} />
+            {showTooltip && <Tooltip />}
+            {showLegend && <Legend />}
+            {bars.map((bar) => (
+              <Bar
+                key={bar.dataKey}
+                dataKey={bar.dataKey}
+                fill={bar.fill}
+                name={bar.name}
+                radius={bar.radius ? [bar.radius, bar.radius, 0, 0] : undefined}
+              />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      );
+    });
+  }, [data, height, bars, xAxisKey, showGrid, showTooltip, showLegend]);
+
+  // Don't render chart during SSR or before hydration/loading
+  if (!isHydrated || !chartContent) {
+    return <ChartSkeleton height={height} />;
   }
 
-  return (
-    <Suspense fallback={<ChartSkeleton height={props.height} />}>
-      <BarChartImpl {...props} />
-    </Suspense>
-  );
+  return <>{chartContent}</>;
 }

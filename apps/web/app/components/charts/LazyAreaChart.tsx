@@ -1,19 +1,16 @@
 /**
  * Lazy-loaded Area Chart Component (Client-Only)
  * 
- * Uses the Remix-recommended hydration tracking pattern to ensure
- * charts are only rendered on the client, preventing SSR hydration errors.
+ * Uses dynamic imports inside useEffect to ensure recharts is NEVER
+ * processed during SSR. This prevents hydration errors completely.
  * 
  * @see https://v2.remix.run/docs/guides/migrating-react-router-app#client-only-components
  */
 
-import { lazy, Suspense, useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 
 // Track hydration state globally - only updates once after initial hydration
 let isHydrating = true;
-
-// Lazy load the actual chart component
-const AreaChartImpl = lazy(() => import('./impl/AreaChartImpl'));
 
 interface LazyAreaChartProps {
   data: Record<string, unknown>[];
@@ -39,23 +36,67 @@ function ChartSkeleton({ height = 300 }: { height?: number }) {
   );
 }
 
-export function LazyAreaChart(props: LazyAreaChartProps) {
-  // Use hydration tracking to prevent SSR rendering of charts
+export function LazyAreaChart({
+  data,
+  height = 300,
+  dataKey,
+  xAxisKey = 'name',
+  stroke = '#10b981',
+  fill,
+  gradientId = 'colorGradient',
+  showGrid = true,
+  showTooltip = true,
+  referenceLine,
+}: LazyAreaChartProps) {
   const [isHydrated, setIsHydrated] = useState(!isHydrating);
+  const [chartContent, setChartContent] = useState<ReactNode>(null);
 
   useEffect(() => {
     isHydrating = false;
     setIsHydrated(true);
-  }, []);
 
-  // Don't render chart during SSR or before hydration
-  if (!isHydrated) {
-    return <ChartSkeleton height={props.height} />;
+    // Dynamic import - ONLY happens on client, never processed during SSR
+    import('recharts').then((recharts) => {
+      const { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } = recharts;
+      
+      setChartContent(
+        <ResponsiveContainer width="100%" height={height} initialDimension={{ width: 500, height }}>
+          <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={stroke} stopOpacity={0.2} />
+                <stop offset="95%" stopColor={stroke} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />}
+            <XAxis dataKey={xAxisKey} stroke="#9ca3af" fontSize={12} />
+            <YAxis stroke="#9ca3af" fontSize={12} />
+            {showTooltip && <Tooltip />}
+            {referenceLine && (
+              <ReferenceLine
+                y={referenceLine.y}
+                label={referenceLine.label}
+                stroke={referenceLine.stroke || '#f59e0b'}
+                strokeDasharray="5 5"
+              />
+            )}
+            <Area
+              type="monotone"
+              dataKey={dataKey}
+              stroke={stroke}
+              fill={fill || `url(#${gradientId})`}
+              strokeWidth={2}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      );
+    });
+  }, [data, height, dataKey, xAxisKey, stroke, fill, gradientId, showGrid, showTooltip, referenceLine]);
+
+  // Don't render chart during SSR or before hydration/loading
+  if (!isHydrated || !chartContent) {
+    return <ChartSkeleton height={height} />;
   }
 
-  return (
-    <Suspense fallback={<ChartSkeleton height={props.height} />}>
-      <AreaChartImpl {...props} />
-    </Suspense>
-  );
+  return <>{chartContent}</>;
 }
