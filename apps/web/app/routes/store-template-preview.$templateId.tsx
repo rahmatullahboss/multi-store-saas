@@ -28,16 +28,14 @@ import {
   DEMO_FOOTER_CONFIG,
   DEMO_THEME_CONFIG,
   DEMO_STORE_NAME,
-  DEMO_BANNERS,
-  DEMO_FLASH_SALES,
   DEMO_PROMOTIONS,
-  DEMO_ANNOUNCEMENTS,
   DEMO_TESTIMONIALS,
   getActiveFlashSale,
   getFlashSaleProducts,
   getActiveBanners,
   getActiveAnnouncement,
 } from '~/utils/store-preview-data';
+
 
 // ============================================================================
 // META
@@ -97,7 +95,10 @@ export async function loader({ params }: LoaderFunctionArgs) {
     socialLinks: DEMO_SOCIAL_LINKS,
     businessInfo: DEMO_BUSINESS_INFO,
     footerConfig: DEMO_FOOTER_CONFIG,
-    themeConfig: DEMO_THEME_CONFIG,
+    themeConfig: {
+      ...DEMO_THEME_CONFIG,
+      // sections: DEMO_THEME_CONFIG.sections || DEFAULT_SECTIONS, // Duplicate property, handled in spread or unnecessary
+    },
     // New demo data
     banners: activeBanners,
     flashSale: activeFlashSale,

@@ -20,6 +20,8 @@ import {
 import { useTranslation } from '~/contexts/LanguageContext';
 import { STORE_TEMPLATES, type StoreTemplateDefinition, getStoreTemplate } from '~/templates/store-registry';
 import { type ThemeConfig, defaultThemeConfig } from '@db/types';
+import { installThemePreset, installCustomThemePreset, convertPresetToConfig } from '~/lib/theme-seeding.server';
+import { getThemePreset, createPresetFromStoreTemplate } from '~/lib/theme-presets';
 
 export const meta: MetaFunction = () => [{ title: 'Theme Store - Ozzyl' }];
 
@@ -106,6 +108,23 @@ export async function action({ request, context }: ActionFunctionArgs) {
       updatedAt: new Date(),
     })
     .where(eq(stores.id, storeId));
+
+  // 7. Seed the theme into the new system (for Editor compatibility)
+  try {
+    const preset = getThemePreset(template.id);
+    
+    if (preset) {
+      await installThemePreset(context.cloudflare.env.DB, storeId, template.id);
+    } else {
+      // Create dynamic preset from legacy template definition
+      const dynamicPreset = createPresetFromStoreTemplate(template);
+      const config = convertPresetToConfig(dynamicPreset);
+      await installCustomThemePreset(context.cloudflare.env.DB, storeId, config);
+    }
+  } catch (err) {
+    console.error('Theme seeding failed:', err);
+    // Non-blocking error, allow redirection to proceed
+  }
 
   return redirect('/store-live-editor');
 }

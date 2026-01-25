@@ -6,7 +6,7 @@
  * This prevents template previews from navigating away from the preview context.
  */
 
-import { Link, type LinkProps } from '@remix-run/react';
+import { Link, type LinkProps, useNavigate, useParams } from '@remix-run/react';
 import type { ReactNode, MouseEvent } from 'react';
 
 interface PreviewSafeLinkProps extends Omit<LinkProps, 'to'> {
@@ -14,6 +14,37 @@ interface PreviewSafeLinkProps extends Omit<LinkProps, 'to'> {
   isPreview?: boolean;
   children: ReactNode;
   className?: string;
+}
+
+export function usePreviewClick(isPreview?: boolean) {
+  const navigate = useNavigate();
+  const params = useParams();
+  
+  return (e: MouseEvent, to: string) => {
+    if (isPreview) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // If we are in preview mode, we need to stay in the preview route
+      // The current route is /store-template-preview/:templateId
+      // We need to append the target path to this
+      
+      const templateId = params.templateId;
+      if (templateId) {
+        // Handle root link
+        if (to === '/') {
+          navigate(`/store-template-preview/${templateId}`);
+          return;
+        }
+
+        // Clean the path
+        const cleanPath = to.startsWith('/') ? to.substring(1) : to;
+        
+        // Construct new path
+        navigate(`/store-template-preview/${templateId}/${cleanPath}`);
+      }
+    }
+  };
 }
 
 export function PreviewSafeLink({ 
@@ -24,21 +55,21 @@ export function PreviewSafeLink({
   onClick,
   ...props 
 }: PreviewSafeLinkProps) {
-  // In preview mode, render a span that looks like a link but doesn't navigate
+  const handlePreviewClick = usePreviewClick(isPreview);
+
   if (isPreview) {
     return (
-      <span 
+      <a
+        href={to}
         className={className}
-        onClick={(e: MouseEvent) => {
-          e.preventDefault();
-          e.stopPropagation();
+        onClick={(e) => {
+          if (onClick) onClick(e);
+          handlePreviewClick(e, to);
         }}
-        style={{ cursor: 'pointer' }}
-        role="link"
-        tabIndex={0}
+        {...props}
       >
         {children}
-      </span>
+      </a>
     );
   }
 
@@ -53,16 +84,4 @@ export function PreviewSafeLink({
       {children}
     </Link>
   );
-}
-
-/**
- * Hook to get a click handler that prevents navigation in preview mode
- */
-export function usePreviewClick(isPreview?: boolean) {
-  return (e: MouseEvent) => {
-    if (isPreview) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
 }

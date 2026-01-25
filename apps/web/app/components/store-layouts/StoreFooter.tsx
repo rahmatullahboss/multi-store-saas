@@ -157,18 +157,20 @@ export function StoreFooter({
           </div>
           
           {/* Powered by Ozzyl - Always visible (non-removable) */}
-          <div className={`mt-6 pt-4 border-t ${borderColor} flex justify-center items-center`}>
-            <a 
-              href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className={`text-xs ${mutedColor} hover:text-indigo-500 transition-colors flex items-center gap-1.5`}
-            >
-              <span>Powered by</span>
-              <span className="font-bold tracking-tight text-sm">Ozzyl</span>
-              <span className="hidden sm:inline">• বাংলাদেশের #১ ই-কমার্স প্ল্যাটফর্ম</span>
-            </a>
-          </div>
+          {showPoweredBy && (
+            <div className={`mt-6 pt-4 border-t ${borderColor} flex justify-center items-center`}>
+              <a 
+                href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={`text-xs ${mutedColor} hover:text-indigo-500 transition-colors flex items-center gap-1.5`}
+              >
+                <span>Powered by</span>
+                <span className="font-bold tracking-tight text-sm">Ozzyl</span>
+                <span className="hidden sm:inline">• বাংলাদেশের #১ ই-কমার্স প্ল্যাটফর্ম</span>
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </footer>

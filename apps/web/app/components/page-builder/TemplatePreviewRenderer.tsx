@@ -26,6 +26,7 @@ import { PricingSectionPreview } from './sections/PricingSectionPreview';
 import { HowToOrderPreview } from './sections/HowToOrderPreview';
 import { ShowcaseSectionPreview } from './sections/ShowcaseSectionPreview';
 import { ProductGridSectionPreview } from './sections/ProductGridSectionPreview';
+import { StatsSectionPreview } from './sections/StatsSectionPreview';
 import { PlaceholderSection } from './sections/PlaceholderSection';
 
 interface TemplatePreviewRendererProps {
@@ -123,6 +124,12 @@ function SectionContent({ section, theme }: SectionContentProps) {
       return <ShowcaseSectionPreview props={props} />;
     case 'product-grid':
       return <ProductGridSectionPreview props={props} />;
+    case 'order-form':
+      return <CTASectionPreview props={props} theme={theme} />;
+    case 'social-proof':
+      return <StatsSectionPreview props={props} />;
+    case 'newsletter':
+      return <CTASectionPreview props={props} theme={theme} />;
     default:
       return <PlaceholderSection type={type} />;
   }

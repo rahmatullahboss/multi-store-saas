@@ -13,55 +13,68 @@ This workflow implements the **Manus Pattern** for managing complex tasks. Inste
 Create the following three files in the root of the workspace if they don't exist.
 
 ### 1.1 Create `task_plan.md` (The "Brain")
+
 This is your master checklist. It must be updated after every phase.
 
 ```markdown
 # Task Plan: [Task Name]
 
 ## Goal
+
 [One clear sentence describing the successfully completed state]
 
 ## Success Criteria
+
 - [ ] Criterion 1
 - [ ] Criterion 2
 
 ## Phases
+
 ### Phase 1: Context & Research
-- [ ] [CONTEXT] Read relevant files `[file1, file2]`
-- [ ] [RESEARCH] Check documentation for [library/API]
+
+- [ ] [AGENT: Research Agent] [CONTEXT] Read relevant files `[file1, file2]`
+- [ ] [AGENT: Research Agent] [RESEARCH] Check documentation for [library/API]
 
 ### Phase 2: Implementation
-- [ ] [CODE] Create `src/foo.ts`
-- [ ] [CODE] Update `src/bar.ts`
+
+- [ ] [AGENT: Coding Agent] [CODE] Create `src/foo.ts`
+- [ ] [AGENT: Coding Agent] [CODE] Update `src/bar.ts`
 
 ### Phase 3: Verification
-- [ ] [TEST] Run `npm test`
-- [ ] [VERIFY] Manual check of feature
+
+- [ ] [AGENT: Testing Agent] [TEST] Run `npm test`
+- [ ] [AGENT: Testing Agent] [VERIFY] Manual check of feature
 ```
 
 ### 1.2 Create `findings.md` (The "Knowledge Base")
+
 Store all research, documentation snippets, and existing code patterns here.
 
 ```markdown
 # Findings
 
 ## Relevant Code
+
 - `src/existing.ts`: Implements similar logic in `processData()` function.
 
 ## Documentation
+
 - **API Endpoint**: `POST /api/v1/users` requires `Authorization` header.
 
 ## Decisions
+
 - [ ] Decision 1: Use Library X because Y.
 ```
 
 ### 1.3 Create `progress.md` (The "Log")
+
 Log every action, valid output, and error here.
 
 ```markdown
 # Progress Log
 
 ## Session 1
+
 - **Action**: Ran `npm run build`
 - **Result**: Failed with error `TS2345`
 - **Fix**: Updated type definition in `types.ts`
@@ -74,6 +87,7 @@ Log every action, valid output, and error here.
 Before acting, identify and read relevant "Antigravity Skills" to ensure best practices.
 
 **Required check:**
+
 - Is this React/Remix? -> Load `frontend-dev-guidelines`, `remix-development`
 - Is this Backend? -> Load `backend-dev-guidelines`, `api-patterns`
 - Is this Database? -> Load `database-design`

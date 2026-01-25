@@ -19,6 +19,7 @@ import {
   templateSectionsPublished,
   themeSettingsDraft,
   themeSettingsPublished,
+  stores,
   type TemplateKey,
 } from '@db/schema';
 import { getThemePreset, ROVO_PRESET, type ThemePresetDefinition } from './theme-presets';
@@ -43,7 +44,7 @@ interface TemplateDefinition {
   sections: SectionDefinition[];
 }
 
-interface ThemePresetConfig {
+export interface ThemePresetConfig {
   id: string;
   name: string;
   settings: Record<string, unknown>;
@@ -53,7 +54,7 @@ interface ThemePresetConfig {
 /**
  * Convert ThemePresetDefinition to ThemePresetConfig format
  */
-function convertPresetToConfig(preset: ThemePresetDefinition): ThemePresetConfig {
+export function convertPresetToConfig(preset: ThemePresetDefinition): ThemePresetConfig {
   return {
     id: preset.id,
     name: preset.name,
@@ -452,6 +453,38 @@ export async function seedDefaultTheme(
         });
       }
     }
+
+    // 4. Update legacy store config for compatibility with Editor/Live view
+    try {
+      const homeTemplate = presetConfig.templates.find(t => t.key === 'home');
+      // Construct a ThemeConfig object from the preset
+      const legacyThemeConfig = {
+        storeTemplateId: presetConfig.id,
+        primaryColor: presetConfig.settings.primaryColor,
+        accentColor: presetConfig.settings.accentColor,
+        backgroundColor: presetConfig.settings.backgroundColor,
+        textColor: presetConfig.settings.textColor,
+        fontFamily: presetConfig.settings.bodyFont,
+        sections: homeTemplate ? homeTemplate.sections.map(s => ({
+          id: crypto.randomUUID(), // New ID for legacy structure
+          type: s.type,
+          settings: s.props,
+          blocks: s.blocks
+        })) : [],
+        ...presetConfig.settings
+      };
+
+      await drizzleDb.update(stores)
+        .set({ 
+          themeConfig: JSON.stringify(legacyThemeConfig),
+          fontFamily: presetConfig.settings.bodyFont as string,
+          updatedAt: now
+        })
+        .where(eq(stores.id, storeId));
+    } catch (legacyError) {
+      console.warn('Failed to sync legacy store config:', legacyError);
+      // Continue, as this is secondary
+    }
     
     return { themeId, success: true };
   } catch (error) {
@@ -521,6 +554,18 @@ export async function installThemePreset(
     };
   }
   
+  const config = convertPresetToConfig(preset);
+  return installCustomThemePreset(db, storeId, config);
+}
+
+/**
+ * Install a theme from a configuration object
+ */
+export async function installCustomThemePreset(
+  db: D1Database,
+  storeId: number,
+  config: ThemePresetConfig
+): Promise<{ themeId: string; success: boolean; error?: string }> {
   // Deactivate existing themes
   const drizzleDb = drizzle(db);
   await drizzleDb
@@ -528,8 +573,6 @@ export async function installThemePreset(
     .set({ isActive: 0 })
     .where(eq(themes.shopId, storeId));
   
-  // Convert preset to config and seed
-  const config = convertPresetToConfig(preset);
   return seedDefaultTheme(db, storeId, config);
 }
 

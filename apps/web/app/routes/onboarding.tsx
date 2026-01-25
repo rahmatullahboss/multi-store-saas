@@ -20,6 +20,7 @@ import { eq } from 'drizzle-orm';
 import { stores, products, users } from '@db/schema';
 import { accountInfoSchema, storeInfoSchema, bdPhoneSchema, emailSchema } from '~/lib/validations/auth';
 import { getUserId, register, createUserSession } from '~/services/auth.server';
+import { seedDefaultTheme } from '~/lib/theme-seeding.server';
 import { OnboardingSteps } from '~/components/onboarding/OnboardingSteps';
 import { AISetupProgress } from '~/components/onboarding/AISetupProgress';
 // import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
@@ -392,7 +393,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
         })
         .where(eq(stores.id, storeId));
 
-      // 6. Create sample product based on category
+      // 6. Seed default theme (NEW)
+      // This ensures the store has a theme and templates ready immediately
+      try {
+        console.log('[Onboarding] Seeding default theme for store:', storeId);
+        await seedDefaultTheme(env.DB, storeId);
+      } catch (themeError) {
+        console.error('[Onboarding] Failed to seed theme:', themeError);
+        // Don't block store creation, can be fixed later or on first dashboard visit
+      }
+
+      // 7. Create sample product based on category
       await db.insert(products).values({
         storeId,
         title: template.product.title,

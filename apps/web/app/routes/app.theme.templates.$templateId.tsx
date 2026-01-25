@@ -1052,19 +1052,13 @@ export default function TemplateBuilderPage() {
               </div>
             )}
             
-            {/* Preview Placeholder */}
-            <div 
-              className="w-full h-full flex items-center justify-center text-gray-400"
-              style={{ paddingTop: previewDevice === 'mobile' ? '2rem' : 0 }}
-            >
-              <div className="text-center">
-                <Layout className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <p className="text-lg font-medium text-gray-500">Template Preview</p>
-                <p className="text-sm text-gray-400 mt-1">
-                  {sections.filter(s => s.enabled).length} sections enabled
-                </p>
-              </div>
-            </div>
+            {/* Preview Iframe */}
+            <iframe
+              ref={iframeRef}
+              src={`/template-preview/${template.id}`}
+              className="w-full h-full border-0"
+              title="Template Preview"
+            />
           </div>
         </div>
       </div>

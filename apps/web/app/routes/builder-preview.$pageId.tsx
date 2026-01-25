@@ -59,11 +59,13 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   
   // Fetch product data if productId is set on page
   let productData: ProductData | null = null;
+  // Get real stock count for the product (captured during product fetch)
+  let realStockCount: number | null = null;
   
   // Check page-level productId first, then fallback to CTA section props
   let effectiveProductId = page.productId;
   if (!effectiveProductId) {
-    const ctaSection = page.sections?.find(s => s.type === 'cta');
+    const ctaSection = page.sections?.find(s => s.type === 'cta' || s.type === 'order-form');
     if (ctaSection && ctaSection.props && typeof ctaSection.props.productId === 'number') {
       effectiveProductId = ctaSection.props.productId;
     }
@@ -102,6 +104,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
           price: v.price ?? productRow.price,
         })),
       };
+      // Capture inventory from the same query to avoid double-fetching
+      realStockCount = productRow.inventory ?? null;
     }
   }
   
@@ -136,15 +140,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   // ============================================================================
   const odb = drizzle(db);
   
-  // Get real stock count for the product
-  let realStockCount: number | null = null;
-  if (effectiveProductId) {
-    const [stockResult] = await odb.select({ inventory: products.inventory })
-      .from(products)
-      .where(eq(products.id, effectiveProductId))
-      .limit(1);
-    realStockCount = stockResult?.inventory ?? null;
-  }
+ 
   
   // Get real order count for last 24 hours (for social proof)
   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);

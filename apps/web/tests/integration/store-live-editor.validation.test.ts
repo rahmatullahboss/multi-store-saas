@@ -96,7 +96,13 @@ describe('Store Live Editor Publish Validation', () => {
     form.set('storeTemplateId', 'rovo');
     form.set('primaryColor', '#FF5500');
     form.set('accentColor', '#000000');
-    form.set('sections', JSON.stringify([]));
+    form.set('sections', JSON.stringify([
+      {
+        id: 'text-1',
+        type: 'rich-text',
+        settings: { content: '<p>Hello</p>' }
+      }
+    ]));
 
     const request = new Request('http://localhost/store-live-editor', {
       method: 'POST',

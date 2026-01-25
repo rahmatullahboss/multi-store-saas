@@ -221,7 +221,7 @@ function SectionContent({ section, storeId, productId, product, selectedProducts
       return <HowToOrderPreview props={props} />;
     case 'showcase':
       return <ShowcaseSectionPreview props={props} />;
-    case 'product-grid':
+    case 'product-grid': {
       // Merge selectedProducts into props for real data display
       const productGridProps = {
         ...props,
@@ -234,8 +234,9 @@ function SectionContent({ section, storeId, productId, product, selectedProducts
         })) : props.products,
       };
       return <ProductGridSectionPreview props={productGridProps} />;
+    }
     case 'custom-html':
-      return <CustomHtmlSectionPreview {...props as any} />;
+      return <CustomHtmlSectionPreview {...props as unknown as any} />;
     case 'order-button':
       return <OrderButtonSectionPreview props={props} />;
     case 'header':
@@ -248,6 +249,12 @@ function SectionContent({ section, storeId, productId, product, selectedProducts
       return <ContactSectionPreview props={props} />;
     case 'footer':
       return <FooterSectionPreview props={props} />;
+    case 'order-form':
+      return <CTASectionPreview props={props} storeId={storeId} productId={productId} product={product} selectedProducts={selectedProducts} realData={realData} />;
+    case 'social-proof':
+      return <StatsSectionPreview props={props} />;
+    case 'newsletter':
+      return <CTASectionPreview props={props} storeId={storeId} productId={productId} product={product} selectedProducts={selectedProducts} realData={realData} />;
     default:
       return <PlaceholderSection type={type} />;
   }

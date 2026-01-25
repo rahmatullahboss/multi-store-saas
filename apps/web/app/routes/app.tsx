@@ -72,14 +72,13 @@ export const meta: MetaFunction = () => {
 // LOADER - Protect route and fetch user/store data
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  console.log('[app.loader] Dashboard loader started');
 
   try {
     // Require authentication
     let userId;
     try {
       userId = await requireUserId(request, context.cloudflare.env);
-      console.log('[app.loader] User authenticated - UserID:', userId);
+
     } catch (authError) {
       console.error('[app.loader] Authentication failed:', authError);
       throw authError; // Re-throw to trigger redirect
@@ -88,7 +87,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     let storeId;
     try {
       storeId = await getStoreId(request, context.cloudflare.env);
-      console.log('[app.loader] StoreID from session:', storeId);
+
     } catch (storeIdError) {
       console.error('[app.loader] Failed to get storeId from session:', storeIdError);
       throw new Response('Session error. Please login again.', { status: 401 });
@@ -108,7 +107,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const db = drizzle(context.cloudflare.env.DB);
 
     // Fetch store info with error handling
-    console.log('[app.loader] Fetching store info for storeId:', storeId);
+
     let storeResult;
     try {
       storeResult = await db
@@ -116,7 +115,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         .from(stores)
         .where(eq(stores.id, storeId))
         .limit(1);
-      console.log('[app.loader] Store query completed. Found:', storeResult.length, 'store(s)');
+
     } catch (storeDbError) {
       console.error('[app.loader] Database error fetching store:', storeDbError);
       const errorMessage = storeDbError instanceof Error ? storeDbError.message : String(storeDbError);
@@ -124,7 +123,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
 
     // Fetch user info with error handling
-    console.log('[app.loader] Fetching user info for userId:', userId);
+
     let userResult;
     try {
       userResult = await db
@@ -132,7 +131,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         .from(users)
         .where(eq(users.id, userId))
         .limit(1);
-      console.log('[app.loader] User query completed. Found:', userResult.length, 'user(s)');
+
     } catch (userDbError) {
       console.error('[app.loader] Database error fetching user:', userDbError);
       const errorMessage = userDbError instanceof Error ? userDbError.message : String(userDbError);
@@ -164,11 +163,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     // Check onboarding status - force redirect if not completed
     const onboardingStatus = (store as { onboardingStatus?: string }).onboardingStatus || 'completed';
     if (onboardingStatus !== 'completed') {
-      console.log('[app.loader] Onboarding not complete, redirecting to /onboarding');
+
       throw redirect('/onboarding');
     }
 
-    console.log('[app.loader] Dashboard data loaded successfully for store:', store.name);
+
 
     // Get SAAS_DOMAIN for store URL
     const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'ozzyl.com';
@@ -188,7 +187,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     } catch {
       // Table might not exist yet, ignore
       // Table might not exist yet, ignore
-      console.log('[app.loader] Could not fetch system notifications');
+
     }
 
     // Check for impersonation

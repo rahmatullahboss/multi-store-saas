@@ -298,11 +298,11 @@ import { z } from 'zod';
 
 export const ThemeSettingsSchema = z.object({
   // Colors
-  primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/i).optional(),
-  accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/i).optional(),
-  backgroundColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/i).optional(),
-  textColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/i).optional(),
-  borderColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/i).optional(),
+  primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/i).or(z.literal('')).optional(),
+  accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/i).or(z.literal('')).optional(),
+  backgroundColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/i).or(z.literal('')).optional(),
+  textColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/i).or(z.literal('')).optional(),
+  borderColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/i).or(z.literal('')).optional(),
 
   // Typography
   typography: z.object({

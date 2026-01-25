@@ -28,8 +28,6 @@
     "build",
     ".wrangler",
     "functions",
-    "tests/**/*",
-    "app/tests/**/*",
     "capacitor.config.ts"
   ]
 }

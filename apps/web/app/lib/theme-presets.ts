@@ -929,6 +929,32 @@ export function getThemePreset(id: string): ThemePresetDefinition | undefined {
 }
 
 /**
+ * Create a preset from a store template definition (for legacy templates)
+ */
+export function createPresetFromStoreTemplate(template: any): ThemePresetDefinition {
+  // Use ROVO as the base structure for generic templates
+  const base = JSON.parse(JSON.stringify(ROVO_PRESET));
+  
+  return {
+    ...base,
+    id: template.id,
+    name: template.name,
+    description: template.description,
+    thumbnail: template.thumbnail,
+    category: template.category,
+    settings: {
+      ...base.settings,
+      primaryColor: template.theme.primary,
+      accentColor: template.theme.accent,
+      backgroundColor: template.theme.background,
+      textColor: template.theme.text,
+      headingFont: template.fonts.heading,
+      bodyFont: template.fonts.body,
+    }
+  };
+}
+
+/**
  * Get all available theme presets
  */
 export function getAllThemePresets(): ThemePresetDefinition[] {

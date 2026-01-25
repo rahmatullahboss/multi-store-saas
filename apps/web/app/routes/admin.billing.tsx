@@ -14,8 +14,8 @@ import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remi
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and, desc, ne, sql, isNotNull, lt, gte, or } from 'drizzle-orm';
-import { stores, users, activityLogs, adminAuditLogs, payments } from '@db/schema';
+import { eq, desc, ne, sql, or } from 'drizzle-orm';
+import { stores, users, activityLogs, payments } from '@db/schema';
 import { requireSuperAdmin, requireAdminPermission } from '~/services/auth.server';
 import { logAuditAction } from '~/services/audit.server';
 import { createEmailService } from '~/services/email.server';
@@ -26,8 +26,6 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  AlertCircle,
-  Calendar,
   Mail,
   Phone,
   Copy,
@@ -36,64 +34,15 @@ import {
   Crown,
   Zap,
   Gift,
-  Search,
   X,
   Loader2,
   FileText
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { formatCurrency as formatCurrencyUtil } from '~/utils/money';
-import { ClientOnly } from '~/components/LazySection';
-import { lazy, Suspense } from 'react';
+import { ClientChart } from '~/components/charts/ClientCharts';
 
-// Lazy load recharts to prevent hydration errors
-const RechartsComponents = lazy(() => 
-  import('recharts').then(mod => ({
-    default: ({ data, formatCurrency }: { data: any[]; formatCurrency: (val: number) => string }) => {
-      const { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = mod;
-      return (
-        <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 500, height: 300 }}>
-          <AreaChart data={data}>
-            <defs>
-              <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-            <XAxis 
-              dataKey="name" 
-              stroke="#64748b" 
-              fontSize={12} 
-              tickLine={false} 
-              axisLine={false} 
-            />
-            <YAxis 
-              stroke="#64748b" 
-              fontSize={12} 
-              tickLine={false} 
-              axisLine={false}
-              tickFormatter={(value) => `৳${value}`}
-            />
-            <Tooltip 
-              contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#f8fafc' }}
-              itemStyle={{ color: '#10b981' }}
-              formatter={(value: number | undefined) => [formatCurrency(value || 0), 'Revenue']}
-            />
-            <Area 
-              type="monotone" 
-              dataKey="revenue" 
-              stroke="#10b981" 
-              strokeWidth={2} 
-              fillOpacity={1} 
-              fill="url(#colorRevenue)" 
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      );
-    }
-  }))
-);
+
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Billing Management - Super Admin' }];
@@ -686,14 +635,55 @@ export default function AdminBilling() {
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
         <h3 className="text-lg font-semibold text-white mb-6">Revenue Trend</h3>
         <div className="h-[300px] w-full">
-          <ClientOnly fallback={<div className="h-[300px] bg-slate-800/50 rounded animate-pulse flex items-center justify-center text-slate-500">Loading chart...</div>}>
-            <Suspense fallback={<div className="h-[300px] bg-slate-800/50 rounded animate-pulse flex items-center justify-center text-slate-500">Loading chart...</div>}>
-              <RechartsComponents 
-                data={chartData} 
-                formatCurrency={(val) => formatCurrencyUtil(val, 'BDT', { fromCents: true })} 
-              />
-            </Suspense>
-          </ClientOnly>
+          <ClientChart 
+            height={300} 
+            fallback={
+              <div className="h-[300px] bg-slate-800/50 rounded animate-pulse flex items-center justify-center text-slate-500">
+                Loading chart...
+              </div>
+            }
+          >
+            {({ AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer }) => (
+              <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 500, height: 300 }}>
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="#64748b" 
+                    fontSize={12} 
+                    tickLine={false} 
+                    axisLine={false} 
+                  />
+                  <YAxis 
+                    stroke="#64748b" 
+                    fontSize={12} 
+                    tickLine={false} 
+                    axisLine={false}
+                    tickFormatter={(value: number) => `৳${value}`}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#1e293b', color: '#f8fafc' }}
+                    itemStyle={{ color: '#10b981' }}
+                    formatter={(value: number) => [formatCurrencyUtil(value || 0, 'BDT', { fromCents: true }), 'Revenue']}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    stroke="#10b981" 
+                    strokeWidth={2} 
+                    fillOpacity={1} 
+                    fill="url(#colorRevenue)" 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </ClientChart>
         </div>
       </div>
       
