@@ -136,6 +136,20 @@ const AnalyticsInsightsSection = lazy(() => import('~/components/landing/Analyti
 const UseCaseScenariosSection = lazy(() => import('~/components/landing/UseCaseScenariosSection').then(m => ({ default: m.UseCaseScenariosSection })));
 const FeatureMatrixSection = lazy(() => import('~/components/landing/FeatureMatrixSection').then(m => ({ default: m.FeatureMatrixSection })));
 
+// POWER FEATURES (Project 10+ Features from Prompt 23-32)
+const CourierIntegrationSection = lazy(() => import('~/components/landing/CourierIntegrationSection').then(m => ({ default: m.CourierIntegrationSection })));
+const WhatsAppSMSAutomationSection = lazy(() => import('~/components/landing/WhatsAppSMSAutomationSection').then(m => ({ default: m.WhatsAppSMSAutomationSection })));
+const EmailMarketingSection = lazy(() => import('~/components/landing/EmailMarketingSection').then(m => ({ default: m.EmailMarketingSection })));
+const TeamManagementSection = lazy(() => import('~/components/landing/TeamManagementSection').then(m => ({ default: m.TeamManagementSection })));
+const ActivityLogsSection = lazy(() => import('~/components/landing/ActivityLogsSection').then(m => ({ default: m.ActivityLogsSection })));
+const ProductReviewsSection = lazy(() => import('~/components/landing/ProductReviewsSection').then(m => ({ default: m.ProductReviewsSection })));
+const ReturnsRefundsSection = lazy(() => import('~/components/landing/ReturnsRefundsSection').then(m => ({ default: m.ReturnsRefundsSection })));
+const MessengerIntegrationSection = lazy(() => import('~/components/landing/MessengerIntegrationSection').then(m => ({ default: m.MessengerIntegrationSection })));
+const TaxReportsSection = lazy(() => import('~/components/landing/TaxReportsSection').then(m => ({ default: m.TaxReportsSection })));
+const UnifiedCommunicationHub = lazy(() => import('~/components/landing/UnifiedCommunicationHub').then(m => ({ default: m.UnifiedCommunicationHub })));
+
+
+
 
 // ============================================================================
 // Simple Section Skeleton
@@ -365,9 +379,30 @@ export function MarketingLanding() {
         </Suspense>
       </LazySection>
 
+      {/* 5. Courier Integration [NEW #23] */}
+      <LazySection minHeight="800px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <CourierIntegrationSection />
+        </Suspense>
+      </LazySection>
+
       <LazySection minHeight="600px">
         <Suspense fallback={<SectionSkeleton />}>
           <InventoryOrderManagement />
+        </Suspense>
+      </LazySection>
+
+      {/* 6. WhatsApp/SMS Automation [NEW #24] */}
+      <LazySection minHeight="800px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <WhatsAppSMSAutomationSection />
+        </Suspense>
+      </LazySection>
+
+      {/* 7. Email Marketing [NEW #25] */}
+      <LazySection minHeight="800px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <EmailMarketingSection />
         </Suspense>
       </LazySection>
 
@@ -380,6 +415,55 @@ export function MarketingLanding() {
       <LazySection minHeight="600px">
         <Suspense fallback={<SectionSkeleton />}>
           <CRMMarketingGrowth />
+        </Suspense>
+      </LazySection>
+
+      {/* 15. Team Management [NEW #26] */}
+      <LazySection minHeight="700px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <TeamManagementSection />
+        </Suspense>
+      </LazySection>
+
+      {/* 16. Activity Logs [NEW #27] */}
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <ActivityLogsSection />
+        </Suspense>
+      </LazySection>
+
+      {/* 17. Product Reviews [NEW #28] */}
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <ProductReviewsSection />
+        </Suspense>
+      </LazySection>
+
+      {/* 18. Returns & Refunds [NEW #29] */}
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <ReturnsRefundsSection />
+        </Suspense>
+      </LazySection>
+
+      {/* 19. Messenger Integration [NEW #30] */}
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <MessengerIntegrationSection />
+        </Suspense>
+      </LazySection>
+
+      {/* 20. Tax Reports [NEW #31] */}
+      <LazySection minHeight="600px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <TaxReportsSection />
+        </Suspense>
+      </LazySection>
+
+      {/* 21. Unified Communication [NEW #32] */}
+      <LazySection minHeight="700px">
+        <Suspense fallback={<SectionSkeleton />}>
+          <UnifiedCommunicationHub />
         </Suspense>
       </LazySection>
 
@@ -407,8 +491,6 @@ export function MarketingLanding() {
           <PricingSection />
         </Suspense>
       </LazySection>
-
-
 
       {/* FAQ */}
       <LazySection minHeight="500px">
