@@ -179,7 +179,7 @@ export function DarazFlashSale({
                 {/* Image */}
                 <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 mb-2">
                   <img
-                    src={product.imageUrl || '/placeholder-product.png'}
+                    src={product.imageUrl || '/placeholder-product.svg'}
                     alt={product.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />

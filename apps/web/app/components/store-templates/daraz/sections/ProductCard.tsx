@@ -59,7 +59,7 @@ export function DarazProductCard({
       {/* Image Container */}
       <div className="relative aspect-square bg-gray-50 overflow-hidden">
         <img
-          src={product.imageUrl || '/placeholder-product.png'}
+          src={product.imageUrl || '/placeholder-product.svg'}
           alt={product.title}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           loading="lazy"

@@ -58,10 +58,11 @@ export function generateSrcset(url: string, widths: number[] = [320, 640, 1024, 
 
 /**
  * Preload hint for LCP images
- * Use in root.tsx links function
+ * Use in route-specific links function (e.g., marketing landing page)
+ * Note: Don't add to root.tsx to avoid unused preload warnings on other pages
  */
 export const LCP_PRELOAD_HINTS = [
-  // Hero brand logo
+  // Hero brand logo - use only on pages where the logo is above the fold
   {
     rel: 'preload',
     as: 'image',

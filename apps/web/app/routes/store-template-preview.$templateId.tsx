@@ -21,11 +21,22 @@ import {
 import {
   DEMO_PRODUCTS,
   DEMO_CATEGORIES,
+  DEMO_COLLECTIONS,
+  DEMO_REVIEWS,
   DEMO_SOCIAL_LINKS,
   DEMO_BUSINESS_INFO,
   DEMO_FOOTER_CONFIG,
   DEMO_THEME_CONFIG,
   DEMO_STORE_NAME,
+  DEMO_BANNERS,
+  DEMO_FLASH_SALES,
+  DEMO_PROMOTIONS,
+  DEMO_ANNOUNCEMENTS,
+  DEMO_TESTIMONIALS,
+  getActiveFlashSale,
+  getFlashSaleProducts,
+  getActiveBanners,
+  getActiveAnnouncement,
 } from '~/utils/store-preview-data';
 
 // ============================================================================
@@ -46,7 +57,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
   const template = getStoreTemplate(templateId);
   const theme = STORE_TEMPLATE_THEMES[templateId] || STORE_TEMPLATE_THEMES['luxe-boutique'];
 
-  // Convert demo products to match SerializedProduct type
+  // Convert demo products to match SerializedProduct type (with full data)
   const products = DEMO_PRODUCTS.map(p => ({
     id: p.id,
     storeId: p.storeId,
@@ -55,8 +66,23 @@ export async function loader({ params }: LoaderFunctionArgs) {
     price: p.price,
     compareAtPrice: p.compareAtPrice,
     imageUrl: p.imageUrl,
+    images: p.images,
     category: p.category,
+    variants: p.variants,
+    rating: p.rating,
+    reviewCount: p.reviewCount,
+    stock: p.stock,
+    sku: p.sku,
+    tags: p.tags,
   }));
+
+  // Get active flash sale and its products
+  const activeFlashSale = getActiveFlashSale();
+  const flashSaleProducts = getFlashSaleProducts();
+
+  // Get active banners and announcement
+  const activeBanners = getActiveBanners();
+  const activeAnnouncement = getActiveAnnouncement();
 
   return json({
     templateId: template.id,
@@ -65,11 +91,20 @@ export async function loader({ params }: LoaderFunctionArgs) {
     theme,
     products,
     categories: DEMO_CATEGORIES,
+    collections: DEMO_COLLECTIONS,
+    reviews: DEMO_REVIEWS,
     storeName: DEMO_STORE_NAME,
     socialLinks: DEMO_SOCIAL_LINKS,
     businessInfo: DEMO_BUSINESS_INFO,
     footerConfig: DEMO_FOOTER_CONFIG,
     themeConfig: DEMO_THEME_CONFIG,
+    // New demo data
+    banners: activeBanners,
+    flashSale: activeFlashSale,
+    flashSaleProducts,
+    promotions: DEMO_PROMOTIONS,
+    announcement: activeAnnouncement,
+    testimonials: DEMO_TESTIMONIALS,
     allTemplates: STORE_TEMPLATES.map(t => ({ id: t.id, name: t.name })),
   });
 }
@@ -135,6 +170,15 @@ export default function StoreTemplatePreview() {
     businessInfo: data.businessInfo,
     planType: 'pro', // Show without branding limits for preview
     isPreview: true,
+    // Extended demo data for rich preview
+    collections: data.collections,
+    reviews: data.reviews,
+    banners: data.banners,
+    flashSale: data.flashSale,
+    flashSaleProducts: data.flashSaleProducts,
+    promotions: data.promotions,
+    announcement: data.announcement,
+    testimonials: data.testimonials,
   };
 
   return (

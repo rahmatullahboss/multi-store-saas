@@ -1065,7 +1065,7 @@ function LiveProductCard({
       <Link to={`/products/${product.id}`} className="block">
         <div className="relative aspect-square rounded-xl overflow-hidden mb-3" style={{ backgroundColor: theme.cardBg }}>
           <img 
-            src={product.imageUrl || '/placeholder-product.png'} 
+            src={product.imageUrl || '/placeholder-product.svg'} 
             alt={product.title} 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
             loading="lazy" 
