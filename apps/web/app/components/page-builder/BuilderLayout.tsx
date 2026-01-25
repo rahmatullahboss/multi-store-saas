@@ -1,6 +1,6 @@
 /**
  * Page Builder v2 - Main Layout Component
- * 
+ *
  * Contains:
  * - Sidebar with section list (drag & drop)
  * - Properties panel
@@ -18,11 +18,7 @@ import {
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core';
-import {
-  SortableContext,
-  arrayMove,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
+import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import {
   Plus,
   Eye,
@@ -52,6 +48,9 @@ import { NewPageModal } from './NewPageModal';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { FloatingButtonSettingsPanel } from './FloatingButtonSettingsPanel';
 import { getSectionMeta } from '~/lib/page-builder/registry';
+import { createBuilderAnnouncements } from './DragDropAnnouncements';
+import { KeyboardShortcutsButton } from './KeyboardShortcutsHelp';
+import { SaveIndicator } from './SaveIndicator';
 
 interface Product {
   id: number;
@@ -100,7 +99,12 @@ interface BuilderLayoutProps {
   onToggle: (sectionId: string, enabled: boolean) => void;
   onAddSection: (type: SectionType) => void;
   onDeleteSection: (sectionId: string) => void;
-  onUpdateProps: (sectionId: string, type: string, props: Record<string, unknown>, version: number) => void;
+  onUpdateProps: (
+    sectionId: string,
+    type: string,
+    props: Record<string, unknown>,
+    version: number
+  ) => void;
   onDuplicate: (sectionId: string) => void;
   onCreatePage: (slug: string, title: string) => void;
   onPublish?: () => void;
@@ -160,40 +164,49 @@ export function BuilderLayout({
 }: BuilderLayoutProps) {
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  
+
   // Send sections data directly to preview iframe for instant updates
   // This avoids DB revalidation delays and caching issues
   const notifyPreview = useCallback((sectionsData: BuilderSection[]) => {
     if (iframeRef.current?.contentWindow) {
-      const enabledSections = sectionsData.filter(s => s.enabled);
-      iframeRef.current.contentWindow.postMessage({ 
-        type: 'BUILDER_UPDATE',
-        sections: enabledSections 
-      }, '*');
+      const enabledSections = sectionsData.filter((s) => s.enabled);
+      iframeRef.current.contentWindow.postMessage(
+        {
+          type: 'BUILDER_UPDATE',
+          sections: enabledSections,
+        },
+        '*'
+      );
     }
   }, []);
-  
+
   // Notify preview iframe about product selection for real-time preview
   const notifyProductUpdate = useCallback((productData: Product | null) => {
     if (iframeRef.current?.contentWindow) {
-      const normalizedProduct = productData ? {
-        id: productData.id,
-        title: productData.name,
-        price: productData.price,
-        images: productData.imageUrl ? [productData.imageUrl] : [],
-        variants: productData.bundlePricing?.map((tier, idx) => ({
-          id: idx + 1,
-          name: tier.label,
-          price: tier.price,
-        })) || [],
-      } : null;
-      iframeRef.current.contentWindow.postMessage({ 
-        type: 'PRODUCT_UPDATE',
-        product: normalizedProduct 
-      }, '*');
+      const normalizedProduct = productData
+        ? {
+            id: productData.id,
+            title: productData.name,
+            price: productData.price,
+            images: productData.imageUrl ? [productData.imageUrl] : [],
+            variants:
+              productData.bundlePricing?.map((tier, idx) => ({
+                id: idx + 1,
+                name: tier.label,
+                price: tier.price,
+              })) || [],
+          }
+        : null;
+      iframeRef.current.contentWindow.postMessage(
+        {
+          type: 'PRODUCT_UPDATE',
+          product: normalizedProduct,
+        },
+        '*'
+      );
     }
   }, []);
-  
+
   // Send live preview on every sections change (instant real-time sync)
   useEffect(() => {
     // Small delay to batch rapid changes
@@ -202,7 +215,7 @@ export function BuilderLayout({
     }, 50);
     return () => clearTimeout(timer);
   }, [sections, notifyPreview]);
-  
+
   // Send initial product data to preview iframe when it loads
   // This ensures product shows on page load without re-selecting in editor
   useEffect(() => {
@@ -212,57 +225,69 @@ export function BuilderLayout({
         if (iframeRef.current?.contentWindow) {
           // Send single selected product
           if (selectedProduct) {
-            iframeRef.current.contentWindow.postMessage({
-              type: 'PRODUCT_UPDATE',
-              product: selectedProduct,
-            }, '*');
+            iframeRef.current.contentWindow.postMessage(
+              {
+                type: 'PRODUCT_UPDATE',
+                product: selectedProduct,
+              },
+              '*'
+            );
           }
           // Send multiple selected products for product-grid
           if (selectedProducts.length > 0) {
-            iframeRef.current.contentWindow.postMessage({
-              type: 'PRODUCTS_UPDATE',
-              products: selectedProducts,
-            }, '*');
+            iframeRef.current.contentWindow.postMessage(
+              {
+                type: 'PRODUCTS_UPDATE',
+                products: selectedProducts,
+              },
+              '*'
+            );
           }
         }
       };
-      
+
       // Add load listener
       iframeRef.current.addEventListener('load', handleIframeLoad);
-      
+
       // Also send immediately in case iframe is already loaded
       const timer = setTimeout(() => {
         if (iframeRef.current?.contentWindow) {
           if (selectedProduct) {
-            iframeRef.current.contentWindow.postMessage({
-              type: 'PRODUCT_UPDATE',
-              product: selectedProduct,
-            }, '*');
+            iframeRef.current.contentWindow.postMessage(
+              {
+                type: 'PRODUCT_UPDATE',
+                product: selectedProduct,
+              },
+              '*'
+            );
           }
           if (selectedProducts.length > 0) {
-            iframeRef.current.contentWindow.postMessage({
-              type: 'PRODUCTS_UPDATE',
-              products: selectedProducts,
-            }, '*');
+            iframeRef.current.contentWindow.postMessage(
+              {
+                type: 'PRODUCTS_UPDATE',
+                products: selectedProducts,
+              },
+              '*'
+            );
           }
         }
       }, 500);
-      
+
       return () => {
         iframeRef.current?.removeEventListener('load', handleIframeLoad);
         clearTimeout(timer);
       };
     }
   }, [selectedProduct, selectedProducts]);
-  
+
   const [showNewPageModal, setShowNewPageModal] = useState(isNew);
-  
+
   // Delete confirmation state
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  const pendingDeleteSection = pendingDeleteId 
-    ? sections.find(s => s.id === pendingDeleteId) 
+  const pendingDeleteSection = pendingDeleteId
+    ? sections.find((s) => s.id === pendingDeleteId)
     : null;
-  
+
   // Floating button settings state - initialize from page data
   const [showFloatingSettings, setShowFloatingSettings] = useState(false);
   const [floatingSettings, setFloatingSettings] = useState(() => ({
@@ -275,44 +300,50 @@ export function BuilderLayout({
     orderText: page?.orderText || 'অর্ডার করুন',
     orderBgColor: page?.orderBgColor || '#6366F1',
     orderTextColor: page?.orderTextColor || '#FFFFFF',
-    position: (page?.buttonPosition || 'bottom-right') as 'bottom-right' | 'bottom-left' | 'bottom-center',
+    position: (page?.buttonPosition || 'bottom-right') as
+      | 'bottom-right'
+      | 'bottom-left'
+      | 'bottom-center',
   }));
-  
+
   // DnD sensors
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor)
   );
-  
+
   // Handle drag end
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (over && active.id !== over.id) {
-      const oldIndex = sections.findIndex(s => s.id === active.id);
-      const newIndex = sections.findIndex(s => s.id === over.id);
-      const newOrder = arrayMove(sections, oldIndex, newIndex);
-      onReorder(newOrder.map(s => s.id));
-    }
-  }, [sections, onReorder]);
-  
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+
+      if (over && active.id !== over.id) {
+        const oldIndex = sections.findIndex((s) => s.id === active.id);
+        const newIndex = sections.findIndex((s) => s.id === over.id);
+        const newOrder = arrayMove(sections, oldIndex, newIndex);
+        onReorder(newOrder.map((s) => s.id));
+      }
+    },
+    [sections, onReorder]
+  );
+
   // Active section
-  const activeSection = sections.find(s => s.id === activeSectionId);
-  
+  const activeSection = sections.find((s) => s.id === activeSectionId);
+
   // Preview width based on device
   const previewStyles: Record<string, React.CSSProperties> = {
-    desktop: { 
+    desktop: {
       width: '100%',
       maxWidth: '100%',
       height: '100%',
     },
-    tablet: { 
+    tablet: {
       width: '768px',
       maxWidth: '768px',
       height: '100%',
     },
-    mobile: { 
-      width: '414px',  // iPhone Plus size for better content visibility
+    mobile: {
+      width: '414px', // iPhone Plus size for better content visibility
       maxWidth: '414px',
       height: '896px', // iPhone Plus height
       borderRadius: '2.5rem',
@@ -320,23 +351,18 @@ export function BuilderLayout({
       boxShadow: '0 0 0 3px #374151, 0 25px 50px -12px rgba(0, 0, 0, 0.25)',
     },
   };
-  
+
   // Hydration fix: only render DnD on client
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
     setIsMounted(true);
   }, []);
-  
+
   // New page modal
   if (isNew && showNewPageModal) {
-    return (
-      <NewPageModal
-        onClose={() => window.history.back()}
-        onCreate={onCreatePage}
-      />
-    );
+    return <NewPageModal onClose={() => window.history.back()} onCreate={onCreatePage} />;
   }
-  
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
@@ -344,39 +370,31 @@ export function BuilderLayout({
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-3">
-            <Link 
-              to="/app/new-builder" 
+            <Link
+              to="/app/new-builder"
               className="text-gray-500 hover:text-gray-700 flex items-center gap-1 text-sm"
             >
               <ArrowLeft size={16} />
               Back
             </Link>
-            {isSaving ? (
-              <span className="flex items-center gap-1 text-xs text-gray-500">
-                <Loader2 size={12} className="animate-spin" />
-                Saving...
-              </span>
-            ) : lastSaved ? (
-              <span className="text-xs text-green-600 flex items-center gap-1">
-                <Save size={12} />
-                Saved
-              </span>
-            ) : null}
+            <SaveIndicator isSaving={isSaving} lastSaved={lastSaved || null} />
           </div>
           <h2 className="font-semibold text-gray-900 truncate">
             {page?.title || page?.slug || 'New Page'}
           </h2>
           <div className="flex items-center gap-2 mt-1">
-            <span className={`px-2 py-0.5 text-xs rounded-full ${
-              page?.status === 'published' 
-                ? 'bg-green-100 text-green-700' 
-                : 'bg-yellow-100 text-yellow-700'
-            }`}>
+            <span
+              className={`px-2 py-0.5 text-xs rounded-full ${
+                page?.status === 'published'
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-yellow-100 text-yellow-700'
+              }`}
+            >
               {page?.status === 'published' ? 'Published' : 'Draft'}
             </span>
           </div>
         </div>
-        
+
         {/* Sections List */}
         <div className="flex-1 overflow-y-auto p-4">
           <div className="flex items-center justify-between mb-3">
@@ -389,19 +407,22 @@ export function BuilderLayout({
               <Plus size={18} />
             </button>
           </div>
-          
+
           {isMounted ? (
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragEnd={handleDragEnd}
+              accessibility={{
+                announcements: createBuilderAnnouncements(sections),
+              }}
             >
               <SortableContext
-                items={sections.map(s => s.id)}
+                items={sections.map((s) => s.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <div className="space-y-2">
-                  {sections.map((section) => (
+                <div className="space-y-2" role="list" aria-label="সেকশন তালিকা">
+                  {sections.map((section, index) => (
                     <SortableItem
                       key={section.id}
                       section={section}
@@ -410,6 +431,8 @@ export function BuilderLayout({
                       onToggle={(enabled: boolean) => onToggle(section.id, enabled)}
                       onDelete={() => setPendingDeleteId(section.id)}
                       onDuplicate={() => onDuplicate(section.id)}
+                      index={index}
+                      totalItems={sections.length}
                     />
                   ))}
                 </div>
@@ -424,7 +447,7 @@ export function BuilderLayout({
               ))}
             </div>
           )}
-          
+
           {sections.length === 0 && (
             <div className="text-center py-8 text-gray-500">
               <p className="text-sm">No sections yet</p>
@@ -437,13 +460,13 @@ export function BuilderLayout({
             </div>
           )}
         </div>
-        
+
         {/* Properties Panel */}
         {activeSection && (
           <div className="border-t border-gray-200 max-h-[40vh] overflow-y-auto">
             <PropertiesPanel
               section={activeSection}
-              onUpdate={(props: Record<string, unknown>) => 
+              onUpdate={(props: Record<string, unknown>) =>
                 onUpdateProps(activeSection.id, activeSection.type, props, activeSection.version)
               }
               onClose={() => onSelectSection(null)}
@@ -454,7 +477,7 @@ export function BuilderLayout({
           </div>
         )}
       </div>
-      
+
       {/* Preview Area */}
       <div className="flex-1 flex flex-col">
         {/* Preview Toolbar */}
@@ -463,7 +486,9 @@ export function BuilderLayout({
             <button
               onClick={() => setPreviewDevice('desktop')}
               className={`p-2 rounded-lg transition-colors ${
-                previewDevice === 'desktop' ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50'
+                previewDevice === 'desktop'
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-500 hover:bg-gray-50'
               }`}
               title="Desktop"
             >
@@ -472,7 +497,9 @@ export function BuilderLayout({
             <button
               onClick={() => setPreviewDevice('tablet')}
               className={`p-2 rounded-lg transition-colors ${
-                previewDevice === 'tablet' ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50'
+                previewDevice === 'tablet'
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-500 hover:bg-gray-50'
               }`}
               title="Tablet"
             >
@@ -481,16 +508,18 @@ export function BuilderLayout({
             <button
               onClick={() => setPreviewDevice('mobile')}
               className={`p-2 rounded-lg transition-colors ${
-                previewDevice === 'mobile' ? 'bg-gray-100 text-gray-900' : 'text-gray-500 hover:bg-gray-50'
+                previewDevice === 'mobile'
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-500 hover:bg-gray-50'
               }`}
               title="Mobile"
             >
               <Smartphone size={18} />
             </button>
-            
+
             {/* Divider */}
             <div className="w-px h-6 bg-gray-200 mx-1" />
-            
+
             {/* Undo/Redo */}
             <button
               onClick={onUndo}
@@ -512,10 +541,10 @@ export function BuilderLayout({
             >
               <Redo2 size={18} />
             </button>
-            
+
             {/* Divider */}
             <div className="w-px h-6 bg-gray-200 mx-1" />
-            
+
             {/* Floating Button Settings */}
             <button
               onClick={() => setShowFloatingSettings(true)}
@@ -524,8 +553,11 @@ export function BuilderLayout({
             >
               <Settings2 size={18} />
             </button>
+
+            {/* Keyboard Shortcuts Help */}
+            <KeyboardShortcutsButton />
           </div>
-          
+
           <div className="flex items-center gap-2">
             {page && (
               <a
@@ -566,7 +598,7 @@ export function BuilderLayout({
             </button>
           </div>
         </div>
-        
+
         {/* Preview Frame */}
         <div className="flex-1 overflow-auto bg-gray-200 p-4 flex justify-center items-start">
           {page ? (
@@ -582,7 +614,7 @@ export function BuilderLayout({
                   <div className="w-20 h-1.5 bg-gray-700 rounded-full" />
                 </div>
               )}
-              
+
               {/* Iframe for true viewport */}
               <iframe
                 ref={iframeRef}
@@ -602,7 +634,7 @@ export function BuilderLayout({
           )}
         </div>
       </div>
-      
+
       {/* Add Section Modal */}
       {showAddModal && (
         <AddSectionModal
@@ -611,11 +643,15 @@ export function BuilderLayout({
           onClose={() => setShowAddModal(false)}
         />
       )}
-      
+
       {/* Delete Confirmation Modal */}
       <DeleteConfirmModal
         isOpen={pendingDeleteId !== null}
-        sectionName={pendingDeleteSection ? (getSectionMeta(pendingDeleteSection.type)?.name || pendingDeleteSection.type) : ''}
+        sectionName={
+          pendingDeleteSection
+            ? getSectionMeta(pendingDeleteSection.type)?.name || pendingDeleteSection.type
+            : ''
+        }
         onConfirm={() => {
           if (pendingDeleteId) {
             onDeleteSection(pendingDeleteId);
@@ -624,7 +660,7 @@ export function BuilderLayout({
         }}
         onCancel={() => setPendingDeleteId(null)}
       />
-      
+
       {/* Floating Button Settings Modal */}
       <FloatingButtonSettingsPanel
         isOpen={showFloatingSettings}
@@ -634,10 +670,13 @@ export function BuilderLayout({
           setFloatingSettings(newSettings);
           // Send to preview iframe
           if (iframeRef.current?.contentWindow) {
-            iframeRef.current.contentWindow.postMessage({
-              type: 'SETTINGS_UPDATE',
-              settings: newSettings,
-            }, '*');
+            iframeRef.current.contentWindow.postMessage(
+              {
+                type: 'SETTINGS_UPDATE',
+                settings: newSettings,
+              },
+              '*'
+            );
           }
           // Persist to database - include all settings
           onSaveSettings?.({

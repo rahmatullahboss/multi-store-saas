@@ -32,8 +32,13 @@ declare global {
     BKASH_PASSWORD?: string;
     // Cloudflare Queue
     EMAIL_QUEUE?: Queue<unknown>;
-    // Service Bindings (External Workers)
-    ORDER_PROCESSOR_SERVICE?: Fetcher; // Order processor worker with Durable Objects
+    // Service Bindings (External Workers with Durable Objects)
+    ORDER_PROCESSOR_SERVICE?: Fetcher; // Order processor worker
+    CART_SERVICE?: Fetcher; // Cart processor worker (race-condition free cart)
+    CHECKOUT_SERVICE?: Fetcher; // Checkout lock worker (prevents double payment)
+    RATE_LIMITER_SERVICE?: Fetcher; // Rate limiter worker (per-store/IP limits)
+    STORE_CONFIG_SERVICE?: Fetcher; // Store config cache worker (1-min TTL)
+    EDITOR_STATE_SERVICE?: Fetcher; // Editor state worker (undo/redo)
     // KV Namespace for AI Rate Limiting
     AI_RATE_LIMIT?: KVNamespace;
     // KV Namespace for Store/Page Caching

@@ -367,6 +367,75 @@ export default function ProductDetail() {
     } : undefined,
   };
 
+  // Simple fallback product page component (when template doesn't have ProductPage)
+  const SimpleProductPage = () => (
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="grid md:grid-cols-2 gap-8">
+        {/* Image */}
+        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+          {product.imageUrl ? (
+            <img src={product.imageUrl} alt={product.title} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
+          )}
+        </div>
+        {/* Info */}
+        <div>
+          <h1 className="text-3xl font-bold mb-4">{product.title}</h1>
+          <p className="text-2xl font-semibold text-blue-600 mb-4">
+            {currency === 'BDT' ? '৳' : '$'}{product.price.toLocaleString()}
+            {product.compareAtPrice && product.compareAtPrice > product.price && (
+              <span className="ml-2 text-lg text-gray-500 line-through">
+                {currency === 'BDT' ? '৳' : '$'}{product.compareAtPrice.toLocaleString()}
+              </span>
+            )}
+          </p>
+          {product.description && (
+            <div className="prose mb-6" dangerouslySetInnerHTML={{ __html: product.description }} />
+          )}
+          <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+            Add to Cart
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Render product page content
+  const renderProductContent = () => {
+    // If template has ProductPage component (Daraz, BDShop etc.), use it
+    if (templateDef.ProductPage) {
+      const ProductPageComponent = templateDef.ProductPage;
+      return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" /></div>}>
+          <ProductPageComponent
+            product={product}
+            currency={currency}
+            relatedProducts={relatedProducts}
+          />
+        </Suspense>
+      );
+    }
+    
+    // If template has sections, use StoreSectionRenderer
+    if (hasTemplateSections && template?.sections) {
+      return (
+        <StoreSectionRenderer
+          sections={template.sections.map((s: any) => ({
+            ...s,
+            enabled: true,
+            sortOrder: 0,
+            props: s.settings,
+          })) as any}
+          context={renderContext}
+        />
+      );
+    }
+    
+    // Fallback to simple product page
+    return <SimpleProductPage />;
+  };
+
   return (
     <StorePageWrapper
       storeName={storeName}
@@ -387,26 +456,7 @@ export default function ProductDetail() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
       />
-      {/* Use template-specific ProductPage if available */}
-      {templateDef.ProductPage ? (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" /></div>}>
-          <templateDef.ProductPage
-            product={product}
-            currency={currency}
-            relatedProducts={relatedProducts}
-          />
-        </Suspense>
-      ) : (
-        <StoreSectionRenderer
-          sections={(hasTemplateSections ? template!.sections : DEFAULT_PRODUCT_SECTIONS.map(s => ({
-            ...s,
-            enabled: true,
-            sortOrder: 0,
-            props: s.settings,
-          }))) as any}
-          context={renderContext}
-        />
-      )}
+      {renderProductContent()}
     </StorePageWrapper>
   );
 }

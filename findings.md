@@ -1,51 +1,52 @@
-# Findings: Turborepo Migration TypeScript Errors
+# Findings: DO Architecture Implementation
 
-## Root Cause Analysis
+## Relevant Code
 
-### 1. Session Type Access Pattern Issue
-- **Problem**: `getSession()` returns Remix `Session<SessionData, SessionFlashData>` object
-- **Wrong**: `session.storeId` (accessing property directly)
-- **Correct**: `session.get('storeId')` (using Session API)
-- **Files Affected**: 35+ occurrences across API routes and server files
-- **SessionData type** (from `auth.server.ts`):
-  ```typescript
-  type SessionData = {
-    userId: number;
-    storeId: number;
-    originalAdminId?: number;
-  };
-  ```
+### Existing Order Processor DO
+- Location: `apps/web/workers/order-processor/`
+- Pattern: Separate worker with wrangler.toml
+- Uses SQLite for persistence (FREE tier compatible)
+- Class extends `DurableObject<Env>` from `cloudflare:workers`
+- Uses `this.ctx.storage.sql` for SQLite operations
+- Has lazy initialization pattern
+- Uses alarms for background processing
 
-### 2. Drizzle ORM Query Chaining Issue
-- **Problem**: Calling `.where()` on already-assigned query variable
-- **Wrong**:
-  ```typescript
-  let query = db.select().from(customers).where(eq(customers.storeId, storeId));
-  query.where(and(...)); // Error: .where() doesn't exist on result type
-  ```
-- **Correct**: Use `$dynamic()` or build conditions array first
-  ```typescript
-  const conditions = [eq(customers.storeId, storeId)];
-  if (search) conditions.push(like(customers.name, searchLower));
-  const results = await db.select().from(customers).where(and(...conditions));
-  ```
+### Main App Configuration
+- Location: `apps/web/wrangler.toml`
+- Uses service binding: `ORDER_PROCESSOR_SERVICE` → `order-processor`
+- D1 database: `multi-store-saas-db` (ID: bf882d16-d67a-4007-b503-33646bd693af)
+- Has KV namespaces: `AI_RATE_LIMIT`, `STORE_CACHE`
 
-### 3. Component Prop Type Mismatches
-- **realData undefined**: Missing null check before access
-- **editor prop**: Component doesn't accept this prop
-- **ThemeConfig | null**: Cannot assign to `Record<string, unknown>`
-- **Invalid CSS properties**: `ringColor`, `focusRing` not valid React CSS
+### Worker Structure Pattern
+```
+apps/web/workers/{worker-name}/
+├── src/index.ts      # DO class + worker entry point
+├── wrangler.toml     # DO bindings + migrations
+├── package.json      # Dependencies
+└── tsconfig.json     # TypeScript config
+```
 
-### 4. Unknown Type Issues
-- **body parsing**: `request.json()` returns `unknown`
-- **unknown[]**: Cannot assign to `Record<string, unknown>[]`
+## Documentation
+
+### DO Architecture Strategy
+- **Cart DO**: `cart-{sessionId}` - Race-condition free cart management
+- **Checkout Lock DO**: `checkout-{orderId}` - Atomic lock with 5-min timeout
+- **Rate Limiter DO**: `ratelimit-{storeId}-{ip}` - Sliding window algorithm
+- **Store Config Cache DO**: `store-{storeId}` - 1-minute TTL cache
+- **Live Editor State DO**: `editor-{pageId}` - Undo/redo with history
+
+### DO Best Practices (from order-processor)
+- One DO = One responsibility
+- Quick response, background processing with `ctx.waitUntil()`
+- Batch operations to minimize network hops
+- DO coordinates, DB stores final state
+- Lazy initialization (don't create tables until needed)
+- Use alarm debouncing to prevent redundant alarms
+- Single composite index for common queries
 
 ## Decisions
-- Fix Session access pattern consistently across all files
-- Use Drizzle's recommended dynamic query pattern
-- Add proper null checks and type guards
-- Use `as` assertions only where type is certain
-
-## Context7 References Used
-- Turborepo: `/websites/turborepo` - workspace package references
-- Drizzle ORM: `/drizzle-team/drizzle-orm-docs` - type-safe queries with where clauses
+- [x] Decision 1: Use separate worker directories for each DO (following order-processor pattern)
+- [x] Decision 2: Use SQLite persistence for Cart and Editor State
+- [x] Decision 3: In-memory only for Rate Limiter and Store Config (ephemeral)
+- [x] Decision 4: Use service bindings in main app to access DO workers
+- [x] Decision 5: Follow same migration pattern with `new_sqlite_classes`

@@ -49,7 +49,10 @@ const STORE_SECTION_COMPONENTS: Record<string, React.LazyExoticComponent<React.C
   'collection-list': React.lazy(() => import('./sections/home/CollectionListSection')),
   'related-products': React.lazy(() => import('./sections/product/RelatedProductsSection')),
   
-  // Product page sections
+  // Product page sections (used by DEFAULT_PRODUCT_SECTIONS)
+  'product-header': React.lazy(() => import('./sections/product/ProductHeaderSection')),
+  'product-gallery': React.lazy(() => import('./sections/product/ProductGallerySection')),
+  'product-info': React.lazy(() => import('./sections/product/ProductInfoSection')),
   'product-main': React.lazy(() => import('./sections/product/ProductMainSection')),
   'product-description': React.lazy(() => import('./sections/product/ProductDescriptionSection')),
   'product-reviews': React.lazy(() => import('./sections/product/ProductReviewsSection')),
@@ -98,6 +101,40 @@ function SectionErrorFallback({ type }: { type: string }) {
   );
 }
 
+// Error boundary wrapper for individual sections
+class ErrorBoundarySection extends React.Component<
+  { type: string; children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { type: string; children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error(`Section "${this.props.type}" error:`, error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // In production, silently skip broken sections
+      if (process.env.NODE_ENV !== 'development') {
+        return null;
+      }
+      return (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm">
+          Section "{this.props.type}" failed to render: {this.state.error?.message}
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
@@ -129,12 +166,14 @@ export function StoreSectionRenderer({
         
         return (
           <React.Suspense key={section.id} fallback={<SectionLoadingFallback />}>
-            <SectionComponent
-              sectionId={section.id}
-              props={section.props}
-              blocks={section.blocks}
-              context={context}
-            />
+            <ErrorBoundarySection type={section.type}>
+              <SectionComponent
+                sectionId={section.id}
+                props={section.props || {}}
+                blocks={section.blocks}
+                context={context}
+              />
+            </ErrorBoundarySection>
           </React.Suspense>
         );
       })}

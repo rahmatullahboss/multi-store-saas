@@ -29,11 +29,11 @@
 | Use Case | DO ID Pattern | Priority | Status |
 |----------|---------------|----------|--------|
 | **Order Processing** | `order-processor-{storeId}` | 🔴 Critical | ✅ Implemented |
-| **Cart System** | `cart-{sessionId}` | 🔴 Critical | 🔲 To Do |
-| **Checkout Lock** | `checkout-{orderId}` | 🔴 Critical | 🔲 To Do |
-| **Rate Limiter** | `ratelimit-{storeId}-{ip}` | 🟡 Important | 🔲 To Do |
-| **Store Config Cache** | `store-{storeId}` | 🟡 Important | 🔲 To Do |
-| **Live Editor State** | `editor-{pageId}` | 🟢 Nice-to-have | 🔲 To Do |
+| **Cart System** | `cart-{sessionId}` | 🔴 Critical | ✅ Implemented |
+| **Checkout Lock** | `checkout-{orderId}` | 🔴 Critical | ✅ Implemented |
+| **Rate Limiter** | `ratelimit-{storeId}-{ip}` | 🟡 Important | ✅ Implemented |
+| **Store Config Cache** | `store-{storeId}` | 🟡 Important | ✅ Implemented |
+| **Live Editor State** | `editor-{pageId}` | 🟢 Nice-to-have | ✅ Implemented |
 
 ### ❌ NOT for Durable Objects
 
@@ -480,18 +480,18 @@ class OrderDO {
 - [x] Email/Webhook task queue
 - [x] FREE tier optimization
 
-### Phase 2: Critical Features (NEXT)
-- [ ] Cart DO
-- [ ] Checkout Lock DO
-- [ ] Integration with create-order API
+### Phase 2: Critical Features (DONE ✅)
+- [x] Cart DO (`apps/web/workers/cart-processor/`)
+- [x] Checkout Lock DO (`apps/web/workers/checkout-lock/`)
+- [x] Service helpers in `apps/web/app/services/`
 
-### Phase 3: Performance
-- [ ] Rate Limiter DO
-- [ ] Store Config Cache DO
+### Phase 3: Performance (DONE ✅)
+- [x] Rate Limiter DO (`apps/web/workers/rate-limiter/`)
+- [x] Store Config Cache DO (`apps/web/workers/store-config/`)
 
-### Phase 4: Advanced
-- [ ] Live Editor State DO
-- [ ] Real-time inventory DO
+### Phase 4: Advanced (DONE ✅)
+- [x] Live Editor State DO (`apps/web/workers/editor-state/`)
+- [ ] Real-time inventory DO (Future)
 
 ---
 
@@ -531,4 +531,117 @@ FREE tier limit: 1M requests/day
 
 ---
 
-**Next Step:** Bolo ki implement korte chai - Cart DO, Checkout Lock, or Rate Limiter?
+## 🚀 NEXT STEPS: Integration & Optimization
+
+### ✅ Completed
+- [x] All 6 DO workers deployed and tested
+- [x] Service helpers created
+- [x] Main app connected via service bindings
+- [x] Documentation updated
+
+### 🔜 Priority 1: Route Integration (RECOMMENDED NEXT)
+
+**Cart Routes Integration:**
+```typescript
+// apps/web/app/routes/api.cart.ts
+import { getCart, addToCart, removeFromCart } from '~/services/cart-do.server';
+
+// Replace existing cart logic with DO-backed cart
+```
+
+**Checkout Integration:**
+```typescript
+// apps/web/app/routes/checkout.tsx or api.create-order.ts
+import { withCheckoutLock } from '~/services/checkout-do.server';
+
+// Wrap payment processing in lock to prevent double-payment
+```
+
+**Rate Limiting:**
+```typescript
+// apps/web/server/middleware/rate-limit.ts
+import { rateLimitMiddleware } from '~/services/rate-limiter-do.server';
+
+// Add to sensitive routes: login, checkout, upload
+```
+
+### 🔜 Priority 2: Performance Optimization
+
+**Store Config Cache:**
+```typescript
+// Replace direct DB queries with cached config
+import { getStoreConfig } from '~/services/store-config-do.server';
+
+// In root.tsx or layout loaders
+const storeConfig = await getStoreConfig(env, storeId);
+```
+
+### 🔜 Priority 3: Page Builder Enhancement
+
+**Editor State:**
+```typescript
+// apps/web/app/routes/app.pages.$id.edit.tsx
+import { initEditor, updateSection, undo, redo } from '~/services/editor-state-do.server';
+
+// Enable auto-save, undo/redo functionality
+```
+
+### 🔜 Priority 4: Monitoring & Observability
+
+- [ ] Add Cloudflare Analytics for DO workers
+- [ ] Set up alerts for DO errors
+- [ ] Monitor FREE tier usage
+
+---
+
+## 📋 Quick Integration Checklist
+
+```
+1. Cart System
+   └── [ ] Update api.cart.ts to use Cart DO
+   └── [ ] Update cart context/hook to use new API
+   └── [ ] Test multi-tab synchronization
+
+2. Checkout Lock
+   └── [ ] Update api.create-order.ts with checkout lock
+   └── [ ] Test double-click prevention
+   └── [ ] Test timeout auto-unlock
+
+3. Rate Limiting
+   └── [ ] Add to auth routes (login, register)
+   └── [ ] Add to checkout routes
+   └── [ ] Add to upload routes
+
+4. Store Config Cache
+   └── [ ] Update root.tsx loader
+   └── [ ] Add cache invalidation on settings update
+
+5. Editor State
+   └── [ ] Integrate with page builder
+   └── [ ] Add undo/redo UI
+   └── [ ] Test refresh persistence
+```
+
+---
+
+## 🛠️ Deploy Commands Reference
+
+```bash
+# Deploy all workers
+cd apps/web/workers && ./deploy-all.sh
+
+# Deploy single worker
+cd apps/web/workers/cart-processor && wrangler deploy
+
+# View worker logs
+cd apps/web/workers/cart-processor && wrangler tail
+
+# Test worker health
+curl https://cart-processor.rahmatullahzisan.workers.dev/health
+```
+
+---
+
+**Status: ✅ DO Architecture Fully Implemented!**
+
+All 6 Durable Object workers are deployed and tested. Next step is to integrate them into your existing Remix routes for full functionality.

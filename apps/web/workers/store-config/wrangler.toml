@@ -1,0 +1,36 @@
+#:schema node_modules/wrangler/config-schema.json
+
+name = "store-config"
+main = "src/index.ts"
+compatibility_date = "2024-11-18"
+compatibility_flags = ["nodejs_compat"]
+
+# ============================================================================
+# DURABLE OBJECTS (FREE Plan - In-Memory Cache)
+# ============================================================================
+
+[[durable_objects.bindings]]
+name = "STORE_CONFIG"
+class_name = "StoreConfigCache"
+
+# Migration for Durable Object (in-memory cache + D1 access)
+# Note: v1 was sqlite, now changed to regular class
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["StoreConfigCache"]
+
+# ============================================================================
+# BINDINGS
+# ============================================================================
+
+# D1 Database (for fetching store config)
+[[d1_databases]]
+binding = "DB"
+database_name = "multi-store-saas-db"
+database_id = "bf882d16-d67a-4007-b503-33646bd693af"
+
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
+[vars]
+WORKER_ENV = "production"

@@ -311,6 +311,9 @@ import { ROVO_THEME } from '~/components/store-templates/rovo/theme';
 import { SOKOL_THEME } from '~/components/store-templates/sokol/theme';
 import { STARTER_STORE_THEME } from '~/components/store-templates/starter-store/theme';
 
+// Shared Product Page for templates without their own ProductPage
+const SharedProductPage = React.lazy(() => import('~/components/store-templates/shared/ProductPage'));
+
 const LuxeBoutiqueTemplate = React.lazy(() => import('~/components/store-templates/luxe-boutique/index').then(m => ({ default: m.LuxeBoutiqueTemplate })));
 const TechModernTemplate = React.lazy(() => import('~/components/store-templates/tech-modern/index').then(m => ({ default: m.TechModernTemplate })));
 const ArtisanMarketTemplate = React.lazy(() => import('~/components/store-templates/artisan-market/index').then(m => ({ default: m.ArtisanMarketTemplate })));
@@ -385,6 +388,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: LuxeBoutiqueTemplate,
     Header: LuxeBoutiqueHeader,
     Footer: LuxeBoutiqueFooter,
+    ProductPage: SharedProductPage,
   },
   {
     id: 'tech-modern',
@@ -400,6 +404,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: TechModernTemplate,
     Header: TechModernHeader,
     Footer: TechModernFooter,
+    ProductPage: SharedProductPage,
   },
   {
     id: 'artisan-market',
@@ -415,6 +420,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: ArtisanMarketTemplate,
     Header: ArtisanMarketHeader,
     Footer: ArtisanMarketFooter,
+    ProductPage: SharedProductPage,
   },
   {
     id: 'daraz',
@@ -464,6 +470,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: GhorerBazarTemplate,
     Header: GhorerBazarHeader,
     Footer: GhorerBazarFooter,
+    ProductPage: SharedProductPage,
   },
   {
     id: 'nova-lux',
@@ -479,6 +486,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: NovaLuxTemplate,
     Header: NovaLuxHeader,
     Footer: NovaLuxFooter,
+    ProductPage: SharedProductPage,
   },
   {
     id: 'eclipse',
@@ -494,6 +502,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: EclipseTemplate,
     Header: EclipseHeader,
     Footer: EclipseFooter,
+    ProductPage: SharedProductPage,
   },
   {
     id: 'aurora-minimal',
@@ -509,6 +518,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: AuroraMinimalTemplate,
     Header: AuroraMinimalHeader,
     Footer: AuroraMinimalFooter,
+    ProductPage: SharedProductPage,
   },
   {
     id: 'freshness',
@@ -524,6 +534,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: FreshnessTemplate,
     Header: FreshnessHeader,
     Footer: FreshnessFooter,
+    ProductPage: SharedProductPage,
   },
   {
     id: 'zenith-rise',
@@ -539,6 +550,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: ZenithRiseTemplate,
     Header: ZenithRiseHeader,
     Footer: ZenithRiseFooter,
+    ProductPage: SharedProductPage,
   },
   {
     id: 'turbo-sale',
@@ -554,6 +566,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: TurboSaleTemplate,
     Header: TurboSaleHeader,
     Footer: TurboSaleFooter,
+    ProductPage: SharedProductPage,
   },
   {
     id: 'rovo',
@@ -569,6 +582,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: RovoTemplate,
     Header: RovoHeader,
     Footer: RovoFooter,
+    ProductPage: SharedProductPage,
   },
   {
     id: 'sokol',
@@ -584,6 +598,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: SokolTemplate,
     Header: SokolHeader,
     Footer: SokolFooter,
+    ProductPage: SharedProductPage,
   },
   {
     id: 'starter-store',
@@ -599,6 +614,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: StarterStoreTemplate,
     Header: StarterStoreHeader,
     Footer: StarterStoreFooter,
+    ProductPage: SharedProductPage,
   },
 ];
 

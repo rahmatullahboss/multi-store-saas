@@ -29,6 +29,9 @@ import { triggerAutomation } from '~/services/automation.server';
 import { parseLandingConfig } from '@db/types';
 import { generateCheckoutIdempotencyKey } from '~/services/webhook-utils.server';
 import { validateDiscount, incrementDiscountUsage } from '~/../server/services/discount.service';
+// DO Services for checkout lock and rate limiting
+import { acquireCheckoutLock, releaseCheckoutLock } from '~/services/checkout-do.server';
+import { checkRateLimit, getClientIP } from '~/services/rate-limiter-do.server';
 
 
 // ============================================================================
@@ -97,6 +100,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   const db = createDb(context.cloudflare.env.DB);
+  const env = context.cloudflare.env;
+  
+  // Checkout lock variables (declared outside try for cleanup in catch)
+  let checkoutLockId = '';
+  let checkoutLockAcquired = false;
+  const hasCheckoutLock = 'CHECKOUT_SERVICE' in env;
 
   try {
     // Parse request body - handle both JSON and FormData
@@ -149,6 +158,39 @@ export async function action({ request, context }: ActionFunctionArgs) {
         { success: false, error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে।' },
         { status: 400 }
       );
+    }
+
+    // ========================================================================
+    // RATE LIMITING (via Durable Object)
+    // ========================================================================
+    const hasRateLimiter = 'RATE_LIMITER_SERVICE' in env;
+    const storeIdForRateLimit = body.store_id as number || 0;
+    
+    if (hasRateLimiter && storeIdForRateLimit > 0) {
+      const clientIP = getClientIP(request);
+      const rateLimitResult = await checkRateLimit(
+        env as any,
+        storeIdForRateLimit,
+        clientIP,
+        'checkout' // 5 requests per minute for checkout
+      );
+      
+      if (!rateLimitResult.allowed) {
+        console.warn(`[RATE_LIMIT] Checkout blocked for store ${storeIdForRateLimit}, IP: ${clientIP}`);
+        return json(
+          { 
+            success: false, 
+            error: 'অনেক বেশি অর্ডার চেষ্টা করা হয়েছে। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।',
+            retryAfterSeconds: Math.ceil((rateLimitResult.retryAfterMs || 60000) / 1000)
+          },
+          { 
+            status: 429,
+            headers: {
+              'Retry-After': String(Math.ceil((rateLimitResult.retryAfterMs || 60000) / 1000))
+            }
+          }
+        );
+      }
     }
     
     // ========================================================================
@@ -671,6 +713,33 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const existingOrderCheck = await db.select({ id: orders.id }).from(orders).where(eq(orders.storeId, input.store_id)).limit(1);
     const isFirstOrder = existingOrderCheck.length === 0;
 
+    // ========================================================================
+    // CHECKOUT LOCK (via Durable Object) - Prevents double payment
+    // ========================================================================
+    // Create unique lock ID based on phone + store (prevents same customer double-ordering)
+    checkoutLockId = `${input.store_id}-${input.phone.replace(/\D/g, '')}`;
+    
+    if (hasCheckoutLock) {
+      const lockResult = await acquireCheckoutLock(env as any, checkoutLockId, {
+        orderId: orderNumber, // Use order number as the lock identifier
+        lockedBy: input.phone,
+        ttlMs: 5 * 60 * 1000, // 5 minutes
+      });
+      
+      if (!lockResult.success) {
+        console.warn(`[CHECKOUT_LOCK] Order blocked - lock already held for ${checkoutLockId}`);
+        return json(
+          { 
+            success: false, 
+            error: 'আপনার আগের অর্ডার প্রক্রিয়াধীন আছে। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন।',
+            existingOrderId: lockResult.existingOrderId
+          },
+          { status: 409 }
+        );
+      }
+      checkoutLockAcquired = true;
+    }
+
     // 2. CREATE ORDER
     let orderId: number | undefined;
     try {
@@ -1110,6 +1179,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
     }
 
+    // ========================================================================
+    // RELEASE CHECKOUT LOCK (Order completed successfully)
+    // ========================================================================
+    if (checkoutLockAcquired && hasCheckoutLock) {
+      // Release lock in background - don't block response
+      context.cloudflare.ctx.waitUntil(
+        releaseCheckoutLock(env as any, checkoutLockId, orderNumber).catch(err => {
+          console.error('[CHECKOUT_LOCK] Failed to release lock:', err);
+        })
+      );
+    }
+
     return json({
       success: true,
       orderId,
@@ -1122,6 +1203,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
   } catch (error) {
     const errorDetails = { message: error instanceof Error ? error.message : 'Unknown error', timestamp: new Date().toISOString() };
     console.error('Order creation error:', JSON.stringify(errorDetails, null, 2));
+
+    // Release checkout lock on error (if it was acquired)
+    if (checkoutLockAcquired && hasCheckoutLock && checkoutLockId) {
+      releaseCheckoutLock(env as any, checkoutLockId).catch(() => {});
+    }
 
     return json({ success: false, error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।', debug: errorDetails.message }, { status: 500 });
   }

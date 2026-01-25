@@ -31,15 +31,15 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-empty-object-type': 'off',
-      
+
       // React
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',
-      
+
       // React Hooks
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
-      
+
       // General
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'prefer-const': 'warn',
@@ -55,6 +55,7 @@ export default tseslint.config(
       'test-results/**',
       'functions/**',
       '.cache/**',
+      'android/**',
       '*.config.js',
       '*.config.ts',
       '**/*.min.js',

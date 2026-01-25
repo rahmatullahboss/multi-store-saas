@@ -913,5 +913,546 @@ export function searchDemoProducts(query: string): DemoProduct[] {
   );
 }
 
+// ============================================================================
+// DEMO ORDERS
+// ============================================================================
+export interface DemoOrder {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+  items: { productId: number; title: string; price: number; quantity: number; imageUrl: string }[];
+  subtotal: number;
+  shippingCost: number;
+  discount: number;
+  total: number;
+  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  paymentMethod: 'cod' | 'bkash' | 'nagad' | 'card';
+  paymentStatus: 'pending' | 'paid' | 'refunded';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const DEMO_ORDERS: DemoOrder[] = [
+  {
+    id: 'ord_001',
+    orderNumber: 'ORD-2026-0001',
+    customerName: 'রহিম আহমেদ',
+    customerPhone: '+880 1712-345678',
+    customerAddress: 'বাড়ি ১২, রোড ৫, ধানমন্ডি, ঢাকা-১২০৫',
+    items: [
+      { productId: 1, title: 'প্রিমিয়াম ওয়্যারলেস হেডফোন', price: 4999, quantity: 1, imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&h=100&fit=crop' },
+      { productId: 10, title: 'কটন কম্ফোর্ট টি-শার্ট', price: 699, quantity: 2, imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100&h=100&fit=crop' },
+    ],
+    subtotal: 6397,
+    shippingCost: 60,
+    discount: 500,
+    total: 5957,
+    status: 'delivered',
+    paymentMethod: 'cod',
+    paymentStatus: 'paid',
+    createdAt: '২০২৬-০১-২০',
+    updatedAt: '২০২৬-০১-২৩',
+  },
+  {
+    id: 'ord_002',
+    orderNumber: 'ORD-2026-0002',
+    customerName: 'ফারজানা ইসলাম',
+    customerPhone: '+880 1812-987654',
+    customerAddress: 'ফ্ল্যাট ৪বি, গুলশান-২, ঢাকা-১২১২',
+    items: [
+      { productId: 25, title: 'অর্গানিক ভিটামিন সি সিরাম', price: 1299, quantity: 2, imageUrl: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=100&h=100&fit=crop' },
+      { productId: 29, title: 'মেকআপ ব্রাশ সেট', price: 1499, quantity: 1, imageUrl: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=100&h=100&fit=crop' },
+    ],
+    subtotal: 4097,
+    shippingCost: 0,
+    discount: 0,
+    total: 4097,
+    status: 'shipped',
+    paymentMethod: 'bkash',
+    paymentStatus: 'paid',
+    createdAt: '২০২৬-০১-২৩',
+    updatedAt: '২০২৬-০১-২৪',
+  },
+  {
+    id: 'ord_003',
+    orderNumber: 'ORD-2026-0003',
+    customerName: 'করিম হোসেন',
+    customerPhone: '+880 1912-456789',
+    customerAddress: 'বাড়ি ৭, সেক্টর ১১, উত্তরা, ঢাকা-১২৩০',
+    items: [
+      { productId: 2, title: 'স্মার্ট ওয়াচ প্রো এডিশন', price: 3499, quantity: 1, imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&h=100&fit=crop' },
+    ],
+    subtotal: 3499,
+    shippingCost: 60,
+    discount: 0,
+    total: 3559,
+    status: 'processing',
+    paymentMethod: 'nagad',
+    paymentStatus: 'paid',
+    createdAt: '২০২৬-০১-২৪',
+    updatedAt: '২০২৬-০১-২৪',
+  },
+  {
+    id: 'ord_004',
+    orderNumber: 'ORD-2026-0004',
+    customerName: 'সালমা বেগম',
+    customerPhone: '+880 1612-111222',
+    customerAddress: 'ফ্ল্যাট ২এ, বনানী, ঢাকা-১২১৩',
+    items: [
+      { productId: 17, title: 'মিনিমালিস্ট LED টেবিল ল্যাম্প', price: 1499, quantity: 1, imageUrl: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=100&h=100&fit=crop' },
+      { productId: 21, title: 'কটন থ্রো ব্ল্যাংকেট', price: 1899, quantity: 1, imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=100&h=100&fit=crop' },
+      { productId: 18, title: 'হ্যান্ডমেড সয় ক্যান্ডেল সেট', price: 799, quantity: 2, imageUrl: 'https://images.unsplash.com/photo-1602028915047-37269d1a73f7?w=100&h=100&fit=crop' },
+    ],
+    subtotal: 4996,
+    shippingCost: 0,
+    discount: 300,
+    total: 4696,
+    status: 'confirmed',
+    paymentMethod: 'cod',
+    paymentStatus: 'pending',
+    createdAt: '২০২৬-০১-২৫',
+    updatedAt: '২০২৬-০১-২৫',
+  },
+  {
+    id: 'ord_005',
+    orderNumber: 'ORD-2026-0005',
+    customerName: 'জামিল খান',
+    customerPhone: '+880 1512-333444',
+    customerAddress: 'বাড়ি ২৩, মিরপুর-১০, ঢাকা-১২১৬',
+    items: [
+      { productId: 31, title: 'অর্গানিক হানি', price: 699, quantity: 3, imageUrl: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=100&h=100&fit=crop' },
+      { productId: 36, title: 'অর্গানিক কফি বিনস', price: 599, quantity: 2, imageUrl: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=100&h=100&fit=crop' },
+    ],
+    subtotal: 3295,
+    shippingCost: 120,
+    discount: 0,
+    total: 3415,
+    status: 'pending',
+    paymentMethod: 'cod',
+    paymentStatus: 'pending',
+    createdAt: '২০২৬-০১-২৫',
+    updatedAt: '২০২৬-০১-২৫',
+  },
+];
+
+// ============================================================================
+// DEMO FLASH SALES
+// ============================================================================
+export interface DemoFlashSale {
+  id: string;
+  title: string;
+  titleBn: string;
+  description: string;
+  startTime: string;
+  endTime: string;
+  discountPercent: number;
+  productIds: number[];
+  isActive: boolean;
+}
+
+export const DEMO_FLASH_SALES: DemoFlashSale[] = [
+  {
+    id: 'flash_001',
+    title: 'Mega Monday Sale',
+    titleBn: 'মেগা মানডে সেল',
+    description: 'সোমবার স্পেশাল! সকল ইলেকট্রনিক্সে ৩০% ছাড়!',
+    startTime: '2026-01-27T00:00:00',
+    endTime: '2026-01-27T23:59:59',
+    discountPercent: 30,
+    productIds: [1, 2, 3, 4, 5, 6, 7, 8],
+    isActive: true,
+  },
+  {
+    id: 'flash_002',
+    title: 'Fashion Friday',
+    titleBn: 'ফ্যাশন ফ্রাইডে',
+    description: 'শুক্রবার ফ্যাশন ফিয়েস্তা! ফ্যাশন আইটেমে ২৫% ছাড়!',
+    startTime: '2026-01-31T00:00:00',
+    endTime: '2026-01-31T23:59:59',
+    discountPercent: 25,
+    productIds: [9, 10, 11, 12, 13, 14, 15, 16],
+    isActive: false,
+  },
+  {
+    id: 'flash_003',
+    title: 'Weekend Special',
+    titleBn: 'উইকেন্ড স্পেশাল',
+    description: 'শনি-রবিবার হোম ও বিউটি প্রোডাক্টে ২০% ছাড়!',
+    startTime: '2026-02-01T00:00:00',
+    endTime: '2026-02-02T23:59:59',
+    discountPercent: 20,
+    productIds: [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+    isActive: false,
+  },
+];
+
+// ============================================================================
+// DEMO PROMOTIONS / COUPONS
+// ============================================================================
+export interface DemoPromotion {
+  id: string;
+  code: string;
+  title: string;
+  titleBn: string;
+  description: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  minOrderAmount: number;
+  maxDiscountAmount: number | null;
+  usageLimit: number;
+  usedCount: number;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+}
+
+export const DEMO_PROMOTIONS: DemoPromotion[] = [
+  {
+    id: 'promo_001',
+    code: 'WELCOME10',
+    title: 'Welcome Discount',
+    titleBn: 'ওয়েলকাম ডিসকাউন্ট',
+    description: 'প্রথম অর্ডারে ১০% ছাড়!',
+    discountType: 'percentage',
+    discountValue: 10,
+    minOrderAmount: 500,
+    maxDiscountAmount: 500,
+    usageLimit: 1000,
+    usedCount: 342,
+    startDate: '২০২৬-০১-০১',
+    endDate: '২০২৬-১২-৩১',
+    isActive: true,
+  },
+  {
+    id: 'promo_002',
+    code: 'SAVE200',
+    title: '200 Taka Off',
+    titleBn: '২০০ টাকা ছাড়',
+    description: '১৫০০ টাকার উপরে অর্ডারে ২০০ টাকা ছাড়!',
+    discountType: 'fixed',
+    discountValue: 200,
+    minOrderAmount: 1500,
+    maxDiscountAmount: null,
+    usageLimit: 500,
+    usedCount: 178,
+    startDate: '২০২৬-০১-১৫',
+    endDate: '২০২৬-০২-১৫',
+    isActive: true,
+  },
+  {
+    id: 'promo_003',
+    code: 'BEAUTY20',
+    title: 'Beauty Special',
+    titleBn: 'বিউটি স্পেশাল',
+    description: 'বিউটি প্রোডাক্টে ২০% ছাড়!',
+    discountType: 'percentage',
+    discountValue: 20,
+    minOrderAmount: 1000,
+    maxDiscountAmount: 1000,
+    usageLimit: 200,
+    usedCount: 89,
+    startDate: '২০২৬-০১-২০',
+    endDate: '২০২৬-০২-২০',
+    isActive: true,
+  },
+  {
+    id: 'promo_004',
+    code: 'FREEDEL',
+    title: 'Free Delivery',
+    titleBn: 'ফ্রি ডেলিভারি',
+    description: '৫০০ টাকার উপরে ফ্রি ডেলিভারি!',
+    discountType: 'fixed',
+    discountValue: 120,
+    minOrderAmount: 500,
+    maxDiscountAmount: null,
+    usageLimit: 0,
+    usedCount: 1234,
+    startDate: '২০২৬-০১-০১',
+    endDate: '২০২৬-১২-৩১',
+    isActive: true,
+  },
+];
+
+// ============================================================================
+// DEMO BANNERS / HERO SLIDES
+// ============================================================================
+export interface DemoBanner {
+  id: string;
+  title: string;
+  titleBn: string;
+  subtitle: string;
+  subtitleBn: string;
+  buttonText: string;
+  buttonTextBn: string;
+  buttonLink: string;
+  imageUrl: string;
+  mobileImageUrl: string;
+  backgroundColor: string;
+  textColor: string;
+  position: number;
+  isActive: boolean;
+}
+
+export const DEMO_BANNERS: DemoBanner[] = [
+  {
+    id: 'banner_001',
+    title: 'New Collection',
+    titleBn: 'নতুন কালেকশন',
+    subtitle: 'Discover our latest arrivals with up to 40% off',
+    subtitleBn: '৪০% পর্যন্ত ছাড়ে আমাদের নতুন কালেকশন দেখুন',
+    buttonText: 'Shop Now',
+    buttonTextBn: 'এখনই কিনুন',
+    buttonLink: '/collections/new-arrivals',
+    imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1920&h=800&fit=crop',
+    mobileImageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop',
+    backgroundColor: '#1a1a2e',
+    textColor: '#ffffff',
+    position: 1,
+    isActive: true,
+  },
+  {
+    id: 'banner_002',
+    title: 'Electronics Sale',
+    titleBn: 'ইলেকট্রনিক্স সেল',
+    subtitle: 'Best deals on gadgets and electronics',
+    subtitleBn: 'গ্যাজেট ও ইলেকট্রনিক্সে সেরা ডিল',
+    buttonText: 'Explore',
+    buttonTextBn: 'দেখুন',
+    buttonLink: '/collections/electronics',
+    imageUrl: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=1920&h=800&fit=crop',
+    mobileImageUrl: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800&h=600&fit=crop',
+    backgroundColor: '#16213e',
+    textColor: '#ffffff',
+    position: 2,
+    isActive: true,
+  },
+  {
+    id: 'banner_003',
+    title: 'Fashion Week',
+    titleBn: 'ফ্যাশন উইক',
+    subtitle: 'Trending styles for every occasion',
+    subtitleBn: 'প্রতিটি উপলক্ষ্যে ট্রেন্ডি স্টাইল',
+    buttonText: 'View Collection',
+    buttonTextBn: 'কালেকশন দেখুন',
+    buttonLink: '/collections/fashion',
+    imageUrl: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=1920&h=800&fit=crop',
+    mobileImageUrl: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=800&h=600&fit=crop',
+    backgroundColor: '#0f3460',
+    textColor: '#ffffff',
+    position: 3,
+    isActive: true,
+  },
+];
+
+// ============================================================================
+// DEMO ANNOUNCEMENTS
+// ============================================================================
+export interface DemoAnnouncement {
+  id: string;
+  text: string;
+  textBn: string;
+  link: string | null;
+  backgroundColor: string;
+  textColor: string;
+  isActive: boolean;
+}
+
+export const DEMO_ANNOUNCEMENTS: DemoAnnouncement[] = [
+  {
+    id: 'announce_001',
+    text: '🎉 Free delivery on orders over ৳1000!',
+    textBn: '🎉 ১০০০ টাকার উপরে অর্ডারে ফ্রি ডেলিভারি!',
+    link: null,
+    backgroundColor: '#6366f1',
+    textColor: '#ffffff',
+    isActive: true,
+  },
+  {
+    id: 'announce_002',
+    text: '🔥 Flash Sale: 30% off Electronics - Today Only!',
+    textBn: '🔥 ফ্ল্যাশ সেল: ইলেকট্রনিক্সে ৩০% ছাড় - শুধু আজ!',
+    link: '/collections/electronics',
+    backgroundColor: '#ef4444',
+    textColor: '#ffffff',
+    isActive: true,
+  },
+  {
+    id: 'announce_003',
+    text: '✨ New arrivals every week! Check out our latest collection',
+    textBn: '✨ প্রতি সপ্তাহে নতুন পণ্য! আমাদের লেটেস্ট কালেকশন দেখুন',
+    link: '/collections/new-arrivals',
+    backgroundColor: '#10b981',
+    textColor: '#ffffff',
+    isActive: true,
+  },
+];
+
+// ============================================================================
+// DEMO TESTIMONIALS
+// ============================================================================
+export interface DemoTestimonial {
+  id: string;
+  customerName: string;
+  customerImage: string | null;
+  rating: number;
+  comment: string;
+  productTitle: string | null;
+  date: string;
+  isVerified: boolean;
+}
+
+export const DEMO_TESTIMONIALS: DemoTestimonial[] = [
+  {
+    id: 'test_001',
+    customerName: 'রহিম আহমেদ',
+    customerImage: 'https://randomuser.me/api/portraits/men/1.jpg',
+    rating: 5,
+    comment: 'অনেক ভালো সার্ভিস পেয়েছি। প্রোডাক্ট কোয়ালিটি অসাধারণ এবং ডেলিভারি খুব দ্রুত হয়েছে।',
+    productTitle: 'প্রিমিয়াম ওয়্যারলেস হেডফোন',
+    date: '২০২৬-০১-২০',
+    isVerified: true,
+  },
+  {
+    id: 'test_002',
+    customerName: 'ফারজানা ইসলাম',
+    customerImage: 'https://randomuser.me/api/portraits/women/2.jpg',
+    rating: 5,
+    comment: 'বিউটি প্রোডাক্টগুলো ১০০% অরিজিনাল। আমি অনেক সন্তুষ্ট। আবার অর্ডার করব অবশ্যই।',
+    productTitle: 'অর্গানিক ভিটামিন সি সিরাম',
+    date: '২০২৬-০১-১৮',
+    isVerified: true,
+  },
+  {
+    id: 'test_003',
+    customerName: 'করিম হোসেন',
+    customerImage: 'https://randomuser.me/api/portraits/men/3.jpg',
+    rating: 4,
+    comment: 'প্রোডাক্ট ভালো পেয়েছি। কাস্টমার সার্ভিস খুবই সহায়ক ছিল।',
+    productTitle: 'স্মার্ট ওয়াচ প্রো এডিশন',
+    date: '২০২৬-০১-১৫',
+    isVerified: true,
+  },
+  {
+    id: 'test_004',
+    customerName: 'নাজমা আক্তার',
+    customerImage: 'https://randomuser.me/api/portraits/women/4.jpg',
+    rating: 5,
+    comment: 'হোম ডেকোর আইটেমগুলো দারুণ! ঘরের সাজসজ্জা অনেক সুন্দর হয়েছে।',
+    productTitle: 'মিনিমালিস্ট LED টেবিল ল্যাম্প',
+    date: '২০২৬-০১-১২',
+    isVerified: true,
+  },
+  {
+    id: 'test_005',
+    customerName: 'মাসুদ রানা',
+    customerImage: 'https://randomuser.me/api/portraits/men/5.jpg',
+    rating: 5,
+    comment: 'ফ্যাশন আইটেমের কোয়ালিটি অনেক ভালো। ফিটিং পারফেক্ট।',
+    productTitle: 'ক্লাসিক ডেনিম জ্যাকেট',
+    date: '২০২৬-০১-১০',
+    isVerified: true,
+  },
+];
+
+// ============================================================================
+// DEMO STORE STATS (for dashboard preview)
+// ============================================================================
+export const DEMO_STORE_STATS = {
+  totalOrders: 156,
+  totalRevenue: 487500,
+  totalProducts: 36,
+  totalCustomers: 89,
+  todayOrders: 8,
+  todayRevenue: 24500,
+  pendingOrders: 12,
+  lowStockProducts: 5,
+  averageOrderValue: 3125,
+  conversionRate: 3.2,
+  topSellingCategories: [
+    { name: 'Electronics', sales: 45, revenue: 156000 },
+    { name: 'Fashion', sales: 38, revenue: 89000 },
+    { name: 'Beauty', sales: 32, revenue: 67000 },
+    { name: 'Home', sales: 25, revenue: 78000 },
+    { name: 'Food', sales: 16, revenue: 45000 },
+  ],
+  recentActivity: [
+    { type: 'order', message: 'নতুন অর্ডার #ORD-2026-0005 রিসিভ হয়েছে', time: '৫ মিনিট আগে' },
+    { type: 'review', message: 'রহিম আহমেদ ৫ স্টার রিভিউ দিয়েছেন', time: '১৫ মিনিট আগে' },
+    { type: 'order', message: 'অর্ডার #ORD-2026-0003 শিপ করা হয়েছে', time: '১ ঘন্টা আগে' },
+    { type: 'stock', message: 'স্মার্ট ওয়াচ প্রো স্টক কমে যাচ্ছে', time: '২ ঘন্টা আগে' },
+    { type: 'customer', message: 'নতুন কাস্টমার রেজিস্টার করেছেন', time: '৩ ঘন্টা আগে' },
+  ],
+};
+
+// ============================================================================
+// DEMO SHIPPING ZONES
+// ============================================================================
+export interface DemoShippingZone {
+  id: string;
+  name: string;
+  nameBn: string;
+  areas: string[];
+  cost: number;
+  estimatedDays: string;
+}
+
+export const DEMO_SHIPPING_ZONES: DemoShippingZone[] = [
+  {
+    id: 'zone_dhaka',
+    name: 'Inside Dhaka',
+    nameBn: 'ঢাকার ভেতরে',
+    areas: ['ধানমন্ডি', 'গুলশান', 'বনানী', 'উত্তরা', 'মিরপুর', 'মোহাম্মদপুর', 'বসুন্ধরা'],
+    cost: 60,
+    estimatedDays: '১-২ দিন',
+  },
+  {
+    id: 'zone_dhaka_sub',
+    name: 'Dhaka Suburbs',
+    nameBn: 'ঢাকার আশেপাশে',
+    areas: ['গাজীপুর', 'নারায়ণগঞ্জ', 'সাভার', 'টঙ্গী', 'কেরানীগঞ্জ'],
+    cost: 80,
+    estimatedDays: '২-৩ দিন',
+  },
+  {
+    id: 'zone_outside',
+    name: 'Outside Dhaka',
+    nameBn: 'ঢাকার বাইরে',
+    areas: ['চট্টগ্রাম', 'সিলেট', 'রাজশাহী', 'খুলনা', 'বরিশাল', 'রংপুর', 'ময়মনসিংহ'],
+    cost: 120,
+    estimatedDays: '৩-৫ দিন',
+  },
+];
+
+// ============================================================================
+// HELPER FUNCTIONS (Additional)
+// ============================================================================
+export function getDemoOrdersByStatus(status: DemoOrder['status']): DemoOrder[] {
+  return DEMO_ORDERS.filter(o => o.status === status);
+}
+
+export function getActiveFlashSale(): DemoFlashSale | undefined {
+  return DEMO_FLASH_SALES.find(fs => fs.isActive);
+}
+
+export function getFlashSaleProducts(): DemoProduct[] {
+  const activeFlashSale = getActiveFlashSale();
+  if (!activeFlashSale) return [];
+  return activeFlashSale.productIds.map(id => getDemoProductById(id)).filter(Boolean) as DemoProduct[];
+}
+
+export function getActivePromotions(): DemoPromotion[] {
+  return DEMO_PROMOTIONS.filter(p => p.isActive);
+}
+
+export function getActiveBanners(): DemoBanner[] {
+  return DEMO_BANNERS.filter(b => b.isActive).sort((a, b) => a.position - b.position);
+}
+
+export function getActiveAnnouncement(): DemoAnnouncement | undefined {
+  return DEMO_ANNOUNCEMENTS.find(a => a.isActive);
+}
+
 // For backward compatibility with SerializedProduct type
 export type { DemoProduct as SerializedProduct };

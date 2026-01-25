@@ -93,14 +93,39 @@ port = 8787
 local_protocol = "http"
 
 # ============================================================================
-# SERVICE BINDINGS (External Workers)
+# SERVICE BINDINGS (External Workers with Durable Objects)
 # ============================================================================
-# Order Processor Worker with Durable Objects (FREE plan - SQLite backend)
-# Deploy first: cd workers/order-processor && wrangler deploy
+# Deploy workers first: cd workers/{worker-name} && wrangler deploy
 
+# Order Processor Worker (FREE plan - SQLite backend)
 [[services]]
 binding = "ORDER_PROCESSOR_SERVICE"
 service = "order-processor"
+
+# Cart Processor Worker - Race-condition free cart management
+[[services]]
+binding = "CART_SERVICE"
+service = "cart-processor"
+
+# Checkout Lock Worker - Atomic checkout locking
+[[services]]
+binding = "CHECKOUT_SERVICE"
+service = "checkout-lock"
+
+# Rate Limiter Worker - Per-store/IP rate limiting
+[[services]]
+binding = "RATE_LIMITER_SERVICE"
+service = "rate-limiter"
+
+# Store Config Cache Worker - Fast config caching
+[[services]]
+binding = "STORE_CONFIG_SERVICE"
+service = "store-config"
+
+# Editor State Worker - Live page builder state
+[[services]]
+binding = "EDITOR_STATE_SERVICE"
+service = "editor-state"
 
 # ============================================================================
 # QUEUES (Disabled - using Durable Objects instead for FREE plan)

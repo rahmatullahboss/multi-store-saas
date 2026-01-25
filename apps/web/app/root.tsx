@@ -10,6 +10,7 @@ import {
 import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { useTranslation } from 'react-i18next';
+import { Toaster } from 'sonner';
 
 import './styles/tailwind.css';
 import { GeneralError } from '~/components/GeneralError';
@@ -30,18 +31,17 @@ export const links: LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
   { rel: 'preconnect', href: 'https://images.unsplash.com', crossOrigin: 'anonymous' },
   // Preload fonts CSS for parallel download
-  { 
+  {
     rel: 'preload',
     as: 'style',
     href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&display=swap',
   },
-  { 
-    rel: 'stylesheet', 
+  {
+    rel: 'stylesheet',
     href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&display=swap',
   },
   { rel: 'manifest', href: '/manifest.webmanifest' },
 ];
-
 
 /**
  * Default Meta - Provides fallback title for all pages
@@ -59,10 +59,10 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 /**
  * Root Loader - Load store information for all pages
- * 
+ *
  * On main domain (ozzyl.com), store will be null.
  * This is expected for auth pages and marketing landing.
- * 
+ *
  * Tracking IDs are loaded per-store for data isolation.
  */
 export async function loader({ context, request }: LoaderFunctionArgs) {
@@ -71,7 +71,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   const { storeId, store, isCustomDomain } = context;
   const themeConfig = store?.themeConfig ? parseThemeConfig(store.themeConfig as string) : null;
   const themeColor = themeConfig?.primaryColor || '#4f46e5';
-  
+
   // Get locale from request
   const locale = await i18nextServer.getLocale(request);
 
@@ -103,10 +103,10 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
 
 /**
  * Layout Component - Provides the base HTML document structure
- * 
+ *
  * This is the recommended Remix pattern to prevent hydration mismatches.
  * The Layout wraps both the App component and ErrorBoundary.
- * 
+ *
  * IMPORTANT: We use useTranslation() to get the current language from i18next
  * This ensures the <html lang> attribute matches between server and client.
  */
@@ -114,7 +114,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   // Get the current language from i18next
   // This ensures consistency between server-rendered and client-hydrated HTML
   const { i18n } = useTranslation();
-  
+
   return (
     <html lang={i18n.language} dir={i18n.dir()} className="h-full" suppressHydrationWarning>
       <head>
@@ -134,7 +134,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const { store, ENV, locale, masterPixelId } = useLoaderData<typeof loader>();
-  
+
   // This hook tells remix-i18next to change the language when the locale changes
   // It syncs the client-side i18next instance with the server-detected locale
   useChangeLanguage(locale);
@@ -178,9 +178,11 @@ export default function App() {
         s.parentNode.insertBefore(t,s)}(window, document,'script',
         'https://connect.facebook.net/en_US/fbevents.js');
         fbq('init', '${pixelId}');
-        ${store.facebookPixelId && masterPixelId && store.facebookPixelId !== masterPixelId 
-          ? `fbq('init', '${masterPixelId}');` 
-          : ''}
+        ${
+          store.facebookPixelId && masterPixelId && store.facebookPixelId !== masterPixelId
+            ? `fbq('init', '${masterPixelId}');`
+            : ''
+        }
         fbq('track', 'PageView');
       `;
       document.head.appendChild(fbScript);
@@ -190,17 +192,26 @@ export default function App() {
   return (
     <LanguageProvider defaultCurrency={store.currency as 'USD' | 'BDT'}>
       <Outlet />
+      <Toaster
+        position="bottom-right"
+        richColors
+        closeButton
+        toastOptions={{
+          duration: 3000,
+          className: 'text-sm',
+        }}
+      />
     </LanguageProvider>
   );
 }
 
 /**
  * Root Error Boundary
- * 
+ *
  * Catches all unhandled errors at the application level.
  * The Layout component wraps the ErrorBoundary, providing the
  * HTML document structure. We just render the error content.
- * 
+ *
  * Error Types Handled:
  * - 404: Store Not Found / Page Not Found
  * - 500+: Server Error / Maintenance Mode
@@ -208,12 +219,12 @@ export default function App() {
  */
 export function ErrorBoundary() {
   const error = useRouteError();
-  
+
   // Capture the error in Sentry (commented out - enable when Sentry is configured)
   // if (typeof window !== 'undefined' && 'Sentry' in window) {
   //   window.Sentry?.captureException(error);
   // }
-  
+
   // Layout wraps ErrorBoundary, so we don't need isRootError anymore
   // Just return the error content directly
   return <GeneralError error={error} isRootError={false} />;

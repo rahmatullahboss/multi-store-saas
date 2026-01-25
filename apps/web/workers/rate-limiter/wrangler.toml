@@ -1,0 +1,25 @@
+#:schema node_modules/wrangler/config-schema.json
+
+name = "rate-limiter"
+main = "src/index.ts"
+compatibility_date = "2024-11-18"
+compatibility_flags = ["nodejs_compat"]
+
+# ============================================================================
+# DURABLE OBJECTS (FREE Plan - In-Memory State)
+# ============================================================================
+
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiter"
+
+# Migration for SQLite-backed Durable Object (FREE plan compatible)
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RateLimiter"]
+
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
+[vars]
+WORKER_ENV = "production"

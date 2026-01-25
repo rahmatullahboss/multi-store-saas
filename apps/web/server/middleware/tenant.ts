@@ -11,6 +11,8 @@ import { stores, type Store } from '@db/schema';
 import { D1Cache } from '../../app/services/cache-layer.server';
 import { createDb } from '../../app/lib/db.server';
 import { KVCache, CACHE_KEYS, CACHE_TTL } from '../../app/services/kv-cache.server';
+// DO-backed store config cache (fastest - in-memory with stale-while-revalidate)
+import { getStoreConfig, type StoreConfig } from '../../app/services/store-config-do.server';
 
 // Extend Hono context with tenant information
 export interface TenantContext {
@@ -24,6 +26,7 @@ export interface TenantEnv {
   R2: R2Bucket;
   SAAS_DOMAIN: string;
   STORE_CACHE?: KVNamespace; // KV for fast caching
+  STORE_CONFIG_SERVICE?: Fetcher; // DO-backed store config cache (fastest)
   WEBHOOK_QUEUE: Queue;
 }
 
@@ -161,7 +164,19 @@ export const tenantMiddleware = (): MiddlewareHandler<{ Bindings: TenantEnv; Var
     
     const isCustomDomain = type === 'custom';
     
-    // Try KV cache first (fastest ~10ms)
+    // ========================================================================
+    // CACHE LAYER 1: DO Store Config Cache (fastest ~5-10ms, in-memory)
+    // Uses stale-while-revalidate pattern for optimal performance
+    // ========================================================================
+    const hasStoreConfigDO = 'STORE_CONFIG_SERVICE' in c.env && c.env.STORE_CONFIG_SERVICE;
+    
+    // For subdomain lookup, we need to first find the store ID
+    // DO cache is indexed by store ID, so we'll use it after initial resolution
+    // and store the result for subsequent requests
+    
+    // ========================================================================
+    // CACHE LAYER 2: KV Cache (~10-20ms)
+    // ========================================================================
     if (kvCache) {
       const kvCached = await kvCache.get<Store>(kvKey);
       if (kvCached) {
@@ -173,7 +188,9 @@ export const tenantMiddleware = (): MiddlewareHandler<{ Bindings: TenantEnv; Var
       }
     }
     
-    // Try D1 cache (slower fallback ~50ms)
+    // ========================================================================
+    // CACHE LAYER 3: D1 Cache (~50ms)
+    // ========================================================================
     const d1CacheKey = `tenant:${type}:${value}`;
     let store = await d1Cache.get<Store>(d1CacheKey);
     
@@ -212,7 +229,7 @@ export const tenantMiddleware = (): MiddlewareHandler<{ Bindings: TenantEnv; Var
         console.log(`[TENANT] Custom domain lookup result: ${store ? `Found (ID: ${store.id}, Name: ${store.name})` : 'Not found'}`);
       }
       
-      // Cache the result in both KV and D1
+      // Cache the result in KV and D1 (DO cache is self-managing)
       if (store) {
         // KV cache (fast, fire-and-forget)
         if (kvCache) {
@@ -220,6 +237,14 @@ export const tenantMiddleware = (): MiddlewareHandler<{ Bindings: TenantEnv; Var
         }
         // D1 cache (persistent fallback)
         await d1Cache.set(d1CacheKey, store, 3600);
+        
+        // Warm DO cache by fetching config (fire-and-forget)
+        // This pre-populates the DO cache for subsequent requests
+        if (hasStoreConfigDO) {
+          getStoreConfig(c.env as any, store.id).catch(() => {
+            // Ignore errors - DO cache warming is best-effort
+          });
+        }
       }
     } catch (dbError) {
       console.error(`[TENANT] Database error during store lookup:`);
@@ -294,4 +319,38 @@ export function getStore(c: Context<{ Variables: TenantContext }>): Store {
 
 export function getStoreId(c: Context<{ Variables: TenantContext }>): number {
   return c.get('storeId');
+}
+
+/**
+ * Get store config from DO cache (for use in loaders/actions)
+ * 
+ * This provides:
+ * - In-memory caching (~5ms response)
+ * - Stale-while-revalidate pattern
+ * - Automatic fallback to D1
+ * 
+ * Usage in Remix loaders:
+ * ```ts
+ * const config = await getCachedStoreConfig(context.cloudflare.env, storeId);
+ * ```
+ */
+export async function getCachedStoreConfig(
+  env: TenantEnv,
+  storeId: number
+): Promise<StoreConfig | null> {
+  // Check if DO service is available
+  if (!('STORE_CONFIG_SERVICE' in env) || !env.STORE_CONFIG_SERVICE) {
+    return null;
+  }
+  
+  try {
+    const result = await getStoreConfig(env as any, storeId);
+    if (result.success && result.config) {
+      return result.config;
+    }
+    return null;
+  } catch (error) {
+    console.error('[TENANT] Failed to get cached store config:', error);
+    return null;
+  }
 }

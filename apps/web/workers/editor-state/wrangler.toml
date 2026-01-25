@@ -1,0 +1,35 @@
+#:schema node_modules/wrangler/config-schema.json
+
+name = "editor-state"
+main = "src/index.ts"
+compatibility_date = "2024-11-18"
+compatibility_flags = ["nodejs_compat"]
+
+# ============================================================================
+# DURABLE OBJECTS (FREE Plan - SQLite Backend)
+# ============================================================================
+
+[[durable_objects.bindings]]
+name = "EDITOR_STATE"
+class_name = "EditorStateDO"
+
+# Migration for SQLite-backed Durable Object (FREE plan compatible)
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["EditorStateDO"]
+
+# ============================================================================
+# BINDINGS
+# ============================================================================
+
+# D1 Database (for publishing to main database)
+[[d1_databases]]
+binding = "DB"
+database_name = "multi-store-saas-db"
+database_id = "bf882d16-d67a-4007-b503-33646bd693af"
+
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
+[vars]
+WORKER_ENV = "production"

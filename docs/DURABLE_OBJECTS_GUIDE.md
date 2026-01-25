@@ -1,8 +1,19 @@
-# Durable Objects Guide - Order Processing System
+# Durable Objects Guide - Multi-Store SaaS
 
 ## Overview
 
-Ozzyl SaaS e order processing er jonno Cloudflare Durable Objects use kora hoy. Eta **FREE plan compatible** (SQLite backend) ebong instant task processing provide kore.
+Ozzyl SaaS e **6ta Durable Object worker** use kora hoy - shobgulo **FREE plan compatible** (SQLite backend) ebong Shopify-level reliability provide kore.
+
+## 🎯 All DO Workers
+
+| Worker | Purpose | DO Pattern | Status |
+|--------|---------|------------|--------|
+| **order-processor** | Background task processing | `store-{storeId}` | ✅ Live |
+| **cart-processor** | Race-condition free cart | `cart-{sessionId}` | ✅ Live |
+| **checkout-lock** | Atomic checkout locking | `checkout-{cartId}` | ✅ Live |
+| **rate-limiter** | Per-store/IP rate limiting | `ratelimit-{storeId}-{ip}` | ✅ Live |
+| **store-config** | Fast config caching (D1) | `store-{storeId}` | ✅ Live |
+| **editor-state** | Live page builder state | `editor-{pageId}` | ✅ Live |
 
 ## Architecture
 
@@ -12,20 +23,20 @@ Ozzyl SaaS e order processing er jonno Cloudflare Durable Objects use kora hoy. 
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  ┌─────────────────────┐         ┌─────────────────────────────────┐   │
-│  │  Main App (Pages)   │         │  Order Processor (Worker)       │   │
-│  │  multi-store-saas   │ ──────► │  order-processor                │   │
-│  │                     │ Service │                                 │   │
-│  │  Uses:              │ Binding │  Contains:                      │   │
-│  │  ORDER_PROCESSOR_   │         │  - OrderProcessor DO class      │   │
-│  │  SERVICE            │         │  - SQLite storage               │   │
-│  └─────────────────────┘         │  - Alarm-based retries          │   │
-│                                  │                                 │   │
-│                                  │  ┌───────────────────────────┐  │   │
-│                                  │  │   Durable Object          │  │   │
-│                                  │  │   store-{storeId}         │  │   │
-│                                  │  │   - Per store isolation   │  │   │
-│                                  │  │   - Persistent SQLite     │  │   │
-│                                  │  └───────────────────────────┘  │   │
+│  │  Main App (Pages)   │         │      DO Workers (6)              │   │
+│  │  multi-store-saas   │         │                                  │   │
+│  │                     │ Service │  ┌────────────┐ ┌────────────┐   │   │
+│  │  Service Bindings:  │ Binding │  │order-proc  │ │cart-proc   │   │   │
+│  │  - ORDER_PROCESSOR  │ ──────► │  │SQLite      │ │SQLite      │   │   │
+│  │  - CART_SERVICE     │         │  └────────────┘ └────────────┘   │   │
+│  │  - CHECKOUT_SERVICE │         │  ┌────────────┐ ┌────────────┐   │   │
+│  │  - RATE_LIMITER     │         │  │checkout    │ │rate-limit  │   │   │
+│  │  - STORE_CONFIG     │         │  │lock/alarm  │ │in-memory   │   │   │
+│  │  - EDITOR_STATE     │         │  └────────────┘ └────────────┘   │   │
+│  └─────────────────────┘         │  ┌────────────┐ ┌────────────┐   │   │
+│                                  │  │store-conf  │ │editor-state│   │   │
+│                                  │  │D1+cache    │ │SQLite+undo │   │   │
+│                                  │  └────────────┘ └────────────┘   │   │
 │                                  └─────────────────────────────────┘   │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -47,30 +58,62 @@ Ozzyl SaaS e order processing er jonno Cloudflare Durable Objects use kora hoy. 
 
 ```
 apps/web/
-├── workers/order-processor/
-│   ├── src/index.ts          # DO class + Worker entry
-│   ├── wrangler.toml         # DO config (SQLite backend)
-│   ├── package.json
-│   └── tsconfig.json
+├── workers/
+│   ├── order-processor/      # Background task processing
+│   │   ├── src/index.ts
+│   │   ├── wrangler.toml
+│   │   └── package.json
+│   ├── cart-processor/       # Cart management
+│   │   ├── src/index.ts
+│   │   ├── wrangler.toml
+│   │   └── package.json
+│   ├── checkout-lock/        # Checkout locking
+│   │   ├── src/index.ts
+│   │   ├── wrangler.toml
+│   │   └── package.json
+│   ├── rate-limiter/         # Rate limiting
+│   │   ├── src/index.ts
+│   │   ├── wrangler.toml
+│   │   └── package.json
+│   ├── store-config/         # Config caching
+│   │   ├── src/index.ts
+│   │   ├── wrangler.toml
+│   │   └── package.json
+│   ├── editor-state/         # Page builder state
+│   │   ├── src/index.ts
+│   │   ├── wrangler.toml
+│   │   └── package.json
+│   └── deploy-all.sh         # Deploy all workers
 ├── app/services/
-│   └── order-processor.server.ts   # Helper functions
-├── wrangler.toml             # Service binding
+│   ├── order-processor.server.ts
+│   ├── cart-do.server.ts
+│   ├── checkout-do.server.ts
+│   ├── rate-limiter-do.server.ts
+│   ├── store-config-do.server.ts
+│   └── editor-state-do.server.ts
+├── wrangler.toml             # Service bindings
 └── env.d.ts                  # Type definitions
 ```
 
 ## Deployment
 
 ```bash
-# Step 1: Deploy DO worker FIRST
-cd apps/web/workers/order-processor
-npm install
-wrangler deploy
+# Option 1: Deploy all workers at once (RECOMMENDED)
+cd apps/web/workers
+./deploy-all.sh
 
-# Step 2: Deploy main app (uses service binding)
-cd apps/web
-npm run deploy
+# Option 2: Deploy individually
+cd apps/web/workers/order-processor && wrangler deploy
+cd apps/web/workers/cart-processor && wrangler deploy
+cd apps/web/workers/checkout-lock && wrangler deploy
+cd apps/web/workers/rate-limiter && wrangler deploy
+cd apps/web/workers/store-config && wrangler deploy
+cd apps/web/workers/editor-state && wrangler deploy
 
-# Step 3: Set secrets in Cloudflare Dashboard
+# Then deploy main app (uses service bindings)
+cd apps/web && npm run deploy
+
+# Set secrets in Cloudflare Dashboard
 # - RESEND_API_KEY (for email tasks)
 ```
 
@@ -263,6 +306,151 @@ wrangler dev
 1. **Workers & Pages** → `order-processor` worker
 2. **Settings** → **Bindings** → Durable Objects
 3. **Storage & Databases** → **Durable Objects** → `OrderProcessor`
+
+## New Worker Usage Examples
+
+### Cart Processor
+
+```typescript
+import { addToCart, getCart, removeFromCart, clearCart } from '~/services/cart-do.server';
+
+// In loader - get cart
+export async function loader({ context }) {
+  const sessionId = getCartSessionId(request);
+  const result = await getCart(context.cloudflare.env, sessionId);
+  return json({ cart: result.cart });
+}
+
+// In action - add to cart
+export async function action({ request, context }) {
+  const sessionId = getCartSessionId(request);
+  const { productId, quantity, price, name, storeId } = await request.json();
+  
+  const result = await addToCart(context.cloudflare.env, sessionId, {
+    productId, quantity, price, name, storeId
+  });
+  
+  return json(result);
+}
+```
+
+### Checkout Lock
+
+```typescript
+import { withCheckoutLock } from '~/services/checkout-do.server';
+
+// In checkout action - prevents double payment
+export async function action({ request, context }) {
+  const { cartId, userId } = getCheckoutData(request);
+  const orderId = generateOrderId();
+  
+  const result = await withCheckoutLock(
+    context.cloudflare.env,
+    cartId,
+    orderId,
+    userId,
+    async () => {
+      // This code runs ONLY if lock acquired
+      await processPayment();
+      await createOrder();
+      return { orderId };
+    }
+  );
+  
+  if (!result.success) {
+    return json({ error: 'Payment already processing' }, { status: 409 });
+  }
+  
+  return json({ orderId: result.result.orderId });
+}
+```
+
+### Rate Limiter
+
+```typescript
+import { rateLimitMiddleware, checkRateLimit } from '~/services/rate-limiter-do.server';
+
+// As middleware in loader/action
+export async function loader({ request, context }) {
+  // Throws 429 if rate limited
+  await rateLimitMiddleware(
+    context.cloudflare.env,
+    request,
+    storeId,
+    'api' // preset: api, auth, checkout, upload, search
+  );
+  
+  // Continue with normal logic
+  return json({ data });
+}
+
+// Or check manually
+const result = await checkRateLimit(env, storeId, clientIP, 'auth');
+if (!result.allowed) {
+  return json({ error: 'Too many attempts' }, { status: 429 });
+}
+```
+
+### Store Config Cache
+
+```typescript
+import { getStoreConfig, invalidateStoreConfig } from '~/services/store-config-do.server';
+
+// Get cached config (1-min TTL)
+export async function loader({ context, params }) {
+  const result = await getStoreConfig(context.cloudflare.env, params.storeId);
+  
+  if (!result.success) {
+    throw new Response('Store not found', { status: 404 });
+  }
+  
+  return json({ 
+    store: result.config,
+    cached: result.cached  // true if from cache
+  });
+}
+
+// Invalidate after settings update
+export async function action({ context, params }) {
+  await updateStoreSettings(params.storeId, newSettings);
+  await invalidateStoreConfig(context.cloudflare.env, params.storeId);
+  return json({ success: true });
+}
+```
+
+### Editor State (Page Builder)
+
+```typescript
+import { initEditor, updateSection, undo, redo, publishPage } from '~/services/editor-state-do.server';
+
+// Initialize editor
+await initEditor(env, pageId, { storeId, sections, title, slug });
+
+// Update section (auto-saves to SQLite draft)
+await updateSection(env, pageId, sectionId, { title: 'New Title' });
+
+// Undo/Redo
+await undo(env, pageId);
+await redo(env, pageId);
+
+// Publish to D1
+await publishPage(env, pageId);
+```
+
+---
+
+## Worker URLs (Production)
+
+| Worker | URL |
+|--------|-----|
+| order-processor | `https://order-processor.rahmatullahzisan.workers.dev` |
+| cart-processor | `https://cart-processor.rahmatullahzisan.workers.dev` |
+| checkout-lock | `https://checkout-lock.rahmatullahzisan.workers.dev` |
+| rate-limiter | `https://rate-limiter.rahmatullahzisan.workers.dev` |
+| store-config | `https://store-config.rahmatullahzisan.workers.dev` |
+| editor-state | `https://editor-state.rahmatullahzisan.workers.dev` |
+
+---
 
 ## Comparison: Queues vs Durable Objects
 

@@ -1,0 +1,25 @@
+#:schema node_modules/wrangler/config-schema.json
+
+name = "checkout-lock"
+main = "src/index.ts"
+compatibility_date = "2024-11-18"
+compatibility_flags = ["nodejs_compat"]
+
+# ============================================================================
+# DURABLE OBJECTS (FREE Plan - In-Memory State with KV Persistence)
+# ============================================================================
+
+[[durable_objects.bindings]]
+name = "CHECKOUT_LOCK"
+class_name = "CheckoutLock"
+
+# Migration for SQLite-backed Durable Object (FREE plan compatible)
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["CheckoutLock"]
+
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
+[vars]
+WORKER_ENV = "production"

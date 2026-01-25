@@ -1,0 +1,25 @@
+#:schema node_modules/wrangler/config-schema.json
+
+name = "cart-processor"
+main = "src/index.ts"
+compatibility_date = "2024-11-18"
+compatibility_flags = ["nodejs_compat"]
+
+# ============================================================================
+# DURABLE OBJECTS (FREE Plan - SQLite Backend)
+# ============================================================================
+
+[[durable_objects.bindings]]
+name = "CART_PROCESSOR"
+class_name = "CartProcessor"
+
+# Migration for SQLite-backed Durable Object (FREE plan compatible)
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["CartProcessor"]
+
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
+[vars]
+WORKER_ENV = "production"
