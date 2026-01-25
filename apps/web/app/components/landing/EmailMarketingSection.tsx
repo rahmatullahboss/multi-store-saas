@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Mail, ArrowRight, MousePointerClick, Clock, DollarSign, TrendingUp, LayoutTemplate, ShoppingCart } from 'lucide-react';
+import { Mail, Clock, DollarSign, LayoutTemplate, ShoppingCart } from 'lucide-react';
 
 export function EmailMarketingSection() {
   const containerRef = useRef<HTMLDivElement>(null);
