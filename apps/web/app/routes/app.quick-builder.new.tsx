@@ -65,7 +65,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .where(eq(products.storeId, storeId))
     .limit(50);
 
-  // Get store info
+  // Get store info including WhatsApp number from socialLinks
   const storeResult = await db
     .select()
     .from(stores)
@@ -73,10 +73,24 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .limit(1);
 
   const store = storeResult[0];
+  
+  // Parse socialLinks to get WhatsApp number
+  let defaultWhatsAppNumber = '';
+  try {
+    if (store?.socialLinks) {
+      const socialLinks = typeof store.socialLinks === 'string' 
+        ? JSON.parse(store.socialLinks) 
+        : store.socialLinks;
+      defaultWhatsAppNumber = socialLinks?.whatsapp || '';
+    }
+  } catch (e) {
+    console.error('Failed to parse socialLinks:', e);
+  }
 
   return json({
     storeId,
     storeName: store?.name || 'My Store',
+    defaultWhatsAppNumber,
     existingProducts: existingProducts.map((p) => ({
       id: p.id,
       title: p.title,
@@ -99,6 +113,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const productStr = formData.get('product');
   const productIdStr = formData.get('productId');
   const templateId = formData.get('templateId') as string;
+  const whatsappNumber = formData.get('whatsappNumber') as string | null;
 
   if (!intentStr || !templateId) {
     return json({ success: false, error: 'Missing required fields' }, { status: 400 });
@@ -225,6 +240,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
       shippingConfig: existingConfig.shippingConfig || newConfig.shippingConfig,
       // Add quick product ID
       quickProductId: linkedProductId,
+      // WhatsApp settings for lead_whatsapp goal
+      ...(intent.goal === 'lead_whatsapp' && whatsappNumber ? {
+        whatsappEnabled: true,
+        whatsappNumber: whatsappNumber,
+      } : {}),
     };
 
     // Update store with new landing config
@@ -252,7 +272,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function QuickBuilderNew() {
-  const { storeId, storeName, existingProducts } = useLoaderData<typeof loader>();
+  const { storeId, storeName, existingProducts, defaultWhatsAppNumber } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ success: boolean; data?: { redirectTo: string }; error?: string }>();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -262,6 +282,7 @@ export default function QuickBuilderNew() {
     product: QuickProduct | null;
     productId: number | null;
     templateId: string;
+    whatsappNumber?: string;
   }) => {
     setIsSubmitting(true);
 
@@ -273,6 +294,11 @@ export default function QuickBuilderNew() {
       formData.append('productId', String(data.productId));
     } else if (data.product) {
       formData.append('product', JSON.stringify(data.product));
+    }
+    
+    // Include WhatsApp number if provided (for lead_whatsapp goal)
+    if (data.whatsappNumber) {
+      formData.append('whatsappNumber', data.whatsappNumber);
     }
 
     fetcher.submit(formData, { method: 'POST' });
@@ -339,6 +365,7 @@ export default function QuickBuilderNew() {
         {/* Wizard */}
         <IntentWizard
           existingProducts={existingProducts}
+          defaultWhatsAppNumber={defaultWhatsAppNumber}
           onComplete={handleComplete}
           onImageUpload={handleImageUpload}
           isSubmitting={isSubmitting || fetcher.state === 'submitting'}

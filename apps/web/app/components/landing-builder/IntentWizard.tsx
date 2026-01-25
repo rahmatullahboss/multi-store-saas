@@ -8,7 +8,7 @@
  * Step 4: Preview & confirm template
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useFetcher } from '@remix-run/react';
 import {
   ShoppingBag,
@@ -24,6 +24,7 @@ import {
   Loader2,
   Sparkles,
   ArrowRight,
+  Eye,
 } from 'lucide-react';
 import { cn } from '~/utils/cn';
 import type { Intent, QuickProduct, StyleTokens } from '~/utils/landing-builder/intentEngine';
@@ -129,9 +130,12 @@ function OptionCard({ icon, title, description, selected, onClick, badge }: Opti
 interface Step1Props {
   intent: Partial<Intent>;
   onUpdate: (updates: Partial<Intent>) => void;
+  whatsappNumber: string;
+  onWhatsappChange: (number: string) => void;
+  hasDefaultWhatsapp: boolean;
 }
 
-function Step1IntentSelection({ intent, onUpdate }: Step1Props) {
+function Step1IntentSelection({ intent, onUpdate, whatsappNumber, onWhatsappChange, hasDefaultWhatsapp }: Step1Props) {
   return (
     <div className="space-y-8">
       {/* Product Type */}
@@ -180,6 +184,36 @@ function Step1IntentSelection({ intent, onUpdate }: Step1Props) {
             onClick={() => onUpdate({ goal: 'lead_whatsapp' })}
           />
         </div>
+
+        {/* WhatsApp Number Input - shown when lead_whatsapp is selected */}
+        {intent.goal === 'lead_whatsapp' && (
+          <div className="mt-4 p-4 bg-green-50 rounded-xl border border-green-200">
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+              <MessageCircle className="w-4 h-4 text-green-600" />
+              WhatsApp নম্বর
+              {hasDefaultWhatsapp && (
+                <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                  অ্যাকাউন্ট থেকে সিঙ্ক
+                </span>
+              )}
+            </label>
+            <input
+              type="tel"
+              value={whatsappNumber}
+              onChange={(e) => {
+                const cleaned = e.target.value.replace(/[^\d+\-\s]/g, '');
+                onWhatsappChange(cleaned);
+              }}
+              placeholder="01712345678"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+            />
+            <p className="text-xs text-gray-500 mt-1.5">
+              {hasDefaultWhatsapp 
+                ? 'আপনার অ্যাকাউন্টের নম্বর দেখাচ্ছে। চাইলে এডিট করতে পারবেন।'
+                : 'বাংলাদেশি নম্বর দিন (যেমন: 01712345678)'}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Traffic Source */}
@@ -661,6 +695,17 @@ interface Step4Props {
 function Step4TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: Step4Props) {
   const suggestions = getTemplateSuggestions(intent);
 
+  // Listen for selection from preview window
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'SELECT_TEMPLATE' && event.data.templateId) {
+        onSelectTemplate(event.data.templateId);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [onSelectTemplate]);
+
   const templateInfo: Record<string, { name: string; description: string; gradient: string; emoji: string }> = {
     'premium-bd': { name: 'প্রিমিয়াম BD', description: 'প্রফেশনাল, বিস্তারিত', gradient: 'from-emerald-600 to-emerald-800', emoji: '🇧🇩' },
     'flash-sale': { name: 'ফ্ল্যাশ সেল', description: 'আর্জেন্সি, অফার ফোকাস', gradient: 'from-red-500 to-orange-500', emoji: '⚡' },
@@ -686,38 +731,71 @@ function Step4TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: St
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto pr-2">
         {suggestions.map((templateId, index) => {
           const info = templateInfo[templateId] || { name: templateId, description: '', gradient: 'from-gray-400 to-gray-600', emoji: '🎨' };
+          const isSelected = selectedTemplate === templateId;
+          
           return (
-            <button
+            <div
               key={templateId}
-              type="button"
-              onClick={() => onSelectTemplate(templateId)}
               className={cn(
-                'relative p-4 rounded-xl border-2 text-center transition-all',
-                selectedTemplate === templateId
+                'relative p-4 rounded-xl border-2 text-center transition-all group hover:shadow-md',
+                isSelected
                   ? 'border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200'
-                  : 'border-gray-200 hover:border-emerald-300'
+                  : 'border-gray-200 bg-white hover:border-emerald-300'
               )}
             >
               {index === 0 && (
-                <span className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-emerald-500 text-white text-xs font-medium rounded-full">
-                  সাজেস্টেড
+                <span className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-emerald-500 text-white text-xs font-medium rounded-full z-10">
+                  সেরা পছন্দ
                 </span>
               )}
+              
               <div className={cn(
-                'w-full h-24 rounded-lg mb-3 flex items-center justify-center bg-gradient-to-br',
+                'w-full h-32 rounded-lg mb-3 flex items-center justify-center bg-gradient-to-br relative overflow-hidden',
                 info.gradient
               )}>
-                <span className="text-3xl drop-shadow-lg">{info.emoji}</span>
+                <span className="text-4xl drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300">{info.emoji}</span>
+                
+                {/* Hover Actions Overlay */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <a
+                    href={`/app/store-template-preview/${templateId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 bg-white rounded-full text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                    title="প্রিভিউ দেখুন"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Eye className="w-5 h-5" />
+                  </a>
+                </div>
               </div>
+              
               <h4 className="font-semibold text-gray-900">{info.name}</h4>
-              <p className="text-xs text-gray-500">{info.description}</p>
-              {selectedTemplate === templateId && (
-                <Check className="absolute top-2 right-2 w-5 h-5 text-emerald-500" />
-              )}
-            </button>
+              <p className="text-xs text-gray-500 mb-3">{info.description}</p>
+              
+              <button
+                type="button"
+                onClick={() => onSelectTemplate(templateId)}
+                className={cn(
+                  'w-full py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2',
+                  isSelected
+                    ? 'bg-emerald-500 text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-600 hover:bg-emerald-100 hover:text-emerald-700'
+                )}
+              >
+                {isSelected ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    সিলেক্টেড
+                  </>
+                ) : (
+                  'সিলেক্ট করুন'
+                )}
+              </button>
+            </div>
           );
         })}
       </div>
@@ -739,6 +817,7 @@ function Step4TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: St
 // Main Intent Wizard Component
 interface IntentWizardProps {
   existingProducts?: Array<{ id: number; title: string; price: number; imageUrl?: string }>;
+  defaultWhatsAppNumber?: string; // Pre-filled from store settings
   onComplete: (data: { 
     intent: Intent; 
     product: QuickProduct | null; 
@@ -746,6 +825,7 @@ interface IntentWizardProps {
     productIds: number[]; // NEW: Multiple product IDs
     templateId: string;
     styleTokens: StyleTokens;
+    whatsappNumber?: string; // WhatsApp number for lead_whatsapp goal
   }) => void;
   onImageUpload?: (file: File) => Promise<string>;
   isSubmitting?: boolean;
@@ -753,6 +833,7 @@ interface IntentWizardProps {
 
 export function IntentWizard({
   existingProducts = [],
+  defaultWhatsAppNumber = '',
   onComplete,
   onImageUpload,
   isSubmitting = false,
@@ -768,6 +849,8 @@ export function IntentWizard({
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]); // NEW: Multiple selection
   const [styleTokens, setStyleTokens] = useState<StyleTokens>(DEFAULT_STYLE_TOKENS);
   const [selectedTemplate, setSelectedTemplate] = useState('');
+  // WhatsApp number - pre-filled from store settings, editable by user
+  const [whatsappNumber, setWhatsappNumber] = useState(defaultWhatsAppNumber);
 
   // Set default template when intent is complete
   const handleIntentUpdate = (updates: Partial<Intent>) => {
@@ -817,6 +900,8 @@ export function IntentWizard({
         productIds: selectedProductIds,
         templateId: selectedTemplate,
         styleTokens,
+        // Include WhatsApp number if goal is lead_whatsapp
+        whatsappNumber: intent.goal === 'lead_whatsapp' ? whatsappNumber : undefined,
       });
     }
   };
@@ -834,7 +919,13 @@ export function IntentWizard({
       {/* Step Content */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         {step === 1 && (
-          <Step1IntentSelection intent={intent} onUpdate={handleIntentUpdate} />
+          <Step1IntentSelection 
+            intent={intent} 
+            onUpdate={handleIntentUpdate}
+            whatsappNumber={whatsappNumber}
+            onWhatsappChange={setWhatsappNumber}
+            hasDefaultWhatsapp={!!defaultWhatsAppNumber}
+          />
         )}
 
         {step === 2 && (

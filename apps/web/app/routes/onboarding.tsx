@@ -14,12 +14,12 @@ import { useState, useEffect, useRef } from 'react';
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
 import { useFetcher, Link } from '@remix-run/react';
-import { Store, ArrowRight, ArrowLeft, Check, Crown, Zap, Gift, Smartphone, Copy, Eye, EyeOff } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Check, Crown, Zap, Gift, Smartphone, Copy, Eye, EyeOff } from 'lucide-react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
-import { stores, products, users } from '@db/schema';
-import { accountInfoSchema, storeInfoSchema, bdPhoneSchema, emailSchema } from '~/lib/validations/auth';
-import { getUserId, register, createUserSession, getSession, commitSession } from '~/services/auth.server';
+import { stores, users } from '@db/schema';
+import { bdPhoneSchema, emailSchema } from '~/lib/validations/auth';
+import { getUserId, register, getSession, commitSession } from '~/services/auth.server';
 import { seedDefaultTheme } from '~/lib/theme-seeding.server';
 import { OnboardingSteps } from '~/components/onboarding/OnboardingSteps';
 import { AISetupProgress } from '~/components/onboarding/AISetupProgress';
@@ -36,8 +36,8 @@ const BKASH_PAYMENT_NUMBER = '01739416661';
 
 const PLAN_PRICING = {
   free: 0,
-  starter: 50000,
-  premium: 200000,
+  starter: 500,    // ৫০০ টাকা/মাস
+  premium: 2000,   // ২০০০ টাকা/মাস
 };
 
 // ==============================================================================
@@ -297,7 +297,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .limit(1);
 
     if (existingStore.length > 0) {
-      console.log('[Onboarding] Subdomain not available:', subdomain);
+      console.warn('[Onboarding] Subdomain not available:', subdomain);
       return json({
         error: t('subdomainTaken', { subdomain }),
         field: 'subdomain',
@@ -321,7 +321,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const transactionId = formData.get('transactionId') as string || '';
     const paymentPhone = formData.get('paymentPhone') as string || '';
 
-    console.log('[Onboarding] Creating store:', { storeName, subdomain, category, selectedPlan, phone });
+    // console.log('[Onboarding] Creating store:', { storeName, subdomain, category, selectedPlan, phone });
 
     try {
       // 1. Register user and create store
@@ -336,7 +336,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       });
 
       if (result.error) {
-        console.log('[Onboarding] Registration failed:', result.error);
+        console.warn('[Onboarding] Registration failed:', result.error);
         return json({ error: result.error }, { status: 400 });
       }
 
@@ -396,24 +396,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
       // 6. Seed default theme (NEW)
       // This ensures the store has a theme and templates ready immediately
       try {
-        console.log('[Onboarding] Seeding default theme for store:', storeId);
+        // console.log('[Onboarding] Seeding default theme for store:', storeId);
         await seedDefaultTheme(env.DB, storeId);
       } catch (themeError) {
         console.error('[Onboarding] Failed to seed theme:', themeError);
         // Don't block store creation, can be fixed later or on first dashboard visit
       }
 
-      // 7. Create sample product based on category
-      await db.insert(products).values({
-        storeId,
-        title: template.product.title,
-        description: template.product.description,
-        price: template.product.price,
-        inventory: 100, // Ensure sample product is in stock
-        isPublished: true,
-      });
+      // NOTE: Demo product creation removed - merchants should add their own products
 
-      console.log('[Onboarding] Store created successfully:', storeName, '| Plan:', selectedPlan, '| TRX:', transactionId || 'N/A');
+      // console.log('[Onboarding] Store created successfully:', storeName, '| Plan:', selectedPlan, '| TRX:', transactionId || 'N/A');
 
       // 7. Create session and return JSON for client-side hard redirect
       // We use a hard redirect (window.location) to prevent White Screen/Hydration issues
@@ -470,7 +462,7 @@ export default function OnboardingPage() {
   const [isCheckingSubdomain, setIsCheckingSubdomain] = useState(false);
   const fetcher = useFetcher<{ success?: boolean; error?: string; errorEn?: string; step?: number; emailExists?: boolean; phoneExists?: boolean; emailAvailable?: boolean; subdomainAvailable?: boolean; subdomainTaken?: boolean; redirectUrl?: string }>();
 
-  const { t, lang: language } = useTranslation();
+  const { t } = useTranslation();
 
   // Password visibility toggle
   const [showPassword, setShowPassword] = useState(false);
