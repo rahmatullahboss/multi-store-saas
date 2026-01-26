@@ -86,6 +86,7 @@ export interface StoreFooterProps {
   categories: (string | null)[];
   planType?: string;
   themeColors?: any;
+  isPreview?: boolean;
 }
 
 // ============================================================================

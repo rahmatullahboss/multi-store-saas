@@ -638,6 +638,9 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
   // ─────────────────────────────────────────────────────────────────────────
   // ORGANIC GREEN - Modern Eco-Luxury
   // ─────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // ORGANIC GREEN - Modern Eco-Luxury
+  // ─────────────────────────────────────────────────────────────────────────
   'organic': {
     id: 'organic',
     name: 'অর্গানিক লাক্সারি',
@@ -661,7 +664,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
           subheadline: 'ত্বকের জন্য ১০০% কার্যকর এবং প্রাকৃতিক উপাদান। কোনো ক্ষতিকর কেমিক্যাল নেই।',
           ctaText: 'শপ নাও',
           badgeText: '🌿 ১০০% অর্গানিক',
-          backgroundImage: '', // Use clean background provided by theme
+          backgroundImage: 'https://images.unsplash.com/photo-1615397349754-cfa2066a298e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80', 
         },
       },
       {
@@ -673,13 +676,22 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
             { icon: 'Sprout', title: 'টেকসই উৎস', description: 'আমরা সরাসরি কৃষকদের থেকে সংগ্রহ করি।' },
             { icon: 'FlaskConical', title: 'ল্যাব টেস্টেড', description: 'প্রতিটি ব্যাচ ডার্মাটোলজিস্ট দ্বারা পরীক্ষিত।' },
             { icon: 'Recycle', title: 'জিরো ওয়েস্ট', description: 'আমাদের প্যাকেজিং ১০০% রিসাইকেলযোগ্য।' },
+            { icon: 'Leaf', title: 'ভেগান', description: 'কোনো প্রাণীজ উপাদান ব্যবহার করা হয়নি।' },
           ],
         },
       },
       {
+         type: 'video',
+         props: {
+            title: 'ভিডিও রিভিউ দেখুন',
+            videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', 
+            thumbnailUrl: 'https://images.unsplash.com/photo-1556910103-1c02745a30bf?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80',
+         }
+      },
+      {
         type: 'showcase',
         props: {
-          variant: 'highlight',
+          variant: 'organic', // Triggers OrganicShowcase
           title: 'কেন এটি অনন্য?',
           features: [
             { title: 'উপাদান', description: 'অ্যালোভেরা, গ্রিন টি, শিয়া বাটার' },
@@ -692,22 +704,24 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'testimonials',
         props: {
-          variant: 'minimal',
+          variant: 'organic', // Triggers OrganicTestimonials
           title: 'গ্রাহকদের ভালোবাসা',
           testimonials: [
-            { name: 'নিগার সুলতানা', text: 'আমার সেনসিটিভ স্কিনের জন্য এটি আশীর্বাদ।', rating: 5 },
-            { name: 'ডাঃ রুবিনা', text: 'কেমিক্যাল মুক্ত হওয়ায় আমি এটি রেকমেন্ড করি।', rating: 5 },
+            { name: 'নিগার সুলতানা', text: 'আমার সেনসিটিভ স্কিনের জন্য এটি আশীর্বাদ।', rating: 5, imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80' },
+            { name: 'ডাঃ রুবিনা', text: 'কেমিক্যাল মুক্ত হওয়ায় আমি এটি রেকমেন্ড করি।', rating: 5, imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330' },
+            { name: 'সাবিনা ইয়াসমিন', text: 'প্যাকেজিং এবং কোয়ালিটি দুটোই অসাধারণ।', rating: 5, imageUrl: 'https://images.unsplash.com/photo-1607746882042-944635dfe10e' },
           ],
         },
       },
       {
         type: 'faq',
         props: {
-          variant: 'accordion',
+          variant: 'organic', // Triggers OrganicFAQ
           title: 'সাধারণ জিজ্ঞাসা',
           items: [
             { question: 'এটি কি সব বয়সের জন্য?', answer: 'হ্যাঁ, এটি সম্পূর্ণ প্রাকৃতিক হওয়ায় নিরাপদ।' },
             { question: 'সাইড ইফেক্ট আছে?', answer: 'না, তবে প্যাচ টেস্ট করে নেওয়া ভালো।' },
+            { question: 'ডেলিভারি চার্জ কত?', answer: 'ঢাকার ভিতরে ৬০ টাকা, বাইরে ১২০ টাকা।' },
           ],
         },
       },
@@ -718,6 +732,8 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
           headline: 'প্রকৃতির ছোঁয়া নিন',
           subheadline: 'আজই শুরু করুন আপনার অর্গানিক জার্নি',
           buttonText: 'অর্ডার করুন',
+          productTitle: 'অর্গানিক ফেস সিরাম', 
+          productImage: 'https://images.unsplash.com/photo-1615397349754-cfa2066a298e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
         },
       },
     ],

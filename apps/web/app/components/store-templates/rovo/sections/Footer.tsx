@@ -9,6 +9,8 @@ export function RovoFooter({
   businessInfo,
   socialLinks,
   categories,
+  planType = 'free',
+  footerConfig,
 }: StoreFooterProps) {
   return (
     <footer className="bg-gray-100 text-gray-800 pt-16 pb-8 border-t border-gray-200">
@@ -165,13 +167,7 @@ export function RovoFooter({
           <p className="text-gray-500 text-sm" suppressHydrationWarning>
             © {new Date().getFullYear()} {storeName}. All rights reserved.
           </p>
-          <div className="flex items-center space-x-4 grayscale opacity-70">
-            {/* Payment Icons Placeholder */}
-            <div className="h-6 w-10 bg-gray-200 rounded"></div>
-            <div className="h-6 w-10 bg-gray-200 rounded"></div>
-            <div className="h-6 w-10 bg-gray-200 rounded"></div>
-            <div className="h-6 w-10 bg-gray-200 rounded"></div>
-          </div>
+          <OzzylBranding planType={planType} showPoweredBy={footerConfig?.showPoweredBy} />
         </div>
       </div>
     </footer>

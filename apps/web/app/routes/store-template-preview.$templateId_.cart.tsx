@@ -1,6 +1,6 @@
 /**
  * Store Template Preview - Cart Page
- * 
+ *
  * Route: /store-template-preview/:templateId/cart
  */
 
@@ -8,10 +8,7 @@ import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, Link } from '@remix-run/react';
 import { Suspense, useState } from 'react';
 import { ArrowLeft, Eye, X } from 'lucide-react';
-import { 
-  getStoreTemplate, 
-  STORE_TEMPLATE_THEMES,
-} from '~/templates/store-registry';
+import { getStoreTemplate, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import {
   DEMO_CATEGORIES,
@@ -54,7 +51,13 @@ function LoadingFallback() {
   );
 }
 
-function PreviewIndicator({ templateName, templateId }: { templateName: string; templateId: string }) {
+function PreviewIndicator({
+  templateName,
+  templateId,
+}: {
+  templateName: string;
+  templateId: string;
+}) {
   const [dismissed, setDismissed] = useState(false);
 
   if (dismissed) return null;
@@ -62,15 +65,17 @@ function PreviewIndicator({ templateName, templateId }: { templateName: string; 
   return (
     <div className="fixed bottom-4 left-4 z-[9999] flex items-center gap-2 px-4 py-2 bg-black/80 backdrop-blur-sm text-white rounded-full shadow-lg text-sm">
       <Eye className="w-4 h-4" />
-      <span>Preview: <strong>{templateName}</strong> - Cart Page</span>
-      <Link 
+      <span>
+        Preview: <strong>{templateName}</strong> - Cart Page
+      </span>
+      <Link
         to={`/store-template-preview/${templateId}`}
         className="ml-2 px-2 py-1 bg-white/20 rounded hover:bg-white/30 transition flex items-center gap-1"
       >
         <ArrowLeft className="w-3 h-3" />
         Home
       </Link>
-      <button 
+      <button
         onClick={() => setDismissed(true)}
         className="ml-1 p-1 hover:bg-white/20 rounded-full transition"
       >
@@ -82,17 +87,27 @@ function PreviewIndicator({ templateName, templateId }: { templateName: string; 
 
 function FallbackCartPage({ theme }: { theme: any }) {
   return (
-    <div className="min-h-[60vh] flex items-center justify-center" style={{ backgroundColor: theme.background }}>
+    <div
+      className="min-h-[60vh] flex items-center justify-center"
+      style={{ backgroundColor: theme.background }}
+    >
       <div className="text-center">
-        <ShoppingCart className="w-16 h-16 mx-auto mb-4 opacity-30" style={{ color: theme.muted }} />
-        <h2 className="text-xl font-semibold mb-2" style={{ color: theme.text }}>Your Cart is Empty (Preview)</h2>
-        <p className="mb-6" style={{ color: theme.muted }}>Add items to see them here</p>
-        <Link 
-            to=".."
-            className="px-8 py-3 rounded-lg text-white font-medium inline-block" 
-            style={{ backgroundColor: theme.primary }}
+        <ShoppingCart
+          className="w-16 h-16 mx-auto mb-4 opacity-30"
+          style={{ color: theme.muted }}
+        />
+        <h2 className="text-xl font-semibold mb-2" style={{ color: theme.text }}>
+          Your Cart is Empty (Preview)
+        </h2>
+        <p className="mb-6" style={{ color: theme.muted }}>
+          Add items to see them here
+        </p>
+        <Link
+          to=".."
+          className="px-8 py-3 rounded-lg text-white font-medium inline-block"
+          style={{ backgroundColor: theme.primary }}
         >
-            Continue Shopping
+          Continue Shopping
         </Link>
       </div>
     </div>
@@ -101,7 +116,7 @@ function FallbackCartPage({ theme }: { theme: any }) {
 
 export default function PreviewCartPage() {
   const data = useLoaderData<typeof loader>();
-  
+
   // Get the actual template component
   const template = getStoreTemplate(data.templateId);
   const CartPageComponent = template.CartPage;
@@ -122,6 +137,7 @@ export default function PreviewCartPage() {
         footerConfig={data.footerConfig}
         planType="pro"
         customer={null}
+        isPreview={true}
       >
         {/* Use template-specific CartPage if available */}
         {CartPageComponent ? (

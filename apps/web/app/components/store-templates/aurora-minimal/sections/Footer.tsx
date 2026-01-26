@@ -217,18 +217,7 @@ export function AuroraMinimalFooter({
               <span className="text-[10px] font-bold uppercase tracking-widest">Global Shop</span>
             </div>
 
-            {/* Powered by Ozzyl branding */}
-            {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
-              <a
-                href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[10px] opacity-40 hover:opacity-100 transition-opacity flex items-center gap-2"
-              >
-                <span>BY</span>
-                <span className="font-black tracking-tighter text-sm uppercase italic">Ozzyl</span>
-              </a>
-            )}
+            <OzzylBranding planType={planType} showPoweredBy={footerConfig?.showPoweredBy} />
           </div>
         </div>
       </div>

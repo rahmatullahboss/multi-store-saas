@@ -223,20 +223,7 @@ export function ZenithRiseFooter({
             © {currentYear} {storeName}. All rights reserved.
           </p>
 
-          {/* Viral Loop / Branding */}
-          {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
-            <a
-              href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-center gap-2 px-4 py-2 bg-slate-900 rounded-full border border-slate-800 hover:border-indigo-500/50 transition-all"
-            >
-              <span className="text-xs text-slate-500 group-hover:text-slate-300">Powered by</span>
-              <span className="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
-                Ozzyl
-              </span>
-            </a>
-          )}
+          <OzzylBranding planType={planType} showPoweredBy={footerConfig?.showPoweredBy} />
         </div>
       </div>
     </footer>

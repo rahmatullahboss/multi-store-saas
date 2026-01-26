@@ -173,21 +173,9 @@ export function NovaLuxFooter({
           </div>
         </div>
 
-        {/* Viral Loop / Branding */}
-        {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
-          <div className="mt-16 pt-8 border-t border-white/10 flex justify-center items-center">
-            <a
-              href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[10px] text-white/40 hover:text-white transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
-              style={{ color: THEME.accent }}
-            >
-              <span style={{ color: 'rgba(255,255,255,0.4)' }}>Powered by</span>
-              <span className="font-bold tracking-tight text-sm">Ozzyl</span>
-            </a>
-          </div>
-        )}
+        <div className="mt-16 pt-8 border-t border-white/10 flex justify-center items-center">
+          <OzzylBranding planType={planType} showPoweredBy={footerConfig?.showPoweredBy} />
+        </div>
       </div>
     </footer>
   );

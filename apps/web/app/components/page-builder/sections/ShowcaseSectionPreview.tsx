@@ -2,14 +2,36 @@
  * Page Builder v2 - Showcase Section Preview
  */
 
+import { OrganicShowcase } from './showcase/OrganicShowcase';
+
 interface ShowcaseProps {
+  variant?: string;
   title?: string;
   description?: string;
   images?: string[];
   specs?: Array<{ label: string; value: string }>;
+  features?: Array<{ title: string; description: string; icon?: string }>; // Added for organic variant
 }
 
 export function ShowcaseSectionPreview({ props }: { props: Record<string, unknown> }) {
+  const typedProps = props as ShowcaseProps;
+
+  // Organic Variant
+  if (typedProps.variant === 'highlight' || typedProps.variant === 'organic') {
+    return (
+      <OrganicShowcase 
+        title={typedProps.title || 'কেন এটি অনন্য?'}
+        features={typedProps.features || [
+          { title: 'উপাদান', description: 'অ্যালোভেরা, গ্রিন টি, শিয়া বাটার' },
+          { title: 'ত্বকের ধরণ', description: 'সব ধরণের ত্বকের জন্য' },
+          { title: 'ব্যবহার', description: 'দিনে দুইবার' },
+          { title: 'পরিমাণ', description: '৫০ গ্রাম / ১০০ গ্রাম' },
+        ]}
+      />
+    );
+  }
+
+  // Default Standard Layout
   const { 
     title = 'প্রোডাক্ট ডিটেইলস',
     description = 'এখানে আপনার প্রোডাক্টের বিস্তারিত বর্ণনা লিখুন। গ্রাহকদের জানান কেন এই প্রোডাক্টটি তাদের জন্য সেরা।',
@@ -19,7 +41,7 @@ export function ShowcaseSectionPreview({ props }: { props: Record<string, unknow
       { label: 'সাইজ', value: 'ফ্রি সাইজ' },
       { label: 'ওজন', value: '২০০ গ্রাম' },
     ],
-  } = props as ShowcaseProps;
+  } = typedProps;
   
   return (
     <section className="py-12 px-4 bg-white">

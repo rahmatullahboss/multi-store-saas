@@ -1,8 +1,8 @@
 /**
  * Store Template Preview - Product Detail Page
- * 
+ *
  * Route: /store-template-preview/:templateId/products/:id
- * 
+ *
  * This route renders template-specific product pages
  * with demo products for preview purposes.
  */
@@ -12,10 +12,7 @@ import { useLoaderData, Link } from '@remix-run/react';
 import { Suspense } from 'react';
 import { ArrowLeft, Eye, X } from 'lucide-react';
 import { useState } from 'react';
-import { 
-  getStoreTemplate, 
-  STORE_TEMPLATE_THEMES,
-} from '~/templates/store-registry';
+import { getStoreTemplate, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import {
   DEMO_PRODUCTS,
@@ -32,10 +29,7 @@ import {
 // ============================================================================
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data?.product) {
-    return [
-      { title: 'Product Not Found' },
-      { name: 'robots', content: 'noindex, nofollow' },
-    ];
+    return [{ title: 'Product Not Found' }, { name: 'robots', content: 'noindex, nofollow' }];
   }
   return [
     { title: `${data.product.title} - ${data.templateName} Preview` },
@@ -49,15 +43,15 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 export async function loader({ params }: LoaderFunctionArgs) {
   const templateId = params.templateId || 'luxe-boutique';
   const productId = parseInt(params.id || '1', 10);
-  
+
   const template = getStoreTemplate(templateId);
   const theme = STORE_TEMPLATE_THEMES[templateId] || STORE_TEMPLATE_THEMES['luxe-boutique'];
 
   // Find the product from demo products
-  const product = DEMO_PRODUCTS.find(p => p.id === productId) || DEMO_PRODUCTS[0];
-  
+  const product = DEMO_PRODUCTS.find((p) => p.id === productId) || DEMO_PRODUCTS[0];
+
   // Get related products (exclude current product)
-  const relatedProducts = DEMO_PRODUCTS.filter(p => p.id !== productId).slice(0, 4);
+  const relatedProducts = DEMO_PRODUCTS.filter((p) => p.id !== productId).slice(0, 4);
 
   return json({
     templateId: template.id,
@@ -77,7 +71,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
       inventory: 100,
       images: null,
     },
-    relatedProducts: relatedProducts.map(p => ({
+    relatedProducts: relatedProducts.map((p) => ({
       id: p.id,
       storeId: p.storeId,
       title: p.title,
@@ -114,7 +108,13 @@ function LoadingFallback() {
 // ============================================================================
 // PREVIEW INDICATOR
 // ============================================================================
-function PreviewIndicator({ templateName, templateId }: { templateName: string; templateId: string }) {
+function PreviewIndicator({
+  templateName,
+  templateId,
+}: {
+  templateName: string;
+  templateId: string;
+}) {
   const [dismissed, setDismissed] = useState(false);
 
   if (dismissed) return null;
@@ -122,15 +122,17 @@ function PreviewIndicator({ templateName, templateId }: { templateName: string; 
   return (
     <div className="fixed bottom-4 left-4 z-[9999] flex items-center gap-2 px-4 py-2 bg-black/80 backdrop-blur-sm text-white rounded-full shadow-lg text-sm">
       <Eye className="w-4 h-4" />
-      <span>Preview: <strong>{templateName}</strong> - Product Page</span>
-      <Link 
+      <span>
+        Preview: <strong>{templateName}</strong> - Product Page
+      </span>
+      <Link
         to={`/store-template-preview/${templateId}`}
         className="ml-2 px-2 py-1 bg-white/20 rounded hover:bg-white/30 transition flex items-center gap-1"
       >
         <ArrowLeft className="w-3 h-3" />
         Home
       </Link>
-      <button 
+      <button
         onClick={() => setDismissed(true)}
         className="ml-1 p-1 hover:bg-white/20 rounded-full transition"
       >
@@ -143,12 +145,12 @@ function PreviewIndicator({ templateName, templateId }: { templateName: string; 
 // ============================================================================
 // FALLBACK PRODUCT PAGE
 // ============================================================================
-function FallbackProductPage({ 
-  product, 
-  currency, 
-  theme 
-}: { 
-  product: { 
+function FallbackProductPage({
+  product,
+  currency,
+  theme,
+}: {
+  product: {
     id: number;
     title: string | null;
     description: string | null;
@@ -167,9 +169,9 @@ function FallbackProductPage({
           {/* Image */}
           <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
             {product.imageUrl ? (
-              <img 
-                src={product.imageUrl} 
-                alt={product.title || ''} 
+              <img
+                src={product.imageUrl}
+                alt={product.title || ''}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -178,26 +180,25 @@ function FallbackProductPage({
               </div>
             )}
           </div>
-          
+
           {/* Info */}
           <div className="space-y-4">
             <h1 className="text-2xl font-bold" style={{ color: theme.text }}>
               {product.title}
             </h1>
             <p className="text-3xl font-bold" style={{ color: theme.primary }}>
-              {currency}{(product.price ?? 0).toLocaleString()}
+              {currency}
+              {(product.price ?? 0).toLocaleString()}
             </p>
-            {product.description && (
-              <p className="text-gray-600">{product.description}</p>
-            )}
+            {product.description && <p className="text-gray-600">{product.description}</p>}
             <div className="flex gap-3 pt-4">
-              <button 
+              <button
                 className="flex-1 py-3 rounded-lg font-medium text-white"
                 style={{ backgroundColor: theme.primary }}
               >
                 Add to Cart
               </button>
-              <button 
+              <button
                 className="flex-1 py-3 rounded-lg font-medium text-white"
                 style={{ backgroundColor: theme.accent }}
               >
@@ -216,7 +217,7 @@ function FallbackProductPage({
 // ============================================================================
 export default function PreviewProductPage() {
   const data = useLoaderData<typeof loader>();
-  
+
   // Get the actual template component
   const template = getStoreTemplate(data.templateId);
   const ProductPageComponent = template.ProductPage;
@@ -237,6 +238,7 @@ export default function PreviewProductPage() {
         footerConfig={data.footerConfig}
         planType="pro"
         customer={null}
+        isPreview={true}
       >
         {/* Use template-specific ProductPage if available */}
         {ProductPageComponent ? (
@@ -248,11 +250,7 @@ export default function PreviewProductPage() {
             />
           </Suspense>
         ) : (
-          <FallbackProductPage 
-            product={data.product} 
-            currency={data.currency} 
-            theme={data.theme}
-          />
+          <FallbackProductPage product={data.product} currency={data.currency} theme={data.theme} />
         )}
       </StorePageWrapper>
 

@@ -100,7 +100,7 @@ export function OrganicHero({
       {/* Wave Separator - Premium Multi-Layered organic transition */}
       <div className="absolute bottom-[-2px] left-0 w-full overflow-hidden leading-[0] z-20">
         <svg className="relative block w-[calc(100%+1.3px)] h-[120px] md:h-[160px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            {/* Layer 1 - Opacity 0.3 */}
+            {/* Layer 1 - Opacity 0.25 */}
             <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" fill="#FFFFFF" opacity=".25"></path>
             {/* Layer 2 - Opacity 0.5 */}
             <path d="M0,0V15.81C13,36.92,54.55,50.1,82,58.5c51.27,15.7,106.8,11.51,162.2,4.8,96.39-11.69,173.35-46.86,269-50.6,90.9-3.56,163.5,23.33,247,46.85,73.49,20.69,150.3,31.7,227.1,13.36,66.6-15.89,142.3-46.7,212.7-52.6V0Z" fill="#FFFFFF" opacity=".5"></path>

@@ -9,6 +9,8 @@ export function SokolFooter({
   businessInfo,
   socialLinks,
   categories,
+  planType = 'free',
+  footerConfig,
 }: StoreFooterProps) {
   return (
     <footer className="bg-[#0D0D0D] text-gray-300 pt-16 pb-8">
@@ -171,15 +173,7 @@ export function SokolFooter({
           <p className="text-gray-500 text-sm">
             © {new Date().getFullYear()} {storeName}. All rights reserved.
           </p>
-          <div className="flex items-center space-x-4">
-            {/* Payment Icons Placeholder */}
-            <div className="flex gap-2 opacity-60">
-              <div className="h-6 w-10 bg-white/20 rounded"></div>
-              <div className="h-6 w-10 bg-white/20 rounded"></div>
-              <div className="h-6 w-10 bg-white/20 rounded"></div>
-              <div className="h-6 w-10 bg-white/20 rounded"></div>
-            </div>
-          </div>
+          <OzzylBranding planType={planType} showPoweredBy={footerConfig?.showPoweredBy} />
         </div>
       </div>
     </footer>

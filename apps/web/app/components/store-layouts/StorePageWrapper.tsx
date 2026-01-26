@@ -1,6 +1,6 @@
 /**
  * StorePageWrapper Component
- * 
+ *
  * Provides template-consistent header, footer, and styling wrapper
  * for non-homepage store pages (cart, product detail, checkout, etc.)
  */
@@ -10,7 +10,11 @@ import { StoreHeader } from './StoreHeader';
 import { StoreFooter } from './StoreFooter';
 import { StorePushPrompt } from '~/components/store/StorePushPrompt';
 import { WishlistProvider } from '~/contexts/WishlistContext';
-import { getStoreTemplate, getStoreTemplateTheme, type StoreTemplateTheme } from '~/templates/store-registry';
+import {
+  getStoreTemplate,
+  getStoreTemplateTheme,
+  type StoreTemplateTheme,
+} from '~/templates/store-registry';
 import type { SocialLinks, ThemeConfig, FooterConfig } from '@db/types';
 
 interface StorePageWrapperProps {
@@ -59,13 +63,11 @@ export function StorePageWrapper({
   // Get template from registry
   const template = getStoreTemplate(templateId);
   const resolvedTheme = theme || template.theme;
-  
+
   // Determine background and text colors based on template
   const isDarkTheme = templateId === 'modern-premium' || templateId === 'tech-modern';
-  
-  const bgClass = isDarkTheme 
-    ? 'bg-gray-900 text-white' 
-    : 'bg-gray-50 text-gray-900';
+
+  const bgClass = isDarkTheme ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900';
 
   return (
     <WishlistProvider>
@@ -73,11 +75,11 @@ export function StorePageWrapper({
         {/* Background Decorations (light mode only) */}
         {!isDarkTheme && (
           <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-            <div 
+            <div
               className="absolute -top-32 -right-20 h-72 w-72 rounded-full blur-3xl opacity-60"
               style={{ backgroundColor: `${resolvedTheme.accent}30` }}
             />
-            <div 
+            <div
               className="absolute -bottom-32 -left-10 h-72 w-72 rounded-full blur-3xl opacity-60"
               style={{ backgroundColor: `${resolvedTheme.primary}30` }}
             />
@@ -128,6 +130,8 @@ export function StorePageWrapper({
               footerConfig={footerConfig}
               businessInfo={businessInfo}
               categories={categories}
+              planType={planType}
+              isPreview={isPreview}
             />
           ) : (
             <StoreFooter
@@ -140,6 +144,7 @@ export function StorePageWrapper({
               planType={planType}
               showPoweredBy={footerConfig?.showPoweredBy ?? true}
               config={config}
+              isPreview={isPreview}
             />
           )}
         </Suspense>

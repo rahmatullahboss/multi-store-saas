@@ -281,17 +281,7 @@ export function StarterStoreFooter({
           <p style={{ color: theme.footerText + 'AA' }}>
             © {new Date().getFullYear()} {storeName}. সর্বস্বত্ব সংরক্ষিত।
           </p>
-          {showPoweredBy && (
-            <a
-              href="https://ozzyl.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline"
-              style={{ color: theme.footerText + '80' }}
-            >
-              Powered by Ozzyl
-            </a>
-          )}
+          <OzzylBranding planType={planType} showPoweredBy={showPoweredBy} variant="minimal" />
         </div>
       </div>
     </footer>

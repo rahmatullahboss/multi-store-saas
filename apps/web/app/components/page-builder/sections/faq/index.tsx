@@ -9,12 +9,14 @@ import { AccordionFAQ } from './AccordionFAQ';
 import { GlassmorphismFAQ } from './GlassmorphismFAQ';
 import { NeubrutalistFAQ } from './NeubrutalistFAQ';
 import { CardsFAQ } from './CardsFAQ';
+import { OrganicFAQ } from './OrganicFAQ';
 
 export type FAQVariant = 
   | 'accordion' 
   | 'glassmorphism' 
   | 'neubrutalism'
-  | 'cards';
+  | 'cards'
+  | 'organic';
 
 export function FAQSectionPreview({ props, theme }: FAQSectionPreviewProps) {
   const {
@@ -54,6 +56,19 @@ export function FAQSectionPreview({ props, theme }: FAQSectionPreviewProps) {
       return <NeubrutalistFAQ {...commonProps} />;
     case 'cards':
       return <CardsFAQ {...commonProps} />;
+    case 'organic':
+      return (
+        <OrganicFAQ 
+          title={title} 
+          subtitle={subtitle}
+          items={items.map(item => ({
+            question: item.question,
+            answer: item.answer,
+          }))}
+          theme={theme}
+          styleProps={styleProps}
+        />
+      );
     case 'accordion':
     default:
       return <AccordionFAQ {...commonProps} />;

@@ -4,6 +4,7 @@
 
 import { Play } from 'lucide-react';
 import { getSectionStyle, getHeadingStyle, type SectionStyleProps } from '~/lib/page-builder/sectionStyleUtils';
+import { OrganicVideo } from './video/OrganicVideo';
 
 interface VideoProps extends SectionStyleProps {
   title?: string;
@@ -31,12 +32,24 @@ export function VideoSectionPreview({ props }: { props: Record<string, unknown> 
   
   // Extract YouTube video ID
   const getYouTubeId = (url: string) => {
-    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    const match = url.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/);
     return match ? match[1] : null;
   };
   
   const youtubeId = getYouTubeId(videoUrl);
   const thumbnail = thumbnailUrl || (youtubeId ? `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg` : '');
+
+  // Organic Variant
+  const variant = (props as any).variant;
+  if (variant === 'organic') {
+    return (
+      <OrganicVideo 
+        title={title}
+        videoUrl={videoUrl}
+        thumbnailUrl={thumbnail}
+      />
+    );
+  }
   
   return (
     <section 

@@ -196,20 +196,7 @@ export function FreshnessFooter({
               <span className="text-xs font-bold tracking-tight uppercase">Quality Choice</span>
             </div>
 
-            {/* Powered by Ozzyl branding */}
-            {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
-              <a
-                href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[10px] opacity-40 hover:opacity-100 transition-opacity flex items-center gap-1.5"
-              >
-                <span>Powered by</span>
-                <span className="font-bold tracking-tight text-base italic text-green-600">
-                  Ozzyl
-                </span>
-              </a>
-            )}
+            <OzzylBranding planType={planType} showPoweredBy={footerConfig?.showPoweredBy} />
           </div>
         </div>
       </div>

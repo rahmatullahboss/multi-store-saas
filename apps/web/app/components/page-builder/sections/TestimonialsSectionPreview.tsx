@@ -18,6 +18,7 @@ import {
   SocialProofTestimonials,
   CardsTestimonials,
   MinimalTestimonials,
+  OrganicTestimonials,
   type TestimonialsVariant 
 } from './testimonials';
 
@@ -57,6 +58,20 @@ export function TestimonialsSectionPreview({ props, theme }: TestimonialsSection
 
   // Route to variant components
   switch (variant) {
+    case 'organic':
+    case 'highlight':
+      return (
+        <OrganicTestimonials 
+          title={title} 
+          testimonials={normalizedTestimonials.map(t => ({
+            name: t.name,
+            content: t.text,
+            avatar: t.avatar,
+            role: 'Verified Buyer'
+          }))} 
+        />
+      );
+
     case 'chat-bubbles':
       return (
         <ChatBubblesTestimonials 

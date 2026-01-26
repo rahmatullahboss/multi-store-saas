@@ -395,21 +395,7 @@ export function GhorerBazarFooter({
                 © {new Date().getFullYear()} {storeName}। সর্বস্বত্ব সংরক্ষিত।
               </p>
 
-              {/* Viral Loop / Branding */}
-              {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
-                <a
-                  href="https://ozzyl.com?utm_source=store-footer&utm_medium=referral"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs transition-colors flex items-center gap-1.5"
-                  style={{ color: '#555' }}
-                >
-                  <span>Powered by</span>
-                  <span className="font-bold" style={{ color: '#888' }}>
-                    Ozzyl
-                  </span>
-                </a>
-              )}
+              <OzzylBranding planType={planType} showPoweredBy={footerConfig?.showPoweredBy} />
             </div>
           </div>
         </div>

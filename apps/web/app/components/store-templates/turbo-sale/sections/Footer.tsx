@@ -236,19 +236,7 @@ export function TurboSaleFooter({
               © {new Date().getFullYear()} {storeName}. সর্বস্বত্ব সংরক্ষিত।
             </p>
 
-            {/* Viral Loop / Branding */}
-            {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
-              <a
-                href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs hover:opacity-80 transition flex items-center gap-1"
-                style={{ color: footerText }}
-              >
-                <span>Powered by</span>
-                <span className="font-bold">Ozzyl</span>
-              </a>
-            )}
+            <OzzylBranding planType={planType} showPoweredBy={footerConfig?.showPoweredBy} />
           </div>
         </div>
       </div>
