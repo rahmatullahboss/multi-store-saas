@@ -6,12 +6,22 @@ import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
 interface LuxeCartProps {
   theme?: any;
   isPreview?: boolean;
+  onCheckout?: () => void;
+  onNavigate?: (path: string) => void;
 }
 
-export function LuxeCartPage({ theme, isPreview = false }: LuxeCartProps) {
+export function LuxeCartPage({ theme, isPreview = false, onCheckout, onNavigate }: LuxeCartProps) {
   const params = useParams();
   const templateId = params.templateId || 'luxe-boutique';
   const currencySymbol = '৳';
+
+  // Helper
+  const handleNav = (path: string, e: React.MouseEvent) => {
+    if (onNavigate) {
+      e.preventDefault();
+      onNavigate(path);
+    }
+  };
 
   // State for Cart
   const [cartItems, setCartItems] = useState<any[]>([]);
@@ -89,12 +99,21 @@ export function LuxeCartPage({ theme, isPreview = false }: LuxeCartProps) {
       <div className="min-h-[70vh] flex flex-col items-center justify-center bg-[#faf9f7] text-[#1a1a1a]">
         <h2 className="text-3xl font-serif mb-4">Your Bag is Empty</h2>
         <p className="text-[#6b6b6b] mb-8 font-light">Explore our latest collection.</p>
-        <Link
-          to={getLink('/')}
-          className="border border-[#1a1a1a] px-8 py-3 uppercase text-xs tracking-widest hover:bg-[#1a1a1a] hover:text-white transition-colors"
-        >
-          Continue Shopping
-        </Link>
+        {onNavigate ? (
+          <button
+            onClick={(e) => handleNav('/', e)}
+            className="border border-[#1a1a1a] px-8 py-3 uppercase text-xs tracking-widest hover:bg-[#1a1a1a] hover:text-white transition-colors"
+          >
+            Continue Shopping
+          </button>
+        ) : (
+          <Link
+            to={getLink('/')}
+            className="border border-[#1a1a1a] px-8 py-3 uppercase text-xs tracking-widest hover:bg-[#1a1a1a] hover:text-white transition-colors"
+          >
+            Continue Shopping
+          </Link>
+        )}
       </div>
     );
   }
@@ -195,12 +214,21 @@ export function LuxeCartPage({ theme, isPreview = false }: LuxeCartProps) {
                 </span>
               </div>
 
-              <Link
-                to={getLink('/checkout')}
-                className="block w-full bg-[#1a1a1a] text-white text-center py-4 uppercase text-xs tracking-widest font-bold hover:bg-[#c9a961] transition-colors"
-              >
-                Proceed to Checkout
-              </Link>
+              {onCheckout ? (
+                <button
+                  onClick={onCheckout}
+                  className="block w-full bg-[#1a1a1a] text-white text-center py-4 uppercase text-xs tracking-widest font-bold hover:bg-[#c9a961] transition-colors"
+                >
+                  Proceed to Checkout
+                </button>
+              ) : (
+                <Link
+                  to={getLink('/checkout')}
+                  className="block w-full bg-[#1a1a1a] text-white text-center py-4 uppercase text-xs tracking-widest font-bold hover:bg-[#c9a961] transition-colors"
+                >
+                  Proceed to Checkout
+                </Link>
+              )}
 
               <p className="text-center text-[#999] text-xs mt-4">Secure Checkout • Free Returns</p>
             </div>

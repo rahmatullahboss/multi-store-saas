@@ -12,6 +12,8 @@ import type { ThemeConfig, SocialLinks, FooterConfig } from '@db/types';
 // ============================================================================
 // SERIALIZED PRODUCT TYPE - Matches what loader provides
 // ============================================================================
+export type AnyProps = any;
+
 export interface SerializedProduct {
   id: number;
   storeId: number;
@@ -43,14 +45,14 @@ export interface StoreTemplateProps {
   planType?: string;
   isPreview?: boolean; // When true, disables API calls and shows preview mode UI
   // Extended demo data for preview mode
-  collections?: any[];
-  reviews?: any[];
-  banners?: any[];
-  flashSale?: any;
+  collections?: Record<string, unknown>[];
+  reviews?: Record<string, unknown>[];
+  banners?: Record<string, unknown>[];
+  flashSale?: Record<string, unknown>;
   flashSaleProducts?: SerializedProduct[];
-  promotions?: any[];
-  announcement?: any;
-  testimonials?: any[];
+  promotions?: Record<string, unknown>[];
+  announcement?: Record<string, unknown>;
+  testimonials?: Record<string, unknown>[];
 }
 
 // ============================================================================
@@ -60,7 +62,7 @@ export interface StoreHeaderProps {
   storeName: string;
   logo?: string | null;
   isPreview?: boolean;
-  config?: any | null;
+  config?: ThemeConfig | null;
   categories: (string | null)[];
   currentCategory?: string | null;
   socialLinks?: SocialLinks | null;
@@ -73,19 +75,19 @@ export interface StoreHeaderProps {
   searchQuery?: string;
   setSearchQuery?: (query: string) => void;
   isScrolled?: boolean;
-  announcement?: any;
-  businessInfo?: any;
+  announcement?: Record<string, unknown>;
+  businessInfo?: { phone?: string; email?: string; address?: string } | null;
 }
 
 export interface StoreFooterProps {
   storeName: string;
   logo?: string | null;
   socialLinks?: SocialLinks | null;
-  footerConfig?: any | null;
+  footerConfig?: FooterConfig | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
   categories: (string | null)[];
   planType?: string;
-  themeColors?: any;
+  themeColors?: StoreTemplateTheme;
   isPreview?: boolean;
 }
 
@@ -122,13 +124,13 @@ export interface StoreTemplateDefinition {
   Header?: ComponentType<StoreHeaderProps>;
   Footer?: ComponentType<StoreFooterProps>;
   /** Template-specific product detail page component */
-  ProductPage?: ComponentType<any>;
+  ProductPage?: ComponentType<AnyProps>;
   /** Template-specific cart page component */
-  CartPage?: ComponentType<any>;
+  CartPage?: ComponentType<AnyProps>;
   /** Template-specific collection/category page component */
-  CollectionPage?: ComponentType<any>;
+  CollectionPage?: ComponentType<AnyProps>;
   /** Template-specific checkout page component */
-  CheckoutPage?: ComponentType<any>;
+  CheckoutPage?: ComponentType<AnyProps>;
 }
 
 // ============================================================================
@@ -250,8 +252,8 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
     accent: FRESHNESS_THEME.accent,
     background: FRESHNESS_THEME.background,
     text: FRESHNESS_THEME.text,
-    muted: FRESHNESS_THEME.textMuted,
-    cardBg: FRESHNESS_THEME.background, // Using background as cardBg fallback or specific token
+    muted: FRESHNESS_THEME.muted,
+    cardBg: FRESHNESS_THEME.cardBg,
     headerBg: FRESHNESS_THEME.headerBg,
     footerBg: FRESHNESS_THEME.footerBg,
     footerText: FRESHNESS_THEME.footerText,
@@ -261,22 +263,22 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
     accent: ZENITH_RISE_THEME.accent,
     background: ZENITH_RISE_THEME.background,
     text: ZENITH_RISE_THEME.text,
-    muted: ZENITH_RISE_THEME.textMuted,
-    cardBg: ZENITH_RISE_THEME.surface,
-    headerBg: 'rgba(2, 6, 23, 0.7)',
-    footerBg: ZENITH_RISE_THEME.secondary,
-    footerText: ZENITH_RISE_THEME.text,
+    muted: ZENITH_RISE_THEME.muted,
+    cardBg: ZENITH_RISE_THEME.cardBg,
+    headerBg: ZENITH_RISE_THEME.headerBg,
+    footerBg: ZENITH_RISE_THEME.footerBg,
+    footerText: ZENITH_RISE_THEME.footerText,
   },
   'turbo-sale': {
     primary: TURBO_SALE_THEME.primary,
     accent: TURBO_SALE_THEME.accent,
     background: TURBO_SALE_THEME.background,
     text: TURBO_SALE_THEME.text,
-    muted: TURBO_SALE_THEME.textMuted,
-    cardBg: TURBO_SALE_THEME.surface,
+    muted: TURBO_SALE_THEME.muted,
+    cardBg: TURBO_SALE_THEME.cardBg,
     headerBg: TURBO_SALE_THEME.headerBg,
     footerBg: TURBO_SALE_THEME.footerBg,
-    footerText: '#FFFFFF',
+    footerText: TURBO_SALE_THEME.footerText,
   },
   rovo: {
     primary: ROVO_THEME.primary,
@@ -319,8 +321,8 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
 import React from 'react';
 import { FRESHNESS_THEME } from '~/components/store-templates/freshness/theme';
 import { AURORA_THEME } from '~/components/store-templates/aurora-minimal/theme';
-import { ZENITH_RISE_THEME } from '~/components/store-templates/zenith-rise/styles/tokens';
-import { TURBO_SALE_THEME } from '~/components/store-templates/turbo-sale/styles/tokens';
+import { ZENITH_RISE_THEME } from '~/components/store-templates/zenith-rise/theme';
+import { TURBO_SALE_THEME } from '~/components/store-templates/turbo-sale/theme';
 import { ROVO_THEME } from '~/components/store-templates/rovo/theme';
 import { SOKOL_THEME } from '~/components/store-templates/sokol/theme';
 import { STARTER_STORE_THEME } from '~/components/store-templates/starter-store/theme';

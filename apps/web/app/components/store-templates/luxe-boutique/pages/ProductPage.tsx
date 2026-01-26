@@ -32,6 +32,16 @@ interface ProductPageProps {
   currency: string;
   relatedProducts?: Product[];
   isPreview?: boolean;
+  onNavigate?: (path: string) => void;
+  onNavigateProduct?: (productId: number) => void;
+}
+
+interface CartItem {
+  productId: number;
+  title: string;
+  price: number;
+  imageUrl: string | null;
+  quantity: number;
 }
 
 export function LuxeBoutiqueProductPage({
@@ -39,6 +49,8 @@ export function LuxeBoutiqueProductPage({
   currency,
   relatedProducts = [],
   isPreview = false,
+  onNavigate,
+  onNavigateProduct,
 }: ProductPageProps) {
   const params = useParams();
   const templateId = params.templateId;
@@ -48,6 +60,21 @@ export function LuxeBoutiqueProductPage({
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
+
+  // Helper for navigation
+  const handleNav = (path: string, e: React.MouseEvent) => {
+    if (onNavigate) {
+      e.preventDefault();
+      onNavigate(path);
+    }
+  };
+
+  const handleProductNav = (id: number, e: React.MouseEvent) => {
+    if (onNavigateProduct) {
+      e.preventDefault();
+      onNavigateProduct(id);
+    }
+  };
 
   // Parse images
   const images: string[] = [];
@@ -83,8 +110,8 @@ export function LuxeBoutiqueProductPage({
 
     // Update local storage (works for both Live and Preview modes)
     try {
-      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-      const existing = cart.find((item: any) => item.productId === product.id);
+      const cart: CartItem[] = JSON.parse(localStorage.getItem('cart') || '[]');
+      const existing = cart.find((item: CartItem) => item.productId === product.id);
 
       if (existing) {
         existing.quantity += quantity;
@@ -92,7 +119,7 @@ export function LuxeBoutiqueProductPage({
         cart.push({
           productId: product.id,
           title: product.title,
-          price: product.price,
+          price: (product.price ?? 0),
           imageUrl: product.imageUrl,
           quantity,
         });
@@ -126,13 +153,31 @@ export function LuxeBoutiqueProductPage({
           className="flex items-center gap-2 text-xs tracking-[0.2em] uppercase"
           style={{ color: theme.muted }}
         >
-          <Link to={getLink('/')} className="hover:opacity-60 transition-opacity">
-            Home
-          </Link>
+          {onNavigate ? (
+            <button
+              onClick={(e) => handleNav('/', e)}
+              className="hover:opacity-60 transition-opacity"
+            >
+              Home
+            </button>
+          ) : (
+            <Link to={getLink('/')} className="hover:opacity-60 transition-opacity">
+              Home
+            </Link>
+          )}
           <span className="opacity-40">/</span>
-          <Link to={getLink('/products')} className="hover:opacity-60 transition-opacity">
-            Collection
-          </Link>
+          {onNavigate ? (
+            <button
+              onClick={(e) => handleNav('/products', e)}
+              className="hover:opacity-60 transition-opacity"
+            >
+              Collection
+            </button>
+          ) : (
+            <Link to={getLink('/products')} className="hover:opacity-60 transition-opacity">
+              Collection
+            </Link>
+          )}
           {product.category && (
             <>
               <span className="opacity-40">/</span>
@@ -370,39 +415,45 @@ export function LuxeBoutiqueProductPage({
               </Link>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {relatedProducts.slice(0, 4).map((p) => (
-                <Link key={p.id} to={getLink(`/products/${p.id}`)} className="group">
-                  <div
-                    className="aspect-[3/4] overflow-hidden mb-4"
-                    style={{ backgroundColor: theme.cardBg }}
-                  >
-                    {p.imageUrl ? (
-                      <img
-                        src={p.imageUrl}
-                        alt={p.title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div
-                        className="w-full h-full flex items-center justify-center"
-                        style={{ color: theme.muted }}
-                      >
-                        No Image
-                      </div>
-                    )}
-                  </div>
-                  <h3
-                    className="text-sm mb-1 group-hover:opacity-60 transition-opacity"
-                    style={{ color: theme.text }}
-                  >
-                    {p.title}
-                  </h3>
-                  <p className="text-sm" style={{ color: theme.muted }}>
-                    {currencySymbol}
-                    {(p.price ?? 0).toLocaleString()}
-                  </p>
-                </Link>
-              ))}
+              {relatedProducts.slice(0, 4).map((p) => {
+                const linkProps = onNavigateProduct
+                  ? { onClick: (e: React.MouseEvent) => handleProductNav(p.id, e), to: '#' }
+                  : { to: getLink(`/products/${p.id}`) };
+
+                return (
+                  <Link key={p.id} {...linkProps} className="group">
+                    <div
+                      className="aspect-[3/4] overflow-hidden mb-4"
+                      style={{ backgroundColor: theme.cardBg }}
+                    >
+                      {p.imageUrl ? (
+                        <img
+                          src={p.imageUrl}
+                          alt={p.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div
+                          className="w-full h-full flex items-center justify-center"
+                          style={{ color: theme.muted }}
+                        >
+                          No Image
+                        </div>
+                      )}
+                    </div>
+                    <h3
+                      className="text-sm mb-1 group-hover:opacity-60 transition-opacity"
+                      style={{ color: theme.text }}
+                    >
+                      {p.title}
+                    </h3>
+                    <p className="text-sm" style={{ color: theme.muted }}>
+                      {currencySymbol}
+                      {(p.price ?? 0).toLocaleString()}
+                    </p>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}

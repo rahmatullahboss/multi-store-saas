@@ -12,7 +12,6 @@
 import { useState } from 'react';
 import { Link, useParams } from '@remix-run/react';
 import {
-  ShoppingCart,
   Heart,
   Minus,
   Plus,
@@ -24,15 +23,20 @@ import {
   ChevronRight,
   Zap,
   Package,
+  ShoppingCart,
+  Share2,
 } from 'lucide-react';
 import { ECLIPSE_THEME } from '../theme';
-import type { Product } from '@db/schema';
+import { AddToCartButton } from '~/components/AddToCartButton';
+import type { SerializedProduct } from '~/templates/store-registry';
 
 interface ProductPageProps {
-  product: Product;
+  product: SerializedProduct;
   currency: string;
-  relatedProducts?: Product[];
+  relatedProducts?: SerializedProduct[];
   isPreview?: boolean;
+  onNavigate?: (path: string) => void;
+  onNavigateProduct?: (productId: number) => void;
 }
 
 export function EclipseProductPage({
@@ -40,6 +44,8 @@ export function EclipseProductPage({
   currency,
   relatedProducts = [],
   isPreview = false,
+  onNavigate,
+  onNavigateProduct,
 }: ProductPageProps) {
   const params = useParams();
   const templateId = params.templateId;
@@ -47,20 +53,22 @@ export function EclipseProductPage({
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [isAdding, setIsAdding] = useState(false);
-  const [addedToCart, setAddedToCart] = useState(false);
 
   // Parse images
   const images: string[] = [];
   if (product.imageUrl) images.push(product.imageUrl);
-  if (product.images) {
+  if ((product as any).images) {
     try {
-      const parsed = JSON.parse(product.images as string);
+      // Handle both string and already parsed array
+      const productImages = (product as any).images;
+      const parsed = typeof productImages === 'string' ? JSON.parse(productImages) : productImages;
       if (Array.isArray(parsed)) images.push(...parsed);
     } catch {
       /* ignore */
     }
   }
+  // Dedup images
+  const uniqueImages = Array.from(new Set(images));
 
   const discount =
     product.compareAtPrice && product.compareAtPrice > (product.price ?? 0)
@@ -79,30 +87,19 @@ export function EclipseProductPage({
     return path;
   };
 
-  const handleAddToCart = () => {
-    setIsAdding(true);
-    if (!isPreview) {
-      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-      const existing = cart.find((item: any) => item.productId === product.id);
-      if (existing) {
-        existing.quantity += quantity;
-      } else {
-        cart.push({
-          productId: product.id,
-          title: product.title,
-          price: product.price,
-          imageUrl: product.imageUrl,
-          quantity,
-        });
-      }
-      localStorage.setItem('cart', JSON.stringify(cart));
-      window.dispatchEvent(new Event('cart-updated'));
+  // Helper for navigation
+  const handleNav = (path: string, e: React.MouseEvent) => {
+    if (onNavigate) {
+      e.preventDefault();
+      onNavigate(path);
     }
-    setTimeout(() => {
-      setIsAdding(false);
-      setAddedToCart(true);
-      setTimeout(() => setAddedToCart(false), 2000);
-    }, 500);
+  };
+
+  const handleProductNav = (id: number, e: React.MouseEvent) => {
+    if (onNavigateProduct) {
+      e.preventDefault();
+      onNavigateProduct(id);
+    }
   };
 
   return (
@@ -119,13 +116,31 @@ export function EclipseProductPage({
       {/* Breadcrumb */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         <nav className="flex items-center gap-3 text-sm" style={{ color: theme.textMuted }}>
-          <Link to={getLink('/')} className="hover:text-white transition-colors">
-            Home
-          </Link>
+          {onNavigate ? (
+            <button
+              onClick={(e) => handleNav('/', e)}
+              className="hover:text-white transition-colors"
+            >
+              Home
+            </button>
+          ) : (
+            <Link to={getLink('/')} className="hover:text-white transition-colors">
+              Home
+            </Link>
+          )}
           <span className="opacity-40">/</span>
-          <Link to={getLink('/products')} className="hover:text-white transition-colors">
-            Products
-          </Link>
+          {onNavigate ? (
+            <button
+              onClick={(e) => handleNav('/products', e)}
+              className="hover:text-white transition-colors"
+            >
+              Products
+            </button>
+          ) : (
+            <Link to={getLink('/products')} className="hover:text-white transition-colors">
+              Products
+            </Link>
+          )}
           {product.category && (
             <>
               <span className="opacity-40">/</span>
@@ -147,10 +162,10 @@ export function EclipseProductPage({
                 boxShadow: theme.cardShadow,
               }}
             >
-              {images[selectedImage] ? (
+              {uniqueImages[selectedImage] ? (
                 <>
                   <img
-                    src={images[selectedImage]}
+                    src={uniqueImages[selectedImage]}
                     alt={product.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
@@ -168,11 +183,13 @@ export function EclipseProductPage({
                     </div>
                   )}
                   {/* Navigation */}
-                  {images.length > 1 && (
+                  {uniqueImages.length > 1 && (
                     <>
                       <button
                         onClick={() =>
-                          setSelectedImage((prev) => (prev - 1 + images.length) % images.length)
+                          setSelectedImage(
+                            (prev) => (prev - 1 + uniqueImages.length) % uniqueImages.length
+                          )
                         }
                         className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
                         style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)' }}
@@ -180,7 +197,7 @@ export function EclipseProductPage({
                         <ChevronLeft className="w-5 h-5 text-white" />
                       </button>
                       <button
-                        onClick={() => setSelectedImage((prev) => (prev + 1) % images.length)}
+                        onClick={() => setSelectedImage((prev) => (prev + 1) % uniqueImages.length)}
                         className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
                         style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)' }}
                       >
@@ -197,9 +214,9 @@ export function EclipseProductPage({
             </div>
 
             {/* Thumbnails */}
-            {images.length > 1 && (
+            {uniqueImages.length > 1 && (
               <div className="flex gap-3">
-                {images.map((img, index) => (
+                {uniqueImages.map((img, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
@@ -285,13 +302,13 @@ export function EclipseProductPage({
 
             {/* Description */}
             {product.description && (
-              <p
-                className="text-base leading-relaxed"
+              <div
+                className="text-base leading-relaxed prose prose-invert max-w-none"
                 style={{ color: theme.textMuted }}
                 dangerouslySetInnerHTML={{
                   __html:
-                    product.description.slice(0, 200) +
-                    (product.description.length > 200 ? '...' : ''),
+                    product.description.slice(0, 300) +
+                    (product.description.length > 300 ? '...' : ''),
                 }}
               />
             )}
@@ -324,25 +341,23 @@ export function EclipseProductPage({
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4">
-              <button
-                onClick={handleAddToCart}
-                disabled={isAdding}
-                className="flex-1 flex items-center justify-center gap-2 py-4 rounded-xl font-semibold transition-all"
+              <AddToCartButton
+                productId={product.id}
+                productName={product.title}
+                productPrice={product.price}
+                quantity={quantity}
+                storeId={product.storeId}
+                isPreview={isPreview}
+                className="flex-1 flex items-center justify-center gap-2 py-4 rounded-xl font-semibold transition-all text-white hover:scale-[1.02]"
                 style={{
-                  background: addedToCart ? '#22c55e' : theme.accentGradient,
-                  boxShadow: addedToCart ? 'none' : theme.glow,
+                  background: theme.accentGradient,
+                  boxShadow: theme.glow,
                 }}
               >
-                {addedToCart ? (
-                  <>
-                    <Check className="w-5 h-5" /> Added!
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="w-5 h-5" /> Add to Cart
-                  </>
-                )}
-              </button>
+                <ShoppingCart className="w-5 h-5" />
+                Add to Cart
+              </AddToCartButton>
+
               <button
                 className="p-4 rounded-xl transition-all hover:scale-105"
                 style={{
@@ -392,41 +407,47 @@ export function EclipseProductPage({
               More Like This
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {relatedProducts.slice(0, 4).map((p) => (
-                <Link
-                  key={p.id}
-                  to={getLink(`/products/${p.id}`)}
-                  className="group rounded-2xl overflow-hidden transition-all hover:scale-[1.02]"
-                  style={{
-                    backgroundColor: theme.cardBg,
-                    border: `1px solid ${theme.border}`,
-                  }}
-                >
-                  <div className="aspect-square overflow-hidden">
-                    {p.imageUrl ? (
-                      <img
-                        src={p.imageUrl}
-                        alt={p.title}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div
-                        className="w-full h-full flex items-center justify-center"
-                        style={{ backgroundColor: theme.backgroundAlt }}
-                      >
-                        <Package className="w-12 h-12 opacity-20" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-medium text-sm line-clamp-2 mb-2">{p.title}</h3>
-                    <p className="font-bold" style={{ color: theme.accent }}>
-                      {currencySymbol}
-                      {(p.price ?? 0).toLocaleString()}
-                    </p>
-                  </div>
-                </Link>
-              ))}
+              {relatedProducts.slice(0, 4).map((p) => {
+                const linkProps = onNavigateProduct
+                  ? { onClick: (e: React.MouseEvent) => handleProductNav(p.id, e), to: '#' }
+                  : { to: getLink(`/products/${p.id}`) };
+
+                return (
+                  <Link
+                    key={p.id}
+                    {...linkProps}
+                    className="group rounded-2xl overflow-hidden transition-all hover:scale-[1.02]"
+                    style={{
+                      backgroundColor: theme.cardBg,
+                      border: `1px solid ${theme.border}`,
+                    }}
+                  >
+                    <div className="aspect-square overflow-hidden">
+                      {p.imageUrl ? (
+                        <img
+                          src={p.imageUrl}
+                          alt={p.title}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div
+                          className="w-full h-full flex items-center justify-center"
+                          style={{ backgroundColor: theme.backgroundAlt }}
+                        >
+                          <Package className="w-12 h-12 opacity-20" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-medium text-sm line-clamp-2 mb-2">{p.title}</h3>
+                      <p className="font-bold" style={{ color: theme.accent }}>
+                        {currencySymbol}
+                        {(p.price ?? 0).toLocaleString()}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}

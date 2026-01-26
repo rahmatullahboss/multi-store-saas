@@ -23,6 +23,7 @@ interface AddToCartButtonProps {
   productName?: string;
   productPrice?: number;
   currency?: string;
+  quantity?: number;
 }
 
 export function AddToCartButton({
@@ -38,6 +39,7 @@ export function AddToCartButton({
   productName,
   productPrice,
   currency = 'BDT',
+  quantity = 1,
 }: AddToCartButtonProps) {
   const [isAdded, setIsAdded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
@@ -60,7 +62,7 @@ export function AddToCartButton({
       }
 
       // Update local cart even in preview!
-      updateLocalCart(productId, 1, storeId);
+      updateLocalCart(productId, quantity, storeId);
       return;
     }
 
@@ -70,14 +72,14 @@ export function AddToCartButton({
         id: String(productId),
         name: productName,
         price: productPrice,
-        quantity: 1,
+        quantity: quantity,
         currency: currency,
       });
       console.log('[Tracking] AddToCart event fired:', productName, productPrice);
     }
 
     // Update local cart in localStorage
-    updateLocalCart(productId, 1, storeId);
+    updateLocalCart(productId, quantity, storeId);
 
     if (mode === 'buy_now') {
       // Redirect to cart/checkout immediately

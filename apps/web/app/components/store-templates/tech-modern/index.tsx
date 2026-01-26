@@ -338,15 +338,25 @@ function PreviewProductDetailPage({
 
   // Convert DemoProduct to SerializedProduct for the component
   const serializedProduct: SerializedProduct = {
-    ...product,
+    id: product.id,
     storeId: 0,
+    title: product.title,
     description: product.description || '',
+    price: product.price,
+    compareAtPrice: product.compareAtPrice,
+    imageUrl: product.imageUrl,
+    category: product.category,
   };
 
   const serializedRelated = relatedProducts.map((p) => ({
-    ...p,
+    id: p.id,
     storeId: 0,
+    title: p.title,
     description: p.description || '',
+    price: p.price,
+    compareAtPrice: p.compareAtPrice,
+    imageUrl: p.imageUrl,
+    category: p.category,
   }));
 
   return (
