@@ -25,6 +25,7 @@ export type SectionType =
   | 'video'
   | 'cta'
   | 'trust-badges'
+  | 'trust'
   | 'benefits'
   | 'comparison'
   | 'delivery'
@@ -43,6 +44,7 @@ export type SectionType =
   | 'footer'
   // Social proof
   | 'social-proof'
+  | 'social'
   // Newsletter
   | 'newsletter'
   // Product page sections

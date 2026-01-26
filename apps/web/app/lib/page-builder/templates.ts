@@ -43,328 +43,268 @@ export interface TemplatePreset {
 
 export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
   // ─────────────────────────────────────────────────────────────────────────
-  // QUICK START - High Conversion Narrative Template (Most Popular)
+  // TECH ULTRA (Gadgets/Electronics) - Dark, Futuristic, Neon
   // ─────────────────────────────────────────────────────────────────────────
-  'quick-start': {
-    id: 'quick-start',
-    name: 'কুইক স্টার্ট',
-    nameEn: '⚡ Quick Start (High Conversion)',
-    description: 'স্ক্রলিং ন্যারেটিভ সহ হাই-কনভার্শন টেমপ্লেট',
-    descriptionEn: 'Proven high-conversion narrative template',
-    thumbnail: '/templates/quick-start.png',
-    category: 'sales',
+  'tech-ultra': {
+    id: 'tech-ultra',
+    name: 'টেক আল্ট্রা প্রো',
+    nameEn: '⚡ Tech Ultra (Premium Gadget)',
+    description: 'গ্যাজেট এবং ইলেকট্রনিক্সের জন্য ফিউচারিস্টিক ডার্ক থিম',
+    descriptionEn: 'Futuristic dark theme for gadgets & electronics',
+    thumbnail: '/templates/tech-ultra.png',
+    category: 'premium',
     emoji: '⚡',
     colors: {
-      primary: '#1D3557',
-      accent: '#E63946',
-      bg: 'linear-gradient(135deg, #1D3557 0%, #0D1B2A 100%)',
+      primary: '#3b82f6', // Electric Blue
+      accent: '#8b5cf6',  // Neon Purple
+      bg: '#09090b',      // Zinc 950 (Deep Dark)
     },
     sections: [
       {
         type: 'hero',
         props: {
-          headline: 'আপনার জীবনকে আরো সহজ ও সুন্দর করুন আমাদের প্রিমিয়াম প্রোডাক্ট দিয়ে',
-          subheadline: '১০,০০০+ সন্তুষ্ট গ্রাহক আমাদের উপর ভরসা করেছেন। ১০০% অরিজিনাল প্রোডাক্ট, ক্যাশ অন ডেলিভারি সুবিধা সহ সারা বাংলাদেশে দ্রুত ডেলিভারি।',
-          ctaText: 'এখনই অর্ডার করুন',
-          badgeText: '🔥 সবচেয়ে বিক্রিত প্রোডাক্ট',
+          variant: 'glassmorphism',
+          headline: 'ভবিষ্যতের প্রযুক্তি আজই আপনার হাতে',
+          subheadline: 'সেরা মানের গ্যাজেট কালেকশন। ১০০% অফিসিয়াল ওয়ারেন্টি এবং ক্যাশ অন ডেলিভারি সুবিধা।',
+          ctaText: 'অর্ডার করুন 🛒',
+          badgeText: '🔥 ট্রেন্ডিং গ্যাজেট',
         },
       },
       {
         type: 'trust-badges',
         props: {
+          variant: 'glow',
           badges: [
-            { icon: '✓', text: '১০০% অরিজিনাল' },
-            { icon: '🚚', text: 'ক্যাশ অন ডেলিভারি' },
-            { icon: '↩️', text: '৭ দিনে রিটার্ন' },
-            { icon: '📞', text: '২৪/৭ সাপোর্ট' },
+            { icon: '🛡️', text: 'অফিসিয়াল ওয়ারেন্টি' },
+            { icon: '🚚', text: 'এক্সপ্রেস ডেলিভারি' },
+            { icon: '৳', text: 'ক্যাশ অন ডেলিভারি' },
+            { icon: '🔄', text: '৭ দিন রিপ্লেসমেন্ট' },
           ],
         },
       },
       {
-        type: 'problem-solution',
+        type: 'features',
         props: {
-          problemTitle: 'আপনি কি এই সমস্যায় ভুগছেন?',
-          problems: [
-            'বাজারে অরিজিনাল প্রোডাক্ট পাওয়া কঠিন',
-            'দাম বেশি কিন্তু কোয়ালিটি খারাপ',
-            'ডেলিভারি পেতে অনেক দেরি হয়',
-          ],
-          solutionTitle: 'আমাদের সমাধান',
-          solutions: [
-            '১০০% অরিজিনাল ও ওয়ারেন্টি সহ প্রোডাক্ট',
-            'ফ্যাক্টরি ডাইরেক্ট দামে সেরা কোয়ালিটি',
-            '২-৩ দিনে দ্রুত ডেলিভারি',
-          ],
-        },
-      },
-      {
-        type: 'benefits',
-        props: {
-          title: 'কেন আমাদের থেকে কিনবেন?',
-          subtitle: 'আমরা নিশ্চিত করি আপনার সেরা অভিজ্ঞতা',
-          benefits: [
-            { icon: '🏆', title: 'প্রিমিয়াম কোয়ালিটি', description: 'বিশ্বমানের প্রোডাক্ট যা দীর্ঘদিন টেকসই' },
-            { icon: '🛡️', title: '১০০% গ্যারান্টি', description: 'সমস্যা থাকলে সম্পূর্ণ টাকা ফেরত' },
-            { icon: '💰', title: 'সাশ্রয়ী মূল্য', description: 'মিডলম্যান ছাড়া সরাসরি আপনার কাছে' },
-            { icon: '🚚', title: 'নিরাপদ প্যাকেজিং', description: 'প্রিমিয়াম প্যাকেজিং এ ডেলিভারি' },
-            { icon: '↩️', title: 'ইজি রিটার্ন', description: '৭ দিনের মধ্যে প্রশ্নহীন রিটার্ন' },
-            { icon: '👥', title: '১০,০০০+ খুশি গ্রাহক', description: 'হাজারো গ্রাহক আমাদের উপর ভরসা রাখেন' },
-          ],
-        },
-      },
-      {
-        type: 'testimonials',
-        props: {
-          title: 'সন্তুষ্ট গ্রাহকদের মতামত',
-          testimonials: [
-            { name: 'রাহাত হোসেন', location: 'ঢাকা', text: 'অসাধারণ প্রোডাক্ট! দ্রুত ডেলিভারি পেয়েছি। কোয়ালিটি দেখে মুগ্ধ।', rating: 5 },
-            { name: 'সাবরিনা আক্তার', location: 'চট্টগ্রাম', text: 'এত কম দামে এত ভালো প্রোডাক্ট আশা করিনি। আবার অর্ডার করব।', rating: 5 },
-            { name: 'কামরুল ইসলাম', location: 'সিলেট', text: 'ক্যাশ অন ডেলিভারি সুবিধা চমৎকার! প্রোডাক্ট দেখে পেমেন্ট করলাম।', rating: 5 },
-          ],
-        },
-      },
-      {
-        type: 'how-to-order',
-        props: {
-          title: 'অর্ডার করা একদম সহজ!',
-          steps: [
-            { step: '১', title: 'ফর্ম পূরণ করুন', description: 'নিচের ফর্মে আপনার নাম ও ঠিকানা দিন' },
-            { step: '২', title: 'কনফার্ম করুন', description: 'আমাদের টিম কল করে অর্ডার কনফার্ম করবে' },
-            { step: '৩', title: 'ডেলিভারি নিন', description: 'হাতে পেয়ে টাকা দিন, হ্যাপি শপিং!' },
-          ],
-        },
-      },
-      {
-        type: 'faq',
-        props: {
-          title: 'সাধারণ জিজ্ঞাসা',
-          items: [
-            { question: 'ডেলিভারি কত দিনে পাব?', answer: 'ঢাকায় ১-২ দিন, ঢাকার বাইরে ৩-৫ কার্যদিবস।' },
-            { question: 'প্রোডাক্ট অরিজিনাল তো?', answer: 'হ্যাঁ, ১০০% অরিজিনাল। নকল প্রোডাক্ট পেলে টাকা ফেরত।' },
-            { question: 'রিটার্ন করতে পারব?', answer: '৭ দিনের মধ্যে কোনো প্রশ্ন ছাড়াই রিটার্ন করতে পারবেন।' },
-            { question: 'পেমেন্ট কিভাবে করব?', answer: 'ক্যাশ অন ডেলিভারি - হাতে পেয়ে টাকা দিন।' },
-          ],
-        },
-      },
-      {
-        type: 'guarantee',
-        props: {
-          title: 'আমাদের গ্যারান্টি',
-          text: '১০০% সন্তুষ্টির গ্যারান্টি। পণ্য পছন্দ না হলে ৭ দিনের মধ্যে ফেরত দিন, টাকা ফেরত পান।',
-          badgeLabel: '৭ দিন রিটার্ন গ্যারান্টি',
-        },
-      },
-      {
-        type: 'cta',
-        props: {
-          headline: '🔥 এখনই অর্ডার করুন!',
-          subheadline: 'সীমিত স্টক! দেরি না করে এখনই অর্ডার প্লেস করুন',
-          buttonText: 'অর্ডার কনফার্ম করুন',
-        },
-      },
-    ],
-  },
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // BD HIGH CONVERSION - Optimized for maximum sales in BD Market
-  // ─────────────────────────────────────────────────────────────────────────
-  'bd-high-conversion': {
-    id: 'bd-high-conversion',
-    name: 'হাই-কনভার্শন প্রো',
-    nameEn: '🚀 High Conversion Pro (BD Premium)',
-    description: 'বাংলাদেশী মার্কেটের জন্য বিশেষভাবে তৈরি হাই-কনভার্টিং সেলস পেজ',
-    descriptionEn: 'Specifically optimized sales page for maximum conversion in BD',
-    thumbnail: '/templates/bd-high-conversion.png',
-    category: 'sales',
-    emoji: '🚀',
-    colors: {
-      primary: '#800000', // Maroon
-      accent: '#FFD700', // Gold
-      bg: 'linear-gradient(135deg, #1e1b4b 0%, #0c0a09 100%)',
-    },
-    sections: [
-      {
-        type: 'hero',
-        props: {
-          headline: 'আপনার কাঙ্ক্ষিত প্রিমিয়াম প্রোডাক্ট এখন বাংলাদেশে!',
-          subheadline: 'অরিজিনাল কোয়ালিটি এবং সেরা দামের নিশ্চয়তা। স্টক শেষ হওয়ার আগেই আজই আপনার অর্ডারটি কনফার্ম করুন।',
-          ctaText: 'অর্ডার করতে ক্লিক করুন',
-          badgeText: '🔥 ট্রেন্ডিং প্রোডাক্ট',
-        },
-      },
-      {
-        type: 'trust-badges',
-        props: {
-          badges: [
-            { icon: '🚚', text: 'সারাদেশে ক্যাশ অন ডেলিভারি' },
-            { icon: '✅', text: '১০০% অরিজিনাল প্রোডাক্ট' },
-            { icon: '↩️', text: '৩ দিনের ইজি রিটার্ন' },
-            { icon: '📞', text: 'লাইভ কাস্টমার সাপোর্ট' },
-          ],
-        },
-      },
-      {
-        type: 'video',
-        props: {
-          title: 'আমাদের প্রোডাক্টটি কিভাবে ব্যবহার করবেন দেখুন',
-          videoUrl: '',
-        },
-      },
-      {
-        type: 'problem-solution',
-        props: {
-          problemTitle: 'আপনি কি এই ঝামেলার সম্মুখীন হচ্ছেন?',
-          problems: [
-            'বাজারে নকল প্রোডাক্টের ছড়াছড়ি',
-            'প্রয়োজনের সময় ভালো সাপোর্ট না পাওয়া',
-            'অতিরিক্ত ডেলিভারি চার্জের ভয়',
-          ],
-          solutionTitle: 'আমরা দিচ্ছি সেরা সমাধান',
-          solutions: [
-            '১০০% গ্যারান্টি সহ অরিজিনাল প্রোডাক্ট',
-            'অভিজ্ঞ কাস্টমার কেয়ার টিম',
-            'খুবই সাশ্রয়ী ডেলিভারি চার্জ',
-          ],
-        },
-      },
-      {
-        type: 'benefits',
-        props: {
-          title: 'কেন এই প্রোডাক্টটি আপনার পছন্দ হবে?',
-          benefits: [
-            { icon: '✨', title: 'এক্সক্লুসিভ ডিজাইন', description: 'আধুনিক ও আকর্ষণীয় লুক' },
-            { icon: '⚙️', title: 'টেকসই মেটেরিয়াল', description: 'দীর্ঘদিন ব্যবহারের নিশ্চয়তা' },
-            { icon: '🚀', title: 'উন্নত প্রযুক্তি', description: 'সেরা পারফরম্যান্স পাবেন' },
-            { icon: '💖', title: 'সহজ ব্যবহারযোগ্য', description: 'যে কেউ খুব সহজে ব্যবহার করতে পারবে' },
-          ],
-        },
-      },
-      {
-        type: 'testimonials',
-        props: {
-          title: 'আমাদের হ্যাপি কাস্টমারদের রিভিউ',
-          testimonials: [
-            { name: 'আরিফ আহমেদ', location: 'ঢাকা', text: 'প্রোডাক্ট হাতে পাওয়ার পর খুবি ভালো লাগলো। কোয়ালিটি আসলেই দারুণ!', rating: 5 },
-            { name: 'ফারজানা আক্তার', location: 'খুলনা', text: 'খুবই দ্রুত ডেলিভারি পেয়েছি। ধন্যবাদ আপনাদের!', rating: 5 },
-          ],
-        },
-      },
-      {
-        type: 'delivery',
-        props: {
-          title: 'ডেলিভারি সংক্রান্ত তথ্য',
-          description: 'আমরা সারা বাংলাদেশে কুরিয়ারের মাধ্যমে ডেলিভারি দিয়ে থাকি।',
-          insideDhakaPrice: 60,
-          outsideDhakaPrice: 120,
-        },
-      },
-      {
-        type: 'cta',
-        props: {
-          headline: 'অফার শেষ হতে আর অল্প সময় বাকি!',
-          subheadline: 'নিচের ফর্মটি পূরণ করে এখনই অর্ডার করুন',
-          buttonText: 'অর্ডার কনফার্ম করুন',
-        },
-      },
-    ],
-  },
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // BD ORGANIC GROWTH - Optimized for Health, Beauty & Organic Products
-  // ─────────────────────────────────────────────────────────────────────────
-  'bd-organic-growth': {
-    id: 'bd-organic-growth',
-    name: 'অর্গানিক গ্রোথ',
-    nameEn: '🌿 Organic Growth (Health & Beauty)',
-    description: 'হেলথ, বিউটি এবং প্রাকৃতিক পণ্যের জন্য প্রিমিয়াম টেমপ্লেট',
-    descriptionEn: 'Premium template for health, beauty and organic products',
-    thumbnail: '/templates/bd-organic-growth.png',
-    category: 'product',
-    emoji: '🌿',
-    colors: {
-      primary: '#064e3b', // Deep Green
-      accent: '#10b981', // Emerald
-      bg: 'linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%)',
-    },
-    sections: [
-      {
-        type: 'hero',
-        props: {
-          headline: 'প্রকৃতির ছোঁয়ায় আপনার জীবন হোক আরো সুন্দর',
-          subheadline: '১০০% প্রাকৃতিক উপাদানে তৈরি আমাদের এই এক্সক্লুসিভ কালেকশন আপনার স্বাস্থ্যের জন্য সম্পূর্ণ নিরাপদ।',
-          ctaText: 'এখনই কিনুন',
-          badgeText: '🌿 ১০০% অর্গানিক',
-        },
-      },
-      {
-        type: 'trust-badges',
-        props: {
-          badges: [
-            { icon: '🌱', text: 'পরিবেশ বান্ধব' },
-            { icon: '🚫', text: 'কোন ক্ষতিকর কেমিক্যাল নেই' },
-            { icon: '🧪', text: 'ল্যাব সার্টিফাইড' },
-            { icon: '⭐', text: 'হাজারো সন্তুষ্ট গ্রাহক' },
+          variant: 'bento',
+          title: 'কেন এই গ্যাজেটটি অদ্বিতীয়?',
+          features: [
+            { icon: '🔋', title: 'লং ব্যাটারি লাইফ', description: 'এক চার্জে সারাদিন ব্যবহারের সুবিধা' },
+            { icon: '🔊', title: 'ক্রিস্টাল ক্লিয়ার সাউন্ড', description: 'নয়েজ ক্যান্সেলেশন টেকনোলজি' },
+            { icon: '💧', title: 'ওয়াটারপ্রুফ ডিজাইন', description: 'IPX7 রেটেড সুরক্ষা ব্যবস্থা' },
+            { icon: '📱', title: 'স্মার্ট কানেক্টিভিটি', description: 'ব্লুটুথ ৫.৩ এর সাথে ইনস্ট্যান্ট পেয়ারিং' },
           ],
         },
       },
       {
         type: 'showcase',
         props: {
-          title: 'উপকারিতা এবং বৈশিষ্ট্য',
-          features: [
-            'সম্পূর্ণ অর্গানিক এবং প্রাকৃতিক উপাদানে তৈরি',
-            'ত্বক ও শরীরের জন্য অত্যন্ত কার্যকর',
-            'কোনো পার্শ্বপ্রতিক্রিয়া ছাড়াই ফলাফল পাওয়া যাবে',
-            'দীর্ঘস্থায়ী সমাধান প্রদান করে',
-          ],
-        },
-      },
-      {
-        type: 'comparison',
-        props: {
-          title: 'কেন বাজারের অন্যান্য প্রোডাক্ট থেকে আলাদা?',
-          beforeLabel: 'অন্যান্য প্রোডাক্ট',
-          afterLabel: 'আমাদের প্রোডাক্ট',
-          description: 'বাজারে প্রচলিত রাসায়নিক যুক্ত প্রোডাক্টের চেয়ে আমাদের অর্গানিক প্রোডাক্ট হাজার গুণ নিরাপদ।',
-        },
-      },
-      {
-        type: 'benefits',
-        props: {
-          title: 'আমাদের ওপর কেন ভরসা করবেন?',
-          benefits: [
-            { icon: '🌿', title: 'বিশুদ্ধ উপাদান', description: 'সরাসরি প্রকৃতি থেকে সংগৃহীত' },
-            { icon: '🛡️', title: 'হাই-কোয়ালিটি গ্যারান্টি', description: 'প্রতিটি ধাপ কঠোরভাবে নিয়ন্ত্রিত' },
-            { icon: '🤝', title: 'বিশ্বস্ততা', description: 'বিগত ৩ বছর ধরে আস্থার সাথে সেবা দিচ্ছি' },
-          ],
+          title: 'পণ্যের বিশেষ মুহূর্ত',
+          images: [], 
         },
       },
       {
         type: 'testimonials',
         props: {
-          title: 'যারা আমাদের প্রোডাক্ট ব্যবহার করেছেন',
-          testimonials: [
-            { name: 'শারমিন সুলতানা', text: 'এটি ব্যবহারের পর আমার ধারণা বদলে গেছে। সত্যি কাজ করে!', rating: 5 },
-            { name: 'রাকিব হাসান', text: 'অর্গানিক প্রোডাক্ট হিসেবে এটি সেরা। আমি হাইলি রেকমেন্ড করছি।', rating: 5 },
-          ],
+          variant: 'dark-card',
+          title: 'টেক লাভাররা কি বলছেন?',
+          testimonials: [],
         },
       },
       {
         type: 'faq',
         props: {
-          title: 'আপনার মনে আসা কিছু প্রশ্ন',
+          title: 'সচরাচর জিজ্ঞাসা (FAQ)',
           items: [
-            { question: 'এটি কি ব্যবহারের জন্য নিরাপদ?', answer: 'হ্যাঁ, এটি সম্পূর্ণ কেমিক্যাল মুক্ত এবং ব্যবহারের জন্য ১০০% নিরাপদ।' },
-            { question: 'ফলাফল পেতে কতদিন সময় লাগবে?', answer: 'নিয়মিত ব্যবহারে সাধারণত ১-২ সপ্তাহের মধ্যেই দৃশ্যমান ফলাফল পাওয়া যায়।' },
+            { question: 'এটা কি অরিজিনাল প্রোডাক্ট?', answer: 'জি, আমরা ১০০% অরিজিনাল প্রোডাক্ট বিক্রি করি অথেন্টিক সোর্স থেকে।' },
+            { question: 'ওয়ারেন্টি কতদিনের?', answer: 'আমরা ৬ মাসের অফিসিয়াল ওয়ারেন্টি দিচ্ছি।' },
+            { question: 'চার্জে কতক্ষণ চলে?', answer: 'একটানা ৬-৭ ঘণ্টা ব্যবহার করতে পারবেন।' },
           ],
         },
       },
       {
         type: 'cta',
         props: {
-          headline: 'প্রকৃতির আশীর্বাদ নিন আপনার জীবনে',
-          subheadline: 'নিচের ফর্মটি পূরণ করে ডিসকাউন্টে অর্ডার করুন',
-          buttonText: 'অর্ডার সাবমিট করুন',
+          variant: 'gradient',
+          headline: 'আজই আপগ্রেড করুন আপনার লাইফস্টাইল',
+          subheadline: 'লিমিটেড স্টক! এখনই অর্ডার কনফার্ম করুন',
+          buttonText: 'অর্ডার কনফার্ম করুন',
+        },
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // LUXE AURA (Fashion/Lifestyle) - Minimal, Elegant
+  // ─────────────────────────────────────────────────────────────────────────
+  'luxe-aura': {
+    id: 'luxe-aura',
+    name: 'লাক্স আউরা',
+    nameEn: '✨ Luxe Aura (Fashion & Lifestyle)',
+    description: 'ফ্যাশন এবং লাইফস্টাইলের জন্য মিনিমালিস্ট লাক্সারি ডিজাইন',
+    descriptionEn: 'Minimalist luxury design for fashion & lifestyle',
+    thumbnail: '/templates/luxe-aura.png',
+    category: 'premium',
+    emoji: '✨',
+    colors: {
+      primary: '#1c1917', // Stone 900
+      accent: '#d4af37',  // Gold
+      bg: '#fafaf9',      // Stone 50 (Warm White)
+    },
+    sections: [
+      {
+        type: 'hero',
+        props: {
+          variant: 'clean',
+          headline: 'আপনার স্টাইলে আসুক নতুন আভিজাত্য',
+          subheadline: 'এক্সক্লুসিভ কালেকশন - শুধুমাত্র রুচিশীলদের জন্য। প্রিমিয়াম ফেব্রিক এবং ইউনিক ডিজাইন।',
+          ctaText: 'কালেকশন দেখুন',
+          badgeText: '✨ নিউ অ্যারাইভাল',
+        },
+      },
+      {
+        type: 'showcase',
+        props: {
+          title: 'চলমান ট্রেন্ড',
+          layout: 'slider',
+          features: [
+            { title: 'ঈদ কালেকশন', description: 'উৎসবের নতুন রঙ' },
+            { title: 'সামার ভাইবস', description: 'আরামদায়ক ও স্টাইলিশ' },
+            { title: 'অফিস ওয়্যার', description: 'প্রফেশনাল লুক' },
+          ],
+        },
+      },
+      {
+        type: 'benefits',
+        props: {
+          variant: 'minimal',
+          title: 'আমাদের বিশেষত্ব',
+          benefits: [
+            { icon: '🧵', title: 'প্রিমিয়াম ফেব্রিক', description: 'সেরা মানের সুতি ও লিলেন' },
+            { icon: '✂️', title: 'নিখুঁত সেলাই', description: 'এক্সপোর্ট কোয়ালিটি ফিনিশিং' },
+            { icon: '🎨', title: 'কালার গ্যারান্টি', description: 'ধোয়ার পরেও রঙ থাকে নতুনের মতো' },
+            { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: 'সারা দেশে ক্যাশ অন ডেলিভারি' },
+          ],
+        },
+      },
+      {
+        type: 'gallery',
+        props: {
+          title: 'লুকবুক ২০২৫',
+          layout: 'masonry',
+          images: [],
+        },
+      },
+      {
+        type: 'testimonials',
+        props: {
+          variant: 'minimal-quote',
+          title: 'আমাদের ক্লায়েন্টদের মতামত',
+          testimonials: [],
+        },
+      },
+      {
+        type: 'cta',
+        props: {
+          variant: 'minimal',
+          headline: 'স্টক সীমিত, আজই সংগ্রহ করুন',
+          buttonText: 'অর্ডার প্লেস করুন',
+        },
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // GREEN MART (Organic/Food) - Fresh, Trustworthy
+  // ─────────────────────────────────────────────────────────────────────────
+  'green-mart': {
+    id: 'green-mart',
+    name: 'গ্রীন মার্ট',
+    nameEn: '🌿 Green Mart (Organic & Food)',
+    description: 'অর্গানিক ফুড এবং গ্রোসারির জন্য বিশ্বাসযোগ্য ক্লিন ডিজাইন',
+    descriptionEn: 'Trustworthy clean design for organic food & grocery',
+    thumbnail: '/templates/green-mart.png',
+    category: 'premium',
+    emoji: '🌿',
+    colors: {
+      primary: '#15803d', // Green 700
+      accent: '#f97316',  // Orange 500
+      bg: '#ffffff',      // White
+    },
+    sections: [
+      {
+        type: 'hero',
+        props: {
+          variant: 'nature',
+          headline: 'প্রকৃতির বিশুদ্ধতা, আপনার পরিবারে',
+          subheadline: 'ভেজালমুক্ত, ১০০% প্রাকৃতিক ও নিরাপদ খাদ্য সামগ্রী। আপনার সুস্বাস্থ্যই আমাদের অঙ্গীকার।',
+          ctaText: 'অর্ডার করুন',
+          badgeText: '🌿 ১০০% ন্যাচারাল',
+        },
+      },
+      {
+        type: 'problem-solution',
+        props: {
+          problemTitle: 'বাজারে ভেজালের ভিড়ে আপনি কি চিন্তিত?',
+          problems: [
+            'রাসায়নিক মিশ্রিত খাবার',
+            'অস্বাস্থ্যকর পরিবেশে তৈরি',
+            'ভেজাল মধুর বা তেলের ভয়',
+          ],
+          solutionTitle: 'আমরা দিচ্ছি শতভাগ নিশ্চয়তা',
+          solutions: [
+            'নিজস্ব তত্ত্বাবধানে সংগৃহীত',
+            'ল্যাব টেস্টেড ও বিএসটিআই অনুমোদিত',
+            'মানি ব্যাক গ্যারান্টি',
+          ],
+        },
+      },
+      {
+        type: 'trust-badges',
+        props: {
+          badges: [
+            { icon: '🌿', text: 'অর্গানিক' },
+            { icon: '🔬', text: 'ল্যাব টেস্টেড' },
+            { icon: '🕌', text: 'হালাল' },
+            { icon: '✅', text: 'বিএসটিআই' },
+          ],
+        },
+      },
+      {
+        type: 'features',
+        props: {
+          title: 'পুষ্টিগুণ ও উপকারিতা',
+          features: [
+            { icon: '💪', title: 'ইমিউনিটি বুস্টার', description: 'রোগ প্রতিরোধ ক্ষমতা বাড়ায়' },
+            { icon: '🧠', title: 'স্মৃতিশক্তি বৃদ্ধি', description: 'শিশুদের মেধা বিকাশে সহায়ক' },
+            { icon: '⚡', title: 'এনার্জি সোর্স', description: 'সারাদিন রাখে কর্মচঞ্চল' },
+          ],
+        },
+      },
+      {
+        type: 'how-to-order',
+        props: {
+          title: 'কিভাবে অর্ডার করবেন?',
+          steps: [
+            { step: '১', title: 'অর্ডার করুন', description: 'বটন ক্লিক করে ফর্ম পূরণ করুন' },
+            { step: '২', title: 'কনফার্মেশন', description: 'আমরা কল করে কনফার্ম করব' },
+            { step: '৩', title: 'রিসিভ করুন', description: 'দ্রুততম সময়ে হোম ডেলিভারি' },
+          ],
+        },
+      },
+      {
+        type: 'testimonials',
+        props: {
+          title: 'গ্রাহকদের আস্থা',
+          testimonials: [],
+        },
+      },
+      {
+        type: 'cta',
+        props: {
+          variant: 'green-box',
+          headline: 'সুস্থ থাকতে আজই অর্ডার করুন',
+          subheadline: 'প্রথম অর্ডারে ডেলিভারি চার্জ ফ্রি!',
+          buttonText: 'অর্ডার কনফার্ম করুন',
         },
       },
     ],
@@ -403,7 +343,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
         props: {
           badges: [
             { icon: '⏰', text: 'সীমিত সময়' },
-            { icon: '📦', text: 'মাত্র ৫০টি বাকি' },
+            { icon: '📦', text: 'স্টক সীমিত' },
             { icon: '🚚', text: 'ফ্রি ডেলিভারি' },
             { icon: '💯', text: '১০০% অরিজিনাল' },
           ],
@@ -414,7 +354,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
         props: {
           title: 'কেন এই অফার মিস করা যাবে না?',
           features: [
-            { icon: '✅', title: 'রেগুলার দাম ৩,৯৯৯ টাকা', description: 'আজ মাত্র ১,৯৯৯ টাকা!' },
+            { icon: '✅', title: 'সেরা অফার', description: 'সীমিত সময়ের জন্য' },
             { icon: '🎁', title: 'ফ্রি গিফট সহ', description: 'প্রতিটি অর্ডারে বিশেষ উপহার' },
             { icon: '🚚', title: 'ফ্রি ডেলিভারি', description: 'সারাদেশে বিনামূল্যে ডেলিভারি' },
           ],
@@ -424,11 +364,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
         type: 'testimonials',
         props: {
           title: '🌟 সন্তুষ্ট কাস্টমার',
-          testimonials: [
-            { name: 'রাহাত হোসেন', text: 'গতবার ফ্ল্যাশ সেলে কিনেছিলাম, অসাধারণ মানের!', rating: 5 },
-            { name: 'সাবরিনা আক্তার', text: 'এত কম দামে এই কোয়ালিটি অবিশ্বাস্য!', rating: 5 },
-            { name: 'কামরুল ইসলাম', text: 'দ্রুত ডেলিভারি পেয়েছি, ধন্যবাদ!', rating: 5 },
-          ],
+          testimonials: [],
         },
       },
       {
@@ -454,7 +390,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
         type: 'cta',
         props: {
           headline: '⏰ অফার শেষ হওয়ার আগেই অর্ডার করুন!',
-          subheadline: 'মাত্র ৫০টি স্টক বাকি আছে',
+          subheadline: 'স্টক সীমিত! দেরি না করে এখনই অর্ডার প্লেস করুন',
           buttonText: '🔥 এখনই অর্ডার করুন',
         },
       },
@@ -527,10 +463,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
         type: 'testimonials',
         props: {
           title: 'গ্রাহকরা কি বলছেন?',
-          testimonials: [
-            { name: 'মোঃ আব্দুল্লাহ', location: 'ঢাকা', text: 'প্রিমিয়াম কোয়ালিটি! দাম একটু বেশি কিন্তু ভ্যালু ফর মানি।', rating: 5 },
-            { name: 'ফাতেমা আক্তার', location: 'চট্টগ্রাম', text: 'অরিজিনাল প্রোডাক্ট পেয়েছি। খুব খুশি!', rating: 5 },
-          ],
+          testimonials: [],
         },
       },
       {
@@ -619,10 +552,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
           backgroundColor: '#000000',
           textColor: '#FFFFFF',
           title: 'কাস্টমার ফিডব্যাক',
-          testimonials: [
-             { name: 'তাসনিয়া রহমান', text: 'একদম ইউনিক এবং মডার্ন!', rating: 5 },
-             { name: 'জুবায়ের হোসেন', text: 'প্রিমিয়াম কোয়ালিটি। অসাধারণ!', rating: 5 },
-          ],
+          testimonials: [],
         },
       },
       {
