@@ -127,6 +127,11 @@ service = "store-config"
 binding = "EDITOR_STATE_SERVICE"
 service = "editor-state"
 
+# PDF Generator Worker - Heavy jsPDF library offloaded
+[[services]]
+binding = "PDF_SERVICE"
+service = "pdf-generator"
+
 # ============================================================================
 # QUEUES (Disabled - using Durable Objects instead for FREE plan)
 # ============================================================================

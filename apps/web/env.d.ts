@@ -1,6 +1,6 @@
 /**
  * Environment Type Definitions
- * 
+ *
  * Cloudflare Workers bindings (D1, R2) and Remix context types.
  */
 
@@ -39,6 +39,7 @@ declare global {
     RATE_LIMITER_SERVICE?: Fetcher; // Rate limiter worker (per-store/IP limits)
     STORE_CONFIG_SERVICE?: Fetcher; // Store config cache worker (1-min TTL)
     EDITOR_STATE_SERVICE?: Fetcher; // Editor state worker (undo/redo)
+    PDF_SERVICE?: Fetcher; // PDF generator worker (jsPDF offloaded)
     // KV Namespace for AI Rate Limiting
     AI_RATE_LIMIT?: KVNamespace;
     // KV Namespace for Store/Page Caching
@@ -63,7 +64,7 @@ declare global {
     SSL_SMS_API_TOKEN?: string;
     SSL_SMS_SID?: string;
     SSL_SMS_DOMAIN?: string;
-    
+
     // SMS Gateway (BulkSMS BD)
     BULKSMS_BD_API_KEY?: string;
     BULKSMS_BD_SENDER_ID?: string;
