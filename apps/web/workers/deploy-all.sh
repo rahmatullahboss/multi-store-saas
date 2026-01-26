@@ -33,6 +33,7 @@ WORKERS=(
     "rate-limiter"
     "store-config"
     "editor-state"
+    "pdf-generator"
 )
 
 # Parse arguments

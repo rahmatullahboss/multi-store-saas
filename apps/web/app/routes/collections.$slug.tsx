@@ -8,6 +8,7 @@
 
 import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, useSearchParams } from '@remix-run/react';
+import { useTranslation } from 'react-i18next';
 import { eq, and, desc, like, asc, gte, lte } from 'drizzle-orm';
 import { products, stores, productCollections, type Store } from '@db/schema';
 import { parseThemeConfig, parseSocialLinks } from '@db/types';
@@ -252,6 +253,7 @@ export default function CollectionPage() {
     customer
   } = useLoaderData<typeof loader>();
 
+  const { t } = useTranslation();
   const isDaraz = storeTemplateId === 'daraz';
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -343,15 +345,15 @@ export default function CollectionPage() {
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Sort</span>
+                <span className="text-sm text-gray-600">{t('common.sort')}</span>
                 <select
                   value={sortBy}
                   onChange={(e) => handleSortChange(e.target.value)}
                   className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
                 >
-                  <option value="newest">Newest</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
+                  <option value="newest">{t('store.sortNewest')}</option>
+                  <option value="price-low">{t('store.sortPriceLowHigh')}</option>
+                  <option value="price-high">{t('store.sortPriceHighLow')}</option>
                 </select>
               </div>
               <label className="inline-flex items-center gap-2 text-sm text-gray-600">
@@ -361,7 +363,7 @@ export default function CollectionPage() {
                   onChange={(e) => handleInStockToggle(e.target.checked)}
                   className="rounded border-gray-300"
                 />
-                In stock
+                {t('store.inStock')}
               </label>
               <label className="inline-flex items-center gap-2 text-sm text-gray-600">
                 <input
@@ -370,21 +372,21 @@ export default function CollectionPage() {
                   onChange={(e) => handleOnSaleToggle(e.target.checked)}
                   className="rounded border-gray-300"
                 />
-                On sale
+                {t('store.onSale')}
               </label>
               <div className="flex items-center gap-2">
                 <input
                   type="number"
                   value={minPrice ?? ''}
                   onChange={(e) => handlePriceChange('min', e.target.value)}
-                  placeholder="Min"
+                  placeholder={t('store.min')}
                   className="w-24 px-2 py-2 border border-gray-200 rounded-lg text-sm"
                 />
                 <input
                   type="number"
                   value={maxPrice ?? ''}
                   onChange={(e) => handlePriceChange('max', e.target.value)}
-                  placeholder="Max"
+                  placeholder={t('store.max')}
                   className="w-24 px-2 py-2 border border-gray-200 rounded-lg text-sm"
                 />
               </div>

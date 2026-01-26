@@ -902,7 +902,7 @@ function PreviewZenithRiseStore(props: StoreTemplateProps) {
 interface SectionConfig {
   id: string;
   type: string;
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
 }
 
 function LiveZenithRiseHomepage({

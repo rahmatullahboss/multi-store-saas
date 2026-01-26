@@ -38,6 +38,8 @@ export const common = {
   shareBtn: 'Share',
   previewBtn: 'Preview',
   publishBtn: 'Publish',
+  livePreview: 'Live Preview',
+  refresh: 'Refresh',
   unpublishBtn: 'Unpublish',
   saveChanges: 'Save Changes',
   saveBtn: 'Save',

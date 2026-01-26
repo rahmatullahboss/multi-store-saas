@@ -12,6 +12,7 @@ import type { ThemeConfig, SocialLinks, FooterConfig } from '@db/types';
 // ============================================================================
 // SERIALIZED PRODUCT TYPE - Matches what loader provides
 // ============================================================================
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyProps = any;
 
 export interface SerializedProduct {

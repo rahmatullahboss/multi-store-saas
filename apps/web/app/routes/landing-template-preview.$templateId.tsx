@@ -9,6 +9,7 @@
 
 import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
+import { useTranslation } from 'react-i18next';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { products } from '@db/schema';
@@ -83,6 +84,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
 export default function LandingTemplatePreview() {
   const { preset, theme, store, products, product } = useLoaderData<typeof loader>();
+  const { t } = useTranslation();
 
   // CSS variables for theme
   const themeStyle: React.CSSProperties = {
@@ -146,7 +148,7 @@ export default function LandingTemplatePreview() {
           <span>{preset.name}</span>
           <span className="mx-1 opacity-50">|</span>
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span>Live Preview</span>
+          <span>{t('common.livePreview')}</span>
         </div>
       </div>
       {/* Social Proof Popup - Auto-shows for templates */}

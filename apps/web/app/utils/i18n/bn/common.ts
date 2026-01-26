@@ -38,6 +38,8 @@ export const common = {
   shareBtn: 'শেয়ার',
   previewBtn: 'প্রিভিউ',
   publishBtn: 'পাবলিশ',
+  livePreview: 'লাইভ প্রিভিউ',
+  refresh: 'রিফ্রেশ',
   unpublishBtn: 'আনপাবলিশ',
   saveChanges: 'পরিবর্তনগুলো সেভ করুন',
   saveBtn: 'সেভ করুন',

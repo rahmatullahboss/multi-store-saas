@@ -11,6 +11,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remi
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher } from '@remix-run/react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   Ticket, 
   Plus, 
@@ -22,7 +23,6 @@ import {
   Calendar,
   Users,
   Check,
-  X,
   AlertCircle
 } from 'lucide-react';
 import { requireSuperAdmin } from '~/services/auth.server';
@@ -32,7 +32,6 @@ import {
   deleteSaasCoupon,
   toggleCouponStatus,
 } from '~/utils/coupon.server';
-import type { SaasCoupon } from '@db/schema';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Marketing - Coupons | Super Admin' }];
@@ -109,6 +108,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
 export default function AdminMarketingPage() {
   const { coupons } = useLoaderData<typeof loader>();
+  const { t } = useTranslation();
   const fetcher = useFetcher<{ error?: string; success?: boolean }>();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -155,15 +155,15 @@ export default function AdminMarketingPage() {
 
   const getStatus = (coupon: typeof coupons[0]) => {
     if (!coupon.isActive) {
-      return { label: 'Inactive', color: 'gray' };
+      return { label: t('admin.statusInactive'), color: 'gray' };
     }
     if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
-      return { label: 'Expired', color: 'red' };
+      return { label: t('admin.statusExpired'), color: 'red' };
     }
     if (coupon.maxUses !== null && (coupon.usedCount ?? 0) >= coupon.maxUses) {
-      return { label: 'Exhausted', color: 'orange' };
+      return { label: t('admin.statusExhausted'), color: 'orange' };
     }
-    return { label: 'Active', color: 'green' };
+    return { label: t('admin.statusActive'), color: 'green' };
   };
 
   return (
@@ -175,10 +175,10 @@ export default function AdminMarketingPage() {
             <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center">
               <Ticket className="w-5 h-5 text-white" />
             </div>
-            Marketing - Coupons
+            {t('admin.marketingCouponsTitle')}
           </h1>
           <p className="text-slate-400 mt-1">
-            Manage subscription discount coupons for plan upgrades
+            {t('admin.marketingCouponsDesc')}
           </p>
         </div>
         <button
@@ -186,48 +186,49 @@ export default function AdminMarketingPage() {
           className="flex items-center gap-2 px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg font-medium transition"
         >
           <Plus className="w-4 h-4" />
-          New Coupon
+          {t('admin.newCouponBtn')}
         </button>
       </div>
 
       {/* Create Form */}
-      {showForm && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Create New Coupon</h2>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Code */}
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Coupon Code *
-              </label>
-              <input
-                type="text"
-                value={formData.code}
-                onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
-                placeholder="e.g., START50"
+       {/* Create Form */}
+       {showForm && (
+         <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
+           <h2 className="text-lg font-semibold text-white mb-4">{t('admin.newCouponBtn')}</h2>
+           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+             {/* Code */}
+             <div>
+               <label className="block text-sm font-medium text-slate-300 mb-2">
+                 {t('admin.couponCodeLabel')}
+               </label>
+               <input
+                 type="text"
+                 value={formData.code}
+                 onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                 placeholder={t('admin.couponCodePlaceholder')}
                 className="w-full px-4 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 required
               />
             </div>
 
-            {/* Discount Type */}
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Discount Type *
-              </label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, discountType: 'percentage' }))}
-                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg border transition ${
-                    formData.discountType === 'percentage'
-                      ? 'bg-pink-600 border-pink-500 text-white'
-                      : 'bg-slate-900 border-slate-600 text-slate-400 hover:border-slate-500'
-                  }`}
-                >
-                  <Percent className="w-4 h-4" />
-                  Percentage
-                </button>
+             {/* Discount Type */}
+             <div>
+               <label className="block text-sm font-medium text-slate-300 mb-2">
+                 {t('admin.discountTypeLabel')}
+               </label>
+               <div className="flex gap-2">
+                 <button
+                   type="button"
+                   onClick={() => setFormData(prev => ({ ...prev, discountType: 'percentage' }))}
+                   className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg border transition ${
+                     formData.discountType === 'percentage'
+                       ? 'bg-pink-600 border-pink-500 text-white'
+                       : 'bg-slate-900 border-slate-600 text-slate-400 hover:border-slate-500'
+                   }`}
+                 >
+                   <Percent className="w-4 h-4" />
+                   {t('admin.percentage')}
+                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData(prev => ({ ...prev, discountType: 'fixed' }))}
@@ -238,7 +239,7 @@ export default function AdminMarketingPage() {
                   }`}
                 >
                   <DollarSign className="w-4 h-4" />
-                  Fixed (৳)
+                  {t('admin.fixed')} (৳)
                 </button>
               </div>
             </div>
@@ -246,13 +247,14 @@ export default function AdminMarketingPage() {
             {/* Discount Amount */}
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
-                {formData.discountType === 'percentage' ? 'Discount (%)' : 'Discount Amount (৳)'} *
+                {formData.discountType === 'percentage' ? t('admin.discountPercentLabel') : t('admin.discountAmountLabel') + ' (৳)'} *
               </label>
               <input
                 type="number"
                 value={formData.discountAmount}
                 onChange={(e) => setFormData(prev => ({ ...prev, discountAmount: e.target.value }))}
-                placeholder={formData.discountType === 'percentage' ? 'e.g., 50' : 'e.g., 500'}
+                placeholder={formData.discountType === 'percentage' ? t('admin.discountExample50') : t('admin.discountExample500')}
+
                 min="1"
                 max={formData.discountType === 'percentage' ? '100' : undefined}
                 className="w-full px-4 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
@@ -263,7 +265,7 @@ export default function AdminMarketingPage() {
             {/* Max Uses */}
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
-                Max Uses (optional)
+                {t('admin.maxUsesOptional')}
               </label>
               <div className="relative">
                 <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
@@ -271,7 +273,7 @@ export default function AdminMarketingPage() {
                   type="number"
                   value={formData.maxUses}
                   onChange={(e) => setFormData(prev => ({ ...prev, maxUses: e.target.value }))}
-                  placeholder="Leave empty for unlimited"
+                  placeholder={t('admin.leaveEmptyUnlimited')}
                   min="1"
                   className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 />
@@ -281,7 +283,7 @@ export default function AdminMarketingPage() {
             {/* Expires At */}
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
-                Expiry Date (optional)
+                {t('admin.expiryDateOptional')}
               </label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
@@ -304,12 +306,12 @@ export default function AdminMarketingPage() {
                 {isSubmitting ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Creating...
+                    {t('admin.creatingBtn')}
                   </>
                 ) : (
                   <>
                     <Check className="w-4 h-4" />
-                    Create Coupon
+                    {t('admin.createCouponBtn')}
                   </>
                 )}
               </button>
@@ -333,7 +335,7 @@ export default function AdminMarketingPage() {
             <thead className="bg-slate-900/50">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Code
+                  {t('admin.couponCodeLabel').replace(' *', '')}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   Discount
@@ -345,10 +347,10 @@ export default function AdminMarketingPage() {
                   Expires
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Status
+                  {t('admin.status')}
                 </th>
                 <th className="px-6 py-4 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Actions
+                  {t('admin.actions')}
                 </th>
               </tr>
             </thead>
@@ -357,8 +359,8 @@ export default function AdminMarketingPage() {
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
                     <Ticket className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>No coupons yet</p>
-                    <p className="text-sm">Create your first coupon to offer discounts on subscriptions</p>
+                    <p>{t('admin.noCoupons')}</p>
+                    <p className="text-sm">{t('admin.createFirstCouponDesc')}</p>
                   </td>
                 </tr>
               ) : (
@@ -429,7 +431,7 @@ export default function AdminMarketingPage() {
                           <fetcher.Form 
                             method="POST"
                             onSubmit={(e) => {
-                              if (!confirm('Are you sure you want to delete this coupon?')) {
+                              if (!confirm(t('admin.deleteCouponConfirm'))) {
                                 e.preventDefault();
                               }
                             }}

@@ -16,20 +16,19 @@ import { useLoaderData, useFetcher, Form } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { products, stores } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
-import { 
+import {
   HardDrive, 
   Trash2,
-  Image,
+  Image as ImageIcon,
   AlertTriangle,
   CheckCircle,
   RefreshCw,
   Search,
   FileImage,
-  Store,
-  ShoppingBag,
   Clock
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Storage Management - Super Admin' }];
@@ -219,15 +218,13 @@ function formatBytes(bytes: number): string {
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
-  const now = new Date();
-  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-  
-  if (diffDays === 0) return 'আজ';
-  if (diffDays === 1) return 'গতকাল';
-  if (diffDays < 7) return `${diffDays} দিন আগে`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} সপ্তাহ আগে`;
-  if (diffDays < 365) return `${Math.floor(diffDays / 30)} মাস আগে`;
-  return `${Math.floor(diffDays / 365)} বছর আগে`;
+  return date.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
 // ============================================================================
@@ -238,6 +235,7 @@ export default function AdminStorage() {
   const { error, totalSize, orphanedCount, totalCount, r2PublicUrl } = loaderData;
   // Ensure files is always a valid array without null items
   const files = (loaderData.files || []) as R2File[];
+  const { t } = useTranslation();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [showOrphanedOnly, setShowOrphanedOnly] = useState(false);
@@ -290,8 +288,8 @@ export default function AdminStorage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Storage Management</h1>
-          <p className="text-slate-400">Manage R2 storage and clean up unused files</p>
+          <h1 className="text-2xl font-bold text-white">{t('admin.storageManagement')}</h1>
+          <p className="text-slate-400">{t('admin.storageManagementDesc')}</p>
         </div>
         
         <Form method="get">
@@ -300,7 +298,7 @@ export default function AdminStorage() {
             className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition"
           >
             <RefreshCw className={`w-4 h-4 ${isDeleting ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('common.refresh')}
           </button>
         </Form>
       </div>
@@ -314,7 +312,7 @@ export default function AdminStorage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-white">{formatBytes(totalSize)}</p>
-              <p className="text-sm text-slate-400">Total Storage</p>
+              <p className="text-sm text-slate-400">{t('admin.totalStorage')}</p>
             </div>
           </div>
         </div>
@@ -326,7 +324,7 @@ export default function AdminStorage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-white">{totalCount}</p>
-              <p className="text-sm text-slate-400">Total Files</p>
+              <p className="text-sm text-slate-400">{t('admin.totalFiles')}</p>
             </div>
           </div>
         </div>
@@ -338,7 +336,7 @@ export default function AdminStorage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-white">{orphanedCount}</p>
-              <p className="text-sm text-slate-400">Orphaned ({formatBytes(orphanedSize)})</p>
+              <p className="text-sm text-slate-400">{t('admin.orphaned')} ({formatBytes(orphanedSize)})</p>
             </div>
           </div>
         </div>
@@ -351,7 +349,7 @@ export default function AdminStorage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
             type="text"
-            placeholder="Search files..."
+            placeholder={t('admin.searchFilesPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50"
@@ -368,7 +366,7 @@ export default function AdminStorage() {
           }`}
         >
           <AlertTriangle className="w-4 h-4" />
-          Orphaned Only
+          {t('admin.orphanedOnly')}
         </button>
         
         {/* Bulk Actions */}
@@ -384,7 +382,7 @@ export default function AdminStorage() {
               className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition flex items-center gap-2 disabled:opacity-50"
             >
               <Trash2 className="w-4 h-4" />
-              Delete {selectedFiles.size} files
+              {t('admin.deleteFilesBtn', { count: selectedFiles.size })}
             </button>
           </fetcher.Form>
         )}
@@ -397,14 +395,14 @@ export default function AdminStorage() {
             onClick={selectAllOrphaned}
             className="text-sm text-orange-400 hover:text-orange-300 transition"
           >
-            Select all orphaned ({orphanedCount})
+            {t('admin.selectAllOrphaned', { count: orphanedCount })}
           </button>
           {selectedFiles.size > 0 && (
             <button
               onClick={clearSelection}
               className="text-sm text-slate-400 hover:text-white transition"
             >
-              Clear selection
+              {t('admin.clearSelection')}
             </button>
           )}
         </div>
@@ -431,19 +429,19 @@ export default function AdminStorage() {
                   />
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  File
+                  {t('admin.colFile')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Status
+                  {t('admin.colStatus')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Size
+                  {t('admin.colSize')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Uploaded
+                  {t('admin.colUploaded')}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Actions
+                  {t('admin.colActions')}
                 </th>
               </tr>
             </thead>
@@ -451,7 +449,7 @@ export default function AdminStorage() {
               {filteredFiles.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
-                    {showOrphanedOnly ? 'No orphaned files found' : 'No files found'}
+                    {showOrphanedOnly ? t('admin.noOrphanedFiles') : t('admin.noFiles')}
                   </td>
                 </tr>
               ) : (
@@ -473,7 +471,7 @@ export default function AdminStorage() {
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                           file.isOrphaned ? 'bg-orange-500/20' : 'bg-slate-700'
                         }`}>
-                          <Image className={`w-5 h-5 ${file.isOrphaned ? 'text-orange-400' : 'text-slate-400'}`} />
+                          <ImageIcon className={`w-5 h-5 ${file.isOrphaned ? 'text-orange-400' : 'text-slate-400'}`} />
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-white truncate max-w-xs" title={file.key}>
@@ -489,13 +487,13 @@ export default function AdminStorage() {
                       {file.isOrphaned ? (
                         <span className="inline-flex items-center gap-1 text-xs text-orange-400 bg-orange-500/20 px-2 py-1 rounded-full">
                           <AlertTriangle className="w-3 h-3" />
-                          Orphaned
+                          {t('admin.orphaned')}
                         </span>
                       ) : (
                         <div className="flex items-center gap-1">
                           <span className="inline-flex items-center gap-1 text-xs text-emerald-400 bg-emerald-500/20 px-2 py-1 rounded-full">
                             <CheckCircle className="w-3 h-3" />
-                            In Use
+                            {t('admin.inUse')}
                           </span>
                           {file.usedBy && (
                             <span className="text-xs text-slate-500 ml-1">
@@ -527,9 +525,9 @@ export default function AdminStorage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition"
-                          title="View file"
+                          title={t('admin.viewFile')}
                         >
-                          <Image className="w-4 h-4" />
+                          <ImageIcon className="w-4 h-4" />
                         </a>
                         <fetcher.Form method="post">
                           <input type="hidden" name="intent" value="delete" />
@@ -538,7 +536,7 @@ export default function AdminStorage() {
                             type="submit"
                             disabled={isDeleting}
                             className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition disabled:opacity-50"
-                            title="Delete file"
+                            title={t('admin.deleteFile')}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -558,11 +556,9 @@ export default function AdminStorage() {
         <div className="flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
           <div>
-            <h4 className="text-sm font-medium text-orange-400">Orphaned Files</h4>
+            <h4 className="text-sm font-medium text-orange-400">{t('admin.orphanedFilesNoticeTitle')}</h4>
             <p className="text-xs text-orange-300/80 mt-1">
-              Orphaned files are not referenced by any product, store, or landing page. 
-              They may have been uploaded but the form was abandoned. 
-              Review carefully before deleting as some files might be used in ways not detected automatically.
+              {t('admin.orphanedFilesNoticeDesc')}
             </p>
           </div>
         </div>
