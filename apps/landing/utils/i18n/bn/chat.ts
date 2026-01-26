@@ -1,0 +1,62 @@
+export const chat = {
+  // Ozzyl AI Chat Widget (Landing)
+  landingOzzylChat_greetingMsg: '👋 আসসালামু আলাইকুম! অনলাইনে ব্যবসা করতে সাহায্য লাগবে?',
+  landingOzzylChat_initialMsg: 'আসসালামু আলাইকুম! 👋 আমি Ozzyl AI - Ozzyl এর official assistant। আপনার অনলাইন বিজনেস নিয়ে কিভাবে সাহায্য করতে পারি?',
+  landingOzzylChat_suggestWhatIs: 'Ozzyl কি?',
+  landingOzzylChat_suggestPricing: 'Pricing জানতে চাই',
+  landingOzzylChat_suggestBkash: 'বিকাশ পেমেন্ট নেওয়া যায়?',
+  landingOzzylChat_suggestHowToStart: 'কিভাবে শুরু করব?',
+  landingOzzylChat_alwaysHelp: 'সহায়তার জন্য সবসময় প্রস্তুত',
+  landingOzzylChat_identifyYourself: 'আপনার পরিচয় দিন',
+  landingOzzylChat_identifyDesc: 'চ্যাট শুরু করার আগে দয়া করে আপনার নাম এবং ফোন নাম্বারটি দিন।',
+  landingOzzylChat_yourName: 'আপনার নাম',
+  landingOzzylChat_namePlaceholder: 'উদাহরণ: মিস্টার রহিম',
+  landingOzzylChat_phone: 'ফোন নাম্বার',
+  landingOzzylChat_phonePlaceholder: 'উদাহরণ: 017XXXXXXXX',
+  landingOzzylChat_startChat: 'চ্যাট শুরু করুন',
+  landingOzzylChat_typeMessage: 'আপনার প্রশ্ন লিখুন...',
+  landingOzzylChat_createFreeStore: 'ফ্রি স্টোর তৈরি করুন',
+  landingOzzylChat_errorMsg: 'দুঃখিত, একটু সমস্যা হয়েছে। আবার চেষ্টা করুন।',
+
+  // Landing AI Chat (Variant)
+  landingAiChat_greetingTitle: 'Ozzyl AI',
+  landingAiChat_greetingMsg: '👋 আসসালামু আলাইকুম! অনলাইনে ব্যবসা করতে সাহায্য লাগবে?',
+  landingAiChat_initialMsg: 'আসসালামু আলাইকুম! 👋 আমি Ozzyl AI - Ozzyl এর অফিসিয়াল অ্যাসিস্ট্যান্ট। আপনার অনলাইন বিজনেস নিয়ে কিভাবে সাহায্য করতে পারি?',
+  landingAiChat_suggest1: 'Ozzyl কি?',
+  landingAiChat_suggest2: 'Pricing জানতে চাই',
+  landingAiChat_suggest3: 'বিকাশ পেমেন্ট নেওয়া যায়?',
+  landingAiChat_suggest4: 'কিভাবে শুরু করব?',
+  landingAiChat_errorMsg: 'দুঃখিত, একটু সমস্যা হয়েছে। আবার চেষ্টা করুন।',
+  landingAiChat_placeholder: 'আপনার প্রশ্ন লিখুন...',
+  landingAiChat_createFreeStore: 'ফ্রি স্টোর তৈরি করুন',
+
+  // Storefront Chat Widget
+  chatWidget_merchantTitle: 'AI সহকারী',
+  chatWidget_customerTitle: 'সেলস সহায়তা',
+  chatWidget_repliesInSeconds: 'সাধারণত কয়েক সেকেন্ডে উত্তর দেয়',
+  chatWidget_merchantWelcome: 'আসসালামু আলাইকুম! 👋 আমি আপনার AI সহকারী। কিভাবে সাহায্য করতে পারি?',
+  chatWidget_customerWelcome: 'আসসালামু আলাইকুম! 👋 কিভাবে সাহায্য করতে পারি?',
+  chatWidget_thinking: 'চিন্তা করছি...',
+  chatWidget_placeholder: 'আপনার প্রশ্ন লিখুন...',
+  chatWidget_clearChat: 'চ্যাট মুছে ফেলুন',
+  chatWidget_errorConnection: 'AI সার্ভিসের সাথে কানেক্ট করতে ব্যর্থ হয়েছে',
+
+  // Dashboard Chat Widget
+  dashboardChat_welcome: 'আসসালামু আলাইকুম {{userName}}! আমি আপনার স্টোর সহকারী। আপনার বিক্রি, অর্ডার বা সেটিংস সম্পর্কে যেকোনো প্রশ্ন করতে পারেন।',
+  dashboardChat_title: 'স্টোর সহকারী',
+  dashboardChat_online: 'অনলাইন',
+  dashboardChat_unlockTitle: 'স্টোর সহকারী আনলক করুন',
+  dashboardChat_unlockDesc: 'আপনার স্টোর ম্যানেজমেন্টে সাহায্য এবং রিয়েল-টাইম তথ্য পান। শুধুমাত্র প্রো প্ল্যানে উপলব্ধ।',
+  dashboardChat_upgradePro: 'প্রো-তে আপগ্রেড করুন',
+  dashboardChat_maybeLater: 'পরে করব',
+  dashboardChat_askAnything: 'যেকোনো কিছু জিজ্ঞেস করুন...',
+
+  // Page Builder AI Chat
+  builderChat_intro: 'আসসালামু আলাইকুম! আমি আপনার AI ডিজাইন সহকারী। যেকোনো এলিমেন্ট সিলেক্ট করুন এবং আমাকে বলুন সেটি কিভাবে পরিবর্তন করতে হবে। (যেমন: "নীল রঙ করুন", "এখানে একটি বাটন দিন")',
+  builderChat_title: 'লাভেবল AI',
+  builderChat_subtitle: 'ডিজাইন সহকারী',
+  builderChat_unlockTitle: 'AI সহকারী আনলক করুন',
+  builderChat_unlockDesc: 'তাতক্ষণাৎ ডিজাইন করার জন্য আপনার এডিটরের সাথে চ্যাট করুন। শুধুমাত্র প্রো প্ল্যানে উপলব্ধ।',
+  builderChat_describeChange: 'পরিবর্তনটি ব্যাখ্যা করুন...',
+  builderChat_doneMessage: "হয়ে গেছে! আমি ডিজাইনটি আপডেট করেছি।",
+};

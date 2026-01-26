@@ -1,0 +1,3 @@
+module.exports=[34078,a=>{"use strict";a.i(87924);var b=a.i(72131);let c=(0,b.createContext)({t:a=>a,lang:"en",setLang:()=>{}});function d(){return(0,b.useContext)(c)}function e(){let{lang:a}=d();return(b,c="BDT")=>"bn"===a?`৳${b.toLocaleString("bn-BD")}`:`${c} ${b.toLocaleString("en-US")}`}a.s(["useFormatPrice",()=>e,"useTranslation",()=>d],34078)}];
+
+//# sourceMappingURL=apps_landing_app_contexts_LanguageContext_tsx_a5182553._.js.map
