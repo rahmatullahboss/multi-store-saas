@@ -1,5 +1,6 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
@@ -22,57 +23,8 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
 
-  // Enable SWC minification (faster than Terser)
-  swcMinify: true,
-
-  // Optimize chunks
-  webpack: (config: any, { isServer }: any) => {
-    if (!isServer) {
-      // Split vendor chunks
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            default: false,
-            vendors: false,
-            // Vendor chunk for react, react-dom
-            framework: {
-              name: 'framework',
-              chunks: 'all',
-              test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
-              priority: 40,
-              enforce: true,
-            },
-            // Framer Motion in separate chunk
-            motion: {
-              name: 'motion',
-              chunks: 'all',
-              test: /[\\/]node_modules[\\/](framer-motion)[\\/]/,
-              priority: 30,
-              enforce: true,
-            },
-            // Lucide icons
-            icons: {
-              name: 'icons',
-              chunks: 'all',
-              test: /[\\/]node_modules[\\/](lucide-react)[\\/]/,
-              priority: 25,
-              enforce: true,
-            },
-            // Other libs
-            lib: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'lib',
-              chunks: 'all',
-              priority: 10,
-            },
-          },
-        },
-      };
-    }
-    return config;
-  },
+  // Turbopack configuration (Next.js 16+)
+  turbopack: {},
 
   // Experimental features for better performance
   experimental: {
