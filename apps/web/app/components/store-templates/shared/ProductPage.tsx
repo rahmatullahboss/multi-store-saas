@@ -1,7 +1,9 @@
 /**
- * Shared Product Page Component
- * 
- * A Shopify-standard product page that can be used by any template.
+ * Shared Product Page Component (Theme-Aware)
+ *
+ * A universal product page that dynamically adapts to any template's theme.
+ * Used as fallback for templates that don't have their own ProductPage.
+ *
  * Features:
  * - Image gallery with thumbnails
  * - Product info (title, price, variants)
@@ -10,24 +12,27 @@
  * - Product description tabs
  * - Reviews section
  * - Related products
+ * - FULLY THEME-AWARE - adapts colors from StoreTemplateTheme
  */
 
 import React, { useState } from 'react';
-import { Link, useFetcher } from '@remix-run/react';
-import { 
-  ShoppingCart, 
-  Heart, 
-  Share2, 
-  Minus, 
-  Plus, 
-  Check, 
-  Truck, 
+import { Link, useFetcher, useParams } from '@remix-run/react';
+import {
+  ShoppingCart,
+  Heart,
+  Share2,
+  Minus,
+  Plus,
+  Check,
+  Truck,
   Shield,
   Star,
   ChevronLeft,
   ChevronRight,
-  Home
+  Home,
+  Package,
 } from 'lucide-react';
+import type { StoreTemplateTheme } from '~/templates/store-registry';
 
 interface Product {
   id: number;
@@ -63,18 +68,33 @@ interface SharedProductPageProps {
   product: Product;
   currency: string;
   relatedProducts?: Product[];
-  theme?: {
-    primaryColor?: string;
-    secondaryColor?: string;
-  };
+  theme?: StoreTemplateTheme;
+  isPreview?: boolean;
 }
 
-export default function SharedProductPage({ 
-  product, 
-  currency, 
+export default function SharedProductPage({
+  product,
+  currency,
   relatedProducts = [],
-  theme
+  theme,
+  isPreview = false,
 }: SharedProductPageProps) {
+  const params = useParams();
+  const templateId = params.templateId;
+
+  // Default theme if not provided
+  const colors = theme || {
+    primary: '#1a1a1a',
+    accent: '#3b82f6',
+    background: '#f8fafc',
+    text: '#1a1a1a',
+    muted: '#6b7280',
+    cardBg: '#ffffff',
+    headerBg: '#ffffff',
+    footerBg: '#1a1a1a',
+    footerText: '#ffffff',
+  };
+
   const currencySymbol = currency === 'BDT' ? '৳' : '$';
   const [selectedVariant, setSelectedVariant] = useState(product.variants?.[0] || null);
   const [quantity, setQuantity] = useState(1);
@@ -82,21 +102,46 @@ export default function SharedProductPage({
   const [isAdding, setIsAdding] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
   const [activeTab, setActiveTab] = useState<'description' | 'reviews'>('description');
-  
+
   const fetcher = useFetcher();
 
   // Combine main image with additional images
-  const allImages = [
-    product.imageUrl,
-    ...(product.images || [])
-  ].filter(Boolean) as string[];
+  const allImages = [product.imageUrl, ...(product.images || [])].filter(Boolean) as string[];
 
   const currentPrice = selectedVariant?.price || product.price;
   const comparePrice = selectedVariant?.compareAtPrice || product.compareAtPrice;
   const hasDiscount = comparePrice && comparePrice > currentPrice;
   const discountPercent = hasDiscount ? Math.round((1 - currentPrice / comparePrice) * 100) : 0;
 
+  // Helper for preview-safe links
+  const getLink = (path: string) => {
+    if (isPreview && templateId) {
+      if (path === '/') return `/store-template-preview/${templateId}`;
+      if (path.startsWith('/products/')) {
+        const id = path.replace('/products/', '');
+        return `/store-template-preview/${templateId}/products/${id}`;
+      }
+      if (path.startsWith('/category/')) {
+        const cat = path.replace('/category/', '');
+        return `/store-template-preview/${templateId}/collections/${cat}`;
+      }
+      return `/store-template-preview/${templateId}${path}`;
+    }
+    return path;
+  };
+
   const handleAddToCart = () => {
+    if (isPreview) {
+      // In preview mode, just show visual feedback
+      setIsAdding(true);
+      setTimeout(() => {
+        setIsAdding(false);
+        setAddedToCart(true);
+        setTimeout(() => setAddedToCart(false), 2000);
+      }, 500);
+      return;
+    }
+
     setIsAdding(true);
     fetcher.submit(
       {
@@ -106,7 +151,7 @@ export default function SharedProductPage({
       },
       { method: 'POST', action: '/api/cart' }
     );
-    
+
     setTimeout(() => {
       setIsAdding(false);
       setAddedToCart(true);
@@ -116,40 +161,65 @@ export default function SharedProductPage({
 
   const handleBuyNow = () => {
     handleAddToCart();
-    setTimeout(() => {
-      window.location.href = '/checkout';
-    }, 600);
+    if (!isPreview) {
+      setTimeout(() => {
+        window.location.href = '/checkout';
+      }, 600);
+    }
   };
 
   const nextImage = () => setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
-  const prevImage = () => setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+  const prevImage = () =>
+    setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
 
-  const primaryColor = theme?.primaryColor || '#2563eb';
+  // Check if theme is dark (for text contrast)
+  const isDark =
+    colors.background.startsWith('#0') ||
+    colors.background.startsWith('#1') ||
+    colors.background.startsWith('#2') ||
+    colors.background === 'rgba(3, 7, 18, 0.7)';
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: colors.background }}>
       {/* Breadcrumb */}
-      <div className="bg-white border-b">
+      <div
+        className="border-b"
+        style={{
+          backgroundColor: colors.cardBg,
+          borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 py-3">
-          <nav className="flex items-center text-sm text-gray-500" aria-label="Breadcrumb">
-            <Link to="/" className="hover:text-gray-700 flex items-center">
+          <nav
+            className="flex items-center text-sm"
+            aria-label="Breadcrumb"
+            style={{ color: colors.muted }}
+          >
+            <Link
+              to={getLink('/')}
+              className="hover:opacity-70 flex items-center transition-opacity"
+            >
               <Home className="w-4 h-4" />
             </Link>
-            <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-            <Link to="/products" className="hover:text-gray-700">Products</Link>
+            <ChevronRight className="w-4 h-4 mx-2 opacity-50" />
+            <Link to={getLink('/products')} className="hover:opacity-70 transition-opacity">
+              Products
+            </Link>
             {product.category && (
               <>
-                <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-                <Link 
-                  to={`/category/${product.category.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="hover:text-gray-700"
+                <ChevronRight className="w-4 h-4 mx-2 opacity-50" />
+                <Link
+                  to={getLink(`/category/${product.category.toLowerCase().replace(/\s+/g, '-')}`)}
+                  className="hover:opacity-70 transition-opacity"
                 >
                   {product.category}
                 </Link>
               </>
             )}
-            <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
-            <span className="text-gray-900 font-medium truncate max-w-[200px]">{product.title}</span>
+            <ChevronRight className="w-4 h-4 mx-2 opacity-50" />
+            <span className="font-medium truncate max-w-[200px]" style={{ color: colors.text }}>
+              {product.title}
+            </span>
           </nav>
         </div>
       </div>
@@ -160,7 +230,10 @@ export default function SharedProductPage({
           {/* Image Gallery */}
           <div className="space-y-4">
             {/* Main Image */}
-            <div className="relative aspect-square bg-white rounded-xl overflow-hidden shadow-sm group">
+            <div
+              className="relative aspect-square rounded-xl overflow-hidden shadow-sm group"
+              style={{ backgroundColor: colors.cardBg }}
+            >
               {allImages.length > 0 ? (
                 <>
                   <img
@@ -170,7 +243,10 @@ export default function SharedProductPage({
                   />
                   {/* Discount Badge */}
                   {hasDiscount && (
-                    <div className="absolute top-4 left-4 bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                    <div
+                      className="absolute top-4 left-4 text-white text-sm font-bold px-3 py-1 rounded-full"
+                      style={{ backgroundColor: '#ef4444' }}
+                    >
                       -{discountPercent}%
                     </div>
                   )}
@@ -193,8 +269,11 @@ export default function SharedProductPage({
                   )}
                 </>
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  No Image Available
+                <div
+                  className="w-full h-full flex items-center justify-center"
+                  style={{ color: colors.muted }}
+                >
+                  <Package className="w-20 h-20 opacity-30" />
                 </div>
               )}
             </div>
@@ -206,9 +285,11 @@ export default function SharedProductPage({
                   <button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
-                    className={`w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-colors ${
-                      index === currentImageIndex ? 'border-blue-500' : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                    className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all"
+                    style={{
+                      borderColor: index === currentImageIndex ? colors.accent : 'transparent',
+                      backgroundColor: colors.cardBg,
+                    }}
                   >
                     <img src={img} alt="" className="w-full h-full object-cover" />
                   </button>
@@ -221,10 +302,10 @@ export default function SharedProductPage({
           <div className="space-y-6">
             {/* Title */}
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl md:text-3xl font-bold mb-2" style={{ color: colors.text }}>
                 {product.title}
               </h1>
-              
+
               {/* Reviews Summary */}
               {product.reviews && product.reviews.count > 0 && (
                 <div className="flex items-center gap-2">
@@ -240,7 +321,7 @@ export default function SharedProductPage({
                       />
                     ))}
                   </div>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm" style={{ color: colors.muted }}>
                     ({product.reviews.count} reviews)
                   </span>
                 </div>
@@ -248,16 +329,21 @@ export default function SharedProductPage({
             </div>
 
             {/* Price */}
-            <div className="flex items-center gap-3">
-              <span className="text-3xl font-bold" style={{ color: primaryColor }}>
-                {currencySymbol}{currentPrice.toLocaleString()}
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-3xl font-bold" style={{ color: colors.accent }}>
+                {currencySymbol}
+                {currentPrice.toLocaleString()}
               </span>
               {hasDiscount && (
                 <>
-                  <span className="text-xl text-gray-500 line-through">
-                    {currencySymbol}{comparePrice!.toLocaleString()}
+                  <span className="text-xl line-through" style={{ color: colors.muted }}>
+                    {currencySymbol}
+                    {comparePrice!.toLocaleString()}
                   </span>
-                  <span className="bg-red-100 text-red-700 text-sm font-semibold px-2 py-1 rounded">
+                  <span
+                    className="text-sm font-semibold px-2 py-1 rounded"
+                    style={{ backgroundColor: '#fef2f2', color: '#dc2626' }}
+                  >
                     Save {discountPercent}%
                   </span>
                 </>
@@ -267,7 +353,7 @@ export default function SharedProductPage({
             {/* Variants */}
             {product.variants && product.variants.length > 0 && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ color: colors.text }}>
                   Select Option
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -275,11 +361,14 @@ export default function SharedProductPage({
                     <button
                       key={variant.id}
                       onClick={() => setSelectedVariant(variant)}
-                      className={`px-4 py-2 border rounded-lg transition-colors ${
-                        selectedVariant?.id === variant.id
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-gray-300 hover:border-gray-400'
-                      }`}
+                      className="px-4 py-2 border rounded-lg transition-all"
+                      style={{
+                        borderColor:
+                          selectedVariant?.id === variant.id ? colors.accent : colors.muted + '40',
+                        backgroundColor:
+                          selectedVariant?.id === variant.id ? colors.accent + '10' : 'transparent',
+                        color: selectedVariant?.id === variant.id ? colors.accent : colors.text,
+                      }}
                     >
                       {variant.name}
                     </button>
@@ -290,20 +379,27 @@ export default function SharedProductPage({
 
             {/* Quantity */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium mb-2" style={{ color: colors.text }}>
                 Quantity
               </label>
-              <div className="inline-flex items-center border border-gray-300 rounded-lg">
+              <div
+                className="inline-flex items-center border rounded-lg"
+                style={{ borderColor: colors.muted + '40' }}
+              >
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="p-3 hover:bg-gray-100 transition-colors rounded-l-lg"
+                  className="p-3 hover:opacity-70 transition-opacity rounded-l-lg"
+                  style={{ color: colors.text }}
                 >
                   <Minus className="w-4 h-4" />
                 </button>
-                <span className="w-12 text-center font-medium">{quantity}</span>
+                <span className="w-12 text-center font-medium" style={{ color: colors.text }}>
+                  {quantity}
+                </span>
                 <button
                   onClick={() => setQuantity(Math.min(99, quantity + 1))}
-                  className="p-3 hover:bg-gray-100 transition-colors rounded-r-lg"
+                  className="p-3 hover:opacity-70 transition-opacity rounded-r-lg"
+                  style={{ color: colors.text }}
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -311,16 +407,15 @@ export default function SharedProductPage({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-wrap">
               <button
                 onClick={handleAddToCart}
                 disabled={isAdding}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-semibold transition-all ${
-                  addedToCart
-                    ? 'bg-green-500 text-white'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                }`}
-                style={!addedToCart ? { backgroundColor: primaryColor } : {}}
+                className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-semibold transition-all text-white"
+                style={{
+                  backgroundColor: addedToCart ? '#22c55e' : colors.accent,
+                  opacity: isAdding ? 0.7 : 1,
+                }}
               >
                 {addedToCart ? (
                   <>
@@ -336,28 +431,38 @@ export default function SharedProductPage({
               </button>
               <button
                 onClick={handleBuyNow}
-                className="flex-1 py-3 px-6 border-2 rounded-lg font-semibold transition-colors hover:bg-gray-50"
-                style={{ borderColor: primaryColor, color: primaryColor }}
+                className="flex-1 min-w-[140px] py-3 px-6 border-2 rounded-lg font-semibold transition-all hover:opacity-80"
+                style={{
+                  borderColor: colors.primary,
+                  color: colors.primary,
+                  backgroundColor: 'transparent',
+                }}
               >
                 Buy Now
               </button>
-              <button className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                <Heart className="w-5 h-5 text-gray-500" />
+              <button
+                className="p-3 border rounded-lg hover:opacity-70 transition-opacity"
+                style={{ borderColor: colors.muted + '40', color: colors.muted }}
+              >
+                <Heart className="w-5 h-5" />
               </button>
-              <button className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                <Share2 className="w-5 h-5 text-gray-500" />
+              <button
+                className="p-3 border rounded-lg hover:opacity-70 transition-opacity"
+                style={{ borderColor: colors.muted + '40', color: colors.muted }}
+              >
+                <Share2 className="w-5 h-5" />
               </button>
             </div>
 
             {/* Trust Badges */}
-            <div className="border-t pt-6 space-y-3">
-              <div className="flex items-center gap-3 text-sm text-gray-600">
+            <div className="border-t pt-6 space-y-3" style={{ borderColor: colors.muted + '20' }}>
+              <div className="flex items-center gap-3 text-sm" style={{ color: colors.muted }}>
                 <Truck className="w-5 h-5 text-green-500" />
                 <span>Free shipping on orders over {currencySymbol}1,000</span>
               </div>
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <Shield className="w-5 h-5 text-blue-500" />
-                <span>Secure checkout • 100% payment protection</span>
+              <div className="flex items-center gap-3 text-sm" style={{ color: colors.muted }}>
+                <Shield className="w-5 h-5" style={{ color: colors.accent }} />
+                <span>Secure checkout - 100% payment protection</span>
               </div>
             </div>
           </div>
@@ -365,25 +470,25 @@ export default function SharedProductPage({
 
         {/* Tabs: Description & Reviews */}
         <div className="mt-12">
-          <div className="border-b">
+          <div className="border-b" style={{ borderColor: colors.muted + '20' }}>
             <div className="flex gap-8">
               <button
                 onClick={() => setActiveTab('description')}
-                className={`py-4 border-b-2 font-medium transition-colors ${
-                  activeTab === 'description'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+                className="py-4 border-b-2 font-medium transition-colors"
+                style={{
+                  borderColor: activeTab === 'description' ? colors.accent : 'transparent',
+                  color: activeTab === 'description' ? colors.accent : colors.muted,
+                }}
               >
                 Description
               </button>
               <button
                 onClick={() => setActiveTab('reviews')}
-                className={`py-4 border-b-2 font-medium transition-colors ${
-                  activeTab === 'reviews'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+                className="py-4 border-b-2 font-medium transition-colors"
+                style={{
+                  borderColor: activeTab === 'reviews' ? colors.accent : 'transparent',
+                  color: activeTab === 'reviews' ? colors.accent : colors.muted,
+                }}
               >
                 Reviews ({product.reviews?.count || 0})
               </button>
@@ -392,20 +497,26 @@ export default function SharedProductPage({
 
           <div className="py-8">
             {activeTab === 'description' ? (
-              <div className="prose max-w-none">
+              <div className="prose max-w-none" style={{ color: colors.text }}>
                 {product.description ? (
                   <div dangerouslySetInnerHTML={{ __html: product.description }} />
                 ) : (
-                  <p className="text-gray-500">No description available.</p>
+                  <p style={{ color: colors.muted }}>No description available.</p>
                 )}
               </div>
             ) : (
               <div className="space-y-6">
                 {product.reviews?.items && product.reviews.items.length > 0 ? (
                   product.reviews.items.map((review) => (
-                    <div key={review.id} className="bg-white rounded-lg p-6 shadow-sm">
+                    <div
+                      key={review.id}
+                      className="rounded-lg p-6 shadow-sm"
+                      style={{ backgroundColor: colors.cardBg }}
+                    >
                       <div className="flex items-center justify-between mb-3">
-                        <span className="font-medium">{review.customerName}</span>
+                        <span className="font-medium" style={{ color: colors.text }}>
+                          {review.customerName}
+                        </span>
                         <div className="flex">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <Star
@@ -419,11 +530,11 @@ export default function SharedProductPage({
                           ))}
                         </div>
                       </div>
-                      <p className="text-gray-600">{review.comment}</p>
+                      <p style={{ color: colors.muted }}>{review.comment}</p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500">No reviews yet. Be the first to review!</p>
+                  <p style={{ color: colors.muted }}>No reviews yet. Be the first to review!</p>
                 )}
               </div>
             )}
@@ -433,13 +544,16 @@ export default function SharedProductPage({
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div className="mt-12">
-            <h2 className="text-2xl font-bold mb-6">Related Products</h2>
+            <h2 className="text-2xl font-bold mb-6" style={{ color: colors.text }}>
+              Related Products
+            </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {relatedProducts.slice(0, 4).map((relProduct) => (
                 <Link
                   key={relProduct.id}
-                  to={`/products/${relProduct.id}`}
-                  className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                  to={getLink(`/products/${relProduct.id}`)}
+                  className="group rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                  style={{ backgroundColor: colors.cardBg }}
                 >
                   <div className="aspect-square overflow-hidden">
                     {relProduct.imageUrl ? (
@@ -449,17 +563,24 @@ export default function SharedProductPage({
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
-                        No Image
+                      <div
+                        className="w-full h-full flex items-center justify-center"
+                        style={{ backgroundColor: colors.background, color: colors.muted }}
+                      >
+                        <Package className="w-12 h-12 opacity-30" />
                       </div>
                     )}
                   </div>
                   <div className="p-3">
-                    <h3 className="font-medium text-gray-900 text-sm line-clamp-2 group-hover:text-blue-600 transition-colors">
+                    <h3
+                      className="font-medium text-sm line-clamp-2 group-hover:opacity-70 transition-opacity"
+                      style={{ color: colors.text }}
+                    >
                       {relProduct.title}
                     </h3>
-                    <p className="mt-1 font-semibold" style={{ color: primaryColor }}>
-                      {currencySymbol}{relProduct.price.toLocaleString()}
+                    <p className="mt-1 font-semibold" style={{ color: colors.accent }}>
+                      {currencySymbol}
+                      {relProduct.price.toLocaleString()}
                     </p>
                   </div>
                 </Link>

@@ -3,7 +3,7 @@ import { FeaturesVariantProps } from './types';
 import * as LucideIcons from 'lucide-react';
 
 const DynamicIcon = ({ name, className }: { name: string; className?: string }) => {
-  const Icon = (LucideIcons as any)[name] || LucideIcons.Star;
+  const Icon = (LucideIcons as Record<string, any>)[name] || LucideIcons.Star;
   return <Icon className={className} />;
 };
 
@@ -63,10 +63,15 @@ export function OrganicFeatures({ title, features }: FeaturesVariantProps) {
         </div>
       </div>
 
-      {/* Bottom Wave - Transition to next section (White -> Light Green Gradient #f7fee7) */}
+      {/* Bottom Wave - Transition to next section (White -> White for Video) */}
+      {/* Bottom Wave - Transition to next section (White -> Cream for Video) */}
       <div className="absolute bottom-[-2px] left-0 w-full overflow-hidden leading-[0] z-20">
-        <svg className="relative block w-[calc(100%+1.3px)] h-[100px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z" fill="#f7fee7"></path>
+        <svg className="relative block w-[calc(100%+1.3px)] h-[120px] md:h-[160px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            {/* Background Rect (Next Section Color - Cream) */}
+            <rect width="100%" height="100%" fill="#fefce8" />
+            
+            {/* Layer 3 - Solid (Current Section Color - White) */}
+            <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" fill="#ffffff"></path>
         </svg>
       </div>
     </section>

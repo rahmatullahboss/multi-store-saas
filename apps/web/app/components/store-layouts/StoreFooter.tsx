@@ -207,16 +207,20 @@ export function StoreFooter({
 
           {/* Powered by Ozzyl - Always visible (non-removable) */}
           {showPoweredBy && (
-            <div className={`mt-6 pt-4 border-t ${borderColor} flex justify-center items-center`}>
+            <div className="mt-6 pt-4 border-t border-[#0A1F17]/30 flex justify-center items-center">
               <a
                 href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`text-xs ${mutedColor} hover:text-indigo-500 transition-colors flex items-center gap-1.5`}
+                className="group text-xs text-gray-400 hover:text-[#00875F] transition-all duration-300 flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#0A1F17]/80 to-[#0D2A1D]/80 border border-[#006A4E]/20 hover:border-[#006A4E]/40 hover:shadow-lg hover:shadow-[#006A4E]/10"
               >
-                <span>Powered by</span>
-                <span className="font-bold tracking-tight text-sm">Ozzyl</span>
-                <span className="hidden sm:inline">• বাংলাদেশের #১ ই-কমার্স প্ল্যাটফর্ম</span>
+                <span className="text-gray-500 group-hover:text-gray-400">Powered by</span>
+                <span className="font-bold tracking-tight text-sm bg-gradient-to-r from-[#006A4E] to-[#00875F] bg-clip-text text-transparent">
+                  Ozzyl
+                </span>
+                <span className="hidden sm:inline text-gray-500 group-hover:text-[#00875F]/80">
+                  • বাংলাদেশের #১ ই-কমার্স প্ল্যাটফর্ম
+                </span>
               </a>
             </div>
           )}

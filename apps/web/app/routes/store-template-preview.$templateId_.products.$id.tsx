@@ -247,6 +247,8 @@ export default function PreviewProductPage() {
               product={data.product}
               currency={data.currency}
               relatedProducts={data.relatedProducts}
+              theme={data.theme}
+              isPreview={true}
             />
           </Suspense>
         ) : (

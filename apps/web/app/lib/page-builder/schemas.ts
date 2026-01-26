@@ -179,6 +179,7 @@ export type TestimonialsProps = z.infer<typeof TestimonialsPropsSchema>;
 export const FAQPropsSchema = z.object({
   title: z.string().optional().default('সাধারণ জিজ্ঞাসা'),
   subtitle: z.string().optional(),
+  badgeText: z.string().optional().default('Support'),
   items: z.array(z.object({
     question: z.string(),
     answer: z.string(),
@@ -205,6 +206,7 @@ export const VideoPropsSchema = z.object({
   title: z.string().optional().default('ভিডিও দেখুন'),
   videoUrl: z.string().optional(),
   thumbnailUrl: z.string().optional(),
+  badgeText: z.string().optional().default('Watch Story'),
 });
 export type VideoProps = z.infer<typeof VideoPropsSchema>;
 

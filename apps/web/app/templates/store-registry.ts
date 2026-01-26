@@ -367,6 +367,21 @@ const BDShopCartPage = React.lazy(() =>
     default: m.BDShopCartPage,
   }))
 );
+
+// Luxe Boutique ProductPage
+const LuxeBoutiqueProductPage = React.lazy(() =>
+  import('~/components/store-templates/luxe-boutique/pages/ProductPage').then((m) => ({
+    default: m.LuxeBoutiqueProductPage,
+  }))
+);
+
+// Eclipse ProductPage
+const EclipseProductPage = React.lazy(() =>
+  import('~/components/store-templates/eclipse/pages/ProductPage').then((m) => ({
+    default: m.EclipseProductPage,
+  }))
+);
+
 const GhorerBazarTemplate = React.lazy(() =>
   import('~/components/store-templates/ghorer-bazar/index').then((m) => ({
     default: m.GhorerBazarTemplate,
@@ -587,7 +602,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: LuxeBoutiqueTemplate,
     Header: LuxeBoutiqueHeader,
     Footer: LuxeBoutiqueFooter,
-    ProductPage: SharedProductPage,
+    ProductPage: LuxeBoutiqueProductPage,
   },
   {
     id: 'tech-modern',
@@ -708,7 +723,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: EclipseTemplate,
     Header: EclipseHeader,
     Footer: EclipseFooter,
-    ProductPage: SharedProductPage,
+    ProductPage: EclipseProductPage,
   },
   {
     id: 'aurora-minimal',

@@ -681,12 +681,14 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
         },
       },
       {
-         type: 'video',
-         props: {
-            title: 'ভিডিও রিভিউ দেখুন',
-            videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', 
-            thumbnailUrl: 'https://images.unsplash.com/photo-1556910103-1c02745a30bf?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80',
-         }
+        type: 'video',
+        props: {
+          variant: 'organic',
+          title: 'ভিডিও রিভিউ দেখুন',
+          videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', // Placeholder
+          thumbnailUrl: '',
+          badgeText: 'Watch Story',
+        },
       },
       {
         type: 'showcase',

@@ -47,6 +47,7 @@ export function VideoSectionPreview({ props }: { props: Record<string, unknown> 
         title={title}
         videoUrl={videoUrl}
         thumbnailUrl={thumbnail}
+        badgeText={(props as any).badgeText}
       />
     );
   }

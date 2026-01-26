@@ -51,12 +51,19 @@ export function usePreviewUrl(isPreview?: boolean) {
       return `/store-template-preview/${templateId}/collections/${collectionId}`;
     }
 
-    // Handle category query params (/?category=...)
+    // Handle category query params (/?category=...) - redirect to collection page
     if (to.startsWith('/?category=') || to.includes('category=')) {
-      const urlParts = to.split('?');
-      if (urlParts.length > 1) {
-        return `/store-template-preview/${templateId}?${urlParts[1]}`;
+      const urlParams = new URLSearchParams(to.split('?')[1] || '');
+      const category = urlParams.get('category');
+      if (category) {
+        return `/store-template-preview/${templateId}/collections/${encodeURIComponent(category)}`;
       }
+      return `/store-template-preview/${templateId}`;
+    }
+
+    // Handle /products route
+    if (to === '/products' || to.startsWith('/products?')) {
+      return `/store-template-preview/${templateId}/collections/all-products`;
     }
 
     // Default: append path to preview route
