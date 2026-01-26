@@ -1,0 +1,197 @@
+import { useState, useEffect } from 'react';
+import { Link, useParams } from '@remix-run/react';
+import { Minus, Plus, Trash2, ArrowRight, Shield } from 'lucide-react';
+
+interface TechCartProps {
+  theme?: any;
+  isPreview?: boolean;
+}
+
+export function TechCartPage({ theme, isPreview = false }: TechCartProps) {
+  const params = useParams();
+  const templateId = params.templateId || 'tech-modern';
+  const currencySymbol = '৳';
+
+  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    if (isPreview) {
+      setCartItems([
+        {
+          id: 1,
+          title: 'Ultra HD 4K Monitor',
+          price: 35000,
+          quantity: 1,
+          image:
+            'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&q=80&w=300',
+          specs: '27-inch, IPS, 144Hz',
+        },
+        {
+          id: 2,
+          title: 'Mechanical Gaming Keyboard',
+          price: 4500,
+          quantity: 1,
+          image:
+            'https://images.unsplash.com/photo-1587829741301-dc798b91add1?auto=format&fit=crop&q=80&w=300',
+          specs: 'RGB, Blue Switches',
+        },
+      ]);
+      setHydrated(true);
+    } else {
+      const stored = localStorage.getItem('cart');
+      if (stored) setCartItems(JSON.parse(stored));
+      setHydrated(true);
+    }
+  }, [isPreview]);
+
+  const updateQty = (id: number, delta: number) => {
+    setCartItems((items) =>
+      items.map((item) => {
+        if (item.id === id || item.productId === id) {
+          return { ...item, quantity: Math.max(1, item.quantity + delta) };
+        }
+        return item;
+      })
+    );
+  };
+
+  const removeItem = (id: number) => {
+    setCartItems((items) => items.filter((item) => item.id !== id && item.productId !== id));
+  };
+
+  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const getLink = (path: string) => {
+    if (isPreview && templateId) {
+      if (path === '/') return `/store-template-preview/${templateId}`;
+      if (path === '/checkout') return `/store-template-preview/${templateId}/checkout`;
+    }
+    return path;
+  };
+
+  if (!hydrated) return null;
+
+  return (
+    <div className="min-h-screen bg-[#f8fafc] py-8 md:py-12">
+      <div className="max-w-7xl mx-auto px-4">
+        <h1 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+          <span className="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center text-sm">
+            1
+          </span>
+          Shopping Cart
+        </h1>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-4">
+            {cartItems.map((item) => (
+              <div
+                key={item.id}
+                className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex gap-4"
+              >
+                <div className="w-24 h-24 bg-gray-100 rounded border border-gray-100 flex-shrink-0">
+                  <img
+                    src={item.image || item.imageUrl}
+                    alt={item.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                <div className="flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-bold text-gray-900">{item.title}</h3>
+                    {item.specs && (
+                      <p className="text-xs text-gray-500 mt-1 bg-gray-100 inline-block px-2 py-0.5 rounded">
+                        {item.specs}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex justify-between items-end">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-blue-600">
+                        {currencySymbol}
+                        {item.price.toLocaleString()}
+                      </span>
+                      <span className="text-xs text-gray-400">x {item.quantity}</span>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200">
+                        <button
+                          onClick={() => updateQty(item.id || item.productId, -1)}
+                          className="p-1 hover:text-blue-600"
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQty(item.id || item.productId, 1)}
+                          className="p-1 hover:text-blue-600"
+                        >
+                          <Plus size={14} />
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => removeItem(item.id || item.productId)}
+                        className="text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="lg:col-span-1">
+            <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm sticky top-24">
+              <h3 className="font-bold text-gray-900 mb-4 pb-4 border-b border-gray-100">
+                Order Summary
+              </h3>
+
+              <div className="space-y-3 mb-6 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span className="font-medium">
+                    {currencySymbol}
+                    {subtotal.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Tax</span>
+                  <span className="font-medium">{currencySymbol}0</span>
+                </div>
+                <div className="flex justify-between text-green-600">
+                  <span>Discount</span>
+                  <span>- {currencySymbol}0</span>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center text-lg font-bold mb-6 pt-4 border-t border-gray-100">
+                <span>Total</span>
+                <span className="text-blue-600">
+                  {currencySymbol}
+                  {subtotal.toLocaleString()}
+                </span>
+              </div>
+
+              <Link
+                to={getLink('/checkout')}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-200"
+              >
+                Checkout Securely <ArrowRight size={18} />
+              </Link>
+
+              <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500">
+                <Shield size={12} className="text-green-500" />
+                <span>SSL Encrypted Payment</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

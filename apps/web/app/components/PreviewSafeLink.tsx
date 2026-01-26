@@ -34,9 +34,13 @@ export function usePreviewUrl(isPreview?: boolean) {
       return `/store-template-preview/${templateId}`;
     }
 
-    // Handle product links: /product/123 -> /store-template-preview/:id/products/123
+    // Handle product links: /product/123 or /products/123 -> /store-template-preview/:id/products/123
     if (to.startsWith('/product/')) {
       const productId = to.replace('/product/', '');
+      return `/store-template-preview/${templateId}/products/${productId}`;
+    }
+    if (to.startsWith('/products/') && to !== '/products/') {
+      const productId = to.replace('/products/', '');
       return `/store-template-preview/${templateId}/products/${productId}`;
     }
 

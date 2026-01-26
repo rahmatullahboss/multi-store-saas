@@ -17,6 +17,7 @@ export type HeroVariant =
   | 'bento'
   | 'trust-first'
   | 'story-driven'
+  | 'story-driven-premium'
   | 'urgency'
   | 'social-proof'
   | 'organic';
@@ -40,6 +41,7 @@ export interface BaseHeroProps {
   subheadline: string;
   ctaText: string;
   badgeText: string;
+  backgroundImage?: string;
   primaryColor?: string;
   accentColor?: string;
 }

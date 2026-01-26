@@ -134,6 +134,7 @@ export const HeroPropsSchema = z.object({
   badgeText: z.string().optional(),
   priceLabel: z.string().optional(),
   backgroundImage: z.string().optional(),
+  productImage: z.string().optional(),
   variant: z.enum(['centered', 'split', 'split-left', 'split-right', 'glow', 'modern', 'immersive']).optional().default('centered'),
   features: z.array(z.object({
     icon: z.string(),

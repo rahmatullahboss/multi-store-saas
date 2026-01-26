@@ -40,14 +40,15 @@ export function VideoSectionPreview({ props }: { props: Record<string, unknown> 
   const thumbnail = thumbnailUrl || (youtubeId ? `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg` : '');
 
   // Organic Variant
-  const variant = (props as any).variant;
-  if (variant === 'organic') {
+  const organicProps = props as VideoProps & { variant?: string; badgeText?: string };
+  
+  if (organicProps.variant === 'organic') {
     return (
       <OrganicVideo 
         title={title}
         videoUrl={videoUrl}
         thumbnailUrl={thumbnail}
-        badgeText={(props as any).badgeText}
+        badgeText={organicProps.badgeText}
       />
     );
   }

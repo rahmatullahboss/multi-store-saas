@@ -156,7 +156,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'hero',
         props: {
-          variant: 'nature',
+          variant: 'organic',
           headline: 'প্রকৃতির বিশুদ্ধতা, আপনার পরিবারে',
           subheadline: 'ভেজালমুক্ত, ১০০% প্রাকৃতিক ও নিরাপদ খাদ্য সামগ্রী। আপনার সুস্বাস্থ্যই আমাদের অঙ্গীকার।',
           ctaText: 'অর্ডার করুন',
@@ -183,6 +183,7 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'trust-badges',
         props: {
+          variant: 'organic',
           badges: [
             { icon: '🌿', text: 'অর্গানিক' },
             { icon: '🔬', text: 'ল্যাব টেস্টেড' },
@@ -194,6 +195,8 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'features',
         props: {
+          variant: 'organic',
+          badgeText: 'Why Choose Us',
           title: 'পুষ্টিগুণ ও উপকারিতা',
           features: [
             { icon: '💪', title: 'ইমিউনিটি বুস্টার', description: 'রোগ প্রতিরোধ ক্ষমতা বাড়ায়' },
@@ -216,14 +219,30 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       {
         type: 'testimonials',
         props: {
+          variant: 'organic',
+          badgeText: 'Love Stories',
           title: 'গ্রাহকদের আস্থা',
           testimonials: [],
         },
       },
       {
+        type: 'faq',
+        props: {
+          variant: 'organic',
+          badgeText: 'Support',
+          title: 'সচরাচর জিজ্ঞাসা (FAQ)',
+          items: [
+            { question: 'এটা কি অরিজিনাল প্রোডাক্ট?', answer: 'জি, আমরা ১০০% অরিজিনাল প্রোডাক্ট বিক্রি করি অথেন্টিক সোর্স থেকে।' },
+            { question: 'ওয়ারেন্টি কতদিনের?', answer: 'আমরা ৬ মাসের অফিসিয়াল ওয়ারেন্টি দিচ্ছি।' },
+            { question: 'চার্জে কতক্ষণ চলে?', answer: 'একটানা ৬-৭ ঘণ্টা ব্যবহার করতে পারবেন।' },
+          ],
+        },
+      },
+      {
         type: 'cta',
         props: {
-          variant: 'green-box',
+          variant: 'organic',
+          badgeText: 'Get Started',
           headline: 'সুস্থ থাকতে আজই অর্ডার করুন',
           subheadline: 'প্রথম অর্ডারে ডেলিভারি চার্জ ফ্রি!',
           buttonText: 'অর্ডার কনফার্ম করুন',
@@ -886,6 +905,9 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
   // ─────────────────────────────────────────────────────────────────────────
   // STORY-DRIVEN - Emotional Narrative Design
   // ─────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // STORY-DRIVEN - Emotional Narrative Design
+  // ─────────────────────────────────────────────────────────────────────────
   'story-driven': {
     id: 'story-driven',
     name: 'স্টোরি ড্রিভেন',
@@ -979,6 +1001,61 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
           headline: '💛 হ্যাঁ, আমিও চেষ্টা করতে চাই!',
           subheadline: 'আপনার জার্নি আজই শুরু করুন',
           buttonText: 'এখনই অর্ডার করুন',
+        },
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // STORY-DRIVEN PREMIUM - World Class Design
+  // ─────────────────────────────────────────────────────────────────────────
+  'story-driven-premium': {
+    id: 'story-driven-premium',
+    name: 'স্টোরি ড্রিভেন (World Class)',
+    nameEn: '✨ Story Driven (Premium Editorial)',
+    description: 'আবেগপূর্ণ স্টোরিটেলিং এবং হাই-ফিডেলিটি অ্যানিমেশন',
+    descriptionEn: 'Emotional storytelling with high-fidelity animations',
+    thumbnail: '/templates/story-driven.png',
+    category: 'premium',
+    emoji: '✨',
+    colors: {
+      primary: '#451a03', // Amber 950 (Deep Brown)
+      accent: '#d97706',  // Amber 600
+      bg: '#fafaf9',      // Stone 50 (Premium Paper)
+    },
+    sections: [
+      {
+        type: 'hero',
+        props: {
+          variant: 'story-driven-premium',
+          headline: 'জীবনের গল্প বদলানোর একটি সিদ্ধান্ত',
+          subheadline: 'হাজারো মানুষের জীবন বদলে দেওয়া এই ফর্মুলা এখন আপনার হাতের নাগালে। একটি ছোট পরিবর্তন, একটি বড় সাফল্য।',
+          ctaText: 'আমার গল্প শুরু করুন',
+          badgeText: '✨ বিশ্বমানের অভিজ্ঞতা',
+          backgroundImage: 'https://images.unsplash.com/photo-1519750783826-e2420f4d687f?q=80&w=2787&auto=format&fit=crop',
+        },
+      },
+      {
+        type: 'features',
+        props: {
+          variant: 'story-driven-premium',
+          title: 'সমস্যা থেকে সমাধানের যাত্রা',
+          features: [
+            { icon: 'Frown', title: 'অস্বস্তি ও হতাশা', description: 'প্রতিদিন সকালে ঘুম থেকে উঠে সেই একই ক্লান্তি এবং হতাশা। মনে হতো এর কোনো শেষ নেই।' },
+            { icon: 'Search', title: 'সমাধানের খোঁজ', description: 'দীর্ঘ গবেষণার পর খুঁজে পেলাম প্রকৃতির সেই গোপন সূত্র যা সত্যিই কাজ করে।' },
+            { icon: 'Sun', title: 'নতুন দিনের শুরু', description: 'মাত্র ৭ দিনের ব্যবহারে ফিরে পেলাম হারানো আত্মবিশ্বাস। এখন আমি সম্পূর্ণ নতুন মানুষ।' },
+            { icon: 'Users', title: 'সবার জন্য উন্মুক্ত', description: 'এখন এই সিক্রেট ফর্মুলাটি আমি সবার সাথে শেয়ার করতে চাই।' },
+          ],
+        },
+      },
+      {
+        type: 'cta',
+        props: {
+          styleVariant: 'story-driven-premium',
+          variant: 'story-driven-premium',
+          headline: 'আজই নিজের গল্পটি নতুন করে লিখুন',
+          subheadline: 'সীমিত সময়ের জন্য বিশেষ অফার চলছে। দেরি করবেন না।',
+          buttonText: 'অর্ডার কনফার্ম করুন',
         },
       },
     ],

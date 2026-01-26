@@ -11,6 +11,7 @@ import { NeubrutalistHero } from './NeubrutalistHero';
 import { BentoHero } from './BentoHero';
 import { TrustFirstHero } from './TrustFirstHero';
 import { StoryDrivenHero } from './StoryDrivenHero';
+import { WorldClassStoryHero } from './WorldClassStoryHero';
 import { UrgencyHero } from './UrgencyHero';
 import { SocialProofHero } from './SocialProofHero';
 import { OrganicHero } from './OrganicHero';
@@ -23,6 +24,7 @@ export function HeroSectionPreview({ props, theme }: HeroSectionPreviewProps) {
     ctaText = 'অর্ডার করুন',
     badgeText = '',
     backgroundImage = '',
+    productImage,
     backgroundColor,
     backgroundGradient,
     textColor,
@@ -86,6 +88,17 @@ export function HeroSectionPreview({ props, theme }: HeroSectionPreviewProps) {
           badgeText={badgeText}
         />
       );
+
+    case 'story-driven-premium':
+      return (
+        <WorldClassStoryHero
+          headline={headline}
+          subheadline={subheadline}
+          ctaText={ctaText}
+          badgeText={badgeText}
+          backgroundImage={backgroundImage}
+        />
+      );
     
     case 'urgency':
       return (
@@ -113,6 +126,7 @@ export function HeroSectionPreview({ props, theme }: HeroSectionPreviewProps) {
           subheadline={subheadline}
           ctaText={ctaText}
           badgeText={badgeText}
+          productImage={productImage}
         />
       );
     

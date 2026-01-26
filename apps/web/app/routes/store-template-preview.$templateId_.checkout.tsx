@@ -1,13 +1,13 @@
 /**
- * Store Template Preview - Cart Page
+ * Store Template Preview - Checkout Page
  *
- * Route: /store-template-preview/:templateId/cart
+ * Route: /store-template-preview/:templateId/checkout
  */
 
 import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, Link } from '@remix-run/react';
 import { Suspense, useState } from 'react';
-import { ArrowLeft, Eye, X } from 'lucide-react';
+import { ArrowLeft, Eye, X, Lock } from 'lucide-react';
 import { getStoreTemplate, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import {
@@ -18,7 +18,6 @@ import {
   DEMO_THEME_CONFIG,
   DEMO_STORE_NAME,
 } from '~/utils/store-preview-data';
-import { ShoppingCart } from 'lucide-react';
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const templateId = params.templateId || 'luxe-boutique';
@@ -28,7 +27,6 @@ export async function loader({ params }: LoaderFunctionArgs) {
   return json({
     templateId: template.id,
     templateName: template.name,
-    hasCartPage: !!template.CartPage,
     theme,
     categories: DEMO_CATEGORIES,
     storeName: DEMO_STORE_NAME,
@@ -45,7 +43,7 @@ function LoadingFallback() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="text-center">
         <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading cart...</p>
+        <p className="text-gray-600">Loading checkout...</p>
       </div>
     </div>
   );
@@ -66,7 +64,7 @@ function PreviewIndicator({
     <div className="fixed bottom-4 left-4 z-[9999] flex items-center gap-2 px-4 py-2 bg-black/80 backdrop-blur-sm text-white rounded-full shadow-lg text-sm">
       <Eye className="w-4 h-4" />
       <span>
-        Preview: <strong>{templateName}</strong> - Cart Page
+        Preview: <strong>{templateName}</strong> - Checkout Page
       </span>
       <Link
         to={`/store-template-preview/${templateId}`}
@@ -85,41 +83,38 @@ function PreviewIndicator({
   );
 }
 
-function FallbackCartPage({ theme }: { theme: any }) {
+function FallbackCheckoutPage({ theme }: { theme: any }) {
   return (
     <div
       className="min-h-[60vh] flex items-center justify-center"
       style={{ backgroundColor: theme.background }}
     >
-      <div className="text-center">
-        <ShoppingCart
-          className="w-16 h-16 mx-auto mb-4 opacity-30"
-          style={{ color: theme.muted }}
-        />
+      <div className="text-center max-w-md px-4">
+        <Lock className="w-16 h-16 mx-auto mb-4 opacity-30" style={{ color: theme.muted }} />
         <h2 className="text-xl font-semibold mb-2" style={{ color: theme.text }}>
-          Your Cart is Empty (Preview)
+          Checkout Not Available in Preview
         </h2>
         <p className="mb-6" style={{ color: theme.muted }}>
-          Add items to see them here
+          This template doesn't have a checkout page preview configured yet.
         </p>
         <Link
           to=".."
           className="px-8 py-3 rounded-lg text-white font-medium inline-block"
           style={{ backgroundColor: theme.primary }}
         >
-          Continue Shopping
+          Return to Store
         </Link>
       </div>
     </div>
   );
 }
 
-export default function PreviewCartPage() {
+export default function PreviewCheckoutPage() {
   const data = useLoaderData<typeof loader>();
 
   // Get the actual template component
   const template = getStoreTemplate(data.templateId);
-  const CartPageComponent = template.CartPage;
+  const CheckoutPageComponent = template.CheckoutPage;
 
   return (
     <>
@@ -139,13 +134,13 @@ export default function PreviewCartPage() {
         customer={null}
         isPreview={true}
       >
-        {/* Use template-specific CartPage if available */}
-        {CartPageComponent ? (
+        {/* Use template-specific CheckoutPage if available */}
+        {CheckoutPageComponent ? (
           <Suspense fallback={<LoadingFallback />}>
-            <CartPageComponent theme={data.theme} isPreview={true} />
+            <CheckoutPageComponent theme={data.theme} isPreview={true} />
           </Suspense>
         ) : (
-          <FallbackCartPage theme={data.theme} />
+          <FallbackCheckoutPage theme={data.theme} />
         )}
       </StorePageWrapper>
 

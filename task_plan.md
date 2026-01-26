@@ -1,34 +1,38 @@
-# Task Plan: Code Review
+# Task Plan: Upgrade Storied Driven Template
 
 ## Goal
 
-Conduct a comprehensive code review of the recent changes to the Page Builder preview logic and Section Renderer, ensuring compliance with project standards, security best practices, and functional correctness.
+Upgrade the "Storied Driven Template" (likely 'story-brand' or similar found in analysis) to a world-class, high-fidelity UI/UX with premium typography, advanced animations, and immersive layouts.
 
 ## Success Criteria
 
-- [ ] Automated checks (lint, typecheck, test) pass or have clear fix plans.
-- [ ] Manual review completed for:
-  - `apps/web/app/routes/builder-preview.$pageId.tsx`
-  - `apps/web/app/components/page-builder/SectionRenderer.tsx`
-  - `apps/web/tests/unit/section-registry-update.test.ts`
-- [ ] Security checks performed (SQLi, Input Validation).
-- [ ] React/Remix patterns verified.
-- [ ] Review report generated.
+- [ ] Identify the correct "Storied Driven Template" in `templates.ts`.
+- [ ] Create a detailed design plan in `implementation_plan.md` (or within this task plan).
+- [ ] Implement premium typography (Google Fonts).
+- [ ] Implement advanced color palette.
+- [ ] Overhaul Hero, Features, and CTA sections with high-fidelity designs (Bento grids, glassmorphism, etc.).
+- [ ] Add micro-interactions and scroll animations.
+- [ ] Verify changes in `landing-template-preview`.
 
 ## Phases
 
-### Phase 1: Automated Checks & Setup
+### Phase 1: Context & Research
 
-- [x] [AGENT] Run `npm run turbo:typecheck && npm run turbo:lint && npx turbo run test`
-- [x] [AGENT] Load Skills (`backend-dev-guidelines`, `frontend-dev-guidelines`, etc.)
+- [ ] [AGENT: Research Agent] [CONTEXT] Identify the specific template in `apps/web/app/lib/page-builder/templates.ts`.
+- [ ] [AGENT: Research Agent] [CONTEXT] Analyze `docs/theme_development_guide.md` for constraint compliance.
+- [ ] [AGENT: Research Agent] [CONTEXT] Check `apps/web/app/routes/landing-template-preview.$templateId.tsx` for rendering logic.
 
-### Phase 2: Manual Review
+### Phase 2: Design & Planning
 
-- [ ] [AGENT] Review `apps/web/app/routes/builder-preview.$pageId.tsx` (Focus: Fallback logic, Data Flow)
-- [ ] [AGENT] Review `apps/web/app/components/page-builder/SectionRenderer.tsx` (Focus: Prop drilling, Type handling)
-- [ ] [AGENT] Review `apps/web/tests/unit/section-registry-update.test.ts` (Focus: Test coverage, correctness)
+- [ ] [AGENT: Design Agent] [PLAN] Define the new design tokens (Colors, Fonts).
+- [ ] [AGENT: Design Agent] [PLAN] Define section specific upgrades (Hero -> Immersive, Features -> Bento).
 
-### Phase 3: Reporting
+### Phase 3: Implementation
 
-- [ ] [AGENT] Create Code Review Report Artifact.
-- [ ] [AGENT] Notify User.
+- [ ] [AGENT: Coding Agent] [CODE] Update `apps/web/app/lib/page-builder/templates.ts` with new JSON structure.
+- [ ] [AGENT: Coding Agent] [CODE] Create/Update React components if necessary (or just generic section upgrades). _Note: The system seems to rely on generic sections with variants. I may need to create new variants._
+- [ ] [AGENT: Coding Agent] [CODE] Update `docs/theme_development_guide.md` with new standards.
+
+### Phase 4: Verification
+
+- [ ] [AGENT: Testing Agent] [VERIFY] Visual verification via preview code inspection.

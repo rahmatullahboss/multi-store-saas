@@ -84,9 +84,26 @@ export function useOrderForm(
   // Use product data if available
   const actualPrice = product?.price ?? discountedPrice;
   const actualComparePrice = product?.compareAtPrice ?? productPrice;
-  const actualVariants = (product?.variants && product.variants.length > 0) 
-    ? product.variants.map(v => ({ id: String(v.id), name: v.name, price: v.price }))
-    : variants;
+  
+  // LOGIC FIX: If we have a real product, we MUST use its data. 
+  // If it has variants, use them. If it has NO variants (simple product), create a synthetic variant.
+  // We NEVER fallback to dummy 'variants' prop if a real product is present.
+  const actualVariants = useMemo(() => {
+    if (product) {
+      if (product.variants && product.variants.length > 0) {
+        return product.variants.map(v => ({ id: String(v.id), name: v.name, price: v.price }));
+      }
+      // Simple product -> Single variant
+      return [{ 
+        id: 'default', 
+        name: 'Regular', 
+        price: product.price 
+      }];
+    }
+    // No real product -> Use default/dummy variants from props
+    return variants;
+  }, [product, variants]);
+
   const actualProductImage = product?.images?.[0] || typedProps.productImage || null;
   const actualProductTitle = product?.title || typedProps.productTitle || null;
   

@@ -1,6 +1,6 @@
 /**
  * Store Template Preview - Collection/Category Page
- * 
+ *
  * Route: /store-template-preview/:templateId/collections/:id
  */
 
@@ -8,10 +8,7 @@ import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/clo
 import { useLoaderData, Link } from '@remix-run/react';
 import { Suspense, useState } from 'react';
 import { ArrowLeft, Eye, X } from 'lucide-react';
-import { 
-  getStoreTemplate, 
-  STORE_TEMPLATE_THEMES,
-} from '~/templates/store-registry';
+import { getStoreTemplate, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import {
   DEMO_CATEGORIES,
@@ -35,7 +32,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 export async function loader({ params, request }: LoaderFunctionArgs) {
   const templateId = params.templateId || 'luxe-boutique';
   const collectionId = params.id || '';
-  
+
   // Handle "category" url param if needed, but here we assume path param works for both
   const url = new URL(request.url);
   const isCategory = url.searchParams.get('type') === 'category';
@@ -48,9 +45,14 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   let description = '';
 
   // Check if it matches a demo collection ID
-  const collection = DEMO_COLLECTIONS.find(c => c.id === collectionId);
-  
-  if (collection) {
+  const collection = DEMO_COLLECTIONS.find((c) => c.id === collectionId);
+
+  // Handle "all-products" special case
+  if (collectionId === 'all-products') {
+    title = 'All Products';
+    description = 'Browse our complete collection';
+    products = getDemoProductsByCollection('featured'); // Get all demo products
+  } else if (collection) {
     title = collection.nameBn || collection.name;
     description = collection.description;
     products = getDemoProductsByCollection(collectionId);
@@ -62,8 +64,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
   // Fallback products if empty for preview
   if (products.length === 0) {
-      // Just grab first 8 products for visualization if empty
-     products = getDemoProductsByCollection('featured'); 
+    // Just grab first 8 products for visualization if empty
+    products = getDemoProductsByCollection('featured');
   }
 
   return json({
@@ -72,7 +74,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     theme,
     title,
     description,
-    products: products.map(p => ({
+    products: products.map((p) => ({
       id: p.id,
       storeId: p.storeId,
       title: p.title,
@@ -103,7 +105,13 @@ function LoadingFallback() {
   );
 }
 
-function PreviewIndicator({ templateName, templateId }: { templateName: string; templateId: string }) {
+function PreviewIndicator({
+  templateName,
+  templateId,
+}: {
+  templateName: string;
+  templateId: string;
+}) {
   const [dismissed, setDismissed] = useState(false);
 
   if (dismissed) return null;
@@ -111,15 +119,17 @@ function PreviewIndicator({ templateName, templateId }: { templateName: string; 
   return (
     <div className="fixed bottom-4 left-4 z-[9999] flex items-center gap-2 px-4 py-2 bg-black/80 backdrop-blur-sm text-white rounded-full shadow-lg text-sm">
       <Eye className="w-4 h-4" />
-      <span>Preview: <strong>{templateName}</strong> - Collection Page</span>
-      <Link 
+      <span>
+        Preview: <strong>{templateName}</strong> - Collection Page
+      </span>
+      <Link
         to={`/store-template-preview/${templateId}`}
         className="ml-2 px-2 py-1 bg-white/20 rounded hover:bg-white/30 transition flex items-center gap-1"
       >
         <ArrowLeft className="w-3 h-3" />
         Home
       </Link>
-      <button 
+      <button
         onClick={() => setDismissed(true)}
         className="ml-1 p-1 hover:bg-white/20 rounded-full transition"
       >
@@ -131,38 +141,66 @@ function PreviewIndicator({ templateName, templateId }: { templateName: string; 
 
 // Reuse the fallback ProductPage style for consistency or import a shared one
 // Ideally layouts handle the rendering, but previews might not have full router context
-function DefaultCollectionLayout({ title, description, products, theme, currency }: any) {
-    return (
-        <div className="min-h-screen py-8 px-4" style={{ backgroundColor: theme.background }}>
-            <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-12">
-                    <h1 className="text-3xl font-bold mb-4" style={{ color: theme.text }}>{title}</h1>
-                    {description && <p className="text-lg" style={{ color: theme.muted }}>{description}</p>}
-                </div>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    {products.map((product: any) => (
-                        <Link key={product.id} to={`../products/${product.id}`} className="group block">
-                            <div className="aspect-square rounded-xl overflow-hidden mb-4 bg-gray-100">
-                                {product.imageUrl ? (
-                                    <img src={product.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
-                                )}
-                            </div>
-                            <h3 className="font-medium mb-1 line-clamp-1" style={{ color: theme.text }}>{product.title}</h3>
-                            <p className="font-bold" style={{ color: theme.primary }}>{currency}{product.price}</p>
-                        </Link>
-                    ))}
-                </div>
-            </div>
+function DefaultCollectionLayout({
+  title,
+  description,
+  products,
+  theme,
+  currency,
+  templateId,
+}: any) {
+  return (
+    <div className="min-h-screen py-8 px-4" style={{ backgroundColor: theme.background }}>
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-bold mb-4" style={{ color: theme.text }}>
+            {title}
+          </h1>
+          {description && (
+            <p className="text-lg" style={{ color: theme.muted }}>
+              {description}
+            </p>
+          )}
         </div>
-    )
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {products.map((product: any) => (
+            <Link
+              key={product.id}
+              to={`/store-template-preview/${templateId}/products/${product.id}`}
+              className="group block"
+            >
+              <div className="aspect-square rounded-xl overflow-hidden mb-4 bg-gray-100">
+                {product.imageUrl ? (
+                  <img
+                    src={product.imageUrl}
+                    alt=""
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    No Image
+                  </div>
+                )}
+              </div>
+              <h3 className="font-medium mb-1 line-clamp-1" style={{ color: theme.text }}>
+                {product.title}
+              </h3>
+              <p className="font-bold" style={{ color: theme.accent }}>
+                {currency}
+                {product.price}
+              </p>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function PreviewCollectionPage() {
   const data = useLoaderData<typeof loader>();
-  
+
   // Note: Most templates handle collections via their main layout or dedicated pages
   // But if the template component is only the HOME page (which is common for these single-page-like templates),
   // we need a generic collection view wrapped in the template layout.
@@ -183,13 +221,15 @@ export default function PreviewCollectionPage() {
         footerConfig={data.footerConfig}
         planType="pro"
         customer={null}
+        isPreview={true}
       >
-        <DefaultCollectionLayout 
-            title={data.title}
-            description={data.description}
-            products={data.products}
-            theme={data.theme}
-            currency={data.currency}
+        <DefaultCollectionLayout
+          title={data.title}
+          description={data.description}
+          products={data.products}
+          theme={data.theme}
+          currency={data.currency}
+          templateId={data.templateId}
         />
       </StorePageWrapper>
 

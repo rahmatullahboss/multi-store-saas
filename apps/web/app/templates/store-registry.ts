@@ -125,6 +125,10 @@ export interface StoreTemplateDefinition {
   ProductPage?: ComponentType<any>;
   /** Template-specific cart page component */
   CartPage?: ComponentType<any>;
+  /** Template-specific collection/category page component */
+  CollectionPage?: ComponentType<any>;
+  /** Template-specific checkout page component */
+  CheckoutPage?: ComponentType<any>;
 }
 
 // ============================================================================
@@ -326,6 +330,19 @@ const SharedProductPage = React.lazy(
   () => import('~/components/store-templates/shared/ProductPage')
 );
 
+// Shared Cart Page
+const SharedCartPage = React.lazy(() => import('~/components/store-templates/shared/CartPage'));
+
+// Shared Checkout Page
+const SharedCheckoutPage = React.lazy(
+  () => import('~/components/store-templates/shared/CheckoutPage')
+);
+
+// Shared Collection Page
+const SharedCollectionPage = React.lazy(
+  () => import('~/components/store-templates/shared/CollectionPage')
+);
+
 const LuxeBoutiqueTemplate = React.lazy(() =>
   import('~/components/store-templates/luxe-boutique/index').then((m) => ({
     default: m.LuxeBoutiqueTemplate,
@@ -368,10 +385,37 @@ const BDShopCartPage = React.lazy(() =>
   }))
 );
 
-// Luxe Boutique ProductPage
+// Luxe Boutique Pages
 const LuxeBoutiqueProductPage = React.lazy(() =>
   import('~/components/store-templates/luxe-boutique/pages/ProductPage').then((m) => ({
     default: m.LuxeBoutiqueProductPage,
+  }))
+);
+const LuxeCartPage = React.lazy(() =>
+  import('~/components/store-templates/luxe-boutique/pages/CartPage').then((m) => ({
+    default: m.LuxeCartPage,
+  }))
+);
+const LuxeCollectionPage = React.lazy(() =>
+  import('~/components/store-templates/luxe-boutique/pages/CollectionPage').then((m) => ({
+    default: m.LuxeCollectionPage,
+  }))
+);
+
+// Tech Modern Pages
+const TechModernProductPage = React.lazy(() =>
+  import('~/components/store-templates/tech-modern/pages/ProductPage').then((m) => ({
+    default: m.TechModernProductPage,
+  }))
+);
+const TechCartPage = React.lazy(() =>
+  import('~/components/store-templates/tech-modern/pages/CartPage').then((m) => ({
+    default: m.TechCartPage,
+  }))
+);
+const TechCollectionPage = React.lazy(() =>
+  import('~/components/store-templates/tech-modern/pages/CollectionPage').then((m) => ({
+    default: m.TechCollectionPage,
   }))
 );
 
@@ -603,6 +647,9 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     Header: LuxeBoutiqueHeader,
     Footer: LuxeBoutiqueFooter,
     ProductPage: LuxeBoutiqueProductPage,
+    CartPage: LuxeCartPage,
+    CollectionPage: LuxeCollectionPage,
+    CheckoutPage: SharedCheckoutPage,
   },
   {
     id: 'tech-modern',
@@ -619,7 +666,10 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: TechModernTemplate,
     Header: TechModernHeader,
     Footer: TechModernFooter,
-    ProductPage: SharedProductPage,
+    ProductPage: TechModernProductPage,
+    CartPage: TechCartPage,
+    CollectionPage: TechCollectionPage,
+    CheckoutPage: SharedCheckoutPage,
   },
   {
     id: 'artisan-market',
@@ -637,6 +687,9 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     Header: ArtisanMarketHeader,
     Footer: ArtisanMarketFooter,
     ProductPage: SharedProductPage,
+    CartPage: SharedCartPage,
+    CollectionPage: SharedCollectionPage,
+    CheckoutPage: SharedCheckoutPage,
   },
   {
     id: 'daraz',
@@ -655,6 +708,8 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     Footer: DarazFooter,
     ProductPage: DarazProductPage,
     CartPage: DarazCartPage,
+    CollectionPage: SharedCollectionPage,
+    CheckoutPage: SharedCheckoutPage,
   },
   {
     id: 'bdshop',
@@ -673,6 +728,8 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     Footer: BDShopFooter,
     ProductPage: BDShopProductPage,
     CartPage: BDShopCartPage,
+    CollectionPage: SharedCollectionPage,
+    CheckoutPage: SharedCheckoutPage,
   },
   {
     id: 'ghorer-bazar',
@@ -690,6 +747,9 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     Header: GhorerBazarHeader,
     Footer: GhorerBazarFooter,
     ProductPage: SharedProductPage,
+    CartPage: SharedCartPage,
+    CollectionPage: SharedCollectionPage,
+    CheckoutPage: SharedCheckoutPage,
   },
   {
     id: 'nova-lux',
@@ -707,6 +767,9 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     Header: NovaLuxHeader,
     Footer: NovaLuxFooter,
     ProductPage: SharedProductPage,
+    CartPage: SharedCartPage,
+    CollectionPage: SharedCollectionPage,
+    CheckoutPage: SharedCheckoutPage,
   },
   {
     id: 'eclipse',
@@ -724,6 +787,9 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     Header: EclipseHeader,
     Footer: EclipseFooter,
     ProductPage: EclipseProductPage,
+    CartPage: SharedCartPage,
+    CollectionPage: SharedCollectionPage,
+    CheckoutPage: SharedCheckoutPage,
   },
   {
     id: 'aurora-minimal',
@@ -741,6 +807,9 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     Header: AuroraMinimalHeader,
     Footer: AuroraMinimalFooter,
     ProductPage: SharedProductPage,
+    CartPage: SharedCartPage,
+    CollectionPage: SharedCollectionPage,
+    CheckoutPage: SharedCheckoutPage,
   },
   {
     id: 'freshness',
@@ -758,6 +827,9 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     Header: FreshnessHeader,
     Footer: FreshnessFooter,
     ProductPage: SharedProductPage,
+    CartPage: SharedCartPage,
+    CollectionPage: SharedCollectionPage,
+    CheckoutPage: SharedCheckoutPage,
   },
   {
     id: 'zenith-rise',
@@ -775,6 +847,9 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     Header: ZenithRiseHeader,
     Footer: ZenithRiseFooter,
     ProductPage: SharedProductPage,
+    CartPage: SharedCartPage,
+    CollectionPage: SharedCollectionPage,
+    CheckoutPage: SharedCheckoutPage,
   },
   {
     id: 'turbo-sale',
@@ -792,6 +867,9 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     Header: TurboSaleHeader,
     Footer: TurboSaleFooter,
     ProductPage: SharedProductPage,
+    CartPage: SharedCartPage,
+    CollectionPage: SharedCollectionPage,
+    CheckoutPage: SharedCheckoutPage,
   },
   {
     id: 'rovo',
@@ -808,6 +886,9 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     Header: RovoHeader,
     Footer: RovoFooter,
     ProductPage: SharedProductPage,
+    CartPage: SharedCartPage,
+    CollectionPage: SharedCollectionPage,
+    CheckoutPage: SharedCheckoutPage,
   },
   {
     id: 'sokol',
@@ -825,6 +906,9 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     Header: SokolHeader,
     Footer: SokolFooter,
     ProductPage: SharedProductPage,
+    CartPage: SharedCartPage,
+    CollectionPage: SharedCollectionPage,
+    CheckoutPage: SharedCheckoutPage,
   },
   {
     id: 'starter-store',
@@ -842,6 +926,9 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     Header: StarterStoreHeader,
     Footer: StarterStoreFooter,
     ProductPage: SharedProductPage,
+    CartPage: SharedCartPage,
+    CollectionPage: SharedCollectionPage,
+    CheckoutPage: SharedCheckoutPage,
   },
 ];
 

@@ -10,8 +10,8 @@ const LeafIcon = ({ className }: { className?: string }) => (
 );
 
 export function OrganicHero({ 
-  headline, subheadline, badgeText, ctaText 
-}: BaseHeroProps) {
+  headline, subheadline, badgeText, ctaText, productImage
+}: BaseHeroProps & { productImage?: string }) {
   return (
     <section className="relative overflow-hidden bg-[#fefce8] pt-20 pb-48 md:pb-60">
       {/* Background Pattern */}
@@ -70,7 +70,7 @@ export function OrganicHero({
             <div className="relative z-10 aspect-square rounded-[3rem] overflow-hidden shadow-2xl shadow-[#3f6212]/10 border-8 border-white/50 bg-[#e7e5e4] flex items-center justify-center">
               {/* Placeholder for Product Image */}
                <img 
-                 src="https://images.unsplash.com/photo-1615397349754-cfa2066a298e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                 src={productImage || "https://images.unsplash.com/photo-1615397349754-cfa2066a298e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"} 
                  alt="Organic Product" 
                  className="w-full h-full object-cover"
                />

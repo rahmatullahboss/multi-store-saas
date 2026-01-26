@@ -1,6 +1,6 @@
 /**
  * AddToCartButton Component
- * 
+ *
  * Implements client-side cart management using localStorage.
  * Provides optimistic UI feedback when adding items to cart.
  * Fires AddToCart tracking events for FB Pixel + GA4.
@@ -25,10 +25,10 @@ interface AddToCartButtonProps {
   currency?: string;
 }
 
-export function AddToCartButton({ 
-  productId, 
+export function AddToCartButton({
+  productId,
   storeId,
-  disabled = false, 
+  disabled = false,
   size = 'default',
   className,
   style,
@@ -44,19 +44,26 @@ export function AddToCartButton({
 
   const handleAddToCart = () => {
     if (disabled) return;
-    
-    // In preview mode, just show visual feedback without updating cart
+
+    // In preview mode, allow cart update for realistic feel
     if (isPreview) {
       if (mode === 'buy_now') {
-        setIsAdding(true); // Simulate processing
-        setTimeout(() => setIsAdding(false), 1000);
+        setIsAdding(true);
+        setTimeout(() => {
+          setIsAdding(false);
+          // Redirect simulation if needed, but usually parent handles navigation or simple reload
+          // window.location.href = '/store-template-preview/luxe-boutique/cart'; // Cannot guess template ID easily here
+        }, 1000);
       } else {
         setIsAdded(true);
         setTimeout(() => setIsAdded(false), 2000);
       }
+
+      // Update local cart even in preview!
+      updateLocalCart(productId, 1, storeId);
       return;
     }
-    
+
     // Fire AddToCart tracking event (FB Pixel + GA4)
     if (productName && productPrice) {
       trackingEvents.addToCart({
@@ -68,14 +75,14 @@ export function AddToCartButton({
       });
       console.log('[Tracking] AddToCart event fired:', productName, productPrice);
     }
-    
+
     // Update local cart in localStorage
     updateLocalCart(productId, 1, storeId);
-    
+
     if (mode === 'buy_now') {
-       // Redirect to cart/checkout immediately
-       window.location.href = '/cart';
-       return;
+      // Redirect to cart/checkout immediately
+      window.location.href = '/cart';
+      return;
     }
 
     // Show success state
@@ -85,7 +92,7 @@ export function AddToCartButton({
 
   // If custom className/style provided, use minimal base styling
   const hasCustomStyles = className || style;
-  
+
   const defaultClasses = `
     add-to-cart
     ${isAdding ? 'adding' : ''}
@@ -93,7 +100,7 @@ export function AddToCartButton({
     ${size === 'large' ? 'py-4 text-lg' : ''}
   `.trim();
 
-  const buttonClasses = hasCustomStyles 
+  const buttonClasses = hasCustomStyles
     ? `${className || ''} ${isAdded ? 'bg-emerald-600!' : ''}`
     : defaultClasses;
 
@@ -106,7 +113,13 @@ export function AddToCartButton({
       aria-label={isAdding ? 'Adding to cart...' : 'Add to cart'}
     >
       {children ? (
-        isAdding ? 'Adding...' : isAdded ? 'Added!' : children
+        isAdding ? (
+          'Adding...'
+        ) : isAdded ? (
+          'Added!'
+        ) : (
+          children
+        )
       ) : (
         <>
           {isAdding ? (
@@ -136,21 +149,22 @@ function updateLocalCart(productId: number, quantity: number, storeId?: number) 
   // Store in localStorage for persistence
   try {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    const existingIndex = cart.findIndex((item: { productId: number }) => item.productId === productId);
-    
+    const existingIndex = cart.findIndex(
+      (item: { productId: number }) => item.productId === productId
+    );
+
     if (existingIndex >= 0) {
       cart[existingIndex].quantity += quantity;
     } else {
       cart.push({ productId, quantity, storeId });
     }
-    
+
     localStorage.setItem('cart', JSON.stringify(cart));
-    
+
     // Dispatch custom event for real-time UI updates
     window.dispatchEvent(new Event('cart-updated'));
     // Also dispatch storage event for cross-tab or strict listeners
     window.dispatchEvent(new Event('storage'));
-    
   } catch (e) {
     console.error('Failed to update local cart:', e);
   }
@@ -161,7 +175,11 @@ function LoadingSpinner() {
   return (
     <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      />
     </svg>
   );
 }
@@ -177,7 +195,12 @@ function CheckIcon() {
 function CartIcon() {
   return (
     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+      />
     </svg>
   );
 }

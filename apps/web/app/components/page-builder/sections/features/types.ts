@@ -24,3 +24,5 @@ export interface FeaturesVariantProps {
   theme?: SectionTheme;
   styleProps: SectionStyleProps;
 }
+
+export type BaseFeaturesProps = FeaturesVariantProps;

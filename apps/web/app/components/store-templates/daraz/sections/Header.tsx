@@ -1,6 +1,6 @@
 /**
  * Daraz Header Component
- * 
+ *
  * Header matching Daraz Bangladesh website with:
  * - Dark gray top utility bar
  * - Orange main header with logo, search, cart
@@ -11,11 +11,21 @@ import { Link } from '@remix-run/react';
 import { useState } from 'react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { useWishlist } from '~/hooks/useWishlist';
-import { 
-  Menu, X, Search, ShoppingCart, Heart, User, 
-  ShoppingBag, Headphones, Grid3X3, ChevronRight, MapPin
+import {
+  Menu,
+  X,
+  Search,
+  ShoppingCart,
+  Heart,
+  User,
+  ShoppingBag,
+  Headphones,
+  Grid3X3,
+  ChevronRight,
+  MapPin,
 } from 'lucide-react';
 import { DARAZ_THEME } from '../theme';
+import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import type { SocialLinks, ThemeConfig } from '@db/types';
 
 interface DarazHeaderProps {
@@ -28,12 +38,12 @@ interface DarazHeaderProps {
   socialLinks?: SocialLinks | null;
 }
 
-export function DarazHeader({ 
-  storeName, 
-  logo, 
-  isPreview, 
-  categories = [], 
-  currentCategory 
+export function DarazHeader({
+  storeName,
+  logo,
+  isPreview = false,
+  categories = [],
+  currentCategory,
 }: DarazHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,10 +62,7 @@ export function DarazHeader({
   return (
     <>
       {/* Top Utility Bar */}
-      <div 
-        className="hidden md:block"
-        style={{ backgroundColor: DARAZ_THEME.topBarBg }}
-      >
+      <div className="hidden md:block" style={{ backgroundColor: DARAZ_THEME.topBarBg }}>
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-8 text-xs text-white/90">
           <div className="flex items-center gap-6">
             <span className="hover:text-white cursor-pointer transition-colors">
@@ -68,11 +75,11 @@ export function DarazHeader({
           <div className="flex items-center gap-6">
             <span className="hover:text-white cursor-pointer transition-colors flex items-center gap-1.5">
               <Headphones className="w-3.5 h-3.5" />
-              Help & Support
+              Help &amp; Support
             </span>
             {!isPreview && (
-              <Link 
-                to="/auth/login" 
+              <Link
+                to="/auth/login"
                 className="hover:text-white transition-colors flex items-center gap-1.5"
               >
                 <User className="w-3.5 h-3.5" />
@@ -84,7 +91,7 @@ export function DarazHeader({
       </div>
 
       {/* Main Header */}
-      <header 
+      <header
         className="sticky top-0 z-50 shadow-md"
         style={{ backgroundColor: DARAZ_THEME.primary }}
       >
@@ -99,24 +106,29 @@ export function DarazHeader({
           </button>
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 shrink-0">
+          <PreviewSafeLink
+            to="/"
+            className="flex items-center gap-2.5 shrink-0"
+            isPreview={isPreview}
+          >
             {logo ? (
-              <img 
-                src={logo} 
-                alt={storeName} 
-                className="h-8 w-8 md:h-10 md:w-10 object-contain bg-white rounded" 
+              <img
+                src={logo}
+                alt={storeName}
+                className="h-8 w-8 md:h-10 md:w-10 object-contain bg-white rounded"
               />
             ) : (
-              <div 
-                className="h-8 w-8 md:h-10 md:w-10 bg-white rounded flex items-center justify-center"
-              >
-                <ShoppingBag className="w-5 h-5 md:w-6 md:h-6" style={{ color: DARAZ_THEME.primary }} />
+              <div className="h-8 w-8 md:h-10 md:w-10 bg-white rounded flex items-center justify-center">
+                <ShoppingBag
+                  className="w-5 h-5 md:w-6 md:h-6"
+                  style={{ color: DARAZ_THEME.primary }}
+                />
               </div>
             )}
             <span className="text-white font-bold text-lg md:text-xl hidden sm:block tracking-tight">
               {storeName}
             </span>
-          </Link>
+          </PreviewSafeLink>
 
           {/* Search Bar */}
           <form onSubmit={handleSearch} className="flex-1 max-w-2xl mx-2 md:mx-4">
@@ -129,7 +141,7 @@ export function DarazHeader({
                 className="w-full h-9 md:h-10 pl-4 pr-12 rounded-l text-sm border-0 focus:outline-none focus:ring-2 focus:ring-orange-300"
                 style={{ backgroundColor: DARAZ_THEME.cardBg }}
               />
-              <button 
+              <button
                 type="submit"
                 className="h-9 md:h-10 px-4 md:px-6 rounded-r font-medium text-white transition-all hover:opacity-90 cursor-pointer flex items-center justify-center"
                 style={{ backgroundColor: DARAZ_THEME.accent }}
@@ -142,28 +154,29 @@ export function DarazHeader({
           {/* Right Icons */}
           <div className="flex items-center gap-1 md:gap-2">
             {/* Cart */}
-            <Link
+            <PreviewSafeLink
               to="/cart"
               className="relative p-2 text-white hover:bg-white/10 rounded transition-colors cursor-pointer"
               aria-label="Cart"
+              isPreview={isPreview}
             >
               <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" />
-              <span 
+              <span
                 className="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 min-w-[18px] h-[18px] md:min-w-[20px] md:h-[20px] px-1 rounded-full flex items-center justify-center text-[10px] md:text-xs font-bold"
                 style={{ backgroundColor: DARAZ_THEME.gold, color: DARAZ_THEME.text }}
               >
                 {count}
               </span>
-            </Link>
+            </PreviewSafeLink>
 
             {/* Wishlist - Desktop only */}
-            <button 
+            <button
               className="hidden md:flex p-2 text-white hover:bg-white/10 rounded transition-colors relative cursor-pointer"
               aria-label="Wishlist"
             >
               <Heart className="h-6 w-6" />
               {wishlistCount > 0 && (
-                <span 
+                <span
                   className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full flex items-center justify-center text-xs font-bold"
                   style={{ backgroundColor: DARAZ_THEME.gold, color: DARAZ_THEME.text }}
                 >
@@ -190,37 +203,39 @@ export function DarazHeader({
           <div className="md:hidden bg-white absolute left-0 right-0 top-14 shadow-lg z-50 max-h-[75vh] overflow-y-auto">
             <div className="p-3 space-y-1">
               {/* All Categories */}
-              <Link 
+              <PreviewSafeLink
                 to="/"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-colors cursor-pointer"
-                style={{ 
-                  backgroundColor: !currentCategory ? `${DARAZ_THEME.primary}15` : 'transparent', 
-                  color: !currentCategory ? DARAZ_THEME.primary : DARAZ_THEME.text 
+                style={{
+                  backgroundColor: !currentCategory ? `${DARAZ_THEME.primary}15` : 'transparent',
+                  color: !currentCategory ? DARAZ_THEME.primary : DARAZ_THEME.text,
                 }}
+                isPreview={isPreview}
               >
                 <ShoppingBag className="w-5 h-5" />
                 All Categories
-              </Link>
+              </PreviewSafeLink>
 
               {/* Category Links */}
               {featuredCategories.map((category) => {
                 const isActive = currentCategory === category;
                 return (
-                  <Link
+                  <PreviewSafeLink
                     key={category!}
                     to={`/?category=${encodeURIComponent(category!)}`}
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-colors cursor-pointer"
-                    style={{ 
-                      backgroundColor: isActive ? `${DARAZ_THEME.primary}15` : 'transparent', 
-                      color: isActive ? DARAZ_THEME.primary : DARAZ_THEME.text 
+                    style={{
+                      backgroundColor: isActive ? `${DARAZ_THEME.primary}15` : 'transparent',
+                      color: isActive ? DARAZ_THEME.primary : DARAZ_THEME.text,
                     }}
+                    isPreview={isPreview}
                   >
                     <Grid3X3 className="w-5 h-5 opacity-60" />
                     {category}
                     <ChevronRight className="w-4 h-4 ml-auto opacity-40" />
-                  </Link>
+                  </PreviewSafeLink>
                 );
               })}
 
@@ -228,26 +243,27 @@ export function DarazHeader({
               <div className="h-px bg-gray-200 my-2" />
 
               {/* Help & Support */}
-              <a 
+              <a
                 href="#support"
                 className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm cursor-pointer"
                 style={{ color: DARAZ_THEME.textSecondary }}
               >
                 <Headphones className="w-5 h-5" />
-                Help & Support
+                Help &amp; Support
               </a>
 
               {/* Login */}
               {!isPreview && (
-                <Link
+                <PreviewSafeLink
                   to="/auth/login"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm cursor-pointer"
                   style={{ color: DARAZ_THEME.textSecondary }}
+                  isPreview={isPreview}
                 >
                   <User className="w-5 h-5" />
                   Login / Sign Up
-                </Link>
+                </PreviewSafeLink>
               )}
             </div>
           </div>

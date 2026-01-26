@@ -1,6 +1,6 @@
 /**
  * GhorerBazar Header Component
- * 
+ *
  * Features:
  * - Slim announcement bar with Bangla text & phone/WhatsApp
  * - Orange sticky header
@@ -12,12 +12,19 @@
 
 import { Link, useSearchParams } from '@remix-run/react';
 import { useState, useEffect } from 'react';
-import { 
-  Search, ShoppingCart, Menu, X, Phone, User, ChevronDown,
-  MessageCircle
+import {
+  Search,
+  ShoppingCart,
+  Menu,
+  X,
+  Phone,
+  User,
+  ChevronDown,
+  MessageCircle,
 } from 'lucide-react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { GHORER_BAZAR_THEME, GHORER_BAZAR_FONTS, GHORER_BAZAR_CATEGORIES } from '../theme';
+import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import type { ThemeConfig, SocialLinks } from '@db/types';
 
 interface GhorerBazarHeaderProps {
@@ -32,11 +39,11 @@ interface GhorerBazarHeaderProps {
   onCartClick?: () => void;
 }
 
-export function GhorerBazarHeader({ 
-  storeName, 
-  logo, 
-  isPreview, 
-  categories = [], 
+export function GhorerBazarHeader({
+  storeName,
+  logo,
+  isPreview,
+  categories = [],
   currentCategory,
   socialLinks,
   businessInfo,
@@ -50,9 +57,10 @@ export function GhorerBazarHeader({
   const theme = GHORER_BAZAR_THEME;
 
   // Use provided categories or fallback to default grocery categories
-  const menuCategories = categories.filter(Boolean).length > 0 
-    ? categories.filter(Boolean) as string[]
-    : GHORER_BAZAR_CATEGORIES;
+  const menuCategories =
+    categories.filter(Boolean).length > 0
+      ? (categories.filter(Boolean) as string[])
+      : GHORER_BAZAR_CATEGORIES;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,9 +81,9 @@ export function GhorerBazarHeader({
       />
 
       {/* Announcement Bar - Slim with phone/WhatsApp */}
-      <div 
+      <div
         className="py-2 text-xs md:text-sm"
-        style={{ 
+        style={{
           backgroundColor: theme.secondary,
           color: theme.textWhite,
           fontFamily: GHORER_BAZAR_FONTS.body,
@@ -85,18 +93,16 @@ export function GhorerBazarHeader({
           <p className="hidden md:block text-white/90">
             🎉 সারাদেশে ফ্রি ডেলিভারি ১০০০৳+ অর্ডারে | ১০০% খাঁটি পণ্যের নিশ্চয়তা
           </p>
-          <p className="md:hidden text-white/90 text-center flex-1">
-            ১০০% খাঁটি পণ্যের নিশ্চয়তা
-          </p>
+          <p className="md:hidden text-white/90 text-center flex-1">১০০% খাঁটি পণ্যের নিশ্চয়তা</p>
           <div className="flex items-center gap-4">
-            <a 
+            <a
               href={`tel:${phoneNumber}`}
               className="flex items-center gap-1.5 hover:text-white transition"
             >
               <Phone className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">{phoneNumber}</span>
             </a>
-            <a 
+            <a
               href={`https://wa.me/${whatsappNumber.replace(/\D/g, '')}`}
               target="_blank"
               rel="noopener noreferrer"
@@ -110,9 +116,9 @@ export function GhorerBazarHeader({
       </div>
 
       {/* Main Header - Orange */}
-      <header 
+      <header
         className="sticky top-0 z-50"
-        style={{ 
+        style={{
           backgroundColor: theme.headerBg,
           fontFamily: GHORER_BAZAR_FONTS.body,
         }}
@@ -122,7 +128,7 @@ export function GhorerBazarHeader({
             {/* Left: Mobile Menu + Logo */}
             <div className="flex items-center gap-3">
               {/* Mobile Menu Button */}
-              <button 
+              <button
                 onClick={() => setMobileMenuOpen(true)}
                 className="lg:hidden p-1.5 text-white hover:bg-white/10 rounded-lg transition"
                 aria-label="Open menu"
@@ -131,19 +137,15 @@ export function GhorerBazarHeader({
               </button>
 
               {/* Logo */}
-              <Link to="/" className="flex items-center gap-2">
+              <PreviewSafeLink to="/" className="flex items-center gap-2" isPreview={isPreview}>
                 {logo ? (
-                  <img 
-                    src={logo} 
-                    alt={storeName} 
-                    className="h-8 md:h-10 w-auto"
-                  />
+                  <img src={logo} alt={storeName} className="h-8 md:h-10 w-auto" />
                 ) : (
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-lg flex items-center justify-center">
                       <span className="text-lg md:text-xl">🏪</span>
                     </div>
-                    <span 
+                    <span
                       className="text-lg md:text-xl font-bold text-white hidden sm:block"
                       style={{ fontFamily: GHORER_BAZAR_FONTS.heading }}
                     >
@@ -151,30 +153,31 @@ export function GhorerBazarHeader({
                     </span>
                   </div>
                 )}
-              </Link>
+              </PreviewSafeLink>
             </div>
 
             {/* Center: Desktop Navigation - Horizontal Category Menu */}
             <nav className="hidden lg:flex items-center gap-2 overflow-x-auto scrollbar-hide">
               {menuCategories.map((category) => (
-                <Link
+                <PreviewSafeLink
                   key={category}
-                  to={`?category=${encodeURIComponent(category)}`}
+                  to={`/?category=${encodeURIComponent(category)}`}
                   className={`px-2 py-2 text-sm font-semibold whitespace-nowrap transition border-b-2 ${
-                    currentCategory === category 
-                      ? 'border-white text-white' 
+                    currentCategory === category
+                      ? 'border-white text-white'
                       : 'border-transparent text-white/90 hover:text-white hover:border-white'
                   }`}
+                  isPreview={isPreview}
                 >
                   {category}
-                </Link>
+                </PreviewSafeLink>
               ))}
             </nav>
 
             {/* Right: Icons */}
             <div className="flex items-center gap-1 md:gap-2">
               {/* Search */}
-              <button 
+              <button
                 onClick={() => setSearchOpen(true)}
                 className="p-2 text-white hover:bg-white/10 rounded-lg transition"
                 aria-label="Search"
@@ -183,7 +186,7 @@ export function GhorerBazarHeader({
               </button>
 
               {/* Account - Desktop only */}
-              <Link 
+              <Link
                 to="?page=account"
                 className="hidden md:flex p-2 text-white hover:bg-white/10 rounded-lg transition"
                 aria-label="Account"
@@ -192,16 +195,16 @@ export function GhorerBazarHeader({
               </Link>
 
               {/* Cart */}
-              <button 
+              <button
                 onClick={onCartClick}
                 className="p-2 text-white hover:bg-white/10 rounded-lg transition relative"
                 aria-label="Cart"
               >
                 <ShoppingCart className="w-5 h-5 md:w-6 md:h-6" />
                 {count > 0 && (
-                  <span 
+                  <span
                     className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold px-1"
-                    style={{ 
+                    style={{
                       backgroundColor: theme.secondary,
                       color: theme.textWhite,
                     }}
@@ -219,23 +222,20 @@ export function GhorerBazarHeader({
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-[200] lg:hidden">
           {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-          
+          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
+
           {/* Drawer */}
-          <div 
+          <div
             className="absolute left-0 top-0 bottom-0 w-[300px] bg-white overflow-y-auto"
             style={{ fontFamily: GHORER_BAZAR_FONTS.body }}
           >
             {/* Drawer Header */}
-            <div 
+            <div
               className="sticky top-0 flex items-center justify-between p-4"
               style={{ backgroundColor: theme.primary }}
             >
               <span className="font-bold text-lg text-white">{storeName}</span>
-              <button 
+              <button
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-1 text-white hover:bg-white/10 rounded-lg transition"
               >
@@ -253,14 +253,11 @@ export function GhorerBazarHeader({
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="পণ্য খুঁজুন..."
                     className="w-full pl-4 pr-10 py-2.5 rounded-lg border focus:outline-none focus:ring-2"
-                    style={{ 
+                    style={{
                       borderColor: theme.border,
                     }}
                   />
-                  <button 
-                    type="submit"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1"
-                  >
+                  <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 p-1">
                     <Search className="w-5 h-5" style={{ color: theme.primary }} />
                   </button>
                 </div>
@@ -269,54 +266,53 @@ export function GhorerBazarHeader({
 
             {/* Categories */}
             <div className="p-4">
-              <h3 
+              <h3
                 className="text-xs font-bold uppercase tracking-wider mb-3"
                 style={{ color: theme.textMuted }}
               >
                 ক্যাটাগরি
               </h3>
               <div className="space-y-1">
-                <Link 
+                <PreviewSafeLink
                   to="/"
                   onClick={() => setMobileMenuOpen(false)}
                   className={`block px-4 py-2.5 rounded-lg font-medium transition ${
-                    !currentCategory 
-                      ? 'text-white' 
-                      : 'text-gray-700 hover:bg-gray-50'
+                    !currentCategory ? 'text-white' : 'text-gray-700 hover:bg-gray-50'
                   }`}
                   style={!currentCategory ? { backgroundColor: theme.primary } : {}}
+                  isPreview={isPreview}
                 >
                   সব পণ্য
-                </Link>
+                </PreviewSafeLink>
                 {menuCategories.map((category) => (
-                  <Link
+                  <PreviewSafeLink
                     key={category}
-                    to={`?category=${encodeURIComponent(category)}`}
+                    to={`/?category=${encodeURIComponent(category)}`}
                     onClick={() => setMobileMenuOpen(false)}
                     className={`block px-4 py-2.5 rounded-lg font-medium transition ${
-                      currentCategory === category 
-                        ? 'text-white' 
-                        : 'text-gray-700 hover:bg-gray-50'
+                      currentCategory === category ? 'text-white' : 'text-gray-700 hover:bg-gray-50'
                     }`}
                     style={currentCategory === category ? { backgroundColor: theme.primary } : {}}
+                    isPreview={isPreview}
                   >
                     {category}
-                  </Link>
+                  </PreviewSafeLink>
                 ))}
               </div>
             </div>
 
             {/* Account Links */}
             <div className="p-4 border-t" style={{ borderColor: theme.border }}>
-              <Link 
-                to="?page=account"
+              <PreviewSafeLink
+                to="/account"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg transition"
+                isPreview={isPreview}
               >
                 <User className="w-5 h-5" style={{ color: theme.primary }} />
                 আমার অ্যাকাউন্ট
-              </Link>
-              <a 
+              </PreviewSafeLink>
+              <a
                 href={`https://wa.me/${whatsappNumber.replace(/\D/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -333,11 +329,8 @@ export function GhorerBazarHeader({
       {/* Search Overlay */}
       {searchOpen && (
         <div className="fixed inset-0 z-[200]">
-          <div 
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setSearchOpen(false)}
-          />
-          <div 
+          <div className="absolute inset-0 bg-black/50" onClick={() => setSearchOpen(false)} />
+          <div
             className="absolute top-0 left-0 right-0 bg-white p-4 shadow-lg"
             style={{ fontFamily: GHORER_BAZAR_FONTS.body }}
           >
@@ -353,7 +346,7 @@ export function GhorerBazarHeader({
                     className="w-full pl-4 pr-12 py-3 rounded-lg border-2 focus:outline-none text-lg"
                     style={{ borderColor: theme.primary }}
                   />
-                  <button 
+                  <button
                     type="submit"
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-white"
                     style={{ backgroundColor: theme.primary }}
@@ -361,7 +354,7 @@ export function GhorerBazarHeader({
                     <Search className="w-5 h-5" />
                   </button>
                 </div>
-                <button 
+                <button
                   type="button"
                   onClick={() => setSearchOpen(false)}
                   className="p-2 text-gray-500 hover:text-gray-700"
@@ -369,25 +362,27 @@ export function GhorerBazarHeader({
                   <X className="w-6 h-6" />
                 </button>
               </div>
-              
+
               {/* Popular Searches */}
               <div className="mt-4">
                 <p className="text-xs text-gray-500 mb-2">জনপ্রিয় সার্চ:</p>
                 <div className="flex flex-wrap gap-2">
-                  {['সুন্দরবনের মধু', 'মরিয়ম খেজুর', 'কাঠবাদাম', 'সরিষার তেল', 'গাওয়া ঘি'].map((term) => (
-                    <button
-                      key={term}
-                      type="button"
-                      onClick={() => {
-                        setSearchQuery(term);
-                        window.location.href = `?search=${encodeURIComponent(term)}`;
-                      }}
-                      className="px-3 py-1.5 text-sm rounded-full border hover:border-orange-400 hover:bg-orange-50 transition"
-                      style={{ borderColor: theme.border }}
-                    >
-                      {term}
-                    </button>
-                  ))}
+                  {['সুন্দরবনের মধু', 'মরিয়ম খেজুর', 'কাঠবাদাম', 'সরিষার তেল', 'গাওয়া ঘি'].map(
+                    (term) => (
+                      <button
+                        key={term}
+                        type="button"
+                        onClick={() => {
+                          setSearchQuery(term);
+                          window.location.href = `?search=${encodeURIComponent(term)}`;
+                        }}
+                        className="px-3 py-1.5 text-sm rounded-full border hover:border-orange-400 hover:bg-orange-50 transition"
+                        style={{ borderColor: theme.border }}
+                      >
+                        {term}
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
             </form>

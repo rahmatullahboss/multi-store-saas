@@ -2,7 +2,6 @@
  * Features Section - Main Router
  */
 
-import type { SectionTheme } from '~/lib/page-builder/types';
 import type { FeaturesProps, FeaturesSectionPreviewProps, Feature } from './types';
 
 import { GridFeatures } from './GridFeatures';
@@ -14,6 +13,7 @@ import { TrustFirstFeatures } from './TrustFirstFeatures';
 import { UrgencyFeatures } from './UrgencyFeatures';
 import { SocialProofFeatures } from './SocialProofFeatures';
 import { StoryDrivenFeatures } from './StoryDrivenFeatures';
+import { StoryTimelineFeatures } from './StoryTimelineFeatures';
 import { OrganicFeatures } from './OrganicFeatures';
 
 export type FeaturesVariant = 
@@ -74,6 +74,8 @@ export function FeaturesSectionPreview({ props, theme }: FeaturesSectionPreviewP
       return <SocialProofFeatures {...commonProps} />;
     case 'story-driven':
       return <StoryDrivenFeatures {...commonProps} />;
+    case 'story-driven-premium':
+      return <StoryTimelineFeatures {...commonProps} />;
     case 'organic':
       return <OrganicFeatures {...commonProps} />;
     case 'grid':
