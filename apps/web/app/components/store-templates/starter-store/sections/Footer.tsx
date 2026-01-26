@@ -1,6 +1,6 @@
 /**
  * Starter Store Footer Component
- * 
+ *
  * A clean, modern footer for the Starter Store template.
  * Displays store info, quick links, contact info, and social links.
  * Works in both preview and live modes.
@@ -10,6 +10,7 @@ import { Link } from '@remix-run/react';
 import { Facebook, Instagram, Twitter, Phone, Mail, MapPin } from 'lucide-react';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { STARTER_STORE_THEME } from '../theme';
+import { OzzylBranding } from '../../shared/OzzylBranding';
 import type { SocialLinks, FooterConfig } from '@db/types';
 
 const theme = STARTER_STORE_THEME;
@@ -36,16 +37,16 @@ export function StarterStoreFooter({
   isPreview = false,
 }: StarterStoreFooterProps) {
   const validCategories = categories.filter(Boolean).slice(0, 6) as string[];
-  const showPoweredBy = footerConfig?.showPoweredBy ?? (planType === 'free');
-  
+  const showPoweredBy = footerConfig?.showPoweredBy ?? planType === 'free';
+
   // Default business info for preview
   const defaultBusinessInfo = {
     phone: '+880 1XXX-XXXXXX',
     email: 'info@store.com',
     address: 'ঢাকা, বাংলাদেশ',
   };
-  
-  const displayBusinessInfo = isPreview ? defaultBusinessInfo : (businessInfo || defaultBusinessInfo);
+
+  const displayBusinessInfo = isPreview ? defaultBusinessInfo : businessInfo || defaultBusinessInfo;
 
   return (
     <footer style={{ backgroundColor: theme.footerBg }}>
@@ -64,11 +65,11 @@ export function StarterStoreFooter({
             <p className="text-sm leading-relaxed" style={{ color: theme.footerText + 'CC' }}>
               আপনার বিশ্বস্ত অনলাইন শপিং পার্টনার। সেরা মানের প্রোডাক্ট, সেরা দামে।
             </p>
-            
+
             {/* Social Links */}
             <div className="flex items-center gap-3 pt-2">
               {(socialLinks?.facebook || isPreview) && (
-                <a 
+                <a
                   href={socialLinks?.facebook || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -80,7 +81,7 @@ export function StarterStoreFooter({
                 </a>
               )}
               {(socialLinks?.instagram || isPreview) && (
-                <a 
+                <a
                   href={socialLinks?.instagram || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -92,7 +93,7 @@ export function StarterStoreFooter({
                 </a>
               )}
               {(socialLinks?.twitter || isPreview) && (
-                <a 
+                <a
                   href={socialLinks?.twitter || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -113,7 +114,7 @@ export function StarterStoreFooter({
             </h4>
             <ul className="space-y-2">
               <li>
-                <PreviewSafeLink 
+                <PreviewSafeLink
                   to="/"
                   isPreview={isPreview}
                   className="text-sm hover:underline transition-colors"
@@ -123,7 +124,7 @@ export function StarterStoreFooter({
                 </PreviewSafeLink>
               </li>
               <li>
-                <PreviewSafeLink 
+                <PreviewSafeLink
                   to="/products"
                   isPreview={isPreview}
                   className="text-sm hover:underline transition-colors"
@@ -133,7 +134,7 @@ export function StarterStoreFooter({
                 </PreviewSafeLink>
               </li>
               <li>
-                <PreviewSafeLink 
+                <PreviewSafeLink
                   to="/pages/about"
                   isPreview={isPreview}
                   className="text-sm hover:underline transition-colors"
@@ -143,7 +144,7 @@ export function StarterStoreFooter({
                 </PreviewSafeLink>
               </li>
               <li>
-                <PreviewSafeLink 
+                <PreviewSafeLink
                   to="/contact"
                   isPreview={isPreview}
                   className="text-sm hover:underline transition-colors"
@@ -161,9 +162,12 @@ export function StarterStoreFooter({
               ক্যাটাগরি
             </h4>
             <ul className="space-y-2">
-              {(validCategories.length > 0 ? validCategories : ['Electronics', 'Fashion', 'Home & Living', 'Beauty']).map((cat) => (
+              {(validCategories.length > 0
+                ? validCategories
+                : ['Electronics', 'Fashion', 'Home & Living', 'Beauty']
+              ).map((cat) => (
                 <li key={cat}>
-                  <PreviewSafeLink 
+                  <PreviewSafeLink
                     to={`/?category=${encodeURIComponent(cat)}`}
                     isPreview={isPreview}
                     className="text-sm hover:underline transition-colors"
@@ -185,7 +189,7 @@ export function StarterStoreFooter({
               {displayBusinessInfo.phone && (
                 <li className="flex items-center gap-3">
                   <Phone className="h-4 w-4 flex-shrink-0" style={{ color: theme.primary }} />
-                  <a 
+                  <a
                     href={isPreview ? '#' : `tel:${displayBusinessInfo.phone}`}
                     className="text-sm hover:underline"
                     style={{ color: theme.footerText + 'CC' }}
@@ -198,7 +202,7 @@ export function StarterStoreFooter({
               {displayBusinessInfo.email && (
                 <li className="flex items-center gap-3">
                   <Mail className="h-4 w-4 flex-shrink-0" style={{ color: theme.primary }} />
-                  <a 
+                  <a
                     href={isPreview ? '#' : `mailto:${displayBusinessInfo.email}`}
                     className="text-sm hover:underline"
                     style={{ color: theme.footerText + 'CC' }}
@@ -210,7 +214,10 @@ export function StarterStoreFooter({
               )}
               {displayBusinessInfo.address && (
                 <li className="flex items-start gap-3">
-                  <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: theme.primary }} />
+                  <MapPin
+                    className="h-4 w-4 flex-shrink-0 mt-0.5"
+                    style={{ color: theme.primary }}
+                  />
                   <span className="text-sm" style={{ color: theme.footerText + 'CC' }}>
                     {displayBusinessInfo.address}
                   </span>
@@ -223,7 +230,7 @@ export function StarterStoreFooter({
         {/* Policies Links */}
         <div className="mt-8 pt-8 border-t" style={{ borderColor: theme.footerText + '20' }}>
           <div className="flex flex-wrap justify-center gap-4 text-sm">
-            <PreviewSafeLink 
+            <PreviewSafeLink
               to="/policies/privacy"
               isPreview={isPreview}
               className="hover:underline transition-colors"
@@ -232,7 +239,7 @@ export function StarterStoreFooter({
               প্রাইভেসি পলিসি
             </PreviewSafeLink>
             <span style={{ color: theme.footerText + '40' }}>•</span>
-            <PreviewSafeLink 
+            <PreviewSafeLink
               to="/policies/refund"
               isPreview={isPreview}
               className="hover:underline transition-colors"
@@ -241,7 +248,7 @@ export function StarterStoreFooter({
               রিফান্ড পলিসি
             </PreviewSafeLink>
             <span style={{ color: theme.footerText + '40' }}>•</span>
-            <PreviewSafeLink 
+            <PreviewSafeLink
               to="/policies/shipping"
               isPreview={isPreview}
               className="hover:underline transition-colors"
@@ -250,7 +257,7 @@ export function StarterStoreFooter({
               শিপিং পলিসি
             </PreviewSafeLink>
             <span style={{ color: theme.footerText + '40' }}>•</span>
-            <PreviewSafeLink 
+            <PreviewSafeLink
               to="/policies/terms"
               isPreview={isPreview}
               className="hover:underline transition-colors"
@@ -263,11 +270,11 @@ export function StarterStoreFooter({
       </div>
 
       {/* Bottom Bar */}
-      <div 
+      <div
         className="py-4 border-t"
-        style={{ 
+        style={{
           backgroundColor: theme.footerBg,
-          borderColor: theme.footerText + '15'
+          borderColor: theme.footerText + '15',
         }}
       >
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm">
@@ -275,9 +282,9 @@ export function StarterStoreFooter({
             © {new Date().getFullYear()} {storeName}. সর্বস্বত্ব সংরক্ষিত।
           </p>
           {showPoweredBy && (
-            <a 
-              href="https://ozzyl.com" 
-              target="_blank" 
+            <a
+              href="https://ozzyl.com"
+              target="_blank"
               rel="noopener noreferrer"
               className="hover:underline"
               style={{ color: theme.footerText + '80' }}

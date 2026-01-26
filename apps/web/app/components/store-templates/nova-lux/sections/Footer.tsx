@@ -1,6 +1,7 @@
 import { Link } from '@remix-run/react';
 import { Instagram, Facebook, Twitter, Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
 import { NOVALUX_THEME } from '../theme';
+import { OzzylBranding } from '../../shared/OzzylBranding';
 import type { SocialLinks, FooterConfig } from '@db/types';
 
 interface NovaLuxFooterProps {
@@ -13,7 +14,15 @@ interface NovaLuxFooterProps {
   planType?: string;
 }
 
-export function NovaLuxFooter({ storeName, logo, socialLinks, footerConfig, businessInfo, categories = [], planType = 'free' }: NovaLuxFooterProps) {
+export function NovaLuxFooter({
+  storeName,
+  logo,
+  socialLinks,
+  footerConfig,
+  businessInfo,
+  categories = [],
+  planType = 'free',
+}: NovaLuxFooterProps) {
   const THEME = {
     primary: NOVALUX_THEME.primary,
     accent: NOVALUX_THEME.accent,
@@ -26,7 +35,7 @@ export function NovaLuxFooter({ storeName, logo, socialLinks, footerConfig, busi
       {/* Newsletter Section */}
       <div className="py-16 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h3 
+          <h3
             className="text-3xl lg:text-4xl font-semibold mb-4"
             style={{ fontFamily: NOVALUX_THEME.fontHeading }}
           >
@@ -56,50 +65,120 @@ export function NovaLuxFooter({ storeName, logo, socialLinks, footerConfig, busi
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <h4 
+            <h4
               className="text-2xl font-semibold mb-4"
               style={{ fontFamily: NOVALUX_THEME.fontHeading }}
             >
               {storeName}
             </h4>
             <p className="text-white/60 text-sm leading-relaxed mb-6">
-              {footerConfig?.description || 'Curating exceptional products for those who appreciate the finer things in life.'}
+              {footerConfig?.description ||
+                'Curating exceptional products for those who appreciate the finer things in life.'}
             </p>
-            
+
             {/* Social Links */}
             <div className="flex gap-3">
-              {socialLinks?.instagram && <a href={socialLinks.instagram} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all"><Instagram className="w-5 h-5" /></a>}
-              {socialLinks?.facebook && <a href={socialLinks.facebook} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all"><Facebook className="w-5 h-5" /></a>}
-              {socialLinks?.twitter && <a href={socialLinks.twitter} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all"><Twitter className="w-5 h-5" /></a>}
+              {socialLinks?.instagram && (
+                <a
+                  href={socialLinks.instagram}
+                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all"
+                >
+                  <Instagram className="w-5 h-5" />
+                </a>
+              )}
+              {socialLinks?.facebook && (
+                <a
+                  href={socialLinks.facebook}
+                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all"
+                >
+                  <Facebook className="w-5 h-5" />
+                </a>
+              )}
+              {socialLinks?.twitter && (
+                <a
+                  href={socialLinks.twitter}
+                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all"
+                >
+                  <Twitter className="w-5 h-5" />
+                </a>
+              )}
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h5 className="font-semibold uppercase text-sm tracking-wider mb-6" style={{ color: THEME.accent }}>Quick Links</h5>
+            <h5
+              className="font-semibold uppercase text-sm tracking-wider mb-6"
+              style={{ color: THEME.accent }}
+            >
+              Quick Links
+            </h5>
             <ul className="space-y-3 text-sm">
-              <li><Link to="/" className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"><ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" /> Home</Link></li>
-              <li><Link to="/products" className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"><ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" /> Shop All</Link></li>
-              <li><Link to="/about" className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"><ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" /> About Us</Link></li>
+              <li>
+                <Link
+                  to="/"
+                  className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"
+                >
+                  <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/products"
+                  className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"
+                >
+                  <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
+                  Shop All
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/about"
+                  className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"
+                >
+                  <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />{' '}
+                  About Us
+                </Link>
+              </li>
             </ul>
           </div>
 
           {/* Contact */}
           <div>
-            <h5 className="font-semibold uppercase text-sm tracking-wider mb-6" style={{ color: THEME.accent }}>Get in Touch</h5>
+            <h5
+              className="font-semibold uppercase text-sm tracking-wider mb-6"
+              style={{ color: THEME.accent }}
+            >
+              Get in Touch
+            </h5>
             <ul className="space-y-4 text-sm">
-              {businessInfo?.email && <li className="flex items-center gap-3 text-white/70"><div className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10"><Mail className="w-4 h-4" style={{ color: THEME.accent }} /></div>{businessInfo.email}</li>}
-              {businessInfo?.phone && <li className="flex items-center gap-3 text-white/70"><div className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10"><Phone className="w-4 h-4" style={{ color: THEME.accent }} /></div>{businessInfo.phone}</li>}
+              {businessInfo?.email && (
+                <li className="flex items-center gap-3 text-white/70">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10">
+                    <Mail className="w-4 h-4" style={{ color: THEME.accent }} />
+                  </div>
+                  {businessInfo.email}
+                </li>
+              )}
+              {businessInfo?.phone && (
+                <li className="flex items-center gap-3 text-white/70">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10">
+                    <Phone className="w-4 h-4" style={{ color: THEME.accent }} />
+                  </div>
+                  {businessInfo.phone}
+                </li>
+              )}
             </ul>
           </div>
         </div>
-        
+
         {/* Viral Loop / Branding */}
         {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
           <div className="mt-16 pt-8 border-t border-white/10 flex justify-center items-center">
-            <a 
-              href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral" 
-              target="_blank" 
+            <a
+              href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral"
+              target="_blank"
               rel="noopener noreferrer"
               className="text-[10px] text-white/40 hover:text-white transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
               style={{ color: THEME.accent }}

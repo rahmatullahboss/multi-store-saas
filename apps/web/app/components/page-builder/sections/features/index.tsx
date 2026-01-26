@@ -14,6 +14,7 @@ import { TrustFirstFeatures } from './TrustFirstFeatures';
 import { UrgencyFeatures } from './UrgencyFeatures';
 import { SocialProofFeatures } from './SocialProofFeatures';
 import { StoryDrivenFeatures } from './StoryDrivenFeatures';
+import { OrganicFeatures } from './OrganicFeatures';
 
 export type FeaturesVariant = 
   | 'grid' 
@@ -24,7 +25,8 @@ export type FeaturesVariant =
   | 'trust-first'
   | 'urgency'
   | 'social-proof'
-  | 'story-driven';
+  | 'story-driven'
+  | 'organic';
 
 export function FeaturesSectionPreview({ props, theme }: FeaturesSectionPreviewProps) {
   const {
@@ -72,6 +74,8 @@ export function FeaturesSectionPreview({ props, theme }: FeaturesSectionPreviewP
       return <SocialProofFeatures {...commonProps} />;
     case 'story-driven':
       return <StoryDrivenFeatures {...commonProps} />;
+    case 'organic':
+      return <OrganicFeatures {...commonProps} />;
     case 'grid':
     default:
       return <GridFeatures {...commonProps} />;

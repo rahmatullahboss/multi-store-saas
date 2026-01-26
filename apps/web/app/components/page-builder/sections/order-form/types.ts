@@ -12,7 +12,8 @@ export type OrderFormVariant =
   | 'trust-first'
   | 'story-driven'
   | 'urgency'
-  | 'social-proof';
+  | 'social-proof'
+  | 'organic';
 
 export interface ProductVariant {
   id: string;

@@ -466,74 +466,105 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
     ],
   },
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // SHOWCASE GALLERY - Product Details Focus
+  // SHOWCASE - Clean Minimal (Premium)
   // ─────────────────────────────────────────────────────────────────────────
   'showcase': {
     id: 'showcase',
-    name: 'শোকেস গ্যালারি',
-    nameEn: '🖼️ Showcase Gallery',
-    description: 'প্রোডাক্ট ডিটেইলস গ্যালারি গ্রিড সহ',
-    descriptionEn: 'Product details with gallery grid',
+    name: 'শোকেস মিনিমাল',
+    nameEn: '✨ Showcase Minimal',
+    description: 'প্রিমিয়াম অডিও এবং লাইফস্টাইল প্রোডাক্টের জন্য মিনিমালিস্ট ডিজাইন',
+    descriptionEn: 'Minimalist design for premium audio & lifestyle products',
     thumbnail: '/templates/showcase.png',
     category: 'product',
-    emoji: '🖼️',
+    emoji: '✨',
     colors: {
-      primary: '#18181b',
-      accent: '#a855f7',
-      bg: 'linear-gradient(135deg, #18181b 0%, #27272a 100%)',
+      primary: '#0f172a', // Slate 900 (Black-ish)
+      accent: '#64748b',  // Slate 500 (Subtle)
+      bg: '#ffffff',      // Pure White
     },
     sections: [
       {
         type: 'hero',
         props: {
-          headline: 'প্রোডাক্ট শোকেস',
-          subheadline: 'আমাদের সেরা প্রোডাক্ট কালেকশন দেখুন',
-          ctaText: 'দেখুন',
-          badgeText: '🖼️ গ্যালারি',
+          variant: 'centered', // Centered for minimal look
+          headline: 'বিশুদ্ধ শব্দ, তারহীন স্বাধীনতা',
+          subheadline: 'অরা ওয়ান - নয়েজ ক্যান্সেলেশন এবং ৩০ ঘণ্টা ব্যাটারি লাইফ।',
+          ctaText: 'এখনই কিনুন',
+          badgeText: '✨ নিউ রিলিজ',
+          backgroundImage: '', // Clean background
         },
       },
       {
-        type: 'gallery',
+        type: 'trust-badges',
         props: {
-          title: 'প্রোডাক্ট গ্যালারি',
-          images: [],
-        },
-      },
-      {
-        type: 'showcase',
-        props: {
-          title: 'বিস্তারিত তথ্য',
-          features: [
-            { title: 'ম্যাটেরিয়াল', description: 'প্রিমিয়াম কোয়ালিটি' },
-            { title: 'সাইজ', description: 'বিভিন্ন সাইজে পাওয়া যায়' },
-            { title: 'কালার', description: 'একাধিক কালার অপশন' },
+          variant: 'grid',
+          badges: [
+            { icon: 'Truck', text: 'ফ্রি শিপিং' },
+            { icon: 'ShieldCheck', text: '২ বছরের ওয়ারেন্টি' },
+            { icon: 'Lock', text: 'নিরাপদ পেমেন্ট' },
+            { icon: 'RefreshCcw', text: '৭ দিনে রিটার্ন' },
           ],
         },
       },
       {
         type: 'features',
         props: {
-          title: 'কেন এই প্রোডাক্ট?',
+          variant: 'cards', // Cards with shadow for "subtle shadows" look
+          title: 'অরা ওয়ান এর বিশেষত্ব',
           features: [
-            { icon: '✨', title: 'প্রিমিয়াম কোয়ালিটি', description: 'সেরা মানের উপকরণ' },
-            { icon: '🎁', title: 'গিফট রেডি', description: 'সুন্দর প্যাকেজিং' },
-            { icon: '💯', title: 'গ্যারান্টি', description: 'সন্তুষ্টি নিশ্চিত' },
+            { icon: 'Music', title: 'অ্যাডাপ্টিভ সাউন্ড', description: 'আপনার পরিবেশ অনুযায়ী সাউন্ড অ্যাডজাস্ট করে' },
+            { icon: 'Battery', title: 'লং ব্যাটারি', description: 'এক চার্জে ৩০ ঘণ্টা পর্যন্ত প্লেব্যাক' },
+            { icon: 'Feather', title: 'হালকা ডিজাইন', description: 'কানের জন্য আরামদায়ক, দীর্ঘ সময় ব্যবহারের উপযোগী' },
           ],
+        },
+      },
+      {
+        type: 'showcase',
+        props: {
+          variant: 'highlight', // Highlight variant as per scheme update
+          title: 'টেকনিক্যাল স্পেসিফিকেশন',
+          features: [
+            { title: 'ড্রাইভার', description: '৪০ মি.মি. ডায়নামিক' },
+            { title: 'কানেক্টিভিটি', description: 'ব্লুটুথ ৫.২' },
+            { title: 'ব্যাটারি', description: '৫০০০ এমএএইচ' },
+            { title: 'চার্জিং', description: 'ইউএসবি টাইপ-সি' },
+          ],
+        },
+      },
+      {
+        type: 'gallery',
+        props: {
+          title: 'লাইফস্টাইল গ্যালারি',
+          layout: 'masonry', // Masonry works well for minimal galleries
+          images: [],
         },
       },
       {
         type: 'testimonials',
         props: {
-          title: 'রিভিউ',
+          variant: 'minimal',
+          title: 'ব্যবহারকারীরা যা বলছেন',
           testimonials: [],
+        },
+      },
+      {
+        type: 'faq',
+        props: {
+          variant: 'accordion',
+          title: 'জিজ্ঞাসা',
+          items: [
+            { question: 'অর্ডার কনফার্ম হবে কিভাবে?', answer: 'অর্ডার করার পর আমাদের প্রতিনিধি কল করবেন।' },
+            { question: 'ওয়ারেন্টি কত দিনের?', answer: '২ বছরের অফিসিয়াল ওয়ারেন্টি।' },
+          ],
         },
       },
       {
         type: 'cta',
         props: {
-          headline: 'আজই অর্ডার করুন',
-          buttonText: 'অর্ডার করুন',
+          variant: 'minimal', // Minimal CTA
+          headline: 'সীমিত স্টক, আজই সংগ্রহ করুন',
+          subheadline: 'ফ্রি শিপিং ও বিশেষ ডিসকাউন্ট পেতে এখনই অর্ডার করুন',
+          buttonText: 'অর্ডার কনফার্ম করুন',
         },
       },
     ],
@@ -604,78 +635,89 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
   // ─────────────────────────────────────────────────────────────────────────
   // ORGANIC GREEN - Nature/Health Products
   // ─────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // ORGANIC GREEN - Modern Eco-Luxury
+  // ─────────────────────────────────────────────────────────────────────────
   'organic': {
     id: 'organic',
-    name: 'অর্গানিক গ্রীন',
-    nameEn: '🌿 Organic Green',
-    description: 'হেলথ ও ইকো-ফ্রেন্ডলি প্রোডাক্টের জন্য',
-    descriptionEn: 'For health and eco-friendly products',
+    name: 'অর্গানিক লাক্সারি',
+    nameEn: '🍃 Organic Eco-Luxury',
+    description: 'প্রাকৃতিক ও প্রিমিয়াম অর্গানিক প্রোডাক্টের জন্য ডিজাইন',
+    descriptionEn: 'Premium design for natural & organic products',
     thumbnail: '/templates/organic.png',
     category: 'product',
-    emoji: '🌿',
+    emoji: '🍃',
     colors: {
-      primary: '#fefce8',
-      accent: '#16a34a',
-      bg: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+      primary: '#3f6212', // Lime 800 (Deep Natural Green)
+      accent: '#a3e635',  // Lime 400 (Fresh Leaf)
+      bg: '#fefce8',      // Yellow 50 (Creamy White)
     },
     sections: [
       {
         type: 'hero',
         props: {
-          headline: '১০০% প্রাকৃতিক ও নিরাপদ',
-          subheadline: 'আপনার স্বাস্থ্যের জন্য সেরা অর্গানিক প্রোডাক্ট',
-          ctaText: 'অর্গানিক কিনুন',
+          variant: 'organic', // Triggers OrganicHero
+          headline: 'বিশুদ্ধ প্রকৃতি, বোতলজাত',
+          subheadline: 'ত্বকের জন্য ১০০% কার্যকর এবং প্রাকৃতিক উপাদান। কোনো ক্ষতিকর কেমিক্যাল নেই।',
+          ctaText: 'শপ নাও',
           badgeText: '🌿 ১০০% অর্গানিক',
+          backgroundImage: '', // Use clean background provided by theme
         },
       },
       {
-        type: 'trust-badges',
+        type: 'features',
         props: {
-          badges: [
-            { icon: '🌿', text: 'অর্গানিক সার্টিফাইড' },
-            { icon: '♻️', text: 'ইকো-ফ্রেন্ডলি' },
-            { icon: '🧪', text: 'কেমিক্যাল মুক্ত' },
-            { icon: '💚', text: 'স্বাস্থ্যকর' },
+          variant: 'organic', // Triggers OrganicFeatures
+          title: 'প্রকৃতির সেরা উপহার',
+          features: [
+            { icon: 'Sprout', title: 'টেকসই উৎস', description: 'আমরা সরাসরি কৃষকদের থেকে সংগ্রহ করি।' },
+            { icon: 'FlaskConical', title: 'ল্যাব টেস্টেড', description: 'প্রতিটি ব্যাচ ডার্মাটোলজিস্ট দ্বারা পরীক্ষিত।' },
+            { icon: 'Recycle', title: 'জিরো ওয়েস্ট', description: 'আমাদের প্যাকেজিং ১০০% রিসাইকেলযোগ্য।' },
           ],
         },
       },
       {
-        type: 'benefits',
+        type: 'showcase',
         props: {
-          title: 'কেন অর্গানিক?',
-          subtitle: 'প্রকৃতির শক্তি',
-          benefits: [
-            { icon: '🌱', title: 'প্রাকৃতিক উপাদান', description: 'কোনো রাসায়নিক নেই' },
-            { icon: '💪', title: 'স্বাস্থ্যকর', description: 'শরীরের জন্য ভালো' },
-            { icon: '🌍', title: 'পরিবেশবান্ধব', description: 'পৃথিবীকে ভালোবাসি' },
+          variant: 'highlight',
+          title: 'কেন এটি অনন্য?',
+          features: [
+            { title: 'উপাদান', description: 'অ্যালোভেরা, গ্রিন টি, শিয়া বাটার' },
+            { title: 'ত্বকের ধরণ', description: 'সব ধরণের ত্বকের জন্য' },
+            { title: 'ব্যবহার', description: 'দিনে দুইবার' },
+            { title: 'পরিমাণ', description: '৫০ গ্রাম / ১০০ গ্রাম' },
           ],
         },
       },
       {
         type: 'testimonials',
         props: {
-          title: 'স্বাস্থ্যসচেতন গ্রাহকদের মতামত',
+          variant: 'minimal',
+          title: 'গ্রাহকদের ভালোবাসা',
           testimonials: [
-            { name: 'ডাঃ সুমন', text: 'রোগীদের জন্য রেকমেন্ড করি। সত্যিই অর্গানিক।', rating: 5 },
+            { name: 'নিগার সুলতানা', text: 'আমার সেনসিটিভ স্কিনের জন্য এটি আশীর্বাদ।', rating: 5 },
+            { name: 'ডাঃ রুবিনা', text: 'কেমিক্যাল মুক্ত হওয়ায় আমি এটি রেকমেন্ড করি।', rating: 5 },
           ],
         },
       },
       {
         type: 'faq',
         props: {
-          title: 'জিজ্ঞাসা',
+          variant: 'accordion',
+          title: 'সাধারণ জিজ্ঞাসা',
           items: [
-            { question: 'সত্যিই অর্গানিক?', answer: 'হ্যাঁ, সার্টিফাইড অর্গানিক উপাদান ব্যবহার করা হয়।' },
-            { question: 'এক্সপায়ারি ডেট?', answer: 'প্যাকেটে উল্লেখ থাকে। সাধারণত ৬-১২ মাস।' },
+            { question: 'এটি কি সব বয়সের জন্য?', answer: 'হ্যাঁ, এটি সম্পূর্ণ প্রাকৃতিক হওয়ায় নিরাপদ।' },
+            { question: 'সাইড ইফেক্ট আছে?', answer: 'না, তবে প্যাচ টেস্ট করে নেওয়া ভালো।' },
           ],
         },
       },
       {
         type: 'cta',
         props: {
-          headline: 'স্বাস্থ্যকর জীবনের জন্য',
-          subheadline: 'আজই অর্গানিক শুরু করুন',
-          buttonText: '🌿 অর্ডার করুন',
+          variant: 'organic', // Triggers OrganicOrderForm
+          headline: 'প্রকৃতির ছোঁয়া নিন',
+          subheadline: 'আজই শুরু করুন আপনার অর্গানিক জার্নি',
+          buttonText: 'অর্ডার করুন',
         },
       },
     ],
@@ -927,77 +969,6 @@ export const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
   // ─────────────────────────────────────────────────────────────────────────
   // SOCIAL-PROOF - Facebook/WhatsApp Style
   // ─────────────────────────────────────────────────────────────────────────
-  'social-proof-style': {
-    id: 'social-proof-style',
-    name: 'সোশ্যাল প্রুফ',
-    nameEn: '👥 Social Proof (Facebook Style)',
-    description: 'ফেসবুক ও হোয়াটসঅ্যাপ স্টাইলের পরিচিত ডিজাইন',
-    descriptionEn: 'Facebook and WhatsApp style familiar design',
-    thumbnail: '/templates/social-proof.png',
-    category: 'sales',
-    emoji: '👥',
-    colors: {
-      primary: '#1877F2',
-      accent: '#25D366',
-      bg: '#F0F2F5',
-    },
-    sections: [
-      {
-        type: 'hero',
-        props: {
-          variant: 'social-proof',
-          headline: '🔥 এই প্রোডাক্ট এখন ভাইরাল!',
-          subheadline: '২,৪০০+ লাইক • ৩৪৭ মন্তব্য • ৮৯ শেয়ার',
-          ctaText: 'এখনই অর্ডার করুন',
-          badgeText: '📱 সোশ্যাল মিডিয়ায় ট্রেন্ডিং',
-        },
-      },
-      {
-        type: 'trust-badges',
-        props: {
-          badges: [
-            { icon: '👍', text: '২.৪K লাইক' },
-            { icon: '💬', text: '৩৪৭ কমেন্ট' },
-            { icon: '🔄', text: '৮৯ শেয়ার' },
-            { icon: '⭐', text: '৫ স্টার' },
-          ],
-        },
-      },
-      {
-        type: 'testimonials',
-        props: {
-          variant: 'social-proof',
-          title: '💬 কাস্টমার কমেন্টস',
-          testimonials: [
-            { name: 'Rahim Ahmed', text: 'আমি অর্ডার করেছি, খুবই ভালো প্রোডাক্ট! 👍', rating: 5 },
-            { name: 'Fatema Begum', text: 'গতকালই পেয়েছি, অসাধারণ! 🔥', rating: 5 },
-            { name: 'Karim Uddin', text: 'বন্ধুদেরও বলে দিয়েছি অর্ডার করতে ❤️', rating: 5 },
-          ],
-        },
-      },
-      {
-        type: 'features',
-        props: {
-          variant: 'social-proof',
-          title: '✅ প্রোডাক্ট ফিচার',
-          features: [
-            { icon: '✓', title: '১০০% অরিজিনাল', description: 'গ্যারান্টি সহ' },
-            { icon: '✓', title: 'ক্যাশ অন ডেলিভারি', description: 'হাতে পেয়ে টাকা দিন' },
-            { icon: '✓', title: 'ফ্রি শিপিং', description: 'সারাদেশে' },
-          ],
-        },
-      },
-      {
-        type: 'cta',
-        props: {
-          styleVariant: 'social-proof',
-          headline: '📱 এখনই অর্ডার করুন',
-          subheadline: '৩৪৭ জন অর্ডার করেছেন',
-          buttonText: 'Send Order',
-        },
-      },
-    ],
-  },
 
   // ─────────────────────────────────────────────────────────────────────────
   // URGENCY-SCARCITY - FOMO Focused Design

@@ -45,7 +45,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     title: p.title,
     price: p.price,
     compareAtPrice: p.compareAtPrice,
-    images: p.images ? JSON.parse(p.images as string) : (p.imageUrl ? [p.imageUrl] : []),
+    images: (p.images ? JSON.parse(p.images as string) : (p.imageUrl ? [p.imageUrl] : [])) as string[],
     imageUrl: p.imageUrl,
     description: p.description,
   }));
@@ -81,7 +81,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 }
 
 export default function LandingTemplatePreview() {
-  const { preset, theme, store, products, product, categories } = useLoaderData<typeof loader>();
+  const { preset, theme, store, products, product } = useLoaderData<typeof loader>();
 
   // CSS variables for theme
   const themeStyle: React.CSSProperties = {
@@ -102,7 +102,8 @@ export default function LandingTemplatePreview() {
     props: section.props,
     sortOrder: index,
     enabled: true,
-    version: 1
+    version: 1,
+    pageId: 'preview' as string, // Required by BuilderSection type
   }));
 
   return (

@@ -11,6 +11,7 @@ import { TrustFirstOrderForm } from './TrustFirstOrderForm';
 import { UrgencyOrderForm } from './UrgencyOrderForm';
 import { SocialProofOrderForm } from './SocialProofOrderForm';
 import { StoryDrivenOrderForm } from './StoryDrivenOrderForm';
+import { OrganicOrderForm } from './OrganicOrderForm';
 
 export type { OrderFormVariant, OrderFormProps, OrderFormComponentProps } from './types';
 
@@ -37,6 +38,9 @@ export function OrderFormSection(componentProps: OrderFormComponentProps) {
     
     case 'story-driven':
       return <StoryDrivenOrderForm {...componentProps} />;
+
+    case 'organic':
+      return <OrganicOrderForm {...componentProps} />;
     
     case 'default':
     case 'minimal':
@@ -54,3 +58,4 @@ export { TrustFirstOrderForm } from './TrustFirstOrderForm';
 export { UrgencyOrderForm } from './UrgencyOrderForm';
 export { SocialProofOrderForm } from './SocialProofOrderForm';
 export { StoryDrivenOrderForm } from './StoryDrivenOrderForm';
+export { OrganicOrderForm } from './OrganicOrderForm';

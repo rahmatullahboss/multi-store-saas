@@ -134,7 +134,7 @@ export const HeroPropsSchema = z.object({
   badgeText: z.string().optional(),
   priceLabel: z.string().optional(),
   backgroundImage: z.string().optional(),
-  variant: z.enum(['centered', 'split-left', 'split-right', 'glow', 'modern']).optional().default('centered'),
+  variant: z.enum(['centered', 'split', 'split-left', 'split-right', 'glow', 'modern', 'immersive']).optional().default('centered'),
   features: z.array(z.object({
     icon: z.string(),
     text: z.string(),
@@ -223,7 +223,7 @@ export const CTAPropsSchema = z.object({
   buttonText: z.string().default('অর্ডার কনফার্ম করুন'),
   
   // Template variation
-  template: z.enum(['minimal', 'premium', 'urgent', 'singleColumn', 'withImage']).optional().default('minimal'),
+  template: z.enum(['minimal', 'premium', 'urgent', 'singleColumn', 'withImage', 'centered']).optional().default('minimal'),
   
   // Product Selection (from store products)
   productId: z.number().nullable().optional(),
@@ -465,6 +465,7 @@ export const ShowcasePropsSchema = z.object({
   title: z.string().optional().default('প্রোডাক্ট ডিটেইলস'),
   image: z.string().optional(),
   features: z.array(z.string()).default([]),
+  variant: z.enum(['simple', 'detailed', 'highlight']).optional().default('simple'),
 });
 export type ShowcaseProps = z.infer<typeof ShowcasePropsSchema>;
 

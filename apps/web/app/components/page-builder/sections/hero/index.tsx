@@ -13,6 +13,7 @@ import { TrustFirstHero } from './TrustFirstHero';
 import { StoryDrivenHero } from './StoryDrivenHero';
 import { UrgencyHero } from './UrgencyHero';
 import { SocialProofHero } from './SocialProofHero';
+import { OrganicHero } from './OrganicHero';
 import { DefaultHero } from './DefaultHero';
 
 export function HeroSectionPreview({ props, theme }: HeroSectionPreviewProps) {
@@ -96,9 +97,18 @@ export function HeroSectionPreview({ props, theme }: HeroSectionPreviewProps) {
         />
       );
     
-    case 'social-proof':
       return (
         <SocialProofHero
+          headline={headline}
+          subheadline={subheadline}
+          ctaText={ctaText}
+          badgeText={badgeText}
+        />
+      );
+
+    case 'organic':
+      return (
+        <OrganicHero
           headline={headline}
           subheadline={subheadline}
           ctaText={ctaText}

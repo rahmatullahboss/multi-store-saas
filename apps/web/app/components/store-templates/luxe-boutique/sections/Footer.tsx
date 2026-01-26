@@ -1,6 +1,7 @@
 import { Link } from '@remix-run/react';
 import { Mail, Instagram, Facebook } from 'lucide-react';
 import { LUXE_BOUTIQUE_THEME } from '../theme';
+import { OzzylBranding } from '../../shared/OzzylBranding';
 import type { SocialLinks, FooterConfig } from '@db/types';
 
 interface LuxeBoutiqueFooterProps {
@@ -30,33 +31,59 @@ export function LuxeBoutiqueFooter({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand */}
           <div>
-            <h4 
+            <h4
               className="text-xl font-semibold mb-4"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
               {storeName}
             </h4>
             <p className="text-white/70 text-sm leading-relaxed">
-              {footerConfig?.description || 'Curating exceptional products for discerning customers.'}
+              {footerConfig?.description ||
+                'Curating exceptional products for discerning customers.'}
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h5 className="font-medium uppercase text-sm tracking-wider mb-4" style={{ color: theme.accent }}>
+            <h5
+              className="font-medium uppercase text-sm tracking-wider mb-4"
+              style={{ color: theme.accent }}
+            >
               Quick Links
             </h5>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/" className="text-white/70 hover:text-white transition-colors">Home</Link></li>
-              <li><Link to="/?category=all" className="text-white/70 hover:text-white transition-colors">Shop All</Link></li>
-              <li><Link to="/about" className="text-white/70 hover:text-white transition-colors">About Us</Link></li>
-              <li><Link to="/contact" className="text-white/70 hover:text-white transition-colors">Contact</Link></li>
+              <li>
+                <Link to="/" className="text-white/70 hover:text-white transition-colors">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/?category=all"
+                  className="text-white/70 hover:text-white transition-colors"
+                >
+                  Shop All
+                </Link>
+              </li>
+              <li>
+                <Link to="/about" className="text-white/70 hover:text-white transition-colors">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-white/70 hover:text-white transition-colors">
+                  Contact
+                </Link>
+              </li>
             </ul>
           </div>
 
           {/* Contact */}
           <div>
-            <h5 className="font-medium uppercase text-sm tracking-wider mb-4" style={{ color: theme.accent }}>
+            <h5
+              className="font-medium uppercase text-sm tracking-wider mb-4"
+              style={{ color: theme.accent }}
+            >
               Contact Us
             </h5>
             <ul className="space-y-2 text-sm text-white/70">
@@ -66,20 +93,16 @@ export function LuxeBoutiqueFooter({
                   {businessInfo.email}
                 </li>
               )}
-              {businessInfo?.phone && (
-                <li>{businessInfo.phone}</li>
-              )}
-              {businessInfo?.address && (
-                <li>{businessInfo.address}</li>
-              )}
+              {businessInfo?.phone && <li>{businessInfo.phone}</li>}
+              {businessInfo?.address && <li>{businessInfo.address}</li>}
             </ul>
 
             {/* Social Links */}
             <div className="flex gap-4 mt-6">
               {socialLinks?.instagram && (
-                <a 
-                  href={socialLinks.instagram} 
-                  target="_blank" 
+                <a
+                  href={socialLinks.instagram}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-white/70 hover:text-white transition-colors"
                 >
@@ -87,9 +110,9 @@ export function LuxeBoutiqueFooter({
                 </a>
               )}
               {socialLinks?.facebook && (
-                <a 
-                  href={socialLinks.facebook} 
-                  target="_blank" 
+                <a
+                  href={socialLinks.facebook}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-white/70 hover:text-white transition-colors"
                 >
@@ -107,22 +130,9 @@ export function LuxeBoutiqueFooter({
           <p className="text-sm text-white/50" suppressHydrationWarning>
             © {new Date().getFullYear()} {storeName}. All rights reserved.
           </p>
-          
+
           {/* Viral Loop / Branding */}
-          {(planType === 'free' || footerConfig?.showPoweredBy !== false) && (
-            <div className="pt-2">
-              <a 
-                href="https://ozzyl.com?utm_source=footer-branding&utm_medium=referral" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-[10px] text-white/30 hover:text-white transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
-                style={{ color: theme.accent }}
-              >
-                <span style={{ color: 'rgba(255,255,255,0.3)' }}>Powered by</span>
-                <span className="font-bold tracking-tight text-sm">Ozzyl</span>
-              </a>
-            </div>
-          )}
+          <OzzylBranding planType={planType} showPoweredBy={footerConfig?.showPoweredBy} />
         </div>
       </div>
     </footer>

@@ -18,7 +18,8 @@ export type HeroVariant =
   | 'trust-first'
   | 'story-driven'
   | 'urgency'
-  | 'social-proof';
+  | 'social-proof'
+  | 'organic';
 
 export interface HeroProps extends SectionStyleProps {
   headline?: string;

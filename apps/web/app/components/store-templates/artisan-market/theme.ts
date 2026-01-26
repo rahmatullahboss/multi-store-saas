@@ -8,7 +8,7 @@ export const ARTISAN_MARKET_THEME = {
   muted: '#78716c',
   cardBg: '#ffffff',
   headerBg: '#fefbf6',
-  footerBg: '#3d2f2f',
-  footerText: '#fefbf6',
+  footerBg: '#fef3c7',
+  footerText: '#3d2f2f',
   cream: '#fdf8f0',
 };
