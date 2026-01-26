@@ -9,5 +9,6 @@ export { SocialProofTestimonials } from './SocialProofTestimonials';
 export { CardsTestimonials } from './CardsTestimonials';
 export { MinimalTestimonials } from './MinimalTestimonials';
 export { OrganicTestimonials } from './OrganicTestimonials';
+export { WorldClassTestimonials } from './WorldClassTestimonials';
 
 export type { TestimonialsVariant, Testimonial, TestimonialsProps } from './types';

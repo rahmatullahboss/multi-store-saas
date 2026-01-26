@@ -12,5 +12,6 @@
 - **Action**: Wired `MagneticStoryCTA` (via alias) into `order-form/index.tsx`.
 - **Action**: Cleaned up unused legacy imports in index files.
 - **Action**: Updating `templates.ts` to use new high-fidelity assets.
+- **Action**: Created `WorldClassOrderForm.tsx` and wired it to `story-driven-premium`.
 - **Action**: Updated `docs/theme_development_guide.md` with new standards.
 - **Action**: Task complete. Ready for verification.

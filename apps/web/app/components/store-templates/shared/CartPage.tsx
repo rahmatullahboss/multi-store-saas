@@ -68,20 +68,24 @@ export default function SharedCartPage({ theme, isPreview = false }: SharedCartP
 
     if (storedCart) {
       try {
-        const items = JSON.parse(storedCart) as any[];
+        const items = JSON.parse(storedCart);
+        if (!Array.isArray(items)) return; // Safety check
 
         if (isPreview) {
           // Preview Mode: Hydrate from DEMO_PRODUCTS
           const hydratedItems = items
-            .map((item) => {
-              const demoProduct = DEMO_PRODUCTS.find((p) => p.id === item.productId);
+            .map((item: any) => {
+              // Ensure ID comparison works (string vs number)
+              const pId = Number(item.productId);
+              const demoProduct = DEMO_PRODUCTS.find((p) => p.id === pId);
+
               if (!demoProduct) return null;
               return {
                 id: String(item.productId),
-                productId: item.productId,
+                productId: pId,
                 title: demoProduct.title,
                 price: demoProduct.price,
-                quantity: item.quantity,
+                quantity: Number(item.quantity) || 1,
                 image: demoProduct.imageUrl,
                 imageUrl: demoProduct.imageUrl,
                 variantName: item.variantName,
@@ -91,7 +95,7 @@ export default function SharedCartPage({ theme, isPreview = false }: SharedCartP
           setCartItems(hydratedItems);
         } else {
           // Live Mode: Set basic items, fetcher will enrich
-          const normalizedItems = items.map((item) => ({
+          const normalizedItems = items.map((item: any) => ({
             ...item,
             id: String(item.productId), // Ensure ID is string for UI keys
             image: item.image || item.imageUrl,
@@ -106,6 +110,7 @@ export default function SharedCartPage({ theme, isPreview = false }: SharedCartP
         }
       } catch (e) {
         console.error('Cart parse error', e);
+        localStorage.removeItem('cart');
       }
     }
     setIsHydrated(true);

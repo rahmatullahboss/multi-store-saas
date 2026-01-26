@@ -32,7 +32,7 @@ import { getTemplateSuggestions, DEFAULT_STYLE_TOKENS } from '~/utils/landing-bu
 
 // Step indicator component with accessibility
 function StepIndicator({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
-  const stepLabels = ['ইন্টেন্ট', 'প্রোডাক্ট', 'স্টাইল', 'টেমপ্লেট'];
+  const stepLabels = ['ইন্টেন্ট', 'প্রোডাক্ট', 'টেমপ্লেট'];
   
   return (
     <nav aria-label="Wizard progress" className="flex items-center justify-center gap-2 mb-8">
@@ -685,14 +685,14 @@ function Step3StylePreferences({ styleTokens, onUpdate }: Step3StyleProps) {
   );
 }
 
-// Step 4: Template Preview
-interface Step4Props {
+// Step 3: Template Preview (Previously Step 4)
+interface Step3Props {
   intent: Intent;
   selectedTemplate: string;
   onSelectTemplate: (templateId: string) => void;
 }
 
-function Step4TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: Step4Props) {
+function Step3TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: Step3Props) {
   const suggestions = getTemplateSuggestions(intent);
 
   // Listen for selection from preview window
@@ -879,17 +879,13 @@ export function IntentWizard({
       return selectedProductId || (product?.name && product?.price && product.price > 0);
     }
     if (step === 3) {
-      // Style preferences - always valid since we have defaults
-      return styleTokens.primaryColor && styleTokens.buttonStyle && styleTokens.fontFamily;
-    }
-    if (step === 4) {
       return selectedTemplate;
     }
     return false;
   };
 
   const handleNext = () => {
-    if (step < 4) {
+    if (step < 3) {
       setStep(step + 1);
     } else {
       // Complete wizard
@@ -914,7 +910,7 @@ export function IntentWizard({
 
   return (
     <div className="max-w-2xl mx-auto">
-      <StepIndicator currentStep={step} totalSteps={4} />
+      <StepIndicator currentStep={step} totalSteps={3} />
 
       {/* Step Content */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
@@ -943,14 +939,7 @@ export function IntentWizard({
         )}
 
         {step === 3 && (
-          <Step3StylePreferences
-            styleTokens={styleTokens}
-            onUpdate={(updates) => setStyleTokens((prev) => ({ ...prev, ...updates }))}
-          />
-        )}
-
-        {step === 4 && (
-          <Step4TemplatePreview
+          <Step3TemplatePreview
             intent={intent as Intent}
             selectedTemplate={selectedTemplate}
             onSelectTemplate={setSelectedTemplate}
@@ -991,7 +980,7 @@ export function IntentWizard({
           aria-label={
             isSubmitting 
               ? 'ল্যান্ডিং পেইজ তৈরি হচ্ছে, অপেক্ষা করুন' 
-              : step === 4 
+              : step === 3 
                 ? 'ল্যান্ডিং পেইজ তৈরি করুন' 
                 : `ধাপ ${step + 1} এ যান`
           }
@@ -1009,7 +998,7 @@ export function IntentWizard({
               <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
               তৈরি হচ্ছে...
             </>
-          ) : step === 4 ? (
+          ) : step === 3 ? (
             <>
               ল্যান্ডিং পেইজ তৈরি করুন
               <ArrowRight className="w-4 h-4" aria-hidden="true" />

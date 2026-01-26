@@ -180,15 +180,17 @@ export function FooterSectionPreview({ props }: { props: FooterProps }) {
             
             {/* Powered By */}
             {showPoweredBy && (
-              <a 
-                href="https://ozzyl.com?ref=footer" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 hover:opacity-100 transition"
-              >
-                <span>Powered by</span>
-                <span className="font-semibold" style={{ color: accentColor }}>Ozzyl</span>
-              </a>
+              <div className="mt-4 md:mt-0">
+                 <a 
+                   href="https://ozzyl.com?ref=footer" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   className="inline-flex items-center gap-1 opacity-60 hover:opacity-100 transition-opacity"
+                 >
+                   <span className="font-semibold">Powered by</span>
+                   <span className="font-bold text-amber-500">Ozzyl</span>
+                 </a>
+              </div>
             )}
           </div>
         </div>

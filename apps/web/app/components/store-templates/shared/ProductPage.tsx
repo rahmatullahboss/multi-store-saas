@@ -132,8 +132,28 @@ export default function SharedProductPage({
 
   const handleAddToCart = () => {
     if (isPreview) {
-      // In preview mode, just show visual feedback
+      // In preview mode, update local storage for realistic feel
       setIsAdding(true);
+
+      // Update localStorage
+      try {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const existingIndex = cart.findIndex((item: any) => item.productId === product.id);
+
+        if (existingIndex >= 0) {
+          cart[existingIndex].quantity += quantity;
+        } else {
+          // Note: storeId might not be available in product object in preview, but that's ok
+          cart.push({ productId: product.id, quantity });
+        }
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        window.dispatchEvent(new Event('cart-updated'));
+        window.dispatchEvent(new Event('storage'));
+      } catch (e) {
+        console.error('Failed to update preview cart', e);
+      }
+
       setTimeout(() => {
         setIsAdding(false);
         setAddedToCart(true);

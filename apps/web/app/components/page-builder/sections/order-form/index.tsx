@@ -11,7 +11,8 @@ import { TrustFirstOrderForm } from './TrustFirstOrderForm';
 import { UrgencyOrderForm } from './UrgencyOrderForm';
 import { SocialProofOrderForm } from './SocialProofOrderForm';
 import { StoryDrivenOrderForm } from './StoryDrivenOrderForm';
-import { MagneticStoryCTA } from '../cta/MagneticStoryCTA';
+// import { MagneticStoryCTA } from '../cta/MagneticStoryCTA'; // Unused in premium workflow
+import { WorldClassOrderForm } from './WorldClassOrderForm';
 import { OrganicOrderForm } from './OrganicOrderForm';
 
 export type { OrderFormVariant, OrderFormProps, OrderFormComponentProps } from './types';
@@ -41,11 +42,7 @@ export function OrderFormSection(componentProps: OrderFormComponentProps) {
       return <StoryDrivenOrderForm {...componentProps} />;
 
     case 'story-driven-premium':
-      return <MagneticStoryCTA 
-        headline={componentProps.props.headline as string || 'Ready to start?'} 
-        subheadline={componentProps.props.subheadline as string || ''}
-        buttonText={componentProps.props.buttonText as string || 'Order Now'} 
-      />;
+      return <WorldClassOrderForm {...componentProps} />;
 
     case 'organic':
       return <OrganicOrderForm {...componentProps} />;

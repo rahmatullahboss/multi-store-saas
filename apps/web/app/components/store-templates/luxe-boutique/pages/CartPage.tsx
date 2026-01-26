@@ -72,10 +72,6 @@ export function LuxeCartPage({ theme, isPreview = false }: LuxeCartProps) {
     });
   };
 
-  const removeItem = (id: number) => {
-    setCartItems((items) => items.filter((item) => item.id !== id && item.productId !== id));
-  };
-
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const getLink = (path: string) => {
@@ -118,9 +114,9 @@ export function LuxeCartPage({ theme, isPreview = false }: LuxeCartProps) {
             </div>
 
             <div className="space-y-8">
-              {cartItems.map((item) => (
+              {cartItems.map((item, index) => (
                 <div
-                  key={item.id}
+                  key={item.id || item.productId || index}
                   className="flex flex-col md:flex-row gap-6 items-center border-b border-[#e5e5e5] pb-8 last:border-0"
                 >
                   <div className="flex gap-6 w-full md:w-1/2">

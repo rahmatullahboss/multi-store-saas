@@ -13,10 +13,11 @@
  * - Fully theme-aware
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams } from '@remix-run/react';
 import { Shield, Truck, CreditCard, ChevronRight, Lock } from 'lucide-react';
 import type { StoreTemplateTheme } from '~/templates/store-registry';
+import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
 
 interface SharedCheckoutPageProps {
   theme?: StoreTemplateTheme;
@@ -42,10 +43,54 @@ export default function SharedCheckoutPage({ theme, isPreview = false }: SharedC
 
   const currencySymbol = '৳';
 
-  // State for form
+  // State for form and cart
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+
+  // Load Cart Data
+  useEffect(() => {
+    const stored = localStorage.getItem('cart');
+    if (stored) {
+      try {
+        const items = JSON.parse(stored);
+        if (Array.isArray(items)) {
+          if (isPreview) {
+            // Hydrate with Demo Data
+            const hydratedItems = items
+              .map((item: any) => {
+                const pId = Number(item.productId);
+                const demoProduct = DEMO_PRODUCTS.find((p) => p.id === pId);
+                return demoProduct
+                  ? {
+                      ...item,
+                      title: demoProduct.title,
+                      price: demoProduct.price,
+                      imageUrl: demoProduct.imageUrl,
+                    }
+                  : null;
+              })
+              .filter(Boolean);
+            setCartItems(hydratedItems);
+          } else {
+            setCartItems(items);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    setHydrated(true);
+  }, [isPreview]);
+
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
+    0
+  );
+  const shipping = isPreview && cartItems.length > 0 ? 100 : 0;
+  const total = subtotal + shipping;
 
   // Helper for preview-safe links
   const getLink = (path: string) => {
@@ -288,44 +333,57 @@ export default function SharedCheckoutPage({ theme, isPreview = false }: SharedC
                 Order Summary
               </h2>
 
-              {/* Mock Items */}
+              {/* Cart Items List */}
               <div
                 className="space-y-4 mb-6 border-b pb-6"
                 style={{ borderColor: colors.muted + '20' }}
               >
-                {[1, 2].map((i) => (
-                  <div key={i} className="flex gap-3">
-                    <div className="w-16 h-16 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
-                      <img
-                        src={`https://source.unsplash.com/random/100x100?product&sig=${i}`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => (e.currentTarget.style.display = 'none')}
-                      />
+                {hydrated && cartItems.length > 0 ? (
+                  cartItems.map((item) => (
+                    <div key={item.id || item.productId} className="flex gap-3">
+                      <div className="w-16 h-16 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
+                        <img
+                          src={item.imageUrl || item.image}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                          onError={(e) => (e.currentTarget.style.display = 'none')}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate" style={{ color: colors.text }}>
+                          {item.title}
+                        </p>
+                        <p className="text-xs mt-1" style={{ color: colors.muted }}>
+                          Qty: {item.quantity}
+                        </p>
+                      </div>
+                      <div className="font-medium text-sm" style={{ color: colors.text }}>
+                        {currencySymbol}
+                        {(item.price || 0).toLocaleString()}
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate" style={{ color: colors.text }}>
-                        {i === 1 ? 'Premium Headphones' : 'Smart Watch'}
-                      </p>
-                      <p className="text-xs mt-1" style={{ color: colors.muted }}>
-                        Qty: 1
-                      </p>
-                    </div>
-                    <div className="font-medium text-sm" style={{ color: colors.text }}>
-                      {currencySymbol}
-                      {i === 1 ? '3,500' : '2,500'}
-                    </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-sm text-center py-4" style={{ color: colors.muted }}>
+                    Your cart is empty.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-sm" style={{ color: colors.muted }}>
                   <span>Subtotal</span>
-                  <span style={{ color: colors.text }}>{currencySymbol}6,000</span>
+                  <span style={{ color: colors.text }}>
+                    {currencySymbol}
+                    {subtotal.toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm" style={{ color: colors.muted }}>
                   <span>Shipping</span>
-                  <span style={{ color: colors.text }}>{currencySymbol}100</span>
+                  <span style={{ color: colors.text }}>
+                    {currencySymbol}
+                    {shipping.toLocaleString()}
+                  </span>
                 </div>
               </div>
 
@@ -335,18 +393,21 @@ export default function SharedCheckoutPage({ theme, isPreview = false }: SharedC
                     Total
                   </span>
                   <span className="text-2xl font-bold" style={{ color: colors.accent }}>
-                    {currencySymbol}6,100
+                    {currencySymbol}
+                    {total.toLocaleString()}
                   </span>
                 </div>
               </div>
 
               <button
                 type="submit"
-                disabled={isProcessing}
-                className="w-full py-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90 text-white disabled:opacity-70"
+                disabled={isProcessing || cartItems.length === 0}
+                className="w-full py-4 rounded-lg font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90 text-white disabled:opacity-70 disabled:cursor-not-allowed"
                 style={{ backgroundColor: colors.primary }}
               >
-                {isProcessing ? 'Processing...' : `Place Order ${currencySymbol}6,100`}
+                {isProcessing
+                  ? 'Processing...'
+                  : `Place Order ${currencySymbol}${total.toLocaleString()}`}
                 {!isProcessing && <Shield className="w-4 h-4" />}
               </button>
 

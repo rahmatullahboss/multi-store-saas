@@ -1,10 +1,21 @@
 import { motion } from 'framer-motion';
-import type { BaseFeaturesProps } from './types';
 import * as LucideIcons from 'lucide-react';
 
-export function StoryTimelineFeatures({ title, features }: BaseFeaturesProps) {
+interface FeatureItem {
+  icon: string; // Lucide icon names are strings
+  title: string;
+  description: string;
+}
+
+// Define FeaturesProps
+interface FeaturesProps {
+  title?: string;
+  subtitle?: string;
+  features: FeatureItem[];
+}
+
+export function StoryTimelineFeatures({ title, subtitle, features }: FeaturesProps) {
   // Split features to create a zig-zag or timeline flow
-  // Ideally, we want "Problem" on left, "Solution" on right, or a journey
   
   return (
     <section className="relative py-32 bg-stone-100 overflow-hidden">
@@ -24,6 +35,11 @@ export function StoryTimelineFeatures({ title, features }: BaseFeaturesProps) {
                 <h2 className="text-4xl md:text-5xl font-bold text-stone-900 mb-6" style={{ fontFamily: '"Playfair Display", serif' }}>
                     {title}
                 </h2>
+                {subtitle && (
+                   <p className="text-lg text-stone-600 max-w-2xl mx-auto mb-6">
+                     {subtitle}
+                   </p>
+                )}
                 <div className="w-24 h-1 bg-amber-500 mx-auto rounded-full" />
             </motion.div>
 
@@ -32,8 +48,9 @@ export function StoryTimelineFeatures({ title, features }: BaseFeaturesProps) {
                 <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-amber-200 -translate-x-1/2" />
 
                 <div className="space-y-24">
-                {features?.map((feature: any, index: number) => {
-                    const Icon = (LucideIcons as any)[feature.icon] || LucideIcons.Star;
+                {features?.map((feature: FeatureItem, index: number) => {
+                    // Type-safe icon access
+                    const Icon = (LucideIcons as unknown as Record<string, React.ComponentType<{ size?: number; className?: string }>>)[feature.icon] || LucideIcons.Star;
                     const isEven = index % 2 === 0;
 
                     return (

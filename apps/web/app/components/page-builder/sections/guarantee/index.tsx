@@ -2,14 +2,10 @@
  * Guarantee Section - Main Router
  */
 
-import type { SectionTheme } from '~/lib/page-builder/types';
 import type { GuaranteeProps, GuaranteeSectionPreviewProps } from './types';
 
 import { DefaultGuarantee } from './DefaultGuarantee';
-import { GlassmorphismGuarantee } from './GlassmorphismGuarantee';
-import { NeubrutalistGuarantee } from './NeubrutalistGuarantee';
-import { TrustFirstGuarantee } from './TrustFirstGuarantee';
-import { UrgencyGuarantee } from './UrgencyGuarantee';
+import { WorldClassGuarantee } from './WorldClassGuarantee';
 
 export type GuaranteeVariant = 
   | 'default' 
@@ -19,49 +15,28 @@ export type GuaranteeVariant =
   | 'urgency';
 
 export function GuaranteeSectionPreview({ props, theme }: GuaranteeSectionPreviewProps) {
-  const {
-    title = 'আমাদের গ্যারান্টি',
-    text = '১০০% সন্তুষ্টির গ্যারান্টি। পছন্দ না হলে ৭ দিনের মধ্যে ফেরত।',
-    badgeLabel = '',
-    variant = 'default',
-    backgroundColor,
-    backgroundGradient,
-    textColor,
-    headingColor,
-    fontFamily,
-    paddingY,
-  } = props as GuaranteeProps & { variant?: GuaranteeVariant };
-
-  const styleProps = {
-    backgroundColor,
-    backgroundGradient,
-    textColor,
-    headingColor,
-    fontFamily,
-    paddingY,
-  };
-
+  // Fix: Assign styleProps correctly to satisfy GuaranteeProps if needed, 
+  // or just pass props directly if they align.
+  // The error was that 'styleProps' is mandatory in GuaranteeVariantProps but missing in the cast.
+  // Converting to GuaranteeProps which extends SectionStyleProps directly might be safer.
+  
   const commonProps = {
-    title,
-    text,
-    badgeLabel,
-    theme,
-    styleProps,
-  };
+    ...props,
+    // Ensure styleProps exists as it is required by GuaranteeProps (which extends SectionStyleProps)
+    // If not passed in props, we provide a default object
+    styleProps: { theme, ...((props as any).styleProps || {}) },
+    theme
+  } as GuaranteeProps;
+  
+  // Choose variant based on props or theme
+  const variant = props.variant || 'default';
 
-  switch (variant) {
-    case 'glassmorphism':
-      return <GlassmorphismGuarantee {...commonProps} />;
-    case 'neubrutalism':
-      return <NeubrutalistGuarantee {...commonProps} />;
-    case 'trust-first':
-      return <TrustFirstGuarantee {...commonProps} />;
-    case 'urgency':
-      return <UrgencyGuarantee {...commonProps} />;
-    case 'default':
-    default:
-      return <DefaultGuarantee {...commonProps} />;
+  if (variant === 'story-driven-premium') {
+    return <WorldClassGuarantee {...commonProps} />;
   }
+
+  // Default fallback
+  return <DefaultGuarantee {...commonProps} />;
 }
 
 export type { GuaranteeProps, GuaranteeSectionPreviewProps };

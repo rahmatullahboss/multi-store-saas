@@ -3,7 +3,46 @@
  * Warm, emotional design with amber tones, serif fonts, and storytelling elements
  */
 
+import { useState, useEffect } from 'react';
 import { Heart, Quote, Sparkles, Gift, Star } from 'lucide-react';
+
+function ClientSideHearts({ count }: { count: number }) {
+  const [hearts, setHearts] = useState<Array<{
+    size: number;
+    left: string;
+    top: string;
+    duration: string;
+    delay: string;
+  }>>([]);
+
+  useEffect(() => {
+    setHearts([...Array(count)].map(() => ({
+      size: 20 + Math.random() * 20,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      duration: `${5 + Math.random() * 5}s`,
+      delay: `${Math.random() * 3}s`,
+    })));
+  }, [count]);
+
+  return (
+    <>
+      {hearts.map((h, i) => (
+        <Heart
+          key={i}
+          size={h.size}
+          className="absolute text-amber-300 opacity-20"
+          style={{
+            left: h.left,
+            top: h.top,
+            animation: `floatHeart ${h.duration} ease-in-out infinite`,
+            animationDelay: h.delay,
+          }}
+        />
+      ))}
+    </>
+  );
+}
 import type { OrderFormComponentProps } from './types';
 import { useOrderForm } from './useOrderForm';
 import { OrderFormFields } from './OrderFormFields';
@@ -78,21 +117,9 @@ export function StoryDrivenOrderForm({ props, theme, storeId, productId, product
         </svg>
       </div>
       
-      {/* Floating hearts */}
+      {/* Floating hearts - Client side only to avoid hydration mismatch */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(8)].map((_, i) => (
-          <Heart
-            key={i}
-            size={20 + Math.random() * 20}
-            className="absolute text-amber-300 opacity-20"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animation: `floatHeart ${5 + Math.random() * 5}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 3}s`,
-            }}
-          />
-        ))}
+        <ClientSideHearts count={8} />
       </div>
       
       <div className="relative z-10 max-w-4xl mx-auto">

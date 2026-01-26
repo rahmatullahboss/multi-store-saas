@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams } from '@remix-run/react';
 import { Minus, Plus, Trash2, ArrowRight, Shield } from 'lucide-react';
+import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
 
 interface TechCartProps {
   theme?: any;
   isPreview?: boolean;
+  onCheckout?: () => void;
 }
 
-export function TechCartPage({ theme, isPreview = false }: TechCartProps) {
+export function TechCartPage({ theme, isPreview = false, onCheckout }: TechCartProps) {
   const params = useParams();
   const templateId = params.templateId || 'tech-modern';
   const currencySymbol = '৳';
@@ -16,48 +18,63 @@ export function TechCartPage({ theme, isPreview = false }: TechCartProps) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    if (isPreview) {
-      setCartItems([
-        {
-          id: 1,
-          title: 'Ultra HD 4K Monitor',
-          price: 35000,
-          quantity: 1,
-          image:
-            'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&q=80&w=300',
-          specs: '27-inch, IPS, 144Hz',
-        },
-        {
-          id: 2,
-          title: 'Mechanical Gaming Keyboard',
-          price: 4500,
-          quantity: 1,
-          image:
-            'https://images.unsplash.com/photo-1587829741301-dc798b91add1?auto=format&fit=crop&q=80&w=300',
-          specs: 'RGB, Blue Switches',
-        },
-      ]);
-      setHydrated(true);
-    } else {
-      const stored = localStorage.getItem('cart');
-      if (stored) setCartItems(JSON.parse(stored));
-      setHydrated(true);
+    const stored = localStorage.getItem('cart');
+    if (stored) {
+      try {
+        const items = JSON.parse(stored);
+        if (!Array.isArray(items)) return; // Safety check
+
+        if (isPreview) {
+          // Hydrate with Demo Data
+          const hydratedItems = items
+            .map((item: any) => {
+              const pId = Number(item.productId);
+              const demoProduct = DEMO_PRODUCTS.find((p) => p.id === pId);
+              return demoProduct
+                ? {
+                    ...item,
+                    productId: pId,
+                    title: demoProduct.title,
+                    price: demoProduct.price,
+                    quantity: Number(item.quantity) || 1,
+                    image: demoProduct.imageUrl,
+                    specs: demoProduct.description?.slice(0, 30) + '...',
+                  }
+                : null;
+            })
+            .filter(Boolean);
+          setCartItems(hydratedItems);
+        } else {
+          setCartItems(items);
+        }
+      } catch (e) {
+        console.error(e);
+        localStorage.removeItem('cart');
+      }
     }
+    setHydrated(true);
   }, [isPreview]);
 
   const updateQty = (id: number, delta: number) => {
-    setCartItems((items) =>
-      items.map((item) => {
+    setCartItems((items) => {
+      const newItems = items.map((item) => {
         if (item.id === id || item.productId === id) {
           return { ...item, quantity: Math.max(1, item.quantity + delta) };
         }
         return item;
-      })
-    );
+      });
+      localStorage.setItem('cart', JSON.stringify(newItems));
+      return newItems;
+    });
   };
 
   const removeItem = (id: number) => {
-    setCartItems((items) => items.filter((item) => item.id !== id && item.productId !== id));
+    setCartItems((items) => {
+      const newItems = items.filter((item) => item.id !== id && item.productId !== id);
+      localStorage.setItem('cart', JSON.stringify(newItems));
+      window.dispatchEvent(new Event('cart-updated'));
+      return newItems;
+    });
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -86,7 +103,7 @@ export function TechCartPage({ theme, isPreview = false }: TechCartProps) {
           <div className="lg:col-span-2 space-y-4">
             {cartItems.map((item) => (
               <div
-                key={item.id}
+                key={item.id || item.productId}
                 className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex gap-4"
               >
                 <div className="w-24 h-24 bg-gray-100 rounded border border-gray-100 flex-shrink-0">
@@ -177,12 +194,21 @@ export function TechCartPage({ theme, isPreview = false }: TechCartProps) {
                 </span>
               </div>
 
-              <Link
-                to={getLink('/checkout')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-200"
-              >
-                Checkout Securely <ArrowRight size={18} />
-              </Link>
+              {onCheckout ? (
+                <button
+                  onClick={onCheckout}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-200"
+                >
+                  Checkout Securely <ArrowRight size={18} />
+                </button>
+              ) : (
+                <Link
+                  to={getLink('/checkout')}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-200"
+                >
+                  Checkout Securely <ArrowRight size={18} />
+                </Link>
+              )}
 
               <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500">
                 <Shield size={12} className="text-green-500" />

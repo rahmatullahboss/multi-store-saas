@@ -5,7 +5,11 @@ export interface GuaranteeProps extends SectionStyleProps {
   title?: string;
   text?: string;
   badgeLabel?: string;
-  variant?: string;
+  variant?:
+    | 'cards'
+    | 'organic'
+    | 'story-driven'
+    | 'story-driven-premium';
 }
 
 export interface GuaranteeSectionPreviewProps {

@@ -10,7 +10,17 @@
  */
 
 import { useState } from 'react';
-import { ShoppingCart, Heart, Share2, ChevronLeft, ChevronRight, Star, Truck, Shield, RotateCcw } from 'lucide-react';
+import {
+  ShoppingCart,
+  Heart,
+  Share2,
+  ChevronLeft,
+  ChevronRight,
+  Star,
+  Truck,
+  Shield,
+  RotateCcw,
+} from 'lucide-react';
 import { DARAZ_THEME } from '../theme';
 import type { Product } from '@db/schema';
 
@@ -47,9 +57,10 @@ export function DarazProductPage({
     }
   }
 
-  const discount = product.compareAtPrice && product.compareAtPrice > (product.price ?? 0)
-    ? Math.round((1 - (product.price ?? 0) / product.compareAtPrice) * 100)
-    : 0;
+  const discount =
+    product.compareAtPrice && product.compareAtPrice > (product.price ?? 0)
+      ? Math.round((1 - (product.price ?? 0) / product.compareAtPrice) * 100)
+      : 0;
 
   const handleAddToCart = () => {
     if (onAddToCart) {
@@ -84,18 +95,19 @@ export function DarazProductPage({
   };
 
   return (
-    <div 
-      className="min-h-screen py-6 px-4"
-      style={{ backgroundColor: DARAZ_THEME.background }}
-    >
+    <div className="min-h-screen py-6 px-4" style={{ backgroundColor: DARAZ_THEME.background }}>
       <div className="max-w-6xl mx-auto">
         {/* Breadcrumb */}
         <nav className="text-sm mb-4" style={{ color: DARAZ_THEME.textSecondary }}>
-          <a href="/" className="hover:underline">Home</a>
+          <a href="/" className="hover:underline">
+            Home
+          </a>
           <span className="mx-2">/</span>
           {product.category && (
             <>
-              <a href={`/?category=${product.category}`} className="hover:underline">{product.category}</a>
+              <a href={`/?category=${product.category}`} className="hover:underline">
+                {product.category}
+              </a>
               <span className="mx-2">/</span>
             </>
           )}
@@ -115,7 +127,7 @@ export function DarazProductPage({
                 />
               )}
               {discount > 0 && (
-                <span 
+                <span
                   className="absolute top-3 left-3 px-2 py-1 text-white text-xs font-bold rounded"
                   style={{ backgroundColor: DARAZ_THEME.primary }}
                 >
@@ -126,13 +138,17 @@ export function DarazProductPage({
               {images.length > 1 && (
                 <>
                   <button
-                    onClick={() => setSelectedImage(prev => prev > 0 ? prev - 1 : images.length - 1)}
+                    onClick={() =>
+                      setSelectedImage((prev) => (prev > 0 ? prev - 1 : images.length - 1))
+                    }
                     className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center shadow hover:bg-white"
                   >
                     <ChevronLeft size={20} />
                   </button>
                   <button
-                    onClick={() => setSelectedImage(prev => prev < images.length - 1 ? prev + 1 : 0)}
+                    onClick={() =>
+                      setSelectedImage((prev) => (prev < images.length - 1 ? prev + 1 : 0))
+                    }
                     className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center shadow hover:bg-white"
                   >
                     <ChevronRight size={20} />
@@ -160,7 +176,7 @@ export function DarazProductPage({
 
           {/* Product Info */}
           <div className="bg-white rounded-lg p-6">
-            <h1 
+            <h1
               className="text-xl font-medium mb-3 leading-relaxed"
               style={{ color: DARAZ_THEME.text }}
             >
@@ -170,7 +186,7 @@ export function DarazProductPage({
             {/* Rating */}
             <div className="flex items-center gap-2 mb-4">
               <div className="flex text-yellow-400">
-                {[1, 2, 3, 4, 5].map(star => (
+                {[1, 2, 3, 4, 5].map((star) => (
                   <Star key={star} size={14} fill="currentColor" />
                 ))}
               </div>
@@ -182,10 +198,7 @@ export function DarazProductPage({
             {/* Price */}
             <div className="mb-6 pb-6" style={{ borderBottom: `1px solid ${DARAZ_THEME.border}` }}>
               <div className="flex items-baseline gap-3">
-                <span 
-                  className="text-3xl font-bold"
-                  style={{ color: DARAZ_THEME.priceOrange }}
-                >
+                <span className="text-3xl font-bold" style={{ color: DARAZ_THEME.priceOrange }}>
                   {currency} {(product.price ?? 0).toLocaleString()}
                 </span>
                 {product.compareAtPrice && product.compareAtPrice > (product.price ?? 0) && (
@@ -199,16 +212,19 @@ export function DarazProductPage({
             {/* Quantity */}
             <div className="flex items-center gap-4 mb-6">
               <span style={{ color: DARAZ_THEME.text }}>Quantity:</span>
-              <div className="flex items-center border rounded" style={{ borderColor: DARAZ_THEME.border }}>
+              <div
+                className="flex items-center border rounded"
+                style={{ borderColor: DARAZ_THEME.border }}
+              >
                 <button
-                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   className="w-10 h-10 flex items-center justify-center hover:bg-gray-50"
                 >
                   -
                 </button>
                 <span className="w-12 text-center">{quantity}</span>
                 <button
-                  onClick={() => setQuantity(q => q + 1)}
+                  onClick={() => setQuantity((q) => q + 1)}
                   className="w-10 h-10 flex items-center justify-center hover:bg-gray-50"
                 >
                   +
@@ -239,11 +255,20 @@ export function DarazProductPage({
             </div>
 
             {/* Actions Row */}
-            <div className="flex items-center gap-6 mb-6 pb-6" style={{ borderBottom: `1px solid ${DARAZ_THEME.border}` }}>
-              <button className="flex items-center gap-2 text-sm" style={{ color: DARAZ_THEME.textSecondary }}>
+            <div
+              className="flex items-center gap-6 mb-6 pb-6"
+              style={{ borderBottom: `1px solid ${DARAZ_THEME.border}` }}
+            >
+              <button
+                className="flex items-center gap-2 text-sm"
+                style={{ color: DARAZ_THEME.textSecondary }}
+              >
                 <Heart size={18} /> Wishlist
               </button>
-              <button className="flex items-center gap-2 text-sm" style={{ color: DARAZ_THEME.textSecondary }}>
+              <button
+                className="flex items-center gap-2 text-sm"
+                style={{ color: DARAZ_THEME.textSecondary }}
+              >
                 <Share2 size={18} /> Share
               </button>
             </div>
@@ -252,15 +277,25 @@ export function DarazProductPage({
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center">
                 <Truck size={24} className="mx-auto mb-2" style={{ color: DARAZ_THEME.primary }} />
-                <span className="text-xs" style={{ color: DARAZ_THEME.textSecondary }}>Fast Delivery</span>
+                <span className="text-xs" style={{ color: DARAZ_THEME.textSecondary }}>
+                  Fast Delivery
+                </span>
               </div>
               <div className="text-center">
                 <Shield size={24} className="mx-auto mb-2" style={{ color: DARAZ_THEME.primary }} />
-                <span className="text-xs" style={{ color: DARAZ_THEME.textSecondary }}>Secure Payment</span>
+                <span className="text-xs" style={{ color: DARAZ_THEME.textSecondary }}>
+                  Secure Payment
+                </span>
               </div>
               <div className="text-center">
-                <RotateCcw size={24} className="mx-auto mb-2" style={{ color: DARAZ_THEME.primary }} />
-                <span className="text-xs" style={{ color: DARAZ_THEME.textSecondary }}>Easy Returns</span>
+                <RotateCcw
+                  size={24}
+                  className="mx-auto mb-2"
+                  style={{ color: DARAZ_THEME.primary }}
+                />
+                <span className="text-xs" style={{ color: DARAZ_THEME.textSecondary }}>
+                  Easy Returns
+                </span>
               </div>
             </div>
           </div>
@@ -272,7 +307,7 @@ export function DarazProductPage({
             <h2 className="text-lg font-medium mb-4" style={{ color: DARAZ_THEME.text }}>
               Product Description
             </h2>
-            <div 
+            <div
               className="prose prose-sm max-w-none"
               style={{ color: DARAZ_THEME.textSecondary }}
               dangerouslySetInnerHTML={{ __html: product.description }}
@@ -283,7 +318,7 @@ export function DarazProductPage({
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div className="mt-8">
-            <h2 
+            <h2
               className="text-lg font-bold mb-4 flex items-center gap-2"
               style={{ color: DARAZ_THEME.text }}
             >
@@ -291,7 +326,7 @@ export function DarazProductPage({
               You May Also Like
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {relatedProducts.slice(0, 6).map(p => {
+              {relatedProducts.slice(0, 6).map((p) => {
                 const handleClick = (e: React.MouseEvent) => {
                   if (onNavigateProduct) {
                     e.preventDefault();
@@ -299,36 +334,30 @@ export function DarazProductPage({
                   }
                 };
                 return (
-                <a
-                  key={p.id}
-                  href={`/products/${p.id}`}
-                  onClick={handleClick}
-                  className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition group"
-                >
-                  <div className="aspect-square bg-gray-50">
-                    {p.imageUrl && (
-                      <img
-                        src={p.imageUrl}
-                        alt={p.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition"
-                      />
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <h3 
-                      className="text-sm line-clamp-2 mb-2"
-                      style={{ color: DARAZ_THEME.text }}
-                    >
-                      {p.title}
-                    </h3>
-                    <p 
-                      className="font-bold text-sm"
-                      style={{ color: DARAZ_THEME.priceOrange }}
-                    >
-                      {currency} {(p.price ?? 0).toLocaleString()}
-                    </p>
-                  </div>
-                </a>
+                  <a
+                    key={p.id}
+                    href={`/products/${p.id}`}
+                    onClick={handleClick}
+                    className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition group"
+                  >
+                    <div className="aspect-square bg-gray-50">
+                      {p.imageUrl && (
+                        <img
+                          src={p.imageUrl}
+                          alt={p.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition"
+                        />
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <h3 className="text-sm line-clamp-2 mb-2" style={{ color: DARAZ_THEME.text }}>
+                        {p.title}
+                      </h3>
+                      <p className="font-bold text-sm" style={{ color: DARAZ_THEME.priceOrange }}>
+                        {currency} {(p.price ?? 0).toLocaleString()}
+                      </p>
+                    </div>
+                  </a>
                 );
               })}
             </div>

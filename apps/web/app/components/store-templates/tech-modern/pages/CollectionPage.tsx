@@ -1,6 +1,7 @@
 import { Link, useParams } from '@remix-run/react';
 import { Filter, Grid, List } from 'lucide-react';
 import type { SerializedProduct } from '~/templates/store-registry';
+import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 
 interface TechCollectionProps {
   products: SerializedProduct[];
@@ -22,15 +23,6 @@ export function TechCollectionPage({
   const templateId = params.templateId || 'tech-modern';
   const currencySymbol = currency === 'BDT' ? '৳' : '$';
 
-  const getLink = (path: string) => {
-    if (isPreview && templateId) {
-      if (path === '/') return `/store-template-preview/${templateId}`;
-      if (path.startsWith('/products/')) return `/store-template-preview/${templateId}${path}`;
-      if (path.startsWith('/collections/')) return `/store-template-preview/${templateId}${path}`;
-    }
-    return path;
-  };
-
   return (
     <div className="min-h-screen bg-[#f1f5f9] text-[#0f172a]">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -46,20 +38,22 @@ export function TechCollectionPage({
                 <h4 className="font-semibold text-xs text-gray-500 uppercase mt-4 mb-2">
                   Categories
                 </h4>
-                <Link
-                  to={getLink('/collections/all-products')}
+                <PreviewSafeLink
+                  to="/collections/all-products"
+                  isPreview={isPreview}
                   className={`block text-sm py-1 ${category === 'all-products' ? 'text-blue-600 font-bold' : 'text-gray-600 hover:text-blue-600'}`}
                 >
                   All Products
-                </Link>
+                </PreviewSafeLink>
                 {categories.filter(Boolean).map((cat) => (
-                  <Link
+                  <PreviewSafeLink
                     key={cat}
-                    to={getLink(`/collections/${cat!.toLowerCase().replace(/\s+/g, '-')}`)}
+                    to={`/collections/${cat!.toLowerCase().replace(/\s+/g, '-')}`}
+                    isPreview={isPreview}
                     className={`block text-sm py-1 ${category.toLowerCase() === cat!.toLowerCase().replace(/\s+/g, '-') ? 'text-blue-600 font-bold' : 'text-gray-600 hover:text-blue-600'}`}
                   >
                     {cat}
-                  </Link>
+                  </PreviewSafeLink>
                 ))}
               </div>
             </div>
@@ -81,10 +75,11 @@ export function TechCollectionPage({
 
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {products.map((product) => (
-                <Link
+                <PreviewSafeLink
                   key={product.id}
-                  to={getLink(`/products/${product.id}`)}
-                  className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow group flex flex-col"
+                  to={`/products/${product.id}`}
+                  isPreview={isPreview}
+                  className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow group flex flex-col block"
                 >
                   <div className="aspect-square bg-white p-4 flex items-center justify-center relative border-b border-gray-100">
                     {product.imageUrl ? (
@@ -128,7 +123,7 @@ export function TechCollectionPage({
                       </button>
                     </div>
                   </div>
-                </Link>
+                </PreviewSafeLink>
               ))}
             </div>
           </div>

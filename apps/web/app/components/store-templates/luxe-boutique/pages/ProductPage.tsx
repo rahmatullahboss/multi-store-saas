@@ -80,9 +80,12 @@ export function LuxeBoutiqueProductPage({
 
   const handleAddToCart = () => {
     setIsAdding(true);
-    if (!isPreview) {
+
+    // Update local storage (works for both Live and Preview modes)
+    try {
       const cart = JSON.parse(localStorage.getItem('cart') || '[]');
       const existing = cart.find((item: any) => item.productId === product.id);
+
       if (existing) {
         existing.quantity += quantity;
       } else {
@@ -94,9 +97,14 @@ export function LuxeBoutiqueProductPage({
           quantity,
         });
       }
+
       localStorage.setItem('cart', JSON.stringify(cart));
       window.dispatchEvent(new Event('cart-updated'));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {
+      console.error('Failed to update cart', e);
     }
+
     setTimeout(() => {
       setIsAdding(false);
       setAddedToCart(true);

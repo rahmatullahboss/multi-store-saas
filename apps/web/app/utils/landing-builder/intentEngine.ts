@@ -193,6 +193,8 @@ export function getTemplateSuggestions(intent: Intent): string[] {
   const primary = selectOptimalTemplate(intent);
   
   const allTemplates = [
+    'awwwards-2025',
+    'tech-ultra',
     'flash-sale',
     'organic',
     'modern-dark',

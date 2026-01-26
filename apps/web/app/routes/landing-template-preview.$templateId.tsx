@@ -16,6 +16,7 @@ import { requireAuth } from '~/lib/auth.server';
 import { TEMPLATE_PRESETS } from '~/lib/page-builder/templates';
 import { SectionRenderer } from '~/components/page-builder/SectionRenderer';
 import { SectionType } from '~/lib/page-builder/types';
+import { SocialProofPopup } from '~/components/landing';
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const { templateId } = params;
@@ -148,6 +149,11 @@ export default function LandingTemplatePreview() {
           <span>Live Preview</span>
         </div>
       </div>
+      {/* Social Proof Popup - Auto-shows for templates */}
+      <SocialProofPopup 
+        productName={product?.title || 'Premium Item'} 
+        variant={preset.id === 'story-driven' ? 'story-driven' : 'default'}
+      />
     </div>
   );
 }

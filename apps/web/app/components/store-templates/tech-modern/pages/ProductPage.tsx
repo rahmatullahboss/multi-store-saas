@@ -2,20 +2,36 @@ import { useState } from 'react';
 import { Link, useParams } from '@remix-run/react';
 import { ShoppingCart, Star, ShieldCheck, Truck, Cpu, ChevronRight } from 'lucide-react';
 import type { SerializedProduct } from '~/templates/store-registry';
+import { AddToCartButton } from '~/components/AddToCartButton';
+import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 
 interface TechProductProps {
   product: SerializedProduct;
   currency: string;
   relatedProducts?: SerializedProduct[];
+  isPreview?: boolean;
+  onNavigateProduct?: (productId: number) => void;
+  onNavigate?: (path: string) => void;
 }
 
 export function TechModernProductPage({
   product,
   currency,
   relatedProducts = [],
+  isPreview = false,
+  onNavigateProduct,
+  onNavigate,
 }: TechProductProps) {
   const [selectedImage, setSelectedImage] = useState(0);
   const currencySymbol = currency === 'BDT' ? '৳' : '$';
+
+  // Helper for navigation
+  const handleNav = (path: string, e: React.MouseEvent) => {
+    if (onNavigate) {
+      e.preventDefault();
+      onNavigate(path);
+    }
+  };
 
   // Mock specs if not in DB
   const specs = [
@@ -31,13 +47,25 @@ export function TechModernProductPage({
     <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] font-sans pb-12">
       {/* Breadcrumb - Technical Style */}
       <div className="bg-white border-b border-gray-200 py-3 px-4 md:px-8 text-xs font-medium text-gray-500 uppercase tracking-wide">
-        <Link to="/" className="hover:text-blue-600">
-          Home
-        </Link>
+        {onNavigate ? (
+          <button onClick={(e) => handleNav('/', e)} className="hover:text-blue-600">
+            Home
+          </button>
+        ) : (
+          <PreviewSafeLink to="/" className="hover:text-blue-600" isPreview={isPreview}>
+            Home
+          </PreviewSafeLink>
+        )}
         <span className="mx-2">/</span>
-        <Link to="/products" className="hover:text-blue-600">
-          Products
-        </Link>
+        {onNavigate ? (
+          <button onClick={(e) => handleNav('/products', e)} className="hover:text-blue-600">
+            Products
+          </button>
+        ) : (
+          <PreviewSafeLink to="/products" className="hover:text-blue-600" isPreview={isPreview}>
+            Products
+          </PreviewSafeLink>
+        )}
         <span className="mx-2">/</span>
         <span className="text-gray-900">{product.title}</span>
       </div>
@@ -130,13 +158,29 @@ export function TechModernProductPage({
               <h3 className="font-bold text-gray-900 mb-4">Purchase Options</h3>
 
               <div className="space-y-3">
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                <AddToCartButton
+                  productId={product.id}
+                  storeId={product.storeId}
+                  productPrice={product.price}
+                  productName={product.title}
+                  isPreview={isPreview}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                >
                   <ShoppingCart className="w-5 h-5" />
                   Add to Cart
-                </button>
-                <button className="w-full bg-gray-900 hover:bg-black text-white font-bold py-3 px-4 rounded-lg transition-colors">
+                </AddToCartButton>
+
+                <AddToCartButton
+                  productId={product.id}
+                  storeId={product.storeId}
+                  productPrice={product.price}
+                  productName={product.title}
+                  isPreview={isPreview}
+                  mode="buy_now"
+                  className="w-full bg-gray-900 hover:bg-black text-white font-bold py-3 px-4 rounded-lg transition-colors"
+                >
                   Buy Now
-                </button>
+                </AddToCartButton>
               </div>
 
               <div className="mt-6 pt-6 border-t border-gray-100">

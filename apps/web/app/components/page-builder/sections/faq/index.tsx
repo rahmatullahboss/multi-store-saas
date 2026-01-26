@@ -6,6 +6,8 @@ import type { SectionTheme } from '~/lib/page-builder/types';
 import type { FAQProps, FAQSectionPreviewProps, FAQItem } from './types';
 
 import { AccordionFAQ } from './AccordionFAQ';
+import { SimpleFAQ } from './SimpleFAQ';
+import { WorldClassFAQ } from './WorldClassFAQ';
 import { GlassmorphismFAQ } from './GlassmorphismFAQ';
 import { NeubrutalistFAQ } from './NeubrutalistFAQ';
 import { CardsFAQ } from './CardsFAQ';
@@ -69,9 +71,12 @@ export function FAQSectionPreview({ props, theme }: FAQSectionPreviewProps) {
           styleProps={styleProps}
         />
       );
+    case 'story-driven':
     case 'accordion':
-    default:
       return <AccordionFAQ {...commonProps} />;
+    
+    case 'story-driven-premium':
+      return <WorldClassFAQ {...commonProps} />;
   }
 }
 
