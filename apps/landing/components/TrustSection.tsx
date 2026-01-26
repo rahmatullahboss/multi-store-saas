@@ -2,10 +2,10 @@
 
 /**
  * Trust Section - স্বচ্ছতাই আমাদের শক্তি
- * 
+ *
  * A transparent trust-building section that avoids fake testimonials
  * and focuses on authenticity.
- * 
+ *
  * Sections:
  * 1. Founder's Message - Real photo, honest message about MVP stage
  * 2. Live Transparency Dashboard - Real-time stats from database
@@ -35,6 +35,7 @@ import {
   ExternalLink,
   MessageSquarePlus,
   ArrowRight,
+  type LucideIcon,
 } from 'lucide-react';
 
 // ============================================================================
@@ -58,14 +59,14 @@ const COLORS = {
 // ============================================================================
 // ANIMATED COUNTER COMPONENT - SSR-Safe
 // ============================================================================
-const AnimatedNumber = ({ 
-  value, 
-  suffix = '', 
-  prefix = '' 
-}: { 
-  value: number; 
-  suffix?: string; 
-  prefix?: string; 
+const AnimatedNumber = ({
+  value,
+  suffix = '',
+  prefix = '',
+}: {
+  value: number;
+  suffix?: string;
+  prefix?: string;
 }) => {
   const [displayValue, setDisplayValue] = useState(0);
   const [hasMounted, setHasMounted] = useState(false);
@@ -79,7 +80,7 @@ const AnimatedNumber = ({
 
   useEffect(() => {
     if (!hasMounted) return;
-    
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -122,11 +123,12 @@ const AnimatedNumber = ({
 
   return (
     <span ref={ref} suppressHydrationWarning>
-      {prefix}{formattedValue}{suffix}
+      {prefix}
+      {formattedValue}
+      {suffix}
     </span>
   );
 };
-
 
 // ============================================================================
 // SECTION 1: FOUNDER'S MESSAGE
@@ -182,7 +184,7 @@ const FoundersMessage = () => {
         }}
       >
         {/* Background Pattern */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage: `radial-gradient(${COLORS.primary} 1px, transparent 1px)`,
@@ -241,13 +243,12 @@ const FoundersMessage = () => {
               className="space-y-4"
               style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
             >
-              <p
-                className="text-lg md:text-xl leading-relaxed"
-                style={{ color: COLORS.textMuted }}
-              >
-                আমি <span className="text-white font-semibold">রহমতুল্লাহ জিসান</span>, এই Platform এর Founder।
-                বাংলাদেশে Small Business শুরু করা কতটা কঠিন আমি নিজে দেখেছি। তাই এই Platform
-                বানাচ্ছি — যেন যেকেউ <span className="text-white font-semibold">৫ মিনিটে Online Business</span> শুরু করতে পারে।
+              <p className="text-lg md:text-xl leading-relaxed" style={{ color: COLORS.textMuted }}>
+                আমি <span className="text-white font-semibold">রহমতুল্লাহ জিসান</span>, এই Platform
+                এর Founder। বাংলাদেশে Small Business শুরু করা কতটা কঠিন আমি নিজে দেখেছি। তাই এই
+                Platform বানাচ্ছি — যেন যেকেউ{' '}
+                <span className="text-white font-semibold">৫ মিনিটে Online Business</span> শুরু করতে
+                পারে।
               </p>
 
               {/* Honest Status */}
@@ -264,12 +265,9 @@ const FoundersMessage = () => {
                 </span>
               </div>
 
-              <p
-                className="text-base leading-relaxed"
-                style={{ color: COLORS.textMuted }}
-              >
-                🤝 <span className="text-white">Early Adopter</span> রা আমাদের সাথে Product Build করার সুযোগ পাবেন।
-                আপনার Feedback সরাসরি Feature হবে।
+              <p className="text-base leading-relaxed" style={{ color: COLORS.textMuted }}>
+                🤝 <span className="text-white">Early Adopter</span> রা আমাদের সাথে Product Build
+                করার সুযোগ পাবেন। আপনার Feedback সরাসরি Feature হবে।
               </p>
             </motion.div>
 
@@ -289,8 +287,14 @@ const FoundersMessage = () => {
                   border: `1px solid ${COLORS.primary}30`,
                 }}
               >
-                <Mail className="w-4 h-4 transition-transform group-hover:scale-110" style={{ color: COLORS.primary }} />
-                <span style={{ color: COLORS.textMuted }} className="text-sm group-hover:text-white transition-colors">
+                <Mail
+                  className="w-4 h-4 transition-transform group-hover:scale-110"
+                  style={{ color: COLORS.primary }}
+                />
+                <span
+                  style={{ color: COLORS.textMuted }}
+                  className="text-sm group-hover:text-white transition-colors"
+                >
                   Email করুন
                 </span>
               </a>
@@ -305,8 +309,14 @@ const FoundersMessage = () => {
                   border: '1px solid rgba(37, 211, 102, 0.3)',
                 }}
               >
-                <MessageCircle className="w-4 h-4 transition-transform group-hover:scale-110" style={{ color: '#25D366' }} />
-                <span style={{ color: COLORS.textMuted }} className="text-sm group-hover:text-white transition-colors">
+                <MessageCircle
+                  className="w-4 h-4 transition-transform group-hover:scale-110"
+                  style={{ color: '#25D366' }}
+                />
+                <span
+                  style={{ color: COLORS.textMuted }}
+                  className="text-sm group-hover:text-white transition-colors"
+                >
                   WhatsApp
                 </span>
               </a>
@@ -319,8 +329,14 @@ const FoundersMessage = () => {
                   border: '1px solid rgba(59, 130, 246, 0.3)',
                 }}
               >
-                <Phone className="w-4 h-4 transition-transform group-hover:scale-110" style={{ color: '#3B82F6' }} />
-                <span style={{ color: COLORS.textMuted }} className="text-sm group-hover:text-white transition-colors">
+                <Phone
+                  className="w-4 h-4 transition-transform group-hover:scale-110"
+                  style={{ color: '#3B82F6' }}
+                />
+                <span
+                  style={{ color: COLORS.textMuted }}
+                  className="text-sm group-hover:text-white transition-colors"
+                >
                   01739-416661
                 </span>
               </a>
@@ -497,7 +513,10 @@ const LiveTransparencyDashboard = ({ stats }: { stats?: LiveStats }) => {
                 {stat.labelBn}
               </span>
               {stat.label !== 'Signups' && (
-                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: `${stat.color}20`, color: stat.color }}>
+                <span
+                  className="text-xs px-2 py-0.5 rounded-full"
+                  style={{ background: `${stat.color}20`, color: stat.color }}
+                >
                   {stat.label === 'Uptime (30d)' ? 'Last 30d' : 'Live'}
                 </span>
               )}
@@ -514,10 +533,7 @@ const LiveTransparencyDashboard = ({ stats }: { stats?: LiveStats }) => {
         transition={{ delay: 0.4 }}
         className="text-center mt-8"
       >
-        <p
-          className="inline-flex items-center gap-2 text-sm"
-          style={{ color: COLORS.textSubtle }}
-        >
+        <p className="inline-flex items-center gap-2 text-sm" style={{ color: COLORS.textSubtle }}>
           💡 এগুলো Real Numbers — Fake কিছু না
         </p>
       </motion.div>
@@ -633,7 +649,10 @@ const EarlyAdopterBenefits = () => {
 
               {/* Content */}
               <div>
-                <h3 className="text-xs font-bold tracking-wide mb-1" style={{ color: benefit.color }}>
+                <h3
+                  className="text-xs font-bold tracking-wide mb-1"
+                  style={{ color: benefit.color }}
+                >
                   ✨ {benefit.title}
                 </h3>
                 <p
@@ -711,9 +730,9 @@ const PublicRoadmap = () => {
     { name: 'Advanced Reports', status: 'planned' },
   ];
 
-  const doneItems = roadmapItems.filter(item => item.status === 'done');
-  const buildingItems = roadmapItems.filter(item => item.status === 'building');
-  const plannedItems = roadmapItems.filter(item => item.status === 'planned');
+  const doneItems = roadmapItems.filter((item) => item.status === 'done');
+  const buildingItems = roadmapItems.filter((item) => item.status === 'building');
+  const plannedItems = roadmapItems.filter((item) => item.status === 'planned');
 
   const statusConfig = {
     done: {
@@ -786,25 +805,13 @@ const PublicRoadmap = () => {
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Done Column */}
-          <RoadmapColumn
-            items={doneItems}
-            config={statusConfig.done}
-            index={0}
-          />
+          <RoadmapColumn items={doneItems} config={statusConfig.done} index={0} />
 
           {/* Building Column */}
-          <RoadmapColumn
-            items={buildingItems}
-            config={statusConfig.building}
-            index={1}
-          />
+          <RoadmapColumn items={buildingItems} config={statusConfig.building} index={1} />
 
           {/* Planned Column */}
-          <RoadmapColumn
-            items={plannedItems}
-            config={statusConfig.planned}
-            index={2}
-          />
+          <RoadmapColumn items={plannedItems} config={statusConfig.planned} index={2} />
         </div>
 
         {/* Action Buttons */}
@@ -826,7 +833,10 @@ const PublicRoadmap = () => {
             }}
           >
             <ExternalLink className="w-4 h-4" style={{ color: COLORS.primary }} />
-            <span style={{ color: COLORS.textMuted }} className="group-hover:text-white transition-colors">
+            <span
+              style={{ color: COLORS.textMuted }}
+              className="group-hover:text-white transition-colors"
+            >
               Full Roadmap দেখুন
             </span>
           </a>
@@ -840,7 +850,10 @@ const PublicRoadmap = () => {
             }}
           >
             <MessageSquarePlus className="w-4 h-4" style={{ color: COLORS.accent }} />
-            <span style={{ color: COLORS.textMuted }} className="group-hover:text-white transition-colors">
+            <span
+              style={{ color: COLORS.textMuted }}
+              className="group-hover:text-white transition-colors"
+            >
               Feature Request করুন
             </span>
           </a>
@@ -858,7 +871,7 @@ const RoadmapColumn = ({
 }: {
   items: RoadmapItem[];
   config: {
-    icon: React.ElementType;
+    icon: LucideIcon;
     label: string;
     labelBn: string;
     color: string;

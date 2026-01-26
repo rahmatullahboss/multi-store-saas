@@ -2,9 +2,9 @@
 
 /**
  * Live Performance Dashboard - Real-time Credibility
- * 
+ *
  * Shows live performance metrics to build trust.
- * 
+ *
  * Features:
  * - Real-time uptime counter
  * - Current requests being served
@@ -14,16 +14,17 @@
 
 import { motion, useInView } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
-import { 
-  Activity, 
-  Globe, 
-  Zap, 
-  Shield, 
-  Clock, 
+import {
+  Activity,
+  Globe,
+  Zap,
+  Shield,
+  Clock,
   TrendingUp,
   Server,
   CheckCircle,
-  BarChart3
+  BarChart3,
+  type LucideIcon,
 } from 'lucide-react';
 
 // ============================================================================
@@ -46,7 +47,7 @@ const COLORS = {
 // ANIMATED METRIC CARD
 // ============================================================================
 interface MetricCardProps {
-  icon: React.ElementType;
+  icon: LucideIcon;
   label: string;
   value: string | number;
   suffix?: string;
@@ -56,19 +57,19 @@ interface MetricCardProps {
   delay?: number;
 }
 
-const MetricCard = ({ 
-  icon: Icon, 
-  label, 
-  value, 
-  suffix, 
-  trend, 
-  color, 
+const MetricCard = ({
+  icon: Icon,
+  label,
+  value,
+  suffix,
+  trend,
+  color,
   isLive,
-  delay = 0 
+  delay = 0,
 }: MetricCardProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true });
-  
+
   return (
     <motion.div
       ref={ref}
@@ -77,20 +78,21 @@ const MetricCard = ({
       transition={{ delay, duration: 0.5 }}
       className="relative p-4 rounded-xl"
       style={{
-        background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
+        background:
+          'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
         border: '1px solid rgba(255,255,255,0.08)',
       }}
     >
       <div className="flex items-start justify-between mb-2">
-        <div 
+        <div
           className="w-8 h-8 rounded-lg flex items-center justify-center"
           style={{ background: `${color}20` }}
         >
           <Icon className="w-4 h-4" style={{ color }} />
         </div>
-        
+
         {isLive && (
-          <motion.div 
+          <motion.div
             className="flex items-center gap-1.5"
             animate={{ opacity: [1, 0.5, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
@@ -100,11 +102,13 @@ const MetricCard = ({
           </motion.div>
         )}
       </div>
-      
-      <p className="text-xs mb-1" style={{ color: COLORS.textSubtle }}>{label}</p>
-      
+
+      <p className="text-xs mb-1" style={{ color: COLORS.textSubtle }}>
+        {label}
+      </p>
+
       <div className="flex items-baseline gap-1">
-        <motion.span 
+        <motion.span
           className="text-xl font-bold text-white font-mono"
           key={value}
           initial={{ opacity: 0.5 }}
@@ -113,10 +117,12 @@ const MetricCard = ({
           {value}
         </motion.span>
         {suffix && (
-          <span className="text-sm" style={{ color: COLORS.textMuted }}>{suffix}</span>
+          <span className="text-sm" style={{ color: COLORS.textMuted }}>
+            {suffix}
+          </span>
         )}
       </div>
-      
+
       {trend && (
         <div className="flex items-center gap-1 mt-1">
           <TrendingUp className="w-3 h-3 text-green-400" />
@@ -143,7 +149,7 @@ const RegionLatency = ({ region, flag, latency, maxLatency, color, delay }: Regi
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true });
   const percentage = (latency / maxLatency) * 100;
-  
+
   return (
     <motion.div
       ref={ref}
@@ -174,23 +180,23 @@ const RegionLatency = ({ region, flag, latency, maxLatency, color, delay }: Regi
 export function LiveDashboard() {
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
-  
+
   // Simulated live data
   const [uptime, setUptime] = useState(99.997);
   const [requests, setRequests] = useState(2847563);
   const [activeConnections, setActiveConnections] = useState(12847);
   const [cacheHitRate, setCacheHitRate] = useState(94.2);
-  
+
   useEffect(() => {
     const interval = setInterval(() => {
-      setRequests(prev => prev + Math.floor(Math.random() * 50));
-      setActiveConnections(prev => Math.max(10000, prev + Math.floor(Math.random() * 200) - 100));
-      setCacheHitRate(prev => Math.min(99, Math.max(90, prev + (Math.random() - 0.5) * 0.5)));
+      setRequests((prev) => prev + Math.floor(Math.random() * 50));
+      setActiveConnections((prev) => Math.max(10000, prev + Math.floor(Math.random() * 200) - 100));
+      setCacheHitRate((prev) => Math.min(99, Math.max(90, prev + (Math.random() - 0.5) * 0.5)));
     }, 2000);
-    
+
     return () => clearInterval(interval);
   }, []);
-  
+
   const regionLatencies = [
     { region: 'Dhaka', flag: '🇧🇩', latency: 5, color: COLORS.green },
     { region: 'Mumbai', flag: '🇮🇳', latency: 28, color: COLORS.cyan },
@@ -216,7 +222,7 @@ export function LiveDashboard() {
           transition={{ duration: 10, repeat: Infinity }}
         />
       </div>
-      
+
       <div className="relative z-10 max-w-5xl mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-12">
@@ -225,7 +231,7 @@ export function LiveDashboard() {
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6 }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-sm mb-6"
-            style={{ 
+            style={{
               backgroundColor: `${COLORS.green}10`,
               borderColor: `${COLORS.green}30`,
             }}
@@ -240,7 +246,7 @@ export function LiveDashboard() {
               LIVE PERFORMANCE
             </span>
           </motion.div>
-          
+
           <motion.h2
             initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -250,7 +256,7 @@ export function LiveDashboard() {
           >
             📊 Real-Time Performance
           </motion.h2>
-          
+
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -261,7 +267,7 @@ export function LiveDashboard() {
             এই মুহূর্তে আমাদের Infrastructure যা করছে
           </motion.p>
         </div>
-        
+
         {/* Dashboard Container */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -269,7 +275,8 @@ export function LiveDashboard() {
           transition={{ duration: 0.8, delay: 0.3 }}
           className="rounded-2xl p-6 md:p-8"
           style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
+            background:
+              'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
             border: '1px solid rgba(255,255,255,0.08)',
           }}
         >
@@ -313,7 +320,7 @@ export function LiveDashboard() {
               delay={0.4}
             />
           </div>
-          
+
           {/* Latency by Region */}
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-4">
@@ -322,7 +329,7 @@ export function LiveDashboard() {
                 Latency by Region
               </span>
             </div>
-            
+
             <div className="space-y-3">
               {regionLatencies.map((region, index) => (
                 <RegionLatency
@@ -334,7 +341,7 @@ export function LiveDashboard() {
               ))}
             </div>
           </div>
-          
+
           {/* Status Bar */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -342,7 +349,8 @@ export function LiveDashboard() {
             transition={{ delay: 1 }}
             className="flex items-center justify-between p-4 rounded-xl"
             style={{
-              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%)',
+              background:
+                'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%)',
               border: '1px solid rgba(16, 185, 129, 0.2)',
             }}
           >
@@ -360,18 +368,16 @@ export function LiveDashboard() {
                 </p>
               </div>
             </div>
-            
+
             <div className="text-right">
               <p className="text-xs" style={{ color: COLORS.textMuted }}>
                 Powered by
               </p>
-              <p className="text-sm font-semibold text-orange-400">
-                Cloudflare
-              </p>
+              <p className="text-sm font-semibold text-orange-400">Cloudflare</p>
             </div>
           </motion.div>
         </motion.div>
-        
+
         {/* Bottom note */}
         <motion.p
           initial={{ opacity: 0 }}

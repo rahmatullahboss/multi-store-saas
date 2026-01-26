@@ -2,7 +2,7 @@
 
 /**
  * Cloudflare Benefits Cards - Enterprise-Grade Features
- * 
+ *
  * Horizontal scrolling cards explaining Cloudflare advantages
  * in simple, non-technical Bengali with hover interactions:
  * - Card lift with shadow
@@ -13,20 +13,20 @@
 
 import { motion, useInView } from 'framer-motion';
 import { useRef, useState } from 'react';
-import { Zap, Shield, Globe, Clock, Database, Lock } from 'lucide-react';
+import { Zap, Shield, Globe, Clock, Database, Lock, type LucideIcon } from 'lucide-react';
 
 // ============================================================================
 // DESIGN TOKENS - Matching Infrastructure Section theme
 // ============================================================================
 const COLORS = {
-  primary: '#006A4E',      // Bangladesh Green
+  primary: '#006A4E', // Bangladesh Green
   primaryLight: '#00875F',
   primaryDark: '#004D38',
-  accent: '#F9A825',       // Golden Yellow
+  accent: '#F9A825', // Golden Yellow
   accentLight: '#FFB74D',
-  cyan: '#22D3EE',         // Data flow color
-  purple: '#A855F7',       // Secondary accent
-  blue: '#3B82F6',         // Blue accent
+  cyan: '#22D3EE', // Data flow color
+  purple: '#A855F7', // Secondary accent
+  blue: '#3B82F6', // Blue accent
   background: '#0A0F0D',
   backgroundAlt: '#0D1512',
   text: '#FFFFFF',
@@ -39,7 +39,7 @@ const COLORS = {
 // ============================================================================
 interface BenefitCard {
   id: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   title: string;
   titleEn: string;
   bengaliQuote: string;
@@ -129,7 +129,7 @@ interface BenefitCardComponentProps {
 const BenefitCardComponent = ({ benefit, index }: BenefitCardComponentProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const Icon = benefit.icon;
-  
+
   return (
     <motion.div
       className="relative group flex-shrink-0 w-[280px] sm:w-[300px]"
@@ -148,8 +148,8 @@ const BenefitCardComponent = ({ benefit, index }: BenefitCardComponentProps) => 
         }}
         animate={{
           y: isHovered ? -8 : 0,
-          boxShadow: isHovered 
-            ? `0 20px 40px ${benefit.color}30, 0 8px 16px rgba(0,0,0,0.3)` 
+          boxShadow: isHovered
+            ? `0 20px 40px ${benefit.color}30, 0 8px 16px rgba(0,0,0,0.3)`
             : '0 4px 12px rgba(0,0,0,0.2)',
         }}
         transition={{ duration: 0.3 }}
@@ -163,7 +163,7 @@ const BenefitCardComponent = ({ benefit, index }: BenefitCardComponentProps) => 
           animate={{ opacity: isHovered ? 1 : 0 }}
           transition={{ duration: 0.4 }}
         />
-        
+
         {/* Glow effect */}
         <motion.div
           className="absolute -inset-1 rounded-2xl opacity-0 pointer-events-none"
@@ -173,7 +173,7 @@ const BenefitCardComponent = ({ benefit, index }: BenefitCardComponentProps) => 
           animate={{ opacity: isHovered ? 0.5 : 0 }}
           transition={{ duration: 0.3 }}
         />
-        
+
         {/* Content */}
         <div className="relative z-10">
           {/* Icon with animation */}
@@ -187,7 +187,7 @@ const BenefitCardComponent = ({ benefit, index }: BenefitCardComponentProps) => 
               scale: isHovered ? [1, 1.1, 1] : 1,
               rotate: isHovered ? [0, -5, 5, 0] : 0,
             }}
-            transition={{ 
+            transition={{
               duration: 0.6,
               repeat: isHovered ? Infinity : 0,
               repeatDelay: 0.5,
@@ -199,40 +199,34 @@ const BenefitCardComponent = ({ benefit, index }: BenefitCardComponentProps) => 
               }}
               transition={{ duration: 0.5 }}
             >
-              <Icon 
-                className="w-7 h-7" 
-                style={{ color: benefit.color }}
-              />
+              <Icon className="w-7 h-7" style={{ color: benefit.color }} />
             </motion.div>
           </motion.div>
-          
+
           {/* Title */}
           <div className="mb-3">
-            <p 
-              className="text-xs font-bold tracking-widest mb-1"
-              style={{ color: benefit.color }}
-            >
+            <p className="text-xs font-bold tracking-widest mb-1" style={{ color: benefit.color }}>
               {benefit.title}
             </p>
-            <h3 
+            <h3
               className="text-lg font-bold text-white"
               style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
             >
               {benefit.titleEn}
             </h3>
           </div>
-          
+
           {/* Bengali Quote */}
-          <p 
+          <p
             className="text-base mb-4 leading-relaxed"
-            style={{ 
+            style={{
               color: COLORS.text,
               fontFamily: "'Noto Sans Bengali', sans-serif",
             }}
           >
             {benefit.bengaliQuote}
           </p>
-          
+
           {/* Specs */}
           <div className="space-y-2">
             {benefit.specs.map((spec, i) => (
@@ -244,16 +238,13 @@ const BenefitCardComponent = ({ benefit, index }: BenefitCardComponentProps) => 
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 + i * 0.1 + 0.3 }}
               >
-                <div 
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{ background: benefit.color }}
-                />
+                <div className="w-1.5 h-1.5 rounded-full" style={{ background: benefit.color }} />
                 <span style={{ color: COLORS.textMuted }}>{spec}</span>
               </motion.div>
             ))}
           </div>
         </div>
-        
+
         {/* Tooltip on hover */}
         <motion.div
           className="absolute left-0 right-0 -bottom-2 mx-4 px-4 py-3 rounded-xl backdrop-blur-md border z-20"
@@ -262,16 +253,16 @@ const BenefitCardComponent = ({ benefit, index }: BenefitCardComponentProps) => 
             borderColor: `${benefit.color}40`,
           }}
           initial={{ opacity: 0, y: 10, scale: 0.95 }}
-          animate={{ 
-            opacity: isHovered ? 1 : 0, 
+          animate={{
+            opacity: isHovered ? 1 : 0,
             y: isHovered ? 0 : 10,
             scale: isHovered ? 1 : 0.95,
           }}
           transition={{ duration: 0.2, delay: isHovered ? 0.3 : 0 }}
         >
-          <p 
+          <p
             className="text-sm"
-            style={{ 
+            style={{
               color: COLORS.text,
               fontFamily: "'Noto Sans Bengali', sans-serif",
             }}
@@ -345,7 +336,7 @@ export function CloudflareBenefitsCards() {
       </div>
 
       {/* Subtle grid */}
-      <div 
+      <div
         className="absolute inset-0 opacity-[0.02]"
         style={{
           backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
@@ -363,7 +354,7 @@ export function CloudflareBenefitsCards() {
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6 }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-sm mb-6"
-            style={{ 
+            style={{
               backgroundColor: `${COLORS.primary}10`,
               borderColor: `${COLORS.primary}30`,
             }}
@@ -383,7 +374,7 @@ export function CloudflareBenefitsCards() {
             style={{ fontFamily: "'Noto Sans Bengali', 'Inter', sans-serif" }}
           >
             Enterprise-Grade Features,{' '}
-            <span 
+            <span
               className="bg-clip-text text-transparent"
               style={{
                 backgroundImage: `linear-gradient(135deg, ${COLORS.accent} 0%, ${COLORS.accentLight} 100%)`,
@@ -421,8 +412,18 @@ export function CloudflareBenefitsCards() {
             whileTap={canScrollLeft ? { scale: 0.95 } : {}}
             aria-label="Scroll left"
           >
-            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg
+              className="w-5 h-5 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           </motion.button>
 
@@ -439,7 +440,12 @@ export function CloudflareBenefitsCards() {
             whileTap={canScrollRight ? { scale: 0.95 } : {}}
             aria-label="Scroll right"
           >
-            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg
+              className="w-5 h-5 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </motion.button>
@@ -487,7 +493,7 @@ export function CloudflareBenefitsCards() {
           transition={{ delay: 0.8 }}
           className="text-center mt-12"
         >
-          <div 
+          <div
             className="inline-flex items-center gap-3 px-6 py-3 rounded-full border"
             style={{
               background: `linear-gradient(135deg, ${COLORS.primary}15 0%, ${COLORS.cyan}15 100%)`,

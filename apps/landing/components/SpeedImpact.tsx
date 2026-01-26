@@ -2,10 +2,10 @@
 
 /**
  * Speed Impact Section - "Speed = Sales"
- * 
+ *
  * Shows the business impact of speed with real statistics
  * from Google/Amazon research.
- * 
+ *
  * Features:
  * - Animated statistics counters
  * - Side-by-side business comparison
@@ -15,7 +15,18 @@
 
 import { motion, useInView, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
-import { TrendingDown, TrendingUp, DollarSign, Users, ShoppingCart, Zap, AlertTriangle, CheckCircle, Sparkles } from 'lucide-react';
+import {
+  TrendingDown,
+  TrendingUp,
+  DollarSign,
+  Users,
+  ShoppingCart,
+  Zap,
+  AlertTriangle,
+  CheckCircle,
+  Sparkles,
+  type LucideIcon,
+} from 'lucide-react';
 
 // ============================================================================
 // DESIGN TOKENS
@@ -50,11 +61,11 @@ interface AnimatedNumberProps {
   onComplete?: () => void;
 }
 
-const AnimatedNumber = ({ 
-  value, 
-  duration = 2, 
-  prefix = '', 
-  suffix = '', 
+const AnimatedNumber = ({
+  value,
+  duration = 2,
+  prefix = '',
+  suffix = '',
   color = COLORS.text,
   className = '',
   onComplete,
@@ -62,20 +73,20 @@ const AnimatedNumber = ({
   const [displayValue, setDisplayValue] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true });
-  
+
   useEffect(() => {
     if (!isInView) return;
-    
+
     const controls = animate(0, value, {
       duration,
       ease: 'easeOut',
       onUpdate: (v) => setDisplayValue(Math.round(v)),
       onComplete: () => onComplete?.(),
     });
-    
+
     return () => controls.stop();
   }, [isInView, value, duration, onComplete]);
-  
+
   return (
     <motion.span
       ref={ref}
@@ -85,7 +96,9 @@ const AnimatedNumber = ({
       animate={isInView ? { opacity: 1, scale: 1 } : {}}
       transition={{ duration: 0.5 }}
     >
-      {prefix}{displayValue.toLocaleString()}{suffix}
+      {prefix}
+      {displayValue.toLocaleString()}
+      {suffix}
     </motion.span>
   );
 };
@@ -94,7 +107,7 @@ const AnimatedNumber = ({
 // STAT CARD COMPONENT
 // ============================================================================
 interface StatCardProps {
-  icon: React.ElementType;
+  icon: LucideIcon;
   stat: string;
   description: string;
   descriptionBn: string;
@@ -102,12 +115,19 @@ interface StatCardProps {
   delay?: number;
 }
 
-const StatCard = ({ icon: Icon, stat, description, descriptionBn, isNegative, delay = 0 }: StatCardProps) => {
+const StatCard = ({
+  icon: Icon,
+  stat,
+  description,
+  descriptionBn,
+  isNegative,
+  delay = 0,
+}: StatCardProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true });
   const color = isNegative ? COLORS.red : COLORS.green;
   const TrendIcon = isNegative ? TrendingDown : TrendingUp;
-  
+
   return (
     <motion.div
       ref={ref}
@@ -131,13 +151,13 @@ const StatCard = ({ icon: Icon, stat, description, descriptionBn, isNegative, de
         </motion.div>
         <TrendIcon className="w-5 h-5" style={{ color }} />
       </div>
-      
+
       {/* Stat */}
       <p className="text-2xl font-bold text-white mb-1">{stat}</p>
-      
+
       {/* Description */}
       <p className="text-sm text-white/70">{description}</p>
-      <p 
+      <p
         className="text-xs mt-1"
         style={{ color: COLORS.textSubtle, fontFamily: "'Noto Sans Bengali', sans-serif" }}
       >
@@ -156,21 +176,21 @@ interface ComparisonTableProps {
 
 const ComparisonTable = ({ isInView }: ComparisonTableProps) => {
   const [animationComplete, setAnimationComplete] = useState(false);
-  
+
   const slowData = {
     visitors: 1000,
     stayed: 470,
     bought: 47,
     sales: 47000,
   };
-  
+
   const fastData = {
     visitors: 1000,
     stayed: 950,
     bought: 95,
     sales: 95000,
   };
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -178,7 +198,8 @@ const ComparisonTable = ({ isInView }: ComparisonTableProps) => {
       transition={{ delay: 0.6, duration: 0.6 }}
       className="rounded-2xl overflow-hidden"
       style={{
-        background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
+        background:
+          'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
         border: '1px solid rgba(255,255,255,0.08)',
       }}
     >
@@ -200,32 +221,32 @@ const ComparisonTable = ({ isInView }: ComparisonTableProps) => {
           </div>
         </div>
       </div>
-      
+
       {/* Table Rows */}
       {[
-        { 
-          label: 'Visitors আসে', 
+        {
+          label: 'Visitors আসে',
           icon: Users,
           slow: { value: slowData.visitors, suffix: ' জন' },
           fast: { value: fastData.visitors, suffix: ' জন' },
           delay: 0.8,
         },
-        { 
-          label: 'থেকে যায়', 
+        {
+          label: 'থেকে যায়',
           icon: CheckCircle,
           slow: { value: slowData.stayed, suffix: ' জন', color: COLORS.red },
           fast: { value: fastData.stayed, suffix: ' জন', color: COLORS.green },
           delay: 1.0,
         },
-        { 
-          label: 'কেনাকাটা করে', 
+        {
+          label: 'কেনাকাটা করে',
           icon: ShoppingCart,
           slow: { value: slowData.bought, suffix: ' জন', color: COLORS.red },
           fast: { value: fastData.bought, suffix: ' জন', color: COLORS.green },
           delay: 1.2,
         },
-        { 
-          label: 'Daily Sales', 
+        {
+          label: 'Daily Sales',
           icon: DollarSign,
           slow: { value: slowData.sales, prefix: '৳', color: COLORS.red },
           fast: { value: fastData.sales, prefix: '৳', color: COLORS.green },
@@ -243,7 +264,7 @@ const ComparisonTable = ({ isInView }: ComparisonTableProps) => {
         >
           <div className="flex items-center gap-2">
             <row.icon className="w-4 h-4" style={{ color: COLORS.textMuted }} />
-            <span 
+            <span
               className="text-sm"
               style={{ color: COLORS.textMuted, fontFamily: "'Noto Sans Bengali', sans-serif" }}
             >
@@ -273,7 +294,7 @@ const ComparisonTable = ({ isInView }: ComparisonTableProps) => {
           </div>
         </motion.div>
       ))}
-      
+
       {/* Difference Highlight */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
@@ -281,35 +302,44 @@ const ComparisonTable = ({ isInView }: ComparisonTableProps) => {
         transition={{ duration: 0.5, type: 'spring' }}
         className="p-4 text-center"
         style={{
-          background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(34, 211, 238, 0.1) 100%)',
+          background:
+            'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(34, 211, 238, 0.1) 100%)',
         }}
       >
         <motion.div
-          animate={animationComplete ? { 
-            scale: [1, 1.05, 1],
-          } : {}}
+          animate={
+            animationComplete
+              ? {
+                  scale: [1, 1.05, 1],
+                }
+              : {}
+          }
           transition={{ duration: 0.5, repeat: 2 }}
           className="flex items-center justify-center gap-3"
         >
           <span className="text-2xl">👆</span>
-          <p 
+          <p
             className="text-lg font-bold"
             style={{ color: COLORS.green, fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
             প্রতিদিন{' '}
             <motion.span
-              animate={animationComplete ? {
-                textShadow: [
-                  '0 0 10px rgba(16, 185, 129, 0)',
-                  '0 0 20px rgba(16, 185, 129, 0.8)',
-                  '0 0 10px rgba(16, 185, 129, 0)',
-                ],
-              } : {}}
+              animate={
+                animationComplete
+                  ? {
+                      textShadow: [
+                        '0 0 10px rgba(16, 185, 129, 0)',
+                        '0 0 20px rgba(16, 185, 129, 0.8)',
+                        '0 0 10px rgba(16, 185, 129, 0)',
+                      ],
+                    }
+                  : {}
+              }
               transition={{ duration: 1, repeat: Infinity }}
             >
               ৳48,000
-            </motion.span>
-            {' '}বেশি শুধু Speed এর জন্য!
+            </motion.span>{' '}
+            বেশি শুধু Speed এর জন্য!
           </p>
           {animationComplete && (
             <motion.span
@@ -351,7 +381,7 @@ export function SpeedImpact() {
           transition={{ duration: 10, repeat: Infinity }}
         />
       </div>
-      
+
       <div className="relative z-10 max-w-5xl mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-12">
@@ -360,7 +390,7 @@ export function SpeedImpact() {
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6 }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-sm mb-6"
-            style={{ 
+            style={{
               backgroundColor: `${COLORS.accent}10`,
               borderColor: `${COLORS.accent}30`,
             }}
@@ -370,7 +400,7 @@ export function SpeedImpact() {
               SPEED = SALES
             </span>
           </motion.div>
-          
+
           <motion.h2
             initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -380,7 +410,7 @@ export function SpeedImpact() {
           >
             💰 Speed কেন গুরুত্বপূর্ণ?
           </motion.h2>
-          
+
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -388,10 +418,11 @@ export function SpeedImpact() {
             className="text-lg max-w-2xl mx-auto"
             style={{ color: COLORS.textMuted, fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
-            ⚡ <span className="text-white font-semibold">Facebook এর মতো Speed</span>, আপনার ছোট Business এও — Research বলছে:
+            ⚡ <span className="text-white font-semibold">Facebook এর মতো Speed</span>, আপনার ছোট
+            Business এও — Research বলছে:
           </motion.p>
         </div>
-        
+
         {/* Research Stats Grid */}
         <div className="grid md:grid-cols-3 gap-4 mb-12">
           <StatCard
@@ -419,7 +450,7 @@ export function SpeedImpact() {
             delay={0.4}
           />
         </div>
-        
+
         {/* Real Example Section */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -429,25 +460,26 @@ export function SpeedImpact() {
         >
           <div className="flex items-center justify-center gap-2 mb-6">
             <span className="text-2xl">💡</span>
-            <h3 
+            <h3
               className="text-xl font-bold text-white"
               style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
             >
               বাস্তব উদাহরণ:
             </h3>
           </div>
-          
-          <p 
+
+          <p
             className="text-center mb-6"
             style={{ color: COLORS.textMuted, fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
-            ধরুন আপনার Store এ প্রতিদিন <span className="text-white font-semibold">1,000 জন</span> আসে...
+            ধরুন আপনার Store এ প্রতিদিন <span className="text-white font-semibold">1,000 জন</span>{' '}
+            আসে...
           </p>
-          
+
           {/* Comparison Table */}
           <ComparisonTable isInView={isInView} />
         </motion.div>
-        
+
         {/* Final CTA */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -458,29 +490,30 @@ export function SpeedImpact() {
           <motion.div
             className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl"
             style={{
-              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 106, 78, 0.1) 100%)',
+              background:
+                'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 106, 78, 0.1) 100%)',
               border: '1px solid rgba(16, 185, 129, 0.2)',
             }}
             whileHover={{ scale: 1.02 }}
           >
             <Sparkles className="w-6 h-6" style={{ color: COLORS.accent }} />
-            <p 
+            <p
               className="text-lg font-bold text-white"
               style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
             >
               এই Speed আপনার সব Store এ{' '}
-              <span 
+              <span
                 className="bg-clip-text text-transparent"
                 style={{
                   backgroundImage: `linear-gradient(135deg, ${COLORS.green} 0%, ${COLORS.cyan} 100%)`,
                 }}
               >
                 FREE!
-              </span>
-              {' '}⚡
+              </span>{' '}
+              ⚡
             </p>
           </motion.div>
-          
+
           {/* Source attribution */}
           <motion.p
             initial={{ opacity: 0 }}

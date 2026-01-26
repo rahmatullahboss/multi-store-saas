@@ -2,7 +2,7 @@
 
 /**
  * Infrastructure CTA Section
- * 
+ *
  * Final call-to-action for the infrastructure showcase.
  * "এই Enterprise Technology ব্যবহার করুন — FREE!"
  */
@@ -10,7 +10,7 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Sparkles, Zap, Shield, Globe, Clock } from 'lucide-react';
+import { ArrowRight, Sparkles, Zap, Shield, Globe, Clock, type LucideIcon } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 
 // ============================================================================
@@ -30,7 +30,7 @@ const COLORS = {
 // ============================================================================
 // BENEFIT PILL
 // ============================================================================
-const BenefitPill = ({ icon: Icon, text }: { icon: React.ElementType; text: string }) => (
+const BenefitPill = ({ icon: Icon, text }: { icon: LucideIcon; text: string }) => (
   <motion.div
     className="flex items-center gap-2 px-4 py-2 rounded-full"
     style={{
@@ -64,7 +64,7 @@ export function InfrastructureCTA() {
       <motion.div
         className="absolute top-0 left-0 w-96 h-96 rounded-full blur-3xl"
         style={{ background: `${COLORS.primary}20` }}
-        animate={{ 
+        animate={{
           x: [0, 100, 0],
           y: [0, 50, 0],
         }}
@@ -73,13 +73,13 @@ export function InfrastructureCTA() {
       <motion.div
         className="absolute bottom-0 right-0 w-96 h-96 rounded-full blur-3xl"
         style={{ background: `${COLORS.cyan}20` }}
-        animate={{ 
+        animate={{
           x: [0, -100, 0],
           y: [0, -50, 0],
         }}
         transition={{ duration: 15, repeat: Infinity }}
       />
-      
+
       <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
         {/* Sparkle badge */}
         <motion.div
@@ -98,11 +98,14 @@ export function InfrastructureCTA() {
           >
             <Sparkles className="w-4 h-4" style={{ color: COLORS.accent }} />
           </motion.div>
-          <span className="text-sm font-medium" style={{ color: COLORS.accent, fontFamily: "'Noto Sans Bengali', sans-serif" }}>
+          <span
+            className="text-sm font-medium"
+            style={{ color: COLORS.accent, fontFamily: "'Noto Sans Bengali', sans-serif" }}
+          >
             🔥 {t('infraCtaBadge')}
           </span>
         </motion.div>
-        
+
         {/* Main headline */}
         <motion.h2
           initial={{ opacity: 0, y: 30 }}
@@ -112,20 +115,20 @@ export function InfrastructureCTA() {
           style={{ fontFamily: "'Noto Sans Bengali', 'Inter', sans-serif" }}
         >
           {t('infraCtaTitlePart1')}{' '}
-          <span 
+          <span
             className="bg-clip-text text-transparent"
             style={{
               backgroundImage: `linear-gradient(135deg, ${COLORS.cyan} 0%, ${COLORS.green} 100%)`,
             }}
           >
             {t('infraCtaTitlePart2')}
-          </span>
-          {' '}—
+          </span>{' '}
+          —
           <br />
           {t('infraCtaTitlePart3')}{' '}
           <motion.span
             className="inline-block"
-            animate={{ 
+            animate={{
               scale: [1, 1.1, 1],
               textShadow: [
                 `0 0 10px ${COLORS.accent}00`,
@@ -139,7 +142,7 @@ export function InfrastructureCTA() {
             FREE!
           </motion.span>
         </motion.h2>
-        
+
         {/* Subheadline */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
@@ -150,7 +153,7 @@ export function InfrastructureCTA() {
         >
           {t('infraCtaSubtitle')}
         </motion.p>
-        
+
         {/* Benefit pills */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -163,7 +166,7 @@ export function InfrastructureCTA() {
           <BenefitPill icon={Globe} text={t('infraGlobalServers')} />
           <BenefitPill icon={Clock} text={t('infraUptime')} />
         </motion.div>
-        
+
         {/* CTA Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -172,10 +175,7 @@ export function InfrastructureCTA() {
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           {/* Primary CTA */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.98 }}
-          >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
             <Link
               href="/auth/register"
               className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-lg overflow-hidden"
@@ -193,8 +193,11 @@ export function InfrastructureCTA() {
                 animate={{ opacity: [0, 0.3, 0] }}
                 transition={{ duration: 2, repeat: Infinity }}
               />
-              
-              <span className="relative text-white" style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>
+
+              <span
+                className="relative text-white"
+                style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
+              >
                 {t('infraCtaPrimary')}
               </span>
               <motion.span
@@ -206,7 +209,7 @@ export function InfrastructureCTA() {
               </motion.span>
             </Link>
           </motion.div>
-          
+
           {/* Secondary CTA */}
           <motion.div whileHover={{ scale: 1.02 }}>
             <Link
@@ -217,11 +220,13 @@ export function InfrastructureCTA() {
                 border: '1px solid rgba(255,255,255,0.1)',
               }}
             >
-              <span style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>{t('infraCtaSecondary')}</span>
+              <span style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>
+                {t('infraCtaSecondary')}
+              </span>
             </Link>
           </motion.div>
         </motion.div>
-        
+
         {/* Trust line */}
         <motion.p
           initial={{ opacity: 0 }}
@@ -230,7 +235,8 @@ export function InfrastructureCTA() {
           className="text-sm mt-8"
           style={{ color: COLORS.textMuted }}
         >
-          ✓ {t('heroTrust1')} &nbsp;•&nbsp; ✓ {t('heroDemoReady')} &nbsp;•&nbsp; ✓ {t('planFreeDesc')}
+          ✓ {t('heroTrust1')} &nbsp;•&nbsp; ✓ {t('heroDemoReady')} &nbsp;•&nbsp; ✓{' '}
+          {t('planFreeDesc')}
         </motion.p>
       </div>
     </section>
