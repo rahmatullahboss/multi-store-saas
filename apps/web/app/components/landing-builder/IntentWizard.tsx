@@ -707,16 +707,16 @@ function Step4TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: St
   }, [onSelectTemplate]);
 
   const templateInfo: Record<string, { name: string; description: string; gradient: string; emoji: string }> = {
-    'premium-bd': { name: 'প্রিমিয়াম BD', description: 'প্রফেশনাল, বিস্তারিত', gradient: 'from-emerald-600 to-emerald-800', emoji: '🇧🇩' },
     'flash-sale': { name: 'ফ্ল্যাশ সেল', description: 'আর্জেন্সি, অফার ফোকাস', gradient: 'from-red-500 to-orange-500', emoji: '⚡' },
-    'mobile-first': { name: 'মোবাইল ফার্স্ট', description: 'ক্লিন, মোবাইল অপ্টিমাইজড', gradient: 'from-blue-500 to-cyan-500', emoji: '📱' },
-    'luxe': { name: 'লাক্স', description: 'প্রিমিয়াম, এলিগ্যান্ট', gradient: 'from-amber-600 to-yellow-500', emoji: '✨' },
     'organic': { name: 'অর্গানিক', description: 'ন্যাচারাল, সফট', gradient: 'from-green-500 to-lime-500', emoji: '🌿' },
     'modern-dark': { name: 'মডার্ন ডার্ক', description: 'ডার্ক থিম, মডার্ন', gradient: 'from-slate-700 to-slate-900', emoji: '🖤' },
-    'minimal-light': { name: 'মিনিমাল লাইট', description: 'সিম্পল, ক্লিন', gradient: 'from-gray-100 to-gray-300', emoji: '⚪' },
+    'minimal-clean': { name: 'মিনিমাল ক্লিন', description: 'সিম্পল, ক্লিন', gradient: 'from-gray-100 to-gray-300', emoji: '⚪' },
     'video-focus': { name: 'ভিডিও ফোকাস', description: 'ভিডিও প্রমিনেন্ট', gradient: 'from-purple-500 to-pink-500', emoji: '🎬' },
     'showcase': { name: 'শোকেস', description: 'প্রোডাক্ট হাইলাইট', gradient: 'from-indigo-500 to-purple-500', emoji: '🎯' },
     'trust-first': { name: 'ট্রাস্ট ফার্স্ট', description: 'বিশ্বাসযোগ্যতা ফোকাস', gradient: 'from-teal-500 to-emerald-500', emoji: '🛡️' },
+    'story-driven': { name: 'স্টোরি ড্রিভেন', description: 'গল্পের মাধ্যমে বিক্রয়', gradient: 'from-orange-500 to-amber-500', emoji: '📖' },
+    'social-proof-style': { name: 'সোশ্যাল প্রুফ', description: 'ফেসবুক স্টাইল', gradient: 'from-blue-500 to-indigo-500', emoji: '👥' },
+    'urgency-scarcity': { name: 'আর্জেন্সি', description: 'স্টক অ্যালার্ট', gradient: 'from-red-600 to-pink-600', emoji: '🚨' },
   };
 
   return (
@@ -761,7 +761,7 @@ function Step4TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: St
                 {/* Hover Actions Overlay */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                   <a
-                    href={`/app/store-template-preview/${templateId}`}
+                    href={`/landing-template-preview/${templateId}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="p-2 bg-white rounded-full text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"

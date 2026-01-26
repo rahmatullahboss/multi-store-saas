@@ -171,19 +171,19 @@ export function selectOptimalTemplate(intent: Intent): string {
   const templateMap: Record<string, Record<string, string>> = {
     facebook: {
       direct_sales: 'flash-sale',      // Urgency focused
-      lead_whatsapp: 'mobile-first',   // Clean, WhatsApp prominent
+      lead_whatsapp: 'modern-dark',    // Clean, modern dark theme
     },
     tiktok: {
       direct_sales: 'video-focus',     // Video-first design
-      lead_whatsapp: 'mobile-first',
+      lead_whatsapp: 'social-proof-style', // WhatsApp style fit
     },
     organic: {
-      direct_sales: 'premium-bd',      // Professional, detailed
-      lead_whatsapp: 'trust-first',    // Trust building
+      direct_sales: 'trust-first',     // Trust building for organic
+      lead_whatsapp: 'story-driven',   // Narrative approach
     },
   };
 
-  return templateMap[trafficSource]?.[goal] || 'premium-bd';
+  return templateMap[trafficSource]?.[goal] || 'modern-dark';
 }
 
 /**
@@ -193,18 +193,16 @@ export function getTemplateSuggestions(intent: Intent): string[] {
   const primary = selectOptimalTemplate(intent);
   
   const allTemplates = [
-    'premium-bd',
     'flash-sale',
-    'mobile-first',
-    'luxe',
     'organic',
     'modern-dark',
-    'minimal-light',
+    'minimal-clean',
     'video-focus',
     'showcase',
-    'minimal-clean',
     'story-driven',
     'trust-first',
+    'social-proof-style',
+    'urgency-scarcity',
   ];
 
   // Remove primary and get 2 more suggestions
@@ -214,11 +212,11 @@ export function getTemplateSuggestions(intent: Intent): string[] {
   const suggestions = [primary];
   
   if (intent.trafficSource === 'facebook') {
-    suggestions.push('premium-bd', 'modern-dark');
+    suggestions.push('flash-sale', 'social-proof-style');
   } else if (intent.trafficSource === 'tiktok') {
-    suggestions.push('flash-sale', 'modern-dark');
+    suggestions.push('video-focus', 'modern-dark');
   } else {
-    suggestions.push('minimal-light', 'trust-first');
+    suggestions.push('minimal-clean', 'story-driven');
   }
 
   // Ensure unique and max 3

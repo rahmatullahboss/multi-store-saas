@@ -985,7 +985,7 @@ export const dashboard = {
   failed: 'Failed',
   confirmStatusUpdate: 'Are you sure you want to update the status?',
   generateReport: 'Generate Report',
-  favicon: 'Favicon',
+
   indexed: 'Indexed',
   noAbandonedCartsDesc: 'No abandoned carts yet',
   noConversationsYet: 'No conversations yet',
