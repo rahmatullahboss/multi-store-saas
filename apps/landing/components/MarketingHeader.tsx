@@ -79,7 +79,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                 </button>
 
                 <Link
-                  href="/auth/login"
+                  href="https://app.ozzyl.com/auth/login"
                   className="hidden sm:block text-white/70 hover:text-white font-medium text-sm px-5 py-2 transition-colors relative hover:shadow-[0_0_20px_rgba(255,255,255,0.1)] rounded-xl"
                 >
                   {t('login')}
@@ -87,7 +87,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                 
                 <MagneticButton>
                   <Link
-                    href="/auth/register"
+                    href="https://app.ozzyl.com/auth/register"
                     className="hidden sm:inline-flex items-center justify-center px-6 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] hover:from-[#005740] hover:to-[#006A4E] text-white font-semibold rounded-xl text-sm transition-all shadow-[0_4px_20px_rgba(0,106,78,0.3)] hover:shadow-[0_4px_25px_rgba(0,106,78,0.5)] active:scale-[0.98]"
                   >
                     {t('register')}
@@ -118,7 +118,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
 
                 <MagneticButton>
                   <Link
-                    href="/auth/register"
+                    href="https://app.ozzyl.com/auth/register"
                     className="px-5 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] hover:from-[#005740] hover:to-[#006A4E] text-white font-semibold rounded-xl text-sm transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
                   >
                     {t('register')}
@@ -188,7 +188,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                     </Link>
                     <div className="h-[1px] bg-white/5 my-1" />
                     <Link
-                      href="/auth/login"
+                      href="https://app.ozzyl.com/auth/login"
                       className="text-white/70 hover:text-white font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition text-center"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
@@ -207,7 +207,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                 )}
 
                 <Link
-                  href="/auth/register"
+                  href="https://app.ozzyl.com/auth/register"
                   className="mx-2 px-4 py-3 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold rounded-xl text-sm text-center shadow-lg shadow-[#006A4E]/25 mt-1 active:scale-[0.98] transition-transform"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >

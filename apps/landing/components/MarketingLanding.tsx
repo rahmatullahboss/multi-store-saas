@@ -269,14 +269,19 @@ function SectionSkeleton() {
 // ============================================================================
 // Main Component
 // ============================================================================
-export function MarketingLanding() {
+export interface MarketingStats {
+  totalUsers: number;
+  totalStores: number;
+  uptime: number;
+}
+
+export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
   const { t } = useTranslation();
 
-  // Mock marketing stats for static landing page
-  const marketingStats = {
+  // Use live stats or fallback to mock if undefined
+  const marketingStats = stats || {
     totalUsers: 15420,
     totalStores: 850,
-    totalRevenue: 1250000,
     uptime: 99.99,
   };
 

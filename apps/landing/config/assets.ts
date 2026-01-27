@@ -1,14 +1,29 @@
-export const R2_BASE_URL = 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev';
+export const R2_BASE_URL = process.env.NEXT_PUBLIC_R2_ASSETS_URL;
+
+if (!R2_BASE_URL) {
+  console.warn(
+    'Warning: NEXT_PUBLIC_R2_ASSETS_URL is missing. Assets may not load.'
+  );
+}
+
 
 export const ASSETS = {
+  // Brand Assets
   brand: {
-    logoWhite: `${R2_BASE_URL}/brand/logo-white.webp`,
-    logoGreen: `${R2_BASE_URL}/brand/logo-green.webp`,
-    icon: `${R2_BASE_URL}/brand/icon.webp`,
-    iconWhite: `${R2_BASE_URL}/brand/icon-white.webp`,
-    logoWhiteSmall: `${R2_BASE_URL}/brand/logo-white-small.webp`,
-    logoWhiteXs: `${R2_BASE_URL}/brand/logo-white-xs.webp`,
-    logoSmall: `${R2_BASE_URL}/brand/ozzyl-logo-small.webp`,
+    logoWhite: `${R2_BASE_URL}/brand/logo-white.png`,
+    logoGreen: `${R2_BASE_URL}/brand/logo-green.png`,
+    icon: `${R2_BASE_URL}/brand/icon.png`,
+    iconWhite: `${R2_BASE_URL}/brand/icon-white.png`,
+    logoWhiteSmall: `${R2_BASE_URL}/brand/logo-white-small.png`,
+    logoWhiteXs: `${R2_BASE_URL}/brand/logo-white-xs.png`,
+    logoSmall: `${R2_BASE_URL}/brand/ozzyl-logo-small.png`,
     logoSmallBlack: `${R2_BASE_URL}/brand/ozzyl-logo-small-black.png`,
   },
+  // Founder Assets
+  founder: {
+    // We upload both, can choose one. WebP is preferred for web.
+    main: `${R2_BASE_URL}/images/founder.webp`,
+    fallback: `${R2_BASE_URL}/images/founder.jpg`,
+  },
 };
+

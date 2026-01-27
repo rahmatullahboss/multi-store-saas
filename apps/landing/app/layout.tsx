@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, Outfit } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
+import { ASSETS } from '@/config/assets';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -32,9 +33,15 @@ export const metadata: Metadata = {
     description:
       'Create your professional e-commerce store with custom subdomain, payment integration, and powerful dashboard. No coding required.',
   },
+  icons: {
+    icon: ASSETS.brand.icon,
+    shortcut: ASSETS.brand.icon,
+    apple: ASSETS.brand.icon,
+  },
 };
 
 import { LanguageProvider } from '@/app/contexts/LanguageContext';
+import { Analytics } from "@vercel/analytics/next";
 
 // ... imports
 
@@ -48,6 +55,7 @@ export default function RootLayout({
       <body className="antialiased bg-[#0A0A0F] text-white">
         <LanguageProvider>
           {children}
+          <Analytics />
         </LanguageProvider>
       </body>
     </html>

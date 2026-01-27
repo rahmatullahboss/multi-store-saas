@@ -15,6 +15,7 @@ import {
   Check, Layout, Type, Image as LucideImage, Star
 } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
+import { ASSETS } from '@/config/assets';
 
 // ============================================================================
 // DESIGN TOKENS
@@ -359,12 +360,13 @@ const ComboPlatformCard = () => {
       <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-               <ShoppingCart className="w-8 h-8 text-emerald-400" />
-            </div>
-            <span className="text-2xl font-light text-white/20">+</span>
-            <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-               <FileText className="w-8 h-8 text-blue-400" />
+            <div className="relative w-16 h-16 flex items-center justify-center">
+              <div className="absolute inset-0 bg-[#006A4E]/20 blur-xl rounded-full opacity-50" />
+              <img 
+                src={ASSETS.brand.logoWhite} 
+                alt="Ozzyl" 
+                className="h-12 w-auto relative z-10"
+              />
             </div>
           </div>
           

@@ -37,6 +37,7 @@ import {
   ArrowRight,
   type LucideIcon,
 } from 'lucide-react';
+import { ASSETS } from '@/config/assets';
 
 // ============================================================================
 // DESIGN TOKENS
@@ -209,7 +210,7 @@ const FoundersMessage = () => {
               }}
             >
               <img
-                src="/images/founder.webp"
+                src={ASSETS.founder.main}
                 alt="Rahmatullah Zisan - Founder"
                 className="w-full h-full object-cover"
               />
