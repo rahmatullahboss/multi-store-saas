@@ -1,6 +1,8 @@
+import { ASSETS } from './assets';
+
 export const BRAND = {
   name: 'Ozzyl',
-  logo: '/ozzyl-logo.png',
+  logo: ASSETS.brand.logoGreen,
   website: 'https://ozzyl.com',
   tagline: {
     en: 'All-in-One Platform',

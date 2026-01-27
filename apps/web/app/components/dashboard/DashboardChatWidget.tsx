@@ -1,10 +1,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useFetcher, useLocation } from '@remix-run/react';
-import { Send, Sparkles, Loader2, Bot, User, X, ChevronDown, ChevronUp } from 'lucide-react';
-import { toast } from 'sonner';
+import { Send, Sparkles, Loader2, User, ChevronDown } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
-import ChatInsightCard, { InsightData } from './ChatInsightCard';
+import { ASSETS } from '~/config/assets';
+import ChatInsightCard from './ChatInsightCard';
 
 interface DashboardChatWidgetProps {
   userName?: string;
@@ -39,14 +39,14 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
         }
       ]);
     }
-  }, [userName, t]);
+  }, [userName, t, messages.length]);
 
   // Load History on Open
   useEffect(() => {
     if (isOpen && historyFetcher.state === 'idle' && !historyFetcher.data) {
       historyFetcher.load('/api/ai/chat');
     }
-  }, [isOpen]);
+  }, [isOpen, historyFetcher]);
 
   // Update Messages from History
   useEffect(() => {
@@ -106,7 +106,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
               return <ChatInsightCard data={parsed.data} />;
           }
       }
-    } catch (e) {
+    } catch {
       // Not JSON, render as text
     }
     return content;
@@ -149,7 +149,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
         <div className="absolute inset-1 bg-gradient-to-br from-white/20 to-transparent rounded-full opacity-50" />
         {/* Logo */}
         <img 
-          src="/ozzyl-logo-small-black.png" 
+          src={ASSETS.brand.logoSmallBlack} 
           alt="Ozzyl AI" 
           className="w-14 h-14 relative z-10 object-contain"
         />
@@ -172,7 +172,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
         <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white shadow-lg relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500 to-teal-600 opacity-20" />
-                <img src="/ozzyl-logo-small.png" alt="Ozzyl" className="relative z-10 w-4 h-4" />
+                <img src={ASSETS.brand.logoSmall} alt="Ozzyl" className="relative z-10 w-4 h-4" />
             </div>
             <div>
                 <div className="flex items-center gap-2">
@@ -193,7 +193,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
       {isLocked ? (
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center bg-gray-50/50">
             <div className="w-16 h-16 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
-                <img src="/ozzyl-logo-small.png" alt="Ozzyl" className="w-8 h-8" />
+                <img src={ASSETS.brand.logoSmall} alt="Ozzyl" className="w-8 h-8" />
             </div>
             <h3 className="text-lg font-black text-gray-900 mb-2">{t('dashboardChat_unlockTitle')}</h3>
             <p className="text-sm text-gray-500 mb-6 leading-relaxed">
@@ -227,7 +227,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow-sm ${
                 msg.role === 'user' ? 'bg-gray-200' : 'bg-emerald-100 text-emerald-600'
                 }`}>
-                {msg.role === 'user' ? <User size={12} className="text-gray-500" /> : <img src="/ozzyl-logo-small.png" alt="" className="w-3.5 h-3.5" />}
+                {msg.role === 'user' ? <User size={12} className="text-gray-500" /> : <img src={ASSETS.brand.logoSmall} alt="" className="w-3.5 h-3.5" />}
                 </div>
                 
                 <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed shadow-sm whitespace-pre-wrap ${
@@ -243,7 +243,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
             {fetcher.state !== 'idle' && (
             <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0 mt-1">
-                    <img src="/ozzyl-logo-small.png" alt="" className="w-3.5 h-3.5" />
+                    <img src={ASSETS.brand.logoSmall} alt="" className="w-3.5 h-3.5" />
                 </div>
                 <div className="bg-white border border-gray-100 px-3 py-2 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-2">
                 <Loader2 size={14} className="animate-spin text-emerald-500" />

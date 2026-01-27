@@ -273,7 +273,7 @@ export const orders = sqliteTable('orders', {
   customerName: text('customer_name'),
   shippingAddress: text('shipping_address'), // JSON object
   billingAddress: text('billing_address'), // JSON object
-  status: text('status').$type<'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'>().default('pending'),
+  status: text('status').$type<'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned'>().default('pending'),
   // Payment Information
   paymentStatus: text('payment_status').$type<'pending' | 'paid' | 'failed' | 'refunded' | 'reversed'>().default('pending'),
   paymentMethod: text('payment_method').default('cod'), // 'cod' | 'bkash' | 'nagad' | 'rocket'

@@ -18,6 +18,7 @@ import { useFetcher } from '@remix-run/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, X, User, Loader2, ArrowRight, Phone } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { ASSETS } from '~/config/assets';
 import { AIResponseRendererDark } from '~/components/ui/AIResponseRenderer';
 
 interface Message {
@@ -251,7 +252,7 @@ export function OzzylAIChatWidget() {
                 >
                   <div className="relative flex-shrink-0">
                     <img 
-                      src="/ozzyl-logo-small.png" 
+                      src={ASSETS.brand.logoSmall} 
                       alt="Ozzyl" 
                       className="w-10 h-10 rounded-xl shadow-lg"
                       loading="lazy"
@@ -299,7 +300,7 @@ export function OzzylAIChatWidget() {
               <div className="absolute inset-1 bg-gradient-to-br from-white/20 to-transparent rounded-full opacity-50" />
               {/* Logo */}
               <img 
-                src="/ozzyl-logo-small-black.png" 
+                src={ASSETS.brand.logoSmallBlack} 
                 alt="Ozzyl AI" 
                 className="w-14 h-14 relative z-10 object-contain"
                 loading="lazy"
@@ -333,7 +334,7 @@ export function OzzylAIChatWidget() {
                 <div className="relative">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#006A4E] to-[#004D38] p-0.5 shadow-lg shadow-[#006A4E]/20">
                     <img 
-                      src="/ozzyl-logo-small-black.png" 
+                      src={ASSETS.brand.logoSmallBlack} 
                       alt="Ozzyl" 
                       className="w-full h-full rounded-[10px] object-cover"
                       loading="lazy"
@@ -452,7 +453,7 @@ export function OzzylAIChatWidget() {
                         }`}>
                             {msg.role === 'user' 
                             ? <User className="w-4 h-4 text-white/70" />
-                            : <img src="/ozzyl-logo-small.png" alt="Ozzyl" className="w-7 h-7" />
+                            : <img src={ASSETS.brand.logoSmall} alt="Ozzyl" className="w-7 h-7" />
                             }
                         </div>
                         
@@ -479,7 +480,7 @@ export function OzzylAIChatWidget() {
                         className="flex items-start gap-2"
                         >
                         <div className="w-7 h-7 rounded-lg overflow-hidden">
-                            <img src="/ozzyl-logo-small.png" alt="Ozzyl" className="w-7 h-7" />
+                            <img src={ASSETS.brand.logoSmall} alt="Ozzyl" className="w-7 h-7" />
                         </div>
                         <div className="bg-white/5 border border-white/5 px-4 py-3 rounded-2xl rounded-tl-sm flex gap-1.5">
                             <span className="w-2 h-2 bg-[#006A4E] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />

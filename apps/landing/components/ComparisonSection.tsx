@@ -19,6 +19,7 @@ import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { Check, X, ArrowRight, ChevronLeft, ChevronRight, Sparkles, Zap } from 'lucide-react';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/animations';
+import { ASSETS } from '@/config/assets';
 
 // ============================================================================
 // DESIGN TOKENS
@@ -322,8 +323,17 @@ const MobileComparisonCard = ({
             Best Choice
           </motion.div>
         )}
-        <h3 className={`text-xl font-bold ${isOurs ? 'text-white' : 'text-white/60'}`}>
-          {platformNames[platform]}
+        <h3 className={`text-xl font-bold ${isOurs ? 'text-white' : 'text-white/60'} flex flex-col items-center gap-2`}>
+          {isOurs ? (
+             <>
+               <div className="w-12 h-12 bg-white/10 rounded-xl p-2 backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center">
+                 <img src={ASSETS.brand.logoSmall} alt="Ozzyl" className="w-8 h-8 object-contain" />
+               </div>
+               Ozzyl
+             </>
+          ) : (
+            platformNames[platform]
+          )}
         </h3>
         {isOurs && (
           <span className="text-2xl mt-1 block">🇧🇩</span>
@@ -494,10 +504,15 @@ export function ComparisonSection() {
                   Best Choice
                 </motion.div>
                 
-                <span className="text-xl font-bold text-white flex items-center justify-center gap-2 mt-3">
-                  আমাদের Platform
-                  <span className="text-2xl">🇧🇩</span>
-                </span>
+                <div className="text-xl font-bold text-white flex flex-col items-center justify-center gap-2 mt-3">
+                  <div className="w-12 h-12 bg-white/10 rounded-xl p-2 backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center">
+                    <img src={ASSETS.brand.logoSmall} alt="Ozzyl" className="w-8 h-8 object-contain" />
+                  </div>
+                  <span className="flex items-center gap-2">
+                    Ozzyl
+                    <span className="text-2xl">🇧🇩</span>
+                  </span>
+                </div>
               </div>
             </div>
 

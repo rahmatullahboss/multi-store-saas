@@ -6,6 +6,7 @@ import * as schema from '../../db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { Sparkles, MessageSquare, Settings, Book, Bot, Zap, TrendingUp } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { ASSETS } from '~/config/assets';
 import { getUsageStats } from '~/utils/plans.server';
 import { LazyAreaChart } from '~/components/charts/LazyAreaChart';
 
@@ -110,7 +111,7 @@ export default function AgentDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <img src="/ozzyl-logo-small.png" alt="Ozzyl" className="w-8 h-8" />
+            <img src={ASSETS.brand.logoSmall} alt="Ozzyl" className="w-8 h-8" />
             {t('aiAgentManager')}
           </h1>
           <p className="text-gray-500">{t('aiAgentDescription')}</p>

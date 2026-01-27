@@ -35,3 +35,9 @@ database_id = "bf882d16-d67a-4007-b503-33646bd693af"
 WORKER_ENV = "production"
 
 # RESEND_API_KEY - SET IN CLOUDFLARE DASHBOARD (secret)
+
+# ============================================================================
+# CRON TRIGGERS
+# ============================================================================
+[triggers]
+crons = ["0 * * * *"] # Run every hour

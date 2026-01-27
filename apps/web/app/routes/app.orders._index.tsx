@@ -66,7 +66,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     shipped: storeOrders.filter(o => o.status === 'shipped').length,
     delivered: storeOrders.filter(o => o.status === 'delivered').length,
     cancelled: storeOrders.filter(o => o.status === 'cancelled').length,
-    revenue: storeOrders.filter(o => o.status !== 'cancelled').reduce((sum, o) => sum + o.total, 0),
+    returned: storeOrders.filter(o => o.status === 'returned').length,
+    revenue: storeOrders.filter(o => o.status !== 'cancelled' && o.status !== 'returned').reduce((sum, o) => sum + o.total, 0),
   };
 
   return json({
@@ -168,7 +169,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'Order ID required' }, { status: 400 });
   }
 
-  if (!['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].includes(status)) {
+  if (!['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'].includes(status)) {
     return json({ error: 'Invalid status' }, { status: 400 });
   }
 
@@ -187,7 +188,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   await db
     .update(orders)
     .set({ 
-      status: status as 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled',
+      status: status as 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned',
       updatedAt: new Date() 
     })
     .where(eq(orders.id, orderId));
@@ -205,6 +206,7 @@ const statusOptionsKeys = [
   { value: 'shipped', labelKey: 'shippedOrders' },
   { value: 'delivered', labelKey: 'deliveredOrders' },
   { value: 'cancelled', labelKey: 'cancelledOrders' },
+  { value: 'returned', labelKey: 'returnedOrders' },
 ] as const;
 
 // ============================================================================
@@ -228,6 +230,7 @@ export default function DashboardOrdersPage() {
     { id: 'shipped', label: t('shippedOrders'), count: stats.shipped },
     { id: 'delivered', label: t('deliveredOrders'), count: stats.delivered },
     { id: 'cancelled', label: t('cancelledOrders'), count: stats.cancelled },
+    { id: 'returned', label: t('returnedOrders'), count: stats.returned },
   ];
 
   // Filter orders
@@ -525,6 +528,7 @@ function StatusDropdown({ orderId, currentStatus }: { orderId: number; currentSt
     shipped: { icon: Truck, bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
     delivered: { icon: CheckCircle, bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
     cancelled: { icon: XCircle, bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+    returned: { icon: PackageX, bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
   };
 
   const config = configs[displayStatus] || configs.pending;
@@ -605,6 +609,12 @@ function StatusBadge({ status }: { status: string }) {
       bg: 'bg-red-100', 
       text: 'text-red-700', 
       labelKey: 'cancelledOrders' 
+    },
+    returned: { 
+      icon: PackageX, 
+      bg: 'bg-orange-100', 
+      text: 'text-orange-700', 
+      labelKey: 'returnedOrders' 
     },
   };
 

@@ -139,3 +139,5 @@ service = "pdf-generator"
 # [[queues.producers]]
 #   queue = "webhook-queue"
 #   binding = "WEBHOOK_QUEUE"
+
+#   binding = "WEBHOOK_QUEUE"

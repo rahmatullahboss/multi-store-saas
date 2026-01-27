@@ -63,6 +63,7 @@ export const dashboard = {
   status: 'স্ট্যাটাস',
   actions: 'অ্যাকশন',
   view: 'দেখুন',
+  returnedOrders: 'রিটার্ন করা অর্ডার',
   searchByOrderNumber: 'অর্ডার নম্বর, কাস্টমার বা ফোন দিয়ে সার্চ করুন...',
   searchByOrderHint: 'অর্ডার নম্বর বা কাস্টমার দিয়ে খুঁজুন...',
   clearFilters: 'ফিল্টার মুছুন',

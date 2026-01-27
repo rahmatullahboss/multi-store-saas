@@ -866,4 +866,115 @@ export default {
 
     return Response.json({ error: 'Not found' }, { status: 404 });
   },
+
+  /**
+   * CRON TRIGGER HANDLER
+   * Runs hourly to sync courier statuses
+   */
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    console.log('[Cron] Starting courier status sync...');
+    const startTime = Date.now();
+    
+    // 1. Fetch active orders with Steadfast courier
+    // status: processing, shipped
+    // provider: steadfast
+    // consignment: not null
+    const orders = await env.DB.prepare(`
+      SELECT o.id, o.store_id, o.courier_consignment_id, o.status, s.courier_settings
+      FROM orders o
+      JOIN stores s ON o.store_id = s.id
+      WHERE o.courier_provider = 'steadfast'
+        AND o.status IN ('processing', 'shipped')
+        AND o.courier_consignment_id IS NOT NULL
+      LIMIT 50
+    `).all(); // Batched limit to verify functionality first
+
+    if (!orders.results || orders.results.length === 0) {
+      console.log('[Cron] No orders to sync.');
+      return;
+    }
+
+    console.log(`[Cron] Found ${orders.results.length} orders to sync.`);
+    
+    const STATUS_MAP: Record<string, string> = {
+      'pending': 'processing',
+      'in_review': 'processing',
+      'delivered': 'delivered',
+      'cancelled': 'cancelled',
+      'partial_delivered': 'delivered',
+      'hold': 'processing',
+      'unknown': 'processing',
+      'picked': 'shipped',
+      'in_transit': 'shipped',
+      'out_for_delivery': 'shipped',
+      'returned': 'returned', // New status
+    };
+
+    let updatedCount = 0;
+
+    // 2. Process each order
+    for (const order of orders.results) {
+      try {
+        const settings = JSON.parse(order.courier_settings as string);
+        if (!settings?.steadfast?.apiKey || !settings?.steadfast?.secretKey) {
+          continue; // Skip if no credentials
+        }
+
+        const credential = settings.steadfast;
+        const cid = order.courier_consignment_id as string;
+
+        // 3. Call Steadfast API
+        const response = await fetch(`https://portal.packzy.com/api/v1/status_by_cid/${cid}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Api-Key': credential.apiKey,
+            'Secret-Key': credential.secretKey,
+          },
+        });
+
+        if (!response.ok) continue;
+
+        const data = await response.json() as { 
+          delivery_status?: string; 
+          status?: string; // Sometimes just status 
+        };
+        
+        const courierStatus = (data.delivery_status || data.status || '').toLowerCase();
+        
+        if (!courierStatus) continue;
+
+        // 4. Determine new internal status
+        const mappedStatus = STATUS_MAP[courierStatus];
+        
+        // Log raw status for debugging
+        // console.log(`Order ${order.id}: ${order.status} -> Courier: ${courierStatus} -> Mapped: ${mappedStatus}`);
+
+        // Update if status changed or just courier status update
+        if (mappedStatus && mappedStatus !== order.status) {
+           await env.DB.prepare(`
+             UPDATE orders 
+             SET status = ?, courier_status = ?, updated_at = ?
+             WHERE id = ?
+           `).bind(mappedStatus, courierStatus, new Date().toISOString(), order.id).run();
+           
+           updatedCount++;
+           
+           // TODO: Log activity or send webhook via OrderProcessor DO 
+           // For now, we update DB directly for efficiency/cost
+        } else {
+             // Just update courier_status if specific status matches (e.g. 'picked' but we stay 'shipped')
+             await env.DB.prepare(`
+                UPDATE orders SET courier_status = ? WHERE id = ?
+             `).bind(courierStatus, order.id).run();
+        }
+
+      } catch (err) {
+        console.error(`[Cron] Error processing order ${order.id}:`, err);
+      }
+    }
+    
+    const duration = Date.now() - startTime;
+    console.log(`[Cron] Sync completed in ${duration}ms. Updated ${updatedCount} orders.`);
+  },
 };

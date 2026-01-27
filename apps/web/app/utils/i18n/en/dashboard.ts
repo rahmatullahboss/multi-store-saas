@@ -62,6 +62,7 @@ export const dashboard = {
   status: 'Status',
   actions: 'Actions',
   view: 'View',
+  returnedOrders: 'Returned',
   searchByOrderNumber: 'Search by order #, customer, or phone...',
   searchByOrderHint: 'Search by order number or customer...',
   clearFilters: 'Clear filters',
