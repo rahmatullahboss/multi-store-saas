@@ -23,6 +23,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { BRAND } from '@/config/branding';
+import { ASSETS } from '@/config/assets';
 import { useTranslation, useFormatPrice } from '@/app/contexts/LanguageContext';
 
 // ============================================================================
@@ -454,7 +455,7 @@ export function PricingSection() {
             <div className="relative z-10 text-center">
               <div className="w-32 h-32 mx-auto bg-gradient-to-br from-emerald-400 to-teal-500 rounded-3xl flex items-center justify-center shadow-lg shadow-emerald-500/20 mb-8 transform rotate-3">
                 <img
-                  src={BRAND.logo}
+                  src={ASSETS.brand.icon}
                   alt={BRAND.name}
                   className="w-28 h-28 object-contain brightness-0"
                 />
