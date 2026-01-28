@@ -262,12 +262,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
   }
 
-  // Re-apply loadedSections to themeConfig after fallback (in case we loaded from theme defaults)
-  if (
-    loadedSections.home &&
-    loadedSections.home.length > 0 &&
-    (!themeConfig.sections || themeConfig.sections.length === 0)
-  ) {
+  // Re-apply loadedSections to themeConfig after fallback
+  // IMPORTANT: Always use theme defaults if loadedSections has data
+  // This ensures the editor shows the complete theme exactly as designed
+  if (loadedSections.home && loadedSections.home.length > 0) {
     themeConfig = {
       ...themeConfig,
       sections: loadedSections.home.map((s) => ({
@@ -280,11 +278,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       })),
     };
   }
-  if (
-    loadedSections.product &&
-    loadedSections.product.length > 0 &&
-    (!themeConfig.productSections || themeConfig.productSections.length === 0)
-  ) {
+  if (loadedSections.product && loadedSections.product.length > 0) {
     themeConfig = {
       ...themeConfig,
       productSections: loadedSections.product.map((s) => ({
@@ -297,11 +291,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       })),
     };
   }
-  if (
-    loadedSections.collection &&
-    loadedSections.collection.length > 0 &&
-    (!themeConfig.collectionSections || themeConfig.collectionSections.length === 0)
-  ) {
+  if (loadedSections.collection && loadedSections.collection.length > 0) {
     themeConfig = {
       ...themeConfig,
       collectionSections: loadedSections.collection.map((s) => ({
@@ -314,11 +304,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       })),
     };
   }
-  if (
-    loadedSections.cart &&
-    loadedSections.cart.length > 0 &&
-    (!themeConfig.cartSections || themeConfig.cartSections.length === 0)
-  ) {
+  if (loadedSections.cart && loadedSections.cart.length > 0) {
     themeConfig = {
       ...themeConfig,
       cartSections: loadedSections.cart.map((s) => ({

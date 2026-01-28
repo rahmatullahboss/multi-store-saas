@@ -949,7 +949,42 @@ export function LiveEditorV2({
         // Update current theme ID
         setCurrentThemeId(newThemeId);
 
-        toast.success(`Switched to ${newThemeId} theme`);
+        // AUTO-SAVE: Submit form to save new theme defaults to DB
+        // This keeps DB, Editor, and Preview in sync
+        setTimeout(() => {
+          const formData = new FormData();
+          formData.append('themeId', newThemeId);
+          formData.append('storeTemplateId', newThemeId);
+          formData.append('primaryColor', primaryColor);
+          formData.append('accentColor', accentColor);
+          formData.append('backgroundColor', backgroundColor);
+          formData.append('textColor', textColor);
+          formData.append('borderColor', borderColor);
+          formData.append('typography', JSON.stringify(typography));
+          formData.append('fontFamily', store.fontFamily || 'inter');
+          
+          // Get the new sections from themeBridge
+          const indexTemplate = newThemeBridge.getTemplate('index');
+          const productTemplate = newThemeBridge.getTemplate('product');
+          const collectionTemplate = newThemeBridge.getTemplate('collection');
+          const cartTemplate = newThemeBridge.getTemplate('cart');
+          
+          const newHomeSections = indexTemplate ? newThemeBridge.templateToEditorSections(indexTemplate) : [];
+          const newProductSections = productTemplate ? newThemeBridge.templateToEditorSections(productTemplate) : [];
+          const newCollectionSections = collectionTemplate ? newThemeBridge.templateToEditorSections(collectionTemplate) : [];
+          const newCartSections = cartTemplate ? newThemeBridge.templateToEditorSections(cartTemplate) : [];
+          
+          formData.append('sections', JSON.stringify(newHomeSections));
+          formData.append('productSections', JSON.stringify(newProductSections));
+          formData.append('collectionSections', JSON.stringify(newCollectionSections));
+          formData.append('cartSections', JSON.stringify(newCartSections));
+          formData.append('checkoutSections', JSON.stringify([]));
+          
+          // Submit to save to DB
+          submit(formData, { method: 'post' });
+        }, 100);
+
+        toast.success(`Switched to ${newThemeId} theme - saving...`);
       } catch (error) {
         console.error('Error switching theme:', error);
         toast.error('Failed to switch theme');
@@ -965,6 +1000,10 @@ export function LiveEditorV2({
       accentColor,
       backgroundColor,
       textColor,
+      borderColor,
+      typography,
+      store.fontFamily,
+      submit,
     ]
   );
 
