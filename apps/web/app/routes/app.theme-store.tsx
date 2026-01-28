@@ -7,19 +7,19 @@
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
-import { useLoaderData, useNavigation, useActionData, Form, Link } from '@remix-run/react';
+import { useLoaderData, useNavigation, Form, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, storeThemes } from '@db/schema';
 import { eq, and } from 'drizzle-orm';
 import { requireUserId, getStoreId } from '~/services/auth.server';
 import { 
-  Palette, Layout, Image as ImageIcon, CheckCircle2, 
+  Palette, Layout,
   ExternalLink, Sparkles, ArrowLeft,
   BadgeCheck, ShoppingBag, Loader2, Crown, Store
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
-import { STORE_TEMPLATES, type StoreTemplateDefinition, getStoreTemplate } from '~/templates/store-registry';
-import { type ThemeConfig, defaultThemeConfig } from '@db/types';
+import { STORE_TEMPLATES } from '~/templates/store-registry';
+import { type ThemeConfig } from '@db/types';
 import { installThemePreset, installCustomThemePreset, convertPresetToConfig } from '~/lib/theme-seeding.server';
 import { getThemePreset, createPresetFromStoreTemplate } from '~/lib/theme-presets';
 
@@ -133,7 +133,7 @@ export default function ThemeStore() {
   const { themes } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
-  const { t } = useTranslation();
+  useTranslation(); // For future i18n support
 
   // Category visual helpers
   const getCategoryIcon = (cat: string) => {

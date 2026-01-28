@@ -9,7 +9,7 @@
  * 4. Update store info (announcement, contact)
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
+import type { MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { Form, Link, useLoaderData, useNavigation, useActionData } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
@@ -20,7 +20,6 @@ import {
   defaultThemeConfig,
   type ThemeConfig,
   parseSocialLinks,
-  type SocialLinks,
 } from '@db/types';
 import { requireUserId, getStoreId } from '~/services/auth.server';
 import { ThemeBridge } from '~/lib/theme-engine/ThemeBridge';
@@ -85,24 +84,7 @@ const getThemeColors = (themeId: string) => {
   }
 };
 
-// Category icons and labels for themes
-const categoryIcons: Record<string, React.ReactNode> = {
-  marketplace: <Store className="w-3 h-3" />,
-  modern: <Sparkles className="w-3 h-3" />,
-  fashion: <Crown className="w-3 h-3" />,
-  general: <Layout className="w-3 h-3" />,
-  grocery: <Store className="w-3 h-3" />,
-  tech: <Settings className="w-3 h-3" />,
-};
-
-const categoryLabels: Record<string, string> = {
-  marketplace: 'Marketplace',
-  modern: 'Modern',
-  fashion: 'Fashion',
-  general: 'General',
-  grocery: 'Grocery',
-  tech: 'Tech',
-};
+// Category icons and labels are defined inside StoreDesignPage component
 
 // Font Options
 const FONT_OPTIONS = [
@@ -139,7 +121,7 @@ export const meta: MetaFunction = () => [{ title: 'Store Design - Ozzyl' }];
 // ============================================================================
 // LOADER - Fetch current store config
 // ============================================================================
-export const loader = async ({ request, context }: any) => {
+export const loader = async ({ request, context }: { request: Request; context: { cloudflare: { env: Env } } }) => {
   await requireUserId(request, context.cloudflare.env);
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) throw new Response('Store not found', { status: 404 });
@@ -170,7 +152,7 @@ export const loader = async ({ request, context }: any) => {
     })),
     storeSubdomain: store[0].subdomain,
     storeName: store[0].name,
-    storeMode: (store[0] as any).mode || 'store',
+    storeMode: 'store',
     storeLogo: store[0].logo || '',
     businessInfo: store[0].businessInfo
       ? JSON.parse(store[0].businessInfo)
@@ -187,7 +169,7 @@ export const loader = async ({ request, context }: any) => {
 // ============================================================================
 // ACTION - Save store customization
 // ============================================================================
-export const action = async ({ request, context }: any) => {
+export const action = async ({ request, context }: { request: Request; context: { cloudflare: { env: Env } } }) => {
   await requireUserId(request, context.cloudflare.env);
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) throw new Response('Store not found', { status: 404 });

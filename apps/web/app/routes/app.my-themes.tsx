@@ -6,14 +6,14 @@
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json, redirect } from '@remix-run/cloudflare';
+import { json } from '@remix-run/cloudflare';
 import { useLoaderData, useNavigation, Form, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, storeThemes } from '@db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { requireUserId, getStoreId } from '~/services/auth.server';
 import { 
-  Palette, Trash2, CheckCircle2, ExternalLink, Sparkles, ArrowLeft,
+  Palette, Trash2, CheckCircle2, Sparkles, ArrowLeft,
   Plus, Settings, RotateCcw, Loader2
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -108,7 +108,7 @@ export default function MyThemes() {
   const { themes } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
-  const { t } = useTranslation();
+  useTranslation(); // For future i18n support
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
