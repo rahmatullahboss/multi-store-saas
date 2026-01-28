@@ -421,13 +421,18 @@ export default function StoreDesignPage() {
             <Eye size={16} />
             {t('viewLiveStore')}
           </Link>
-          <Link
-            to="/store-live-editor"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-semibold shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all text-sm"
+          {/* Live Editor - Coming Soon for MVP */}
+          <button
+            disabled
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-300 text-gray-500 rounded-lg font-semibold cursor-not-allowed text-sm relative"
+            title={lang === 'bn' ? 'শীঘ্রই আসছে' : 'Coming Soon'}
           >
             <Layout size={16} />
             {t('openLiveEditor')}
-          </Link>
+            <span className="absolute -top-2 -right-2 bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+              {lang === 'bn' ? 'শীঘ্রই' : 'Soon'}
+            </span>
+          </button>
         </div>
       </div>
 

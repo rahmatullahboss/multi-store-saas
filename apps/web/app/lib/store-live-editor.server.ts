@@ -136,7 +136,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       ...themeConfig,
       primaryColor: themeSettings.colors?.primary || themeConfig.primaryColor,
       accentColor: themeSettings.colors?.accent || themeConfig.accentColor,
-      // Add more mappings as needed
+      backgroundColor: themeSettings.colors?.background || themeConfig.backgroundColor,
+      textColor: themeSettings.colors?.text || themeConfig.textColor,
+      borderColor: themeSettings.colors?.border || themeConfig.borderColor,
+      favicon: themeSettings.favicon || themeConfig.favicon,
     };
   }
 
@@ -485,6 +488,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const announcementLink = validatedData.announcementLink;
   const customCSS = validatedData.customCSS;
   const logo = validatedData.logo;
+  const favicon = validatedData.favicon;
   const phone = validatedData.phone;
   const email = validatedData.email;
   const address = validatedData.address;
@@ -565,6 +569,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       fontFamily,
       bannerUrl,
       bannerText,
+      logo,
+      favicon,
       customCSS,
       headerLayout,
       headerShowSearch,

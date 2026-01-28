@@ -221,13 +221,17 @@ export default function MyThemes() {
                   )}
                   
                   {theme.isActive && (
-                    <Link 
-                      to="/store-live-editor"
-                      className="flex-grow inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-purple-200 hover:bg-purple-700 transition-all active:scale-95"
+                    <button
+                      disabled
+                      className="flex-grow inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-300 text-gray-500 rounded-xl text-sm font-bold cursor-not-allowed relative"
+                      title="Coming Soon"
                     >
                       <Settings size={16} />
                       Edit Theme
-                    </Link>
+                      <span className="absolute -top-2 -right-2 bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                        Soon
+                      </span>
+                    </button>
                   )}
                   
                   {!theme.isActive && (

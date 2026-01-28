@@ -361,6 +361,7 @@ export interface ThemeConfig {
   checkoutStyle?: 'standard' | 'minimal' | 'one_page'; // Checkout Layout Style
   bannerUrl?: string;
   bannerText?: string;
+  favicon?: string;
   collections?: {
     id: string;
     name: string;

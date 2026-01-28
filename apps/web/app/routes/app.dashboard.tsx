@@ -263,13 +263,18 @@ export default function DashboardPage() {
                 <ExternalLink className="w-5 h-5" />
                 {t('viewStore')}
               </a>
-              <Link
-                to="/store-live-editor"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-400/20 text-white hover:bg-emerald-400/30 border border-white/20 rounded-xl font-semibold backdrop-blur-sm transition-all duration-300 transform hover:-translate-y-1"
+              {/* Theme Editor - Coming Soon for MVP */}
+              <button
+                disabled
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/20 text-white/60 border border-white/20 rounded-xl font-semibold backdrop-blur-sm cursor-not-allowed relative"
+                title={lang === 'bn' ? 'শীঘ্রই আসছে' : 'Coming Soon'}
               >
                 <Sparkles className="w-5 h-5" />
                 {lang === 'bn' ? 'থিম এডিটর' : 'Theme Editor'}
-              </Link>
+                <span className="absolute -top-2 -right-2 bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                  {lang === 'bn' ? 'শীঘ্রই' : 'Soon'}
+                </span>
+              </button>
             </div>
             <div className="text-xs text-center text-emerald-200/80 font-medium">
               {storeEnabled ? 'Store is Live' : 'Maintenance Mode'}

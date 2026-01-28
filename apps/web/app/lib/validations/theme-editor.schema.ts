@@ -185,6 +185,7 @@ export const themeEditorFormSchema = z.object({
   logo: safeUrlSchema,
   bannerUrl: safeUrlSchema,
   bannerText: safeTextSchema,
+  favicon: safeUrlSchema,
 
   // Announcement
   announcementText: safeTextSchema,
@@ -283,6 +284,7 @@ export function parseThemeEditorFormData(formData: FormData):
     'logo',
     'bannerUrl',
     'bannerText',
+    'favicon',
     'announcementText',
     'announcementLink',
     'headerLayout',

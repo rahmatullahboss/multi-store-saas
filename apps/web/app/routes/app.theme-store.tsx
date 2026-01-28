@@ -126,7 +126,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Non-blocking error, allow redirection to proceed
   }
 
-  return redirect('/store-live-editor');
+  return redirect('/app/store-design');
 }
 
 export default function ThemeStore() {

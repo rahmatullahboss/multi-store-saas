@@ -39,6 +39,7 @@ import {
   Copy,
   Undo2,
   Redo2,
+  MousePointer2,
 } from 'lucide-react';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -423,32 +424,36 @@ export function LiveEditorV2({
   // STATE WITH UNDO/REDO
   // ============================================================================
 
+  // Check for global header/footer in initial config, otherwise create defaults
+  const hasHeader = (themeConfig.sections || []).some((s) => s.type === 'header');
+  const hasFooter = (themeConfig.sections || []).some((s) => s.type === 'footer');
+
+  const defaultHeader = !hasHeader ? themeBridge.createSection('header') : null;
+  const defaultFooter = !hasFooter ? themeBridge.createSection('footer') : null;
+
+  const globalHeader = defaultHeader ? [{ ...defaultHeader, disabled: false }] : [];
+  const globalFooter = defaultFooter ? [{ ...defaultFooter, disabled: false }] : [];
+
+  // Helper to ensure header/footer are present
+  const withGlobals = (sections: any[]) => {
+    const safeSections = sections || [];
+    // If we have global defaults to inject, do it. 
+    // Otherwise assume sections list already has them (if saved previously) or doesn't need them.
+    // Actually, for product/collection pages, they MIGHT NOT have them if saved previously without section groups logic.
+    // So we should enforce them if they are missing from the specific list too?
+    // Simplified: Just prepend/append if we created defaults.
+    return [...globalHeader, ...safeSections, ...globalFooter].map((s) => ({
+      ...s,
+      disabled: (s as EditorSectionWithState).disabled || false,
+    }));
+  };
+
   // Convert initial sections to include disabled property
-  const initialHomeSections: EditorSectionWithState[] = (themeConfig.sections || []).map((s) => ({
-    ...s,
-    disabled: (s as EditorSectionWithState).disabled || false,
-  }));
+  const initialHomeSections: EditorSectionWithState[] = withGlobals(themeConfig.sections);
+  const initialProductSections: EditorSectionWithState[] = withGlobals(themeConfig.productSections);
+  const initialCollectionSections: EditorSectionWithState[] = withGlobals(themeConfig.collectionSections);
+  const initialCartSections: EditorSectionWithState[] = withGlobals(themeConfig.cartSections);
 
-  const initialProductSections: EditorSectionWithState[] = (themeConfig.productSections || []).map(
-    (s) => ({
-      ...s,
-      disabled: (s as EditorSectionWithState).disabled || false,
-    })
-  );
-
-  const initialCollectionSections: EditorSectionWithState[] = (
-    themeConfig.collectionSections || []
-  ).map((s) => ({
-    ...s,
-    disabled: (s as EditorSectionWithState).disabled || false,
-  }));
-
-  const initialCartSections: EditorSectionWithState[] = (themeConfig.cartSections || []).map(
-    (s) => ({
-      ...s,
-      disabled: (s as EditorSectionWithState).disabled || false,
-    })
-  );
 
   const initialCheckoutSections: EditorSectionWithState[] = (
     themeConfig.checkoutSections || []
@@ -518,6 +523,9 @@ export function LiveEditorV2({
 
   type PageType = 'home' | 'product' | 'collection' | 'cart' | 'checkout';
   const [currentPage, setCurrentPage] = useState<PageType>('home');
+  const [sidebarTab, setSidebarTab] = useState<'sections' | 'settings'>('sections');
+  const [inspectorMode, setInspectorMode] = useState(false);
+  const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
 
   // Theme settings state
   const [selectedTemplateId, setSelectedTemplateId] = useState(
@@ -542,6 +550,12 @@ export function LiveEditorV2({
   const [announcementText, setAnnouncementText] = useState(themeConfig.announcement?.text || '');
   const [announcementLink, setAnnouncementLink] = useState(themeConfig.announcement?.link || '');
   const [customCSS, setCustomCSS] = useState(themeConfig.customCSS || '');
+  const [favicon, setFavicon] = useState(themeConfig.favicon || '');
+  
+  // Social Media
+  const [facebook, setFacebook] = useState(store.socialLinks?.facebook || '');
+  const [instagram, setInstagram] = useState(store.socialLinks?.instagram || '');
+  const [whatsapp, setWhatsapp] = useState(store.socialLinks?.whatsapp || '');
 
   // ============================================================================
   // COMPUTED VALUES (Memoized for performance)
@@ -819,7 +833,7 @@ export function LiveEditorV2({
             bannerText,
             announcement: { text: announcementText, link: announcementLink },
             customCSS,
-            sections: homeSections.filter((s) => !s.disabled), // Don't send disabled sections to preview
+            sections: homeSections.filter((s) => !s.disabled), // Now contains header/footer!
             productSections: productSections.filter((s) => !s.disabled),
             collectionSections: collectionSections.filter((s) => !s.disabled),
             cartSections: cartSections.filter((s) => !s.disabled),
@@ -849,6 +863,8 @@ export function LiveEditorV2({
     collectionSections,
     cartSections,
     checkoutSections,
+    headerSections, // Added dependency
+    footerSections, // Added dependency
     logo,
   ]);
 
@@ -914,55 +930,46 @@ export function LiveEditorV2({
         const defaultTemplate = await newThemeBridge.loadTemplate('index');
 
         if (defaultTemplate) {
-          // Convert template to editor sections
-          const newSections = newThemeBridge.templateToEditorSections(defaultTemplate);
-          const sectionsWithState: EditorSectionWithState[] = newSections.map((s) => ({
-            ...s,
-            disabled: false,
-          }));
+         // Create default global sections for the new theme
+        const headerSection = newThemeBridge.createSection('header');
+        const footerSection = newThemeBridge.createSection('footer');
+        const globalHeader = headerSection ? [headerSection] : [];
+        const globalFooter = footerSection ? [footerSection] : [];
 
-          // Reset sections with new theme defaults
-          resetHomeSections(sectionsWithState);
-          setSelectedSectionId(null);
-
-          // Update theme colors from new theme config
-          const newConfig = newThemeBridge.getConfig();
-          if (newConfig.colors) {
-            setPrimaryColor(newConfig.colors.primary || primaryColor);
-            setAccentColor(newConfig.colors.accent || accentColor);
-            setBackgroundColor(newConfig.colors.background || backgroundColor);
-            setTextColor(newConfig.colors.text || textColor);
-          }
+        // Load index template (Home)
+        const indexTemplate = await newThemeBridge.loadTemplate('index');
+        if (indexTemplate) {
+          const homeSectionsNew = newThemeBridge.templateToEditorSections(indexTemplate);
+          resetHomeSections([...globalHeader, ...homeSectionsNew, ...globalFooter]);
         } else {
-          // No template found, just reset to empty
-          resetHomeSections([]);
+          resetHomeSections([...globalHeader, ...globalFooter]);
         }
 
         // Load product template
         const productTemplate = await newThemeBridge.loadTemplate('product');
         if (productTemplate) {
           const productSectionsNew = newThemeBridge.templateToEditorSections(productTemplate);
-          resetProductSections(productSectionsNew.map((s) => ({ ...s, disabled: false })));
+          resetProductSections([...globalHeader, ...productSectionsNew, ...globalFooter]);
         } else {
-          resetProductSections([]);
+          resetProductSections([...globalHeader, ...globalFooter]);
         }
 
         // Load collection template
         const collectionTemplate = await newThemeBridge.loadTemplate('collection');
         if (collectionTemplate) {
           const collectionSectionsNew = newThemeBridge.templateToEditorSections(collectionTemplate);
-          resetCollectionSections(collectionSectionsNew.map((s) => ({ ...s, disabled: false })));
+          resetCollectionSections([...globalHeader, ...collectionSectionsNew, ...globalFooter]);
         } else {
-          resetCollectionSections([]);
+          resetCollectionSections([...globalHeader, ...globalFooter]);
         }
 
         // Load cart template
         const cartTemplate = await newThemeBridge.loadTemplate('cart');
         if (cartTemplate) {
           const cartSectionsNew = newThemeBridge.templateToEditorSections(cartTemplate);
-          resetCartSections(cartSectionsNew.map((s) => ({ ...s, disabled: false })));
+          resetCartSections([...globalHeader, ...cartSectionsNew, ...globalFooter]);
         } else {
-          resetCartSections([]);
+          resetCartSections([...globalHeader, ...globalFooter]);
         }
 
         // Load checkout template (usually minimal/fixed)
@@ -973,6 +980,7 @@ export function LiveEditorV2({
         } else {
           resetCheckoutSections([]);
         }
+      }
 
         // Update current theme ID
         setCurrentThemeId(newThemeId);
@@ -991,6 +999,12 @@ export function LiveEditorV2({
           formData.append('typography', JSON.stringify(typography));
           formData.append('fontFamily', store.fontFamily || 'inter');
           
+          // Create default global sections
+          const headerSection = newThemeBridge.createSection('header');
+          const footerSection = newThemeBridge.createSection('footer');
+          const globalHeader = headerSection ? [headerSection] : [];
+          const globalFooter = footerSection ? [footerSection] : [];
+
           // Get the new sections from themeBridge
           const indexTemplate = newThemeBridge.getTemplate('index');
           const productTemplate = newThemeBridge.getTemplate('product');
@@ -1002,10 +1016,15 @@ export function LiveEditorV2({
           const newCollectionSections = collectionTemplate ? newThemeBridge.templateToEditorSections(collectionTemplate) : [];
           const newCartSections = cartTemplate ? newThemeBridge.templateToEditorSections(cartTemplate) : [];
           
-          formData.append('sections', JSON.stringify(newHomeSections));
-          formData.append('productSections', JSON.stringify(newProductSections));
-          formData.append('collectionSections', JSON.stringify(newCollectionSections));
-          formData.append('cartSections', JSON.stringify(newCartSections));
+          const fullHomeSections = [...globalHeader, ...newHomeSections, ...globalFooter];
+          const fullProductSections = [...globalHeader, ...newProductSections, ...globalFooter];
+          const fullCollectionSections = [...globalHeader, ...newCollectionSections, ...globalFooter];
+          const fullCartSections = [...globalHeader, ...newCartSections, ...globalFooter];
+
+          formData.append('sections', JSON.stringify(fullHomeSections));
+          formData.append('productSections', JSON.stringify(fullProductSections));
+          formData.append('collectionSections', JSON.stringify(fullCollectionSections));
+          formData.append('cartSections', JSON.stringify(fullCartSections));
           formData.append('checkoutSections', JSON.stringify([]));
           
           // Submit to save to DB
@@ -1106,71 +1125,148 @@ export function LiveEditorV2({
           </button>
         </div>
 
-        {/* Center - Device Toggles + Undo/Redo */}
-        <div className="flex items-center gap-4">
-          {/* Undo/Redo */}
-          <div className="flex items-center gap-1 border-r pr-4 mr-2">
-            <button
-              onClick={() => {
-                undo();
-                toast.success('Undone!');
-              }}
-              disabled={!canUndo}
-              className={`p-2 rounded ${canUndo ? 'hover:bg-gray-100 text-gray-600' : 'text-gray-300 cursor-not-allowed'}`}
-              title="Undo (Ctrl+Z)"
-            >
-              <Undo2 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => {
-                redo();
-                toast.success('Redone!');
-              }}
-              disabled={!canRedo}
-              className={`p-2 rounded ${canRedo ? 'hover:bg-gray-100 text-gray-600' : 'text-gray-300 cursor-not-allowed'}`}
-              title="Redo (Ctrl+Y)"
-            >
-              <Redo2 className="w-4 h-4" />
-            </button>
+          {/* Center - Undo/Redo + Tools + Devices */}
+          <div className="flex items-center gap-3">
+             <div className="flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    undo();
+                    toast.success('Undone!');
+                  }}
+                  disabled={!canUndo}
+                  className={`p-1.5 rounded ${canUndo ? 'hover:bg-gray-100 text-gray-600' : 'text-gray-300 cursor-not-allowed'}`}
+                  title="Undo (Ctrl+Z)"
+                >
+                  <Undo2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => {
+                    redo();
+                    toast.success('Redone!');
+                  }}
+                  disabled={!canRedo}
+                  className={`p-1.5 rounded ${canRedo ? 'hover:bg-gray-100 text-gray-600' : 'text-gray-300 cursor-not-allowed'}`}
+                  title="Redo (Ctrl+Y)"
+                >
+                  <Redo2 className="w-4 h-4" />
+                </button>
+             </div>
+
+             <div className="h-4 w-px bg-gray-200" />
+            
+             <div className="flex items-center gap-2 bg-gray-100/50 p-1 rounded-lg border border-gray-200">
+               {/* Inspector & AI */}
+                <div className="flex items-center border-r border-gray-300 pr-2 mr-1 gap-1">
+                  <button
+                    onClick={() => setInspectorMode(!inspectorMode)}
+                    className={`p-1.5 rounded ${inspectorMode ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-white'}`}
+                    title="Inspector Mode"
+                  >
+                    <MousePointer2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setIsAIAssistantOpen(true)}
+                    className={`p-1.5 rounded text-purple-600 hover:bg-purple-50`}
+                    title="AI Assistant"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                  </button>
+                </div>
+                
+                {/* Device Toggles */}
+                <button
+                  onClick={() => setPreviewDevice('desktop')}
+                  className={`p-1.5 rounded ${previewDevice === 'desktop' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+                  title="Desktop view"
+                >
+                  <Monitor className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setPreviewDevice('tablet')}
+                  className={`p-1.5 rounded ${previewDevice === 'tablet' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+                  title="Tablet view"
+                >
+                  <Tablet className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setPreviewDevice('mobile')}
+                  className={`p-1.5 rounded ${previewDevice === 'mobile' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+                  title="Mobile view"
+                >
+                  <Smartphone className="w-4 h-4" />
+                </button>
+             </div>
           </div>
 
-          {/* Device Toggles */}
-          <div className="flex bg-gray-100/50 p-1 rounded-lg border border-gray-200">
-            <button
-              onClick={() => setPreviewDevice('desktop')}
-              className={`p-2 rounded ${previewDevice === 'desktop' ? 'bg-white shadow' : ''}`}
+          <div className="flex items-center gap-3">
+             {/* Status Indicator */}
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-100">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              <span>Live</span>
+            </div>
+
+            {/* Preview Button */}
+            <a
+              href={`/store/${store.id}`} 
+              target="_blank"
+              rel="noreferrer"
+              className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Preview Store"
             >
-              <Monitor className="w-4 h-4" />
-            </button>
+              <Eye className="w-5 h-5" />
+            </a>
+
+            {/* Actions Menu */}
+            <div className="relative">
+              <button
+                onClick={() => setIsActionsMenuOpen(!isActionsMenuOpen)}
+                className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                title="More actions"
+              >
+                <div className="flex gap-0.5">
+                  <div className="w-1 h-1 rounded-full bg-current" />
+                  <div className="w-1 h-1 rounded-full bg-current" />
+                  <div className="w-1 h-1 rounded-full bg-current" />
+                </div>
+              </button>
+              
+              {isActionsMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                   <button
+                    onClick={() => {
+                      handlePublish();
+                      setIsActionsMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    <CheckCircle className="w-4 h-4" /> Publish Theme
+                  </button>
+                  <a
+                    href={`/store/${store.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    <Eye className="w-4 h-4" /> View Live Store
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {/* Save Button */}
             <button
-              onClick={() => setPreviewDevice('tablet')}
-              className={`p-2 rounded ${previewDevice === 'tablet' ? 'bg-white shadow' : ''}`}
+              onClick={(e) => {
+                // Manual save trigger if needed, though autosave handles it
+                toast.success('Saved successfully');
+              }}
+              disabled={isSubmitting}
+              className={`px-4 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition shadow-sm ${
+                isSubmitting ? 'opacity-70 cursor-wait' : ''
+              }`}
             >
-              <Tablet className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setPreviewDevice('mobile')}
-              className={`p-2 rounded ${previewDevice === 'mobile' ? 'bg-white shadow' : ''}`}
-            >
-              <Smartphone className="w-4 h-4" />
+              {isSubmitting ? 'Saving...' : 'Save'}
             </button>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsAIAssistantOpen(true)}
-            className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:opacity-90 text-sm"
-          >
-            <Sparkles className="w-4 h-4" /> AI
-          </button>
-          <button
-            onClick={handlePublish}
-            className="flex items-center gap-2 px-3 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 text-sm"
-          >
-            <CheckCircle className="w-4 h-4" /> Publish
-          </button>
-        </div>
       </div>
 
       <div className="flex-1 flex overflow-hidden">
@@ -1206,267 +1302,371 @@ export function LiveEditorV2({
           <input type="hidden" name="announcementText" value={announcementText} />
           <input type="hidden" name="announcementLink" value={announcementLink} />
           <input type="hidden" name="customCSS" value={customCSS} />
+          <input type="hidden" name="favicon" value={favicon} />
+          <input type="hidden" name="facebook" value={facebook} />
+          <input type="hidden" name="instagram" value={instagram} />
+          <input type="hidden" name="whatsapp" value={whatsapp} />
 
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
-            {selectedSection && selectedSectionSchema ? (
-              <SchemaSectionEditor
-                sectionId={selectedSection.id}
-                sectionType={selectedSection.type}
-                schema={selectedSectionSchema}
-                settings={selectedSection.settings}
-                blocks={selectedSection.blocks}
-                onUpdateSettings={handleUpdateSectionSettings}
-                onUpdateBlocks={handleUpdateSectionBlocks}
-                onBack={() => setSelectedSectionId(null)}
-                onDelete={() => handleDeleteSection(selectedSection.id)}
-              />
-            ) : (
-              <>
-                {/* HEADER GROUP - Shared across all pages */}
-                <AccordionSection
-                  title="Header"
-                  icon={Layout}
-                  isOpen={openAccordion === 'header-group'}
-                  onToggle={() => setOpenAccordion(openAccordion === 'header-group' ? '' : 'header-group')}
+          <div className="flex-1 overflow-hidden flex">
+            {/* MINI NAV SIDEBAR - Shopify OS 2.0 Style */}
+            {!selectedSection && (
+              <div className="w-12 border-r border-gray-200 bg-gray-50 flex flex-col items-center py-4 gap-4 shrink-0 z-10">
+                <button
+                  type="button"
+                  onClick={() => setSidebarTab('sections')}
+                  className={`p-2 rounded-lg transition ${
+                    sidebarTab === 'sections'
+                      ? 'bg-purple-100 text-purple-600'
+                      : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900 set-sidebar-tab'
+                  }`}
+                  title="Sections"
                 >
-                  <p className="text-xs text-gray-500 mb-2">
-                    Shared across all pages
-                  </p>
-                  {headerSections.length > 0 ? (
-                    <div className="space-y-1">
-                      {headerSections.map((section) => (
-                        <SortableSectionItem
-                          key={section.id}
-                          section={section}
-                          schema={themeBridge.getSectionSchema(section.type)}
-                          isActive={selectedSectionId === section.id}
-                          onSelect={() => setSelectedSectionId(section.id)}
-                          onDelete={() => handleDeleteSection(section.id)}
-                          onDuplicate={() => handleDuplicateSection(section.id)}
-                          onToggleVisibility={() => handleToggleSectionVisibility(section.id)}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-gray-400 italic">No header sections</p>
-                  )}
-                </AccordionSection>
-
-                {/* TEMPLATE SECTIONS - Page-specific */}
-                <AccordionSection
-                  title="Template"
-                  icon={Layout}
-                  isOpen={openAccordion === 'sections'}
-                  onToggle={() => setOpenAccordion(openAccordion === 'sections' ? '' : 'sections')}
+                  <Layout className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSidebarTab('settings')}
+                  className={`p-2 rounded-lg transition ${
+                    sidebarTab === 'settings'
+                      ? 'bg-purple-100 text-purple-600'
+                      : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'
+                  }`}
+                  title="Theme Settings"
                 >
-                  <p className="text-xs text-gray-500 mb-2">
-                    Drag to reorder. Click 👁 to hide/show.
-                  </p>
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <SortableContext
-                      items={templateSections.map((s) => s.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {templateSections.map((section) => (
-                        <SortableSectionItem
-                          key={section.id}
-                          section={section}
-                          schema={themeBridge.getSectionSchema(section.type)}
-                          isActive={selectedSectionId === section.id}
-                          onSelect={() => setSelectedSectionId(section.id)}
-                          onDelete={() => handleDeleteSection(section.id)}
-                          onDuplicate={() => handleDuplicateSection(section.id)}
-                          onToggleVisibility={() => handleToggleSectionVisibility(section.id)}
-                        />
-                      ))}
-                    </SortableContext>
-                  </DndContext>
-                  <button
-                    type="button"
-                    onClick={() => setIsAddSectionOpen(true)}
-                    className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-purple-500 hover:text-purple-600 transition flex items-center justify-center gap-2 text-sm mt-2"
-                  >
-                    <Plus className="w-4 h-4" /> Add Section
-                  </button>
-                </AccordionSection>
-
-                {/* FOOTER GROUP - Shared across all pages */}
-                <AccordionSection
-                  title="Footer"
-                  icon={Layout}
-                  isOpen={openAccordion === 'footer-group'}
-                  onToggle={() => setOpenAccordion(openAccordion === 'footer-group' ? '' : 'footer-group')}
-                >
-                  <p className="text-xs text-gray-500 mb-2">
-                    Shared across all pages
-                  </p>
-                  {footerSections.length > 0 ? (
-                    <div className="space-y-1">
-                      {footerSections.map((section) => (
-                        <SortableSectionItem
-                          key={section.id}
-                          section={section}
-                          schema={themeBridge.getSectionSchema(section.type)}
-                          isActive={selectedSectionId === section.id}
-                          onSelect={() => setSelectedSectionId(section.id)}
-                          onDelete={() => handleDeleteSection(section.id)}
-                          onDuplicate={() => handleDuplicateSection(section.id)}
-                          onToggleVisibility={() => handleToggleSectionVisibility(section.id)}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-gray-400 italic">No footer sections</p>
-                  )}
-                </AccordionSection>
-
-                {/* Theme Colors */}
-                <AccordionSection
-                  title="Colors & Style"
-                  icon={Palette}
-                  isOpen={openAccordion === 'theme'}
-                  onToggle={() => setOpenAccordion(openAccordion === 'theme' ? '' : 'theme')}
-                >
-                  <div className="space-y-4">
-                    {/* Presets */}
-                    <div>
-                      <p className="text-xs font-medium text-gray-700 mb-2">Presets</p>
-                      <div className="grid grid-cols-4 gap-2">
-                        {COLOR_PRESETS.map((p) => (
-                          <button
-                            key={p.name}
-                            type="button"
-                            onClick={() => {
-                              setPrimaryColor(p.primary);
-                              setAccentColor(p.accent);
-                              setBackgroundColor(p.bg);
-                              setTextColor(p.text);
-                            }}
-                            className="p-1 border rounded hover:border-purple-500"
-                            title={p.name}
-                          >
-                            <div className="flex h-4 w-full rounded overflow-hidden">
-                              <div style={{ background: p.primary }} className="w-1/2" />
-                              <div style={{ background: p.accent }} className="w-1/2" />
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Color pickers */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-xs text-gray-600">Primary</label>
-                        <input
-                          type="color"
-                          value={primaryColor}
-                          onChange={(e) => setPrimaryColor(e.target.value)}
-                          className="w-full h-8 rounded cursor-pointer"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-gray-600">Accent</label>
-                        <input
-                          type="color"
-                          value={accentColor}
-                          onChange={(e) => setAccentColor(e.target.value)}
-                          className="w-full h-8 rounded cursor-pointer"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-gray-600">Background</label>
-                        <input
-                          type="color"
-                          value={backgroundColor}
-                          onChange={(e) => setBackgroundColor(e.target.value)}
-                          className="w-full h-8 rounded cursor-pointer"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-gray-600">Text</label>
-                        <input
-                          type="color"
-                          value={textColor}
-                          onChange={(e) => setTextColor(e.target.value)}
-                          className="w-full h-8 rounded cursor-pointer"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Typography */}
-                    <div className="border-t pt-2">
-                      <p className="text-xs font-medium mb-1">Typography Size</p>
-                      <div className="grid grid-cols-3 gap-1">
-                        {(['small', 'medium', 'large'] as const).map((s) => (
-                          <button
-                            key={s}
-                            type="button"
-                            onClick={() => setTypography({ ...typography, headingSize: s })}
-                            className={`text-xs border rounded p-1 capitalize ${
-                              typography.headingSize === s ? 'bg-purple-50 border-purple-500' : ''
-                            }`}
-                          >
-                            {s}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </AccordionSection>
-
-                {/* Branding */}
-                <AccordionSection
-                  title="Branding"
-                  icon={Store}
-                  isOpen={openAccordion === 'branding'}
-                  onToggle={() => setOpenAccordion(openAccordion === 'branding' ? '' : 'branding')}
-                >
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-xs font-medium text-gray-700">Logo URL</label>
-                      <input
-                        type="url"
-                        value={logo}
-                        onChange={(e) => setLogo(e.target.value)}
-                        placeholder="https://..."
-                        className="w-full text-sm border rounded p-2 mt-1"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-700">Banner Image</label>
-                      <input
-                        type="url"
-                        value={bannerUrl}
-                        onChange={(e) => setBannerUrl(e.target.value)}
-                        placeholder="https://..."
-                        className="w-full text-sm border rounded p-2 mt-1"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-700">Banner Text</label>
-                      <input
-                        type="text"
-                        value={bannerText}
-                        onChange={(e) => setBannerText(e.target.value)}
-                        placeholder="Welcome to our store"
-                        className="w-full text-sm border rounded p-2 mt-1"
-                      />
-                    </div>
-                    <Link
-                      to="/app/settings"
-                      className="text-xs text-purple-600 flex items-center gap-1 mt-2"
-                    >
-                      <Settings className="w-3 h-3" /> Full Settings
-                    </Link>
-                  </div>
-                </AccordionSection>
-              </>
+                  <Settings className="w-5 h-5" />
+                </button>
+              </div>
             )}
+
+            <div className={`flex-1 overflow-y-auto custom-scrollbar ${isSubmitting ? 'opacity-50 pointer-events-none' : ''}`}>
+              {selectedSection && selectedSectionSchema ? (
+                <SchemaSectionEditor
+                  sectionId={selectedSection.id}
+                  sectionType={selectedSection.type}
+                  schema={selectedSectionSchema}
+                  settings={selectedSection.settings}
+                  blocks={selectedSection.blocks}
+                  onUpdateSettings={handleUpdateSectionSettings}
+                  onUpdateBlocks={handleUpdateSectionBlocks}
+                  onBack={() => setSelectedSectionId(null)}
+                  onDelete={() => handleDeleteSection(selectedSection.id)}
+                />
+              ) : sidebarTab === 'sections' ? (
+                <>
+                  {/* HEADER GROUP - Shared across all pages */}
+                  <AccordionSection
+                    title="Header"
+                    icon={Layout}
+                    isOpen={openAccordion === 'header-group'}
+                    onToggle={() => setOpenAccordion(openAccordion === 'header-group' ? '' : 'header-group')}
+                  >
+                    <p className="text-xs text-gray-500 mb-2">
+                      Shared across all pages
+                    </p>
+                    {headerSections.length > 0 ? (
+                      <div className="space-y-1">
+                        {headerSections.map((section) => (
+                          <SortableSectionItem
+                            key={section.id}
+                            section={section}
+                            schema={themeBridge.getSectionSchema(section.type)}
+                            isActive={selectedSectionId === section.id}
+                            onSelect={() => setSelectedSectionId(section.id)}
+                            onDelete={() => handleDeleteSection(section.id)}
+                            onDuplicate={() => handleDuplicateSection(section.id)}
+                            onToggleVisibility={() => handleToggleSectionVisibility(section.id)}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400 italic">No header sections</p>
+                    )}
+                  </AccordionSection>
+
+                  {/* TEMPLATE SECTIONS - Page-specific */}
+                  <AccordionSection
+                    title="Template"
+                    icon={Layout}
+                    isOpen={openAccordion === 'sections'}
+                    onToggle={() => setOpenAccordion(openAccordion === 'sections' ? '' : 'sections')}
+                  >
+                    <p className="text-xs text-gray-500 mb-2">
+                      Drag to reorder. Click 👁 to hide/show.
+                    </p>
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={templateSections.map((s) => s.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {templateSections.map((section) => (
+                          <SortableSectionItem
+                            key={section.id}
+                            section={section}
+                            schema={themeBridge.getSectionSchema(section.type)}
+                            isActive={selectedSectionId === section.id}
+                            onSelect={() => setSelectedSectionId(section.id)}
+                            onDelete={() => handleDeleteSection(section.id)}
+                            onDuplicate={() => handleDuplicateSection(section.id)}
+                            onToggleVisibility={() => handleToggleSectionVisibility(section.id)}
+                          />
+                        ))}
+                      </SortableContext>
+                    </DndContext>
+                    <button
+                      type="button"
+                      onClick={() => setIsAddSectionOpen(true)}
+                      className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-purple-500 hover:text-purple-600 transition flex items-center justify-center gap-2 text-sm mt-2"
+                    >
+                      <Plus className="w-4 h-4" /> Add Section
+                    </button>
+                  </AccordionSection>
+
+                  {/* FOOTER GROUP - Shared across all pages */}
+                  <AccordionSection
+                    title="Footer"
+                    icon={Layout}
+                    isOpen={openAccordion === 'footer-group'}
+                    onToggle={() => setOpenAccordion(openAccordion === 'footer-group' ? '' : 'footer-group')}
+                  >
+                    <p className="text-xs text-gray-500 mb-2">
+                      Shared across all pages
+                    </p>
+                    {footerSections.length > 0 ? (
+                      <div className="space-y-1">
+                        {footerSections.map((section) => (
+                          <SortableSectionItem
+                            key={section.id}
+                            section={section}
+                            schema={themeBridge.getSectionSchema(section.type)}
+                            isActive={selectedSectionId === section.id}
+                            onSelect={() => setSelectedSectionId(section.id)}
+                            onDelete={() => handleDeleteSection(section.id)}
+                            onDuplicate={() => handleDuplicateSection(section.id)}
+                            onToggleVisibility={() => handleToggleSectionVisibility(section.id)}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400 italic">No footer sections</p>
+                    )}
+                  </AccordionSection>
+                </>
+              ) : (
+                /* THEME SETTINGS TAB - Shopify OS 2.0 Style */
+                <div className="p-4 space-y-4">
+                  <h3 className="font-medium text-gray-900 mb-4 px-2">Theme Settings</h3>
+                  
+                  {/* Theme Colors */}
+                  <AccordionSection
+                    title="Colors & Style"
+                    icon={Palette}
+                    isOpen={openAccordion === 'theme'}
+                    onToggle={() => setOpenAccordion(openAccordion === 'theme' ? '' : 'theme')}
+                  >
+                    <div className="space-y-4">
+                      {/* Presets */}
+                      <div>
+                        <p className="text-xs font-medium text-gray-700 mb-2">Presets</p>
+                        <div className="grid grid-cols-4 gap-2">
+                          {COLOR_PRESETS.map((p) => (
+                            <button
+                              key={p.name}
+                              type="button"
+                              onClick={() => {
+                                setPrimaryColor(p.primary);
+                                setAccentColor(p.accent);
+                                setBackgroundColor(p.bg);
+                                setTextColor(p.text);
+                              }}
+                              className="p-1 border rounded hover:border-purple-500"
+                              title={p.name}
+                            >
+                              <div className="flex h-4 w-full rounded overflow-hidden">
+                                <div style={{ background: p.primary }} className="w-1/2" />
+                                <div style={{ background: p.accent }} className="w-1/2" />
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Color pickers */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-gray-600">Primary</label>
+                          <input
+                            type="color"
+                            value={primaryColor}
+                            onChange={(e) => setPrimaryColor(e.target.value)}
+                            className="w-full h-8 rounded cursor-pointer"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">Accent</label>
+                          <input
+                            type="color"
+                            value={accentColor}
+                            onChange={(e) => setAccentColor(e.target.value)}
+                            className="w-full h-8 rounded cursor-pointer"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">Background</label>
+                          <input
+                            type="color"
+                            value={backgroundColor}
+                            onChange={(e) => setBackgroundColor(e.target.value)}
+                            className="w-full h-8 rounded cursor-pointer"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600">Text</label>
+                          <input
+                            type="color"
+                            value={textColor}
+                            onChange={(e) => setTextColor(e.target.value)}
+                            className="w-full h-8 rounded cursor-pointer"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Typography */}
+                      <div className="border-t pt-2">
+                        <p className="text-xs font-medium mb-1">Typography Size</p>
+                        <div className="grid grid-cols-3 gap-1">
+                          {(['small', 'medium', 'large'] as const).map((s) => (
+                            <button
+                              key={s}
+                              type="button"
+                              onClick={() => setTypography({ ...typography, headingSize: s })}
+                              className={`text-xs border rounded p-1 capitalize ${
+                                typography.headingSize === s ? 'bg-purple-50 border-purple-500' : ''
+                              }`}
+                            >
+                              {s}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionSection>
+
+                  {/* Branding */}
+                  <AccordionSection
+                    title="Branding"
+                    icon={Store}
+                    isOpen={openAccordion === 'branding'}
+                    onToggle={() => setOpenAccordion(openAccordion === 'branding' ? '' : 'branding')}
+                  >
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs font-medium text-gray-700">Logo URL</label>
+                        <input
+                          type="url"
+                          value={logo}
+                          onChange={(e) => setLogo(e.target.value)}
+                          placeholder="https://..."
+                          className="w-full text-sm border rounded p-2 mt-1"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-700">Banner Image</label>
+                        <input
+                          type="url"
+                          value={bannerUrl}
+                          onChange={(e) => setBannerUrl(e.target.value)}
+                          placeholder="https://..."
+                          className="w-full text-sm border rounded p-2 mt-1"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-700">Banner Text</label>
+                        <input
+                          type="text"
+                          value={bannerText}
+                          onChange={(e) => setBannerText(e.target.value)}
+                          placeholder="Welcome to our store"
+                          className="w-full text-sm border rounded p-2 mt-1"
+                        />
+                      </div>
+                      <Link
+                        to="/app/settings"
+                        className="text-xs text-purple-600 flex items-center gap-1 mt-2"
+                      >
+                        <Settings className="w-3 h-3" /> Full Settings
+                      </Link>
+                    </div>
+                  </AccordionSection>
+
+                  {/* Favicon */}
+                  <AccordionSection
+                    title="Favicon"
+                    icon={Monitor}
+                    isOpen={openAccordion === 'favicon'}
+                    onToggle={() => setOpenAccordion(openAccordion === 'favicon' ? '' : 'favicon')}
+                  >
+                    <div>
+                      <label className="text-xs font-medium text-gray-700">Favicon URL</label>
+                      <input
+                        type="url"
+                        value={favicon}
+                        onChange={(e) => setFavicon(e.target.value)}
+                        placeholder="https://..."
+                        className="w-full text-sm border rounded p-2 mt-1"
+                      />
+                      <p className="text-[10px] text-gray-400 mt-1">
+                        Recommended: 32x32px or 64x64px PNG/ICO
+                      </p>
+                    </div>
+                  </AccordionSection>
+
+                  {/* Social Media */}
+                  <AccordionSection
+                    title="Social Media"
+                    icon={Monitor}
+                    isOpen={openAccordion === 'social'}
+                    onToggle={() => setOpenAccordion(openAccordion === 'social' ? '' : 'social')}
+                  >
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs font-medium text-gray-700">Facebook</label>
+                        <input
+                          type="url"
+                          value={facebook}
+                          onChange={(e) => setFacebook(e.target.value)}
+                          placeholder="https://facebook.com/..."
+                          className="w-full text-sm border rounded p-2 mt-1"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-700">Instagram</label>
+                        <input
+                          type="url"
+                          value={instagram}
+                          onChange={(e) => setInstagram(e.target.value)}
+                          placeholder="https://instagram.com/..."
+                          className="w-full text-sm border rounded p-2 mt-1"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-700">WhatsApp</label>
+                        <input
+                          type="text"
+                          value={whatsapp}
+                          onChange={(e) => setWhatsapp(e.target.value)}
+                          placeholder="+8801..."
+                          className="w-full text-sm border rounded p-2 mt-1"
+                        />
+                      </div>
+                    </div>
+                  </AccordionSection>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Save Button */}
@@ -1509,33 +1709,28 @@ export function LiveEditorV2({
 
           <div className="flex-1 flex items-start justify-center overflow-auto p-4 md:p-8 bg-gray-900/50">
             <div
-              className="bg-white shadow-2xl overflow-hidden transition-all duration-300 relative mx-auto"
-              style={{
-                width:
-                  previewDevice === 'mobile'
-                    ? '375px'
-                    : previewDevice === 'tablet'
-                      ? '768px'
-                      : '100%',
-                height:
-                  previewDevice === 'mobile'
-                    ? '667px'
-                    : previewDevice === 'tablet'
-                      ? '1024px'
-                      : 'calc(100vh - 140px)',
-                maxWidth: previewDevice === 'desktop' ? '1280px' : undefined,
-                borderRadius:
-                  previewDevice === 'mobile' ? '40px' : previewDevice === 'tablet' ? '24px' : '8px',
-                border: previewDevice !== 'desktop' ? '12px solid #1a1a1a' : 'none',
-              }}
+              className={`bg-white shadow-2xl transition-all duration-300 overflow-hidden relative ${
+                previewDevice === 'mobile'
+                  ? 'w-[375px] h-[812px] rounded-[3rem] border-8 border-gray-900'
+                  : previewDevice === 'tablet'
+                  ? 'w-[768px] h-[1024px] rounded-[1.5rem] border-8 border-gray-900'
+                  : 'w-full h-full rounded-md border border-gray-200'
+              }`}
             >
               <iframe
                 ref={iframeRef}
-                src={previewUrl}
+                src={`/store-preview-frame?themeId=${currentThemeId}`}
                 className="w-full h-full border-0"
                 title="Store Preview"
               />
             </div>
+          </div>
+          
+          {/* Zoom/Fit controls could go here */}
+          <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur border border-gray-200 shadow-lg rounded-full px-4 py-2 text-xs font-medium text-gray-600 flex gap-4">
+            <span>{previewDevice.charAt(0).toUpperCase() + previewDevice.slice(1)} View</span>
+            <span className="text-gray-300">|</span>
+            {previewDevice === 'desktop' ? '100%' : 'Fit'}
           </div>
         </main>
       </div>
