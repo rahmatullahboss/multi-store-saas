@@ -138,11 +138,7 @@ interface EditorSectionWithState extends EditorSection {
   disabled?: boolean;
 }
 
-// History state for undo/redo
-interface HistoryState {
-  sections: EditorSectionWithState[];
-  timestamp: number;
-}
+// History state interface removed (unused)
 
 // ============================================================================
 // UNDO/REDO HOOK
@@ -403,13 +399,13 @@ export function LiveEditorV2({
   templates: _templates,
   saasDomain: _saasDomain,
   themeId = 'starter-store',
-  demoProductId,
+  demoProductId: _demoProductId,
   availableThemes = [],
 }: LiveEditorV2Props) {
   const actionData = useActionData<{ success?: boolean; error?: string; message?: string }>();
   const navigation = useNavigation();
   const submit = useSubmit();
-  const { lang: _language } = useTranslation();
+  useTranslation(); // For future i18n support
 
   const isSubmitting = navigation.state === 'submitting';
 
@@ -435,13 +431,10 @@ export function LiveEditorV2({
   const globalFooter = defaultFooter ? [{ ...defaultFooter, disabled: false }] : [];
 
   // Helper to ensure header/footer are present
-  const withGlobals = (sections: any[]) => {
+  const withGlobals = (sections: EditorSectionWithState[] | undefined | null) => {
     const safeSections = sections || [];
     // If we have global defaults to inject, do it. 
     // Otherwise assume sections list already has them (if saved previously) or doesn't need them.
-    // Actually, for product/collection pages, they MIGHT NOT have them if saved previously without section groups logic.
-    // So we should enforce them if they are missing from the specific list too?
-    // Simplified: Just prepend/append if we created defaults.
     return [...globalHeader, ...safeSections, ...globalFooter].map((s) => ({
       ...s,
       disabled: (s as EditorSectionWithState).disabled || false,
@@ -449,10 +442,10 @@ export function LiveEditorV2({
   };
 
   // Convert initial sections to include disabled property
-  const initialHomeSections: EditorSectionWithState[] = withGlobals(themeConfig.sections);
-  const initialProductSections: EditorSectionWithState[] = withGlobals(themeConfig.productSections);
-  const initialCollectionSections: EditorSectionWithState[] = withGlobals(themeConfig.collectionSections);
-  const initialCartSections: EditorSectionWithState[] = withGlobals(themeConfig.cartSections);
+  const initialHomeSections: EditorSectionWithState[] = withGlobals(themeConfig.sections as EditorSectionWithState[]);
+  const initialProductSections: EditorSectionWithState[] = withGlobals(themeConfig.productSections as EditorSectionWithState[]);
+  const initialCollectionSections: EditorSectionWithState[] = withGlobals(themeConfig.collectionSections as EditorSectionWithState[]);
+  const initialCartSections: EditorSectionWithState[] = withGlobals(themeConfig.cartSections as EditorSectionWithState[]);
 
 
   const initialCheckoutSections: EditorSectionWithState[] = (
@@ -528,14 +521,14 @@ export function LiveEditorV2({
   const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
 
   // Theme settings state
-  const [selectedTemplateId, setSelectedTemplateId] = useState(
+  const [selectedTemplateId] = useState(
     themeConfig.storeTemplateId || 'modern-standard'
   );
   const [primaryColor, setPrimaryColor] = useState(themeConfig.primaryColor || '#6366f1');
   const [accentColor, setAccentColor] = useState(themeConfig.accentColor || '#f59e0b');
   const [backgroundColor, setBackgroundColor] = useState(themeConfig.backgroundColor || '#f9fafb');
   const [textColor, setTextColor] = useState(themeConfig.textColor || '#111827');
-  const [borderColor, setBorderColor] = useState(themeConfig.borderColor || '#e5e7eb');
+  const [borderColor] = useState(themeConfig.borderColor || '#e5e7eb');
   const [typography, setTypography] = useState<TypographySettings>(
     themeConfig.typography || {
       headingSize: 'medium',
@@ -547,9 +540,9 @@ export function LiveEditorV2({
   const [logo, setLogo] = useState(store.logo || '');
   const [bannerUrl, setBannerUrl] = useState(themeConfig.bannerUrl || '');
   const [bannerText, setBannerText] = useState(themeConfig.bannerText || '');
-  const [announcementText, setAnnouncementText] = useState(themeConfig.announcement?.text || '');
-  const [announcementLink, setAnnouncementLink] = useState(themeConfig.announcement?.link || '');
-  const [customCSS, setCustomCSS] = useState(themeConfig.customCSS || '');
+  const [announcementText] = useState(themeConfig.announcement?.text || '');
+  const [announcementLink] = useState(themeConfig.announcement?.link || '');
+  const [customCSS] = useState(themeConfig.customCSS || '');
   const [favicon, setFavicon] = useState(themeConfig.favicon || '');
   
   // Social Media
@@ -811,9 +804,7 @@ export function LiveEditorV2({
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeReady, setIframeReady] = useState(false);
-  const previewUrl = `/store-preview-frame?storeId=${store.id}${
-    demoProductId ? `&demoProductId=${demoProductId}` : ''
-  }`;
+  // previewUrl removed (unused)
 
   useEffect(() => {
     if (iframeReady && iframeRef.current?.contentWindow) {
@@ -912,9 +903,9 @@ export function LiveEditorV2({
     toast.success('AI Design Applied!');
   };
 
-  const handleAICommand = (command: Record<string, unknown>) => {
+  const handleAICommand = (_command: Record<string, unknown>) => {
     // Handle AI commands like "add hero section", "change colors", etc.
-    console.log('AI Command:', command);
+    // console.log('AI Command:', command);
     toast.success('AI Command Executed');
   };
 
@@ -1255,7 +1246,7 @@ export function LiveEditorV2({
 
             {/* Save Button */}
             <button
-              onClick={(e) => {
+              onClick={() => {
                 // Manual save trigger if needed, though autosave handles it
                 toast.success('Saved successfully');
               }}

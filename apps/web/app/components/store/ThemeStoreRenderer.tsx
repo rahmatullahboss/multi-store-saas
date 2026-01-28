@@ -142,7 +142,7 @@ export function ThemeStoreRenderer({
   const themeConfig = themeBridge?.getConfig();
 
   // Default theme config fallback
-  const defaultThemeConfig: ThemeConfig = {
+  const defaultThemeConfig: ThemeConfig = useMemo(() => ({
     name: themeId,
     version: '1.0.0',
     colors: {
@@ -187,7 +187,7 @@ export function ThemeStoreRenderer({
       duration: '200ms',
       easing: 'ease-out',
     },
-  };
+  }), [themeId]);
 
   // Build section context
   const context: SectionContext = useMemo(
@@ -244,24 +244,10 @@ export function ThemeStoreRenderer({
     ]
   );
 
-  // If no theme bridge, show error in dev
-  if (!themeBridge) {
-    if (process.env.NODE_ENV === 'development') {
-      return (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
-          Theme "{themeId}" not found. Available themes: starter-store, daraz, bdshop, ghorer-bazar,
-          luxe-boutique, tech-modern
-        </div>
-      );
-    }
-    return null;
-  }
-
-  // Get the section registry from the theme
-  const sectionRegistry = themeBridge.getSectionRegistry();
-
   // Filter and process sections
   const renderableSections = useMemo(() => {
+    if (!sections) return [];
+    
     let filtered = sections.filter((s) => {
       // Check if enabled (support both 'enabled' and 'disabled' flags)
       if (s.enabled === false || s.disabled === true) return false;
@@ -277,6 +263,22 @@ export function ThemeStoreRenderer({
 
     return filtered;
   }, [sections, skipHeaderFooter]);
+
+  // If no theme bridge, show error in dev
+  if (!themeBridge) {
+    if (process.env.NODE_ENV === 'development') {
+      return (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+          Theme "{themeId}" not found. Available themes: starter-store, daraz, bdshop, ghorer-bazar,
+          luxe-boutique, tech-modern
+        </div>
+      );
+    }
+    return null;
+  }
+
+  // Get the section registry from the theme
+  const sectionRegistry = themeBridge.getSectionRegistry();
 
   // Separate sections by type
   const headerSections = renderableSections.filter(

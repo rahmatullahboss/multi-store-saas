@@ -13,7 +13,6 @@ import { stores, products, marketplaceThemes } from '@db/schema';
 import {
   themes,
   themeTemplates,
-  templateSectionsDraft,
   templateSectionsPublished,
   themeSettingsDraft,
   themeSettingsPublished,
@@ -24,7 +23,6 @@ import {
   parseThemeConfig,
   defaultThemeConfig,
   type ThemeConfig,
-  type TypographySettings,
   parseSocialLinks,
 } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
@@ -41,9 +39,7 @@ import type { TemplateJSON, BlockInstance } from '~/lib/theme-engine/types';
 import {
   parseThemeEditorFormData,
   validateSectionSettings,
-  safeJsonParse,
 } from '~/lib/validations/theme-editor.schema';
-import { z } from 'zod';
 
 // ============================================================================
 // HELPER: Convert TemplateJSON to SectionInstance[]
@@ -258,7 +254,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       const themeTemplate = themeBridge.getTemplate(templateName);
       if (themeTemplate) {
         loadedSections[pageType] = templateJsonToSections(themeTemplate);
-        console.log(
+        console.info(
           `[store-live-editor] Loaded ${loadedSections[pageType].length} default sections for "${pageType}" from theme "${activeThemeId}"`
         );
       }
@@ -370,7 +366,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Use D1 Sessions for read-after-write consistency
   // Note: Drizzle ORM doesn't support D1DatabaseSession directly, so we use raw session for D1 ops
   // and regular drizzle for ORM operations. Write operations go through session.
-  const session = context.cloudflare.env.DB.withSession('first-primary');
+  // const session = context.cloudflare.env.DB.withSession('first-primary'); // Unused
   const db = drizzle(context.cloudflare.env.DB);
   const rawDb = context.cloudflare.env.DB;
 
@@ -506,7 +502,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const floatingWhatsappMessage = validatedData.floatingWhatsappMessage;
   const floatingCallEnabled = validatedData.floatingCallEnabled;
   const floatingCallNumber = validatedData.floatingCallNumber;
-  const checkoutStyle = validatedData.checkoutStyle;
+  // checkoutStyle removed (unused)
   const flashSale = validatedData.flashSale;
   const trustBadges = validatedData.trustBadges;
   const marketingPopup = validatedData.marketingPopup;

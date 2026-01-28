@@ -4,14 +4,14 @@
  */
 
 import { Link } from '@remix-run/react';
-import { ChevronRight, Clock, Package, Truck, CheckCircle, XCircle, ThumbsUp } from 'lucide-react';
+import { ChevronRight, Clock, Package, Truck, CheckCircle, XCircle, ThumbsUp, RotateCcw } from 'lucide-react';
 
 interface RecentOrder {
   id: number;
   orderNumber: string;
   customerName: string | null;
   total: number;
-  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | null;
+  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned' | null;
   createdAt: string;
 }
 
@@ -50,6 +50,11 @@ const statusConfig = {
     icon: XCircle,
     label: 'Cancelled',
     color: 'bg-red-100 text-red-700',
+  },
+  returned: {
+    icon: RotateCcw,
+    label: 'Returned',
+    color: 'bg-orange-100 text-orange-700',
   },
 };
 

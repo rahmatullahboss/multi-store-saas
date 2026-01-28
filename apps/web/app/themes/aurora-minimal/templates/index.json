@@ -1,0 +1,32 @@
+{
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "show_announcement": true,
+        "announcement_text": "Welcome to Aurora Minimal",
+        "announcement_link": "/collections/all"
+      }
+    },
+    "hero": {
+      "type": "hero-banner",
+      "settings": {
+        "heading": "Pure Aesthetics",
+        "subheading": "Elevate your lifestyle with our curated collection.",
+        "button_text": "Shop Now",
+        "button_link": "/collections/all"
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "show_powered_by": true
+      }
+    }
+  },
+  "order": [
+    "header",
+    "hero",
+    "footer"
+  ]
+}

@@ -32,7 +32,7 @@ const safeTextSchema = z
 const safeCssSchema = z
   .string()
   .max(50000)
-  .regex(/^[a-zA-Z0-9\s\-_:;.,#{}()@%'"\/\n\r\t]*$/, 'Invalid CSS characters')
+  .regex(/^[a-zA-Z0-9\s\-_:;.,#{}()@%'"/\n\r\t]*$/, 'Invalid CSS characters')
   .or(z.literal(''))
   .default('');
 

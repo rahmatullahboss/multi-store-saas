@@ -1,0 +1,146 @@
+{
+  "name": "Aurora Minimal",
+  "version": "1.0.0",
+  "theme_info": {
+    "theme_name": "Aurora Minimal",
+    "theme_version": "1.0.0",
+    "theme_author": "Ozzyl",
+    "theme_documentation_url": "https://docs.ozzyl.com/themes/aurora-minimal",
+    "theme_support_url": "https://ozzyl.com/support"
+  },
+  "settings_schema": [
+    {
+      "name": "Logo",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "logo",
+          "label": "Logo image",
+          "info": "Recommended size: 200x50px"
+        },
+        {
+          "type": "range",
+          "id": "logo_width",
+          "min": 50,
+          "max": 300,
+          "step": 10,
+          "default": 140,
+          "unit": "px",
+          "label": "Logo width"
+        }
+      ]
+    },
+    {
+      "name": "Colors",
+      "settings": [
+        {
+          "type": "header",
+          "content": "Brand Colors"
+        },
+        {
+          "type": "color",
+          "id": "color_primary",
+          "label": "Primary color",
+          "default": "#2C2C2C",
+          "info": "Deep Charcoal"
+        },
+        {
+          "type": "color",
+          "id": "color_accent",
+          "label": "Accent color",
+          "default": "#E8C4C4",
+          "info": "Warm Rose"
+        },
+        {
+          "type": "color",
+          "id": "color_accent_secondary",
+          "label": "Secondary Accent color",
+          "default": "#B5C4B1",
+          "info": "Cool Sage"
+        },
+        {
+          "type": "header",
+          "content": "Background Colors"
+        },
+        {
+          "type": "color",
+          "id": "color_background",
+          "label": "Page background",
+          "default": "#FDFBF9"
+        },
+        {
+          "type": "color",
+          "id": "color_card_bg",
+          "label": "Card background",
+          "default": "#FFFFFF"
+        },
+        {
+          "type": "header",
+          "content": "Text Colors"
+        },
+        {
+          "type": "color",
+          "id": "color_text",
+          "label": "Primary text",
+          "default": "#2C2C2C"
+        },
+        {
+          "type": "color",
+          "id": "color_text_muted",
+          "label": "Muted text",
+          "default": "#8E8E8E"
+        }
+      ]
+    },
+    {
+      "name": "Typography",
+      "settings": [
+        {
+          "type": "select",
+          "id": "font_heading",
+          "options": [
+            { "value": "outfit", "label": "Outfit" },
+            { "value": "inter", "label": "Inter" }
+          ],
+          "default": "outfit",
+          "label": "Heading font"
+        },
+        {
+          "type": "select",
+          "id": "font_body",
+          "options": [
+            { "value": "plus_jakarta_sans", "label": "Plus Jakarta Sans" },
+            { "value": "inter", "label": "Inter" }
+          ],
+          "default": "plus_jakarta_sans",
+          "label": "Body font"
+        }
+      ]
+    },
+    {
+      "name": "Layout",
+      "settings": [
+        {
+          "type": "range",
+          "id": "container_width",
+          "min": 1000,
+          "max": 1600,
+          "step": 40,
+          "default": 1280,
+          "unit": "px",
+          "label": "Container max width"
+        },
+        {
+          "type": "range",
+          "id": "border_radius",
+          "min": 0,
+          "max": 24,
+          "step": 2,
+          "default": 20,
+          "unit": "px",
+          "label": "Border radius"
+        }
+      ]
+    }
+  ]
+}

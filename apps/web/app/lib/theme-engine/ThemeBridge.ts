@@ -25,6 +25,7 @@ import BDShopTheme, { SECTIONS as BDShopSections } from '~/themes/bdshop';
 import GhorerBazarTheme, { SECTIONS as GhorerBazarSections } from '~/themes/ghorer-bazar';
 import LuxeBoutiqueTheme, { SECTIONS as LuxeBoutiqueSections } from '~/themes/luxe-boutique';
 import TechModernTheme, { SECTIONS as TechModernSections } from '~/themes/tech-modern';
+import AuroraMinimalTheme, { SECTIONS as AuroraMinimalSections } from '~/themes/aurora-minimal';
 
 // Static template imports (Bug #5 fix - dynamic imports don't work in bundled environments)
 import starterStoreIndexTemplate from '~/themes/starter-store/templates/index.json';
@@ -54,6 +55,8 @@ import ghorerBazarPageTemplate from '~/themes/ghorer-bazar/templates/page.json';
 import luxeBoutiqueIndexTemplate from '~/themes/luxe-boutique/templates/index.json';
 
 import techModernIndexTemplate from '~/themes/tech-modern/templates/index.json';
+
+import auroraMinimalIndexTemplate from '~/themes/aurora-minimal/templates/index.json';
 
 // ============================================================================
 // TYPES
@@ -119,6 +122,11 @@ const THEME_REGISTRY: Record<string, LoadedTheme> = {
     metadata: LuxeBoutiqueTheme.metadata,
     config: LuxeBoutiqueTheme.config,
     sections: LuxeBoutiqueSections,
+  },
+  'aurora-minimal': {
+    metadata: AuroraMinimalTheme.metadata,
+    config: AuroraMinimalTheme.config,
+    sections: AuroraMinimalSections,
   },
   'tech-modern': {
     metadata: TechModernTheme.metadata,

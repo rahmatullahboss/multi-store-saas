@@ -69,9 +69,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Pass correct db instance type by using 'as any' if strictly needed or ensuring getStoreStats accepts the schematized db
   // For now, let's fix the schema passed to drizzle above, which should match what the service expects if it imports schema
   const [statsResult, forecast, clv] = await Promise.all([
-    getStoreStats(db as any, storeId), // Type assertion to bypass strict mismatch if service isn't updated yet
-    getRevenueForecast(db as any, storeId),
-    getPredictedCLV(db as any, storeId),
+    getStoreStats(db, storeId),
+    getRevenueForecast(db, storeId),
+    getPredictedCLV(db, storeId),
   ]);
   const {
     products: productCount,
