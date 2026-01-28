@@ -399,7 +399,7 @@ const COLOR_PRESETS = [
 export function LiveEditorV2({
   store,
   themeConfig,
-  templates,
+  templates: _templates,
   saasDomain: _saasDomain,
   themeId = 'starter-store',
   demoProductId,
@@ -1027,31 +1027,39 @@ export function LiveEditorV2({
     <div className="flex flex-col h-screen bg-white">
       {/* TOP BAR */}
       <div className="h-16 px-4 bg-white border-b border-gray-200 flex items-center justify-between shrink-0 z-40 relative shadow-sm">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {/* Exit Button - Shopify OS 2.0 Style */}
           <Link
             to="/app/store-design"
-            className="p-2 hover:bg-gray-100 rounded-lg transition text-gray-500 hover:text-gray-900"
+            className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-gray-100 rounded-lg transition text-gray-600 hover:text-gray-900 text-sm font-medium"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Exit</span>
           </Link>
-          <button
-            onClick={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
-            className="md:hidden p-2 hover:bg-gray-100 rounded-lg text-gray-500"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-          <div className="h-6 w-px bg-gray-200 hidden md:block" />
-          <h1 className="font-bold text-gray-900 flex items-center gap-2">
-            <Layout className="w-5 h-5 text-indigo-600" />
-            <span className="hidden sm:inline">Theme Editor</span>
-            <span className="text-xs font-normal text-purple-500 bg-purple-50 px-2 py-0.5 rounded-full ml-2">
-              OS 2.0
-            </span>
-          </h1>
+          
+          <div className="h-6 w-px bg-gray-200" />
+          
+          {/* Page Selector Dropdown - Shopify OS 2.0 Style */}
+          <div className="relative">
+            <select
+              value={currentPage}
+              onChange={(e) => setCurrentPage(e.target.value as PageType)}
+              className="appearance-none bg-white border border-gray-200 rounded-lg px-3 py-1.5 pr-8 text-sm font-medium text-gray-900 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent cursor-pointer"
+            >
+              <option value="home">Home page</option>
+              <option value="product">Product page</option>
+              <option value="collection">Collection page</option>
+              <option value="cart">Cart page</option>
+              <option value="checkout">Checkout</option>
+            </select>
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          </div>
+
+          <div className="h-6 w-px bg-gray-200 hidden lg:block" />
 
           {/* Theme Switcher */}
           {availableThemes.length > 0 && (
-            <div className="hidden lg:block ml-4">
+            <div className="hidden lg:block">
               <ThemeSwitcher
                 currentThemeId={currentThemeId}
                 availableThemes={availableThemes}
@@ -1060,6 +1068,14 @@ export function LiveEditorV2({
               />
             </div>
           )}
+          
+          {/* Mobile menu toggle */}
+          <button
+            onClick={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
+            className="md:hidden p-2 hover:bg-gray-100 rounded-lg text-gray-500"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Center - Device Toggles + Undo/Redo */}
@@ -1178,28 +1194,6 @@ export function LiveEditorV2({
               />
             ) : (
               <>
-                {/* Page Type Tabs */}
-                <div className="px-4 py-2 border-b bg-gray-50">
-                  <div className="flex gap-1 flex-wrap">
-                    {(['home', 'product', 'collection', 'cart', 'checkout'] as PageType[]).map(
-                      (page) => (
-                        <button
-                          key={page}
-                          type="button"
-                          onClick={() => setCurrentPage(page)}
-                          className={`px-3 py-1 text-xs rounded-full capitalize ${
-                            currentPage === page
-                              ? 'bg-purple-100 text-purple-700 font-medium'
-                              : 'text-gray-500 hover:bg-gray-100'
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      )
-                    )}
-                  </div>
-                </div>
-
                 {/* Sections Accordion */}
                 <AccordionSection
                   title="Sections"
@@ -1240,32 +1234,6 @@ export function LiveEditorV2({
                   >
                     <Plus className="w-4 h-4" /> Add Section
                   </button>
-                </AccordionSection>
-
-                {/* Template Selection */}
-                <AccordionSection
-                  title="Template"
-                  icon={Layout}
-                  isOpen={openAccordion === 'template'}
-                  onToggle={() => setOpenAccordion(openAccordion === 'template' ? '' : 'template')}
-                >
-                  <div className="space-y-2">
-                    {templates.map((t) => (
-                      <button
-                        key={t.id}
-                        type="button"
-                        onClick={() => setSelectedTemplateId(t.id)}
-                        className={`w-full text-left p-2 border rounded text-sm ${
-                          selectedTemplateId === t.id
-                            ? 'border-purple-500 bg-purple-50'
-                            : 'border-gray-200'
-                        }`}
-                      >
-                        <div className="font-medium">{t.name}</div>
-                        <div className="text-xs text-gray-500">{t.category}</div>
-                      </button>
-                    ))}
-                  </div>
                 </AccordionSection>
 
                 {/* Theme Colors */}
