@@ -1,9 +1,8 @@
-
 /**
  * Collection Page
- * 
- * Displays a collection of products.
- * Uses SectionRenderer for dynamic layout.
+ *
+ * Shopify OS 2.0 Theme System - Uses ThemeStoreRenderer exclusively
+ * for dynamic section rendering with the new theme engine.
  */
 
 import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
@@ -14,16 +13,16 @@ import { products, stores, productCollections, type Store } from '@db/schema';
 import { parseThemeConfig, parseSocialLinks } from '@db/types';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
-import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
+import { ThemeStoreRenderer } from '~/components/store/ThemeStoreRenderer';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { DarazPageWrapper, DARAZ_THEME } from '~/components/store-layouts/DarazPageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { getCustomer } from '~/services/customer-auth.server';
 import { parsePriceRange } from '~/utils/price';
+import { resolveTemplate } from '~/lib/template-resolver.server';
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const { slug } = params;
-  
+
   if (!slug) {
     throw new Response('Collection slug required', { status: 404 });
   }
@@ -33,20 +32,14 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   if (!storeContext) {
     throw new Response('Store not found', { status: 404 });
   }
-  
-  
+
   const { storeId } = storeContext;
   const db = createDb(context.cloudflare.env.DB);
-  
+
   // Fetch store data for config
-  const storeResult = await db
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
-  
+  const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
+
   const storeData = storeResult[0] as Store | undefined;
-  // Check if store exists
   if (!storeData) {
     throw new Response('Store not found', { status: 404 });
   }
@@ -65,20 +58,24 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     // Ignore JSON parse errors
   }
 
-  // Load customer session for Google Sign-In header
+  // Load customer session
   const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
 
   const url = new URL(request.url);
   const sortBy = url.searchParams.get('sort') || 'newest';
   const onSale = url.searchParams.get('onSale') === 'true';
   const inStock = url.searchParams.get('inStock') === 'true';
-  const { minPrice, maxPrice } = parsePriceRange(url.searchParams.get('minPrice'), url.searchParams.get('maxPrice'));
+  const { minPrice, maxPrice } = parsePriceRange(
+    url.searchParams.get('minPrice'),
+    url.searchParams.get('maxPrice')
+  );
 
-  const orderByClause = sortBy === 'price-low'
-    ? asc(products.price)
-    : sortBy === 'price-high'
-      ? desc(products.price)
-      : desc(products.createdAt);
+  const orderByClause =
+    sortBy === 'price-low'
+      ? asc(products.price)
+      : sortBy === 'price-high'
+        ? desc(products.price)
+        : desc(products.createdAt);
 
   const baseFilters = [
     eq(products.storeId, storeId),
@@ -95,119 +92,114 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   if (slug === 'all') {
     collectionProducts = await db
       .select({
-         id: products.id,
-         storeId: products.storeId,
-         title: products.title,
-         description: products.description,
-         price: products.price,
-         compareAtPrice: products.compareAtPrice,
-         inventory: products.inventory,
-         sku: products.sku,
-         imageUrl: products.imageUrl,
-         images: products.images,
-         category: products.category,
-         tags: products.tags,
-         isPublished: products.isPublished,
-         seoTitle: products.seoTitle,
-         seoDescription: products.seoDescription,
-         seoKeywords: products.seoKeywords,
-         bundlePricing: products.bundlePricing,
-         createdAt: products.createdAt,
-         updatedAt: products.updatedAt,
+        id: products.id,
+        storeId: products.storeId,
+        title: products.title,
+        description: products.description,
+        price: products.price,
+        compareAtPrice: products.compareAtPrice,
+        inventory: products.inventory,
+        sku: products.sku,
+        imageUrl: products.imageUrl,
+        images: products.images,
+        category: products.category,
+        tags: products.tags,
+        isPublished: products.isPublished,
+        seoTitle: products.seoTitle,
+        seoDescription: products.seoDescription,
+        seoKeywords: products.seoKeywords,
+        bundlePricing: products.bundlePricing,
+        createdAt: products.createdAt,
+        updatedAt: products.updatedAt,
       })
       .from(products)
       .where(and(...(baseFilters as any)))
       .limit(50)
       .orderBy(orderByClause);
   } else {
-    // Phase 26: Hybrid Query - Support both Relational Collections AND Legacy String Categories
-    // 1. Try to find a relational collection first
+    // Hybrid Query - Support both Relational Collections AND Legacy String Categories
     const collectionData = await db.query.collections.findFirst({
-        where: (collections, { eq, and }) => and(eq(collections.slug, slug), eq(collections.storeId, storeId)),
-        columns: { id: true, title: true, description: true }
+      where: (collections, { eq, and }) =>
+        and(eq(collections.slug, slug), eq(collections.storeId, storeId)),
+      columns: { id: true, title: true, description: true },
     });
 
     if (collectionData) {
-        // Relational Query
-        const relationalProducts = await db
-            .select({
-                id: products.id,
-                storeId: products.storeId,
-                title: products.title,
-                description: products.description,
-                price: products.price,
-                compareAtPrice: products.compareAtPrice,
-                inventory: products.inventory,
-                sku: products.sku,
-                imageUrl: products.imageUrl,
-                images: products.images,
-                category: products.category,
-                tags: products.tags,
-                isPublished: products.isPublished,
-                seoTitle: products.seoTitle,
-                seoDescription: products.seoDescription,
-                seoKeywords: products.seoKeywords,
-                bundlePricing: products.bundlePricing,
-                createdAt: products.createdAt,
-                updatedAt: products.updatedAt,
-            })
-            .from(products)
-            .innerJoin(productCollections, eq(products.id, productCollections.productId))
-            .where(
-                and(
-                    eq(productCollections.collectionId, collectionData.id),
-                    ...(baseFilters as any)
-                )
-            )
-            .limit(50)
-            .orderBy(orderByClause);
-            
-         collectionProducts = relationalProducts;
-         
-         // Override title/desc from DB if available
-         // This allows the admin title to override the slug-based fallback
+      // Relational Query
+      const relationalProducts = await db
+        .select({
+          id: products.id,
+          storeId: products.storeId,
+          title: products.title,
+          description: products.description,
+          price: products.price,
+          compareAtPrice: products.compareAtPrice,
+          inventory: products.inventory,
+          sku: products.sku,
+          imageUrl: products.imageUrl,
+          images: products.images,
+          category: products.category,
+          tags: products.tags,
+          isPublished: products.isPublished,
+          seoTitle: products.seoTitle,
+          seoDescription: products.seoDescription,
+          seoKeywords: products.seoKeywords,
+          bundlePricing: products.bundlePricing,
+          createdAt: products.createdAt,
+          updatedAt: products.updatedAt,
+        })
+        .from(products)
+        .innerJoin(productCollections, eq(products.id, productCollections.productId))
+        .where(and(eq(productCollections.collectionId, collectionData.id), ...(baseFilters as any)))
+        .limit(50)
+        .orderBy(orderByClause);
+
+      collectionProducts = relationalProducts;
     } else {
-        // Fallback: Legacy String Match
-        collectionProducts = await db
-          .select({
-            id: products.id,
-            storeId: products.storeId,
-            title: products.title,
-            description: products.description,
-            price: products.price,
-            compareAtPrice: products.compareAtPrice,
-            inventory: products.inventory,
-            sku: products.sku,
-            imageUrl: products.imageUrl,
-            images: products.images,
-            category: products.category,
-            tags: products.tags,
-            isPublished: products.isPublished,
-            seoTitle: products.seoTitle,
-            seoDescription: products.seoDescription,
-            seoKeywords: products.seoKeywords,
-            bundlePricing: products.bundlePricing,
-            createdAt: products.createdAt,
-            updatedAt: products.updatedAt,
-          })
-          .from(products)
-          .where(
-            and(
-              ...(baseFilters as any),
-              like(products.category, slug)
-            )
-          )
-          .limit(50)
-          .orderBy(orderByClause);
+      // Fallback: Legacy String Match
+      collectionProducts = await db
+        .select({
+          id: products.id,
+          storeId: products.storeId,
+          title: products.title,
+          description: products.description,
+          price: products.price,
+          compareAtPrice: products.compareAtPrice,
+          inventory: products.inventory,
+          sku: products.sku,
+          imageUrl: products.imageUrl,
+          images: products.images,
+          category: products.category,
+          tags: products.tags,
+          isPublished: products.isPublished,
+          seoTitle: products.seoTitle,
+          seoDescription: products.seoDescription,
+          seoKeywords: products.seoKeywords,
+          bundlePricing: products.bundlePricing,
+          createdAt: products.createdAt,
+          updatedAt: products.updatedAt,
+        })
+        .from(products)
+        .where(and(...(baseFilters as any), like(products.category, slug)))
+        .limit(50)
+        .orderBy(orderByClause);
     }
   }
-  
+
   // Mock collection object for header
   const collection = {
     title: slug === 'all' ? 'All Products' : slug.charAt(0).toUpperCase() + slug.slice(1),
     description: `Browse our ${slug === 'all' ? 'latest' : slug} collection.`,
-    slug
+    slug,
   };
+
+  // Template resolution (Shopify OS 2.0)
+  let template = null;
+  try {
+    template = await resolveTemplate(context.cloudflare.env.DB, storeId, 'collection');
+  } catch {
+    // Continue without template
+  }
 
   return json({
     storeId,
@@ -228,6 +220,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     maxPrice,
     planType: storeData?.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
+    template,
   });
 }
 
@@ -250,11 +243,11 @@ export default function CollectionPage() {
     minPrice,
     maxPrice,
     planType,
-    customer
+    customer,
+    template,
   } = useLoaderData<typeof loader>();
 
   const { t } = useTranslation();
-  const isDaraz = storeTemplateId === 'daraz';
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleSortChange = (value: string) => {
@@ -292,51 +285,64 @@ export default function CollectionPage() {
     }
     setSearchParams(params);
   };
-  
-  // 1. Get sections from themeConfig or use default
-  const collectionSections = themeConfig?.collectionSections || [
-    {
-       id: 'header',
-       type: 'collection-header',
-       settings: { 
-         alignment: 'center',
-         paddingTop: 'medium',
-         paddingBottom: 'medium'
-       }
-    },
-    {
-       id: 'grid',
-       type: 'product-grid',
-       settings: {
-         heading: '', // No heading needed since header is separate
-         productCount: 12,
-         paddingTop: 'small'
-       }
-    }
-  ];
 
-  // 2. Prepare props
-  const sectionProps = {
-    theme: isDaraz ? DARAZ_THEME : (theme || {}),
-    storeId,
-    currency,
-    storeName,
-    businessInfo,
-    socialLinks,
-    // IMPORTANT: Pass collection-specific data
-    collection,
-    products, // The product grid needs this
-    store: {
-      name: storeName,
-      currency: currency,
-      email: businessInfo?.email,
-      phone: businessInfo?.phone,
-      address: businessInfo?.address
-    }
-  };
+  const hasTemplateSections = template?.sections && template.sections.length > 0;
 
-  const content = (
-      <div className="min-h-screen flex flex-col" style={{ backgroundColor: theme?.background || '#ffffff' }}>
+  // Render collection content
+  const renderCollectionContent = () => {
+    // If template has sections, use ThemeStoreRenderer (Shopify OS 2.0)
+    if (hasTemplateSections && template?.sections) {
+      return (
+        <ThemeStoreRenderer
+          themeId={storeTemplateId}
+          sections={template.sections.map((s) => ({
+            id: s.id,
+            type: s.type,
+            settings: s.props || {},
+            blocks:
+              s.blocks?.map((b) => ({
+                id: b.id,
+                type: b.type,
+                settings: b.props || {},
+              })) || [],
+            enabled: s.enabled,
+          }))}
+          store={{
+            id: storeId,
+            name: storeName,
+            currency,
+            logo,
+            defaultLanguage: 'en',
+          }}
+          pageType="collection"
+          collection={{
+            id: 1,
+            title: collection.title,
+            slug: collection.slug,
+            description: collection.description,
+            productCount: products.length,
+          }}
+          products={products.map((p) => ({
+            id: p.id,
+            title: p.title,
+            price: p.price,
+            compareAtPrice: p.compareAtPrice || undefined,
+            imageUrl: p.imageUrl,
+            images: p.imageUrl ? [p.imageUrl] : [],
+            category: p.category || undefined,
+          }))}
+          skipHeaderFooter={true}
+        />
+      );
+    }
+
+    // Fallback: Default collection grid
+    return (
+      <div
+        className="min-h-screen flex flex-col"
+        style={{ backgroundColor: theme?.background || '#ffffff' }}
+      >
+        {/* Collection Header with Filters */}
         <div className="border-b border-gray-200 bg-white/70 backdrop-blur">
           <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -393,29 +399,56 @@ export default function CollectionPage() {
             </div>
           </div>
         </div>
-        <SectionRenderer 
-          sections={collectionSections}
-          {...sectionProps}
-        />
-      </div>
-  );
 
-  // 3. Render Wrapper
-  if (isDaraz) {
-    return (
-      <DarazPageWrapper 
-        storeName={storeName}
-        storeId={storeId}
-        logo={logo}
-        currency={currency}
-        socialLinks={socialLinks}
-        businessInfo={businessInfo}
-      >
-        {content}
-      </DarazPageWrapper>
+        {/* Product Grid */}
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          {products.length === 0 ? (
+            <div className="text-center py-16">
+              <p className="text-gray-500 text-lg">No products found in this collection.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {products.map((product) => (
+                <a
+                  key={product.id}
+                  href={`/products/${product.id}`}
+                  className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition"
+                >
+                  <div className="aspect-square bg-gray-100">
+                    {product.imageUrl ? (
+                      <img
+                        src={product.imageUrl}
+                        alt={product.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        No Image
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-medium text-gray-900 truncate">{product.title}</h3>
+                    <p className="text-lg font-bold mt-1" style={{ color: theme.primary }}>
+                      {currency === 'BDT' ? '৳' : '$'}
+                      {product.price.toLocaleString()}
+                      {product.compareAtPrice && product.compareAtPrice > product.price && (
+                        <span className="ml-2 text-sm text-gray-500 line-through">
+                          {currency === 'BDT' ? '৳' : '$'}
+                          {product.compareAtPrice.toLocaleString()}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     );
-  }
-  
+  };
+
   return (
     <StorePageWrapper
       storeName={storeName}
@@ -429,7 +462,7 @@ export default function CollectionPage() {
       planType={planType}
       customer={customer}
     >
-        {content}
+      {renderCollectionContent()}
     </StorePageWrapper>
   );
 }

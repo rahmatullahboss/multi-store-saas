@@ -1,0 +1,85 @@
+{
+  "name": "Homepage",
+  "sections": {
+    "header": {
+      "id": "header",
+      "type": "header",
+      "settings": {
+        "show_announcement": true,
+        "announcement_text": "Welcome to our store - Premium Tech Gadgets",
+        "show_search": true,
+        "show_cart": true
+      }
+    },
+    "hero": {
+      "id": "hero",
+      "type": "hero-banner",
+      "settings": {
+        "heading": "Next-Gen Tech",
+        "subheading": "Discover the latest innovations. Premium quality, unbeatable prices.",
+        "button_text": "Shop Now",
+        "button_link": "/collections/all"
+      }
+    },
+    "features": {
+      "id": "features",
+      "type": "features",
+      "settings": {
+        "background_style": "white"
+      },
+      "blocks": [
+        {
+          "id": "feature-1",
+          "type": "feature",
+          "settings": {
+            "icon": "zap",
+            "title": "Fast Delivery",
+            "description": "24-48 hour delivery nationwide."
+          }
+        },
+        {
+          "id": "feature-2",
+          "type": "feature",
+          "settings": {
+            "icon": "check",
+            "title": "Verified Gadgets",
+            "description": "Every product is quality checked."
+          }
+        },
+        {
+          "id": "feature-3",
+          "type": "feature",
+          "settings": {
+            "icon": "shield",
+            "title": "Secure Checkout",
+            "description": "Multiple payment options available."
+          }
+        }
+      ],
+      "block_order": ["feature-1", "feature-2", "feature-3"]
+    },
+    "featured-products": {
+      "id": "featured-products",
+      "type": "featured-products",
+      "settings": {
+        "heading": "Latest Arrivals",
+        "subheading": "Explore our newest collection of premium gadgets.",
+        "products_to_show": 8,
+        "columns": "4",
+        "show_view_all": true
+      }
+    },
+    "footer": {
+      "id": "footer",
+      "type": "footer",
+      "settings": {
+        "about_text": "Cutting-edge technology and premium electronics for the modern world.",
+        "show_newsletter": true,
+        "show_social_links": true,
+        "show_payment_icons": true,
+        "copyright_text": "Built for enthusiasts."
+      }
+    }
+  },
+  "order": ["header", "hero", "features", "featured-products", "footer"]
+}

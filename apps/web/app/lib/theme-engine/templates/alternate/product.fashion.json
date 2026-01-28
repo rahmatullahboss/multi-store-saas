@@ -1,0 +1,160 @@
+{
+  "name": "Product Page - Fashion",
+  "layout": "theme",
+  "extends": "product",
+  "sections": {
+    "header": {
+      "id": "header",
+      "type": "header",
+      "settings": {}
+    },
+    "breadcrumb": {
+      "id": "breadcrumb",
+      "type": "breadcrumb",
+      "settings": {
+        "show_home": true,
+        "separator": "chevron"
+      }
+    },
+    "product-info": {
+      "id": "product-info",
+      "type": "product-info",
+      "settings": {
+        "layout": "image_left",
+        "media_size": "large",
+        "enable_zoom": true,
+        "enable_video": true,
+        "gallery_layout": "left",
+        "show_quantity": true,
+        "show_variant_labels": true,
+        "variant_style": "swatches",
+        "show_buy_now": true,
+        "show_wishlist": true,
+        "show_sku": false,
+        "show_inventory": true,
+        "show_share": true,
+        "padding_top": 40,
+        "padding_bottom": 40
+      },
+      "blocks": [
+        {
+          "id": "description",
+          "type": "collapsible",
+          "settings": {
+            "heading": "Description",
+            "icon": "none",
+            "content": "",
+            "open_by_default": true
+          }
+        },
+        {
+          "id": "size-guide",
+          "type": "collapsible",
+          "settings": {
+            "heading": "Size Guide",
+            "icon": "ruler",
+            "content": "<p>Check our size chart for the perfect fit.</p>",
+            "open_by_default": false
+          }
+        },
+        {
+          "id": "fabric-care",
+          "type": "custom_field",
+          "settings": {
+            "metafield_namespace": "product_info",
+            "metafield_key": "fabric",
+            "label": "Fabric & Care"
+          }
+        },
+        {
+          "id": "fit-type",
+          "type": "custom_field",
+          "settings": {
+            "metafield_namespace": "product_info",
+            "metafield_key": "fit_type",
+            "label": "Fit Type"
+          }
+        },
+        {
+          "id": "shipping",
+          "type": "collapsible",
+          "settings": {
+            "heading": "Shipping & Returns",
+            "icon": "truck",
+            "content": "<p>Free shipping on orders over ৳1000. 7-day easy returns for unworn items with tags.</p>",
+            "open_by_default": false
+          }
+        }
+      ],
+      "block_order": ["description", "size-guide", "fabric-care", "fit-type", "shipping"]
+    },
+    "size-chart": {
+      "id": "size-chart",
+      "type": "size-chart",
+      "settings": {
+        "heading": "Size Chart",
+        "show_for_metafield": "product_info.size_chart",
+        "display_style": "modal",
+        "padding_top": 0,
+        "padding_bottom": 40
+      }
+    },
+    "product-tabs": {
+      "id": "product-tabs",
+      "type": "product-tabs",
+      "settings": {
+        "tab_style": "underline",
+        "show_description": true,
+        "show_specifications": false,
+        "show_reviews": true,
+        "show_styling_tips": true,
+        "padding_top": 40,
+        "padding_bottom": 40
+      }
+    },
+    "complete-the-look": {
+      "id": "complete-the-look",
+      "type": "related-products",
+      "settings": {
+        "heading": "Complete the Look",
+        "subheading": "Style it with",
+        "heading_size": "medium",
+        "source": "metafield",
+        "metafield_key": "product_info.complementary",
+        "products_count": 4,
+        "columns": 4,
+        "padding_top": 60,
+        "padding_bottom": 40
+      }
+    },
+    "related-products": {
+      "id": "related-products",
+      "type": "related-products",
+      "settings": {
+        "heading": "You May Also Like",
+        "subheading": "",
+        "heading_size": "medium",
+        "source": "auto",
+        "products_count": 4,
+        "columns": 4,
+        "padding_top": 40,
+        "padding_bottom": 60
+      }
+    },
+    "footer": {
+      "id": "footer",
+      "type": "footer",
+      "settings": {}
+    }
+  },
+  "order": [
+    "header",
+    "breadcrumb",
+    "product-info",
+    "size-chart",
+    "product-tabs",
+    "complete-the-look",
+    "related-products",
+    "footer"
+  ]
+}

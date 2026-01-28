@@ -1,0 +1,70 @@
+{
+  "name": "Cart",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "logo_width": 120,
+        "show_search": true,
+        "show_cart": true,
+        "background_color": "#ffffff",
+        "text_color": "#111827",
+        "sticky": true
+      }
+    },
+    "cart-content": {
+      "type": "cart-items",
+      "settings": {
+        "heading": "আপনার কার্ট",
+        "show_continue_shopping": true,
+        "continue_shopping_label": "শপিং চালিয়ে যান",
+        "continue_shopping_link": "/products",
+        "empty_cart_heading": "আপনার কার্ট খালি",
+        "empty_cart_text": "শপিং শুরু করতে প্রোডাক্ট ব্রাউজ করুন",
+        "empty_cart_button": "শপিং শুরু করুন",
+        "background_color": "#ffffff",
+        "padding_top": 48,
+        "padding_bottom": 24
+      }
+    },
+    "cart-summary": {
+      "type": "cart-summary",
+      "settings": {
+        "heading": "অর্ডার সামারি",
+        "show_coupon_input": true,
+        "coupon_placeholder": "কুপন কোড লিখুন",
+        "apply_button": "প্রয়োগ করুন",
+        "show_shipping_estimate": true,
+        "shipping_text": "ফ্রি ডেলিভারি ১০০০৳+ অর্ডারে",
+        "checkout_button": "চেকআউটে যান",
+        "show_payment_icons": true,
+        "show_secure_badge": true,
+        "background_color": "#f9fafb",
+        "padding": 24
+      }
+    },
+    "related-products": {
+      "type": "featured-collection",
+      "settings": {
+        "heading": "আপনি এটাও পছন্দ করতে পারেন",
+        "products_count": 4,
+        "columns": "4",
+        "show_view_all": false,
+        "background_color": "#ffffff",
+        "padding_top": 48,
+        "padding_bottom": 48
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "description": "বাংলাদেশের সেরা অনলাইন শপিং প্লাটফর্ম।",
+        "background_color": "#111827",
+        "text_color": "#ffffff",
+        "show_powered_by": true
+      }
+    }
+  },
+  "order": ["header", "cart-content", "cart-summary", "related-products", "footer"]
+}

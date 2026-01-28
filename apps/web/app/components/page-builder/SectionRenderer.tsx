@@ -1,12 +1,14 @@
 /**
  * Page Builder v2 - Section Renderer
- * 
+ *
  * Renders sections dynamically based on type.
  * Supports click-to-select in editor mode.
+ * Wrapped in error boundaries for graceful degradation.
  */
 
 import type { BuilderSection } from '~/lib/page-builder/types';
 import { getSectionMeta } from '~/lib/page-builder/registry';
+import { SectionErrorBoundary } from '~/components/shared/SectionErrorBoundary';
 
 // Import section components
 import { HeroSectionPreview } from './sections/HeroSectionPreview';
@@ -73,9 +75,9 @@ interface SectionRendererProps {
   };
 }
 
-export function SectionRenderer({ 
-  sections, 
-  activeSectionId, 
+export function SectionRenderer({
+  sections,
+  activeSectionId,
   onSelectSection,
   storeId,
   productId,
@@ -85,10 +87,10 @@ export function SectionRenderer({
 }: SectionRendererProps) {
   // Sort by sortOrder
   const sortedSections = [...sections].sort((a, b) => a.sortOrder - b.sortOrder);
-  
+
   // Determine if we're in editor mode (onSelectSection is provided)
   const isEditorMode = !!onSelectSection;
-  
+
   return (
     <div className="min-h-full">
       {sortedSections.map((section) => (
@@ -105,7 +107,7 @@ export function SectionRenderer({
           realData={realData}
         />
       ))}
-      
+
       {sortedSections.length === 0 && (
         <div className="flex items-center justify-center h-96 text-gray-400">
           <p>No sections to display</p>
@@ -136,14 +138,33 @@ interface SectionWrapperProps {
   };
 }
 
-function SectionWrapper({ section, isActive, onClick, isEditorMode, storeId, productId, product, selectedProducts = [], realData }: SectionWrapperProps) {
+function SectionWrapper({
+  section,
+  isActive,
+  onClick,
+  isEditorMode,
+  storeId,
+  productId,
+  product,
+  selectedProducts = [],
+  realData,
+}: SectionWrapperProps) {
   const meta = getSectionMeta(section.type);
-  
+
   // Only apply editor styling when in editor mode
   if (!isEditorMode) {
-    return <SectionContent section={section} storeId={storeId} productId={productId} product={product} selectedProducts={selectedProducts} realData={realData} />;
+    return (
+      <SectionContent
+        section={section}
+        storeId={storeId}
+        productId={productId}
+        product={product}
+        selectedProducts={selectedProducts}
+        realData={realData}
+      />
+    );
   }
-  
+
   return (
     <div
       className={`
@@ -153,16 +174,25 @@ function SectionWrapper({ section, isActive, onClick, isEditorMode, storeId, pro
       onClick={onClick}
     >
       {/* Section type label on hover */}
-      <div className={`
+      <div
+        className={`
         absolute top-2 left-2 z-10 px-2 py-0.5 text-xs font-medium rounded
         transition-opacity
         ${isActive ? 'bg-indigo-500 text-white opacity-100' : 'bg-gray-800 text-white opacity-0 group-hover:opacity-100'}
-      `}>
+      `}
+      >
         {meta?.name || section.type}
       </div>
-      
+
       {/* Actual section content */}
-      <SectionContent section={section} storeId={storeId} productId={productId} product={product} selectedProducts={selectedProducts} realData={realData} />
+      <SectionContent
+        section={section}
+        storeId={storeId}
+        productId={productId}
+        product={product}
+        selectedProducts={selectedProducts}
+        realData={realData}
+      />
     </div>
   );
 }
@@ -185,78 +215,123 @@ interface SectionContentProps {
   };
 }
 
-function SectionContent({ section, storeId, productId, product, selectedProducts = [], realData }: SectionContentProps) {
+function SectionContent({
+  section,
+  storeId,
+  productId,
+  product,
+  selectedProducts = [],
+  realData,
+}: SectionContentProps) {
   const { type, props } = section;
-  
-  switch (type) {
-    case 'hero':
-      return <HeroSectionPreview props={props} />;
-    case 'features':
-      return <FeaturesSectionPreview props={props} />;
-    case 'faq':
-      return <FAQSectionPreview props={props} />;
-    case 'testimonials':
-      return <TestimonialsSectionPreview props={props} />;
-    case 'trust-badges':
-      return <TrustBadgesSectionPreview props={props} />;
-    case 'cta':
-      return <CTASectionPreview props={props} storeId={storeId} productId={productId} product={product} selectedProducts={selectedProducts} realData={realData} />;
-    case 'video':
-      return <VideoSectionPreview props={props} />;
-    case 'guarantee':
-      return <GuaranteeSectionPreview props={props} />;
-    case 'gallery':
-      return <GallerySectionPreview props={props} />;
-    case 'benefits':
-      return <BenefitsSectionPreview props={props} />;
-    case 'comparison':
-      return <ComparisonSectionPreview props={props} />;
-    case 'delivery':
-      return <DeliverySectionPreview props={props} />;
-    case 'problem-solution':
-      return <ProblemSolutionPreview props={props} />;
-    case 'pricing':
-      return <PricingSectionPreview props={props} />;
-    case 'how-to-order':
-      return <HowToOrderPreview props={props} />;
-    case 'showcase':
-      return <ShowcaseSectionPreview props={props} />;
-    case 'product-grid': {
-      // Merge selectedProducts into props for real data display
-      const productGridProps = {
-        ...props,
-        products: selectedProducts.length > 0 ? selectedProducts.map(p => ({
-          id: p.id,
-          name: p.title,
-          price: p.price,
-          compareAtPrice: p.compareAtPrice,
-          image: p.imageUrl,
-        })) : props.products,
-      };
-      return <ProductGridSectionPreview props={productGridProps} />;
-    }
-    case 'custom-html':
-      return <CustomHtmlSectionPreview {...props as unknown as any} />;
-    case 'order-button':
-      return <OrderButtonSectionPreview props={props} />;
-    case 'header':
-      return <HeaderSectionPreview props={props} />;
-    case 'countdown':
-      return <CountdownSectionPreview props={props} />;
-    case 'stats':
-      return <StatsSectionPreview props={props} />;
-    case 'contact':
-      return <ContactSectionPreview props={props} />;
-    case 'footer':
-      return <FooterSectionPreview props={props} />;
-    case 'order-form':
-      return <CTASectionPreview props={props} storeId={storeId} productId={productId} product={product} selectedProducts={selectedProducts} realData={realData} />;
-    case 'social-proof':
-      return <StatsSectionPreview props={props} />;
-    case 'newsletter':
-      return <CTASectionPreview props={props} storeId={storeId} productId={productId} product={product} selectedProducts={selectedProducts} realData={realData} />;
-    default:
-      return <PlaceholderSection type={type} />;
-  }
-}
 
+  // Wrap section rendering in error boundary for graceful degradation
+  const renderSection = () => {
+    switch (type) {
+      case 'hero':
+        return <HeroSectionPreview props={props} />;
+      case 'features':
+        return <FeaturesSectionPreview props={props} />;
+      case 'faq':
+        return <FAQSectionPreview props={props} />;
+      case 'testimonials':
+        return <TestimonialsSectionPreview props={props} />;
+      case 'trust-badges':
+        return <TrustBadgesSectionPreview props={props} />;
+      case 'cta':
+        return (
+          <CTASectionPreview
+            props={props}
+            storeId={storeId}
+            productId={productId}
+            product={product}
+            selectedProducts={selectedProducts}
+            realData={realData}
+          />
+        );
+      case 'video':
+        return <VideoSectionPreview props={props} />;
+      case 'guarantee':
+        return <GuaranteeSectionPreview props={props} />;
+      case 'gallery':
+        return <GallerySectionPreview props={props} />;
+      case 'benefits':
+        return <BenefitsSectionPreview props={props} />;
+      case 'comparison':
+        return <ComparisonSectionPreview props={props} />;
+      case 'delivery':
+        return <DeliverySectionPreview props={props} />;
+      case 'problem-solution':
+        return <ProblemSolutionPreview props={props} />;
+      case 'pricing':
+        return <PricingSectionPreview props={props} />;
+      case 'how-to-order':
+        return <HowToOrderPreview props={props} />;
+      case 'showcase':
+        return <ShowcaseSectionPreview props={props} />;
+      case 'product-grid': {
+        // Merge selectedProducts into props for real data display
+        const productGridProps = {
+          ...props,
+          products:
+            selectedProducts.length > 0
+              ? selectedProducts.map((p) => ({
+                  id: p.id,
+                  name: p.title,
+                  price: p.price,
+                  compareAtPrice: p.compareAtPrice,
+                  image: p.imageUrl,
+                }))
+              : props.products,
+        };
+        return <ProductGridSectionPreview props={productGridProps} />;
+      }
+      case 'custom-html':
+        return <CustomHtmlSectionPreview {...(props as unknown as any)} />;
+      case 'order-button':
+        return <OrderButtonSectionPreview props={props} />;
+      case 'header':
+        return <HeaderSectionPreview props={props} />;
+      case 'countdown':
+        return <CountdownSectionPreview props={props} />;
+      case 'stats':
+        return <StatsSectionPreview props={props} />;
+      case 'contact':
+        return <ContactSectionPreview props={props} />;
+      case 'footer':
+        return <FooterSectionPreview props={props} />;
+      case 'order-form':
+        return (
+          <CTASectionPreview
+            props={props}
+            storeId={storeId}
+            productId={productId}
+            product={product}
+            selectedProducts={selectedProducts}
+            realData={realData}
+          />
+        );
+      case 'social-proof':
+        return <StatsSectionPreview props={props} />;
+      case 'newsletter':
+        return (
+          <CTASectionPreview
+            props={props}
+            storeId={storeId}
+            productId={productId}
+            product={product}
+            selectedProducts={selectedProducts}
+            realData={realData}
+          />
+        );
+      default:
+        return <PlaceholderSection type={type} />;
+    }
+  };
+
+  return (
+    <SectionErrorBoundary sectionType={type} sectionId={section.id}>
+      {renderSection()}
+    </SectionErrorBoundary>
+  );
+}

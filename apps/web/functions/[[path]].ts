@@ -52,6 +52,7 @@ function parseHostname(hostname: string, saasDomain: string): { type: 'subdomain
  * or a reserved subdomain (handled by separate workers/pages)
  */
 function isMainDomain(hostname: string): boolean {
+  const cleanHostname = hostname.split(':')[0];
   const mainDomains = [
     'localhost',
     '127.0.0.1',
@@ -62,8 +63,8 @@ function isMainDomain(hostname: string): boolean {
     'builder.ozzyl.com', // Page builder worker
   ];
   
-  return mainDomains.includes(hostname) || 
-    (hostname.endsWith('.pages.dev') && hostname.split('.').length <= 3);
+  return mainDomains.includes(cleanHostname) || 
+    (cleanHostname.endsWith('.pages.dev') && cleanHostname.split('.').length <= 3);
 }
 
 // Note: builder.ozzyl.com is handled by the multi-store-saas-builder Worker

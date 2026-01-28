@@ -1,6 +1,25 @@
 @import 'tailwindcss';
 
-/* Modern CSS Animations - No JS needed */
+/* ============================================
+   PERFORMANCE OPTIMIZED ANIMATIONS
+   - Respects prefers-reduced-motion
+   - GPU-accelerated transforms only
+   - Minimal repaints
+   ============================================ */
+
+/* Reduced motion: Disable all animations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Modern CSS Animations - Optimized */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -23,10 +42,19 @@
 
 @keyframes shimmer {
   0% {
-    background-position: -1000px 0;
+    background-position: 0% 50%;
   }
   100% {
-    background-position: 1000px 0;
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes shine {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
   }
 }
 
@@ -36,28 +64,41 @@
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
   }
 }
 
 /* Animation utility classes */
 .animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out forwards;
+  animation: fadeInUp 0.5s ease-out forwards;
   opacity: 0;
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.6s ease-out forwards;
+  animation: fadeIn 0.5s ease-out forwards;
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  background-size: 1000px 100%;
-  animation: shimmer 2s infinite;
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
 }
 
 .animate-float {
-  animation: float 3s ease-in-out infinite;
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 3s ease-in-out infinite;
 }
 
 /* Base styles */
@@ -85,9 +126,15 @@ h6 {
   transform-style: preserve-3d;
 }
 
+/* GPU acceleration hints */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
 /* Smooth hover transitions */
 .btn-primary {
-  @apply px-6 py-3 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-semibold rounded-xl transition-all duration-300;
+  @apply px-6 py-3 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-semibold rounded-xl transition-all duration-200;
 }
 
 .btn-primary:hover {
@@ -98,20 +145,25 @@ h6 {
   @apply bg-white/80 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-xl;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-outfit), sans-serif;
+/* Optimized blur for blobs - use lower values on mobile */
+@media (max-width: 768px) {
+  .blob-blur {
+    filter: blur(40px) !important;
+  }
 }
 
-/* Utility classes */
-.perspective-1000 {
-  perspective: 1000px;
+/* Skeleton loading animation - lightweight */
+@keyframes skeleton-pulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
-.preserve-3d {
-  transform-style: preserve-3d;
+.skeleton {
+  background: linear-gradient(90deg, #1a1a2e 25%, #2a2a4e 50%, #1a1a2e 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
 }

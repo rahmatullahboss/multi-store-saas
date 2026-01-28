@@ -1,14 +1,14 @@
 /**
  * Store Homepage Route
- * 
- * Template-aware homepage that renders sections from the published theme template.
- * Uses StoreSectionRenderer for dynamic section rendering.
+ *
+ * Shopify OS 2.0 Theme System - Uses ThemeStoreRenderer exclusively
+ * for dynamic section rendering with the new theme engine.
  */
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
 import { resolveStoreWithTemplate } from '~/lib/store.server';
-import { StoreSectionRenderer } from '~/components/store/StoreSectionRenderer';
+import { ThemeStoreRenderer } from '~/components/store/ThemeStoreRenderer';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { parseThemeConfig, parseSocialLinks } from '@db/types';
@@ -16,13 +16,12 @@ import { getCustomer } from '~/services/customer-auth.server';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, and } from 'drizzle-orm';
 import { products } from '@db/schema';
-import type { RenderContext } from '~/lib/template-resolver.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) {
     return [{ title: 'Store' }];
   }
-  
+
   return [
     { title: `${data.storeName} - Home` },
     { name: 'description', content: `Welcome to ${data.storeName}` },
@@ -30,22 +29,22 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  // Try to resolve store with home template
+  // Resolve store with home template
   const storeContext = await resolveStoreWithTemplate(context, request, 'home');
-  
+
   if (!storeContext) {
     throw new Response('Store not found', { status: 404 });
   }
-  
-  const { storeId, store, template, theme: themeSettings } = storeContext;
+
+  const { storeId, store, template } = storeContext;
   const db = drizzle(context.cloudflare.env.DB);
-  
-  // Get theme config from store for backward compatibility
+
+  // Get theme config from store
   const themeConfig = parseThemeConfig(store.themeConfig as string | null);
   const socialLinks = parseSocialLinks(store.socialLinks as string | null);
   const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
   const theme = getStoreTemplateTheme(storeTemplateId);
-  
+
   // Parse businessInfo
   let businessInfo = null;
   try {
@@ -55,11 +54,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   } catch {
     // Ignore parse errors
   }
-  
+
   // Load customer session
   const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
-  
-  // Fetch featured products for RenderContext
+
+  // Fetch featured products
   const featuredProducts = await db
     .select({
       id: products.id,
@@ -70,16 +69,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       category: products.category,
     })
     .from(products)
-    .where(and(
-      eq(products.storeId, storeId),
-      eq(products.isPublished, true)
-    ))
+    .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
     .orderBy(desc(products.createdAt))
     .limit(12);
-  
+
   // Get unique categories
-  const categories = [...new Set(featuredProducts.map(p => p.category).filter(Boolean))];
-  
+  const categories = [...new Set(featuredProducts.map((p) => p.category).filter(Boolean))];
+
   return json({
     storeId,
     storeName: store.name,
@@ -87,15 +83,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     currency: store.currency || 'BDT',
     storeTemplateId,
     theme,
-    themeSettings, // From new template system
     socialLinks,
     businessInfo,
     themeConfig,
     planType: store.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
-    // Template data
     template,
-    featuredProducts: featuredProducts.map(p => ({
+    featuredProducts: featuredProducts.map((p) => ({
       ...p,
       handle: String(p.id),
     })),
@@ -111,7 +105,6 @@ export default function StoreHomePage() {
     currency,
     storeTemplateId,
     theme,
-    themeSettings,
     socialLinks,
     businessInfo,
     themeConfig,
@@ -121,44 +114,10 @@ export default function StoreHomePage() {
     featuredProducts,
     categories,
   } = useLoaderData<typeof loader>();
-  
-  // Build RenderContext for sections (HomeContext type)
-  const renderContext: RenderContext = {
-    kind: 'home',
-    shop: {
-      name: storeName,
-      currency,
-      domain: '', // Will be set from window.location on client
-    },
-    theme: themeSettings || {
-      primaryColor: theme.primary,
-      accentColor: theme.accent,
-      backgroundColor: theme.background,
-      textColor: theme.text,
-      headingFont: 'Inter',
-      bodyFont: 'Inter',
-    },
-    currency,
-    featuredProducts: featuredProducts.map(p => ({
-      id: String(p.id),
-      handle: p.handle,
-      title: p.title,
-      price: p.price,
-      compareAtPrice: p.compareAtPrice || undefined,
-      imageUrl: p.imageUrl || undefined,
-      category: p.category || undefined,
-    })),
-    collections: categories.map((cat, i) => ({
-      id: String(i + 1),
-      title: cat as string,
-      handle: (cat as string).toLowerCase().replace(/\s+/g, '-'),
-      productCount: featuredProducts.filter(p => p.category === cat).length,
-    })),
-  };
-  
+
   // Check if we have published template sections
   const hasTemplateSections = template?.sections && template.sections.length > 0;
-  
+
   return (
     <StorePageWrapper
       storeName={storeName}
@@ -175,16 +134,52 @@ export default function StoreHomePage() {
       config={themeConfig}
     >
       {hasTemplateSections ? (
-        // Use new template system
-        <StoreSectionRenderer
-          sections={template!.sections}
-          context={renderContext}
+        // Use Shopify OS 2.0 theme system via ThemeStoreRenderer
+        <ThemeStoreRenderer
+          themeId={storeTemplateId}
+          sections={template!.sections.map((s) => ({
+            id: s.id,
+            type: s.type,
+            settings: s.props || {},
+            blocks:
+              s.blocks?.map((b) => ({
+                id: b.id,
+                type: b.type,
+                settings: b.props || {},
+              })) || [],
+            enabled: s.enabled,
+          }))}
+          store={{
+            id: storeId,
+            name: storeName,
+            currency,
+            logo,
+            defaultLanguage: 'en',
+          }}
+          pageType="index"
+          products={featuredProducts.map((p) => ({
+            id: p.id,
+            title: p.title,
+            price: p.price,
+            compareAtPrice: p.compareAtPrice || undefined,
+            imageUrl: p.imageUrl,
+            images: p.imageUrl ? [p.imageUrl] : [],
+            category: p.category || undefined,
+          }))}
+          collections={categories.map((cat, i) => ({
+            id: i + 1,
+            title: cat as string,
+            handle: (cat as string).toLowerCase().replace(/\s+/g, '-'),
+            slug: (cat as string).toLowerCase().replace(/\s+/g, '-'),
+            productCount: featuredProducts.filter((p) => p.category === cat).length,
+          }))}
+          skipHeaderFooter={true}
         />
       ) : (
-        // Fallback: Default home content
+        // Fallback: Default home content when no template sections exist
         <div className="min-h-screen">
           {/* Hero Section Fallback */}
-          <section 
+          <section
             className="relative py-20 px-4 text-center"
             style={{ backgroundColor: theme.primary }}
           >
@@ -192,9 +187,7 @@ export default function StoreHomePage() {
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
                 Welcome to {storeName}
               </h1>
-              <p className="text-xl text-white/80 mb-8">
-                Discover our amazing products
-              </p>
+              <p className="text-xl text-white/80 mb-8">Discover our amazing products</p>
               <a
                 href="/products"
                 className="inline-block px-8 py-3 bg-white text-gray-900 rounded-lg font-semibold hover:bg-gray-100 transition"
@@ -203,7 +196,7 @@ export default function StoreHomePage() {
               </a>
             </div>
           </section>
-          
+
           {/* Featured Products Fallback */}
           <section className="py-16 px-4">
             <div className="max-w-7xl mx-auto">
@@ -227,9 +220,7 @@ export default function StoreHomePage() {
                       )}
                     </div>
                     <div className="p-4">
-                      <h3 className="font-medium text-gray-900 truncate">
-                        {product.title}
-                      </h3>
+                      <h3 className="font-medium text-gray-900 truncate">{product.title}</h3>
                       <p className="text-lg font-bold mt-1" style={{ color: theme.primary }}>
                         {currency} {product.price}
                       </p>

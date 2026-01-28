@@ -1,0 +1,100 @@
+{
+  "name": "Cart Page",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "id": "header",
+      "type": "header",
+      "settings": {}
+    },
+    "cart-header": {
+      "id": "cart-header",
+      "type": "cart-header",
+      "settings": {
+        "heading": "Shopping Cart",
+        "show_item_count": true,
+        "show_continue_shopping": true,
+        "continue_shopping_link": "/products",
+        "padding_top": 40,
+        "padding_bottom": 20
+      }
+    },
+    "free-shipping-bar": {
+      "id": "free-shipping-bar",
+      "type": "free-shipping-bar",
+      "settings": {
+        "threshold": 1000,
+        "message_progress": "Add {{remaining}} more for FREE shipping!",
+        "message_qualified": "You've unlocked FREE shipping!",
+        "show_progress_bar": true
+      }
+    },
+    "cart-items": {
+      "id": "cart-items",
+      "type": "cart-items",
+      "settings": {
+        "show_image": true,
+        "show_variant": true,
+        "show_quantity_selector": true,
+        "show_remove_button": true,
+        "show_line_price": true,
+        "padding_top": 20,
+        "padding_bottom": 20
+      }
+    },
+    "cart-footer": {
+      "id": "cart-footer",
+      "type": "cart-footer",
+      "settings": {
+        "show_subtotal": true,
+        "show_shipping_estimate": true,
+        "show_discount_code": true,
+        "show_cart_note": true,
+        "checkout_button_text": "Proceed to Checkout",
+        "show_continue_shopping": true,
+        "show_trust_badges": true,
+        "trust_text_1": "Secure Checkout",
+        "trust_text_2": "Free Shipping over ৳1000",
+        "trust_text_3": "7-Day Easy Returns",
+        "padding_top": 20,
+        "padding_bottom": 40
+      }
+    },
+    "recommended-products": {
+      "id": "recommended-products",
+      "type": "product-grid",
+      "settings": {
+        "heading": "You Might Also Like",
+        "subheading": "",
+        "heading_size": "medium",
+        "source": "recommended",
+        "products_count": 4,
+        "columns_desktop": 4,
+        "columns_mobile": 2,
+        "gap": 24,
+        "image_ratio": "portrait",
+        "show_secondary_image": false,
+        "show_vendor": false,
+        "show_rating": true,
+        "quick_add": true,
+        "show_view_all": false,
+        "padding_top": 60,
+        "padding_bottom": 60
+      }
+    },
+    "footer": {
+      "id": "footer",
+      "type": "footer",
+      "settings": {}
+    }
+  },
+  "order": [
+    "header",
+    "cart-header",
+    "free-shipping-bar",
+    "cart-items",
+    "cart-footer",
+    "recommended-products",
+    "footer"
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "name": "Homepage",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "header_bg": "#F85606",
+        "top_bar_bg": "#2E2E2E",
+        "show_top_bar": true,
+        "show_category_nav": true
+      }
+    },
+    "hero": {
+      "type": "hero-carousel",
+      "settings": {
+        "autoplay_speed": 5000,
+        "show_arrows": true,
+        "show_dots": true,
+        "show_app_widget": true
+      },
+      "blocks": {
+        "slide-1": {
+          "type": "slide",
+          "settings": {
+            "title": "Never Before Deals!",
+            "subtitle": "Limited Stock - Up to 70% OFF",
+            "button_text": "Shop Now",
+            "button_link": "/?category=sale",
+            "show_overlay": true
+          }
+        },
+        "slide-2": {
+          "type": "slide",
+          "settings": {
+            "title": "Flash Sale",
+            "subtitle": "Amazing discounts on top products",
+            "button_text": "View Deals",
+            "button_link": "/?category=flash-sale",
+            "show_overlay": true
+          }
+        }
+      },
+      "block_order": ["slide-1", "slide-2"]
+    },
+    "flash-sale": {
+      "type": "flash-sale",
+      "settings": {
+        "title": "Flash Sale",
+        "subtitle": "On Sale Now",
+        "cta_text": "SHOP ALL PRODUCTS",
+        "cta_link": "/?category=flash-sale",
+        "products_count": 10,
+        "show_timer": false,
+        "show_progress_bar": true
+      }
+    },
+    "categories": {
+      "type": "category-grid",
+      "settings": {
+        "title": "Categories",
+        "max_categories": 8,
+        "layout": "grid-8",
+        "show_icons": true
+      }
+    },
+    "products": {
+      "type": "product-grid",
+      "settings": {
+        "title": "Just For You",
+        "products_count": 24,
+        "columns": "6",
+        "show_rating": true,
+        "show_discount_badge": true
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "show_app_download": true,
+        "show_powered_by": true,
+        "payment_methods": "bKash, Nagad, Visa, Mastercard, COD"
+      }
+    }
+  },
+  "order": ["header", "hero", "flash-sale", "categories", "products", "footer"]
+}

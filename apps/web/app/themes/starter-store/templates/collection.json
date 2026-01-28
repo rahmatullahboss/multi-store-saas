@@ -1,0 +1,62 @@
+{
+  "name": "Collection",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "logo_width": 120,
+        "show_search": true,
+        "show_cart": true,
+        "background_color": "#ffffff",
+        "text_color": "#111827",
+        "sticky": true
+      }
+    },
+    "collection-header": {
+      "type": "collection-header",
+      "settings": {
+        "layout": "simple",
+        "image_height": "medium",
+        "overlay_opacity": 40,
+        "show_title": true,
+        "show_description": true,
+        "show_product_count": true,
+        "product_count_text": "টি পণ্য",
+        "text_alignment": "left",
+        "background_color": "#f9fafb",
+        "text_color": "#ffffff",
+        "padding_top": 32,
+        "padding_bottom": 32
+      }
+    },
+    "product-grid": {
+      "type": "collection-grid",
+      "settings": {
+        "default_columns": "4",
+        "mobile_columns": "2",
+        "products_per_page": 16,
+        "show_sort": true,
+        "show_filter": true,
+        "show_view_toggle": true,
+        "show_product_count": true,
+        "show_quick_add": true,
+        "show_sale_badge": true,
+        "show_compare_price": true,
+        "background_color": "#ffffff",
+        "padding_top": 32,
+        "padding_bottom": 48
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "description": "বাংলাদেশের সেরা অনলাইন শপিং প্লাটফর্ম।",
+        "background_color": "#111827",
+        "text_color": "#ffffff",
+        "show_powered_by": true
+      }
+    }
+  },
+  "order": ["header", "collection-header", "product-grid", "footer"]
+}

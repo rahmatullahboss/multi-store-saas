@@ -1,0 +1,305 @@
+{
+  "name": "Starter Store",
+  "version": "1.0.0",
+  "theme_info": {
+    "theme_name": "Starter Store",
+    "theme_version": "1.0.0",
+    "theme_author": "Ozzyl",
+    "theme_documentation_url": "https://docs.ozzyl.com/themes/starter-store",
+    "theme_support_url": "https://ozzyl.com/support"
+  },
+  "settings_schema": [
+    {
+      "name": "Logo",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "logo",
+          "label": "Logo image",
+          "info": "Recommended size: 200x50px"
+        },
+        {
+          "type": "range",
+          "id": "logo_width",
+          "min": 50,
+          "max": 300,
+          "step": 10,
+          "default": 120,
+          "unit": "px",
+          "label": "Logo width"
+        }
+      ]
+    },
+    {
+      "name": "Colors",
+      "settings": [
+        {
+          "type": "header",
+          "content": "Primary Colors"
+        },
+        {
+          "type": "color",
+          "id": "color_primary",
+          "label": "Primary color",
+          "default": "#6366f1",
+          "info": "Main brand color"
+        },
+        {
+          "type": "color",
+          "id": "color_secondary",
+          "label": "Secondary color",
+          "default": "#4f46e5"
+        },
+        {
+          "type": "color",
+          "id": "color_accent",
+          "label": "Accent color",
+          "default": "#f59e0b",
+          "info": "Used for highlights, sales, badges"
+        },
+        {
+          "type": "header",
+          "content": "Background Colors"
+        },
+        {
+          "type": "color",
+          "id": "color_background",
+          "label": "Page background",
+          "default": "#f9fafb"
+        },
+        {
+          "type": "color",
+          "id": "color_surface",
+          "label": "Card background",
+          "default": "#ffffff"
+        },
+        {
+          "type": "header",
+          "content": "Text Colors"
+        },
+        {
+          "type": "color",
+          "id": "color_text",
+          "label": "Primary text",
+          "default": "#111827"
+        },
+        {
+          "type": "color",
+          "id": "color_text_muted",
+          "label": "Muted text",
+          "default": "#6b7280"
+        },
+        {
+          "type": "header",
+          "content": "Header & Footer"
+        },
+        {
+          "type": "color",
+          "id": "color_header_bg",
+          "label": "Header background",
+          "default": "#ffffff"
+        },
+        {
+          "type": "color",
+          "id": "color_footer_bg",
+          "label": "Footer background",
+          "default": "#111827"
+        },
+        {
+          "type": "color",
+          "id": "color_footer_text",
+          "label": "Footer text",
+          "default": "#ffffff"
+        }
+      ]
+    },
+    {
+      "name": "Typography",
+      "settings": [
+        {
+          "type": "font_picker",
+          "id": "font_heading",
+          "default": "inter_n5",
+          "label": "Heading font"
+        },
+        {
+          "type": "font_picker",
+          "id": "font_body",
+          "default": "inter_n4",
+          "label": "Body font"
+        },
+        {
+          "type": "range",
+          "id": "font_size_base",
+          "min": 14,
+          "max": 18,
+          "step": 1,
+          "default": 16,
+          "unit": "px",
+          "label": "Base font size"
+        }
+      ]
+    },
+    {
+      "name": "Layout",
+      "settings": [
+        {
+          "type": "range",
+          "id": "container_width",
+          "min": 1000,
+          "max": 1600,
+          "step": 40,
+          "default": 1280,
+          "unit": "px",
+          "label": "Container max width"
+        },
+        {
+          "type": "range",
+          "id": "section_spacing",
+          "min": 20,
+          "max": 100,
+          "step": 4,
+          "default": 48,
+          "unit": "px",
+          "label": "Section vertical spacing"
+        },
+        {
+          "type": "range",
+          "id": "border_radius",
+          "min": 0,
+          "max": 24,
+          "step": 2,
+          "default": 8,
+          "unit": "px",
+          "label": "Border radius"
+        }
+      ]
+    },
+    {
+      "name": "Social Media",
+      "settings": [
+        {
+          "type": "url",
+          "id": "social_facebook",
+          "label": "Facebook URL"
+        },
+        {
+          "type": "url",
+          "id": "social_instagram",
+          "label": "Instagram URL"
+        },
+        {
+          "type": "url",
+          "id": "social_youtube",
+          "label": "YouTube URL"
+        },
+        {
+          "type": "url",
+          "id": "social_tiktok",
+          "label": "TikTok URL"
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "settings": [
+        {
+          "type": "select",
+          "id": "cart_type",
+          "options": [
+            { "value": "drawer", "label": "Drawer" },
+            { "value": "page", "label": "Page" },
+            { "value": "popup", "label": "Popup" }
+          ],
+          "default": "drawer",
+          "label": "Cart type"
+        },
+        {
+          "type": "checkbox",
+          "id": "cart_show_vendor",
+          "default": false,
+          "label": "Show vendor in cart"
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_secondary_image",
+          "default": true,
+          "label": "Show secondary image on hover"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_vendor",
+          "default": false,
+          "label": "Show product vendor"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_rating",
+          "default": true,
+          "label": "Show product rating"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_quick_add",
+          "default": true,
+          "label": "Enable quick add to cart"
+        },
+        {
+          "type": "select",
+          "id": "image_ratio",
+          "options": [
+            { "value": "adapt", "label": "Adapt to image" },
+            { "value": "portrait", "label": "Portrait (2:3)" },
+            { "value": "square", "label": "Square (1:1)" },
+            { "value": "landscape", "label": "Landscape (3:2)" }
+          ],
+          "default": "portrait",
+          "label": "Product image ratio"
+        }
+      ]
+    },
+    {
+      "name": "Currency",
+      "settings": [
+        {
+          "type": "select",
+          "id": "currency_format",
+          "options": [
+            { "value": "symbol_first", "label": "৳1,000" },
+            { "value": "symbol_last", "label": "1,000৳" },
+            { "value": "code_first", "label": "BDT 1,000" }
+          ],
+          "default": "symbol_first",
+          "label": "Currency format"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_currency_code",
+          "default": false,
+          "label": "Show currency code (BDT)"
+        }
+      ]
+    },
+    {
+      "name": "Checkout",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "checkout_banner",
+          "label": "Checkout banner image"
+        },
+        {
+          "type": "checkbox",
+          "id": "checkout_show_order_notes",
+          "default": true,
+          "label": "Show order notes field"
+        }
+      ]
+    }
+  ]
+}

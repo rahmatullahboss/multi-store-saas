@@ -60,6 +60,8 @@ interface CartItem {
 interface SharedCartPageProps {
   theme?: StoreTemplateTheme;
   isPreview?: boolean;
+  templateId?: string; // Optional: Pass template ID for preview mode navigation
+  onNavigate?: (path: string) => void; // Optional: Callback for internal navigation
   recommendedProducts?: Array<{
     id: number;
     title: string;
@@ -84,10 +86,13 @@ const DEMO_COUPONS: Record<
 export default function SharedCartPage({
   theme,
   isPreview = false,
+  templateId: propTemplateId,
+  onNavigate,
   recommendedProducts = [],
 }: SharedCartPageProps) {
   const params = useParams();
-  const templateId = params.templateId;
+  // Use prop templateId first, fallback to URL params
+  const templateId = propTemplateId || params.templateId;
   const fetcher = useFetcher<{
     products: Array<{
       id: number;
@@ -244,6 +249,14 @@ export default function SharedCartPage({
     return path;
   };
 
+  // Navigation handler - uses callback if provided, otherwise URL navigation
+  const handleNavigation = (e: React.MouseEvent, path: string) => {
+    if (onNavigate) {
+      e.preventDefault();
+      onNavigate(path);
+    }
+  };
+
   // Update quantity
   const updateQuantity = (id: string, newQuantity: number) => {
     if (newQuantity < 1) return;
@@ -355,6 +368,7 @@ export default function SharedCartPage({
           </p>
           <Link
             to={getLink('/')}
+            onClick={(e) => handleNavigation(e, '/')}
             className="inline-flex items-center gap-2 px-8 py-3 rounded-xl text-white font-medium transition-opacity hover:opacity-90"
             style={{ backgroundColor: colors.primary }}
           >
@@ -381,6 +395,7 @@ export default function SharedCartPage({
           </div>
           <Link
             to={getLink('/')}
+            onClick={(e) => handleNavigation(e, '/')}
             className="text-sm font-medium flex items-center gap-1 hover:opacity-70 transition-opacity"
             style={{ color: colors.accent }}
           >
@@ -452,6 +467,7 @@ export default function SharedCartPage({
                   {/* Image */}
                   <Link
                     to={getLink(`/products/${item.productId}`)}
+                    onClick={(e) => handleNavigation(e, `/products/${item.productId}`)}
                     className="w-full sm:w-28 h-32 sm:h-36 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0"
                   >
                     {item.image ? (
@@ -472,6 +488,7 @@ export default function SharedCartPage({
                     <div>
                       <Link
                         to={getLink(`/products/${item.productId}`)}
+                        onClick={(e) => handleNavigation(e, `/products/${item.productId}`)}
                         className="font-semibold text-lg hover:opacity-70 transition-opacity line-clamp-2"
                         style={{ color: colors.text }}
                       >
@@ -725,6 +742,7 @@ export default function SharedCartPage({
               {/* Checkout Button */}
               <Link
                 to={getLink('/checkout')}
+                onClick={(e) => handleNavigation(e, '/checkout')}
                 className="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-opacity hover:opacity-90 text-white"
                 style={{ backgroundColor: colors.primary }}
               >
@@ -798,6 +816,7 @@ export default function SharedCartPage({
                 <Link
                   key={product.id}
                   to={getLink(`/products/${product.id}`)}
+                  onClick={(e) => handleNavigation(e, `/products/${product.id}`)}
                   className="group rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                   style={{ backgroundColor: colors.cardBg }}
                 >

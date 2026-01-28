@@ -56,6 +56,25 @@ import {
   type DemoProduct,
 } from '~/utils/store-preview-data';
 
+// Import shared Shopify-standard components
+import SharedProductPage from '../shared/ProductPage';
+import SharedCartPage from '../shared/CartPage';
+import SharedCheckoutPage from '../shared/CheckoutPage';
+import type { StoreTemplateTheme } from '~/templates/store-registry';
+
+// Theme adapter for shared components
+const NOVALUX_THEME_FOR_SHARED: StoreTemplateTheme = {
+  primary: NOVALUX_THEME.primary,
+  accent: NOVALUX_THEME.accent,
+  background: NOVALUX_THEME.background,
+  text: NOVALUX_THEME.text,
+  muted: NOVALUX_THEME.muted,
+  cardBg: NOVALUX_THEME.cardBg,
+  headerBg: NOVALUX_THEME.headerBgSolid,
+  footerBg: NOVALUX_THEME.footerBg,
+  footerText: NOVALUX_THEME.footerText,
+};
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -332,82 +351,6 @@ function PreviewHeader({
   );
 }
 
-// --- Footer ---
-function PreviewFooter({
-  storeName,
-  categories,
-  onNavigate,
-}: {
-  storeName: string;
-  categories: (string | null)[];
-  onNavigate: (page: PageType) => void;
-}) {
-  const theme = {
-    primary: NOVALUX_THEME.primary,
-    accent: NOVALUX_THEME.accent,
-    footerBg: NOVALUX_THEME.footerBg,
-    footerText: NOVALUX_THEME.footerText,
-  };
-
-  return (
-    <footer style={{ backgroundColor: theme.footerBg, color: theme.footerText }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          <div>
-            <h4
-              className="text-2xl font-semibold mb-4"
-              style={{ fontFamily: NOVALUX_THEME.fontHeading }}
-            >
-              {storeName}
-            </h4>
-            <p className="text-white/60 text-sm leading-relaxed mb-6">
-              Curating exceptional products for those who appreciate the finer things in life.
-            </p>
-          </div>
-          <div>
-            <h5
-              className="font-semibold uppercase text-sm tracking-wider mb-6"
-              style={{ color: theme.accent }}
-            >
-              Quick Links
-            </h5>
-            <ul className="space-y-3 text-sm">
-              <li>
-                <button
-                  onClick={() => onNavigate({ type: 'home' })}
-                  className="text-white/70 hover:text-white transition-colors"
-                >
-                  Home
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate({ type: 'home' })}
-                  className="text-white/70 hover:text-white transition-colors"
-                >
-                  Shop All
-                </button>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h5
-              className="font-semibold uppercase text-sm tracking-wider mb-6"
-              style={{ color: theme.accent }}
-            >
-              Contact
-            </h5>
-            <p className="text-white/70 text-sm">support@example.com</p>
-          </div>
-        </div>
-        <div className="mt-16 pt-8 border-t border-white/10 flex justify-center items-center text-sm text-white/50">
-          © {new Date().getFullYear()} {storeName}. All rights reserved.
-        </div>
-      </div>
-    </footer>
-  );
-}
-
 // --- Product Card ---
 function PreviewProductCard({
   product,
@@ -509,217 +452,6 @@ function PreviewProductCard({
   );
 }
 
-// --- Product Detail Page ---
-function PreviewProductDetailPage({
-  productId,
-  currency,
-  onNavigate,
-}: {
-  productId: number;
-  currency: string;
-  onNavigate: (page: PageType) => void;
-}) {
-  const cart = usePreviewCart();
-  const product = getDemoProductById(productId);
-  const [quantity, setQuantity] = useState(1);
-  const theme = {
-    primary: NOVALUX_THEME.primary,
-    accent: NOVALUX_THEME.accent,
-    text: NOVALUX_THEME.text,
-    muted: NOVALUX_THEME.muted,
-  };
-
-  if (!product) return <div>Product not found</div>;
-
-  return (
-    <div className="pt-32 pb-20 px-4 max-w-7xl mx-auto">
-      <div className="grid md:grid-cols-2 gap-12">
-        <div className="aspect-[4/5] bg-white rounded-lg overflow-hidden">
-          {product.imageUrl && (
-            <img
-              src={product.imageUrl}
-              alt={product.title}
-              className="w-full h-full object-cover"
-            />
-          )}
-        </div>
-        <div className="space-y-8">
-          <div>
-            <h1 className="text-4xl font-serif mb-2" style={{ color: theme.primary }}>
-              {product.title}
-            </h1>
-            <div className="text-2xl font-medium" style={{ color: theme.accent }}>
-              {currency}
-              {product.price.toLocaleString()}
-            </div>
-          </div>
-          <p className="text-gray-600 leading-relaxed">
-            {product.description || 'Experience luxury with this premium product.'}
-          </p>
-
-          <div className="flex items-center gap-4">
-            <div className="flex items-center border border-gray-300 rounded-full">
-              <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 rounded-l-full"
-              >
-                -
-              </button>
-              <span className="w-10 text-center">{quantity}</span>
-              <button
-                onClick={() => setQuantity(quantity + 1)}
-                className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 rounded-r-full"
-              >
-                +
-              </button>
-            </div>
-            <button
-              onClick={() => cart.addItem(product, quantity)}
-              className="flex-1 py-3 rounded-full font-semibold text-white transition-transform active:scale-95"
-              style={{ background: NOVALUX_THEME.primary }}
-            >
-              Add to Cart
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// --- Cart Page ---
-function PreviewCartPageComponent({
-  currency,
-  onNavigate,
-}: {
-  currency: string;
-  onNavigate: (page: PageType) => void;
-}) {
-  const cart = usePreviewCart();
-
-  if (cart.items.length === 0) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center pt-20">
-        <h2 className="text-2xl font-serif mb-4">Your Bag is Empty</h2>
-        <button onClick={() => onNavigate({ type: 'home' })} className="border-b border-black pb-1">
-          Continue Shopping
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="pt-32 pb-20 px-4 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-serif mb-12 text-center">Shopping Bag</h1>
-      <div className="space-y-8">
-        {cart.items.map((item) => (
-          <div key={item.id} className="flex gap-6 border-b pb-6">
-            <div className="w-24 h-32 bg-gray-100 shrink-0">
-              {item.imageUrl && (
-                <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
-              )}
-            </div>
-            <div className="flex-1">
-              <h3 className="font-medium text-lg mb-1">{item.title}</h3>
-              <div className="text-gray-500 mb-4">
-                {currency}
-                {item.price.toLocaleString()}
-              </div>
-              <div className="flex justify-between items-center">
-                <div className="flex items-center border rounded">
-                  <button
-                    onClick={() => cart.updateQuantity(item.id, item.quantity - 1)}
-                    className="px-3 py-1"
-                  >
-                    -
-                  </button>
-                  <span className="px-2">{item.quantity}</span>
-                  <button
-                    onClick={() => cart.updateQuantity(item.id, item.quantity + 1)}
-                    className="px-3 py-1"
-                  >
-                    +
-                  </button>
-                </div>
-                <button
-                  onClick={() => cart.removeItem(item.id)}
-                  className="text-sm underline text-gray-500"
-                >
-                  Remove
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="mt-8 border-t pt-8">
-        <div className="flex justify-between text-xl font-medium mb-8">
-          <span>Total</span>
-          <span>
-            {currency}
-            {cart.total.toLocaleString()}
-          </span>
-        </div>
-        <button
-          onClick={() => onNavigate({ type: 'checkout' })}
-          className="w-full py-4 text-white font-semibold rounded-full"
-          style={{ background: NOVALUX_THEME.primary }}
-        >
-          Proceed to Checkout
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// --- Checkout Page ---
-function PreviewCheckoutPage({
-  currency,
-  onNavigate,
-}: {
-  currency: string;
-  onNavigate: (page: PageType) => void;
-}) {
-  const cart = usePreviewCart();
-
-  return (
-    <div className="pt-32 pb-20 px-4 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-serif mb-8 text-center">Checkout</h1>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          cart.clearCart();
-          onNavigate({ type: 'order-success' });
-        }}
-        className="space-y-6"
-      >
-        <input type="text" placeholder="Full Name" required className="w-full p-3 border rounded" />
-        <input type="tel" placeholder="Phone" required className="w-full p-3 border rounded" />
-        <textarea
-          placeholder="Address"
-          required
-          className="w-full p-3 border rounded"
-          rows={3}
-        ></textarea>
-        <div className="bg-gray-50 p-4 rounded flex justify-between font-medium">
-          <span>Total</span>
-          <span>
-            {currency}
-            {cart.total.toLocaleString()}
-          </span>
-        </div>
-        <button
-          type="submit"
-          className="w-full py-4 text-white font-semibold rounded"
-          style={{ background: NOVALUX_THEME.primary }}
-        >
-          Place Order
-        </button>
-      </form>
-    </div>
-  );
-}
-
 // --- Home Page ---
 function PreviewHomePage({
   storeName,
@@ -790,6 +522,31 @@ function PreviewNovaLuxStore(props: StoreTemplateProps) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
+  // Path-based navigation for shared components
+  const navigateByPath = useCallback(
+    (path: string) => {
+      if (path === '/' || path === '') {
+        navigate({ type: 'home' });
+      } else if (path.startsWith('/products/')) {
+        const productId = parseInt(path.replace('/products/', ''), 10);
+        if (!isNaN(productId)) {
+          navigate({ type: 'product', productId });
+        }
+      } else if (path === '/cart') {
+        navigate({ type: 'cart' });
+      } else if (path === '/checkout') {
+        navigate({ type: 'checkout' });
+      } else if (path.startsWith('/category/') || path.startsWith('/collections/')) {
+        const category = path.replace(/^\/(category|collections)\//, '');
+        navigate({ type: 'category', category });
+      } else {
+        // Default to home for unknown paths
+        navigate({ type: 'home' });
+      }
+    },
+    [navigate]
+  );
+
   const products = DEMO_PRODUCTS;
   const validCategories = DEMO_CATEGORIES;
 
@@ -807,17 +564,66 @@ function PreviewNovaLuxStore(props: StoreTemplateProps) {
           />
         );
       case 'product':
+        const product = getDemoProductById(currentPage.productId);
+        const relatedProducts = getRelatedProducts(currentPage.productId, 4);
+        if (!product) return <div className="pt-32 text-center">Product not found</div>;
         return (
-          <PreviewProductDetailPage
-            productId={currentPage.productId}
-            currency={currency}
-            onNavigate={navigate}
-          />
+          <div className="pt-20">
+            <SharedProductPage
+              product={{
+                id: product.id,
+                title: product.title,
+                description: product.description,
+                price: product.price,
+                compareAtPrice: product.compareAtPrice,
+                imageUrl: product.imageUrl,
+                category: product.category,
+                stock: 99, // Demo always in stock
+              }}
+              currency={currency}
+              relatedProducts={relatedProducts.map((p) => ({
+                id: p.id,
+                title: p.title,
+                price: p.price,
+                compareAtPrice: p.compareAtPrice,
+                imageUrl: p.imageUrl,
+                category: p.category,
+              }))}
+              theme={NOVALUX_THEME_FOR_SHARED}
+              isPreview={true}
+              templateId="nova-lux"
+              onNavigate={navigateByPath}
+            />
+          </div>
         );
       case 'cart':
-        return <PreviewCartPageComponent currency={currency} onNavigate={navigate} />;
+        return (
+          <div className="pt-20">
+            <SharedCartPage
+              theme={NOVALUX_THEME_FOR_SHARED}
+              isPreview={true}
+              templateId="nova-lux"
+              onNavigate={navigateByPath}
+              recommendedProducts={DEMO_PRODUCTS.slice(0, 4).map((p) => ({
+                id: p.id,
+                title: p.title,
+                price: p.price,
+                imageUrl: p.imageUrl,
+              }))}
+            />
+          </div>
+        );
       case 'checkout':
-        return <PreviewCheckoutPage currency={currency} onNavigate={navigate} />;
+        return (
+          <div className="pt-20">
+            <SharedCheckoutPage
+              theme={NOVALUX_THEME_FOR_SHARED}
+              isPreview={true}
+              templateId="nova-lux"
+              onNavigate={navigateByPath}
+            />
+          </div>
+        );
       case 'category':
         const filtered = products.filter((p) => p.category === currentPage.category);
         return (
@@ -877,7 +683,12 @@ function PreviewNovaLuxStore(props: StoreTemplateProps) {
           onNavigate={navigate}
         />
         <main>{renderPage()}</main>
-        <PreviewFooter storeName={storeName} categories={validCategories} onNavigate={navigate} />
+        <NovaLuxFooter
+          storeName={storeName}
+          logo={logo}
+          categories={validCategories}
+          isPreview={true}
+        />
       </div>
     </CartProvider>
   );

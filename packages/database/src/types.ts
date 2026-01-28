@@ -394,9 +394,10 @@ export interface ThemeConfig {
   floatingCallNumber?: string;
   // Visual Editor Sections
   sections?: any[]; // StoreSections structure for Home Page
-  productSections?: any[];
-  collectionSections?: any[];
-  cartSections?: any[]; // StoreSections structure for Product Details Page
+  productSections?: any[]; // StoreSections for Product Detail Page
+  collectionSections?: any[]; // StoreSections for Collection Page
+  cartSections?: any[]; // StoreSections for Cart Page
+  checkoutSections?: any[]; // StoreSections for Checkout Page
   // Marketing & Sales
   flashSale?: {
     isActive: boolean;

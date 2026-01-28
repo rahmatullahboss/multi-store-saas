@@ -47,7 +47,7 @@ function DefaultSkeleton({ minHeight }: { minHeight?: string }) {
 export function LazySection({
   children,
   fallback,
-  rootMargin = '200px',
+  rootMargin = '300px', // Increased for smoother loading
   minHeight = '400px',
   className = '',
 }: LazySectionProps) {

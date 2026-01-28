@@ -1,8 +1,8 @@
 /**
  * Landing Page Template Preview Route
- * 
+ *
  * Route: /landing-template-preview/:templateId
- * 
+ *
  * Renders static listing of landing page templates (presets) from the Intent Wizard.
  * This allows users to preview "Genie Builder" templates before creating a page.
  */
@@ -42,12 +42,16 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     .limit(8);
 
   // Map to format expected by SectionRenderer
-  const mappedProducts = storeProducts.map(p => ({
+  const mappedProducts = storeProducts.map((p) => ({
     id: p.id,
     title: p.title,
     price: p.price,
     compareAtPrice: p.compareAtPrice,
-    images: (p.images ? JSON.parse(p.images as string) : (p.imageUrl ? [p.imageUrl] : [])) as string[],
+    images: (p.images
+      ? JSON.parse(p.images as string)
+      : p.imageUrl
+        ? [p.imageUrl]
+        : []) as string[],
     imageUrl: p.imageUrl,
     description: p.description,
   }));
@@ -58,7 +62,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     accentColor: preset.colors.accent,
     backgroundColor: preset.colors.bg,
     // Defaults
-    textColor: preset.colors.bg.includes('black') || preset.colors.bg.includes('#0') ? '#FFFFFF' : '#1F2937', 
+    textColor:
+      preset.colors.bg.includes('black') || preset.colors.bg.includes('#0') ? '#FFFFFF' : '#1F2937',
     headingFont: 'Inter',
     bodyFont: 'Inter',
     headerStyle: 'solid',
@@ -77,7 +82,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     },
     products: mappedProducts,
     // Use first product as the "main" product if available
-    product: mappedProducts[0] || null, 
+    product: mappedProducts[0] || null,
     categories: ['Electronics', 'Fashion', 'Home'], // Dummy categories
   });
 }
@@ -110,7 +115,7 @@ export default function LandingTemplatePreview() {
   }));
 
   return (
-    <div 
+    <div
       className="min-h-screen"
       style={{
         ...themeStyle,
@@ -123,20 +128,20 @@ export default function LandingTemplatePreview() {
         sections={sections}
         storeId={store.id}
         // Pass products for product-grid
-        selectedProducts={products.map(p => ({
+        selectedProducts={products.map((p) => ({
           id: p.id,
           title: p.title,
           price: p.price,
           compareAtPrice: p.compareAtPrice,
-          imageUrl: p.imageUrl
+          imageUrl: p.imageUrl,
         }))}
         // Pass main product for single-product sections
         product={product}
         productId={product?.id}
         // Mock realData just for preview
         realData={{
-            stockCount: 50,
-            recentOrderCount: 12
+          stockCount: 50,
+          recentOrderCount: 12,
         }}
         activeSectionId={null}
       />
@@ -152,8 +157,8 @@ export default function LandingTemplatePreview() {
         </div>
       </div>
       {/* Social Proof Popup - Auto-shows for templates */}
-      <SocialProofPopup 
-        productName={product?.title || 'Premium Item'} 
+      <SocialProofPopup
+        productName={product?.title || 'Premium Item'}
         variant={preset.id === 'story-driven' ? 'story-driven' : 'default'}
       />
     </div>

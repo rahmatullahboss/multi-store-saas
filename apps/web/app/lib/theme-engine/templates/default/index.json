@@ -1,0 +1,149 @@
+{
+  "name": "Homepage",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "id": "header",
+      "type": "header",
+      "settings": {}
+    },
+    "hero": {
+      "id": "hero",
+      "type": "hero",
+      "settings": {
+        "layout": "text_first",
+        "height": "medium",
+        "content_alignment": "left",
+        "heading": "Welcome to Our Store",
+        "subheading": "Discover amazing products at great prices",
+        "primary_button_label": "Shop Now",
+        "primary_button_link": "/products",
+        "secondary_button_label": "Learn More",
+        "secondary_button_link": "/about",
+        "overlay_opacity": 40,
+        "padding_top": 0,
+        "padding_bottom": 0
+      }
+    },
+    "featured-products": {
+      "id": "featured-products",
+      "type": "product-grid",
+      "settings": {
+        "heading": "Featured Products",
+        "subheading": "Our most popular items",
+        "heading_size": "large",
+        "source": "featured",
+        "products_count": 8,
+        "columns_desktop": 4,
+        "columns_mobile": 2,
+        "gap": 24,
+        "image_ratio": "portrait",
+        "show_secondary_image": true,
+        "show_vendor": false,
+        "show_rating": true,
+        "quick_add": true,
+        "show_view_all": true,
+        "view_all_label": "View All Products",
+        "view_all_link": "/products",
+        "padding_top": 60,
+        "padding_bottom": 60
+      }
+    },
+    "collections": {
+      "id": "collections",
+      "type": "collection-list",
+      "settings": {
+        "heading": "Shop by Category",
+        "subheading": "Browse our collections",
+        "heading_size": "large",
+        "source": "all",
+        "collections_count": 6,
+        "layout": "grid",
+        "columns": 3,
+        "image_ratio": "square",
+        "show_product_count": true,
+        "padding_top": 60,
+        "padding_bottom": 60
+      }
+    },
+    "testimonials": {
+      "id": "testimonials",
+      "type": "testimonials",
+      "settings": {
+        "heading": "What Our Customers Say",
+        "subheading": "Real reviews from real customers",
+        "heading_size": "large",
+        "layout": "slider",
+        "columns": 3,
+        "show_rating": true,
+        "show_avatar": true,
+        "padding_top": 60,
+        "padding_bottom": 60
+      },
+      "blocks": [
+        {
+          "id": "testimonial-1",
+          "type": "testimonial",
+          "settings": {
+            "quote": "Amazing quality and fast delivery! Will definitely order again.",
+            "author": "Rahim Ahmed",
+            "role": "Dhaka, Bangladesh",
+            "rating": 5
+          }
+        },
+        {
+          "id": "testimonial-2",
+          "type": "testimonial",
+          "settings": {
+            "quote": "Best shopping experience. Customer service is excellent!",
+            "author": "Fatima Khan",
+            "role": "Chittagong, Bangladesh",
+            "rating": 5
+          }
+        },
+        {
+          "id": "testimonial-3",
+          "type": "testimonial",
+          "settings": {
+            "quote": "Great value for money. Highly recommended!",
+            "author": "Karim Hossain",
+            "role": "Sylhet, Bangladesh",
+            "rating": 5
+          }
+        }
+      ],
+      "block_order": ["testimonial-1", "testimonial-2", "testimonial-3"]
+    },
+    "newsletter": {
+      "id": "newsletter",
+      "type": "newsletter",
+      "settings": {
+        "heading": "Subscribe to Our Newsletter",
+        "subheading": "Get updates on new products and exclusive offers",
+        "heading_size": "medium",
+        "content": "Be the first to know about our latest products and special promotions.",
+        "button_label": "Subscribe",
+        "placeholder": "Enter your email",
+        "success_message": "Thanks for subscribing!",
+        "layout": "horizontal",
+        "content_width": "medium",
+        "padding_top": 60,
+        "padding_bottom": 60
+      }
+    },
+    "footer": {
+      "id": "footer",
+      "type": "footer",
+      "settings": {}
+    }
+  },
+  "order": [
+    "header",
+    "hero",
+    "featured-products",
+    "collections",
+    "testimonials",
+    "newsletter",
+    "footer"
+  ]
+}

@@ -1,81 +1,95 @@
-# Documentation Index
+# Documentation Index - Multi Store SaaS
 
-## 📁 Folder Structure
+## 🎯 Quick Links
+
+| Document                          | Description                                    |
+| --------------------------------- | ---------------------------------------------- |
+| [AGENTS.md](../AGENTS.md)         | Main development guidelines & coding standards |
+| [NEXT_STEPS.md](../NEXT_STEPS.md) | Current development roadmap & next tasks       |
+
+---
+
+## 🎨 Theme System (Shopify OS 2.0)
+
+The storefront uses a **Shopify OS 2.0 compatible theme system**.
+
+### Core Components
+
+| File                                                 | Purpose                         |
+| ---------------------------------------------------- | ------------------------------- |
+| `~/themes/*`                                         | Theme folders with sections     |
+| `~/lib/theme-engine/ThemeBridge.ts`                  | Theme loader & section registry |
+| `~/components/store/ThemeStoreRenderer.tsx`          | Storefront section renderer     |
+| `~/components/store-builder/LiveEditorV2.client.tsx` | Visual theme editor             |
+
+### Available Themes
+
+| Theme ID        | Description           |
+| --------------- | --------------------- |
+| `starter-store` | Default minimal store |
+| `daraz`         | Marketplace style     |
+| `bdshop`        | BDShop variant        |
+| `ghorer-bazar`  | Grocery store         |
+| `luxe-boutique` | Luxury boutique       |
+| `tech-modern`   | Tech/gadget store     |
+
+---
+
+## 📁 Documentation Categories
+
+### Infrastructure
+
+- [CLOUDFLARE_SAAS_SETUP.md](CLOUDFLARE_SAAS_SETUP.md) - Cloudflare SaaS setup guide
+- [CLOUDFLARE_OZZYL_SETUP.md](CLOUDFLARE_OZZYL_SETUP.md) - Ozzyl domain setup
+- [D1_OPTIMIZATION_GUIDE.md](D1_OPTIMIZATION_GUIDE.md) - Database optimization
+- [DURABLE_OBJECTS_GUIDE.md](DURABLE_OBJECTS_GUIDE.md) - Durable Objects usage
+
+### Features
+
+- [SYSTEM_FEATURES.md](SYSTEM_FEATURES.md) - Complete feature list
+- [MERCHANT_FEATURES.md](MERCHANT_FEATURES.md) - Merchant dashboard features
+- [SUPER_ADMIN_FEATURES.md](SUPER_ADMIN_FEATURES.md) - Admin panel features
+- [API_REFERENCE.md](API_REFERENCE.md) - API documentation
+
+### Translations
+
+- [TRANSLATION_INDEX.md](TRANSLATION_INDEX.md) - Translation system overview
+- [TRANSLATION_QUICK_START.md](TRANSLATION_QUICK_START.md) - Quick start guide
+
+### Genie Builder (Landing Page Builder)
+
+- [genie-builder/](genie-builder/) - Full Genie Builder documentation
+
+---
+
+## 🏗️ Architecture
 
 ```
-docs/
-├── shopify-parity/      # Shopify-level feature parity docs
-├── technical-specs/     # Technical specifications for new features
-├── theme-migration/     # Theme system migration documentation
-└── [other docs]         # Existing project documentation
+apps/web/app/
+├── themes/                    # Shopify OS 2.0 themes
+│   ├── starter-store/
+│   ├── daraz/
+│   ├── luxe-boutique/
+│   └── tech-modern/
+├── lib/theme-engine/          # Theme engine core
+├── components/store/          # Store components
+├── components/store-builder/  # Editor components
+└── routes/                    # All routes
 ```
-
----
-
-## 🎯 Shopify Parity (`shopify-parity/`)
-
-Documentation for reaching Shopify-level theme system quality.
-
-| Document | Description |
-|----------|-------------|
-| [ROADMAP.md](shopify-parity/ROADMAP.md) | 6-week phased implementation plan |
-| [GAP_ANALYSIS.md](shopify-parity/GAP_ANALYSIS.md) | Current status vs Shopify (65% → 93%) |
-
----
-
-## 🔧 Technical Specs (`technical-specs/`)
-
-Detailed technical specifications for upcoming features.
-
-| Document | Description | Phase |
-|----------|-------------|-------|
-| [BLOCK_SYSTEM.md](technical-specs/BLOCK_SYSTEM.md) | Blocks inside sections (Shopify-style) | Phase 1 |
-| [SCHEMA_VALIDATION.md](technical-specs/SCHEMA_VALIDATION.md) | Zod-based input validation | Phase 1 |
-| [METAFIELDS.md](technical-specs/METAFIELDS.md) | Universal custom fields | Phase 2 |
-
----
-
-## 🔄 Theme Migration (`theme-migration/`)
-
-Documentation for migrating from legacy themeConfig to new draft/publish system.
-
-| Document | Description |
-|----------|-------------|
-| [INDEX.md](theme-migration/INDEX.md) | Migration overview |
-| [SUMMARY.md](theme-migration/SUMMARY.md) | Quick summary |
-| [CHECKLIST.md](theme-migration/CHECKLIST.md) | Progress tracking |
-
-### Phase Breakdown:
-- **Phase 1:** Legacy Analysis (`1A`, `1B`, `1C`)
-- **Phase 2:** Editor Mapping (`2A`, `2B`)
-- **Phase 3:** Draft/Publish (`3A`, `3B`, `3C`)
-- **Phase 4:** Validation (`4A`, `4B`, `4C`)
-- **Phase 5:** Migration Script (`5A`, `5B`, `5C`)
 
 ---
 
 ## 📊 Current Status
 
-| Area | Status | Score |
-|------|--------|-------|
-| **Draft/Publish Pipeline** | ✅ Complete | 100% |
-| **Section Registry** | ✅ Complete | 100% |
-| **Theme Migration** | ✅ Complete | 100% |
-| **Block System** | ✅ Complete | 100% |
-| **Schema Validation** | ✅ Complete | 100% |
-| **Metafields** | ✅ Complete | 100% |
-| **Multi-page Editor** | ✅ Complete | 100% |
-| **SEO Structured Data** | ✅ Complete | 100% |
-| **Version History** | ✅ Complete | 100% |
-| **Overall Shopify Parity** | ✅ **Production Ready** | **92-95%** |
+| Area                          | Status      |
+| ----------------------------- | ----------- |
+| Theme System (Shopify OS 2.0) | ✅ Active   |
+| ThemeStoreRenderer            | ✅ Active   |
+| LiveEditorV2                  | ✅ Active   |
+| Store Routes                  | ✅ Migrated |
+| Legacy StoreSectionRenderer   | ❌ Removed  |
+| Legacy LiveEditor             | ❌ Removed  |
 
 ---
 
-## 🎉 Implementation Complete!
-
-All 3 phases have been successfully completed. See [IMPLEMENTATION_COMPLETE.md](IMPLEMENTATION_COMPLETE.md) for full details.
-
-### Optional Future Enhancements
-- Section Presets (Low priority)
-- Accessibility Defaults (Low priority)
-- Theme App Extensions (Low priority)
+**Mission**: Build the Shopify of Bangladesh 🇧🇩🚀

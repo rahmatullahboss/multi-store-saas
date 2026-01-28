@@ -77,6 +77,8 @@ interface ShippingMethod {
 interface SharedCheckoutPageProps {
   theme?: StoreTemplateTheme;
   isPreview?: boolean;
+  templateId?: string; // Optional: Pass template ID for preview mode navigation
+  onNavigate?: (path: string) => void; // Optional: Callback for internal navigation
 }
 
 // Bangladesh Cities
@@ -160,9 +162,15 @@ const PAYMENT_METHODS = [
   },
 ];
 
-export default function SharedCheckoutPage({ theme, isPreview = false }: SharedCheckoutPageProps) {
+export default function SharedCheckoutPage({
+  theme,
+  isPreview = false,
+  templateId: propTemplateId,
+  onNavigate,
+}: SharedCheckoutPageProps) {
   const params = useParams();
-  const templateId = params.templateId;
+  // Use prop templateId first, fallback to URL params
+  const templateId = propTemplateId || params.templateId;
 
   // Default theme if not provided
   const colors = theme || {
@@ -355,6 +363,14 @@ export default function SharedCheckoutPage({ theme, isPreview = false }: SharedC
     return path;
   };
 
+  // Navigation handler - uses callback if provided, otherwise URL navigation
+  const handleNavigation = (e: React.MouseEvent, path: string) => {
+    if (onNavigate) {
+      e.preventDefault();
+      onNavigate(path);
+    }
+  };
+
   // Handle express checkout
   const handleExpressCheckout = (method: string) => {
     setPaymentMethod(method);
@@ -485,6 +501,7 @@ export default function SharedCheckoutPage({ theme, isPreview = false }: SharedC
           <div className="space-y-3">
             <Link
               to={getLink('/')}
+              onClick={(e) => handleNavigation(e, '/')}
               className="block w-full py-3 rounded-xl text-white font-medium transition-opacity hover:opacity-90"
               style={{ backgroundColor: colors.primary }}
             >
@@ -510,7 +527,11 @@ export default function SharedCheckoutPage({ theme, isPreview = false }: SharedC
       <div className="max-w-7xl mx-auto px-4">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-6 text-sm" style={{ color: colors.muted }}>
-          <Link to={getLink('/cart')} className="hover:underline">
+          <Link
+            to={getLink('/cart')}
+            onClick={(e) => handleNavigation(e, '/cart')}
+            className="hover:underline"
+          >
             Cart
           </Link>
           <ChevronRight className="w-4 h-4" />
@@ -924,6 +945,7 @@ export default function SharedCheckoutPage({ theme, isPreview = false }: SharedC
                   I agree to the{' '}
                   <Link
                     to={getLink('/policies/terms')}
+                    onClick={(e) => handleNavigation(e, '/policies/terms')}
                     className="underline font-medium"
                     style={{ color: colors.accent }}
                   >
@@ -932,6 +954,7 @@ export default function SharedCheckoutPage({ theme, isPreview = false }: SharedC
                   and{' '}
                   <Link
                     to={getLink('/policies/privacy')}
+                    onClick={(e) => handleNavigation(e, '/policies/privacy')}
                     className="underline font-medium"
                     style={{ color: colors.accent }}
                   >

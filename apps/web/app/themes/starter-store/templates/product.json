@@ -1,0 +1,67 @@
+{
+  "name": "Product",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "logo_width": 120,
+        "show_search": true,
+        "show_cart": true,
+        "background_color": "#ffffff",
+        "text_color": "#111827",
+        "sticky": true
+      }
+    },
+    "main": {
+      "type": "product-main",
+      "settings": {
+        "image_position": "left",
+        "image_size": "medium",
+        "enable_zoom": true,
+        "show_vendor": false,
+        "show_sku": true,
+        "show_quantity_selector": true,
+        "show_share": true,
+        "show_trust_badges": true,
+        "shipping_text": "ফ্রি ডেলিভারি ১০০০৳+ অর্ডারে",
+        "guarantee_text": "১০০% অরিজিনাল প্রোডাক্ট",
+        "return_text": "৭ দিনের ইজি রিটার্ন",
+        "background_color": "#ffffff",
+        "padding_top": 48,
+        "padding_bottom": 48
+      },
+      "blocks": {
+        "description": {
+          "type": "description",
+          "settings": {
+            "show_full": true
+          }
+        }
+      },
+      "block_order": ["description"]
+    },
+    "related-products": {
+      "type": "featured-collection",
+      "settings": {
+        "heading": "সম্পর্কিত পণ্য",
+        "products_count": 4,
+        "columns": "4",
+        "show_view_all": false,
+        "background_color": "#f9fafb",
+        "padding_top": 48,
+        "padding_bottom": 48
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "description": "বাংলাদেশের সেরা অনলাইন শপিং প্লাটফর্ম।",
+        "background_color": "#111827",
+        "text_color": "#ffffff",
+        "show_powered_by": true
+      }
+    }
+  },
+  "order": ["header", "main", "related-products", "footer"]
+}

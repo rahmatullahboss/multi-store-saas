@@ -1,0 +1,296 @@
+{
+  "name": "Luxe Boutique",
+  "version": "1.0.0",
+  "theme_info": {
+    "theme_name": "Luxe Boutique",
+    "theme_name_bn": "লাক্স বুটিক",
+    "theme_version": "1.0.0",
+    "theme_author": "Ozzyl",
+    "theme_documentation_url": "https://docs.ozzyl.com/themes/luxe-boutique",
+    "theme_support_url": "https://ozzyl.com/support"
+  },
+  "settings_schema": [
+    {
+      "name": "Logo",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "logo",
+          "label": "Logo image",
+          "info": "Recommended size: 200x50px"
+        },
+        {
+          "type": "range",
+          "id": "logo_width",
+          "min": 50,
+          "max": 300,
+          "step": 10,
+          "default": 140,
+          "unit": "px",
+          "label": "Logo width"
+        }
+      ]
+    },
+    {
+      "name": "Colors",
+      "settings": [
+        {
+          "type": "header",
+          "content": "Brand Colors"
+        },
+        {
+          "type": "color",
+          "id": "color_primary",
+          "label": "Primary color (Black)",
+          "default": "#1a1a1a",
+          "info": "Main brand color - text, headers"
+        },
+        {
+          "type": "color",
+          "id": "color_accent",
+          "label": "Accent color (Gold)",
+          "default": "#c9a961",
+          "info": "Luxury gold accent - buttons, highlights"
+        },
+        {
+          "type": "color",
+          "id": "color_accent_hover",
+          "label": "Accent hover color",
+          "default": "#b8944f"
+        },
+        {
+          "type": "header",
+          "content": "Background Colors"
+        },
+        {
+          "type": "color",
+          "id": "color_background",
+          "label": "Page background",
+          "default": "#faf9f7"
+        },
+        {
+          "type": "color",
+          "id": "color_surface",
+          "label": "Card background",
+          "default": "#ffffff"
+        },
+        {
+          "type": "color",
+          "id": "color_header",
+          "label": "Header background",
+          "default": "#ffffff"
+        },
+        {
+          "type": "color",
+          "id": "color_footer",
+          "label": "Footer background",
+          "default": "#1a1a1a"
+        },
+        {
+          "type": "header",
+          "content": "Text Colors"
+        },
+        {
+          "type": "color",
+          "id": "color_text",
+          "label": "Primary text",
+          "default": "#1a1a1a"
+        },
+        {
+          "type": "color",
+          "id": "color_text_muted",
+          "label": "Muted text",
+          "default": "#6b6b6b"
+        },
+        {
+          "type": "color",
+          "id": "color_footer_text",
+          "label": "Footer text",
+          "default": "#faf9f7"
+        }
+      ]
+    },
+    {
+      "name": "Typography",
+      "settings": [
+        {
+          "type": "select",
+          "id": "font_heading",
+          "options": [
+            { "value": "playfair", "label": "Playfair Display (Luxury)" },
+            { "value": "cormorant", "label": "Cormorant Garamond (Elegant)" },
+            { "value": "lora", "label": "Lora (Classic)" },
+            { "value": "merriweather", "label": "Merriweather (Traditional)" }
+          ],
+          "default": "playfair",
+          "label": "Heading font"
+        },
+        {
+          "type": "select",
+          "id": "font_body",
+          "options": [
+            { "value": "inter", "label": "Inter (Modern)" },
+            { "value": "lato", "label": "Lato (Clean)" },
+            { "value": "nunito", "label": "Nunito Sans (Friendly)" },
+            { "value": "roboto", "label": "Roboto (Neutral)" }
+          ],
+          "default": "inter",
+          "label": "Body font"
+        },
+        {
+          "type": "range",
+          "id": "font_size_base",
+          "min": 14,
+          "max": 18,
+          "step": 1,
+          "default": 16,
+          "unit": "px",
+          "label": "Base font size"
+        }
+      ]
+    },
+    {
+      "name": "Layout",
+      "settings": [
+        {
+          "type": "range",
+          "id": "container_width",
+          "min": 1000,
+          "max": 1600,
+          "step": 40,
+          "default": 1280,
+          "unit": "px",
+          "label": "Container max width"
+        },
+        {
+          "type": "range",
+          "id": "section_spacing",
+          "min": 24,
+          "max": 80,
+          "step": 8,
+          "default": 48,
+          "unit": "px",
+          "label": "Section vertical spacing"
+        },
+        {
+          "type": "range",
+          "id": "border_radius",
+          "min": 0,
+          "max": 16,
+          "step": 2,
+          "default": 0,
+          "unit": "px",
+          "label": "Border radius (0 = sharp edges)"
+        }
+      ]
+    },
+    {
+      "name": "Social Media",
+      "settings": [
+        {
+          "type": "url",
+          "id": "social_instagram",
+          "label": "Instagram URL"
+        },
+        {
+          "type": "url",
+          "id": "social_facebook",
+          "label": "Facebook URL"
+        },
+        {
+          "type": "url",
+          "id": "social_pinterest",
+          "label": "Pinterest URL"
+        },
+        {
+          "type": "url",
+          "id": "social_whatsapp",
+          "label": "WhatsApp Number",
+          "info": "e.g., +8801XXXXXXXXX"
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_wishlist",
+          "default": true,
+          "label": "Show wishlist button"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_quick_view",
+          "default": true,
+          "label": "Show quick view on hover"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_sale_badge",
+          "default": true,
+          "label": "Show sale badge"
+        },
+        {
+          "type": "select",
+          "id": "product_columns",
+          "options": [
+            { "value": "3", "label": "3 columns (Large cards)" },
+            { "value": "4", "label": "4 columns (Standard)" }
+          ],
+          "default": "4",
+          "label": "Product grid columns"
+        },
+        {
+          "type": "select",
+          "id": "product_image_ratio",
+          "options": [
+            { "value": "portrait", "label": "Portrait (3:4)" },
+            { "value": "square", "label": "Square (1:1)" },
+            { "value": "landscape", "label": "Landscape (4:3)" }
+          ],
+          "default": "portrait",
+          "label": "Product image ratio"
+        }
+      ]
+    },
+    {
+      "name": "Luxury Features",
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_gold_accents",
+          "default": true,
+          "label": "Show gold accent line under header"
+        },
+        {
+          "type": "checkbox",
+          "id": "elegant_animations",
+          "default": true,
+          "label": "Enable elegant hover animations"
+        },
+        {
+          "type": "checkbox",
+          "id": "serif_headings",
+          "default": true,
+          "label": "Use serif fonts for headings"
+        }
+      ]
+    },
+    {
+      "name": "Currency",
+      "settings": [
+        {
+          "type": "select",
+          "id": "currency_format",
+          "options": [
+            { "value": "symbol_first", "label": "1,000" },
+            { "value": "symbol_last", "label": "1,000" }
+          ],
+          "default": "symbol_first",
+          "label": "Currency format"
+        }
+      ]
+    }
+  ]
+}

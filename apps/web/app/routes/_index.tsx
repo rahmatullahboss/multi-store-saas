@@ -291,6 +291,10 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
 
   // If it's a main domain AND no store was resolved, show marketing page
   if (isMainDomain && (!store || storeId === 0)) {
+    // Localhost dev: Redirect to /app (Login/Dashboard)
+    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+       throw redirect('/app', 302);
+    }
     // Return marketing page data
     return json({ mode: 'marketing' } as MarketingModeData);
   }
@@ -531,7 +535,7 @@ export default function Index() {
 
   // ========== MARKETING MODE (REDIRECT TO LANDING) ==========
   if (data.mode === 'marketing') {
-    // Landing page moved to Next.js on Vercel
+    // Production: Redirect to marketing site
     throw redirect('https://ozzyl.com', 301);
   }
 

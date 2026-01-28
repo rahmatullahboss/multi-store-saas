@@ -84,13 +84,13 @@ export function HydrateFallback() {
 }
 
 /**
- * Lazy load the LiveEditor only on client side
+ * Lazy load the LiveEditor V2 (Shopify OS 2.0 Compatible)
  * We create the lazy component inside a function to ensure it's only
  * evaluated on the client after hydration.
  */
 const LazyLiveEditor = lazy(() =>
-  import('~/components/store-builder/LiveEditor.client').then((mod) => ({
-    default: mod.LiveEditor,
+  import('~/components/store-builder/LiveEditorV2.client').then((mod) => ({
+    default: mod.LiveEditorV2,
   }))
 );
 
@@ -119,6 +119,8 @@ export default function StoreLiveEditorRoute() {
         templates={data.templates}
         saasDomain={data.saasDomain}
         demoProductId={data.demoProductId ? String(data.demoProductId) : null}
+        themeId={data.themeId}
+        availableThemes={data.availableThemes}
       />
     </Suspense>
   );

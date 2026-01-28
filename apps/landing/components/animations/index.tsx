@@ -1,13 +1,31 @@
 'use client';
 
 /**
- * Modern CSS-based Animations (No framer-motion dependency)
- * Using native browser APIs and CSS for better performance
+ * Modern Performance-Optimized Animation Components
+ * - CSS-first approach where possible
+ * - Respects prefers-reduced-motion
+ * - Minimal JS for better performance
  */
 
-import { ReactNode, CSSProperties } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 
-// Simple scroll-triggered reveal using Intersection Observer
+// Hook to detect reduced motion preference
+export function useReducedMotion(): boolean {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+
+  return prefersReducedMotion;
+}
+
+// Simple scroll-triggered reveal using CSS animations
 interface ScrollRevealProps {
   children: ReactNode;
   className?: string;
@@ -15,6 +33,12 @@ interface ScrollRevealProps {
 }
 
 export function ScrollReveal({ children, className = '', delay = 0 }: ScrollRevealProps) {
+  const reducedMotion = useReducedMotion();
+
+  if (reducedMotion) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <div className={`animate-fade-in-up ${className}`} style={{ animationDelay: `${delay}ms` }}>
       {children as any}
@@ -29,10 +53,10 @@ interface StaggerContainerProps {
 }
 
 export function StaggerContainer({ children, className = '' }: StaggerContainerProps) {
-  return <div className={`stagger-container ${className}`}>{children as any}</div>;
+  return <div className={className}>{children as any}</div>;
 }
 
-// Stagger item
+// Stagger item with CSS animation
 interface StaggerItemProps {
   children: ReactNode;
   index: number;
@@ -40,30 +64,36 @@ interface StaggerItemProps {
 }
 
 export function StaggerItem({ children, index, className = '' }: StaggerItemProps) {
+  const reducedMotion = useReducedMotion();
+
+  if (reducedMotion) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <div
       className={`animate-fade-in-up ${className}`}
-      style={{ animationDelay: `${index * 100}ms` }}
+      style={{ animationDelay: `${index * 80}ms` }}
     >
       {children as any}
     </div>
   );
 }
 
-// Add these animations to your globals.css
-/*
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out forwards;
-}
-*/
+// Re-export optimized components
+export { MorphingBlob, FloatingOrbs } from './MorphingBlob';
+export { TiltCard } from './TiltCard';
+export { MagneticButton, AnimatedButton } from './MagneticButton';
+export { AnimatedText, ShimmerText, Typewriter } from './AnimatedText';
+export { AnimatedCounter } from './AnimatedCounter';
+export { PremiumCTAButton } from './PremiumCTAButton';
+export {
+  ScrollReveal as MotionScrollReveal,
+  StaggerContainer as MotionStaggerContainer,
+  StaggerItem as MotionStaggerItem,
+  fadeInUp,
+  fadeInDown,
+  fadeInLeft,
+  fadeInRight,
+  scaleIn,
+} from './ScrollReveal';

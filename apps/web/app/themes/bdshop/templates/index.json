@@ -1,0 +1,51 @@
+{
+  "name": "Homepage",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "header_bg": "#1E3A8A",
+        "top_bar_bg": "#0F172A",
+        "search_btn_bg": "#F97316",
+        "badge_bg": "#F97316",
+        "show_top_bar": true
+      }
+    },
+    "hero": {
+      "type": "hero-carousel",
+      "settings": {
+        "primary_color": "#1E3A8A",
+        "show_app_widget": true
+      }
+    },
+    "top-deals": {
+      "type": "flash-sale",
+      "settings": {
+        "title": "Top Deals",
+        "subtitle": "Best Offers",
+        "primary_color": "#1E3A8A",
+        "price_color": "#1E40AF"
+      }
+    },
+    "categories": {
+      "type": "category-grid",
+      "settings": {
+        "icon_color": "#1E3A8A"
+      }
+    },
+    "products": {
+      "type": "product-grid",
+      "settings": {
+        "title": "Specially For You",
+        "primary_color": "#1E3A8A",
+        "price_color": "#1E40AF"
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {}
+    }
+  },
+  "order": ["header", "hero", "top-deals", "categories", "products", "footer"]
+}

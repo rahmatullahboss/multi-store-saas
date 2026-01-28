@@ -1,0 +1,314 @@
+{
+  "name": "Daraz",
+  "version": "1.0.0",
+  "theme_info": {
+    "theme_name": "Daraz",
+    "theme_name_bn": "দারাজ",
+    "theme_version": "1.0.0",
+    "theme_author": "Ozzyl",
+    "theme_documentation_url": "https://docs.ozzyl.com/themes/daraz",
+    "theme_support_url": "https://ozzyl.com/support"
+  },
+  "settings_schema": [
+    {
+      "name": "Logo",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "logo",
+          "label": "Logo image",
+          "info": "Recommended size: 200x50px"
+        },
+        {
+          "type": "range",
+          "id": "logo_width",
+          "min": 50,
+          "max": 300,
+          "step": 10,
+          "default": 120,
+          "unit": "px",
+          "label": "Logo width"
+        }
+      ]
+    },
+    {
+      "name": "Colors",
+      "settings": [
+        {
+          "type": "header",
+          "content": "Brand Colors"
+        },
+        {
+          "type": "color",
+          "id": "color_primary",
+          "label": "Primary color (Daraz Orange)",
+          "default": "#F85606",
+          "info": "Main brand color - buttons, headers"
+        },
+        {
+          "type": "color",
+          "id": "color_accent",
+          "label": "Accent color",
+          "default": "#E04E05",
+          "info": "Hover states, search button"
+        },
+        {
+          "type": "color",
+          "id": "color_price",
+          "label": "Price color",
+          "default": "#F36D00"
+        },
+        {
+          "type": "header",
+          "content": "Background Colors"
+        },
+        {
+          "type": "color",
+          "id": "color_background",
+          "label": "Page background",
+          "default": "#F5F5F5"
+        },
+        {
+          "type": "color",
+          "id": "color_surface",
+          "label": "Card background",
+          "default": "#FFFFFF"
+        },
+        {
+          "type": "color",
+          "id": "color_top_bar",
+          "label": "Top bar background",
+          "default": "#2E2E2E"
+        },
+        {
+          "type": "header",
+          "content": "Text Colors"
+        },
+        {
+          "type": "color",
+          "id": "color_text",
+          "label": "Primary text",
+          "default": "#212121"
+        },
+        {
+          "type": "color",
+          "id": "color_text_secondary",
+          "label": "Secondary text",
+          "default": "#757575"
+        },
+        {
+          "type": "color",
+          "id": "color_text_muted",
+          "label": "Muted text",
+          "default": "#999999"
+        },
+        {
+          "type": "header",
+          "content": "Special Colors"
+        },
+        {
+          "type": "color",
+          "id": "color_success",
+          "label": "Success color",
+          "default": "#52C41A"
+        },
+        {
+          "type": "color",
+          "id": "color_gold",
+          "label": "Badge/highlight color",
+          "default": "#FFD700"
+        },
+        {
+          "type": "color",
+          "id": "color_buy_now",
+          "label": "Buy Now button",
+          "default": "#26ABD4"
+        }
+      ]
+    },
+    {
+      "name": "Typography",
+      "settings": [
+        {
+          "type": "font_picker",
+          "id": "font_heading",
+          "default": "roboto_n5",
+          "label": "Heading font"
+        },
+        {
+          "type": "font_picker",
+          "id": "font_body",
+          "default": "roboto_n4",
+          "label": "Body font"
+        },
+        {
+          "type": "range",
+          "id": "font_size_base",
+          "min": 14,
+          "max": 18,
+          "step": 1,
+          "default": 14,
+          "unit": "px",
+          "label": "Base font size"
+        }
+      ]
+    },
+    {
+      "name": "Layout",
+      "settings": [
+        {
+          "type": "range",
+          "id": "container_width",
+          "min": 1000,
+          "max": 1400,
+          "step": 40,
+          "default": 1200,
+          "unit": "px",
+          "label": "Container max width"
+        },
+        {
+          "type": "range",
+          "id": "section_spacing",
+          "min": 16,
+          "max": 48,
+          "step": 4,
+          "default": 24,
+          "unit": "px",
+          "label": "Section vertical spacing"
+        },
+        {
+          "type": "range",
+          "id": "border_radius",
+          "min": 0,
+          "max": 16,
+          "step": 2,
+          "default": 8,
+          "unit": "px",
+          "label": "Border radius"
+        }
+      ]
+    },
+    {
+      "name": "Social Media",
+      "settings": [
+        {
+          "type": "url",
+          "id": "social_facebook",
+          "label": "Facebook URL"
+        },
+        {
+          "type": "url",
+          "id": "social_instagram",
+          "label": "Instagram URL"
+        },
+        {
+          "type": "url",
+          "id": "social_youtube",
+          "label": "YouTube URL"
+        },
+        {
+          "type": "url",
+          "id": "social_whatsapp",
+          "label": "WhatsApp Number",
+          "info": "e.g., +8801XXXXXXXXX"
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_rating",
+          "default": true,
+          "label": "Show product rating"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_discount_badge",
+          "default": true,
+          "label": "Show discount percentage badge"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_quick_add",
+          "default": true,
+          "label": "Show quick add to cart on hover"
+        },
+        {
+          "type": "select",
+          "id": "product_columns",
+          "options": [
+            { "value": "4", "label": "4 columns" },
+            { "value": "5", "label": "5 columns" },
+            { "value": "6", "label": "6 columns (Daraz default)" }
+          ],
+          "default": "6",
+          "label": "Product grid columns"
+        }
+      ]
+    },
+    {
+      "name": "Flash Sale",
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "flash_sale_enabled",
+          "default": true,
+          "label": "Enable flash sale section"
+        },
+        {
+          "type": "checkbox",
+          "id": "flash_sale_timer",
+          "default": false,
+          "label": "Show countdown timer"
+        },
+        {
+          "type": "range",
+          "id": "flash_sale_products",
+          "min": 5,
+          "max": 20,
+          "step": 1,
+          "default": 10,
+          "label": "Number of flash sale products"
+        }
+      ]
+    },
+    {
+      "name": "Currency",
+      "settings": [
+        {
+          "type": "select",
+          "id": "currency_format",
+          "options": [
+            { "value": "symbol_first", "label": "1,000" },
+            { "value": "symbol_last", "label": "1,000" }
+          ],
+          "default": "symbol_first",
+          "label": "Currency format"
+        }
+      ]
+    },
+    {
+      "name": "App Download",
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_app_widget",
+          "default": true,
+          "label": "Show app download widget on hero"
+        },
+        {
+          "type": "url",
+          "id": "app_store_url",
+          "label": "App Store URL"
+        },
+        {
+          "type": "url",
+          "id": "google_play_url",
+          "label": "Google Play URL"
+        }
+      ]
+    }
+  ]
+}

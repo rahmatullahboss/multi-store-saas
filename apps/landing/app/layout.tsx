@@ -41,7 +41,8 @@ export const metadata: Metadata = {
 };
 
 import { LanguageProvider } from '@/app/contexts/LanguageContext';
-import { Analytics } from "@vercel/analytics/next";
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 // ... imports
 
@@ -56,6 +57,7 @@ export default function RootLayout({
         <LanguageProvider>
           {children}
           <Analytics />
+          <SpeedInsights />
         </LanguageProvider>
       </body>
     </html>

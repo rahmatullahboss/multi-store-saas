@@ -1,0 +1,166 @@
+{
+  "name": "Homepage",
+  "layout": "theme",
+  "sections": {
+    "announcement-bar": {
+      "id": "announcement-bar",
+      "type": "announcement-bar",
+      "settings": {
+        "text": "🎉 ফ্রি ডেলিভারি ১০০০৳+ অর্ডারে! সীমিত সময়ের অফার।",
+        "background_color": "#6366f1",
+        "text_color": "#ffffff",
+        "padding_y": 8,
+        "show_close": false
+      }
+    },
+    "header": {
+      "id": "header",
+      "type": "header",
+      "settings": {
+        "logo_width": 120,
+        "show_search": true,
+        "show_cart": true,
+        "background_color": "#ffffff",
+        "text_color": "#111827",
+        "sticky": true
+      }
+    },
+    "hero-banner": {
+      "id": "hero-banner",
+      "type": "hero-banner",
+      "settings": {
+        "image_height": "medium",
+        "overlay_opacity": 40,
+        "heading": "আমাদের নতুন কালেকশন",
+        "subheading": "সেরা মানের পণ্য, সেরা দামে",
+        "text_alignment": "center",
+        "button_label": "শপিং করুন",
+        "button_link": "/products"
+      }
+    },
+    "categories-grid": {
+      "id": "categories-grid",
+      "type": "categories-grid",
+      "settings": {
+        "heading": "ক্যাটাগরি",
+        "columns": "4",
+        "items_count": 4,
+        "image_ratio": "square",
+        "background_color": "#f9fafb",
+        "padding_top": 48,
+        "padding_bottom": 48
+      }
+    },
+    "featured-products": {
+      "id": "featured-products",
+      "type": "featured-collection",
+      "settings": {
+        "heading": "ফিচার্ড পণ্য",
+        "products_count": 4,
+        "columns": "4",
+        "show_view_all": true,
+        "view_all_label": "সব দেখুন →",
+        "view_all_link": "/products",
+        "background_color": "#ffffff",
+        "padding_top": 48,
+        "padding_bottom": 48
+      }
+    },
+    "sale-banner": {
+      "id": "sale-banner",
+      "type": "sale-banner",
+      "settings": {
+        "heading": "🎉 বিশেষ ছাড় চলছে!",
+        "subheading": "সীমিত সময়ের জন্য ৫০% পর্যন্ত ছাড়",
+        "button_label": "সেল দেখুন",
+        "button_link": "/collections/sale",
+        "background_color": "#f59e0b",
+        "text_color": "#ffffff",
+        "button_background": "#ffffff",
+        "button_text_color": "#f59e0b",
+        "padding_top": 64,
+        "padding_bottom": 64
+      }
+    },
+    "new-arrivals": {
+      "id": "new-arrivals",
+      "type": "featured-collection",
+      "settings": {
+        "heading": "নতুন এসেছে",
+        "products_count": 4,
+        "columns": "4",
+        "show_view_all": true,
+        "view_all_label": "সব দেখুন →",
+        "view_all_link": "/collections/new-arrivals",
+        "background_color": "#f9fafb",
+        "padding_top": 48,
+        "padding_bottom": 48
+      }
+    },
+    "trust-badges": {
+      "id": "trust-badges",
+      "type": "trust-badges",
+      "settings": {
+        "layout": "3",
+        "background_color": "#ffffff",
+        "card_background": "#f9fafb",
+        "padding_top": 48,
+        "padding_bottom": 48
+      },
+      "blocks": [
+        {
+          "id": "badge-1",
+          "type": "badge",
+          "settings": {
+            "icon": "truck",
+            "title": "দ্রুত ডেলিভারি",
+            "description": "ঢাকায় ১-২ দিনে"
+          }
+        },
+        {
+          "id": "badge-2",
+          "type": "badge",
+          "settings": {
+            "icon": "shield",
+            "title": "নিরাপদ পেমেন্ট",
+            "description": "১০০% সিকিউর"
+          }
+        },
+        {
+          "id": "badge-3",
+          "type": "badge",
+          "settings": {
+            "icon": "return",
+            "title": "ইজি রিটার্ন",
+            "description": "৭ দিনের মধ্যে"
+          }
+        }
+      ],
+      "block_order": ["badge-1", "badge-2", "badge-3"]
+    },
+    "footer": {
+      "id": "footer",
+      "type": "footer",
+      "settings": {
+        "description": "বাংলাদেশের সেরা অনলাইন শপিং প্লাটফর্ম। সেরা মানের পণ্য, সেরা সার্ভিস।",
+        "phone": "+880 1234-567890",
+        "email": "info@store.com",
+        "address": "ঢাকা, বাংলাদেশ",
+        "background_color": "#111827",
+        "text_color": "#ffffff",
+        "show_powered_by": true
+      }
+    }
+  },
+  "order": [
+    "announcement-bar",
+    "header",
+    "hero-banner",
+    "categories-grid",
+    "featured-products",
+    "sale-banner",
+    "new-arrivals",
+    "trust-badges",
+    "footer"
+  ]
+}

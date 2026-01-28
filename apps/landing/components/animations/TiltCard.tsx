@@ -1,8 +1,10 @@
 /**
- * 3D Tilt Card Effect Component
- * Creates premium 3D tilt effect on hover following mouse position
+ * 3D Tilt Card Effect Component - OPTIMIZED
+ * Simplified tilt effect with reduced motion support
  */
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+'use client';
+
+import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from 'framer-motion';
 import { ReactNode, useRef } from 'react';
 
 interface TiltCardProps {
@@ -16,29 +18,36 @@ export function TiltCard({
   children,
   className = '',
   glowColor = 'rgba(16, 185, 129, 0.3)',
-  maxTilt = 10,
+  maxTilt = 8, // Reduced from 10
 }: TiltCardProps) {
   const ref = useRef<HTMLDivElement>(null);
-  
+  const shouldReduceMotion = useReducedMotion();
+
   const x = useMotionValue(0.5);
   const y = useMotionValue(0.5);
 
-  const rotateX = useSpring(useTransform(y, [0, 1], [maxTilt, -maxTilt]), {
-    stiffness: 300,
-    damping: 30,
-  });
-  const rotateY = useSpring(useTransform(x, [0, 1], [-maxTilt, maxTilt]), {
-    stiffness: 300,
-    damping: 30,
-  });
+  // Softer spring config for less CPU usage
+  const springConfig = { stiffness: 200, damping: 25 };
 
+  const rotateX = useSpring(useTransform(y, [0, 1], [maxTilt, -maxTilt]), springConfig);
+  const rotateY = useSpring(useTransform(x, [0, 1], [-maxTilt, maxTilt]), springConfig);
+
+  // Throttled mouse handler
+  let lastCall = 0;
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (shouldReduceMotion) return;
+
+    // Throttle to ~30fps for performance
+    const now = Date.now();
+    if (now - lastCall < 33) return;
+    lastCall = now;
+
     if (!ref.current) return;
-    
+
     const rect = ref.current.getBoundingClientRect();
     const xPos = (e.clientX - rect.left) / rect.width;
     const yPos = (e.clientY - rect.top) / rect.height;
-    
+
     x.set(xPos);
     y.set(yPos);
   };
@@ -47,6 +56,11 @@ export function TiltCard({
     x.set(0.5);
     y.set(0.5);
   };
+
+  // If reduced motion, just show static card
+  if (shouldReduceMotion) {
+    return <div className={`relative ${className}`}>{children}</div>;
+  }
 
   return (
     <motion.div
@@ -57,15 +71,14 @@ export function TiltCard({
         rotateX,
         rotateY,
         transformStyle: 'preserve-3d',
-        perspective: 1000,
       }}
       whileHover={{ scale: 1.02 }}
       transition={{ scale: { duration: 0.2 } }}
       className={`relative ${className}`}
     >
-      {/* Glow effect */}
-      <motion.div
-        className="absolute -inset-1 rounded-3xl opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-100"
+      {/* Simplified glow effect */}
+      <div
+        className="absolute -inset-1 rounded-3xl opacity-0 blur-lg transition-opacity duration-300 group-hover:opacity-50"
         style={{ background: glowColor }}
       />
       {children as any}

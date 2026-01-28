@@ -1,0 +1,52 @@
+{
+  "name": "BDShop",
+  "version": "1.0.0",
+  "theme_info": {
+    "theme_name": "BDShop",
+    "theme_name_bn": "বিডিশপ",
+    "theme_version": "1.0.0",
+    "theme_author": "Ozzyl"
+  },
+  "settings_schema": [
+    {
+      "name": "Colors",
+      "settings": [
+        {
+          "type": "color",
+          "id": "color_primary",
+          "label": "Primary color (Navy)",
+          "default": "#1E3A8A"
+        },
+        {
+          "type": "color",
+          "id": "color_accent",
+          "label": "Accent color (Orange)",
+          "default": "#F97316"
+        },
+        {
+          "type": "color",
+          "id": "color_background",
+          "label": "Page background",
+          "default": "#F9FAFB"
+        },
+        {
+          "type": "color",
+          "id": "color_footer_bg",
+          "label": "Footer background",
+          "default": "#0F172A"
+        }
+      ]
+    },
+    {
+      "name": "Typography",
+      "settings": [
+        {
+          "type": "font_picker",
+          "id": "font_body",
+          "default": "inter_n4",
+          "label": "Body font"
+        }
+      ]
+    }
+  ]
+}

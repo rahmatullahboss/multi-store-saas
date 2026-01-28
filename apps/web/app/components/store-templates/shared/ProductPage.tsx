@@ -100,6 +100,8 @@ interface SharedProductPageProps {
   complementaryProducts?: Product[];
   theme?: StoreTemplateTheme;
   isPreview?: boolean;
+  templateId?: string; // Optional: Pass template ID for preview mode navigation
+  onNavigate?: (path: string) => void; // Optional: Callback for internal navigation (e.g., state-based)
 }
 
 // Recently Viewed Products Hook
@@ -357,20 +359,30 @@ function ProductCard({
   currencySymbol,
   colors,
   getLink,
+  onNavigate,
 }: {
   product: Product;
   currencySymbol: string;
   colors: StoreTemplateTheme;
   getLink: (path: string) => string;
+  onNavigate?: (path: string) => void;
 }) {
   const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
   const discountPercent = hasDiscount
     ? Math.round((1 - product.price / product.compareAtPrice!) * 100)
     : 0;
 
+  const handleClick = (e: React.MouseEvent) => {
+    if (onNavigate) {
+      e.preventDefault();
+      onNavigate(`/products/${product.id}`);
+    }
+  };
+
   return (
     <Link
       to={getLink(`/products/${product.id}`)}
+      onClick={handleClick}
       className="group rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300"
       style={{ backgroundColor: colors.cardBg }}
     >
@@ -436,9 +448,12 @@ export default function SharedProductPage({
   complementaryProducts = [],
   theme,
   isPreview = false,
+  templateId: propTemplateId,
+  onNavigate,
 }: SharedProductPageProps) {
   const params = useParams();
-  const templateId = params.templateId;
+  // Use prop templateId first, fallback to URL params
+  const templateId = propTemplateId || params.templateId;
 
   // Default theme if not provided
   const colors = theme || {
@@ -523,6 +538,14 @@ export default function SharedProductPage({
       return `/store-template-preview/${templateId}${path}`;
     }
     return path;
+  };
+
+  // Navigation handler - uses callback if provided, otherwise URL navigation
+  const handleNavigation = (e: React.MouseEvent, path: string) => {
+    if (onNavigate) {
+      e.preventDefault();
+      onNavigate(path);
+    }
   };
 
   const handleAddToCart = () => {
@@ -634,12 +657,17 @@ export default function SharedProductPage({
           >
             <Link
               to={getLink('/')}
+              onClick={(e) => handleNavigation(e, '/')}
               className="hover:opacity-70 flex items-center transition-opacity"
             >
               <Home className="w-4 h-4" />
             </Link>
             <ChevronRight className="w-4 h-4 mx-2 opacity-50" />
-            <Link to={getLink('/products')} className="hover:opacity-70 transition-opacity">
+            <Link
+              to={getLink('/products')}
+              onClick={(e) => handleNavigation(e, '/products')}
+              className="hover:opacity-70 transition-opacity"
+            >
               Products
             </Link>
             {product.category && (
@@ -647,6 +675,12 @@ export default function SharedProductPage({
                 <ChevronRight className="w-4 h-4 mx-2 opacity-50" />
                 <Link
                   to={getLink(`/category/${product.category.toLowerCase().replace(/\s+/g, '-')}`)}
+                  onClick={(e) =>
+                    handleNavigation(
+                      e,
+                      `/category/${product.category!.toLowerCase().replace(/\s+/g, '-')}`
+                    )
+                  }
                   className="hover:opacity-70 transition-opacity"
                 >
                   {product.category}
@@ -1156,6 +1190,7 @@ export default function SharedProductPage({
                   currencySymbol={currencySymbol}
                   colors={colors}
                   getLink={getLink}
+                  onNavigate={onNavigate}
                 />
               ))}
             </div>
@@ -1394,6 +1429,7 @@ export default function SharedProductPage({
               </h2>
               <Link
                 to={getLink('/products')}
+                onClick={(e) => handleNavigation(e, '/products')}
                 className="text-sm font-medium hover:opacity-70 transition-opacity flex items-center gap-1"
                 style={{ color: colors.accent }}
               >
@@ -1409,6 +1445,7 @@ export default function SharedProductPage({
                   currencySymbol={currencySymbol}
                   colors={colors}
                   getLink={getLink}
+                  onNavigate={onNavigate}
                 />
               ))}
             </div>
@@ -1437,6 +1474,7 @@ export default function SharedProductPage({
                     currencySymbol={currencySymbol}
                     colors={colors}
                     getLink={getLink}
+                    onNavigate={onNavigate}
                   />
                 ))}
             </div>

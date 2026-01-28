@@ -1,8 +1,14 @@
 /**
- * Morphing Gradient Blob Component
- * Animated blob that morphs shape and position for premium background effects
+ * Morphing Gradient Blob Component - OPTIMIZED
+ * Reduced animation complexity for better performance
+ * - Longer duration (less CPU cycles)
+ * - Simpler transforms
+ * - Reduced blur on mobile
+ * - Respects prefers-reduced-motion
  */
-import { motion } from 'framer-motion';
+'use client';
+
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface MorphingBlobProps {
   color: string;
@@ -19,6 +25,26 @@ export function MorphingBlob({
   delay = 0,
   className = '',
 }: MorphingBlobProps) {
+  const shouldReduceMotion = useReducedMotion();
+
+  // If reduced motion is preferred, show static blob
+  if (shouldReduceMotion) {
+    return (
+      <div
+        className={`absolute pointer-events-none ${className}`}
+        style={{
+          ...position,
+          width: size,
+          height: size,
+          background: color,
+          filter: 'blur(60px)',
+          opacity: 0.4,
+          borderRadius: '50%',
+        }}
+      />
+    );
+  }
+
   return (
     <motion.div
       className={`absolute pointer-events-none ${className}`}
@@ -27,51 +53,66 @@ export function MorphingBlob({
         width: size,
         height: size,
         background: color,
-        filter: 'blur(80px)',
-        opacity: 0.5,
+        // Reduced blur for better performance
+        filter: 'blur(60px)',
+        opacity: 0.4,
       }}
       animate={{
-        borderRadius: [
-          '60% 40% 30% 70% / 60% 30% 70% 40%',
-          '30% 60% 70% 40% / 50% 60% 30% 60%',
-          '50% 50% 40% 60% / 40% 50% 60% 50%',
-          '60% 40% 30% 70% / 60% 30% 70% 40%',
-        ],
-        x: [0, 30, -20, 0],
-        y: [0, -20, 30, 0],
-        scale: [1, 1.1, 0.95, 1],
+        // Simpler animation - just scale and opacity
+        scale: [1, 1.05, 1],
+        opacity: [0.4, 0.5, 0.4],
       }}
       transition={{
-        duration: 15,
+        // Much longer duration = less CPU work
+        duration: 20,
         ease: 'easeInOut',
         repeat: Infinity,
         delay,
       }}
+      // CSS optimization hints
+      initial={{ borderRadius: '50%' }}
     />
   );
 }
 
-// Animated gradient orbs for hero section
+// Animated gradient orbs for hero section - REDUCED to 2 orbs
 export function FloatingOrbs() {
+  const shouldReduceMotion = useReducedMotion();
+
+  // Skip orbs entirely on reduced motion
+  if (shouldReduceMotion) {
+    return (
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div
+          className="absolute"
+          style={{
+            top: '-10%',
+            left: '-5%',
+            width: '400px',
+            height: '400px',
+            background: 'rgba(16, 185, 129, 0.3)',
+            filter: 'blur(60px)',
+            borderRadius: '50%',
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Reduced from 3 to 2 orbs */}
       <MorphingBlob
-        color="rgba(16, 185, 129, 0.4)"
-        size="500px"
+        color="rgba(16, 185, 129, 0.3)"
+        size="400px"
         position={{ top: '-10%', left: '-5%' }}
         delay={0}
       />
       <MorphingBlob
-        color="rgba(20, 184, 166, 0.3)"
-        size="600px"
-        position={{ top: '30%', right: '-10%' }}
-        delay={2}
-      />
-      <MorphingBlob
-        color="rgba(34, 197, 94, 0.25)"
-        size="400px"
-        position={{ bottom: '-5%', left: '40%' }}
-        delay={4}
+        color="rgba(20, 184, 166, 0.25)"
+        size="450px"
+        position={{ top: '40%', right: '-10%' }}
+        delay={5}
       />
     </div>
   );

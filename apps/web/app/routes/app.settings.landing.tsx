@@ -1,8 +1,8 @@
 /**
  * Landing Mode Settings Page
- * 
+ *
  * Route: /app/settings/landing
- * 
+ *
  * Features:
  * - Toggle store mode (store vs landing)
  * - Featured product selector
@@ -17,9 +17,22 @@ import { eq, and } from 'drizzle-orm';
 import { stores, products } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
-import { 
-  Loader2, CheckCircle, Play, MessageSquare, Zap, ArrowLeft, 
-  Plus, Trash2, Target, Video, Users, Sparkles, ArrowRight, ShoppingBag, Palette 
+import {
+  Loader2,
+  CheckCircle,
+  Play,
+  MessageSquare,
+  Zap,
+  ArrowLeft,
+  Plus,
+  Trash2,
+  Target,
+  Video,
+  Users,
+  Sparkles,
+  ArrowRight,
+  ShoppingBag,
+  Palette,
 } from 'lucide-react';
 import { StyleWizard } from '~/components/landing-builder';
 import type { StyleWizardSettings } from '@db/types';
@@ -42,22 +55,24 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
-  const storeResult = await db
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
+  const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
 
   const store = storeResult[0];
-  
+
   // Get all products for featured product selector
   const storeProducts = await db
-    .select({ id: products.id, title: products.title, imageUrl: products.imageUrl, price: products.price })
+    .select({
+      id: products.id,
+      title: products.title,
+      imageUrl: products.imageUrl,
+      price: products.price,
+    })
     .from(products)
     .where(eq(products.storeId, storeId))
     .limit(50);
 
-  const landingConfig = parseLandingConfig(store.landingConfig as string | null) || defaultLandingConfig;
+  const landingConfig =
+    parseLandingConfig(store.landingConfig as string | null) || defaultLandingConfig;
 
   return json({
     store: {
@@ -96,7 +111,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   let testimonials: LandingConfig['testimonials'] = [];
   let styleWizard: StyleWizardSettings | undefined;
-  
+
   try {
     if (styleWizardJson) {
       styleWizard = JSON.parse(styleWizardJson);
@@ -148,16 +163,22 @@ export default function LandingSettingsPage() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const [showSuccess, setShowSuccess] = useState(false);
-  
+
   const [mode, setMode] = useState(store.mode);
-  const [featuredProductId, setFeaturedProductId] = useState<number | null>(store.featuredProductId || null);
-  const [checkoutModalEnabled, setCheckoutModalEnabled] = useState(store.landingConfig?.checkoutModalEnabled ?? false);
-  const [styleWizard, setStyleWizard] = useState<StyleWizardSettings>(store.landingConfig?.styleWizard ?? {
-    brandColor: '#10b981',
-    buttonStyle: 'rounded',
-    fontFamily: 'system',
-    darkMode: false,
-  });
+  const [featuredProductId, setFeaturedProductId] = useState<number | null>(
+    store.featuredProductId || null
+  );
+  const [checkoutModalEnabled, setCheckoutModalEnabled] = useState(
+    store.landingConfig?.checkoutModalEnabled ?? false
+  );
+  const [styleWizard, setStyleWizard] = useState<StyleWizardSettings>(
+    store.landingConfig?.styleWizard ?? {
+      brandColor: '#10b981',
+      buttonStyle: 'rounded',
+      fontFamily: 'system',
+      darkMode: false,
+    }
+  );
   const [testimonials, setTestimonials] = useState<LandingConfig['testimonials']>(
     store.landingConfig.testimonials || []
   );
@@ -190,10 +211,7 @@ export default function LandingSettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link
-          to="/app/settings"
-          className="p-2 hover:bg-gray-100 rounded-lg transition"
-        >
+        <Link to="/app/settings" className="p-2 hover:bg-gray-100 rounded-lg transition">
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
         <div>
@@ -228,8 +246,8 @@ export default function LandingSettingsPage() {
           </div>
           <h3 className="text-xl font-bold mb-2">Genie দিয়ে ম্যাজিক্যালি তৈরি করুন</h3>
           <p className="text-purple-100 mb-4 max-w-md">
-            মাত্র ৩টি ধাপে হাই-কনভার্টিং ল্যান্ডিং পেইজ তৈরি করুন। 
-            আপনার ইন্টেন্ট অনুযায়ী অটোমেটিক সেকশন ও টেমপ্লেট সাজেশন পাবেন।
+            মাত্র ৩টি ধাপে হাই-কনভার্টিং ল্যান্ডিং পেইজ তৈরি করুন। আপনার ইন্টেন্ট অনুযায়ী অটোমেটিক
+            সেকশন ও টেমপ্লেট সাজেশন পাবেন।
           </p>
           <Link
             to="/app/new-builder"
@@ -259,7 +277,9 @@ export default function LandingSettingsPage() {
           <div className="grid grid-cols-2 gap-4">
             <label
               className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition ${
-                mode === 'store' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'
+                mode === 'store'
+                  ? 'border-emerald-500 bg-emerald-50'
+                  : 'border-gray-200 hover:border-gray-300'
               }`}
             >
               <input
@@ -280,7 +300,9 @@ export default function LandingSettingsPage() {
 
             <label
               className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition ${
-                mode === 'landing' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'
+                mode === 'landing'
+                  ? 'border-emerald-500 bg-emerald-50'
+                  : 'border-gray-200 hover:border-gray-300'
               }`}
             >
               <input
@@ -320,7 +342,9 @@ export default function LandingSettingsPage() {
                 <select
                   name="featuredProductId"
                   value={featuredProductId || ''}
-                  onChange={(e) => setFeaturedProductId(e.target.value ? Number(e.target.value) : null)}
+                  onChange={(e) =>
+                    setFeaturedProductId(e.target.value ? Number(e.target.value) : null)
+                  }
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
                 >
                   <option value="">{t('selectAProduct')}</option>
@@ -359,7 +383,9 @@ export default function LandingSettingsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <label
                   className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition ${
-                    !checkoutModalEnabled ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'
+                    !checkoutModalEnabled
+                      ? 'border-emerald-500 bg-emerald-50'
+                      : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   <input
@@ -380,7 +406,9 @@ export default function LandingSettingsPage() {
 
                 <label
                   className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition ${
-                    checkoutModalEnabled ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'
+                    checkoutModalEnabled
+                      ? 'border-emerald-500 bg-emerald-50'
+                      : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   <input
@@ -396,7 +424,9 @@ export default function LandingSettingsPage() {
                   </div>
                   <span className="text-2xl mb-2">⚡</span>
                   <span className="font-semibold text-gray-900">মোডাল চেকআউট</span>
-                  <span className="text-sm text-gray-500">পেইজেই পপআপে অর্ডার ফর্ম দেখাবে - দ্রুত কনভার্শন</span>
+                  <span className="text-sm text-gray-500">
+                    পেইজেই পপআপে অর্ডার ফর্ম দেখাবে - দ্রুত কনভার্শন
+                  </span>
                   {checkoutModalEnabled && (
                     <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-emerald-600" />
                   )}
@@ -406,8 +436,8 @@ export default function LandingSettingsPage() {
               {checkoutModalEnabled && (
                 <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
                   <p className="text-sm text-purple-700">
-                    ✨ মোডাল চেকআউট চালু করলে কাস্টমার পেইজ না ছেড়েই অর্ডার করতে পারবে। 
-                    এতে কনভার্শন রেট বাড়ে!
+                    ✨ মোডাল চেকআউট চালু করলে কাস্টমার পেইজ না ছেড়েই অর্ডার করতে পারবে। এতে
+                    কনভার্শন রেট বাড়ে!
                   </p>
                 </div>
               )}
@@ -421,22 +451,16 @@ export default function LandingSettingsPage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">স্টাইল সেটিংস</h2>
-                  <p className="text-sm text-gray-500">ব্র্যান্ড কালার, বাটন ও ফন্ট কাস্টমাইজ করুন</p>
+                  <p className="text-sm text-gray-500">
+                    ব্র্যান্ড কালার, বাটন ও ফন্ট কাস্টমাইজ করুন
+                  </p>
                 </div>
               </div>
 
-              <StyleWizard
-                value={styleWizard}
-                onChange={setStyleWizard}
-                compact={false}
-              />
-              
+              <StyleWizard value={styleWizard} onChange={setStyleWizard} compact={false} />
+
               {/* Hidden input to submit styleWizard as JSON */}
-              <input 
-                type="hidden" 
-                name="styleWizard" 
-                value={JSON.stringify(styleWizard)} 
-              />
+              <input type="hidden" name="styleWizard" value={JSON.stringify(styleWizard)} />
             </div>
 
             {/* Headline & Copy */}
@@ -453,7 +477,10 @@ export default function LandingSettingsPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="headline" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="headline"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     {t('mainHeadline')} *
                   </label>
                   <input
@@ -467,7 +494,10 @@ export default function LandingSettingsPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="subheadline" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="subheadline"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     {t('subheadline')}
                   </label>
                   <input
@@ -481,7 +511,10 @@ export default function LandingSettingsPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="urgencyText" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="urgencyText"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     {t('urgencyText')}
                   </label>
                   <input
@@ -495,7 +528,10 @@ export default function LandingSettingsPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="guaranteeText" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="guaranteeText"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     {t('guaranteeText')}
                   </label>
                   <input
@@ -534,9 +570,7 @@ export default function LandingSettingsPage() {
                   placeholder="https://www.youtube.com/watch?v=..."
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  {t('videoUrlDesc')}
-                </p>
+                <p className="text-xs text-gray-500 mt-1">{t('videoUrlDesc')}</p>
               </div>
             </div>
 
@@ -568,7 +602,10 @@ export default function LandingSettingsPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="ctaSubtext" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="ctaSubtext"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     {t('buttonSubtext')}
                   </label>
                   <input

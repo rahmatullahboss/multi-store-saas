@@ -1,0 +1,195 @@
+{
+  "name": "Luxe Boutique Home",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "show_announcement": true,
+        "announcement_text": "Free Shipping on Orders Over 5,000",
+        "show_search": true,
+        "show_cart": true,
+        "show_wishlist": true,
+        "menu_style": "minimal"
+      }
+    },
+    "hero": {
+      "type": "hero-banner",
+      "settings": {
+        "heading": "Timeless Elegance",
+        "heading_bn": "চিরন্তন সৌন্দর্য",
+        "subheading": "Discover our curated collection of luxury pieces",
+        "subheading_bn": "আমাদের সংগ্রহ থেকে বেছে নিন বিলাসবহুল পণ্য",
+        "button_text": "Shop Now",
+        "button_text_bn": "এখনই কিনুন",
+        "button_link": "/collections/all",
+        "image": "",
+        "overlay_opacity": 40,
+        "text_alignment": "center",
+        "height": "large",
+        "show_gold_border": true
+      }
+    },
+    "featured-collection": {
+      "type": "featured-collection",
+      "settings": {
+        "heading": "Featured Collection",
+        "heading_bn": "বিশেষ সংগ্রহ",
+        "collection": "",
+        "products_to_show": 8,
+        "columns": 4,
+        "show_view_all": true,
+        "view_all_text": "View All",
+        "view_all_text_bn": "সব দেখুন"
+      }
+    },
+    "image-with-text": {
+      "type": "image-with-text",
+      "settings": {
+        "heading": "Crafted with Precision",
+        "heading_bn": "নিপুণ কারুকার্য",
+        "text": "Each piece in our collection is carefully selected for its quality and timeless appeal. We believe in creating lasting impressions.",
+        "text_bn": "আমাদের সংগ্রহের প্রতিটি পণ্য যত্ন সহকারে বাছাই করা হয়েছে মান এবং চিরন্তন আবেদনের জন্য।",
+        "button_text": "Learn More",
+        "button_text_bn": "আরও জানুন",
+        "button_link": "/pages/about",
+        "image": "",
+        "image_position": "left",
+        "background_style": "light"
+      }
+    },
+    "categories-grid": {
+      "type": "categories-grid",
+      "settings": {
+        "heading": "Shop by Category",
+        "heading_bn": "ক্যাটাগরি অনুযায়ী কিনুন",
+        "columns": 3
+      },
+      "blocks": {
+        "cat-1": {
+          "type": "category",
+          "settings": {
+            "title": "Jewelry",
+            "title_bn": "গহনা",
+            "link": "/collections/jewelry",
+            "image": ""
+          }
+        },
+        "cat-2": {
+          "type": "category",
+          "settings": {
+            "title": "Watches",
+            "title_bn": "ঘড়ি",
+            "link": "/collections/watches",
+            "image": ""
+          }
+        },
+        "cat-3": {
+          "type": "category",
+          "settings": {
+            "title": "Accessories",
+            "title_bn": "আনুষঙ্গিক",
+            "link": "/collections/accessories",
+            "image": ""
+          }
+        }
+      ],
+      "block_order": ["cat-1", "cat-2", "cat-3"]
+    },
+    "new-arrivals": {
+      "type": "featured-collection",
+      "settings": {
+        "heading": "New Arrivals",
+        "heading_bn": "নতুন সংগ্রহ",
+        "collection": "",
+        "products_to_show": 4,
+        "columns": 4,
+        "show_view_all": true,
+        "view_all_text": "Discover More",
+        "view_all_text_bn": "আরও দেখুন"
+      }
+    },
+    "trust-badges": {
+      "type": "trust-badges",
+      "settings": {
+        "heading": "",
+        "show_border": false,
+        "background_style": "transparent"
+      },
+      "blocks": {
+        "badge-1": {
+          "type": "badge",
+          "settings": {
+            "icon": "shield",
+            "title": "Authentic Products",
+            "title_bn": "আসল পণ্য",
+            "description": "100% Genuine Guaranteed",
+            "description_bn": "১০০% আসল গ্যারান্টি"
+          }
+        },
+        "badge-2": {
+          "type": "badge",
+          "settings": {
+            "icon": "truck",
+            "title": "Free Shipping",
+            "title_bn": "ফ্রি শিপিং",
+            "description": "On orders over 5,000",
+            "description_bn": "৫,০০০+ অর্ডারে"
+          }
+        },
+        "badge-3": {
+          "type": "badge",
+          "settings": {
+            "icon": "refresh",
+            "title": "Easy Returns",
+            "title_bn": "সহজ রিটার্ন",
+            "description": "7-day return policy",
+            "description_bn": "৭ দিনের রিটার্ন পলিসি"
+          }
+        },
+        "badge-4": {
+          "type": "badge",
+          "settings": {
+            "icon": "headphones",
+            "title": "Premium Support",
+            "title_bn": "প্রিমিয়াম সাপোর্ট",
+            "description": "Dedicated assistance",
+            "description_bn": "নিবেদিত সহায়তা"
+          }
+        }
+      },
+      "block_order": ["badge-1", "badge-2", "badge-3", "badge-4"]
+    },
+    "newsletter": {
+      "type": "newsletter",
+      "settings": {
+        "heading": "Join Our Exclusive List",
+        "heading_bn": "আমাদের এক্সক্লুসিভ লিস্টে যোগ দিন",
+        "subheading": "Be the first to know about new arrivals and special offers",
+        "subheading_bn": "নতুন পণ্য এবং বিশেষ অফার সম্পর্কে প্রথমে জানুন",
+        "button_text": "Subscribe",
+        "button_text_bn": "সাবস্ক্রাইব",
+        "background_style": "dark"
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "show_payment_icons": true,
+        "show_social_links": true,
+        "copyright_text": "All rights reserved",
+        "copyright_text_bn": "সর্বস্বত্ব সংরক্ষিত"
+      }
+    }
+  },
+  "order": [
+    "header",
+    "hero",
+    "featured-collection",
+    "image-with-text",
+    "categories-grid",
+    "new-arrivals",
+    "trust-badges",
+    "newsletter",
+    "footer"
+  ]
+}

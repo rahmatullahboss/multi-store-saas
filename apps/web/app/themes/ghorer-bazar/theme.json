@@ -1,0 +1,35 @@
+{
+  "name": "Ghorer Bazar",
+  "version": "1.0.0",
+  "theme_info": {
+    "theme_name": "Ghorer Bazar",
+    "theme_name_bn": "ঘরের বাজার",
+    "theme_version": "1.0.0",
+    "theme_author": "Ozzyl"
+  },
+  "settings_schema": [
+    {
+      "name": "Colors",
+      "settings": [
+        {
+          "type": "color",
+          "id": "color_primary",
+          "label": "Primary color (Orange)",
+          "default": "#FC8934"
+        },
+        {
+          "type": "color",
+          "id": "color_accent",
+          "label": "Accent color (Green)",
+          "default": "#059669"
+        },
+        {
+          "type": "color",
+          "id": "color_background",
+          "label": "Page background",
+          "default": "#F9FAFB"
+        }
+      ]
+    }
+  ]
+}

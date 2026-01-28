@@ -1,0 +1,40 @@
+{
+  "name": "Page",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "logo_width": 120,
+        "show_search": true,
+        "show_cart": true,
+        "background_color": "#ffffff",
+        "text_color": "#111827",
+        "sticky": true
+      }
+    },
+    "main": {
+      "type": "rich-text",
+      "settings": {
+        "heading": "",
+        "heading_size": "large",
+        "content": "",
+        "text_alignment": "left",
+        "content_width": "medium",
+        "background_color": "#ffffff",
+        "padding_top": 48,
+        "padding_bottom": 48
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "description": "বাংলাদেশের সেরা অনলাইন শপিং প্লাটফর্ম।",
+        "background_color": "#111827",
+        "text_color": "#ffffff",
+        "show_powered_by": true
+      }
+    }
+  },
+  "order": ["header", "main", "footer"]
+}
