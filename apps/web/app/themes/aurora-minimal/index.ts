@@ -69,6 +69,8 @@ export const DEFAULT_THEME_CONFIG: ThemeConfig = {
     success: '#B5C4B1', // Using sage for success
     warning: '#E8C4C4', // Using rose for warning
     error: '#E53935',
+    footerBg: '#1A1A1A', // Explicit dark background
+    footerText: '#FFFFFF', // Explicit white text
   },
 
   typography: {

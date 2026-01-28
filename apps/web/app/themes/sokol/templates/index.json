@@ -1,0 +1,17 @@
+{
+  "name": "Home Page",
+  "sections": {
+    "hero": {
+      "type": "hero-banner",
+      "settings": {
+        "heading": "Premium Collection",
+        "subheading": "Discover handpicked products for modern living",
+        "cta_label": "Shop Now",
+        "cta_link": "/products"
+      }
+    }
+  },
+  "order": [
+    "hero"
+  ]
+}

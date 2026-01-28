@@ -1,0 +1,96 @@
+{
+  "name": "Nova Lux",
+  "author": "Ozzyl",
+  "version": "1.0.0",
+  "description": "World-class luxury ecommerce template inspired by Shopify Prestige.",
+  "settings_schema": [
+    {
+      "name": "General",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "logo",
+          "label": "Logo"
+        },
+        {
+          "type": "range",
+          "id": "logo_width",
+          "min": 50,
+          "max": 300,
+          "step": 10,
+          "unit": "px",
+          "label": "Logo width",
+          "default": 120
+        }
+      ]
+    },
+    {
+      "name": "Colors",
+      "settings": [
+        {
+          "type": "color",
+          "id": "color_primary",
+          "label": "Primary Color",
+          "default": "#1C1C1E"
+        },
+        {
+          "type": "color",
+          "id": "color_accent",
+          "label": "Accent Color",
+          "default": "#C4A35A"
+        },
+        {
+          "type": "color",
+          "id": "color_background",
+          "label": "Background",
+          "default": "#FAFAFA"
+        },
+        {
+          "type": "color",
+          "id": "color_card_bg",
+          "label": "Card Background",
+          "default": "#FFFFFF"
+        },
+        {
+          "type": "color",
+          "id": "color_text",
+          "label": "Text",
+          "default": "#2C2C2C"
+        },
+        {
+          "type": "color",
+          "id": "color_muted",
+          "label": "Muted Text",
+          "default": "#8E8E93"
+        }
+      ]
+    },
+    {
+      "name": "Typography",
+      "settings": [
+        {
+          "type": "select",
+          "id": "font_heading",
+          "label": "Heading Font",
+          "options": [
+            { "value": "'Cormorant Garamond', Georgia, serif", "label": "Cormorant Garamond" },
+            { "value": "'Playfair Display', serif", "label": "Playfair Display" },
+            { "value": "'Merriweather', serif", "label": "Merriweather" }
+          ],
+          "default": "'Cormorant Garamond', Georgia, serif"
+        },
+        {
+          "type": "select",
+          "id": "font_body",
+          "label": "Body Font",
+          "options": [
+            { "value": "'DM Sans', sans-serif", "label": "DM Sans" },
+            { "value": "'Inter', sans-serif", "label": "Inter" },
+            { "value": "'Lato', sans-serif", "label": "Lato" }
+          ],
+          "default": "'DM Sans', sans-serif"
+        }
+      ]
+    }
+  ]
+}

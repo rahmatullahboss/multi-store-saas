@@ -1,0 +1,28 @@
+{
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {}
+    },
+    "hero": {
+      "type": "hero-banner",
+      "settings": {
+        "heading": "Future Ready",
+        "subheading": "Experience the next generation of shopping.",
+        "button_text": "Explore Now"
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "show_powered_by": true,
+        "description": "Defining the future of commerce."
+      }
+    }
+  },
+  "order": [
+    "header",
+    "hero",
+    "footer"
+  ]
+}

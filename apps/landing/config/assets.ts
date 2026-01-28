@@ -17,7 +17,7 @@ export const ASSETS = {
     logoWhiteSmall: `${R2_BASE_URL}/brand/logo-white-small.png`,
     logoWhiteXs: `${R2_BASE_URL}/brand/logo-white-xs.png`,
     logoSmall: `${R2_BASE_URL}/brand/ozzyl-logo-small.png`,
-    logoSmallBlack: `${R2_BASE_URL}/brand/ozzyl-logo-small-black.png`,
+    logoSmallBlack: `${R2_BASE_URL}/brand/ozzyl-logo-small-black.webp`,
   },
   // Founder Assets
   founder: {

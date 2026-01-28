@@ -24,6 +24,8 @@ import type {
   SerializedProduct,
   SerializedCollection,
   ThemeConfig,
+  FooterConfig,
+  SocialLinks,
   // CartData - reserved for future use
 } from '~/lib/theme-engine/types';
 import { SectionErrorBoundary } from '~/components/shared/SectionErrorBoundary';
@@ -57,6 +59,9 @@ interface ThemeStoreRendererProps {
     currency: string;
     logo?: string | null;
     defaultLanguage?: 'en' | 'bn';
+    socialLinks?: SocialLinks | null;
+    businessInfo?: { phone?: string; email?: string; address?: string } | null;
+    footerConfig?: FooterConfig | null;
   };
 
   /** Page type for context */
@@ -198,6 +203,9 @@ export function ThemeStoreRenderer({
         currency: store.currency,
         logo: store.logo,
         defaultLanguage: store.defaultLanguage || 'en',
+        socialLinks: store.socialLinks,
+        businessInfo: store.businessInfo,
+        footerConfig: store.footerConfig,
       },
       page: {
         type: pageType,

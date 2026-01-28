@@ -688,88 +688,13 @@ function PreviewHomePage({
   );
 }
 
-// --- Preview Footer ---
-function PreviewFooter({
-  storeName,
-  onNavigate,
-}: {
-  storeName: string;
-  onNavigate: (page: PageType) => void;
-}) {
-  return (
-    <footer style={{ backgroundColor: ZENITH_RISE_THEME.secondary }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          <div>
-            <h4
-              className="text-2xl font-bold mb-4 bg-clip-text text-transparent"
-              style={{ backgroundImage: ZENITH_RISE_THEME.primaryGradient }}
-            >
-              {storeName}
-            </h4>
-            <p style={{ color: ZENITH_RISE_THEME.muted }} className="text-sm leading-relaxed">
-              The next generation of digital commerce. Fast, secure, and beautiful.
-            </p>
-          </div>
-          <div>
-            <h5
-              className="font-semibold uppercase text-sm tracking-wider mb-6"
-              style={{ color: ZENITH_RISE_THEME.accent }}
-            >
-              Quick Links
-            </h5>
-            <ul className="space-y-3 text-sm">
-              <li>
-                <button
-                  onClick={() => onNavigate({ type: 'home' })}
-                  className="transition-colors hover:text-white"
-                  style={{ color: ZENITH_RISE_THEME.muted }}
-                >
-                  Home
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate({ type: 'cart' })}
-                  className="transition-colors hover:text-white"
-                  style={{ color: ZENITH_RISE_THEME.muted }}
-                >
-                  Cart
-                </button>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h5
-              className="font-semibold uppercase text-sm tracking-wider mb-6"
-              style={{ color: ZENITH_RISE_THEME.accent }}
-            >
-              Contact
-            </h5>
-            <p style={{ color: ZENITH_RISE_THEME.muted }} className="text-sm">
-              support@example.com
-            </p>
-          </div>
-        </div>
-        <div
-          className="mt-16 pt-8 flex justify-center text-sm"
-          style={{
-            borderTop: `1px solid ${ZENITH_RISE_THEME.border}`,
-            color: ZENITH_RISE_THEME.muted,
-          }}
-        >
-          © {new Date().getFullYear()} {storeName}. All rights reserved.
-        </div>
-      </div>
-    </footer>
-  );
-}
+
 
 // ============================================================================
 // MAIN PREVIEW STORE CONTAINER
 // ============================================================================
 function PreviewZenithRiseStore(props: StoreTemplateProps) {
-  const { storeName, logo, config, currency } = props;
+  const { storeName, logo, config, currency, businessInfo, socialLinks, footerConfig, planType } = props;
   const [currentPage, setCurrentPage] = useState<PageType>({ type: 'home' });
 
   const navigate = useCallback((page: PageType) => {
@@ -890,7 +815,15 @@ function PreviewZenithRiseStore(props: StoreTemplateProps) {
           onNavigate={navigate}
         />
         <main>{renderPage()}</main>
-        <PreviewFooter storeName={storeName} onNavigate={navigate} />
+        <ZenithRiseFooter 
+          storeName={storeName}
+          logo={logo}
+          socialLinks={socialLinks}
+          footerConfig={footerConfig}
+          businessInfo={businessInfo}
+          planType={planType}
+          categories={validCategories}
+        />
       </div>
     </CartProvider>
   );

@@ -252,9 +252,59 @@ We aim to respond to all inquiries within 24 hours.
 }
 
 /**
+ * Generate a Shipping Policy for a store
+ */
+export function getShippingPolicy(storeName: string, email: string): string {
+  return `
+# Shipping Policy
+
+**Last Updated:** ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+
+## Order Processing
+
+### Processing Time
+- All orders are processed within 1-2 business days (excluding weekends and holidays) after receiving your order confirmation email.
+- You will receive another notification when your order has shipped.
+
+### High Volume Delay
+- During high volume periods, processing times may increase. If there will be a significant delay in shipment of your order, we will contact you via email or telephone.
+
+## Shipping Rates and Estimates
+
+### Domestic Shipping
+- We offer standard shipping across the country.
+- Shipping charges for your order will be calculated and displayed at checkout.
+- **Estimated delivery time:** 2-5 business days depending on your location.
+
+### International Shipping
+- We currently do not ship outside of the country.
+OR
+- We offer international shipping to select countries. Rates and delivery times vary by destination.
+
+## How to Check the Status of Your Order
+
+When your order has shipped, you will receive an email notification from us which will include a tracking number you can use to check its status. Please allow 48 hours for the tracking information to become available.
+
+If you haven't received your order within X days of receiving your shipping confirmation email, please contact us at ${email} with your name and order number, and we will look into it for you.
+
+## Shipping to P.O. Boxes
+
+We ship to addresses within the country.
+
+## Refunds, Returns, and Exchanges
+
+We accept returns up to 7 days after delivery, if the item is unused and in its original condition, and we will refund the full order amount.
+
+In the event that your order arrives damaged in any way, please email us as soon as possible at ${email} with your order number and a photo of the item's condition. We address these on a case-by-case basis but will try our best to work towards a satisfactory solution.
+
+If you have any further questions, please don't hesitate to contact us at ${email}.
+`.trim();
+}
+
+/**
  * Get policy content by type
  */
-export type PolicyType = 'privacy' | 'terms' | 'refund';
+export type PolicyType = 'privacy' | 'terms' | 'refund' | 'shipping';
 
 export function getPolicyContent(
   type: PolicyType,
@@ -276,6 +326,11 @@ export function getPolicyContent(
       return {
         title: 'Refund & Return Policy',
         content: getRefundPolicy(storeName, email),
+      };
+    case 'shipping':
+      return {
+        title: 'Shipping Policy',
+        content: getShippingPolicy(storeName, email),
       };
     default:
       throw new Error(`Unknown policy type: ${type}`);

@@ -43,6 +43,8 @@ export function SokolTemplate(props: StoreTemplateProps) {
         businessInfo={props.businessInfo}
         socialLinks={props.socialLinks}
         categories={displayCategories}
+        footerConfig={props.footerConfig}
+        planType={props.planType}
       />
     </SokolLayout>
   );

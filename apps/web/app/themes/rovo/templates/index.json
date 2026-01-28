@@ -1,0 +1,17 @@
+{
+  "name": "Home Page",
+  "sections": {
+    "hero": {
+      "type": "hero-banner",
+      "settings": {
+        "heading": "NEW ARRIVALS",
+        "subheading": "Bold styles for the modern day.",
+        "cta_label": "EXPLORE",
+        "cta_link": "/products"
+      }
+    }
+  },
+  "order": [
+    "hero"
+  ]
+}

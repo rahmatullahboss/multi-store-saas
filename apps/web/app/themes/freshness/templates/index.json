@@ -1,0 +1,16 @@
+{
+  "name": "Home Page",
+  "sections": {
+    "hero": {
+      "type": "hero-banner",
+      "settings": {
+        "heading": "Fresh, organic, and delivered to your door.",
+        "cta_label": "Shop Now",
+        "cta_link": "/products"
+      }
+    }
+  },
+  "order": [
+    "hero"
+  ]
+}

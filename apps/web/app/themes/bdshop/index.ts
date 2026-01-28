@@ -18,7 +18,7 @@ import DarazHeroCarousel, { schema as heroCarouselSchema } from '../daraz/sectio
 import DarazFlashSale, { schema as flashSaleSchema } from '../daraz/sections/flash-sale';
 import DarazCategoryGrid, { schema as categoryGridSchema } from '../daraz/sections/category-grid';
 import DarazProductGrid, { schema as productGridSchema } from '../daraz/sections/product-grid';
-import DarazFooter, { schema as footerSchema } from '../daraz/sections/footer';
+import BDShopFooter, { schema as footerSchema } from './sections/footer';
 
 // Import additional sections for product, cart, collection pages
 import DarazProductMain, { schema as productMainSchema } from '../daraz/sections/product-main';
@@ -222,7 +222,7 @@ export const SECTIONS: SectionRegistry = {
       ...footerSchema,
       name: 'Footer (BDShop)',
     },
-    component: DarazFooter,
+    component: BDShopFooter,
   },
   // Product page sections (reuse Daraz with BDShop colors)
   'product-main': {

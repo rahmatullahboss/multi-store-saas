@@ -1,0 +1,27 @@
+{
+  "name": "Home Page",
+  "sections": {
+    "urgency": {
+      "type": "urgency-bar",
+      "settings": {
+        "message": "অফার শেষ হতে বাকি আর মাত্র:",
+        "stock_left": 12
+      }
+    },
+    "hero": {
+      "type": "hero-banner",
+      "settings": {
+        "heading": "আপনার জীবনের সেরা সমাধান!",
+        "subheading": "মাত্র ৩ দিনে ফলাফল। ১০০% গ্যারান্টি। আজই অর্ডার করুন।",
+        "offer_text": "৫০% ছাড়!",
+        "video_url": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        "cta_label": "অর্ডার করতে ক্লিক করুন",
+        "cta_link": "/products"
+      }
+    }
+  },
+  "order": [
+    "urgency",
+    "hero"
+  ]
+}

@@ -26,6 +26,14 @@ import GhorerBazarTheme, { SECTIONS as GhorerBazarSections } from '~/themes/ghor
 import LuxeBoutiqueTheme, { SECTIONS as LuxeBoutiqueSections } from '~/themes/luxe-boutique';
 import TechModernTheme, { SECTIONS as TechModernSections } from '~/themes/tech-modern';
 import AuroraMinimalTheme, { SECTIONS as AuroraMinimalSections } from '~/themes/aurora-minimal';
+import NovaLuxTheme, { SECTIONS as NovaLuxSections } from '~/themes/nova-lux';
+import EclipseTheme, { SECTIONS as EclipseSections } from '~/themes/eclipse';
+import ArtisanTheme, { SECTIONS as ArtisanSections } from '~/themes/artisan-market';
+import FreshnessTheme, { SECTIONS as FreshnessSections } from '~/themes/freshness';
+import RovoTheme, { SECTIONS as RovoSections } from '~/themes/rovo';
+import SokolTheme, { SECTIONS as SokolSections } from '~/themes/sokol';
+import TurboSaleTheme, { SECTIONS as TurboSaleSections } from '~/themes/turbo-sale';
+import ZenithRiseTheme, { SECTIONS as ZenithRiseSections } from '~/themes/zenith-rise';
 
 // Static template imports (Bug #5 fix - dynamic imports don't work in bundled environments)
 import starterStoreIndexTemplate from '~/themes/starter-store/templates/index.json';
@@ -57,6 +65,17 @@ import luxeBoutiqueIndexTemplate from '~/themes/luxe-boutique/templates/index.js
 import techModernIndexTemplate from '~/themes/tech-modern/templates/index.json';
 
 import auroraMinimalIndexTemplate from '~/themes/aurora-minimal/templates/index.json';
+
+import novaLuxIndexTemplate from '~/themes/nova-lux/templates/index.json';
+
+import eclipseIndexTemplate from '~/themes/eclipse/templates/index.json';
+import artisanMarketIndexTemplate from '~/themes/artisan-market/templates/index.json';
+import freshnessIndexTemplate from '~/themes/freshness/templates/index.json';
+import rovoIndexTemplate from '~/themes/rovo/templates/index.json';
+import sokolIndexTemplate from '~/themes/sokol/templates/index.json';
+import turboSaleIndexTemplate from '~/themes/turbo-sale/templates/index.json';
+import zenithRiseIndexTemplate from '~/themes/zenith-rise/templates/index.json';
+
 
 // ============================================================================
 // TYPES
@@ -128,10 +147,110 @@ const THEME_REGISTRY: Record<string, LoadedTheme> = {
     config: AuroraMinimalTheme.config,
     sections: AuroraMinimalSections,
   },
+  'nova-lux': {
+    metadata: NovaLuxTheme.metadata,
+    config: NovaLuxTheme.config,
+    sections: NovaLuxSections,
+  },
   'tech-modern': {
     metadata: TechModernTheme.metadata,
     config: TechModernTheme.config,
     sections: TechModernSections,
+  },
+  eclipse: {
+    metadata: EclipseTheme.metadata,
+    config: EclipseTheme.config,
+    sections: EclipseSections,
+  },
+  'artisan-market': {
+    metadata: {
+      id: 'artisan-market',
+      name: 'Artisan Market', // Manually mimicking metadata since it was missing in index.ts export
+      version: '1.0.0',
+      description: 'Warm, organic design for handmade & artisanal products.',
+      previewImage: '/templates/artisan-market.png',
+      features: ['Handmade aesthetic', 'Warm colors'],
+      templates: ['index'],
+      categories: ['crafts', 'home'],
+      author: 'Ozzyl Team',
+    },
+    config: ArtisanTheme.config,
+    sections: ArtisanSections,
+  },
+  freshness: {
+    metadata: {
+      id: 'freshness',
+      name: 'Freshness',
+      version: '2.0.0',
+      description: 'Vibrant & Organic Theme',
+      previewImage: '/templates/freshness.png',
+      features: ['Organic Design', 'Vibrant Colors', 'Dual Navigation'],
+      templates: ['index'],
+      categories: ['grocery', 'health', 'food'],
+      author: 'Ozzyl Team',
+    },
+    config: FreshnessTheme.config,
+    sections: FreshnessSections,
+  },
+  rovo: {
+    metadata: {
+      id: 'rovo',
+      name: 'Rovo',
+      version: '2.0.0',
+      description: 'Minimal & Bold High-Fashion Theme',
+      previewImage: '/templates/rovo.png',
+      features: ['Minimalist', 'Uppercase Typography', 'Square aesthetics'],
+      templates: ['index'],
+      categories: ['fashion', 'electronics', 'lifestyle'],
+      author: 'Ozzyl Team',
+    },
+    config: RovoTheme.config,
+    sections: RovoSections,
+  },
+  sokol: {
+    metadata: {
+      id: 'sokol',
+      name: 'Sokol',
+      version: '2.0.0',
+      description: 'Modern & Dark High-Contrast Theme',
+      previewImage: '/templates/sokol.png',
+      features: ['Dark Mode Footer', 'Rose Accents', 'Clean Layout'],
+      templates: ['index'],
+      categories: ['fashion', 'lifestyle', 'tech'],
+      author: 'Ozzyl Team',
+    },
+    config: SokolTheme.config,
+    sections: SokolSections,
+  },
+  'turbo-sale': {
+    metadata: {
+      id: 'turbo-sale',
+      name: 'Turbo Sale',
+      version: '2.0.0',
+      description: 'High-urgency, video-first template for dropshipping.',
+      previewImage: '/templates/turbo-sale.png',
+      features: ['Flash Sale Bar', 'Video Hero', 'Sticky Cart'],
+      templates: ['index'],
+      categories: ['general', 'gadgets', 'fashion'],
+      author: 'Ozzyl Team',
+    },
+    config: TurboSaleTheme.config,
+    sections: TurboSaleSections,
+  },
+  'zenith-rise': {
+    metadata: {
+      id: 'zenith-rise',
+      name: 'Zenith Rise',
+      version: '2.0.0',
+      description: 'World-class dark-mode SaaS/Digital product template.',
+      previewImage: '/templates/zenith-rise.png',
+      features: ['Glassmorphism', 'Dark Mode', 'Animations'],
+      templates: ['index'],
+      categories: ['saas', 'digital', 'tech'],
+      author: 'Ozzyl Team',
+    },
+    config: ZenithRiseTheme.config,
+    sections: ZenithRiseSections,
   },
 };
 
@@ -204,6 +323,33 @@ const TEMPLATE_REGISTRY: Record<string, Record<string, TemplateJSON>> = {
   'luxe-boutique': {
     index: luxeBoutiqueIndexTemplate as unknown as TemplateJSON,
     // Other templates use starter-store as fallback
+  },
+  'aurora-minimal': {
+    index: auroraMinimalIndexTemplate as unknown as TemplateJSON,
+  },
+  'nova-lux': {
+    index: novaLuxIndexTemplate as unknown as TemplateJSON,
+  },
+  eclipse: {
+    index: eclipseIndexTemplate as unknown as TemplateJSON,
+  },
+  'artisan-market': {
+    index: artisanMarketIndexTemplate as unknown as TemplateJSON,
+  },
+  freshness: {
+    index: freshnessIndexTemplate as unknown as TemplateJSON,
+  },
+  rovo: {
+    index: rovoIndexTemplate as unknown as TemplateJSON,
+  },
+  sokol: {
+    index: sokolIndexTemplate as unknown as TemplateJSON,
+  },
+  'turbo-sale': {
+    index: turboSaleIndexTemplate as unknown as TemplateJSON,
+  },
+  'zenith-rise': {
+    index: zenithRiseIndexTemplate as unknown as TemplateJSON,
   },
   'tech-modern': {
     index: techModernIndexTemplate as unknown as TemplateJSON,

@@ -447,6 +447,7 @@ export interface FooterConfig {
     url: string;
   }[];
   showPoweredBy?: boolean;
+  showTrustBadges?: boolean;
 }
 
 // Helper to parse social links

@@ -1,0 +1,33 @@
+{
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "show_announcement": true,
+        "announcement_text": "Welcome to Nova Lux",
+        "announcement_link": "/collections/all"
+      }
+    },
+    "hero": {
+      "type": "hero-banner",
+      "settings": {
+        "heading": "Redefining Luxury",
+        "subheading": "Discover our exclusive collection.",
+        "button_text": "Shop Now",
+        "button_link": "/collections/all"
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "show_powered_by": true,
+        "show_trust_badges": true
+      }
+    }
+  },
+  "order": [
+    "header",
+    "hero",
+    "footer"
+  ]
+}

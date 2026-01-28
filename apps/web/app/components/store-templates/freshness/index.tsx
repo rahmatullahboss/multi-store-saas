@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
-import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
+import { useFormatPrice } from '~/contexts/LanguageContext';
 import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
 import { useCartCount } from '~/hooks/useCartCount';
 import { FRESHNESS_THEME } from './theme';
@@ -675,13 +675,14 @@ function PreviewHomePage({
   products,
   categories,
   currency,
-  config,
+  config: _config,
   onNavigate,
 }: {
   storeName: string;
   products: DemoProduct[];
   categories: (string | null)[];
   currency: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   config: any;
   onNavigate: (page: PageType) => void;
 }) {
@@ -750,77 +751,13 @@ function PreviewHomePage({
   );
 }
 
-// --- Preview Footer ---
-function PreviewFooter({
-  storeName,
-  onNavigate,
-}: {
-  storeName: string;
-  onNavigate: (page: PageType) => void;
-}) {
-  return (
-    <footer style={{ backgroundColor: FRESHNESS_THEME.footerBg }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <h4
-              className="text-2xl font-bold italic mb-4"
-              style={{ color: FRESHNESS_THEME.secondary, fontFamily: FRESHNESS_THEME.fontHeading }}
-            >
-              {storeName}
-            </h4>
-            <p className="text-sm" style={{ color: FRESHNESS_THEME.footerText }}>
-              Fresh, organic products delivered to your doorstep.
-            </p>
-          </div>
-          <div>
-            <h5 className="font-bold mb-4" style={{ color: FRESHNESS_THEME.text }}>
-              Quick Links
-            </h5>
-            <ul className="space-y-2 text-sm" style={{ color: FRESHNESS_THEME.footerText }}>
-              <li>
-                <button
-                  onClick={() => onNavigate({ type: 'home' })}
-                  className="hover:text-green-600"
-                >
-                  Home
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate({ type: 'cart' })}
-                  className="hover:text-green-600"
-                >
-                  Cart
-                </button>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h5 className="font-bold mb-4" style={{ color: FRESHNESS_THEME.text }}>
-              Contact
-            </h5>
-            <p className="text-sm" style={{ color: FRESHNESS_THEME.footerText }}>
-              support@example.com
-            </p>
-          </div>
-        </div>
-        <div
-          className="mt-8 pt-8 border-t text-center text-sm"
-          style={{ borderColor: FRESHNESS_THEME.border, color: FRESHNESS_THEME.footerText }}
-        >
-          © {new Date().getFullYear()} {storeName}. All rights reserved.
-        </div>
-      </div>
-    </footer>
-  );
-}
+
 
 // ============================================================================
 // MAIN PREVIEW STORE CONTAINER
 // ============================================================================
 function PreviewFreshnessStore(props: StoreTemplateProps) {
-  const { storeName, logo, categories, config, currency } = props;
+  const { storeName, logo, categories, config, currency, socialLinks, businessInfo, footerConfig, planType } = props;
   const [currentPage, setCurrentPage] = useState<PageType>({ type: 'home' });
 
   const navigate = useCallback((page: PageType) => {
@@ -856,7 +793,7 @@ function PreviewFreshnessStore(props: StoreTemplateProps) {
         return <PreviewCartPage currency={currency} onNavigate={navigate} />;
       case 'checkout':
         return <PreviewCheckoutPage currency={currency} onNavigate={navigate} />;
-      case 'category':
+      case 'category': {
         const filtered = products.filter((p) => p.category === currentPage.category);
         return (
           <div className="pt-24 pb-20 px-4 max-w-7xl mx-auto">
@@ -873,6 +810,7 @@ function PreviewFreshnessStore(props: StoreTemplateProps) {
             </div>
           </div>
         );
+      }
       case 'order-success':
         return (
           <div className="min-h-[60vh] flex items-center justify-center flex-col pt-20">
@@ -930,7 +868,15 @@ function PreviewFreshnessStore(props: StoreTemplateProps) {
           onNavigate={navigate}
         />
         <main>{renderPage()}</main>
-        <PreviewFooter storeName={storeName} onNavigate={navigate} />
+        <FreshnessFooter 
+          storeName={storeName}
+          logo={logo}
+          footerConfig={footerConfig}
+          businessInfo={businessInfo}
+          socialLinks={socialLinks}
+          planType={planType}
+          categories={validCategories}
+        />
       </div>
     </CartProvider>
   );

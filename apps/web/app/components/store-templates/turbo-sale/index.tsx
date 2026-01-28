@@ -21,7 +21,6 @@ import { TurboSaleHeader } from './sections/Header';
 import { TurboSaleFooter } from './sections/Footer';
 import {
   Phone,
-  MessageCircle,
   ShoppingBag,
   Minus,
   Plus,
@@ -653,9 +652,9 @@ function PreviewCheckoutPage({
 
 // --- Preview Home Page ---
 function PreviewHomePage({
-  storeName,
+  storeName: _storeName,
   products,
-  categories,
+  categories: _categories,
   currency,
   config,
   onNavigate,
@@ -664,6 +663,7 @@ function PreviewHomePage({
   products: DemoProduct[];
   categories: (string | null)[];
   currency: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   config: any;
   onNavigate: (page: PageType) => void;
 }) {
@@ -728,60 +728,14 @@ function PreviewHomePage({
   );
 }
 
-// --- Preview Footer ---
-function PreviewFooter({
-  storeName,
-  onNavigate,
-  businessInfo,
-}: {
-  storeName: string;
-  onNavigate: (page: PageType) => void;
-  businessInfo?: any;
-}) {
-  return (
-    <footer style={{ backgroundColor: TURBO_SALE_THEME.footerBg }} className="text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <h4 className="text-xl font-bold mb-4">{storeName}</h4>
-            <p className="text-gray-400 text-sm">
-              আমাদের সকল পণ্য ১০০% অরিজিনাল। সারা দেশে ক্যাশ অন ডেলিভারি সুবিধা।
-            </p>
-          </div>
-          <div>
-            <h5 className="font-bold mb-4">দ্রুত লিংক</h5>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li>
-                <button onClick={() => onNavigate({ type: 'home' })} className="hover:text-white">
-                  হোম
-                </button>
-              </li>
-              <li>
-                <button onClick={() => onNavigate({ type: 'cart' })} className="hover:text-white">
-                  কার্ট
-                </button>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h5 className="font-bold mb-4">যোগাযোগ</h5>
-            <p className="text-sm text-gray-400">{businessInfo?.phone || '+880 1700-000000'}</p>
-            <p className="text-sm text-gray-400">{businessInfo?.email || 'support@example.com'}</p>
-          </div>
-        </div>
-        <div className="mt-8 pt-8 border-t border-gray-700 text-center text-sm text-gray-500">
-          © {new Date().getFullYear()} {storeName}. সর্বস্বত্ব সংরক্ষিত।
-        </div>
-      </div>
-    </footer>
-  );
-}
+// PreviewFooter removed - using TurboSaleFooter instead
+
 
 // ============================================================================
 // MAIN PREVIEW STORE CONTAINER
 // ============================================================================
 function PreviewTurboSaleStore(props: StoreTemplateProps) {
-  const { storeName, logo, categories, config, currency, businessInfo } = props;
+  const { storeName, logo, categories, config, currency, businessInfo, socialLinks, footerConfig, planType } = props;
   const [currentPage, setCurrentPage] = useState<PageType>({ type: 'home' });
 
   const navigate = useCallback((page: PageType) => {
@@ -817,7 +771,7 @@ function PreviewTurboSaleStore(props: StoreTemplateProps) {
         return <PreviewCartPage currency={currency} onNavigate={navigate} />;
       case 'checkout':
         return <PreviewCheckoutPage currency={currency} onNavigate={navigate} />;
-      case 'category':
+      case 'category': {
         const filtered = products.filter((p) => p.category === currentPage.category);
         return (
           <div className="py-8 px-4 max-w-7xl mx-auto">
@@ -834,6 +788,7 @@ function PreviewTurboSaleStore(props: StoreTemplateProps) {
             </div>
           </div>
         );
+      }
       case 'order-success':
         return (
           <div className="min-h-[60vh] flex items-center justify-center flex-col px-4">
@@ -889,7 +844,15 @@ function PreviewTurboSaleStore(props: StoreTemplateProps) {
 
         <main>{renderPage()}</main>
 
-        <PreviewFooter storeName={storeName} onNavigate={navigate} businessInfo={businessInfo} />
+        <TurboSaleFooter
+          storeName={storeName}
+          logo={logo}
+          socialLinks={socialLinks}
+          footerConfig={footerConfig}
+          businessInfo={businessInfo}
+          planType={planType}
+          categories={categories}
+        />
 
         {/* Mobile Sticky Footer */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t p-3 flex gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">

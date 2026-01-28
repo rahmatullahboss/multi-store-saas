@@ -26,7 +26,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const { type } = params;
   
   // Validate policy type
-  const validTypes: PolicyType[] = ['privacy', 'terms', 'refund'];
+  const validTypes: PolicyType[] = ['privacy', 'terms', 'refund', 'shipping'];
   if (!type || !validTypes.includes(type as PolicyType)) {
     throw new Response('Policy not found', { status: 404 });
   }

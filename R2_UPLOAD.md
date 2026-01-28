@@ -9,7 +9,7 @@
 wrangler login
 
 # Create bucket for public assets
-wrangler r2 bucket create ozzyl-public-assets
+wrangler r2 bucket create multi-store-saas-media
 ```
 
 ### 2. Upload Logos
@@ -19,19 +19,19 @@ wrangler r2 bucket create ozzyl-public-assets
 cd apps/web/public
 
 # Upload brand logos to R2
-wrangler r2 object put ozzyl-public-assets/brand/logo-white.png --file=brand/logo-white.png
-wrangler r2 object put ozzyl-public-assets/brand/logo-white-small.png --file=brand/logo-white-small.png
-wrangler r2 object put ozzyl-public-assets/brand/logo-white-xs.png --file=brand/logo-white-xs.png
-wrangler r2 object put ozzyl-public-assets/brand/logo-green.png --file=brand/logo-green.png
-wrangler r2 object put ozzyl-public-assets/ozzyl-logo.png --file=ozzyl-logo.png
-wrangler r2 object put ozzyl-public-assets/ozzyl-logo-small-black.png --file=ozzyl-logo-small-black.png
-wrangler r2 object put ozzyl-public-assets/ozzyl-logo-small.png --file=ozzyl-logo-small.png
+wrangler r2 object put multi-store-saas-media/brand/logo-white.png --file=brand/logo-white.png
+wrangler r2 object put multi-store-saas-media/brand/logo-white-small.png --file=brand/logo-white-small.png
+wrangler r2 object put multi-store-saas-media/brand/logo-white-xs.png --file=brand/logo-white-xs.png
+wrangler r2 object put multi-store-saas-media/brand/logo-green.png --file=brand/logo-green.png
+wrangler r2 object put multi-store-saas-media/ozzyl-logo.png --file=ozzyl-logo.png
+wrangler r2 object put multi-store-saas-media/brand/ozzyl-logo-small-black.webp --file=ozzyl-logo-small-black.webp
+wrangler r2 object put multi-store-saas-media/ozzyl-logo-small.png --file=ozzyl-logo-small.png
 ```
 
 ### 3. Enable Public Access
 
 1. Go to Cloudflare Dashboard → R2
-2. Select `ozzyl-public-assets` bucket
+2. Select `multi-store-saas-media` bucket
 3. Go to Settings → Public Access
 4. Click "Allow Access" and get the public URL
 5. Copy the URL (e.g., `https://pub-xxxxx.r2.dev`)

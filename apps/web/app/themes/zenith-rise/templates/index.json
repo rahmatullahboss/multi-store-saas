@@ -1,0 +1,26 @@
+{
+  "name": "Home Page",
+  "sections": {
+    "hero": {
+      "type": "hero-banner",
+      "settings": {
+        "heading": "Supercharge Your Workflow",
+        "title_highlight": "Workflow",
+        "subheading": "The ultimate platform for modern creators. Scale your business with powerful tools designed for growth.",
+        "cta_label": "Get Started",
+        "cta_link": "/signup"
+      }
+    },
+    "features": {
+      "type": "features",
+      "settings": {
+        "heading": "Everything you need",
+        "subheading": "No compromise on features."
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "features"
+  ]
+}

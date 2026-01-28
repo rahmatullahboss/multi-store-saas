@@ -289,6 +289,9 @@ export interface ThemeConfig {
     success?: string;
     warning?: string;
     error?: string;
+    footerBg?: string;
+    footerText?: string;
+    [key: string]: string | undefined;
   };
 
   // Typography
@@ -346,6 +349,32 @@ export interface ThemeConfig {
 // ============================================================================
 
 /**
+ * Social media links configuration
+ */
+export interface SocialLinks {
+  facebook?: string;
+  instagram?: string;
+  whatsapp?: string;
+  twitter?: string;
+  youtube?: string;
+  tiktok?: string;
+  linkedin?: string;
+}
+
+/**
+ * Footer customization configuration
+ */
+export interface FooterConfig {
+  description?: string;
+  links?: {
+    title: string;
+    url: string;
+  }[];
+  showPoweredBy?: boolean;
+  showTrustBadges?: boolean;
+}
+
+/**
  * Context data passed to sections
  */
 export interface SectionContext {
@@ -356,6 +385,17 @@ export interface SectionContext {
     logo?: string | null;
     currency: string;
     defaultLanguage: 'en' | 'bn';
+    planType?: string;
+    address?: string;
+    email?: string;
+    phone?: string;
+    instagram?: string;
+    facebook?: string;
+    twitter?: string;
+    // Extended store info
+    socialLinks?: SocialLinks | null;
+    businessInfo?: { phone?: string; email?: string; address?: string } | null;
+    footerConfig?: FooterConfig | null;
   };
 
   // Current page context

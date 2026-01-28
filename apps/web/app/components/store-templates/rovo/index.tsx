@@ -41,6 +41,8 @@ export function RovoTemplate(props: StoreTemplateProps) {
         businessInfo={props.businessInfo}
         socialLinks={props.socialLinks}
         categories={filteredCategories}
+        footerConfig={props.footerConfig}
+        planType={props.planType}
       />
     </RovoLayout>
   );

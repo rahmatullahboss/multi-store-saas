@@ -22,24 +22,14 @@ import {
   X,
   Heart,
   ChevronRight,
-  Star,
-  Instagram,
-  Facebook,
-  Twitter,
-  Mail,
-  Phone,
-  MapPin,
   Home as HomeIcon,
-  Grid3X3,
   User,
   ShoppingCart,
+  Grid3X3,
   MessageCircle,
-  ArrowRight,
-  Sparkles,
+  Phone,
   Eye,
   Check,
-  Minus,
-  Plus,
 } from 'lucide-react';
 import { useWishlist } from '~/hooks/useWishlist';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
@@ -60,7 +50,6 @@ import {
   DEMO_PRODUCTS,
   DEMO_CATEGORIES,
   getDemoProductById,
-  getRelatedProducts,
   type DemoProduct,
 } from '~/utils/store-preview-data';
 
@@ -188,7 +177,7 @@ function PreviewHeader({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { t } = useTranslation();
+  const { t: _t } = useTranslation();
   const theme = AURORA_THEME;
   const THEME_COLORS = {
     primary: theme.primary,
@@ -389,68 +378,8 @@ function PreviewHeader({
   );
 }
 
-// --- Footer ---
-function PreviewFooter({
-  storeName,
-  categories,
-  onNavigate,
-}: {
-  storeName: string;
-  categories: (string | null)[];
-  onNavigate: (page: PageType) => void;
-}) {
-  const theme = AURORA_THEME;
-  const validCategories = categories.filter((c): c is string => Boolean(c));
 
-  return (
-    <footer
-      className="relative overflow-hidden pt-24 pb-12"
-      style={{ backgroundColor: theme.footerBg, color: theme.footerText }}
-    >
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-aurora-500 to-transparent opacity-30" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 lg:gap-8">
-          <div className="space-y-8">
-            <button onClick={() => onNavigate({ type: 'home' })} className="inline-block group">
-              <span
-                className="text-3xl font-bold tracking-tighter"
-                style={{ fontFamily: theme.fontHeading, color: theme.primary }}
-              >
-                {storeName}
-              </span>
-            </button>
-            <p className="text-sm leading-relaxed opacity-60 max-w-xs font-medium">
-              Harmonizing minimalist design with soulful aesthetics.
-            </p>
-          </div>
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-[0.2em] mb-8 opacity-40">
-              Collections
-            </h4>
-            <ul className="space-y-4">
-              {validCategories.slice(0, 5).map((category) => (
-                <li key={category}>
-                  <button
-                    onClick={() => onNavigate({ type: 'category', category })}
-                    className="text-sm font-semibold hover:opacity-100 opacity-60 transition-opacity flex items-center gap-2 group"
-                  >
-                    <span className="w-0 group-hover:w-4 h-[1px] bg-current transition-all duration-300" />
-                    {category}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-        <div className="mt-24 pt-12 border-t border-current/5 flex flex-col md:flex-row items-center justify-between gap-8">
-          <p className="text-[10px] font-bold uppercase tracking-widest opacity-30">
-            © {new Date().getFullYear()} {storeName} / All Rights Reserved
-          </p>
-        </div>
-      </div>
-    </footer>
-  );
-}
+
 
 // --- Product Card ---
 function PreviewProductCard({
@@ -554,7 +483,7 @@ function PreviewProductCard({
 function PreviewProductDetailPage({
   productId,
   currency,
-  onNavigate,
+  onNavigate: _onNavigate,
 }: {
   productId: number;
   currency: string;
@@ -791,9 +720,9 @@ function PreviewCheckoutPage({
 
 // --- Home Page ---
 function PreviewHomePage({
-  storeName,
+  storeName: _storeName,
   products,
-  categories,
+  categories: _categories,
   currency,
   config,
   onNavigate,
@@ -802,6 +731,7 @@ function PreviewHomePage({
   products: DemoProduct[];
   categories: (string | null)[];
   currency: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   config: any;
   onNavigate: (page: PageType) => void;
 }) {
@@ -862,7 +792,7 @@ function PreviewHomePage({
 // MAIN PREVIEW STORE CONTAINER
 // ============================================================================
 function PreviewAuroraStore(props: StoreTemplateProps) {
-  const { storeName, logo, categories, config, currency } = props;
+  const { storeName, logo, categories: _storeCategories, config, currency, socialLinks, businessInfo, footerConfig, planType } = props;
   const [currentPage, setCurrentPage] = useState<PageType>({ type: 'home' });
 
   const navigate = useCallback((page: PageType) => {
@@ -898,7 +828,7 @@ function PreviewAuroraStore(props: StoreTemplateProps) {
         return <PreviewCartPageComponent currency={currency} onNavigate={navigate} />;
       case 'checkout':
         return <PreviewCheckoutPage currency={currency} onNavigate={navigate} />;
-      case 'category':
+      case 'category': {
         const filtered = products.filter((p) => p.category === currentPage.category);
         return (
           <div className="pt-32 pb-20 px-4 max-w-7xl mx-auto">
@@ -920,6 +850,7 @@ function PreviewAuroraStore(props: StoreTemplateProps) {
             </div>
           </div>
         );
+      }
       case 'order-success':
         return (
           <div className="min-h-[60vh] flex items-center justify-center pt-20 flex-col">
@@ -966,7 +897,15 @@ function PreviewAuroraStore(props: StoreTemplateProps) {
           onNavigate={navigate}
         />
         <main>{renderPage()}</main>
-        <PreviewFooter storeName={storeName} categories={validCategories} onNavigate={navigate} />
+        <AuroraMinimalFooter 
+          storeName={storeName}
+          logo={logo}
+          footerConfig={footerConfig}
+          businessInfo={businessInfo}
+          socialLinks={socialLinks}
+          planType={planType}
+          categories={validCategories}
+        />
       </div>
     </CartProvider>
   );
@@ -993,8 +932,8 @@ function LiveAuroraMinimalHomepage({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const formatPrice = useFormatPrice();
-  const { t } = useTranslation();
+  const _formatPrice = useFormatPrice();
+  const { t: _liveT } = useTranslation();
   const count = useCartCount();
 
   useEffect(() => {
@@ -1058,6 +997,7 @@ function LiveAuroraMinimalHomepage({
                 className={`${announcement?.text ? 'h-[107px] lg:h-[123px]' : 'h-[67px] lg:h-[83px]'}`}
               />
 
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               {(config?.sections ?? DEFAULT_SECTIONS).map((section: any) => {
                 const SectionComponent = SECTION_REGISTRY[section.type]?.component;
                 if (!SectionComponent) return null;
@@ -1142,12 +1082,14 @@ function LiveAuroraMinimalHomepage({
                     className="text-3xl lg:text-5xl font-bold mb-4"
                     style={{ fontFamily: AURORA_THEME.fontHeading, color: THEME.primary }}
                   >
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {(config as any)?.newsletter?.heading || 'Join Our Journey'}
                   </h3>
                   <p
                     className="text-lg mb-8 max-w-lg mx-auto opacity-80"
                     style={{ color: THEME.primary }}
                   >
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {(config as any)?.newsletter?.subheading ||
                       'Be the first to discover new arrivals and exclusive offers.'}
                   </p>
