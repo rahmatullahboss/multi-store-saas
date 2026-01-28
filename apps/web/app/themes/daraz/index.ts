@@ -26,6 +26,16 @@ import DarazCategoryGrid, { schema as categoryGridSchema } from './sections/cate
 import DarazProductGrid, { schema as productGridSchema } from './sections/product-grid';
 import DarazFooter, { schema as footerSchema } from './sections/footer';
 
+// New sections for product, cart, collection, and page templates
+import DarazProductMain, { schema as productMainSchema } from './sections/product-main';
+import DarazCartItems, { schema as cartItemsSchema } from './sections/cart-items';
+import DarazCartSummary, { schema as cartSummarySchema } from './sections/cart-summary';
+import DarazCollectionHeader, {
+  schema as collectionHeaderSchema,
+} from './sections/collection-header';
+import DarazCollectionGrid, { schema as collectionGridSchema } from './sections/collection-grid';
+import DarazRichText, { schema as richTextSchema } from './sections/rich-text';
+
 // ============================================================================
 // THEME METADATA
 // ============================================================================

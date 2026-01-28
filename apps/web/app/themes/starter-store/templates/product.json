@@ -31,15 +31,15 @@
         "padding_top": 48,
         "padding_bottom": 48
       },
-      "blocks": {
-        "description": {
+      "blocks": [
+        {
+          "id": "description",
           "type": "description",
           "settings": {
             "show_full": true
           }
         }
-      },
-      "block_order": ["description"]
+      ]
     },
     "related-products": {
       "type": "featured-collection",
