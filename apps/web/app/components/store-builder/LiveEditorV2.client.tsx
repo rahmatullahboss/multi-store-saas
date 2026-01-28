@@ -648,6 +648,34 @@ export function LiveEditorV2({
     : null;
 
   // ============================================================================
+  // SECTION GROUPS (Shopify OS 2.0 Pattern)
+  // ============================================================================
+  // Header Group: announcement-bar, header (shared across all pages)
+  // Template Sections: page-specific sections
+  // Footer Group: footer (shared across all pages)
+  
+  const { headerSections, templateSections, footerSections } = useMemo(() => {
+    const HEADER_TYPES = ['announcement-bar', 'header'];
+    const FOOTER_TYPES = ['footer'];
+    
+    const header: EditorSectionWithState[] = [];
+    const template: EditorSectionWithState[] = [];
+    const footer: EditorSectionWithState[] = [];
+    
+    for (const section of sections) {
+      if (HEADER_TYPES.includes(section.type)) {
+        header.push(section);
+      } else if (FOOTER_TYPES.includes(section.type)) {
+        footer.push(section);
+      } else {
+        template.push(section);
+      }
+    }
+    
+    return { headerSections: header, templateSections: template, footerSections: footer };
+  }, [sections]);
+
+  // ============================================================================
   // KEYBOARD SHORTCUTS
   // ============================================================================
 
@@ -1194,9 +1222,39 @@ export function LiveEditorV2({
               />
             ) : (
               <>
-                {/* Sections Accordion */}
+                {/* HEADER GROUP - Shared across all pages */}
                 <AccordionSection
-                  title="Sections"
+                  title="Header"
+                  icon={Layout}
+                  isOpen={openAccordion === 'header-group'}
+                  onToggle={() => setOpenAccordion(openAccordion === 'header-group' ? '' : 'header-group')}
+                >
+                  <p className="text-xs text-gray-500 mb-2">
+                    Shared across all pages
+                  </p>
+                  {headerSections.length > 0 ? (
+                    <div className="space-y-1">
+                      {headerSections.map((section) => (
+                        <SortableSectionItem
+                          key={section.id}
+                          section={section}
+                          schema={themeBridge.getSectionSchema(section.type)}
+                          isActive={selectedSectionId === section.id}
+                          onSelect={() => setSelectedSectionId(section.id)}
+                          onDelete={() => handleDeleteSection(section.id)}
+                          onDuplicate={() => handleDuplicateSection(section.id)}
+                          onToggleVisibility={() => handleToggleSectionVisibility(section.id)}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-400 italic">No header sections</p>
+                  )}
+                </AccordionSection>
+
+                {/* TEMPLATE SECTIONS - Page-specific */}
+                <AccordionSection
+                  title="Template"
                   icon={Layout}
                   isOpen={openAccordion === 'sections'}
                   onToggle={() => setOpenAccordion(openAccordion === 'sections' ? '' : 'sections')}
@@ -1210,10 +1268,10 @@ export function LiveEditorV2({
                     onDragEnd={handleDragEnd}
                   >
                     <SortableContext
-                      items={sections.map((s) => s.id)}
+                      items={templateSections.map((s) => s.id)}
                       strategy={verticalListSortingStrategy}
                     >
-                      {sections.map((section) => (
+                      {templateSections.map((section) => (
                         <SortableSectionItem
                           key={section.id}
                           section={section}
@@ -1234,6 +1292,36 @@ export function LiveEditorV2({
                   >
                     <Plus className="w-4 h-4" /> Add Section
                   </button>
+                </AccordionSection>
+
+                {/* FOOTER GROUP - Shared across all pages */}
+                <AccordionSection
+                  title="Footer"
+                  icon={Layout}
+                  isOpen={openAccordion === 'footer-group'}
+                  onToggle={() => setOpenAccordion(openAccordion === 'footer-group' ? '' : 'footer-group')}
+                >
+                  <p className="text-xs text-gray-500 mb-2">
+                    Shared across all pages
+                  </p>
+                  {footerSections.length > 0 ? (
+                    <div className="space-y-1">
+                      {footerSections.map((section) => (
+                        <SortableSectionItem
+                          key={section.id}
+                          section={section}
+                          schema={themeBridge.getSectionSchema(section.type)}
+                          isActive={selectedSectionId === section.id}
+                          onSelect={() => setSelectedSectionId(section.id)}
+                          onDelete={() => handleDeleteSection(section.id)}
+                          onDuplicate={() => handleDuplicateSection(section.id)}
+                          onToggleVisibility={() => handleToggleSectionVisibility(section.id)}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-400 italic">No footer sections</p>
+                  )}
                 </AccordionSection>
 
                 {/* Theme Colors */}
