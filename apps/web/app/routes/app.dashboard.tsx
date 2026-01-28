@@ -1,8 +1,8 @@
 /**
  * Dashboard Overview Page - Shopify-Inspired Design
- * 
+ *
  * Route: /app/dashboard
- * 
+ *
  * Features:
  * - Welcome section with store status
  * - Key metrics with trend indicators
@@ -19,10 +19,10 @@ import { eq, desc } from 'drizzle-orm';
 import { orders, stores } from '@db/schema';
 import * as schema from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { 
-  Package, 
-  ShoppingCart, 
-  TrendingUp, 
+import {
+  Package,
+  ShoppingCart,
+  TrendingUp,
   DollarSign,
   ExternalLink,
   Sparkles,
@@ -31,7 +31,7 @@ import {
   BarChart3,
   ArrowRight,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
 } from 'lucide-react';
 import { MetricCard, SalesChart, ActionItems, RecentOrders } from '~/components/dashboard';
 import { GlassCard } from '~/components/ui/GlassCard';
@@ -62,7 +62,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const store = storeResult; // drizzle-orm query findFirst returns the object directly or undefined
   if (!store) {
-     throw new Response('Store not found', { status: 404 });
+    throw new Response('Store not found', { status: 404 });
   }
 
   // Fetch store stats using shared service
@@ -71,18 +71,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const [statsResult, forecast, clv] = await Promise.all([
     getStoreStats(db as any, storeId), // Type assertion to bypass strict mismatch if service isn't updated yet
     getRevenueForecast(db as any, storeId),
-    getPredictedCLV(db as any, storeId)
+    getPredictedCLV(db as any, storeId),
   ]);
-  const { 
-      products: productCount, 
-      lowStock: lowStockCount, 
-      orders: orderCount, 
-      revenue: revenueTotal, 
-      todaySales, 
-      salesTrend, 
-      pendingOrders: pendingCount, 
-      abandonedCarts: abandonedCount,
-      salesData 
+  const {
+    products: productCount,
+    lowStock: lowStockCount,
+    orders: orderCount,
+    revenue: revenueTotal,
+    todaySales,
+    salesTrend,
+    pendingOrders: pendingCount,
+    abandonedCarts: abandonedCount,
+    salesData,
   } = statsResult;
 
   // Build action items
@@ -170,15 +170,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       salesTrend,
       pendingOrders: pendingCount,
     },
-    salesData: salesData.map(d => ({
-        date: d.date,
-        label: d.date, // Use date as label
-        value: d.amount
+    salesData: salesData.map((d) => ({
+      date: d.date,
+      label: d.date, // Use date as label
+      value: d.amount,
     })),
     actionItems,
     forecast,
     clv,
-    recentOrders: recentOrders.map(o => ({
+    recentOrders: recentOrders.map((o) => ({
       ...o,
       createdAt: o.createdAt?.toISOString() || new Date().toISOString(),
     })),
@@ -186,20 +186,20 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export default function DashboardPage() {
-  const { 
-    storeName, 
-    storeUrl, 
-    currency, 
+  const {
+    storeName,
+    storeUrl,
+    currency,
     greeting,
     planType,
     storeEnabled,
     usage,
-    stats, 
-    salesData, 
+    stats,
+    salesData,
     actionItems,
     forecast,
     clv,
-    recentOrders 
+    recentOrders,
   } = useLoaderData<typeof loader>();
   const { t, lang } = useTranslation();
   const navigate = useNavigate();
@@ -225,9 +225,9 @@ export default function DashboardPage() {
       <LimitWarningBanner usage={usage} planType={planType} />
 
       {/* Low Stock Alert */}
-      <LowStockAlertBanner 
-        count={stats.lowStock} 
-        threshold={10} 
+      <LowStockAlertBanner
+        count={stats.lowStock}
+        threshold={10}
         onAction={() => navigate('/app/inventory?filter=low')}
       />
 
@@ -236,7 +236,7 @@ export default function DashboardPage() {
         {/* Abstract shapes for premium feel */}
         <div className="absolute top-0 right-0 -mr-20 -mt-20 h-64 w-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-64 w-64 rounded-full bg-emerald-400/20 blur-3xl pointer-events-none" />
-        
+
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -253,17 +253,26 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="flex flex-col gap-3">
-             <a
-              href={storeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-emerald-900 hover:bg-emerald-50 rounded-xl font-semibold shadow-lg shadow-emerald-900/20 transition-all duration-300 transform hover:-translate-y-1"
-            >
-              <ExternalLink className="w-5 h-5" />
-              {t('viewStore')}
-            </a>
+            <div className="flex gap-3">
+              <a
+                href={storeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-emerald-900 hover:bg-emerald-50 rounded-xl font-semibold shadow-lg shadow-emerald-900/20 transition-all duration-300 transform hover:-translate-y-1"
+              >
+                <ExternalLink className="w-5 h-5" />
+                {t('viewStore')}
+              </a>
+              <Link
+                to="/store-live-editor"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-400/20 text-white hover:bg-emerald-400/30 border border-white/20 rounded-xl font-semibold backdrop-blur-sm transition-all duration-300 transform hover:-translate-y-1"
+              >
+                <Sparkles className="w-5 h-5" />
+                {lang === 'bn' ? 'থিম এডিটর' : 'Theme Editor'}
+              </Link>
+            </div>
             <div className="text-xs text-center text-emerald-200/80 font-medium">
-               {storeEnabled ? 'Store is Live' : 'Maintenance Mode'}
+              {storeEnabled ? 'Store is Live' : 'Maintenance Mode'}
             </div>
           </div>
         </div>
@@ -271,31 +280,39 @@ export default function DashboardPage() {
 
       {/* First Sale Checklist (Only if 0 orders) */}
       {stats.orders === 0 && (
-         <FirstSaleChecklist productCount={stats.products} storeUrl={storeUrl} />
+        <FirstSaleChecklist productCount={stats.products} storeUrl={storeUrl} />
       )}
 
       {/* Key Metrics - Glass Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <GlassCard variant="hover" intensity="medium" className="p-0 overflow-hidden relative group">
-           <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
-              <DollarSign className="w-16 h-16 text-emerald-500/10 rotate-12" />
-           </div>
-           <MetricCard
-             title={t('todaysSales')}
-             value={formatPrice(stats.todaySales)}
-             icon={DollarSign}
-             color="emerald"
-             trend={{
-                value: stats.salesTrend,
-                label: t('vsYesterday'),
-             }}
-           />
+        <GlassCard
+          variant="hover"
+          intensity="medium"
+          className="p-0 overflow-hidden relative group"
+        >
+          <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
+            <DollarSign className="w-16 h-16 text-emerald-500/10 rotate-12" />
+          </div>
+          <MetricCard
+            title={t('todaysSales')}
+            value={formatPrice(stats.todaySales)}
+            icon={DollarSign}
+            color="emerald"
+            trend={{
+              value: stats.salesTrend,
+              label: t('vsYesterday'),
+            }}
+          />
         </GlassCard>
 
-        <GlassCard variant="hover" intensity="medium" className="p-0 overflow-hidden relative group">
-           <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
-              <TrendingUp className="w-16 h-16 text-purple-500/10 rotate-12" />
-           </div>
+        <GlassCard
+          variant="hover"
+          intensity="medium"
+          className="p-0 overflow-hidden relative group"
+        >
+          <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
+            <TrendingUp className="w-16 h-16 text-purple-500/10 rotate-12" />
+          </div>
           <MetricCard
             title={t('totalRevenue')}
             value={formatPrice(stats.revenue)}
@@ -304,10 +321,14 @@ export default function DashboardPage() {
           />
         </GlassCard>
 
-        <GlassCard variant="hover" intensity="medium" className="p-0 overflow-hidden relative group">
-           <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
-              <Clock className="w-16 h-16 text-blue-500/10 rotate-12" />
-           </div>
+        <GlassCard
+          variant="hover"
+          intensity="medium"
+          className="p-0 overflow-hidden relative group"
+        >
+          <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
+            <Clock className="w-16 h-16 text-blue-500/10 rotate-12" />
+          </div>
           <MetricCard
             title={t('pendingOrders')}
             value={stats.pendingOrders}
@@ -317,10 +338,14 @@ export default function DashboardPage() {
           />
         </GlassCard>
 
-        <GlassCard variant="hover" intensity="medium" className="p-0 overflow-hidden relative group">
-           <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
-              <Package className="w-16 h-16 text-blue-500/10 rotate-12" />
-           </div>
+        <GlassCard
+          variant="hover"
+          intensity="medium"
+          className="p-0 overflow-hidden relative group"
+        >
+          <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
+            <Package className="w-16 h-16 text-blue-500/10 rotate-12" />
+          </div>
           <MetricCard
             title={t('totalProducts')}
             value={stats.products}
@@ -332,38 +357,55 @@ export default function DashboardPage() {
 
         {/* AI Usage Card */}
         {usage.aiPlan && (
-          <GlassCard variant="default" className="p-6 flex flex-col justify-between border-orange-100 bg-orange-50/50">
-              <div>
-                  <div className="flex items-center justify-between mb-4">
-                      <div>
-                          <p className="text-gray-500 text-sm font-medium">{t('aiMessages') || 'AI Messages'}</p>
-                          <h3 className="text-2xl font-bold text-gray-900 mt-1">
-                              {usage.aiMessages?.current}
-                              <span className="text-sm font-normal text-gray-400"> / {usage.aiMessages?.limit}</span>
-                          </h3>
-                      </div>
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 shadow-md flex items-center justify-center text-white">
-                          <Bot className="w-5 h-5" />
-                      </div>
-                  </div>
-                  <div className="space-y-2">
-                       <div className="h-2 bg-gray-200/60 rounded-full overflow-hidden">
-                          <div 
-                              className={`h-full rounded-full transition-all shadow-sm ${
-                                  (usage.aiMessages?.percentage || 0) >= 90 ? 'bg-red-500' : 'bg-gradient-to-r from-orange-400 to-orange-600'
-                              }`}
-                              style={{ width: `${Math.min(usage.aiMessages?.percentage || 0, 100)}%` }}
-                          />
-                       </div>
-                       {(usage.aiMessages?.percentage || 0) >= 80 && (
-                           <p className="text-xs text-orange-600 font-medium flex items-center gap-1">
-                               <AlertTriangle className="w-3 h-3" />
-                               {usage.aiMessages?.percentage >= 100 ? t('limitReached') || 'Limit Reached' : t('runningLow') || 'Running Low'}
-                               <Link to="/app/billing" className="ml-1 underline font-bold hover:text-orange-700">{t('upgrade') || 'Upgrade'}</Link>
-                           </p>
-                       )}
-                  </div>
+          <GlassCard
+            variant="default"
+            className="p-6 flex flex-col justify-between border-orange-100 bg-orange-50/50"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-gray-500 text-sm font-medium">
+                    {t('aiMessages') || 'AI Messages'}
+                  </p>
+                  <h3 className="text-2xl font-bold text-gray-900 mt-1">
+                    {usage.aiMessages?.current}
+                    <span className="text-sm font-normal text-gray-400">
+                      {' '}
+                      / {usage.aiMessages?.limit}
+                    </span>
+                  </h3>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 shadow-md flex items-center justify-center text-white">
+                  <Bot className="w-5 h-5" />
+                </div>
               </div>
+              <div className="space-y-2">
+                <div className="h-2 bg-gray-200/60 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all shadow-sm ${
+                      (usage.aiMessages?.percentage || 0) >= 90
+                        ? 'bg-red-500'
+                        : 'bg-gradient-to-r from-orange-400 to-orange-600'
+                    }`}
+                    style={{ width: `${Math.min(usage.aiMessages?.percentage || 0, 100)}%` }}
+                  />
+                </div>
+                {(usage.aiMessages?.percentage || 0) >= 80 && (
+                  <p className="text-xs text-orange-600 font-medium flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    {usage.aiMessages?.percentage >= 100
+                      ? t('limitReached') || 'Limit Reached'
+                      : t('runningLow') || 'Running Low'}
+                    <Link
+                      to="/app/billing"
+                      className="ml-1 underline font-bold hover:text-orange-700"
+                    >
+                      {t('upgrade') || 'Upgrade'}
+                    </Link>
+                  </p>
+                )}
+              </div>
+            </div>
           </GlassCard>
         )}
       </div>
@@ -375,11 +417,11 @@ export default function DashboardPage() {
           <GlassCard intensity="low" className="p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                 <h2 className="text-lg font-bold text-gray-900">{t('salesOverview')}</h2>
-                 <p className="text-sm text-gray-500">{t('last7Days')}</p>
+                <h2 className="text-lg font-bold text-gray-900">{t('salesOverview')}</h2>
+                <p className="text-sm text-gray-500">{t('last7Days')}</p>
               </div>
               <div className="p-2 bg-gray-50 rounded-lg">
-                 <BarChart3 className="w-5 h-5 text-gray-400" />
+                <BarChart3 className="w-5 h-5 text-gray-400" />
               </div>
             </div>
             <SalesChart data={salesData} currency={currency} />
@@ -389,8 +431,8 @@ export default function DashboardPage() {
           <GlassCard intensity="low" className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900">{t('recentOrders')}</h2>
-              <Link 
-                to="/app/orders" 
+              <Link
+                to="/app/orders"
                 className="text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1 hover:gap-2 transition-all"
               >
                 {t('viewAll')} <ArrowRight className="w-4 h-4" />
@@ -402,37 +444,64 @@ export default function DashboardPage() {
 
         {/* Growth Opportunities & Action Items */}
         <div className="space-y-6">
-            <GrowthOpportunitiesCard forecast={forecast} clv={clv} currency={currency} />
-            
-            {/* Action Items */}
-            <GlassCard intensity="low" className="p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                 <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                 {t('actionItems')}
-              </h2>
-              <ActionItems items={actionItems} />
-            </GlassCard>
+          <GrowthOpportunitiesCard forecast={forecast} clv={clv} currency={currency} />
+
+          {/* Action Items */}
+          <GlassCard intensity="low" className="p-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+              {t('actionItems')}
+            </h2>
+            <ActionItems items={actionItems} />
+          </GlassCard>
         </div>
       </div>
-
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { to: '/app/products/new', icon: Package, label: 'addProduct', color: 'bg-emerald-100 text-emerald-600', border: 'hover:border-emerald-300' },
-          { to: '/app/orders', icon: ShoppingCart, label: 'viewOrders', color: 'bg-blue-100 text-blue-600', border: 'hover:border-blue-300' },
-          { to: '/app/analytics', icon: TrendingUp, label: 'analytics', color: 'bg-purple-100 text-purple-600', border: 'hover:border-purple-300' },
-          { to: '/app/settings', icon: Sparkles, label: 'settings', color: 'bg-gray-100 text-gray-600', border: 'hover:border-gray-300' },
+          {
+            to: '/app/products/new',
+            icon: Package,
+            label: 'addProduct',
+            color: 'bg-emerald-100 text-emerald-600',
+            border: 'hover:border-emerald-300',
+          },
+          {
+            to: '/app/orders',
+            icon: ShoppingCart,
+            label: 'viewOrders',
+            color: 'bg-blue-100 text-blue-600',
+            border: 'hover:border-blue-300',
+          },
+          {
+            to: '/app/analytics',
+            icon: TrendingUp,
+            label: 'analytics',
+            color: 'bg-purple-100 text-purple-600',
+            border: 'hover:border-purple-300',
+          },
+          {
+            to: '/app/settings',
+            icon: Sparkles,
+            label: 'settings',
+            color: 'bg-gray-100 text-gray-600',
+            border: 'hover:border-gray-300',
+          },
         ].map((action, i) => (
           <Link
             key={i}
             to={action.to}
             className={`flex flex-col items-center gap-3 p-6 bg-white rounded-2xl border border-gray-100 shadow-sm ${action.border} hover:shadow-lg transition-all duration-300 text-center group transform hover:-translate-y-1`}
           >
-            <div className={`w-14 h-14 ${action.color} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-inner`}>
+            <div
+              className={`w-14 h-14 ${action.color} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-inner`}
+            >
               <action.icon className="w-7 h-7" />
             </div>
-            <span className="font-semibold text-gray-700 group-hover:text-gray-900">{t(action.label)}</span>
+            <span className="font-semibold text-gray-700 group-hover:text-gray-900">
+              {t(action.label)}
+            </span>
           </Link>
         ))}
       </div>

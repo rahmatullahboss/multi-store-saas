@@ -24,7 +24,7 @@ import type {
   SerializedProduct,
   SerializedCollection,
   ThemeConfig,
-  CartData,
+  // CartData - reserved for future use
 } from '~/lib/theme-engine/types';
 import { SectionErrorBoundary } from '~/components/shared/SectionErrorBoundary';
 
@@ -289,7 +289,17 @@ export function ThemeStoreRenderer({
 
   // Render a single section
   const renderSection = (section: (typeof sections)[0]) => {
-    const registeredSection = sectionRegistry[section.type];
+    // Try direct lookup first
+    let registeredSection = sectionRegistry[section.type];
+
+    // If not found, try mapping old type to new type
+    if (!registeredSection) {
+      const mappedType = SECTION_TYPE_MAP[section.type];
+      if (mappedType && sectionRegistry[mappedType]) {
+        registeredSection = sectionRegistry[mappedType];
+        console.warn(`[ThemeStoreRenderer] Mapped legacy section type "${section.type}" -> "${mappedType}"`);
+      }
+    }
 
     if (!registeredSection) {
       if (process.env.NODE_ENV === 'development') {
@@ -298,7 +308,8 @@ export function ThemeStoreRenderer({
             key={section.id}
             className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm"
           >
-            Section type "{section.type}" not found in theme "{themeId}"
+            Section type "{section.type}" not found in theme "{themeId}". 
+            Available types: {Object.keys(sectionRegistry).join(', ')}
           </div>
         );
       }
@@ -417,15 +428,49 @@ export function convertResolvedSectionsToThemeFormat(
  * Use this when migrating from old system
  */
 export const SECTION_TYPE_MAP: Record<string, string> = {
-  // Old -> New
+  // Old unified section types -> New theme section types
+  // Homepage sections
   hero: 'hero-banner',
   'featured-products': 'featured-collection',
   'product-grid': 'featured-collection',
   'collection-list': 'categories-grid',
+  'category-list': 'categories-grid',
+  'shop-by-category': 'categories-grid',
+  
+  // Trust/Features sections
   'trust-badges': 'trust-badges',
-  newsletter: 'newsletter',
-  features: 'features',
-  faq: 'faq',
+  features: 'trust-badges',
+  
+  // Newsletter (maps to rich-text if newsletter not available)
+  newsletter: 'rich-text',
+  
+  // FAQ
+  faq: 'rich-text',
+  
+  // Product page sections  
+  'product-info': 'product-main',
+  'product-gallery': 'product-main',
+  'product-header': 'product-main',
+  'product-description': 'rich-text',
+  'product-reviews': 'rich-text',
+  'related-products': 'featured-collection',
+  
+  // Cart page sections
+  'cart-items': 'cart-items',
+  'cart-summary': 'cart-summary',
+  
+  // Collection page sections
+  'collection-header': 'collection-header',
+  'collection-grid': 'collection-grid',
+  
+  // Banner sections
+  banner: 'sale-banner',
+  'promo-banner': 'sale-banner',
+
+  // Rich text sections
+  'rich-text': 'rich-text',
+  story: 'rich-text',
+  'about-us': 'rich-text',
 };
 
 /**

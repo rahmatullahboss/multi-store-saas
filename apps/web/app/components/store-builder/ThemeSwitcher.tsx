@@ -32,6 +32,8 @@ const THEME_COLORS: Record<string, { primary: string; accent: string; bg: string
   daraz: { primary: '#F85606', accent: '#FFB400', bg: '#FAFAFA' },
   bdshop: { primary: '#1E3A8A', accent: '#F97316', bg: '#F8FAFC' },
   'ghorer-bazar': { primary: '#FC8934', accent: '#059669', bg: '#FFFBF5' },
+  'luxe-boutique': { primary: '#1a1a1a', accent: '#c9a87c', bg: '#ffffff' },
+  'tech-modern': { primary: '#3b82f6', accent: '#22c55e', bg: '#0f172a' },
 };
 
 export function ThemeSwitcher({

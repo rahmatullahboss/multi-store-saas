@@ -1,0 +1,74 @@
+{
+  "name": "Cart",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "id": "header",
+      "type": "header",
+      "settings": {
+        "header_bg": "#FC8934",
+        "top_bar_bg": "#1F2937",
+        "search_btn_bg": "#E67825",
+        "badge_bg": "#059669",
+        "show_top_bar": true,
+        "show_category_nav": false,
+        "show_wishlist": true
+      }
+    },
+    "cart-content": {
+      "id": "cart-content",
+      "type": "cart-items",
+      "settings": {
+        "heading": "Your Basket",
+        "show_continue_shopping": true,
+        "continue_shopping_label": "Continue Shopping",
+        "continue_shopping_link": "/products",
+        "empty_cart_heading": "Your Basket is Empty",
+        "empty_cart_text": "Add fresh products to your basket",
+        "empty_cart_button": "Start Shopping",
+        "primary_color": "#FC8934",
+        "price_color": "#059669"
+      }
+    },
+    "cart-summary": {
+      "id": "cart-summary",
+      "type": "cart-summary",
+      "settings": {
+        "heading": "Order Summary",
+        "show_coupon_input": true,
+        "coupon_placeholder": "Enter coupon code",
+        "apply_button": "Apply",
+        "show_shipping_estimate": true,
+        "shipping_text": "Free Delivery on orders over ৳500",
+        "checkout_button": "Proceed to Checkout",
+        "show_payment_icons": true,
+        "show_secure_badge": true,
+        "primary_color": "#FC8934",
+        "price_color": "#059669"
+      }
+    },
+    "related-products": {
+      "id": "related-products",
+      "type": "product-grid",
+      "settings": {
+        "title": "Frequently Bought Together",
+        "products_count": 6,
+        "columns": "6",
+        "show_rating": true,
+        "show_discount_badge": true,
+        "primary_color": "#FC8934",
+        "price_color": "#059669"
+      }
+    },
+    "footer": {
+      "id": "footer",
+      "type": "footer",
+      "settings": {
+        "footer_bg": "#1F2937",
+        "show_app_download": true,
+        "show_payment_badges": true
+      }
+    }
+  },
+  "order": ["header", "cart-content", "cart-summary", "related-products", "footer"]
+}

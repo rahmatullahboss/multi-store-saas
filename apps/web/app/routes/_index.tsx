@@ -29,7 +29,7 @@ import {
   isRouteErrorResponse,
   useSearchParams,
 } from '@remix-run/react';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useMemo } from 'react';
 import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, type Product, type Store } from '@db/schema';
@@ -43,11 +43,12 @@ import {
   type FooterConfig,
 } from '@db/types';
 import { getTemplate, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
-import { getStoreTemplate, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { WishlistProvider } from '~/contexts/WishlistContext';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { useTrackVisit } from '~/hooks/use-track-visit';
+import { ThemeStoreRenderer } from '~/components/store/ThemeStoreRenderer';
+import { resolveTemplate } from '~/lib/template-resolver.server';
 
 // ============================================================================
 // AGGRESSIVE CDN CACHING HEADERS
@@ -177,14 +178,23 @@ interface StoreModeData {
   favicon: string | null;
   fontFamily: string;
   currency: string;
-  theme: string;
+  themeId: string; // Theme ID for ThemeStoreRenderer (e.g., 'daraz', 'luxe-boutique')
   products: Product[];
   categories: string[];
   currentCategory: string | null;
-  themeConfig: ThemeConfig | null;
-  socialLinks: SocialLinks | null;
-  footerConfig: FooterConfig | null;
-  businessInfo: Record<string, unknown> | null;
+  // Shopify OS 2.0 sections from template_sections_published
+  sections: Array<{
+    id: string;
+    type: string;
+    enabled: boolean;
+    props: Record<string, unknown>;
+    blocks?: Array<{
+      id: string;
+      type: string;
+      settings?: Record<string, unknown>;
+    }>;
+  }>;
+  themeSettings: Record<string, unknown> | null;
   planType: string;
   // Explicitly null for this mode
   featuredProduct: null;
@@ -293,7 +303,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   if (isMainDomain && (!store || storeId === 0)) {
     // Localhost dev: Redirect to /app (Login/Dashboard)
     if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
-       throw redirect('/app', 302);
+      throw redirect('/app', 302);
     }
     // Return marketing page data
     return json({ mode: 'marketing' } as MarketingModeData);
@@ -472,18 +482,19 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       ...new Set(allProducts.map((p) => p.category).filter((c): c is string => Boolean(c))),
     ];
 
-    // Parse configs with safe fallbacks
-    const themeConfigRaw = (validatedStore as Store & { themeConfig?: string }).themeConfig;
-    const themeConfig = parseThemeConfig(themeConfigRaw);
+    // ========== SHOPIFY OS 2.0 TEMPLATE RESOLUTION ==========
+    // Load sections from template_sections_published table
+    const templateResolution = await resolveTemplate(cloudflare.env.DB, validatedStoreId, 'home');
 
-    const socialLinks = parseSocialLinks(validatedStore.socialLinks as string | null);
-    const footerConfig = parseFooterConfig(validatedStore.footerConfig as string | null);
+    // Get themeId from resolved theme presetId or fallback to 'starter-store'
+    // presetId maps to our theme system (e.g., 'daraz', 'luxe-boutique', 'starter-store')
+    const themeId = templateResolution?.theme?.presetId || 'starter-store';
 
-    // Safe JSON parse for businessInfo
-    const businessInfo = safeJsonParse<Record<string, unknown> | null>(
-      validatedStore.businessInfo as string | undefined,
-      null
-    );
+    // Get sections from resolution or use empty array (will show default sections)
+    const sections = templateResolution?.sections || [];
+
+    // Get theme settings
+    const themeSettings = templateResolution?.settings || null;
 
     const storeData: StoreModeData = {
       mode: 'store',
@@ -493,14 +504,12 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       favicon: validatedStore.favicon ?? null,
       fontFamily: validatedStore.fontFamily ?? 'inter',
       currency: validatedStore.currency ?? 'USD',
-      theme: validatedStore.theme ?? 'default',
+      themeId, // Shopify OS 2.0 theme ID
       products: storeProducts,
       categories,
       currentCategory: category,
-      themeConfig,
-      socialLinks,
-      footerConfig,
-      businessInfo,
+      sections, // Sections from template_sections_published
+      themeSettings,
       planType: validatedStore.planType || 'free',
       // Explicitly null for store mode
       featuredProduct: null,
@@ -773,14 +782,46 @@ export default function Index() {
     );
   }
 
-  // ========== FULL STORE MODE ==========
-  // Dynamic template selection from registry
-  const storeTemplateId =
-    (data.themeConfig as ThemeConfig | null)?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
-  const { component: StoreTemplateComponent } = getStoreTemplate(storeTemplateId);
+  // ========== FULL STORE MODE - Shopify OS 2.0 Only ==========
+  // Convert sections from DB format to ThemeStoreRenderer format
+  const formattedSections = useMemo(() => {
+    return (data.sections || []).map((s: any) => ({
+      id: s.id,
+      type: s.type,
+      settings: s.props || {},
+      blocks: s.blocks || [],
+      disabled: !s.enabled,
+      enabled: s.enabled,
+    }));
+  }, [data.sections]);
 
-  // Suspense is required because store templates use React.lazy() for code splitting
-  // WishlistProvider ensures sections that use useWishlist hook work correctly
+  // Prepare products for ThemeStoreRenderer
+  const serializedProducts = useMemo(() => {
+    return (data.products || []).map((p: any) => ({
+      id: p.id,
+      title: p.title,
+      description: p.description || '',
+      price: p.price,
+      compareAtPrice: p.compareAtPrice,
+      imageUrl: p.imageUrl,
+      images: p.images ? JSON.parse(p.images as string) : p.imageUrl ? [p.imageUrl] : [],
+      inventory: p.inventory ?? undefined,
+      category: p.category,
+    }));
+  }, [data.products]);
+
+  // Prepare collections from categories
+  const serializedCollections = useMemo(() => {
+    return (data.categories || []).map((cat: string, idx: number) => ({
+      id: idx + 1,
+      title: cat,
+      slug: cat.toLowerCase().replace(/\s+/g, '-'),
+      description: '',
+      imageUrl: undefined,
+      productCount: (data.products || []).filter((p: any) => p.category === cat).length,
+    }));
+  }, [data.categories, data.products]);
+
   return (
     <Suspense
       fallback={
@@ -793,21 +834,20 @@ export default function Index() {
       }
     >
       <WishlistProvider>
-        <StoreTemplateComponent
-          storeName={data.storeName}
-          storeId={data.storeId}
-          logo={data.logo}
-          theme={data.theme}
-          fontFamily={data.fontFamily}
-          products={data.products || []}
-          categories={data.categories || []}
-          currentCategory={data.currentCategory}
-          config={data.themeConfig as ThemeConfig | null}
-          currency={data.currency}
-          socialLinks={data.socialLinks as SocialLinks | null}
-          footerConfig={data.footerConfig as FooterConfig | null}
-          businessInfo={data.businessInfo}
-          planType={data.planType}
+        <ThemeStoreRenderer
+          themeId={data.themeId}
+          sections={formattedSections}
+          store={{
+            id: data.storeId,
+            name: data.storeName,
+            currency: data.currency,
+            logo: data.logo,
+          }}
+          pageType="index"
+          products={serializedProducts}
+          collections={serializedCollections}
+          isPreview={false}
+          skipHeaderFooter={false}
         />
       </WishlistProvider>
     </Suspense>

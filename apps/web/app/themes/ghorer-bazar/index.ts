@@ -19,6 +19,18 @@ import DarazCategoryGrid, { schema as categoryGridSchema } from '../daraz/sectio
 import DarazProductGrid, { schema as productGridSchema } from '../daraz/sections/product-grid';
 import DarazFooter, { schema as footerSchema } from '../daraz/sections/footer';
 
+// Import additional sections for product, cart, collection pages
+import DarazProductMain, { schema as productMainSchema } from '../daraz/sections/product-main';
+import DarazCartItems, { schema as cartItemsSchema } from '../daraz/sections/cart-items';
+import DarazCartSummary, { schema as cartSummarySchema } from '../daraz/sections/cart-summary';
+import DarazCollectionHeader, {
+  schema as collectionHeaderSchema,
+} from '../daraz/sections/collection-header';
+import DarazCollectionGrid, {
+  schema as collectionGridSchema,
+} from '../daraz/sections/collection-grid';
+import DarazRichText, { schema as richTextSchema } from '../daraz/sections/rich-text';
+
 // ============================================================================
 // THEME METADATA
 // ============================================================================
@@ -210,6 +222,116 @@ export const SECTIONS: SectionRegistry = {
       name: 'Footer (Ghorer Bazar)',
     },
     component: DarazFooter,
+  },
+  // Product page sections (reuse Daraz with Ghorer Bazar colors)
+  'product-main': {
+    type: 'product-main',
+    schema: {
+      ...productMainSchema,
+      name: 'Product Main (Ghorer Bazar)',
+      presets: [
+        {
+          name: 'Ghorer Bazar Product Main',
+          category: 'Product',
+          settings: {
+            primary_color: '#FC8934',
+            price_color: '#059669',
+          },
+        },
+      ],
+    },
+    component: DarazProductMain,
+  },
+  // Cart page sections
+  'cart-items': {
+    type: 'cart-items',
+    schema: {
+      ...cartItemsSchema,
+      name: 'Cart Items (Ghorer Bazar)',
+      presets: [
+        {
+          name: 'Ghorer Bazar Cart Items',
+          category: 'Cart',
+          settings: {
+            primary_color: '#FC8934',
+            price_color: '#059669',
+          },
+        },
+      ],
+    },
+    component: DarazCartItems,
+  },
+  'cart-summary': {
+    type: 'cart-summary',
+    schema: {
+      ...cartSummarySchema,
+      name: 'Cart Summary (Ghorer Bazar)',
+      presets: [
+        {
+          name: 'Ghorer Bazar Cart Summary',
+          category: 'Cart',
+          settings: {
+            primary_color: '#FC8934',
+            price_color: '#059669',
+          },
+        },
+      ],
+    },
+    component: DarazCartSummary,
+  },
+  // Collection page sections
+  'collection-header': {
+    type: 'collection-header',
+    schema: {
+      ...collectionHeaderSchema,
+      name: 'Collection Header (Ghorer Bazar)',
+      presets: [
+        {
+          name: 'Ghorer Bazar Collection Header',
+          category: 'Collection',
+          settings: {
+            primary_color: '#FC8934',
+          },
+        },
+      ],
+    },
+    component: DarazCollectionHeader,
+  },
+  'collection-grid': {
+    type: 'collection-grid',
+    schema: {
+      ...collectionGridSchema,
+      name: 'Collection Grid (Ghorer Bazar)',
+      presets: [
+        {
+          name: 'Ghorer Bazar Collection Grid',
+          category: 'Collection',
+          settings: {
+            primary_color: '#FC8934',
+            price_color: '#059669',
+          },
+        },
+      ],
+    },
+    component: DarazCollectionGrid,
+  },
+  // General sections
+  'rich-text': {
+    type: 'rich-text',
+    schema: {
+      ...richTextSchema,
+      name: 'Rich Text (Ghorer Bazar)',
+      presets: [
+        {
+          name: 'Ghorer Bazar Rich Text',
+          category: 'Content',
+          settings: {
+            heading_color: '#FC8934',
+          },
+        },
+      ],
+    },
+    component: DarazRichText,
   },
 };
 

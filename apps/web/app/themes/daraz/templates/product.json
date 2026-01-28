@@ -1,0 +1,66 @@
+{
+  "name": "Product",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "id": "header",
+      "type": "header",
+      "settings": {
+        "header_bg": "#F85606",
+        "top_bar_bg": "#2E2E2E",
+        "show_top_bar": true,
+        "show_category_nav": true,
+        "show_wishlist": true
+      }
+    },
+    "main": {
+      "id": "main",
+      "type": "product-main",
+      "settings": {
+        "image_position": "left",
+        "enable_zoom": true,
+        "show_rating": true,
+        "show_sku": true,
+        "show_quantity_selector": true,
+        "show_share": true,
+        "show_trust_badges": true,
+        "shipping_text": "Free Delivery on orders over ৳1000",
+        "guarantee_text": "100% Authentic Products",
+        "return_text": "7 Days Easy Return",
+        "primary_color": "#F85606",
+        "price_color": "#F36D00"
+      },
+      "blocks": [
+        {
+          "id": "description",
+          "type": "description",
+          "settings": {
+            "show_full": true
+          }
+        }
+      ]
+    },
+    "related-products": {
+      "id": "related-products",
+      "type": "product-grid",
+      "settings": {
+        "title": "You May Also Like",
+        "products_count": 12,
+        "columns": "6",
+        "show_rating": true,
+        "show_discount_badge": true,
+        "primary_color": "#F85606"
+      }
+    },
+    "footer": {
+      "id": "footer",
+      "type": "footer",
+      "settings": {
+        "footer_bg": "#2E2E2E",
+        "show_app_download": true,
+        "show_payment_badges": true
+      }
+    }
+  },
+  "order": ["header", "main", "related-products", "footer"]
+}

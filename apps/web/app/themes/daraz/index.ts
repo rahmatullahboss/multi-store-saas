@@ -175,6 +175,40 @@ export const SECTIONS: SectionRegistry = {
     schema: footerSchema,
     component: DarazFooter,
   },
+  // Product page sections
+  'product-main': {
+    type: 'product-main',
+    schema: productMainSchema,
+    component: DarazProductMain,
+  },
+  // Cart page sections
+  'cart-items': {
+    type: 'cart-items',
+    schema: cartItemsSchema,
+    component: DarazCartItems,
+  },
+  'cart-summary': {
+    type: 'cart-summary',
+    schema: cartSummarySchema,
+    component: DarazCartSummary,
+  },
+  // Collection page sections
+  'collection-header': {
+    type: 'collection-header',
+    schema: collectionHeaderSchema,
+    component: DarazCollectionHeader,
+  },
+  'collection-grid': {
+    type: 'collection-grid',
+    schema: collectionGridSchema,
+    component: DarazCollectionGrid,
+  },
+  // General sections
+  'rich-text': {
+    type: 'rich-text',
+    schema: richTextSchema,
+    component: DarazRichText,
+  },
 };
 
 // ============================================================================
@@ -189,6 +223,12 @@ export {
   DarazCategoryGrid,
   DarazProductGrid,
   DarazFooter,
+  DarazProductMain,
+  DarazCartItems,
+  DarazCartSummary,
+  DarazCollectionHeader,
+  DarazCollectionGrid,
+  DarazRichText,
 
   // Section Schemas
   headerSchema,
@@ -197,6 +237,12 @@ export {
   categoryGridSchema,
   productGridSchema,
   footerSchema,
+  productMainSchema,
+  cartItemsSchema,
+  cartSummarySchema,
+  collectionHeaderSchema,
+  collectionGridSchema,
+  richTextSchema,
 };
 
 // Default export for theme loading

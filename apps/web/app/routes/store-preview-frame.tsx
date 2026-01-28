@@ -1,11 +1,11 @@
 /**
  * Store Preview Frame Route
- * 
+ *
  * A standalone route used as an iframe source for live preview in the Store Editor.
  * Listens for postMessage updates from parent window to update config in real-time.
- * 
+ *
  * NEW: Supports internal navigation (home, product detail, cart, checkout) within the preview.
- * 
+ *
  * Route: /store-preview-frame
  */
 
@@ -15,11 +15,32 @@ import { useLoaderData, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores, products as productsTable } from '@db/schema';
-import { parseThemeConfig, defaultThemeConfig, type ThemeConfig, parseSocialLinks } from '@db/types';
+import {
+  parseThemeConfig,
+  defaultThemeConfig,
+  type ThemeConfig,
+  parseSocialLinks,
+} from '@db/types';
 import { getStoreId } from '~/services/auth.server';
-import { getStoreTemplate, DEFAULT_STORE_TEMPLATE_ID, STORE_TEMPLATE_THEMES, type SerializedProduct } from '~/templates/store-registry';
-import { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, Home, ShoppingCart, Package, Check, Minus, Plus, CreditCard } from 'lucide-react';
+import {
+  getStoreTemplate,
+  DEFAULT_STORE_TEMPLATE_ID,
+  STORE_TEMPLATE_THEMES,
+  type SerializedProduct,
+} from '~/templates/store-registry';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import {
+  ArrowLeft,
+  Home,
+  ShoppingCart,
+  Package,
+  Check,
+  Minus,
+  Plus,
+  CreditCard,
+} from 'lucide-react';
+import { ThemeStoreRenderer } from '~/components/store/ThemeStoreRenderer';
+import { getThemeBridge } from '~/lib/theme-engine/ThemeBridge';
 
 // Demo cart items for preview
 const DEMO_CART_ITEMS_COUNT = 3;
@@ -36,11 +57,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = drizzle(context.cloudflare.env.DB);
 
   // Get store
-  const storeResult = await db
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
+  const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
 
   const store = storeResult[0];
   if (!store) {
@@ -56,9 +73,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const themeConfig = parseThemeConfig(store.themeConfig as string | null) || defaultThemeConfig;
   const socialLinks = parseSocialLinks(store.socialLinks as string | null);
-  
+
   // Get unique categories
-  const categories = [...new Set(storeProducts.map(p => p.category).filter(Boolean))] as string[];
+  const categories = [...new Set(storeProducts.map((p) => p.category).filter(Boolean))] as string[];
 
   return json({
     storeId,
@@ -78,21 +95,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 // PRODUCT DETAIL VIEW COMPONENT
 // ============================================================================
-function ProductDetailView({ 
-  product, 
+function ProductDetailView({
+  product,
   onBack,
   onAddToCart,
   currency,
   themeColors,
-}: { 
-  product: SerializedProduct; 
+}: {
+  product: SerializedProduct;
   onBack: () => void;
   onAddToCart: () => void;
   currency: string;
   themeColors: any;
 }) {
   const [quantity, setQuantity] = useState(1);
-  
+
   const formatPrice = (price: number) => {
     if (currency === 'BDT') return `৳${price.toLocaleString('bn-BD')}`;
     return `$${price.toFixed(2)}`;
@@ -101,15 +118,12 @@ function ProductDetailView({
   return (
     <div className="min-h-screen" style={{ backgroundColor: themeColors.background }}>
       {/* Header */}
-      <div 
+      <div
         className="sticky top-0 z-10 px-4 py-3 shadow-sm"
         style={{ backgroundColor: themeColors.headerBg || themeColors.cardBg }}
       >
         <div className="max-w-6xl mx-auto flex items-center gap-4">
-          <button 
-            onClick={onBack}
-            className="p-2 rounded-lg hover:bg-black/5 transition"
-          >
+          <button onClick={onBack} className="p-2 rounded-lg hover:bg-black/5 transition">
             <ArrowLeft className="w-5 h-5" style={{ color: themeColors.text }} />
           </button>
           <span className="font-medium" style={{ color: themeColors.text }}>
@@ -122,9 +136,12 @@ function ProductDetailView({
       <div className="max-w-6xl mx-auto p-4 md:p-8">
         <div className="grid md:grid-cols-2 gap-8">
           {/* Image */}
-          <div className="aspect-square rounded-2xl overflow-hidden" style={{ backgroundColor: themeColors.cardBg }}>
-            <img 
-              src={product.imageUrl || 'https://picsum.photos/seed/default/600/600'} 
+          <div
+            className="aspect-square rounded-2xl overflow-hidden"
+            style={{ backgroundColor: themeColors.cardBg }}
+          >
+            <img
+              src={product.imageUrl || 'https://picsum.photos/seed/default/600/600'}
               alt={product.title}
               className="w-full h-full object-cover"
             />
@@ -133,7 +150,7 @@ function ProductDetailView({
           {/* Details */}
           <div className="space-y-6">
             {product.category && (
-              <span 
+              <span
                 className="inline-block text-sm font-medium px-3 py-1 rounded-full"
                 style={{ backgroundColor: themeColors.primary + '20', color: themeColors.primary }}
               >
@@ -141,23 +158,18 @@ function ProductDetailView({
               </span>
             )}
 
-            <h1 
-              className="text-2xl md:text-3xl font-bold"
-              style={{ color: themeColors.text }}
-            >
+            <h1 className="text-2xl md:text-3xl font-bold" style={{ color: themeColors.text }}>
               {product.title}
             </h1>
 
             <p style={{ color: themeColors.muted }}>
-              {product.description || 'প্রিমিয়াম কোয়ালিটি প্রোডাক্ট। দ্রুত ডেলিভারি এবং সহজ রিটার্ন পলিসি।'}
+              {product.description ||
+                'প্রিমিয়াম কোয়ালিটি প্রোডাক্ট। দ্রুত ডেলিভারি এবং সহজ রিটার্ন পলিসি।'}
             </p>
 
             {/* Price */}
             <div className="flex items-baseline gap-3">
-              <span 
-                className="text-3xl font-bold"
-                style={{ color: themeColors.primary }}
-              >
+              <span className="text-3xl font-bold" style={{ color: themeColors.primary }}>
                 {formatPrice(product.price)}
               </span>
               {product.compareAtPrice && (
@@ -171,14 +183,14 @@ function ProductDetailView({
             <div className="flex items-center gap-4">
               <span style={{ color: themeColors.text }}>পরিমাণ:</span>
               <div className="flex items-center border rounded-lg overflow-hidden">
-                <button 
+                <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   className="px-4 py-2 hover:bg-gray-100 transition"
                 >
                   <Minus className="w-4 h-4" />
                 </button>
                 <span className="px-4 py-2 border-x min-w-[50px] text-center">{quantity}</span>
-                <button 
+                <button
                   onClick={() => setQuantity(quantity + 1)}
                   className="px-4 py-2 hover:bg-gray-100 transition"
                 >
@@ -189,19 +201,19 @@ function ProductDetailView({
 
             {/* Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <button 
+              <button
                 onClick={onAddToCart}
                 className="flex-1 py-3 px-6 rounded-lg font-medium text-white transition hover:opacity-90"
                 style={{ backgroundColor: themeColors.primary }}
               >
                 কার্টে যোগ করুন
               </button>
-              <button 
+              <button
                 onClick={onAddToCart}
                 className="flex-1 py-3 px-6 rounded-lg font-medium transition hover:opacity-90"
-                style={{ 
-                  backgroundColor: themeColors.accent || themeColors.primary, 
-                  color: '#fff' 
+                style={{
+                  backgroundColor: themeColors.accent || themeColors.primary,
+                  color: '#fff',
                 }}
               >
                 এখনই কিনুন
@@ -209,7 +221,7 @@ function ProductDetailView({
             </div>
 
             {/* Info */}
-            <div 
+            <div
               className="p-4 rounded-lg space-y-2"
               style={{ backgroundColor: themeColors.cardBg }}
             >
@@ -222,8 +234,8 @@ function ProductDetailView({
                 ক্যাশ অন ডেলিভারি সুবিধা
               </p>
               <p className="flex items-center gap-2 text-sm" style={{ color: themeColors.muted }}>
-                <Check className="w-4 h-4" style={{ color: themeColors.primary }} />
-                ৭ দিনের রিটার্ন পলিসি
+                <Check className="w-4 h-4" style={{ color: themeColors.primary }} />৭ দিনের রিটার্ন
+                পলিসি
               </p>
             </div>
           </div>
@@ -236,14 +248,14 @@ function ProductDetailView({
 // ============================================================================
 // CART VIEW COMPONENT
 // ============================================================================
-function CartView({ 
-  products, 
+function CartView({
+  products,
   onBack,
   onCheckout,
   currency,
   themeColors,
-}: { 
-  products: SerializedProduct[]; 
+}: {
+  products: SerializedProduct[];
   onBack: () => void;
   onCheckout: () => void;
   currency: string;
@@ -260,22 +272,19 @@ function CartView({
     return `$${price.toFixed(2)}`;
   };
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = 60;
   const total = subtotal + shipping;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: themeColors.background }}>
       {/* Header */}
-      <div 
+      <div
         className="sticky top-0 z-10 px-4 py-3 shadow-sm"
         style={{ backgroundColor: themeColors.headerBg || themeColors.cardBg }}
       >
         <div className="max-w-4xl mx-auto flex items-center gap-4">
-          <button 
-            onClick={onBack}
-            className="p-2 rounded-lg hover:bg-black/5 transition"
-          >
+          <button onClick={onBack} className="p-2 rounded-lg hover:bg-black/5 transition">
             <ArrowLeft className="w-5 h-5" style={{ color: themeColors.text }} />
           </button>
           <span className="font-medium flex items-center gap-2" style={{ color: themeColors.text }}>
@@ -288,9 +297,12 @@ function CartView({
       <div className="max-w-4xl mx-auto p-4 md:p-8">
         {cartItems.length === 0 ? (
           <div className="text-center py-12">
-            <ShoppingCart className="w-16 h-16 mx-auto mb-4 opacity-30" style={{ color: themeColors.muted }} />
+            <ShoppingCart
+              className="w-16 h-16 mx-auto mb-4 opacity-30"
+              style={{ color: themeColors.muted }}
+            />
             <p style={{ color: themeColors.muted }}>আপনার কার্ট খালি</p>
-            <button 
+            <button
               onClick={onBack}
               className="mt-4 px-6 py-2 rounded-lg text-white"
               style={{ backgroundColor: themeColors.primary }}
@@ -303,13 +315,13 @@ function CartView({
             {/* Cart Items */}
             <div className="md:col-span-2 space-y-4">
               {cartItems.map((item) => (
-                <div 
+                <div
                   key={item.id}
                   className="flex gap-4 p-4 rounded-xl"
                   style={{ backgroundColor: themeColors.cardBg }}
                 >
-                  <img 
-                    src={item.imageUrl || 'https://picsum.photos/seed/default/200/200'} 
+                  <img
+                    src={item.imageUrl || 'https://picsum.photos/seed/default/200/200'}
                     alt={item.title}
                     className="w-24 h-24 object-cover rounded-lg"
                   />
@@ -340,14 +352,14 @@ function CartView({
             </div>
 
             {/* Summary */}
-            <div 
+            <div
               className="p-6 rounded-xl h-fit sticky top-24"
               style={{ backgroundColor: themeColors.cardBg }}
             >
               <h3 className="font-semibold mb-4" style={{ color: themeColors.text }}>
                 অর্ডার সামারি
               </h3>
-              
+
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between" style={{ color: themeColors.muted }}>
                   <span>সাবটোটাল</span>
@@ -357,13 +369,16 @@ function CartView({
                   <span>ডেলিভারি চার্জ</span>
                   <span>{formatPrice(shipping)}</span>
                 </div>
-                <div className="border-t pt-3 flex justify-between font-bold" style={{ color: themeColors.text }}>
+                <div
+                  className="border-t pt-3 flex justify-between font-bold"
+                  style={{ color: themeColors.text }}
+                >
                   <span>মোট</span>
                   <span style={{ color: themeColors.primary }}>{formatPrice(total)}</span>
                 </div>
               </div>
 
-              <button 
+              <button
                 onClick={onCheckout}
                 className="w-full mt-6 py-3 rounded-lg font-medium text-white transition hover:opacity-90"
                 style={{ backgroundColor: themeColors.primary }}
@@ -385,13 +400,13 @@ function CartView({
 // ============================================================================
 // CHECKOUT VIEW COMPONENT
 // ============================================================================
-function CheckoutView({ 
-  products, 
+function CheckoutView({
+  products,
   onBack,
   currency,
   themeColors,
-}: { 
-  products: SerializedProduct[]; 
+}: {
+  products: SerializedProduct[];
   onBack: () => void;
   currency: string;
   themeColors: any;
@@ -406,22 +421,19 @@ function CheckoutView({
     return `$${price.toFixed(2)}`;
   };
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = 60;
   const total = subtotal + shipping;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: themeColors.background }}>
       {/* Header */}
-      <div 
+      <div
         className="sticky top-0 z-10 px-4 py-3 shadow-sm"
         style={{ backgroundColor: themeColors.headerBg || themeColors.cardBg }}
       >
         <div className="max-w-4xl mx-auto flex items-center gap-4">
-          <button 
-            onClick={onBack}
-            className="p-2 rounded-lg hover:bg-black/5 transition"
-          >
+          <button onClick={onBack} className="p-2 rounded-lg hover:bg-black/5 transition">
             <ArrowLeft className="w-5 h-5" style={{ color: themeColors.text }} />
           </button>
           <span className="font-medium flex items-center gap-2" style={{ color: themeColors.text }}>
@@ -434,54 +446,24 @@ function CheckoutView({
       <div className="max-w-4xl mx-auto p-4 md:p-8">
         <div className="grid md:grid-cols-2 gap-8">
           {/* Checkout Form */}
-          <div 
-            className="p-6 rounded-xl space-y-4"
-            style={{ backgroundColor: themeColors.cardBg }}
-          >
+          <div className="p-6 rounded-xl space-y-4" style={{ backgroundColor: themeColors.cardBg }}>
             <h3 className="font-semibold text-lg" style={{ color: themeColors.text }}>
               ডেলিভারি তথ্য
             </h3>
-            
+
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: themeColors.text }}>
+                <label
+                  className="block text-sm font-medium mb-1"
+                  style={{ color: themeColors.text }}
+                >
                   নাম *
                 </label>
-                <input 
+                <input
                   type="text"
                   placeholder="আপনার পুরো নাম"
                   className="w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2"
-                  style={{ 
-                    borderColor: themeColors.muted + '40',
-                    backgroundColor: themeColors.background,
-                  }}
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: themeColors.text }}>
-                  মোবাইল নম্বর *
-                </label>
-                <input 
-                  type="tel"
-                  placeholder="01XXXXXXXXX"
-                  className="w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2"
-                  style={{ 
-                    borderColor: themeColors.muted + '40',
-                    backgroundColor: themeColors.background,
-                  }}
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: themeColors.text }}>
-                  ঠিকানা *
-                </label>
-                <textarea 
-                  rows={3}
-                  placeholder="বাড়ি নং, রাস্তা, এলাকা, শহর"
-                  className="w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2"
-                  style={{ 
+                  style={{
                     borderColor: themeColors.muted + '40',
                     backgroundColor: themeColors.background,
                   }}
@@ -489,14 +471,53 @@ function CheckoutView({
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: themeColors.text }}>
+                <label
+                  className="block text-sm font-medium mb-1"
+                  style={{ color: themeColors.text }}
+                >
+                  মোবাইল নম্বর *
+                </label>
+                <input
+                  type="tel"
+                  placeholder="01XXXXXXXXX"
+                  className="w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2"
+                  style={{
+                    borderColor: themeColors.muted + '40',
+                    backgroundColor: themeColors.background,
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  className="block text-sm font-medium mb-1"
+                  style={{ color: themeColors.text }}
+                >
+                  ঠিকানা *
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="বাড়ি নং, রাস্তা, এলাকা, শহর"
+                  className="w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2"
+                  style={{
+                    borderColor: themeColors.muted + '40',
+                    backgroundColor: themeColors.background,
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  className="block text-sm font-medium mb-1"
+                  style={{ color: themeColors.text }}
+                >
                   অতিরিক্ত নোট
                 </label>
-                <input 
+                <input
                   type="text"
                   placeholder="বিশেষ কোন নির্দেশনা থাকলে লিখুন"
                   className="w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2"
-                  style={{ 
+                  style={{
                     borderColor: themeColors.muted + '40',
                     backgroundColor: themeColors.background,
                   }}
@@ -509,11 +530,23 @@ function CheckoutView({
                 পেমেন্ট মেথড
               </h4>
               <div className="space-y-2">
-                <label className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer" style={{ borderColor: themeColors.primary }}>
-                  <input type="radio" name="payment" defaultChecked className="accent-current" style={{ accentColor: themeColors.primary }} />
+                <label
+                  className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer"
+                  style={{ borderColor: themeColors.primary }}
+                >
+                  <input
+                    type="radio"
+                    name="payment"
+                    defaultChecked
+                    className="accent-current"
+                    style={{ accentColor: themeColors.primary }}
+                  />
                   <span style={{ color: themeColors.text }}>ক্যাশ অন ডেলিভারি (COD)</span>
                 </label>
-                <label className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer opacity-50" style={{ borderColor: themeColors.muted + '40' }}>
+                <label
+                  className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer opacity-50"
+                  style={{ borderColor: themeColors.muted + '40' }}
+                >
                   <input type="radio" name="payment" disabled />
                   <span style={{ color: themeColors.muted }}>অনলাইন পেমেন্ট (শীঘ্রই আসছে)</span>
                 </label>
@@ -523,24 +556,27 @@ function CheckoutView({
 
           {/* Order Summary */}
           <div>
-            <div 
+            <div
               className="p-6 rounded-xl sticky top-24"
               style={{ backgroundColor: themeColors.cardBg }}
             >
               <h3 className="font-semibold mb-4" style={{ color: themeColors.text }}>
                 অর্ডার সামারি
               </h3>
-              
+
               <div className="space-y-3 mb-4">
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex gap-3">
-                    <img 
-                      src={item.imageUrl || 'https://picsum.photos/seed/default/100/100'} 
+                    <img
+                      src={item.imageUrl || 'https://picsum.photos/seed/default/100/100'}
                       alt={item.title}
                       className="w-12 h-12 rounded object-cover"
                     />
                     <div className="flex-1">
-                      <p className="text-sm font-medium line-clamp-1" style={{ color: themeColors.text }}>
+                      <p
+                        className="text-sm font-medium line-clamp-1"
+                        style={{ color: themeColors.text }}
+                      >
                         {item.title}
                       </p>
                       <p className="text-xs" style={{ color: themeColors.muted }}>
@@ -551,7 +587,10 @@ function CheckoutView({
                 ))}
               </div>
 
-              <div className="space-y-2 text-sm border-t pt-4" style={{ borderColor: themeColors.muted + '20' }}>
+              <div
+                className="space-y-2 text-sm border-t pt-4"
+                style={{ borderColor: themeColors.muted + '20' }}
+              >
                 <div className="flex justify-between" style={{ color: themeColors.muted }}>
                   <span>সাবটোটাল</span>
                   <span>{formatPrice(subtotal)}</span>
@@ -560,13 +599,16 @@ function CheckoutView({
                   <span>ডেলিভারি</span>
                   <span>{formatPrice(shipping)}</span>
                 </div>
-                <div className="flex justify-between font-bold text-base pt-2 border-t" style={{ borderColor: themeColors.muted + '20', color: themeColors.text }}>
+                <div
+                  className="flex justify-between font-bold text-base pt-2 border-t"
+                  style={{ borderColor: themeColors.muted + '20', color: themeColors.text }}
+                >
                   <span>মোট</span>
                   <span style={{ color: themeColors.primary }}>{formatPrice(total)}</span>
                 </div>
               </div>
 
-              <button 
+              <button
                 className="w-full mt-6 py-3 rounded-lg font-medium text-white transition hover:opacity-90"
                 style={{ backgroundColor: themeColors.primary }}
               >
@@ -583,17 +625,17 @@ function CheckoutView({
 // ============================================================================
 // PREVIEW NAVIGATION BAR COMPONENT
 // ============================================================================
-function PreviewNavBar({ 
-  currentPage, 
+function PreviewNavBar({
+  currentPage,
   onNavigate,
   themeColors,
-}: { 
-  currentPage: 'home' | 'product' | 'cart' | 'checkout';
-  onNavigate: (page: 'home' | 'product' | 'cart' | 'checkout') => void;
+}: {
+  currentPage: 'home' | 'product' | 'cart' | 'checkout' | 'collection';
+  onNavigate: (page: 'home' | 'product' | 'cart' | 'checkout' | 'collection') => void;
   themeColors: any;
 }) {
   return (
-    <div 
+    <div
       className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-3 py-2 rounded-full shadow-lg backdrop-blur-sm"
       style={{ backgroundColor: 'rgba(0,0,0,0.8)' }}
     >
@@ -614,6 +656,7 @@ function PreviewNavBar({
       <span className="text-xs text-white/60 px-2">
         {currentPage === 'home' && 'হোম পেজ'}
         {currentPage === 'product' && 'প্রোডাক্ট'}
+        {currentPage === 'collection' && 'কালেকশন'}
         {currentPage === 'cart' && 'কার্ট'}
         {currentPage === 'checkout' && 'চেকআউট'}
       </span>
@@ -640,11 +683,14 @@ export default function StorePreviewFrame() {
   }
 
   // Internal navigation state
-  const [currentPage, setCurrentPage] = useState<'home' | 'product' | 'cart' | 'checkout'>('home');
+  const [currentPage, setCurrentPage] = useState<
+    'home' | 'product' | 'cart' | 'checkout' | 'collection'
+  >('home');
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
 
   // Live config state (updated via postMessage)
   const [liveConfig, setLiveConfig] = useState<{
+    themeId?: string; // Bug #3, #12 fix: Track themeId for ThemeStoreRenderer
     primaryColor?: string;
     accentColor?: string;
     backgroundColor?: string;
@@ -659,6 +705,9 @@ export default function StorePreviewFrame() {
     storeTemplateId?: string;
     sections?: any[];
     productSections?: any[];
+    collectionSections?: any[];
+    cartSections?: any[];
+    checkoutSections?: any[];
     logo?: string;
     businessInfo?: any;
     socialLinks?: any;
@@ -678,6 +727,7 @@ export default function StorePreviewFrame() {
     trustBadges?: any;
     marketingPopup?: any;
   }>({
+    themeId: data.themeConfig.storeTemplateId || 'starter-store', // Initialize themeId
     primaryColor: data.themeConfig.primaryColor,
     accentColor: data.themeConfig.accentColor,
     backgroundColor: data.themeConfig.backgroundColor,
@@ -719,18 +769,21 @@ export default function StorePreviewFrame() {
 
   // Notify parent of page changes
   useEffect(() => {
-    window.parent.postMessage({ 
-      type: 'STORE_PREVIEW_PAGE_CHANGE', 
-      page: currentPage,
-      productId: selectedProductId,
-    }, '*');
+    window.parent.postMessage(
+      {
+        type: 'STORE_PREVIEW_PAGE_CHANGE',
+        page: currentPage,
+        productId: selectedProductId,
+      },
+      '*'
+    );
   }, [currentPage, selectedProductId]);
 
   // Listen for config updates and navigation commands from parent
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'STORE_PREVIEW_UPDATE') {
-        setLiveConfig(prev => ({
+        setLiveConfig((prev) => ({
           ...prev,
           ...event.data.config,
         }));
@@ -757,10 +810,14 @@ export default function StorePreviewFrame() {
     typography: liveConfig.typography || data.themeConfig.typography,
     bannerUrl: liveConfig.bannerUrl ?? data.themeConfig.bannerUrl,
     bannerText: liveConfig.bannerText ?? data.themeConfig.bannerText,
-    announcement: liveConfig.announcement || (data.themeConfig.announcement ? { 
-      text: data.themeConfig.announcement.text, 
-      link: data.themeConfig.announcement.link || undefined 
-    } : undefined),
+    announcement:
+      liveConfig.announcement ||
+      (data.themeConfig.announcement
+        ? {
+            text: data.themeConfig.announcement.text,
+            link: data.themeConfig.announcement.link || undefined,
+          }
+        : undefined),
     customCSS: liveConfig.customCSS ?? data.themeConfig.customCSS,
     storeTemplateId: liveConfig.storeTemplateId || data.themeConfig.storeTemplateId,
     sections: liveConfig.sections || data.themeConfig.sections,
@@ -771,9 +828,12 @@ export default function StorePreviewFrame() {
     footerDescription: liveConfig.footerDescription ?? data.themeConfig.footerDescription,
     copyrightText: liveConfig.copyrightText ?? data.themeConfig.copyrightText,
     footerColumns: liveConfig.footerColumns ?? data.themeConfig.footerColumns,
-    floatingWhatsappEnabled: liveConfig.floatingWhatsappEnabled ?? data.themeConfig.floatingWhatsappEnabled,
-    floatingWhatsappNumber: liveConfig.floatingWhatsappNumber ?? data.themeConfig.floatingWhatsappNumber,
-    floatingWhatsappMessage: liveConfig.floatingWhatsappMessage ?? data.themeConfig.floatingWhatsappMessage,
+    floatingWhatsappEnabled:
+      liveConfig.floatingWhatsappEnabled ?? data.themeConfig.floatingWhatsappEnabled,
+    floatingWhatsappNumber:
+      liveConfig.floatingWhatsappNumber ?? data.themeConfig.floatingWhatsappNumber,
+    floatingWhatsappMessage:
+      liveConfig.floatingWhatsappMessage ?? data.themeConfig.floatingWhatsappMessage,
     floatingCallEnabled: liveConfig.floatingCallEnabled ?? data.themeConfig.floatingCallEnabled,
     floatingCallNumber: liveConfig.floatingCallNumber ?? data.themeConfig.floatingCallNumber,
     checkoutStyle: (liveConfig.checkoutStyle as any) ?? data.themeConfig.checkoutStyle,
@@ -783,9 +843,15 @@ export default function StorePreviewFrame() {
   };
 
   // Get template component and theme colors
+  // Bug #3 fix: Use liveConfig.themeId for dynamic theme switching
+  const themeId =
+    liveConfig.themeId ||
+    liveConfig.storeTemplateId ||
+    mergedConfig.storeTemplateId ||
+    'starter-store';
   const templateId = mergedConfig.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
   const { component: StoreTemplateComponent } = getStoreTemplate(templateId);
-  
+
   // Get theme colors from registry or use config colors
   const themeColors = STORE_TEMPLATE_THEMES[templateId] || {
     primary: mergedConfig.primaryColor || '#6366f1',
@@ -822,16 +888,129 @@ export default function StorePreviewFrame() {
     }
   }, [currentPage]);
 
-  const handleNavigate = useCallback((page: 'home' | 'product' | 'cart' | 'checkout') => {
-    setCurrentPage(page);
-    if (page === 'home') setSelectedProductId(null);
-  }, []);
+  const handleNavigate = useCallback(
+    (page: 'home' | 'product' | 'cart' | 'checkout' | 'collection') => {
+      setCurrentPage(page);
+      if (page === 'home') setSelectedProductId(null);
+    },
+    []
+  );
 
   // Get selected product for product detail view
   const selectedProduct = data.products.find((p: any) => p.id === selectedProductId);
 
+  // Determine which sections to render based on current page
+  const getCurrentPageSections = useMemo(() => {
+    const themeId = templateId;
+
+    // Try to get sections from liveConfig first (from postMessage)
+    switch (currentPage) {
+      case 'home':
+        return liveConfig.sections || [];
+      case 'product':
+        return liveConfig.productSections || [];
+      case 'collection':
+        return liveConfig.collectionSections || [];
+      case 'cart':
+        return liveConfig.cartSections || [];
+      case 'checkout':
+        return liveConfig.checkoutSections || [];
+      default:
+        return liveConfig.sections || [];
+    }
+  }, [
+    currentPage,
+    liveConfig.sections,
+    liveConfig.productSections,
+    liveConfig.collectionSections,
+    liveConfig.cartSections,
+    liveConfig.checkoutSections,
+  ]);
+
+  // Check if we have sections from ThemeStoreRenderer-compatible format
+  const hasThemeSections = getCurrentPageSections.length > 0;
+
   // Render content based on current page
   const renderContent = () => {
+    // If we have theme sections, use ThemeStoreRenderer
+    if (hasThemeSections) {
+      // Convert sections to ThemeStoreRenderer format
+      const formattedSections = getCurrentPageSections.map((s: any) => ({
+        id: s.id,
+        type: s.type,
+        settings: s.settings || s.props || {},
+        blocks: s.blocks || [],
+        disabled: s.disabled,
+        enabled: s.enabled !== false,
+      }));
+
+      return (
+        <ThemeStoreRenderer
+          themeId={themeId}
+          sections={formattedSections}
+          store={{
+            id: data.storeId,
+            name: data.storeName,
+            currency: data.currency,
+            logo: liveConfig.logo || data.logo,
+          }}
+          pageType={currentPage === 'home' ? 'index' : currentPage}
+          products={data.products.map((p: any) => ({
+            id: p.id,
+            title: p.title,
+            description: p.description || '',
+            price: p.price,
+            compareAtPrice: p.compareAtPrice,
+            imageUrl: p.imageUrl,
+            images: p.images ? JSON.parse(p.images) : p.imageUrl ? [p.imageUrl] : [],
+            inventory: p.inventory,
+            category: p.category,
+          }))}
+          product={
+            selectedProduct
+              ? {
+                  id: selectedProduct.id,
+                  title: selectedProduct.title,
+                  description: selectedProduct.description || '',
+                  price: selectedProduct.price,
+                  compareAtPrice: selectedProduct.compareAtPrice,
+                  imageUrl: selectedProduct.imageUrl,
+                  images: selectedProduct.images
+                    ? JSON.parse(selectedProduct.images as string)
+                    : selectedProduct.imageUrl
+                      ? [selectedProduct.imageUrl]
+                      : [],
+                  inventory: selectedProduct.inventory ?? 0,
+                  category: selectedProduct.category,
+                }
+              : undefined
+          }
+          collections={data.categories.map((cat: string, idx: number) => ({
+            id: idx + 1,
+            title: cat,
+            slug: cat.toLowerCase().replace(/\s+/g, '-'),
+            description: '',
+            imageUrl: undefined,
+            productCount: data.products.filter((p: any) => p.category === cat).length,
+          }))}
+          isPreview={true}
+          onNavigate={(path) => {
+            // Handle internal navigation
+            if (path.includes('/products/')) {
+              const match = path.match(/\/products\/(\d+)/);
+              if (match) handleProductClick(Number(match[1]));
+            } else if (path.includes('/cart')) {
+              handleCartClick();
+            } else if (path === '/' || path === '') {
+              setCurrentPage('home');
+            }
+          }}
+          skipHeaderFooter={false}
+        />
+      );
+    }
+
+    // Fallback to old system if no theme sections
     if (currentPage === 'product' && selectedProduct) {
       return (
         <ProductDetailView
@@ -867,12 +1046,12 @@ export default function StorePreviewFrame() {
       );
     }
 
-    // Home - Main template with click interception for navigation
+    // Home - Main template with click interception for navigation (fallback)
     return (
-      <div 
+      <div
         onClick={(e) => {
           const target = e.target as HTMLElement;
-          
+
           // Check for product card click (using data-product-id or link to /products/)
           const productCard = target.closest('[data-product-id]');
           if (productCard) {
@@ -915,7 +1094,7 @@ export default function StorePreviewFrame() {
             // Prevent internal navigation
             e.preventDefault();
             e.stopPropagation();
-            
+
             // Handle specific routes
             if (href.includes('/cart')) {
               handleCartClick();
@@ -977,14 +1156,14 @@ export default function StorePreviewFrame() {
 function getFontFamily(fontId: string): string {
   const fonts: Record<string, string> = {
     // English
-    'inter': "'Inter', sans-serif",
-    'poppins': "'Poppins', sans-serif",
-    'roboto': "'Roboto', sans-serif",
-    'playfair': "'Playfair Display', serif",
-    'montserrat': "'Montserrat', sans-serif",
-    'lato': "'Lato', sans-serif",
+    inter: "'Inter', sans-serif",
+    poppins: "'Poppins', sans-serif",
+    roboto: "'Roboto', sans-serif",
+    playfair: "'Playfair Display', serif",
+    montserrat: "'Montserrat', sans-serif",
+    lato: "'Lato', sans-serif",
     'open-sans': "'Open Sans', sans-serif",
-    'nunito': "'Nunito', sans-serif",
+    nunito: "'Nunito', sans-serif",
     // Bengali
     'hind-siliguri': "'Hind Siliguri', sans-serif",
     'noto-sans-bengali': "'Noto Sans Bengali', sans-serif",

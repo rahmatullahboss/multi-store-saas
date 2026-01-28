@@ -1,0 +1,71 @@
+{
+  "name": "Cart",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "id": "header",
+      "type": "header",
+      "settings": {
+        "header_bg": "#F85606",
+        "top_bar_bg": "#2E2E2E",
+        "show_top_bar": true,
+        "show_category_nav": false,
+        "show_wishlist": true
+      }
+    },
+    "cart-content": {
+      "id": "cart-content",
+      "type": "cart-items",
+      "settings": {
+        "heading": "Shopping Cart",
+        "show_continue_shopping": true,
+        "continue_shopping_label": "Continue Shopping",
+        "continue_shopping_link": "/products",
+        "empty_cart_heading": "Your Cart is Empty",
+        "empty_cart_text": "Browse products to start shopping",
+        "empty_cart_button": "Start Shopping",
+        "primary_color": "#F85606",
+        "price_color": "#F36D00"
+      }
+    },
+    "cart-summary": {
+      "id": "cart-summary",
+      "type": "cart-summary",
+      "settings": {
+        "heading": "Order Summary",
+        "show_coupon_input": true,
+        "coupon_placeholder": "Enter coupon code",
+        "apply_button": "Apply",
+        "show_shipping_estimate": true,
+        "shipping_text": "Free Delivery on orders over ৳1000",
+        "checkout_button": "Proceed to Checkout",
+        "show_payment_icons": true,
+        "show_secure_badge": true,
+        "primary_color": "#F85606",
+        "price_color": "#F36D00"
+      }
+    },
+    "related-products": {
+      "id": "related-products",
+      "type": "product-grid",
+      "settings": {
+        "title": "You May Also Like",
+        "products_count": 6,
+        "columns": "6",
+        "show_rating": true,
+        "show_discount_badge": true,
+        "primary_color": "#F85606"
+      }
+    },
+    "footer": {
+      "id": "footer",
+      "type": "footer",
+      "settings": {
+        "footer_bg": "#2E2E2E",
+        "show_app_download": true,
+        "show_payment_badges": true
+      }
+    }
+  },
+  "order": ["header", "cart-content", "cart-summary", "related-products", "footer"]
+}

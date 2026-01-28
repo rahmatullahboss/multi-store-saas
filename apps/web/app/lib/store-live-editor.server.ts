@@ -36,13 +36,69 @@ import {
   publishTemplate,
   type SectionInstance,
 } from '~/lib/theme-engine';
-import { ThemeBridge } from '~/lib/theme-engine/ThemeBridge';
+import { ThemeBridge, getThemeBridge } from '~/lib/theme-engine/ThemeBridge';
+import type { TemplateJSON, BlockInstance } from '~/lib/theme-engine/types';
 import {
   parseThemeEditorFormData,
   validateSectionSettings,
   safeJsonParse,
 } from '~/lib/validations/theme-editor.schema';
 import { z } from 'zod';
+
+// ============================================================================
+// HELPER: Convert TemplateJSON to SectionInstance[]
+// ============================================================================
+
+/**
+ * Convert a Shopify OS 2.0 TemplateJSON format to SectionInstance[] array.
+ * This is used to load theme defaults when DB has no sections.
+ */
+function templateJsonToSections(template: TemplateJSON): SectionInstance[] {
+  if (!template || !template.order || !template.sections) {
+    return [];
+  }
+
+  const result: SectionInstance[] = [];
+
+  for (const sectionId of template.order) {
+    const sectionData = template.sections[sectionId];
+    if (!sectionData) {
+      continue;
+    }
+
+    // Convert blocks object to array if present
+    let blocksArray: BlockInstance[] | undefined;
+    if (sectionData.blocks && sectionData.block_order) {
+      // blocks is an object, convert using block_order
+      const blocksObj = sectionData.blocks as unknown as Record<
+        string,
+        { type: string; settings?: Record<string, unknown> }
+      >;
+      blocksArray = sectionData.block_order.map((blockId) => {
+        const blockData = blocksObj[blockId];
+        return {
+          id: blockId,
+          type: blockData?.type || 'unknown',
+          settings: blockData?.settings || {},
+        };
+      });
+    } else if (sectionData.blocks && Array.isArray(sectionData.blocks)) {
+      // Already an array
+      blocksArray = sectionData.blocks as BlockInstance[];
+    }
+
+    result.push({
+      id: sectionId,
+      type: sectionData.type,
+      settings: sectionData.settings || {},
+      blocks: blocksArray,
+      block_order: sectionData.block_order,
+      disabled: sectionData.disabled,
+    });
+  }
+
+  return result;
+}
 
 // ============================================================================
 // LOADER
@@ -105,6 +161,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   // Merge loaded sections into themeConfig
+  // Bug #8 fix: Include blocks, block_order, and disabled properties
   if (loadedSections.home && loadedSections.home.length > 0) {
     themeConfig = {
       ...themeConfig,
@@ -112,6 +169,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         id: s.id,
         type: s.type,
         settings: s.settings as Record<string, unknown>,
+        blocks: s.blocks,
+        block_order: s.block_order,
+        disabled: s.disabled,
       })),
     };
   }
@@ -122,6 +182,35 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         id: s.id,
         type: s.type,
         settings: s.settings as Record<string, unknown>,
+        blocks: s.blocks,
+        block_order: s.block_order,
+        disabled: s.disabled,
+      })),
+    };
+  }
+  if (loadedSections.collection && loadedSections.collection.length > 0) {
+    themeConfig = {
+      ...themeConfig,
+      collectionSections: loadedSections.collection.map((s) => ({
+        id: s.id,
+        type: s.type,
+        settings: s.settings as Record<string, unknown>,
+        blocks: s.blocks,
+        block_order: s.block_order,
+        disabled: s.disabled,
+      })),
+    };
+  }
+  if (loadedSections.cart && loadedSections.cart.length > 0) {
+    themeConfig = {
+      ...themeConfig,
+      cartSections: loadedSections.cart.map((s) => ({
+        id: s.id,
+        type: s.type,
+        settings: s.settings as Record<string, unknown>,
+        blocks: s.blocks,
+        block_order: s.block_order,
+        disabled: s.disabled,
       })),
     };
   }
@@ -142,6 +231,105 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     activeThemeId = activeTheme[0].presetId;
   } else if (themeConfig.storeTemplateId) {
     activeThemeId = themeConfig.storeTemplateId;
+  }
+
+  // ============================================================================
+  // FALLBACK: Load theme default sections when DB is empty
+  // ============================================================================
+  // This fixes the issue where selecting a template in store-design doesn't
+  // save sections to DB, so LiveEditor has nothing to render.
+  const themeBridge = getThemeBridge(activeThemeId);
+
+  // Map template types to their corresponding TemplateJSON template names
+  const templateTypeMap: Record<string, string> = {
+    home: 'index',
+    product: 'product',
+    collection: 'collection',
+    cart: 'cart',
+  };
+
+  // Load fallback sections from theme for each empty page type
+  for (const pageType of pageTypes) {
+    if (!loadedSections[pageType] || loadedSections[pageType].length === 0) {
+      const templateName = templateTypeMap[pageType] || 'index';
+      const themeTemplate = themeBridge.getTemplate(templateName);
+      if (themeTemplate) {
+        loadedSections[pageType] = templateJsonToSections(themeTemplate);
+        console.log(
+          `[store-live-editor] Loaded ${loadedSections[pageType].length} default sections for "${pageType}" from theme "${activeThemeId}"`
+        );
+      }
+    }
+  }
+
+  // Re-apply loadedSections to themeConfig after fallback (in case we loaded from theme defaults)
+  if (
+    loadedSections.home &&
+    loadedSections.home.length > 0 &&
+    (!themeConfig.sections || themeConfig.sections.length === 0)
+  ) {
+    themeConfig = {
+      ...themeConfig,
+      sections: loadedSections.home.map((s) => ({
+        id: s.id,
+        type: s.type,
+        settings: s.settings as Record<string, unknown>,
+        blocks: s.blocks,
+        block_order: s.block_order,
+        disabled: s.disabled,
+      })),
+    };
+  }
+  if (
+    loadedSections.product &&
+    loadedSections.product.length > 0 &&
+    (!themeConfig.productSections || themeConfig.productSections.length === 0)
+  ) {
+    themeConfig = {
+      ...themeConfig,
+      productSections: loadedSections.product.map((s) => ({
+        id: s.id,
+        type: s.type,
+        settings: s.settings as Record<string, unknown>,
+        blocks: s.blocks,
+        block_order: s.block_order,
+        disabled: s.disabled,
+      })),
+    };
+  }
+  if (
+    loadedSections.collection &&
+    loadedSections.collection.length > 0 &&
+    (!themeConfig.collectionSections || themeConfig.collectionSections.length === 0)
+  ) {
+    themeConfig = {
+      ...themeConfig,
+      collectionSections: loadedSections.collection.map((s) => ({
+        id: s.id,
+        type: s.type,
+        settings: s.settings as Record<string, unknown>,
+        blocks: s.blocks,
+        block_order: s.block_order,
+        disabled: s.disabled,
+      })),
+    };
+  }
+  if (
+    loadedSections.cart &&
+    loadedSections.cart.length > 0 &&
+    (!themeConfig.cartSections || themeConfig.cartSections.length === 0)
+  ) {
+    themeConfig = {
+      ...themeConfig,
+      cartSections: loadedSections.cart.map((s) => ({
+        id: s.id,
+        type: s.type,
+        settings: s.settings as Record<string, unknown>,
+        blocks: s.blocks,
+        block_order: s.block_order,
+        disabled: s.disabled,
+      })),
+    };
   }
 
   // Get available OS 2.0 themes from ThemeBridge

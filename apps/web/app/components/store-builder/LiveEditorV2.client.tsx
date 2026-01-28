@@ -61,7 +61,12 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 // New Shopify OS 2.0 imports
-import { getThemeBridge, type EditorSection } from '~/lib/theme-engine/ThemeBridge';
+import {
+  getThemeBridge,
+  resetThemeBridge,
+  createThemeBridge,
+  type EditorSection,
+} from '~/lib/theme-engine/ThemeBridge';
 import { SchemaSectionEditor } from '~/components/store-builder/SchemaSectionEditor';
 import { SectionPicker } from '~/components/store-builder/SectionPicker';
 import { StoreAIAssistant } from '~/components/store-builder/StoreAIAssistant';
@@ -774,7 +779,8 @@ export function LiveEditorV2({
         {
           type: 'STORE_PREVIEW_UPDATE',
           config: {
-            storeTemplateId: selectedTemplateId,
+            themeId: currentThemeId, // Bug #2 fix: Add themeId for ThemeStoreRenderer
+            storeTemplateId: currentThemeId, // Use currentThemeId instead of selectedTemplateId
             primaryColor,
             accentColor,
             backgroundColor,
@@ -798,7 +804,7 @@ export function LiveEditorV2({
     }
   }, [
     iframeReady,
-    selectedTemplateId,
+    currentThemeId, // Add currentThemeId to dependencies
     primaryColor,
     accentColor,
     backgroundColor,
@@ -872,8 +878,9 @@ export function LiveEditorV2({
   const handleThemeChange = useCallback(
     async (newThemeId: string) => {
       try {
-        // Create a new theme bridge for the new theme
-        const newThemeBridge = getThemeBridge(newThemeId);
+        // Bug #7 fix: Reset singleton and create fresh bridge for new theme
+        resetThemeBridge();
+        const newThemeBridge = createThemeBridge(newThemeId);
 
         // Load the default template for the new theme
         const defaultTemplate = await newThemeBridge.loadTemplate('index');

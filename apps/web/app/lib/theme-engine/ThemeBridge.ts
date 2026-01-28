@@ -26,6 +26,35 @@ import GhorerBazarTheme, { SECTIONS as GhorerBazarSections } from '~/themes/ghor
 import LuxeBoutiqueTheme, { SECTIONS as LuxeBoutiqueSections } from '~/themes/luxe-boutique';
 import TechModernTheme, { SECTIONS as TechModernSections } from '~/themes/tech-modern';
 
+// Static template imports (Bug #5 fix - dynamic imports don't work in bundled environments)
+import starterStoreIndexTemplate from '~/themes/starter-store/templates/index.json';
+import starterStoreProductTemplate from '~/themes/starter-store/templates/product.json';
+import starterStoreCollectionTemplate from '~/themes/starter-store/templates/collection.json';
+import starterStoreCartTemplate from '~/themes/starter-store/templates/cart.json';
+import starterStorePageTemplate from '~/themes/starter-store/templates/page.json';
+
+import darazIndexTemplate from '~/themes/daraz/templates/index.json';
+import darazProductTemplate from '~/themes/daraz/templates/product.json';
+import darazCollectionTemplate from '~/themes/daraz/templates/collection.json';
+import darazCartTemplate from '~/themes/daraz/templates/cart.json';
+import darazPageTemplate from '~/themes/daraz/templates/page.json';
+
+import bdshopIndexTemplate from '~/themes/bdshop/templates/index.json';
+import bdshopProductTemplate from '~/themes/bdshop/templates/product.json';
+import bdshopCollectionTemplate from '~/themes/bdshop/templates/collection.json';
+import bdshopCartTemplate from '~/themes/bdshop/templates/cart.json';
+import bdshopPageTemplate from '~/themes/bdshop/templates/page.json';
+
+import ghorerBazarIndexTemplate from '~/themes/ghorer-bazar/templates/index.json';
+import ghorerBazarProductTemplate from '~/themes/ghorer-bazar/templates/product.json';
+import ghorerBazarCollectionTemplate from '~/themes/ghorer-bazar/templates/collection.json';
+import ghorerBazarCartTemplate from '~/themes/ghorer-bazar/templates/cart.json';
+import ghorerBazarPageTemplate from '~/themes/ghorer-bazar/templates/page.json';
+
+import luxeBoutiqueIndexTemplate from '~/themes/luxe-boutique/templates/index.json';
+
+import techModernIndexTemplate from '~/themes/tech-modern/templates/index.json';
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -98,6 +127,82 @@ const THEME_REGISTRY: Record<string, LoadedTheme> = {
   },
 };
 
+// Aliases for legacy theme IDs - map to valid themes
+const THEME_ALIASES: Record<string, string> = {
+  default: 'starter-store',
+  'modern-standard': 'starter-store',
+  'classic-minimal': 'starter-store',
+  'bold-marketplace': 'daraz',
+};
+
+// Default theme to use when an invalid theme ID is provided
+const DEFAULT_THEME_ID = 'starter-store';
+
+/**
+ * Resolve a theme ID, handling aliases and invalid IDs
+ */
+function resolveThemeId(themeId: string): string {
+  // Check direct match first
+  if (THEME_REGISTRY[themeId]) {
+    return themeId;
+  }
+  // Check aliases
+  if (THEME_ALIASES[themeId] && THEME_REGISTRY[THEME_ALIASES[themeId]]) {
+    return THEME_ALIASES[themeId];
+  }
+  // Fallback to default
+  console.warn(`Unknown theme ID "${themeId}", falling back to "${DEFAULT_THEME_ID}"`);
+  return DEFAULT_THEME_ID;
+}
+
+// ============================================================================
+// STATIC TEMPLATE REGISTRY (Bug #5 fix)
+// ============================================================================
+
+/**
+ * Static registry of all template JSON files.
+ * Dynamic imports don't work reliably in bundled environments,
+ * so we pre-import all templates statically.
+ */
+const TEMPLATE_REGISTRY: Record<string, Record<string, TemplateJSON>> = {
+  'starter-store': {
+    index: starterStoreIndexTemplate as unknown as TemplateJSON,
+    product: starterStoreProductTemplate as unknown as TemplateJSON,
+    collection: starterStoreCollectionTemplate as unknown as TemplateJSON,
+    cart: starterStoreCartTemplate as unknown as TemplateJSON,
+    page: starterStorePageTemplate as unknown as TemplateJSON,
+  },
+  daraz: {
+    index: darazIndexTemplate as unknown as TemplateJSON,
+    product: darazProductTemplate as unknown as TemplateJSON,
+    collection: darazCollectionTemplate as unknown as TemplateJSON,
+    cart: darazCartTemplate as unknown as TemplateJSON,
+    page: darazPageTemplate as unknown as TemplateJSON,
+  },
+  bdshop: {
+    index: bdshopIndexTemplate as unknown as TemplateJSON,
+    product: bdshopProductTemplate as unknown as TemplateJSON,
+    collection: bdshopCollectionTemplate as unknown as TemplateJSON,
+    cart: bdshopCartTemplate as unknown as TemplateJSON,
+    page: bdshopPageTemplate as unknown as TemplateJSON,
+  },
+  'ghorer-bazar': {
+    index: ghorerBazarIndexTemplate as unknown as TemplateJSON,
+    product: ghorerBazarProductTemplate as unknown as TemplateJSON,
+    collection: ghorerBazarCollectionTemplate as unknown as TemplateJSON,
+    cart: ghorerBazarCartTemplate as unknown as TemplateJSON,
+    page: ghorerBazarPageTemplate as unknown as TemplateJSON,
+  },
+  'luxe-boutique': {
+    index: luxeBoutiqueIndexTemplate as unknown as TemplateJSON,
+    // Other templates use starter-store as fallback
+  },
+  'tech-modern': {
+    index: techModernIndexTemplate as unknown as TemplateJSON,
+    // Other templates use starter-store as fallback
+  },
+};
+
 // ============================================================================
 // THEME BRIDGE CLASS
 // ============================================================================
@@ -107,9 +212,11 @@ export class ThemeBridge {
   private theme: LoadedTheme;
 
   constructor(themeId: string = 'starter-store') {
-    this.currentThemeId = themeId;
-    const theme = THEME_REGISTRY[themeId];
+    // Resolve the theme ID (handles aliases and invalid IDs)
+    this.currentThemeId = resolveThemeId(themeId);
+    const theme = THEME_REGISTRY[this.currentThemeId];
     if (!theme) {
+      // This should never happen after resolveThemeId, but just in case
       throw new Error(`Theme not found: ${themeId}`);
     }
     this.theme = theme;
@@ -168,20 +275,41 @@ export class ThemeBridge {
   // ============================================================================
 
   /**
-   * Load a template JSON file.
-   * In production, this would fetch from the database or filesystem.
+   * Load a template from the static registry.
+   * Uses pre-imported templates instead of dynamic imports.
    */
   async loadTemplate(templateType: string = 'index'): Promise<TemplateJSON | null> {
-    try {
-      // For now, load from theme's templates folder
-      const templateModule = await import(
-        `~/themes/${this.currentThemeId}/templates/${templateType}.json`
-      );
-      return templateModule.default as TemplateJSON;
-    } catch (error) {
-      console.warn(`Template ${templateType} not found for theme ${this.currentThemeId}`);
-      return null;
+    // Get templates for current theme
+    const themeTemplates = TEMPLATE_REGISTRY[this.currentThemeId];
+
+    if (themeTemplates && themeTemplates[templateType]) {
+      return themeTemplates[templateType];
     }
+
+    // Fallback to starter-store templates if theme doesn't have this template
+    const fallbackTemplates = TEMPLATE_REGISTRY['starter-store'];
+    if (fallbackTemplates && fallbackTemplates[templateType]) {
+      console.warn(
+        `Template "${templateType}" not found for theme "${this.currentThemeId}", using starter-store fallback`
+      );
+      return fallbackTemplates[templateType];
+    }
+
+    console.warn(`Template "${templateType}" not found for theme "${this.currentThemeId}"`);
+    return null;
+  }
+
+  /**
+   * Synchronous version of loadTemplate for immediate access
+   */
+  getTemplate(templateType: string = 'index'): TemplateJSON | null {
+    const themeTemplates = TEMPLATE_REGISTRY[this.currentThemeId];
+    if (themeTemplates && themeTemplates[templateType]) {
+      return themeTemplates[templateType];
+    }
+    // Fallback to starter-store
+    const fallbackTemplates = TEMPLATE_REGISTRY['starter-store'];
+    return fallbackTemplates?.[templateType] || null;
   }
 
   /**
@@ -399,17 +527,30 @@ export class ThemeBridge {
 let bridgeInstance: ThemeBridge | null = null;
 
 /**
- * Get or create the theme bridge instance
+ * Get or create the theme bridge instance.
+ * Always requires a themeId to ensure correct theme is used.
  */
-export function getThemeBridge(themeId?: string): ThemeBridge {
-  if (!bridgeInstance || (themeId && bridgeInstance.getThemeId() !== themeId)) {
-    bridgeInstance = new ThemeBridge(themeId);
+export function getThemeBridge(themeId: string = 'starter-store'): ThemeBridge {
+  // Resolve the theme ID first
+  const resolvedId = resolveThemeId(themeId);
+
+  // Create new instance if none exists or if theme changed
+  if (!bridgeInstance || bridgeInstance.getThemeId() !== resolvedId) {
+    bridgeInstance = new ThemeBridge(resolvedId);
   }
   return bridgeInstance;
 }
 
 /**
- * Reset the theme bridge (useful for theme switching)
+ * Create a fresh ThemeBridge instance (doesn't use singleton)
+ * Use this when you need a separate instance for a specific theme
+ */
+export function createThemeBridge(themeId: string = 'starter-store'): ThemeBridge {
+  return new ThemeBridge(themeId);
+}
+
+/**
+ * Reset the theme bridge singleton (useful for theme switching)
  */
 export function resetThemeBridge(): void {
   bridgeInstance = null;
