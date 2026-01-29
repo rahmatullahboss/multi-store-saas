@@ -484,6 +484,12 @@ const StarterStoreFooter = React.lazy(() =>
   }))
 );
 
+const StarterProductPage = React.lazy(() =>
+  import('~/components/store-templates/starter-store/pages/ProductPage').then((m) => ({
+    default: m.StarterProductPage,
+  }))
+);
+
 // Header Components
 const DarazHeader = React.lazy(() =>
   import('~/components/store-templates/daraz/sections/Header').then((m) => ({
@@ -928,7 +934,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: StarterStoreTemplate,
     Header: StarterStoreHeader,
     Footer: StarterStoreFooter,
-    ProductPage: SharedProductPage,
+    ProductPage: StarterProductPage,
     CartPage: SharedCartPage,
     CollectionPage: SharedCollectionPage,
     CheckoutPage: SharedCheckoutPage,

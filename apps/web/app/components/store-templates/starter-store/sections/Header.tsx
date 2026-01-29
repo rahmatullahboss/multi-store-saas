@@ -7,12 +7,12 @@
  * - Live: Real navigation, real cart count from API
  */
 
-import { Link } from '@remix-run/react';
+import { Link, useNavigate } from '@remix-run/react';
 import { useState } from 'react';
 import { ShoppingCart, Search, Menu, X, User, Heart } from 'lucide-react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { useWishlist } from '~/hooks/useWishlist';
-import { PreviewSafeLink } from '~/components/PreviewSafeLink';
+import { PreviewSafeLink, usePreviewUrl } from '~/components/PreviewSafeLink';
 import { STARTER_STORE_THEME } from '../theme';
 import type { ThemeConfig, SocialLinks } from '@db/types';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -50,10 +50,17 @@ export function StarterStoreHeader({
   
   const validCategories = categories.filter(Boolean).slice(0, 8) as string[];
 
+  const getPreviewUrl = usePreviewUrl(isPreview);
+  const navigate = useNavigate();
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim() && !isPreview) {
-      window.location.href = `/?search=${encodeURIComponent(searchQuery.trim())}`;
+    if (searchQuery.trim()) {
+      if (isPreview) {
+        navigate(getPreviewUrl(`/?search=${encodeURIComponent(searchQuery.trim())}`));
+      } else {
+        window.location.href = `/?search=${encodeURIComponent(searchQuery.trim())}`;
+      }
     }
   };
 
