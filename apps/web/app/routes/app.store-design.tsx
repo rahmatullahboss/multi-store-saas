@@ -136,11 +136,15 @@ export const loader = async ({ request, context }: { request: Request; context: 
 
   // Get Shopify OS 2.0 themes from ThemeBridge
   const availableThemes = ThemeBridge.getAvailableThemes();
+  
+  // MVP: Only show 5 approved themes
+  const MVP_THEME_IDS = ['starter-store', 'ghorer-bazar', 'luxe-boutique', 'nova-lux', 'tech-modern'];
+  const mvpThemes = availableThemes.filter(t => MVP_THEME_IDS.includes(t.id));
 
   return json({
     currentTemplateId,
     themeConfig,
-    templates: availableThemes.map((t) => ({
+    templates: mvpThemes.map((t) => ({
       id: t.id,
       name: t.name,
       nameBn: t.nameBn,
@@ -312,7 +316,7 @@ export default function StoreDesignPage() {
 
   const [activeTab, setActiveTab] = useState<
     'templates' | 'theme' | 'banner' | 'info' | 'advanced'
-  >('theme'); // MVP: Default to theme tab since templates is hidden
+  >('templates'); // Default to templates tab
   const [selectedTemplateId, setSelectedTemplateId] = useState(currentTemplateId);
   const [showSuccess, setShowSuccess] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
@@ -459,10 +463,10 @@ export default function StoreDesignPage() {
         </div>
       )}
 
-      {/* Tabs - MVP: Templates and Advanced tabs hidden */}
+      {/* Tabs - MVP: Advanced tab hidden, Templates shows only 5 MVP themes */}
       <div className="flex border-b border-gray-100 mb-8 overflow-x-auto no-scrollbar bg-white p-1 rounded-xl shadow-sm border border-gray-200">
         {[
-          // { id: 'templates', label: t('templates'), icon: Layout }, // Hidden for MVP
+          { id: 'templates', label: t('templates'), icon: Layout }, // MVP: Shows only 5 filtered themes
           { id: 'theme', label: t('theme'), icon: Palette },
           { id: 'banner', label: t('banner'), icon: Image },
           { id: 'info', label: t('info'), icon: User },
