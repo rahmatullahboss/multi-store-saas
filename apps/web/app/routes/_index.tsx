@@ -34,13 +34,7 @@ import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, type Product, type Store } from '@db/schema';
 import {
-  parseThemeConfig,
-  parseSocialLinks,
-  parseFooterConfig,
   type LandingConfig,
-  type ThemeConfig,
-  type SocialLinks,
-  type FooterConfig,
 } from '@db/types';
 import { getTemplate, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -224,43 +218,18 @@ async function withTimeout<T>(
 }
 
 // ============================================================================
-// HELPER: Safe JSON parse with fallback
-// ============================================================================
-function safeJsonParse<T>(value: string | null | undefined, fallback: T): T {
-  if (!value) return fallback;
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    console.warn('[safeJsonParse] Failed to parse JSON, using fallback');
-    return fallback;
-  }
-}
-
-// ============================================================================
 // LOADER - Mode-based data fetching with defensive programming
 // ============================================================================
 export async function loader({ context, request }: LoaderFunctionArgs): Promise<Response> {
   let { storeId, store } = context;
   const { cloudflare } = context;
 
-  // Get request info for debugging
-  const requestUrl = new URL(request.url);
-  const hostname = requestUrl.hostname;
-
-  console.log(`[LOADER] ============================================`);
-  console.log(`[LOADER] Request URL: ${request.url}`);
-  console.log(`[LOADER] Hostname: ${hostname}`);
-  console.log(`[LOADER] Context storeId: ${storeId ?? 'undefined'}`);
-  console.log(
-    `[LOADER] Context store: ${store ? `Found (ID: ${(store as { id: number }).id})` : 'undefined'}`
-  );
-  console.log(`[LOADER] Cloudflare bindings available: ${!!cloudflare}`);
-  console.log(`[LOADER] DB binding available: ${!!cloudflare?.env?.DB}`);
-
   // Validate cloudflare context exists
   if (!cloudflare?.env?.DB) {
+    const url = new URL(request.url);
+    const hostname = url.hostname;
+    
     console.error('[LOADER] Database connection not available');
-    console.error('[LOADER] cloudflare object:', JSON.stringify(cloudflare, null, 2));
     throw new Response(
       JSON.stringify({
         error: 'Service temporarily unavailable',
@@ -282,6 +251,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
 
   const db = drizzle(cloudflare.env.DB);
 
+
   // ========== MAIN DOMAIN CHECK - Show Marketing Page ==========
   const url = new URL(request.url);
   const host = url.hostname;
@@ -293,6 +263,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
     'ozzyl-saas.pages.dev',
     'ozzyl.com',
     'www.ozzyl.com',
+    'app.ozzyl.com',
   ];
 
   // Check if this is a main domain (should show marketing page)
@@ -301,8 +272,12 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
 
   // If it's a main domain AND no store was resolved, show marketing page
   if (isMainDomain && (!store || storeId === 0)) {
-    // Localhost dev: Redirect to /app (Login/Dashboard)
-    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+    // Localhost dev OR app.ozzyl.com: Redirect to /app (Login/Dashboard)
+    if (
+      url.hostname === 'localhost' ||
+      url.hostname === '127.0.0.1' ||
+      url.hostname === 'app.ozzyl.com'
+    ) {
       throw redirect('/app', 302);
     }
     // Return marketing page data
@@ -326,6 +301,13 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
         storeId = fallbackStore[0].id;
       } else {
         // No stores - show marketing page
+        // But if we are clearly on a domain that SHOULD display a store but none exists,
+        // we might want to show marketing page data.
+        // However, we must ensure we don't trigger the component redirect loop.
+
+        // If 'mode: marketing' is returned, the component might try to redirect.
+        // We need to handle that.
+
         return json({ mode: 'marketing' } as MarketingModeData);
       }
     }
@@ -530,9 +512,12 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
 // ============================================================================
 // COMPONENT - Conditional rendering based on mode
 // ============================================================================
+// ============================================================================
+// COMPONENT - Conditional rendering based on mode
+// ============================================================================
 export default function Index() {
   // Translation hook for reactive i18n
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   const data = useLoaderData<LoaderData>();
   const [searchParams] = useSearchParams();
 
@@ -542,10 +527,74 @@ export default function Index() {
   // Track visitor (only for store pages)
   useTrackVisit(data.mode !== 'marketing' ? data.storeId : undefined);
 
+  // Helper for type narrowing
+  const storeData = data.mode === 'store' ? data : undefined;
+
+  // ============================================================================
+  // HOOKS - EXECUTE UNCONDITIONALLY FOR ALL MODES
+  // ============================================================================
+
+  // ========== FULL STORE MODE - Shopify OS 2.0 Only ==========
+  // Convert sections from DB format to ThemeStoreRenderer format
+  const formattedSections = useMemo(() => {
+    if (!storeData) return [];
+    
+    return (storeData.sections || []).map((s: any) => ({
+      id: s.id,
+      type: s.type,
+      settings: s.props || {},
+      blocks: s.blocks || [],
+      disabled: !s.enabled,
+      enabled: s.enabled,
+    }));
+  }, [storeData]);
+
+  // Prepare products for ThemeStoreRenderer
+  const serializedProducts = useMemo(() => {
+    if (!storeData) return [];
+
+    return (storeData.products || []).map((p: any) => ({
+      id: p.id,
+      title: p.title,
+      description: p.description || '',
+      price: p.price,
+      compareAtPrice: p.compareAtPrice,
+      imageUrl: p.imageUrl,
+      images: p.images ? JSON.parse(p.images as string) : p.imageUrl ? [p.imageUrl] : [],
+      inventory: p.inventory ?? undefined,
+      category: p.category,
+    }));
+  }, [storeData]);
+
+  // Prepare collections from categories
+  const serializedCollections = useMemo(() => {
+    if (!storeData) return [];
+
+    return (storeData.categories || []).map((cat: string, idx: number) => ({
+      id: idx + 1,
+      title: cat,
+      slug: cat.toLowerCase().replace(/\s+/g, '-'),
+      description: '',
+      imageUrl: undefined,
+      productCount: (storeData.products || []).filter((p: any) => p.category === cat).length,
+    }));
+  }, [storeData]);
+
+
+  // ============================================================================
+  // RENDERING LOGIC - EARLY RETURNS BELOW HERE
+  // ============================================================================
+
   // ========== MARKETING MODE (REDIRECT TO LANDING) ==========
   if (data.mode === 'marketing') {
-    // Production: Redirect to marketing site
-    throw redirect('https://ozzyl.com', 301);
+    // Check if we are physically on ozzyl.com
+    if (typeof window !== 'undefined' && window.location.hostname !== 'ozzyl.com' && window.location.hostname !== 'www.ozzyl.com' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('pages.dev')) {
+        // This effectively redirects other domains that accidentally got here
+        window.location.href = 'https://ozzyl.com';
+        return null; 
+    }
+    // Render nothing or marketing content if this route is responsible for it
+    return null;
   }
 
   // ========== LANDING MODE ==========
@@ -576,6 +625,7 @@ export default function Index() {
 
       const demoConfig = {
         templateId: previewTemplateId,
+        // ... (rest of demo config is static so okay to define here or move out if needed)
         headline: '🔥 আমাদের বেস্ট সেলিং প্রোডাক্ট পান সেরা দামে!',
         subheadline: 'সীমিত সময়ের জন্য বিশেষ ছাড় - আজই অর্ডার করুন',
         ctaText: 'এখনই অর্ডার করুন',
@@ -584,23 +634,13 @@ export default function Index() {
         guaranteeText: '১০০% সন্তুষ্টির গ্যারান্টি। পছন্দ না হলে ৭ দিনের মধ্যে ফেরত।',
         videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
 
-        // Features Section
         features: [
-          {
-            icon: '✅',
-            title: 'প্রিমিয়াম কোয়ালিটি',
-            description: 'সেরা মানের উপাদান দিয়ে তৈরি',
-          },
+          { icon: '✅', title: 'প্রিমিয়াম কোয়ালিটি', description: 'সেরা মানের উপাদান দিয়ে তৈরি' },
           { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ কার্যদিবসের মধ্যে ডেলিভারি' },
-          {
-            icon: '💯',
-            title: 'সন্তুষ্টির গ্যারান্টি',
-            description: 'পছন্দ না হলে সম্পূর্ণ টাকা ফেরত',
-          },
+          { icon: '💯', title: 'সন্তুষ্টির গ্যারান্টি', description: 'পছন্দ না হলে সম্পূর্ণ টাকা ফেরত' },
           { icon: '🔒', title: 'নিরাপদ পেমেন্ট', description: 'আপনার পেমেন্ট ১০০% নিরাপদ' },
         ],
-
-        // Gallery Section (NEW)
+        
         galleryImages: [
           'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
           'https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?w=400&h=400&fit=crop',
@@ -608,134 +648,61 @@ export default function Index() {
           'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400&h=400&fit=crop',
         ],
 
-        // Benefits Section (NEW)
         benefits: [
           { icon: '💪', title: 'দীর্ঘস্থায়ী', description: 'বছরের পর বছর ব্যবহার করতে পারবেন' },
           { icon: '🎨', title: 'স্টাইলিশ ডিজাইন', description: 'আধুনিক ও আকর্ষণীয় ডিজাইন' },
-          {
-            icon: '🛡️',
-            title: '১ বছর ওয়ারেন্টি',
-            description: 'কোন সমস্যা হলে বিনামূল্যে মেরামত',
-          },
+          { icon: '🛡️', title: '১ বছর ওয়ারেন্টি', description: 'কোন সমস্যা হলে বিনামূল্যে মেরামত' },
           { icon: '📦', title: 'ফ্রি প্যাকেজিং', description: 'সুন্দর গিফট বক্সে প্যাক করা' },
         ],
 
-        // Comparison Section (NEW)
         comparison: {
-          beforeImage:
-            'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=400&h=300&fit=crop',
-          afterImage:
-            'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400&h=300&fit=crop',
+          beforeImage: 'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=400&h=300&fit=crop',
+          afterImage: 'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400&h=300&fit=crop',
           beforeLabel: 'সাধারণ প্রোডাক্ট',
           afterLabel: 'আমাদের প্রোডাক্ট',
           description: 'দেখুন পার্থক্য - আমাদের প্রোডাক্ট কতটা ভালো!',
         },
 
-        // Testimonials Section
         testimonials: [
-          {
-            name: 'রহিম উদ্দিন',
-            imageUrl:
-              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
-            text: 'অসাধারণ প্রোডাক্ট! ৫ স্টার রেটিং দিলাম।',
-          },
-          {
-            name: 'সাবিনা আক্তার',
-            imageUrl:
-              'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop',
-            text: 'দারুণ কোয়ালিটি, দাম অনুযায়ী সেরা।',
-          },
-          {
-            name: 'করিম সাহেব',
-            imageUrl:
-              'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop',
-            text: 'দ্রুত ডেলিভারি পেয়েছি, খুব খুশি।',
-          },
+          { name: 'রহিম উদ্দিন', imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop', text: 'অসাধারণ প্রোডাক্ট! ৫ স্টার রেটিং দিলাম।' },
+          { name: 'সাবিনা আক্তার', imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop', text: 'দারুণ কোয়ালিটি, দাম অনুযায়ী সেরা।' },
+          { name: 'করিম সাহেব', imageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop', text: 'দ্রুত ডেলিভারি পেয়েছি, খুব খুশি।' },
         ],
 
-        // Social Proof Section (NEW)
-        socialProof: {
-          count: 5000,
-          text: 'জন সন্তুষ্ট গ্রাহক',
-        },
+        socialProof: { count: 5000, text: 'জন সন্তুষ্ট গ্রাহক' },
 
-        // FAQ Section
         faq: [
-          {
-            question: 'ডেলিভারি কতদিনে পাব?',
-            answer: 'অর্ডার করার ২-৩ কার্যদিবসের মধ্যে ডেলিভারি পাবেন। ঢাকায় ২৪ ঘণ্টায় ডেলিভারি।',
-          },
-          {
-            question: 'পেমেন্ট কিভাবে করব?',
-            answer: 'ক্যাশ অন ডেলিভারি বা অনলাইন পেমেন্ট (বিকাশ/নগদ) দুটোই গ্রহণযোগ্য।',
-          },
-          {
-            question: 'রিটার্ন পলিসি কি?',
-            answer: 'পণ্য পছন্দ না হলে ৭ দিনের মধ্যে রিটার্ন করতে পারবেন। সম্পূর্ণ টাকা ফেরত।',
-          },
-          {
-            question: 'ওয়ারেন্টি আছে?',
-            answer: 'হ্যাঁ, ১ বছরের ম্যানুফ্যাকচারিং ওয়ারেন্টি আছে।',
-          },
+          { question: 'ডেলিভারি কতদিনে পাব?', answer: 'অর্ডার করার ২-৩ কার্যদিবসের মধ্যে ডেলিভারি পাবেন। ঢাকায় ২৪ ঘণ্টায় ডেলিভারি।' },
+          { question: 'পেমেন্ট কিভাবে করব?', answer: 'ক্যাশ অন ডেলিভারি বা অনলাইন পেমেন্ট (বিকাশ/নগদ) দুটোই গ্রহণযোগ্য।' },
+          { question: 'রিটার্ন পলিসি কি?', answer: 'পণ্য পছন্দ না হলে ৭ দিনের মধ্যে রিটার্ন করতে পারবেন। সম্পূর্ণ টাকা ফেরত।' },
+          { question: 'ওয়ারেন্টি আছে?', answer: 'হ্যাঁ, ১ বছরের ম্যানুফ্যাকচারিং ওয়ারেন্টি আছে।' },
         ],
 
-        // Conversion Features
         countdownEnabled: true,
         countdownEndTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         showStockCounter: true,
         lowStockThreshold: 10,
-
-        // WhatsApp
         whatsappEnabled: true,
         whatsappNumber: '01700000000',
         whatsappMessage: 'হাই, আমি এই প্রোডাক্ট সম্পর্কে জানতে চাই',
-
-        // Section Order (including new sections)
-        sectionOrder: [
-          'hero',
-          'trust',
-          'features',
-          'gallery',
-          'video',
-          'benefits',
-          'comparison',
-          'testimonials',
-          'social',
-          'delivery',
-          'faq',
-          'guarantee',
-          'cta',
-        ],
+        sectionOrder: ['hero', 'trust', 'features', 'gallery', 'video', 'benefits', 'comparison', 'testimonials', 'social', 'delivery', 'faq', 'guarantee', 'cta'],
         hiddenSections: [],
-
-        // Colors
         primaryColor: '#10b981',
         accentColor: '#f59e0b',
-
-        // Order Form Layout
         orderFormVariant: 'full-width' as const,
       };
 
-      // Dynamic template selection from registry
       const { component: PreviewTemplateComponent } = getTemplate(previewTemplateId);
 
       return (
         <div className="relative">
-          {/* Preview Banner - Ultra compact */}
           <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600 to-pink-500 text-white px-2 py-1.5 text-center shadow-md">
             <div className="flex items-center justify-center gap-2">
               <span className="text-xs">👁️</span>
               <span className="font-medium text-xs">{t('templatePreviewMode')}</span>
               <span className="text-white/60 text-xs hidden sm:inline">|</span>
-              <span className="hidden sm:inline text-xs text-white/80">
-                {t('templatePreviewDesc')}
-              </span>
-              <button
-                onClick={() => window.close()}
-                className="px-2 py-0.5 bg-white/20 hover:bg-white/30 rounded text-xs font-medium transition"
-              >
-                {t('close')} ✕
-              </button>
+              <span className="hidden sm:inline text-xs text-white/80">{t('templatePreviewDesc')}</span>
+              <button onClick={() => window.close()} className="px-2 py-0.5 bg-white/20 hover:bg-white/30 rounded text-xs font-medium transition">{t('close')} ✕</button>
             </div>
           </div>
           <div className="pt-8">
@@ -763,7 +730,6 @@ export default function Index() {
       );
     }
 
-    // Dynamic template selection from registry
     const templateId = data.landingConfig?.templateId || DEFAULT_TEMPLATE_ID;
     const { component: TemplateComponent } = getTemplate(templateId);
 
@@ -782,76 +748,41 @@ export default function Index() {
     );
   }
 
-  // ========== FULL STORE MODE - Shopify OS 2.0 Only ==========
-  // Convert sections from DB format to ThemeStoreRenderer format
-  const formattedSections = useMemo(() => {
-    return (data.sections || []).map((s: any) => ({
-      id: s.id,
-      type: s.type,
-      settings: s.props || {},
-      blocks: s.blocks || [],
-      disabled: !s.enabled,
-      enabled: s.enabled,
-    }));
-  }, [data.sections]);
-
-  // Prepare products for ThemeStoreRenderer
-  const serializedProducts = useMemo(() => {
-    return (data.products || []).map((p: any) => ({
-      id: p.id,
-      title: p.title,
-      description: p.description || '',
-      price: p.price,
-      compareAtPrice: p.compareAtPrice,
-      imageUrl: p.imageUrl,
-      images: p.images ? JSON.parse(p.images as string) : p.imageUrl ? [p.imageUrl] : [],
-      inventory: p.inventory ?? undefined,
-      category: p.category,
-    }));
-  }, [data.products]);
-
-  // Prepare collections from categories
-  const serializedCollections = useMemo(() => {
-    return (data.categories || []).map((cat: string, idx: number) => ({
-      id: idx + 1,
-      title: cat,
-      slug: cat.toLowerCase().replace(/\s+/g, '-'),
-      description: '',
-      imageUrl: undefined,
-      productCount: (data.products || []).filter((p: any) => p.category === cat).length,
-    }));
-  }, [data.categories, data.products]);
-
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading store...</p>
+  // ========== STORE MODE RENDERING ==========
+  if (data.mode === 'store') {
+    return (
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading store...</p>
+            </div>
           </div>
-        </div>
-      }
-    >
-      <WishlistProvider>
-        <ThemeStoreRenderer
-          themeId={data.themeId}
-          sections={formattedSections}
-          store={{
-            id: data.storeId,
-            name: data.storeName,
-            currency: data.currency,
-            logo: data.logo,
-          }}
-          pageType="index"
-          products={serializedProducts}
-          collections={serializedCollections}
-          isPreview={false}
-          skipHeaderFooter={false}
-        />
-      </WishlistProvider>
-    </Suspense>
-  );
+        }
+      >
+        <WishlistProvider>
+          <ThemeStoreRenderer
+            themeId={data.themeId}
+            sections={formattedSections}
+            store={{
+              id: data.storeId,
+              name: data.storeName,
+              currency: data.currency,
+              logo: data.logo,
+            }}
+            pageType="index"
+            products={serializedProducts}
+            collections={serializedCollections}
+            isPreview={false}
+            skipHeaderFooter={false}
+          />
+        </WishlistProvider>
+      </Suspense>
+    );
+  }
+
+  return null;
 }
 
 // ============================================================================
