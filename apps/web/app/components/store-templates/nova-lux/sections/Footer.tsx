@@ -17,6 +17,12 @@
  */
 
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
+import { 
+  Truck, RotateCcw, Shield, CreditCard, 
+  Instagram, Facebook, Twitter, Youtube, Linkedin, 
+  ArrowRight, Mail, Phone, MapPin 
+} from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 import { NOVALUX_THEME } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';
 import type { SocialLinks, FooterConfig } from '@db/types';
@@ -102,6 +108,7 @@ export function NovaLuxFooter({
   planType = 'free',
   isPreview = false,
 }: NovaLuxFooterProps) {
+  const { t } = useTranslation();
   const THEME = {
     primary: NOVALUX_THEME.primary,
     accent: NOVALUX_THEME.accent,
@@ -141,8 +148,8 @@ export function NovaLuxFooter({
                 <Truck className="w-5 h-5" style={{ color: THEME.accent }} />
               </div>
               <div>
-                <p className="font-medium text-sm">Free Shipping</p>
-                <p className="text-xs text-white/60">On orders over ৳1,000</p>
+                <p className="font-medium text-sm">{t('freeShipping')}</p>
+                <p className="text-xs text-white/60">{t('freeShippingDesc', { amount: '৳1,000' })}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -153,8 +160,8 @@ export function NovaLuxFooter({
                 <RotateCcw className="w-5 h-5" style={{ color: THEME.accent }} />
               </div>
               <div>
-                <p className="font-medium text-sm">Easy Returns</p>
-                <p className="text-xs text-white/60">7-day return policy</p>
+                <p className="font-medium text-sm">{t('easyReturns')}</p>
+                <p className="text-xs text-white/60">{t('easyReturnsDesc')}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -165,8 +172,8 @@ export function NovaLuxFooter({
                 <Shield className="w-5 h-5" style={{ color: THEME.accent }} />
               </div>
               <div>
-                <p className="font-medium text-sm">Secure Payment</p>
-                <p className="text-xs text-white/60">100% protected</p>
+                <p className="font-medium text-sm">{t('securePaymentTitle')}</p>
+                <p className="text-xs text-white/60">{t('securePaymentDesc')}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -177,8 +184,8 @@ export function NovaLuxFooter({
                 <CreditCard className="w-5 h-5" style={{ color: THEME.accent }} />
               </div>
               <div>
-                <p className="font-medium text-sm">Cash on Delivery</p>
-                <p className="text-xs text-white/60">Available nationwide</p>
+                <p className="font-medium text-sm">{t('codTitle')}</p>
+                <p className="text-xs text-white/60">{t('codDesc')}</p>
               </div>
             </div>
           </div>
@@ -192,22 +199,22 @@ export function NovaLuxFooter({
             className="text-3xl lg:text-4xl font-semibold mb-4"
             style={{ fontFamily: NOVALUX_THEME.fontHeading }}
           >
-            Join the {storeName} Family
+            {t('joinFamily', { name: storeName })}
           </h3>
           <p className="text-white/60 mb-8 max-w-lg mx-auto">
-            Subscribe for exclusive offers, early access to new arrivals, and curated content.
+            {t('subscribeText')}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <input
               type="email"
-              placeholder="Enter your email"
+              placeholder="Email..."
               className="flex-1 px-5 py-4 rounded-full bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-white/40 transition-colors"
             />
             <button
               className="px-8 py-4 rounded-full font-semibold transition-all duration-300 hover:scale-105"
               style={{ background: NOVALUX_THEME.accentGradient, color: THEME.primary }}
             >
-              Subscribe
+              {t('subscribe')}
             </button>
           </div>
         </div>
@@ -229,8 +236,7 @@ export function NovaLuxFooter({
               </h4>
             )}
             <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-sm">
-              {footerConfig?.description ||
-                'Curating exceptional products for those who appreciate the finer things in life. Experience luxury redefined.'}
+              {footerConfig?.description || t('luxeDescription')}
             </p>
 
             {/* Social Links */}
@@ -292,7 +298,7 @@ export function NovaLuxFooter({
 
             {/* Payment Icons */}
             <div>
-              <p className="text-xs text-white/50 mb-3">We Accept</p>
+              <p className="text-xs text-white/50 mb-3">{t('weAccept')}</p>
               <div className="flex flex-wrap gap-2">
                 <BkashIcon />
                 <NagadIcon />
@@ -309,7 +315,7 @@ export function NovaLuxFooter({
               className="font-semibold uppercase text-sm tracking-wider mb-6"
               style={{ color: THEME.accent }}
             >
-              Quick Links
+              {t('quickLinks')}
             </h5>
             <ul className="space-y-3 text-sm">
               <li>
@@ -319,7 +325,7 @@ export function NovaLuxFooter({
                   isPreview={isPreview}
                 >
                   <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-                  Home
+                  {t('home')}
                 </PreviewSafeLink>
               </li>
               <li>
@@ -329,7 +335,7 @@ export function NovaLuxFooter({
                   isPreview={isPreview}
                 >
                   <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-                  Shop All
+                  {t('shopAll')}
                 </PreviewSafeLink>
               </li>
               <li>
@@ -339,7 +345,7 @@ export function NovaLuxFooter({
                   isPreview={isPreview}
                 >
                   <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-                  About Us
+                  {t('aboutUs')}
                 </PreviewSafeLink>
               </li>
               <li>
@@ -349,7 +355,7 @@ export function NovaLuxFooter({
                   isPreview={isPreview}
                 >
                   <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-                  Contact
+                  {t('contact')}
                 </PreviewSafeLink>
               </li>
               <li>
@@ -359,7 +365,7 @@ export function NovaLuxFooter({
                   isPreview={isPreview}
                 >
                   <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-                  Track Order
+                  {t('trackOrder')}
                 </PreviewSafeLink>
               </li>
             </ul>
@@ -371,7 +377,7 @@ export function NovaLuxFooter({
               className="font-semibold uppercase text-sm tracking-wider mb-6"
               style={{ color: THEME.accent }}
             >
-              Collections
+              {t('collections')}
             </h5>
             <ul className="space-y-3 text-sm">
               {displayCategories.map((cat) => (
@@ -395,7 +401,7 @@ export function NovaLuxFooter({
               className="font-semibold uppercase text-sm tracking-wider mb-6"
               style={{ color: THEME.accent }}
             >
-              Get in Touch
+              {t('getInTouch')}
             </h5>
             <ul className="space-y-4 text-sm">
               {displayBusinessInfo.email && (
@@ -455,7 +461,7 @@ export function NovaLuxFooter({
               className="text-white/60 hover:text-white transition-colors"
               isPreview={isPreview}
             >
-              Privacy Policy
+              {t('privacyPolicy')}
             </PreviewSafeLink>
             <span className="text-white/20 hidden md:inline">•</span>
             <PreviewSafeLink
@@ -463,7 +469,7 @@ export function NovaLuxFooter({
               className="text-white/60 hover:text-white transition-colors"
               isPreview={isPreview}
             >
-              Refund Policy
+              {t('refundPolicy')}
             </PreviewSafeLink>
             <span className="text-white/20 hidden md:inline">•</span>
             <PreviewSafeLink
@@ -471,11 +477,11 @@ export function NovaLuxFooter({
               className="text-white/60 hover:text-white transition-colors"
               isPreview={isPreview}
             >
-              Shipping Policy
+              {t('shippingPolicy')}
             </PreviewSafeLink>
             <span className="text-white/20 hidden md:inline">•</span>
             <PreviewSafeLink to="/policies/terms" className="text-white/60 hover:text-white transition-colors" isPreview={isPreview}>
-              Terms of Service
+              {t('termsOfService')}
             </PreviewSafeLink>
           </div>
         </div>
@@ -484,7 +490,7 @@ export function NovaLuxFooter({
         <div className="mt-8 pt-8 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-white/50 text-sm">
-              © {new Date().getFullYear()} {storeName}. All rights reserved.
+              © {new Date().getFullYear()} {storeName}. {t('allRightsReserved')}
             </p>
             <OzzylBranding planType={planType} showPoweredBy={showPoweredBy} />
           </div>

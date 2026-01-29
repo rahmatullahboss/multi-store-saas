@@ -64,7 +64,7 @@ export function StarterStoreHeader({
         className="text-center py-2 text-sm font-medium text-white"
         style={{ backgroundColor: theme.accent }}
       >
-        🎉 ফ্রি ডেলিভারি ৳১০০০+ অর্ডারে! কোড: FREE2024
+        {t('starterAnnouncement')}
       </div>
 
       {/* Main Header */}
@@ -273,7 +273,7 @@ export function StarterStoreHeader({
                   >
                     <span className="flex items-center gap-3">
                       <User className="h-5 w-5" />
-                      আমার অ্যাকাউন্ট
+                      {t('myAccount')}
                     </span>
                   </Link>
                 </>

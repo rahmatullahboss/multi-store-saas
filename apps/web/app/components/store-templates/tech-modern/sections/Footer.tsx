@@ -19,6 +19,7 @@ import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { TECH_MODERN_THEME } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';
 import type { SocialLinks, FooterConfig } from '@db/types';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 
 interface TechModernFooterProps {
@@ -103,6 +104,7 @@ export function TechModernFooter({
   isPreview = false,
 }: TechModernFooterProps) {
   const theme = TECH_MODERN_THEME;
+  const { t } = useTranslation();
   const validCategories = categories.filter(Boolean).slice(0, 6) as string[];
   const showPoweredBy = footerConfig?.showPoweredBy ?? planType === 'free';
 
@@ -128,9 +130,10 @@ export function TechModernFooter({
               >
                 <Truck className="w-6 h-6" style={{ color: theme.accent }} />
               </div>
+
               <div>
-                <p className="font-bold text-sm">Turbo Delivery</p>
-                <p className="text-xs opacity-60">24h in Dhaka</p>
+                <p className="font-bold text-sm">{t('turboDelivery')}</p>
+                <p className="text-xs opacity-60">{t('turboDeliveryDesc')}</p>
               </div>
             </div>
             <div className="flex items-center gap-3 group">
@@ -141,8 +144,8 @@ export function TechModernFooter({
                 <RotateCcw className="w-6 h-6" style={{ color: theme.accent }} />
               </div>
               <div>
-                <p className="font-bold text-sm">Easy Returns</p>
-                <p className="text-xs opacity-60">Hassle-free policy</p>
+                <p className="font-bold text-sm">{t('easyReturns')}</p>
+                <p className="text-xs opacity-60">{t('easyReturnsDesc')}</p>
               </div>
             </div>
             <div className="flex items-center gap-3 group">
@@ -153,8 +156,8 @@ export function TechModernFooter({
                 <Shield className="w-6 h-6" style={{ color: theme.accent }} />
               </div>
               <div>
-                <p className="font-bold text-sm">Verified Tech</p>
-                <p className="text-xs opacity-60">100% Authentic</p>
+                <p className="font-bold text-sm">{t('verifiedTech')}</p>
+                <p className="text-xs opacity-60">{t('verifiedTechDesc')}</p>
               </div>
             </div>
             <div className="flex items-center gap-3 group">
@@ -165,8 +168,8 @@ export function TechModernFooter({
                 <CreditCard className="w-6 h-6" style={{ color: theme.accent }} />
               </div>
               <div>
-                <p className="font-bold text-sm">Secure Payment</p>
-                <p className="text-xs opacity-60">COD Available</p>
+                <p className="font-bold text-sm">{t('securePaymentTitle')}</p>
+                <p className="text-xs opacity-60">{t('codDesc')}</p>
               </div>
             </div>
           </div>
@@ -184,16 +187,16 @@ export function TechModernFooter({
             <div className="text-center md:text-left">
               <h3 className="text-2xl lg:text-3xl font-bold mb-2 flex items-center justify-center md:justify-start gap-2">
                 <Zap className="w-6 h-6" style={{ color: theme.accent }} />
-                Join the Tech Revolution
+                {t('joinTechRevolution')}
               </h3>
               <p className="opacity-60 max-w-md">
-                Subscribe for exclusive tech drops, early bird offers, and expert reviews.
+                {t('joinTechText')}
               </p>
             </div>
             <div className="flex w-full md:w-auto gap-2">
               <input
                 type="email"
-                placeholder="Enter your email"
+                placeholder={t('email') + '...'}
                 className="flex-1 md:w-80 px-5 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-blue-500 transition-colors"
                 style={{ borderColor: 'rgba(255,255,255,0.1)' }}
               />
@@ -201,7 +204,7 @@ export function TechModernFooter({
                 className="px-6 py-3 rounded-lg font-bold transition-all hover:brightness-110 hover:shadow-lg hover:shadow-blue-500/25 whitespace-nowrap"
                 style={{ backgroundColor: theme.accent, color: 'white' }}
               >
-                Join Now
+                {t('joinNow')}
               </button>
             </div>
           </div>
@@ -228,8 +231,7 @@ export function TechModernFooter({
               )}
             </PreviewSafeLink>
             <p className="text-sm opacity-70 leading-relaxed max-w-sm">
-              {footerConfig?.description ||
-                'Cutting-edge technology and premium electronics for the modern world. We bring you the future, today.'}
+              {footerConfig?.description || t('techDescription')}
             </p>
             
             <div className="flex gap-3">
@@ -280,7 +282,7 @@ export function TechModernFooter({
 
             {/* Payment Icons */}
             <div className="pt-4">
-               <p className="text-xs font-bold uppercase tracking-wider opacity-50 mb-3">Accepted Payments</p>
+               <p className="text-xs font-bold uppercase tracking-wider opacity-50 mb-3">{t('acceptedPayments')}</p>
                <div className="flex flex-wrap gap-2">
                  <BkashIcon />
                  <NagadIcon />
@@ -295,7 +297,7 @@ export function TechModernFooter({
           <div>
             <h4 className="text-sm font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
               <span className="w-1 h-4 rounded-full" style={{ background: theme.accent }}></span>
-              Explore
+              {t('explore')}
             </h4>
             <ul className="space-y-3">
               {validCategories.map((category) => (
@@ -317,25 +319,25 @@ export function TechModernFooter({
           <div>
             <h4 className="text-sm font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
               <span className="w-1 h-4 rounded-full" style={{ background: theme.accent }}></span>
-              Support
+              {t('support')}
             </h4>
             <ul className="space-y-3">
                <li>
-                 <PreviewSafeLink to="/contact" className="text-sm opacity-70 hover:opacity-100 transition-colors flex items-center gap-2 group" isPreview={isPreview}>
+                  <PreviewSafeLink to="/contact" className="text-sm opacity-70 hover:opacity-100 transition-colors flex items-center gap-2 group" isPreview={isPreview}>
                    <ChevronRight className="w-3 h-3 opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-                   Contact Us
+                   {t('contactUs')}
                  </PreviewSafeLink>
                </li>
                <li>
                  <PreviewSafeLink to="/pages/about" className="text-sm opacity-70 hover:opacity-100 transition-colors flex items-center gap-2 group" isPreview={isPreview}>
                    <ChevronRight className="w-3 h-3 opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-                   About Us
+                   {t('aboutUs')}
                  </PreviewSafeLink>
                </li>
                <li>
                  <PreviewSafeLink to="/track-order" className="text-sm opacity-70 hover:opacity-100 transition-colors flex items-center gap-2 group" isPreview={isPreview}>
                    <ChevronRight className="w-3 h-3 opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-                   Track Order
+                   {t('trackOrder')}
                  </PreviewSafeLink>
                </li>
             </ul>
@@ -345,7 +347,7 @@ export function TechModernFooter({
           <div>
             <h4 className="text-sm font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
               <span className="w-1 h-4 rounded-full" style={{ background: theme.accent }}></span>
-              Contact
+              {t('contact')}
             </h4>
             <ul className="space-y-4 text-sm">
               {displayBusinessInfo.email && (
@@ -382,22 +384,22 @@ export function TechModernFooter({
 
         {/* Policies */}
         <div className="mt-16 pt-8 border-t border-white/10 flex flex-wrap justify-center gap-6 text-sm">
-           <PreviewSafeLink to="/policies/privacy" className="opacity-60 hover:opacity-100 transition-opacity" isPreview={isPreview}>Privacy Policy</PreviewSafeLink>
-           <PreviewSafeLink to="/policies/terms" className="opacity-60 hover:opacity-100 transition-opacity" isPreview={isPreview}>Terms of Service</PreviewSafeLink>
-           <PreviewSafeLink to="/policies/shipping" className="opacity-60 hover:opacity-100 transition-opacity" isPreview={isPreview}>Shipping Policy</PreviewSafeLink>
-           <PreviewSafeLink to="/policies/refund" className="opacity-60 hover:opacity-100 transition-opacity" isPreview={isPreview}>Refund Policy</PreviewSafeLink>
+           <PreviewSafeLink to="/policies/privacy" className="opacity-60 hover:opacity-100 transition-opacity" isPreview={isPreview}>{t('privacyPolicy')}</PreviewSafeLink>
+           <PreviewSafeLink to="/policies/terms" className="opacity-60 hover:opacity-100 transition-opacity" isPreview={isPreview}>{t('termsOfService')}</PreviewSafeLink>
+           <PreviewSafeLink to="/policies/shipping" className="opacity-60 hover:opacity-100 transition-opacity" isPreview={isPreview}>{t('shippingPolicy')}</PreviewSafeLink>
+           <PreviewSafeLink to="/policies/refund" className="opacity-60 hover:opacity-100 transition-opacity" isPreview={isPreview}>{t('refundPolicy')}</PreviewSafeLink>
         </div>
 
         <div className="mt-8 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
           <p className="text-xs opacity-50" suppressHydrationWarning>
-            © {new Date().getFullYear()} {storeName}. All rights reserved.
+            © {new Date().getFullYear()} {storeName}. {t('allRightsReserved')}
           </p>
 
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 opacity-50">
               <Smartphone className="w-4 h-4" />
               <span className="text-[10px] font-bold tracking-tighter uppercase">
-                TechPay Verified
+                {t('techPayVerified')}
               </span>
             </div>
 

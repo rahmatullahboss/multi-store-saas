@@ -3,13 +3,16 @@ import { ShoppingCart, Search, Menu, X, Zap, ChevronRight } from 'lucide-react';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { TECH_MODERN_THEME } from '../theme';
 import { useCartCount } from '~/hooks/useCartCount';
+import { useTranslation } from '~/contexts/LanguageContext';
+import { LanguageSelector } from '../../shared/LanguageSelector';
+import type { ThemeConfig } from '@db/types';
 
 interface TechModernHeaderProps {
   storeName: string;
   logo?: string | null;
   categories: (string | null)[];
   currentCategory?: string | null;
-  config?: any;
+  config?: ThemeConfig | null;
   count?: number;
   mobileMenuOpen?: boolean;
   setMobileMenuOpen?: (open: boolean) => void;
@@ -32,6 +35,7 @@ export function TechModernHeader({
   isPreview,
 }: TechModernHeaderProps) {
   const theme = TECH_MODERN_THEME;
+  const { t } = useTranslation();
 
   // Local state for when props aren't provided (e.g. in StorePageWrapper)
   const [localMobileMenuOpen, setLocalMobileMenuOpen] = useState(false);
@@ -109,7 +113,7 @@ export function TechModernHeader({
               }}
               isPreview={isPreview}
             >
-              All Products
+              {t('allProducts')}
             </PreviewSafeLink>
             {validCategories.slice(0, 5).map((category) => (
               <PreviewSafeLink
@@ -133,13 +137,15 @@ export function TechModernHeader({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search products..."
+                placeholder={t('searchProducts')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
               />
             </div>
           </div>
+
+          <LanguageSelector className="mr-1" />
 
           {/* Cart Button */}
           <PreviewSafeLink
@@ -149,7 +155,7 @@ export function TechModernHeader({
             isPreview={isPreview}
           >
             <ShoppingCart className="w-5 h-5" />
-            <span className="hidden sm:inline">Cart</span>
+            <span className="hidden sm:inline">{t('cart')}</span>
             <span className="bg-white/20 px-2 py-0.5 rounded-full text-sm">{count}</span>
           </PreviewSafeLink>
         </div>
@@ -164,7 +170,7 @@ export function TechModernHeader({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search products..."
+                placeholder={t('searchProducts')}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-blue-500"
               />
             </div>
@@ -179,7 +185,7 @@ export function TechModernHeader({
               onClick={() => setMobileMenuOpen(false)}
               isPreview={isPreview}
             >
-              All Products
+              {t('allProducts')}
               <ChevronRight className="w-5 h-5" />
             </PreviewSafeLink>
             {validCategories.map((category) => (

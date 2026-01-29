@@ -6,7 +6,7 @@
  * Works in both preview and live modes.
  */
 
-import { Link } from '@remix-run/react';
+
 import { Facebook, Instagram, Twitter, Phone, Mail, MapPin } from 'lucide-react';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { STARTER_STORE_THEME } from '../theme';
@@ -65,7 +65,7 @@ export function StarterStoreFooter({
               </h3>
             )}
             <p className="text-sm leading-relaxed" style={{ color: theme.footerText + 'CC' }}>
-              {t('logoTagline') || 'আপনার বিশ্বস্ত অনলাইন শপিং পার্টনার। সেরা মানের প্রোডাক্ট, সেরা দামে।'}
+              {t('logoTagline') || t('starterTagline')}
             </p>
 
             {/* Social Links */}

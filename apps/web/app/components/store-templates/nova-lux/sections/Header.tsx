@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { NOVALUX_THEME } from '../theme';
+import { LanguageSelector } from '../../shared/LanguageSelector';
 import type { ThemeConfig } from '@db/types';
 
 interface NovaLuxHeaderProps {
@@ -123,6 +124,7 @@ export function NovaLuxHeader({ storeName, logo, config, currentCategory, catego
 
           {/* Right Navigation */}
           <div className="flex items-center gap-2">
+            <LanguageSelector className="mr-1" />
             <button className="p-2.5 rounded-full transition-all duration-300 hover:bg-gray-100">
               <Search className="w-5 h-5" style={{ color: THEME.text }} />
             </button>
