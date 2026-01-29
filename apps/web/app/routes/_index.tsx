@@ -181,6 +181,7 @@ interface StoreModeData {
     id: string;
     type: string;
     enabled: boolean;
+    sortOrder?: number;
     props: Record<string, unknown>;
     blocks?: Array<{
       id: string;
@@ -215,6 +216,18 @@ async function withTimeout<T>(
     promise,
     new Promise<never>((_, reject) => setTimeout(() => reject(new Error(errorMessage)), timeoutMs)),
   ]);
+}
+
+/**
+ * Safely parse JSON string, returning empty object on failure
+ */
+function parseJsonSafe<T = Record<string, unknown>>(json: string | null | undefined): T {
+  if (!json) return {} as T;
+  try {
+    return typeof json === 'string' ? JSON.parse(json) : json;
+  } catch {
+    return {} as T;
+  }
 }
 
 // ============================================================================
@@ -468,12 +481,48 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
     // Load sections from template_sections_published table
     const templateResolution = await resolveTemplate(cloudflare.env.DB, validatedStoreId, 'home');
 
-    // Get themeId from resolved theme presetId or fallback to 'starter-store'
+    // Get themeId from resolved theme presetId, store themeConfig, or fallback to 'starter-store'
     // presetId maps to our theme system (e.g., 'daraz', 'luxe-boutique', 'starter-store')
-    const themeId = templateResolution?.theme?.presetId || 'starter-store';
+    const storeThemeConfig = parseJsonSafe<{ storeTemplateId?: string }>(validatedStore.themeConfig);
+    const themeId: string = templateResolution?.theme?.presetId 
+      || (typeof storeThemeConfig?.storeTemplateId === 'string' ? storeThemeConfig.storeTemplateId : null)
+      || 'starter-store';
 
-    // Get sections from resolution or use empty array (will show default sections)
-    const sections = templateResolution?.sections || [];
+    // Get sections from resolution
+    let sections = templateResolution?.sections || [];
+
+    // FALLBACK: If no sections in DB, load default sections from theme's template JSON
+    if (sections.length === 0) {
+      try {
+        const { getThemeBridge } = await import('~/lib/theme-engine/ThemeBridge');
+        const themeBridge = getThemeBridge(themeId);
+        const defaultTemplate = themeBridge.getTemplate('index');
+        
+        if (defaultTemplate?.sections && defaultTemplate?.order) {
+          // Convert Shopify-format template to our section format
+          sections = defaultTemplate.order.map((sectionId, index) => {
+            const sectionData = defaultTemplate.sections[sectionId];
+            // Convert blocks from BlockInstance format (settings) to ResolvedSection format (props)
+            const blocks = (sectionData?.blocks || []).map((block) => ({
+              id: block.id,
+              type: block.type,
+              props: block.settings || {},
+            }));
+            return {
+              id: sectionId,
+              type: sectionData?.type || 'unknown',
+              enabled: true,
+              sortOrder: index,
+              props: sectionData?.settings || {},
+              blocks,
+            };
+          });
+          console.warn(`[LOADER] Using default template sections for theme "${themeId}" (${sections.length} sections)`);
+        }
+      } catch (e) {
+        console.warn('[LOADER] Failed to load default template sections:', e);
+      }
+    }
 
     // Get theme settings
     const themeSettings = templateResolution?.settings || null;
