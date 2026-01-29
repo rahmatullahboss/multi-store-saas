@@ -15,6 +15,8 @@ import { useWishlist } from '~/hooks/useWishlist';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { STARTER_STORE_THEME } from '../theme';
 import type { ThemeConfig, SocialLinks } from '@db/types';
+import { useTranslation } from '~/contexts/LanguageContext';
+import { LanguageSelector } from '../../shared/LanguageSelector';
 
 const theme = STARTER_STORE_THEME;
 
@@ -42,6 +44,7 @@ export function StarterStoreHeader({
   // Use real cart count in live mode, demo count in preview
   const realCartCount = useCartCount();
   const cartCount = isPreview ? 3 : realCartCount;
+  const { t } = useTranslation();
   
   const { count: wishlistCount } = useWishlist();
   
@@ -110,7 +113,7 @@ export function StarterStoreHeader({
                 className="text-sm font-medium hover:opacity-70 transition-opacity"
                 style={{ color: theme.text }}
               >
-                হোম
+                {t('home')}
               </PreviewSafeLink>
               <PreviewSafeLink 
                 to="/products" 
@@ -118,7 +121,7 @@ export function StarterStoreHeader({
                 className="text-sm font-medium hover:opacity-70 transition-opacity"
                 style={{ color: theme.text }}
               >
-                সকল প্রোডাক্ট
+                {t('allProducts')}
               </PreviewSafeLink>
               {validCategories.slice(0, 4).map((cat) => (
                 <PreviewSafeLink 
@@ -135,6 +138,8 @@ export function StarterStoreHeader({
 
             {/* Search, Wishlist, Cart, Account */}
             <div className="flex items-center gap-2">
+              <LanguageSelector className="mr-1" />
+              
               {/* Search Toggle */}
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
@@ -200,7 +205,7 @@ export function StarterStoreHeader({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="প্রোডাক্ট খুঁজুন..."
+                  placeholder={t('searchProducts')}
                   className="w-full px-4 py-3 pr-12 rounded-lg border focus:outline-none focus:ring-2"
                   style={{ 
                     borderColor: theme.muted + '40',
@@ -236,7 +241,7 @@ export function StarterStoreHeader({
                 className="block px-4 py-3 rounded-lg font-medium transition-colors hover:bg-gray-100"
                 style={{ color: theme.text }}
               >
-                হোম
+                {t('home')}
               </PreviewSafeLink>
               <PreviewSafeLink 
                 to="/products"
@@ -244,7 +249,7 @@ export function StarterStoreHeader({
                 className="block px-4 py-3 rounded-lg font-medium transition-colors hover:bg-gray-100"
                 style={{ color: theme.text }}
               >
-                সকল প্রোডাক্ট
+                {t('allProducts')}
               </PreviewSafeLink>
               {validCategories.map((cat) => (
                 <PreviewSafeLink 

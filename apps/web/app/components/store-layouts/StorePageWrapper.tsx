@@ -33,6 +33,8 @@ interface StorePageWrapperProps {
   config?: ThemeConfig | null;
   footerConfig?: FooterConfig | null;
   planType?: string;
+  tagline?: string | null;
+  storeDescription?: string | null;
   isPreview?: boolean;
   customer?: {
     id: number;
@@ -57,6 +59,8 @@ export function StorePageWrapper({
   config,
   footerConfig,
   planType = 'free',
+  tagline,
+  storeDescription,
   isPreview = false,
   customer,
 }: StorePageWrapperProps) {
@@ -142,6 +146,8 @@ export function StorePageWrapper({
               socialLinks={socialLinks}
               businessInfo={businessInfo}
               planType={planType}
+              tagline={tagline}
+              storeDescription={storeDescription}
               showPoweredBy={footerConfig?.showPoweredBy ?? true}
               config={config}
               isPreview={isPreview}

@@ -1,21 +1,21 @@
-import { Link } from '@remix-run/react';
 import {
+  ChevronRight,
+  Truck,
+  RotateCcw,
+  Shield,
+  CreditCard,
   Zap,
-  Twitter,
-  Linkedin,
-  Youtube,
-  Smartphone,
+  Instagram,
   Facebook,
+  Twitter,
+  Youtube,
+  Linkedin,
   Mail,
   Phone,
   MapPin,
-  Shield,
-  CreditCard,
-  Truck,
-  RotateCcw,
-  Instagram,
-  ChevronRight,
+  Smartphone,
 } from 'lucide-react';
+import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { TECH_MODERN_THEME } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';
 import type { SocialLinks, FooterConfig } from '@db/types';
@@ -212,7 +212,7 @@ export function TechModernFooter({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-6">
-            <Link to="/" className="flex items-center gap-2">
+            <PreviewSafeLink to="/" className="flex items-center gap-2" isPreview={isPreview}>
               {logo ? (
                 <img src={logo} alt={storeName} className="h-10 object-contain" />
               ) : (
@@ -226,7 +226,7 @@ export function TechModernFooter({
                   {storeName}
                 </div>
               )}
-            </Link>
+            </PreviewSafeLink>
             <p className="text-sm opacity-70 leading-relaxed max-w-sm">
               {footerConfig?.description ||
                 'Cutting-edge technology and premium electronics for the modern world. We bring you the future, today.'}
@@ -300,13 +300,14 @@ export function TechModernFooter({
             <ul className="space-y-3">
               {validCategories.map((category) => (
                 <li key={category}>
-                  <Link
+                  <PreviewSafeLink
                     to={`/?category=${encodeURIComponent(category)}`}
                     className="text-sm opacity-70 hover:opacity-100 hover:text-blue-400 transition-colors flex items-center gap-2 group"
+                    isPreview={isPreview}
                   >
                     <ChevronRight className="w-3 h-3 opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                     {category}
-                  </Link>
+                  </PreviewSafeLink>
                 </li>
               ))}
             </ul>
@@ -320,22 +321,22 @@ export function TechModernFooter({
             </h4>
             <ul className="space-y-3">
                <li>
-                 <Link to="/contact" className="text-sm opacity-70 hover:opacity-100 transition-colors flex items-center gap-2 group">
+                 <PreviewSafeLink to="/contact" className="text-sm opacity-70 hover:opacity-100 transition-colors flex items-center gap-2 group" isPreview={isPreview}>
                    <ChevronRight className="w-3 h-3 opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                    Contact Us
-                 </Link>
+                 </PreviewSafeLink>
                </li>
                <li>
-                 <Link to="/pages/about" className="text-sm opacity-70 hover:opacity-100 transition-colors flex items-center gap-2 group">
+                 <PreviewSafeLink to="/pages/about" className="text-sm opacity-70 hover:opacity-100 transition-colors flex items-center gap-2 group" isPreview={isPreview}>
                    <ChevronRight className="w-3 h-3 opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                    About Us
-                 </Link>
+                 </PreviewSafeLink>
                </li>
                <li>
-                 <Link to="/track-order" className="text-sm opacity-70 hover:opacity-100 transition-colors flex items-center gap-2 group">
+                 <PreviewSafeLink to="/track-order" className="text-sm opacity-70 hover:opacity-100 transition-colors flex items-center gap-2 group" isPreview={isPreview}>
                    <ChevronRight className="w-3 h-3 opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                    Track Order
-                 </Link>
+                 </PreviewSafeLink>
                </li>
             </ul>
           </div>
@@ -381,10 +382,10 @@ export function TechModernFooter({
 
         {/* Policies */}
         <div className="mt-16 pt-8 border-t border-white/10 flex flex-wrap justify-center gap-6 text-sm">
-           <Link to="/policies/privacy" className="opacity-60 hover:opacity-100 transition-opacity">Privacy Policy</Link>
-           <Link to="/policies/terms" className="opacity-60 hover:opacity-100 transition-opacity">Terms of Service</Link>
-           <Link to="/policies/shipping" className="opacity-60 hover:opacity-100 transition-opacity">Shipping Policy</Link>
-           <Link to="/policies/refund" className="opacity-60 hover:opacity-100 transition-opacity">Refund Policy</Link>
+           <PreviewSafeLink to="/policies/privacy" className="opacity-60 hover:opacity-100 transition-opacity" isPreview={isPreview}>Privacy Policy</PreviewSafeLink>
+           <PreviewSafeLink to="/policies/terms" className="opacity-60 hover:opacity-100 transition-opacity" isPreview={isPreview}>Terms of Service</PreviewSafeLink>
+           <PreviewSafeLink to="/policies/shipping" className="opacity-60 hover:opacity-100 transition-opacity" isPreview={isPreview}>Shipping Policy</PreviewSafeLink>
+           <PreviewSafeLink to="/policies/refund" className="opacity-60 hover:opacity-100 transition-opacity" isPreview={isPreview}>Refund Policy</PreviewSafeLink>
         </div>
 
         <div className="mt-8 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">

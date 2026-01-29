@@ -12,6 +12,7 @@ import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { STARTER_STORE_THEME } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';
 import type { SocialLinks, FooterConfig } from '@db/types';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 const theme = STARTER_STORE_THEME;
 
@@ -36,6 +37,7 @@ export function StarterStoreFooter({
   planType = 'free',
   isPreview = false,
 }: StarterStoreFooterProps) {
+  const { t } = useTranslation();
   const validCategories = categories.filter(Boolean).slice(0, 6) as string[];
   const showPoweredBy = footerConfig?.showPoweredBy ?? planType === 'free';
 
@@ -63,7 +65,7 @@ export function StarterStoreFooter({
               </h3>
             )}
             <p className="text-sm leading-relaxed" style={{ color: theme.footerText + 'CC' }}>
-              আপনার বিশ্বস্ত অনলাইন শপিং পার্টনার। সেরা মানের প্রোডাক্ট, সেরা দামে।
+              {t('logoTagline') || 'আপনার বিশ্বস্ত অনলাইন শপিং পার্টনার। সেরা মানের প্রোডাক্ট, সেরা দামে।'}
             </p>
 
             {/* Social Links */}
@@ -110,7 +112,7 @@ export function StarterStoreFooter({
           {/* Quick Links */}
           <div>
             <h4 className="font-semibold mb-4" style={{ color: theme.footerText }}>
-              দ্রুত লিংক
+              {t('quickLinks')}
             </h4>
             <ul className="space-y-2">
               <li>
@@ -120,7 +122,7 @@ export function StarterStoreFooter({
                   className="text-sm hover:underline transition-colors"
                   style={{ color: theme.footerText + 'CC' }}
                 >
-                  হোম
+                  {t('home')}
                 </PreviewSafeLink>
               </li>
               <li>
@@ -130,7 +132,7 @@ export function StarterStoreFooter({
                   className="text-sm hover:underline transition-colors"
                   style={{ color: theme.footerText + 'CC' }}
                 >
-                  সকল প্রোডাক্ট
+                  {t('allProducts')}
                 </PreviewSafeLink>
               </li>
               <li>
@@ -140,7 +142,7 @@ export function StarterStoreFooter({
                   className="text-sm hover:underline transition-colors"
                   style={{ color: theme.footerText + 'CC' }}
                 >
-                  আমাদের সম্পর্কে
+                  {t('aboutUs')}
                 </PreviewSafeLink>
               </li>
               <li>
@@ -150,7 +152,7 @@ export function StarterStoreFooter({
                   className="text-sm hover:underline transition-colors"
                   style={{ color: theme.footerText + 'CC' }}
                 >
-                  যোগাযোগ
+                  {t('contact')}
                 </PreviewSafeLink>
               </li>
             </ul>
@@ -159,7 +161,7 @@ export function StarterStoreFooter({
           {/* Categories */}
           <div>
             <h4 className="font-semibold mb-4" style={{ color: theme.footerText }}>
-              ক্যাটাগরি
+              {t('categories')}
             </h4>
             <ul className="space-y-2">
               {(validCategories.length > 0
@@ -183,7 +185,7 @@ export function StarterStoreFooter({
           {/* Contact Info */}
           <div>
             <h4 className="font-semibold mb-4" style={{ color: theme.footerText }}>
-              যোগাযোগ
+              {t('contact')}
             </h4>
             <ul className="space-y-3">
               {displayBusinessInfo.phone && (
@@ -236,7 +238,7 @@ export function StarterStoreFooter({
               className="hover:underline transition-colors"
               style={{ color: theme.footerText + 'AA' }}
             >
-              প্রাইভেসি পলিসি
+              {t('privacyPolicy')}
             </PreviewSafeLink>
             <span style={{ color: theme.footerText + '40' }}>•</span>
             <PreviewSafeLink
@@ -245,7 +247,7 @@ export function StarterStoreFooter({
               className="hover:underline transition-colors"
               style={{ color: theme.footerText + 'AA' }}
             >
-              রিফান্ড পলিসি
+              {t('refundPolicy')}
             </PreviewSafeLink>
             <span style={{ color: theme.footerText + '40' }}>•</span>
             <PreviewSafeLink
@@ -254,7 +256,7 @@ export function StarterStoreFooter({
               className="hover:underline transition-colors"
               style={{ color: theme.footerText + 'AA' }}
             >
-              শিপিং পলিসি
+              {t('shippingPolicy')}
             </PreviewSafeLink>
             <span style={{ color: theme.footerText + '40' }}>•</span>
             <PreviewSafeLink
@@ -263,7 +265,7 @@ export function StarterStoreFooter({
               className="hover:underline transition-colors"
               style={{ color: theme.footerText + 'AA' }}
             >
-              টার্মস অব সার্ভিস
+              {t('termsOfService')}
             </PreviewSafeLink>
           </div>
         </div>
@@ -279,7 +281,7 @@ export function StarterStoreFooter({
       >
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm">
           <p style={{ color: theme.footerText + 'AA' }}>
-            © {new Date().getFullYear()} {storeName}. সর্বস্বত্ব সংরক্ষিত।
+            © {new Date().getFullYear()} {storeName}. {t('allRightsReserved')}
           </p>
           <OzzylBranding planType={planType} showPoweredBy={showPoweredBy} variant="minimal" />
         </div>

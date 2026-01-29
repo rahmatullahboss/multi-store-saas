@@ -1,8 +1,7 @@
-import { Link } from '@remix-run/react';
 import React, { useState } from 'react';
 import { ShoppingCart, Search, Menu, X, Zap, ChevronRight } from 'lucide-react';
+import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { TECH_MODERN_THEME } from '../theme';
-import { useTranslation } from '~/contexts/LanguageContext';
 import { useCartCount } from '~/hooks/useCartCount';
 
 interface TechModernHeaderProps {
@@ -16,6 +15,7 @@ interface TechModernHeaderProps {
   setMobileMenuOpen?: (open: boolean) => void;
   searchQuery?: string;
   setSearchQuery?: (query: string) => void;
+  isPreview?: boolean;
 }
 
 export function TechModernHeader({
@@ -29,8 +29,8 @@ export function TechModernHeader({
   setMobileMenuOpen: setMobileMenuOpenProp,
   searchQuery: searchQueryProp,
   setSearchQuery: setSearchQueryProp,
+  isPreview,
 }: TechModernHeaderProps) {
-  const { t } = useTranslation();
   const theme = TECH_MODERN_THEME;
 
   // Local state for when props aren't provided (e.g. in StorePageWrapper)
@@ -79,7 +79,7 @@ export function TechModernHeader({
           </button>
 
           {/* Logo */}
-          <Link to="/" className="flex items-center flex-shrink-0">
+          <PreviewSafeLink to="/" className="flex items-center flex-shrink-0" isPreview={isPreview}>
             {logo ? (
               <img src={logo} alt={storeName} className="h-8 lg:h-10 object-contain" />
             ) : (
@@ -96,22 +96,23 @@ export function TechModernHeader({
                 {storeName}
               </span>
             )}
-          </Link>
+          </PreviewSafeLink>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1">
-            <Link
+            <PreviewSafeLink
               to="/"
               className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               style={{
                 backgroundColor: !currentCategory ? theme.accentLight : 'transparent',
                 color: !currentCategory ? theme.accent : theme.text,
               }}
+              isPreview={isPreview}
             >
               All Products
-            </Link>
+            </PreviewSafeLink>
             {validCategories.slice(0, 5).map((category) => (
-              <Link
+              <PreviewSafeLink
                 key={category}
                 to={`/?category=${encodeURIComponent(category)}`}
                 className="px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-gray-100"
@@ -119,9 +120,10 @@ export function TechModernHeader({
                   backgroundColor: currentCategory === category ? theme.accentLight : 'transparent',
                   color: currentCategory === category ? theme.accent : theme.text,
                 }}
+                isPreview={isPreview}
               >
                 {category}
-              </Link>
+              </PreviewSafeLink>
             ))}
           </nav>
 
@@ -140,15 +142,16 @@ export function TechModernHeader({
           </div>
 
           {/* Cart Button */}
-          <Link
+          <PreviewSafeLink
             to="/cart"
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-colors"
             style={{ backgroundColor: theme.accent, color: 'white' }}
+            isPreview={isPreview}
           >
             <ShoppingCart className="w-5 h-5" />
             <span className="hidden sm:inline">Cart</span>
             <span className="bg-white/20 px-2 py-0.5 rounded-full text-sm">{count}</span>
-          </Link>
+          </PreviewSafeLink>
         </div>
       </div>
 
@@ -169,26 +172,28 @@ export function TechModernHeader({
 
           {/* Mobile Nav */}
           <nav className="py-2">
-            <Link
+            <PreviewSafeLink
               to="/"
               className="flex items-center justify-between px-4 py-3 font-medium"
               style={{ color: !currentCategory ? theme.accent : theme.text }}
               onClick={() => setMobileMenuOpen(false)}
+              isPreview={isPreview}
             >
               All Products
               <ChevronRight className="w-5 h-5" />
-            </Link>
+            </PreviewSafeLink>
             {validCategories.map((category) => (
-              <Link
+              <PreviewSafeLink
                 key={category}
                 to={`/?category=${encodeURIComponent(category)}`}
                 className="flex items-center justify-between px-4 py-3 font-medium"
                 style={{ color: currentCategory === category ? theme.accent : theme.text }}
                 onClick={() => setMobileMenuOpen(false)}
+                isPreview={isPreview}
               >
                 {category}
                 <ChevronRight className="w-5 h-5" />
-              </Link>
+              </PreviewSafeLink>
             ))}
           </nav>
         </div>

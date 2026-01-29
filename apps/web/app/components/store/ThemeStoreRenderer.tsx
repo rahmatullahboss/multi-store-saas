@@ -29,6 +29,7 @@ import type {
   // CartData - reserved for future use
 } from '~/lib/theme-engine/types';
 import { SectionErrorBoundary } from '~/components/shared/SectionErrorBoundary';
+import { LanguageProvider } from '~/contexts/LanguageContext';
 
 // ============================================================================
 // TYPES
@@ -381,22 +382,24 @@ export function ThemeStoreRenderer({
   };
 
   return (
-    <div
-      className={`theme-store-renderer theme-${themeId} ${className || ''}`}
-      style={{
-        fontFamily: (themeConfig || defaultThemeConfig).typography?.fontFamily,
-        backgroundColor: (themeConfig || defaultThemeConfig).colors?.background,
-      }}
-    >
-      {/* Header */}
-      {headerSections.map(renderSection)}
+    <LanguageProvider defaultLang={store.defaultLanguage || 'en'}>
+      <div
+        className={`theme-store-renderer theme-${themeId} ${className || ''}`}
+        style={{
+          fontFamily: (themeConfig || defaultThemeConfig).typography?.fontFamily,
+          backgroundColor: (themeConfig || defaultThemeConfig).colors?.background,
+        }}
+      >
+        {/* Header */}
+        {headerSections.map(renderSection)}
 
-      {/* Main Content */}
-      <main className="main-content">{bodySections.map(renderSection)}</main>
+        {/* Main Content */}
+        <main className="main-content">{bodySections.map(renderSection)}</main>
 
-      {/* Footer */}
-      {footerSections.map(renderSection)}
-    </div>
+        {/* Footer */}
+        {footerSections.map(renderSection)}
+      </div>
+    </LanguageProvider>
   );
 }
 

@@ -1,5 +1,5 @@
-import { Link } from '@remix-run/react';
-import { ShoppingBag, Search, Menu, X, Heart, Sparkles } from 'lucide-react';
+import { ShoppingBag, Search, Menu, X } from 'lucide-react';
+import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { useState, useEffect } from 'react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -13,11 +13,11 @@ interface NovaLuxHeaderProps {
   currentCategory?: string | null;
   categories: (string | null)[];
   socialLinks?: SocialLinks | null;
+  isPreview?: boolean;
 }
 
-export function NovaLuxHeader({ storeName, logo, config, currentCategory, categories, socialLinks }: NovaLuxHeaderProps) {
+export function NovaLuxHeader({ storeName, logo, config, currentCategory, categories, socialLinks, isPreview }: NovaLuxHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { t } = useTranslation();
   const count = useCartCount();
@@ -84,27 +84,29 @@ export function NovaLuxHeader({ storeName, logo, config, currentCategory, catego
 
           {/* Left Navigation (Desktop) */}
           <nav className="hidden lg:flex items-center gap-1">
-            <Link 
+            <PreviewSafeLink 
               to="/"
               className="px-4 py-2 text-sm font-medium tracking-wide uppercase transition-all duration-300 hover:opacity-70"
               style={{ color: !currentCategory ? THEME.accent : THEME.text }}
+              isPreview={isPreview}
             >
               {t('allProducts')}
-            </Link>
+            </PreviewSafeLink>
             {validCategories.slice(0, 3).map((category) => (
-              <Link
+              <PreviewSafeLink
                 key={category}
                 to={`/?category=${encodeURIComponent(category)}`}
                 className="px-4 py-2 text-sm font-medium tracking-wide uppercase transition-all duration-300 hover:opacity-70"
                 style={{ color: currentCategory === category ? THEME.accent : THEME.text }}
+                isPreview={isPreview}
               >
                 {category}
-              </Link>
+              </PreviewSafeLink>
             ))}
           </nav>
 
           {/* Logo */}
-          <Link to="/" className="flex items-center justify-center">
+          <PreviewSafeLink to="/" className="flex items-center justify-center" isPreview={isPreview}>
             {logo ? (
               <img src={logo} alt={storeName} className="h-10 lg:h-12 object-contain" />
             ) : (
@@ -118,14 +120,14 @@ export function NovaLuxHeader({ storeName, logo, config, currentCategory, catego
                 {storeName}
               </span>
             )}
-          </Link>
+          </PreviewSafeLink>
 
           {/* Right Navigation */}
           <div className="flex items-center gap-2">
             <button className="p-2.5 rounded-full transition-all duration-300 hover:bg-gray-100">
               <Search className="w-5 h-5" style={{ color: THEME.text }} />
             </button>
-            <Link to="/cart" className="p-2.5 rounded-full transition-all duration-300 hover:bg-gray-100 relative">
+            <PreviewSafeLink to="/cart" className="p-2.5 rounded-full transition-all duration-300 hover:bg-gray-100 relative" isPreview={isPreview}>
               <ShoppingBag className="w-5 h-5" style={{ color: THEME.text }} />
               {count > 0 && (
                 <span 
@@ -135,7 +137,7 @@ export function NovaLuxHeader({ storeName, logo, config, currentCategory, catego
                   {count}
                 </span>
               )}
-            </Link>
+            </PreviewSafeLink>
           </div>
         </div>
       </div>

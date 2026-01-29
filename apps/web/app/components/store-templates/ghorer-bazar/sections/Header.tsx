@@ -10,7 +10,7 @@
  * - Mobile: Hamburger menu
  */
 
-import { Link, useSearchParams } from '@remix-run/react';
+import { Link, useSearchParams, useNavigate } from '@remix-run/react';
 import { useState, useEffect } from 'react';
 import {
   Search,
@@ -26,6 +26,8 @@ import { useCartCount } from '~/hooks/useCartCount';
 import { GHORER_BAZAR_THEME, GHORER_BAZAR_FONTS, GHORER_BAZAR_CATEGORIES } from '../theme';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import type { ThemeConfig, SocialLinks } from '@db/types';
+import { useTranslation } from '~/contexts/LanguageContext';
+import { LanguageSelector } from '../../shared/LanguageSelector';
 
 interface GhorerBazarHeaderProps {
   storeName: string;
@@ -55,6 +57,7 @@ export function GhorerBazarHeader({
   const [searchQuery, setSearchQuery] = useState('');
   const count = useCartCount();
   const theme = GHORER_BAZAR_THEME;
+  const { t } = useTranslation();
 
   // Use provided categories or fallback to default grocery categories
   const menuCategories =
@@ -65,7 +68,24 @@ export function GhorerBazarHeader({
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `?search=${encodeURIComponent(searchQuery.trim())}`;
+      if (isPreview) {
+        // In preview, we want to stay in the preview route
+        // We can't easily use window.location.href for SPA navigation in preview
+        // Ideally, this should use a navigate function that respects preview
+        // For now, we'll construct the URL manually or rely on a helper if available,
+        // but since we are refactoring to PreviewSafeLink, let's just use window.location for now
+        // or better, use the router.
+        // HOWEVER, window.location.href causes a full reload which exits preview context sometimes if not careful.
+        // Let's rely on the parent or PreviewSafeLink logic if we were clicking a link.
+        // For search form, we strictly need to navigate to /?search=... relative to the current route (preview or live)
+        // But preview route is /store-template-preview/:id...
+        // Let's assume for search we might need a distinct solution or just accept the refresh for now.
+        // Actually, simple relative navigation works if we are already on the right path.
+        const searchUrl = `?search=${encodeURIComponent(searchQuery.trim())}`;
+        window.location.href = searchUrl; 
+      } else {
+        window.location.href = `?search=${encodeURIComponent(searchQuery.trim())}`;
+      }
     }
   };
 
@@ -91,9 +111,9 @@ export function GhorerBazarHeader({
       >
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
           <p className="hidden md:block text-white/90">
-            🎉 সারাদেশে ফ্রি ডেলিভারি ১০০০৳+ অর্ডারে | ১০০% খাঁটি পণ্যের নিশ্চয়তা
+            {t('deliveryPromise')}
           </p>
-          <p className="md:hidden text-white/90 text-center flex-1">১০০% খাঁটি পণ্যের নিশ্চয়তা</p>
+          <p className="md:hidden text-white/90 text-center flex-1">{t('deliveryPromiseMobile')}</p>
           <div className="flex items-center gap-4">
             <a
               href={`tel:${phoneNumber}`}
@@ -111,6 +131,7 @@ export function GhorerBazarHeader({
               <MessageCircle className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">WhatsApp</span>
             </a>
+            <LanguageSelector className="text-white hover:bg-white/10" />
           </div>
         </div>
       </div>
@@ -186,13 +207,14 @@ export function GhorerBazarHeader({
               </button>
 
               {/* Account - Desktop only */}
-              <Link
-                to="?page=account"
+              <PreviewSafeLink
+                to="/account"
                 className="hidden md:flex p-2 text-white hover:bg-white/10 rounded-lg transition"
                 aria-label="Account"
+                isPreview={isPreview}
               >
                 <User className="w-5 h-5" />
-              </Link>
+              </PreviewSafeLink>
 
               {/* Cart */}
               <button
@@ -251,7 +273,7 @@ export function GhorerBazarHeader({
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="পণ্য খুঁজুন..."
+                    placeholder={t('searchPlaceholderGB')}
                     className="w-full pl-4 pr-10 py-2.5 rounded-lg border focus:outline-none focus:ring-2"
                     style={{
                       borderColor: theme.border,
@@ -270,7 +292,7 @@ export function GhorerBazarHeader({
                 className="text-xs font-bold uppercase tracking-wider mb-3"
                 style={{ color: theme.textMuted }}
               >
-                ক্যাটাগরি
+                {t('categories')}
               </h3>
               <div className="space-y-1">
                 <PreviewSafeLink
@@ -282,7 +304,7 @@ export function GhorerBazarHeader({
                   style={!currentCategory ? { backgroundColor: theme.primary } : {}}
                   isPreview={isPreview}
                 >
-                  সব পণ্য
+                  {t('allProducts')}
                 </PreviewSafeLink>
                 {menuCategories.map((category) => (
                   <PreviewSafeLink
@@ -310,7 +332,7 @@ export function GhorerBazarHeader({
                 isPreview={isPreview}
               >
                 <User className="w-5 h-5" style={{ color: theme.primary }} />
-                আমার অ্যাকাউন্ট
+                {t('myAccount')}
               </PreviewSafeLink>
               <a
                 href={`https://wa.me/${whatsappNumber.replace(/\D/g, '')}`}
@@ -319,7 +341,7 @@ export function GhorerBazarHeader({
                 className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg transition"
               >
                 <MessageCircle className="w-5 h-5 text-green-500" />
-                WhatsApp অর্ডার
+                {t('whatsappOrder')}
               </a>
             </div>
           </div>
@@ -341,7 +363,7 @@ export function GhorerBazarHeader({
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="পণ্য খুঁজুন... (যেমন: মধু, খেজুর, বাদাম)"
+                    placeholder={t('searchPlaceholderGB')}
                     autoFocus
                     className="w-full pl-4 pr-12 py-3 rounded-lg border-2 focus:outline-none text-lg"
                     style={{ borderColor: theme.primary }}
@@ -365,7 +387,7 @@ export function GhorerBazarHeader({
 
               {/* Popular Searches */}
               <div className="mt-4">
-                <p className="text-xs text-gray-500 mb-2">জনপ্রিয় সার্চ:</p>
+                <p className="text-xs text-gray-500 mb-2">{t('popularSearch')}</p>
                 <div className="flex flex-wrap gap-2">
                   {['সুন্দরবনের মধু', 'মরিয়ম খেজুর', 'কাঠবাদাম', 'সরিষার তেল', 'গাওয়া ঘি'].map(
                     (term) => (

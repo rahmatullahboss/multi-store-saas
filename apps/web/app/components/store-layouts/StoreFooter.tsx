@@ -17,6 +17,8 @@ interface StoreFooterProps {
   socialLinks?: SocialLinks | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
   planType?: string;
+  tagline?: string | null;
+  storeDescription?: string | null;
   showPoweredBy?: boolean;
   config?: {
     footerColumns?: Array<{ title: string; links: Array<{ label: string; url: string }> }>;
@@ -33,6 +35,8 @@ export function StoreFooter({
   socialLinks,
   businessInfo,
   planType = 'free',
+  tagline,
+  storeDescription,
   showPoweredBy = true,
   config,
   isPreview = false,
@@ -66,7 +70,7 @@ export function StoreFooter({
           },
         ];
   const footerDescription =
-    config?.footerDescription || 'Quality products with excellent customer service.';
+    storeDescription || config?.footerDescription || 'Quality products with excellent customer service.';
 
   return (
     <footer className={`relative z-10 border-t ${borderColor} ${footerBg}`}>

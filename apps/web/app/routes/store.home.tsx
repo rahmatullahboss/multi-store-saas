@@ -24,7 +24,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
   return [
     { title: `${data.storeName} - Home` },
-    { name: 'description', content: `Welcome to ${data.storeName}` },
+    { name: 'description', content: data.storeDescription || `Welcome to ${data.storeName}` },
   ];
 };
 
@@ -87,6 +87,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     businessInfo,
     themeConfig,
     planType: store.planType || 'free',
+    storeTagline: store.tagline || '',
+    storeDescription: store.description || '',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
     template,
     featuredProducts: featuredProducts.map((p) => ({
@@ -109,6 +111,8 @@ export default function StoreHomePage() {
     businessInfo,
     themeConfig,
     planType,
+    storeTagline,
+    storeDescription,
     customer,
     template,
     featuredProducts,
@@ -129,6 +133,8 @@ export default function StoreHomePage() {
       socialLinks={socialLinks}
       businessInfo={businessInfo}
       planType={planType}
+      tagline={storeTagline}
+      storeDescription={storeDescription}
       customer={customer}
       categories={categories as string[]}
       config={themeConfig}

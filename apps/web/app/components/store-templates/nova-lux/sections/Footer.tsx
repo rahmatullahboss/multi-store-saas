@@ -16,22 +16,7 @@
  * - Ozzyl branding
  */
 
-import { Link } from '@remix-run/react';
-import {
-  Instagram,
-  Facebook,
-  Twitter,
-  Mail,
-  Phone,
-  MapPin,
-  ArrowRight,
-  Shield,
-  CreditCard,
-  Truck,
-  RotateCcw,
-  Youtube,
-  Linkedin,
-} from 'lucide-react';
+import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { NOVALUX_THEME } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';
 import type { SocialLinks, FooterConfig } from '@db/types';
@@ -328,49 +313,54 @@ export function NovaLuxFooter({
             </h5>
             <ul className="space-y-3 text-sm">
               <li>
-                <Link
+                <PreviewSafeLink
                   to="/"
                   className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"
+                  isPreview={isPreview}
                 >
                   <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                   Home
-                </Link>
+                </PreviewSafeLink>
               </li>
               <li>
-                <Link
+                <PreviewSafeLink
                   to="/products"
                   className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"
+                  isPreview={isPreview}
                 >
                   <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                   Shop All
-                </Link>
+                </PreviewSafeLink>
               </li>
               <li>
-                <Link
+                <PreviewSafeLink
                   to="/pages/about"
                   className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"
+                  isPreview={isPreview}
                 >
                   <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                   About Us
-                </Link>
+                </PreviewSafeLink>
               </li>
               <li>
-                <Link
+                <PreviewSafeLink
                   to="/contact"
                   className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"
+                  isPreview={isPreview}
                 >
                   <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                   Contact
-                </Link>
+                </PreviewSafeLink>
               </li>
               <li>
-                <Link
+                <PreviewSafeLink
                   to="/track-order"
                   className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"
+                  isPreview={isPreview}
                 >
                   <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                   Track Order
-                </Link>
+                </PreviewSafeLink>
               </li>
             </ul>
           </div>
@@ -386,13 +376,14 @@ export function NovaLuxFooter({
             <ul className="space-y-3 text-sm">
               {displayCategories.map((cat) => (
                 <li key={cat}>
-                  <Link
+                  <PreviewSafeLink
                     to={`/?category=${encodeURIComponent(cat)}`}
                     className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"
+                    isPreview={isPreview}
                   >
                     <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                     {cat}
-                  </Link>
+                  </PreviewSafeLink>
                 </li>
               ))}
             </ul>
@@ -459,30 +450,33 @@ export function NovaLuxFooter({
         {/* Policies Links */}
         <div className="mt-12 pt-8 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
           <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-sm">
-            <Link
+            <PreviewSafeLink
               to="/policies/privacy"
               className="text-white/60 hover:text-white transition-colors"
+              isPreview={isPreview}
             >
               Privacy Policy
-            </Link>
+            </PreviewSafeLink>
             <span className="text-white/20 hidden md:inline">•</span>
-            <Link
+            <PreviewSafeLink
               to="/policies/refund"
               className="text-white/60 hover:text-white transition-colors"
+              isPreview={isPreview}
             >
               Refund Policy
-            </Link>
+            </PreviewSafeLink>
             <span className="text-white/20 hidden md:inline">•</span>
-            <Link
+            <PreviewSafeLink
               to="/policies/shipping"
               className="text-white/60 hover:text-white transition-colors"
+              isPreview={isPreview}
             >
               Shipping Policy
-            </Link>
+            </PreviewSafeLink>
             <span className="text-white/20 hidden md:inline">•</span>
-            <Link to="/policies/terms" className="text-white/60 hover:text-white transition-colors">
+            <PreviewSafeLink to="/policies/terms" className="text-white/60 hover:text-white transition-colors" isPreview={isPreview}>
               Terms of Service
-            </Link>
+            </PreviewSafeLink>
           </div>
         </div>
 

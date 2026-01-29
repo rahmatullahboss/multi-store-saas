@@ -10,7 +10,6 @@
  * - Payment methods
  */
 
-import { Link } from '@remix-run/react';
 import {
   Phone,
   Mail,
@@ -24,6 +23,7 @@ import {
   RotateCcw,
   CreditCard,
 } from 'lucide-react';
+import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { GHORER_BAZAR_THEME, GHORER_BAZAR_FONTS } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';
 import type { SocialLinks, FooterConfig } from '@db/types';
@@ -36,6 +36,7 @@ interface GhorerBazarFooterProps {
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
   categories: (string | null)[];
   planType?: string;
+  isPreview?: boolean;
 }
 
 export function GhorerBazarFooter({
@@ -46,6 +47,7 @@ export function GhorerBazarFooter({
   businessInfo,
   categories,
   planType = 'free',
+  isPreview,
 }: GhorerBazarFooterProps) {
   const theme = GHORER_BAZAR_THEME;
   const phoneNumber = businessInfo?.phone || '০১৭XX-XXXXXX';
@@ -66,10 +68,10 @@ export function GhorerBazarFooter({
               </div>
               <div>
                 <h4 className="font-semibold text-sm" style={{ color: theme.text }}>
-                  দ্রুত ডেলিভারি
+                  {t('trustFastDelivery')}
                 </h4>
                 <p className="text-xs" style={{ color: theme.textMuted }}>
-                  সারাদেশে ২-৫ দিনে
+                  {t('trustFastDeliveryDesc')}
                 </p>
               </div>
             </div>
@@ -83,10 +85,10 @@ export function GhorerBazarFooter({
               </div>
               <div>
                 <h4 className="font-semibold text-sm" style={{ color: theme.text }}>
-                  ১০০% খাঁটি
+                  {t('trustAuthentic')}
                 </h4>
                 <p className="text-xs" style={{ color: theme.textMuted }}>
-                  গ্যারান্টিড কোয়ালিটি
+                  {t('trustAuthenticDesc')}
                 </p>
               </div>
             </div>
@@ -100,10 +102,10 @@ export function GhorerBazarFooter({
               </div>
               <div>
                 <h4 className="font-semibold text-sm" style={{ color: theme.text }}>
-                  ইজি রিটার্ন
+                  {t('trustEasyReturn')}
                 </h4>
                 <p className="text-xs" style={{ color: theme.textMuted }}>
-                  ৭ দিনে রিটার্ন
+                  {t('trustEasyReturnDesc')}
                 </p>
               </div>
             </div>
@@ -117,10 +119,10 @@ export function GhorerBazarFooter({
               </div>
               <div>
                 <h4 className="font-semibold text-sm" style={{ color: theme.text }}>
-                  ক্যাশ অন ডেলিভারি
+                  {t('trustCOD')}
                 </h4>
                 <p className="text-xs" style={{ color: theme.textMuted }}>
-                  হাতে পেয়ে পেমেন্ট
+                  {t('trustCODDesc')}
                 </p>
               </div>
             </div>
@@ -134,7 +136,7 @@ export function GhorerBazarFooter({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Brand Column */}
             <div className="lg:col-span-1">
-              <Link to="/" className="inline-flex items-center gap-2 mb-4">
+              <PreviewSafeLink to="/" className="inline-flex items-center gap-2 mb-4" isPreview={isPreview}>
                 {logo ? (
                   <img src={logo} alt={storeName} className="h-10 w-auto brightness-0 invert" />
                 ) : (
@@ -150,10 +152,9 @@ export function GhorerBazarFooter({
                     </span>
                   </>
                 )}
-              </Link>
+              </PreviewSafeLink>
               <p className="text-sm leading-relaxed mb-4" style={{ color: '#999' }}>
-                {footerConfig?.description ||
-                  'আমরা বাংলাদেশের সেরা খাঁটি ও অর্গানিক পণ্য সরবরাহ করি। সুন্দরবনের মধু, প্রিমিয়াম খেজুর, খাঁটি ঘি সহ সকল প্রাকৃতিক পণ্য আমাদের কাছে পাবেন।'}
+                {footerConfig?.description || t('ghorerBazarDesc')}
               </p>
 
               {/* Social Links */}
@@ -210,44 +211,48 @@ export function GhorerBazarFooter({
             {/* Company Links */}
             <div>
               <h4 className="font-semibold mb-4 text-sm" style={{ color: theme.footerText }}>
-                কোম্পানি
+                {t('company')}
               </h4>
               <ul className="space-y-2.5">
                 <li>
-                  <Link
-                    to="?page=about"
+                  <PreviewSafeLink
+                    to="/pages/about"
                     className="text-sm hover:text-orange-400 transition"
                     style={{ color: '#999' }}
+                    isPreview={isPreview}
                   >
-                    আমাদের সম্পর্কে
-                  </Link>
+                    {t('aboutUs')}
+                  </PreviewSafeLink>
                 </li>
                 <li>
-                  <Link
-                    to="?page=contact"
+                  <PreviewSafeLink
+                    to="/contact"
                     className="text-sm hover:text-orange-400 transition"
                     style={{ color: '#999' }}
+                    isPreview={isPreview}
                   >
-                    যোগাযোগ
-                  </Link>
+                    {t('contact')}
+                  </PreviewSafeLink>
                 </li>
                 <li>
-                  <Link
-                    to="/terms"
+                  <PreviewSafeLink
+                    to="/policies/terms"
                     className="text-sm hover:text-orange-400 transition"
                     style={{ color: '#999' }}
+                    isPreview={isPreview}
                   >
-                    শর্তাবলী
-                  </Link>
+                    {t('termsOfService')}
+                  </PreviewSafeLink>
                 </li>
                 <li>
-                  <Link
-                    to="/privacy"
+                  <PreviewSafeLink
+                    to="/policies/privacy"
                     className="text-sm hover:text-orange-400 transition"
                     style={{ color: '#999' }}
+                    isPreview={isPreview}
                   >
-                    প্রাইভেসি পলিসি
-                  </Link>
+                    {t('privacyPolicy')}
+                  </PreviewSafeLink>
                 </li>
               </ul>
             </div>
@@ -255,44 +260,48 @@ export function GhorerBazarFooter({
             {/* Quick Help */}
             <div>
               <h4 className="font-semibold mb-4 text-sm" style={{ color: theme.footerText }}>
-                সাহায্য
+                {t('help')}
               </h4>
               <ul className="space-y-2.5">
                 <li>
-                  <Link
-                    to="?page=faq"
+                  <PreviewSafeLink
+                    to="/pages/faq"
                     className="text-sm hover:text-orange-400 transition"
                     style={{ color: '#999' }}
+                    isPreview={isPreview}
                   >
-                    সাধারণ জিজ্ঞাসা
-                  </Link>
+                    {t('faq')}
+                  </PreviewSafeLink>
                 </li>
                 <li>
-                  <Link
-                    to="/shipping"
+                  <PreviewSafeLink
+                    to="/policies/shipping"
                     className="text-sm hover:text-orange-400 transition"
                     style={{ color: '#999' }}
+                    isPreview={isPreview}
                   >
-                    শিপিং পলিসি
-                  </Link>
+                    {t('shippingPolicy')}
+                  </PreviewSafeLink>
                 </li>
                 <li>
-                  <Link
-                    to="/returns"
+                  <PreviewSafeLink
+                    to="/policies/returns"
                     className="text-sm hover:text-orange-400 transition"
                     style={{ color: '#999' }}
+                    isPreview={isPreview}
                   >
-                    রিটার্ন পলিসি
-                  </Link>
+                    {t('refundPolicy')}
+                  </PreviewSafeLink>
                 </li>
                 <li>
-                  <Link
+                  <PreviewSafeLink
                     to="/track-order"
                     className="text-sm hover:text-orange-400 transition"
                     style={{ color: '#999' }}
+                    isPreview={isPreview}
                   >
-                    অর্ডার ট্র্যাক করুন
-                  </Link>
+                    {t('trackOrder')}
+                  </PreviewSafeLink>
                 </li>
               </ul>
             </div>
@@ -300,7 +309,7 @@ export function GhorerBazarFooter({
             {/* Contact Info */}
             <div>
               <h4 className="font-semibold mb-4 text-sm" style={{ color: theme.footerText }}>
-                যোগাযোগ
+                {t('contact')}
               </h4>
               <ul className="space-y-3">
                 <li>
@@ -351,7 +360,7 @@ export function GhorerBazarFooter({
                     style={{ backgroundColor: '#25d366' }}
                   >
                     <MessageCircle className="w-4 h-4" />
-                    WhatsApp অর্ডার
+                    {t('whatsappOrder')}
                   </a>
                 </li>
               </ul>
@@ -363,7 +372,7 @@ export function GhorerBazarFooter({
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <span className="text-xs" style={{ color: '#666' }}>
-                  পেমেন্ট মেথড:
+                  {t('paymentMethods')}
                 </span>
                 <div className="flex items-center gap-2">
                   <div className="bg-white rounded px-2 py-1">
@@ -381,7 +390,7 @@ export function GhorerBazarFooter({
                 </div>
               </div>
               <div className="text-xs" style={{ color: '#666' }}>
-                🔒 নিরাপদ অনলাইন পেমেন্ট
+                {t('securePayment')}
               </div>
             </div>
           </div>
@@ -392,7 +401,7 @@ export function GhorerBazarFooter({
           <div className="max-w-7xl mx-auto px-4 py-4">
             <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
               <p className="text-xs" style={{ color: '#666' }} suppressHydrationWarning>
-                © {new Date().getFullYear()} {storeName}। সর্বস্বত্ব সংরক্ষিত।
+                © {new Date().getFullYear()} {storeName}। {t('allRightsReserved')}
               </p>
 
               <OzzylBranding planType={planType} showPoweredBy={footerConfig?.showPoweredBy} />
