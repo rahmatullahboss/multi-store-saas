@@ -388,6 +388,7 @@ export default function StoreDesignPage() {
           <p className="text-gray-500 mt-1">{t('storeDesignDesc')}</p>
         </div>
         <div className="flex items-center gap-3">
+          {/* Theme Store link hidden for MVP - uncomment to enable later
           <Link
             to="/app/theme-store"
             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-lg font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-all text-sm uppercase tracking-wider"
@@ -395,6 +396,7 @@ export default function StoreDesignPage() {
             <Sparkles size={16} />
             {lang === 'bn' ? 'থিম স্টোর দেখুন' : 'Browse Theme Store'}
           </Link>
+          */}
           <Link
             to={storeUrl}
             target="_blank"
@@ -457,14 +459,14 @@ export default function StoreDesignPage() {
         </div>
       )}
 
-      {/* Tabs */}
+      {/* Tabs - MVP: Advanced tab hidden, will be enabled in future release */}
       <div className="flex border-b border-gray-100 mb-8 overflow-x-auto no-scrollbar bg-white p-1 rounded-xl shadow-sm border border-gray-200">
         {[
           { id: 'templates', label: t('templates'), icon: Layout },
           { id: 'theme', label: t('theme'), icon: Palette },
           { id: 'banner', label: t('banner'), icon: Image },
           { id: 'info', label: t('info'), icon: User },
-          { id: 'advanced', label: t('advanced'), icon: Settings },
+          // { id: 'advanced', label: t('advanced'), icon: Settings }, // Hidden for MVP
         ].map((tab) => (
           <button
             key={tab.id}
