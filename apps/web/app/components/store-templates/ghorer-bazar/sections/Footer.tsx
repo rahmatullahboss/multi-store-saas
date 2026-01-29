@@ -26,6 +26,7 @@ import {
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { GHORER_BAZAR_THEME, GHORER_BAZAR_FONTS } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';
+import { useTranslation } from '~/contexts/LanguageContext';
 import type { SocialLinks, FooterConfig } from '@db/types';
 
 interface GhorerBazarFooterProps {
@@ -45,10 +46,11 @@ export function GhorerBazarFooter({
   socialLinks,
   footerConfig,
   businessInfo,
-  categories,
+  categories: _categories,
   planType = 'free',
   isPreview,
 }: GhorerBazarFooterProps) {
+  const { t } = useTranslation();
   const theme = GHORER_BAZAR_THEME;
   const phoneNumber = businessInfo?.phone || '০১৭XX-XXXXXX';
   const whatsappNumber = socialLinks?.whatsapp || phoneNumber;

@@ -1,10 +1,10 @@
-import { ShoppingBag, Search, Menu, X } from 'lucide-react';
+import { ShoppingBag, Search, Menu, X, Sparkles } from 'lucide-react';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { useState, useEffect } from 'react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { NOVALUX_THEME } from '../theme';
-import type { ThemeConfig, SocialLinks } from '@db/types';
+import type { ThemeConfig } from '@db/types';
 
 interface NovaLuxHeaderProps {
   storeName: string;
@@ -12,11 +12,10 @@ interface NovaLuxHeaderProps {
   config?: ThemeConfig | null;
   currentCategory?: string | null;
   categories: (string | null)[];
-  socialLinks?: SocialLinks | null;
   isPreview?: boolean;
 }
 
-export function NovaLuxHeader({ storeName, logo, config, currentCategory, categories, socialLinks, isPreview }: NovaLuxHeaderProps) {
+export function NovaLuxHeader({ storeName, logo, config, currentCategory, categories, isPreview }: NovaLuxHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { t } = useTranslation();

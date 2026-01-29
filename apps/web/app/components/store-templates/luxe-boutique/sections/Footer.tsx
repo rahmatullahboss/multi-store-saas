@@ -3,6 +3,7 @@ import { Mail, Instagram, Facebook } from 'lucide-react';
 import { LUXE_BOUTIQUE_THEME } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';
 import type { SocialLinks, FooterConfig } from '@db/types';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 interface LuxeBoutiqueFooterProps {
   storeName: string;
@@ -21,6 +22,7 @@ export function LuxeBoutiqueFooter({
   planType = 'free',
   categories = [],
 }: LuxeBoutiqueFooterProps) {
+  const { t } = useTranslation();
   const theme = LUXE_BOUTIQUE_THEME;
   const validCategories = categories.filter((c): c is string => Boolean(c));
 
@@ -38,8 +40,7 @@ export function LuxeBoutiqueFooter({
               {storeName}
             </h4>
             <p className="text-white/70 text-sm leading-relaxed">
-              {footerConfig?.description ||
-                'Curating exceptional products for discerning customers.'}
+              {footerConfig?.description || t('luxeDescription')}
             </p>
           </div>
 
@@ -49,12 +50,12 @@ export function LuxeBoutiqueFooter({
               className="font-medium uppercase text-sm tracking-wider mb-4"
               style={{ color: theme.accent }}
             >
-              Quick Links
+              {t('quickLinks')}
             </h5>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to="/" className="text-white/70 hover:text-white transition-colors">
-                  Home
+                  {t('home')}
                 </Link>
               </li>
               <li>
@@ -62,17 +63,17 @@ export function LuxeBoutiqueFooter({
                   to="/?category=all"
                   className="text-white/70 hover:text-white transition-colors"
                 >
-                  Shop All
+                  {t('shopAll')}
                 </Link>
               </li>
               <li>
                 <Link to="/about" className="text-white/70 hover:text-white transition-colors">
-                  About Us
+                  {t('aboutUs')}
                 </Link>
               </li>
               <li>
                 <Link to="/contact" className="text-white/70 hover:text-white transition-colors">
-                  Contact
+                  {t('contact')}
                 </Link>
               </li>
             </ul>
@@ -84,7 +85,7 @@ export function LuxeBoutiqueFooter({
               className="font-medium uppercase text-sm tracking-wider mb-4"
               style={{ color: theme.accent }}
             >
-              Contact Us
+              {t('contactUs')}
             </h5>
             <ul className="space-y-2 text-sm text-white/70">
               {businessInfo?.email && (
@@ -128,7 +129,7 @@ export function LuxeBoutiqueFooter({
       <div className="border-t border-white/10 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-2">
           <p className="text-sm text-white/50" suppressHydrationWarning>
-            © {new Date().getFullYear()} {storeName}. All rights reserved.
+            © {new Date().getFullYear()} {storeName}. {t('allRightsReserved')}
           </p>
 
           {/* Viral Loop / Branding */}

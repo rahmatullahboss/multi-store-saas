@@ -5,6 +5,7 @@ import { LUXE_BOUTIQUE_THEME } from '../theme';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useCartCount } from '~/hooks/useCartCount';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
+import { LanguageSelector } from '../../shared/LanguageSelector';
 import type { ThemeConfig } from '@db/types';
 
 interface LuxeBoutiqueHeaderProps {
@@ -115,6 +116,7 @@ export function LuxeBoutiqueHeader({
 
           {/* Right Icons */}
           <div className="flex items-center gap-3">
+            <LanguageSelector className="mr-1" />
             <button 
               className="p-2 rounded-full transition-colors hover:bg-gray-100"
               onClick={() => setSearchOpen(!searchOpen)}
@@ -147,7 +149,7 @@ export function LuxeBoutiqueHeader({
           <div className="max-w-2xl mx-auto">
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder={t('searchProducts')}
               className="w-full px-4 py-3 border border-gray-300 rounded-none focus:outline-none focus:border-black"
               autoFocus
             />
