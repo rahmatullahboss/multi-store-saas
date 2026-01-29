@@ -57,6 +57,9 @@ export const stores = sqliteTable('stores', {
 
   // === BRANDING ===
   logo: text('logo'),
+  tagline: text('tagline'), // Store tagline/slogan e.g., "বাংলাদেশের সেরা ফ্যাশন স্টোর"
+  description: text('description'), // Store description for SEO and about page
+  bannerUrl: text('banner_url'), // Dedicated banner image URL (Cloudinary)
   theme: text('theme').default('default'),
   currency: text('currency').default('USD'),
   defaultLanguage: text('default_language').$type<'en' | 'bn'>().default('en'),

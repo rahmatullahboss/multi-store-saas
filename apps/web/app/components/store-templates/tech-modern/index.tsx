@@ -28,7 +28,7 @@ import {
 import { useWishlist } from '~/hooks/useWishlist';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
-import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
+import { useTranslation } from '~/contexts/LanguageContext';
 import { SECTION_REGISTRY } from '~/components/store-sections/registry';
 import { useCartCount } from '~/hooks/useCartCount';
 import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
@@ -463,63 +463,6 @@ function PreviewCheckoutPage({
   );
 }
 
-// --- Footer ---
-function PreviewFooter({
-  storeName,
-  categories,
-  onNavigate,
-}: {
-  storeName: string;
-  categories: (string | null)[];
-  onNavigate: (page: PageType) => void;
-}) {
-  const theme = TECH_MODERN_THEME;
-  const validCategories = categories.filter((c): c is string => Boolean(c));
-
-  return (
-    <footer style={{ backgroundColor: theme.footerBg, color: theme.footerText }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
-          <div className="space-y-6">
-            <div className="flex items-center gap-2 font-bold text-xl">
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: theme.accent }}
-              >
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-              {storeName}
-            </div>
-            <p className="text-sm opacity-70 leading-relaxed max-w-xs">
-              Cutting-edge technology and premium electronics for the modern world.
-            </p>
-          </div>
-          <div>
-            <h4 className="text-sm font-bold uppercase tracking-wider mb-6">Explore</h4>
-            <ul className="space-y-4">
-              {validCategories.slice(0, 5).map((category) => (
-                <li key={category}>
-                  <button
-                    onClick={() => onNavigate({ type: 'category', category })}
-                    className="text-sm opacity-70 hover:opacity-100 hover:text-blue-400 transition-colors"
-                  >
-                    {category}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-        <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-xs opacity-50">
-            © {new Date().getFullYear()} {storeName}. Built for enthusiasts.
-          </p>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
 // --- Product Card ---
 function PreviewProductCard({
   product,
@@ -554,7 +497,7 @@ function PreviewProductCard({
         )}
 
         {isSale && (
-          <span className="absolute top-2 left-2 px-2 py-1 text-xs font-bold uppercase tracking-wider rounded bg-cyan-500 text-black">
+          <span className="absolute top-2 left-2 px-2 py-1 text-[10px] md:text-xs font-bold uppercase tracking-wider rounded bg-cyan-500 text-black">
             -{discount}%
           </span>
         )}
@@ -564,10 +507,10 @@ function PreviewProductCard({
         </button>
       </div>
 
-      <div className="p-5">
+      <div className="p-3 md:p-5">
         {product.category && (
           <span
-            className="text-xs font-medium uppercase tracking-wider"
+            className="text-[10px] md:text-xs font-medium uppercase tracking-wider"
             style={{ color: theme.accent }}
           >
             {product.category}
@@ -575,29 +518,32 @@ function PreviewProductCard({
         )}
 
         <h3
-          className="font-semibold mt-1 mb-2 line-clamp-2 hover:text-blue-600 transition-colors"
+          className="font-semibold mt-1 mb-2 line-clamp-2 text-sm md:text-base hover:text-blue-600 transition-colors"
           style={{ color: theme.text }}
         >
           {product.title}
         </h3>
 
-        <div className="flex items-center gap-1 mb-3">
+        <div className="flex items-center gap-1 mb-2 md:mb-3">
           {[...Array(5)].map((_, i) => (
-            <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+            <Star key={i} className="w-3 h-3 md:w-4 md:h-4 text-yellow-400 fill-yellow-400" />
           ))}
-          <span className="text-sm ml-1" style={{ color: theme.muted }}>
+          <span className="text-xs md:text-sm ml-1" style={{ color: theme.muted }}>
             (24)
           </span>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-xl font-bold" style={{ color: theme.primary }}>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-col">
+            <span className="text-base md:text-xl font-bold" style={{ color: theme.primary }}>
               {currency}
               {product.price.toLocaleString()}
             </span>
             {isSale && (
-              <span className="text-sm line-through ml-2" style={{ color: theme.muted }}>
+              <span
+                className="text-xs md:text-sm line-through"
+                style={{ color: theme.muted }}
+              >
                 {currency}
                 {product.compareAtPrice?.toLocaleString()}
               </span>
@@ -609,10 +555,10 @@ function PreviewProductCard({
               e.stopPropagation();
               cart.addItem(product);
             }}
-            className="p-3 rounded-xl transition-all hover:scale-110"
+            className="p-2 md:p-3 rounded-xl transition-all hover:scale-110 flex-shrink-0"
             style={{ backgroundColor: theme.accent, color: 'white' }}
           >
-            <ShoppingCart className="w-5 h-5" />
+            <ShoppingCart className="w-4 h-4 md:w-5 md:h-5" />
           </button>
         </div>
       </div>
@@ -704,7 +650,7 @@ function PreviewHomePage({
               Explore our newest collection of premium gadgets.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             {products.map((product) => (
               <PreviewProductCard
                 key={product.id}
@@ -724,7 +670,7 @@ function PreviewHomePage({
 // MAIN PREVIEW STORE CONTAINER
 // ============================================================================
 function PreviewTechModernStore(props: StoreTemplateProps) {
-  const { storeName, logo, categories, config, currency } = props;
+  const { storeName, logo, categories, config, currency, businessInfo, socialLinks, footerConfig } = props;
   const [currentPage, setCurrentPage] = useState<PageType>({ type: 'home' });
 
   const navigate = useCallback((page: PageType) => {
@@ -762,13 +708,13 @@ function PreviewTechModernStore(props: StoreTemplateProps) {
         return <PreviewCheckoutPage currency={currency} onNavigate={navigate} />;
       case 'search':
         return <div className="p-20 text-center">Search results for {currentPage.query}</div>;
-      case 'category':
+      case 'category': {
         const filtered = products.filter((p) => p.category === currentPage.category);
         return (
           <div className="py-16 bg-[#f8fafc] min-h-screen">
             <div className="max-w-7xl mx-auto px-4">
               <h1 className="text-3xl font-bold mb-8">{currentPage.category}</h1>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                 {filtered.map((product) => (
                   <PreviewProductCard
                     key={product.id}
@@ -781,6 +727,7 @@ function PreviewTechModernStore(props: StoreTemplateProps) {
             </div>
           </div>
         );
+      }
       case 'order-success':
         return (
           <div className="min-h-[60vh] flex items-center justify-center text-center p-8">
@@ -835,7 +782,15 @@ function PreviewTechModernStore(props: StoreTemplateProps) {
           onNavigate={navigate}
         />
         <main>{renderPage()}</main>
-        <PreviewFooter storeName={storeName} categories={validCategories} onNavigate={navigate} />
+        <TechModernFooter
+          storeName={storeName}
+          logo={logo}
+          categories={validCategories}
+          businessInfo={businessInfo}
+          socialLinks={socialLinks}
+          footerConfig={footerConfig}
+          isPreview={true}
+        />
       </div>
     </CartProvider>
   );
@@ -861,7 +816,6 @@ function LiveTechModernHomepage({
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const formatPrice = useFormatPrice();
   const { t } = useTranslation();
   const count = useCartCount();
 
@@ -1179,7 +1133,7 @@ function TechProductCard({
 
         {isOnSale && (
           <span
-            className={`absolute top-2 left-2 px-2 py-1 text-xs font-bold uppercase tracking-wider rounded ${isFlashSale ? 'bg-red-500 text-white' : 'bg-cyan-500 text-black'}`}
+            className={`absolute top-2 left-2 px-2 py-1 text-[10px] md:text-xs font-bold uppercase tracking-wider rounded ${isFlashSale ? 'bg-red-500 text-white' : 'bg-cyan-500 text-black'}`}
           >
             {isFlashSale ? 'Flash Sale' : `-${discountPercentage}%`}
           </span>
@@ -1200,10 +1154,10 @@ function TechProductCard({
         </button>
       </Link>
 
-      <div className="p-5">
+      <div className="p-3 md:p-5">
         {product.category && (
           <span
-            className="text-xs font-medium uppercase tracking-wider"
+            className="text-[10px] md:text-xs font-medium uppercase tracking-wider"
             style={{ color: TECH_MODERN_THEME.accent }}
           >
             {product.category}
@@ -1212,30 +1166,30 @@ function TechProductCard({
 
         <Link to={`/product/${product.id}`}>
           <h3
-            className="font-semibold mt-1 mb-2 line-clamp-2 hover:text-blue-600 transition-colors"
+            className="font-semibold mt-1 mb-2 line-clamp-2 text-sm md:text-base hover:text-blue-600 transition-colors"
             style={{ color: TECH_MODERN_THEME.text }}
           >
             {product.title}
           </h3>
         </Link>
 
-        <div className="flex items-center gap-1 mb-3">
+        <div className="flex items-center gap-1 mb-2 md:mb-3">
           {[...Array(5)].map((_, i) => (
-            <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+            <Star key={i} className="w-3 h-3 md:w-4 md:h-4 text-yellow-400 fill-yellow-400" />
           ))}
-          <span className="text-sm ml-1" style={{ color: TECH_MODERN_THEME.muted }}>
+          <span className="text-xs md:text-sm ml-1" style={{ color: TECH_MODERN_THEME.muted }}>
             (24)
           </span>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-xl font-bold" style={{ color: TECH_MODERN_THEME.primary }}>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-col">
+            <span className="text-base md:text-xl font-bold" style={{ color: TECH_MODERN_THEME.primary }}>
               {formatPrice(price)}
             </span>
             {isOnSale && displayCompareAt && (
               <span
-                className="text-sm line-through ml-2"
+                className="text-xs md:text-sm line-through"
                 style={{ color: TECH_MODERN_THEME.muted }}
               >
                 {formatPrice(displayCompareAt)}
@@ -1248,11 +1202,11 @@ function TechProductCard({
             storeId={storeId}
             productPrice={price}
             productName={product.title}
-            className="p-3 rounded-xl transition-all hover:scale-110"
+            className="p-2 md:p-3 rounded-xl transition-all hover:scale-110 flex-shrink-0"
             style={{ backgroundColor: TECH_MODERN_THEME.accent, color: 'white' }}
             isPreview={isPreview}
           >
-            <ShoppingCart className="w-5 h-5" />
+            <ShoppingCart className="w-4 h-4 md:w-5 md:h-5" />
           </AddToCartButton>
         </div>
       </div>
