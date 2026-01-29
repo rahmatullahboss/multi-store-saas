@@ -312,7 +312,7 @@ export default function StoreDesignPage() {
 
   const [activeTab, setActiveTab] = useState<
     'templates' | 'theme' | 'banner' | 'info' | 'advanced'
-  >('templates');
+  >('theme'); // MVP: Default to theme tab since templates is hidden
   const [selectedTemplateId, setSelectedTemplateId] = useState(currentTemplateId);
   const [showSuccess, setShowSuccess] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
@@ -459,10 +459,10 @@ export default function StoreDesignPage() {
         </div>
       )}
 
-      {/* Tabs - MVP: Advanced tab hidden, will be enabled in future release */}
+      {/* Tabs - MVP: Templates and Advanced tabs hidden */}
       <div className="flex border-b border-gray-100 mb-8 overflow-x-auto no-scrollbar bg-white p-1 rounded-xl shadow-sm border border-gray-200">
         {[
-          { id: 'templates', label: t('templates'), icon: Layout },
+          // { id: 'templates', label: t('templates'), icon: Layout }, // Hidden for MVP
           { id: 'theme', label: t('theme'), icon: Palette },
           { id: 'banner', label: t('banner'), icon: Image },
           { id: 'info', label: t('info'), icon: User },
