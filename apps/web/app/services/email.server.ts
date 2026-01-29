@@ -10,13 +10,27 @@ export async function sendPasswordResetEmail(
   token: string,
   env: Env
 ): Promise<{ success: boolean; error?: string }> {
+  // Construct the reset link with proper protocol
+  const getBaseUrl = () => {
+    const domain = env.SAAS_DOMAIN || 'ozzyl.com';
+    const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    const protocol = (domain.includes('localhost') || domain.includes('127.0.0.1')) ? 'http' : 'https';
+    return `${protocol}://${cleanDomain}`;
+  };
+
+  const resetLink = `${getBaseUrl()}/auth/reset-password?token=${token}`;
+
   if (!env.RESEND_API_KEY) {
     console.warn('[email.server] RESEND_API_KEY is missing. Email not sent.');
     // For local dev without API key, we log the token
     if (env.ENVIRONMENT === 'development' || !env.ENVIRONMENT) {
+      // eslint-disable-next-line no-console
       console.log('=================================================================');
+      // eslint-disable-next-line no-console
       console.log(`[DEV] Password Reset Token for ${email}: ${token}`);
-      console.log(`[DEV] Link: ${env.SAAS_DOMAIN}/auth/reset-password?token=${token}`);
+      // eslint-disable-next-line no-console
+      console.log(`[DEV] Link: ${resetLink}`);
+      // eslint-disable-next-line no-console
       console.log('=================================================================');
       return { success: true };
     }
@@ -25,7 +39,6 @@ export async function sendPasswordResetEmail(
 
   try {
     const resend = new Resend(env.RESEND_API_KEY);
-    const resetLink = `${env.SAAS_DOMAIN}/auth/reset-password?token=${token}`;
 
     const { data, error } = await resend.emails.send({
       from: 'Ozzyl <contact@ozzyl.com>', // Update with your verified domain
@@ -55,6 +68,7 @@ export async function sendPasswordResetEmail(
       return { success: false, error: error.message };
     }
 
+    // eslint-disable-next-line no-console
     console.log('[email.server] Password reset email sent to:', email, 'ID:', data?.id);
     return { success: true };
   } catch (error) {
@@ -91,7 +105,7 @@ export async function sendLowStockAlert(
       </tr>
     `).join('');
 
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: 'Ozzyl <contact@ozzyl.com>',
       to: [merchantEmail],
       subject: `[Alert] Low Stock Warning - ${storeName}`,

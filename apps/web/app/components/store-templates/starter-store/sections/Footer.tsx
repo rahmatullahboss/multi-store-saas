@@ -283,7 +283,9 @@ export function StarterStoreFooter({
           <p style={{ color: theme.footerText + 'AA' }}>
             © {new Date().getFullYear()} {storeName}. {t('allRightsReserved')}
           </p>
-          <OzzylBranding planType={planType} showPoweredBy={showPoweredBy} variant="minimal" />
+          <div style={{ color: theme.footerText }}>
+            <OzzylBranding planType={planType} showPoweredBy={showPoweredBy} variant="minimal" />
+          </div>
         </div>
       </div>
     </footer>

@@ -2,24 +2,36 @@ import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { ShoppingCart } from 'lucide-react';
 import { STARTER_STORE_THEME } from '../theme';
-import type { SerializedProduct } from '~/templates/store-registry';
+import type { SerializedProduct, StoreTemplateTheme } from '~/templates/store-registry';
 import { useTranslation } from 'react-i18next';
 
-const theme = STARTER_STORE_THEME;
 
 export function StarterProductCard({ 
   product, 
-  storeId,
+  currency = 'BDT',
+  storeId = 0,
+  theme = STARTER_STORE_THEME,
   isPreview = false
 }: { 
   product: SerializedProduct; 
-  storeId: number;
+  currency?: string;
+  storeId?: number;
+  theme?: StoreTemplateTheme;
   isPreview?: boolean;
 }) {
   const { t } = useTranslation();
   const discount = product.compareAtPrice 
     ? Math.round((1 - product.price / product.compareAtPrice) * 100) 
     : 0;
+    
+  // Format Price
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 0,
+    }).format(price);
+  };
 
   return (
     <div className="group">
@@ -50,11 +62,11 @@ export function StarterProductCard({
           </h3>
           <div className="flex items-center gap-2">
             <span className="font-bold" style={{ color: theme.primary }}>
-              ৳{product.price.toLocaleString('bn-BD')}
+              {formatPrice(product.price)}
             </span>
             {product.compareAtPrice && (
               <span className="text-sm line-through" style={{ color: theme.muted }}>
-                ৳{product.compareAtPrice.toLocaleString('bn-BD')}
+                {formatPrice(product.compareAtPrice)}
               </span>
             )}
           </div>
@@ -68,6 +80,7 @@ export function StarterProductCard({
           storeId={storeId}
           productName={product.title}
           productPrice={product.price}
+          currency={currency}
           isPreview={isPreview}
           className="w-full py-2 rounded-lg text-sm font-medium text-white transition hover:opacity-90 flex items-center justify-center gap-2"
           style={{ backgroundColor: theme.primary }}

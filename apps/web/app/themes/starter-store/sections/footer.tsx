@@ -49,9 +49,9 @@ export default function StarterFooter({ context, settings }: SectionComponentPro
   const config = DEFAULT_THEME_CONFIG; 
 
   const businessInfo = {
-      address: store.address || 'House 123, Road 5, Gulshan, Dhaka 1212, Bangladesh',
-      email: store.email || 'hello@store.com',
-      phone: store.phone || '+880 1XXX-XXXXXX',
+      address: store.address || undefined,
+      email: store.email || undefined,
+      phone: store.phone || undefined,
   };
 
   const socialLinks = {

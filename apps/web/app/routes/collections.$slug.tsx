@@ -351,15 +351,15 @@ export default function CollectionPage() {
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">{t('common.sort')}</span>
+                <span className="text-sm text-gray-600">{t('sortBy')}</span>
                 <select
                   value={sortBy}
                   onChange={(e) => handleSortChange(e.target.value)}
                   className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
                 >
-                  <option value="newest">{t('store.sortNewest')}</option>
-                  <option value="price-low">{t('store.sortPriceLowHigh')}</option>
-                  <option value="price-high">{t('store.sortPriceHighLow')}</option>
+                  <option value="newest">{t('sortNewest')}</option>
+                  <option value="price-low">{t('sortPriceLowHigh')}</option>
+                  <option value="price-high">{t('sortPriceHighLow')}</option>
                 </select>
               </div>
               <label className="inline-flex items-center gap-2 text-sm text-gray-600">
@@ -369,7 +369,7 @@ export default function CollectionPage() {
                   onChange={(e) => handleInStockToggle(e.target.checked)}
                   className="rounded border-gray-300"
                 />
-                {t('store.inStock')}
+                {t('inStockLabel')}
               </label>
               <label className="inline-flex items-center gap-2 text-sm text-gray-600">
                 <input
@@ -378,21 +378,21 @@ export default function CollectionPage() {
                   onChange={(e) => handleOnSaleToggle(e.target.checked)}
                   className="rounded border-gray-300"
                 />
-                {t('store.onSale')}
+                {t('onSale')}
               </label>
               <div className="flex items-center gap-2">
                 <input
                   type="number"
                   value={minPrice ?? ''}
                   onChange={(e) => handlePriceChange('min', e.target.value)}
-                  placeholder={t('store.min')}
+                  placeholder={t('min')}
                   className="w-24 px-2 py-2 border border-gray-200 rounded-lg text-sm"
                 />
                 <input
                   type="number"
                   value={maxPrice ?? ''}
                   onChange={(e) => handlePriceChange('max', e.target.value)}
-                  placeholder={t('store.max')}
+                  placeholder={t('max')}
                   className="w-24 px-2 py-2 border border-gray-200 rounded-lg text-sm"
                 />
               </div>

@@ -68,7 +68,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   }
   
   // Get policy content (custom or auto-generated)
-  const policy = getPolicyContent(policyType, store.name, contactEmail);
+  const policy = getPolicyContent(policyType, store.name, contactEmail, (store.defaultLanguage as 'en' | 'bn') || 'en');
   
   return json({
     storeName: store.name,

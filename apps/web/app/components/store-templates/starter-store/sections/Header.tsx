@@ -100,16 +100,15 @@ export function StarterStoreHeader({
               isPreview={isPreview}
               className="flex items-center gap-2"
             >
-              {logo ? (
+              {logo && (
                 <img src={logo} alt={storeName} className="h-10 w-auto object-contain" />
-              ) : (
-                <span 
-                  className="text-xl font-bold"
-                  style={{ color: theme.primary }}
-                >
-                  {storeName}
-                </span>
               )}
+              <span 
+                className="text-xl font-bold"
+                style={{ color: theme.primary }}
+              >
+                {storeName}
+              </span>
             </PreviewSafeLink>
 
             {/* Desktop Navigation */}

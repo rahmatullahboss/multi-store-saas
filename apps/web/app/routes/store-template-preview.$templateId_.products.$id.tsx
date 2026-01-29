@@ -70,6 +70,23 @@ export async function loader({ params }: LoaderFunctionArgs) {
       sku: `DEMO-${product.id}`,
       inventory: 100,
       images: null,
+      variants: (() => {
+        // Dynamic variant generation based on category
+        if (product.category === 'Fashion') {
+          return [
+            { id: 101, option1Name: 'Size', option1Value: 'M', option2Name: 'Color', option2Value: 'Red', price: product.price, available: 10 },
+            { id: 102, option1Name: 'Size', option1Value: 'L', option2Name: 'Color', option2Value: 'Blue', price: product.price + 50, available: 5 },
+            { id: 103, option1Name: 'Size', option1Value: 'XL', option2Name: 'Color', option2Value: 'Black', price: product.price, available: 8 },
+          ];
+        } 
+        if (['Electronics', 'Home'].includes(product.category || '')) {
+          return [
+            { id: 104, option1Name: 'Color', option1Value: 'Black', price: product.price, available: 15 },
+            { id: 105, option1Name: 'Color', option1Value: 'White', price: product.price, available: 12 },
+          ];
+        }
+        return []; // No variants for other categories
+      })(),
     },
     relatedProducts: relatedProducts.map((p) => ({
       id: p.id,

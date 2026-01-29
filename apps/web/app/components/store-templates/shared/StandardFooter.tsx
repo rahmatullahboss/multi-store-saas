@@ -143,7 +143,7 @@ export function StandardFooter({
     address: 'House 123, Road 5, Gulshan, Dhaka 1212, Bangladesh',
   };
 
-  const displayBusinessInfo = isPreview ? defaultBusinessInfo : businessInfo || defaultBusinessInfo;
+  const displayBusinessInfo = isPreview ? (businessInfo || defaultBusinessInfo) : businessInfo;
 
   const displayCategories =
     validCategories.length > 0
@@ -438,7 +438,7 @@ export function StandardFooter({
               Get in Touch
             </h5>
             <ul className="space-y-4 text-sm">
-              {displayBusinessInfo.email && (
+              {displayBusinessInfo?.email && (
                 <li className="flex items-center gap-3 opacity-70">
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
@@ -451,11 +451,11 @@ export function StandardFooter({
                     className="hover:opacity-100 transition-colors"
                     onClick={isPreview ? (e) => e.preventDefault() : undefined}
                   >
-                    {displayBusinessInfo.email}
+                    {displayBusinessInfo?.email}
                   </a>
                 </li>
               )}
-              {displayBusinessInfo.phone && (
+              {displayBusinessInfo?.phone && (
                 <li className="flex items-center gap-3 opacity-70">
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
@@ -468,11 +468,11 @@ export function StandardFooter({
                     className="hover:opacity-100 transition-colors"
                     onClick={isPreview ? (e) => e.preventDefault() : undefined}
                   >
-                    {displayBusinessInfo.phone}
+                    {displayBusinessInfo?.phone}
                   </a>
                 </li>
               )}
-              {displayBusinessInfo.address && (
+              {displayBusinessInfo?.address && (
                 <li className="flex items-start gap-3 opacity-70">
                   <div
                     className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
@@ -480,7 +480,7 @@ export function StandardFooter({
                   >
                     <MapPin className="w-4 h-4" style={{ color: THEME.accent }} />
                   </div>
-                  <span className="leading-relaxed">{displayBusinessInfo.address}</span>
+                  <span className="leading-relaxed">{displayBusinessInfo?.address}</span>
                 </li>
               )}
             </ul>

@@ -13,7 +13,7 @@ import { resolveTemplate } from '~/lib/template-resolver.server';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { getStoreConfig } from '~/services/store-config.server';
-import { products, reviews } from '@db/schema';
+import { products, reviews, productVariants } from '@db/schema';
 import { parseSocialLinks } from '@db/types';
 import { useEffect, useRef, Suspense } from 'react';
 import { trackingEvents } from '~/utils/tracking';
@@ -147,11 +147,18 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
           .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
       : null;
 
+    const variantsQuery = db
+      .select()
+      .from(productVariants)
+      .where(and(eq(productVariants.productId, productId), eq(productVariants.isAvailable, true)))
+      .orderBy(productVariants.id);
+
     // Execute queries in parallel
-    const [productResult, reviewsResult, categoriesResult] = await Promise.all([
+    const [productResult, reviewsResult, categoriesResult, variantsResult] = await Promise.all([
       productQuery,
       reviewsQuery,
       categoriesQuery,
+      variantsQuery,
     ]);
 
     const product = productResult[0];
@@ -218,7 +225,10 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     const productUrl = `${url.protocol}//${url.host}/products/${product.id}`;
 
     return json({
-      product,
+      product: {
+        ...product,
+        variants: variantsResult || [],
+      },
       storeName: store?.name || 'Store',
       logo: store.logo || null,
       currency: store?.currency || 'BDT',

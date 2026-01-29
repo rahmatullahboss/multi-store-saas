@@ -15,6 +15,24 @@ import type { ThemeConfig, SocialLinks, FooterConfig } from '@db/types';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyProps = any;
 
+export interface SerializedVariant {
+  id: number;
+  productId: number;
+  option1Name: string | null;
+  option1Value: string | null;
+  option2Name: string | null;
+  option2Value: string | null;
+  option3Name: string | null;
+  option3Value: string | null;
+  price: number | null;
+  compareAtPrice: number | null;
+  sku: string | null;
+  inventory: number | null;
+  available: number | null;
+  imageUrl: string | null;
+  isAvailable: boolean | null;
+}
+
 export interface SerializedProduct {
   id: number;
   storeId: number;
@@ -23,7 +41,10 @@ export interface SerializedProduct {
   price: number;
   compareAtPrice: number | null;
   imageUrl: string | null;
+  images?: string | string[] | null;
+  inventory?: number | null;
   category: string | null;
+  variants?: SerializedVariant[];
 }
 
 // ============================================================================

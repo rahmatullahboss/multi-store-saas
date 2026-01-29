@@ -8,7 +8,7 @@
 import { type ReactNode, Suspense } from 'react';
 import { StoreHeader } from './StoreHeader';
 import { StoreFooter } from './StoreFooter';
-import { StorePushPrompt } from '~/components/store/StorePushPrompt';
+// import { StorePushPrompt } from '~/components/store/StorePushPrompt';
 import { WishlistProvider } from '~/contexts/WishlistContext';
 import {
   getStoreTemplate,
@@ -119,7 +119,7 @@ export function StorePageWrapper({
         {/* Main Content */}
         <main className="relative z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-            <StorePushPrompt storeName={storeName} />
+            {/* <StorePushPrompt storeName={storeName} /> */}
           </div>
           {children}
         </main>
