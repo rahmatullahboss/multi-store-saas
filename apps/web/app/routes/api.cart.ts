@@ -42,14 +42,14 @@ import { resolveStore } from '~/lib/store.server';
 // VALIDATION SCHEMAS
 // ============================================================================
 const AddItemSchema = z.object({
-  productId: z.number().int().positive(),
-  variantId: z.number().int().positive().optional(),
-  quantity: z.number().int().min(1).max(99).default(1),
+  productId: z.coerce.number().int().positive(),
+  variantId: z.coerce.number().int().positive().optional(),
+  quantity: z.coerce.number().int().min(1).max(99).default(1),
 });
 
 const UpdateItemSchema = z.object({
   itemId: z.string().uuid(),
-  quantity: z.number().int().min(0).max(99),
+  quantity: z.coerce.number().int().min(0).max(99),
 });
 
 const RemoveItemSchema = z.object({
@@ -59,6 +59,7 @@ const RemoveItemSchema = z.object({
 const SyncCartSchema = z.object({
   items: z.array(AddItemSchema),
 });
+
 
 // ============================================================================
 // GET CART - Uses DO for real-time state
