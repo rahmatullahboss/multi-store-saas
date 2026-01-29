@@ -290,7 +290,7 @@ export default function Checkout() {
 
   const total = Math.max(0, subtotal + shippingCost + bumpTotal - (appliedCoupon?.amount || 0));
 
-  // Load cart from local storage
+  // Load cart from local storage - ONCE on mount
   useEffect(() => {
     const saved = localStorage.getItem('cart');
     if (saved) {
@@ -306,22 +306,22 @@ export default function Checkout() {
     } else {
       setIsLoading(false);
     }
-  }, [fetcher]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount - fetcher is stable
 
-  // Auto-apply Discount from URL
+  // Auto-apply Discount from URL - only once when conditions are met
   useEffect(() => {
     const urlCode = searchParams.get('discount');
     if (urlCode && !appliedCoupon && !isApplyingCoupon && subtotal > 0) {
         setCouponCode(urlCode);
-        // We can't call handleApplyCoupon directly because state update might lag? 
-        // Actually we can, but let's just trigger fetcher.
         setIsApplyingCoupon(true);
         fetcher.submit(
-            { intent: 'apply-coupon', code: urlCode, subtotal: '0' }, // Will be recalculated on server
+            { intent: 'apply-coupon', code: urlCode, subtotal: '0' },
             { method: 'post' }
         );
     }
-  }, [searchParams, appliedCoupon, isApplyingCoupon, subtotal, fetcher]); 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, appliedCoupon, isApplyingCoupon, subtotal]); // Remove fetcher from deps 
 
   // Handle fetcher response for products
   useEffect(() => {
