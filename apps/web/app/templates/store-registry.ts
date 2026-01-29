@@ -936,9 +936,43 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
 ];
 
 // ============================================================================
+// MVP THEME FILTER - Only show these themes in Theme Store for MVP launch
+// ============================================================================
+/**
+ * MVP Theme IDs - These are the only themes shown in the Theme Store UI
+ * Other themes remain functional (for already installed stores) but won't
+ * appear in the theme selection UI. To add more themes for customers,
+ * simply add the theme ID to this array.
+ * 
+ * Current MVP Themes:
+ * 1. starter-store - স্টার্টার স্টোর (default, simple, modern)
+ * 2. ghorer-bazar - ঘরের বাজার (Bangladeshi grocery marketplace)
+ * 3. luxe-boutique - লাক্স বুটিক (luxury fashion)
+ * 4. nova-lux - নোভা লাক্স (premium lifestyle)
+ * 5. tech-modern - টেক মডার্ন (electronics & tech)
+ */
+export const MVP_THEME_IDS = [
+  'starter-store',
+  'ghorer-bazar',
+  'luxe-boutique',
+  'nova-lux',
+  'tech-modern',
+] as const;
+
+export type MVPThemeId = (typeof MVP_THEME_IDS)[number];
+
+/**
+ * Filtered templates for Theme Store display (MVP only)
+ * Use this in theme selection UIs instead of STORE_TEMPLATES
+ */
+export const MVP_STORE_TEMPLATES = STORE_TEMPLATES.filter((t) =>
+  (MVP_THEME_IDS as readonly string[]).includes(t.id)
+);
+
+// ============================================================================
 // DEFAULT STORE TEMPLATE - Fallback when no template is specified
 // ============================================================================
-export const DEFAULT_STORE_TEMPLATE_ID = 'luxe-boutique';
+export const DEFAULT_STORE_TEMPLATE_ID = 'starter-store';
 
 // ============================================================================
 // HELPER FUNCTIONS

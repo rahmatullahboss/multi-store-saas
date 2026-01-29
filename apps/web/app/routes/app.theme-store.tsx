@@ -18,7 +18,7 @@ import {
   BadgeCheck, ShoppingBag, Loader2, Crown, Store
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
-import { STORE_TEMPLATES } from '~/templates/store-registry';
+import { STORE_TEMPLATES, MVP_STORE_TEMPLATES } from '~/templates/store-registry';
 import { type ThemeConfig } from '@db/types';
 import { installThemePreset, installCustomThemePreset, convertPresetToConfig } from '~/lib/theme-seeding.server';
 import { getThemePreset, createPresetFromStoreTemplate } from '~/lib/theme-presets';
@@ -28,8 +28,9 @@ export const meta: MetaFunction = () => [{ title: 'Theme Store - Ozzyl' }];
 export async function loader({ request, context }: LoaderFunctionArgs) {
   await requireUserId(request, context.cloudflare.env);
   
-  // We use the static registry as the source of truth for system themes
-  return json({ themes: STORE_TEMPLATES });
+  // We use MVP filtered templates for Theme Store UI (5 themes for MVP)
+  // Note: STORE_TEMPLATES is still imported for the action to find any theme by ID
+  return json({ themes: MVP_STORE_TEMPLATES });
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
