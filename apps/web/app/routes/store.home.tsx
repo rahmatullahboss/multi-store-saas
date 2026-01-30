@@ -16,6 +16,7 @@ import { getCustomer } from '~/services/customer-auth.server';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, and } from 'drizzle-orm';
 import { products } from '@db/schema';
+import { formatPrice } from '~/lib/theme-engine';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) {
@@ -229,7 +230,7 @@ export default function StoreHomePage() {
                     <div className="p-4">
                       <h3 className="font-medium text-gray-900 truncate">{product.title}</h3>
                       <p className="text-lg font-bold mt-1" style={{ color: theme.primary }}>
-                        {currency} {product.price}
+                        {formatPrice(product.price)}
                       </p>
                     </div>
                   </a>

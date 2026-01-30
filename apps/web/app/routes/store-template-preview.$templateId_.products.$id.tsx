@@ -14,6 +14,7 @@ import { ArrowLeft, Eye, X } from 'lucide-react';
 import { useState } from 'react';
 import { getStoreTemplate, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
+import { formatPrice } from '~/lib/theme-engine';
 import {
   DEMO_PRODUCTS,
   DEMO_CATEGORIES,
@@ -74,15 +75,51 @@ export async function loader({ params }: LoaderFunctionArgs) {
         // Dynamic variant generation based on category
         if (product.category === 'Fashion') {
           return [
-            { id: 101, option1Name: 'Size', option1Value: 'M', option2Name: 'Color', option2Value: 'Red', price: product.price, available: 10 },
-            { id: 102, option1Name: 'Size', option1Value: 'L', option2Name: 'Color', option2Value: 'Blue', price: product.price + 50, available: 5 },
-            { id: 103, option1Name: 'Size', option1Value: 'XL', option2Name: 'Color', option2Value: 'Black', price: product.price, available: 8 },
+            {
+              id: 101,
+              option1Name: 'Size',
+              option1Value: 'M',
+              option2Name: 'Color',
+              option2Value: 'Red',
+              price: product.price,
+              available: 10,
+            },
+            {
+              id: 102,
+              option1Name: 'Size',
+              option1Value: 'L',
+              option2Name: 'Color',
+              option2Value: 'Blue',
+              price: product.price + 50,
+              available: 5,
+            },
+            {
+              id: 103,
+              option1Name: 'Size',
+              option1Value: 'XL',
+              option2Name: 'Color',
+              option2Value: 'Black',
+              price: product.price,
+              available: 8,
+            },
           ];
-        } 
+        }
         if (['Electronics', 'Home'].includes(product.category || '')) {
           return [
-            { id: 104, option1Name: 'Color', option1Value: 'Black', price: product.price, available: 15 },
-            { id: 105, option1Name: 'Color', option1Value: 'White', price: product.price, available: 12 },
+            {
+              id: 104,
+              option1Name: 'Color',
+              option1Value: 'Black',
+              price: product.price,
+              available: 15,
+            },
+            {
+              id: 105,
+              option1Name: 'Color',
+              option1Value: 'White',
+              price: product.price,
+              available: 12,
+            },
           ];
         }
         return []; // No variants for other categories
@@ -204,8 +241,7 @@ function FallbackProductPage({
               {product.title}
             </h1>
             <p className="text-3xl font-bold" style={{ color: theme.primary }}>
-              {currency}
-              {(product.price ?? 0).toLocaleString()}
+              {formatPrice(product.price)}
             </p>
             {product.description && <p className="text-gray-600">{product.description}</p>}
             <div className="flex gap-3 pt-4">

@@ -29,6 +29,7 @@ import {
 import { ECLIPSE_THEME } from '../theme';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import type { SerializedProduct } from '~/templates/store-registry';
+import { formatPrice } from '~/lib/theme-engine';
 
 interface ProductPageProps {
   product: SerializedProduct;
@@ -289,13 +290,11 @@ export function EclipseProductPage({
                   WebkitTextFillColor: 'transparent',
                 }}
               >
-                {currencySymbol}
-                {(product.price ?? 0).toLocaleString()}
+                {formatPrice(product.price)}
               </span>
               {product.compareAtPrice && product.compareAtPrice > (product.price ?? 0) && (
                 <span className="text-xl line-through" style={{ color: theme.textMuted }}>
-                  {currencySymbol}
-                  {product.compareAtPrice.toLocaleString()}
+                  {formatPrice(product.compareAtPrice)}
                 </span>
               )}
             </div>
@@ -441,8 +440,7 @@ export function EclipseProductPage({
                     <div className="p-4">
                       <h3 className="font-medium text-sm line-clamp-2 mb-2">{p.title}</h3>
                       <p className="font-bold" style={{ color: theme.accent }}>
-                        {currencySymbol}
-                        {(p.price ?? 0).toLocaleString()}
+                        {formatPrice(p.price)}
                       </p>
                     </div>
                   </Link>

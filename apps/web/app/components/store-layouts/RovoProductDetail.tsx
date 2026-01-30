@@ -5,6 +5,7 @@ import { RovoHeader } from '~/components/store/rovo/RovoHeader';
 import { RovoFooter } from '~/components/store/rovo/RovoFooter';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import type { SocialLinks } from '@db/types';
+import { formatPrice } from '~/lib/theme-engine';
 
 interface Product {
   id: number;
@@ -47,15 +48,16 @@ export function RovoProductDetail({
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
 
-  const images: string[] = product.images 
-    ? JSON.parse(product.images) 
-    : product.imageUrl 
-      ? [product.imageUrl] 
+  const images: string[] = product.images
+    ? JSON.parse(product.images)
+    : product.imageUrl
+      ? [product.imageUrl]
       : [];
 
-  const discount = product.compareAtPrice && product.compareAtPrice > product.price
-    ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
-    : 0;
+  const discount =
+    product.compareAtPrice && product.compareAtPrice > product.price
+      ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+      : 0;
 
   const filteredCategories = categories.filter((c): c is string => c !== null);
 
@@ -76,9 +78,9 @@ export function RovoProductDetail({
       config={null}
       products={[product]}
     >
-      <RovoHeader 
-        storeName={storeName} 
-        logo={logo} 
+      <RovoHeader
+        storeName={storeName}
+        logo={logo}
         categories={filteredCategories}
         currentCategory={product.category}
         socialLinks={socialLinks}
@@ -86,7 +88,6 @@ export function RovoProductDetail({
 
       <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
-          
           {/* Left Column: Gallery */}
           <div className="md:sticky md:top-24 h-fit">
             <div className="relative overflow-hidden rounded-sm bg-gray-50 mb-4 group aspect-[3/4] md:aspect-square">
@@ -115,7 +116,9 @@ export function RovoProductDetail({
                     key={i}
                     onClick={() => setSelectedImage(i)}
                     className={`aspect-square overflow-hidden rounded-sm border-2 transition-all ${
-                      selectedImage === i ? 'border-black opacity-100' : 'border-transparent opacity-60 hover:opacity-100'
+                      selectedImage === i
+                        ? 'border-black opacity-100'
+                        : 'border-transparent opacity-60 hover:opacity-100'
                     }`}
                   >
                     <img src={img} alt="" className="w-full h-full object-cover" />
@@ -128,7 +131,8 @@ export function RovoProductDetail({
           {/* Right Column: Details */}
           <div className="flex flex-col">
             <nav className="text-sm text-gray-500 mb-4 uppercase tracking-wide">
-              Home / {product.category || 'Shop'} / <span className="text-black">{product.title}</span>
+              Home / {product.category || 'Shop'} /{' '}
+              <span className="text-black">{product.title}</span>
             </nav>
 
             <h1 className="text-3xl md:text-4xl font-heading font-bold uppercase tracking-tight mb-2">
@@ -145,20 +149,16 @@ export function RovoProductDetail({
             </div>
 
             <div className="flex items-baseline gap-4 mb-8">
-              <span className="text-2xl font-bold text-red-600">
-                Tk {product.price.toLocaleString()}
-              </span>
+              <span className="text-2xl font-bold text-red-600">{formatPrice(product.price)}</span>
               {product.compareAtPrice && (
                 <span className="text-lg text-gray-400 line-through">
-                  Tk {product.compareAtPrice.toLocaleString()}
+                  {formatPrice(product.compareAtPrice)}
                 </span>
               )}
             </div>
 
             <div className="prose prose-sm text-gray-600 mb-8 max-w-none">
-              <p>
-                {product.description?.replace(/<[^>]*>?/gm, '').substring(0, 150)}...
-              </p>
+              <p>{product.description?.replace(/<[^>]*>?/gm, '').substring(0, 150)}...</p>
             </div>
 
             {/* Quantity & Actions */}
@@ -166,15 +166,15 @@ export function RovoProductDetail({
               <div className="flex items-center gap-4 mb-4">
                 <span className="text-sm font-bold uppercase tracking-wide min-w-[3rem]">Qty:</span>
                 <div className="flex items-center border border-gray-300 rounded-sm">
-                  <button 
-                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                  <button
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                     className="w-10 h-10 flex items-center justify-center hover:bg-gray-100"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
                   <span className="w-12 text-center font-medium">{quantity}</span>
-                  <button 
-                    onClick={() => setQuantity(q => q + 1)}
+                  <button
+                    onClick={() => setQuantity((q) => q + 1)}
                     className="w-10 h-10 flex items-center justify-center hover:bg-gray-100"
                   >
                     <Plus className="w-4 h-4" />
@@ -196,7 +196,7 @@ export function RovoProductDetail({
                     Add to Cart
                   </AddToCartButton>
                 </div>
-                
+
                 <AddToCartButton
                   productId={product.id}
                   storeId={storeId}
@@ -232,37 +232,41 @@ export function RovoProductDetail({
 
         {/* Detailed Description */}
         <div className="mt-20 border-t pt-10">
-          <h2 className="text-2xl font-heading font-bold uppercase mb-6 text-center">Product Description</h2>
-          <div 
-             className="prose max-w-4xl mx-auto"
-             dangerouslySetInnerHTML={{ __html: product.description || '' }}
+          <h2 className="text-2xl font-heading font-bold uppercase mb-6 text-center">
+            Product Description
+          </h2>
+          <div
+            className="prose max-w-4xl mx-auto"
+            dangerouslySetInnerHTML={{ __html: product.description || '' }}
           />
         </div>
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div className="mt-20">
-            <h2 className="text-2xl font-heading font-bold uppercase mb-8 text-center">You May Also Like</h2>
-             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {relatedProducts.slice(0, 4).map(p => (
-                   <a key={p.id} href={`/products/${p.id}`} className="group">
-                      <div className="aspect-[3/4] bg-gray-100 overflow-hidden mb-3">
-                         <img 
-                            src={p.imageUrl || ''} 
-                            alt={p.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                         />
-                      </div>
-                      <h3 className="font-bold text-sm uppercase">{p.title}</h3>
-                      <p className="text-gray-500 text-sm">Tk {p.price.toLocaleString()}</p>
-                   </a>
-                ))}
-             </div>
+            <h2 className="text-2xl font-heading font-bold uppercase mb-8 text-center">
+              You May Also Like
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {relatedProducts.slice(0, 4).map((p) => (
+                <a key={p.id} href={`/products/${p.id}`} className="group">
+                  <div className="aspect-[3/4] bg-gray-100 overflow-hidden mb-3">
+                    <img
+                      src={p.imageUrl || ''}
+                      alt={p.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                  <h3 className="font-bold text-sm uppercase">{p.title}</h3>
+                  <p className="text-gray-500 text-sm">{formatPrice(p.price)}</p>
+                </a>
+              ))}
+            </div>
           </div>
         )}
       </div>
-      
-      <RovoFooter 
+
+      <RovoFooter
         storeName={storeName}
         logo={logo}
         businessInfo={businessInfo}

@@ -39,6 +39,7 @@ import { WishlistProvider } from '~/contexts/WishlistContext';
 import { ClientOnly } from 'remix-utils/client-only';
 import { SkeletonLoader } from '~/components/SkeletonLoader';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
+import { formatPrice } from '~/lib/theme-engine';
 
 import { LUXE_BOUTIQUE_THEME } from './theme';
 import { LuxeBoutiqueHeader } from './sections/Header';
@@ -362,12 +363,10 @@ function PreviewProductCard({
         {product.title}
       </h3>
       <p className="text-sm" style={{ color: theme.muted }}>
-        {currency}
-        {product.price.toLocaleString()}
+        {formatPrice(product.price, currency)}
         {isSale && (
           <span className="ml-2 line-through opacity-60">
-            {currency}
-            {product.compareAtPrice?.toLocaleString()}
+            {formatPrice(product.compareAtPrice, currency)}
           </span>
         )}
       </p>

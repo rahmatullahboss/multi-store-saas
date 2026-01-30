@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { Check } from 'lucide-react';
 import type { SelectedProductInfo } from './types';
+import { formatPrice } from '~/lib/theme-engine';
 
 interface MultiProductSelectorProps {
   selectedProducts: SelectedProductInfo[];
@@ -52,29 +53,29 @@ export function useMultiProductSelection(
     comboDiscount2Products = 10,
     comboDiscount3Products = 15,
   } = options;
-  
+
   const [selectedIds, setSelectedIds] = useState<number[]>(
     selectedProducts.length > 0 ? [selectedProducts[0].id] : []
   );
-  
+
   const isMultiProduct = selectedProducts.length > 1;
-  
+
   const toggleProductSelection = (id: number) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       if (prev.includes(id)) {
         if (prev.length === 1) return prev; // Don't deselect last one
-        return prev.filter(pid => pid !== id);
+        return prev.filter((pid) => pid !== id);
       } else {
         return [...prev, id];
       }
     });
   };
-  
-  const selectedProductsData = selectedProducts.filter(p => selectedIds.includes(p.id));
+
+  const selectedProductsData = selectedProducts.filter((p) => selectedIds.includes(p.id));
   const regularTotal = selectedProductsData.reduce((sum, p) => sum + p.price, 0);
   const comboDiscount = getComboDiscount(
-    selectedIds.length, 
-    comboDiscount2Products, 
+    selectedIds.length,
+    comboDiscount2Products,
     comboDiscount3Products,
     enableComboDiscount
   );
@@ -82,12 +83,12 @@ export function useMultiProductSelection(
   const comboTotal = regularTotal - comboSavings;
   const finalTotal = isMultiProduct && selectedIds.length > 1 ? comboTotal : regularTotal;
   const primaryProduct = selectedProductsData[0] || null;
-  
+
   // NOTE: Don't create dynamicVariants here anymore!
   // Variants should come from product settings (useOrderForm handles this via product.variants)
   // We only return the calculated finalTotal which will be used as base price
   // useOrderForm will then use product.variants (from DB/settings) for 1 pis, 2 pis, 3 pis pricing
-  
+
   return {
     selectedIds,
     setSelectedIds,
@@ -129,21 +130,18 @@ export function MultiProductSelector({
     comboDiscount2Products,
     comboDiscount3Products,
   });
-  
+
   if (!isMultiProduct) return null;
-  
+
   return (
     <div className="mb-6">
-      <label 
-        className="block text-sm font-semibold mb-3"
-        style={{ color: textColor }}
-      >
-        প্রোডাক্ট নির্বাচন করুন 
+      <label className="block text-sm font-semibold mb-3" style={{ color: textColor }}>
+        প্রোডাক্ট নির্বাচন করুন
         <span className="font-normal text-xs ml-2" style={{ color: mutedColor }}>
           (একাধিক নির্বাচন করতে পারবেন)
         </span>
       </label>
-      
+
       <div className="space-y-3">
         {selectedProducts.map((p) => {
           const isSelected = selectedIds.includes(p.id);
@@ -159,7 +157,7 @@ export function MultiProductSelector({
               }}
             >
               {/* Checkbox indicator */}
-              <div 
+              <div
                 className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 transition-all"
                 style={{
                   backgroundColor: isSelected ? primaryColor : 'transparent',
@@ -168,23 +166,23 @@ export function MultiProductSelector({
               >
                 {isSelected && <Check className="w-3 h-3 text-white" />}
               </div>
-              
+
               {/* Product image */}
               {p.imageUrl ? (
-                <img 
-                  src={p.imageUrl} 
+                <img
+                  src={p.imageUrl}
                   alt={p.title}
                   className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
                 />
               ) : (
-                <div 
+                <div
                   className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
                   style={{ backgroundColor: inputBorder }}
                 >
                   <span className="text-lg">📦</span>
                 </div>
               )}
-              
+
               {/* Product info */}
               <div className="flex-1 min-w-0">
                 <p className="font-semibold truncate" style={{ color: textColor }}>
@@ -192,11 +190,11 @@ export function MultiProductSelector({
                 </p>
                 <div className="flex items-center gap-2">
                   <span className="font-bold" style={{ color: primaryColor }}>
-                    ৳{p.price.toLocaleString()}
+                    {formatPrice(p.price)}
                   </span>
                   {p.compareAtPrice && p.compareAtPrice > p.price && (
                     <span className="text-sm line-through" style={{ color: mutedColor }}>
-                      ৳{p.compareAtPrice.toLocaleString()}
+                      {formatPrice(p.compareAtPrice)}
                     </span>
                   )}
                 </div>
@@ -205,19 +203,19 @@ export function MultiProductSelector({
           );
         })}
       </div>
-      
+
       {/* Combo discount summary */}
       {selectedIds.length > 1 && (
-        <div 
+        <div
           className="mt-3 p-4 rounded-xl"
-          style={{ 
+          style={{
             backgroundColor: `${primaryColor}10`,
             border: `2px dashed ${primaryColor}40`,
           }}
         >
           {comboDiscount.rate > 0 && (
             <div className="flex justify-center mb-2">
-              <span 
+              <span
                 className="px-3 py-1 rounded-full text-xs font-bold text-white"
                 style={{ backgroundColor: '#EF4444' }}
               >
@@ -225,12 +223,12 @@ export function MultiProductSelector({
               </span>
             </div>
           )}
-          
+
           <div className="text-center space-y-1">
             <p style={{ color: textColor }}>
               <span className="font-bold">{selectedIds.length}টি প্রোডাক্ট</span> নির্বাচিত
             </p>
-            
+
             {comboSavings > 0 ? (
               <div className="flex items-center justify-center gap-2">
                 <span className="line-through text-sm" style={{ color: mutedColor }}>
@@ -245,16 +243,17 @@ export function MultiProductSelector({
                 ৳{regularTotal.toLocaleString()}
               </span>
             )}
-            
+
             {comboSavings > 0 && (
               <p className="text-sm font-semibold" style={{ color: '#16A34A' }}>
                 ✨ কম্বোতে সেভ করছেন ৳{comboSavings.toLocaleString()}!
               </p>
             )}
-            
+
             {selectedIds.length === 2 && selectedProducts.length > 2 && enableComboDiscount && (
               <p className="text-xs mt-2" style={{ color: mutedColor }}>
-                💡 ৩টি নিলে আরও {Math.max(0, comboDiscount3Products - comboDiscount2Products)}% বেশি ছাড়!
+                💡 ৩টি নিলে আরও {Math.max(0, comboDiscount3Products - comboDiscount2Products)}% বেশি
+                ছাড়!
               </p>
             )}
           </div>

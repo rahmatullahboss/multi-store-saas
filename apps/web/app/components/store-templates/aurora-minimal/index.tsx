@@ -42,6 +42,7 @@ import { useProductPrice } from '~/hooks/useProductPrice';
 import { WishlistProvider } from '~/contexts/WishlistContext';
 import { ClientOnly } from 'remix-utils/client-only';
 import { SkeletonLoader } from '~/components/SkeletonLoader';
+import { formatPrice } from '~/lib/theme-engine';
 
 import { AURORA_THEME } from './theme';
 import { AuroraMinimalHeader } from './sections/Header';
@@ -378,9 +379,6 @@ function PreviewHeader({
   );
 }
 
-
-
-
 // --- Product Card ---
 function PreviewProductCard({
   product,
@@ -464,13 +462,11 @@ function PreviewProductCard({
         </h3>
         <div className="flex items-center gap-2 mb-4">
           <span className="text-xl font-bold" style={{ color: theme.primary }}>
-            {currency}
-            {product.price.toLocaleString()}
+            {formatPrice(product.price, currency)}
           </span>
           {isSale && (
             <span className="text-sm line-through" style={{ color: theme.textMuted }}>
-              {currency}
-              {product.compareAtPrice?.toLocaleString()}
+              {formatPrice(product.compareAtPrice, currency)}
             </span>
           )}
         </div>
@@ -517,8 +513,7 @@ function PreviewProductDetailPage({
               {product.title}
             </h1>
             <div className="text-2xl font-bold" style={{ color: theme.primary }}>
-              {currency}
-              {product.price.toLocaleString()}
+              {formatPrice(product.price, currency)}
             </div>
           </div>
           <p className="text-gray-600 leading-relaxed text-lg">
@@ -792,7 +787,17 @@ function PreviewHomePage({
 // MAIN PREVIEW STORE CONTAINER
 // ============================================================================
 function PreviewAuroraStore(props: StoreTemplateProps) {
-  const { storeName, logo, categories: _storeCategories, config, currency, socialLinks, businessInfo, footerConfig, planType } = props;
+  const {
+    storeName,
+    logo,
+    categories: _storeCategories,
+    config,
+    currency,
+    socialLinks,
+    businessInfo,
+    footerConfig,
+    planType,
+  } = props;
   const [currentPage, setCurrentPage] = useState<PageType>({ type: 'home' });
 
   const navigate = useCallback((page: PageType) => {
@@ -897,7 +902,7 @@ function PreviewAuroraStore(props: StoreTemplateProps) {
           onNavigate={navigate}
         />
         <main>{renderPage()}</main>
-        <AuroraMinimalFooter 
+        <AuroraMinimalFooter
           storeName={storeName}
           logo={logo}
           footerConfig={footerConfig}

@@ -37,6 +37,7 @@ import {
   getDemoProductById,
   type DemoProduct,
 } from '~/utils/store-preview-data';
+import { formatPrice } from '~/lib/theme-engine';
 
 // ============================================================================
 // TYPES
@@ -302,13 +303,11 @@ function PreviewProductCard({
         <div className="flex items-center justify-between mb-3">
           <div>
             <span className="text-lg font-bold" style={{ color: TURBO_SALE_THEME.primary }}>
-              {currency}
-              {product.price.toLocaleString()}
+              {formatPrice(product.price, currency)}
             </span>
             {isSale && (
               <span className="text-xs line-through text-gray-400 ml-2">
-                {currency}
-                {product.compareAtPrice?.toLocaleString()}
+                {formatPrice(product.compareAtPrice, currency)}
               </span>
             )}
           </div>
@@ -391,13 +390,11 @@ function PreviewProductDetailPage({
 
           <div className="flex items-baseline gap-3">
             <span className="text-3xl font-bold" style={{ color: TURBO_SALE_THEME.primary }}>
-              {currency}
-              {product.price.toLocaleString()}
+              {formatPrice(product.price, currency)}
             </span>
             {isSale && (
               <span className="text-xl line-through text-gray-400">
-                {currency}
-                {product.compareAtPrice?.toLocaleString()}
+                {formatPrice(product.compareAtPrice, currency)}
               </span>
             )}
           </div>
@@ -730,12 +727,21 @@ function PreviewHomePage({
 
 // PreviewFooter removed - using TurboSaleFooter instead
 
-
 // ============================================================================
 // MAIN PREVIEW STORE CONTAINER
 // ============================================================================
 function PreviewTurboSaleStore(props: StoreTemplateProps) {
-  const { storeName, logo, categories, config, currency, businessInfo, socialLinks, footerConfig, planType } = props;
+  const {
+    storeName,
+    logo,
+    categories,
+    config,
+    currency,
+    businessInfo,
+    socialLinks,
+    footerConfig,
+    planType,
+  } = props;
   const [currentPage, setCurrentPage] = useState<PageType>({ type: 'home' });
 
   const navigate = useCallback((page: PageType) => {

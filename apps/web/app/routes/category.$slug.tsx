@@ -15,6 +15,7 @@ import { getStoreConfig } from '~/services/store-config.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { parseSocialLinks } from '@db/types';
+import { formatPrice } from '~/lib/theme-engine';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data || !data.categoryName) {
@@ -271,13 +272,11 @@ export default function CategoryPage() {
                         </h3>
                         <div className="mt-1 flex items-center gap-2">
                           <span className="font-semibold text-gray-900">
-                            {currencySymbol}
-                            {product.price.toLocaleString()}
+                            {formatPrice(product.price)}
                           </span>
                           {hasDiscount && (
                             <span className="text-sm text-gray-500 line-through">
-                              {currencySymbol}
-                              {product.compareAtPrice?.toLocaleString()}
+                              {formatPrice(product.compareAtPrice)}
                             </span>
                           )}
                         </div>

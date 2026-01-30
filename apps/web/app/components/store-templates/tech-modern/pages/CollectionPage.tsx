@@ -2,6 +2,7 @@ import { Link, useParams } from '@remix-run/react';
 import { Filter, Grid, List } from 'lucide-react';
 import type { SerializedProduct } from '~/templates/store-registry';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
+import { formatPrice } from '~/lib/theme-engine';
 
 interface TechCollectionProps {
   products: SerializedProduct[];
@@ -108,13 +109,11 @@ export function TechCollectionPage({
                     <div className="mt-auto">
                       <div className="flex items-baseline gap-2 mb-2">
                         <span className="text-lg font-bold text-blue-600">
-                          {currencySymbol}
-                          {product.price.toLocaleString()}
+                          {formatPrice(product.price)}
                         </span>
                         {product.compareAtPrice && (
                           <span className="text-xs text-gray-400 line-through">
-                            {currencySymbol}
-                            {product.compareAtPrice.toLocaleString()}
+                            {formatPrice(product.compareAtPrice)}
                           </span>
                         )}
                       </div>

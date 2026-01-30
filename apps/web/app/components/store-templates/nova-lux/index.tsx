@@ -34,6 +34,7 @@ import { useProductPrice } from '~/hooks/useProductPrice';
 import { WishlistProvider } from '~/contexts/WishlistContext';
 import { ClientOnly } from 'remix-utils/client-only';
 import { SkeletonLoader } from '~/components/SkeletonLoader';
+import { formatPrice } from '~/lib/theme-engine';
 
 import { NOVALUX_THEME } from './theme';
 import { NovaLuxHeader } from './sections/Header';
@@ -428,12 +429,10 @@ function PreviewProductCard({
           ))}
         </div>
         <div className="text-lg font-bold" style={{ color: NOVALUX_THEME.primary }}>
-          {currency}
-          {product.price.toLocaleString()}
+          {formatPrice(product.price, currency)}
           {isSale && (
             <span className="text-xs line-through ml-2 text-gray-400">
-              {currency}
-              {product.compareAtPrice?.toLocaleString()}
+              {formatPrice(product.compareAtPrice, currency)}
             </span>
           )}
         </div>

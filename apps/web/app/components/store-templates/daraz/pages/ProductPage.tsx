@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { DARAZ_THEME } from '../theme';
 import type { Product } from '@db/schema';
+import { formatPrice } from '~/lib/theme-engine';
 
 interface ProductPageProps {
   product: Product;
@@ -199,11 +200,11 @@ export function DarazProductPage({
             <div className="mb-6 pb-6" style={{ borderBottom: `1px solid ${DARAZ_THEME.border}` }}>
               <div className="flex items-baseline gap-3">
                 <span className="text-3xl font-bold" style={{ color: DARAZ_THEME.priceOrange }}>
-                  {currency} {(product.price ?? 0).toLocaleString()}
+                  {formatPrice(product.price)}
                 </span>
                 {product.compareAtPrice && product.compareAtPrice > (product.price ?? 0) && (
                   <span className="text-lg line-through" style={{ color: DARAZ_THEME.muted }}>
-                    {currency} {product.compareAtPrice.toLocaleString()}
+                    {formatPrice(product.compareAtPrice)}
                   </span>
                 )}
               </div>
@@ -354,7 +355,7 @@ export function DarazProductPage({
                         {p.title}
                       </h3>
                       <p className="font-bold text-sm" style={{ color: DARAZ_THEME.priceOrange }}>
-                        {currency} {(p.price ?? 0).toLocaleString()}
+                        {formatPrice(p.price)}
                       </p>
                     </div>
                   </a>

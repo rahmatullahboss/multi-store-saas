@@ -1,17 +1,32 @@
 /**
  * GhorerBazar Store Template
- * 
+ *
  * Bangladeshi Grocery & Organic Food Store
  * Style: Clean, Trust-focused, COD-first, WhatsApp-friendly
  */
 
 import { Link, useSearchParams } from '@remix-run/react';
 import { useState, createContext, useContext, useCallback } from 'react';
-import { 
-  ShoppingCart, Eye, Star, ChevronRight, X,
-  Plus, Minus, MessageCircle, Phone, Truck, Check,
-  Mail, MapPin, ChevronDown, Heart, Shield, Award, Leaf,
-  Search
+import {
+  ShoppingCart,
+  Eye,
+  Star,
+  ChevronRight,
+  X,
+  Plus,
+  Minus,
+  MessageCircle,
+  Phone,
+  Truck,
+  Check,
+  Mail,
+  MapPin,
+  ChevronDown,
+  Heart,
+  Shield,
+  Award,
+  Leaf,
+  Search,
 } from 'lucide-react';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
 import { GhorerBazarHeader } from './sections/Header';
@@ -54,13 +69,11 @@ function CartProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const addItem = useCallback((product: SerializedProduct, quantity = 1) => {
-    setItems(prev => {
-      const existing = prev.find(item => item.id === product.id);
+    setItems((prev) => {
+      const existing = prev.find((item) => item.id === product.id);
       if (existing) {
-        return prev.map(item => 
-          item.id === product.id 
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
+        return prev.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
         );
       }
       return [...prev, { ...product, quantity }];
@@ -69,18 +82,21 @@ function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const removeItem = useCallback((productId: number) => {
-    setItems(prev => prev.filter(item => item.id !== productId));
+    setItems((prev) => prev.filter((item) => item.id !== productId));
   }, []);
 
-  const updateQuantity = useCallback((productId: number, quantity: number) => {
-    if (quantity <= 0) {
-      removeItem(productId);
-      return;
-    }
-    setItems(prev => prev.map(item => 
-      item.id === productId ? { ...item, quantity } : item
-    ));
-  }, [removeItem]);
+  const updateQuantity = useCallback(
+    (productId: number, quantity: number) => {
+      if (quantity <= 0) {
+        removeItem(productId);
+        return;
+      }
+      setItems((prev) =>
+        prev.map((item) => (item.id === productId ? { ...item, quantity } : item))
+      );
+    },
+    [removeItem]
+  );
 
   const clearCart = useCallback(() => setItems([]), []);
 
@@ -88,10 +104,19 @@ function CartProvider({ children }: { children: React.ReactNode }) {
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ 
-      items, addItem, removeItem, updateQuantity, clearCart, 
-      total, itemCount, isOpen, setIsOpen 
-    }}>
+    <CartContext.Provider
+      value={{
+        items,
+        addItem,
+        removeItem,
+        updateQuantity,
+        clearCart,
+        total,
+        itemCount,
+        isOpen,
+        setIsOpen,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
@@ -101,7 +126,7 @@ function CartProvider({ children }: { children: React.ReactNode }) {
 // HELPER: Format Price
 // ============================================================================
 function formatPrice(price: number): string {
-  return `৳${price.toLocaleString('bn-BD')}`;
+  return `৳${(price / 100).toLocaleString('bn-BD')}`;
 }
 
 // ============================================================================
@@ -131,15 +156,21 @@ function CouponInput() {
         কুপন কোড (যদি থাকে)
       </label>
       <div className="flex gap-2">
-        <input 
+        <input
           type="text"
           placeholder="কুপন কোড"
           value={code}
-          onChange={(e) => { setCode(e.target.value); setStatus('idle'); }}
+          onChange={(e) => {
+            setCode(e.target.value);
+            setStatus('idle');
+          }}
           className="flex-1 px-3 py-2.5 rounded-lg border focus:outline-none"
-          style={{ borderColor: status === 'error' ? '#ef4444' : status === 'success' ? '#22c55e' : theme.border }}
+          style={{
+            borderColor:
+              status === 'error' ? '#ef4444' : status === 'success' ? '#22c55e' : theme.border,
+          }}
         />
-        <button 
+        <button
           type="button"
           onClick={handleApply}
           disabled={status === 'checking'}
@@ -149,8 +180,12 @@ function CouponInput() {
           {status === 'checking' ? '...' : 'Apply'}
         </button>
       </div>
-      {status === 'success' && <p className="text-xs mt-1 text-green-600">✓ কুপন প্রয়োগ হয়েছে!</p>}
-      {status === 'error' && <p className="text-xs mt-1 text-red-500">✗ কুপন কোড সঠিক নয়। DEMO10 ট্রাই করুন।</p>}
+      {status === 'success' && (
+        <p className="text-xs mt-1 text-green-600">✓ কুপন প্রয়োগ হয়েছে!</p>
+      )}
+      {status === 'error' && (
+        <p className="text-xs mt-1 text-red-500">✗ কুপন কোড সঠিক নয়। DEMO10 ট্রাই করুন।</p>
+      )}
     </div>
   );
 }
@@ -167,9 +202,9 @@ interface ProductCardProps {
 function GhorerBazarProductCard({ product, onProductClick, onQuickAdd }: ProductCardProps) {
   const [isAdding, setIsAdding] = useState(false);
   const theme = GHORER_BAZAR_THEME;
-  
-  const discount = product.compareAtPrice 
-    ? Math.round((1 - product.price / product.compareAtPrice) * 100) 
+
+  const discount = product.compareAtPrice
+    ? Math.round((1 - product.price / product.compareAtPrice) * 100)
     : 0;
 
   const handleQuickAdd = (e: React.MouseEvent) => {
@@ -181,9 +216,9 @@ function GhorerBazarProductCard({ product, onProductClick, onQuickAdd }: Product
   };
 
   return (
-    <div 
+    <div
       className="group bg-white rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer"
-      style={{ 
+      style={{
         boxShadow: theme.shadowCard,
         fontFamily: GHORER_BAZAR_FONTS.body,
       }}
@@ -191,8 +226,8 @@ function GhorerBazarProductCard({ product, onProductClick, onQuickAdd }: Product
     >
       {/* Image Container */}
       <div className="block relative aspect-square bg-white overflow-hidden">
-        <img 
-          src={product.imageUrl || 'https://placehold.co/400x400/ffffff/999999?text=No+Image'} 
+        <img
+          src={product.imageUrl || 'https://placehold.co/400x400/ffffff/999999?text=No+Image'}
           alt={product.title}
           className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
@@ -201,7 +236,7 @@ function GhorerBazarProductCard({ product, onProductClick, onQuickAdd }: Product
         {/* Badges - Top Left */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {discount > 0 && (
-            <span 
+            <span
               className="px-2 py-0.5 text-[10px] font-bold text-white rounded"
               style={{ backgroundColor: theme.badgeSale }}
             >
@@ -209,7 +244,7 @@ function GhorerBazarProductCard({ product, onProductClick, onQuickAdd }: Product
             </span>
           )}
           {product.id % 4 === 0 && (
-            <span 
+            <span
               className="px-2 py-0.5 text-[10px] font-bold text-white rounded"
               style={{ backgroundColor: theme.badgeStock }}
             >
@@ -222,7 +257,7 @@ function GhorerBazarProductCard({ product, onProductClick, onQuickAdd }: Product
       {/* Product Info */}
       <div className="p-3">
         {/* Title */}
-        <h3 
+        <h3
           className="mt-1 font-medium line-clamp-2 text-sm leading-tight min-h-[36px]"
           style={{ color: theme.text }}
         >
@@ -231,18 +266,12 @@ function GhorerBazarProductCard({ product, onProductClick, onQuickAdd }: Product
 
         {/* Price */}
         <div className="flex items-center gap-2 mt-2">
-          <span 
-            className="text-base font-bold"
-            style={{ color: theme.text }}
-          >
-            Tk {product.price.toLocaleString('bn-BD')}
+          <span className="text-base font-bold" style={{ color: theme.text }}>
+            {formatPrice(product.price)}
           </span>
           {product.compareAtPrice && (
-            <span 
-              className="text-xs line-through"
-              style={{ color: theme.priceOld }}
-            >
-              Tk {product.compareAtPrice.toLocaleString('bn-BD')}
+            <span className="text-xs line-through" style={{ color: theme.priceOld }}>
+              {formatPrice(product.compareAtPrice)}
             </span>
           )}
         </div>
@@ -265,34 +294,31 @@ function GhorerBazarProductCard({ product, onProductClick, onQuickAdd }: Product
 // ============================================================================
 function HeroSection({ storeName, config }: { storeName: string; config: any }) {
   const theme = GHORER_BAZAR_THEME;
-  
+
   return (
-    <section 
-      className="relative py-10 md:py-16"
-      style={{ backgroundColor: theme.primaryLight }}
-    >
+    <section className="relative py-10 md:py-16" style={{ backgroundColor: theme.primaryLight }}>
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center gap-8">
           {/* Left: Text Content */}
           <div className="flex-1 text-center md:text-left">
-            <span 
+            <span
               className="inline-block px-3 py-1 rounded-full text-xs font-medium mb-4"
               style={{ backgroundColor: theme.primary, color: 'white' }}
             >
               🎉 ১০০% খাঁটি ও প্রাকৃতিক
             </span>
-            <h1 
+            <h1
               className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4"
               style={{ color: theme.text, fontFamily: GHORER_BAZAR_FONTS.heading }}
             >
               {config?.bannerText || 'সুন্দরবনের খাঁটি মধু ও অর্গানিক পণ্য'}
             </h1>
-            <p 
+            <p
               className="text-base md:text-lg mb-6 max-w-lg mx-auto md:mx-0"
               style={{ color: theme.textSecondary }}
             >
-              বিশ্বস্ততার সাথে সরাসরি আপনার ঘরে পৌঁছে দিচ্ছি খাঁটি ও ভেজালমুক্ত পণ্য। 
-              ক্যাশ অন ডেলিভারি ও ফ্রি হোম ডেলিভারি সুবিধা।
+              বিশ্বস্ততার সাথে সরাসরি আপনার ঘরে পৌঁছে দিচ্ছি খাঁটি ও ভেজালমুক্ত পণ্য। ক্যাশ অন
+              ডেলিভারি ও ফ্রি হোম ডেলিভারি সুবিধা।
             </p>
             <div className="flex flex-wrap gap-3 justify-center md:justify-start">
               <Link
@@ -316,18 +342,25 @@ function HeroSection({ storeName, config }: { storeName: string; config: any }) 
           {/* Right: Product Image */}
           <div className="flex-1 flex justify-center">
             <div className="relative">
-              <img 
-                src={config?.bannerUrl || 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=500&h=500&fit=crop'}
+              <img
+                src={
+                  config?.bannerUrl ||
+                  'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=500&h=500&fit=crop'
+                }
                 alt="Featured Product"
                 className="w-64 h-64 md:w-80 md:h-80 object-contain drop-shadow-2xl"
               />
               {/* Floating Badge */}
-              <div 
+              <div
                 className="absolute -bottom-2 -right-2 px-4 py-2 rounded-lg shadow-lg"
                 style={{ backgroundColor: 'white' }}
               >
-                <p className="text-xs font-medium" style={{ color: theme.textMuted }}>থেকে শুরু</p>
-                <p className="text-xl font-bold" style={{ color: theme.primary }}>৳২৯৯</p>
+                <p className="text-xs font-medium" style={{ color: theme.textMuted }}>
+                  থেকে শুরু
+                </p>
+                <p className="text-xl font-bold" style={{ color: theme.primary }}>
+                  ৳২৯৯
+                </p>
               </div>
             </div>
           </div>
@@ -365,22 +398,23 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
   return (
     <div className="fixed inset-0 z-[300]" style={{ fontFamily: GHORER_BAZAR_FONTS.body }}>
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/50"
-        onClick={() => cart.setIsOpen(false)}
-      />
-      
+      <div className="absolute inset-0 bg-black/50" onClick={() => cart.setIsOpen(false)} />
+
       {/* Modal */}
       <div className="absolute inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div 
+        <div
           className="flex items-center justify-between px-4 py-3 border-b"
           style={{ borderColor: theme.border }}
         >
           <h2 className="font-bold text-lg" style={{ color: theme.text }}>
-            {step === 'cart' ? `শপিং কার্ট (${cart.itemCount})` : step === 'checkout' ? 'অর্ডার করুন' : 'অর্ডার সফল!'}
+            {step === 'cart'
+              ? `শপিং কার্ট (${cart.itemCount})`
+              : step === 'checkout'
+                ? 'অর্ডার করুন'
+                : 'অর্ডার সফল!'}
           </h2>
-          <button 
+          <button
             onClick={() => cart.setIsOpen(false)}
             className="p-1.5 hover:bg-gray-100 rounded-lg transition"
           >
@@ -392,7 +426,7 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
         <div className="flex-1 overflow-y-auto p-4">
           {step === 'success' ? (
             <div className="text-center py-8">
-              <div 
+              <div
                 className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
                 style={{ backgroundColor: theme.primaryLight }}
               >
@@ -404,11 +438,17 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
               <p className="mb-4" style={{ color: theme.textMuted }}>
                 আপনার অর্ডার সফলভাবে গ্রহণ করা হয়েছে।
               </p>
-              <p className="text-sm px-4 py-2 rounded-lg inline-block mb-4" style={{ backgroundColor: theme.primaryLight, color: theme.primary }}>
+              <p
+                className="text-sm px-4 py-2 rounded-lg inline-block mb-4"
+                style={{ backgroundColor: theme.primaryLight, color: theme.primary }}
+              >
                 শীঘ্রই আমাদের টিম আপনার সাথে যোগাযোগ করবে।
               </p>
-              <button 
-                onClick={() => { cart.setIsOpen(false); setStep('cart'); }}
+              <button
+                onClick={() => {
+                  cart.setIsOpen(false);
+                  setStep('cart');
+                }}
                 className="px-6 py-2.5 rounded-lg text-white font-medium"
                 style={{ backgroundColor: theme.primary }}
               >
@@ -419,39 +459,47 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
             <>
               {cart.items.length === 0 ? (
                 <div className="text-center py-8">
-                  <ShoppingCart className="w-12 h-12 mx-auto mb-3 opacity-30" style={{ color: theme.textMuted }} />
+                  <ShoppingCart
+                    className="w-12 h-12 mx-auto mb-3 opacity-30"
+                    style={{ color: theme.textMuted }}
+                  />
                   <p style={{ color: theme.textMuted }}>কার্ট খালি</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {cart.items.map(item => (
-                    <div 
+                  {cart.items.map((item) => (
+                    <div
                       key={item.id}
                       className="flex gap-3 p-3 rounded-lg"
                       style={{ backgroundColor: theme.background }}
                     >
-                      <img 
-                        src={item.imageUrl || ''} 
+                      <img
+                        src={item.imageUrl || ''}
                         alt={item.title}
                         className="w-16 h-16 object-contain rounded-lg bg-white"
                       />
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm line-clamp-1" style={{ color: theme.text }}>
+                        <h4
+                          className="font-medium text-sm line-clamp-1"
+                          style={{ color: theme.text }}
+                        >
                           {item.title}
                         </h4>
                         <p className="text-sm font-bold mt-1" style={{ color: theme.primary }}>
                           {formatPrice(item.price)}
                         </p>
                         <div className="flex items-center gap-2 mt-2">
-                          <button 
+                          <button
                             onClick={() => cart.updateQuantity(item.id, item.quantity - 1)}
                             className="w-7 h-7 rounded-lg border flex items-center justify-center hover:bg-gray-50"
                             style={{ borderColor: theme.border }}
                           >
                             <Minus className="w-3 h-3" />
                           </button>
-                          <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
-                          <button 
+                          <span className="w-8 text-center text-sm font-medium">
+                            {item.quantity}
+                          </span>
+                          <button
                             onClick={() => cart.updateQuantity(item.id, item.quantity + 1)}
                             className="w-7 h-7 rounded-lg border flex items-center justify-center hover:bg-gray-50"
                             style={{ borderColor: theme.border }}
@@ -460,7 +508,7 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
                           </button>
                         </div>
                       </div>
-                      <button 
+                      <button
                         onClick={() => cart.removeItem(item.id)}
                         className="p-1 h-fit hover:bg-red-50 rounded text-red-500"
                       >
@@ -477,7 +525,7 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
                 <label className="block text-sm font-medium mb-1.5" style={{ color: theme.text }}>
                   আপনার নাম *
                 </label>
-                <input 
+                <input
                   type="text"
                   required
                   placeholder="সম্পূর্ণ নাম"
@@ -489,7 +537,7 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
                 <label className="block text-sm font-medium mb-1.5" style={{ color: theme.text }}>
                   মোবাইল নম্বর *
                 </label>
-                <input 
+                <input
                   type="tel"
                   required
                   placeholder="01XXXXXXXXX"
@@ -501,7 +549,7 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
                 <label className="block text-sm font-medium mb-1.5" style={{ color: theme.text }}>
                   সম্পূর্ণ ঠিকানা *
                 </label>
-                <textarea 
+                <textarea
                   required
                   rows={2}
                   placeholder="বাড়ি নং, রাস্তা, এলাকা, শহর"
@@ -509,7 +557,7 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
                   style={{ borderColor: theme.border }}
                 />
               </div>
-              
+
               {/* Shipping Zone */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: theme.text }}>
@@ -520,16 +568,18 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
                     { id: 'dhaka', label: 'ঢাকা সিটি', cost: 60 },
                     { id: 'chittagong', label: 'চট্টগ্রাম সিটি', cost: 80 },
                     { id: 'outside', label: 'ঢাকা/চট্টগ্রামের বাইরে', cost: 120 },
-                  ].map(zone => (
-                    <label 
+                  ].map((zone) => (
+                    <label
                       key={zone.id}
                       className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition ${
                         shippingZone === zone.id ? 'border-orange-400 bg-orange-50' : ''
                       }`}
-                      style={{ borderColor: shippingZone === zone.id ? theme.primary : theme.border }}
+                      style={{
+                        borderColor: shippingZone === zone.id ? theme.primary : theme.border,
+                      }}
                     >
                       <div className="flex items-center gap-2">
-                        <input 
+                        <input
                           type="radio"
                           name="shipping"
                           value={zone.id}
@@ -566,7 +616,10 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
                   <span>৳{shippingCost}</span>
                 </div>
               )}
-              <div className="flex justify-between font-bold text-base pt-1.5 border-t" style={{ borderColor: theme.border, color: theme.text }}>
+              <div
+                className="flex justify-between font-bold text-base pt-1.5 border-t"
+                style={{ borderColor: theme.border, color: theme.text }}
+              >
                 <span>মোট</span>
                 <span style={{ color: theme.primary }}>
                   {formatPrice(step === 'checkout' ? grandTotal : cart.total)}
@@ -576,7 +629,7 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
 
             {/* Buttons */}
             {step === 'cart' ? (
-              <button 
+              <button
                 onClick={() => setStep('checkout')}
                 className="w-full py-3 rounded-lg font-bold text-white transition hover:opacity-90"
                 style={{ backgroundColor: theme.primary }}
@@ -585,7 +638,7 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
               </button>
             ) : (
               <div className="space-y-2">
-                <button 
+                <button
                   type="submit"
                   form="checkout-form"
                   onClick={handleSubmit}
@@ -595,9 +648,11 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
                 >
                   {isSubmitting ? 'অর্ডার প্রসেস হচ্ছে...' : 'কনফার্ম অর্ডার (COD)'}
                 </button>
-                <button 
+                <button
                   type="button"
-                  onClick={() => alert('অনলাইন পেমেন্ট শীঘ্রই আসছে! এখন ক্যাশ অন ডেলিভারি ব্যবহার করুন।')}
+                  onClick={() =>
+                    alert('অনলাইন পেমেন্ট শীঘ্রই আসছে! এখন ক্যাশ অন ডেলিভারি ব্যবহার করুন।')
+                  }
                   className="w-full py-3 rounded-lg font-bold transition hover:opacity-90"
                   style={{ backgroundColor: theme.warning, color: theme.secondary }}
                 >
@@ -607,7 +662,7 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
             )}
 
             {/* WhatsApp Order */}
-            <a 
+            <a
               href={`https://wa.me/${(socialLinks?.whatsapp || businessInfo?.phone || '').replace(/\D/g, '')}?text=হ্যালো, আমি অর্ডার করতে চাই`}
               target="_blank"
               rel="noopener noreferrer"
@@ -627,15 +682,15 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
 // ============================================================================
 // PAGE: Product Details - Reference Bangladeshi Grocery Store Design
 // ============================================================================
-function ProductDetailPage({ 
-  product, 
+function ProductDetailPage({
+  product,
   products,
   onAddToCart,
   onBuyNow,
   onProductClick,
   businessInfo,
   socialLinks,
-}: { 
+}: {
   product: SerializedProduct;
   products: SerializedProduct[];
   onAddToCart: (product: SerializedProduct, qty: number) => void;
@@ -650,8 +705,8 @@ function ProductDetailPage({
   const [descExpanded, setDescExpanded] = useState(true);
   const [benefitsExpanded, setBenefitsExpanded] = useState(false);
 
-  const discount = product.compareAtPrice 
-    ? Math.round((1 - product.price / product.compareAtPrice) * 100) 
+  const discount = product.compareAtPrice
+    ? Math.round((1 - product.price / product.compareAtPrice) * 100)
     : 0;
 
   const whatsappNumber = socialLinks?.whatsapp || businessInfo?.phone || '01700000000';
@@ -659,7 +714,7 @@ function ProductDetailPage({
 
   // Related products (same category)
   const relatedProducts = products
-    .filter(p => p.id !== product.id && p.category === product.category)
+    .filter((p) => p.id !== product.id && p.category === product.category)
     .slice(0, 6);
 
   return (
@@ -668,13 +723,13 @@ function ProductDetailPage({
         {/* Two Column Layout */}
         <div className="grid md:grid-cols-2 gap-6 md:gap-10">
           {/* LEFT: Product Image */}
-          <div 
+          <div
             className="relative bg-white rounded-2xl overflow-hidden cursor-zoom-in"
             onMouseEnter={() => setIsZoomed(true)}
             onMouseLeave={() => setIsZoomed(false)}
           >
             <div className="aspect-square">
-              <img 
+              <img
                 src={product.imageUrl || 'https://placehold.co/600x600/fff/999?text=No+Image'}
                 alt={product.title}
                 className={`w-full h-full object-contain p-6 transition-transform duration-300 ${isZoomed ? 'scale-125' : 'scale-100'}`}
@@ -682,7 +737,7 @@ function ProductDetailPage({
             </div>
             {/* Badges */}
             {discount > 0 && (
-              <span 
+              <span
                 className="absolute top-4 left-4 px-3 py-1 text-sm font-bold text-white rounded-lg"
                 style={{ backgroundColor: theme.badgeSale }}
               >
@@ -695,7 +750,7 @@ function ProductDetailPage({
           <div className="space-y-5">
             {/* Category */}
             {product.category && (
-              <span 
+              <span
                 className="text-sm font-medium uppercase tracking-wide"
                 style={{ color: theme.primary }}
               >
@@ -704,7 +759,7 @@ function ProductDetailPage({
             )}
 
             {/* Title */}
-            <h1 
+            <h1
               className="text-2xl md:text-3xl font-bold leading-tight"
               style={{ color: theme.text, fontFamily: GHORER_BAZAR_FONTS.heading }}
             >
@@ -713,22 +768,16 @@ function ProductDetailPage({
 
             {/* Price */}
             <div className="flex items-baseline gap-3">
-              <span 
-                className="text-3xl font-bold"
-                style={{ color: theme.text }}
-              >
-                ৳{product.price.toLocaleString()}
+              <span className="text-3xl font-bold" style={{ color: theme.text }}>
+                {formatPrice(product.price)}
               </span>
               {product.compareAtPrice && (
-                <span 
-                  className="text-xl line-through"
-                  style={{ color: theme.textMuted }}
-                >
-                  ৳{product.compareAtPrice.toLocaleString()}
+                <span className="text-xl line-through" style={{ color: theme.textMuted }}>
+                  {formatPrice(product.compareAtPrice)}
                 </span>
               )}
               {discount > 0 && (
-                <span 
+                <span
                   className="px-2 py-0.5 text-sm font-medium rounded"
                   style={{ backgroundColor: theme.badgeSale, color: '#fff' }}
                 >
@@ -743,20 +792,20 @@ function ProductDetailPage({
                 পরিমাণ
               </label>
               <div className="flex items-center gap-0 w-fit">
-                <button 
+                <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   className="w-12 h-12 flex items-center justify-center border rounded-l-lg hover:bg-gray-50 transition"
                   style={{ borderColor: theme.border }}
                 >
                   <Minus className="w-5 h-5" />
                 </button>
-                <span 
+                <span
                   className="w-16 h-12 flex items-center justify-center border-t border-b text-lg font-medium"
                   style={{ borderColor: theme.border }}
                 >
                   {quantity}
                 </span>
-                <button 
+                <button
                   onClick={() => setQuantity(quantity + 1)}
                   className="w-12 h-12 flex items-center justify-center border rounded-r-lg hover:bg-gray-50 transition"
                   style={{ borderColor: theme.border }}
@@ -769,7 +818,7 @@ function ProductDetailPage({
             {/* Action Buttons */}
             <div className="space-y-3">
               {/* Add to Cart - Black */}
-              <button 
+              <button
                 onClick={() => onAddToCart(product, quantity)}
                 className="w-full py-3.5 rounded-lg font-bold text-white transition hover:opacity-90 flex items-center justify-center gap-2"
                 style={{ backgroundColor: theme.secondary }}
@@ -779,7 +828,7 @@ function ProductDetailPage({
               </button>
 
               {/* Cash on Delivery Order - Orange */}
-              <button 
+              <button
                 onClick={() => onBuyNow(product, quantity)}
                 className="w-full py-3.5 rounded-lg font-bold text-white transition hover:opacity-90 flex items-center justify-center gap-2"
                 style={{ backgroundColor: theme.primary }}
@@ -790,7 +839,7 @@ function ProductDetailPage({
 
               {/* WhatsApp & Chat Buttons */}
               <div className="grid grid-cols-2 gap-3">
-                <a 
+                <a
                   href={`https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(whatsappMessage)}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -800,7 +849,7 @@ function ProductDetailPage({
                   <MessageCircle className="w-5 h-5" />
                   WhatsApp
                 </a>
-                <a 
+                <a
                   href={`?page=contact`}
                   className="py-3 rounded-lg font-medium transition hover:opacity-90 flex items-center justify-center gap-2 border"
                   style={{ borderColor: theme.border, color: theme.text }}
@@ -812,20 +861,29 @@ function ProductDetailPage({
             </div>
 
             {/* Description Accordion */}
-            <div className="border rounded-xl overflow-hidden" style={{ borderColor: theme.border }}>
+            <div
+              className="border rounded-xl overflow-hidden"
+              style={{ borderColor: theme.border }}
+            >
               {/* Description */}
               <div className="border-b" style={{ borderColor: theme.border }}>
-                <button 
+                <button
                   onClick={() => setDescExpanded(!descExpanded)}
                   className="w-full px-4 py-3 flex items-center justify-between bg-white"
                 >
-                  <span className="font-medium" style={{ color: theme.text }}>পণ্যের বিবরণ</span>
-                  <ChevronDown className={`w-5 h-5 transition-transform ${descExpanded ? 'rotate-180' : ''}`} style={{ color: theme.primary }} />
+                  <span className="font-medium" style={{ color: theme.text }}>
+                    পণ্যের বিবরণ
+                  </span>
+                  <ChevronDown
+                    className={`w-5 h-5 transition-transform ${descExpanded ? 'rotate-180' : ''}`}
+                    style={{ color: theme.primary }}
+                  />
                 </button>
                 {descExpanded && (
                   <div className="px-4 pb-4 bg-white space-y-3">
                     <p className="text-sm leading-relaxed" style={{ color: theme.textSecondary }}>
-                      {product.description || 'এই পণ্যটি ১০০% খাঁটি এবং প্রাকৃতিক। কোনো কেমিক্যাল বা প্রিজার্ভেটিভ নেই। সরাসরি গ্রাম থেকে সংগৃহীত।'}
+                      {product.description ||
+                        'এই পণ্যটি ১০০% খাঁটি এবং প্রাকৃতিক। কোনো কেমিক্যাল বা প্রিজার্ভেটিভ নেই। সরাসরি গ্রাম থেকে সংগৃহীত।'}
                     </p>
                     <div className="text-sm" style={{ color: theme.textSecondary }}>
                       <strong>উৎস:</strong> গ্রামবাংলার কৃষক ও উৎপাদক
@@ -842,12 +900,17 @@ function ProductDetailPage({
 
               {/* Benefits */}
               <div>
-                <button 
+                <button
                   onClick={() => setBenefitsExpanded(!benefitsExpanded)}
                   className="w-full px-4 py-3 flex items-center justify-between bg-white"
                 >
-                  <span className="font-medium" style={{ color: theme.text }}>উপকারিতা ও ব্যবহার</span>
-                  <ChevronDown className={`w-5 h-5 transition-transform ${benefitsExpanded ? 'rotate-180' : ''}`} style={{ color: theme.primary }} />
+                  <span className="font-medium" style={{ color: theme.text }}>
+                    উপকারিতা ও ব্যবহার
+                  </span>
+                  <ChevronDown
+                    className={`w-5 h-5 transition-transform ${benefitsExpanded ? 'rotate-180' : ''}`}
+                    style={{ color: theme.primary }}
+                  />
                 </button>
                 {benefitsExpanded && (
                   <div className="px-4 pb-4 bg-white">
@@ -877,35 +940,44 @@ function ProductDetailPage({
         </div>
 
         {/* Trust Strip */}
-        <div className="grid grid-cols-3 gap-4 mt-8 py-6 border-t border-b" style={{ borderColor: theme.border }}>
+        <div
+          className="grid grid-cols-3 gap-4 mt-8 py-6 border-t border-b"
+          style={{ borderColor: theme.border }}
+        >
           <div className="text-center">
             <div className="text-2xl mb-1">📦</div>
-            <p className="text-sm font-medium" style={{ color: theme.text }}>নিরাপদ প্যাকেজিং</p>
+            <p className="text-sm font-medium" style={{ color: theme.text }}>
+              নিরাপদ প্যাকেজিং
+            </p>
           </div>
           <div className="text-center">
             <div className="text-2xl mb-1">🚚</div>
-            <p className="text-sm font-medium" style={{ color: theme.text }}>দ্রুত ডেলিভারি</p>
+            <p className="text-sm font-medium" style={{ color: theme.text }}>
+              দ্রুত ডেলিভারি
+            </p>
           </div>
           <div className="text-center">
             <div className="text-2xl mb-1">🌿</div>
-            <p className="text-sm font-medium" style={{ color: theme.text }}>১০০% প্রাকৃতিক</p>
+            <p className="text-sm font-medium" style={{ color: theme.text }}>
+              ১০০% প্রাকৃতিক
+            </p>
           </div>
         </div>
 
         {/* You Might Also Like */}
         {relatedProducts.length > 0 && (
           <div className="mt-10">
-            <h2 
+            <h2
               className="text-xl font-bold mb-6"
               style={{ color: theme.text, fontFamily: GHORER_BAZAR_FONTS.heading }}
             >
               আপনার পছন্দ হতে পারে
             </h2>
             <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
-              {relatedProducts.map(p => (
+              {relatedProducts.map((p) => (
                 <div key={p.id} className="flex-shrink-0 w-44">
-                  <GhorerBazarProductCard 
-                    product={p} 
+                  <GhorerBazarProductCard
+                    product={p}
                     onProductClick={onProductClick}
                     onQuickAdd={(item) => onAddToCart(item, 1)}
                   />
@@ -917,16 +989,20 @@ function ProductDetailPage({
       </div>
 
       {/* Mobile Sticky Add to Cart */}
-      <div 
+      <div
         className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t md:hidden z-40"
         style={{ borderColor: theme.border }}
       >
         <div className="flex items-center gap-3">
           <div className="flex-1">
-            <p className="text-sm" style={{ color: theme.textMuted }}>{product.title}</p>
-            <p className="font-bold" style={{ color: theme.primary }}>৳{product.price.toLocaleString()}</p>
+            <p className="text-sm" style={{ color: theme.textMuted }}>
+              {product.title}
+            </p>
+            <p className="font-bold" style={{ color: theme.primary }}>
+              {formatPrice(product.price)}
+            </p>
           </div>
-          <button 
+          <button
             onClick={() => onBuyNow(product, quantity)}
             className="px-6 py-3 rounded-lg font-bold text-white"
             style={{ backgroundColor: theme.primary }}
@@ -942,15 +1018,15 @@ function ProductDetailPage({
 // ============================================================================
 // MODAL: Cart & Checkout - Popup with COD Form
 // ============================================================================
-function CartCheckoutModal({ 
-  isOpen, 
+function CartCheckoutModal({
+  isOpen,
   onClose,
   items,
   onUpdateQuantity,
   onRemoveItem,
   businessInfo,
   socialLinks,
-}: { 
+}: {
   isOpen: boolean;
   onClose: () => void;
   items: any[];
@@ -1010,7 +1086,7 @@ function CartCheckoutModal({
       {/* Modal */}
       <div className="absolute inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg bg-white rounded-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div 
+        <div
           className="px-5 py-4 flex items-center justify-between"
           style={{ backgroundColor: theme.primary }}
         >
@@ -1026,7 +1102,7 @@ function CartCheckoutModal({
         <div className="flex-1 overflow-y-auto p-5">
           {orderSuccess ? (
             <div className="text-center py-8">
-              <div 
+              <div
                 className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
                 style={{ backgroundColor: theme.primaryLight }}
               >
@@ -1036,14 +1112,21 @@ function CartCheckoutModal({
                 ধন্যবাদ! 🎉
               </h3>
               <p className="mb-4" style={{ color: theme.textSecondary }}>
-                আপনার অর্ডার সফলভাবে গ্রহণ করা হয়েছে।<br />
+                আপনার অর্ডার সফলভাবে গ্রহণ করা হয়েছে।
+                <br />
                 শীঘ্রই আমরা আপনার সাথে যোগাযোগ করব।
               </p>
-              <p className="text-sm mb-6 px-4 py-2 rounded-lg inline-block" style={{ backgroundColor: theme.primaryLight, color: theme.primary }}>
+              <p
+                className="text-sm mb-6 px-4 py-2 rounded-lg inline-block"
+                style={{ backgroundColor: theme.primaryLight, color: theme.primary }}
+              >
                 এটি ডেমো - কোনো অর্ডার তৈরি হয়নি
               </p>
-              <button 
-                onClick={() => { setOrderSuccess(false); onClose(); }}
+              <button
+                onClick={() => {
+                  setOrderSuccess(false);
+                  onClose();
+                }}
                 className="px-8 py-3 rounded-lg font-bold text-white"
                 style={{ backgroundColor: theme.primary }}
               >
@@ -1052,33 +1135,64 @@ function CartCheckoutModal({
             </div>
           ) : items.length === 0 ? (
             <div className="text-center py-8">
-              <ShoppingCart className="w-16 h-16 mx-auto mb-4 opacity-30" style={{ color: theme.textMuted }} />
+              <ShoppingCart
+                className="w-16 h-16 mx-auto mb-4 opacity-30"
+                style={{ color: theme.textMuted }}
+              />
               <p style={{ color: theme.textMuted }}>আপনার কার্ট খালি</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Order Items */}
               <div className="space-y-3">
-                {items.map(item => (
-                  <div key={item.id} className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: theme.background }}>
-                    <img src={item.imageUrl} alt={item.title} className="w-16 h-16 object-contain rounded-lg bg-white" />
+                {items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center gap-3 p-3 rounded-lg"
+                    style={{ backgroundColor: theme.background }}
+                  >
+                    <img
+                      src={item.imageUrl}
+                      alt={item.title}
+                      className="w-16 h-16 object-contain rounded-lg bg-white"
+                    />
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm line-clamp-1" style={{ color: theme.text }}>{item.title}</p>
-                      <p className="text-sm" style={{ color: theme.primary }}>৳{item.price}</p>
+                      <p className="font-medium text-sm line-clamp-1" style={{ color: theme.text }}>
+                        {item.title}
+                      </p>
+                      <p className="text-sm" style={{ color: theme.primary }}>
+                        ৳{item.price}
+                      </p>
                       <div className="flex items-center gap-2 mt-1">
-                        <button type="button" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)} className="w-6 h-6 rounded border flex items-center justify-center" style={{ borderColor: theme.border }}>
+                        <button
+                          type="button"
+                          onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                          className="w-6 h-6 rounded border flex items-center justify-center"
+                          style={{ borderColor: theme.border }}
+                        >
                           <Minus className="w-3 h-3" />
                         </button>
                         <span className="text-sm w-6 text-center">{item.quantity}</span>
-                        <button type="button" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)} className="w-6 h-6 rounded border flex items-center justify-center" style={{ borderColor: theme.border }}>
+                        <button
+                          type="button"
+                          onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                          className="w-6 h-6 rounded border flex items-center justify-center"
+                          style={{ borderColor: theme.border }}
+                        >
                           <Plus className="w-3 h-3" />
                         </button>
-                        <button type="button" onClick={() => onRemoveItem(item.id)} className="ml-2 text-red-500">
+                        <button
+                          type="button"
+                          onClick={() => onRemoveItem(item.id)}
+                          className="ml-2 text-red-500"
+                        >
                           <X className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
-                    <p className="font-bold text-sm" style={{ color: theme.text }}>৳{item.price * item.quantity}</p>
+                    <p className="font-bold text-sm" style={{ color: theme.text }}>
+                      ৳{item.price * item.quantity}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -1086,31 +1200,77 @@ function CartCheckoutModal({
               {/* Customer Info */}
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>নাম *</label>
-                  <input type="text" required value={formData.name} onChange={(e) => setFormData(p => ({ ...p, name: e.target.value }))} placeholder="আপনার নাম" className="w-full px-3 py-2.5 rounded-lg border focus:outline-none focus:ring-2" style={{ borderColor: theme.border }} />
+                  <label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>
+                    নাম *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
+                    placeholder="আপনার নাম"
+                    className="w-full px-3 py-2.5 rounded-lg border focus:outline-none focus:ring-2"
+                    style={{ borderColor: theme.border }}
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>ফোন নম্বর *</label>
-                  <input type="tel" required value={formData.phone} onChange={(e) => setFormData(p => ({ ...p, phone: e.target.value }))} placeholder="01XXXXXXXXX" className="w-full px-3 py-2.5 rounded-lg border focus:outline-none focus:ring-2" style={{ borderColor: theme.border }} />
+                  <label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>
+                    ফোন নম্বর *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={formData.phone}
+                    onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
+                    placeholder="01XXXXXXXXX"
+                    className="w-full px-3 py-2.5 rounded-lg border focus:outline-none focus:ring-2"
+                    style={{ borderColor: theme.border }}
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>ঠিকানা *</label>
-                  <textarea required rows={2} value={formData.address} onChange={(e) => setFormData(p => ({ ...p, address: e.target.value }))} placeholder="বাড়ি, রাস্তা, এলাকা, শহর" className="w-full px-3 py-2.5 rounded-lg border focus:outline-none focus:ring-2" style={{ borderColor: theme.border }} />
+                  <label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>
+                    ঠিকানা *
+                  </label>
+                  <textarea
+                    required
+                    rows={2}
+                    value={formData.address}
+                    onChange={(e) => setFormData((p) => ({ ...p, address: e.target.value }))}
+                    placeholder="বাড়ি, রাস্তা, এলাকা, শহর"
+                    className="w-full px-3 py-2.5 rounded-lg border focus:outline-none focus:ring-2"
+                    style={{ borderColor: theme.border }}
+                  />
                 </div>
               </div>
 
               {/* Delivery Zone */}
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: theme.text }}>ডেলিভারি এলাকা</label>
+                <label className="block text-sm font-medium mb-2" style={{ color: theme.text }}>
+                  ডেলিভারি এলাকা
+                </label>
                 <div className="space-y-2">
                   {[
                     { id: 'dhaka', label: 'ঢাকা সিটি', cost: 70 },
                     { id: 'chittagong', label: 'চট্টগ্রাম সিটি', cost: 70 },
                     { id: 'outside', label: 'অন্যান্য এলাকা', cost: 130 },
-                  ].map(zone => (
-                    <label key={zone.id} className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer ${deliveryZone === zone.id ? 'ring-2' : ''}`} style={{ borderColor: deliveryZone === zone.id ? theme.primary : theme.border, outline: theme.primary }}>
+                  ].map((zone) => (
+                    <label
+                      key={zone.id}
+                      className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer ${deliveryZone === zone.id ? 'ring-2' : ''}`}
+                      style={{
+                        borderColor: deliveryZone === zone.id ? theme.primary : theme.border,
+                        outline: theme.primary,
+                      }}
+                    >
                       <div className="flex items-center gap-2">
-                        <input type="radio" name="delivery" value={zone.id} checked={deliveryZone === zone.id} onChange={() => setDeliveryZone(zone.id)} className="accent-orange-500" />
+                        <input
+                          type="radio"
+                          name="delivery"
+                          value={zone.id}
+                          checked={deliveryZone === zone.id}
+                          onChange={() => setDeliveryZone(zone.id)}
+                          className="accent-orange-500"
+                        />
                         <span className="text-sm">{zone.label}</span>
                       </div>
                       <span className="text-sm font-medium">৳{zone.cost}</span>
@@ -1121,28 +1281,62 @@ function CartCheckoutModal({
 
               {/* Coupon */}
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>কুপন কোড</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>
+                  কুপন কোড
+                </label>
                 <div className="flex gap-2">
-                  <input type="text" value={couponCode} onChange={(e) => setCouponCode(e.target.value)} placeholder="কুপন কোড" disabled={couponApplied} className="flex-1 px-3 py-2.5 rounded-lg border focus:outline-none disabled:bg-gray-100" style={{ borderColor: couponApplied ? '#22c55e' : theme.border }} />
-                  <button type="button" onClick={handleApplyCoupon} disabled={couponApplied} className="px-4 py-2.5 rounded-lg font-medium text-white disabled:opacity-50" style={{ backgroundColor: theme.primary }}>
+                  <input
+                    type="text"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                    placeholder="কুপন কোড"
+                    disabled={couponApplied}
+                    className="flex-1 px-3 py-2.5 rounded-lg border focus:outline-none disabled:bg-gray-100"
+                    style={{ borderColor: couponApplied ? '#22c55e' : theme.border }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    disabled={couponApplied}
+                    className="px-4 py-2.5 rounded-lg font-medium text-white disabled:opacity-50"
+                    style={{ backgroundColor: theme.primary }}
+                  >
                     {couponApplied ? '✓' : 'Apply'}
                   </button>
                 </div>
-                {couponApplied && <p className="text-xs mt-1 text-green-600">✓ ১০% ছাড় প্রয়োগ হয়েছে!</p>}
+                {couponApplied && (
+                  <p className="text-xs mt-1 text-green-600">✓ ১০% ছাড় প্রয়োগ হয়েছে!</p>
+                )}
               </div>
 
               {/* Order Note */}
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>অর্ডার নোট (ঐচ্ছিক)</label>
-                <input type="text" value={formData.note} onChange={(e) => setFormData(p => ({ ...p, note: e.target.value }))} placeholder="বিশেষ কোনো নির্দেশনা" className="w-full px-3 py-2.5 rounded-lg border focus:outline-none" style={{ borderColor: theme.border }} />
+                <label className="block text-sm font-medium mb-1" style={{ color: theme.text }}>
+                  অর্ডার নোট (ঐচ্ছিক)
+                </label>
+                <input
+                  type="text"
+                  value={formData.note}
+                  onChange={(e) => setFormData((p) => ({ ...p, note: e.target.value }))}
+                  placeholder="বিশেষ কোনো নির্দেশনা"
+                  className="w-full px-3 py-2.5 rounded-lg border focus:outline-none"
+                  style={{ borderColor: theme.border }}
+                />
               </div>
 
               {/* Upsell Checkbox */}
-              <label className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer" style={{ borderColor: theme.border }}>
+              <label
+                className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer"
+                style={{ borderColor: theme.border }}
+              >
                 <input type="checkbox" className="mt-1 accent-orange-500" />
                 <div>
-                  <p className="text-sm font-medium" style={{ color: theme.text }}>অতিরিক্ত পণ্য যোগ করুন</p>
-                  <p className="text-xs" style={{ color: theme.textMuted }}>সুন্দরবনের মধু ২৫০গ্রাম (+৳১৯৯)</p>
+                  <p className="text-sm font-medium" style={{ color: theme.text }}>
+                    অতিরিক্ত পণ্য যোগ করুন
+                  </p>
+                  <p className="text-xs" style={{ color: theme.textMuted }}>
+                    সুন্দরবনের মধু ২৫০গ্রাম (+৳১৯৯)
+                  </p>
                 </div>
               </label>
 
@@ -1163,7 +1357,10 @@ function CartCheckoutModal({
                       <span>-৳{discount}</span>
                     </div>
                   )}
-                  <div className="flex justify-between font-bold text-lg pt-2 border-t" style={{ borderColor: theme.border, color: theme.text }}>
+                  <div
+                    className="flex justify-between font-bold text-lg pt-2 border-t"
+                    style={{ borderColor: theme.border, color: theme.text }}
+                  >
                     <span>মোট</span>
                     <span style={{ color: theme.primary }}>৳{total.toLocaleString()}</span>
                   </div>
@@ -1172,10 +1369,20 @@ function CartCheckoutModal({
 
               {/* Submit Buttons */}
               <div className="space-y-2">
-                <button type="submit" disabled={isSubmitting} className="w-full py-3.5 rounded-lg font-bold text-white transition hover:opacity-90 disabled:opacity-50" style={{ backgroundColor: theme.primary }}>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-3.5 rounded-lg font-bold text-white transition hover:opacity-90 disabled:opacity-50"
+                  style={{ backgroundColor: theme.primary }}
+                >
                   {isSubmitting ? 'অর্ডার প্রসেস হচ্ছে...' : 'অর্ডার কনফার্ম করুন'}
                 </button>
-                <button type="button" onClick={() => alert('অনলাইন পেমেন্ট শীঘ্রই আসছে!')} className="w-full py-3.5 rounded-lg font-bold transition hover:opacity-90" style={{ backgroundColor: '#fbbf24', color: theme.secondary }}>
+                <button
+                  type="button"
+                  onClick={() => alert('অনলাইন পেমেন্ট শীঘ্রই আসছে!')}
+                  className="w-full py-3.5 rounded-lg font-bold transition hover:opacity-90"
+                  style={{ backgroundColor: '#fbbf24', color: theme.secondary }}
+                >
                   💳 Pay Online (bKash/Nagad)
                 </button>
               </div>
@@ -1192,15 +1399,12 @@ function CartCheckoutModal({
 // ============================================================================
 function AboutPage({ storeName, businessInfo }: { storeName: string; businessInfo?: any }) {
   const theme = GHORER_BAZAR_THEME;
-  
+
   return (
     <div style={{ backgroundColor: theme.background }}>
       {/* Hero */}
-      <div 
-        className="py-16 px-4 text-center"
-        style={{ backgroundColor: theme.primaryLight }}
-      >
-        <h1 
+      <div className="py-16 px-4 text-center" style={{ backgroundColor: theme.primaryLight }}>
+        <h1
           className="text-3xl md:text-4xl font-bold mb-4"
           style={{ color: theme.text, fontFamily: GHORER_BAZAR_FONTS.heading }}
         >
@@ -1215,56 +1419,72 @@ function AboutPage({ storeName, businessInfo }: { storeName: string; businessInf
         {/* Brand Story */}
         <section className="p-6 md:p-8 rounded-2xl bg-white shadow-sm">
           <div className="flex items-center gap-3 mb-4">
-            <div 
+            <div
               className="w-12 h-12 rounded-full flex items-center justify-center"
               style={{ backgroundColor: theme.primaryLight }}
             >
               <Heart className="w-6 h-6" style={{ color: theme.primary }} />
             </div>
-            <h2 className="text-xl font-bold" style={{ color: theme.text }}>আমাদের শুরু</h2>
+            <h2 className="text-xl font-bold" style={{ color: theme.text }}>
+              আমাদের শুরু
+            </h2>
           </div>
           <p className="leading-relaxed mb-4" style={{ color: theme.textSecondary }}>
-            {storeName} শুরু হয়েছিল একটি সাধারণ স্বপ্ন নিয়ে - বাংলাদেশের প্রতিটি ঘরে খাঁটি ও ভেজালমুক্ত পণ্য পৌঁছে দেওয়া। 
-            আজকের বাজারে যেখানে ভেজাল পণ্যের ছড়াছড়ি, সেখানে আমরা গ্রাম বাংলার কৃষক ও উৎপাদকদের কাছ থেকে সরাসরি খাঁটি পণ্য সংগ্রহ করি।
+            {storeName} শুরু হয়েছিল একটি সাধারণ স্বপ্ন নিয়ে - বাংলাদেশের প্রতিটি ঘরে খাঁটি ও
+            ভেজালমুক্ত পণ্য পৌঁছে দেওয়া। আজকের বাজারে যেখানে ভেজাল পণ্যের ছড়াছড়ি, সেখানে আমরা
+            গ্রাম বাংলার কৃষক ও উৎপাদকদের কাছ থেকে সরাসরি খাঁটি পণ্য সংগ্রহ করি।
           </p>
           <p className="leading-relaxed" style={{ color: theme.textSecondary }}>
-            আমাদের প্রতিটি পণ্যের পেছনে আছে একটি গল্প - সুন্দরবনের মৌয়ালদের কষ্টের মধু, রাজশাহীর কৃষকদের যত্নে বড় করা খেজুর, 
-            এবং দেশের বিভিন্ন প্রান্ত থেকে সংগৃহীত অর্গানিক মশলা ও তেল।
+            আমাদের প্রতিটি পণ্যের পেছনে আছে একটি গল্প - সুন্দরবনের মৌয়ালদের কষ্টের মধু, রাজশাহীর
+            কৃষকদের যত্নে বড় করা খেজুর, এবং দেশের বিভিন্ন প্রান্ত থেকে সংগৃহীত অর্গানিক মশলা ও তেল।
           </p>
         </section>
 
         {/* Village Sourcing */}
         <section className="p-6 md:p-8 rounded-2xl bg-white shadow-sm">
           <div className="flex items-center gap-3 mb-4">
-            <div 
+            <div
               className="w-12 h-12 rounded-full flex items-center justify-center"
               style={{ backgroundColor: theme.primaryLight }}
             >
               <Leaf className="w-6 h-6" style={{ color: theme.primary }} />
             </div>
-            <h2 className="text-xl font-bold" style={{ color: theme.text }}>গ্রাম থেকে সরাসরি</h2>
+            <h2 className="text-xl font-bold" style={{ color: theme.text }}>
+              গ্রাম থেকে সরাসরি
+            </h2>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <h3 className="font-semibold mb-2" style={{ color: theme.text }}>🍯 সুন্দরবনের মধু</h3>
+              <h3 className="font-semibold mb-2" style={{ color: theme.text }}>
+                🍯 সুন্দরবনের মধু
+              </h3>
               <p className="text-sm" style={{ color: theme.textSecondary }}>
-                সুন্দরবনের গভীর থেকে মৌয়ালরা জীবনের ঝুঁকি নিয়ে সংগ্রহ করেন এই খাঁটি মধু। কোনো মিশ্রণ নেই, ১০০% প্রাকৃতিক।
+                সুন্দরবনের গভীর থেকে মৌয়ালরা জীবনের ঝুঁকি নিয়ে সংগ্রহ করেন এই খাঁটি মধু। কোনো
+                মিশ্রণ নেই, ১০০% প্রাকৃতিক।
               </p>
             </div>
             <div>
-              <h3 className="font-semibold mb-2" style={{ color: theme.text }}>🌴 খেজুর ও গুড়</h3>
+              <h3 className="font-semibold mb-2" style={{ color: theme.text }}>
+                🌴 খেজুর ও গুড়
+              </h3>
               <p className="text-sm" style={{ color: theme.textSecondary }}>
-                রাজশাহী ও যশোরের খেজুর বাগান থেকে সরাসরি আসে আমাদের খেজুর ও খেজুরের গুড়। কোনো কেমিক্যাল প্রিজার্ভেটিভ নেই।
+                রাজশাহী ও যশোরের খেজুর বাগান থেকে সরাসরি আসে আমাদের খেজুর ও খেজুরের গুড়। কোনো
+                কেমিক্যাল প্রিজার্ভেটিভ নেই।
               </p>
             </div>
             <div>
-              <h3 className="font-semibold mb-2" style={{ color: theme.text }}>🥜 বাদাম ও বীজ</h3>
+              <h3 className="font-semibold mb-2" style={{ color: theme.text }}>
+                🥜 বাদাম ও বীজ
+              </h3>
               <p className="text-sm" style={{ color: theme.textSecondary }}>
-                দেশি-বিদেশি প্রিমিয়াম বাদাম, কাজু, পেস্তা এবং বিভিন্ন বীজ - সবই ফ্রেশ এবং সেরা মানের।
+                দেশি-বিদেশি প্রিমিয়াম বাদাম, কাজু, পেস্তা এবং বিভিন্ন বীজ - সবই ফ্রেশ এবং সেরা
+                মানের।
               </p>
             </div>
             <div>
-              <h3 className="font-semibold mb-2" style={{ color: theme.text }}>🫒 খাঁটি তেল</h3>
+              <h3 className="font-semibold mb-2" style={{ color: theme.text }}>
+                🫒 খাঁটি তেল
+              </h3>
               <p className="text-sm" style={{ color: theme.textSecondary }}>
                 ঘানিতে ভাঙা সরিষার তেল, নারিকেল তেল এবং অলিভ অয়েল - সবই ভেজালমুক্ত এবং স্বাস্থ্যকর।
               </p>
@@ -1275,43 +1495,66 @@ function AboutPage({ storeName, businessInfo }: { storeName: string; businessInf
         {/* Trust & Purity */}
         <section className="p-6 md:p-8 rounded-2xl bg-white shadow-sm">
           <div className="flex items-center gap-3 mb-4">
-            <div 
+            <div
               className="w-12 h-12 rounded-full flex items-center justify-center"
               style={{ backgroundColor: theme.primaryLight }}
             >
               <Shield className="w-6 h-6" style={{ color: theme.primary }} />
             </div>
-            <h2 className="text-xl font-bold" style={{ color: theme.text }}>আমাদের প্রতিশ্রুতি</h2>
+            <h2 className="text-xl font-bold" style={{ color: theme.text }}>
+              আমাদের প্রতিশ্রুতি
+            </h2>
           </div>
           <div className="grid md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl text-center" style={{ backgroundColor: theme.primaryLight }}>
+            <div
+              className="p-4 rounded-xl text-center"
+              style={{ backgroundColor: theme.primaryLight }}
+            >
               <div className="text-3xl mb-2">✅</div>
-              <h3 className="font-semibold mb-1" style={{ color: theme.text }}>১০০% খাঁটি</h3>
-              <p className="text-sm" style={{ color: theme.textSecondary }}>কোনো ভেজাল বা মিশ্রণ নেই</p>
+              <h3 className="font-semibold mb-1" style={{ color: theme.text }}>
+                ১০০% খাঁটি
+              </h3>
+              <p className="text-sm" style={{ color: theme.textSecondary }}>
+                কোনো ভেজাল বা মিশ্রণ নেই
+              </p>
             </div>
-            <div className="p-4 rounded-xl text-center" style={{ backgroundColor: theme.primaryLight }}>
+            <div
+              className="p-4 rounded-xl text-center"
+              style={{ backgroundColor: theme.primaryLight }}
+            >
               <div className="text-3xl mb-2">🔬</div>
-              <h3 className="font-semibold mb-1" style={{ color: theme.text }}>ল্যাব টেস্টেড</h3>
-              <p className="text-sm" style={{ color: theme.textSecondary }}>মান নিয়ন্ত্রণ পরীক্ষিত</p>
+              <h3 className="font-semibold mb-1" style={{ color: theme.text }}>
+                ল্যাব টেস্টেড
+              </h3>
+              <p className="text-sm" style={{ color: theme.textSecondary }}>
+                মান নিয়ন্ত্রণ পরীক্ষিত
+              </p>
             </div>
-            <div className="p-4 rounded-xl text-center" style={{ backgroundColor: theme.primaryLight }}>
+            <div
+              className="p-4 rounded-xl text-center"
+              style={{ backgroundColor: theme.primaryLight }}
+            >
               <div className="text-3xl mb-2">💯</div>
-              <h3 className="font-semibold mb-1" style={{ color: theme.text }}>মানি ব্যাক</h3>
-              <p className="text-sm" style={{ color: theme.textSecondary }}>সন্তুষ্ট না হলে টাকা ফেরত</p>
+              <h3 className="font-semibold mb-1" style={{ color: theme.text }}>
+                মানি ব্যাক
+              </h3>
+              <p className="text-sm" style={{ color: theme.textSecondary }}>
+                সন্তুষ্ট না হলে টাকা ফেরত
+              </p>
             </div>
           </div>
         </section>
 
         {/* Mission */}
-        <section 
+        <section
           className="p-6 md:p-8 rounded-2xl text-center text-white"
           style={{ backgroundColor: theme.primary }}
         >
           <Award className="w-12 h-12 mx-auto mb-4 opacity-90" />
           <h2 className="text-xl font-bold mb-3">আমাদের লক্ষ্য</h2>
           <p className="max-w-2xl mx-auto opacity-90">
-            বাংলাদেশের প্রতিটি পরিবারে খাঁটি ও স্বাস্থ্যকর খাবার পৌঁছে দেওয়া এবং গ্রামীণ উৎপাদকদের ন্যায্য মূল্য নিশ্চিত করা।
-            আমরা বিশ্বাস করি, ভালো খাবারই ভালো স্বাস্থ্যের মূল ভিত্তি।
+            বাংলাদেশের প্রতিটি পরিবারে খাঁটি ও স্বাস্থ্যকর খাবার পৌঁছে দেওয়া এবং গ্রামীণ উৎপাদকদের
+            ন্যায্য মূল্য নিশ্চিত করা। আমরা বিশ্বাস করি, ভালো খাবারই ভালো স্বাস্থ্যের মূল ভিত্তি।
           </p>
         </section>
       </div>
@@ -1329,46 +1572,51 @@ function FAQPage() {
   const faqs = [
     {
       question: 'আপনাদের পণ্য কি সত্যিই খাঁটি?',
-      answer: 'হ্যাঁ, আমাদের সকল পণ্য ১০০% খাঁটি এবং ভেজালমুক্ত। আমরা সরাসরি গ্রামের কৃষক ও উৎপাদকদের কাছ থেকে পণ্য সংগ্রহ করি। প্রতিটি ব্যাচ ল্যাব টেস্টের মাধ্যমে যাচাই করা হয়।'
+      answer:
+        'হ্যাঁ, আমাদের সকল পণ্য ১০০% খাঁটি এবং ভেজালমুক্ত। আমরা সরাসরি গ্রামের কৃষক ও উৎপাদকদের কাছ থেকে পণ্য সংগ্রহ করি। প্রতিটি ব্যাচ ল্যাব টেস্টের মাধ্যমে যাচাই করা হয়।',
     },
     {
       question: 'ডেলিভারি কত দিনে হয়?',
-      answer: 'ঢাকা সিটিতে ১-২ কার্যদিবসের মধ্যে ডেলিভারি হয়। চট্টগ্রাম সিটিতে ২-৩ দিন এবং দেশের অন্যান্য জেলায় ৩-৫ কার্যদিবস সময় লাগে।'
+      answer:
+        'ঢাকা সিটিতে ১-২ কার্যদিবসের মধ্যে ডেলিভারি হয়। চট্টগ্রাম সিটিতে ২-৩ দিন এবং দেশের অন্যান্য জেলায় ৩-৫ কার্যদিবস সময় লাগে।',
     },
     {
       question: 'ডেলিভারি চার্জ কত?',
-      answer: 'ঢাকা সিটিতে ৬০ টাকা, চট্টগ্রাম সিটিতে ৮০ টাকা এবং দেশের অন্যান্য এলাকায় ১২০ টাকা ডেলিভারি চার্জ। ১০০০ টাকার উপরে অর্ডারে ঢাকায় ফ্রি ডেলিভারি!'
+      answer:
+        'ঢাকা সিটিতে ৬০ টাকা, চট্টগ্রাম সিটিতে ৮০ টাকা এবং দেশের অন্যান্য এলাকায় ১২০ টাকা ডেলিভারি চার্জ। ১০০০ টাকার উপরে অর্ডারে ঢাকায় ফ্রি ডেলিভারি!',
     },
     {
       question: 'পণ্য ফেরত দেওয়া যায়?',
-      answer: 'অবশ্যই! পণ্য হাতে পাওয়ার ৭ দিনের মধ্যে যদি কোনো সমস্যা থাকে, আমরা পুরো টাকা ফেরত দিব অথবা নতুন পণ্য পাঠাব। শুধু আমাদের হটলাইনে কল করুন।'
+      answer:
+        'অবশ্যই! পণ্য হাতে পাওয়ার ৭ দিনের মধ্যে যদি কোনো সমস্যা থাকে, আমরা পুরো টাকা ফেরত দিব অথবা নতুন পণ্য পাঠাব। শুধু আমাদের হটলাইনে কল করুন।',
     },
     {
       question: 'অনলাইনে পেমেন্ট করা যায়?',
-      answer: 'বর্তমানে আমরা ক্যাশ অন ডেলিভারি (COD) সার্ভিস দিচ্ছি। শীঘ্রই বিকাশ ও নগদ পেমেন্ট চালু হবে।'
+      answer:
+        'বর্তমানে আমরা ক্যাশ অন ডেলিভারি (COD) সার্ভিস দিচ্ছি। শীঘ্রই বিকাশ ও নগদ পেমেন্ট চালু হবে।',
     },
     {
       question: 'পাইকারি অর্ডার করা যায়?',
-      answer: 'হ্যাঁ, পাইকারি অর্ডারের জন্য আমাদের WhatsApp এ যোগাযোগ করুন। বিশেষ ছাড় এবং আলাদা প্রাইসিং পাবেন।'
+      answer:
+        'হ্যাঁ, পাইকারি অর্ডারের জন্য আমাদের WhatsApp এ যোগাযোগ করুন। বিশেষ ছাড় এবং আলাদা প্রাইসিং পাবেন।',
     },
     {
       question: 'মধু কীভাবে যাচাই করব খাঁটি কিনা?',
-      answer: 'খাঁটি মধু পানিতে দ্রবীভূত হয় না, তলানিতে জমে যায়। আগুনে ধরলে জ্বলে। তুলায় মধু নিয়ে জ্বালালে পটপট শব্দ হয় না। আমাদের মধু এই সব পরীক্ষায় উত্তীর্ণ।'
+      answer:
+        'খাঁটি মধু পানিতে দ্রবীভূত হয় না, তলানিতে জমে যায়। আগুনে ধরলে জ্বলে। তুলায় মধু নিয়ে জ্বালালে পটপট শব্দ হয় না। আমাদের মধু এই সব পরীক্ষায় উত্তীর্ণ।',
     },
     {
       question: 'অর্ডার ট্র্যাক করব কীভাবে?',
-      answer: 'অর্ডার কনফার্ম হলে আপনার ফোনে SMS এ ট্র্যাকিং লিংক পাঠানো হবে। এছাড়া আমাদের হটলাইনে কল করেও অর্ডার স্ট্যাটাস জানতে পারবেন।'
+      answer:
+        'অর্ডার কনফার্ম হলে আপনার ফোনে SMS এ ট্র্যাকিং লিংক পাঠানো হবে। এছাড়া আমাদের হটলাইনে কল করেও অর্ডার স্ট্যাটাস জানতে পারবেন।',
     },
   ];
 
   return (
     <div style={{ backgroundColor: theme.background }}>
       {/* Hero */}
-      <div 
-        className="py-16 px-4 text-center"
-        style={{ backgroundColor: theme.primaryLight }}
-      >
-        <h1 
+      <div className="py-16 px-4 text-center" style={{ backgroundColor: theme.primaryLight }}>
+        <h1
           className="text-3xl md:text-4xl font-bold mb-4"
           style={{ color: theme.text, fontFamily: GHORER_BAZAR_FONTS.heading }}
         >
@@ -1382,10 +1630,7 @@ function FAQPage() {
       <div className="max-w-3xl mx-auto px-4 py-12">
         <div className="space-y-3">
           {faqs.map((faq, index) => (
-            <div 
-              key={index}
-              className="bg-white rounded-xl overflow-hidden shadow-sm"
-            >
+            <div key={index} className="bg-white rounded-xl overflow-hidden shadow-sm">
               <button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
                 className="w-full px-6 py-4 text-left flex items-center justify-between gap-4"
@@ -1393,16 +1638,13 @@ function FAQPage() {
                 <span className="font-medium" style={{ color: theme.text }}>
                   {faq.question}
                 </span>
-                <ChevronDown 
+                <ChevronDown
                   className={`w-5 h-5 flex-shrink-0 transition-transform duration-200 ${openIndex === index ? 'rotate-180' : ''}`}
                   style={{ color: theme.primary }}
                 />
               </button>
               {openIndex === index && (
-                <div 
-                  className="px-6 pb-4 pt-0"
-                  style={{ color: theme.textSecondary }}
-                >
+                <div className="px-6 pb-4 pt-0" style={{ color: theme.textSecondary }}>
                   <div className="border-t pt-4" style={{ borderColor: theme.border }}>
                     {faq.answer}
                   </div>
@@ -1413,13 +1655,13 @@ function FAQPage() {
         </div>
 
         {/* Still have questions? */}
-        <div 
+        <div
           className="mt-12 p-6 rounded-2xl text-center"
           style={{ backgroundColor: theme.primary }}
         >
           <h3 className="text-xl font-bold text-white mb-2">আরও প্রশ্ন আছে?</h3>
           <p className="text-white/80 mb-4">আমাদের সাথে সরাসরি যোগাযোগ করুন</p>
-          <a 
+          <a
             href="https://wa.me/8801700000000?text=হ্যালো, আমার একটি প্রশ্ন আছে"
             target="_blank"
             rel="noopener noreferrer"
@@ -1438,12 +1680,12 @@ function FAQPage() {
 // ============================================================================
 // PAGE: Search Results
 // ============================================================================
-function SearchResultsPage({ 
-  query, 
+function SearchResultsPage({
+  query,
   results,
   onProductClick,
   onAddToCart,
-}: { 
+}: {
   query: string;
   results: SerializedProduct[];
   onProductClick: (product: SerializedProduct) => void;
@@ -1473,7 +1715,7 @@ function SearchResultsPage({
               className="w-full px-5 py-4 pr-14 rounded-xl border-2 focus:outline-none text-lg"
               style={{ borderColor: theme.primary }}
             />
-            <button 
+            <button
               type="submit"
               className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-lg text-white"
               style={{ backgroundColor: theme.primary }}
@@ -1495,10 +1737,10 @@ function SearchResultsPage({
 
         {results.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-            {results.map(product => (
-              <GhorerBazarProductCard 
-                key={product.id} 
-                product={product} 
+            {results.map((product) => (
+              <GhorerBazarProductCard
+                key={product.id}
+                product={product}
                 onProductClick={onProductClick}
                 onQuickAdd={(item) => onAddToCart(item, 1)}
               />
@@ -1513,7 +1755,7 @@ function SearchResultsPage({
             <p className="mb-6" style={{ color: theme.textMuted }}>
               অন্য কিছু দিয়ে সার্চ করুন
             </p>
-            <a 
+            <a
               href="?page=home"
               className="inline-block px-6 py-3 rounded-lg font-medium text-white"
               style={{ backgroundColor: theme.primary }}
@@ -1565,11 +1807,14 @@ function AccountPage() {
   };
 
   return (
-    <div style={{ backgroundColor: theme.background }} className="min-h-[70vh] flex items-center justify-center py-12 px-4">
+    <div
+      style={{ backgroundColor: theme.background }}
+      className="min-h-[70vh] flex items-center justify-center py-12 px-4"
+    >
       <div className="w-full max-w-md">
         {step === 'success' ? (
           <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
-            <div 
+            <div
               className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
               style={{ backgroundColor: theme.primaryLight }}
             >
@@ -1581,7 +1826,7 @@ function AccountPage() {
             <p className="mb-6" style={{ color: theme.textMuted }}>
               এটি ডেমো - কোনো অ্যাকাউন্ট তৈরি হয়নি
             </p>
-            <a 
+            <a
               href="/"
               className="inline-block px-8 py-3 rounded-lg font-bold text-white"
               style={{ backgroundColor: theme.primary }}
@@ -1594,9 +1839,12 @@ function AccountPage() {
             {/* Tabs */}
             <div className="flex border-b" style={{ borderColor: theme.border }}>
               <button
-                onClick={() => { setActiveTab('login'); setStep('phone'); }}
+                onClick={() => {
+                  setActiveTab('login');
+                  setStep('phone');
+                }}
                 className={`flex-1 py-4 font-medium text-center transition ${activeTab === 'login' ? 'border-b-2' : ''}`}
-                style={{ 
+                style={{
                   borderColor: activeTab === 'login' ? theme.primary : 'transparent',
                   color: activeTab === 'login' ? theme.primary : theme.textMuted,
                 }}
@@ -1604,9 +1852,12 @@ function AccountPage() {
                 লগইন
               </button>
               <button
-                onClick={() => { setActiveTab('register'); setStep('phone'); }}
+                onClick={() => {
+                  setActiveTab('register');
+                  setStep('phone');
+                }}
                 className={`flex-1 py-4 font-medium text-center transition ${activeTab === 'register' ? 'border-b-2' : ''}`}
-                style={{ 
+                style={{
                   borderColor: activeTab === 'register' ? theme.primary : 'transparent',
                   color: activeTab === 'register' ? theme.primary : theme.textMuted,
                 }}
@@ -1618,7 +1869,9 @@ function AccountPage() {
             {/* Form */}
             <div className="p-6">
               <h2 className="text-xl font-bold mb-6 text-center" style={{ color: theme.text }}>
-                {activeTab === 'login' ? 'আপনার অ্যাকাউন্টে লগইন করুন' : 'নতুন অ্যাকাউন্ট তৈরি করুন'}
+                {activeTab === 'login'
+                  ? 'আপনার অ্যাকাউন্টে লগইন করুন'
+                  : 'নতুন অ্যাকাউন্ট তৈরি করুন'}
               </h2>
 
               {step === 'phone' ? (
@@ -1643,7 +1896,10 @@ function AccountPage() {
 
                   {activeTab === 'register' && (
                     <div>
-                      <label className="block text-sm font-medium mb-2" style={{ color: theme.text }}>
+                      <label
+                        className="block text-sm font-medium mb-2"
+                        style={{ color: theme.text }}
+                      >
                         আপনার নাম
                       </label>
                       <input
@@ -1705,7 +1961,10 @@ function AccountPage() {
               )}
 
               {/* Demo Note */}
-              <p className="text-xs text-center mt-6 px-4 py-2 rounded-lg" style={{ backgroundColor: theme.primaryLight, color: theme.textMuted }}>
+              <p
+                className="text-xs text-center mt-6 px-4 py-2 rounded-lg"
+                style={{ backgroundColor: theme.primaryLight, color: theme.textMuted }}
+              >
                 ডেমো: যেকোনো নম্বর ও OTP দিয়ে টেস্ট করুন
               </p>
             </div>
@@ -1743,11 +2002,8 @@ function ContactPage({ businessInfo, socialLinks }: { businessInfo?: any; social
   return (
     <div style={{ backgroundColor: theme.background }}>
       {/* Hero */}
-      <div 
-        className="py-16 px-4 text-center"
-        style={{ backgroundColor: theme.primaryLight }}
-      >
-        <h1 
+      <div className="py-16 px-4 text-center" style={{ backgroundColor: theme.primaryLight }}>
+        <h1
           className="text-3xl md:text-4xl font-bold mb-4"
           style={{ color: theme.text, fontFamily: GHORER_BAZAR_FONTS.heading }}
         >
@@ -1763,71 +2019,85 @@ function ContactPage({ businessInfo, socialLinks }: { businessInfo?: any; social
           {/* Contact Info */}
           <div className="space-y-6">
             {/* Phone */}
-            <a 
+            <a
               href={`tel:${phoneNumber}`}
               className="flex items-center gap-4 p-5 bg-white rounded-xl shadow-sm hover:shadow-md transition"
             >
-              <div 
+              <div
                 className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0"
                 style={{ backgroundColor: theme.primaryLight }}
               >
                 <Phone className="w-6 h-6" style={{ color: theme.primary }} />
               </div>
               <div>
-                <h3 className="font-semibold" style={{ color: theme.text }}>ফোন করুন</h3>
+                <h3 className="font-semibold" style={{ color: theme.text }}>
+                  ফোন করুন
+                </h3>
                 <p style={{ color: theme.primary }}>{phoneNumber}</p>
-                <p className="text-sm" style={{ color: theme.textMuted }}>সকাল ১০টা - রাত ১০টা</p>
+                <p className="text-sm" style={{ color: theme.textMuted }}>
+                  সকাল ১০টা - রাত ১০টা
+                </p>
               </div>
             </a>
 
             {/* WhatsApp */}
-            <a 
+            <a
               href={`https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=হ্যালো, আমি অর্ডার করতে চাই`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-4 p-5 bg-white rounded-xl shadow-sm hover:shadow-md transition"
             >
-              <div 
+              <div
                 className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0"
                 style={{ backgroundColor: '#dcfce7' }}
               >
                 <MessageCircle className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <h3 className="font-semibold" style={{ color: theme.text }}>WhatsApp</h3>
+                <h3 className="font-semibold" style={{ color: theme.text }}>
+                  WhatsApp
+                </h3>
                 <p className="text-green-600">{whatsappNumber}</p>
-                <p className="text-sm" style={{ color: theme.textMuted }}>দ্রুত রেসপন্স পেতে</p>
+                <p className="text-sm" style={{ color: theme.textMuted }}>
+                  দ্রুত রেসপন্স পেতে
+                </p>
               </div>
             </a>
 
             {/* Email */}
-            <a 
+            <a
               href={`mailto:${email}`}
               className="flex items-center gap-4 p-5 bg-white rounded-xl shadow-sm hover:shadow-md transition"
             >
-              <div 
+              <div
                 className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0"
                 style={{ backgroundColor: theme.primaryLight }}
               >
                 <Mail className="w-6 h-6" style={{ color: theme.primary }} />
               </div>
               <div>
-                <h3 className="font-semibold" style={{ color: theme.text }}>ইমেইল</h3>
+                <h3 className="font-semibold" style={{ color: theme.text }}>
+                  ইমেইল
+                </h3>
                 <p style={{ color: theme.primary }}>{email}</p>
-                <p className="text-sm" style={{ color: theme.textMuted }}>যেকোনো সময় লিখুন</p>
+                <p className="text-sm" style={{ color: theme.textMuted }}>
+                  যেকোনো সময় লিখুন
+                </p>
               </div>
             </a>
 
             {/* Address */}
             <div className="flex items-center gap-4 p-5 bg-white rounded-xl shadow-sm">
-              <div 
+              <div
                 className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0"
                 style={{ backgroundColor: theme.primaryLight }}
               >
                 <MapPin className="w-6 h-6" style={{ color: theme.primary }} />
               </div>
               <div>
-                <h3 className="font-semibold" style={{ color: theme.text }}>ঠিকানা</h3>
+                <h3 className="font-semibold" style={{ color: theme.text }}>
+                  ঠিকানা
+                </h3>
                 <p style={{ color: theme.textSecondary }}>{address}</p>
               </div>
             </div>
@@ -1841,7 +2111,7 @@ function ContactPage({ businessInfo, socialLinks }: { businessInfo?: any; social
 
             {isSubmitted ? (
               <div className="text-center py-8">
-                <div 
+                <div
                   className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
                   style={{ backgroundColor: theme.primaryLight }}
                 >
@@ -1853,7 +2123,7 @@ function ContactPage({ businessInfo, socialLinks }: { businessInfo?: any; social
                 <p className="mb-4" style={{ color: theme.textSecondary }}>
                   আপনার মেসেজ পাঠানো হয়েছে। শীঘ্রই যোগাযোগ করব।
                 </p>
-                <button 
+                <button
                   onClick={() => setIsSubmitted(false)}
                   className="px-6 py-2 rounded-lg font-medium text-white"
                   style={{ backgroundColor: theme.primary }}
@@ -1867,11 +2137,11 @@ function ContactPage({ businessInfo, socialLinks }: { businessInfo?: any; social
                   <label className="block text-sm font-medium mb-1.5" style={{ color: theme.text }}>
                     আপনার নাম *
                   </label>
-                  <input 
+                  <input
                     type="text"
                     required
                     value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                     placeholder="সম্পূর্ণ নাম"
                     className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
                     style={{ borderColor: theme.border }}
@@ -1881,11 +2151,11 @@ function ContactPage({ businessInfo, socialLinks }: { businessInfo?: any; social
                   <label className="block text-sm font-medium mb-1.5" style={{ color: theme.text }}>
                     মোবাইল নম্বর *
                   </label>
-                  <input 
+                  <input
                     type="tel"
                     required
                     value={formData.phone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
                     placeholder="01XXXXXXXXX"
                     className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
                     style={{ borderColor: theme.border }}
@@ -1895,17 +2165,17 @@ function ContactPage({ businessInfo, socialLinks }: { businessInfo?: any; social
                   <label className="block text-sm font-medium mb-1.5" style={{ color: theme.text }}>
                     আপনার মেসেজ *
                   </label>
-                  <textarea 
+                  <textarea
                     required
                     rows={4}
                     value={formData.message}
-                    onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, message: e.target.value }))}
                     placeholder="কীভাবে সাহায্য করতে পারি?"
                     className="w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
                     style={{ borderColor: theme.border }}
                   />
                 </div>
-                <button 
+                <button
                   type="submit"
                   disabled={isSubmitting}
                   className="w-full py-3 rounded-lg font-medium text-white transition hover:opacity-90 disabled:opacity-50"
@@ -1925,21 +2195,21 @@ function ContactPage({ businessInfo, socialLinks }: { businessInfo?: any; social
 // ============================================================================
 // PRODUCTS SECTION - "ALL PRODUCT" with 4-column grid
 // ============================================================================
-function ProductsSection({ 
-  title, 
-  products, 
+function ProductsSection({
+  title,
+  products,
   onProductClick,
   onQuickAdd,
-  viewAllLink = '/'
-}: { 
-  title: string; 
-  products: SerializedProduct[]; 
+  viewAllLink = '/',
+}: {
+  title: string;
+  products: SerializedProduct[];
   onProductClick?: (product: SerializedProduct) => void;
   onQuickAdd?: (product: SerializedProduct) => void;
   viewAllLink?: string;
 }) {
   const theme = GHORER_BAZAR_THEME;
-  
+
   if (products.length === 0) return null;
 
   return (
@@ -1947,13 +2217,13 @@ function ProductsSection({
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="flex items-center justify-between mb-6">
-          <h2 
+          <h2
             className="text-xl md:text-2xl font-bold"
             style={{ color: theme.text, fontFamily: GHORER_BAZAR_FONTS.heading }}
           >
             {title}
           </h2>
-          <Link 
+          <Link
             to={viewAllLink}
             className="text-sm font-medium flex items-center gap-1 hover:underline"
             style={{ color: theme.primary }}
@@ -1965,9 +2235,9 @@ function ProductsSection({
         {/* 4-Column Product Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
           {products.map((product) => (
-            <GhorerBazarProductCard 
-              key={product.id} 
-              product={product} 
+            <GhorerBazarProductCard
+              key={product.id}
+              product={product}
               onProductClick={onProductClick}
               onQuickAdd={onQuickAdd}
             />
@@ -1981,25 +2251,25 @@ function ProductsSection({
 // ============================================================================
 // RECOMMENDATION SECTION - "You Might Also Like" / "Recently Viewed"
 // ============================================================================
-function RecommendationSection({ 
-  title, 
-  products, 
+function RecommendationSection({
+  title,
+  products,
   onProductClick,
   onQuickAdd,
-}: { 
-  title: string; 
-  products: SerializedProduct[]; 
+}: {
+  title: string;
+  products: SerializedProduct[];
   onProductClick?: (product: SerializedProduct) => void;
   onQuickAdd?: (product: SerializedProduct) => void;
 }) {
   const theme = GHORER_BAZAR_THEME;
-  
+
   if (products.length === 0) return null;
 
   return (
     <section className="py-8 px-4 bg-white">
       <div className="max-w-7xl mx-auto">
-        <h2 
+        <h2
           className="text-lg md:text-xl font-bold mb-4"
           style={{ color: theme.text, fontFamily: GHORER_BAZAR_FONTS.heading }}
         >
@@ -2010,8 +2280,8 @@ function RecommendationSection({
         <div className="flex md:grid md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
           {products.slice(0, 5).map((product) => (
             <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
-              <GhorerBazarProductCard 
-                product={product} 
+              <GhorerBazarProductCard
+                product={product}
                 onProductClick={onProductClick}
                 onQuickAdd={onQuickAdd}
               />
@@ -2026,10 +2296,10 @@ function RecommendationSection({
 // ============================================================================
 // CATEGORY SHORTCUT SECTION - Icon Cards
 // ============================================================================
-function CategoryShortcutSection({ 
+function CategoryShortcutSection({
   categories,
   onCategorySelect,
-}: { 
+}: {
   categories: string[];
   onCategorySelect: (category: string) => void;
 }) {
@@ -2078,9 +2348,12 @@ function CategoryListingSection({
 
   const sortedProducts = [...products].sort((a, b) => {
     switch (sortBy) {
-      case 'price-low': return a.price - b.price;
-      case 'price-high': return b.price - a.price;
-      default: return b.id - a.id;
+      case 'price-low':
+        return a.price - b.price;
+      case 'price-high':
+        return b.price - a.price;
+      default:
+        return b.id - a.id;
     }
   });
 
@@ -2109,7 +2382,7 @@ function CategoryListingSection({
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-          {sortedProducts.map(product => (
+          {sortedProducts.map((product) => (
             <GhorerBazarProductCard
               key={product.id}
               product={product}
@@ -2131,25 +2404,46 @@ function TrustBadgesSection() {
   return (
     <section className="py-8 px-4 bg-white">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="flex items-center gap-4 p-4 rounded-xl border" style={{ borderColor: theme.border }}>
+        <div
+          className="flex items-center gap-4 p-4 rounded-xl border"
+          style={{ borderColor: theme.border }}
+        >
           <div className="text-3xl">📦</div>
           <div>
-            <h3 className="font-semibold" style={{ color: theme.text }}>Safe Packaging</h3>
-            <p className="text-sm" style={{ color: theme.textMuted }}>নিরাপদ প্যাকেজিং</p>
+            <h3 className="font-semibold" style={{ color: theme.text }}>
+              Safe Packaging
+            </h3>
+            <p className="text-sm" style={{ color: theme.textMuted }}>
+              নিরাপদ প্যাকেজিং
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-4 p-4 rounded-xl border" style={{ borderColor: theme.border }}>
+        <div
+          className="flex items-center gap-4 p-4 rounded-xl border"
+          style={{ borderColor: theme.border }}
+        >
           <div className="text-3xl">🚚</div>
           <div>
-            <h3 className="font-semibold" style={{ color: theme.text }}>Fast Delivery</h3>
-            <p className="text-sm" style={{ color: theme.textMuted }}>দ্রুত ডেলিভারি</p>
+            <h3 className="font-semibold" style={{ color: theme.text }}>
+              Fast Delivery
+            </h3>
+            <p className="text-sm" style={{ color: theme.textMuted }}>
+              দ্রুত ডেলিভারি
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-4 p-4 rounded-xl border" style={{ borderColor: theme.border }}>
+        <div
+          className="flex items-center gap-4 p-4 rounded-xl border"
+          style={{ borderColor: theme.border }}
+        >
           <div className="text-3xl">🌿</div>
           <div>
-            <h3 className="font-semibold" style={{ color: theme.text }}>100% Natural</h3>
-            <p className="text-sm" style={{ color: theme.textMuted }}>১০০% প্রাকৃতিক</p>
+            <h3 className="font-semibold" style={{ color: theme.text }}>
+              100% Natural
+            </h3>
+            <p className="text-sm" style={{ color: theme.textMuted }}>
+              ১০০% প্রাকৃতিক
+            </p>
           </div>
         </div>
       </div>
@@ -2160,11 +2454,11 @@ function TrustBadgesSection() {
 // ============================================================================
 // CATEGORY BADGES - Horizontal scrollable category pills
 // ============================================================================
-function CategoryBadges({ 
-  categories, 
-  currentCategory 
-}: { 
-  categories: string[]; 
+function CategoryBadges({
+  categories,
+  currentCategory,
+}: {
+  categories: string[];
   currentCategory?: string | null;
 }) {
   const theme = GHORER_BAZAR_THEME;
@@ -2173,12 +2467,10 @@ function CategoryBadges({
     <div className="py-4 px-4 bg-white border-b" style={{ borderColor: theme.border }}>
       <div className="max-w-7xl mx-auto">
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          <Link 
+          <Link
             to="/"
             className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition whitespace-nowrap ${
-              !currentCategory 
-                ? 'text-white' 
-                : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
+              !currentCategory ? 'text-white' : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
             }`}
             style={!currentCategory ? { backgroundColor: theme.primary } : {}}
           >
@@ -2189,8 +2481,8 @@ function CategoryBadges({
               key={category}
               to={`?category=${encodeURIComponent(category)}`}
               className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition whitespace-nowrap ${
-                currentCategory === category 
-                  ? 'text-white' 
+                currentCategory === category
+                  ? 'text-white'
                   : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
               }`}
               style={currentCategory === category ? { backgroundColor: theme.primary } : {}}
@@ -2233,52 +2525,51 @@ export function GhorerBazarTemplate({
   const productId = searchParams.get('product');
   const searchQuery = searchParams.get('search') || '';
   const theme = GHORER_BAZAR_THEME;
-  
+
   // Cart state
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
-  
+
   // Get current product for detail page
-  const currentProduct = productId ? products.find(p => p.id === Number(productId)) : null;
-  
+  const currentProduct = productId ? products.find((p) => p.id === Number(productId)) : null;
+
   // Search results
-  const searchResults = searchQuery 
-    ? products.filter(p => 
-        p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.category?.toLowerCase().includes(searchQuery.toLowerCase())
+  const searchResults = searchQuery
+    ? products.filter(
+        (p) =>
+          p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          p.category?.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : [];
-  
+
   // Cart functions
   const addToCart = (product: SerializedProduct, qty: number = 1) => {
-    setCartItems(prev => {
-      const existing = prev.find(item => item.id === product.id);
+    setCartItems((prev) => {
+      const existing = prev.find((item) => item.id === product.id);
       if (existing) {
-        return prev.map(item => 
-          item.id === product.id 
-            ? { ...item, quantity: item.quantity + qty }
-            : item
+        return prev.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + qty } : item
         );
       }
       return [...prev, { ...product, quantity: qty }];
     });
     setCartOpen(true);
   };
-  
+
   const updateCartQuantity = (id: number, qty: number) => {
     if (qty <= 0) {
-      setCartItems(prev => prev.filter(item => item.id !== id));
+      setCartItems((prev) => prev.filter((item) => item.id !== id));
     } else {
-      setCartItems(prev => prev.map(item => 
-        item.id === id ? { ...item, quantity: qty } : item
-      ));
+      setCartItems((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, quantity: qty } : item))
+      );
     }
   };
-  
+
   const removeFromCart = (id: number) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
+    setCartItems((prev) => prev.filter((item) => item.id !== id));
   };
-  
+
   // Navigate to a page
   const navigateTo = (page: PageType, params?: Record<string, string>) => {
     const newParams = new URLSearchParams();
@@ -2293,7 +2584,7 @@ export function GhorerBazarTemplate({
     setSearchParams(newParams);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  
+
   // Navigate to product
   const goToProduct = (product: SerializedProduct) => {
     const newParams = new URLSearchParams();
@@ -2301,7 +2592,7 @@ export function GhorerBazarTemplate({
     setSearchParams(newParams);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  
+
   // Buy now (add to cart and open checkout)
   const buyNow = (product: SerializedProduct, qty: number) => {
     addToCart(product, qty);
@@ -2310,7 +2601,7 @@ export function GhorerBazarTemplate({
 
   // Filter products by category
   const filteredProducts = categoryFilter
-    ? products.filter(p => p.category === categoryFilter)
+    ? products.filter((p) => p.category === categoryFilter)
     : products;
 
   const validCategories = categories.filter(Boolean) as string[];
@@ -2322,9 +2613,9 @@ export function GhorerBazarTemplate({
 
   return (
     <CartProvider>
-      <div 
+      <div
         className="min-h-screen"
-        style={{ 
+        style={{
           backgroundColor: theme.background,
           fontFamily: GHORER_BAZAR_FONTS.body,
         }}
@@ -2346,7 +2637,7 @@ export function GhorerBazarTemplate({
         <main>
           {/* Product Detail Page */}
           {currentProduct && (
-            <ProductDetailPage 
+            <ProductDetailPage
               product={currentProduct}
               products={products}
               onAddToCart={addToCart}
@@ -2356,33 +2647,29 @@ export function GhorerBazarTemplate({
               socialLinks={socialLinks}
             />
           )}
-          
+
           {/* Search Results Page */}
           {searchQuery && !currentProduct && (
-            <SearchResultsPage 
+            <SearchResultsPage
               query={searchQuery}
               results={searchResults}
               onProductClick={goToProduct}
               onAddToCart={addToCart}
             />
           )}
-          
+
           {/* Account Page */}
-          {currentPage === 'account' && (
-            <AccountPage />
-          )}
-          
+          {currentPage === 'account' && <AccountPage />}
+
           {/* Static Pages */}
           {!currentProduct && !searchQuery && currentPage === 'about' && (
             <AboutPage storeName={storeName} businessInfo={businessInfo} />
           )}
-          {!currentProduct && !searchQuery && currentPage === 'faq' && (
-            <FAQPage />
-          )}
+          {!currentProduct && !searchQuery && currentPage === 'faq' && <FAQPage />}
           {!currentProduct && !searchQuery && currentPage === 'contact' && (
             <ContactPage businessInfo={businessInfo} socialLinks={socialLinks} />
           )}
-          
+
           {/* Home/Shop Content - Only show when on home page and no product/search */}
           {currentPage === 'home' && !currentProduct && !searchQuery && (
             <>
@@ -2390,15 +2677,17 @@ export function GhorerBazarTemplate({
               {!categoryFilter && (
                 <>
                   <HeroSection storeName={storeName} config={config} />
-                  <CategoryShortcutSection categories={validCategories} onCategorySelect={(cat) => setSearchParams(new URLSearchParams({ category: cat }))} />
+                  <CategoryShortcutSection
+                    categories={validCategories}
+                    onCategorySelect={(cat) =>
+                      setSearchParams(new URLSearchParams({ category: cat }))
+                    }
+                  />
                 </>
               )}
 
               {/* Category Badges for Mobile */}
-              <CategoryBadges 
-                categories={validCategories} 
-                currentCategory={categoryFilter}
-              />
+              <CategoryBadges categories={validCategories} currentCategory={categoryFilter} />
 
               {/* Category Listing */}
               {categoryFilter ? (
@@ -2411,16 +2700,16 @@ export function GhorerBazarTemplate({
               ) : (
                 <>
                   {/* ALL PRODUCT */}
-                  <ProductsSection 
+                  <ProductsSection
                     title="ALL PRODUCT"
                     products={featuredProducts}
                     onProductClick={goToProduct}
                     onQuickAdd={(item) => addToCart(item, 1)}
                   />
-                  
+
                   {/* More Products */}
                   {moreProducts.length > 0 && (
-                    <ProductsSection 
+                    <ProductsSection
                       title="আরও পণ্য"
                       products={moreProducts}
                       onProductClick={goToProduct}
@@ -2430,7 +2719,7 @@ export function GhorerBazarTemplate({
 
                   {/* Recommendations */}
                   {recommendedProducts.length > 0 && (
-                    <RecommendationSection 
+                    <RecommendationSection
                       title="You Might Also Like"
                       products={recommendedProducts}
                       onProductClick={goToProduct}
@@ -2443,7 +2732,7 @@ export function GhorerBazarTemplate({
 
                   {/* Recently Viewed */}
                   {products.length > 21 && (
-                    <ProductsSection 
+                    <ProductsSection
                       title="Recently Viewed Products"
                       products={products.slice(21, 29)}
                       onProductClick={goToProduct}

@@ -19,6 +19,7 @@ import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/st
 import { getCustomer } from '~/services/customer-auth.server';
 import { parsePriceRange } from '~/utils/price';
 import { resolveTemplate } from '~/lib/template-resolver.server';
+import { formatPrice } from '~/lib/theme-engine';
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const { slug } = params;
@@ -521,12 +522,10 @@ export default function CollectionPage() {
                   <div className="p-4">
                     <h3 className="font-medium text-gray-900 truncate">{product.title}</h3>
                     <p className="text-lg font-bold mt-1" style={{ color: theme.primary }}>
-                      {currency === 'BDT' ? '৳' : '$'}
-                      {product.price.toLocaleString()}
+                      {formatPrice(product.price, currency)}
                       {product.compareAtPrice && product.compareAtPrice > product.price && (
                         <span className="ml-2 text-sm text-gray-500 line-through">
-                          {currency === 'BDT' ? '৳' : '$'}
-                          {product.compareAtPrice.toLocaleString()}
+                          {formatPrice(product.compareAtPrice, currency)}
                         </span>
                       )}
                     </p>

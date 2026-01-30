@@ -48,6 +48,7 @@ import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-re
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
+import { formatPrice } from '~/lib/theme-engine';
 import { useCartCount } from '~/hooks/useCartCount';
 import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
 import { useProductPrice } from '~/hooks/useProductPrice';
@@ -454,10 +455,7 @@ function PreviewProductCard({
             {product.title}
           </h3>
           <div className="mt-auto flex items-center justify-between">
-            <span className="text-white font-semibold">
-              {currency}
-              {product.price.toLocaleString()}
-            </span>
+            <span className="text-white font-semibold">{formatPrice(product.price, currency)}</span>
           </div>
         </div>
       </div>

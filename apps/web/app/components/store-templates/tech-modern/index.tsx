@@ -36,6 +36,7 @@ import { useProductPrice } from '~/hooks/useProductPrice';
 import { WishlistProvider } from '~/contexts/WishlistContext';
 import { ClientOnly } from 'remix-utils/client-only';
 import { SkeletonLoader } from '~/components/SkeletonLoader';
+import { formatPrice } from '~/lib/theme-engine';
 
 import { TECH_MODERN_THEME } from './theme';
 import { TechModernHeader } from './sections/Header';
@@ -536,16 +537,11 @@ function PreviewProductCard({
         <div className="flex items-center justify-between gap-2">
           <div className="flex flex-col">
             <span className="text-base md:text-xl font-bold" style={{ color: theme.primary }}>
-              {currency}
-              {product.price.toLocaleString()}
+              {formatPrice(product.price, currency)}
             </span>
             {isSale && (
-              <span
-                className="text-xs md:text-sm line-through"
-                style={{ color: theme.muted }}
-              >
-                {currency}
-                {product.compareAtPrice?.toLocaleString()}
+              <span className="text-xs md:text-sm line-through" style={{ color: theme.muted }}>
+                {formatPrice(product.compareAtPrice, currency)}
               </span>
             )}
           </div>
@@ -670,7 +666,8 @@ function PreviewHomePage({
 // MAIN PREVIEW STORE CONTAINER
 // ============================================================================
 function PreviewTechModernStore(props: StoreTemplateProps) {
-  const { storeName, logo, categories, config, currency, businessInfo, socialLinks, footerConfig } = props;
+  const { storeName, logo, categories, config, currency, businessInfo, socialLinks, footerConfig } =
+    props;
   const [currentPage, setCurrentPage] = useState<PageType>({ type: 'home' });
 
   const navigate = useCallback((page: PageType) => {
@@ -1184,7 +1181,10 @@ function TechProductCard({
 
         <div className="flex items-center justify-between gap-2">
           <div className="flex flex-col">
-            <span className="text-base md:text-xl font-bold" style={{ color: TECH_MODERN_THEME.primary }}>
+            <span
+              className="text-base md:text-xl font-bold"
+              style={{ color: TECH_MODERN_THEME.primary }}
+            >
               {formatPrice(price)}
             </span>
             {isOnSale && displayCompareAt && (

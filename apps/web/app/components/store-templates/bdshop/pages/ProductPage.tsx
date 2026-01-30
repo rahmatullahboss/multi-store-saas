@@ -11,8 +11,18 @@
  */
 
 import { useState } from 'react';
-import { ShoppingCart, Zap, Heart, Share2, ChevronLeft, ChevronRight, Package, CheckCircle } from 'lucide-react';
+import {
+  ShoppingCart,
+  Zap,
+  Heart,
+  Share2,
+  ChevronLeft,
+  ChevronRight,
+  Package,
+  CheckCircle,
+} from 'lucide-react';
 import type { Product } from '@db/schema';
+import { formatPrice } from '~/lib/theme-engine';
 
 // BDShop Theme Colors
 const BDSHOP_THEME = {
@@ -95,22 +105,28 @@ export function BDShopProductPage({
   const inStock = product.inventory === null || product.inventory > 0;
 
   return (
-    <div 
-      className="min-h-screen py-6 px-4"
-      style={{ backgroundColor: BDSHOP_THEME.background }}
-    >
+    <div className="min-h-screen py-6 px-4" style={{ backgroundColor: BDSHOP_THEME.background }}>
       <div className="max-w-6xl mx-auto">
         {/* Breadcrumb */}
-        <nav className="text-sm mb-6 flex items-center gap-2" style={{ color: BDSHOP_THEME.textSecondary }}>
-          <a href="/" className="hover:text-blue-600">🏠</a>
+        <nav
+          className="text-sm mb-6 flex items-center gap-2"
+          style={{ color: BDSHOP_THEME.textSecondary }}
+        >
+          <a href="/" className="hover:text-blue-600">
+            🏠
+          </a>
           <span>›</span>
           {product.category && (
             <>
-              <a href={`/?category=${product.category}`} className="hover:text-blue-600">{product.category}</a>
+              <a href={`/?category=${product.category}`} className="hover:text-blue-600">
+                {product.category}
+              </a>
               <span>›</span>
             </>
           )}
-          <span className="font-medium" style={{ color: BDSHOP_THEME.blue }}>{product.title}</span>
+          <span className="font-medium" style={{ color: BDSHOP_THEME.blue }}>
+            {product.title}
+          </span>
         </nav>
 
         <div className="grid lg:grid-cols-2 gap-8">
@@ -129,13 +145,17 @@ export function BDShopProductPage({
               {images.length > 1 && (
                 <>
                   <button
-                    onClick={() => setSelectedImage(prev => prev > 0 ? prev - 1 : images.length - 1)}
+                    onClick={() =>
+                      setSelectedImage((prev) => (prev > 0 ? prev - 1 : images.length - 1))
+                    }
                     className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-50"
                   >
                     <ChevronLeft size={20} />
                   </button>
                   <button
-                    onClick={() => setSelectedImage(prev => prev < images.length - 1 ? prev + 1 : 0)}
+                    onClick={() =>
+                      setSelectedImage((prev) => (prev < images.length - 1 ? prev + 1 : 0))
+                    }
                     className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-50"
                   >
                     <ChevronRight size={20} />
@@ -166,38 +186,51 @@ export function BDShopProductPage({
             {/* Category Badge */}
             {product.category && (
               <div className="flex items-center gap-2">
-                <span 
-                  className="text-xs font-medium px-2 py-1 rounded"
-                  style={{ backgroundColor: BDSHOP_THEME.lightBlue, color: BDSHOP_THEME.blue }}
-                >
-                  {product.category.toUpperCase()}
-                </span>
-              </div>
-            )}
-
-            <h1 
-              className="text-2xl font-bold leading-relaxed"
-              style={{ color: BDSHOP_THEME.text }}
-            >
-              {product.title}
-            </h1>
-
-            {/* Product ID */}
-            <div className="flex items-center gap-4 text-sm" style={{ color: BDSHOP_THEME.textSecondary }}>
-              <span>Product ID: <strong>{product.sku || product.id}</strong></span>
-            </div>
-
-            {/* Price */}
-            <div className="py-4" style={{ borderTop: `1px solid ${BDSHOP_THEME.border}`, borderBottom: `1px solid ${BDSHOP_THEME.border}` }}>
               <span 
                 className="text-3xl font-bold"
                 style={{ color: BDSHOP_THEME.blue }}
               >
-                {currency}{(product.price ?? 0).toLocaleString()}
+                {formatPrice(product.price)}
               </span>
               {product.compareAtPrice && product.compareAtPrice > (product.price ?? 0) && (
                 <span className="ml-3 text-lg line-through" style={{ color: BDSHOP_THEME.textSecondary }}>
-                  {currency}{product.compareAtPrice.toLocaleString()}
+                  {formatPrice(product.compareAtPrice)}
+                </span>
+              )}
+
+            <h1 className="text-2xl font-bold leading-relaxed" style={{ color: BDSHOP_THEME.text }}>
+              {product.title}
+            </h1>
+
+            {/* Product ID */}
+            <div
+              className="flex items-center gap-4 text-sm"
+              style={{ color: BDSHOP_THEME.textSecondary }}
+            >
+              <span>
+                Product ID: <strong>{product.sku || product.id}</strong>
+              </span>
+            </div>
+
+            {/* Price */}
+            <div
+              className="py-4"
+              style={{
+                borderTop: `1px solid ${BDSHOP_THEME.border}`,
+                borderBottom: `1px solid ${BDSHOP_THEME.border}`,
+              }}
+            >
+              <span className="text-3xl font-bold" style={{ color: BDSHOP_THEME.blue }}>
+                {currency}
+                {(product.price ?? 0).toLocaleString()}
+              </span>
+              {product.compareAtPrice && product.compareAtPrice > (product.price ?? 0) && (
+                <span
+                  className="ml-3 text-lg line-through"
+                  style={{ color: BDSHOP_THEME.textSecondary }}
+                >
+                  {currency}
+                  {product.compareAtPrice.toLocaleString()}
                 </span>
               )}
             </div>
@@ -219,25 +252,22 @@ export function BDShopProductPage({
             {/* Quantity */}
             <div className="flex items-center gap-4">
               <span style={{ color: BDSHOP_THEME.text }}>Quantity</span>
-              <div 
+              <div
                 className="flex items-center border rounded"
                 style={{ borderColor: BDSHOP_THEME.border }}
               >
                 <button
-                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 text-lg font-medium"
                   style={{ color: BDSHOP_THEME.textSecondary }}
                 >
                   −
                 </button>
-                <span 
-                  className="w-12 text-center font-medium"
-                  style={{ color: BDSHOP_THEME.text }}
-                >
+                <span className="w-12 text-center font-medium" style={{ color: BDSHOP_THEME.text }}>
                   {quantity}
                 </span>
                 <button
-                  onClick={() => setQuantity(q => q + 1)}
+                  onClick={() => setQuantity((q) => q + 1)}
                   className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 text-lg font-medium"
                   style={{ color: BDSHOP_THEME.textSecondary }}
                 >
@@ -269,23 +299,31 @@ export function BDShopProductPage({
             </div>
 
             {/* Secondary Actions */}
-            <div className="flex items-center gap-6 pt-4" style={{ borderTop: `1px solid ${BDSHOP_THEME.border}` }}>
-              <button className="flex items-center gap-2 text-sm" style={{ color: BDSHOP_THEME.textSecondary }}>
+            <div
+              className="flex items-center gap-6 pt-4"
+              style={{ borderTop: `1px solid ${BDSHOP_THEME.border}` }}
+            >
+              <button
+                className="flex items-center gap-2 text-sm"
+                style={{ color: BDSHOP_THEME.textSecondary }}
+              >
                 <Heart size={18} /> Add to Wishlist
               </button>
-              <button className="flex items-center gap-2 text-sm" style={{ color: BDSHOP_THEME.textSecondary }}>
+              <button
+                className="flex items-center gap-2 text-sm"
+                style={{ color: BDSHOP_THEME.textSecondary }}
+              >
                 <Share2 size={18} /> Share
               </button>
             </div>
 
             {/* Shipping Options */}
-            <div 
-              className="p-4 rounded-lg"
-              style={{ backgroundColor: BDSHOP_THEME.lightBlue }}
-            >
+            <div className="p-4 rounded-lg" style={{ backgroundColor: BDSHOP_THEME.lightBlue }}>
               <div className="flex items-center gap-2 mb-2">
                 <Package size={18} style={{ color: BDSHOP_THEME.blue }} />
-                <span className="font-medium" style={{ color: BDSHOP_THEME.text }}>Shipping Options</span>
+                <span className="font-medium" style={{ color: BDSHOP_THEME.text }}>
+                  Shipping Options
+                </span>
               </div>
               <p className="text-sm" style={{ color: BDSHOP_THEME.textSecondary }}>
                 Standard delivery available. Shipping calculated at checkout.
@@ -300,7 +338,7 @@ export function BDShopProductPage({
             <h2 className="text-lg font-bold mb-4" style={{ color: BDSHOP_THEME.text }}>
               Product Description
             </h2>
-            <div 
+            <div
               className="prose prose-sm max-w-none"
               style={{ color: BDSHOP_THEME.textSecondary }}
               dangerouslySetInnerHTML={{ __html: product.description }}
@@ -315,7 +353,7 @@ export function BDShopProductPage({
               Related Products
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {relatedProducts.slice(0, 5).map(p => {
+              {relatedProducts.slice(0, 5).map((p) => {
                 const handleClick = (e: React.MouseEvent) => {
                   if (onNavigateProduct) {
                     e.preventDefault();
@@ -339,14 +377,14 @@ export function BDShopProductPage({
                       )}
                     </div>
                     <div className="p-3">
-                      <h3 
+                      <h3
                         className="text-sm line-clamp-2 mb-2"
                         style={{ color: BDSHOP_THEME.text }}
                       >
                         {p.title}
                       </h3>
                       <p className="font-bold" style={{ color: BDSHOP_THEME.blue }}>
-                        {currency}{(p.price ?? 0).toLocaleString()}
+                        {formatPrice(p.price)}
                       </p>
                     </div>
                   </a>

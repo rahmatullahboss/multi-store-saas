@@ -93,6 +93,7 @@ import { resolveTemplate } from '~/lib/template-resolver.server';
 import { toast } from 'sonner';
 import { validateDiscount } from '~/../server/services/discount.service';
 import { TicketPercent } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Checkout - Secure Payment' }];
@@ -756,7 +757,7 @@ export default function Checkout() {
                     <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                   </div>
                   <div className="text-sm font-medium text-gray-900">
-                    {currency} {product.price * item.quantity}
+                    {formatPrice(product.price * item.quantity)}
                   </div>
                 </div>
               );

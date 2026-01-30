@@ -4,6 +4,7 @@ import { GHORER_BAZAR_THEME } from '../theme';
 import type { Product } from '@db/schema';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { AddToCartButton } from '~/components/AddToCartButton';
+import { formatPrice } from '~/lib/theme-engine';
 
 interface ProductPageProps {
   product: Product;
@@ -116,19 +117,18 @@ export function GhorerBazarProductPage({
               <div className="mb-6">
                 <div className="flex items-end gap-3 mb-1">
                   <span className="text-3xl font-bold text-[#fc8934]">
-                    {currencySymbol} {(product.price ?? 0).toLocaleString()}
+                    {formatPrice(product.price)}
                   </span>
                   {product.compareAtPrice && product.compareAtPrice > (product.price ?? 0) && (
                     <span className="text-xl text-gray-400 line-through">
-                      {currencySymbol} {product.compareAtPrice.toLocaleString()}
+                      {formatPrice(product.compareAtPrice)}
                     </span>
                   )}
                 </div>
                 {discount > 0 && (
                   <p className="text-sm text-[#e53935] font-medium">
-                    আপনি {currencySymbol}{' '}
-                    {((product.compareAtPrice ?? 0) - (product.price ?? 0)).toLocaleString()}{' '}
-                    সাশ্রয় করছেন
+                    আপনি {formatPrice((product.compareAtPrice ?? 0) - (product.price ?? 0))} সাশ্রয়
+                    করছেন
                   </p>
                 )}
               </div>
@@ -254,12 +254,10 @@ export function GhorerBazarProductPage({
                       {p.title}
                     </h3>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-[#fc8934]">
-                        {currencySymbol} {(p.price ?? 0).toLocaleString()}
-                      </span>
+                      <span className="font-bold text-[#fc8934]">{formatPrice(p.price)}</span>
                       {p.compareAtPrice && (
                         <span className="text-xs text-gray-400 line-through">
-                          {currencySymbol} {p.compareAtPrice.toLocaleString()}
+                          {formatPrice(p.compareAtPrice)}
                         </span>
                       )}
                     </div>

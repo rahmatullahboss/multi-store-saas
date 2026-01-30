@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useParams } from '@remix-run/react';
 import { Minus, Plus, X } from 'lucide-react';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
+import { formatPrice } from '~/lib/theme-engine';
 
 interface LuxeCartProps {
   theme?: any;
@@ -179,8 +180,7 @@ export function LuxeCartPage({ theme, isPreview = false, onCheckout, onNavigate 
                   </div>
 
                   <div className="w-full md:w-1/4 text-right font-medium text-lg">
-                    {currencySymbol}
-                    {(item.price * item.quantity).toLocaleString()}
+                    {formatPrice(item.price * item.quantity)}
                   </div>
                 </div>
               ))}

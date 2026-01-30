@@ -25,6 +25,7 @@ import {
 } from '~/templates/store-registry';
 import { ThemeStoreRenderer } from '~/components/store/ThemeStoreRenderer';
 import { getCustomer } from '~/services/customer-auth.server';
+import { formatPrice } from '~/lib/theme-engine';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data?.product) {
@@ -386,12 +387,10 @@ export default function ProductDetail() {
         <div>
           <h1 className="text-3xl font-bold mb-4">{product.title}</h1>
           <p className="text-2xl font-semibold text-blue-600 mb-4">
-            {currency === 'BDT' ? '৳' : '$'}
-            {product.price.toLocaleString()}
+            {formatPrice(product.price, currency)}
             {product.compareAtPrice && product.compareAtPrice > product.price && (
               <span className="ml-2 text-lg text-gray-500 line-through">
-                {currency === 'BDT' ? '৳' : '$'}
-                {product.compareAtPrice.toLocaleString()}
+                {formatPrice(product.compareAtPrice, currency)}
               </span>
             )}
           </p>

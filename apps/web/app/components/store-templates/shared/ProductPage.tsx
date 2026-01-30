@@ -22,6 +22,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useFetcher, useParams } from '@remix-run/react';
+import { formatPrice } from '~/lib/theme-engine';
 import {
   ShoppingCart,
   Heart,
@@ -356,13 +357,13 @@ function ShareModal({
 // Product Card Component for Related/Recently Viewed
 function ProductCard({
   product,
-  currencySymbol,
+  currency,
   colors,
   getLink,
   onNavigate,
 }: {
   product: Product;
-  currencySymbol: string;
+  currency: string;
   colors: StoreTemplateTheme;
   getLink: (path: string) => string;
   onNavigate?: (path: string) => void;
@@ -426,13 +427,11 @@ function ProductCard({
         </h3>
         <div className="flex items-center gap-2">
           <span className="font-bold" style={{ color: colors.accent }}>
-            {currencySymbol}
-            {product.price.toLocaleString()}
+            {formatPrice(product.price, currency)}
           </span>
           {hasDiscount && (
             <span className="text-sm line-through" style={{ color: colors.muted }}>
-              {currencySymbol}
-              {product.compareAtPrice!.toLocaleString()}
+              {formatPrice(product.compareAtPrice!, currency)}
             </span>
           )}
         </div>
@@ -1187,7 +1186,7 @@ export default function SharedProductPage({
                 <ProductCard
                   key={prod.id}
                   product={prod}
-                  currencySymbol={currencySymbol}
+                  currency={currency}
                   colors={colors}
                   getLink={getLink}
                   onNavigate={onNavigate}
@@ -1442,7 +1441,7 @@ export default function SharedProductPage({
                 <ProductCard
                   key={relProduct.id}
                   product={relProduct}
-                  currencySymbol={currencySymbol}
+                  currency={currency}
                   colors={colors}
                   getLink={getLink}
                   onNavigate={onNavigate}
@@ -1471,7 +1470,7 @@ export default function SharedProductPage({
                   <ProductCard
                     key={recentProduct!.id}
                     product={recentProduct!}
-                    currencySymbol={currencySymbol}
+                    currency={currency}
                     colors={colors}
                     getLink={getLink}
                     onNavigate={onNavigate}

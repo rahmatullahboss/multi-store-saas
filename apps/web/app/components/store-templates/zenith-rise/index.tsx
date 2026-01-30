@@ -26,6 +26,7 @@ import {
   type DemoProduct,
 } from '~/utils/store-preview-data';
 import { ShoppingBag, Minus, Plus, Check, Star, ArrowLeft, Sparkles } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine';
 
 // ============================================================================
 // TYPES
@@ -311,12 +312,10 @@ function PreviewProductCard({
           ))}
         </div>
         <div className="text-lg font-bold" style={{ color: ZENITH_RISE_THEME.text }}>
-          {currency}
-          {product.price.toLocaleString()}
+          {formatPrice(product.price, currency)}
           {isSale && (
             <span className="text-xs line-through ml-2" style={{ color: ZENITH_RISE_THEME.muted }}>
-              {currency}
-              {product.compareAtPrice?.toLocaleString()}
+              {formatPrice(product.compareAtPrice, currency)}
             </span>
           )}
         </div>
@@ -382,8 +381,7 @@ function PreviewProductDetailPage({
               {product.title}
             </h1>
             <div className="text-3xl font-bold" style={{ color: ZENITH_RISE_THEME.primary }}>
-              {currency}
-              {product.price.toLocaleString()}
+              {formatPrice(product.price, currency)}
             </div>
           </div>
 
@@ -688,13 +686,12 @@ function PreviewHomePage({
   );
 }
 
-
-
 // ============================================================================
 // MAIN PREVIEW STORE CONTAINER
 // ============================================================================
 function PreviewZenithRiseStore(props: StoreTemplateProps) {
-  const { storeName, logo, config, currency, businessInfo, socialLinks, footerConfig, planType } = props;
+  const { storeName, logo, config, currency, businessInfo, socialLinks, footerConfig, planType } =
+    props;
   const [currentPage, setCurrentPage] = useState<PageType>({ type: 'home' });
 
   const navigate = useCallback((page: PageType) => {
@@ -815,7 +812,7 @@ function PreviewZenithRiseStore(props: StoreTemplateProps) {
           onNavigate={navigate}
         />
         <main>{renderPage()}</main>
-        <ZenithRiseFooter 
+        <ZenithRiseFooter
           storeName={storeName}
           logo={logo}
           socialLinks={socialLinks}

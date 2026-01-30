@@ -14,6 +14,7 @@ import { FRESHNESS_THEME } from '../theme';
 import type { SerializedProduct } from '~/templates/store-registry';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { AddToCartButton } from '~/components/AddToCartButton';
+import { formatPrice } from '~/lib/theme-engine';
 
 interface ProductPageProps {
   product: SerializedProduct;
@@ -114,13 +115,11 @@ export function FreshnessProductPage({
 
               <div className="flex items-end gap-3 mb-8">
                 <span className="text-4xl font-bold text-gray-900">
-                  {currencySymbol}
-                  {product.price.toLocaleString()}
+                  {formatPrice(product.price)}
                 </span>
                 {product.compareAtPrice && product.compareAtPrice > product.price && (
                   <span className="text-xl text-gray-400 line-through mb-1">
-                    {currencySymbol}
-                    {product.compareAtPrice.toLocaleString()}
+                    {formatPrice(product.compareAtPrice)}
                   </span>
                 )}
               </div>
@@ -238,14 +237,10 @@ export function FreshnessProductPage({
                       {p.title}
                     </h3>
                     <div className="flex items-center justify-center gap-2">
-                      <span className="font-bold text-green-700">
-                        {currencySymbol}
-                        {p.price.toLocaleString()}
-                      </span>
+                      <span className="font-bold text-green-700">{formatPrice(p.price)}</span>
                       {p.compareAtPrice && (
                         <span className="text-xs text-gray-400 line-through">
-                          {currencySymbol}
-                          {p.compareAtPrice.toLocaleString()}
+                          {formatPrice(p.compareAtPrice)}
                         </span>
                       )}
                     </div>

@@ -2,6 +2,7 @@ import { Link, useParams, useSearchParams } from '@remix-run/react';
 import { useState } from 'react';
 import { Filter, ChevronDown } from 'lucide-react';
 import type { SerializedProduct } from '~/templates/store-registry';
+import { formatPrice } from '~/lib/theme-engine';
 
 interface LuxeCollectionProps {
   products: SerializedProduct[];
@@ -133,10 +134,7 @@ export function LuxeCollectionPage({
                       {product.compareAtPrice.toLocaleString()}
                     </span>
                   )}
-                  <span className="font-medium">
-                    {currencySymbol}
-                    {product.price.toLocaleString()}
-                  </span>
+                  <span className="font-medium">{formatPrice(product.price)}</span>
                 </div>
               </div>
             </Link>

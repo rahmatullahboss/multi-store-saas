@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { LUXE_BOUTIQUE_THEME } from '../theme';
 import type { Product } from '@db/schema';
+import { formatPrice } from '~/lib/theme-engine';
 
 interface ProductPageProps {
   product: Product;
@@ -119,7 +120,7 @@ export function LuxeBoutiqueProductPage({
         cart.push({
           productId: product.id,
           title: product.title,
-          price: (product.price ?? 0),
+          price: product.price ?? 0,
           imageUrl: product.imageUrl,
           quantity,
         });
@@ -283,13 +284,11 @@ export function LuxeBoutiqueProductPage({
                 className="text-2xl"
                 style={{ fontFamily: "'Playfair Display', serif", color: theme.text }}
               >
-                {currencySymbol}
-                {(product.price ?? 0).toLocaleString()}
+                {formatPrice(product.price)}
               </span>
               {product.compareAtPrice && product.compareAtPrice > (product.price ?? 0) && (
                 <span className="text-lg line-through" style={{ color: theme.muted }}>
-                  {currencySymbol}
-                  {product.compareAtPrice.toLocaleString()}
+                  {formatPrice(product.compareAtPrice)}
                 </span>
               )}
             </div>
@@ -448,8 +447,7 @@ export function LuxeBoutiqueProductPage({
                       {p.title}
                     </h3>
                     <p className="text-sm" style={{ color: theme.muted }}>
-                      {currencySymbol}
-                      {(p.price ?? 0).toLocaleString()}
+                      {formatPrice(p.price)}
                     </p>
                   </Link>
                 );

@@ -19,6 +19,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useParams, useSearchParams } from '@remix-run/react';
+import { formatPrice } from '~/lib/theme-engine';
 import {
   Filter,
   ChevronDown,
@@ -658,16 +659,14 @@ export default function SharedCollectionPage({
                             </h3>
                             <div className="flex items-center gap-2">
                               <span className="font-bold" style={{ color: colors.accent }}>
-                                {currencySymbol}
-                                {product.price.toLocaleString()}
+                                {formatPrice(product.price, currency)}
                               </span>
                               {hasDiscount && (
                                 <span
                                   className="text-sm line-through"
                                   style={{ color: colors.muted }}
                                 >
-                                  {currencySymbol}
-                                  {product.compareAtPrice!.toLocaleString()}
+                                  {formatPrice(product.compareAtPrice!, currency)}
                                 </span>
                               )}
                             </div>
@@ -739,16 +738,14 @@ export default function SharedCollectionPage({
                                   className="text-lg font-bold"
                                   style={{ color: colors.accent }}
                                 >
-                                  {currencySymbol}
-                                  {product.price.toLocaleString()}
+                                  {formatPrice(product.price, currency)}
                                 </span>
                                 {hasDiscount && (
                                   <span
                                     className="text-sm line-through"
                                     style={{ color: colors.muted }}
                                   >
-                                    {currencySymbol}
-                                    {product.compareAtPrice!.toLocaleString()}
+                                    {formatPrice(product.compareAtPrice!, currency)}
                                   </span>
                                 )}
                               </div>

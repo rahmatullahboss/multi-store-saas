@@ -4,6 +4,7 @@ import { ShoppingCart, Star, ShieldCheck, Truck, Cpu, ChevronRight } from 'lucid
 import type { SerializedProduct } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
+import { formatPrice } from '~/lib/theme-engine';
 
 interface TechProductProps {
   product: SerializedProduct;
@@ -109,13 +110,11 @@ export function TechModernProductPage({
             <div className="bg-white p-4 rounded-lg border border-blue-100 shadow-sm">
               <div className="flex items-end gap-3">
                 <span className="text-3xl font-bold text-blue-600">
-                  {currencySymbol}
-                  {product.price.toLocaleString()}
+                  {formatPrice(product.price)}
                 </span>
                 {product.compareAtPrice && (
                   <span className="text-lg text-gray-400 line-through mb-1">
-                    {currencySymbol}
-                    {product.compareAtPrice.toLocaleString()}
+                    {formatPrice(product.compareAtPrice)}
                   </span>
                 )}
               </div>

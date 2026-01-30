@@ -1,6 +1,6 @@
 /**
  * BDShop Template - DUAL MODE ARCHITECTURE
- * 
+ *
  * A BDShop Bangladesh-inspired e-commerce template with:
  * - Navy blue theme header with orange accents
  * - Mobile-first responsive design with bottom navigation
@@ -10,12 +10,12 @@
  * - FAQ accordion section
  * - Trust bar with guarantees
  * - Dark footer with newsletter
- * 
+ *
  * PREVIEW MODE (isPreview=true):
  * - Full self-contained store with demo data
  * - Internal state-based routing (no URL changes)
  * - Simulated cart and checkout
- * 
+ *
  * LIVE MODE (isPreview=false):
  * - Homepage-only component (other pages use Remix routes)
  * - Real products from database via props
@@ -42,12 +42,24 @@ import {
   searchDemoProducts,
   type DemoProduct,
 } from '~/utils/store-preview-data';
-import { ShoppingCart, Search, X, Check, Truck, Shield, RotateCcw, Phone, MessageCircle, Home } from 'lucide-react';
+import {
+  ShoppingCart,
+  Search,
+  X,
+  Check,
+  Truck,
+  Shield,
+  RotateCcw,
+  Phone,
+  MessageCircle,
+  Home,
+} from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine';
 
 // ============================================================================
 // TYPES
 // ============================================================================
-type PageType = 
+type PageType =
   | { type: 'home' }
   | { type: 'product'; productId: number }
   | { type: 'category'; category: string }
@@ -91,55 +103,58 @@ function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
 
   const addItem = useCallback((product: DemoProduct, quantity = 1) => {
-    setItems(prev => {
-      const existing = prev.find(item => item.id === product.id);
+    setItems((prev) => {
+      const existing = prev.find((item) => item.id === product.id);
       if (existing) {
-        return prev.map(item => 
-          item.id === product.id 
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
+        return prev.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
         );
       }
-      return [...prev, { 
-        id: product.id,
-        title: product.title ?? '',
-        price: product.price ?? 0,
-        compareAtPrice: product.compareAtPrice ?? null,
-        imageUrl: product.imageUrl ?? null,
-        category: product.category ?? null,
-        quantity 
-      }];
+      return [
+        ...prev,
+        {
+          id: product.id,
+          title: product.title ?? '',
+          price: product.price ?? 0,
+          compareAtPrice: product.compareAtPrice ?? null,
+          imageUrl: product.imageUrl ?? null,
+          category: product.category ?? null,
+          quantity,
+        },
+      ];
     });
   }, []);
 
   const removeItem = useCallback((productId: number) => {
-    setItems(prev => prev.filter(item => item.id !== productId));
+    setItems((prev) => prev.filter((item) => item.id !== productId));
   }, []);
 
-  const updateQuantity = useCallback((productId: number, quantity: number) => {
-    if (quantity <= 0) {
-      removeItem(productId);
-      return;
-    }
-    setItems(prev => prev.map(item => 
-      item.id === productId ? { ...item, quantity } : item
-    ));
-  }, [removeItem]);
+  const updateQuantity = useCallback(
+    (productId: number, quantity: number) => {
+      if (quantity <= 0) {
+        removeItem(productId);
+        return;
+      }
+      setItems((prev) =>
+        prev.map((item) => (item.id === productId ? { ...item, quantity } : item))
+      );
+    },
+    [removeItem]
+  );
 
   const clearCart = useCallback(() => setItems([]), []);
 
-  const total = useMemo(() => 
-    items.reduce((sum, item) => sum + item.price * item.quantity, 0), 
+  const total = useMemo(
+    () => items.reduce((sum, item) => sum + item.price * item.quantity, 0),
     [items]
   );
 
-  const itemCount = useMemo(() => 
-    items.reduce((sum, item) => sum + item.quantity, 0), 
-    [items]
-  );
+  const itemCount = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items]);
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, total, itemCount }}>
+    <CartContext.Provider
+      value={{ items, addItem, removeItem, updateQuantity, clearCart, total, itemCount }}
+    >
       {children}
     </CartContext.Provider>
   );
@@ -148,12 +163,12 @@ function CartProvider({ children }: { children: React.ReactNode }) {
 // ============================================================================
 // PREVIEW MODE HEADER (with internal navigation)
 // ============================================================================
-function PreviewHeader({ 
-  storeName, 
-  logo, 
-  categories, 
-  onNavigate 
-}: { 
+function PreviewHeader({
+  storeName,
+  logo,
+  categories,
+  onNavigate,
+}: {
   storeName: string;
   logo?: string | null;
   categories: (string | null)[];
@@ -174,7 +189,7 @@ function PreviewHeader({
   return (
     <>
       {/* Main Header */}
-      <header 
+      <header
         className="sticky top-0 z-40 shadow-md"
         style={{ backgroundColor: BDSHOP_THEME.primary }}
       >
@@ -195,11 +210,11 @@ function PreviewHeader({
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={`${storeName} এ খুঁজুন...`}
                   className="flex-1 px-4 py-2 rounded-l-md text-sm focus:outline-none bg-white text-gray-800"
                 />
-                <button 
+                <button
                   type="submit"
                   className="px-6 py-2 rounded-r-md"
                   style={{ backgroundColor: BDSHOP_THEME.accent }}
@@ -211,19 +226,16 @@ function PreviewHeader({
 
             {/* Right Actions */}
             <div className="flex items-center gap-3 ml-auto">
-              <button 
-                onClick={() => setSearchOpen(true)} 
-                className="md:hidden p-2 text-white"
-              >
+              <button onClick={() => setSearchOpen(true)} className="md:hidden p-2 text-white">
                 <Search className="w-5 h-5" />
               </button>
-              <button 
-                onClick={() => onNavigate({ type: 'cart' })} 
+              <button
+                onClick={() => onNavigate({ type: 'cart' })}
                 className="relative p-2 text-white"
               >
                 <ShoppingCart className="w-6 h-6" />
                 {cart.itemCount > 0 && (
-                  <span 
+                  <span
                     className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs flex items-center justify-center text-white"
                     style={{ backgroundColor: BDSHOP_THEME.accent }}
                   >
@@ -236,21 +248,24 @@ function PreviewHeader({
 
           {/* Category Navigation */}
           <nav className="hidden md:flex items-center gap-4 mt-2 text-white text-sm">
-            <button 
+            <button
               onClick={() => onNavigate({ type: 'home' })}
               className="hover:opacity-80 transition flex items-center gap-1"
             >
               <Home className="w-4 h-4" /> সকল ক্যাটাগরি
             </button>
-            {categories.filter(Boolean).slice(0, 6).map(cat => (
-              <button 
-                key={cat} 
-                onClick={() => onNavigate({ type: 'category', category: cat! })}
-                className="hover:opacity-80 transition"
-              >
-                {cat}
-              </button>
-            ))}
+            {categories
+              .filter(Boolean)
+              .slice(0, 6)
+              .map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => onNavigate({ type: 'category', category: cat! })}
+                  className="hover:opacity-80 transition"
+                >
+                  {cat}
+                </button>
+              ))}
           </nav>
         </div>
       </header>
@@ -263,7 +278,7 @@ function PreviewHeader({
               <input
                 type="text"
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="পণ্য খুঁজুন..."
                 autoFocus
                 className="flex-1 px-4 py-3 rounded-lg bg-white"
@@ -282,34 +297,34 @@ function PreviewHeader({
 // ============================================================================
 // PREVIEW MODE PRODUCT CARD (with internal navigation)
 // ============================================================================
-function PreviewProductCard({ 
-  product, 
-  currency, 
-  onNavigate 
-}: { 
+function PreviewProductCard({
+  product,
+  currency,
+  onNavigate,
+}: {
   product: DemoProduct;
   currency: string;
   onNavigate: (page: PageType) => void;
 }) {
   const cart = usePreviewCart();
-  const discount = product.compareAtPrice 
-    ? Math.round((1 - product.price / product.compareAtPrice) * 100) 
+  const discount = product.compareAtPrice
+    ? Math.round((1 - product.price / product.compareAtPrice) * 100)
     : 0;
 
   return (
-    <div 
+    <div
       className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group border"
       style={{ borderColor: BDSHOP_THEME.borderLight }}
       onClick={() => onNavigate({ type: 'product', productId: product.id })}
     >
       <div className="relative aspect-square overflow-hidden">
-        <img 
-          src={product.imageUrl || ''} 
+        <img
+          src={product.imageUrl || ''}
           alt={product.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         {discount > 0 && (
-          <span 
+          <span
             className="absolute top-2 left-2 px-2 py-1 text-xs font-medium text-white rounded"
             style={{ backgroundColor: BDSHOP_THEME.accent }}
           >
@@ -317,7 +332,10 @@ function PreviewProductCard({
           </span>
         )}
         <button
-          onClick={(e) => { e.stopPropagation(); cart.addItem(product); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            cart.addItem(product);
+          }}
           className="absolute bottom-2 right-2 p-2.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-white"
           style={{ backgroundColor: BDSHOP_THEME.primary }}
         >
@@ -330,16 +348,19 @@ function PreviewProductCard({
         </h3>
         <div className="flex items-baseline gap-2">
           <span className="font-bold" style={{ color: BDSHOP_THEME.priceBlue }}>
-            {currency}{product.price.toLocaleString()}
+            {formatPrice(product.price, currency)}
           </span>
           {product.compareAtPrice && (
             <span className="text-xs line-through text-gray-400">
-              {currency}{product.compareAtPrice.toLocaleString()}
+              {formatPrice(product.compareAtPrice, currency)}
             </span>
           )}
         </div>
         <div className="flex items-center gap-1 mt-1">
-          <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: '#E0F2FE', color: BDSHOP_THEME.priceBlue }}>
+          <span
+            className="text-xs px-1.5 py-0.5 rounded"
+            style={{ backgroundColor: '#E0F2FE', color: BDSHOP_THEME.priceBlue }}
+          >
             স্টকে আছে
           </span>
         </div>
@@ -351,14 +372,14 @@ function PreviewProductCard({
 // ============================================================================
 // PREVIEW MODE HOMEPAGE
 // ============================================================================
-function PreviewHomePage({ 
-  storeName: _storeName, 
-  products, 
-  categories, 
-  currency, 
-  config, 
-  onNavigate 
-}: { 
+function PreviewHomePage({
+  storeName: _storeName,
+  products,
+  categories,
+  currency,
+  config,
+  onNavigate,
+}: {
   storeName: string;
   products: DemoProduct[];
   categories: (string | null)[];
@@ -372,15 +393,18 @@ function PreviewHomePage({
   return (
     <div className="min-h-screen" style={{ backgroundColor: BDSHOP_THEME.background }}>
       {/* Hero Section - BDShop Style Text Banner */}
-      <section 
-        className="py-8 md:py-12" 
-        style={{ 
-          background: `linear-gradient(135deg, ${BDSHOP_THEME.primary} 0%, #1E3A5F 100%)` 
+      <section
+        className="py-8 md:py-12"
+        style={{
+          background: `linear-gradient(135deg, ${BDSHOP_THEME.primary} 0%, #1E3A5F 100%)`,
         }}
       >
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center">
-            <span className="inline-block px-3 py-1 rounded-full text-xs font-medium mb-3" style={{ backgroundColor: BDSHOP_THEME.accent, color: 'white' }}>
+            <span
+              className="inline-block px-3 py-1 rounded-full text-xs font-medium mb-3"
+              style={{ backgroundColor: BDSHOP_THEME.accent, color: 'white' }}
+            >
               স্টক এভেইলেবল
             </span>
             <h1 className="text-2xl md:text-4xl font-bold text-white mb-3">
@@ -389,7 +413,7 @@ function PreviewHomePage({
             <p className="text-white/80 text-sm md:text-base mb-5">
               সেরা ব্র্যান্ড, সেরা কোয়ালিটি, সেরা দাম
             </p>
-            <button 
+            <button
               onClick={() => onNavigate({ type: 'category', category: categories[0] || '' })}
               className="px-8 py-3 rounded-lg font-medium text-white shadow-lg hover:shadow-xl transition-shadow"
               style={{ backgroundColor: BDSHOP_THEME.accent }}
@@ -403,23 +427,30 @@ function PreviewHomePage({
       {/* Categories */}
       <section className="max-w-7xl mx-auto px-4 py-6">
         <div className="bg-white rounded-lg p-4">
-          <h2 className="text-lg font-bold mb-4" style={{ color: BDSHOP_THEME.text }}>ক্যাটাগরি</h2>
+          <h2 className="text-lg font-bold mb-4" style={{ color: BDSHOP_THEME.text }}>
+            ক্যাটাগরি
+          </h2>
           <div className="grid grid-cols-4 md:grid-cols-8 gap-4">
-            {categories.filter(Boolean).slice(0, 8).map(cat => (
-              <button 
-                key={cat}
-                onClick={() => onNavigate({ type: 'category', category: cat! })}
-                className="text-center hover:opacity-80 transition"
-              >
-                <div 
-                  className="w-12 h-12 md:w-14 md:h-14 mx-auto rounded-full flex items-center justify-center text-xl mb-2"
-                  style={{ backgroundColor: BDSHOP_THEME.background }}
+            {categories
+              .filter(Boolean)
+              .slice(0, 8)
+              .map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => onNavigate({ type: 'category', category: cat! })}
+                  className="text-center hover:opacity-80 transition"
                 >
-                  📦
-                </div>
-                <span className="text-xs line-clamp-2" style={{ color: BDSHOP_THEME.text }}>{cat}</span>
-              </button>
-            ))}
+                  <div
+                    className="w-12 h-12 md:w-14 md:h-14 mx-auto rounded-full flex items-center justify-center text-xl mb-2"
+                    style={{ backgroundColor: BDSHOP_THEME.background }}
+                  >
+                    📦
+                  </div>
+                  <span className="text-xs line-clamp-2" style={{ color: BDSHOP_THEME.text }}>
+                    {cat}
+                  </span>
+                </button>
+              ))}
           </div>
         </div>
       </section>
@@ -428,14 +459,17 @@ function PreviewHomePage({
       {topDeals.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 py-4">
           <div className="bg-white rounded-lg p-4">
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: BDSHOP_THEME.primary }}>
+            <h2
+              className="text-lg font-bold mb-4 flex items-center gap-2"
+              style={{ color: BDSHOP_THEME.primary }}
+            >
               🔥 টপ ডিলস
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {topDeals.map(product => (
-                <PreviewProductCard 
-                  key={product.id} 
-                  product={product} 
+              {topDeals.map((product) => (
+                <PreviewProductCard
+                  key={product.id}
+                  product={product}
                   currency={currency}
                   onNavigate={onNavigate}
                 />
@@ -448,12 +482,14 @@ function PreviewHomePage({
       {/* Specially For You */}
       <section className="max-w-7xl mx-auto px-4 py-4">
         <div className="bg-white rounded-lg p-4">
-          <h2 className="text-lg font-bold mb-4" style={{ color: BDSHOP_THEME.text }}>বিশেষভাবে আপনার জন্য</h2>
+          <h2 className="text-lg font-bold mb-4" style={{ color: BDSHOP_THEME.text }}>
+            বিশেষভাবে আপনার জন্য
+          </h2>
           <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-            {(speciallyForYou.length > 0 ? speciallyForYou : products).map(product => (
-              <PreviewProductCard 
-                key={product.id} 
-                product={product} 
+            {(speciallyForYou.length > 0 ? speciallyForYou : products).map((product) => (
+              <PreviewProductCard
+                key={product.id}
+                product={product}
                 currency={currency}
                 onNavigate={onNavigate}
               />
@@ -467,13 +503,31 @@ function PreviewHomePage({
         <div className="bg-white rounded-lg p-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             {[
-              { icon: <Truck className="w-8 h-8" />, title: 'দ্রুত ডেলিভারি', desc: 'সারাদেশে শিপিং' },
-              { icon: <Shield className="w-8 h-8" />, title: 'নিরাপদ পেমেন্ট', desc: 'একাধিক অপশন' },
-              { icon: <RotateCcw className="w-8 h-8" />, title: 'সহজ রিটার্ন', desc: '৭ দিনের মধ্যে' },
-              { icon: <Check className="w-8 h-8" />, title: '১০০% অরিজিনাল', desc: 'গুণমান নিশ্চিত' },
+              {
+                icon: <Truck className="w-8 h-8" />,
+                title: 'দ্রুত ডেলিভারি',
+                desc: 'সারাদেশে শিপিং',
+              },
+              {
+                icon: <Shield className="w-8 h-8" />,
+                title: 'নিরাপদ পেমেন্ট',
+                desc: 'একাধিক অপশন',
+              },
+              {
+                icon: <RotateCcw className="w-8 h-8" />,
+                title: 'সহজ রিটার্ন',
+                desc: '৭ দিনের মধ্যে',
+              },
+              {
+                icon: <Check className="w-8 h-8" />,
+                title: '১০০% অরিজিনাল',
+                desc: 'গুণমান নিশ্চিত',
+              },
             ].map((item, i) => (
               <div key={i} className="flex flex-col items-center">
-                <div className="mb-2" style={{ color: BDSHOP_THEME.primary }}>{item.icon}</div>
+                <div className="mb-2" style={{ color: BDSHOP_THEME.primary }}>
+                  {item.icon}
+                </div>
                 <h3 className="font-semibold text-sm">{item.title}</h3>
                 <p className="text-xs text-gray-500">{item.desc}</p>
               </div>
@@ -488,11 +542,11 @@ function PreviewHomePage({
 // ============================================================================
 // PREVIEW MODE PRODUCT DETAIL PAGE
 // ============================================================================
-function PreviewProductDetailPage({ 
-  productId, 
-  currency, 
-  onNavigate 
-}: { 
+function PreviewProductDetailPage({
+  productId,
+  currency,
+  onNavigate,
+}: {
   productId: number;
   currency: string;
   onNavigate: (page: PageType) => void;
@@ -503,10 +557,13 @@ function PreviewProductDetailPage({
 
   if (!product) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center" style={{ backgroundColor: BDSHOP_THEME.background }}>
+      <div
+        className="min-h-[60vh] flex items-center justify-center"
+        style={{ backgroundColor: BDSHOP_THEME.background }}
+      >
         <div className="text-center">
           <p className="text-gray-500 mb-4">পণ্য পাওয়া যায়নি</p>
-          <button 
+          <button
             onClick={() => onNavigate({ type: 'home' })}
             className="px-6 py-2 rounded-lg text-white"
             style={{ backgroundColor: BDSHOP_THEME.primary }}
@@ -529,30 +586,35 @@ function PreviewProductDetailPage({
 
   return (
     <BDShopProductPage
-      product={{
-        id: product.id,
-        storeId: 0,
-        title: product.title,
-        description: product.description,
-        price: product.price,
-        compareAtPrice: product.compareAtPrice,
-        imageUrl: product.imageUrl,
-        category: product.category,
-        sku: `DEMO-${product.id}`,
-        inventory: product.stock || 100,
-        images: null,
-      } as any}
+      product={
+        {
+          id: product.id,
+          storeId: 0,
+          title: product.title,
+          description: product.description,
+          price: product.price,
+          compareAtPrice: product.compareAtPrice,
+          imageUrl: product.imageUrl,
+          category: product.category,
+          sku: `DEMO-${product.id}`,
+          inventory: product.stock || 100,
+          images: null,
+        } as any
+      }
       currency={currency}
-      relatedProducts={relatedProducts.map(p => ({
-        id: p.id,
-        storeId: 0,
-        title: p.title,
-        description: p.description,
-        price: p.price,
-        compareAtPrice: p.compareAtPrice,
-        imageUrl: p.imageUrl,
-        category: p.category,
-      } as any))}
+      relatedProducts={relatedProducts.map(
+        (p) =>
+          ({
+            id: p.id,
+            storeId: 0,
+            title: p.title,
+            description: p.description,
+            price: p.price,
+            compareAtPrice: p.compareAtPrice,
+            imageUrl: p.imageUrl,
+            category: p.category,
+          }) as any
+      )}
       onAddToCart={handleAddToCart}
       onBuyNow={handleBuyNow}
       onNavigateProduct={(pid) => onNavigate({ type: 'product', productId: pid })}
@@ -563,16 +625,16 @@ function PreviewProductDetailPage({
 // ============================================================================
 // PREVIEW MODE CART PAGE
 // ============================================================================
-function PreviewCartPageComponent({ 
-  currency, 
-  onNavigate 
-}: { 
+function PreviewCartPageComponent({
+  currency,
+  onNavigate,
+}: {
   currency: string;
   onNavigate: (page: PageType) => void;
 }) {
   const cart = usePreviewCart();
 
-  const cartItems = cart.items.map(item => ({
+  const cartItems = cart.items.map((item) => ({
     id: item.id,
     productId: item.id,
     title: item.title,
@@ -595,50 +657,52 @@ function PreviewCartPageComponent({
 // ============================================================================
 // PREVIEW MODE CATEGORY PAGE
 // ============================================================================
-function PreviewCategoryPage({ 
-  category, 
-  products, 
-  currency, 
-  onNavigate 
-}: { 
+function PreviewCategoryPage({
+  category,
+  products,
+  currency,
+  onNavigate,
+}: {
   category: string;
   products: DemoProduct[];
   currency: string;
   onNavigate: (page: PageType) => void;
 }) {
-  const filtered = products.filter(p => p.category === category);
+  const filtered = products.filter((p) => p.category === category);
 
   return (
     <div className="min-h-screen py-6" style={{ backgroundColor: BDSHOP_THEME.background }}>
       <div className="max-w-7xl mx-auto px-4">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-          <button onClick={() => onNavigate({ type: 'home' })} className="hover:underline">হোম</button>
+          <button onClick={() => onNavigate({ type: 'home' })} className="hover:underline">
+            হোম
+          </button>
           <span>/</span>
           <span style={{ color: BDSHOP_THEME.text }}>{category}</span>
         </div>
 
         <div className="bg-white rounded-lg p-4">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-xl font-bold" style={{ color: BDSHOP_THEME.text }}>{category}</h1>
+            <h1 className="text-xl font-bold" style={{ color: BDSHOP_THEME.text }}>
+              {category}
+            </h1>
             <span className="text-sm text-gray-500">{filtered.length}টি পণ্য</span>
           </div>
 
           {filtered.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-              {filtered.map(product => (
-                <PreviewProductCard 
-                  key={product.id} 
-                  product={product} 
+              {filtered.map((product) => (
+                <PreviewProductCard
+                  key={product.id}
+                  product={product}
                   currency={currency}
                   onNavigate={onNavigate}
                 />
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 text-gray-500">
-              এই ক্যাটাগরিতে কোন পণ্য নেই
-            </div>
+            <div className="text-center py-12 text-gray-500">এই ক্যাটাগরিতে কোন পণ্য নেই</div>
           )}
         </div>
       </div>
@@ -649,11 +713,11 @@ function PreviewCategoryPage({
 // ============================================================================
 // PREVIEW MODE SEARCH PAGE
 // ============================================================================
-function PreviewSearchPage({ 
-  query, 
-  currency, 
-  onNavigate 
-}: { 
+function PreviewSearchPage({
+  query,
+  currency,
+  onNavigate,
+}: {
   query: string;
   currency: string;
   onNavigate: (page: PageType) => void;
@@ -671,10 +735,10 @@ function PreviewSearchPage({
 
           {results.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-              {results.map(product => (
-                <PreviewProductCard 
-                  key={product.id} 
-                  product={product} 
+              {results.map((product) => (
+                <PreviewProductCard
+                  key={product.id}
+                  product={product}
                   currency={currency}
                   onNavigate={onNavigate}
                 />
@@ -683,7 +747,7 @@ function PreviewSearchPage({
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-500 mb-4">"{query}" এর জন্য কোন পণ্য পাওয়া যায়নি</p>
-              <button 
+              <button
                 onClick={() => onNavigate({ type: 'home' })}
                 className="px-6 py-2 rounded-lg text-white"
                 style={{ backgroundColor: BDSHOP_THEME.primary }}
@@ -701,10 +765,10 @@ function PreviewSearchPage({
 // ============================================================================
 // PREVIEW MODE CHECKOUT PAGE (BDShop Style)
 // ============================================================================
-function PreviewCheckoutPage({ 
-  currency, 
-  onNavigate 
-}: { 
+function PreviewCheckoutPage({
+  currency,
+  onNavigate,
+}: {
   currency: string;
   onNavigate: (page: PageType) => void;
 }) {
@@ -714,11 +778,11 @@ function PreviewCheckoutPage({
     phone: '',
     address: '',
     city: '',
-    note: ''
+    note: '',
   });
   const [deliveryOption, setDeliveryOption] = useState<'inside' | 'outside'>('inside');
 
-  const deliveryFee = deliveryOption === 'outside' ? 120 : (cart.total >= 500 ? 0 : 60);
+  const deliveryFee = deliveryOption === 'outside' ? 120 : cart.total >= 500 ? 0 : 60;
   const grandTotal = cart.total + deliveryFee;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -729,11 +793,14 @@ function PreviewCheckoutPage({
 
   if (cart.items.length === 0) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center" style={{ backgroundColor: BDSHOP_THEME.background }}>
+      <div
+        className="min-h-[60vh] flex items-center justify-center"
+        style={{ backgroundColor: BDSHOP_THEME.background }}
+      >
         <div className="text-center">
           <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-gray-300" />
           <p className="text-gray-500 mb-4">আপনার কার্ট খালি</p>
-          <button 
+          <button
             onClick={() => onNavigate({ type: 'home' })}
             className="px-6 py-2 rounded-lg text-white"
             style={{ backgroundColor: BDSHOP_THEME.primary }}
@@ -748,28 +815,37 @@ function PreviewCheckoutPage({
   return (
     <div className="min-h-screen" style={{ backgroundColor: BDSHOP_THEME.background }}>
       {/* BDShop Checkout Header */}
-      <div 
+      <div
         className="py-6"
         style={{ background: `linear-gradient(135deg, ${BDSHOP_THEME.primary} 0%, #1E3A5F 100%)` }}
       >
         <div className="max-w-6xl mx-auto px-4">
           <h1 className="text-2xl font-bold text-white">চেকআউট</h1>
           <p className="text-white/70 text-sm mt-1">নিরাপদ অর্ডার প্রসেস</p>
-          
+
           {/* Step Indicators */}
           <div className="flex items-center gap-4 mt-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-sm font-bold" style={{ color: BDSHOP_THEME.primary }}>১</div>
+              <div
+                className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-sm font-bold"
+                style={{ color: BDSHOP_THEME.primary }}
+              >
+                ১
+              </div>
               <span className="text-white text-sm hidden md:inline">ডেলিভারি তথ্য</span>
             </div>
             <div className="flex-1 h-0.5 bg-white/30"></div>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-white/30 flex items-center justify-center text-sm font-bold text-white">২</div>
+              <div className="w-8 h-8 rounded-full bg-white/30 flex items-center justify-center text-sm font-bold text-white">
+                ২
+              </div>
               <span className="text-white/70 text-sm hidden md:inline">পেমেন্ট</span>
             </div>
             <div className="flex-1 h-0.5 bg-white/30"></div>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-white/30 flex items-center justify-center text-sm font-bold text-white">৩</div>
+              <div className="w-8 h-8 rounded-full bg-white/30 flex items-center justify-center text-sm font-bold text-white">
+                ৩
+              </div>
               <span className="text-white/70 text-sm hidden md:inline">সম্পন্ন</span>
             </div>
           </div>
@@ -782,80 +858,104 @@ function PreviewCheckoutPage({
           <div className="lg:col-span-2 space-y-4">
             {/* Shipping Info - BDShop Style */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div 
-                className="p-4 flex items-center gap-3" 
-                style={{ backgroundColor: '#F0F5FF' }}
-              >
-                <div 
+              <div className="p-4 flex items-center gap-3" style={{ backgroundColor: '#F0F5FF' }}>
+                <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center"
                   style={{ backgroundColor: BDSHOP_THEME.primary }}
                 >
                   <Truck className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="font-bold" style={{ color: BDSHOP_THEME.primary }}>ডেলিভারি তথ্য</h2>
+                  <h2 className="font-bold" style={{ color: BDSHOP_THEME.primary }}>
+                    ডেলিভারি তথ্য
+                  </h2>
                   <p className="text-xs text-gray-500">আপনার সঠিক তথ্য দিন</p>
                 </div>
               </div>
               <div className="p-5 space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1.5" style={{ color: BDSHOP_THEME.text }}>আপনার নাম</label>
+                    <label
+                      className="block text-sm font-medium mb-1.5"
+                      style={{ color: BDSHOP_THEME.text }}
+                    >
+                      আপনার নাম
+                    </label>
                     <input
                       type="text"
                       placeholder="সম্পূর্ণ নাম লিখুন"
                       required
                       value={formData.name}
-                      onChange={e => setFormData({...formData, name: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none transition"
                       style={{ borderColor: formData.name ? BDSHOP_THEME.primary : '#E5E7EB' }}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1.5" style={{ color: BDSHOP_THEME.text }}>মোবাইল নম্বর</label>
+                    <label
+                      className="block text-sm font-medium mb-1.5"
+                      style={{ color: BDSHOP_THEME.text }}
+                    >
+                      মোবাইল নম্বর
+                    </label>
                     <input
                       type="tel"
                       placeholder="01XXXXXXXXX"
                       required
                       value={formData.phone}
-                      onChange={e => setFormData({...formData, phone: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none transition"
                       style={{ borderColor: formData.phone ? BDSHOP_THEME.primary : '#E5E7EB' }}
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5" style={{ color: BDSHOP_THEME.text }}>সম্পূর্ণ ঠিকানা</label>
+                  <label
+                    className="block text-sm font-medium mb-1.5"
+                    style={{ color: BDSHOP_THEME.text }}
+                  >
+                    সম্পূর্ণ ঠিকানা
+                  </label>
                   <textarea
                     placeholder="বাসা নং, রোড, এলাকা..."
                     required
                     rows={2}
                     value={formData.address}
-                    onChange={e => setFormData({...formData, address: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none transition"
                     style={{ borderColor: formData.address ? BDSHOP_THEME.primary : '#E5E7EB' }}
                   />
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1.5" style={{ color: BDSHOP_THEME.text }}>শহর/জেলা</label>
+                    <label
+                      className="block text-sm font-medium mb-1.5"
+                      style={{ color: BDSHOP_THEME.text }}
+                    >
+                      শহর/জেলা
+                    </label>
                     <input
                       type="text"
                       placeholder="আপনার জেলা"
                       required
                       value={formData.city}
-                      onChange={e => setFormData({...formData, city: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                       className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none transition"
                       style={{ borderColor: formData.city ? BDSHOP_THEME.primary : '#E5E7EB' }}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1.5" style={{ color: BDSHOP_THEME.text }}>অর্ডার নোট</label>
+                    <label
+                      className="block text-sm font-medium mb-1.5"
+                      style={{ color: BDSHOP_THEME.text }}
+                    >
+                      অর্ডার নোট
+                    </label>
                     <input
                       type="text"
                       placeholder="বিশেষ নির্দেশনা (ঐচ্ছিক)"
                       value={formData.note}
-                      onChange={e => setFormData({...formData, note: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, note: e.target.value })}
                       className="w-full px-4 py-3 border-2 rounded-xl focus:outline-none"
                       style={{ borderColor: '#E5E7EB' }}
                     />
@@ -866,62 +966,66 @@ function PreviewCheckoutPage({
 
             {/* Delivery Options - BDShop Style Cards */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div 
-                className="p-4 flex items-center gap-3" 
-                style={{ backgroundColor: '#F0F5FF' }}
-              >
-                <div 
+              <div className="p-4 flex items-center gap-3" style={{ backgroundColor: '#F0F5FF' }}>
+                <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center"
                   style={{ backgroundColor: BDSHOP_THEME.primary }}
                 >
                   <Shield className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="font-bold" style={{ color: BDSHOP_THEME.primary }}>ডেলিভারি অপশন</h2>
+                  <h2 className="font-bold" style={{ color: BDSHOP_THEME.primary }}>
+                    ডেলিভারি অপশন
+                  </h2>
                   <p className="text-xs text-gray-500">আপনার পছন্দের ডেলিভারি বেছে নিন</p>
                 </div>
               </div>
               <div className="p-5">
                 <div className="grid md:grid-cols-2 gap-4">
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setDeliveryOption('inside')}
                     className={`p-5 rounded-xl border-2 text-left transition-all ${
                       deliveryOption === 'inside' ? '' : 'hover:border-gray-300'
                     }`}
-                    style={{ 
+                    style={{
                       borderColor: deliveryOption === 'inside' ? BDSHOP_THEME.primary : '#E5E7EB',
-                      backgroundColor: deliveryOption === 'inside' ? '#F0F5FF' : 'white'
+                      backgroundColor: deliveryOption === 'inside' ? '#F0F5FF' : 'white',
                     }}
                   >
                     <div className="flex items-center justify-between mb-3">
-                      <span className="font-bold" style={{ color: BDSHOP_THEME.primary }}>ঢাকার ভেতরে</span>
-                      {deliveryOption === 'inside' && (
-                        <Check className="w-5 h-5 text-green-500" />
-                      )}
+                      <span className="font-bold" style={{ color: BDSHOP_THEME.primary }}>
+                        ঢাকার ভেতরে
+                      </span>
+                      {deliveryOption === 'inside' && <Check className="w-5 h-5 text-green-500" />}
                     </div>
                     <p className="text-sm text-gray-600 mb-2">১-২ কর্মদিবসে ডেলিভারি</p>
-                    <p className="text-lg font-bold" style={{ color: cart.total >= 500 ? BDSHOP_THEME.success : BDSHOP_THEME.text }}>
+                    <p
+                      className="text-lg font-bold"
+                      style={{
+                        color: cart.total >= 500 ? BDSHOP_THEME.success : BDSHOP_THEME.text,
+                      }}
+                    >
                       {cart.total >= 500 ? '🎉 ফ্রি ডেলিভারি' : `${currency}60`}
                     </p>
                   </button>
-                  
-                  <button 
+
+                  <button
                     type="button"
                     onClick={() => setDeliveryOption('outside')}
                     className={`p-5 rounded-xl border-2 text-left transition-all ${
                       deliveryOption === 'outside' ? '' : 'hover:border-gray-300'
                     }`}
-                    style={{ 
+                    style={{
                       borderColor: deliveryOption === 'outside' ? BDSHOP_THEME.primary : '#E5E7EB',
-                      backgroundColor: deliveryOption === 'outside' ? '#F0F5FF' : 'white'
+                      backgroundColor: deliveryOption === 'outside' ? '#F0F5FF' : 'white',
                     }}
                   >
                     <div className="flex items-center justify-between mb-3">
-                      <span className="font-bold" style={{ color: BDSHOP_THEME.primary }}>ঢাকার বাইরে</span>
-                      {deliveryOption === 'outside' && (
-                        <Check className="w-5 h-5 text-green-500" />
-                      )}
+                      <span className="font-bold" style={{ color: BDSHOP_THEME.primary }}>
+                        ঢাকার বাইরে
+                      </span>
+                      {deliveryOption === 'outside' && <Check className="w-5 h-5 text-green-500" />}
                     </div>
                     <p className="text-sm text-gray-600 mb-2">৩-৫ কর্মদিবসে ডেলিভারি</p>
                     <p className="text-lg font-bold" style={{ color: BDSHOP_THEME.text }}>
@@ -934,23 +1038,25 @@ function PreviewCheckoutPage({
 
             {/* Order Items - BDShop Style  */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div 
-                className="p-4 flex items-center justify-between" 
+              <div
+                className="p-4 flex items-center justify-between"
                 style={{ backgroundColor: '#F0F5FF' }}
               >
                 <div className="flex items-center gap-3">
-                  <div 
+                  <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center"
                     style={{ backgroundColor: BDSHOP_THEME.primary }}
                   >
                     <ShoppingCart className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="font-bold" style={{ color: BDSHOP_THEME.primary }}>অর্ডার আইটেম</h2>
+                    <h2 className="font-bold" style={{ color: BDSHOP_THEME.primary }}>
+                      অর্ডার আইটেম
+                    </h2>
                     <p className="text-xs text-gray-500">{cart.itemCount}টি পণ্য</p>
                   </div>
                 </div>
-                <button 
+                <button
                   type="button"
                   onClick={() => onNavigate({ type: 'cart' })}
                   className="text-sm font-medium px-3 py-1 rounded-lg hover:bg-white"
@@ -960,18 +1066,31 @@ function PreviewCheckoutPage({
                 </button>
               </div>
               <div className="divide-y">
-                {cart.items.map(item => (
+                {cart.items.map((item) => (
                   <div key={item.id} className="p-4 flex gap-4">
-                    <div className="w-20 h-20 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden border" style={{ borderColor: '#E5E7EB' }}>
+                    <div
+                      className="w-20 h-20 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden border"
+                      style={{ borderColor: '#E5E7EB' }}
+                    >
                       {item.imageUrl && (
-                        <img src={item.imageUrl} alt={item.title} className="w-full h-full object-contain bg-white p-1" />
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title}
+                          className="w-full h-full object-contain bg-white p-1"
+                        />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm line-clamp-2" style={{ color: BDSHOP_THEME.text }}>{item.title}</h3>
+                      <h3
+                        className="font-medium text-sm line-clamp-2"
+                        style={{ color: BDSHOP_THEME.text }}
+                      >
+                        {item.title}
+                      </h3>
                       <p className="text-xs text-gray-400 mt-1">পরিমাণ: {item.quantity}টি</p>
                       <p className="font-bold mt-2" style={{ color: BDSHOP_THEME.primary }}>
-                        {currency}{(item.price * item.quantity).toLocaleString()}
+                        {currency}
+                        {(item.price * item.quantity).toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -982,16 +1101,21 @@ function PreviewCheckoutPage({
 
           {/* Right Column - Order Summary */}
           <div className="space-y-4">
-            <div 
+            <div
               className="rounded-xl shadow-sm overflow-hidden"
-              style={{ background: `linear-gradient(135deg, ${BDSHOP_THEME.primary} 0%, #1E3A5F 100%)` }}
+              style={{
+                background: `linear-gradient(135deg, ${BDSHOP_THEME.primary} 0%, #1E3A5F 100%)`,
+              }}
             >
               <div className="p-5">
                 <h3 className="text-lg font-bold text-white mb-4">অর্ডার সামারি</h3>
                 <div className="space-y-3 text-white/90">
                   <div className="flex justify-between">
                     <span>সাবটোটাল ({cart.itemCount}টি)</span>
-                    <span className="font-medium">{currency}{cart.total.toLocaleString()}</span>
+                    <span className="font-medium">
+                      {currency}
+                      {cart.total.toLocaleString()}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>শিপিং</span>
@@ -1002,7 +1126,10 @@ function PreviewCheckoutPage({
                   <div className="border-t border-white/20 pt-3 mt-3">
                     <div className="flex justify-between text-xl">
                       <span className="font-bold text-white">মোট</span>
-                      <span className="font-bold text-white">{currency}{grandTotal.toLocaleString()}</span>
+                      <span className="font-bold text-white">
+                        {currency}
+                        {grandTotal.toLocaleString()}
+                      </span>
                     </div>
                     <p className="text-xs text-white/60 mt-1">সকল ট্যাক্স সহ</p>
                   </div>
@@ -1017,23 +1144,25 @@ function PreviewCheckoutPage({
                 ✓ অর্ডার কনফার্ম করুন
               </button>
             </div>
-            
+
             <p className="text-xs text-center text-gray-400 px-4">
               ⚠️ এটি প্রিভিউ মোড। কোন অর্ডার প্রসেস হবে না।
             </p>
 
             {/* Payment Methods - BDShop Style */}
             <div className="bg-white rounded-xl shadow-sm p-5">
-              <h3 className="font-bold mb-3" style={{ color: BDSHOP_THEME.primary }}>পেমেন্ট অপশন</h3>
+              <h3 className="font-bold mb-3" style={{ color: BDSHOP_THEME.primary }}>
+                পেমেন্ট অপশন
+              </h3>
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { name: 'ক্যাশ অন ডেলিভারি', icon: '💵' },
                   { name: 'বিকাশ', icon: '📱' },
                   { name: 'নগদ', icon: '💳' },
-                  { name: 'রকেট', icon: '🚀' }
-                ].map(method => (
-                  <div 
-                    key={method.name} 
+                  { name: 'রকেট', icon: '🚀' },
+                ].map((method) => (
+                  <div
+                    key={method.name}
                     className="flex items-center gap-2 p-2.5 rounded-lg border"
                     style={{ borderColor: '#E5E7EB' }}
                   >
@@ -1062,19 +1191,24 @@ function PreviewCheckoutPage({
 // ============================================================================
 function PreviewOrderSuccessPage({ onNavigate }: { onNavigate: (page: PageType) => void }) {
   return (
-    <div className="min-h-[60vh] flex items-center justify-center" style={{ backgroundColor: BDSHOP_THEME.background }}>
+    <div
+      className="min-h-[60vh] flex items-center justify-center"
+      style={{ backgroundColor: BDSHOP_THEME.background }}
+    >
       <div className="text-center bg-white rounded-lg p-8 shadow-sm max-w-md">
-        <div 
+        <div
           className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
           style={{ backgroundColor: '#D1FAE5' }}
         >
           <Check className="w-10 h-10 text-green-600" />
         </div>
-        <h1 className="text-2xl font-bold mb-2" style={{ color: BDSHOP_THEME.text }}>অর্ডার সফল!</h1>
+        <h1 className="text-2xl font-bold mb-2" style={{ color: BDSHOP_THEME.text }}>
+          অর্ডার সফল!
+        </h1>
         <p className="text-gray-500 mb-6">
           আপনার অর্ডারের জন্য ধন্যবাদ। এটি একটি ডেমো, তাই কোন অর্ডার প্লেস হয়নি।
         </p>
-        <button 
+        <button
           onClick={() => onNavigate({ type: 'home' })}
           className="px-8 py-3 rounded-lg font-medium text-white"
           style={{ backgroundColor: BDSHOP_THEME.primary }}
@@ -1089,11 +1223,11 @@ function PreviewOrderSuccessPage({ onNavigate }: { onNavigate: (page: PageType) 
 // ============================================================================
 // PREVIEW MODE FOOTER
 // ============================================================================
-function PreviewFooter({ 
-  storeName, 
-  categories, 
-  onNavigate 
-}: { 
+function PreviewFooter({
+  storeName,
+  categories,
+  onNavigate,
+}: {
   storeName: string;
   categories: (string | null)[];
   onNavigate: (page: PageType) => void;
@@ -1109,29 +1243,45 @@ function PreviewFooter({
           <div>
             <h4 className="font-semibold mb-4 text-sm text-white">ক্যাটাগরি</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              {categories.filter(Boolean).slice(0, 5).map(cat => (
-                <li key={cat}>
-                  <button onClick={() => onNavigate({ type: 'category', category: cat! })} className="hover:text-white">
-                    {cat}
-                  </button>
-                </li>
-              ))}
+              {categories
+                .filter(Boolean)
+                .slice(0, 5)
+                .map((cat) => (
+                  <li key={cat}>
+                    <button
+                      onClick={() => onNavigate({ type: 'category', category: cat! })}
+                      className="hover:text-white"
+                    >
+                      {cat}
+                    </button>
+                  </li>
+                ))}
             </ul>
           </div>
           <div>
             <h4 className="font-semibold mb-4 text-sm text-white">সাহায্য</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><button className="hover:text-white">প্রশ্নোত্তর</button></li>
-              <li><button className="hover:text-white">শিপিং</button></li>
-              <li><button className="hover:text-white">রিটার্ন</button></li>
-              <li><button className="hover:text-white">যোগাযোগ</button></li>
+              <li>
+                <button className="hover:text-white">প্রশ্নোত্তর</button>
+              </li>
+              <li>
+                <button className="hover:text-white">শিপিং</button>
+              </li>
+              <li>
+                <button className="hover:text-white">রিটার্ন</button>
+              </li>
+              <li>
+                <button className="hover:text-white">যোগাযোগ</button>
+              </li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold mb-4 text-sm text-white">পেমেন্ট মেথড</h4>
             <div className="flex flex-wrap gap-2">
-              {['বিকাশ', 'নগদ', 'ভিসা', 'COD'].map(method => (
-                <span key={method} className="px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded">{method}</span>
+              {['বিকাশ', 'নগদ', 'ভিসা', 'COD'].map((method) => (
+                <span key={method} className="px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded">
+                  {method}
+                </span>
               ))}
             </div>
           </div>
@@ -1163,9 +1313,9 @@ function PreviewBDShopStore(props: StoreTemplateProps) {
     switch (currentPage.type) {
       case 'home':
         return (
-          <PreviewHomePage 
-            storeName={storeName} 
-            products={products} 
+          <PreviewHomePage
+            storeName={storeName}
+            products={products}
             categories={validCategories}
             currency={currency}
             config={(config || {}) as unknown as Record<string, unknown>}
@@ -1174,15 +1324,15 @@ function PreviewBDShopStore(props: StoreTemplateProps) {
         );
       case 'product':
         return (
-          <PreviewProductDetailPage 
-            productId={currentPage.productId} 
+          <PreviewProductDetailPage
+            productId={currentPage.productId}
             currency={currency}
             onNavigate={navigate}
           />
         );
       case 'category':
         return (
-          <PreviewCategoryPage 
+          <PreviewCategoryPage
             category={currentPage.category}
             products={products}
             currency={currency}
@@ -1191,33 +1341,19 @@ function PreviewBDShopStore(props: StoreTemplateProps) {
         );
       case 'search':
         return (
-          <PreviewSearchPage 
-            query={currentPage.query}
-            currency={currency}
-            onNavigate={navigate}
-          />
+          <PreviewSearchPage query={currentPage.query} currency={currency} onNavigate={navigate} />
         );
       case 'cart':
-        return (
-          <PreviewCartPageComponent 
-            currency={currency}
-            onNavigate={navigate}
-          />
-        );
+        return <PreviewCartPageComponent currency={currency} onNavigate={navigate} />;
       case 'checkout':
-        return (
-          <PreviewCheckoutPage 
-            currency={currency}
-            onNavigate={navigate}
-          />
-        );
+        return <PreviewCheckoutPage currency={currency} onNavigate={navigate} />;
       case 'order-success':
         return <PreviewOrderSuccessPage onNavigate={navigate} />;
       default:
         return (
-          <PreviewHomePage 
-            storeName={storeName} 
-            products={products} 
+          <PreviewHomePage
+            storeName={storeName}
+            products={products}
             categories={validCategories}
             currency={currency}
             config={(config || {}) as unknown as Record<string, unknown>}
@@ -1229,22 +1365,25 @@ function PreviewBDShopStore(props: StoreTemplateProps) {
 
   return (
     <CartProvider>
-      <div 
+      <div
         className="min-h-screen"
-        style={{ 
-          backgroundColor: BDSHOP_THEME.background, 
-          fontFamily: "'Inter', 'NotoSans', Arial, sans-serif" 
+        style={{
+          backgroundColor: BDSHOP_THEME.background,
+          fontFamily: "'Inter', 'NotoSans', Arial, sans-serif",
         }}
       >
         {/* Preview Banner */}
-        <div className="text-white text-center py-2 text-sm font-medium" style={{ backgroundColor: BDSHOP_THEME.accent }}>
+        <div
+          className="text-white text-center py-2 text-sm font-medium"
+          style={{ backgroundColor: BDSHOP_THEME.accent }}
+        >
           ⚠️ প্রিভিউ মোড - এটি একটি ডেমো। কোন অর্ডার প্লেস হবে না।
         </div>
 
         {/* Header */}
-        <PreviewHeader 
-          storeName={storeName} 
-          logo={logo} 
+        <PreviewHeader
+          storeName={storeName}
+          logo={logo}
           categories={validCategories}
           onNavigate={navigate}
         />
@@ -1253,11 +1392,7 @@ function PreviewBDShopStore(props: StoreTemplateProps) {
         <main>{renderPage()}</main>
 
         {/* Footer */}
-        <PreviewFooter 
-          storeName={storeName} 
-          categories={validCategories}
-          onNavigate={navigate}
-        />
+        <PreviewFooter storeName={storeName} categories={validCategories} onNavigate={navigate} />
 
         {/* Scrollbar Hide CSS */}
         <style>{`
@@ -1295,7 +1430,13 @@ function LiveBDShopHomepage(props: StoreTemplateProps) {
       <WishlistProvider>
         <ClientOnly fallback={<SkeletonLoader />}>
           {() => (
-            <div className="min-h-screen pb-16 md:pb-0" style={{ backgroundColor: BDSHOP_THEME.background, fontFamily: "'Inter', 'NotoSans', Arial, sans-serif" }}>
+            <div
+              className="min-h-screen pb-16 md:pb-0"
+              style={{
+                backgroundColor: BDSHOP_THEME.background,
+                fontFamily: "'Inter', 'NotoSans', Arial, sans-serif",
+              }}
+            >
               <BDShopHeader
                 storeName={storeName}
                 logo={logo}
@@ -1307,60 +1448,62 @@ function LiveBDShopHomepage(props: StoreTemplateProps) {
 
               {/* Main Content with Dynamic Sections */}
               <main className="max-w-7xl mx-auto px-3 md:px-4 py-3 md:py-4">
-                {(config?.sections ?? [
-                  {
-                    id: 'hero',
-                    type: 'hero',
-                    settings: {
-                      heading: config?.bannerText || 'Amazing Deals Await!',
-                      subheading: 'Shop the best products at unbeatable prices',
-                      primaryAction: { label: 'SHOP NOW', url: '/?category=all' },
-                      secondaryAction: { label: 'Browse Categories', url: '/#categories' },
-                      image: config?.bannerUrl,
-                      layout: 'marketplace',
-                      alignment: 'left'
-                    }
-                  },
-                  {
-                    id: 'categories',
-                    type: 'category-list',
-                    settings: {
-                      layout: 'scroll',
-                      limit: 10
-                    }
-                  },
-                  {
-                    id: 'flash-sale',
-                    type: 'product-scroll',
-                    settings: {
-                      heading: 'Top Deals',
-                      mode: 'flash-sale',
-                      limit: 12
-                    }
-                  },
-                  {
-                    id: 'products',
-                    type: 'product-grid',
-                    settings: {
-                      heading: currentCategory || 'Specially for You',
-                      productCount: 18,
-                      paddingTop: 'medium',
-                      paddingBottom: 'medium'
-                    }
-                  },
-                  {
-                    id: 'features',
-                    type: 'features',
-                    settings: {
-                      heading: 'Trusted by Bangladesh Shoppers',
-                      subheading: 'Secure payments, fast delivery, easy returns.',
-                      backgroundColor: 'white'
-                    }
-                  }
-                ]).map((section: any) => {
+                {(
+                  config?.sections ?? [
+                    {
+                      id: 'hero',
+                      type: 'hero',
+                      settings: {
+                        heading: config?.bannerText || 'Amazing Deals Await!',
+                        subheading: 'Shop the best products at unbeatable prices',
+                        primaryAction: { label: 'SHOP NOW', url: '/?category=all' },
+                        secondaryAction: { label: 'Browse Categories', url: '/#categories' },
+                        image: config?.bannerUrl,
+                        layout: 'marketplace',
+                        alignment: 'left',
+                      },
+                    },
+                    {
+                      id: 'categories',
+                      type: 'category-list',
+                      settings: {
+                        layout: 'scroll',
+                        limit: 10,
+                      },
+                    },
+                    {
+                      id: 'flash-sale',
+                      type: 'product-scroll',
+                      settings: {
+                        heading: 'Top Deals',
+                        mode: 'flash-sale',
+                        limit: 12,
+                      },
+                    },
+                    {
+                      id: 'products',
+                      type: 'product-grid',
+                      settings: {
+                        heading: currentCategory || 'Specially for You',
+                        productCount: 18,
+                        paddingTop: 'medium',
+                        paddingBottom: 'medium',
+                      },
+                    },
+                    {
+                      id: 'features',
+                      type: 'features',
+                      settings: {
+                        heading: 'Trusted by Bangladesh Shoppers',
+                        subheading: 'Secure payments, fast delivery, easy returns.',
+                        backgroundColor: 'white',
+                      },
+                    },
+                  ]
+                ).map((section: any) => {
                   const SectionComponent = SECTION_REGISTRY[section.type]?.component;
                   if (!SectionComponent) return null;
-                  
+
                   return (
                     <SectionComponent
                       key={section.id}
@@ -1375,7 +1518,7 @@ function LiveBDShopHomepage(props: StoreTemplateProps) {
                         email: businessInfo?.email,
                         phone: businessInfo?.phone,
                         address: businessInfo?.address,
-                        currency: currency
+                        currency: currency,
                       }}
                     />
                   );
