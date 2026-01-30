@@ -43,6 +43,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { PageHeader, EmptyState } from '~/components/ui';
 import { GlassCard } from '~/components/ui/GlassCard';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { formatPrice } from '~/utils/formatPrice';
 import { Badge } from '~/components/ui/Badge'; // Assuming we have this or I'll use simple span
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/Input'; // Assuming we have this
@@ -114,12 +115,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
   }
 
-  // Execute Query with all conditions  
+  // Execute Query with all conditions
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const whereCondition: any = conditions.length === 1 ? conditions[0] : and(...conditions);
-  const allCustomers: typeof customers.$inferSelect[] = await (db
-    .select()
-    .from(customers) as any)
+  const allCustomers: (typeof customers.$inferSelect)[] = await (db.select().from(customers) as any)
     .where(whereCondition)
     .orderBy(desc(customers.createdAt))
     .limit(limit)
@@ -146,7 +145,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // MAIN COMPONENT
 // ============================================================================
 export default function CustomersListPage() {
-  const { customers: allCustomers, currency, filters, canExport, planType } = useLoaderData<typeof loader>();
+  const {
+    customers: allCustomers,
+    currency,
+    filters,
+    canExport,
+    planType,
+  } = useLoaderData<typeof loader>();
   const { t, lang } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const submit = useSubmit();
@@ -176,14 +181,6 @@ export default function CustomersListPage() {
     newParams.set('segment', segment);
     newParams.set('page', '1');
     setSearchParams(newParams);
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-    }).format(price);
   };
 
   const formatDate = (date: string | Date | null) => {
@@ -218,10 +215,16 @@ export default function CustomersListPage() {
             </Button>
           ) : (
             <Link to="/app/upgrade">
-              <Button variant="outline" size="sm" className="gap-2 text-amber-600 border-amber-300 hover:bg-amber-50">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 text-amber-600 border-amber-300 hover:bg-amber-50"
+              >
                 <Download className="w-4 h-4" />
                 {t('export')}
-                <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full ml-1">Premium</span>
+                <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full ml-1">
+                  Premium
+                </span>
               </Button>
             </Link>
           )}

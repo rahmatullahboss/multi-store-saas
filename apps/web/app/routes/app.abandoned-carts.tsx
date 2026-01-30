@@ -1,8 +1,8 @@
 /**
  * Abandoned Carts Dashboard
- * 
+ *
  * Route: /app/abandoned-carts
- * 
+ *
  * Features:
  * - View abandoned carts (>1 hour old)
  * - Customer contact info
@@ -17,10 +17,10 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc, lte } from 'drizzle-orm';
 import { abandonedCarts, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { 
-  ShoppingCart, 
-  Mail, 
-  Phone, 
+import {
+  ShoppingCart,
+  Mail,
+  Phone,
   User,
   Clock,
   CheckCircle,
@@ -28,9 +28,10 @@ import {
   Loader2,
   DollarSign,
   Package,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { formatPrice } from '~/utils/formatPrice';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Abandoned Carts - Ozzyl' }];
@@ -48,26 +49,17 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = drizzle(context.cloudflare.env.DB);
 
   // Fetch store info
-  const storeResult = await db
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
+  const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
 
   const store = storeResult[0];
 
   // Fetch abandoned carts (abandoned more than 1 hour ago)
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-  
+
   const carts = await db
     .select()
     .from(abandonedCarts)
-    .where(
-      and(
-        eq(abandonedCarts.storeId, storeId),
-        eq(abandonedCarts.status, 'abandoned')
-      )
-    )
+    .where(and(eq(abandonedCarts.storeId, storeId), eq(abandonedCarts.status, 'abandoned')))
     .orderBy(desc(abandonedCarts.abandonedAt))
     .limit(50);
 
@@ -79,10 +71,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const stats = {
     total: allCarts.length,
-    abandoned: allCarts.filter(c => c.status === 'abandoned').length,
-    recovered: allCarts.filter(c => c.status === 'recovered').length,
+    abandoned: allCarts.filter((c) => c.status === 'abandoned').length,
+    recovered: allCarts.filter((c) => c.status === 'recovered').length,
     totalValue: allCarts
-      .filter(c => c.status === 'abandoned')
+      .filter((c) => c.status === 'abandoned')
       .reduce((sum, c) => sum + c.totalAmount, 0),
   };
 
@@ -105,33 +97,25 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const formData = await request.formData();
   const intent = formData.get('intent') as string;
   const cartId = parseInt(formData.get('cartId') as string);
-  
+
   const db = drizzle(context.cloudflare.env.DB);
 
   if (intent === 'markRecovered') {
-    await db.update(abandonedCarts)
-      .set({ 
+    await db
+      .update(abandonedCarts)
+      .set({
         status: 'recovered',
         recoveredAt: new Date(),
       })
-      .where(
-        and(
-          eq(abandonedCarts.id, cartId),
-          eq(abandonedCarts.storeId, storeId)
-        )
-      );
+      .where(and(eq(abandonedCarts.id, cartId), eq(abandonedCarts.storeId, storeId)));
     return json({ success: true, message: 'Cart marked as recovered' });
   }
 
   if (intent === 'markExpired') {
-    await db.update(abandonedCarts)
+    await db
+      .update(abandonedCarts)
       .set({ status: 'expired' })
-      .where(
-        and(
-          eq(abandonedCarts.id, cartId),
-          eq(abandonedCarts.storeId, storeId)
-        )
-      );
+      .where(and(eq(abandonedCarts.id, cartId), eq(abandonedCarts.storeId, storeId)));
     return json({ success: true, message: 'Cart marked as expired' });
   }
 
@@ -147,14 +131,6 @@ export default function AbandonedCartsPage() {
   const isSubmitting = navigation.state === 'submitting';
   const { t, lang } = useTranslation();
 
-  const formatPrice = (amount: number) => {
-    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
   const formatDate = (date: Date | string | number) => {
     return new Date(date).toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-US', {
       month: 'short',
@@ -168,7 +144,7 @@ export default function AbandonedCartsPage() {
     const diff = Date.now() - new Date(date).getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(hours / 24);
-    
+
     if (days > 0) return t('daysAgo', { days });
     if (hours > 0) return t('hoursAgo', { hours });
     return t('justNow');
@@ -217,15 +193,13 @@ export default function AbandonedCartsPage() {
             <ShoppingCart className="w-8 h-8 text-gray-400" />
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('noAbandonedCarts')}</h3>
-          <p className="text-gray-500">
-            {t('noAbandonedCartsDesc')}
-          </p>
+          <p className="text-gray-500">{t('noAbandonedCartsDesc')}</p>
         </div>
       ) : (
         <div className="space-y-4">
           {carts.map((cart) => {
             const items = JSON.parse(cart.cartItems || '[]');
-            
+
             return (
               <div key={cart.id} className="bg-white rounded-xl border border-gray-200 p-6">
                 <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
@@ -271,14 +245,18 @@ export default function AbandonedCartsPage() {
                     {/* Cart Items Summary */}
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <Package className="w-4 h-4" />
-                      <span>{items.length} {items.length !== 1 ? t('items') : t('item')}</span>
+                      <span>
+                        {items.length} {items.length !== 1 ? t('items') : t('item')}
+                      </span>
                       {items.slice(0, 3).map((item: { title: string }, i: number) => (
                         <span key={i} className="text-gray-400">
                           • {item.title}
                         </span>
                       ))}
                       {items.length > 3 && (
-                        <span className="text-gray-400">+{items.length - 3} {t('more')}</span>
+                        <span className="text-gray-400">
+                          +{items.length - 3} {t('more')}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -335,14 +313,14 @@ export default function AbandonedCartsPage() {
 // ============================================================================
 // STAT CARD COMPONENT
 // ============================================================================
-function StatCard({ 
-  label, 
-  value, 
-  icon, 
-  color 
-}: { 
-  label: string; 
-  value: string; 
+function StatCard({
+  label,
+  value,
+  icon,
+  color,
+}: {
+  label: string;
+  value: string;
   icon: React.ReactNode;
   color: 'orange' | 'emerald' | 'blue' | 'red';
 }) {

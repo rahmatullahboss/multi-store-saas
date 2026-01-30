@@ -1,8 +1,8 @@
 /**
  * Returns Dashboard
- * 
+ *
  * Route: /app/returns
- * 
+ *
  * Shows only actual delivery returns (courierStatus = 'returned')
  * NOT call cancels (status = 'cancelled')
  */
@@ -13,12 +13,19 @@ import { drizzle } from 'drizzle-orm/d1';
 import { orders, stores, customers } from '@db/schema';
 import { eq, desc, and, sql } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
-import { 
-  PackageX, ArrowLeft, Phone, Calendar, DollarSign, 
-  AlertTriangle, User, TrendingDown
+import {
+  PackageX,
+  ArrowLeft,
+  Phone,
+  Calendar,
+  DollarSign,
+  AlertTriangle,
+  User,
+  TrendingDown,
 } from 'lucide-react';
 import { PageHeader, StatCard } from '~/components/ui';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { formatPrice } from '~/utils/formatPrice';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Returns - Merchant Dashboard' }];
@@ -36,11 +43,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = drizzle(context.cloudflare.env.DB);
 
   // Fetch store info
-  const storeResult = await db
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
+  const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
 
   const store = storeResult[0];
 
@@ -49,36 +52,29 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const returnedOrders = await db
     .select()
     .from(orders)
-    .where(
-      and(
-        eq(orders.storeId, storeId),
-        eq(orders.courierStatus, 'returned')
-      )
-    )
+    .where(and(eq(orders.storeId, storeId), eq(orders.courierStatus, 'returned')))
     .orderBy(desc(orders.updatedAt))
     .limit(100);
 
   // Get all orders for calculating return rate
   const allOrders = await db
-    .select({ 
+    .select({
       status: orders.status,
       courierStatus: orders.courierStatus,
-      total: orders.total
+      total: orders.total,
     })
     .from(orders)
     .where(eq(orders.storeId, storeId));
 
   // Calculate stats
   const totalOrders = allOrders.length;
-  const deliveredCount = allOrders.filter(o => 
-    o.status === 'delivered' || o.courierStatus === 'delivered'
+  const deliveredCount = allOrders.filter(
+    (o) => o.status === 'delivered' || o.courierStatus === 'delivered'
   ).length;
-  const returnedCount = allOrders.filter(o => o.courierStatus === 'returned').length;
+  const returnedCount = allOrders.filter((o) => o.courierStatus === 'returned').length;
   const shippedCount = deliveredCount + returnedCount;
-  
-  const returnRate = shippedCount > 0 
-    ? Math.round((returnedCount / shippedCount) * 100) 
-    : 0;
+
+  const returnRate = shippedCount > 0 ? Math.round((returnedCount / shippedCount) * 100) : 0;
 
   const returnLoss = returnedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
 
@@ -90,12 +86,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       returnCount: sql<number>`COUNT(*)`.as('return_count'),
     })
     .from(orders)
-    .where(
-      and(
-        eq(orders.storeId, storeId),
-        eq(orders.courierStatus, 'returned')
-      )
-    )
+    .where(and(eq(orders.storeId, storeId), eq(orders.courierStatus, 'returned')))
     .groupBy(orders.customerPhone, orders.customerName)
     .orderBy(desc(sql`return_count`))
     .limit(10);
@@ -121,14 +112,6 @@ export default function ReturnsDashboard() {
   const { orders: returnedOrders, currency, stats, topReturners } = useLoaderData<typeof loader>();
   const { t, lang } = useTranslation();
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
   const formatDate = (date: string | Date | null) => {
     if (!date) return '—';
     const d = new Date(date);
@@ -143,10 +126,7 @@ export default function ReturnsDashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link 
-          to="/app/orders" 
-          className="p-2 hover:bg-gray-100 rounded-lg transition"
-        >
+        <Link to="/app/orders" className="p-2 hover:bg-gray-100 rounded-lg transition">
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
         <PageHeader
@@ -192,8 +172,8 @@ export default function ReturnsDashboard() {
           </h3>
           <div className="space-y-2">
             {topReturners.slice(0, 5).map((customer, idx) => (
-              <div 
-                key={customer.phone} 
+              <div
+                key={customer.phone}
                 className="flex items-center justify-between py-2 px-3 bg-red-50 rounded-lg"
               >
                 <div className="flex items-center gap-3">
@@ -219,9 +199,7 @@ export default function ReturnsDashboard() {
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <PackageX className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">কোনো রিটার্ন নেই 🎉</h3>
-          <p className="text-gray-500">
-            দারুণ! আপনার কোনো ডেলিভারি রিটার্ন হয়নি।
-          </p>
+          <p className="text-gray-500">দারুণ! আপনার কোনো ডেলিভারি রিটার্ন হয়নি।</p>
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -230,7 +208,7 @@ export default function ReturnsDashboard() {
               ⚠️ এই লিস্টে শুধু ডেলিভারি রিটার্ন আছে (shipped → returned)। Call cancel এখানে নেই।
             </p>
           </div>
-          
+
           <div className="divide-y divide-gray-100">
             {returnedOrders.map((order) => (
               <Link

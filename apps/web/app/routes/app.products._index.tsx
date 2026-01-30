@@ -1,8 +1,8 @@
 /**
  * Products List Page - Shopify-Inspired Design
- * 
+ *
  * Route: /app/products
- * 
+ *
  * Features:
  * - Stats header (Total, Published, Low Stock)
  * - Search and status filter tabs
@@ -16,17 +16,43 @@ import { json } from '@remix-run/cloudflare';
 import { useLoaderData, Link, Form, useNavigation, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, inArray, sql, and, like, count, or } from 'drizzle-orm';
-import { products, stores, orderItems, savedLandingConfigs, publishedPages, productVariants, productCollections, reviews, orderBumps, upsellOffers, productRecommendations } from '@db/schema';
+import {
+  products,
+  stores,
+  orderItems,
+  savedLandingConfigs,
+  publishedPages,
+  productVariants,
+  productCollections,
+  reviews,
+  orderBumps,
+  upsellOffers,
+  productRecommendations,
+} from '@db/schema';
 import { builderPages } from '@db/schema_page_builder';
 import { getStoreId } from '~/services/auth.server';
-import { 
-  Plus, Package, ImageOff, Trash2, Eye, EyeOff, Loader2, Pencil, 
-  AlertTriangle, CheckCircle, Archive, Rocket, Check, Copy, Star
+import {
+  Plus,
+  Package,
+  ImageOff,
+  Trash2,
+  Eye,
+  EyeOff,
+  Loader2,
+  Pencil,
+  AlertTriangle,
+  CheckCircle,
+  Archive,
+  Rocket,
+  Check,
+  Copy,
+  Star,
 } from 'lucide-react';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
 import { GlassCard } from '~/components/ui/GlassCard';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { formatPrice } from '~/utils/formatPrice';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Products - Ozzyl' }];
@@ -41,11 +67,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = drizzle(context.cloudflare.env.DB);
 
   // Fetch store info for currency
-  const storeResult = await db
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
+  const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
 
   const store = storeResult[0];
 
@@ -59,10 +81,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // Calculate stats
   const totalProducts = storeProducts.length;
-  const publishedCount = storeProducts.filter(p => p.isPublished).length;
-  const draftCount = storeProducts.filter(p => !p.isPublished).length;
-  const lowStockCount = storeProducts.filter(p => (p.inventory || 0) > 0 && (p.inventory || 0) <= 5).length;
-  const outOfStockCount = storeProducts.filter(p => (p.inventory || 0) <= 0).length;
+  const publishedCount = storeProducts.filter((p) => p.isPublished).length;
+  const draftCount = storeProducts.filter((p) => !p.isPublished).length;
+  const lowStockCount = storeProducts.filter(
+    (p) => (p.inventory || 0) > 0 && (p.inventory || 0) <= 5
+  ).length;
+  const outOfStockCount = storeProducts.filter((p) => (p.inventory || 0) <= 0).length;
 
   // Check product limit for the plan
   const { checkUsageLimit } = await import('~/utils/plans.server');
@@ -100,7 +124,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const formData = await request.formData();
   const intent = formData.get('intent') as string;
-  const productIds = formData.getAll('productIds').map(id => parseInt(id as string));
+  const productIds = formData.getAll('productIds').map((id) => parseInt(id as string));
 
   if (productIds.length === 0) {
     return json({ error: 'No products selected' }, { status: 400 });
@@ -112,63 +136,78 @@ export async function action({ request, context }: ActionFunctionArgs) {
     case 'delete':
       try {
         // First, set null on orderItems productId references (preserve order history)
-        await db.update(orderItems)
+        await db
+          .update(orderItems)
           .set({ productId: null })
           .where(inArray(orderItems.productId, productIds));
-        
+
         // Set null on savedLandingConfigs productId references
-        await db.update(savedLandingConfigs)
+        await db
+          .update(savedLandingConfigs)
           .set({ productId: null })
           .where(inArray(savedLandingConfigs.productId, productIds));
-        
+
         // Set null on publishedPages productId references
-        await db.update(publishedPages)
+        await db
+          .update(publishedPages)
           .set({ productId: null })
           .where(inArray(publishedPages.productId, productIds));
-        
+
         // Set null on builderPages productId references (new page builder)
-        await db.update(builderPages)
+        await db
+          .update(builderPages)
           .set({ productId: null })
           .where(inArray(builderPages.productId, productIds));
-        
+
         // Delete related records that have onDelete: 'cascade' defined
         // (These should cascade but we delete explicitly to be safe)
         await db.delete(productVariants).where(inArray(productVariants.productId, productIds));
-        await db.delete(productCollections).where(inArray(productCollections.productId, productIds));
+        await db
+          .delete(productCollections)
+          .where(inArray(productCollections.productId, productIds));
         await db.delete(reviews).where(inArray(reviews.productId, productIds));
-        
+
         // Delete orderBumps where productId OR bumpProductId matches
-        await db.delete(orderBumps).where(
-          or(
-            inArray(orderBumps.productId, productIds),
-            inArray(orderBumps.bumpProductId, productIds)
-          )
-        );
-        
+        await db
+          .delete(orderBumps)
+          .where(
+            or(
+              inArray(orderBumps.productId, productIds),
+              inArray(orderBumps.bumpProductId, productIds)
+            )
+          );
+
         // Delete upsellOffers where productId OR offerProductId matches
-        await db.delete(upsellOffers).where(
-          or(
-            inArray(upsellOffers.productId, productIds),
-            inArray(upsellOffers.offerProductId, productIds)
-          )
-        );
-        
+        await db
+          .delete(upsellOffers)
+          .where(
+            or(
+              inArray(upsellOffers.productId, productIds),
+              inArray(upsellOffers.offerProductId, productIds)
+            )
+          );
+
         // Delete productRecommendations where sourceProductId OR recommendedProductId matches
-        await db.delete(productRecommendations).where(
-          or(
-            inArray(productRecommendations.sourceProductId, productIds),
-            inArray(productRecommendations.recommendedProductId, productIds)
-          )
-        );
-        
+        await db
+          .delete(productRecommendations)
+          .where(
+            or(
+              inArray(productRecommendations.sourceProductId, productIds),
+              inArray(productRecommendations.recommendedProductId, productIds)
+            )
+          );
+
         // Now delete the products
         await db.delete(products).where(inArray(products.id, productIds));
         return json({ success: true, message: `${productIds.length} product(s) deleted` });
       } catch (error) {
         console.error('Delete error:', error);
-        return json({ 
-          error: `Failed to delete products: ${error instanceof Error ? error.message : 'Unknown error'}` 
-        }, { status: 500 });
+        return json(
+          {
+            error: `Failed to delete products: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+          { status: 500 }
+        );
       }
 
     case 'publish':
@@ -185,32 +224,41 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function ProductsIndexPage() {
-  const { products: storeProducts, currency, stats, storeSubdomain, storeCustomDomain, featuredProductId, canAddProduct, productLimitMessage } = useLoaderData<typeof loader>();
+  const {
+    products: storeProducts,
+    currency,
+    stats,
+    storeSubdomain,
+    storeCustomDomain,
+    featuredProductId,
+    canAddProduct,
+    productLimitMessage,
+  } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === 'submitting';
   const { t, lang } = useTranslation();
-  
+
   // Filter state from URL
   const statusFilter = searchParams.get('status') || 'all';
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  
+
   // Ad Link copy state - shows checkmark briefly after copy
   const [copiedProductId, setCopiedProductId] = useState<number | null>(null);
-  
+
   // Hydration-safe pattern: ensures event handlers work correctly
   // This prevents React Hydration Error #418 from breaking click handlers
   const [isHydrated, setIsHydrated] = useState(false);
   useEffect(() => {
     setIsHydrated(true);
   }, []);
-  
+
   // Delete confirmation modal state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  
+
   // Close modal and clear selection when form is submitting
   useEffect(() => {
     if (isSubmitting && showDeleteConfirm) {
@@ -218,7 +266,7 @@ export default function ProductsIndexPage() {
       clearSelection();
     }
   }, [isSubmitting, showDeleteConfirm]);
-  
+
   // Status tabs configuration
   const statusTabs = [
     { id: 'all', label: t('allOrders'), count: stats.total },
@@ -235,46 +283,50 @@ export default function ProductsIndexPage() {
     // Apply status filter
     switch (statusFilter) {
       case 'published':
-        filtered = filtered.filter(p => p.isPublished);
+        filtered = filtered.filter((p) => p.isPublished);
         break;
       case 'draft':
-        filtered = filtered.filter(p => !p.isPublished);
+        filtered = filtered.filter((p) => !p.isPublished);
         break;
       case 'low-stock':
-        filtered = filtered.filter(p => (p.inventory || 0) > 0 && (p.inventory || 0) <= 5);
+        filtered = filtered.filter((p) => (p.inventory || 0) > 0 && (p.inventory || 0) <= 5);
         break;
       case 'out-of-stock':
-        filtered = filtered.filter(p => (p.inventory || 0) <= 0);
+        filtered = filtered.filter((p) => (p.inventory || 0) <= 0);
         break;
     }
 
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(p => 
-        p.title.toLowerCase().includes(query) ||
-        (p.sku && p.sku.toLowerCase().includes(query)) ||
-        (p.category && p.category.toLowerCase().includes(query))
+      filtered = filtered.filter(
+        (p) =>
+          p.title.toLowerCase().includes(query) ||
+          (p.sku && p.sku.toLowerCase().includes(query)) ||
+          (p.category && p.category.toLowerCase().includes(query))
       );
     }
 
     return filtered;
   }, [storeProducts, statusFilter, searchQuery]);
 
-  const handleStatusChange = useCallback((tabId: string) => {
-    setSearchParams(prev => {
-      if (tabId === 'all') {
-        prev.delete('status');
-      } else {
-        prev.set('status', tabId);
-      }
-      return prev;
-    });
-    setSelectedIds(new Set());
-  }, [setSearchParams]);
-  
+  const handleStatusChange = useCallback(
+    (tabId: string) => {
+      setSearchParams((prev) => {
+        if (tabId === 'all') {
+          prev.delete('status');
+        } else {
+          prev.set('status', tabId);
+        }
+        return prev;
+      });
+      setSelectedIds(new Set());
+    },
+    [setSearchParams]
+  );
+
   const toggleSelect = (id: number) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
@@ -284,24 +336,16 @@ export default function ProductsIndexPage() {
       return next;
     });
   };
-  
+
   const toggleSelectAll = () => {
     if (selectedIds.size === filteredProducts.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(filteredProducts.map(p => p.id)));
+      setSelectedIds(new Set(filteredProducts.map((p) => p.id)));
     }
   };
-  
-  const clearSelection = () => setSelectedIds(new Set());
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
+  const clearSelection = () => setSelectedIds(new Set());
 
   // Generate offer URL for a product
   const getOfferUrl = (productId: number) => {
@@ -324,14 +368,12 @@ export default function ProductsIndexPage() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <p className="text-amber-800 font-medium">
-              {t('productLimitReached')}
-            </p>
+            <p className="text-amber-800 font-medium">{t('productLimitReached')}</p>
             <p className="text-amber-700 text-sm mt-1">
               {productLimitMessage || t('productLimitDesc')}
             </p>
-            <Link 
-              to="/app/billing" 
+            <Link
+              to="/app/billing"
               className="inline-flex items-center gap-1 text-sm font-medium text-amber-800 hover:text-amber-900 mt-2"
             >
               {t('upgradePlan')} →
@@ -344,11 +386,15 @@ export default function ProductsIndexPage() {
       <PageHeader
         title={t('products')}
         description={t('manageProductCatalog')}
-        primaryAction={canAddProduct ? {
-          label: t('addProduct'),
-          href: '/app/products/new',
-          icon: <Plus className="w-4 h-4" />,
-        } : undefined}
+        primaryAction={
+          canAddProduct
+            ? {
+                label: t('addProduct'),
+                href: '/app/products/new',
+                icon: <Plus className="w-4 h-4" />,
+              }
+            : undefined
+        }
       />
 
       {/* Stats Cards */}
@@ -389,14 +435,10 @@ export default function ProductsIndexPage() {
           onChange={setSearchQuery}
           className="w-full md:w-80"
         />
-        
+
         {/* Status Tabs */}
         <div className="flex-1">
-          <StatusTabs
-            tabs={statusTabs}
-            activeTab={statusFilter}
-            onChange={handleStatusChange}
-          />
+          <StatusTabs tabs={statusTabs} activeTab={statusFilter} onChange={handleStatusChange} />
         </div>
       </div>
 
@@ -408,7 +450,7 @@ export default function ProductsIndexPage() {
           </span>
           <div className="flex flex-wrap items-center gap-2">
             <Form method="post" className="inline">
-              {Array.from(selectedIds).map(id => (
+              {Array.from(selectedIds).map((id) => (
                 <input key={id} type="hidden" name="productIds" value={id} />
               ))}
               <button
@@ -422,7 +464,7 @@ export default function ProductsIndexPage() {
               </button>
             </Form>
             <Form method="post" className="inline">
-              {Array.from(selectedIds).map(id => (
+              {Array.from(selectedIds).map((id) => (
                 <input key={id} type="hidden" name="productIds" value={id} />
               ))}
               <button
@@ -461,16 +503,24 @@ export default function ProductsIndexPage() {
             icon={<Package className="w-10 h-10" />}
             title={t('noProductsFound')}
             description={t('clearSearch')}
-            action={canAddProduct ? {
-              label: t('addNewProduct'),
-              href: '/app/products/new',
-              icon: <Plus className="w-4 h-4" />,
-            } : undefined}
+            action={
+              canAddProduct
+                ? {
+                    label: t('addNewProduct'),
+                    href: '/app/products/new',
+                    icon: <Plus className="w-4 h-4" />,
+                  }
+                : undefined
+            }
           />
         </GlassCard>
       ) : filteredProducts.length === 0 ? (
         <GlassCard intensity="low" className="p-12 text-center">
-          <p className="text-gray-500">{lang === 'bn' ? 'কোনো প্রোডাক্ট আপনার ফিল্টারের সাথে মিলছে না।' : 'No products match your filters.'}</p>
+          <p className="text-gray-500">
+            {lang === 'bn'
+              ? 'কোনো প্রোডাক্ট আপনার ফিল্টারের সাথে মিলছে না।'
+              : 'No products match your filters.'}
+          </p>
           <button
             onClick={() => {
               setSearchQuery('');
@@ -491,7 +541,9 @@ export default function ProductsIndexPage() {
                   <th className="px-4 py-3 text-left w-10">
                     <input
                       type="checkbox"
-                      checked={selectedIds.size === filteredProducts.length && filteredProducts.length > 0}
+                      checked={
+                        selectedIds.size === filteredProducts.length && filteredProducts.length > 0
+                      }
                       onChange={toggleSelectAll}
                       className="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
                     />
@@ -521,8 +573,8 @@ export default function ProductsIndexPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredProducts.map((product) => (
-                  <tr 
-                    key={product.id} 
+                  <tr
+                    key={product.id}
                     className={`hover:bg-gray-50 transition ${selectedIds.has(product.id) ? 'bg-emerald-50' : ''}`}
                   >
                     <td className="px-4 py-4">
@@ -555,7 +607,7 @@ export default function ProductsIndexPage() {
                               {product.title}
                             </Link>
                             {featuredProductId === product.id && (
-                              <span 
+                              <span
                                 className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full"
                                 title="This is your featured product in Landing Mode"
                               >
@@ -594,7 +646,11 @@ export default function ProductsIndexPage() {
                           type="button"
                           onClick={() => copyAdLink(product.id)}
                           disabled={!product.isPublished}
-                          title={product.isPublished ? 'Copy Ad Link for Facebook Ads' : 'Publish product to get Ad Link'}
+                          title={
+                            product.isPublished
+                              ? 'Copy Ad Link for Facebook Ads'
+                              : 'Publish product to get Ad Link'
+                          }
                           className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition ${
                             copiedProductId === product.id
                               ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
@@ -634,7 +690,10 @@ export default function ProductsIndexPage() {
           {/* Mobile Cards */}
           <div className="md:hidden divide-y divide-gray-100">
             {filteredProducts.map((product) => (
-              <div key={product.id} className={`p-4 ${selectedIds.has(product.id) ? 'bg-emerald-50' : ''}`}>
+              <div
+                key={product.id}
+                className={`p-4 ${selectedIds.has(product.id) ? 'bg-emerald-50' : ''}`}
+              >
                 <div className="flex items-start gap-3">
                   <input
                     type="checkbox"
@@ -656,7 +715,10 @@ export default function ProductsIndexPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <Link to={`/app/products/${product.id}`} className="font-medium text-gray-900 truncate hover:text-emerald-600">
+                        <Link
+                          to={`/app/products/${product.id}`}
+                          className="font-medium text-gray-900 truncate hover:text-emerald-600"
+                        >
                           {product.title}
                         </Link>
                         {featuredProductId === product.id && (
@@ -668,7 +730,9 @@ export default function ProductsIndexPage() {
                       <StatusBadge published={product.isPublished ?? true} lang={lang} />
                     </div>
                     <div className="mt-1 flex items-center gap-4 text-sm">
-                      <span className="font-semibold text-gray-900">{formatPrice(product.price)}</span>
+                      <span className="font-semibold text-gray-900">
+                        {formatPrice(product.price)}
+                      </span>
                       <StockBadge stock={product.inventory || 0} lang={lang} />
                     </div>
                     {product.category && (
@@ -680,7 +744,11 @@ export default function ProductsIndexPage() {
                         type="button"
                         onClick={() => copyAdLink(product.id)}
                         disabled={!product.isPublished}
-                        title={product.isPublished ? 'Copy Ad Link for Facebook Ads' : 'Publish product first'}
+                        title={
+                          product.isPublished
+                            ? 'Copy Ad Link for Facebook Ads'
+                            : 'Publish product first'
+                        }
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition ${
                           copiedProductId === product.id
                             ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
@@ -726,7 +794,7 @@ export default function ProductsIndexPage() {
               {lang === 'bn' ? 'প্রোডাক্ট ডিলিট করুন?' : 'Delete Products?'}
             </h3>
             <p className="text-gray-600 mb-4">
-              {lang === 'bn' 
+              {lang === 'bn'
                 ? `${selectedIds.size}টি প্রোডাক্ট ডিলিট হবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।`
                 : `${selectedIds.size} product(s) will be deleted. This cannot be undone.`}
             </p>
@@ -739,7 +807,7 @@ export default function ProductsIndexPage() {
                 {t('cancel')}
               </button>
               <Form method="post" className="inline">
-                {Array.from(selectedIds).map(id => (
+                {Array.from(selectedIds).map((id) => (
                   <input key={id} type="hidden" name="productIds" value={id} />
                 ))}
                 <button
@@ -773,17 +841,18 @@ export default function ProductsIndexPage() {
 // STATUS BADGE COMPONENT
 // ============================================================================
 function StatusBadge({ published, lang }: { published: boolean; lang: string }) {
-  const label = published 
-    ? (lang === 'bn' ? 'প্রকাশিত' : 'Published') 
-    : (lang === 'bn' ? 'ড্রাফট' : 'Draft');
+  const label = published
+    ? lang === 'bn'
+      ? 'প্রকাশিত'
+      : 'Published'
+    : lang === 'bn'
+      ? 'ড্রাফট'
+      : 'Draft';
   return (
     <span
       className={`
         inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full
-        ${published 
-          ? 'bg-emerald-100 text-emerald-700' 
-          : 'bg-gray-100 text-gray-600'
-        }
+        ${published ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}
       `}
       suppressHydrationWarning
     >
@@ -798,23 +867,27 @@ function StatusBadge({ published, lang }: { published: boolean; lang: string }) 
 function StockBadge({ stock, lang }: { stock: number; lang: string }) {
   if (stock <= 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full" suppressHydrationWarning>
+      <span
+        className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full"
+        suppressHydrationWarning
+      >
         <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
         {lang === 'bn' ? 'স্টক নেই' : 'Out of stock'}
       </span>
     );
   }
-  
+
   if (stock <= 5) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full" suppressHydrationWarning>
+      <span
+        className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full"
+        suppressHydrationWarning
+      >
         <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></span>
         {lang === 'bn' ? `${stock}টি বাকি` : `${stock} left`}
       </span>
     );
   }
-  
-  return (
-    <span className="font-medium text-gray-900">{stock}</span>
-  );
+
+  return <span className="font-medium text-gray-900">{stock}</span>;
 }

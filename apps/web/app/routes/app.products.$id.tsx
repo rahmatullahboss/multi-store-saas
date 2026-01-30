@@ -1,8 +1,8 @@
 /**
  * Product Edit Page
- * 
+ *
  * Route: /app/products/:id
- * 
+ *
  * Features:
  * - Edit existing product
  * - Delete product
@@ -11,18 +11,38 @@
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
-import { Form, useActionData, useLoaderData, useNavigation, useFetcher, Link } from '@remix-run/react';
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useNavigation,
+  useFetcher,
+  Link,
+} from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { products, productVariants } from '@db/schema';
 import { getStoreId, getUserId } from '~/services/auth.server';
 import { logActivity } from '~/lib/activity.server';
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Upload, X, Loader2, ArrowLeft, Trash2, Search, ChevronDown, ChevronUp, Plus, Package } from 'lucide-react';
+import {
+  Upload,
+  X,
+  Loader2,
+  ArrowLeft,
+  Trash2,
+  Search,
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  Package,
+} from 'lucide-react';
 import { VariantManager, type Variant } from '~/components/VariantManager';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useUnsavedChanges, deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
+import { formatPrice } from '~/utils/formatPrice';
+import { toCents, fromCents } from '~/utils/money';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [{ title: data?.product?.title ? `Edit ${data.product.title}` : 'Edit Product' }];
@@ -83,20 +103,18 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
   // Handle DELETE
   if (intent === 'delete') {
-    await db
-      .delete(products)
-      .where(and(eq(products.id, productId), eq(products.storeId, storeId)));
+    await db.delete(products).where(and(eq(products.id, productId), eq(products.storeId, storeId)));
 
     // AI SYNC: Delete vector
     try {
-        const { createAIService } = await import('~/services/ai.server');
-        const ai = createAIService(context.cloudflare.env.OPENROUTER_API_KEY, {
-            context: context.cloudflare.env 
-        });
-        context.cloudflare.ctx.waitUntil(
-            ai.deleteVector(`product-${productId}`)
-        );
-    } catch(e) { console.error('Vector deletion failed', e); }
+      const { createAIService } = await import('~/services/ai.server');
+      const ai = createAIService(context.cloudflare.env.OPENROUTER_API_KEY, {
+        context: context.cloudflare.env,
+      });
+      context.cloudflare.ctx.waitUntil(ai.deleteVector(`product-${productId}`));
+    } catch (e) {
+      console.error('Vector deletion failed', e);
+    }
 
     return redirect('/app/products');
   }
@@ -135,7 +153,11 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
   // Fetch current product to compare inventory change and isPublished status
   const currentProduct = await db
-    .select({ inventory: products.inventory, title: products.title, isPublished: products.isPublished })
+    .select({
+      inventory: products.inventory,
+      title: products.title,
+      isPublished: products.isPublished,
+    })
     .from(products)
     .where(and(eq(products.id, productId), eq(products.storeId, storeId)))
     .limit(1);
@@ -152,14 +174,19 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   if (!previouslyPublished && isPublished) {
     const { checkUsageLimit } = await import('~/utils/plans.server');
     const limitCheck = await checkUsageLimit(context.cloudflare.env.DB, storeId, 'product');
-    
+
     if (!limitCheck.allowed) {
       console.warn(`[SECURITY] Store ${storeId} attempted to republish product exceeding limit`);
-      return json({ 
-        errors: { 
-          form: limitCheck.error?.message || 'Product limit reached. Please upgrade your plan to publish more products.' 
-        } 
-      }, { status: 403 });
+      return json(
+        {
+          errors: {
+            form:
+              limitCheck.error?.message ||
+              'Product limit reached. Please upgrade your plan to publish more products.',
+          },
+        },
+        { status: 403 }
+      );
     }
   }
 
@@ -167,7 +194,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     .update(products)
     .set({
       title: title.trim(),
-      price: parseFloat(price),
+      price: toCents(parseFloat(price)),
       inventory: newInventory,
       category: category?.trim() || null,
       description: description?.trim() || null,
@@ -203,10 +230,10 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   if (variantsJson) {
     try {
       const variants: Variant[] = JSON.parse(variantsJson);
-      
+
       // Delete existing variants
       await db.delete(productVariants).where(eq(productVariants.productId, productId));
-      
+
       // Insert new variants
       for (const v of variants) {
         if (v.option1Value) {
@@ -233,11 +260,11 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   try {
     const { createAIService } = await import('~/services/ai.server');
     const ai = createAIService(context.cloudflare.env.OPENROUTER_API_KEY, {
-      context: context.cloudflare.env 
+      context: context.cloudflare.env,
     });
 
     const productText = `Product: ${title}\nCategory: ${category || 'Uncategorized'}\nPrice: ${price}\nDescription: ${description || ''}`;
-    
+
     context.cloudflare.ctx.waitUntil(
       ai.insertVector(productText, {
         storeId,
@@ -245,10 +272,10 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         productId,
         title,
         category: category || 'Uncategorized',
-        customId: `product-${productId}` // Deterministic ID for upsert
+        customId: `product-${productId}`, // Deterministic ID for upsert
       })
     );
-     console.log(`[AI SYNC] Queued vector update for product ${productId}`);
+    console.log(`[AI SYNC] Queued vector update for product ${productId}`);
   } catch (err) {
     console.error('[AI SYNC] Failed to update vector:', err);
   }
@@ -287,10 +314,10 @@ export default function EditProductPage() {
   const [imagePreview, setImagePreview] = useState<string>(product.imageUrl || '');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  
+
   // Variants state
   const [variants, setVariants] = useState<Variant[]>(
-    loadedVariants.map(v => ({
+    loadedVariants.map((v) => ({
       id: v.id,
       option1Name: v.option1Name || 'Size',
       option1Value: v.option1Value || '',
@@ -301,10 +328,10 @@ export default function EditProductPage() {
       inventory: v.inventory || 0,
     }))
   );
-  
+
   // Category state (for dynamic variant suggestions)
   const [selectedCategory, setSelectedCategory] = useState<string>(product.category || '');
-  
+
   // Bundle Pricing state
   type BundleTier = { qty: number; price: number; label: string; savings?: number };
   const initialBundlePricing: BundleTier[] = (() => {
@@ -316,52 +343,59 @@ export default function EditProductPage() {
   })();
   const [bundlePricing, setBundlePricing] = useState<BundleTier[]>(initialBundlePricing);
   const [bundleEnabled, setBundleEnabled] = useState(initialBundlePricing.length > 0);
-  
+
   // Track form values for change detection
   const [formTitle, setFormTitle] = useState<string>(product.title || '');
-  const [formPrice, setFormPrice] = useState<string>(String(product.price || ''));
+  const [formPrice, setFormPrice] = useState<string>(String(fromCents(product.price || 0)));
   const [formDescription, setFormDescription] = useState<string>(product.description || '');
   const [formStock, setFormStock] = useState<string>(String(product.inventory ?? 0));
-  
+
   // SEO state
   const [seoExpanded, setSeoExpanded] = useState(false);
   const [formSeoTitle, setFormSeoTitle] = useState<string>((product as any).seoTitle || '');
-  const [formSeoDescription, setFormSeoDescription] = useState<string>((product as any).seoDescription || '');
-  const [formSeoKeywords, setFormSeoKeywords] = useState<string>((product as any).seoKeywords || '');
-  
+  const [formSeoDescription, setFormSeoDescription] = useState<string>(
+    (product as any).seoDescription || ''
+  );
+  const [formSeoKeywords, setFormSeoKeywords] = useState<string>(
+    (product as any).seoKeywords || ''
+  );
+
   // Auto-generate SEO values
   const autoSeoTitle = formTitle || product.title;
   const autoSeoDescription = (formDescription || product.description || '').slice(0, 155);
-  
+
   // Track newly uploaded images (not the original)
   const [newlyUploadedImage, setNewlyUploadedImage] = useState<string>('');
-  
+
   // Check if form has unsaved changes
-  const hasUnsavedChanges = 
+  const hasUnsavedChanges =
     formTitle !== (product.title || '') ||
     formPrice !== String(product.price || '') ||
     formDescription !== (product.description || '') ||
     formStock !== String(product.inventory ?? 0) ||
     selectedCategory !== (product.category || '') ||
     imageUrl !== (product.imageUrl || '') ||
-    JSON.stringify(variants) !== JSON.stringify(loadedVariants.map(v => ({
-      id: v.id,
-      option1Name: v.option1Name || 'Size',
-      option1Value: v.option1Value || '',
-      option2Name: v.option2Name || undefined,
-      option2Value: v.option2Value || undefined,
-      price: v.price || undefined,
-      sku: v.sku || undefined,
-      inventory: v.inventory || 0,
-    })));
-  
+    JSON.stringify(variants) !==
+      JSON.stringify(
+        loadedVariants.map((v) => ({
+          id: v.id,
+          option1Name: v.option1Name || 'Size',
+          option1Value: v.option1Value || '',
+          option2Name: v.option2Name || undefined,
+          option2Value: v.option2Value || undefined,
+          price: v.price || undefined,
+          sku: v.sku || undefined,
+          inventory: v.inventory || 0,
+        }))
+      );
+
   // Cleanup callback for orphaned images (only delete newly uploaded images)
   const handleAbandon = useCallback(() => {
     if (newlyUploadedImage) {
       deleteOrphanedImage(newlyUploadedImage);
     }
   }, [newlyUploadedImage]);
-  
+
   // Unsaved changes warning hook
   const { ConfirmationModal } = useUnsavedChanges({
     hasUnsavedChanges: hasUnsavedChanges && !isSubmitting,
@@ -406,7 +440,9 @@ export default function EditProductPage() {
         format,
       });
       fileToUpload = new File([compressedBlob], `image.${format}`, { type: `image/${format}` });
-      console.log(`Image compressed: ${file.size} -> ${compressedBlob.size} bytes (${Math.round((1 - compressedBlob.size / file.size) * 100)}% reduction)`);
+      console.log(
+        `Image compressed: ${file.size} -> ${compressedBlob.size} bytes (${Math.round((1 - compressedBlob.size / file.size) * 100)}% reduction)`
+      );
     } catch (error) {
       console.warn('Image compression failed, uploading original:', error);
     }
@@ -431,9 +467,9 @@ export default function EditProductPage() {
       fetch('/api/delete-image', {
         method: 'POST',
         body: deleteFormData,
-      }).catch(err => console.warn('Failed to delete image from R2:', err));
+      }).catch((err) => console.warn('Failed to delete image from R2:', err));
     }
-    
+
     setImageUrl('');
     setImagePreview('');
     if (fileInputRef.current) {
@@ -514,7 +550,7 @@ export default function EditProductPage() {
           <label className="block text-sm font-medium text-gray-700 mb-3">
             {t('productImage')}
           </label>
-          
+
           {imagePreview ? (
             <div className="relative inline-block">
               <img
@@ -546,7 +582,11 @@ export default function EditProductPage() {
                 <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
               )}
               <p className="text-sm text-gray-600">
-                {isUploading ? 'Uploading...' : (lang === 'bn' ? 'আপলোড করতে ক্লিক করুন অথবা ড্র্যাগ অ্যান্ড ড্রপ করুন' : 'Click to upload or drag and drop')}
+                {isUploading
+                  ? 'Uploading...'
+                  : lang === 'bn'
+                    ? 'আপলোড করতে ক্লিক করুন অথবা ড্র্যাগ অ্যান্ড ড্রপ করুন'
+                    : 'Click to upload or drag and drop'}
               </p>
               <p className="text-xs text-gray-400 mt-1">PNG, JPG, WebP up to 10MB</p>
             </div>
@@ -580,9 +620,13 @@ export default function EditProductPage() {
               onChange={(e) => setFormTitle(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
             />
-            {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.title && (
-              <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).title}</p>
-            )}
+            {actionData &&
+              'errors' in actionData &&
+              (actionData.errors as Record<string, string>)?.title && (
+                <p className="text-red-500 text-sm mt-1">
+                  {(actionData.errors as Record<string, string>).title}
+                </p>
+              )}
           </div>
 
           {/* Price & Stock Row */}
@@ -601,9 +645,13 @@ export default function EditProductPage() {
                 onChange={(e) => setFormPrice(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
-              {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.price && (
-                <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).price}</p>
-              )}
+              {actionData &&
+                'errors' in actionData &&
+                (actionData.errors as Record<string, string>)?.price && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {(actionData.errors as Record<string, string>).price}
+                  </p>
+                )}
             </div>
             <div>
               <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
@@ -618,9 +666,13 @@ export default function EditProductPage() {
                 onChange={(e) => setFormStock(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
-              {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.stock && (
-                <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).stock}</p>
-              )}
+              {actionData &&
+                'errors' in actionData &&
+                (actionData.errors as Record<string, string>)?.stock && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {(actionData.errors as Record<string, string>).stock}
+                  </p>
+                )}
             </div>
           </div>
 
@@ -698,21 +750,25 @@ export default function EditProductPage() {
               <ChevronDown className="w-5 h-5 text-gray-400" />
             )}
           </button>
-          
+
           {seoExpanded && (
             <div className="p-4 pt-0 border-t border-gray-100 space-y-4">
               {/* Google Preview */}
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-xs text-gray-500 mb-2">Google Preview:</p>
-                <p className="text-sm text-emerald-700 truncate">yourstore.ozzyl.com/products/...</p>
+                <p className="text-sm text-emerald-700 truncate">
+                  yourstore.ozzyl.com/products/...
+                </p>
                 <h4 className="text-lg text-blue-800 hover:underline cursor-pointer truncate">
                   {formSeoTitle || autoSeoTitle}
                 </h4>
                 <p className="text-sm text-gray-600 line-clamp-2">
-                  {formSeoDescription || autoSeoDescription || 'এই প্রোডাক্টের বিবরণ এখানে দেখা যাবে...'}
+                  {formSeoDescription ||
+                    autoSeoDescription ||
+                    'এই প্রোডাক্টের বিবরণ এখানে দেখা যাবে...'}
                 </p>
               </div>
-              
+
               {/* Meta Title */}
               <div>
                 <label htmlFor="seoTitle" className="block text-sm font-medium text-gray-700 mb-1">
@@ -729,12 +785,17 @@ export default function EditProductPage() {
                   maxLength={60}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                 />
-                <p className="text-xs text-gray-500 mt-1">{(formSeoTitle || autoSeoTitle).length}/60 characters</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {(formSeoTitle || autoSeoTitle).length}/60 characters
+                </p>
               </div>
-              
+
               {/* Meta Description */}
               <div>
-                <label htmlFor="seoDescription" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="seoDescription"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Meta Description
                   <span className="text-xs text-gray-400 ml-2">(খালি থাকলে অটো-জেনারেট হবে)</span>
                 </label>
@@ -748,12 +809,17 @@ export default function EditProductPage() {
                   rows={3}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
                 />
-                <p className="text-xs text-gray-500 mt-1">{(formSeoDescription || autoSeoDescription).length}/160 characters</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {(formSeoDescription || autoSeoDescription).length}/160 characters
+                </p>
               </div>
-              
+
               {/* Keywords */}
               <div>
-                <label htmlFor="seoKeywords" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="seoKeywords"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Keywords
                   <span className="text-xs text-gray-400 ml-2">(কমা দিয়ে আলাদা করুন)</span>
                 </label>
@@ -794,8 +860,18 @@ export default function EditProductPage() {
                     const basePrice = parseFloat(formPrice) || product.price;
                     setBundlePricing([
                       { qty: 1, price: basePrice, label: '১ পিস' },
-                      { qty: 2, price: Math.round(basePrice * 2 * 0.93), label: '২ পিস', savings: Math.round(basePrice * 2 * 0.07) },
-                      { qty: 3, price: Math.round(basePrice * 3 * 0.88), label: '৩ পিস', savings: Math.round(basePrice * 3 * 0.12) },
+                      {
+                        qty: 2,
+                        price: Math.round(basePrice * 2 * 0.93),
+                        label: '২ পিস',
+                        savings: Math.round(basePrice * 2 * 0.07),
+                      },
+                      {
+                        qty: 3,
+                        price: Math.round(basePrice * 3 * 0.88),
+                        label: '৩ পিস',
+                        savings: Math.round(basePrice * 3 * 0.12),
+                      },
                     ]);
                   }
                 }}
@@ -804,11 +880,11 @@ export default function EditProductPage() {
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
             </label>
           </div>
-          
+
           {bundleEnabled && (
             <div className="p-4 space-y-4">
               <input type="hidden" name="bundlePricing" value={JSON.stringify(bundlePricing)} />
-              
+
               {/* Tier List */}
               {bundlePricing.map((tier, idx) => (
                 <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -837,9 +913,12 @@ export default function EditProductPage() {
                           const newTiers = [...bundlePricing];
                           newTiers[idx].price = parseFloat(e.target.value) || 0;
                           // Auto-calculate savings
-                          const basePerUnit = (parseFloat(formPrice) || product.price);
+                          const basePerUnit = parseFloat(formPrice) || product.price;
                           const expectedTotal = basePerUnit * newTiers[idx].qty;
-                          newTiers[idx].savings = Math.max(0, Math.round(expectedTotal - newTiers[idx].price));
+                          newTiers[idx].savings = Math.max(
+                            0,
+                            Math.round(expectedTotal - newTiers[idx].price)
+                          );
                           setBundlePricing(newTiers);
                         }}
                         className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded"
@@ -874,19 +953,23 @@ export default function EditProductPage() {
                   </button>
                 </div>
               ))}
-              
+
               {/* Add Tier Button */}
               <button
                 type="button"
                 onClick={() => {
                   const basePrice = parseFloat(formPrice) || product.price;
-                  const newQty = bundlePricing.length > 0 ? bundlePricing[bundlePricing.length - 1].qty + 1 : 1;
-                  setBundlePricing([...bundlePricing, {
-                    qty: newQty,
-                    price: Math.round(basePrice * newQty * 0.9),
-                    label: `${newQty} পিস`,
-                    savings: Math.round(basePrice * newQty * 0.1),
-                  }]);
+                  const newQty =
+                    bundlePricing.length > 0 ? bundlePricing[bundlePricing.length - 1].qty + 1 : 1;
+                  setBundlePricing([
+                    ...bundlePricing,
+                    {
+                      qty: newQty,
+                      price: Math.round(basePrice * newQty * 0.9),
+                      label: `${newQty} পিস`,
+                      savings: Math.round(basePrice * newQty * 0.1),
+                    },
+                  ]);
                 }}
                 className="w-full py-2 border-2 border-dashed border-amber-300 text-amber-600 rounded-lg hover:bg-amber-50 transition flex items-center justify-center gap-2"
               >

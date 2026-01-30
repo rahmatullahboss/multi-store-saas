@@ -1,8 +1,8 @@
 /**
  * Order Detail Page
- * 
+ *
  * Route: /app/orders/:id
- * 
+ *
  * Features:
  * - View order details
  * - Update order status
@@ -16,14 +16,36 @@ import { json, redirect } from '@remix-run/cloudflare';
 import { Form, useLoaderData, Link, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc, sql } from 'drizzle-orm';
-import { orders, orderItems, products, productVariants, stores, activityLogs, users } from '@db/schema';
+import {
+  orders,
+  orderItems,
+  products,
+  productVariants,
+  stores,
+  activityLogs,
+  users,
+} from '@db/schema';
 import { getStoreId, getUserId } from '~/services/auth.server';
-import { ArrowLeft, Package, User, Phone, MapPin, Loader2, CheckCircle, Printer, Truck, ExternalLink, Send, Download } from 'lucide-react';
+import {
+  ArrowLeft,
+  Package,
+  User,
+  Phone,
+  MapPin,
+  Loader2,
+  CheckCircle,
+  Printer,
+  Truck,
+  ExternalLink,
+  Send,
+  Download,
+} from 'lucide-react';
 import { useState } from 'react';
 import { RiskBadge } from '~/components/RiskBadge';
 import { TrackingTimeline } from '~/components/TrackingTimeline';
 import { OrderTimeline } from '~/components/OrderTimeline';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { formatPrice } from '~/utils/formatPrice';
 import { logActivity } from '~/lib/activity.server';
 import { dispatchWebhook } from '~/services/webhook.server';
 
@@ -49,11 +71,16 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
   // Fetch store info for invoice header
   const storeResult = await db
-    .select({ name: stores.name, logo: stores.logo, currency: stores.currency, courierSettings: stores.courierSettings })
+    .select({
+      name: stores.name,
+      logo: stores.logo,
+      currency: stores.currency,
+      courierSettings: stores.courierSettings,
+    })
     .from(stores)
     .where(eq(stores.id, storeId))
     .limit(1);
-  
+
   const store = storeResult[0];
 
   // Fetch order
@@ -123,11 +150,13 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       createdAt: activityLogs.createdAt,
     })
     .from(activityLogs)
-    .where(and(
-      eq(activityLogs.storeId, storeId),
-      eq(activityLogs.entityType, 'order'),
-      eq(activityLogs.entityId, orderId)
-    ))
+    .where(
+      and(
+        eq(activityLogs.storeId, storeId),
+        eq(activityLogs.entityType, 'order'),
+        eq(activityLogs.entityId, orderId)
+      )
+    )
     .orderBy(desc(activityLogs.createdAt))
     .limit(50);
 
@@ -138,15 +167,15 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     .where(eq(users.storeId, storeId));
 
   // Enrich logs with user info
-  const userMap = new Map(teamMembers.map(u => [u.id, u]));
-  const orderActivityLogs = logsResult.map(log => ({
+  const userMap = new Map(teamMembers.map((u) => [u.id, u]));
+  const orderActivityLogs = logsResult.map((log) => ({
     ...log,
     user: log.userId ? userMap.get(log.userId) : null,
   }));
 
-  return json({ 
-    order, 
-    items: itemsWithImages, 
+  return json({
+    order,
+    items: itemsWithImages,
     store,
     connectedCourier,
     activityLogs: orderActivityLogs,
@@ -175,7 +204,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   // Handle courier booking
   if (intent === 'bookCourier') {
     const provider = formData.get('provider') as string;
-    
+
     // Get order
     const orderResult = await db
       .select()
@@ -197,7 +226,10 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       .limit(1);
 
     if (!storeResultCourier[0]?.courierSettings) {
-      return json({ error: 'Courier not configured. Go to Settings > Courier to connect.' }, { status: 400 });
+      return json(
+        { error: 'Courier not configured. Go to Settings > Courier to connect.' },
+        { status: 400 }
+      );
     }
 
     const courierSettings = JSON.parse(storeResultCourier[0].courierSettings as string);
@@ -208,9 +240,10 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       let address = '';
       let city = '';
       if (order.shippingAddress) {
-        const parsed = typeof order.shippingAddress === 'string' 
-          ? JSON.parse(order.shippingAddress) 
-          : order.shippingAddress;
+        const parsed =
+          typeof order.shippingAddress === 'string'
+            ? JSON.parse(order.shippingAddress)
+            : order.shippingAddress;
         address = parsed.address || '';
         city = parsed.city || '';
       }
@@ -218,7 +251,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       if (provider === 'pathao' && courierSettings.pathao) {
         const { createPathaoClient } = await import('~/services/pathao.server');
         const client = createPathaoClient(courierSettings.pathao);
-        
+
         const result = await client.createOrder({
           store_id: courierSettings.pathao.defaultStoreId || 1,
           merchant_order_id: order.orderNumber,
@@ -236,7 +269,6 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           amount_to_collect: order.total,
         });
         consignmentId = result.consignment_id;
-
       } else if (provider === 'redx' && courierSettings.redx) {
         const { createRedXClient } = await import('~/services/redx.server');
         const client = createRedXClient(courierSettings.redx);
@@ -252,7 +284,6 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           parcel_weight: 500,
         });
         consignmentId = result.tracking_id;
-
       } else if (provider === 'steadfast' && courierSettings.steadfast) {
         const { createSteadfastClient } = await import('~/services/steadfast.server');
         const client = createSteadfastClient(courierSettings.steadfast);
@@ -282,10 +313,12 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         .where(eq(orders.id, orderId));
 
       return json({ success: true, consignmentId });
-
     } catch (error) {
       console.error('Courier booking error:', error);
-      return json({ error: error instanceof Error ? error.message : 'Booking failed' }, { status: 500 });
+      return json(
+        { error: error instanceof Error ? error.message : 'Booking failed' },
+        { status: 500 }
+      );
     }
   }
 
@@ -315,7 +348,17 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   // Handle status update (default)
   const status = formData.get('status') as string;
 
-  if (!['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'].includes(status)) {
+  if (
+    ![
+      'pending',
+      'confirmed',
+      'processing',
+      'shipped',
+      'delivered',
+      'cancelled',
+      'returned',
+    ].includes(status)
+  ) {
     return json({ error: 'Invalid status' }, { status: 400 });
   }
 
@@ -332,7 +375,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
   const order = orderResult[0];
   const previousStatus = order.status;
-  
+
   const isCancelled = ['cancelled', 'returned'].includes(status);
   const wasCancelled = ['cancelled', 'returned'].includes(previousStatus || '');
   const isUncancel = !isCancelled && wasCancelled;
@@ -340,68 +383,73 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   // ============================================================================
   // PRE-UPDATE SECURITY CHECKS (Inventory Deduction)
   // ============================================================================
-  
+
   // If un-cancelling (Active -> Cancelled -> Active), we MUST re-deduct inventory FIRST.
   // If this fails (out of stock), we MUST NOT update the status.
   if (isUncancel) {
     const items = await db
-      .select({ 
-        productId: orderItems.productId, 
-        variantId: orderItems.variantId, 
-        quantity: orderItems.quantity 
+      .select({
+        productId: orderItems.productId,
+        variantId: orderItems.variantId,
+        quantity: orderItems.quantity,
       })
       .from(orderItems)
       .where(eq(orderItems.orderId, orderId));
 
-    const successfulDeductions: { type: 'product' | 'variant', id: number, qty: number }[] = [];
+    const successfulDeductions: { type: 'product' | 'variant'; id: number; qty: number }[] = [];
 
     for (const item of items) {
-       let result;
-       try {
-         if (item.variantId) {
-            result = await db
-             .update(productVariants)
-             .set({ inventory: sql`${productVariants.inventory} - ${item.quantity}` })
-             .where(and(
-               eq(productVariants.id, item.variantId),
-               sql`${productVariants.inventory} >= ${item.quantity}`
-             ))
-             .returning({ id: productVariants.id });
-             
-             if (result.length > 0) successfulDeductions.push({ type: 'variant', id: item.variantId, qty: item.quantity });
-         } else if (item.productId) {
-            result = await db
-             .update(products)
-             .set({ inventory: sql`${products.inventory} - ${item.quantity}` })
-             .where(and(
-               eq(products.id, item.productId),
-               sql`${products.inventory} >= ${item.quantity}`
-             ))
-             .returning({ id: products.id });
-             
-             if (result.length > 0) successfulDeductions.push({ type: 'product', id: item.productId, qty: item.quantity });
-         }
+      let result;
+      try {
+        if (item.variantId) {
+          result = await db
+            .update(productVariants)
+            .set({ inventory: sql`${productVariants.inventory} - ${item.quantity}` })
+            .where(
+              and(
+                eq(productVariants.id, item.variantId),
+                sql`${productVariants.inventory} >= ${item.quantity}`
+              )
+            )
+            .returning({ id: productVariants.id });
 
-         if (!result || result.length === 0) {
-            throw new Error('Out of stock');
-         }
-       } catch (error) {
-          // ROLLBACK successful deductions
-          console.error("Un-cancel failed, rolling back inventory:", error);
-          for (const deduction of successfulDeductions) {
-            if (deduction.type === 'variant') {
-              await db.update(productVariants)
-                .set({ inventory: sql`${productVariants.inventory} + ${deduction.qty}` })
-                .where(eq(productVariants.id, deduction.id));
-            } else {
-              await db.update(products)
-                .set({ inventory: sql`${products.inventory} + ${deduction.qty}` })
-                .where(eq(products.id, deduction.id));
-            }
+          if (result.length > 0)
+            successfulDeductions.push({ type: 'variant', id: item.variantId, qty: item.quantity });
+        } else if (item.productId) {
+          result = await db
+            .update(products)
+            .set({ inventory: sql`${products.inventory} - ${item.quantity}` })
+            .where(
+              and(eq(products.id, item.productId), sql`${products.inventory} >= ${item.quantity}`)
+            )
+            .returning({ id: products.id });
+
+          if (result.length > 0)
+            successfulDeductions.push({ type: 'product', id: item.productId, qty: item.quantity });
+        }
+
+        if (!result || result.length === 0) {
+          throw new Error('Out of stock');
+        }
+      } catch (error) {
+        // ROLLBACK successful deductions
+        console.error('Un-cancel failed, rolling back inventory:', error);
+        for (const deduction of successfulDeductions) {
+          if (deduction.type === 'variant') {
+            await db
+              .update(productVariants)
+              .set({ inventory: sql`${productVariants.inventory} + ${deduction.qty}` })
+              .where(eq(productVariants.id, deduction.id));
+          } else {
+            await db
+              .update(products)
+              .set({ inventory: sql`${products.inventory} + ${deduction.qty}` })
+              .where(eq(products.id, deduction.id));
           }
-          
-          return json({ error: `Cannot activate order: Item out of stock.` }, { status: 400 });
-       }
+        }
+
+        return json({ error: `Cannot activate order: Item out of stock.` }, { status: 400 });
+      }
     }
   }
 
@@ -411,9 +459,9 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
   await db
     .update(orders)
-    .set({ 
+    .set({
       status: status as 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled',
-      updatedAt: new Date() 
+      updatedAt: new Date(),
     })
     .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
 
@@ -442,13 +490,19 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     };
 
     // Use waitUntil to dispatch webhooks without blocking response
-    (context as any).waitUntil(dispatchWebhook(context.cloudflare.env, storeId, 'order.updated', webhookPayload));
+    (context as any).waitUntil(
+      dispatchWebhook(context.cloudflare.env, storeId, 'order.updated', webhookPayload)
+    );
 
     // Also dispatch specific status events
     if (status === 'cancelled') {
-      (context as any).waitUntil(dispatchWebhook(context.cloudflare.env, storeId, 'order.cancelled', webhookPayload));
+      (context as any).waitUntil(
+        dispatchWebhook(context.cloudflare.env, storeId, 'order.cancelled', webhookPayload)
+      );
     } else if (status === 'delivered') {
-      (context as any).waitUntil(dispatchWebhook(context.cloudflare.env, storeId, 'order.delivered', webhookPayload));
+      (context as any).waitUntil(
+        dispatchWebhook(context.cloudflare.env, storeId, 'order.delivered', webhookPayload)
+      );
     }
   }
 
@@ -459,14 +513,14 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   // When order is cancelled or returned: Restore inventory
   if (isCancelled && !wasCancelled) {
     const items = await db
-      .select({ 
-        productId: orderItems.productId, 
+      .select({
+        productId: orderItems.productId,
         variantId: orderItems.variantId,
-        quantity: orderItems.quantity 
+        quantity: orderItems.quantity,
       })
       .from(orderItems)
       .where(eq(orderItems.orderId, orderId));
-    
+
     for (const item of items) {
       if (item.variantId) {
         // Restore variant stock
@@ -486,13 +540,9 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
   // Send shipping notification if status changed to shipped/delivered and customer has email
   const shippingStatuses = ['shipped', 'out_for_delivery', 'delivered'];
-  if (
-    shippingStatuses.includes(status) && 
-    previousStatus !== status &&
-    order.customerEmail
-  ) {
+  if (shippingStatuses.includes(status) && previousStatus !== status && order.customerEmail) {
     const resendApiKey = context.cloudflare.env.RESEND_API_KEY;
-    
+
     if (resendApiKey) {
       // Import email service
       const { createEmailService } = await import('~/services/email.server');
@@ -521,7 +571,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
             : undefined,
         })
       );
-      
+
       // ========== FIRE AUTOMATION TRIGGER FOR DELIVERED ==========
       if (status === 'delivered') {
         const { triggerAutomation } = await import('~/services/automation.server');
@@ -536,7 +586,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
               metadata: {
                 orderNumber: order.orderNumber,
                 total: order.total,
-              }
+              },
             },
             resendApiKey
           )
@@ -552,17 +602,45 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 // STATUS CONFIG
 // ============================================================================
 const statusOptions = [
-  { value: 'pending', label: 'অপেক্ষমান (Pending)', color: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
-  { value: 'confirmed', label: 'কনফার্মড (Confirmed)', color: 'bg-blue-100 text-blue-800 border-blue-300' },
-  { value: 'processing', label: 'প্রসেসিং (Processing)', color: 'bg-purple-100 text-purple-800 border-purple-300' },
-  { value: 'shipped', label: 'শিপড (Shipped)', color: 'bg-indigo-100 text-indigo-800 border-indigo-300' },
-  { value: 'delivered', label: 'ডেলিভার্ড (Delivered)', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
-  { value: 'cancelled', label: 'বাতিল (Cancelled)', color: 'bg-red-100 text-red-800 border-red-300' },
-  { value: 'returned', label: 'রিটার্ন (Returned)', color: 'bg-orange-100 text-orange-800 border-orange-300' },
+  {
+    value: 'pending',
+    label: 'অপেক্ষমান (Pending)',
+    color: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+  },
+  {
+    value: 'confirmed',
+    label: 'কনফার্মড (Confirmed)',
+    color: 'bg-blue-100 text-blue-800 border-blue-300',
+  },
+  {
+    value: 'processing',
+    label: 'প্রসেসিং (Processing)',
+    color: 'bg-purple-100 text-purple-800 border-purple-300',
+  },
+  {
+    value: 'shipped',
+    label: 'শিপড (Shipped)',
+    color: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+  },
+  {
+    value: 'delivered',
+    label: 'ডেলিভার্ড (Delivered)',
+    color: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+  },
+  {
+    value: 'cancelled',
+    label: 'বাতিল (Cancelled)',
+    color: 'bg-red-100 text-red-800 border-red-300',
+  },
+  {
+    value: 'returned',
+    label: 'রিটার্ন (Returned)',
+    color: 'bg-orange-100 text-orange-800 border-orange-300',
+  },
 ];
 
 function StatusBadge({ status }: { status: string }) {
-  const option = statusOptions.find(o => o.value === status) || statusOptions[0];
+  const option = statusOptions.find((o) => o.value === status) || statusOptions[0];
   return (
     <span className={`px-3 py-1 text-sm font-medium rounded-full border ${option.color}`}>
       {option.label}
@@ -583,14 +661,6 @@ export default function OrderDetailPage() {
 
   const currency = store?.currency || 'BDT';
   const { t, lang } = useTranslation();
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
 
   const formatDate = (date: string | Date) => {
     return new Date(date).toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-US', {
@@ -614,9 +684,10 @@ export default function OrderDetailPage() {
   let shippingAddress: { address?: string; city?: string; postalCode?: string } = {};
   try {
     if (order.shippingAddress) {
-      shippingAddress = typeof order.shippingAddress === 'string' 
-        ? JSON.parse(order.shippingAddress) 
-        : order.shippingAddress;
+      shippingAddress =
+        typeof order.shippingAddress === 'string'
+          ? JSON.parse(order.shippingAddress)
+          : order.shippingAddress;
     }
   } catch {
     shippingAddress = {};
@@ -696,9 +767,11 @@ export default function OrderDetailPage() {
                 disabled={isUpdating || order.status === option.value}
                 className={`
                   px-4 py-2 rounded-lg border text-sm font-medium transition
-                  ${order.status === option.value 
-                    ? 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-2 ring-emerald-500' 
-                    : 'border-gray-300 hover:bg-gray-50 text-gray-700'}
+                  ${
+                    order.status === option.value
+                      ? 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-2 ring-emerald-500'
+                      : 'border-gray-300 hover:bg-gray-50 text-gray-700'
+                  }
                   disabled:opacity-50 disabled:cursor-not-allowed
                 `}
               >
@@ -706,7 +779,9 @@ export default function OrderDetailPage() {
                 {option.label.split(' ')[0]}
               </button>
             ))}
-            {isUpdating && <Loader2 className="w-5 h-5 animate-spin text-emerald-600 self-center" />}
+            {isUpdating && (
+              <Loader2 className="w-5 h-5 animate-spin text-emerald-600 self-center" />
+            )}
           </Form>
         </div>
 
@@ -724,12 +799,18 @@ export default function OrderDetailPage() {
             </div>
             <div className="text-right">
               <p className="text-lg font-bold text-gray-900">{order.orderNumber}</p>
-              <p className="text-sm text-gray-500">{formatDateShort(order.createdAt as unknown as Date)}</p>
-              <span className={`inline-block mt-2 px-2 py-1 text-xs font-medium rounded ${
-                order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                'bg-yellow-100 text-yellow-800'
-              }`}>
+              <p className="text-sm text-gray-500">
+                {formatDateShort(order.createdAt as unknown as Date)}
+              </p>
+              <span
+                className={`inline-block mt-2 px-2 py-1 text-xs font-medium rounded ${
+                  order.status === 'delivered'
+                    ? 'bg-green-100 text-green-800'
+                    : order.status === 'cancelled'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                }`}
+              >
                 {order.status?.toUpperCase()}
               </span>
             </div>
@@ -745,10 +826,16 @@ export default function OrderDetailPage() {
             </div>
             <div>
               <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">{t('shipTo')}</h3>
-              {shippingAddress.address && <p className="text-gray-600">{shippingAddress.address}</p>}
+              {shippingAddress.address && (
+                <p className="text-gray-600">{shippingAddress.address}</p>
+              )}
               {shippingAddress.city && <p className="text-gray-600">{shippingAddress.city}</p>}
-              {shippingAddress.postalCode && <p className="text-gray-600">Postal: {shippingAddress.postalCode}</p>}
-              {!shippingAddress.address && !shippingAddress.city && <p className="text-gray-400">N/A</p>}
+              {shippingAddress.postalCode && (
+                <p className="text-gray-600">Postal: {shippingAddress.postalCode}</p>
+              )}
+              {!shippingAddress.address && !shippingAddress.city && (
+                <p className="text-gray-400">N/A</p>
+              )}
             </div>
           </div>
 
@@ -757,9 +844,15 @@ export default function OrderDetailPage() {
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 text-sm font-semibold text-gray-600">{t('item')}</th>
-                <th className="text-center py-3 text-sm font-semibold text-gray-600">{t('quantity')}</th>
-                <th className="text-right py-3 text-sm font-semibold text-gray-600">{t('price')}</th>
-                <th className="text-right py-3 text-sm font-semibold text-gray-600">{t('total')}</th>
+                <th className="text-center py-3 text-sm font-semibold text-gray-600">
+                  {t('quantity')}
+                </th>
+                <th className="text-right py-3 text-sm font-semibold text-gray-600">
+                  {t('price')}
+                </th>
+                <th className="text-right py-3 text-sm font-semibold text-gray-600">
+                  {t('total')}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -770,7 +863,9 @@ export default function OrderDetailPage() {
                   </td>
                   <td className="py-3 text-center text-gray-600">{item.quantity}</td>
                   <td className="py-3 text-right text-gray-600">{formatPrice(item.price)}</td>
-                  <td className="py-3 text-right font-medium text-gray-900">{formatPrice(item.total)}</td>
+                  <td className="py-3 text-right font-medium text-gray-900">
+                    {formatPrice(item.total)}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -827,15 +922,16 @@ export default function OrderDetailPage() {
                   <p className="text-sm text-gray-500">{t('name')}</p>
                   <p className="font-medium text-gray-900">{order.customerName || 'N/A'}</p>
                 </div>
-                {order.customerPhone && (
-                  <RiskBadge phone={order.customerPhone} showDetails />
-                )}
+                {order.customerPhone && <RiskBadge phone={order.customerPhone} showDetails />}
               </div>
               <div className="flex items-start gap-2">
                 <Phone className="w-4 h-4 text-gray-400 mt-1" />
                 <div>
                   <p className="text-sm text-gray-500">{t('phone')}</p>
-                  <a href={`tel:${order.customerPhone}`} className="font-medium text-emerald-600 hover:underline">
+                  <a
+                    href={`tel:${order.customerPhone}`}
+                    className="font-medium text-emerald-600 hover:underline"
+                  >
                     {order.customerPhone || 'N/A'}
                   </a>
                 </div>
@@ -846,7 +942,7 @@ export default function OrderDetailPage() {
                   <p className="font-medium text-gray-900">{order.customerEmail}</p>
                 </div>
               )}
-              
+
               {/* Courier Actions */}
               <div className="pt-3 mt-3 border-t border-gray-100">
                 {!order.courierConsignmentId ? (
@@ -857,7 +953,9 @@ export default function OrderDetailPage() {
                       <input type="hidden" name="orderId" value={order.id} />
                       <button
                         type="submit"
-                        disabled={isBooking || order.status === 'delivered' || order.status === 'cancelled'}
+                        disabled={
+                          isBooking || order.status === 'delivered' || order.status === 'cancelled'
+                        }
                         className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition"
                       >
                         {isBooking ? (
@@ -889,7 +987,9 @@ export default function OrderDetailPage() {
                   </button>
                 )}
                 {(() => {
-                  const data = steadfastFetcher.data as { error?: string; success?: boolean } | undefined;
+                  const data = steadfastFetcher.data as
+                    | { error?: string; success?: boolean }
+                    | undefined;
                   if (data?.error) {
                     return <p className="text-sm text-red-600 mt-2">{data.error}</p>;
                   }
@@ -912,7 +1012,9 @@ export default function OrderDetailPage() {
               {shippingAddress.address && <p>{shippingAddress.address}</p>}
               {shippingAddress.city && <p>{shippingAddress.city}</p>}
               {shippingAddress.postalCode && <p>Postal: {shippingAddress.postalCode}</p>}
-              {!shippingAddress.address && !shippingAddress.city && <p className="text-gray-400">No address provided</p>}
+              {!shippingAddress.address && !shippingAddress.city && (
+                <p className="text-gray-400">No address provided</p>
+              )}
             </div>
           </div>
 
@@ -943,11 +1045,7 @@ export default function OrderDetailPage() {
 
         {/* Order Timeline */}
         <div className="no-print">
-          <OrderTimeline
-            logs={activityLogs}
-            orderId={order.id}
-            isSubmitting={isUpdating}
-          />
+          <OrderTimeline logs={activityLogs} orderId={order.id} isSubmitting={isUpdating} />
         </div>
 
         {/* Order Items - Screen only */}

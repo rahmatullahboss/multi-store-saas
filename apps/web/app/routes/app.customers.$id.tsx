@@ -48,6 +48,7 @@ import { PageHeader } from '~/components/ui';
 import { GlassCard } from '~/components/ui/GlassCard';
 import { Button } from '~/components/ui/button';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { formatPrice } from '~/utils/formatPrice';
 import { useState, useRef, useEffect } from 'react';
 
 export const meta: MetaFunction = () => {
@@ -181,15 +182,6 @@ export default function CustomerDetailsPage() {
       noteFormRef.current?.reset();
     }
   }, [noteFetcher.state, noteFetcher.data]);
-
-  const formatPrice = (priceInCents: number) => {
-    const price = priceInCents; // Assuming already converted or using float? DB schema says real. Let's assume float.
-    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
 
   const formatDate = (date: string | Date | null) => {
     if (!date) return '—';

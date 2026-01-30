@@ -1,8 +1,8 @@
 /**
  * Inventory Management Dashboard - Shopify-Inspired Design
- * 
+ *
  * Route: /app/inventory
- * 
+ *
  * Features:
  * - Visual stock bars with progress indicators
  * - Quick +/- stock adjustment buttons
@@ -18,21 +18,22 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, and } from 'drizzle-orm';
 import { products, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { 
-  AlertTriangle, 
-  Package, 
-  Download, 
-  Upload, 
+import {
+  AlertTriangle,
+  Package,
+  Download,
+  Upload,
   Minus,
   Plus,
   Loader2,
   CheckCircle,
-  ImageOff
+  ImageOff,
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
 import { GlassCard } from '~/components/ui/GlassCard';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { formatPrice } from '~/utils/formatPrice';
 import { LowStockAlertBanner } from '~/components/LowStockAlertBanner';
 
 export const meta: MetaFunction = () => {
@@ -51,11 +52,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = drizzle(context.cloudflare.env.DB);
 
   // Fetch store info
-  const storeResult = await db
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
+  const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
 
   const store = storeResult[0];
   const lowStockThreshold = 10;
@@ -70,9 +67,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Calculate stats
   const stats = {
     total: storeProducts.length,
-    lowStock: storeProducts.filter(p => (p.inventory || 0) > 0 && (p.inventory || 0) <= lowStockThreshold).length,
-    outOfStock: storeProducts.filter(p => (p.inventory || 0) <= 0).length,
-    healthy: storeProducts.filter(p => (p.inventory || 0) > lowStockThreshold).length,
+    lowStock: storeProducts.filter(
+      (p) => (p.inventory || 0) > 0 && (p.inventory || 0) <= lowStockThreshold
+    ).length,
+    outOfStock: storeProducts.filter((p) => (p.inventory || 0) <= 0).length,
+    healthy: storeProducts.filter((p) => (p.inventory || 0) > lowStockThreshold).length,
     totalUnits: storeProducts.reduce((sum, p) => sum + (p.inventory || 0), 0),
   };
 
@@ -113,7 +112,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     const newStock = Math.max(0, (product[0].inventory || 0) + adjustment);
 
-    await db.update(products)
+    await db
+      .update(products)
       .set({ inventory: newStock, updatedAt: new Date() })
       .where(and(eq(products.id, productId), eq(products.storeId, storeId)));
 
@@ -128,7 +128,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: 'Invalid data' }, { status: 400 });
     }
 
-    await db.update(products)
+    await db
+      .update(products)
       .set({ inventory: newStock, updatedAt: new Date() })
       .where(and(eq(products.id, productId), eq(products.storeId, storeId)));
 
@@ -142,12 +143,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // MAIN COMPONENT
 // ============================================================================
 export default function InventoryPage() {
-  const { products: storeProducts, currency, stats, lowStockThreshold } = useLoaderData<typeof loader>();
+  const {
+    products: storeProducts,
+    currency,
+    stats,
+    lowStockThreshold,
+  } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === 'submitting';
   const { t, lang } = useTranslation();
-  
+
   // Filter state
   const statusFilter = searchParams.get('filter') || 'all';
   const [searchQuery, setSearchQuery] = useState('');
@@ -169,46 +175,43 @@ export default function InventoryPage() {
     // Apply status filter
     switch (statusFilter) {
       case 'healthy':
-        filtered = filtered.filter(p => (p.inventory || 0) > lowStockThreshold);
+        filtered = filtered.filter((p) => (p.inventory || 0) > lowStockThreshold);
         break;
       case 'low':
-        filtered = filtered.filter(p => (p.inventory || 0) > 0 && (p.inventory || 0) <= lowStockThreshold);
+        filtered = filtered.filter(
+          (p) => (p.inventory || 0) > 0 && (p.inventory || 0) <= lowStockThreshold
+        );
         break;
       case 'out':
-        filtered = filtered.filter(p => (p.inventory || 0) <= 0);
+        filtered = filtered.filter((p) => (p.inventory || 0) <= 0);
         break;
     }
 
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(p => 
-        p.title.toLowerCase().includes(query) ||
-        (p.sku && p.sku.toLowerCase().includes(query))
+      filtered = filtered.filter(
+        (p) =>
+          p.title.toLowerCase().includes(query) || (p.sku && p.sku.toLowerCase().includes(query))
       );
     }
 
     return filtered;
   }, [storeProducts, statusFilter, searchQuery, lowStockThreshold]);
 
-  const handleStatusChange = useCallback((tabId: string) => {
-    setSearchParams(prev => {
-      if (tabId === 'all') {
-        prev.delete('filter');
-      } else {
-        prev.set('filter', tabId);
-      }
-      return prev;
-    });
-  }, [setSearchParams]);
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
+  const handleStatusChange = useCallback(
+    (tabId: string) => {
+      setSearchParams((prev) => {
+        if (tabId === 'all') {
+          prev.delete('filter');
+        } else {
+          prev.set('filter', tabId);
+        }
+        return prev;
+      });
+    },
+    [setSearchParams]
+  );
 
   const getStockLevel = (stock: number) => {
     if (stock <= 0) return 0;
@@ -276,8 +279,8 @@ export default function InventoryPage() {
       </div>
 
       {/* Low Stock Alert */}
-      <LowStockAlertBanner 
-        count={stats.lowStock} 
+      <LowStockAlertBanner
+        count={stats.lowStock}
         threshold={lowStockThreshold}
         onAction={statusFilter === 'all' ? () => handleStatusChange('low') : undefined}
       />
@@ -291,14 +294,10 @@ export default function InventoryPage() {
           onChange={setSearchQuery}
           className="w-full md:w-80"
         />
-        
+
         {/* Status Tabs */}
         <div className="flex-1">
-          <StatusTabs
-            tabs={statusTabs}
-            activeTab={statusFilter}
-            onChange={handleStatusChange}
-          />
+          <StatusTabs tabs={statusTabs} activeTab={statusFilter} onChange={handleStatusChange} />
         </div>
       </div>
 
@@ -407,14 +406,14 @@ export default function InventoryPage() {
                               className="w-20 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-center"
                               autoFocus
                             />
-                             <button
+                            <button
                               type="submit"
                               disabled={isSubmitting}
                               className="px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition"
                             >
                               {t('saveBtn')}
                             </button>
-                             <button
+                            <button
                               type="button"
                               onClick={() => setEditingId(null)}
                               className="px-3 py-1.5 text-gray-600 text-sm hover:bg-gray-100 rounded-lg transition"
@@ -432,13 +431,16 @@ export default function InventoryPage() {
                                 }}
                                 className="font-bold text-lg hover:text-emerald-600 transition"
                               >
-                                {stock} <span className="text-xs text-gray-500 font-normal">{t('unitsLabel')}</span>
+                                {stock}{' '}
+                                <span className="text-xs text-gray-500 font-normal">
+                                  {t('unitsLabel')}
+                                </span>
                               </button>
                               <StockStatusBadge stock={stock} threshold={lowStockThreshold} />
                             </div>
                             {/* Visual stock bar */}
                             <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                              <div 
+                              <div
                                 className={`h-full ${stockColor} transition-all duration-300`}
                                 style={{ width: `${stockLevel}%` }}
                               />
@@ -509,7 +511,7 @@ function StockStatusBadge({ stock, threshold }: { stock: number; threshold: numb
       </span>
     );
   }
-  
+
   if (stock <= threshold) {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">
@@ -518,7 +520,7 @@ function StockStatusBadge({ stock, threshold }: { stock: number; threshold: numb
       </span>
     );
   }
-  
+
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">
       <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>

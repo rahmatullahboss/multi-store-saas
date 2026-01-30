@@ -39,6 +39,7 @@ import { FirstSaleChecklist } from '~/components/dashboard/FirstSaleChecklist';
 import { LimitWarningBanner } from '~/components/LimitWarningBanner';
 import { LowStockAlertBanner } from '~/components/LowStockAlertBanner';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { formatPrice } from '~/utils/formatPrice';
 import { getUsageStats } from '~/utils/plans.server';
 import { getStoreStats, getRevenueForecast, getPredictedCLV } from '~/services/analytics.server';
 import { GrowthOpportunitiesCard } from '~/components/dashboard/GrowthOpportunitiesCard';
@@ -203,14 +204,6 @@ export default function DashboardPage() {
   } = useLoaderData<typeof loader>();
   const { t, lang } = useTranslation();
   const navigate = useNavigate();
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
 
   // Get translated greeting
   const getGreeting = () => {
