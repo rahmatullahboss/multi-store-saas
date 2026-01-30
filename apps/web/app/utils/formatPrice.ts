@@ -39,7 +39,8 @@ export function formatPrice(price: number, options: FormatPriceOptions = {}): st
 
   const intlLocale = LOCALE_MAP[locale];
   const isBDT = currency === 'BDT';
-  const priceInUnits = price / 100;
+  // Price is now stored in taka directly (1500), not poisha (150000)
+  const priceInUnits = price;
 
   try {
     if (showSymbol && isBDT) {

@@ -7,29 +7,29 @@
 /**
  * Format a price for display
  *
- * @param price - Price in cents/poisha (e.g., 149900 for ৳1499.00)
+ * @param price - Price in taka (e.g., 1499 for ৳1,499)
  * @param currency - Currency code (default: 'BDT')
  * @returns Formatted price string
  *
  * @example
- * formatPrice(149900) // "৳1,499"
- * formatPrice(149900, 'USD') // "$14.99"
+ * formatPrice(1499) // "৳1,499"
+ * formatPrice(14.99, 'USD') // "$14.99"
  * formatPrice(undefined) // "৳0"
  */
 export function formatPrice(price: number | undefined | null, currency: string = 'BDT'): string {
   const safePrice = price ?? 0;
 
   if (currency === 'BDT') {
-    return `৳${(safePrice / 100).toLocaleString('bn-BD')}`;
+    return `৳${safePrice.toLocaleString('bn-BD')}`;
   }
 
-  return `$${(safePrice / 100).toFixed(2)}`;
+  return `$${safePrice.toFixed(2)}`;
 }
 
 /**
  * Format a price with locale
  *
- * @param price - Price in cents
+ * @param price - Price in taka
  * @param currency - Currency code
  * @param locale - Locale string (default: 'bn-BD' for BDT, 'en-US' for others)
  * @returns Formatted price string with locale
@@ -43,7 +43,7 @@ export function formatPriceWithLocale(
   const finalLocale = locale ?? (currency === 'BDT' ? 'bn-BD' : 'en-US');
   const symbol = currency === 'BDT' ? '৳' : '$';
 
-  return `${symbol}${(safePrice / 100).toLocaleString(finalLocale)}`;
+  return `${symbol}${safePrice.toLocaleString(finalLocale)}`;
 }
 
 /**

@@ -18,14 +18,20 @@
  * Convert display amount (e.g., 100.50) to cents (e.g., 10050)
  */
 export function toCents(amount: number): number {
-  return Math.round(amount * 100);
+  // DEPRECATED: Prices now stored in taka directly, not cents
+  // Keeping function for backward compatibility
+  return amount;
+  // return Math.round(amount * 100);  // Old: converted to cents
 }
 
 /**
  * Convert cents (e.g., 10050) to display amount (e.g., 100.50)
  */
 export function fromCents(cents: number): number {
-  return cents / 100;
+  // DEPRECATED: Prices now stored in taka directly, not cents
+  // Keeping function for backward compatibility
+  return cents;
+  // return cents / 100;  // Old: converted from cents
 }
 
 /**
@@ -162,9 +168,10 @@ export function formatCurrency(
   amount: number,
   currencyCode: string = 'BDT',
   options: { fromCents?: boolean } = {}
+  // DEPRECATED: fromCents option no longer needed, prices stored as taka
 ): string {
   const config = getCurrencyConfig(currencyCode);
-  const displayAmount = options.fromCents ? amount / config.subunits : amount;
+  const displayAmount = amount; // Always use amount directly, no cents conversion
   
   return formatMoney(displayAmount, {
     currency: currencyCode,
@@ -194,25 +201,25 @@ export function formatMoneyFromCents(
  * Converts to cents, adds, converts back
  */
 export function addMoney(...amounts: number[]): number {
-  const totalCents = amounts.reduce((sum, amt) => sum + toCents(amt), 0);
-  return fromCents(totalCents);
+  const total = amounts.reduce((sum, amt) => sum + amt, 0);
+  return roundMoney(total);
 }
 
 /**
  * Safe subtraction of money amounts
  */
 export function subtractMoney(from: number, ...amounts: number[]): number {
-  const fromCentsVal = toCents(from);
-  const subtractCents = amounts.reduce((sum, amt) => sum + toCents(amt), 0);
-  return fromCents(fromCentsVal - subtractCents);
+  const fromVal = from;
+  const subtractTotal = amounts.reduce((sum, amt) => sum + amt, 0);
+  return roundMoney(fromVal - subtractTotal);
 }
 
 /**
  * Safe multiplication (e.g., price * quantity)
  */
 export function multiplyMoney(amount: number, multiplier: number): number {
-  const cents = toCents(amount);
-  return fromCents(Math.round(cents * multiplier));
+  // Direct multiplication, no cents conversion
+  return roundMoney(amount * multiplier);
 }
 
 /**
@@ -220,9 +227,9 @@ export function multiplyMoney(amount: number, multiplier: number): number {
  * @example percentOfMoney(1000, 10) => 100 (10% of 1000)
  */
 export function percentOfMoney(amount: number, percent: number): number {
-  const cents = toCents(amount);
-  const resultCents = Math.round((cents * percent) / 100);
-  return fromCents(resultCents);
+  // Direct multiplication, no cents conversion
+  const result = Math.round((amount * percent) / 100);
+  return result;
 }
 
 /**
@@ -243,10 +250,10 @@ export function applyDiscount(amount: number, discountPercent: number): number {
  * Returns: -1 if a < b, 0 if equal, 1 if a > b
  */
 export function compareMoney(a: number, b: number): -1 | 0 | 1 {
-  const aCents = toCents(a);
-  const bCents = toCents(b);
-  if (aCents < bCents) return -1;
-  if (aCents > bCents) return 1;
+  const aRounded = Math.round(a * 100);
+  const bRounded = Math.round(b * 100);
+  if (aRounded < bRounded) return -1;
+  if (aRounded > bRounded) return 1;
   return 0;
 }
 
