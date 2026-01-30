@@ -13,6 +13,7 @@ import type {
   CartItem,
   ThemeConfig,
 } from '~/lib/theme-engine/types';
+import { formatPrice, calculateDiscountPercentage } from '~/lib/theme-engine';
 
 // ============================================================================
 // SCHEMA
@@ -169,9 +170,7 @@ function CartItemRow({
   const mutedColor = theme?.colors?.textMuted || '#6b7280';
   const borderColor = theme?.colors?.border || '#e5e7eb';
 
-  const discount = item.compareAtPrice
-    ? Math.round((1 - item.price / item.compareAtPrice) * 100)
-    : 0;
+  const discount = calculateDiscountPercentage(item.price, item.compareAtPrice);
 
   return (
     <div
@@ -221,12 +220,12 @@ function CartItemRow({
         {/* Price */}
         <div className="flex items-center gap-2 mt-2">
           <span className="font-bold" style={{ color: primaryColor }}>
-            ৳{(item.price / 100).toLocaleString('bn-BD')}
+            {formatPrice(item.price)}
           </span>
           {item.compareAtPrice && (
             <>
               <span className="text-sm line-through" style={{ color: mutedColor }}>
-                ৳{(item.compareAtPrice / 100).toLocaleString('bn-BD')}
+                {formatPrice(item.compareAtPrice)}
               </span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
                 -{discount}%
@@ -268,7 +267,7 @@ function CartItemRow({
               মোট
             </p>
             <p className="font-bold" style={{ color: textColor }}>
-              ৳{((item.price * item.quantity) / 100).toLocaleString('bn-BD')}
+              {formatPrice((item.price ?? 0) * item.quantity)}
             </p>
           </div>
 

@@ -33,6 +33,7 @@ import {
 } from '@db/schema';
 import { eq, and, or, inArray, sql, gte, isNull } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
+import { getOrderConfirmationHtml, getNewOrderAlertHtml } from '~/services/email-templates.server';
 import { sendPushNotification } from '~/services/push.server';
 import { dispatchWebhook } from '~/services/webhook.server';
 import { checkUsageLimit } from '~/utils/plans.server';
@@ -1105,47 +1106,49 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // Customer Confirmation Email Task
     if (input.customer_email && context.cloudflare.env.RESEND_API_KEY) {
+      const emailHtml = getOrderConfirmationHtml({
+        customerName: input.customer_name,
+        orderNumber,
+        paymentMethod: input.payment_method === 'cod' ? 'Cash on Delivery' : input.payment_method.toUpperCase(),
+        items: finalOrderItems.map((i) => ({
+          title: i.title,
+          quantity: i.quantity,
+          price: i.unitPrice,
+        })),
+        currency: storeData.currency || 'BDT',
+        total,
+        shippingAddress: input.address,
+        storeName: storeData.name,
+        storeLogo: storeData.logo || undefined,
+        primaryColor: (storeData.themeConfig && JSON.parse(storeData.themeConfig as string)?.primaryColor),
+      });
+      
       orderTasks.push({
         type: 'email',
         payload: {
           to: input.customer_email,
           subject: `অর্ডার নিশ্চিত - ${orderNumber}`,
-          template: 'order_confirmation',
-          data: {
-            orderNumber,
-            customerName: input.customer_name,
-            total,
-            currency: storeData.currency || 'BDT',
-            items: finalOrderItems.map((i) => ({
-              title: i.title,
-              quantity: i.quantity,
-              price: i.unitPrice,
-            })),
-            shippingAddress: input.address,
-            paymentMethod:
-              input.payment_method === 'cod'
-                ? 'Cash on Delivery'
-                : input.payment_method.toUpperCase(),
-            storeName: storeData.name,
-          },
+          html: emailHtml,
         },
       });
     }
 
     // Merchant Alert Email Task (will get merchant email from OrderProcessor DO)
+    const merchantAlertHtml = getNewOrderAlertHtml({
+      storeName: storeData.name,
+      orderNumber,
+      customerName: input.customer_name,
+      itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
+      currency: storeData.currency || 'BDT',
+      total,
+    });
+    
     orderTasks.push({
       type: 'email',
       payload: {
-        template: 'merchant_alert',
-        storeId: input.store_id,
-        data: {
-          orderNumber,
-          customerName: input.customer_name,
-          total,
-          currency: storeData.currency || 'BDT',
-          itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
-          isFirstOrder,
-        },
+        to: 'contact@ozzyl.com',
+        subject: `নতুন অর্ডার! #${orderNumber}`,
+        html: merchantAlertHtml,
       },
     });
 

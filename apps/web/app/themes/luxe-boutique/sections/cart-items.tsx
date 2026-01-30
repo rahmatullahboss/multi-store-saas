@@ -12,6 +12,7 @@
 import { useFetcher } from '@remix-run/react';
 import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import type { SectionSchema, SectionComponentProps, CartItem } from '~/lib/theme-engine/types';
+import { formatPrice } from '~/lib/theme-engine';
 
 // ============================================================================
 // THEME COLORS
@@ -151,11 +152,6 @@ export default function LuxeCartItems({ section, context, settings }: SectionCom
   const cartItems = context.cart?.items || DEMO_CART;
   const currency = context.store?.currency || 'BDT';
   const fetcher = useFetcher();
-
-  const formatPrice = (price: number) => {
-    if (currency === 'BDT') return `৳${(price / 100).toLocaleString('bn-BD')}`;
-    return `$${(price / 100).toFixed(2)}`;
-  };
 
   const updateQuantity = (itemId: string, newQuantity: number) => {
     fetcher.submit(

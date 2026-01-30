@@ -9,6 +9,7 @@ import { Link, useFetcher } from '@remix-run/react';
 import { CreditCard, Truck, Tag, X, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import type { SectionSchema, SectionComponentProps, CartData } from '~/lib/theme-engine/types';
+import { formatPrice } from '~/lib/theme-engine';
 
 // ============================================================================
 // SCHEMA
@@ -269,7 +270,7 @@ export default function CartSummary({ section, context, settings }: SectionCompo
                   {discount.code}
                 </span>
                 <span className="text-sm" style={{ color: mutedColor }}>
-                  (-৳{(discount.applied / 100).toLocaleString('bn-BD')})
+                  (-{formatPrice(discount.applied)})
                 </span>
               </div>
               <button
@@ -288,7 +289,7 @@ export default function CartSummary({ section, context, settings }: SectionCompo
         <div className="flex justify-between">
           <span style={{ color: mutedColor }}>সাবটোটাল ({cart.itemCount} আইটেম)</span>
           <span className="font-medium" style={{ color: textColor }}>
-            ৳{(cart.subtotal / 100).toLocaleString('bn-BD')}
+            {formatPrice(cart.subtotal)}
           </span>
         </div>
 
@@ -296,7 +297,7 @@ export default function CartSummary({ section, context, settings }: SectionCompo
           <div className="flex justify-between">
             <span style={{ color: successColor }}>ডিসকাউন্ট</span>
             <span className="font-medium" style={{ color: successColor }}>
-              -৳{(discountTotal / 100).toLocaleString('bn-BD')}
+              -{formatPrice(discountTotal)}
             </span>
           </div>
         )}
@@ -307,7 +308,7 @@ export default function CartSummary({ section, context, settings }: SectionCompo
             className="font-medium"
             style={{ color: isFreeShipping ? successColor : textColor }}
           >
-            {isFreeShipping ? 'ফ্রি' : `৳${(shippingCost / 100).toLocaleString('bn-BD')}`}
+            {isFreeShipping ? 'ফ্রি' : formatPrice(shippingCost)}
           </span>
         </div>
 
@@ -317,7 +318,7 @@ export default function CartSummary({ section, context, settings }: SectionCompo
               মোট
             </span>
             <span className="text-lg font-bold" style={{ color: primaryColor }}>
-              ৳{(total / 100).toLocaleString('bn-BD')}
+              {formatPrice(total)}
             </span>
           </div>
         </div>
@@ -335,8 +336,8 @@ export default function CartSummary({ section, context, settings }: SectionCompo
               shipping_text
             ) : (
               <>
-                আরো ৳{((shippingThreshold - cart.subtotal) / 100).toLocaleString('bn-BD')} অর্ডার
-                করলে ফ্রি ডেলিভারি
+                আরো {formatPrice(shippingThreshold - (cart.subtotal ?? 0))} অর্ডার করলে ফ্রি
+                ডেলিভারি
               </>
             )}
           </span>

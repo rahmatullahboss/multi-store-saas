@@ -226,6 +226,14 @@ export type { BaseTemplateProps } from './components/BaseTemplate';
 // Re-export default
 export { TemplateEngine as default } from './utils/template-engine';
 
+// Formatting Utilities
+export {
+  formatPrice,
+  formatPriceWithLocale,
+  calculateDiscountPercentage,
+  formatNumber,
+} from './utils/formatting';
+
 // Theme Bridge (Shopify OS 2.0 Theme Integration)
 export { ThemeBridge, getThemeBridge, resetThemeBridge } from './ThemeBridge';
 

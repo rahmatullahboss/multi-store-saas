@@ -12,6 +12,7 @@
 import { Link, useFetcher } from '@remix-run/react';
 import { Trash2, Minus, Plus, ShoppingBag, ArrowLeft } from 'lucide-react';
 import type { SectionSchema, SectionComponentProps, CartItem } from '~/lib/theme-engine/types';
+import { formatPrice, calculateDiscountPercentage } from '~/lib/theme-engine';
 
 // ============================================================================
 // SCHEMA
@@ -222,9 +223,7 @@ export default function DarazCartItems({ section, context, settings }: SectionCo
       {/* Cart Items */}
       <div className="space-y-4">
         {cartItems.map((item) => {
-          const discount = item.compareAtPrice
-            ? Math.round((1 - item.price / item.compareAtPrice) * 100)
-            : 0;
+          const discount = calculateDiscountPercentage(item.price, item.compareAtPrice);
 
           return (
             <div
@@ -273,12 +272,12 @@ export default function DarazCartItems({ section, context, settings }: SectionCo
                   {/* Price */}
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-sm md:text-base" style={{ color: price_color }}>
-                      ৳{(item.price / 100).toLocaleString()}
+                      {formatPrice(item.price)}
                     </span>
                     {item.compareAtPrice && (
                       <>
                         <span className="text-xs line-through text-gray-400">
-                          ৳{(item.compareAtPrice / 100).toLocaleString()}
+                          {formatPrice(item.compareAtPrice)}
                         </span>
                         <span
                           className="text-[10px] px-1.5 py-0.5 rounded text-white font-medium"
@@ -316,7 +315,7 @@ export default function DarazCartItems({ section, context, settings }: SectionCo
                 <div className="text-right mt-2">
                   <span className="text-xs text-gray-500">Total: </span>
                   <span className="font-bold text-gray-800">
-                    ৳{((item.price * item.quantity) / 100).toLocaleString()}
+                    {formatPrice((item.price ?? 0) * item.quantity)}
                   </span>
                 </div>
               </div>
