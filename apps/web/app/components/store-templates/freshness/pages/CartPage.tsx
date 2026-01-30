@@ -1,17 +1,27 @@
 import { useState, useEffect } from 'react';
 import { Minus, Plus, Trash2, ArrowRight, ShoppingBag, Leaf } from 'lucide-react';
-import { FRESHNESS_THEME } from '../theme';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 
 interface FreshnessCartProps {
-  theme?: any;
+  theme?: Record<string, unknown>;
   isPreview?: boolean;
 }
 
-export function FreshnessCartPage({ theme, isPreview = false }: FreshnessCartProps) {
+interface CartItem {
+  id?: number | string;
+  productId: number;
+  title: string;
+  price: number;
+  image?: string | null;
+  imageUrl?: string | null;
+  category?: string;
+  quantity: number;
+}
+
+export function FreshnessCartPage({ theme: _theme, isPreview = false }: FreshnessCartProps) {
   const currencySymbol = '৳';
-  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -22,24 +32,27 @@ export function FreshnessCartPage({ theme, isPreview = false }: FreshnessCartPro
         if (Array.isArray(items)) {
           if (isPreview) {
             // Hydrate with Demo Data
-            const hydratedItems = items
-              .map((item: any) => {
+            const hydratedItems = (items as Array<Record<string, unknown>>)
+              .map((item): CartItem | null => {
                 const pId = Number(item.productId);
                 const demoProduct = DEMO_PRODUCTS.find((p) => p.id === pId);
                 return demoProduct
                   ? {
                       ...item,
+                      productId: pId,
                       title: demoProduct.title,
                       price: demoProduct.price,
-                      image: demoProduct.imageUrl,
-                      category: demoProduct.category,
+                      image: demoProduct.imageUrl || null,
+                      imageUrl: demoProduct.imageUrl || null,
+                      category: demoProduct.category || undefined,
+                      quantity: Number(item.quantity) || 1,
                     }
                   : null;
               })
-              .filter(Boolean);
+              .filter((item): item is CartItem => item !== null);
             setCartItems(hydratedItems);
           } else {
-            setCartItems(items);
+            setCartItems(items as CartItem[]);
           }
         }
       } catch (e) {
@@ -110,7 +123,7 @@ export function FreshnessCartPage({ theme, isPreview = false }: FreshnessCartPro
                 <div key={item.id || index} className="p-6 flex gap-6 items-center">
                   <div className="w-24 h-24 bg-gray-50 rounded-xl flex-shrink-0 flex items-center justify-center">
                     <img
-                      src={item.image || item.imageUrl}
+                      src={item.image || item.imageUrl || undefined}
                       alt={item.title}
                       className="w-full h-full object-contain p-2"
                     />
@@ -129,9 +142,9 @@ export function FreshnessCartPage({ theme, isPreview = false }: FreshnessCartPro
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-4">
+                    <div className="flex flex-col items-end gap-4">
                     <button
-                      onClick={() => removeItem(item.id || item.productId)}
+                      onClick={() => removeItem(Number(item.id || item.productId))}
                       className="text-gray-400 hover:text-red-500 transition"
                     >
                       <Trash2 size={18} />
@@ -139,7 +152,7 @@ export function FreshnessCartPage({ theme, isPreview = false }: FreshnessCartPro
 
                     <div className="flex items-center border border-gray-200 rounded-lg h-10">
                       <button
-                        onClick={() => updateQty(item.id || item.productId, -1)}
+                        onClick={() => updateQty(Number(item.id || item.productId), -1)}
                         className="w-10 h-full flex items-center justify-center hover:bg-gray-50 text-gray-500"
                       >
                         <Minus size={14} />
@@ -148,7 +161,7 @@ export function FreshnessCartPage({ theme, isPreview = false }: FreshnessCartPro
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() => updateQty(item.id || item.productId, 1)}
+                        onClick={() => updateQty(Number(item.id || item.productId), 1)}
                         className="w-10 h-full flex items-center justify-center hover:bg-gray-50 text-gray-500"
                       >
                         <Plus size={14} />

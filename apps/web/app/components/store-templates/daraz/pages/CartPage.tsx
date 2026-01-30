@@ -32,7 +32,7 @@ interface CartPageProps {
   onRemoveItem?: (productId: number) => void;
   onCheckout?: () => void;
   // Theme aware props
-  theme?: any;
+  theme?: typeof DARAZ_THEME;
   isPreview?: boolean;
 }
 
@@ -62,8 +62,8 @@ export function DarazCartPage({
         const items = JSON.parse(stored);
         if (isPreview) {
           // Hydrate with Demo Data
-          const hydratedItems = items
-            .map((item: any) => {
+          const hydratedItems = (items as Array<Record<string, unknown>>)
+            .map((item): CartItem | null => {
               const pId = Number(item.productId);
               const demoProduct = DEMO_PRODUCTS.find((p) => p.id === pId);
               return demoProduct
@@ -72,15 +72,15 @@ export function DarazCartPage({
                     productId: pId,
                     title: demoProduct.title,
                     price: demoProduct.price,
-                    imageUrl: demoProduct.imageUrl,
+                    imageUrl: demoProduct.imageUrl || null,
                     quantity: Number(item.quantity) || 1,
                   }
                 : null;
             })
-            .filter(Boolean);
+            .filter((item): item is CartItem => item !== null);
           setCartItems(hydratedItems);
         } else {
-          setCartItems(items);
+          setCartItems(items as CartItem[]);
         }
       } catch (e) {
         console.error(e);

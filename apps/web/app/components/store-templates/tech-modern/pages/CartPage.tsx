@@ -4,17 +4,28 @@ import { Minus, Plus, Trash2, ArrowRight, Shield } from 'lucide-react';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
 
 interface TechCartProps {
-  theme?: any;
+  theme?: Record<string, unknown>;
   isPreview?: boolean;
   onCheckout?: () => void;
 }
 
-export function TechCartPage({ theme, isPreview = false, onCheckout }: TechCartProps) {
+interface CartItem {
+  id?: number | string;
+  productId: number;
+  title: string;
+  price: number;
+  quantity: number;
+  image?: string | null;
+  imageUrl?: string | null;
+  specs?: string;
+}
+
+export function TechCartPage({ theme: _theme, isPreview = false, onCheckout }: TechCartProps) {
   const params = useParams();
   const templateId = params.templateId || 'tech-modern';
   const currencySymbol = '৳';
 
-  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -26,8 +37,8 @@ export function TechCartPage({ theme, isPreview = false, onCheckout }: TechCartP
 
         if (isPreview) {
           // Hydrate with Demo Data
-          const hydratedItems = items
-            .map((item: any) => {
+          const hydratedItems = (items as Array<Record<string, unknown>>)
+            .map((item): CartItem | null => {
               const pId = Number(item.productId);
               const demoProduct = DEMO_PRODUCTS.find((p) => p.id === pId);
               return demoProduct
@@ -37,15 +48,16 @@ export function TechCartPage({ theme, isPreview = false, onCheckout }: TechCartP
                     title: demoProduct.title,
                     price: demoProduct.price,
                     quantity: Number(item.quantity) || 1,
-                    image: demoProduct.imageUrl,
-                    specs: demoProduct.description?.slice(0, 30) + '...',
+                    image: demoProduct.imageUrl || null,
+                    imageUrl: demoProduct.imageUrl || null,
+                    specs: (demoProduct.description?.slice(0, 30) || '') + '...',
                   }
                 : null;
             })
-            .filter(Boolean);
+            .filter((item): item is CartItem => item !== null);
           setCartItems(hydratedItems);
         } else {
-          setCartItems(items);
+          setCartItems(items as CartItem[]);
         }
       } catch (e) {
         console.error(e);
@@ -108,7 +120,7 @@ export function TechCartPage({ theme, isPreview = false, onCheckout }: TechCartP
               >
                 <div className="w-24 h-24 bg-gray-100 rounded border border-gray-100 flex-shrink-0">
                   <img
-                    src={item.image || item.imageUrl}
+                    src={item.image || item.imageUrl || undefined}
                     alt={item.title}
                     className="w-full h-full object-cover"
                   />
@@ -136,21 +148,21 @@ export function TechCartPage({ theme, isPreview = false, onCheckout }: TechCartP
                     <div className="flex items-center gap-4">
                       <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200">
                         <button
-                          onClick={() => updateQty(item.id || item.productId, -1)}
+                          onClick={() => updateQty(Number(item.id || item.productId), -1)}
                           className="p-1 hover:text-blue-600"
                         >
                           <Minus size={14} />
                         </button>
                         <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
                         <button
-                          onClick={() => updateQty(item.id || item.productId, 1)}
+                          onClick={() => updateQty(Number(item.id || item.productId), 1)}
                           className="p-1 hover:text-blue-600"
                         >
                           <Plus size={14} />
                         </button>
                       </div>
                       <button
-                        onClick={() => removeItem(item.id || item.productId)}
+                        onClick={() => removeItem(Number(item.id || item.productId))}
                         className="text-gray-400 hover:text-red-500 transition-colors"
                       >
                         <Trash2 size={16} />
