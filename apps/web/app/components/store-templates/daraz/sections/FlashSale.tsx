@@ -1,6 +1,6 @@
 /**
  * Daraz Flash Sale Section
- * 
+ *
  * Horizontal scrollable flash sale section matching Daraz Bangladesh
  * Features:
  * - "Flash Sale" header with "On Sale Now" indicator
@@ -14,7 +14,7 @@ import { ChevronLeft, ChevronRight, Zap, Clock } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import { DARAZ_THEME } from '../theme';
 import type { SerializedProduct } from '~/templates/store-registry';
-import { formatPrice } from '~/utils/formatPrice';
+import { formatPrice } from '~/lib/theme-engine';
 
 type Product = SerializedProduct;
 
@@ -31,7 +31,7 @@ export function DarazFlashSale({
   currency = 'BDT',
   title = 'Flash Sale',
   showTimer = true,
-  endTime
+  endTime,
 }: FlashSaleProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -55,7 +55,7 @@ export function DarazFlashSale({
       setTimeLeft({
         hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
         minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
-        seconds: Math.floor((diff % (1000 * 60)) / 1000)
+        seconds: Math.floor((diff % (1000 * 60)) / 1000),
       });
     };
 
@@ -76,7 +76,7 @@ export function DarazFlashSale({
     const scrollAmount = 300;
     scrollRef.current.scrollBy({
       left: direction === 'left' ? -scrollAmount : scrollAmount,
-      behavior: 'smooth'
+      behavior: 'smooth',
     });
   };
 
@@ -100,7 +100,7 @@ export function DarazFlashSale({
               {title}
             </h2>
           </div>
-          
+
           {/* Timer or "On Sale Now" */}
           {showTimer && endTime ? (
             <div className="flex items-center gap-1.5 text-sm">
@@ -112,10 +112,7 @@ export function DarazFlashSale({
               </span>
             </div>
           ) : (
-            <span 
-              className="text-sm font-medium"
-              style={{ color: DARAZ_THEME.primary }}
-            >
+            <span className="text-sm font-medium" style={{ color: DARAZ_THEME.primary }}>
               On Sale Now
             </span>
           )}
@@ -124,9 +121,9 @@ export function DarazFlashSale({
         <Link
           to="/?category=flash-sale"
           className="px-4 py-1.5 text-sm font-semibold border-2 rounded transition-colors cursor-pointer"
-          style={{ 
-            borderColor: DARAZ_THEME.primary, 
-            color: DARAZ_THEME.primary 
+          style={{
+            borderColor: DARAZ_THEME.primary,
+            color: DARAZ_THEME.primary,
           }}
         >
           SHOP ALL PRODUCTS
@@ -195,34 +192,34 @@ export function DarazFlashSale({
 
                 {/* Info */}
                 <div className="space-y-1">
-                  <h3 
+                  <h3
                     className="text-xs line-clamp-2 group-hover:text-orange-500 transition-colors"
                     style={{ color: DARAZ_THEME.text }}
                   >
                     {product.title}
                   </h3>
-                  
+
                   <div className="flex flex-col">
-                    <span 
-                      className="text-sm font-bold"
-                      style={{ color: DARAZ_THEME.priceOrange }}
-                    >
-                      ৳{formatPrice(product.price, { currency: currency as 'BDT' | 'USD', showSymbol: false })}
+                    <span className="text-sm font-bold" style={{ color: DARAZ_THEME.priceOrange }}>
+                      ৳{formatPrice(product.price, currency)}
                     </span>
                     {hasDiscount && (
-                      <span className="text-[10px] line-through" style={{ color: DARAZ_THEME.muted }}>
-                        ৳{formatPrice(product.compareAtPrice!, { currency: currency as 'BDT' | 'USD', showSymbol: false })}
+                      <span
+                        className="text-[10px] line-through"
+                        style={{ color: DARAZ_THEME.muted }}
+                      >
+                        ৳{formatPrice(product.compareAtPrice!, currency)}
                       </span>
                     )}
                   </div>
 
                   {/* Sold indicator (simulated) */}
                   <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full rounded-full"
-                      style={{ 
+                      style={{
                         width: `${Math.min(85, Math.random() * 50 + 35)}%`,
-                        backgroundColor: DARAZ_THEME.primary 
+                        backgroundColor: DARAZ_THEME.primary,
                       }}
                     />
                   </div>

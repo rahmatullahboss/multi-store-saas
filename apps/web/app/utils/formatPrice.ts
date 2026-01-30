@@ -1,6 +1,6 @@
 /**
  * Centralized Price Formatting Utility
- * 
+ *
  * Features:
  * - Supports multiple locales (en-US, bn-BD)
  * - Forces Latin numerals using numberingSystem: 'latn'
@@ -34,16 +34,13 @@ const LOCALE_MAP: Record<SupportedLocale, string> = {
  * Format a price with the specified locale and currency
  * Always displays Latin numerals (0-9) regardless of locale
  */
-export function formatPrice(
-  price: number,
-  options: FormatPriceOptions = {}
-): string {
-  const { locale = 'en', currency = 'USD', showSymbol = true } = options;
+export function formatPrice(price: number, options: FormatPriceOptions = {}): string {
+  const { locale = 'bn', currency = 'BDT', showSymbol = true } = options;
 
   const intlLocale = LOCALE_MAP[locale];
   const isBDT = currency === 'BDT';
   const priceInUnits = price / 100;
-  
+
   try {
     const formatted = new Intl.NumberFormat(intlLocale, {
       style: showSymbol ? 'currency' : 'decimal',
@@ -58,7 +55,7 @@ export function formatPrice(
   } catch {
     // Fallback for unsupported currencies
     const currencyInfo = CURRENCY_CONFIG[currency] || CURRENCY_CONFIG.USD;
-    return showSymbol 
+    return showSymbol
       ? `${currencyInfo.symbol}${priceInUnits.toFixed(2)}`
       : priceInUnits.toFixed(2);
   }

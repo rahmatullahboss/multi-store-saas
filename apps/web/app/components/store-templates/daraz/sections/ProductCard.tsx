@@ -1,6 +1,6 @@
 /**
  * Daraz Product Card
- * 
+ *
  * Product card matching Daraz Bangladesh styling:
  * - Square image with discount badge
  * - Truncated title (2 lines)
@@ -14,7 +14,7 @@ import { Link } from '@remix-run/react';
 import { Star, Heart, ShoppingCart } from 'lucide-react';
 import { DARAZ_THEME } from '../theme';
 import type { SerializedProduct } from '~/templates/store-registry';
-import { formatPrice } from '~/utils/formatPrice';
+import { formatPrice } from '~/lib/theme-engine';
 
 type Product = SerializedProduct;
 
@@ -31,21 +31,21 @@ function getProductRating(productId: number): { rating: number; count: number } 
   const seed = productId % 100;
   return {
     rating: 3.5 + (seed % 20) / 10, // 3.5 - 5.0
-    count: 10 + (seed * 7) % 500     // 10 - 500 reviews
+    count: 10 + ((seed * 7) % 500), // 10 - 500 reviews
   };
 }
 
-export function DarazProductCard({ 
-  product, 
+export function DarazProductCard({
+  product,
   currency = 'BDT',
   showRating = true,
-  showAddToCart = false
+  showAddToCart = false,
 }: ProductCardProps) {
   const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
   const discountPercent = hasDiscount
     ? Math.round((1 - product.price / product.compareAtPrice!) * 100)
     : 0;
-  
+
   const { rating, count: reviewCount } = getProductRating(product.id);
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 >= 0.5;
@@ -64,7 +64,7 @@ export function DarazProductCard({
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
         />
-        
+
         {/* Discount Badge */}
         {hasDiscount && (
           <span
@@ -106,7 +106,7 @@ export function DarazProductCard({
       {/* Product Info */}
       <div className="p-3">
         {/* Title */}
-        <h3 
+        <h3
           className="text-xs md:text-sm line-clamp-2 mb-2 min-h-[2.5em] transition-colors group-hover:text-orange-500"
           style={{ color: DARAZ_THEME.text }}
         >
@@ -115,18 +115,18 @@ export function DarazProductCard({
 
         {/* Price */}
         <div className="flex items-baseline gap-2 mb-1.5">
-          <span 
+          <span
             className="text-sm md:text-base font-bold"
             style={{ color: DARAZ_THEME.priceOrange }}
           >
-            ৳{formatPrice(product.price, { currency: currency as 'BDT' | 'USD', showSymbol: false })}
+            ৳{formatPrice(product.price, currency)}
           </span>
           {hasDiscount && (
-            <span 
+            <span
               className="text-[10px] md:text-xs line-through"
               style={{ color: DARAZ_THEME.muted }}
             >
-              ৳{formatPrice(product.compareAtPrice!, { currency: currency as 'BDT' | 'USD', showSymbol: false })}
+              ৳{formatPrice(product.compareAtPrice!, currency)}
             </span>
           )}
         </div>
@@ -142,16 +142,13 @@ export function DarazProductCard({
                     i < fullStars
                       ? 'fill-yellow-400 text-yellow-400'
                       : i === fullStars && hasHalfStar
-                      ? 'fill-yellow-400/50 text-yellow-400'
-                      : 'fill-gray-200 text-gray-200'
+                        ? 'fill-yellow-400/50 text-yellow-400'
+                        : 'fill-gray-200 text-gray-200'
                   }`}
                 />
               ))}
             </div>
-            <span 
-              className="text-[10px]"
-              style={{ color: DARAZ_THEME.muted }}
-            >
+            <span className="text-[10px]" style={{ color: DARAZ_THEME.muted }}>
               ({reviewCount})
             </span>
           </div>
@@ -163,7 +160,7 @@ export function DarazProductCard({
 
 /**
  * Daraz Product Grid
- * 
+ *
  * 6-column responsive grid for "Just For You" section
  */
 interface ProductGridProps {
@@ -177,34 +174,27 @@ export function DarazProductGrid({
   products = [],
   currency = 'BDT',
   title = 'Just For You',
-  columns = 6
+  columns = 6,
 }: ProductGridProps) {
   if (products.length === 0) return null;
 
   const gridCols = {
     4: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4',
     5: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5',
-    6: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'
+    6: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6',
   };
 
   return (
     <section className="bg-white rounded-lg shadow-sm mb-6 p-4">
       {title && (
-        <h2 
-          className="text-lg font-bold mb-4"
-          style={{ color: DARAZ_THEME.text }}
-        >
+        <h2 className="text-lg font-bold mb-4" style={{ color: DARAZ_THEME.text }}>
           {title}
         </h2>
       )}
 
       <div className={`grid ${gridCols[columns]} gap-3 md:gap-4`}>
         {products.map((product) => (
-          <DarazProductCard 
-            key={product.id} 
-            product={product} 
-            currency={currency}
-          />
+          <DarazProductCard key={product.id} product={product} currency={currency} />
         ))}
       </div>
     </section>
