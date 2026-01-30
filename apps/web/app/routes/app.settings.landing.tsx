@@ -17,6 +17,7 @@ import { eq, and } from 'drizzle-orm';
 import { stores, products } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
+import { formatPrice } from '~/lib/theme-engine';
 import {
   Loader2,
   CheckCircle,
@@ -350,7 +351,7 @@ export default function LandingSettingsPage() {
                   <option value="">{t('selectAProduct')}</option>
                   {storeProducts.map((product) => (
                     <option key={product.id} value={product.id}>
-                      {product.title} - ৳{product.price}
+                      {product.title} - {formatPrice(product.price)}
                     </option>
                   ))}
                 </select>

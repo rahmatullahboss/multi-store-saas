@@ -1066,7 +1066,7 @@ export default function Checkout() {
                           <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                         </div>
                         <div className="text-sm font-medium text-gray-900">
-                          {currency} {product.price * item.quantity}
+                          {formatPrice((product.price ?? 0) * item.quantity)}
                         </div>
                       </div>
                     );
@@ -1207,7 +1207,7 @@ export default function Checkout() {
                         {product.title} x {item.quantity}
                       </span>
                       <span className="font-medium">
-                        {currency} {product.price * item.quantity}
+                        {formatPrice((product.price ?? 0) * item.quantity)}
                       </span>
                     </div>
                   );

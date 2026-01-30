@@ -21,6 +21,7 @@ import {
   getDemoProductsByCollection,
   getDemoProductsByCategory,
 } from '~/utils/store-preview-data';
+import { formatPrice } from '~/lib/theme-engine';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -187,8 +188,7 @@ function DefaultCollectionLayout({
                 {product.title}
               </h3>
               <p className="font-bold" style={{ color: theme.accent }}>
-                {currency}
-                {product.price}
+                {formatPrice(product.price)}
               </p>
             </Link>
           ))}
