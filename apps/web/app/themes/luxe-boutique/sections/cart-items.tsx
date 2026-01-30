@@ -122,7 +122,7 @@ const DEMO_CART: CartItem[] = [
     id: '1',
     productId: 101,
     title: 'Silk Evening Gown',
-    price: 24999,
+    price: 2499900,
     quantity: 1,
     image: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=200&h=267&fit=crop',
     variantTitle: 'Size: M',
@@ -131,7 +131,7 @@ const DEMO_CART: CartItem[] = [
     id: '2',
     productId: 102,
     title: 'Pearl Drop Earrings',
-    price: 4999,
+    price: 499900,
     quantity: 2,
     image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=200&h=267&fit=crop',
   },
@@ -153,8 +153,8 @@ export default function LuxeCartItems({ section, context, settings }: SectionCom
   const fetcher = useFetcher();
 
   const formatPrice = (price: number) => {
-    if (currency === 'BDT') return `৳${price.toLocaleString('bn-BD')}`;
-    return `$${price.toFixed(2)}`;
+    if (currency === 'BDT') return `৳${(price / 100).toLocaleString('bn-BD')}`;
+    return `$${(price / 100).toFixed(2)}`;
   };
 
   const updateQuantity = (itemId: string, newQuantity: number) => {

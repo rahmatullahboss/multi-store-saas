@@ -134,8 +134,8 @@ const DEMO_CART_ITEMS: CartItem[] = [
     title: 'প্রিমিয়াম ওয়্যারলেস হেডফোন',
     variantTitle: 'কালো',
     quantity: 2,
-    price: 3999,
-    compareAtPrice: 5999,
+    price: 399900,
+    compareAtPrice: 599900,
     image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop',
     url: '/products/1',
   },
@@ -144,7 +144,7 @@ const DEMO_CART_ITEMS: CartItem[] = [
     productId: 2,
     title: 'স্মার্টওয়াচ ফিটনেস ট্র্যাকার',
     quantity: 1,
-    price: 4999,
+    price: 499900,
     image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop',
     url: '/products/2',
   },
@@ -221,12 +221,12 @@ function CartItemRow({
         {/* Price */}
         <div className="flex items-center gap-2 mt-2">
           <span className="font-bold" style={{ color: primaryColor }}>
-            ৳{item.price.toLocaleString('bn-BD')}
+            ৳{(item.price / 100).toLocaleString('bn-BD')}
           </span>
           {item.compareAtPrice && (
             <>
               <span className="text-sm line-through" style={{ color: mutedColor }}>
-                ৳{item.compareAtPrice.toLocaleString('bn-BD')}
+                ৳{(item.compareAtPrice / 100).toLocaleString('bn-BD')}
               </span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
                 -{discount}%
@@ -268,7 +268,7 @@ function CartItemRow({
               মোট
             </p>
             <p className="font-bold" style={{ color: textColor }}>
-              ৳{(item.price * item.quantity).toLocaleString('bn-BD')}
+              ৳{((item.price * item.quantity) / 100).toLocaleString('bn-BD')}
             </p>
           </div>
 

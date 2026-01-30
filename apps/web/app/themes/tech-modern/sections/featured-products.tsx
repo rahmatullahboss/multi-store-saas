@@ -134,8 +134,8 @@ export default function TechFeaturedProducts({
   const currency = store.currency || 'BDT';
 
   const formatPrice = (price: number) => {
-    if (currency === 'BDT') return `৳${price.toLocaleString('bn-BD')}`;
-    return `$${price.toFixed(2)}`;
+    if (currency === 'BDT') return `৳${(price / 100).toLocaleString('bn-BD')}`;
+    return `$${(price / 100).toFixed(2)}`;
   };
 
   const gridCols = config.columns === '3' ? 'lg:grid-cols-3' : 'lg:grid-cols-4';

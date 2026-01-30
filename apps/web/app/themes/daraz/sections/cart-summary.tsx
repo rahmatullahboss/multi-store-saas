@@ -132,8 +132,8 @@ export interface DarazCartSummarySettings {
 const DEMO_CART = {
   items: [] as CartItem[],
   itemCount: 3,
-  subtotal: 12997,
-  total: 12997,
+  subtotal: 1299700,
+  total: 1299700,
 };
 
 export default function DarazCartSummary({ section, context, settings }: SectionComponentProps) {
@@ -221,7 +221,7 @@ export default function DarazCartSummary({ section, context, settings }: Section
       <div className="space-y-3 py-4 border-t border-gray-200">
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Subtotal ({itemCount} items)</span>
-          <span className="font-medium text-gray-800">৳{subtotal.toLocaleString()}</span>
+          <span className="font-medium text-gray-800">৳{(subtotal / 100).toLocaleString()}</span>
         </div>
 
         <div className="flex justify-between text-sm">
@@ -229,7 +229,7 @@ export default function DarazCartSummary({ section, context, settings }: Section
           {shippingCost === 0 ? (
             <span className="text-green-600 font-medium">Free</span>
           ) : (
-            <span className="text-gray-800">৳{shippingCost}</span>
+            <span className="text-gray-800">৳{(shippingCost / 100).toLocaleString()}</span>
           )}
         </div>
 
@@ -238,9 +238,12 @@ export default function DarazCartSummary({ section, context, settings }: Section
             <span className="text-gray-600">Discount</span>
             <span className="text-green-600 font-medium">
               -৳
-              {context.cart.discounts
-                .reduce((acc: number, d: { applied: number }) => acc + d.applied, 0)
-                .toLocaleString()}
+              {(
+                context.cart.discounts.reduce(
+                  (acc: number, d: { applied: number }) => acc + d.applied,
+                  0
+                ) / 100
+              ).toLocaleString()}
             </span>
           </div>
         )}
@@ -250,7 +253,7 @@ export default function DarazCartSummary({ section, context, settings }: Section
       <div className="flex justify-between py-4 border-t border-gray-200">
         <span className="font-medium text-gray-800">Total</span>
         <span className="text-xl font-bold" style={{ color: price_color }}>
-          ৳{finalTotal.toLocaleString()}
+          ৳{(finalTotal / 100).toLocaleString()}
         </span>
       </div>
 
@@ -259,7 +262,8 @@ export default function DarazCartSummary({ section, context, settings }: Section
         <div className="flex items-center gap-2 p-3 rounded bg-orange-50 mb-4">
           <Truck size={16} style={{ color: primary_color }} />
           <span className="text-xs text-gray-700">
-            Add ৳{(freeShippingThreshold - subtotal).toLocaleString()} more for free delivery!
+            Add ৳{((freeShippingThreshold - subtotal) / 100).toLocaleString()} more for free
+            delivery!
           </span>
         </div>
       )}

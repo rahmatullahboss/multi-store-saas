@@ -230,8 +230,8 @@ const DEMO_PRODUCT: SerializedProduct = {
   title: 'Wireless Bluetooth Headphones with Noise Cancellation',
   description:
     'Premium quality wireless headphones with active noise cancellation, 20-hour battery life, and comfortable ear cushions. Perfect for music lovers and professionals.',
-  price: 3999,
-  compareAtPrice: 5999,
+  price: 399900,
+  compareAtPrice: 599900,
   sku: 'WH-001',
   inventory: 50,
   imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop',
@@ -246,7 +246,7 @@ const DEMO_PRODUCT: SerializedProduct = {
       id: 1,
       option1Name: 'Color',
       option1Value: 'Black',
-      price: 3999,
+      price: 399900,
       inventory: 25,
       isAvailable: true,
     },
@@ -254,7 +254,7 @@ const DEMO_PRODUCT: SerializedProduct = {
       id: 2,
       option1Name: 'Color',
       option1Value: 'White',
-      price: 3999,
+      price: 399900,
       inventory: 15,
       isAvailable: true,
     },
@@ -262,7 +262,7 @@ const DEMO_PRODUCT: SerializedProduct = {
       id: 3,
       option1Name: 'Color',
       option1Value: 'Blue',
-      price: 4299,
+      price: 429900,
       inventory: 10,
       isAvailable: true,
     },
@@ -454,12 +454,12 @@ export default function DarazProductMain({
       <div className="bg-gray-50 p-4 rounded-lg mb-4">
         <div className="flex items-baseline gap-3">
           <span className="text-2xl md:text-3xl font-bold" style={{ color: price_color }}>
-            ৳{currentPrice.toLocaleString()}
+            ৳{(currentPrice / 100).toLocaleString()}
           </span>
           {comparePrice && (
             <>
               <span className="text-lg line-through text-gray-400">
-                ৳{comparePrice.toLocaleString()}
+                ৳{(comparePrice / 100).toLocaleString()}
               </span>
               <span
                 className="px-2 py-0.5 text-xs font-bold rounded text-white"

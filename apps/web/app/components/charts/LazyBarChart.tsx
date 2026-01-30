@@ -7,10 +7,22 @@
  * @see https://v2.remix.run/docs/guides/migrating-react-router-app#client-only-components
  */
 
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode, useSyncExternalStore } from 'react';
 
-// Track hydration state globally - only updates once after initial hydration
-let isHydrating = true;
+// Simple subscribe function for useSyncExternalStore
+const subscribe = () => () => {};
+
+/**
+ * Check if we're running on the client
+ * This uses useSyncExternalStore for proper SSR/hydration compatibility
+ */
+function useIsClient() {
+  return useSyncExternalStore(
+    subscribe,
+    () => true, // Client: always return true
+    () => false // Server: always return false
+  );
+}
 
 interface LazyBarChartProps {
   data: Record<string, unknown>[];
@@ -47,12 +59,11 @@ export function LazyBarChart({
   showTooltip = true,
   showLegend = false,
 }: LazyBarChartProps) {
-  const [isHydrated, setIsHydrated] = useState(!isHydrating);
+  const isClient = useIsClient();
   const [chartContent, setChartContent] = useState<ReactNode>(null);
 
   useEffect(() => {
-    isHydrating = false;
-    setIsHydrated(true);
+    if (!isClient) return;
 
     // Dynamic import - ONLY happens on client, never processed during SSR
     import('recharts').then((recharts) => {
@@ -79,10 +90,15 @@ export function LazyBarChart({
         </ResponsiveContainer>
       );
     });
-  }, [data, height, bars, xAxisKey, showGrid, showTooltip, showLegend]);
+  }, [data, height, bars, xAxisKey, showGrid, showTooltip, showLegend, isClient]);
 
-  // Don't render chart during SSR or before hydration/loading
-  if (!isHydrated || !chartContent) {
+  // Don't render chart during SSR
+  if (!isClient) {
+    return <ChartSkeleton height={height} />;
+  }
+
+  // Show skeleton while loading
+  if (!chartContent) {
     return <ChartSkeleton height={height} />;
   }
 

@@ -188,46 +188,46 @@ const DEMO_PRODUCTS: SerializedProduct[] = [
   {
     id: 1,
     title: 'ওয়্যারলেস ব্লুটুথ হেডফোন',
-    price: 2499,
-    compareAtPrice: 3499,
+    price: 249900,
+    compareAtPrice: 349900,
     imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
     tags: ['featured', 'new'],
   },
   {
     id: 2,
     title: 'স্মার্টওয়াচ ফিটনেস ট্র্যাকার',
-    price: 3999,
-    compareAtPrice: 5999,
+    price: 399900,
+    compareAtPrice: 599900,
     imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop',
     tags: ['featured', 'bestseller'],
   },
   {
     id: 3,
     title: 'প্রিমিয়াম লেদার ব্যাগ',
-    price: 4500,
+    price: 450000,
     imageUrl: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&h=400&fit=crop',
     tags: ['featured'],
   },
   {
     id: 4,
     title: 'পোর্টেবল ব্লুটুথ স্পিকার',
-    price: 1899,
-    compareAtPrice: 2499,
+    price: 189900,
+    compareAtPrice: 249900,
     imageUrl: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&h=400&fit=crop',
     tags: ['featured', 'new'],
   },
   {
     id: 5,
     title: 'মেকানিক্যাল কীবোর্ড',
-    price: 5999,
+    price: 599900,
     imageUrl: 'https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=400&h=400&fit=crop',
     tags: ['new'],
   },
   {
     id: 6,
     title: 'গেমিং মাউস',
-    price: 2499,
-    compareAtPrice: 2999,
+    price: 249900,
+    compareAtPrice: 299900,
     imageUrl: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&h=400&fit=crop',
     tags: ['bestseller'],
   },
@@ -333,11 +333,11 @@ function ProductCard({
           </h3>
           <div className="flex items-center gap-2">
             <span className="font-bold" style={{ color: primaryColor }}>
-              ৳{product.price.toLocaleString('bn-BD')}
+              ৳{(product.price / 100).toLocaleString('bn-BD')}
             </span>
             {showComparePrice && product.compareAtPrice && (
               <span className="text-sm line-through" style={{ color: mutedColor }}>
-                ৳{product.compareAtPrice.toLocaleString('bn-BD')}
+                ৳{(product.compareAtPrice / 100).toLocaleString('bn-BD')}
               </span>
             )}
           </div>

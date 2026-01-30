@@ -240,8 +240,8 @@ const DEMO_PRODUCT: SerializedProduct = {
   title: 'প্রিমিয়াম ওয়্যারলেস হেডফোন',
   description:
     'উচ্চমানের সাউন্ড কোয়ালিটি, নয়েজ ক্যান্সেলিং, ২০ ঘন্টা ব্যাটারি লাইফ। আরামদায়ক ইয়ার কুশন সহ।',
-  price: 3999,
-  compareAtPrice: 5999,
+  price: 399900,
+  compareAtPrice: 599900,
   sku: 'WH-001',
   inventory: 50,
   imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop',
@@ -256,7 +256,7 @@ const DEMO_PRODUCT: SerializedProduct = {
       id: 1,
       option1Name: 'Color',
       option1Value: 'কালো',
-      price: 3999,
+      price: 399900,
       inventory: 25,
       isAvailable: true,
     },
@@ -264,7 +264,7 @@ const DEMO_PRODUCT: SerializedProduct = {
       id: 2,
       option1Name: 'Color',
       option1Value: 'সাদা',
-      price: 3999,
+      price: 399900,
       inventory: 15,
       isAvailable: true,
     },
@@ -272,7 +272,7 @@ const DEMO_PRODUCT: SerializedProduct = {
       id: 3,
       option1Name: 'Color',
       option1Value: 'নীল',
-      price: 4299,
+      price: 429900,
       inventory: 10,
       isAvailable: true,
     },
@@ -441,12 +441,12 @@ export default function ProductMain({ section, context, settings, blocks }: Sect
       {/* Price */}
       <div className="flex items-center gap-3 mb-6">
         <span className="text-3xl font-bold" style={{ color: primaryColor }}>
-          ৳{currentPrice.toLocaleString('bn-BD')}
+          ৳{(currentPrice / 100).toLocaleString('bn-BD')}
         </span>
         {comparePrice && (
           <>
             <span className="text-xl line-through" style={{ color: mutedColor }}>
-              ৳{comparePrice.toLocaleString('bn-BD')}
+              ৳{(comparePrice / 100).toLocaleString('bn-BD')}
             </span>
             <span
               className="px-2 py-1 text-sm font-medium rounded-full text-white"
@@ -494,7 +494,7 @@ export default function ProductMain({ section, context, settings, blocks }: Sect
                 {variant.option1Value}
                 {variant.price !== product.price && (
                   <span className="ml-1 text-sm" style={{ color: mutedColor }}>
-                    +৳{(variant.price! - product.price).toLocaleString('bn-BD')}
+                    +৳{((variant.price! - product.price) / 100).toLocaleString('bn-BD')}
                   </span>
                 )}
               </button>

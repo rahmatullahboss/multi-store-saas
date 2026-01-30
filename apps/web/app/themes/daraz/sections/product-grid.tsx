@@ -234,11 +234,11 @@ export default function DarazProductGrid({ section, context, settings }: Section
                 {/* Price */}
                 <div className="flex items-baseline gap-2 mb-1.5">
                   <span className="text-sm md:text-base font-bold" style={{ color: price_color }}>
-                    ৳{product.price.toLocaleString()}
+                    ৳{(product.price / 100).toLocaleString()}
                   </span>
                   {hasDiscount && (
                     <span className="text-[10px] md:text-xs line-through text-gray-400">
-                      ৳{product.compareAtPrice!.toLocaleString()}
+                      ৳{(product.compareAtPrice! / 100).toLocaleString()}
                     </span>
                   )}
                 </div>

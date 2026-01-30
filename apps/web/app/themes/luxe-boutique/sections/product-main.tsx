@@ -215,8 +215,8 @@ const DEMO_PRODUCT: SerializedProduct = {
   title: 'Silk Evening Gown',
   description:
     'Exquisitely crafted from pure mulberry silk, this evening gown features a timeless silhouette with delicate hand-sewn details. The flowing fabric drapes elegantly, creating a sophisticated look perfect for special occasions.',
-  price: 24999,
-  compareAtPrice: 34999,
+  price: 2499900,
+  compareAtPrice: 3499900,
   sku: 'LX-EG-001',
   inventory: 12,
   category: 'Evening Wear',
@@ -232,7 +232,7 @@ const DEMO_PRODUCT: SerializedProduct = {
       id: 1,
       option1Name: 'Size',
       option1Value: 'XS',
-      price: 24999,
+      price: 2499900,
       inventory: 3,
       isAvailable: true,
     },
@@ -240,7 +240,7 @@ const DEMO_PRODUCT: SerializedProduct = {
       id: 2,
       option1Name: 'Size',
       option1Value: 'S',
-      price: 24999,
+      price: 2499900,
       inventory: 4,
       isAvailable: true,
     },
@@ -248,7 +248,7 @@ const DEMO_PRODUCT: SerializedProduct = {
       id: 3,
       option1Name: 'Size',
       option1Value: 'M',
-      price: 24999,
+      price: 2499900,
       inventory: 3,
       isAvailable: true,
     },
@@ -256,7 +256,7 @@ const DEMO_PRODUCT: SerializedProduct = {
       id: 4,
       option1Name: 'Size',
       option1Value: 'L',
-      price: 24999,
+      price: 2499900,
       inventory: 2,
       isAvailable: true,
     },
@@ -308,8 +308,8 @@ export default function LuxeProductMain({
 
   // Format price
   const formatPrice = (price: number) => {
-    if (currency === 'BDT') return `৳${price.toLocaleString('bn-BD')}`;
-    return `$${price.toFixed(2)}`;
+    if (currency === 'BDT') return `৳${(price / 100).toLocaleString('bn-BD')}`;
+    return `$${(price / 100).toFixed(2)}`;
   };
 
   // Handlers

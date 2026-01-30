@@ -213,8 +213,8 @@ const DEMO_PRODUCT: SerializedProduct = {
   title: 'Diamond Eternity Ring',
   description:
     'Exquisite diamond eternity ring featuring premium cut stones set in 18k white gold. A timeless symbol of eternal love and commitment.',
-  price: 125000,
-  compareAtPrice: 145000,
+  price: 12500000,
+  compareAtPrice: 14500000,
   sku: 'NL-RING-001',
   inventory: 5,
   imageUrl: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=600&h=600&fit=crop',
@@ -229,7 +229,7 @@ const DEMO_PRODUCT: SerializedProduct = {
       id: 1,
       option1Name: 'Size',
       option1Value: '6',
-      price: 125000,
+      price: 12500000,
       inventory: 2,
       isAvailable: true,
     },
@@ -237,7 +237,7 @@ const DEMO_PRODUCT: SerializedProduct = {
       id: 2,
       option1Name: 'Size',
       option1Value: '7',
-      price: 125000,
+      price: 12500000,
       inventory: 2,
       isAvailable: true,
     },
@@ -245,7 +245,7 @@ const DEMO_PRODUCT: SerializedProduct = {
       id: 3,
       option1Name: 'Size',
       option1Value: '8',
-      price: 130000,
+      price: 13000000,
       inventory: 1,
       isAvailable: true,
     },
@@ -297,8 +297,8 @@ export default function NovaLuxProductMain({
 
   // Format price
   const formatPrice = (price: number) => {
-    if (currency === 'BDT') return `৳${price.toLocaleString('bn-BD')}`;
-    return `$${price.toFixed(2)}`;
+    if (currency === 'BDT') return `৳${(price / 100).toLocaleString('bn-BD')}`;
+    return `$${(price / 100).toFixed(2)}`;
   };
 
   // Handlers

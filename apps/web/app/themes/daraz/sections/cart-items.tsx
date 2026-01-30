@@ -119,8 +119,8 @@ const DEMO_CART_ITEMS: CartItem[] = [
     title: 'Wireless Bluetooth Headphones',
     variantTitle: 'Black',
     quantity: 2,
-    price: 3999,
-    compareAtPrice: 5999,
+    price: 399900,
+    compareAtPrice: 599900,
     image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop',
     url: '/products/1',
   },
@@ -129,7 +129,7 @@ const DEMO_CART_ITEMS: CartItem[] = [
     productId: 2,
     title: 'Smartwatch Fitness Tracker',
     quantity: 1,
-    price: 4999,
+    price: 499900,
     image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop',
     url: '/products/2',
   },
@@ -273,12 +273,12 @@ export default function DarazCartItems({ section, context, settings }: SectionCo
                   {/* Price */}
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-sm md:text-base" style={{ color: price_color }}>
-                      ৳{item.price.toLocaleString()}
+                      ৳{(item.price / 100).toLocaleString()}
                     </span>
                     {item.compareAtPrice && (
                       <>
                         <span className="text-xs line-through text-gray-400">
-                          ৳{item.compareAtPrice.toLocaleString()}
+                          ৳{(item.compareAtPrice / 100).toLocaleString()}
                         </span>
                         <span
                           className="text-[10px] px-1.5 py-0.5 rounded text-white font-medium"
@@ -316,7 +316,7 @@ export default function DarazCartItems({ section, context, settings }: SectionCo
                 <div className="text-right mt-2">
                   <span className="text-xs text-gray-500">Total: </span>
                   <span className="font-bold text-gray-800">
-                    ৳{(item.price * item.quantity).toLocaleString()}
+                    ৳{((item.price * item.quantity) / 100).toLocaleString()}
                   </span>
                 </div>
               </div>

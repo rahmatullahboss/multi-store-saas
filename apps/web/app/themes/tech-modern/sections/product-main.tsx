@@ -247,8 +247,8 @@ const DEMO_PRODUCT: SerializedProduct = {
   title: 'Wireless Noise-Canceling Headphones Pro',
   description:
     'Premium wireless headphones with industry-leading noise cancellation, 30-hour battery life, and crystal-clear sound quality. Perfect for work, travel, and immersive listening experiences.',
-  price: 24999,
-  compareAtPrice: 29999,
+  price: 2499900,
+  compareAtPrice: 2999900,
   sku: 'TM-HP-001',
   inventory: 25,
   category: 'Audio',
@@ -264,7 +264,7 @@ const DEMO_PRODUCT: SerializedProduct = {
       id: 1,
       option1Name: 'Color',
       option1Value: 'Midnight Black',
-      price: 24999,
+      price: 2499900,
       inventory: 15,
       isAvailable: true,
     },
@@ -272,7 +272,7 @@ const DEMO_PRODUCT: SerializedProduct = {
       id: 2,
       option1Name: 'Color',
       option1Value: 'Silver Frost',
-      price: 24999,
+      price: 2499900,
       inventory: 10,
       isAvailable: true,
     },
@@ -325,8 +325,8 @@ export default function TechModernProductMain({
 
   // Format price
   const formatPrice = (price: number) => {
-    if (currency === 'BDT') return `৳${price.toLocaleString('bn-BD')}`;
-    return `$${price.toFixed(2)}`;
+    if (currency === 'BDT') return `৳${(price / 100).toLocaleString('bn-BD')}`;
+    return `$${(price / 100).toFixed(2)}`;
   };
 
   // Handlers

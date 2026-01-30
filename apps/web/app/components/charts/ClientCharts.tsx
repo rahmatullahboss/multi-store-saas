@@ -23,12 +23,7 @@
  * </ClientAreaChart>
  */
 
-import { useEffect, useState, type ReactNode } from 'react';
-
-// Track hydration state globally - only updates once after initial hydration
-// This is the Remix-recommended pattern for client-only components
-// @see https://v2.remix.run/docs/guides/migrating-react-router-app#client-only-components
-let isHydrating = true;
+import { useEffect, useState, type ReactNode, useSyncExternalStore } from 'react';
 
 // Use 'any' to avoid static type import which can cause bundling issues
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -40,25 +35,52 @@ interface ClientChartProps {
   height?: number;
 }
 
+// Simple subscribe function for useSyncExternalStore
+const subscribe = () => () => {};
+
+/**
+ * Check if we're running on the client
+ * This uses useSyncExternalStore for proper SSR/hydration compatibility
+ */
+function useIsClient() {
+  return useSyncExternalStore(
+    subscribe,
+    () => true, // Client: always return true
+    () => false // Server: always return false
+  );
+}
+
 /**
  * Generic client-only chart wrapper that dynamically imports recharts
- * Uses hydration tracking to prevent SSR rendering
+ * Uses proper hydration tracking to prevent SSR rendering
  */
 export function ClientChart({ children, fallback, height = 300 }: ClientChartProps) {
+  const isClient = useIsClient();
   const [recharts, setRecharts] = useState<RechartsModule | null>(null);
-  const [isHydrated, setIsHydrated] = useState(!isHydrating);
 
   useEffect(() => {
-    isHydrating = false;
-    setIsHydrated(true);
+    if (!isClient) return;
+    
     // Dynamic import - only happens on client after hydration
     import('recharts').then((mod) => {
       setRecharts(mod);
     });
-  }, []);
+  }, [isClient]);
 
-  // Don't render during SSR or before hydration
-  if (!isHydrated || !recharts) {
+  // Don't render during SSR
+  if (!isClient) {
+    return (
+      <div 
+        className="animate-pulse bg-slate-800/50 dark:bg-slate-800/50 bg-gray-100 rounded flex items-center justify-center"
+        style={{ height }}
+      >
+        <span className="text-slate-500 dark:text-slate-500 text-gray-400 text-sm">Loading chart...</span>
+      </div>
+    );
+  }
+
+  // Show fallback while loading recharts
+  if (!recharts) {
     return (
       <>
         {fallback || (

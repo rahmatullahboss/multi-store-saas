@@ -348,11 +348,11 @@ export default function DarazFlashSale({ section, context, settings }: SectionCo
 
                   <div className="flex flex-col">
                     <span className="text-sm font-bold" style={{ color: price_color }}>
-                      ৳{product.price.toLocaleString()}
+                      ৳{(product.price / 100).toLocaleString()}
                     </span>
                     {hasDiscount && (
                       <span className="text-[10px] line-through text-gray-400">
-                        ৳{product.compareAtPrice!.toLocaleString()}
+                        ৳{(product.compareAtPrice! / 100).toLocaleString()}
                       </span>
                     )}
                   </div>
