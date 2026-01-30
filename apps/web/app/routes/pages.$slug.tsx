@@ -138,7 +138,7 @@ export default function CustomPageRoute() {
           }}
           pageType="page"
           pageHandle={pageSlug}
-          skipHeaderFooter={true}
+          skipHeaderFooter={false}
         />
       );
     }
@@ -158,6 +158,7 @@ export default function CustomPageRoute() {
 
   return (
     <StorePageWrapper
+      hideHeaderFooter={hasTemplateSections}
       storeName={storeName}
       storeId={storeId}
       logo={logo}

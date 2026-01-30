@@ -9,14 +9,13 @@ This workflow guides you through implementing AI-powered features in the Multi S
 ## Prerequisites
 
 1. Ensure bindings are configured in `wrangler.toml`:
-
    - `AI` binding for Workers AI
    - `VECTORIZE` binding for vector database
    - `AI_RATE_LIMIT` KV for rate limiting
 
 2. Read the relevant skills:
-   - `.agent/skills/cloudflare-ai/SKILL.md`
-   - `.agent/skills/cloudflare-vectorize/SKILL.md`
+   - `.agent/skills/wrangler/SKILL.md`
+   - `.agent/skills/systematic-debugging/SKILL.md`
 
 ---
 

@@ -8,7 +8,8 @@ This workflow guides you through creating, testing, and deploying D1 database mi
 
 ## Prerequisites
 
-- Read `.agent/skills/cloudflare-d1/SKILL.md`
+- Read `.agent/skills/database-design/SKILL.md`
+- Read `.agent/skills/wrangler/SKILL.md`
 - Understand the current schema in `db/migrations/`
 
 ---

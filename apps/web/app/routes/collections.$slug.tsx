@@ -331,7 +331,7 @@ export default function CollectionPage() {
             images: p.imageUrl ? [p.imageUrl] : [],
             category: p.category || undefined,
           }))}
-          skipHeaderFooter={true}
+          skipHeaderFooter={false}
         />
       );
     }
@@ -451,6 +451,7 @@ export default function CollectionPage() {
 
   return (
     <StorePageWrapper
+      hideHeaderFooter={hasTemplateSections}
       storeName={storeName}
       storeId={storeId}
       logo={logo}

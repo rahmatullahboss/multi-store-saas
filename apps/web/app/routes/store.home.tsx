@@ -124,6 +124,7 @@ export default function StoreHomePage() {
 
   return (
     <StorePageWrapper
+      hideHeaderFooter={hasTemplateSections}
       storeName={storeName}
       storeId={storeId}
       logo={logo}
@@ -179,7 +180,7 @@ export default function StoreHomePage() {
             slug: (cat as string).toLowerCase().replace(/\s+/g, '-'),
             productCount: featuredProducts.filter((p) => p.category === cat).length,
           }))}
-          skipHeaderFooter={true}
+          skipHeaderFooter={false}
         />
       ) : (
         // Fallback: Default home content when no template sections exist

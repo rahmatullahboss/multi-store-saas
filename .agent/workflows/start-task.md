@@ -88,9 +88,11 @@ Before acting, identify and read relevant "Antigravity Skills" to ensure best pr
 
 **Required check:**
 
-- Is this React/Remix? -> Load `frontend-dev-guidelines`, `remix-development`
-- Is this Backend? -> Load `backend-dev-guidelines`, `api-patterns`
-- Is this Database? -> Load `database-design`
+- Is this React/Remix? -> Load `remix`, `web-design-guidelines`, `frontend-design`
+- Is this Backend? -> Load `hono`, `wrangler`, `database-design`
+- Is this Database? -> Load `database-design`, `wrangler`
+- Is this SaaS/Architecture? -> Load `micro-saas-launcher`, `c4-architecture`, `saas-architect`
+- Is this Debugging? -> Load `systematic-debugging`
 
 ```bash
 view_file .agent/skills/relevant-skill/SKILL.md

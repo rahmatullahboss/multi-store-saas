@@ -4,9 +4,16 @@ description: Code review workflow for Ozzyl
 
 # Code Review Workflow
 
+## Prerequisites
+
+- **Design**: Review `.agent/skills/web-design-guidelines/SKILL.md`
+- **Database**: Review `.agent/skills/database-design/SKILL.md`
+- **Backend**: Review `.agent/skills/hono/SKILL.md`
+
 ## Pre-Review Checklist
 
 Before reviewing, ensure:
+
 - [ ] Code compiles: `npm run typecheck`
 - [ ] Tests pass: `npm run test`
 - [ ] Lint clean: `npm run lint`
@@ -59,29 +66,35 @@ Before reviewing, ensure:
 ## 🔍 Code Review Summary
 
 ### Files Reviewed
+
 - `path/to/file1.ts`
 - `path/to/file2.tsx`
 
 ### 🔴 Critical Issues (Must Fix)
+
 1. **[Security]** Missing storeId filter in query
    - File: `routes/api.products.ts:45`
    - Fix: Add `.where(eq(products.storeId, storeId))`
 
 ### 🟡 Warnings (Should Fix)
+
 1. **[Types]** Using `any` type
    - File: `services/order.ts:23`
    - Fix: Define proper interface
 
 ### 🟢 Suggestions (Nice to Have)
+
 1. **[Performance]** Could use `defer()` for reviews
    - File: `routes/products.$id.tsx:15`
 
 ### ✅ What's Good
+
 - Proper Zod validation
 - Good error handling
 - Clean component structure
 
 ### 📊 Overall Assessment
+
 - [ ] ✅ **APPROVED** - Ready to merge
 - [ ] ⚠️ **NEEDS WORK** - Fix critical/warnings first
 - [ ] ❌ **BLOCKED** - Major issues found

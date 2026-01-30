@@ -10,15 +10,13 @@ import { StoreHeader } from './StoreHeader';
 import { StoreFooter } from './StoreFooter';
 // import { StorePushPrompt } from '~/components/store/StorePushPrompt';
 import { WishlistProvider } from '~/contexts/WishlistContext';
-import {
-  getStoreTemplate,
-  getStoreTemplateTheme,
-  type StoreTemplateTheme,
-} from '~/templates/store-registry';
+import { getStoreTemplate, type StoreTemplateTheme } from '~/templates/store-registry';
 import type { SocialLinks, ThemeConfig, FooterConfig } from '@db/types';
 
 interface StorePageWrapperProps {
   children: ReactNode;
+  /** When true, do not render legacy template header/footer. Use when ThemeStoreRenderer renders header/footer sections. */
+  hideHeaderFooter?: boolean;
   storeName: string;
   storeId: number;
   logo?: string | null;
@@ -45,6 +43,7 @@ interface StorePageWrapperProps {
 
 export function StorePageWrapper({
   children,
+  hideHeaderFooter = false,
   storeName,
   storeId,
   logo,
@@ -91,7 +90,8 @@ export function StorePageWrapper({
         )}
 
         {/* Header - SSR Safe */}
-        <Suspense fallback={<div className="h-16 bg-gray-100 animate-pulse" />}>
+        {!hideHeaderFooter && (
+          <Suspense fallback={<div className="h-16 bg-gray-100 animate-pulse" />}>
           {template.Header ? (
             <template.Header
               storeName={storeName}
@@ -114,7 +114,8 @@ export function StorePageWrapper({
               customer={customer}
             />
           )}
-        </Suspense>
+          </Suspense>
+        )}
 
         {/* Main Content */}
         <main className="relative z-10">
@@ -125,7 +126,8 @@ export function StorePageWrapper({
         </main>
 
         {/* Footer - SSR Safe */}
-        <Suspense fallback={<div className="h-32 bg-gray-100 animate-pulse" />}>
+        {!hideHeaderFooter && (
+          <Suspense fallback={<div className="h-32 bg-gray-100 animate-pulse" />}>
           {template.Footer ? (
             <template.Footer
               storeName={storeName}
@@ -153,7 +155,8 @@ export function StorePageWrapper({
               isPreview={isPreview}
             />
           )}
-        </Suspense>
+          </Suspense>
+        )}
       </div>
     </WishlistProvider>
   );

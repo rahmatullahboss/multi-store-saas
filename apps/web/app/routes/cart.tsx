@@ -281,7 +281,7 @@ export default function CartPage() {
             itemCount: cart.reduce((sum, item) => sum + item.quantity, 0),
             total: subtotal,
           }}
-          skipHeaderFooter={true}
+          skipHeaderFooter={false}
         />
       );
     }
@@ -383,6 +383,7 @@ export default function CartPage() {
 
   return (
     <StorePageWrapper
+      hideHeaderFooter={hasTemplateSections}
       storeName={storeName}
       storeId={storeId}
       logo={logo}

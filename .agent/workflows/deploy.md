@@ -8,6 +8,8 @@ description: Production deployment workflow for Ozzyl
 
 Before deploying, ALL must pass:
 
+- [ ] Reviewed `.agent/skills/wrangler/SKILL.md`
+
 ```bash
 cd apps/web
 
@@ -15,7 +17,7 @@ cd apps/web
 npm run typecheck
 # Expected: No errors
 
-# 2. Lint check  
+# 2. Lint check
 npm run lint
 # Expected: No errors
 
@@ -35,12 +37,14 @@ npm run build
 ## Phase 1: Database Migrations (If Needed)
 
 ### Check Pending Migrations
+
 ```bash
 # List migration files
 ls packages/database/src/migrations/
 ```
 
 ### Apply to Production
+
 ```bash
 cd apps/web
 
@@ -52,6 +56,7 @@ wrangler d1 execute multi-store-saas-db --command "SELECT name FROM sqlite_maste
 ```
 
 ### ⚠️ Migration Safety Rules
+
 - [ ] Backup data before destructive migrations
 - [ ] Test migration on local first
 - [ ] Apply one migration at a time
@@ -60,6 +65,7 @@ wrangler d1 execute multi-store-saas-db --command "SELECT name FROM sqlite_maste
 ## Phase 2: Environment Variables
 
 ### Check Required Secrets in Cloudflare Dashboard
+
 - [ ] `SESSION_SECRET` - Auth session encryption
 - [ ] `RESEND_API_KEY` - Email service
 - [ ] `OPENROUTER_API_KEY` - AI features
@@ -67,6 +73,7 @@ wrangler d1 execute multi-store-saas-db --command "SELECT name FROM sqlite_maste
 - [ ] `GOOGLE_CLIENT_SECRET` - OAuth
 
 ### Update Variables (if needed)
+
 ```bash
 # Via wrangler
 wrangler pages secret put SECRET_NAME
@@ -77,6 +84,7 @@ wrangler pages secret put SECRET_NAME
 ## Phase 3: Build & Deploy
 
 ### Main App (Cloudflare Pages)
+
 ```bash
 cd apps/web
 
@@ -90,6 +98,7 @@ wrangler pages deploy ./build/client --project-name=multi-store-saas
 ```
 
 ### Page Builder Worker (if changed)
+
 ```bash
 cd apps/page-builder
 
@@ -102,6 +111,7 @@ wrangler deploy
 ## Phase 4: Post-Deployment Verification
 
 ### Smoke Tests
+
 - [ ] Homepage loads: `https://ozzyl.com`
 - [ ] Auth works: Login/Register flow
 - [ ] Dashboard loads: `/app/dashboard`
@@ -109,24 +119,28 @@ wrangler deploy
 - [ ] Store pages work: Check a live store
 
 ### Monitor Logs
+
 ```bash
 # Watch production logs
 wrangler tail --project-name=multi-store-saas
 ```
 
 ### Check Error Tracking
+
 - [ ] Sentry dashboard for new errors
 - [ ] Cloudflare Analytics for traffic
 
 ## Phase 5: Rollback (If Issues)
 
 ### Quick Rollback via Cloudflare Dashboard
+
 1. Go to Cloudflare Pages > multi-store-saas
 2. Deployments tab
 3. Find previous working deployment
 4. Click "Rollback to this deployment"
 
 ### Database Rollback
+
 ```bash
 # D1 Time Travel (within 30 days)
 wrangler d1 time-travel multi-store-saas-db --timestamp "2026-01-23T12:00:00Z"
@@ -138,17 +152,20 @@ wrangler d1 time-travel multi-store-saas-db --timestamp "2026-01-23T12:00:00Z"
 ## Deploy Checklist - [Date]
 
 ### Pre-Deploy
+
 - [ ] `npm run typecheck` - Pass
 - [ ] `npm run lint` - Pass
 - [ ] `npm run test` - Pass
 - [ ] `npm run build` - Success
 
 ### Deploy
+
 - [ ] Migrations applied (if any)
 - [ ] Secrets updated (if any)
 - [ ] `npm run deploy` - Success
 
 ### Post-Deploy
+
 - [ ] Homepage loads
 - [ ] Auth flow works
 - [ ] Dashboard accessible
@@ -156,6 +173,7 @@ wrangler d1 time-travel multi-store-saas-db --timestamp "2026-01-23T12:00:00Z"
 - [ ] Logs clean
 
 ### Sign-off
+
 Deployed by: [Name]
 Time: [Timestamp]
 Commit: [Hash]

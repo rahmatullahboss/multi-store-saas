@@ -8,8 +8,8 @@ This workflow guides you through implementing a complete RAG (Retrieval Augmente
 
 ## Prerequisites
 
-- Read `.agent/skills/cloudflare-vectorize/SKILL.md`
-- Read `.agent/skills/cloudflare-ai/SKILL.md`
+- Read `.agent/skills/wrangler/SKILL.md`
+- Read `.agent/skills/systematic-debugging/SKILL.md`
 - Vectorize index created with correct dimensions (768 for bge-base)
 
 ---

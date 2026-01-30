@@ -4,6 +4,11 @@ description: Debug API issues systematically in Ozzyl
 
 # Debug API Workflow
 
+## Prerequisites
+
+- Review `.agent/skills/systematic-debugging/SKILL.md`
+- Review `.agent/skills/hono/SKILL.md`
+
 ## Phase 1: Reproduce the Issue
 
 - [ ] Get exact error message
@@ -14,6 +19,7 @@ description: Debug API issues systematically in Ozzyl
 ## Phase 2: Trace the Request
 
 ### Route Location
+
 ```
 API routes: apps/web/app/routes/api.*.ts
 App routes: apps/web/app/routes/app.*.tsx
@@ -21,6 +27,7 @@ Server API: apps/web/server/api/*.ts
 ```
 
 ### Check Order
+
 1. Route exists and exports correct function (loader/action)
 2. Middleware not blocking (auth, rate limit)
 3. Request parsing correct
@@ -31,6 +38,7 @@ Server API: apps/web/server/api/*.ts
 ## Phase 3: Debug by HTTP Status Code
 
 ### 400 Bad Request
+
 - [ ] Check Zod validation schema
 - [ ] Log incoming request body
 - [ ] Verify required fields sent
@@ -46,23 +54,27 @@ if (!result.success) {
 ```
 
 ### 401 Unauthorized
+
 - [ ] Check session/cookie exists
 - [ ] Verify `requireAuth()` or similar
 - [ ] Check token expiry
 - [ ] Verify user exists in DB
 
 ### 403 Forbidden
+
 - [ ] Check user has permission
 - [ ] Verify store ownership
 - [ ] Check role-based access
 
 ### 404 Not Found
+
 - [ ] Route file exists
 - [ ] Route exports loader/action
 - [ ] Resource ID exists in DB
 - [ ] Multi-tenancy: Check storeId match
 
 ### 500 Internal Server Error
+
 - [ ] Check Cloudflare logs: `wrangler tail`
 - [ ] Add try/catch to isolate
 - [ ] Check DB connection
@@ -85,6 +97,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 ## Phase 4: Common Ozzyl API Issues
 
 ### D1 Connection
+
 ```typescript
 // Check binding exists
 const { DB } = context.cloudflare.env;
@@ -92,6 +105,7 @@ console.log('DB binding:', !!DB);
 ```
 
 ### Multi-tenancy Leak
+
 ```typescript
 // ❌ DANGEROUS - returns all data
 const products = await db.select().from(productsTable);
@@ -104,6 +118,7 @@ const products = await db
 ```
 
 ### Missing Auth
+
 ```typescript
 // Always verify user in protected routes
 const user = await getUser(request, context);

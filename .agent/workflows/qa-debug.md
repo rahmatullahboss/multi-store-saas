@@ -14,6 +14,8 @@ git log -n 20 --oneline
 git diff --stat
 ```
 
+- Review `.agent/skills/systematic-debugging/SKILL.md`
+
 **Rule:** Identify which feature was touched (builder reorder? template? checkout?).
 
 ---

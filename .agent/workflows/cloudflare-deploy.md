@@ -11,6 +11,8 @@ This workflow guides you through deploying the Multi Store SaaS application to C
 - Cloudflare account with Pages/Workers access
 - D1 database, R2 bucket, KV namespaces created
 - `wrangler` CLI authenticated (`npx wrangler login`)
+- Review `.agent/skills/wrangler/SKILL.md`
+- Review `.agent/skills/c4-architecture/SKILL.md`
 
 ---
 

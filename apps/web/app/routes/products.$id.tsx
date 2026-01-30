@@ -458,7 +458,7 @@ export default function ProductDetail() {
             images: p.imageUrl ? [p.imageUrl] : [],
             category: p.category || undefined,
           }))}
-          skipHeaderFooter={true}
+          skipHeaderFooter={false}
         />
       );
     }
@@ -469,6 +469,7 @@ export default function ProductDetail() {
 
   return (
     <StorePageWrapper
+      hideHeaderFooter={hasTemplateSections}
       storeName={storeName}
       storeId={storeId}
       logo={logo}

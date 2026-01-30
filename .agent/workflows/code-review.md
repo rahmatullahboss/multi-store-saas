@@ -36,25 +36,26 @@ Request fixes for any failures before proceeding.
 
 ---
 
-
 ---
 
 ## Step 2: Manual Code Review Strategy
 
 ### 2.1 Identify & Load Skills
+
 Before reviewing line-by-line, the agent MUST identify the technology stack used in the changed files and load specific "Antigravity Skills" (frontend or backend) to guide the review.
 
-| Changed Code Type | Relevant Skills to Check |
-| :--- | :--- |
-| **Backend / API** | `backend-dev-guidelines`, `api-security-best-practices`, `nodejs-best-practices` |
-| **Frontend / UI** | `frontend-dev-guidelines`, `react-patterns`, `react-ui-patterns`, `tailwind-patterns` |
-| **Database / Drizzle** | `database-design`, `backend-dev-guidelines` |
-| **Testing** | `testing-patterns`, `tdd-workflow` |
-| **Workflows / CI** | `github-workflow-automation`, `deployment-procedures` |
+| Changed Code Type      | Relevant Skills to Check                                             |
+| :--------------------- | :------------------------------------------------------------------- |
+| **Backend / API**      | `hono`, `wrangler`, `database-design`                                |
+| **Frontend / UI**      | `web-design-guidelines`, `tailwind-design-system`, `frontend-design` |
+| **Database / Drizzle** | `database-design`, `wrangler`                                        |
+| **Testing**            | `webapp-testing`, `systematic-debugging`                             |
+| **Workflows / CI**     | `c4-architecture`, `micro-saas-launcher`                             |
 
 **Action:** Read the relevant SKILL.md files to refresh on project-specific patterns (like "Use Hono Zod Validator" or "Use Remix Loaders").
 
 ### 2.2 Compare with Similar Code
+
 Check existing codebases or patterns to ensure consistency.
 
 - **Grepping**: Search for similar implementations in the codebase to see if the new code matches existing patterns.
