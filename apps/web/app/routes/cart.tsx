@@ -24,6 +24,7 @@ import { resolveTemplate } from '~/lib/template-resolver.server';
 import { resolveStore } from '~/lib/store.server';
 import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
+import { formatPrice } from '~/lib/theme-engine';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeContext = await resolveStore(context, request);
@@ -426,8 +427,7 @@ export default function CartPage() {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-gray-900 truncate">{item.title}</h3>
                     <p className="text-lg font-bold" style={{ color: theme.primary }}>
-                      {currency === 'BDT' ? '৳' : '$'}
-                      {(item.price || 0).toLocaleString()}
+                      {formatPrice(item.price, currency)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -459,8 +459,7 @@ export default function CartPage() {
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-lg font-medium">Subtotal</span>
                   <span className="text-2xl font-bold" style={{ color: theme.primary }}>
-                    {currency === 'BDT' ? '৳' : '$'}
-                    {(subtotal || 0).toLocaleString()}
+                    {formatPrice(subtotal, currency)}
                   </span>
                 </div>
                 <a

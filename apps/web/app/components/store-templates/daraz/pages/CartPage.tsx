@@ -12,6 +12,7 @@ import { useState, useEffect } from 'react';
 import { Trash2, Plus, Minus, ShoppingBag, ChevronRight, Truck, Shield, Tag } from 'lucide-react';
 import { DARAZ_THEME } from '../theme';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
+import { formatPrice } from '~/lib/theme-engine';
 
 interface CartItem {
   productId: number;
@@ -251,7 +252,7 @@ export function DarazCartPage({
                       </p>
                     )}
                     <p className="font-bold text-lg" style={{ color: DARAZ_THEME.priceOrange }}>
-                      {currency} {(item.price || 0).toLocaleString()}
+                      {formatPrice(item.price, currency)}
                     </p>
                   </div>
 
@@ -325,7 +326,7 @@ export function DarazCartPage({
                       Subtotal ({itemCount} items)
                     </span>
                     <span style={{ color: DARAZ_THEME.text }}>
-                      {currency} {(subtotal || 0).toLocaleString()}
+                      {formatPrice(subtotal, currency)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -342,7 +343,7 @@ export function DarazCartPage({
                     Total
                   </span>
                   <span className="text-xl font-bold" style={{ color: DARAZ_THEME.priceOrange }}>
-                    {currency} {(subtotal || 0).toLocaleString()}
+                    {formatPrice(subtotal, currency)}
                   </span>
                 </div>
 

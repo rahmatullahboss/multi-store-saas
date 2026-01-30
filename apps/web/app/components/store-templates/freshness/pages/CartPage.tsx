@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Minus, Plus, Trash2, ArrowRight, ShoppingBag, Leaf } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 
@@ -137,12 +138,11 @@ export function FreshnessCartPage({ theme: _theme, isPreview = false }: Freshnes
                       </span>
                     )}
                     <div className="mt-2 font-bold text-gray-900">
-                      {currencySymbol}
-                      {(item.price || 0).toLocaleString()}
+                      {formatPrice(item.price, currencySymbol)}
                     </div>
                   </div>
 
-                    <div className="flex flex-col items-end gap-4">
+                  <div className="flex flex-col items-end gap-4">
                     <button
                       onClick={() => removeItem(Number(item.id || item.productId))}
                       className="text-gray-400 hover:text-red-500 transition"
@@ -181,8 +181,7 @@ export function FreshnessCartPage({ theme: _theme, isPreview = false }: Freshnes
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
                   <span className="font-bold text-gray-900">
-                    {currencySymbol}
-                    {(subtotal || 0).toLocaleString()}
+                    {formatPrice(subtotal, currencySymbol)}
                   </span>
                 </div>
                 <div className="flex justify-between text-gray-600">
@@ -194,10 +193,7 @@ export function FreshnessCartPage({ theme: _theme, isPreview = false }: Freshnes
               <div className="border-t border-gray-100 pt-4 mb-6">
                 <div className="flex justify-between text-xl font-bold text-gray-900">
                   <span>Total</span>
-                  <span>
-                    {currencySymbol}
-                    {(subtotal || 0).toLocaleString()}
-                  </span>
+                  <span>{formatPrice(subtotal, currencySymbol)}</span>
                 </div>
               </div>
 

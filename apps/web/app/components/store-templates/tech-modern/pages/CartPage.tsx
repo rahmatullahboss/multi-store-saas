@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams } from '@remix-run/react';
 import { Minus, Plus, Trash2, ArrowRight, Shield } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
 
 interface TechCartProps {
@@ -139,8 +140,7 @@ export function TechCartPage({ theme: _theme, isPreview = false, onCheckout }: T
                   <div className="flex justify-between items-end">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-blue-600">
-                        {currencySymbol}
-                        {(item.price || 0).toLocaleString()}
+                        {formatPrice(item.price, currencySymbol)}
                       </span>
                       <span className="text-xs text-gray-400">x {item.quantity}</span>
                     </div>
@@ -183,10 +183,7 @@ export function TechCartPage({ theme: _theme, isPreview = false, onCheckout }: T
               <div className="space-y-3 mb-6 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium">
-                    {currencySymbol}
-                    {(subtotal || 0).toLocaleString()}
-                  </span>
+                  <span className="font-medium">{formatPrice(subtotal, currencySymbol)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tax</span>
@@ -200,10 +197,7 @@ export function TechCartPage({ theme: _theme, isPreview = false, onCheckout }: T
 
               <div className="flex justify-between items-center text-lg font-bold mb-6 pt-4 border-t border-gray-100">
                 <span>Total</span>
-                <span className="text-blue-600">
-                  {currencySymbol}
-                  {(subtotal || 0).toLocaleString()}
-                </span>
+                <span className="text-blue-600">{formatPrice(subtotal, currencySymbol)}</span>
               </div>
 
               {onCheckout ? (

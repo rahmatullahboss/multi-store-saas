@@ -40,6 +40,7 @@ import {
   RotateCcw,
   Clock,
 } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine';
 import type { StoreTemplateTheme } from '~/templates/store-registry';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
 
@@ -117,6 +118,7 @@ export default function SharedCartPage({
   };
 
   const currencySymbol = '৳';
+  const currency = 'BDT';
 
   // State
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -424,7 +426,7 @@ export default function SharedCartPage({
                   <Truck className="w-5 h-5" style={{ color: colors.accent }} />
                   <span className="text-sm font-medium">
                     Add {currencySymbol}
-                    {remainingForFreeShipping.toLocaleString()} more for FREE shipping!
+                    {formatPrice(remainingForFreeShipping, currency)} more for FREE shipping!
                   </span>
                 </div>
                 <span className="text-sm font-bold" style={{ color: colors.accent }}>
@@ -524,7 +526,7 @@ export default function SharedCartPage({
                       {/* Price */}
                       <div className="font-bold text-lg mt-2" style={{ color: colors.accent }}>
                         {currencySymbol}
-                        {item.price.toLocaleString()}
+                        {formatPrice(item.price, currency)}
                       </div>
                     </div>
 
@@ -585,7 +587,7 @@ export default function SharedCartPage({
                       {/* Line Total */}
                       <div className="font-bold ml-auto" style={{ color: colors.text }}>
                         {currencySymbol}
-                        {(item.price * item.quantity).toLocaleString()}
+                        {formatPrice(item.price * item.quantity, currency)}
                       </div>
                     </div>
                   </div>
@@ -642,7 +644,7 @@ export default function SharedCartPage({
                       <span className="font-medium">{appliedCoupon}</span>
                       <span className="text-sm">
                         (-{currencySymbol}
-                        {couponDiscount.toLocaleString()})
+                        {formatPrice(couponDiscount, currency)})
                       </span>
                     </div>
                     <button onClick={removeCoupon} className="p-1 text-green-600 hover:opacity-70">
@@ -700,7 +702,7 @@ export default function SharedCartPage({
                   <span>Subtotal ({totalItems} items)</span>
                   <span style={{ color: colors.text }}>
                     {currencySymbol}
-                    {subtotal.toLocaleString()}
+                    {formatPrice(subtotal, currency)}
                   </span>
                 </div>
                 {couponDiscount > 0 && (
@@ -708,7 +710,7 @@ export default function SharedCartPage({
                     <span>Discount</span>
                     <span>
                       -{currencySymbol}
-                      {couponDiscount.toLocaleString()}
+                      {formatPrice(couponDiscount, currency)}
                     </span>
                   </div>
                 )}
@@ -721,7 +723,7 @@ export default function SharedCartPage({
                     {hasEarnedFreeShipping
                       ? 'FREE'
                       : shipping > 0
-                        ? `${currencySymbol}${shipping.toLocaleString()}`
+                        ? `${currencySymbol}${formatPrice(shipping, currency)}`
                         : 'Calculated at checkout'}
                   </span>
                 </div>
@@ -734,7 +736,7 @@ export default function SharedCartPage({
                   </span>
                   <span className="text-2xl font-bold" style={{ color: colors.accent }}>
                     {currencySymbol}
-                    {total.toLocaleString()}
+                    {formatPrice(total, currency)}
                   </span>
                 </div>
               </div>
@@ -845,7 +847,7 @@ export default function SharedCartPage({
                     </h3>
                     <p className="mt-1 font-bold" style={{ color: colors.accent }}>
                       {currencySymbol}
-                      {product.price.toLocaleString()}
+                      {formatPrice(product.price, currency)}
                     </p>
                   </div>
                 </Link>
