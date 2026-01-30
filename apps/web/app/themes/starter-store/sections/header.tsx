@@ -2,12 +2,12 @@
  * Header Section
  *
  * Shopify OS 2.0 Compatible Section
- * Main navigation header with logo, menu, search, and cart.
+ * Main navigation header with logo, menu, search, wishlist, account, and cart.
  */
 
 import { useState } from 'react';
 import { Link } from '@remix-run/react';
-import { ShoppingCart, Search, Menu, X } from 'lucide-react';
+import { ShoppingCart, Search, Menu, X, Heart, User, Globe } from 'lucide-react';
 import type { SectionSchema, SectionComponentProps } from '~/lib/theme-engine/types';
 
 // ============================================================================
@@ -63,6 +63,24 @@ export const schema: SectionSchema = {
     },
     {
       type: 'checkbox',
+      id: 'show_wishlist',
+      label: 'Show wishlist icon',
+      default: true,
+    },
+    {
+      type: 'checkbox',
+      id: 'show_account',
+      label: 'Show account icon',
+      default: true,
+    },
+    {
+      type: 'checkbox',
+      id: 'show_language_switcher',
+      label: 'Show language switcher',
+      default: false,
+    },
+    {
+      type: 'checkbox',
       id: 'show_cart',
       label: 'Show cart icon',
       default: true,
@@ -83,6 +101,12 @@ export const schema: SectionSchema = {
       id: 'text_color',
       label: 'Text color',
       default: '#111827',
+    },
+    {
+      type: 'color',
+      id: 'accent_color',
+      label: 'Accent/Badge color',
+      default: '#f59e0b',
     },
     {
       type: 'checkbox',
@@ -109,9 +133,13 @@ export interface HeaderSettings {
   logo_width: number;
   menu?: string;
   show_search: boolean;
+  show_wishlist: boolean;
+  show_account: boolean;
+  show_language_switcher: boolean;
   show_cart: boolean;
   background_color: string;
   text_color: string;
+  accent_color: string;
   sticky: boolean;
 }
 
@@ -120,19 +148,25 @@ export default function Header({ section, context, settings }: SectionComponentP
     logo,
     logo_width = 120,
     show_search = true,
+    show_wishlist = true,
+    show_account = true,
+    show_language_switcher = false,
     show_cart = true,
     background_color = '#ffffff',
     text_color = '#111827',
+    accent_color = '#f59e0b',
     sticky = true,
   } = settings as unknown as HeaderSettings;
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
 
   const storeName = context.store?.name || 'Store';
-  const categories = context.collections?.map((c) => c.title) || [];
+  const categories = context.collections?.map((c) => c.title).filter(Boolean) || [];
   const cartCount = context.cart?.itemCount || 0;
+  const wishlistCount = context.wishlist?.count || 0;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,39 +178,40 @@ export default function Header({ section, context, settings }: SectionComponentP
   return (
     <>
       <header
-        className={`z-40 shadow-sm ${sticky ? 'sticky top-0' : ''}`}
+        className={`z-50 shadow-sm ${sticky ? 'sticky top-0' : ''}`}
         style={{ backgroundColor: background_color }}
         data-section-id={section.id}
         data-section-type="header"
       >
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden p-2 -ml-2"
-              aria-label="Open menu"
-            >
-              <Menu className="w-6 h-6" style={{ color: text_color }} />
-            </button>
+            {/* Left: Mobile Menu Button + Logo */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setMobileMenuOpen(true)}
+                className="lg:hidden p-2 -ml-2 hover:opacity-70 transition"
+                aria-label="Open menu"
+              >
+                <Menu className="w-6 h-6" style={{ color: text_color }} />
+              </button>
 
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-2">
-              {logo || context.store?.logo ? (
-                <img
-                  src={logo || context.store?.logo || ''}
-                  alt={storeName}
-                  className="h-8 w-auto"
-                  style={{ maxWidth: `${logo_width}px` }}
-                />
-              ) : (
-                <span className="text-xl font-bold" style={{ color: text_color }}>
-                  {storeName}
-                </span>
-              )}
-            </Link>
+              <Link to="/" className="flex items-center gap-2">
+                {logo || context.store?.logo ? (
+                  <img
+                    src={logo || context.store?.logo || ''}
+                    alt={storeName}
+                    className="h-8 w-auto object-contain"
+                    style={{ maxWidth: `${logo_width}px` }}
+                  />
+                ) : (
+                  <span className="text-xl font-bold" style={{ color: text_color }}>
+                    {storeName}
+                  </span>
+                )}
+              </Link>
+            </div>
 
-            {/* Desktop Navigation */}
+            {/* Center: Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-6">
               <Link
                 to="/"
@@ -185,7 +220,14 @@ export default function Header({ section, context, settings }: SectionComponentP
               >
                 হোম
               </Link>
-              {categories.slice(0, 5).map((cat) => (
+              <Link
+                to="/products"
+                className="text-sm font-medium hover:opacity-70 transition"
+                style={{ color: text_color }}
+              >
+                সব পণ্য
+              </Link>
+              {categories.slice(0, 6).map((cat) => (
                 <Link
                   key={cat}
                   to={`/collections/${encodeURIComponent(cat.toLowerCase())}`}
@@ -197,8 +239,38 @@ export default function Header({ section, context, settings }: SectionComponentP
               ))}
             </nav>
 
-            {/* Right Actions */}
-            <div className="flex items-center gap-2">
+            {/* Right: Actions */}
+            <div className="flex items-center gap-1">
+              {/* Language Switcher */}
+              {show_language_switcher && (
+                <div className="relative hidden md:block">
+                  <button
+                    onClick={() => setLangMenuOpen(!langMenuOpen)}
+                    className="p-2 hover:opacity-70 transition flex items-center gap-1"
+                    aria-label="Change language"
+                  >
+                    <Globe className="w-5 h-5" style={{ color: text_color }} />
+                    <span
+                      className="text-xs font-medium hidden xl:inline"
+                      style={{ color: text_color }}
+                    >
+                      English
+                    </span>
+                  </button>
+                  {langMenuOpen && (
+                    <div className="absolute right-0 top-full mt-1 w-32 bg-white rounded-lg shadow-lg border py-1 z-50">
+                      <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 font-medium bg-gray-100">
+                        English
+                      </button>
+                      <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50">
+                        বাংলা
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Search */}
               {show_search && (
                 <button
                   onClick={() => setSearchOpen(true)}
@@ -208,6 +280,38 @@ export default function Header({ section, context, settings }: SectionComponentP
                   <Search className="w-5 h-5" style={{ color: text_color }} />
                 </button>
               )}
+
+              {/* Wishlist */}
+              {show_wishlist && (
+                <Link
+                  to="/wishlist"
+                  className="p-2 hover:opacity-70 transition relative hidden md:block"
+                  aria-label="Wishlist"
+                >
+                  <Heart className="w-5 h-5" style={{ color: text_color }} />
+                  {wishlistCount > 0 && (
+                    <span
+                      className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full text-xs flex items-center justify-center text-white font-bold"
+                      style={{ backgroundColor: accent_color }}
+                    >
+                      {wishlistCount > 9 ? '9+' : wishlistCount}
+                    </span>
+                  )}
+                </Link>
+              )}
+
+              {/* Account */}
+              {show_account && (
+                <Link
+                  to="/auth/login"
+                  className="p-2 hover:opacity-70 transition hidden md:block"
+                  aria-label="Account"
+                >
+                  <User className="w-5 h-5" style={{ color: text_color }} />
+                </Link>
+              )}
+
+              {/* Cart */}
               {show_cart && (
                 <Link
                   to="/cart"
@@ -217,10 +321,10 @@ export default function Header({ section, context, settings }: SectionComponentP
                   <ShoppingCart className="w-5 h-5" style={{ color: text_color }} />
                   {cartCount > 0 && (
                     <span
-                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs flex items-center justify-center text-white"
-                      style={{ backgroundColor: context.theme?.colors?.accent || '#f59e0b' }}
+                      className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 rounded-full text-xs flex items-center justify-center px-1 font-bold"
+                      style={{ backgroundColor: accent_color, color: '#ffffff' }}
                     >
-                      {cartCount}
+                      {cartCount > 99 ? '99+' : cartCount}
                     </span>
                   )}
                 </Link>
@@ -246,27 +350,66 @@ export default function Header({ section, context, settings }: SectionComponentP
                 <X className="w-6 h-6" style={{ color: text_color }} />
               </button>
             </div>
-            <nav className="space-y-4">
+
+            <nav className="space-y-1">
               <Link
                 to="/"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block w-full text-left py-2 font-medium"
-                style={{ color: text_color }}
+                className="block py-3 px-2 font-medium border-b"
+                style={{
+                  color: text_color,
+                  borderColor: context.theme?.colors?.border || '#e5e7eb',
+                }}
               >
                 হোম
+              </Link>
+              <Link
+                to="/products"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-3 px-2 font-medium border-b"
+                style={{
+                  color: text_color,
+                  borderColor: context.theme?.colors?.border || '#e5e7eb',
+                }}
+              >
+                সব পণ্য
               </Link>
               {categories.map((cat) => (
                 <Link
                   key={cat}
                   to={`/collections/${encodeURIComponent(cat.toLowerCase())}`}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block w-full text-left py-2"
-                  style={{ color: text_color }}
+                  className="block py-3 px-2 border-b"
+                  style={{
+                    color: text_color,
+                    borderColor: context.theme?.colors?.border || '#e5e7eb',
+                  }}
                 >
                   {cat}
                 </Link>
               ))}
             </nav>
+
+            <div className="mt-8 space-y-2">
+              <Link
+                to="/wishlist"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 py-3 px-2"
+                style={{ color: text_color }}
+              >
+                <Heart className="w-5 h-5" />
+                <span>Wishlist ({wishlistCount})</span>
+              </Link>
+              <Link
+                to="/auth/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 py-3 px-2"
+                style={{ color: text_color }}
+              >
+                <User className="w-5 h-5" />
+                <span>Account</span>
+              </Link>
+            </div>
           </div>
         </div>
       )}
@@ -290,12 +433,13 @@ export default function Header({ section, context, settings }: SectionComponentP
                 style={{
                   borderColor: context.theme?.colors?.border || '#e5e7eb',
                   backgroundColor: context.theme?.colors?.background || '#f9fafb',
+                  color: text_color,
                 }}
               />
               <button
                 type="submit"
-                className="px-6 py-3 rounded-lg text-white"
-                style={{ backgroundColor: context.theme?.colors?.primary || '#6366f1' }}
+                className="px-6 py-3 rounded-lg text-white font-medium"
+                style={{ backgroundColor: accent_color }}
               >
                 <Search className="w-5 h-5" />
               </button>

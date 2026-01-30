@@ -422,6 +422,12 @@ export interface SectionContext {
   // Cart (if available)
   cart?: CartData;
 
+  // Wishlist (if available)
+  wishlist?: {
+    count: number;
+    items?: Array<{ productId: string; variantId?: string }>;
+  };
+
   // Customer (if logged in)
   customer?: CustomerData;
 

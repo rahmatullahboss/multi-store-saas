@@ -112,9 +112,7 @@ export function SokolCartDrawer() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-sm truncate">{item.title}</h4>
-                    <p className="text-rose-600 font-bold mt-1">
-                      {formatPrice(item.price || 0, '৳')}
-                    </p>
+                    <p className="text-rose-600 font-bold mt-1">{formatPrice(item.price || 0)}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <button
                         onClick={() => updateQuantity(item.id, -1)}
@@ -148,7 +146,7 @@ export function SokolCartDrawer() {
           <div className="p-4 border-t border-gray-100 bg-gray-50">
             <div className="flex justify-between items-center mb-4">
               <span className="text-gray-600">Subtotal</span>
-              <span className="text-xl font-bold">{formatPrice(subtotal || 0, '৳')}</span>
+              <span className="text-xl font-bold">{formatPrice(subtotal || 0)}</span>
             </div>
             <Link
               to="/checkout"

@@ -7,9 +7,13 @@
       "settings": {
         "logo_width": 120,
         "show_search": true,
+        "show_wishlist": true,
+        "show_account": true,
+        "show_language_switcher": false,
         "show_cart": true,
         "background_color": "#ffffff",
         "text_color": "#111827",
+        "accent_color": "#f59e0b",
         "sticky": true
       }
     },

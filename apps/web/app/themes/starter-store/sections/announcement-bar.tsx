@@ -37,7 +37,8 @@ export const schema: SectionSchema = {
       type: 'color',
       id: 'background_color',
       label: 'Background color',
-      default: '#6366f1',
+      default: '#f59e0b',
+      info: 'Uses theme accent color by default',
     },
     {
       type: 'color',
@@ -51,7 +52,7 @@ export const schema: SectionSchema = {
       min: 4,
       max: 24,
       step: 2,
-      default: 8,
+      default: 10,
       unit: 'px',
       label: 'Vertical padding',
     },
@@ -69,6 +70,7 @@ export const schema: SectionSchema = {
       category: 'Header',
       settings: {
         text: '🎉 ফ্রি ডেলিভারি ১০০০৳+ অর্ডারে!',
+        background_color: '#f59e0b',
       },
     },
   ],
@@ -91,9 +93,9 @@ export default function AnnouncementBar({ section, context, settings }: SectionC
   const {
     text = '🎉 ফ্রি ডেলিভারি ১০০০৳+ অর্ডারে! সীমিত সময়ের অফার।',
     link,
-    background_color = '#6366f1',
+    background_color = '#f59e0b',
     text_color = '#ffffff',
-    padding_y = 8,
+    padding_y = 10,
     show_close = false,
   } = settings as unknown as AnnouncementBarSettings;
 

@@ -1341,7 +1341,7 @@ function CartCheckoutModal({
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between" style={{ color: theme.textSecondary }}>
                     <span>সাবটোটাল</span>
-                    <span>{formatPrice(subtotal, '৳')}</span>
+                    <span>{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between" style={{ color: theme.textSecondary }}>
                     <span>ডেলিভারি চার্জ</span>
@@ -1358,7 +1358,7 @@ function CartCheckoutModal({
                     style={{ borderColor: theme.border, color: theme.text }}
                   >
                     <span>মোট</span>
-                    <span style={{ color: theme.primary }}>{formatPrice(total, '৳')}</span>
+                    <span style={{ color: theme.primary }}>{formatPrice(total)}</span>
                   </div>
                 </div>
               </div>
