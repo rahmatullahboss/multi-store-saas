@@ -343,22 +343,22 @@ export function DefaultOrderForm({
                         {comboSavings > 0 ? (
                           <div className="flex items-center justify-center gap-2">
                             <span className="line-through text-sm" style={{ color: mutedColor }}>
-                              ৳{regularTotal.toLocaleString()}
+                              {formatPrice(regularTotal)}
                             </span>
                             <span className="text-xl font-bold" style={{ color: primaryColor }}>
-                              ৳{comboTotal.toLocaleString()}
+                              {formatPrice(comboTotal)}
                             </span>
                           </div>
                         ) : (
                           <span className="text-xl font-bold" style={{ color: primaryColor }}>
-                            ৳{regularTotal.toLocaleString()}
+                            {formatPrice(regularTotal)}
                           </span>
                         )}
 
                         {/* Savings message */}
                         {comboSavings > 0 && (
                           <p className="text-sm font-semibold" style={{ color: '#16A34A' }}>
-                            ✨ কম্বোতে সেভ করছেন ৳{comboSavings.toLocaleString()}!
+                            ✨ কম্বোতে সেভ করছেন {formatPrice(comboSavings)}!
                           </p>
                         )}
 
@@ -511,7 +511,7 @@ export function DefaultOrderForm({
                       <span style={{ color: '#92400E' }}>
                         আরও{' '}
                         <strong>
-                          ৳{(freeShippingThreshold - calculations.subtotal).toLocaleString()}
+                          {formatPrice(freeShippingThreshold - calculations.subtotal)}
                         </strong>{' '}
                         যোগ করলে ফ্রি ডেলিভারি!
                       </span>

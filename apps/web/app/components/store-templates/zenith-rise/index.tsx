@@ -476,8 +476,7 @@ function PreviewCartPage({
                 {item.title}
               </h3>
               <div className="mb-4" style={{ color: ZENITH_RISE_THEME.muted }}>
-                {currency}
-                {item.price.toLocaleString()}
+                {formatPrice(item.price, currency)}
               </div>
               <div className="flex justify-between items-center">
                 <div
@@ -514,10 +513,7 @@ function PreviewCartPage({
       <div className="mt-8 p-6 rounded-xl" style={{ backgroundColor: ZENITH_RISE_THEME.surface }}>
         <div className="flex justify-between text-xl font-bold mb-8">
           <span>Total</span>
-          <span>
-            {currency}
-            {cart.total.toLocaleString()}
-          </span>
+          <span>{formatPrice(cart.total, currency)}</span>
         </div>
         <button
           onClick={() => onNavigate({ type: 'checkout' })}
@@ -595,10 +591,7 @@ function PreviewCheckoutPage({
           style={{ backgroundColor: ZENITH_RISE_THEME.surface }}
         >
           <span>Total</span>
-          <span>
-            {currency}
-            {cart.total.toLocaleString()}
-          </span>
+          <span>{formatPrice(cart.total, currency)}</span>
         </div>
         <button
           type="submit"

@@ -1089,8 +1089,7 @@ function PreviewCheckoutPage({
                       </h3>
                       <p className="text-xs text-gray-400 mt-1">পরিমাণ: {item.quantity}টি</p>
                       <p className="font-bold mt-2" style={{ color: BDSHOP_THEME.primary }}>
-                        {currency}
-                        {(item.price * item.quantity).toLocaleString()}
+                        {formatPrice(item.price * item.quantity, currency)}
                       </p>
                     </div>
                   </div>
@@ -1112,10 +1111,7 @@ function PreviewCheckoutPage({
                 <div className="space-y-3 text-white/90">
                   <div className="flex justify-between">
                     <span>সাবটোটাল ({cart.itemCount}টি)</span>
-                    <span className="font-medium">
-                      {currency}
-                      {cart.total.toLocaleString()}
-                    </span>
+                    <span className="font-medium">{formatPrice(cart.total, currency)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>শিপিং</span>
@@ -1127,8 +1123,7 @@ function PreviewCheckoutPage({
                     <div className="flex justify-between text-xl">
                       <span className="font-bold text-white">মোট</span>
                       <span className="font-bold text-white">
-                        {currency}
-                        {grandTotal.toLocaleString()}
+                        {formatPrice(grandTotal, currency)}
                       </span>
                     </div>
                     <p className="text-xs text-white/60 mt-1">সকল ট্যাক্স সহ</p>

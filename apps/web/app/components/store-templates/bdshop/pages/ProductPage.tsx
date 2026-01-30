@@ -186,17 +186,29 @@ export function BDShopProductPage({
             {/* Category Badge */}
             {product.category && (
               <div className="flex items-center gap-2">
-              <span 
-                className="text-3xl font-bold"
-                style={{ color: BDSHOP_THEME.blue }}
-              >
+                <span
+                  className="px-3 py-1 rounded-full text-sm font-medium"
+                  style={{ backgroundColor: BDSHOP_THEME.lightBlue, color: BDSHOP_THEME.blue }}
+                >
+                  {product.category}
+                </span>
+              </div>
+            )}
+
+            {/* Price */}
+            <div className="flex items-center gap-3">
+              <span className="text-3xl font-bold" style={{ color: BDSHOP_THEME.blue }}>
                 {formatPrice(product.price)}
               </span>
               {product.compareAtPrice && product.compareAtPrice > (product.price ?? 0) && (
-                <span className="ml-3 text-lg line-through" style={{ color: BDSHOP_THEME.textSecondary }}>
+                <span
+                  className="ml-3 text-lg line-through"
+                  style={{ color: BDSHOP_THEME.textSecondary }}
+                >
                   {formatPrice(product.compareAtPrice)}
                 </span>
               )}
+            </div>
 
             <h1 className="text-2xl font-bold leading-relaxed" style={{ color: BDSHOP_THEME.text }}>
               {product.title}
@@ -210,29 +222,6 @@ export function BDShopProductPage({
               <span>
                 Product ID: <strong>{product.sku || product.id}</strong>
               </span>
-            </div>
-
-            {/* Price */}
-            <div
-              className="py-4"
-              style={{
-                borderTop: `1px solid ${BDSHOP_THEME.border}`,
-                borderBottom: `1px solid ${BDSHOP_THEME.border}`,
-              }}
-            >
-              <span className="text-3xl font-bold" style={{ color: BDSHOP_THEME.blue }}>
-                {currency}
-                {(product.price ?? 0).toLocaleString()}
-              </span>
-              {product.compareAtPrice && product.compareAtPrice > (product.price ?? 0) && (
-                <span
-                  className="ml-3 text-lg line-through"
-                  style={{ color: BDSHOP_THEME.textSecondary }}
-                >
-                  {currency}
-                  {product.compareAtPrice.toLocaleString()}
-                </span>
-              )}
             </div>
 
             {/* Stock Status */}

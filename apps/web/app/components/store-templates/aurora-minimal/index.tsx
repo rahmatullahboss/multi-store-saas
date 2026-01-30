@@ -34,7 +34,8 @@ import {
 import { useWishlist } from '~/hooks/useWishlist';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
-import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
+import { useTranslation } from '~/contexts/LanguageContext';
+import { formatPrice } from '~/lib/theme-engine';
 import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
 import { useCartCount } from '~/hooks/useCartCount';
 import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
@@ -42,7 +43,6 @@ import { useProductPrice } from '~/hooks/useProductPrice';
 import { WishlistProvider } from '~/contexts/WishlistContext';
 import { ClientOnly } from 'remix-utils/client-only';
 import { SkeletonLoader } from '~/components/SkeletonLoader';
-import { formatPrice } from '~/lib/theme-engine';
 
 import { AURORA_THEME } from './theme';
 import { AuroraMinimalHeader } from './sections/Header';
@@ -597,10 +597,7 @@ function PreviewCartPageComponent({
             <div className="flex-1 flex flex-col justify-between">
               <div>
                 <h3 className="font-bold text-lg mb-1">{item.title}</h3>
-                <div className="text-gray-500">
-                  {currency}
-                  {item.price.toLocaleString()}
-                </div>
+                <div className="text-gray-500">{formatPrice(item.price, currency)}</div>
               </div>
               <div className="flex justify-between items-center">
                 <div className="flex items-center bg-gray-50 rounded-full px-2">
@@ -632,10 +629,7 @@ function PreviewCartPageComponent({
       <div className="mt-12 bg-gray-50 p-8 rounded-3xl">
         <div className="flex justify-between text-xl font-bold mb-8">
           <span>Total</span>
-          <span>
-            {currency}
-            {cart.total.toLocaleString()}
-          </span>
+          <span>{formatPrice(cart.total, currency)}</span>
         </div>
         <button
           onClick={() => onNavigate({ type: 'checkout' })}
@@ -696,10 +690,7 @@ function PreviewCheckoutPage({
         ></textarea>
         <div className="bg-white p-6 rounded-2xl border border-gray-100 flex justify-between font-bold text-lg">
           <span>Total</span>
-          <span>
-            {currency}
-            {cart.total.toLocaleString()}
-          </span>
+          <span>{formatPrice(cart.total, currency)}</span>
         </div>
         <button
           type="submit"
@@ -937,7 +928,7 @@ function LiveAuroraMinimalHomepage({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const _formatPrice = useFormatPrice();
+
   const { t: _liveT } = useTranslation();
   const count = useCartCount();
 

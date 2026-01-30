@@ -28,14 +28,6 @@ import {
 import { useWishlist } from '~/hooks/useWishlist';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
-import { useTranslation } from '~/contexts/LanguageContext';
-import { SECTION_REGISTRY } from '~/components/store-sections/registry';
-import { useCartCount } from '~/hooks/useCartCount';
-import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
-import { useProductPrice } from '~/hooks/useProductPrice';
-import { WishlistProvider } from '~/contexts/WishlistContext';
-import { ClientOnly } from 'remix-utils/client-only';
-import { SkeletonLoader } from '~/components/SkeletonLoader';
 import { formatPrice } from '~/lib/theme-engine';
 
 import { TECH_MODERN_THEME } from './theme';
@@ -446,10 +438,7 @@ function PreviewCheckoutPage({
           <div className="pt-6 border-t border-gray-100">
             <div className="flex justify-between items-center text-xl font-bold mb-6">
               <span>Total Amount</span>
-              <span className="text-blue-600">
-                {currency}
-                {cart.total.toLocaleString()}
-              </span>
+              <span className="text-blue-600">{formatPrice(cart.total, currency)}</span>
             </div>
             <button
               type="submit"

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
+import { formatPrice } from '~/lib/theme-engine';
 import { X, Plus, Minus, ShoppingBag, Trash2 } from 'lucide-react';
 
 interface CartItem {
@@ -17,7 +18,7 @@ export function SokolCartDrawer() {
   useEffect(() => {
     const openDrawer = () => setIsOpen(true);
     window.addEventListener('open-cart-drawer', openDrawer);
-    
+
     const updateCart = () => {
       try {
         const cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -39,10 +40,8 @@ export function SokolCartDrawer() {
   }, []);
 
   const updateQuantity = (id: number, delta: number) => {
-    const newCart = cartItems.map(item => 
-      item.id === id 
-        ? { ...item, quantity: Math.max(1, item.quantity + delta) } 
-        : item
+    const newCart = cartItems.map((item) =>
+      item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
     );
     localStorage.setItem('cart', JSON.stringify(newCart));
     setCartItems(newCart);
@@ -50,24 +49,24 @@ export function SokolCartDrawer() {
   };
 
   const removeItem = (id: number) => {
-    const newCart = cartItems.filter(item => item.id !== id);
+    const newCart = cartItems.filter((item) => item.id !== id);
     localStorage.setItem('cart', JSON.stringify(newCart));
     setCartItems(newCart);
     window.dispatchEvent(new CustomEvent('cart-updated'));
   };
 
-  const subtotal = cartItems.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={() => setIsOpen(false)}
       />
-      
+
       {/* Drawer */}
       <div className="absolute top-0 right-0 bottom-0 w-full max-w-md bg-white shadow-2xl flex flex-col animate-slide-in">
         {/* Header */}
@@ -77,7 +76,7 @@ export function SokolCartDrawer() {
             <span className="font-bold font-heading text-lg">Your Cart</span>
             <span className="text-sm text-gray-500">({cartItems.length} items)</span>
           </div>
-          <button 
+          <button
             onClick={() => setIsOpen(false)}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
@@ -104,8 +103,8 @@ export function SokolCartDrawer() {
                 <div key={item.id} className="flex gap-4 p-3 bg-gray-50 rounded-xl">
                   <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                     {item.imageUrl && (
-                      <img 
-                        src={item.imageUrl} 
+                      <img
+                        src={item.imageUrl}
                         alt={item.title}
                         className="w-full h-full object-cover"
                       />
@@ -113,7 +112,9 @@ export function SokolCartDrawer() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-sm truncate">{item.title}</h4>
-                    <p className="text-rose-600 font-bold mt-1">৳{(item.price || 0).toLocaleString()}</p>
+                    <p className="text-rose-600 font-bold mt-1">
+                      {formatPrice(item.price || 0, '৳')}
+                    </p>
                     <div className="flex items-center gap-2 mt-2">
                       <button
                         onClick={() => updateQuantity(item.id, -1)}
@@ -147,7 +148,7 @@ export function SokolCartDrawer() {
           <div className="p-4 border-t border-gray-100 bg-gray-50">
             <div className="flex justify-between items-center mb-4">
               <span className="text-gray-600">Subtotal</span>
-              <span className="text-xl font-bold">৳{(subtotal || 0).toLocaleString()}</span>
+              <span className="text-xl font-bold">{formatPrice(subtotal || 0, '৳')}</span>
             </div>
             <Link
               to="/checkout"

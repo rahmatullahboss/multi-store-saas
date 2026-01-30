@@ -15,6 +15,7 @@ import { getCustomerId, getCustomerStoreId } from '~/services/customer-auth.serv
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreTemplateTheme } from '~/templates/store-registry';
 import { User, Package, LogOut, ChevronRight } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const env = context.cloudflare.env;
@@ -43,11 +44,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const customer = customerResult[0];
 
   // Get store data
-  const storeResult = await drizzleDb
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
+  const storeResult = await drizzleDb.select().from(stores).where(eq(stores.id, storeId)).limit(1);
 
   if (!storeResult.length) {
     return redirect('/');
@@ -112,7 +109,7 @@ export default function CustomerAccountPage() {
         {/* Profile Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <div className="flex items-center gap-4 mb-6">
-            <div 
+            <div
               className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold"
               style={{ backgroundColor: theme.primary }}
             >
@@ -121,9 +118,7 @@ export default function CustomerAccountPage() {
             <div>
               <h2 className="text-xl font-semibold">{customer.name || 'Customer'}</h2>
               <p className="text-gray-500">{customer.email}</p>
-              {customer.phone && (
-                <p className="text-gray-400 text-sm">{customer.phone}</p>
-              )}
+              {customer.phone && <p className="text-gray-400 text-sm">{customer.phone}</p>}
             </div>
           </div>
 
@@ -137,7 +132,7 @@ export default function CustomerAccountPage() {
             </div>
             <div className="text-center border-x border-gray-200">
               <p className="text-2xl font-bold" style={{ color: theme.primary }}>
-                ৳{(customer.totalSpent / 100).toLocaleString()}
+                {formatPrice(customer.totalSpent, store.currency)}
               </p>
               <p className="text-sm text-gray-500">Total Spent</p>
             </div>
@@ -157,7 +152,10 @@ export default function CustomerAccountPage() {
             className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition group"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${theme.primary}15` }}>
+              <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: `${theme.primary}15` }}
+              >
                 <Package className="w-5 h-5" style={{ color: theme.primary }} />
               </div>
               <div>
@@ -186,7 +184,10 @@ export default function CustomerAccountPage() {
         </div>
 
         {/* Loyalty Badge */}
-        <div className="mt-6 p-4 rounded-xl text-center" style={{ backgroundColor: `${theme.primary}10` }}>
+        <div
+          className="mt-6 p-4 rounded-xl text-center"
+          style={{ backgroundColor: `${theme.primary}10` }}
+        >
           <p className="text-sm text-gray-600 mb-1">Loyalty Tier</p>
           <p className="text-lg font-bold capitalize" style={{ color: theme.primary }}>
             {customer.loyaltyTier}

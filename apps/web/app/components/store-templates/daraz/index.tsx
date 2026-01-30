@@ -28,6 +28,7 @@ import { ClientOnly } from 'remix-utils/client-only';
 import { SkeletonLoader } from '~/components/SkeletonLoader';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
 import { SECTION_REGISTRY } from '~/components/store-sections/registry';
+import { formatPrice } from '~/lib/theme-engine';
 import { DARAZ_THEME } from './theme';
 import { DarazHeader } from './sections/Header';
 import { DarazFooter } from './sections/Footer';
@@ -47,7 +48,6 @@ import {
   type DemoProduct,
 } from '~/utils/store-preview-data';
 import { ShoppingCart, Search, X, Check, Truck, Shield, RotateCcw, Star } from 'lucide-react';
-import { formatPrice } from '~/lib/theme-engine';
 
 // ============================================================================
 // TYPES
@@ -989,7 +989,7 @@ function PreviewCheckoutPage({
                     </div>
                     <div className="text-right">
                       <p className="font-medium" style={{ color: DARAZ_THEME.priceOrange }}>
-                        {currency} {(item.price * item.quantity).toLocaleString()}
+                        {formatPrice(item.price * item.quantity, currency)}
                       </p>
                     </div>
                   </div>
@@ -1032,9 +1032,7 @@ function PreviewCheckoutPage({
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">আইটেম মোট ({cart.itemCount}টি)</span>
-                  <span>
-                    {currency} {cart.total.toLocaleString()}
-                  </span>
+                  <span>{formatPrice(cart.total, currency)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">ডেলিভারি ফি</span>
@@ -1054,7 +1052,7 @@ function PreviewCheckoutPage({
                 <div className="flex justify-between font-bold text-lg">
                   <span>মোট:</span>
                   <span style={{ color: DARAZ_THEME.primary }}>
-                    {currency} {grandTotal.toLocaleString()}
+                    {formatPrice(grandTotal, currency)}
                   </span>
                 </div>
                 <p className="text-xs text-gray-400">VAT অন্তর্ভুক্ত, যেখানে প্রযোজ্য</p>

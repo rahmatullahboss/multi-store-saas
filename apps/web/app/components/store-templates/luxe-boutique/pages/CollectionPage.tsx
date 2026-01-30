@@ -130,8 +130,7 @@ export function LuxeCollectionPage({
                 <div className="flex items-center justify-center gap-3 text-sm">
                   {product.compareAtPrice && product.compareAtPrice > product.price && (
                     <span className="text-[#999] line-through">
-                      {currencySymbol}
-                      {product.compareAtPrice.toLocaleString()}
+                      {formatPrice(product.compareAtPrice)}
                     </span>
                   )}
                   <span className="font-medium">{formatPrice(product.price)}</span>

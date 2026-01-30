@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
-import { useFormatPrice } from '~/contexts/LanguageContext';
+import { formatPrice } from '~/lib/theme-engine';
 import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
 import { useCartCount } from '~/hooks/useCartCount';
 import { FRESHNESS_THEME } from './theme';
@@ -48,7 +48,6 @@ import {
   getDemoProductById,
   type DemoProduct,
 } from '~/utils/store-preview-data';
-import { formatPrice } from '~/lib/theme-engine';
 
 // ============================================================================
 // TYPES
@@ -536,8 +535,7 @@ function PreviewCartPage({
             <div className="flex-1">
               <h3 className="font-bold text-lg mb-1">{item.title}</h3>
               <div className="font-bold mb-3" style={{ color: FRESHNESS_THEME.primary }}>
-                {currency}
-                {item.price.toLocaleString()}
+                {formatPrice(item.price, currency)}
               </div>
               <div className="flex justify-between items-center">
                 <div className="flex items-center border rounded-lg overflow-hidden">
@@ -571,8 +569,7 @@ function PreviewCartPage({
         <div className="flex justify-between text-xl font-bold mb-6">
           <span>Total</span>
           <span style={{ color: FRESHNESS_THEME.primary }}>
-            {currency}
-            {cart.total.toLocaleString()}
+            {formatPrice(cart.total, currency)}
           </span>
         </div>
         <button
@@ -637,18 +634,14 @@ function PreviewCheckoutPage({
               <span>
                 {item.title} x {item.quantity}
               </span>
-              <span>
-                {currency}
-                {(item.price * item.quantity).toLocaleString()}
-              </span>
+              <span>{formatPrice(item.price * item.quantity, currency)}</span>
             </div>
           ))}
           <div className="border-t pt-4 mt-4">
             <div className="flex justify-between font-bold text-lg">
               <span>Total</span>
               <span style={{ color: FRESHNESS_THEME.primary }}>
-                {currency}
-                {cart.total.toLocaleString()}
+                {formatPrice(cart.total, currency)}
               </span>
             </div>
           </div>
@@ -907,7 +900,7 @@ function LiveFreshnessHomepage({
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const formatPrice = useFormatPrice();
+
   const count = useCartCount();
 
   useEffect(() => {

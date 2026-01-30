@@ -54,11 +54,8 @@ export function WhatsAppOrderButton({
 
   const total = price * quantity;
 
-  // Format total based on language
-  const formattedTotal =
-    lang === 'bn' && (currency === '৳' || currency === 'BDT')
-      ? `${currency}${total.toLocaleString('bn-BD')}`
-      : `${currency}${total.toLocaleString()}`;
+  // Format total using formatPrice
+  const formattedTotal = formatPrice(total);
 
   // Pre-filled message template
   const message = `${t('landingProduct_orderMsg_greeting')}

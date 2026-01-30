@@ -14,7 +14,16 @@ import { stores, customers, orders } from '@db/schema';
 import { getCustomerId, getCustomerStoreId } from '~/services/customer-auth.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreTemplateTheme } from '~/templates/store-registry';
-import { Package, ChevronLeft, ChevronRight, Clock, CheckCircle, Truck, XCircle } from 'lucide-react';
+import {
+  Package,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  CheckCircle,
+  Truck,
+  XCircle,
+} from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const env = context.cloudflare.env;
@@ -43,11 +52,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const customer = customerResult[0];
 
   // Get store data
-  const storeResult = await drizzleDb
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
+  const storeResult = await drizzleDb.select().from(stores).where(eq(stores.id, storeId)).limit(1);
 
   if (!storeResult.length) {
     return redirect('/');
@@ -77,7 +82,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       currency: store.currency || 'BDT',
       planType: store.planType || 'free',
     },
-    orders: ordersResult.map(order => ({
+    orders: ordersResult.map((order) => ({
       id: order.id,
       orderNumber: order.orderNumber || `#${order.id}`,
       status: order.status,
@@ -115,8 +120,8 @@ export default function CustomerOrdersPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link 
-            to="/account" 
+          <Link
+            to="/account"
             className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -144,7 +149,8 @@ export default function CustomerOrdersPage() {
         ) : (
           <div className="space-y-4">
             {orders.map((order) => {
-              const status = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.pending;
+              const status =
+                statusConfig[order.status as keyof typeof statusConfig] || statusConfig.pending;
               const StatusIcon = status.icon;
 
               return (
@@ -156,7 +162,7 @@ export default function CustomerOrdersPage() {
                     <div>
                       <p className="font-semibold">{order.orderNumber}</p>
                       <p className="text-sm text-gray-500" suppressHydrationWarning>
-                        {order.createdAt 
+                        {order.createdAt
                           ? new Date(order.createdAt).toLocaleDateString('en-US', {
                               year: 'numeric',
                               month: 'short',
@@ -165,18 +171,20 @@ export default function CustomerOrdersPage() {
                           : 'N/A'}
                       </p>
                     </div>
-                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${status.bg} ${status.color}`}>
+                    <div
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${status.bg} ${status.color}`}
+                    >
                       <StatusIcon className="w-4 h-4" />
                       {status.label}
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                     <p className="text-sm text-gray-500">
                       {order.itemsCount} item{order.itemsCount !== 1 ? 's' : ''}
                     </p>
                     <p className="font-bold" style={{ color: theme.primary }}>
-                      ৳{order.total?.toLocaleString()}
+                      {formatPrice(order.total, store.currency)}
                     </p>
                   </div>
                 </div>

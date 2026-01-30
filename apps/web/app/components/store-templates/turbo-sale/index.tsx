@@ -502,8 +502,7 @@ function PreviewCartPage({
             <div className="flex-1">
               <h3 className="font-medium mb-1">{item.title}</h3>
               <div className="font-bold mb-2" style={{ color: TURBO_SALE_THEME.primary }}>
-                {currency}
-                {item.price.toLocaleString()}
+                {formatPrice(item.price, currency)}
               </div>
               <div className="flex justify-between items-center">
                 <div className="flex items-center border rounded">
@@ -534,8 +533,7 @@ function PreviewCartPage({
         <div className="flex justify-between text-lg font-bold mb-4">
           <span>মোট</span>
           <span style={{ color: TURBO_SALE_THEME.primary }}>
-            {currency}
-            {cart.total.toLocaleString()}
+            {formatPrice(cart.total, currency)}
           </span>
         </div>
         <button
@@ -601,19 +599,13 @@ function PreviewCheckoutPage({
               <span>
                 {item.title} x {item.quantity}
               </span>
-              <span>
-                {currency}
-                {(item.price * item.quantity).toLocaleString()}
-              </span>
+              <span>{formatPrice(item.price * item.quantity, currency)}</span>
             </div>
           ))}
           <div className="border-t pt-2 mt-2">
             <div className="flex justify-between text-sm mb-1">
               <span>সাবটোটাল</span>
-              <span>
-                {currency}
-                {cart.total.toLocaleString()}
-              </span>
+              <span>{formatPrice(cart.total, currency)}</span>
             </div>
             <div className="flex justify-between text-sm mb-1">
               <span>ডেলিভারি চার্জ</span>
@@ -624,8 +616,7 @@ function PreviewCheckoutPage({
             <div className="flex justify-between font-bold text-lg pt-2 border-t mt-2">
               <span>মোট</span>
               <span style={{ color: TURBO_SALE_THEME.primary }}>
-                {currency}
-                {(cart.total + shippingCost).toLocaleString()}
+                {formatPrice(cart.total + shippingCost, currency)}
               </span>
             </div>
           </div>

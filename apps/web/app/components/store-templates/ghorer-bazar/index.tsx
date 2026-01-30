@@ -122,12 +122,7 @@ function CartProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ============================================================================
-// HELPER: Format Price
-// ============================================================================
-function formatPrice(price: number): string {
-  return `৳${(price / 100).toLocaleString('bn-BD')}`;
-}
+import { formatPrice } from '~/lib/theme-engine';
 
 // ============================================================================
 // COMPONENT: Coupon Input (Functional)
@@ -1345,7 +1340,7 @@ function CartCheckoutModal({
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between" style={{ color: theme.textSecondary }}>
                     <span>সাবটোটাল</span>
-                    <span>৳{subtotal.toLocaleString()}</span>
+                    <span>{formatPrice(subtotal, '৳')}</span>
                   </div>
                   <div className="flex justify-between" style={{ color: theme.textSecondary }}>
                     <span>ডেলিভারি চার্জ</span>
@@ -1362,7 +1357,7 @@ function CartCheckoutModal({
                     style={{ borderColor: theme.border, color: theme.text }}
                   >
                     <span>মোট</span>
-                    <span style={{ color: theme.primary }}>৳{total.toLocaleString()}</span>
+                    <span style={{ color: theme.primary }}>{formatPrice(total, '৳')}</span>
                   </div>
                 </div>
               </div>

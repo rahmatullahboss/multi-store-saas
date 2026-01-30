@@ -827,21 +827,18 @@ export default function SharedProductPage({
             {/* Price */}
             <div className="flex items-center gap-3 flex-wrap">
               <span className="text-3xl font-bold" style={{ color: colors.accent }}>
-                {currencySymbol}
-                {currentPrice.toLocaleString()}
+                {formatPrice(currentPrice)}
               </span>
               {hasDiscount && (
                 <>
                   <span className="text-xl line-through" style={{ color: colors.muted }}>
-                    {currencySymbol}
-                    {comparePrice!.toLocaleString()}
+                    {formatPrice(comparePrice!)}
                   </span>
                   <span
                     className="text-sm font-semibold px-3 py-1 rounded-full"
                     style={{ backgroundColor: '#fef2f2', color: '#dc2626' }}
                   >
-                    Save {currencySymbol}
-                    {(comparePrice! - currentPrice).toLocaleString()} ({discountPercent}%)
+                    Save {formatPrice(comparePrice! - currentPrice)} ({discountPercent}%)
                   </span>
                 </>
               )}

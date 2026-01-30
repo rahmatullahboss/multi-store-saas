@@ -40,8 +40,14 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import type { StoreTemplateTheme } from '~/templates/store-registry';
+import { formatPrice } from '~/lib/theme-engine';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
-import { DISTRICTS, getUpazilasByDistrict, getShippingZone, type District } from '~/data/bd-locations';
+import {
+  DISTRICTS,
+  getUpazilasByDistrict,
+  getShippingZone,
+  type District,
+} from '~/data/bd-locations';
 import { SearchableSelect } from '~/components/SearchableSelect';
 
 interface CartItem {
@@ -203,41 +209,39 @@ export default function SharedCheckoutPage({
   // Effect: Update shipping charge and reset Upazila when District changes
   useEffect(() => {
     setSelectedUpazilaId(''); // Reset upazila
-    
+
     if (selectedDistrictId) {
       getShippingZone(selectedDistrictId);
       // Determine shipping method based on zone
-      // Note: This logic overrides the manual selection if not careful. 
+      // Note: This logic overrides the manual selection if not careful.
       // Current behavior: Auto-select standard shipping price based on zone.
-      // Ideally we should update the PRICE of the standard/express methods dynamically, 
+      // Ideally we should update the PRICE of the standard/express methods dynamically,
       // but for now we'll simulate it by auto-switching or updating a cost multiplier if needed.
       // Since SHIPPING_METHODS are static consts, we might need a dynamic cost calculation.
-      
+
       // Simpler approach for this specific checkout:
       // If zone is Dhaka -> Standard is 60.
       // If zone is Outside -> Standard is 120.
       // We'll trust the backend/order logic to validate, but here we can visually update if needed.
-      // However, the requested task is just the address selector. 
+      // However, the requested task is just the address selector.
       // For shipping cost updates, let's assume the SHIPPING_METHODS array needs to be dynamic or we update a state.
       // Let's stick to the visible address selector implementation first.
     }
   }, [selectedDistrictId]);
-  
+
   // Use dynamic shipping cost
   const calculatedShippingCost = React.useMemo(() => {
-    const baseMethod = SHIPPING_METHODS.find(m => m.id === shippingMethod);
+    const baseMethod = SHIPPING_METHODS.find((m) => m.id === shippingMethod);
     if (!baseMethod) return 60;
-    
+
     // Override standard shipping price based on location
     if (shippingMethod === 'standard') {
       const zone = selectedDistrictId ? getShippingZone(selectedDistrictId) : 'dhaka'; // Default to dhaka/inside charge if unknown
       return zone === 'dhaka' ? 60 : 120;
     }
-    
+
     return baseMethod.price;
   }, [shippingMethod, selectedDistrictId]);
-
-
 
   // UI State
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -329,7 +333,10 @@ export default function SharedCheckoutPage({
           break;
         case 'upazila':
           // Only validate upazila if available for the district
-          error = (availableUpazilas.length > 0 && !selectedUpazilaId) ? 'Upazila/Thana is required' : undefined;
+          error =
+            availableUpazilas.length > 0 && !selectedUpazilaId
+              ? 'Upazila/Thana is required'
+              : undefined;
           break;
         case 'area':
           error = validateRequired(area, 'Area/Zone');
@@ -338,7 +345,16 @@ export default function SharedCheckoutPage({
       setErrors((prev) => ({ ...prev, [field]: error }));
       return error;
     },
-    [email, phone, fullName, address, area, selectedDistrictId, selectedUpazilaId, availableUpazilas.length]
+    [
+      email,
+      phone,
+      fullName,
+      address,
+      area,
+      selectedDistrictId,
+      selectedUpazilaId,
+      availableUpazilas.length,
+    ]
   );
 
   // Validate all fields
@@ -349,7 +365,8 @@ export default function SharedCheckoutPage({
       fullName: validateRequired(fullName, 'Full name'),
       address: validateRequired(address, 'Address'),
       district: !selectedDistrictId ? 'District is required' : undefined,
-      upazila: (availableUpazilas.length > 0 && !selectedUpazilaId) ? 'Upazila is required' : undefined,
+      upazila:
+        availableUpazilas.length > 0 && !selectedUpazilaId ? 'Upazila is required' : undefined,
       area: validateRequired(area, 'Area/Zone'),
       terms: !acceptTerms ? 'You must accept the terms' : undefined,
     };
@@ -450,14 +467,13 @@ export default function SharedCheckoutPage({
       }
       setIsProcessing(false);
     } else if (fetcher.state === 'idle' && fetcher.data?.success === false) {
-       setIsProcessing(false);
-       // Show global error if any
-       if (fetcher.data.error) {
-         alert(fetcher.data.error); // Simple alert for now, or use a toast
-       }
+      setIsProcessing(false);
+      // Show global error if any
+      if (fetcher.data.error) {
+        alert(fetcher.data.error); // Simple alert for now, or use a toast
+      }
     }
   }, [fetcher.state, fetcher.data, isPreview]);
-
 
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
@@ -472,10 +488,10 @@ export default function SharedCheckoutPage({
     setIsProcessing(true);
 
     // Construct full address for submission
-    const districtName = DISTRICTS.find(d => d.id === selectedDistrictId)?.name || '';
-    const upazilaName = availableUpazilas.find(u => u.id === selectedUpazilaId)?.name || '';
+    const districtName = DISTRICTS.find((d) => d.id === selectedDistrictId)?.name || '';
+    const upazilaName = availableUpazilas.find((u) => u.id === selectedUpazilaId)?.name || '';
     const fullAddress = `${address}, ${upazilaName}, ${districtName}`;
-    
+
     // Prepare payload for API
     const formData = new FormData();
     formData.append('store_id', String(storeId || 0)); // Ensure storeId is passed props
@@ -484,18 +500,23 @@ export default function SharedCheckoutPage({
     formData.append('customer_email', email);
     formData.append('address', fullAddress); // Legacy full string
     formData.append('district', selectedDistrictId); // Structured
-    formData.append('upazila', selectedUpazilaId);   // Structured
+    formData.append('upazila', selectedUpazilaId); // Structured
     formData.append('payment_method', paymentMethod);
-    formData.append('cart_items', JSON.stringify(cartItems.map(item => ({
-        product_id: item.productId,
-        quantity: item.quantity,
-        variant_id: item.variantId // Assuming cart items have this if strictly typed
-    }))));
-    
+    formData.append(
+      'cart_items',
+      JSON.stringify(
+        cartItems.map((item) => ({
+          product_id: item.productId,
+          quantity: item.quantity,
+          variant_id: item.variantId, // Assuming cart items have this if strictly typed
+        }))
+      )
+    );
+
     // Legacy single product fallback if needed or empty cart
     if (cartItems.length > 0) {
-        formData.append('product_id', String(cartItems[0].productId)); 
-        formData.append('quantity', String(cartItems[0].quantity));
+      formData.append('product_id', String(cartItems[0].productId));
+      formData.append('quantity', String(cartItems[0].quantity));
     }
 
     if (isPreview) {
@@ -553,8 +574,7 @@ export default function SharedCheckoutPage({
                 Total Amount
               </span>
               <span className="font-bold" style={{ color: colors.accent }}>
-                {currencySymbol}
-                {total.toLocaleString()}
+                {formatPrice(total)}
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -828,13 +848,18 @@ export default function SharedCheckoutPage({
                     value={selectedDistrictId}
                     onChange={(id) => {
                       setSelectedDistrictId(id);
-                      setTouched(prev => ({ ...prev, district: true }));
-                      setErrors(prev => ({ ...prev, district: !id ? 'District is required' : undefined }));
+                      setTouched((prev) => ({ ...prev, district: true }));
+                      setErrors((prev) => ({
+                        ...prev,
+                        district: !id ? 'District is required' : undefined,
+                      }));
                     }}
                     placeholder="Select District"
                     label=""
                     inputBg={colors.background}
-                    inputBorder={errors.district && touched.district ? '#ef4444' : colors.muted + '40'}
+                    inputBorder={
+                      errors.district && touched.district ? '#ef4444' : colors.muted + '40'
+                    }
                     inputText={colors.text}
                     primaryColor={colors.accent}
                     mutedColor={colors.muted}
@@ -849,7 +874,10 @@ export default function SharedCheckoutPage({
 
                 {availableUpazilas.length > 0 && (
                   <div>
-                    <label className="block text-sm font-medium mb-1" style={{ color: colors.text }}>
+                    <label
+                      className="block text-sm font-medium mb-1"
+                      style={{ color: colors.text }}
+                    >
                       Upazila/Thana <span className="text-red-500">*</span>
                     </label>
                     <SearchableSelect
@@ -857,13 +885,18 @@ export default function SharedCheckoutPage({
                       value={selectedUpazilaId}
                       onChange={(id) => {
                         setSelectedUpazilaId(id);
-                        setTouched(prev => ({ ...prev, upazila: true }));
-                        setErrors(prev => ({ ...prev, upazila: !id ? 'Upazila is required' : undefined }));
+                        setTouched((prev) => ({ ...prev, upazila: true }));
+                        setErrors((prev) => ({
+                          ...prev,
+                          upazila: !id ? 'Upazila is required' : undefined,
+                        }));
                       }}
                       placeholder="Select Upazila"
                       label=""
                       inputBg={colors.background}
-                      inputBorder={errors.upazila && touched.upazila ? '#ef4444' : colors.muted + '40'}
+                      inputBorder={
+                        errors.upazila && touched.upazila ? '#ef4444' : colors.muted + '40'
+                      }
                       inputText={colors.text}
                       primaryColor={colors.accent}
                       mutedColor={colors.muted}
@@ -1121,8 +1154,7 @@ export default function SharedCheckoutPage({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-bold" style={{ color: colors.accent }}>
-                    {currencySymbol}
-                    {total.toLocaleString()}
+                    {formatPrice(total)}
                   </span>
                   {showOrderSummary ? (
                     <ChevronUp className="w-5 h-5" style={{ color: colors.muted }} />
@@ -1182,8 +1214,7 @@ export default function SharedCheckoutPage({
                           )}
                         </div>
                         <div className="font-medium text-sm" style={{ color: colors.text }}>
-                          {currencySymbol}
-                          {((item.price || 0) * (item.quantity || 1)).toLocaleString()}
+                          {formatPrice((item.price || 0) * (item.quantity || 1))}
                         </div>
                       </div>
                     ))
@@ -1198,17 +1229,11 @@ export default function SharedCheckoutPage({
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-sm" style={{ color: colors.muted }}>
                     <span>Subtotal</span>
-                    <span style={{ color: colors.text }}>
-                      {currencySymbol}
-                      {subtotal.toLocaleString()}
-                    </span>
+                    <span style={{ color: colors.text }}>{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm" style={{ color: colors.muted }}>
                     <span>Shipping ({selectedShipping?.name})</span>
-                    <span style={{ color: colors.text }}>
-                      {currencySymbol}
-                      {shippingCost.toLocaleString()}
-                    </span>
+                    <span style={{ color: colors.text }}>{formatPrice(shippingCost)}</span>
                   </div>
                 </div>
 
@@ -1218,8 +1243,7 @@ export default function SharedCheckoutPage({
                       Total
                     </span>
                     <span className="text-2xl font-bold" style={{ color: colors.accent }}>
-                      {currencySymbol}
-                      {total.toLocaleString()}
+                      {formatPrice(total)}
                     </span>
                   </div>
                   <p className="text-xs mt-1" style={{ color: colors.muted }}>
@@ -1242,8 +1266,7 @@ export default function SharedCheckoutPage({
                   ) : (
                     <>
                       <Lock className="w-4 h-4" />
-                      Place Order - {currencySymbol}
-                      {total.toLocaleString()}
+                      Place Order - {formatPrice(total)}
                     </>
                   )}
                 </button>

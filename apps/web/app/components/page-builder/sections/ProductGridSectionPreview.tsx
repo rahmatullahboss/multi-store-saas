@@ -163,27 +163,14 @@ export function ProductGridSectionPreview({ props }: { props: Record<string, unk
                 {showPrice && (
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-xl font-bold" style={{ color: priceColor }}>
-                      ৳{product.price.toLocaleString()}
+                      {formatPrice(product.price)}
                     </span>
                     {showComparePrice &&
                       product.compareAtPrice &&
                       product.compareAtPrice > product.price && (
-                        <>
-                          <span className="text-sm text-gray-400 line-through">
-                            ৳{product.compareAtPrice.toLocaleString()}
-                          </span>
-                    <span 
-                      className="text-xl font-bold"
-                      style={{ color: priceColor }}
-                    >
-                      {formatPrice(product.price)}
-                    </span>
-                    {showComparePrice && product.compareAtPrice && product.compareAtPrice > product.price && (
-                      <>
                         <span className="text-sm text-gray-400 line-through">
                           {formatPrice(product.compareAtPrice)}
                         </span>
-                        </>
                       )}
                   </div>
                 )}

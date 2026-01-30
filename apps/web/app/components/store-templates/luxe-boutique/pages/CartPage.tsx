@@ -195,10 +195,7 @@ export function LuxeCartPage({ theme, isPreview = false, onCheckout, onNavigate 
               <div className="space-y-4 mb-8 text-sm">
                 <div className="flex justify-between">
                   <span className="text-[#6b6b6b]">Subtotal</span>
-                  <span>
-                    {currencySymbol}
-                    {subtotal.toLocaleString()}
-                  </span>
+                  <span>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[#6b6b6b]">Shipping</span>
@@ -208,10 +205,7 @@ export function LuxeCartPage({ theme, isPreview = false, onCheckout, onNavigate 
 
               <div className="border-t border-[#f0f0f0] pt-6 mb-8 flex justify-between items-center">
                 <span className="font-serif text-lg">Total</span>
-                <span className="font-serif text-xl">
-                  {currencySymbol}
-                  {subtotal.toLocaleString()}
-                </span>
+                <span className="font-serif text-xl">{formatPrice(subtotal)}</span>
               </div>
 
               {onCheckout ? (
