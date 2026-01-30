@@ -12,7 +12,7 @@ export const schema: SectionSchema = {
       label: 'Footer Description',
       default: 'Essential fashion for the modern individual.',
     },
-     {
+    {
       type: 'checkbox',
       id: 'show_powered_by',
       label: 'Show Powered By Ozzyl',
@@ -31,25 +31,25 @@ export default function AuroraMinimalFooter({ context, settings }: SectionCompon
   const { store, collections } = context;
 
   const footerConfig = {
-      description: settings.description as string,
-      showPoweredBy: settings.show_powered_by as boolean,
-      showTrustBadges: settings.show_trust_badges as boolean,
+    description: settings.description as string,
+    showPoweredBy: settings.show_powered_by as boolean,
+    showTrustBadges: settings.show_trust_badges as boolean,
   };
 
-  const socialLinks = store.socialLinks ? JSON.parse(store.socialLinks) : null;
-  const categories = collections?.map(c => c.title) || [];
+  const socialLinks = store.socialLinks || null;
+  const categories = collections?.map((c) => c.title) || [];
 
   return (
     <StandardFooter
-        storeName={store.name}
-        logo={store.logo}
-        // @ts-ignore - ThemeConfig type compatibility is handled in StandardFooter
-        config={context.theme}
-        socialLinks={socialLinks}
-        footerConfig={footerConfig}
-        businessInfo={store.businessInfo ? JSON.parse(store.businessInfo) : null}
-        categories={categories}
-        planType={store.planType || 'free'}
+      storeName={store.name}
+      logo={store.logo}
+      // @ts-ignore - ThemeConfig type compatibility is handled in StandardFooter
+      config={context.theme}
+      socialLinks={socialLinks}
+      footerConfig={footerConfig}
+      businessInfo={store.businessInfo || null}
+      categories={categories}
+      planType={store.planType || 'free'}
     />
   );
 }

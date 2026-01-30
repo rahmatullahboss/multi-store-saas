@@ -195,8 +195,14 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
   // Template resolution (Shopify OS 2.0)
   let template = null;
+  let homeTemplate = null;
   try {
     template = await resolveTemplate(context.cloudflare.env.DB, storeId, 'collection');
+
+    // If no collection template, get home template for header/footer consistency
+    if (!template || !template.sections || template.sections.length === 0) {
+      homeTemplate = await resolveTemplate(context.cloudflare.env.DB, storeId, 'home');
+    }
   } catch {
     // Continue without template
   }
@@ -221,6 +227,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     planType: storeData?.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
     template,
+    homeTemplate,
   });
 }
 
@@ -245,6 +252,7 @@ export default function CollectionPage() {
     planType,
     customer,
     template,
+    homeTemplate,
   } = useLoaderData<typeof loader>();
 
   const { t } = useTranslation();
@@ -288,6 +296,12 @@ export default function CollectionPage() {
 
   const hasTemplateSections = template?.sections && template.sections.length > 0;
 
+  // Check if we have home template for header/footer fallback
+  const hasHomeTemplate = homeTemplate?.sections && homeTemplate.sections.length > 0;
+
+  // Use theme sections for consistent header/footer
+  const useThemeSections = hasTemplateSections || hasHomeTemplate;
+
   // Render collection content
   const renderCollectionContent = () => {
     // If template has sections, use ThemeStoreRenderer (Shopify OS 2.0)
@@ -307,6 +321,83 @@ export default function CollectionPage() {
               })) || [],
             enabled: s.enabled,
           }))}
+          store={{
+            id: storeId,
+            name: storeName,
+            currency,
+            logo,
+            defaultLanguage: 'en',
+          }}
+          pageType="collection"
+          collection={{
+            id: 1,
+            title: collection.title,
+            slug: collection.slug,
+            description: collection.description,
+            productCount: products.length,
+          }}
+          products={products.map((p) => ({
+            id: p.id,
+            title: p.title,
+            price: p.price,
+            compareAtPrice: p.compareAtPrice || undefined,
+            imageUrl: p.imageUrl,
+            images: p.imageUrl ? [p.imageUrl] : [],
+            category: p.category || undefined,
+          }))}
+          skipHeaderFooter={false}
+        />
+      );
+    }
+
+    // If no collection template but home template exists, use home template's header/footer
+    if (hasHomeTemplate && homeTemplate?.sections) {
+      // Extract header and footer sections from home template
+      const headerSections = homeTemplate.sections.filter(
+        (s) => s.type === 'header' || s.type === 'announcement-bar'
+      );
+      const footerSections = homeTemplate.sections.filter((s) => s.type === 'footer');
+
+      // Combine: header + collection-grid section + footer
+      const combinedSections = [
+        ...headerSections.map((s) => ({
+          id: s.id,
+          type: s.type,
+          settings: s.props || {},
+          blocks:
+            s.blocks?.map((b) => ({
+              id: b.id,
+              type: b.type,
+              settings: b.props || {},
+            })) || [],
+          enabled: s.enabled,
+        })),
+        // Collection grid section
+        {
+          id: 'collection-grid-fallback',
+          type: 'collection-grid',
+          settings: {},
+          blocks: [],
+          enabled: true,
+        },
+        ...footerSections.map((s) => ({
+          id: s.id,
+          type: s.type,
+          settings: s.props || {},
+          blocks:
+            s.blocks?.map((b) => ({
+              id: b.id,
+              type: b.type,
+              settings: b.props || {},
+            })) || [],
+          enabled: s.enabled,
+        })),
+      ];
+
+      return (
+        <ThemeStoreRenderer
+          themeId={storeTemplateId}
+          sections={combinedSections}
           store={{
             id: storeId,
             name: storeName,

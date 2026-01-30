@@ -1,0 +1,46 @@
+{
+  "name": "Luxe Boutique Collection",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "show_announcement": false,
+        "show_search": true,
+        "show_cart": true,
+        "show_wishlist": true,
+        "menu_style": "minimal"
+      }
+    },
+    "collection-header": {
+      "type": "collection-header",
+      "settings": {
+        "show_collection_image": true,
+        "show_collection_description": true,
+        "overlay_opacity": 30
+      }
+    },
+    "collection-grid": {
+      "type": "collection-grid",
+      "settings": {
+        "products_per_page": 24,
+        "columns": 4,
+        "show_sorting": true,
+        "show_filters": true,
+        "background_color": "#ffffff",
+        "padding_top": 48,
+        "padding_bottom": 64
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "show_payment_icons": true,
+        "show_social_links": true,
+        "background_color": "#1a1a1a",
+        "text_color": "#ffffff"
+      }
+    }
+  },
+  "order": ["header", "collection-header", "collection-grid", "footer"]
+}

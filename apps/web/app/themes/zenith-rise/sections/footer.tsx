@@ -28,18 +28,18 @@ export const schema: SectionSchema = {
 
 export default function ZenithFooter({ context, settings }: SectionComponentProps) {
   const { store, collections } = context;
-  
+
   // Zenith theme uses specific styling, but we wrap StandardFooter for consistency
   // while allowing theme config to drive the actual colors/fonts
-  
+
   const footerConfig = {
     showPoweredBy: true,
     showTrustBadges: (settings.show_trust_badges as boolean) ?? true,
     description: settings.description as string,
   };
 
-  const socialLinks = store.socialLinks ? JSON.parse(store.socialLinks) : null;
-  const categories = collections?.map(c => c.title) || [];
+  const socialLinks = store.socialLinks || null;
+  const categories = collections?.map((c) => c.title) || [];
 
   return (
     <StandardFooter
@@ -49,7 +49,7 @@ export default function ZenithFooter({ context, settings }: SectionComponentProp
       config={context.theme}
       socialLinks={socialLinks}
       footerConfig={footerConfig}
-      businessInfo={store.businessInfo ? JSON.parse(store.businessInfo) : null}
+      businessInfo={store.businessInfo || null}
       categories={categories}
     />
   );

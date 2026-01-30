@@ -460,10 +460,13 @@ export default function ProductMain({ section, context, settings, blocks }: Sect
 
       {/* Short Description */}
       {product.description && (
-        <p className="mb-6" style={{ color: mutedColor }}>
-          {product.description.slice(0, 200)}
-          {product.description.length > 200 ? '...' : ''}
-        </p>
+        <div
+          className="mb-6 prose-sm"
+          style={{ color: mutedColor }}
+          dangerouslySetInnerHTML={{
+            __html: product.description.slice(0, 500),
+          }}
+        />
       )}
 
       {/* Variants */}
@@ -614,7 +617,10 @@ export default function ProductMain({ section, context, settings, blocks }: Sect
               return (
                 <div key={block.id} className="prose max-w-none" style={{ color: textColor }}>
                   <h3 className="text-lg font-bold mb-2">বিবরণ</h3>
-                  <p style={{ color: mutedColor }}>{product.description}</p>
+                  <div
+                    style={{ color: mutedColor }}
+                    dangerouslySetInnerHTML={{ __html: product.description }}
+                  />
                 </div>
               );
             }

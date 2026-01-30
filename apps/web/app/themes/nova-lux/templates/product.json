@@ -1,0 +1,47 @@
+{
+  "name": "Nova Lux Product",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "show_announcement": false,
+        "show_search": true,
+        "show_cart": true,
+        "menu_style": "minimal"
+      }
+    },
+    "main": {
+      "type": "product-main",
+      "settings": {
+        "image_position": "left",
+        "enable_zoom": true,
+        "show_vendor": false,
+        "show_sku": true,
+        "show_quantity_selector": true,
+        "show_share": true,
+        "show_trust_badges": true,
+        "shipping_text": "Complimentary Shipping",
+        "guarantee_text": "Authenticity Guaranteed",
+        "return_text": "30-Day Returns"
+      },
+      "blocks": [
+        {
+          "id": "description",
+          "type": "description",
+          "settings": {
+            "show_full": true
+          }
+        }
+      ]
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "show_powered_by": true,
+        "show_trust_badges": true
+      }
+    }
+  },
+  "order": ["header", "main", "footer"]
+}

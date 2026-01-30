@@ -1,0 +1,48 @@
+{
+  "name": "Tech Modern Cart",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "show_search": true,
+        "show_cart": false
+      }
+    },
+    "hero": {
+      "type": "hero-banner",
+      "settings": {
+        "heading": "Shopping Cart",
+        "subheading": "Review your items and proceed to checkout.",
+        "button_text": "",
+        "button_link": "",
+        "overlay_opacity": 20,
+        "height": "small"
+      }
+    },
+    "featured-products": {
+      "type": "featured-products",
+      "settings": {
+        "heading": "You Might Also Like",
+        "heading_bn": "আপনার পছন্দ হতে পারে",
+        "products_to_show": 4,
+        "columns": 4,
+        "show_view_all": true,
+        "view_all_text": "View All Products",
+        "view_all_text_bn": "সব পণ্য দেখুন",
+        "view_all_link": "/products",
+        "background_color": "#f8fafc",
+        "padding_top": 48,
+        "padding_bottom": 48
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "show_payment_icons": true,
+        "show_social_links": true
+      }
+    }
+  },
+  "order": ["header", "hero", "featured-products", "footer"]
+}

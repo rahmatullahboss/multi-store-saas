@@ -1,0 +1,66 @@
+{
+  "name": "Tech Modern Product",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "show_search": true,
+        "show_cart": true
+      }
+    },
+    "main": {
+      "type": "product-main",
+      "settings": {
+        "image_position": "left",
+        "enable_zoom": true,
+        "show_category": true,
+        "show_sku": true,
+        "show_quantity_selector": true,
+        "show_share": true,
+        "show_specs_badge": true,
+        "show_trust_badges": true,
+        "shipping_text": "Free Express Shipping",
+        "warranty_text": "1 Year Warranty",
+        "return_text": "7-Day Returns"
+      },
+      "blocks": [
+        {
+          "id": "description",
+          "type": "description",
+          "settings": {
+            "show_full": true
+          }
+        },
+        {
+          "id": "specs",
+          "type": "specifications",
+          "settings": {
+            "title": "Technical Specifications"
+          }
+        }
+      ]
+    },
+    "featured-products": {
+      "type": "featured-products",
+      "settings": {
+        "heading": "Similar Products",
+        "heading_bn": "একই ধরনের পণ্য",
+        "products_to_show": 4,
+        "columns": 4,
+        "show_view_all": false,
+        "background_color": "#f8fafc",
+        "padding_top": 48,
+        "padding_bottom": 48
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "show_payment_icons": true,
+        "show_social_links": true
+      }
+    }
+  },
+  "order": ["header", "main", "featured-products", "footer"]
+}

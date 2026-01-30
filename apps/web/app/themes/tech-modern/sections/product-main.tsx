@@ -1,19 +1,18 @@
 /**
- * Luxe Boutique - Product Main Section
+ * Tech Modern - Product Main Section
  *
  * Shopify OS 2.0 Compatible Section
- * Elegant luxury product detail section:
- * - Black (#1a1a1a) and gold (#c9a961) color scheme
- * - Serif typography for headings (Playfair Display)
- * - Sharp edges (border-radius: 0)
- * - Portrait aspect ratio images
- * - Elegant hover animations
+ * Modern tech-focused product detail section with:
+ * - Slate (#0f172a) + Blue (#3b82f6) color scheme
+ * - Rounded corners and modern UI
+ * - Tech-focused trust badges
+ * - Clean, minimal design
  */
 
 import { useState } from 'react';
 import { useFetcher } from '@remix-run/react';
 import {
-  ShoppingBag,
+  ShoppingCart,
   Heart,
   Share2,
   Minus,
@@ -22,6 +21,9 @@ import {
   Truck,
   Shield,
   RotateCcw,
+  Zap,
+  Cpu,
+  Battery,
 } from 'lucide-react';
 import type {
   SectionSchema,
@@ -35,14 +37,16 @@ import type {
 // ============================================================================
 
 const THEME = {
-  primary: '#1a1a1a',
-  accent: '#c9a961',
-  accentHover: '#b8944f',
-  background: '#faf9f7',
+  primary: '#0f172a', // Slate 900
+  secondary: '#1e293b', // Slate 800
+  accent: '#3b82f6', // Blue 500
+  accentHover: '#2563eb', // Blue 600
+  background: '#f8fafc', // Slate 50
   surface: '#ffffff',
-  text: '#1a1a1a',
-  muted: '#6b6b6b',
-  border: '#e5e5e5',
+  text: '#0f172a',
+  muted: '#64748b', // Slate 500
+  border: '#e2e8f0', // Slate 200
+  success: '#22c55e',
 };
 
 // ============================================================================
@@ -51,9 +55,9 @@ const THEME = {
 
 export const schema: SectionSchema = {
   type: 'product-main',
-  name: 'Product Main (Luxe)',
+  name: 'Product Main (Tech Modern)',
   tag: 'section',
-  class: 'luxe-product-main',
+  class: 'tech-modern-product-main',
 
   enabled_on: {
     templates: ['product'],
@@ -89,14 +93,14 @@ export const schema: SectionSchema = {
     {
       type: 'checkbox',
       id: 'show_category',
-      label: 'Show product category',
+      label: 'Show category badge',
       default: true,
     },
     {
       type: 'checkbox',
       id: 'show_sku',
       label: 'Show SKU',
-      default: false,
+      default: true,
     },
     {
       type: 'checkbox',
@@ -107,7 +111,13 @@ export const schema: SectionSchema = {
     {
       type: 'checkbox',
       id: 'show_share',
-      label: 'Show share button',
+      label: 'Show share buttons',
+      default: true,
+    },
+    {
+      type: 'checkbox',
+      id: 'show_specs_badge',
+      label: 'Show tech specs badge',
       default: true,
     },
     {
@@ -125,19 +135,19 @@ export const schema: SectionSchema = {
       type: 'text',
       id: 'shipping_text',
       label: 'Shipping text',
-      default: 'Complimentary Shipping',
+      default: 'Free Express Shipping',
     },
     {
       type: 'text',
-      id: 'guarantee_text',
-      label: 'Guarantee text',
-      default: 'Authenticity Guaranteed',
+      id: 'warranty_text',
+      label: 'Warranty text',
+      default: '1 Year Warranty',
     },
     {
       type: 'text',
       id: 'return_text',
       label: 'Return text',
-      default: '14-Day Returns',
+      default: '7-Day Returns',
     },
   ],
 
@@ -151,7 +161,24 @@ export const schema: SectionSchema = {
           type: 'checkbox',
           id: 'show_full',
           label: 'Show full description',
-          default: true,
+          default: false,
+        },
+      ],
+    },
+    {
+      type: 'specifications',
+      name: 'Specifications',
+      settings: [
+        {
+          type: 'text',
+          id: 'title',
+          label: 'Title',
+          default: 'Technical Specifications',
+        },
+        {
+          type: 'richtext',
+          id: 'content',
+          label: 'Specifications content',
         },
       ],
     },
@@ -163,7 +190,7 @@ export const schema: SectionSchema = {
           type: 'text',
           id: 'title',
           label: 'Title',
-          default: 'Details & Care',
+          default: 'Product Details',
         },
         {
           type: 'richtext',
@@ -176,16 +203,20 @@ export const schema: SectionSchema = {
 
   presets: [
     {
-      name: 'Luxe Product Main',
+      name: 'Tech Modern Product Main',
       category: 'Product',
       settings: {
         show_trust_badges: true,
-        show_category: true,
+        show_specs_badge: true,
       },
       blocks: [
         {
           type: 'description',
-          settings: { show_full: true },
+          settings: { show_full: false },
+        },
+        {
+          type: 'specifications',
+          settings: { title: 'Technical Specifications' },
         },
       ],
     },
@@ -196,74 +227,59 @@ export const schema: SectionSchema = {
 // COMPONENT
 // ============================================================================
 
-export interface LuxeProductMainSettings {
+export interface TechModernProductMainSettings {
   image_position: 'left' | 'right';
   enable_zoom: boolean;
   show_category: boolean;
   show_sku: boolean;
   show_quantity_selector: boolean;
   show_share: boolean;
+  show_specs_badge: boolean;
   show_trust_badges: boolean;
   shipping_text: string;
-  guarantee_text: string;
+  warranty_text: string;
   return_text: string;
 }
 
 // Demo product for preview
 const DEMO_PRODUCT: SerializedProduct = {
   id: 1,
-  title: 'Silk Evening Gown',
+  title: 'Wireless Noise-Canceling Headphones Pro',
   description:
-    'Exquisitely crafted from pure mulberry silk, this evening gown features a timeless silhouette with delicate hand-sewn details. The flowing fabric drapes elegantly, creating a sophisticated look perfect for special occasions.',
+    'Premium wireless headphones with industry-leading noise cancellation, 30-hour battery life, and crystal-clear sound quality. Perfect for work, travel, and immersive listening experiences.',
   price: 24999,
-  compareAtPrice: 34999,
-  sku: 'LX-EG-001',
-  inventory: 12,
-  category: 'Evening Wear',
-  imageUrl: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=600&h=800&fit=crop',
+  compareAtPrice: 29999,
+  sku: 'TM-HP-001',
+  inventory: 25,
+  category: 'Audio',
+  imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop',
   images: [
-    'https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=600&h=800&fit=crop',
-    'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&h=800&fit=crop',
-    'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1524678606370-a47ad25cb82a?w=600&h=600&fit=crop',
   ],
-  tags: ['featured', 'new'],
+  tags: ['featured', 'new', 'tech'],
   variants: [
     {
       id: 1,
-      option1Name: 'Size',
-      option1Value: 'XS',
+      option1Name: 'Color',
+      option1Value: 'Midnight Black',
       price: 24999,
-      inventory: 3,
+      inventory: 15,
       isAvailable: true,
     },
     {
       id: 2,
-      option1Name: 'Size',
-      option1Value: 'S',
+      option1Name: 'Color',
+      option1Value: 'Silver Frost',
       price: 24999,
-      inventory: 4,
-      isAvailable: true,
-    },
-    {
-      id: 3,
-      option1Name: 'Size',
-      option1Value: 'M',
-      price: 24999,
-      inventory: 3,
-      isAvailable: true,
-    },
-    {
-      id: 4,
-      option1Name: 'Size',
-      option1Value: 'L',
-      price: 24999,
-      inventory: 2,
+      inventory: 10,
       isAvailable: true,
     },
   ],
 };
 
-export default function LuxeProductMain({
+export default function TechModernProductMain({
   section,
   context,
   settings,
@@ -273,14 +289,15 @@ export default function LuxeProductMain({
     image_position = 'left',
     enable_zoom = true,
     show_category = true,
-    show_sku = false,
+    show_sku = true,
     show_quantity_selector = true,
     show_share = true,
+    show_specs_badge = true,
     show_trust_badges = true,
-    shipping_text = 'Complimentary Shipping',
-    guarantee_text = 'Authenticity Guaranteed',
-    return_text = '14-Day Returns',
-  } = settings as unknown as LuxeProductMainSettings;
+    shipping_text = 'Free Express Shipping',
+    warranty_text = '1 Year Warranty',
+    return_text = '7-Day Returns',
+  } = settings as unknown as TechModernProductMainSettings;
 
   // Use context product or demo product
   const product = context.product || DEMO_PRODUCT;
@@ -344,20 +361,28 @@ export default function LuxeProductMain({
     <div className="md:w-1/2 flex-shrink-0">
       {/* Main Image */}
       <div
-        className="aspect-[3/4] overflow-hidden mb-4 relative"
+        className="relative aspect-square rounded-2xl overflow-hidden mb-4 shadow-lg"
         style={{ backgroundColor: THEME.surface }}
       >
         <img
           src={images[selectedImage]}
           alt={product.title}
-          className={`w-full h-full object-cover ${enable_zoom ? 'cursor-zoom-in hover:scale-105 transition-transform duration-700' : ''}`}
+          className={`w-full h-full object-cover ${enable_zoom ? 'cursor-zoom-in hover:scale-110 transition-transform duration-300' : ''}`}
         />
         {discount > 0 && (
           <span
-            className="absolute top-4 left-4 px-3 py-1 text-xs font-medium tracking-wider"
-            style={{ backgroundColor: THEME.accent, color: THEME.primary }}
+            className="absolute top-4 left-4 px-3 py-1 text-sm font-semibold rounded-lg"
+            style={{ backgroundColor: THEME.accent, color: 'white' }}
           >
-            -{discount}%
+            -{discount}% OFF
+          </span>
+        )}
+        {product.tags?.includes('new') && (
+          <span
+            className="absolute top-4 right-4 px-3 py-1 text-xs font-semibold rounded-lg"
+            style={{ backgroundColor: THEME.primary, color: 'white' }}
+          >
+            NEW
           </span>
         )}
       </div>
@@ -369,12 +394,11 @@ export default function LuxeProductMain({
             <button
               key={idx}
               onClick={() => setSelectedImage(idx)}
-              className={`flex-shrink-0 w-20 h-24 overflow-hidden transition-opacity ${
-                selectedImage === idx ? 'opacity-100' : 'opacity-50 hover:opacity-80'
+              className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden transition-all border-2 ${
+                selectedImage === idx ? 'opacity-100' : 'opacity-60 hover:opacity-100'
               }`}
               style={{
-                outline: selectedImage === idx ? `2px solid ${THEME.accent}` : 'none',
-                outlineOffset: '2px',
+                borderColor: selectedImage === idx ? THEME.accent : THEME.border,
               }}
             >
               <img
@@ -392,67 +416,92 @@ export default function LuxeProductMain({
   // Product Info
   const ProductInfo = () => (
     <div className="flex-1 min-w-0">
-      {/* Category */}
+      {/* Category Badge */}
       {show_category && product.category && (
-        <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ color: THEME.muted }}>
+        <span
+          className="inline-block px-3 py-1 text-xs font-semibold rounded-full mb-4"
+          style={{ backgroundColor: `${THEME.accent}15`, color: THEME.accent }}
+        >
           {product.category}
-        </p>
+        </span>
       )}
 
       {/* Title */}
-      <h1
-        className="text-2xl md:text-3xl lg:text-4xl mb-4"
-        style={{
-          fontFamily: "'Playfair Display', serif",
-          color: THEME.primary,
-          lineHeight: 1.2,
-        }}
-      >
+      <h1 className="text-2xl md:text-3xl font-bold mb-3" style={{ color: THEME.text }}>
         {product.title}
       </h1>
 
       {/* SKU */}
       {show_sku && product.sku && (
-        <p className="text-xs mb-4" style={{ color: THEME.muted }}>
+        <p className="text-sm mb-4" style={{ color: THEME.muted }}>
           SKU: {product.sku}
         </p>
       )}
 
       {/* Price */}
       <div className="flex items-baseline gap-3 mb-6">
-        <span className="text-xl md:text-2xl font-medium" style={{ color: THEME.primary }}>
+        <span className="text-3xl font-bold" style={{ color: THEME.accent }}>
           {formatPrice(currentPrice)}
         </span>
         {comparePrice && (
-          <span className="text-base line-through" style={{ color: THEME.muted }}>
+          <span className="text-xl line-through" style={{ color: THEME.muted }}>
             {formatPrice(comparePrice)}
           </span>
         )}
       </div>
 
-      {/* Gold divider */}
-      <div className="w-12 h-0.5 mb-6" style={{ backgroundColor: THEME.accent }} />
+      {/* Short Description */}
+      {product.description && (
+        <div
+          className="mb-6 prose-sm"
+          style={{ color: THEME.muted }}
+          dangerouslySetInnerHTML={{
+            __html: product.description.slice(0, 400),
+          }}
+        />
+      )}
+
+      {/* Tech Specs Badge */}
+      {show_specs_badge && (
+        <div className="flex flex-wrap gap-2 mb-6">
+          <span
+            className="inline-flex items-center gap-1 px-3 py-1 text-xs rounded-full"
+            style={{ backgroundColor: THEME.background, color: THEME.text }}
+          >
+            <Zap size={12} /> Fast Charging
+          </span>
+          <span
+            className="inline-flex items-center gap-1 px-3 py-1 text-xs rounded-full"
+            style={{ backgroundColor: THEME.background, color: THEME.text }}
+          >
+            <Battery size={12} /> 30h Battery
+          </span>
+          <span
+            className="inline-flex items-center gap-1 px-3 py-1 text-xs rounded-full"
+            style={{ backgroundColor: THEME.background, color: THEME.text }}
+          >
+            <Cpu size={12} /> Active Noise Cancel
+          </span>
+        </div>
+      )}
 
       {/* Variants */}
       {product.variants && product.variants.length > 0 && (
         <div className="mb-6">
-          <label
-            className="block text-xs uppercase tracking-wider mb-3"
-            style={{ color: THEME.text }}
-          >
-            {product.variants[0].option1Name || 'Size'}
+          <label className="block text-sm font-medium mb-3" style={{ color: THEME.text }}>
+            {product.variants[0].option1Name || 'Select Option'}
           </label>
           <div className="flex flex-wrap gap-2">
             {product.variants.map((variant) => (
               <button
                 key={variant.id}
                 onClick={() => setSelectedVariant(variant)}
-                className="min-w-[48px] px-4 py-2 text-sm font-medium transition-colors"
+                className="px-4 py-2 text-sm font-medium rounded-xl transition-all"
                 style={{
                   backgroundColor:
-                    selectedVariant?.id === variant.id ? THEME.primary : 'transparent',
-                  color: selectedVariant?.id === variant.id ? THEME.surface : THEME.primary,
-                  border: `1px solid ${THEME.primary}`,
+                    selectedVariant?.id === variant.id ? THEME.accent : THEME.background,
+                  color: selectedVariant?.id === variant.id ? 'white' : THEME.text,
+                  border: `1px solid ${selectedVariant?.id === variant.id ? THEME.accent : THEME.border}`,
                 }}
                 disabled={!variant.isAvailable}
               >
@@ -466,24 +515,27 @@ export default function LuxeProductMain({
       {/* Quantity */}
       {show_quantity_selector && (
         <div className="flex items-center gap-4 mb-6">
-          <span className="text-xs uppercase tracking-wider" style={{ color: THEME.text }}>
+          <span className="text-sm font-medium" style={{ color: THEME.text }}>
             Quantity
           </span>
-          <div className="flex items-center" style={{ border: `1px solid ${THEME.border}` }}>
+          <div
+            className="flex items-center rounded-xl"
+            style={{ border: `1px solid ${THEME.border}`, backgroundColor: THEME.surface }}
+          >
             <button
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="p-3 hover:bg-gray-50 transition-colors"
+              className="p-3 hover:bg-gray-100 transition-colors rounded-l-xl"
               aria-label="Decrease quantity"
             >
-              <Minus size={14} />
+              <Minus size={16} />
             </button>
-            <span className="px-6 text-sm font-medium">{quantity}</span>
+            <span className="px-4 py-2 min-w-[50px] text-center font-medium">{quantity}</span>
             <button
               onClick={() => setQuantity(quantity + 1)}
-              className="p-3 hover:bg-gray-50 transition-colors"
+              className="p-3 hover:bg-gray-100 transition-colors rounded-r-xl"
               aria-label="Increase quantity"
             >
-              <Plus size={14} />
+              <Plus size={16} />
             </button>
           </div>
         </div>
@@ -494,31 +546,36 @@ export default function LuxeProductMain({
         <button
           onClick={handleAddToCart}
           disabled={!isInStock || fetcher.state !== 'idle'}
-          className="flex-1 flex items-center justify-center gap-2 px-8 py-4 text-sm font-medium tracking-wider uppercase transition-all disabled:opacity-50"
-          style={{ backgroundColor: THEME.primary, color: THEME.surface }}
+          className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all disabled:opacity-50"
+          style={{ backgroundColor: THEME.accent }}
         >
-          <ShoppingBag size={18} />
-          {fetcher.state !== 'idle' ? 'Adding...' : 'Add to Bag'}
+          <ShoppingCart size={18} />
+          {fetcher.state !== 'idle' ? 'Adding...' : 'Add to Cart'}
         </button>
         <button
           onClick={() => setIsWishlisted(!isWishlisted)}
-          className="p-4 transition-colors"
+          className="p-3 rounded-xl transition-colors"
           style={{
             border: `1px solid ${THEME.border}`,
             color: isWishlisted ? '#ef4444' : THEME.text,
+            backgroundColor: THEME.surface,
           }}
           aria-label="Add to wishlist"
         >
-          <Heart size={18} fill={isWishlisted ? '#ef4444' : 'none'} />
+          <Heart size={20} fill={isWishlisted ? '#ef4444' : 'none'} />
         </button>
         {show_share && (
           <button
             onClick={handleShare}
-            className="p-4 transition-colors"
-            style={{ border: `1px solid ${THEME.border}`, color: THEME.text }}
+            className="p-3 rounded-xl transition-colors"
+            style={{
+              border: `1px solid ${THEME.border}`,
+              color: THEME.text,
+              backgroundColor: THEME.surface,
+            }}
             aria-label="Share product"
           >
-            <Share2 size={18} />
+            <Share2 size={20} />
           </button>
         )}
       </div>
@@ -527,39 +584,36 @@ export default function LuxeProductMain({
       <div className="flex items-center gap-2 mb-6">
         {isInStock ? (
           <>
-            <Check size={14} style={{ color: '#2d6a4f' }} />
-            <span className="text-xs uppercase tracking-wider" style={{ color: '#2d6a4f' }}>
+            <Check size={16} style={{ color: THEME.success }} />
+            <span className="text-sm" style={{ color: THEME.success }}>
               In Stock
             </span>
           </>
         ) : (
-          <span className="text-xs uppercase tracking-wider text-red-600">Out of Stock</span>
+          <span className="text-sm text-red-500">Out of Stock</span>
         )}
       </div>
 
       {/* Trust Badges */}
       {show_trust_badges && (
         <div
-          className="grid grid-cols-3 gap-4 py-6"
-          style={{
-            borderTop: `1px solid ${THEME.border}`,
-            borderBottom: `1px solid ${THEME.border}`,
-          }}
+          className="grid grid-cols-3 gap-3 p-4 rounded-xl"
+          style={{ backgroundColor: THEME.background }}
         >
           <div className="flex flex-col items-center text-center">
-            <Truck size={20} style={{ color: THEME.accent }} className="mb-2" />
+            <Truck size={20} style={{ color: THEME.accent }} className="mb-1" />
             <span className="text-xs" style={{ color: THEME.muted }}>
               {shipping_text}
             </span>
           </div>
           <div className="flex flex-col items-center text-center">
-            <Shield size={20} style={{ color: THEME.accent }} className="mb-2" />
+            <Shield size={20} style={{ color: THEME.accent }} className="mb-1" />
             <span className="text-xs" style={{ color: THEME.muted }}>
-              {guarantee_text}
+              {warranty_text}
             </span>
           </div>
           <div className="flex flex-col items-center text-center">
-            <RotateCcw size={20} style={{ color: THEME.accent }} className="mb-2" />
+            <RotateCcw size={20} style={{ color: THEME.accent }} className="mb-1" />
             <span className="text-xs" style={{ color: THEME.muted }}>
               {return_text}
             </span>
@@ -567,17 +621,14 @@ export default function LuxeProductMain({
         </div>
       )}
 
-      {/* Blocks (Description, Accordions) */}
+      {/* Blocks (Description, Specifications, Accordions) */}
       {blocks && blocks.length > 0 && (
         <div className="mt-8 space-y-4">
           {blocks.map((block) => {
             if (block.type === 'description' && product.description) {
               return (
                 <div key={block.id}>
-                  <h3
-                    className="text-sm uppercase tracking-wider mb-3"
-                    style={{ color: THEME.primary }}
-                  >
+                  <h3 className="text-lg font-semibold mb-3" style={{ color: THEME.text }}>
                     Description
                   </h3>
                   <div
@@ -588,22 +639,37 @@ export default function LuxeProductMain({
                 </div>
               );
             }
+            if (block.type === 'specifications') {
+              return (
+                <div
+                  key={block.id}
+                  className="rounded-xl p-4"
+                  style={{ backgroundColor: THEME.background }}
+                >
+                  <h3 className="text-lg font-semibold mb-3" style={{ color: THEME.text }}>
+                    {(block.settings?.title as string) || 'Specifications'}
+                  </h3>
+                  <div className="text-sm" style={{ color: THEME.muted }}>
+                    {(block.settings?.content as string) || 'No specifications available'}
+                  </div>
+                </div>
+              );
+            }
             if (block.type === 'accordion') {
               return (
                 <details
                   key={block.id}
-                  className="group"
-                  style={{ borderBottom: `1px solid ${THEME.border}` }}
+                  className="rounded-xl overflow-hidden"
+                  style={{ backgroundColor: THEME.background }}
                 >
                   <summary
-                    className="py-4 cursor-pointer text-sm uppercase tracking-wider flex justify-between items-center"
-                    style={{ color: THEME.primary }}
+                    className="p-4 cursor-pointer font-medium flex justify-between items-center"
+                    style={{ color: THEME.text }}
                   >
                     {(block.settings?.title as string) || 'Details'}
-                    <Plus size={14} className="group-open:hidden" />
-                    <Minus size={14} className="hidden group-open:block" />
+                    <Plus size={16} className="details-icon-plus" />
                   </summary>
-                  <div className="pb-4 text-sm" style={{ color: THEME.muted }}>
+                  <div className="px-4 pb-4 text-sm" style={{ color: THEME.muted }}>
                     {(block.settings?.content as string) || 'Add content here'}
                   </div>
                 </details>
@@ -621,7 +687,7 @@ export default function LuxeProductMain({
       className="py-8 md:py-12"
       style={{ backgroundColor: THEME.background }}
       data-section-id={section.id}
-      data-section-type="luxe-product-main"
+      data-section-type="tech-modern-product-main"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div

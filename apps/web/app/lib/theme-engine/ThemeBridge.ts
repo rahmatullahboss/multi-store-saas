@@ -61,12 +61,24 @@ import ghorerBazarCartTemplate from '~/themes/ghorer-bazar/templates/cart.json';
 import ghorerBazarPageTemplate from '~/themes/ghorer-bazar/templates/page.json';
 
 import luxeBoutiqueIndexTemplate from '~/themes/luxe-boutique/templates/index.json';
+import luxeBoutiqueProductTemplate from '~/themes/luxe-boutique/templates/product.json';
+import luxeBoutiqueCollectionTemplate from '~/themes/luxe-boutique/templates/collection.json';
+import luxeBoutiqueCartTemplate from '~/themes/luxe-boutique/templates/cart.json';
+import luxeBoutiquePageTemplate from '~/themes/luxe-boutique/templates/page.json';
 
 import techModernIndexTemplate from '~/themes/tech-modern/templates/index.json';
+import techModernProductTemplate from '~/themes/tech-modern/templates/product.json';
+import techModernCollectionTemplate from '~/themes/tech-modern/templates/collection.json';
+import techModernCartTemplate from '~/themes/tech-modern/templates/cart.json';
+import techModernPageTemplate from '~/themes/tech-modern/templates/page.json';
 
 import auroraMinimalIndexTemplate from '~/themes/aurora-minimal/templates/index.json';
 
 import novaLuxIndexTemplate from '~/themes/nova-lux/templates/index.json';
+import novaLuxProductTemplate from '~/themes/nova-lux/templates/product.json';
+import novaLuxCollectionTemplate from '~/themes/nova-lux/templates/collection.json';
+import novaLuxCartTemplate from '~/themes/nova-lux/templates/cart.json';
+import novaLuxPageTemplate from '~/themes/nova-lux/templates/page.json';
 
 import eclipseIndexTemplate from '~/themes/eclipse/templates/index.json';
 import artisanMarketIndexTemplate from '~/themes/artisan-market/templates/index.json';
@@ -75,7 +87,6 @@ import rovoIndexTemplate from '~/themes/rovo/templates/index.json';
 import sokolIndexTemplate from '~/themes/sokol/templates/index.json';
 import turboSaleIndexTemplate from '~/themes/turbo-sale/templates/index.json';
 import zenithRiseIndexTemplate from '~/themes/zenith-rise/templates/index.json';
-
 
 // ============================================================================
 // TYPES
@@ -322,13 +333,20 @@ const TEMPLATE_REGISTRY: Record<string, Record<string, TemplateJSON>> = {
   },
   'luxe-boutique': {
     index: luxeBoutiqueIndexTemplate as unknown as TemplateJSON,
-    // Other templates use starter-store as fallback
+    product: luxeBoutiqueProductTemplate as unknown as TemplateJSON,
+    collection: luxeBoutiqueCollectionTemplate as unknown as TemplateJSON,
+    cart: luxeBoutiqueCartTemplate as unknown as TemplateJSON,
+    page: luxeBoutiquePageTemplate as unknown as TemplateJSON,
   },
   'aurora-minimal': {
     index: auroraMinimalIndexTemplate as unknown as TemplateJSON,
   },
   'nova-lux': {
     index: novaLuxIndexTemplate as unknown as TemplateJSON,
+    product: novaLuxProductTemplate as unknown as TemplateJSON,
+    collection: novaLuxCollectionTemplate as unknown as TemplateJSON,
+    cart: novaLuxCartTemplate as unknown as TemplateJSON,
+    page: novaLuxPageTemplate as unknown as TemplateJSON,
   },
   eclipse: {
     index: eclipseIndexTemplate as unknown as TemplateJSON,
@@ -353,7 +371,10 @@ const TEMPLATE_REGISTRY: Record<string, Record<string, TemplateJSON>> = {
   },
   'tech-modern': {
     index: techModernIndexTemplate as unknown as TemplateJSON,
-    // Other templates use starter-store as fallback
+    product: techModernProductTemplate as unknown as TemplateJSON,
+    collection: techModernCollectionTemplate as unknown as TemplateJSON,
+    cart: techModernCartTemplate as unknown as TemplateJSON,
+    page: techModernPageTemplate as unknown as TemplateJSON,
   },
 };
 

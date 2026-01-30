@@ -215,8 +215,14 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
     // Template resolution (Shopify OS 2.0)
     let template = null;
+    let homeTemplate = null;
     try {
       template = await resolveTemplate(context.cloudflare.env.DB, storeId, 'product');
+
+      // If no product template, get home template for header/footer consistency
+      if (!template || !template.sections || template.sections.length === 0) {
+        homeTemplate = await resolveTemplate(context.cloudflare.env.DB, storeId, 'home');
+      }
     } catch (templateError) {
       console.error('[products.$id] Template resolution failed:', templateError);
     }
@@ -248,6 +254,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       planType: store?.planType || 'free',
       customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
       template,
+      homeTemplate, // For header/footer fallback
       productUrl,
     });
   } catch (error) {
@@ -289,6 +296,7 @@ export default function ProductDetail() {
     planType,
     customer,
     template,
+    homeTemplate,
     productUrl,
   } = useLoaderData<typeof loader>();
 
@@ -317,6 +325,12 @@ export default function ProductDetail() {
 
   // Check if we have published template sections
   const hasTemplateSections = template?.sections && template.sections.length > 0;
+
+  // Check if we have home template for header/footer fallback
+  const hasHomeTemplate = homeTemplate?.sections && homeTemplate.sections.length > 0;
+
+  // Use theme sections for consistent header/footer
+  const useThemeSections = hasTemplateSections || hasHomeTemplate;
 
   // Get template definition to check for ProductPage component
   const templateDef = getStoreTemplate(storeTemplateId);
@@ -463,13 +477,94 @@ export default function ProductDetail() {
       );
     }
 
+    // If no product template but home template exists, use home template's header/footer
+    // with SimpleProductPage content in between
+    if (hasHomeTemplate && homeTemplate?.sections) {
+      // Extract header and footer sections from home template
+      const headerSections = homeTemplate.sections.filter(
+        (s) => s.type === 'header' || s.type === 'announcement-bar'
+      );
+      const footerSections = homeTemplate.sections.filter((s) => s.type === 'footer');
+
+      // Combine: header + product content (as a pseudo-section) + footer
+      const combinedSections = [
+        ...headerSections.map((s) => ({
+          id: s.id,
+          type: s.type,
+          settings: s.props || {},
+          blocks:
+            s.blocks?.map((b) => ({
+              id: b.id,
+              type: b.type,
+              settings: b.props || {},
+            })) || [],
+          enabled: s.enabled,
+        })),
+        // Product main section - this will use the theme's product-main section
+        {
+          id: 'product-main-fallback',
+          type: 'product-main',
+          settings: {},
+          blocks: [],
+          enabled: true,
+        },
+        ...footerSections.map((s) => ({
+          id: s.id,
+          type: s.type,
+          settings: s.props || {},
+          blocks:
+            s.blocks?.map((b) => ({
+              id: b.id,
+              type: b.type,
+              settings: b.props || {},
+            })) || [],
+          enabled: s.enabled,
+        })),
+      ];
+
+      return (
+        <ThemeStoreRenderer
+          themeId={storeTemplateId}
+          sections={combinedSections}
+          store={{
+            id: storeId,
+            name: storeName,
+            currency,
+            logo,
+            defaultLanguage: 'en',
+          }}
+          pageType="product"
+          product={{
+            id: product.id,
+            title: product.title,
+            description: product.description,
+            price: product.price,
+            compareAtPrice: product.compareAtPrice || undefined,
+            imageUrl: product.imageUrl,
+            images,
+            category: product.category || undefined,
+          }}
+          products={relatedProducts.map((p) => ({
+            id: p.id,
+            title: p.title,
+            price: p.price,
+            compareAtPrice: p.compareAtPrice || undefined,
+            imageUrl: p.imageUrl,
+            images: p.imageUrl ? [p.imageUrl] : [],
+            category: p.category || undefined,
+          }))}
+          skipHeaderFooter={false}
+        />
+      );
+    }
+
     // Fallback to simple product page
     return <SimpleProductPage />;
   };
 
   return (
     <StorePageWrapper
-      hideHeaderFooter={hasTemplateSections}
+      hideHeaderFooter={useThemeSections}
       storeName={storeName}
       storeId={storeId}
       logo={logo}

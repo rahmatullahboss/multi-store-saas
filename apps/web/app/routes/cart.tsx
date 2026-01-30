@@ -68,7 +68,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
 
   // Template resolution (Shopify OS 2.0)
-  const template = await resolveTemplate(context.cloudflare.env.DB, storeId, 'cart');
+  let template = null;
+  let homeTemplate = null;
+  try {
+    template = await resolveTemplate(context.cloudflare.env.DB, storeId, 'cart');
+
+    // If no cart template, get home template for header/footer consistency
+    if (!template || !template.sections || template.sections.length === 0) {
+      homeTemplate = await resolveTemplate(context.cloudflare.env.DB, storeId, 'home');
+    }
+  } catch (templateError) {
+    console.error('[cart] Template resolution failed:', templateError);
+  }
 
   return json({
     storeId: storeId as number,
@@ -83,6 +94,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     planType: storeData?.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
     template,
+    homeTemplate, // For header/footer fallback
   });
 }
 
@@ -151,6 +163,7 @@ export default function CartPage() {
     planType,
     customer,
     template,
+    homeTemplate,
   } = useLoaderData<typeof loader>();
   const { t } = useTranslation();
 
@@ -223,6 +236,8 @@ export default function CartPage() {
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
   const hasTemplateSections = template?.sections && template.sections.length > 0;
+  const hasHomeTemplate = homeTemplate?.sections && homeTemplate.sections.length > 0;
+  const useThemeSections = hasTemplateSections || hasHomeTemplate;
 
   // Get template definition
   const templateDef = getStoreTemplate(storeTemplateId);
@@ -262,6 +277,87 @@ export default function CartPage() {
               })) || [],
             enabled: s.enabled,
           }))}
+          store={{
+            id: storeId,
+            name: storeName,
+            currency,
+            logo,
+            defaultLanguage: 'en',
+          }}
+          pageType="cart"
+          cart={{
+            items: cart.map((item) => ({
+              id: item.productId,
+              productId: item.productId,
+              title: item.title,
+              price: item.price,
+              quantity: item.quantity,
+              imageUrl: item.imageUrl || undefined,
+            })),
+            itemCount: cart.reduce((sum, item) => sum + item.quantity, 0),
+            total: subtotal,
+          }}
+          skipHeaderFooter={false}
+        />
+      );
+    }
+
+    // If no cart template but home template exists, use home template's header/footer
+    if (hasHomeTemplate && homeTemplate?.sections) {
+      // Extract header and footer sections from home template
+      const headerSections = homeTemplate.sections.filter(
+        (s) => s.type === 'header' || s.type === 'announcement-bar'
+      );
+      const footerSections = homeTemplate.sections.filter((s) => s.type === 'footer');
+
+      // Combine: header + cart content (as pseudo-sections) + footer
+      const combinedSections = [
+        ...headerSections.map((s) => ({
+          id: s.id,
+          type: s.type,
+          settings: s.props || {},
+          blocks:
+            s.blocks?.map((b) => ({
+              id: b.id,
+              type: b.type,
+              settings: b.props || {},
+            })) || [],
+          enabled: s.enabled,
+        })),
+        // Cart items section
+        {
+          id: 'cart-items-fallback',
+          type: 'cart-items',
+          settings: {},
+          blocks: [],
+          enabled: true,
+        },
+        // Cart summary section
+        {
+          id: 'cart-summary-fallback',
+          type: 'cart-summary',
+          settings: {},
+          blocks: [],
+          enabled: true,
+        },
+        ...footerSections.map((s) => ({
+          id: s.id,
+          type: s.type,
+          settings: s.props || {},
+          blocks:
+            s.blocks?.map((b) => ({
+              id: b.id,
+              type: b.type,
+              settings: b.props || {},
+            })) || [],
+          enabled: s.enabled,
+        })),
+      ];
+
+      return (
+        <ThemeStoreRenderer
+          themeId={storeTemplateId}
+          sections={combinedSections}
           store={{
             id: storeId,
             name: storeName,
@@ -384,7 +480,7 @@ export default function CartPage() {
 
   return (
     <StorePageWrapper
-      hideHeaderFooter={hasTemplateSections}
+      hideHeaderFooter={useThemeSections}
       storeName={storeName}
       storeId={storeId}
       logo={logo}

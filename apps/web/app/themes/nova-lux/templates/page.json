@@ -1,0 +1,34 @@
+{
+  "name": "Nova Lux Page",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "show_announcement": false,
+        "show_search": true,
+        "show_cart": true,
+        "menu_style": "minimal"
+      }
+    },
+    "hero": {
+      "type": "hero-banner",
+      "settings": {
+        "heading": "",
+        "subheading": "",
+        "button_text": "",
+        "button_link": "",
+        "overlay_opacity": 20,
+        "height": "small"
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "show_powered_by": true,
+        "show_trust_badges": true
+      }
+    }
+  },
+  "order": ["header", "hero", "footer"]
+}

@@ -58,10 +58,16 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
   // Resolve template system (Shopify OS 2.0)
   let template = null;
+  let homeTemplate = null;
   try {
     template = await resolveTemplate(context.cloudflare.env.DB, storeId, 'page');
-  } catch {
-    // Continue without template
+
+    // If no page template, get home template for header/footer consistency
+    if (!template || !template.sections || template.sections.length === 0) {
+      homeTemplate = await resolveTemplate(context.cloudflare.env.DB, storeId, 'home');
+    }
+  } catch (templateError) {
+    console.error('[pages.$slug] Template resolution failed:', templateError);
   }
 
   // Build page context
@@ -82,6 +88,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     businessInfo,
     themeConfig,
     template,
+    homeTemplate, // For header/footer fallback
     pageTitle: pageContext.title,
     pageSlug: slug,
     pageContent: pageContext.content,
@@ -102,6 +109,7 @@ export default function CustomPageRoute() {
     businessInfo,
     themeConfig,
     template,
+    homeTemplate,
     pageTitle,
     pageSlug,
     pageContent,
@@ -109,6 +117,8 @@ export default function CustomPageRoute() {
   } = useLoaderData<typeof loader>();
 
   const hasTemplateSections = template?.sections && template.sections.length > 0;
+  const hasHomeTemplate = homeTemplate?.sections && homeTemplate.sections.length > 0;
+  const useThemeSections = hasTemplateSections || hasHomeTemplate;
 
   // Render page content
   const renderPageContent = () => {
@@ -143,6 +153,72 @@ export default function CustomPageRoute() {
       );
     }
 
+    // If no page template but home template exists, use home template's header/footer
+    if (hasHomeTemplate && homeTemplate?.sections) {
+      // Extract header and footer sections from home template
+      const headerSections = homeTemplate.sections.filter(
+        (s) => s.type === 'header' || s.type === 'announcement-bar'
+      );
+      const footerSections = homeTemplate.sections.filter((s) => s.type === 'footer');
+
+      // Combine: header + rich-text (page content) + footer
+      const combinedSections = [
+        ...headerSections.map((s) => ({
+          id: s.id,
+          type: s.type,
+          settings: s.props || {},
+          blocks:
+            s.blocks?.map((b) => ({
+              id: b.id,
+              type: b.type,
+              settings: b.props || {},
+            })) || [],
+          enabled: s.enabled,
+        })),
+        // Page content as rich-text section
+        {
+          id: 'page-content-fallback',
+          type: 'rich-text',
+          settings: {
+            heading: pageTitle,
+            text: pageContent,
+            text_alignment: 'center',
+          },
+          blocks: [],
+          enabled: true,
+        },
+        ...footerSections.map((s) => ({
+          id: s.id,
+          type: s.type,
+          settings: s.props || {},
+          blocks:
+            s.blocks?.map((b) => ({
+              id: b.id,
+              type: b.type,
+              settings: b.props || {},
+            })) || [],
+          enabled: s.enabled,
+        })),
+      ];
+
+      return (
+        <ThemeStoreRenderer
+          themeId={storeTemplateId}
+          sections={combinedSections}
+          store={{
+            id: storeId,
+            name: storeName,
+            currency,
+            logo,
+            defaultLanguage: 'en',
+          }}
+          pageType="page"
+          pageHandle={pageSlug}
+          skipHeaderFooter={false}
+        />
+      );
+    }
+
     // Fallback: Default page content
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -158,7 +234,7 @@ export default function CustomPageRoute() {
 
   return (
     <StorePageWrapper
-      hideHeaderFooter={hasTemplateSections}
+      hideHeaderFooter={useThemeSections}
       storeName={storeName}
       storeId={storeId}
       logo={logo}

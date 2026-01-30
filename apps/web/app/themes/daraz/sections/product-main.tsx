@@ -610,7 +610,10 @@ export default function DarazProductMain({
               return (
                 <div key={block.id} className="prose max-w-none">
                   <h3 className="text-lg font-medium mb-2 text-gray-800">Description</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">{product.description}</p>
+                  <div
+                    className="text-gray-600 text-sm leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: product.description }}
+                  />
                 </div>
               );
             }

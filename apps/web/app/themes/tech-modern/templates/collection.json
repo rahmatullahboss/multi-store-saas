@@ -1,0 +1,32 @@
+{
+  "name": "Tech Modern Collection",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "show_search": true,
+        "show_cart": true
+      }
+    },
+    "hero": {
+      "type": "hero-banner",
+      "settings": {
+        "heading": "Our Collection",
+        "subheading": "Browse our latest tech products and gadgets.",
+        "button_text": "",
+        "button_link": "",
+        "overlay_opacity": 30,
+        "height": "medium"
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "show_payment_icons": true,
+        "show_social_links": true
+      }
+    }
+  },
+  "order": ["header", "hero", "footer"]
+}

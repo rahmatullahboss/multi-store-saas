@@ -1,0 +1,54 @@
+{
+  "name": "Luxe Boutique Cart",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "show_announcement": false,
+        "show_search": true,
+        "show_cart": false,
+        "show_wishlist": true,
+        "menu_style": "minimal"
+      }
+    },
+    "cart-items": {
+      "type": "cart-items",
+      "settings": {
+        "show_vendor": false,
+        "show_sku": true,
+        "show_quantity": true,
+        "show_remove_button": true,
+        "background_color": "#ffffff",
+        "padding_top": 48,
+        "padding_bottom": 48
+      }
+    },
+    "featured-collection": {
+      "type": "featured-collection",
+      "settings": {
+        "heading": "Continue Shopping",
+        "heading_bn": "আরও কিনুন",
+        "products_to_show": 4,
+        "columns": 4,
+        "show_view_all": true,
+        "view_all_text": "View All Products",
+        "view_all_text_bn": "সব পণ্য দেখুন",
+        "view_all_link": "/products",
+        "background_color": "#faf9f7",
+        "padding_top": 64,
+        "padding_bottom": 64
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "show_payment_icons": true,
+        "show_social_links": true,
+        "background_color": "#1a1a1a",
+        "text_color": "#ffffff"
+      }
+    }
+  },
+  "order": ["header", "cart-items", "featured-collection", "footer"]
+}

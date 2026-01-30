@@ -1,7 +1,7 @@
 import React from 'react';
 import type { SectionComponentProps, SectionSchema } from '~/lib/theme-engine/types';
 import { StandardFooter } from '~/components/store-templates/shared/StandardFooter';
-import { DEFAULT_THEME_CONFIG } from '../index'; 
+import { DEFAULT_THEME_CONFIG } from '../index';
 
 // ============================================================================
 // SCHEMA
@@ -17,7 +17,7 @@ export const schema: SectionSchema = {
       type: 'textarea',
       id: 'about_text',
       label: 'About text',
-      default: 'South Asia\'s leading e-commerce marketplace.',
+      default: "South Asia's leading e-commerce marketplace.",
     },
     {
       type: 'checkbox',
@@ -25,18 +25,18 @@ export const schema: SectionSchema = {
       label: 'Show newsletter signup',
       default: true,
     },
-     {
+    {
       type: 'checkbox',
       id: 'show_trust_badges',
       label: 'Show Example Trust Badges',
       default: true,
     },
     {
-       type: 'checkbox',
-       id: 'show_powered_by',
-       label: 'Show Powered By Ozzyl',
-       default: true,
-     },
+      type: 'checkbox',
+      id: 'show_powered_by',
+      label: 'Show Powered By Ozzyl',
+      default: true,
+    },
   ],
 };
 
@@ -46,14 +46,14 @@ export const schema: SectionSchema = {
 
 export default function DarazFooter({ context, settings }: SectionComponentProps) {
   const { store } = context;
-  const config = defaultThemeConfig; // Daraz might need a specific config export if not available
+  const config = DEFAULT_THEME_CONFIG; // Use the exported config
 
   // Cast store to any for potentially missing fields until schema is updated
   const storeAny = store as any;
   const businessInfo = {
-      address: storeAny.address || 'House 123, Road 5, Gulshan, Dhaka 1212, Bangladesh',
-      email: storeAny.email || 'hello@store.com',
-      phone: storeAny.phone || '+880 1XXX-XXXXXX',
+    address: storeAny.address || 'House 123, Road 5, Gulshan, Dhaka 1212, Bangladesh',
+    email: storeAny.email || 'hello@store.com',
+    phone: storeAny.phone || '+880 1XXX-XXXXXX',
   };
 
   const socialLinks = {
@@ -61,25 +61,25 @@ export default function DarazFooter({ context, settings }: SectionComponentProps
     facebook: storeAny.facebook,
     twitter: storeAny.twitter,
   };
-  
-  const categories = context.collections?.map(c => c.title) || [];
+
+  const categories = context.collections?.map((c) => c.title) || [];
 
   const footerConfig = {
-      description: settings.about_text as string,
-      showPoweredBy: settings.show_powered_by !== false,
-      showTrustBadges: settings.show_trust_badges !== false,
-  }
+    description: settings.about_text as string,
+    showPoweredBy: settings.show_powered_by !== false,
+    showTrustBadges: settings.show_trust_badges !== false,
+  };
 
   return (
     <StandardFooter
-        storeName={store.name}
-        logo={store.logo}
-        config={config}
-        socialLinks={socialLinks}
-        footerConfig={footerConfig}
-        businessInfo={businessInfo}
-        categories={categories}
-        planType={store.planType || 'free'}
+      storeName={store.name}
+      logo={store.logo}
+      config={config}
+      socialLinks={socialLinks}
+      footerConfig={footerConfig}
+      businessInfo={businessInfo}
+      categories={categories}
+      planType={store.planType || 'free'}
     />
   );
 }

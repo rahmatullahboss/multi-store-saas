@@ -9,7 +9,8 @@ export const schema: SectionSchema = {
       type: 'textarea',
       id: 'description',
       label: 'Description',
-      default: 'Your one-stop shop for fresh, organic, and healthy groceries delivered to your doorstep.',
+      default:
+        'Your one-stop shop for fresh, organic, and healthy groceries delivered to your doorstep.',
     },
     {
       type: 'checkbox',
@@ -22,15 +23,15 @@ export const schema: SectionSchema = {
 
 export default function FreshnessFooter({ context, settings }: SectionComponentProps) {
   const { store, collections } = context;
-  
+
   const footerConfig = {
     showPoweredBy: true,
     showTrustBadges: (settings.show_features as boolean) ?? true,
     description: settings.description as string,
   };
 
-  const socialLinks = store.socialLinks ? JSON.parse(store.socialLinks) : null;
-  const categories = collections?.map(c => c.title) || [];
+  const socialLinks = store.socialLinks || null;
+  const categories = collections?.map((c) => c.title) || [];
 
   return (
     <StandardFooter
@@ -40,7 +41,7 @@ export default function FreshnessFooter({ context, settings }: SectionComponentP
       config={context.theme}
       socialLinks={socialLinks}
       footerConfig={footerConfig}
-      businessInfo={store.businessInfo ? JSON.parse(store.businessInfo) : null}
+      businessInfo={store.businessInfo || null}
       categories={categories}
     />
   );

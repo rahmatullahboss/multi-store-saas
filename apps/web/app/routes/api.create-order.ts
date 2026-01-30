@@ -48,6 +48,8 @@ import { validateDiscount, incrementDiscountUsage } from '~/../server/services/d
 // DO Services for checkout lock and rate limiting
 import { acquireCheckoutLock, releaseCheckoutLock } from '~/services/checkout-do.server';
 import { checkRateLimit, getClientIP } from '~/services/rate-limiter-do.server';
+// Order Processor DO for background tasks (email, webhooks)
+import { enqueueOrderTasks } from '~/services/order-processor.server';
 
 // ============================================================================
 // VALIDATION SCHEMA with BD Phone validation
@@ -900,32 +902,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
         })),
       ]);
 
-      // ========== WEBHOOK: ORDER CREATED ==========
-      context.cloudflare.ctx.waitUntil(
-        dispatchWebhook(context.cloudflare.env, input.store_id, 'order.created', {
-          event: 'order.created',
-          order_id: orderId,
-          order_number: orderNumber,
-          customer_name: input.customer_name,
-          customer_phone: input.phone,
-          customer_email: input.customer_email || null,
-          shipping_address: input.address,
-          division: input.division,
-          subtotal,
-          shipping,
-          tax,
-          total,
-          payment_method: input.payment_method,
-          item_count: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
-          items: finalOrderItems.map((i) => ({
-            product_id: i.productId,
-            title: i.title,
-            quantity: i.quantity,
-            price: i.unitPrice,
-          })),
-          created_at: now.toISOString(),
-        }).catch((e) => console.error('[Webhook] order.created failed:', e))
-      );
+      // Note: Webhook dispatch is now handled by OrderProcessor DO for reliability
+      // See NOTIFICATIONS & TRACKING section below
 
       // ========== CHECKOUT SESSION: MARK COMPLETED ==========
       // Create checkout session for idempotency tracking
@@ -1118,15 +1096,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // ============================================================================
     // NOTIFICATIONS & TRACKING (Non-blocking)
     // ============================================================================
-    const resendApiKey = context.cloudflare.env.RESEND_API_KEY;
-    if (resendApiKey) {
-      const emailService = createEmailService(resendApiKey);
-      if (input.customer_email) {
-        context.cloudflare.ctx.waitUntil(
-          emailService.sendOrderConfirmation({
+
+    // Build OrderProcessor tasks array
+    const orderTasks: Array<{
+      type: 'email' | 'webhook' | 'notification';
+      payload: Record<string, unknown>;
+    }> = [];
+
+    // Customer Confirmation Email Task
+    if (input.customer_email && context.cloudflare.env.RESEND_API_KEY) {
+      orderTasks.push({
+        type: 'email',
+        payload: {
+          to: input.customer_email,
+          subject: `অর্ডার নিশ্চিত - ${orderNumber}`,
+          template: 'order_confirmation',
+          data: {
             orderNumber,
             customerName: input.customer_name,
-            customerEmail: input.customer_email,
             total,
             currency: storeData.currency || 'BDT',
             items: finalOrderItems.map((i) => ({
@@ -1140,46 +1127,111 @@ export async function action({ request, context }: ActionFunctionArgs) {
                 ? 'Cash on Delivery'
                 : input.payment_method.toUpperCase(),
             storeName: storeData.name,
-            storeLogo: storeData.logo || undefined,
-            primaryColor:
-              (storeData.themeConfig &&
-                JSON.parse(storeData.themeConfig as string)?.primaryColor) ||
-              undefined,
-          })
-        );
-      }
+          },
+        },
+      });
+    }
 
-      // Merchant Alert
-      const merchantUser = await db
-        .select({ email: users.email, name: users.name })
-        .from(users)
-        .where(eq(users.storeId, input.store_id))
-        .limit(1);
-      if (merchantUser.length > 0 && merchantUser[0].email) {
+    // Merchant Alert Email Task (will get merchant email from OrderProcessor DO)
+    orderTasks.push({
+      type: 'email',
+      payload: {
+        template: 'merchant_alert',
+        storeId: input.store_id,
+        data: {
+          orderNumber,
+          customerName: input.customer_name,
+          total,
+          currency: storeData.currency || 'BDT',
+          itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
+          isFirstOrder,
+        },
+      },
+    });
+
+    // Order Created Webhook Task
+    orderTasks.push({
+      type: 'webhook',
+      payload: {
+        event: 'order.created',
+        orderId,
+        storeId: input.store_id,
+        data: {
+          order_number: orderNumber,
+          customer_name: input.customer_name,
+          customer_phone: input.phone,
+          customer_email: input.customer_email || null,
+          shipping_address: input.address,
+          division: input.division,
+          subtotal,
+          shipping,
+          tax,
+          total,
+          payment_method: input.payment_method,
+          item_count: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
+          items: finalOrderItems.map((i) => ({
+            product_id: i.productId,
+            title: i.title,
+            quantity: i.quantity,
+            price: i.unitPrice,
+          })),
+          created_at: now.toISOString(),
+        },
+      },
+    });
+
+    // Send all tasks to OrderProcessor DO for reliable background processing
+    if (orderTasks.length > 0) {
+      context.cloudflare.ctx.waitUntil(
+        enqueueOrderTasks(context.cloudflare.env, orderId!, input.store_id, orderTasks)
+          .then((result) => {
+            if (!result.success) {
+              console.error('[OrderProcessor] Failed to enqueue tasks:', result.error);
+            } else {
+              console.log(
+                `[OrderProcessor] Enqueued ${orderTasks.length} tasks for order ${orderNumber}`
+              );
+            }
+          })
+          .catch((error) => {
+            console.error('[OrderProcessor] Error enqueuing tasks:', error);
+          })
+      );
+    }
+
+    // Keep direct email fallback for critical paths if DO fails
+    const resendApiKey = context.cloudflare.env.RESEND_API_KEY;
+    if (resendApiKey && !context.cloudflare.env.ORDER_PROCESSOR_SERVICE) {
+      // Fallback: Direct email if OrderProcessor not available
+      const emailService = createEmailService(resendApiKey);
+      if (input.customer_email) {
         context.cloudflare.ctx.waitUntil(
-          emailService.sendNewOrderAlert({
-            merchantEmail: merchantUser[0].email,
-            storeName: storeData.name,
-            orderNumber,
-            customerName: input.customer_name,
-            total,
-            currency: storeData.currency || 'BDT',
-            itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
-          })
-        );
-
-        // Fire Celebration Email if it's the First Sale!
-        if (isFirstOrder) {
-          context.cloudflare.ctx.waitUntil(
-            emailService.sendFirstSaleCelebration({
-              merchantEmail: merchantUser[0].email,
-              merchantName: merchantUser[0].name || 'Merchant',
-              storeName: storeData.name,
+          emailService
+            .sendOrderConfirmation({
               orderNumber,
-              amount: `${storeData.currency || 'BDT'} ${total}`,
+              customerName: input.customer_name,
+              customerEmail: input.customer_email,
+              total,
+              currency: storeData.currency || 'BDT',
+              items: finalOrderItems.map((i) => ({
+                title: i.title,
+                quantity: i.quantity,
+                price: i.unitPrice,
+              })),
+              shippingAddress: input.address,
+              paymentMethod:
+                input.payment_method === 'cod'
+                  ? 'Cash on Delivery'
+                  : input.payment_method.toUpperCase(),
+              storeName: storeData.name,
+              storeLogo: storeData.logo || undefined,
+              primaryColor:
+                (storeData.themeConfig &&
+                  JSON.parse(storeData.themeConfig as string)?.primaryColor) ||
+                undefined,
             })
-          );
-        }
+            .catch((e) => console.error('[Email] Confirmation failed:', e))
+        );
       }
     }
 

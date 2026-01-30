@@ -1,0 +1,32 @@
+{
+  "name": "Tech Modern Page",
+  "layout": "theme",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "show_search": true,
+        "show_cart": true
+      }
+    },
+    "hero": {
+      "type": "hero-banner",
+      "settings": {
+        "heading": "",
+        "subheading": "",
+        "button_text": "",
+        "button_link": "",
+        "overlay_opacity": 20,
+        "height": "small"
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "show_payment_icons": true,
+        "show_social_links": true
+      }
+    }
+  },
+  "order": ["header", "hero", "footer"]
+}

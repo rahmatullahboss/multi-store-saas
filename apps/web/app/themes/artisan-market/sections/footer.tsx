@@ -36,8 +36,8 @@ export default function ArtisanFooter({ context, settings }: SectionComponentPro
     showNewsletter: settings.show_newsletter as boolean,
   };
 
-  const socialLinks = store.socialLinks ? JSON.parse(store.socialLinks) : null;
-  const categories = collections?.map(c => c.title) || [];
+  const socialLinks = store.socialLinks || null;
+  const categories = collections?.map((c) => c.title) || [];
 
   return (
     <StandardFooter
@@ -47,7 +47,7 @@ export default function ArtisanFooter({ context, settings }: SectionComponentPro
       config={context.theme}
       socialLinks={socialLinks}
       footerConfig={footerConfig}
-      businessInfo={store.businessInfo ? JSON.parse(store.businessInfo) : null}
+      businessInfo={store.businessInfo || null}
       categories={categories}
     />
   );

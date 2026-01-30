@@ -1,9 +1,10 @@
 import type { ThemeConfig, SectionRegistry } from '~/lib/theme-engine/types';
 
-// Import section components - to be created
+// Import section components
 import NovaLuxHeader, { schema as headerSchema } from './sections/header';
 import NovaLuxFooter, { schema as footerSchema } from './sections/footer';
 import NovaLuxHeroBanner, { schema as heroBannerSchema } from './sections/hero-banner';
+import NovaLuxProductMain, { schema as productMainSchema } from './sections/product-main';
 
 // ============================================================================
 // THEME METADATA
@@ -32,6 +33,8 @@ export const THEME_METADATA = {
 // ============================================================================
 
 export const DEFAULT_THEME_CONFIG: ThemeConfig = {
+  name: 'Nova Lux',
+  version: '1.0.0',
   colors: {
     primary: '#1C1C1E',
     secondary: '#FFFFFF',
@@ -46,41 +49,40 @@ export const DEFAULT_THEME_CONFIG: ThemeConfig = {
     error: '#EF4444',
   },
   typography: {
+    fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
     fontFamilyHeading: "'Cormorant Garamond', Georgia, serif",
-    fontFamilyBody: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
-    fontSizeBase: '16px',
-    fontSizeHeading: '2.5rem',
-    lineHeightBase: '1.6',
-    lineHeightHeading: '1.2',
+    baseFontSize: 16,
+    lineHeight: 1.6,
+    headingLineHeight: 1.2,
   },
   spacing: {
+    unit: 4,
     containerMaxWidth: '1280px',
-    sectionPaddingY: '4rem',
-    gridGap: '2rem',
+    containerPadding: '1rem',
   },
-  borderRadius: {
-    button: '9999px',
-    card: '0.75rem',
-    input: '0.375rem',
+  borders: {
+    radius: '0.75rem',
+    radiusLarge: '1rem',
+    width: '1px',
   },
   shadows: {
-    card: '0 4px 20px rgba(0, 0, 0, 0.05)',
-    button: '0 4px 14px rgba(196, 163, 90, 0.3)',
-    dropdown: '0 10px 25px rgba(0,0,0,0.1)',
+    sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
+    md: '0 4px 20px rgba(0, 0, 0, 0.05)',
+    lg: '0 10px 25px rgba(0,0,0,0.1)',
   },
   buttons: {
-    primaryStyle: 'solid',
-    secondaryStyle: 'outline',
-    uppercase: false,
+    borderRadius: '9999px',
+    fontWeight: '500',
+    textTransform: 'none',
   },
   cards: {
-    style: 'elevated',
-    imageAspectRatio: '4/5',
-    contentAlignment: 'left',
+    borderRadius: '0.75rem',
+    shadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+    padding: '1rem',
   },
   animation: {
-    enable: true,
-    duration: '0.3s',
+    duration: '300ms',
+    easing: 'ease-out',
   },
 };
 
@@ -98,6 +100,11 @@ export const SECTIONS: SectionRegistry = {
     type: 'hero-banner',
     schema: heroBannerSchema,
     component: NovaLuxHeroBanner,
+  },
+  'product-main': {
+    type: 'product-main',
+    schema: productMainSchema,
+    component: NovaLuxProductMain,
   },
   footer: {
     type: 'footer',

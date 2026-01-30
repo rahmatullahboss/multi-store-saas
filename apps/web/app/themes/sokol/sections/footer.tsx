@@ -9,7 +9,8 @@ export const schema: SectionSchema = {
       type: 'textarea',
       id: 'description',
       label: 'Description',
-      default: 'Premium quality products designed for your lifestyle. We believe in style, comfort, and innovation.',
+      default:
+        'Premium quality products designed for your lifestyle. We believe in style, comfort, and innovation.',
     },
     {
       type: 'checkbox',
@@ -22,15 +23,15 @@ export const schema: SectionSchema = {
 
 export default function SokolFooter({ context, settings }: SectionComponentProps) {
   const { store, collections } = context;
-  
+
   const footerConfig = {
     showPoweredBy: true,
     showTrustBadges: true,
     description: settings.description as string,
   };
 
-  const socialLinks = store.socialLinks ? JSON.parse(store.socialLinks) : null;
-  const categories = collections?.map(c => c.title) || [];
+  const socialLinks = store.socialLinks || null;
+  const categories = collections?.map((c) => c.title) || [];
 
   return (
     <StandardFooter
@@ -40,7 +41,7 @@ export default function SokolFooter({ context, settings }: SectionComponentProps
       config={context.theme}
       socialLinks={socialLinks}
       footerConfig={footerConfig}
-      businessInfo={store.businessInfo ? JSON.parse(store.businessInfo) : null}
+      businessInfo={store.businessInfo || null}
       categories={categories}
     />
   );

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
 import { ShoppingBag, Search, Menu, X, Sparkles } from 'lucide-react';
@@ -32,7 +31,7 @@ export const schema: SectionSchema = {
       label: 'Announcement Link',
     },
     {
-      type: 'menu_picker',
+      type: 'link_list',
       id: 'menu',
       label: 'Menu',
       default: 'main-menu',
@@ -49,7 +48,7 @@ export default function NovaLuxHeader({ context, settings }: SectionComponentPro
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const cartItemCount = 0; // Use cart context in production
-  
+
   const theme = NOVALUX_THEME.config;
 
   useEffect(() => {
@@ -73,7 +72,7 @@ export default function NovaLuxHeader({ context, settings }: SectionComponentPro
   const announcementText = settings.announcement_text as string;
   const announcementLink = settings.announcement_link as string;
 
-  const categories = context.collections?.map(c => c.title) || [];
+  const categories = context.collections?.map((c) => c.title) || [];
   const validCategories = categories.filter((c): c is string => Boolean(c));
 
   return (
@@ -186,8 +185,8 @@ export default function NovaLuxHeader({ context, settings }: SectionComponentPro
           </div>
         </div>
       </div>
-      
-       {mobileMenuOpen && (
+
+      {mobileMenuOpen && (
         <div className="lg:hidden absolute top-full left-0 w-full bg-white border-b shadow-lg p-4">
           <nav className="flex flex-col gap-2">
             <Link
@@ -195,13 +194,13 @@ export default function NovaLuxHeader({ context, settings }: SectionComponentPro
               onClick={() => setMobileMenuOpen(false)}
               className="text-left py-2 font-medium"
             >
-             All Products
+              All Products
             </Link>
-             {validCategories.map((category) => (
+            {validCategories.map((category) => (
               <Link
                 key={category}
                 to={getLink(`/collections/${category.toLowerCase().replace(/\s+/g, '-')}`)}
-                 onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setMobileMenuOpen(false)}
                 className="text-left py-2 text-sm"
               >
                 {category}

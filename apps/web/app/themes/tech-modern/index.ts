@@ -21,6 +21,7 @@ import TechFeaturedProducts, {
 } from './sections/featured-products';
 import TechFeatures, { schema as featuresSchema } from './sections/features';
 import TechFooter, { schema as footerSchema } from './sections/footer';
+import TechProductMain, { schema as productMainSchema } from './sections/product-main';
 
 // ============================================================================
 // THEME METADATA
@@ -146,6 +147,11 @@ export const SECTIONS: SectionRegistry = {
     schema: featuresSchema,
     component: TechFeatures,
   },
+  'product-main': {
+    type: 'product-main',
+    schema: productMainSchema,
+    component: TechProductMain,
+  },
   footer: {
     type: 'footer',
     schema: footerSchema,
@@ -163,11 +169,13 @@ export {
   TechFeaturedProducts,
   TechFeatures,
   TechFooter,
+  TechProductMain,
   headerSchema,
   heroBannerSchema,
   featuredProductsSchema,
   featuresSchema,
   footerSchema,
+  productMainSchema,
 };
 
 export default {

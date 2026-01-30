@@ -1,13 +1,12 @@
 /**
- * Luxe Boutique - Product Main Section
+ * Nova Lux - Product Main Section
  *
  * Shopify OS 2.0 Compatible Section
- * Elegant luxury product detail section:
- * - Black (#1a1a1a) and gold (#c9a961) color scheme
- * - Serif typography for headings (Playfair Display)
- * - Sharp edges (border-radius: 0)
- * - Portrait aspect ratio images
- * - Elegant hover animations
+ * Luxury product detail section with:
+ * - Gold (#C4A35A) accent color
+ * - Elegant serif typography (Cormorant Garamond)
+ * - Refined, minimal design
+ * - Premium feel
  */
 
 import { useState } from 'react';
@@ -35,14 +34,14 @@ import type {
 // ============================================================================
 
 const THEME = {
-  primary: '#1a1a1a',
-  accent: '#c9a961',
-  accentHover: '#b8944f',
-  background: '#faf9f7',
-  surface: '#ffffff',
-  text: '#1a1a1a',
-  muted: '#6b6b6b',
-  border: '#e5e5e5',
+  primary: '#1C1C1E',
+  accent: '#C4A35A',
+  accentHover: '#B3924A',
+  background: '#FAFAFA',
+  surface: '#FFFFFF',
+  text: '#2C2C2C',
+  muted: '#8E8E93',
+  border: '#E5E5EA',
 };
 
 // ============================================================================
@@ -51,9 +50,9 @@ const THEME = {
 
 export const schema: SectionSchema = {
   type: 'product-main',
-  name: 'Product Main (Luxe)',
+  name: 'Product Main (Nova Lux)',
   tag: 'section',
-  class: 'luxe-product-main',
+  class: 'nova-lux-product-main',
 
   enabled_on: {
     templates: ['product'],
@@ -88,15 +87,15 @@ export const schema: SectionSchema = {
     },
     {
       type: 'checkbox',
-      id: 'show_category',
-      label: 'Show product category',
-      default: true,
+      id: 'show_vendor',
+      label: 'Show vendor',
+      default: false,
     },
     {
       type: 'checkbox',
       id: 'show_sku',
       label: 'Show SKU',
-      default: false,
+      default: true,
     },
     {
       type: 'checkbox',
@@ -107,7 +106,7 @@ export const schema: SectionSchema = {
     {
       type: 'checkbox',
       id: 'show_share',
-      label: 'Show share button',
+      label: 'Show share buttons',
       default: true,
     },
     {
@@ -137,7 +136,7 @@ export const schema: SectionSchema = {
       type: 'text',
       id: 'return_text',
       label: 'Return text',
-      default: '14-Day Returns',
+      default: '30-Day Returns',
     },
   ],
 
@@ -151,7 +150,7 @@ export const schema: SectionSchema = {
           type: 'checkbox',
           id: 'show_full',
           label: 'Show full description',
-          default: true,
+          default: false,
         },
       ],
     },
@@ -163,7 +162,7 @@ export const schema: SectionSchema = {
           type: 'text',
           id: 'title',
           label: 'Title',
-          default: 'Details & Care',
+          default: 'Product Details',
         },
         {
           type: 'richtext',
@@ -176,16 +175,15 @@ export const schema: SectionSchema = {
 
   presets: [
     {
-      name: 'Luxe Product Main',
+      name: 'Nova Lux Product Main',
       category: 'Product',
       settings: {
         show_trust_badges: true,
-        show_category: true,
       },
       blocks: [
         {
           type: 'description',
-          settings: { show_full: true },
+          settings: { show_full: false },
         },
       ],
     },
@@ -196,10 +194,10 @@ export const schema: SectionSchema = {
 // COMPONENT
 // ============================================================================
 
-export interface LuxeProductMainSettings {
+export interface NovaLuxProductMainSettings {
   image_position: 'left' | 'right';
   enable_zoom: boolean;
-  show_category: boolean;
+  show_vendor: boolean;
   show_sku: boolean;
   show_quantity_selector: boolean;
   show_share: boolean;
@@ -212,58 +210,49 @@ export interface LuxeProductMainSettings {
 // Demo product for preview
 const DEMO_PRODUCT: SerializedProduct = {
   id: 1,
-  title: 'Silk Evening Gown',
+  title: 'Diamond Eternity Ring',
   description:
-    'Exquisitely crafted from pure mulberry silk, this evening gown features a timeless silhouette with delicate hand-sewn details. The flowing fabric drapes elegantly, creating a sophisticated look perfect for special occasions.',
-  price: 24999,
-  compareAtPrice: 34999,
-  sku: 'LX-EG-001',
-  inventory: 12,
-  category: 'Evening Wear',
-  imageUrl: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=600&h=800&fit=crop',
+    'Exquisite diamond eternity ring featuring premium cut stones set in 18k white gold. A timeless symbol of eternal love and commitment.',
+  price: 125000,
+  compareAtPrice: 145000,
+  sku: 'NL-RING-001',
+  inventory: 5,
+  imageUrl: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=600&h=600&fit=crop',
   images: [
-    'https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=600&h=800&fit=crop',
-    'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&h=800&fit=crop',
-    'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=600&h=600&fit=crop',
   ],
   tags: ['featured', 'new'],
   variants: [
     {
       id: 1,
       option1Name: 'Size',
-      option1Value: 'XS',
-      price: 24999,
-      inventory: 3,
+      option1Value: '6',
+      price: 125000,
+      inventory: 2,
       isAvailable: true,
     },
     {
       id: 2,
       option1Name: 'Size',
-      option1Value: 'S',
-      price: 24999,
-      inventory: 4,
+      option1Value: '7',
+      price: 125000,
+      inventory: 2,
       isAvailable: true,
     },
     {
       id: 3,
       option1Name: 'Size',
-      option1Value: 'M',
-      price: 24999,
-      inventory: 3,
-      isAvailable: true,
-    },
-    {
-      id: 4,
-      option1Name: 'Size',
-      option1Value: 'L',
-      price: 24999,
-      inventory: 2,
+      option1Value: '8',
+      price: 130000,
+      inventory: 1,
       isAvailable: true,
     },
   ],
 };
 
-export default function LuxeProductMain({
+export default function NovaLuxProductMain({
   section,
   context,
   settings,
@@ -272,15 +261,15 @@ export default function LuxeProductMain({
   const {
     image_position = 'left',
     enable_zoom = true,
-    show_category = true,
-    show_sku = false,
+    show_vendor = false,
+    show_sku = true,
     show_quantity_selector = true,
     show_share = true,
     show_trust_badges = true,
     shipping_text = 'Complimentary Shipping',
     guarantee_text = 'Authenticity Guaranteed',
-    return_text = '14-Day Returns',
-  } = settings as unknown as LuxeProductMainSettings;
+    return_text = '30-Day Returns',
+  } = settings as unknown as NovaLuxProductMainSettings;
 
   // Use context product or demo product
   const product = context.product || DEMO_PRODUCT;
@@ -344,17 +333,17 @@ export default function LuxeProductMain({
     <div className="md:w-1/2 flex-shrink-0">
       {/* Main Image */}
       <div
-        className="aspect-[3/4] overflow-hidden mb-4 relative"
+        className="relative aspect-square rounded-xl overflow-hidden mb-4"
         style={{ backgroundColor: THEME.surface }}
       >
         <img
           src={images[selectedImage]}
           alt={product.title}
-          className={`w-full h-full object-cover ${enable_zoom ? 'cursor-zoom-in hover:scale-105 transition-transform duration-700' : ''}`}
+          className={`w-full h-full object-cover ${enable_zoom ? 'cursor-zoom-in hover:scale-110 transition-transform duration-500' : ''}`}
         />
         {discount > 0 && (
           <span
-            className="absolute top-4 left-4 px-3 py-1 text-xs font-medium tracking-wider"
+            className="absolute top-4 left-4 px-3 py-1 text-sm font-medium tracking-wider"
             style={{ backgroundColor: THEME.accent, color: THEME.primary }}
           >
             -{discount}%
@@ -369,12 +358,12 @@ export default function LuxeProductMain({
             <button
               key={idx}
               onClick={() => setSelectedImage(idx)}
-              className={`flex-shrink-0 w-20 h-24 overflow-hidden transition-opacity ${
-                selectedImage === idx ? 'opacity-100' : 'opacity-50 hover:opacity-80'
+              className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden transition-all ${
+                selectedImage === idx ? 'ring-2 ring-offset-2' : 'opacity-60 hover:opacity-100'
               }`}
               style={{
                 outline: selectedImage === idx ? `2px solid ${THEME.accent}` : 'none',
-                outlineOffset: '2px',
+                outlineOffset: selectedImage === idx ? '2px' : '0',
               }}
             >
               <img
@@ -393,17 +382,17 @@ export default function LuxeProductMain({
   const ProductInfo = () => (
     <div className="flex-1 min-w-0">
       {/* Category */}
-      {show_category && product.category && (
-        <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ color: THEME.muted }}>
+      {show_vendor && product.category && (
+        <p className="text-xs uppercase tracking-[0.2em] mb-3" style={{ color: THEME.accent }}>
           {product.category}
         </p>
       )}
 
       {/* Title */}
       <h1
-        className="text-2xl md:text-3xl lg:text-4xl mb-4"
+        className="text-3xl md:text-4xl mb-4"
         style={{
-          fontFamily: "'Playfair Display', serif",
+          fontFamily: "'Cormorant Garamond', Georgia, serif",
           color: THEME.primary,
           lineHeight: 1.2,
         }}
@@ -418,20 +407,34 @@ export default function LuxeProductMain({
         </p>
       )}
 
+      {/* Gold divider */}
+      <div className="w-16 h-0.5 mb-6" style={{ backgroundColor: THEME.accent }} />
+
       {/* Price */}
       <div className="flex items-baseline gap-3 mb-6">
-        <span className="text-xl md:text-2xl font-medium" style={{ color: THEME.primary }}>
+        <span
+          className="text-2xl md:text-3xl font-medium"
+          style={{ color: THEME.primary, fontFamily: "'Cormorant Garamond', Georgia, serif" }}
+        >
           {formatPrice(currentPrice)}
         </span>
         {comparePrice && (
-          <span className="text-base line-through" style={{ color: THEME.muted }}>
+          <span className="text-lg line-through" style={{ color: THEME.muted }}>
             {formatPrice(comparePrice)}
           </span>
         )}
       </div>
 
-      {/* Gold divider */}
-      <div className="w-12 h-0.5 mb-6" style={{ backgroundColor: THEME.accent }} />
+      {/* Short Description */}
+      {product.description && (
+        <div
+          className="mb-6 prose-sm"
+          style={{ color: THEME.muted }}
+          dangerouslySetInnerHTML={{
+            __html: product.description.slice(0, 300),
+          }}
+        />
+      )}
 
       {/* Variants */}
       {product.variants && product.variants.length > 0 && (
@@ -440,19 +443,19 @@ export default function LuxeProductMain({
             className="block text-xs uppercase tracking-wider mb-3"
             style={{ color: THEME.text }}
           >
-            {product.variants[0].option1Name || 'Size'}
+            {product.variants[0].option1Name || 'Select Option'}
           </label>
           <div className="flex flex-wrap gap-2">
             {product.variants.map((variant) => (
               <button
                 key={variant.id}
                 onClick={() => setSelectedVariant(variant)}
-                className="min-w-[48px] px-4 py-2 text-sm font-medium transition-colors"
+                className="min-w-[48px] px-4 py-2 text-sm transition-colors rounded-full"
                 style={{
                   backgroundColor:
                     selectedVariant?.id === variant.id ? THEME.primary : 'transparent',
                   color: selectedVariant?.id === variant.id ? THEME.surface : THEME.primary,
-                  border: `1px solid ${THEME.primary}`,
+                  border: `1px solid ${THEME.border}`,
                 }}
                 disabled={!variant.isAvailable}
               >
@@ -469,18 +472,21 @@ export default function LuxeProductMain({
           <span className="text-xs uppercase tracking-wider" style={{ color: THEME.text }}>
             Quantity
           </span>
-          <div className="flex items-center" style={{ border: `1px solid ${THEME.border}` }}>
+          <div
+            className="flex items-center rounded-full"
+            style={{ border: `1px solid ${THEME.border}` }}
+          >
             <button
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="p-3 hover:bg-gray-50 transition-colors"
+              className="p-3 hover:bg-gray-50 transition-colors rounded-full"
               aria-label="Decrease quantity"
             >
               <Minus size={14} />
             </button>
-            <span className="px-6 text-sm font-medium">{quantity}</span>
+            <span className="px-6 text-sm font-medium min-w-[60px] text-center">{quantity}</span>
             <button
               onClick={() => setQuantity(quantity + 1)}
-              className="p-3 hover:bg-gray-50 transition-colors"
+              className="p-3 hover:bg-gray-50 transition-colors rounded-full"
               aria-label="Increase quantity"
             >
               <Plus size={14} />
@@ -494,7 +500,7 @@ export default function LuxeProductMain({
         <button
           onClick={handleAddToCart}
           disabled={!isInStock || fetcher.state !== 'idle'}
-          className="flex-1 flex items-center justify-center gap-2 px-8 py-4 text-sm font-medium tracking-wider uppercase transition-all disabled:opacity-50"
+          className="flex-1 flex items-center justify-center gap-2 px-8 py-4 text-sm font-medium tracking-wider uppercase transition-all disabled:opacity-50 rounded-full"
           style={{ backgroundColor: THEME.primary, color: THEME.surface }}
         >
           <ShoppingBag size={18} />
@@ -502,7 +508,7 @@ export default function LuxeProductMain({
         </button>
         <button
           onClick={() => setIsWishlisted(!isWishlisted)}
-          className="p-4 transition-colors"
+          className="p-4 transition-colors rounded-full"
           style={{
             border: `1px solid ${THEME.border}`,
             color: isWishlisted ? '#ef4444' : THEME.text,
@@ -514,7 +520,7 @@ export default function LuxeProductMain({
         {show_share && (
           <button
             onClick={handleShare}
-            className="p-4 transition-colors"
+            className="p-4 transition-colors rounded-full"
             style={{ border: `1px solid ${THEME.border}`, color: THEME.text }}
             aria-label="Share product"
           >
@@ -527,8 +533,8 @@ export default function LuxeProductMain({
       <div className="flex items-center gap-2 mb-6">
         {isInStock ? (
           <>
-            <Check size={14} style={{ color: '#2d6a4f' }} />
-            <span className="text-xs uppercase tracking-wider" style={{ color: '#2d6a4f' }}>
+            <Check size={14} style={{ color: '#10B981' }} />
+            <span className="text-xs uppercase tracking-wider" style={{ color: '#10B981' }}>
               In Stock
             </span>
           </>
@@ -621,7 +627,7 @@ export default function LuxeProductMain({
       className="py-8 md:py-12"
       style={{ backgroundColor: THEME.background }}
       data-section-id={section.id}
-      data-section-type="luxe-product-main"
+      data-section-type="nova-lux-product-main"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div

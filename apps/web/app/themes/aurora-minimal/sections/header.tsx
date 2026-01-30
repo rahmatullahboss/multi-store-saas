@@ -1,7 +1,16 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
-import { Search, Menu, X, Heart, ShoppingBag, Sparkles, ChevronRight, Instagram, Facebook } from 'lucide-react';
+import {
+  Search,
+  Menu,
+  X,
+  Heart,
+  ShoppingBag,
+  Sparkles,
+  ChevronRight,
+  Instagram,
+  Facebook,
+} from 'lucide-react';
 import { AURORA_THEME } from '../index'; // Import from local index to get theme constants
 import type { SectionComponentProps, SectionSchema } from '~/lib/theme-engine/types';
 
@@ -16,7 +25,8 @@ export const schema: SectionSchema = {
   settings: [
     {
       type: 'header',
-      content: 'Announcement Bar',
+      id: 'announcement_header',
+      label: 'Announcement Bar',
     },
     {
       type: 'checkbox',
@@ -37,10 +47,11 @@ export const schema: SectionSchema = {
     },
     {
       type: 'header',
-      content: 'Navigation',
+      id: 'navigation_header',
+      label: 'Navigation',
     },
     {
-      type: 'menu_picker',
+      type: 'link_list',
       id: 'menu',
       label: 'Main menu',
     },
@@ -54,7 +65,7 @@ export const schema: SectionSchema = {
 export default function AuroraHeader({ context, settings }: SectionComponentProps) {
   const { store, cart, onNavigate, getLink } = context;
   const theme = AURORA_THEME.config; // Access config from the exported object
-  
+
   // Use theme colors from config if available, otherwise fallback to hardcoded
   // Note: For now we'll use the hardcoded values from original theme to ensure consistency
   // untill we fully migrate the theme constants to the new system
@@ -70,7 +81,8 @@ export default function AuroraHeader({ context, settings }: SectionComponentProp
     fontHeading: theme.typography?.fontFamilyHeading || "'Outfit', sans-serif",
     fontBody: theme.typography?.fontFamily || "'Plus Jakarta Sans', sans-serif",
     auroraGradient: 'linear-gradient(135deg, #E8C4C4 0%, #D4C8D4 50%, #B5C4B1 100%)', // Hardcoded
-    auroraGradientSoft: 'linear-gradient(135deg, rgba(232, 196, 196, 0.3) 0%, rgba(181, 196, 177, 0.3) 100%)', // Hardcoded
+    auroraGradientSoft:
+      'linear-gradient(135deg, rgba(232, 196, 196, 0.3) 0%, rgba(181, 196, 177, 0.3) 100%)', // Hardcoded
   };
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -87,17 +99,17 @@ export default function AuroraHeader({ context, settings }: SectionComponentProp
   }, []);
 
   // Mock categories for now - in real app fetch from context.collections or menu
-  const categories = context.collections?.map(c => c.title) || [];
-  const currentCategory = null; 
+  const categories = context.collections?.map((c) => c.title) || [];
+  const currentCategory = null;
 
   const showAnnouncement = settings.show_announcement !== false;
   const announcementText = settings.announcement_text as string;
   const announcementLink = settings.announcement_link as string;
 
   return (
-    <header 
+    <header
       className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
-      style={{ 
+      style={{
         backgroundColor: isScrolled ? THEME_COLORS.headerBg : 'rgba(253, 251, 249, 0.6)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
@@ -107,11 +119,11 @@ export default function AuroraHeader({ context, settings }: SectionComponentProp
     >
       {/* Announcement Bar */}
       {showAnnouncement && announcementText && (
-        <div 
+        <div
           className="text-center py-2.5 text-sm font-medium"
-          style={{ 
-            background: THEME_COLORS.auroraGradient, 
-            color: THEME_COLORS.primary 
+          style={{
+            background: THEME_COLORS.auroraGradient,
+            color: THEME_COLORS.primary,
           }}
         >
           <div className="flex items-center justify-center gap-2">
@@ -131,7 +143,7 @@ export default function AuroraHeader({ context, settings }: SectionComponentProp
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Mobile Menu Button */}
-          <button 
+          <button
             className="lg:hidden p-2 -ml-2 rounded-xl transition-all"
             style={{ backgroundColor: isScrolled ? THEME_COLORS.backgroundAlt : 'transparent' }}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -146,10 +158,10 @@ export default function AuroraHeader({ context, settings }: SectionComponentProp
 
           {/* Left Navigation (Desktop) */}
           <nav className="hidden lg:flex items-center gap-1">
-            <Link 
+            <Link
               to={getLink('/')}
               className="px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all duration-300 rounded-full"
-              style={{ 
+              style={{
                 color: !currentCategory ? THEME_COLORS.primary : THEME_COLORS.muted,
                 backgroundColor: !currentCategory ? THEME_COLORS.auroraGradientSoft : 'transparent',
               }}
@@ -161,9 +173,10 @@ export default function AuroraHeader({ context, settings }: SectionComponentProp
                 key={category}
                 to={getLink(`/collections/${category.toLowerCase().replace(/\s+/g, '-')}`)}
                 className="px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all duration-300 rounded-full hover:opacity-70"
-                style={{ 
+                style={{
                   color: currentCategory === category ? THEME_COLORS.primary : THEME_COLORS.muted,
-                  backgroundColor: currentCategory === category ? THEME_COLORS.auroraGradientSoft : 'transparent',
+                  backgroundColor:
+                    currentCategory === category ? THEME_COLORS.auroraGradientSoft : 'transparent',
                 }}
               >
                 {category}
@@ -174,17 +187,17 @@ export default function AuroraHeader({ context, settings }: SectionComponentProp
           {/* Logo (Centered) */}
           <Link to={getLink('/')} className="flex items-center justify-center group">
             {store.logo ? (
-              <img 
-                src={store.logo} 
-                alt={store.name} 
-                className="h-10 lg:h-12 object-contain transition-transform duration-300 group-hover:scale-110" 
+              <img
+                src={store.logo}
+                alt={store.name}
+                className="h-10 lg:h-12 object-contain transition-transform duration-300 group-hover:scale-110"
               />
             ) : (
-              <span 
+              <span
                 className="text-2xl lg:text-3xl font-bold tracking-tight"
-                style={{ 
-                  fontFamily: THEME_COLORS.fontHeading, 
-                  color: THEME_COLORS.primary 
+                style={{
+                  fontFamily: THEME_COLORS.fontHeading,
+                  color: THEME_COLORS.primary,
                 }}
               >
                 {store.name}
@@ -199,9 +212,10 @@ export default function AuroraHeader({ context, settings }: SectionComponentProp
                 key={category}
                 to={getLink(`/collections/${category.toLowerCase().replace(/\s+/g, '-')}`)}
                 className="px-4 py-2 text-sm font-semibold tracking-wide uppercase transition-all duration-300 rounded-full hover:opacity-70"
-                style={{ 
+                style={{
                   color: currentCategory === category ? THEME_COLORS.primary : THEME_COLORS.muted,
-                  backgroundColor: currentCategory === category ? THEME_COLORS.auroraGradientSoft : 'transparent',
+                  backgroundColor:
+                    currentCategory === category ? THEME_COLORS.auroraGradientSoft : 'transparent',
                 }}
               >
                 {category}
@@ -211,34 +225,40 @@ export default function AuroraHeader({ context, settings }: SectionComponentProp
 
           {/* Right Icons */}
           <div className="flex items-center gap-1.5">
-            <button 
+            <button
               className="p-2.5 rounded-full transition-all duration-300 hover:scale-110"
-              style={{ backgroundColor: isScrolled ? THEME_COLORS.backgroundAlt : 'rgba(0,0,0,0.03)' }}
+              style={{
+                backgroundColor: isScrolled ? THEME_COLORS.backgroundAlt : 'rgba(0,0,0,0.03)',
+              }}
               onClick={() => setSearchOpen(!searchOpen)}
               aria-label="Search"
             >
               <Search className="w-5 h-5" style={{ color: THEME_COLORS.text }} />
             </button>
-            <button 
+            <button
               className="hidden sm:flex p-2.5 rounded-full transition-all duration-300 hover:scale-110"
-              style={{ backgroundColor: isScrolled ? THEME_COLORS.backgroundAlt : 'rgba(0,0,0,0.03)' }}
+              style={{
+                backgroundColor: isScrolled ? THEME_COLORS.backgroundAlt : 'rgba(0,0,0,0.03)',
+              }}
               aria-label="Wishlist"
             >
               <Heart className="w-5 h-5" style={{ color: THEME_COLORS.text }} />
             </button>
-            <Link 
+            <Link
               to={getLink('/cart')}
               className="p-2.5 rounded-full transition-all duration-300 hover:scale-110 relative"
-              style={{ backgroundColor: isScrolled ? THEME_COLORS.backgroundAlt : 'rgba(0,0,0,0.03)' }}
+              style={{
+                backgroundColor: isScrolled ? THEME_COLORS.backgroundAlt : 'rgba(0,0,0,0.03)',
+              }}
               aria-label="Cart"
             >
               <ShoppingBag className="w-5 h-5" style={{ color: THEME_COLORS.text }} />
-              {cart.itemCount > 0 && (
-                <span 
+              {cart && cart.itemCount > 0 && (
+                <span
                   className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center"
-                  style={{ 
-                    background: THEME_COLORS.auroraGradient, 
-                    color: THEME_COLORS.primary 
+                  style={{
+                    background: THEME_COLORS.auroraGradient,
+                    color: THEME_COLORS.primary,
                   }}
                 >
                   {cart.itemCount}
@@ -251,27 +271,30 @@ export default function AuroraHeader({ context, settings }: SectionComponentProp
 
       {/* Search Overlay */}
       {searchOpen && (
-        <div 
+        <div
           className="absolute inset-x-0 top-full py-6 px-4 animate-fadeIn"
-          style={{ 
+          style={{
             backgroundColor: THEME_COLORS.cardBg,
-            boxShadow: THEME_COLORS.headerShadow
+            boxShadow: THEME_COLORS.headerShadow,
           }}
         >
           <div className="max-w-2xl mx-auto relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME_COLORS.muted }} />
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+              style={{ color: THEME_COLORS.muted }}
+            />
             <input
               type="text"
               placeholder="Search for products..."
               className="w-full pl-12 pr-4 py-4 text-lg rounded-2xl border-2 focus:outline-none transition-all"
-              style={{ 
+              style={{
                 borderColor: THEME_COLORS.border,
                 fontFamily: THEME_COLORS.fontBody,
-                backgroundColor: THEME_COLORS.backgroundAlt
+                backgroundColor: THEME_COLORS.backgroundAlt,
               }}
               autoFocus
             />
-            <button 
+            <button
               className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full transition-colors hover:bg-gray-100"
               onClick={() => setSearchOpen(false)}
             >
@@ -283,17 +306,17 @@ export default function AuroraHeader({ context, settings }: SectionComponentProp
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div 
+        <div
           className="lg:hidden fixed inset-0 top-[64px] z-40 animate-slideIn overflow-y-auto"
           style={{ backgroundColor: THEME_COLORS.cardBg }}
         >
           <nav className="py-6 px-4 space-y-2">
-            <Link 
+            <Link
               to={getLink('/')}
               className="flex items-center justify-between px-5 py-4 rounded-2xl font-semibold transition-all"
-              style={{ 
+              style={{
                 background: !currentCategory ? THEME_COLORS.auroraGradientSoft : 'transparent',
-                color: !currentCategory ? THEME_COLORS.primary : THEME_COLORS.text 
+                color: !currentCategory ? THEME_COLORS.primary : THEME_COLORS.text,
               }}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -305,9 +328,10 @@ export default function AuroraHeader({ context, settings }: SectionComponentProp
                 key={category}
                 to={getLink(`/collections/${category.toLowerCase().replace(/\s+/g, '-')}`)}
                 className="flex items-center justify-between px-5 py-4 rounded-2xl font-semibold transition-all"
-                style={{ 
-                  background: currentCategory === category ? THEME_COLORS.auroraGradientSoft : 'transparent',
-                  color: currentCategory === category ? THEME_COLORS.primary : THEME_COLORS.text 
+                style={{
+                  background:
+                    currentCategory === category ? THEME_COLORS.auroraGradientSoft : 'transparent',
+                  color: currentCategory === category ? THEME_COLORS.primary : THEME_COLORS.text,
                 }}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -320,12 +344,12 @@ export default function AuroraHeader({ context, settings }: SectionComponentProp
       )}
 
       {/* Aurora Gradient Line */}
-      <div 
+      <div
         className="h-[3px] w-full transition-opacity duration-500"
-        style={{ 
+        style={{
           background: THEME_COLORS.auroraGradient,
-          opacity: isScrolled ? 0 : 1
-        }} 
+          opacity: isScrolled ? 0 : 1,
+        }}
       />
 
       <style>{`
