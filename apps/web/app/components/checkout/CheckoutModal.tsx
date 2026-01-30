@@ -1,6 +1,6 @@
 /**
  * Checkout Modal Component for Quick Builder v2
- * 
+ *
  * Embedded checkout modal for landing pages
  * - Mobile: Full-screen bottom sheet
  * - Desktop: Centered modal
@@ -99,7 +99,7 @@ function OrderSummary({
   quantity: number;
   shippingFee: number;
 }) {
-  const variant = product.variants?.find(v => v.id === selectedVariant);
+  const variant = product.variants?.find((v) => v.id === selectedVariant);
   const unitPrice = variant?.price ?? product.price;
   const subtotal = unitPrice * quantity;
   const total = subtotal + shippingFee;
@@ -121,9 +121,7 @@ function OrderSummary({
         )}
         <div className="flex-1 min-w-0">
           <h4 className="font-medium text-gray-900 truncate">{product.name}</h4>
-          {variant && (
-            <p className="text-sm text-gray-500">{variant.name}</p>
-          )}
+          {variant && <p className="text-sm text-gray-500">{variant.name}</p>}
           <p className="text-sm text-emerald-600 font-semibold">{formatPrice(unitPrice)}</p>
         </div>
         <div className="text-right">
@@ -160,15 +158,11 @@ function OrderSuccess({ orderId, onClose }: { orderId: string; onClose: () => vo
       <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
         <Check className="w-8 h-8 text-emerald-600" />
       </div>
-      <h3 className="text-xl font-bold text-gray-900 mb-2">
-        অর্ডার সফল হয়েছে! 🎉
-      </h3>
+      <h3 className="text-xl font-bold text-gray-900 mb-2">অর্ডার সফল হয়েছে! 🎉</h3>
       <p className="text-gray-600 mb-2">
         আপনার অর্ডার নম্বর: <span className="font-semibold">{orderId}</span>
       </p>
-      <p className="text-sm text-gray-500 mb-6">
-        শীঘ্রই আমরা আপনার সাথে যোগাযোগ করবো।
-      </p>
+      <p className="text-sm text-gray-500 mb-6">শীঘ্রই আমরা আপনার সাথে যোগাযোগ করবো।</p>
       <button
         onClick={onClose}
         className="px-6 py-2.5 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-600 transition-colors"
@@ -192,7 +186,7 @@ export function CheckoutModal({
   onSuccess,
 }: CheckoutModalProps) {
   const fetcher = useFetcher<{ success: boolean; orderId?: string; error?: string }>();
-  
+
   // Form state
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -207,7 +201,7 @@ export function CheckoutModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Get shipping fee
-  const shippingFee = shippingOptions.find(o => o.id === deliveryArea)?.fee || 60;
+  const shippingFee = shippingOptions.find((o) => o.id === deliveryArea)?.fee || 60;
 
   // Reset form when modal closes
   useEffect(() => {
@@ -256,10 +250,10 @@ export function CheckoutModal({
   // Handle submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validate()) return;
 
-    const variant = product.variants?.find(v => v.id === selectedVariant);
+    const variant = product.variants?.find((v) => v.id === selectedVariant);
     const unitPrice = variant?.price ?? product.price;
 
     fetcher.submit(
@@ -284,20 +278,20 @@ export function CheckoutModal({
   // Handle WhatsApp order
   const handleWhatsAppOrder = () => {
     if (!whatsappNumber) return;
-    
-    const variant = product.variants?.find(v => v.id === selectedVariant);
+
+    const variant = product.variants?.find((v) => v.id === selectedVariant);
     const message = encodeURIComponent(
       `🛒 অর্ডার করতে চাই:\n\n` +
-      `📦 প্রোডাক্ট: ${product.name}\n` +
-      (variant ? `🏷️ ভ্যারিয়েন্ট: ${variant.name}\n` : '') +
-      `💰 দাম: ৳${variant?.price ?? product.price}\n` +
-      `📍 এলাকা: ${shippingOptions.find(o => o.id === deliveryArea)?.name || deliveryArea}\n\n` +
-      `আমার তথ্য:\n` +
-      `নাম: ${name || '(দিন)'}\n` +
-      `ফোন: ${phone || '(দিন)'}\n` +
-      `ঠিকানা: ${address || '(দিন)'}`
+        `📦 প্রোডাক্ট: ${product.name}\n` +
+        (variant ? `🏷️ ভ্যারিয়েন্ট: ${variant.name}\n` : '') +
+        `💰 দাম: ${formatPrice(variant?.price ?? product.price)}\n` +
+        `📍 এলাকা: ${shippingOptions.find((o) => o.id === deliveryArea)?.name || deliveryArea}\n\n` +
+        `আমার তথ্য:\n` +
+        `নাম: ${name || '(দিন)'}\n` +
+        `ফোন: ${phone || '(দিন)'}\n` +
+        `ঠিকানা: ${address || '(দিন)'}`
     );
-    
+
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
 
@@ -308,10 +302,7 @@ export function CheckoutModal({
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
-        onClick={onClose} 
-      />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal Container */}
       <div className="absolute inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-md md:w-full">

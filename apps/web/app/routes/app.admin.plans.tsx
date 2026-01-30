@@ -1,28 +1,50 @@
 /**
  * Admin Plan Management Page with Premium Design
- * 
+ *
  * Route: /app/admin/plans
- * 
+ *
  * Allows platform admin to:
  * - View all stores and their current plans
  * - View pending bKash payments and verify/reject them
  * - Manually upgrade/downgrade store plans
  * - Search stores by name or subdomain
- * 
+ *
  * Design: Uses premium dark theme matching marketing page
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { formatPrice } from '~/lib/theme-engine';
 import { json } from '@remix-run/cloudflare';
-import { formatPrice } from '~/lib/theme-engine';
-import { Form, useLoaderData, useNavigation, useSearchParams, useActionData } from '@remix-run/react';
+import {
+  Form,
+  useLoaderData,
+  useNavigation,
+  useSearchParams,
+  useActionData,
+} from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, like, or, desc, isNotNull } from 'drizzle-orm';
 import { stores, users } from '@db/schema';
 import { requireUserId } from '~/services/auth.server';
 import { getBulkUsageStats, PLAN_LIMITS, type PlanType } from '~/utils/plans.server';
-import { Crown, Zap, Gift, Search, Check, Calendar, ArrowUpCircle, AlertCircle, Mail, Phone, Copy, CheckCircle, XCircle, ArrowDown, Star, Sparkles } from 'lucide-react';
+import {
+  Crown,
+  Zap,
+  Gift,
+  Search,
+  Check,
+  Calendar,
+  ArrowUpCircle,
+  AlertCircle,
+  Mail,
+  Phone,
+  Copy,
+  CheckCircle,
+  XCircle,
+  ArrowDown,
+  Star,
+  Sparkles,
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -32,9 +54,9 @@ export const meta: MetaFunction = () => [{ title: 'Plan Management - Admin' }];
 // DESIGN TOKENS (Matching Marketing Page)
 // ============================================================================
 const COLORS = {
-  primary: '#006A4E',      // Bangladesh Green
+  primary: '#006A4E', // Bangladesh Green
   primaryLight: '#00875F',
-  accent: '#F9A825',       // Golden Yellow
+  accent: '#F9A825', // Golden Yellow
   accentLight: '#FFB74D',
   background: '#0A0F0D',
   backgroundAlt: '#0D1512',
@@ -44,20 +66,20 @@ const COLORS = {
 
 // Plan options with premium styling
 const PLAN_OPTIONS = [
-  { 
-    value: 'free', 
-    label: 'Free', 
-    labelKey: 'planFree' as const, 
+  {
+    value: 'free',
+    label: 'Free',
+    labelKey: 'planFree' as const,
     nameBn: 'শুরু করুন',
     icon: Gift,
     price: '৳০',
     description: 'ট্রায়ালের জন্য পারফেক্ট',
     features: ['৫টি Product', 'Store + Landing Page', '৫০ Sales/মাস'],
   },
-  { 
-    value: 'starter', 
-    label: 'Starter', 
-    labelKey: 'planStarter' as const, 
+  {
+    value: 'starter',
+    label: 'Starter',
+    labelKey: 'planStarter' as const,
     nameBn: 'সবচেয়ে জনপ্রিয়',
     icon: Zap,
     price: '৳৪৯৯',
@@ -65,10 +87,10 @@ const PLAN_OPTIONS = [
     features: ['৫০টি Product', 'Multiple Landing Pages', '৫০০ Sales/মাস'],
     isPopular: true,
   },
-  { 
-    value: 'premium', 
-    label: 'Premium', 
-    labelKey: 'planPremium' as const, 
+  {
+    value: 'premium',
+    label: 'Premium',
+    labelKey: 'planPremium' as const,
     nameBn: 'সীমাহীন',
     icon: Crown,
     price: '৳১,৯৯৯',
@@ -86,7 +108,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = drizzle(context.cloudflare.env.DB);
 
   // Check if user is admin
-  const user = await db.select({ role: users.role }).from(users).where(eq(users.id, userId)).limit(1);
+  const user = await db
+    .select({ role: users.role })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
   if (!user[0] || user[0].role !== 'admin') {
     throw new Response('Unauthorized - Admin access required', { status: 403 });
   }
@@ -111,10 +137,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Apply search filter
   if (search) {
     storeQuery = storeQuery.where(
-      or(
-        like(stores.name, `%${search}%`),
-        like(stores.subdomain, `%${search}%`)
-      )
+      or(like(stores.name, `%${search}%`), like(stores.subdomain, `%${search}%`))
     ) as typeof storeQuery;
   }
 
@@ -157,17 +180,17 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // Count by plan
   const planCounts = {
-    free: allStores.filter(s => !s.planType || s.planType === 'free').length,
-    starter: allStores.filter(s => s.planType === 'starter').length,
-    premium: allStores.filter(s => s.planType === 'premium').length,
+    free: allStores.filter((s) => !s.planType || s.planType === 'free').length,
+    starter: allStores.filter((s) => s.planType === 'starter').length,
+    premium: allStores.filter((s) => s.planType === 'premium').length,
   };
 
   // Fetch bulk usage stats for all stores
-  const storeIds = allStores.map(s => s.id);
+  const storeIds = allStores.map((s) => s.id);
   const usageMap = await getBulkUsageStats(context.cloudflare.env.DB, storeIds);
-  
+
   // Attach usage stats to each store
-  const storesWithUsage = allStores.map(store => {
+  const storesWithUsage = allStores.map((store) => {
     const usage = usageMap.get(store.id) || { orders: 0, products: 0 };
     const planType = (store.planType as PlanType) || 'free';
     // Safely get limits with fallback to 'free' if planType is invalid
@@ -199,7 +222,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const db = drizzle(context.cloudflare.env.DB);
 
   // Check if user is admin
-  const user = await db.select({ role: users.role }).from(users).where(eq(users.id, userId)).limit(1);
+  const user = await db
+    .select({ role: users.role })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
   if (!user[0] || user[0].role !== 'admin') {
     return json({ error: 'Unauthorized' }, { status: 403 });
   }
@@ -219,7 +246,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       if (!newPlan || !['free', 'starter', 'premium', 'custom'].includes(newPlan)) {
         return json({ error: 'Invalid plan type' }, { status: 400 });
       }
-      
+
       // Get current plan to check if upgrading from free
       const currentStore = await db
         .select({ planType: stores.planType, subscriptionStartDate: stores.subscriptionStartDate })
@@ -254,27 +281,36 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     case 'verify_payment': {
-      await db.update(stores).set({ 
-        paymentStatus: 'verified',
-        updatedAt: new Date(),
-      }).where(eq(stores.id, storeId));
+      await db
+        .update(stores)
+        .set({
+          paymentStatus: 'verified',
+          updatedAt: new Date(),
+        })
+        .where(eq(stores.id, storeId));
       return json({ success: true, message: 'Payment verified', storeId });
     }
 
     case 'reject_payment': {
-      await db.update(stores).set({ 
-        paymentStatus: 'rejected',
-        updatedAt: new Date(),
-      }).where(eq(stores.id, storeId));
+      await db
+        .update(stores)
+        .set({
+          paymentStatus: 'rejected',
+          updatedAt: new Date(),
+        })
+        .where(eq(stores.id, storeId));
       return json({ success: true, message: 'Payment rejected', storeId });
     }
 
     case 'downgrade_to_free': {
-      await db.update(stores).set({ 
-        planType: 'free',
-        paymentStatus: 'rejected',
-        updatedAt: new Date(),
-      }).where(eq(stores.id, storeId));
+      await db
+        .update(stores)
+        .set({
+          planType: 'free',
+          paymentStatus: 'rejected',
+          updatedAt: new Date(),
+        })
+        .where(eq(stores.id, storeId));
       return json({ success: true, message: 'Store downgraded to Free', storeId });
     }
 
@@ -313,7 +349,7 @@ export default function AdminPlansPage() {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen py-8 px-4 relative overflow-hidden"
       style={{ backgroundColor: COLORS.background }}
     >
@@ -335,21 +371,21 @@ export default function AdminPlansPage() {
 
       {/* Background Effects */}
       <div className="absolute inset-0">
-        <div 
+        <div
           className="absolute top-1/4 left-0 w-[600px] h-[600px] rounded-full opacity-30"
           style={{
             background: `radial-gradient(circle, ${COLORS.primary}20 0%, transparent 70%)`,
           }}
         />
-        <div 
+        <div
           className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full opacity-30"
           style={{
             background: `radial-gradient(circle, ${COLORS.violet}15 0%, transparent 70%)`,
           }}
         />
-        
+
         {/* Subtle grid */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
@@ -362,9 +398,9 @@ export default function AdminPlansPage() {
       <div className="relative z-10 max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <div 
+          <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-6"
-            style={{ 
+            style={{
               backgroundColor: `${COLORS.primary}20`,
               borderColor: `${COLORS.primary}40`,
             }}
@@ -374,13 +410,13 @@ export default function AdminPlansPage() {
               Admin Panel
             </span>
           </div>
-          
-          <h1 
+
+          <h1
             className="text-4xl md:text-5xl font-bold text-white mb-4"
             style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
             প্ল্যান{' '}
-            <span 
+            <span
               className="bg-clip-text text-transparent"
               style={{
                 backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 50%, ${COLORS.accent} 100%)`,
@@ -389,9 +425,7 @@ export default function AdminPlansPage() {
               ম্যানেজমেন্ট
             </span>
           </h1>
-          <p className="text-lg text-white/50">
-            {t('planManagementDesc')}
-          </p>
+          <p className="text-lg text-white/50">{t('planManagementDesc')}</p>
         </div>
 
         {/* Success Message */}
@@ -407,13 +441,13 @@ export default function AdminPlansPage() {
           {PLAN_OPTIONS.map((plan, index) => {
             const Icon = plan.icon;
             const count = planCounts[plan.value as keyof typeof planCounts] || 0;
-            
+
             return (
-              <div 
+              <div
                 key={plan.value}
                 className={`relative h-full rounded-3xl p-6 transition-all duration-300 hover:-translate-y-2 ${
-                  plan.isPopular 
-                    ? 'bg-gradient-to-br from-[#006A4E] to-[#00875F] text-white shadow-2xl shadow-[#006A4E]/40' 
+                  plan.isPopular
+                    ? 'bg-gradient-to-br from-[#006A4E] to-[#00875F] text-white shadow-2xl shadow-[#006A4E]/40'
                     : plan.isUltimate
                       ? 'bg-gradient-to-br from-[#8B5CF6]/20 to-[#3B82F6]/10 border border-[#8B5CF6]/30 backdrop-blur-xl'
                       : 'bg-white/[0.03] backdrop-blur-xl border border-white/10'
@@ -429,14 +463,18 @@ export default function AdminPlansPage() {
                 )}
 
                 <div className="flex items-center gap-4 mb-4">
-                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
-                    plan.isPopular 
-                      ? 'bg-white/20' 
-                      : plan.isUltimate
-                        ? 'bg-gradient-to-br from-[#8B5CF6] to-[#3B82F6]'
-                        : 'bg-white/10'
-                  }`}>
-                    <Icon className={`w-7 h-7 ${plan.isPopular ? 'text-white' : plan.isUltimate ? 'text-white' : 'text-white/60'}`} />
+                  <div
+                    className={`w-14 h-14 rounded-xl flex items-center justify-center ${
+                      plan.isPopular
+                        ? 'bg-white/20'
+                        : plan.isUltimate
+                          ? 'bg-gradient-to-br from-[#8B5CF6] to-[#3B82F6]'
+                          : 'bg-white/10'
+                    }`}
+                  >
+                    <Icon
+                      className={`w-7 h-7 ${plan.isPopular ? 'text-white' : plan.isUltimate ? 'text-white' : 'text-white/60'}`}
+                    />
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold text-white">{plan.label}</h3>
@@ -448,14 +486,20 @@ export default function AdminPlansPage() {
 
                 <div className="flex items-baseline gap-2 mb-4">
                   <span className="text-5xl font-black text-white">{count}</span>
-                  <span className={`text-lg ${plan.isPopular ? 'text-white/70' : 'text-white/40'}`}>stores</span>
+                  <span className={`text-lg ${plan.isPopular ? 'text-white/70' : 'text-white/40'}`}>
+                    stores
+                  </span>
                 </div>
 
                 <div className="text-center pt-4 border-t border-white/10">
-                  <span className={`text-3xl font-black ${plan.isPopular ? 'text-white' : 'text-white/80'}`}>
-                    {plan.price}
+                  <span
+                    className={`text-3xl font-black ${plan.isPopular ? 'text-white' : 'text-white/80'}`}
+                  >
+                    {formatPrice(plan.price)}
                   </span>
-                  <span className={`text-sm ${plan.isPopular ? 'text-white/70' : 'text-white/40'}`}>/মাস</span>
+                  <span className={`text-sm ${plan.isPopular ? 'text-white/70' : 'text-white/40'}`}>
+                    /মাস
+                  </span>
                 </div>
               </div>
             );
@@ -524,12 +568,14 @@ export default function AdminPlansPage() {
                           )}
                         </td>
                         <td className="py-4">
-                          <span className="font-bold text-[#F9A825]">{formatPrice(store.paymentAmount)}</span>
+                          <span className="font-bold text-[#F9A825]">
+                            {formatPrice(store.paymentAmount)}
+                          </span>
                         </td>
                         <td className="py-4">
                           <div className="flex items-center gap-1">
                             <Mail className="w-3 h-3 text-white/40" />
-                            <a 
+                            <a
                               href={`mailto:${store.ownerEmail}`}
                               className="text-[#3B82F6] hover:underline text-xs"
                             >
@@ -539,7 +585,7 @@ export default function AdminPlansPage() {
                           <p className="text-xs text-white/40">{store.ownerName}</p>
                         </td>
                         <td className="py-4 text-xs text-white/40">
-                          {store.paymentSubmittedAt 
+                          {store.paymentSubmittedAt
                             ? new Date(store.paymentSubmittedAt).toLocaleString('en-BD')
                             : 'N/A'}
                         </td>
@@ -559,7 +605,7 @@ export default function AdminPlansPage() {
                                 {t('verifyPayment')}
                               </button>
                             </Form>
-                            
+
                             {/* Downgrade Button */}
                             <Form method="post">
                               <input type="hidden" name="actionType" value="downgrade_to_free" />
@@ -613,12 +659,22 @@ export default function AdminPlansPage() {
             <table className="w-full">
               <thead className="bg-white/[0.05] border-b border-white/10">
                 <tr>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-white/60">{t('store')}</th>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-white/60">{t('subdomain')}</th>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-white/60">{t('currentPlan')}</th>
+                  <th className="text-left px-6 py-4 text-sm font-medium text-white/60">
+                    {t('store')}
+                  </th>
+                  <th className="text-left px-6 py-4 text-sm font-medium text-white/60">
+                    {t('subdomain')}
+                  </th>
+                  <th className="text-left px-6 py-4 text-sm font-medium text-white/60">
+                    {t('currentPlan')}
+                  </th>
                   <th className="text-left px-6 py-4 text-sm font-medium text-white/60">Usage</th>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-white/60">{t('created')}</th>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-white/60">{t('action')}</th>
+                  <th className="text-left px-6 py-4 text-sm font-medium text-white/60">
+                    {t('created')}
+                  </th>
+                  <th className="text-left px-6 py-4 text-sm font-medium text-white/60">
+                    {t('action')}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -643,7 +699,7 @@ export default function AdminPlansPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <a 
+                        <a
                           href={`https://${store.subdomain}.ozzyl.com`}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -657,41 +713,55 @@ export default function AdminPlansPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-xs space-y-1">
-                          <div className={`flex items-center gap-2 ${
-                            store.usage.ordersLimit !== Infinity && 
-                            (store.usage.orders / store.usage.ordersLimit) >= 0.8 
-                              ? 'text-[#F9A825]' 
-                              : 'text-white/60'
-                          }`}>
+                          <div
+                            className={`flex items-center gap-2 ${
+                              store.usage.ordersLimit !== Infinity &&
+                              store.usage.orders / store.usage.ordersLimit >= 0.8
+                                ? 'text-[#F9A825]'
+                                : 'text-white/60'
+                            }`}
+                          >
                             <div className="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                              <div 
+                              <div
                                 className="h-full bg-gradient-to-r from-[#006A4E] to-[#00875F] rounded-full transition-all"
-                                style={{ 
-                                  width: store.usage.ordersLimit === Infinity 
-                                    ? '10%' 
-                                    : `${Math.min((store.usage.orders / store.usage.ordersLimit) * 100, 100)}%` 
+                                style={{
+                                  width:
+                                    store.usage.ordersLimit === Infinity
+                                      ? '10%'
+                                      : `${Math.min((store.usage.orders / store.usage.ordersLimit) * 100, 100)}%`,
                                 }}
                               />
                             </div>
-                            <span>O: {store.usage.orders}/{store.usage.ordersLimit === Infinity ? '∞' : store.usage.ordersLimit}</span>
+                            <span>
+                              O: {store.usage.orders}/
+                              {store.usage.ordersLimit === Infinity ? '∞' : store.usage.ordersLimit}
+                            </span>
                           </div>
-                          <div className={`flex items-center gap-2 ${
-                            store.usage.productsLimit !== Infinity && 
-                            (store.usage.products / store.usage.productsLimit) >= 0.8 
-                              ? 'text-[#F9A825]' 
-                              : 'text-white/60'
-                          }`}>
+                          <div
+                            className={`flex items-center gap-2 ${
+                              store.usage.productsLimit !== Infinity &&
+                              store.usage.products / store.usage.productsLimit >= 0.8
+                                ? 'text-[#F9A825]'
+                                : 'text-white/60'
+                            }`}
+                          >
                             <div className="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                              <div 
+                              <div
                                 className="h-full bg-gradient-to-r from-[#8B5CF6] to-[#3B82F6] rounded-full transition-all"
-                                style={{ 
-                                  width: store.usage.productsLimit === Infinity 
-                                    ? '10%' 
-                                    : `${Math.min((store.usage.products / store.usage.productsLimit) * 100, 100)}%` 
+                                style={{
+                                  width:
+                                    store.usage.productsLimit === Infinity
+                                      ? '10%'
+                                      : `${Math.min((store.usage.products / store.usage.productsLimit) * 100, 100)}%`,
                                 }}
                               />
                             </div>
-                            <span>P: {store.usage.products}/{store.usage.productsLimit === Infinity ? '∞' : store.usage.productsLimit}</span>
+                            <span>
+                              P: {store.usage.products}/
+                              {store.usage.productsLimit === Infinity
+                                ? '∞'
+                                : store.usage.productsLimit}
+                            </span>
                           </div>
                         </div>
                       </td>
@@ -707,9 +777,15 @@ export default function AdminPlansPage() {
                             defaultValue={store.planType || 'free'}
                             className="text-sm bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-[#006A4E]/50 focus:border-[#006A4E]/50 transition-all"
                           >
-                            <option value="free" className="bg-[#0A0F0D] text-white">{t('planFree')}</option>
-                            <option value="starter" className="bg-[#0A0F0D] text-white">{t('planStarter')}</option>
-                            <option value="premium" className="bg-[#0A0F0D] text-white">{t('planPremium')}</option>
+                            <option value="free" className="bg-[#0A0F0D] text-white">
+                              {t('planFree')}
+                            </option>
+                            <option value="starter" className="bg-[#0A0F0D] text-white">
+                              {t('planStarter')}
+                            </option>
+                            <option value="premium" className="bg-[#0A0F0D] text-white">
+                              {t('planPremium')}
+                            </option>
                           </select>
                           <button
                             type="submit"
@@ -762,41 +838,43 @@ export default function AdminPlansPage() {
 // Plan Badge Component - Premium Style
 function PlanBadge({ plan }: { plan: string }) {
   const { t } = useTranslation();
-  
+
   const config = {
-    free: { 
-      bg: 'bg-white/10', 
-      text: 'text-white/70', 
+    free: {
+      bg: 'bg-white/10',
+      text: 'text-white/70',
       border: 'border-white/20',
-      labelKey: 'planFree' as const 
+      labelKey: 'planFree' as const,
     },
-    starter: { 
-      bg: 'bg-gradient-to-r from-[#006A4E]/30 to-[#00875F]/30', 
-      text: 'text-[#00875F]', 
+    starter: {
+      bg: 'bg-gradient-to-r from-[#006A4E]/30 to-[#00875F]/30',
+      text: 'text-[#00875F]',
       border: 'border-[#006A4E]/40',
-      labelKey: 'planStarter' as const 
+      labelKey: 'planStarter' as const,
     },
-    premium: { 
-      bg: 'bg-gradient-to-r from-[#8B5CF6]/30 to-[#3B82F6]/30', 
-      text: 'text-[#8B5CF6]', 
+    premium: {
+      bg: 'bg-gradient-to-r from-[#8B5CF6]/30 to-[#3B82F6]/30',
+      text: 'text-[#8B5CF6]',
       border: 'border-[#8B5CF6]/40',
-      labelKey: 'planPremium' as const 
+      labelKey: 'planPremium' as const,
     },
-    custom: { 
-      bg: 'bg-gradient-to-r from-[#F9A825]/30 to-[#FFB74D]/30', 
-      text: 'text-[#F9A825]', 
+    custom: {
+      bg: 'bg-gradient-to-r from-[#F9A825]/30 to-[#FFB74D]/30',
+      text: 'text-[#F9A825]',
       border: 'border-[#F9A825]/40',
-      labelKey: 'planPremium' as const 
+      labelKey: 'planPremium' as const,
     },
-  }[plan] || { 
-    bg: 'bg-white/10', 
-    text: 'text-white/70', 
+  }[plan] || {
+    bg: 'bg-white/10',
+    text: 'text-white/70',
     border: 'border-white/20',
-    labelKey: 'planFree' as const 
+    labelKey: 'planFree' as const,
   };
 
   return (
-    <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${config.bg} ${config.text} border ${config.border}`}>
+    <span
+      className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${config.bg} ${config.text} border ${config.border}`}
+    >
       {t(config.labelKey)}
     </span>
   );

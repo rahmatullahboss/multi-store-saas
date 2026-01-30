@@ -1,12 +1,12 @@
 /**
  * Onboarding Wizard Route - 4-Step Flow with Plan Selection
- * 
+ *
  * Complete onboarding flow:
  * 1. Account (email, password, name)
  * 2. Store Setup (store name, subdomain, category)
  * 3. Plan Selection (Free/Starter/Premium with bKash payment for paid plans)
  * 4. Auto-create store with landing page
- * 
+ *
  * Users can customize everything later from Settings.
  */
 
@@ -14,9 +14,19 @@ import { useState, useEffect, useRef } from 'react';
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { formatPrice } from '~/lib/theme-engine';
 import { json, redirect } from '@remix-run/cloudflare';
-import { formatPrice } from '~/lib/theme-engine';
 import { useFetcher, Link } from '@remix-run/react';
-import { ArrowRight, ArrowLeft, Check, Crown, Zap, Gift, Smartphone, Copy, Eye, EyeOff } from 'lucide-react';
+import {
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  Crown,
+  Zap,
+  Gift,
+  Smartphone,
+  Copy,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, users } from '@db/schema';
@@ -38,8 +48,8 @@ const BKASH_PAYMENT_NUMBER = '01739416661';
 
 const PLAN_PRICING = {
   free: 0,
-  starter: 50000,    // ৫০০ টাকা/মাস
-  premium: 200000,   // ২০০০ টাকা/মাস
+  starter: 50000, // ৫০০ টাকা/মাস
+  premium: 200000, // ২০০০ টাকা/মাস
 };
 
 // ==============================================================================
@@ -107,12 +117,15 @@ const BUSINESS_CATEGORIES = [
 ];
 
 // Category-based landing page templates
-const CATEGORY_TEMPLATES: Record<string, {
-  headline: string;
-  subheadline: string;
-  features: Array<{ icon: string; title: string; description: string }>;
-  product: { title: string; price: number; description: string };
-}> = {
+const CATEGORY_TEMPLATES: Record<
+  string,
+  {
+    headline: string;
+    subheadline: string;
+    features: Array<{ icon: string; title: string; description: string }>;
+    product: { title: string; price: number; description: string };
+  }
+> = {
   fashion: {
     headline: 'categoryFashionHeadline',
     subheadline: 'categoryFashionSubheadline',
@@ -171,7 +184,11 @@ const CATEGORY_TEMPLATES: Record<string, {
       { icon: '⏱️', title: 'featureOnTime', description: 'descDeadline' },
       { icon: '💯', title: 'featureSatisfaction', description: 'descBestQuality' },
     ],
-    product: { title: 'Professional Service', price: 200000, description: 'descProfessionalService' },
+    product: {
+      title: 'Professional Service',
+      price: 200000,
+      description: 'descProfessionalService',
+    },
   },
   other: {
     headline: 'categoryOtherHeadline',
@@ -249,7 +266,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     const db = drizzle(env.DB);
-    
+
     // Check if email already exists
     const existingUser = await db
       .select({ id: users.id })
@@ -258,11 +275,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .limit(1);
 
     if (existingUser.length > 0) {
-      return json({
-        error: t('emailAlreadyRegistered'),
-        field: 'email',
-        emailExists: true
-      }, { status: 400 });
+      return json(
+        {
+          error: t('emailAlreadyRegistered'),
+          field: 'email',
+          emailExists: true,
+        },
+        { status: 400 }
+      );
     }
 
     // Check if phone already exists
@@ -273,11 +293,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .limit(1);
 
     if (existingPhone.length > 0) {
-      return json({
-        error: t('phoneAlreadyRegistered'),
-        field: 'phone',
-        phoneExists: true
-      }, { status: 400 });
+      return json(
+        {
+          error: t('phoneAlreadyRegistered'),
+          field: 'phone',
+          phoneExists: true,
+        },
+        { status: 400 }
+      );
     }
 
     return json({ success: true, emailAvailable: true });
@@ -300,11 +323,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     if (existingStore.length > 0) {
       console.warn('[Onboarding] Subdomain not available:', subdomain);
-      return json({
-        error: t('subdomainTaken', { subdomain }),
-        field: 'subdomain',
-        subdomainTaken: true
-      }, { status: 400 });
+      return json(
+        {
+          error: t('subdomainTaken', { subdomain }),
+          field: 'subdomain',
+          subdomainTaken: true,
+        },
+        { status: 400 }
+      );
     }
 
     return json({ success: true, subdomainAvailable: true });
@@ -315,13 +341,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
     const name = formData.get('name') as string;
-    const phone = formData.get('phone') as string || ''; // Merchant phone
+    const phone = (formData.get('phone') as string) || ''; // Merchant phone
     const storeName = formData.get('storeName') as string;
     const subdomain = formData.get('subdomain') as string;
-    const category = formData.get('category') as string || 'other';
-    const selectedPlan = formData.get('selectedPlan') as 'free' | 'starter' | 'premium' || 'free';
-    const transactionId = formData.get('transactionId') as string || '';
-    const paymentPhone = formData.get('paymentPhone') as string || '';
+    const category = (formData.get('category') as string) || 'other';
+    const selectedPlan = (formData.get('selectedPlan') as 'free' | 'starter' | 'premium') || 'free';
+    const transactionId = (formData.get('transactionId') as string) || '';
+    const paymentPhone = (formData.get('paymentPhone') as string) || '';
 
     // console.log('[Onboarding] Creating store:', { storeName, subdomain, category, selectedPlan, phone });
 
@@ -355,13 +381,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
         subheadline: t(template.subheadline),
         ctaText: t('orderNow') || 'এখনই অর্ডার করুন',
         ctaSubtext: t('cashOnDelivery') || 'ক্যাশ অন ডেলিভারি',
-        features: template.features.map(f => ({
+        features: template.features.map((f) => ({
           ...f,
           title: t(f.title),
-          description: t(f.description)
+          description: t(f.description),
         })),
         testimonials: [
-          { name: t('satisfiedCustomer') || 'সন্তুষ্ট ক্রেতা', text: t('satisfiedCustomerText') || 'অনেক ভালো প্রোডাক্ট, দ্রুত ডেলিভারি!' },
+          {
+            name: t('satisfiedCustomer') || 'সন্তুষ্ট ক্রেতা',
+            text: t('satisfiedCustomerText') || 'অনেক ভালো প্রোডাক্ট, দ্রুত ডেলিভারি!',
+          },
         ],
         urgencyText: t('limitedTimeOffer') || '🔥 সীমিত সময়ের অফার!',
         guaranteeText: t('satisfactionGuarantee') || '১০০% সন্তুষ্টির গ্যারান্টি',
@@ -416,21 +445,27 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const session = await getSession(new Request('http://localhost'), env);
       session.set('userId', result.user!.id);
       session.set('storeId', storeId);
-      
-      return json({
-        success: true,
-        redirectUrl: '/app/orders?onboarding=success',
-      }, {
-        headers: {
-          'Set-Cookie': await commitSession(session, env),
+
+      return json(
+        {
+          success: true,
+          redirectUrl: '/app/orders?onboarding=success',
+        },
+        {
+          headers: {
+            'Set-Cookie': await commitSession(session, env),
+          },
         }
-      });
+      );
     } catch (error) {
       console.error('[Onboarding] Error:', error);
-      return json({
-        error: t('failedToCreateStore'),
-        details: error instanceof Error ? error.message : 'Unknown error'
-      }, { status: 500 });
+      return json(
+        {
+          error: t('failedToCreateStore'),
+          details: error instanceof Error ? error.message : 'Unknown error',
+        },
+        { status: 500 }
+      );
     }
   }
 
@@ -462,7 +497,18 @@ export default function OnboardingPage() {
   const [storeCreationFailed, setStoreCreationFailed] = useState(false);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const [isCheckingSubdomain, setIsCheckingSubdomain] = useState(false);
-  const fetcher = useFetcher<{ success?: boolean; error?: string; errorEn?: string; step?: number; emailExists?: boolean; phoneExists?: boolean; emailAvailable?: boolean; subdomainAvailable?: boolean; subdomainTaken?: boolean; redirectUrl?: string }>();
+  const fetcher = useFetcher<{
+    success?: boolean;
+    error?: string;
+    errorEn?: string;
+    step?: number;
+    emailExists?: boolean;
+    phoneExists?: boolean;
+    emailAvailable?: boolean;
+    subdomainAvailable?: boolean;
+    subdomainTaken?: boolean;
+    redirectUrl?: string;
+  }>();
 
   const { t } = useTranslation();
 
@@ -636,7 +682,7 @@ export default function OnboardingPage() {
   };
 
   const handleContinueWithFree = () => {
-    setFormData(prev => ({ ...prev, selectedPlan: 'free', transactionId: '', paymentPhone: '' }));
+    setFormData((prev) => ({ ...prev, selectedPlan: 'free', transactionId: '', paymentPhone: '' }));
 
     // Create store with free plan immediately
     setCurrentStep(4);
@@ -664,7 +710,7 @@ export default function OnboardingPage() {
 
   const isSubmitting = fetcher.state === 'submitting' || fetcher.state === 'loading';
 
-  const selectedPlanData = PLAN_OPTIONS.find(p => p.id === formData.selectedPlan);
+  const selectedPlanData = PLAN_OPTIONS.find((p) => p.id === formData.selectedPlan);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
@@ -675,7 +721,8 @@ export default function OnboardingPage() {
             <img src="/brand/logo-green.png" alt="Ozzyl" className="h-8 w-auto" />
           </Link>
           <div className="flex items-center gap-4">
-            {/* <LanguageSelector variant="toggle" size="sm" /> */} {/* Temporarily disabled - Bengali is default */}
+            {/* <LanguageSelector variant="toggle" size="sm" /> */}{' '}
+            {/* Temporarily disabled - Bengali is default */}
             <a
               href="/auth/logout?redirect=/auth/login"
               className="text-sm text-gray-600 hover:text-emerald-600"
@@ -718,9 +765,7 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('email')}
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('email')}</label>
                 <input
                   type="email"
                   name="email"
@@ -803,7 +848,9 @@ export default function OnboardingPage() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   placeholder={t('placeholderStoreName')}
                 />
-                {errors.storeName && <p className="text-red-500 text-sm mt-1">{errors.storeName}</p>}
+                {errors.storeName && (
+                  <p className="text-red-500 text-sm mt-1">{errors.storeName}</p>
+                )}
               </div>
 
               {/* Subdomain */}
@@ -816,7 +863,10 @@ export default function OnboardingPage() {
                     type="text"
                     value={formData.subdomain}
                     onChange={(e) => {
-                      const cleaned = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 20);
+                      const cleaned = e.target.value
+                        .toLowerCase()
+                        .replace(/[^a-z0-9-]/g, '')
+                        .slice(0, 20);
                       updateField('subdomain', cleaned);
                     }}
                     className="flex-1 px-4 py-3 border border-gray-300 rounded-l-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
@@ -826,7 +876,9 @@ export default function OnboardingPage() {
                     .ozzyl.com
                   </span>
                 </div>
-                {errors.subdomain && <p className="text-red-500 text-sm mt-1">{errors.subdomain}</p>}
+                {errors.subdomain && (
+                  <p className="text-red-500 text-sm mt-1">{errors.subdomain}</p>
+                )}
               </div>
 
               {/* Category - Visual Selection */}
@@ -840,10 +892,11 @@ export default function OnboardingPage() {
                       key={cat.id}
                       type="button"
                       onClick={() => updateField('category', cat.id)}
-                      className={`p-4 rounded-xl border-2 text-center transition-all ${formData.category === cat.id
+                      className={`p-4 rounded-xl border-2 text-center transition-all ${
+                        formData.category === cat.id
                           ? 'border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200'
                           : 'border-gray-200 hover:border-gray-300'
-                        }`}
+                      }`}
                     >
                       <span className="text-2xl block mb-2">{cat.emoji}</span>
                       <span className="text-sm font-medium text-gray-700">{t(cat.key)}</span>
@@ -874,14 +927,15 @@ export default function OnboardingPage() {
                       key={plan.id}
                       type="button"
                       onClick={() => updateField('selectedPlan', plan.id)}
-                      className={`relative p-6 rounded-2xl border-2 text-left transition-all ${isSelected
+                      className={`relative p-6 rounded-2xl border-2 text-left transition-all ${
+                        isSelected
                           ? plan.color === 'gray'
                             ? 'border-gray-500 bg-gray-50 ring-2 ring-gray-200'
                             : plan.color === 'emerald'
                               ? 'border-emerald-500 bg-emerald-50 ring-2 ring-emerald-200'
                               : 'border-purple-500 bg-purple-50 ring-2 ring-purple-200'
                           : 'border-gray-200 hover:border-gray-300 bg-white'
-                        }`}
+                      }`}
                     >
                       {plan.popular && (
                         <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-white text-xs font-semibold rounded-full">
@@ -890,18 +944,34 @@ export default function OnboardingPage() {
                       )}
 
                       <div className="flex items-center gap-3 mb-4">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${plan.color === 'gray' ? 'bg-gray-100' :
-                            plan.color === 'emerald' ? 'bg-emerald-100' : 'bg-purple-100'
-                          }`}>
-                          <Icon className={`w-5 h-5 ${plan.color === 'gray' ? 'text-gray-600' :
-                              plan.color === 'emerald' ? 'text-emerald-600' : 'text-purple-600'
-                            }`} />
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                            plan.color === 'gray'
+                              ? 'bg-gray-100'
+                              : plan.color === 'emerald'
+                                ? 'bg-emerald-100'
+                                : 'bg-purple-100'
+                          }`}
+                        >
+                          <Icon
+                            className={`w-5 h-5 ${
+                              plan.color === 'gray'
+                                ? 'text-gray-600'
+                                : plan.color === 'emerald'
+                                  ? 'text-emerald-600'
+                                  : 'text-purple-600'
+                            }`}
+                          />
                         </div>
                         <div>
                           <h3 className="font-bold text-gray-900">{t(plan.nameKey)}</h3>
                           <p className="text-lg font-bold">
-                            {plan.price === 0 ? t('freeText') : `{formatPrice(plan.price)}`}
-                            {plan.price > 0 && <span className="text-sm font-normal text-gray-500">{t('perMonth')}</span>}
+                            {plan.price === 0 ? t('freeText') : formatPrice(plan.price)}
+                            {plan.price > 0 && (
+                              <span className="text-sm font-normal text-gray-500">
+                                {t('perMonth')}
+                              </span>
+                            )}
                           </p>
                         </div>
                       </div>
@@ -917,9 +987,15 @@ export default function OnboardingPage() {
 
                       {isSelected && (
                         <div className="absolute top-4 right-4">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${plan.color === 'gray' ? 'bg-gray-500' :
-                              plan.color === 'emerald' ? 'bg-emerald-500' : 'bg-purple-500'
-                            }`}>
+                          <div
+                            className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                              plan.color === 'gray'
+                                ? 'bg-gray-500'
+                                : plan.color === 'emerald'
+                                  ? 'bg-emerald-500'
+                                  : 'bg-purple-500'
+                            }`}
+                          >
                             <Check className="w-4 h-4 text-white" />
                           </div>
                         </div>
@@ -938,9 +1014,7 @@ export default function OnboardingPage() {
                     </div>
                     <div>
                       <h3 className="font-bold text-gray-900">{t('bkashPayment')}</h3>
-                      <p className="text-sm text-gray-600">
-                        {t('sendMoneyTo')}
-                      </p>
+                      <p className="text-sm text-gray-600">{t('sendMoneyTo')}</p>
                     </div>
                   </div>
 
@@ -958,21 +1032,19 @@ export default function OnboardingPage() {
                       <Copy className={`w-5 h-5 ${copied ? 'text-green-600' : 'text-pink-600'}`} />
                     </button>
                   </div>
-                  {copied && (
-                    <p className="text-sm text-green-600 mb-4">{t('copied')}</p>
-                  )}
+                  {copied && <p className="text-sm text-green-600 mb-4">{t('copied')}</p>}
 
                   {/* Amount */}
                   <div className="bg-white rounded-xl p-4 mb-4">
                     <p className="text-sm text-gray-500">{t('amount')}</p>
-                    <p className="text-2xl font-bold text-gray-900">{formatPrice(selectedPlanData?.price || 0)}</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {formatPrice(selectedPlanData?.price || 0)}
+                    </p>
                   </div>
 
                   {/* Instructions */}
                   <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
-                    <p className="text-sm text-amber-800">
-                      ⚠️ {t('afterSendMoney')}
-                    </p>
+                    <p className="text-sm text-amber-800">⚠️ {t('afterSendMoney')}</p>
                   </div>
 
                   {/* TRX ID Input */}
@@ -988,7 +1060,9 @@ export default function OnboardingPage() {
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-transparent uppercase"
                         placeholder={t('trxIdPlaceholder')}
                       />
-                      {errors.transactionId && <p className="text-red-500 text-sm mt-1">{errors.transactionId}</p>}
+                      {errors.transactionId && (
+                        <p className="text-red-500 text-sm mt-1">{errors.transactionId}</p>
+                      )}
                     </div>
 
                     <div>
@@ -1021,9 +1095,7 @@ export default function OnboardingPage() {
               {/* Tip for Free Plan */}
               {formData.selectedPlan === 'free' && (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-                  <p className="text-sm text-emerald-700">
-                    ✨ {t('startFreeUpgradeLater')}
-                  </p>
+                  <p className="text-sm text-emerald-700">✨ {t('startFreeUpgradeLater')}</p>
                 </div>
               )}
             </div>
@@ -1040,16 +1112,14 @@ export default function OnboardingPage() {
               />
 
               {/* Payment Pending Notice (for paid plans) */}
-              {!storeCreationFailed && formData.selectedPlan !== 'free' && formData.transactionId && (
-                <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
-                  <p className="text-amber-800">
-                    ⏳ {t('paymentPending')}
-                  </p>
-                  <p className="text-sm text-amber-600 mt-1">
-                    {t('paymentVerificationNotice')}
-                  </p>
-                </div>
-              )}
+              {!storeCreationFailed &&
+                formData.selectedPlan !== 'free' &&
+                formData.transactionId && (
+                  <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+                    <p className="text-amber-800">⏳ {t('paymentPending')}</p>
+                    <p className="text-sm text-amber-600 mt-1">{t('paymentVerificationNotice')}</p>
+                  </div>
+                )}
 
               {/* Error Actions */}
               {storeCreationFailed && (
@@ -1126,12 +1196,12 @@ export default function OnboardingPage() {
                 disabled={isCheckingEmail || isCheckingSubdomain || isSubmitting}
                 className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                {(isCheckingEmail || isCheckingSubdomain)
+                {isCheckingEmail || isCheckingSubdomain
                   ? t('loading')
                   : currentStep === 3
-                    ? (formData.selectedPlan === 'free'
+                    ? formData.selectedPlan === 'free'
                       ? `🚀 ${t('createMyStore')}`
-                      : `💳 ${t('proceedWithPayment')}`)
+                      : `💳 ${t('proceedWithPayment')}`
                     : t('continueBtn')}
                 <ArrowRight className="w-4 h-4" />
               </button>
@@ -1139,9 +1209,7 @@ export default function OnboardingPage() {
           )}
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
-          {t('termsAgree')}
-        </p>
+        <p className="text-center text-sm text-gray-500 mt-6">{t('termsAgree')}</p>
       </main>
     </div>
   );
