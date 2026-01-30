@@ -1,6 +1,6 @@
 /**
  * Super Admin: AI Command Center
- * 
+ *
  * World-class analytics dashboard with AI integration:
  * - AI-powered insights and recommendations
  * - Real-time alerts and anomaly detection
@@ -45,6 +45,7 @@ import {
   LineChart,
 } from 'lucide-react';
 import { AIResponseRenderer } from '~/components/ui/AIResponseRenderer';
+import { formatPrice } from '~/lib/theme-engine';
 
 // Time periods for comparison
 const getDateRange = (days: number) => {
@@ -59,14 +60,14 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   await requireSuperAdmin(request, context.cloudflare.env, context.cloudflare.env.DB);
 
   const now = Math.floor(Date.now() / 1000);
-  const sevenDaysAgo = now - (7 * 24 * 60 * 60);
-  const fourteenDaysAgo = now - (14 * 24 * 60 * 60);
-  const thirtyDaysAgo = now - (30 * 24 * 60 * 60);
+  const sevenDaysAgo = now - 7 * 24 * 60 * 60;
+  const fourteenDaysAgo = now - 14 * 24 * 60 * 60;
+  const thirtyDaysAgo = now - 30 * 24 * 60 * 60;
 
   // ============================================================
   // CURRENT PERIOD METRICS (Last 7 days)
   // ============================================================
-  
+
   const [currentPeriod] = await db
     .select({
       revenue: sql<number>`COALESCE(SUM(total), 0)`.as('revenue'),
@@ -82,12 +83,14 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
       orderCount: count().as('order_count'),
     })
     .from(orders)
-    .where(sql`${orders.createdAt} >= ${fourteenDaysAgo} AND ${orders.createdAt} < ${sevenDaysAgo} AND ${orders.status} != 'cancelled'`);
+    .where(
+      sql`${orders.createdAt} >= ${fourteenDaysAgo} AND ${orders.createdAt} < ${sevenDaysAgo} AND ${orders.status} != 'cancelled'`
+    );
 
   // ============================================================
   // ALL-TIME METRICS
   // ============================================================
-  
+
   const [allTimeMetrics] = await db
     .select({
       totalRevenue: sql<number>`COALESCE(SUM(total), 0)`.as('total_revenue'),
@@ -113,7 +116,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   // ============================================================
   // SEGMENT DISTRIBUTION
   // ============================================================
-  
+
   const segmentCounts = await db
     .select({
       segment: customers.segment,
@@ -125,13 +128,16 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   // ============================================================
   // ALERTS & ANOMALY DETECTION
   // ============================================================
-  
+
   // Stores with declining orders (30+ days no orders)
   const inactiveStores = await db
     .select({
       storeId: stores.id,
       storeName: stores.name,
-      lastOrderDate: sql<number>`(SELECT MAX(created_at) FROM orders WHERE store_id = ${stores.id})`.as('last_order'),
+      lastOrderDate:
+        sql<number>`(SELECT MAX(created_at) FROM orders WHERE store_id = ${stores.id})`.as(
+          'last_order'
+        ),
     })
     .from(stores)
     .where(eq(stores.isActive, true))
@@ -149,16 +155,30 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   // ============================================================
   // MERCHANT HEALTH SCORES
   // ============================================================
-  
+
   const merchantHealth = await db
     .select({
       storeId: stores.id,
       storeName: stores.name,
-      revenue: sql<number>`COALESCE((SELECT SUM(total) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled' AND created_at >= ${thirtyDaysAgo}), 0)`.as('revenue'),
-      orderCount: sql<number>`(SELECT COUNT(*) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled' AND created_at >= ${thirtyDaysAgo})`.as('order_count'),
-      customerCount: sql<number>`(SELECT COUNT(*) FROM customers WHERE store_id = ${stores.id})`.as('customer_count'),
-      vipCount: sql<number>`(SELECT COUNT(*) FROM customers WHERE store_id = ${stores.id} AND segment = 'vip')`.as('vip_count'),
-      avgOrderValue: sql<number>`COALESCE((SELECT AVG(total) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled'), 0)`.as('avg_order_value'),
+      revenue:
+        sql<number>`COALESCE((SELECT SUM(total) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled' AND created_at >= ${thirtyDaysAgo}), 0)`.as(
+          'revenue'
+        ),
+      orderCount:
+        sql<number>`(SELECT COUNT(*) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled' AND created_at >= ${thirtyDaysAgo})`.as(
+          'order_count'
+        ),
+      customerCount: sql<number>`(SELECT COUNT(*) FROM customers WHERE store_id = ${stores.id})`.as(
+        'customer_count'
+      ),
+      vipCount:
+        sql<number>`(SELECT COUNT(*) FROM customers WHERE store_id = ${stores.id} AND segment = 'vip')`.as(
+          'vip_count'
+        ),
+      avgOrderValue:
+        sql<number>`COALESCE((SELECT AVG(total) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled'), 0)`.as(
+          'avg_order_value'
+        ),
       visitorCount: stores.monthlyVisitorCount,
     })
     .from(stores)
@@ -169,7 +189,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   // ============================================================
   // TOP PERFORMERS
   // ============================================================
-  
+
   const topProducts = await db
     .select({
       productId: orderItems.productId,
@@ -188,10 +208,12 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   // ============================================================
   // COHORT ANALYSIS (Customer signup by month)
   // ============================================================
-  
+
   const cohortData = await db
     .select({
-      month: sql<string>`strftime('%Y-%m', datetime(${customers.createdAt}, 'unixepoch'))`.as('month'),
+      month: sql<string>`strftime('%Y-%m', datetime(${customers.createdAt}, 'unixepoch'))`.as(
+        'month'
+      ),
       signups: count().as('signups'),
       withOrders: sql<number>`COUNT(CASE WHEN total_orders > 0 THEN 1 END)`.as('with_orders'),
     })
@@ -203,7 +225,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   // ============================================================
   // REVENUE BY MONTH (Trend)
   // ============================================================
-  
+
   const revenueByMonth = await db
     .select({
       month: sql<string>`strftime('%Y-%m', datetime(${orders.createdAt}, 'unixepoch'))`.as('month'),
@@ -219,15 +241,13 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   // Calculate growth rates
   const currentRevenue = Number(currentPeriod?.revenue) || 0;
   const previousRevenue = Number(previousPeriod?.revenue) || 0;
-  const revenueGrowth = previousRevenue > 0 
-    ? ((currentRevenue - previousRevenue) / previousRevenue * 100) 
-    : 0;
+  const revenueGrowth =
+    previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : 0;
 
   const currentOrders = Number(currentPeriod?.orderCount) || 0;
   const previousOrders = Number(previousPeriod?.orderCount) || 0;
-  const orderGrowth = previousOrders > 0 
-    ? ((currentOrders - previousOrders) / previousOrders * 100) 
-    : 0;
+  const orderGrowth =
+    previousOrders > 0 ? ((currentOrders - previousOrders) / previousOrders) * 100 : 0;
 
   // Segment counts map
   const countsMap = segmentCounts.reduce(
@@ -246,7 +266,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
       revenueGrowth,
       orderGrowth,
     },
-    
+
     // All-time
     allTime: {
       revenue: Number(allTimeMetrics?.totalRevenue) || 0,
@@ -256,20 +276,20 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
       stores: Number(storeMetrics?.totalStores) || 0,
       activeStores: Number(storeMetrics?.activeStores) || 0,
     },
-    
+
     // Segments
     segments: countsMap,
     churnRiskCount: Number(churnRiskMetrics?.count) || 0,
-    
+
     // Alerts
     inactiveStores,
-    
+
     // Merchant health
     merchantHealth,
-    
+
     // Top performers
     topProducts,
-    
+
     // AI context for analysis
     aiContext: {
       currentRevenue,
@@ -281,29 +301,29 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
       activeStores: Number(storeMetrics?.activeStores) || 0,
       inactiveStoreCount: inactiveStores.length,
     },
-    
+
     // Cohort data
     cohortData,
     revenueByMonth,
-    
+
     // New: Global Conversion Funnel
     conversionFunnel: {
       visitors: Number(storeMetrics?.activeStores) * 150, // Estimate for now based on active stores
       carts: Number(currentPeriod?.orderCount) * 3, // Estimate cart adds (usually 3x orders)
       checkouts: Number(currentPeriod?.orderCount) * 1.5, // Estimate reached checkout
       orders: Number(currentPeriod?.orderCount) || 0,
-    }
+    },
   });
 }
 
 // AI Analysis Action
 export async function action({ context, request }: ActionFunctionArgs) {
   await requireSuperAdmin(request, context.cloudflare.env, context.cloudflare.env.DB);
-  
+
   const formData = await request.formData();
   const query = formData.get('query') as string;
-  const aiContext = JSON.parse(formData.get('aiContext') as string || '{}');
-  
+  const aiContext = JSON.parse((formData.get('aiContext') as string) || '{}');
+
   const apiKey = context.cloudflare.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     return json({ success: false, error: 'AI not configured' });
@@ -335,15 +355,10 @@ For data-heavy answers, return a JSON object:
 Use plain text only for simple greetings.`;
 
   try {
-    const response = await callAIWithSystemPrompt(
-      apiKey,
-      systemPrompt,
-      query,
-      {
-        model: context.cloudflare.env.AI_MODEL,
-        baseUrl: context.cloudflare.env.AI_BASE_URL,
-      }
-    );
+    const response = await callAIWithSystemPrompt(apiKey, systemPrompt, query, {
+      model: context.cloudflare.env.AI_MODEL,
+      baseUrl: context.cloudflare.env.AI_BASE_URL,
+    });
 
     return json({ success: true, response });
   } catch (error) {
@@ -380,10 +395,7 @@ export default function AICommandCenter() {
   const handleAIQuery = () => {
     if (!aiQuery.trim()) return;
     setIsAnalyzing(true);
-    aiFetcher.submit(
-      { query: aiQuery, aiContext: JSON.stringify(aiContext) },
-      { method: 'POST' }
-    );
+    aiFetcher.submit({ query: aiQuery, aiContext: JSON.stringify(aiContext) }, { method: 'POST' });
     setAiQuery('');
   };
 
@@ -397,7 +409,6 @@ export default function AICommandCenter() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="max-w-7xl mx-auto p-6">
-        
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -424,7 +435,8 @@ export default function AICommandCenter() {
               <Bell className="w-5 h-5 text-red-500" />
               <div className="flex-1">
                 <p className="font-medium text-red-700 dark:text-red-400">
-                  {inactiveStores.length > 0 && `${inactiveStores.length} stores inactive for 30+ days`}
+                  {inactiveStores.length > 0 &&
+                    `${inactiveStores.length} stores inactive for 30+ days`}
                   {inactiveStores.length > 0 && churnRiskCount > 50 && ' • '}
                   {churnRiskCount > 50 && `${churnRiskCount} customers at churn risk`}
                 </p>
@@ -479,28 +491,28 @@ export default function AICommandCenter() {
           <div className="grid grid-cols-4 gap-4 relative">
             {/* Visual connector line */}
             <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-100 dark:bg-gray-700 -z-10 -translate-y-1/2 rounded-full" />
-            
-            <FunnelStep 
-              label="Visitors" 
-              value={conversionFunnel.visitors} 
+
+            <FunnelStep
+              label="Visitors"
+              value={conversionFunnel.visitors}
               subtext="100%"
               color="bg-blue-500"
             />
-            <FunnelStep 
-              label="Added to Cart" 
-              value={conversionFunnel.carts} 
+            <FunnelStep
+              label="Added to Cart"
+              value={conversionFunnel.carts}
               subtext={`${((conversionFunnel.carts / (conversionFunnel.visitors || 1)) * 100).toFixed(1)}%`}
               color="bg-purple-500"
             />
-            <FunnelStep 
-              label="Checkout Started" 
-              value={conversionFunnel.checkouts} 
+            <FunnelStep
+              label="Checkout Started"
+              value={conversionFunnel.checkouts}
               subtext={`${((conversionFunnel.checkouts / (conversionFunnel.visitors || 1)) * 100).toFixed(1)}%`}
               color="bg-orange-500"
             />
-            <FunnelStep 
-              label="Purchased" 
-              value={conversionFunnel.orders} 
+            <FunnelStep
+              label="Purchased"
+              value={conversionFunnel.orders}
               subtext={`${((conversionFunnel.orders / (conversionFunnel.visitors || 1)) * 100).toFixed(1)}%`}
               color="bg-green-500"
             />
@@ -509,7 +521,6 @@ export default function AICommandCenter() {
 
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-3 gap-6 mb-6">
-          
           {/* AI Chat Interface */}
           <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
             <div className="flex items-center gap-2 mb-4">
@@ -518,7 +529,7 @@ export default function AICommandCenter() {
                 AI Platform Analyst
               </h2>
             </div>
-            
+
             {/* Quick Insight Buttons */}
             <div className="flex flex-wrap gap-2 mb-4">
               {quickInsights.map((insight, i) => (
@@ -593,18 +604,47 @@ export default function AICommandCenter() {
               Customer Segments
             </h2>
             <div className="space-y-3">
-              <SegmentBar label="VIP" count={segments.vip || 0} total={allTime.customers} color="bg-yellow-500" icon={Crown} />
-              <SegmentBar label="Regular" count={segments.regular || 0} total={allTime.customers} color="bg-green-500" icon={Users} />
-              <SegmentBar label="New Leads" count={segments.new || 0} total={allTime.customers} color="bg-blue-500" icon={Users} />
-              <SegmentBar label="Churn Risk" count={segments.churn_risk || 0} total={allTime.customers} color="bg-red-500" icon={AlertTriangle} />
-              <SegmentBar label="Window Shoppers" count={segments.window_shopper || 0} total={allTime.customers} color="bg-orange-500" icon={Target} />
+              <SegmentBar
+                label="VIP"
+                count={segments.vip || 0}
+                total={allTime.customers}
+                color="bg-yellow-500"
+                icon={Crown}
+              />
+              <SegmentBar
+                label="Regular"
+                count={segments.regular || 0}
+                total={allTime.customers}
+                color="bg-green-500"
+                icon={Users}
+              />
+              <SegmentBar
+                label="New Leads"
+                count={segments.new || 0}
+                total={allTime.customers}
+                color="bg-blue-500"
+                icon={Users}
+              />
+              <SegmentBar
+                label="Churn Risk"
+                count={segments.churn_risk || 0}
+                total={allTime.customers}
+                color="bg-red-500"
+                icon={AlertTriangle}
+              />
+              <SegmentBar
+                label="Window Shoppers"
+                count={segments.window_shopper || 0}
+                total={allTime.customers}
+                color="bg-orange-500"
+                icon={Target}
+              />
             </div>
           </div>
         </div>
 
         {/* Merchant Health & Top Products */}
         <div className="grid lg:grid-cols-2 gap-6">
-          
           {/* Merchant Health Scores */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -614,43 +654,65 @@ export default function AICommandCenter() {
             <div className="space-y-3">
               {merchantHealth.slice(0, 6).map((store, i) => {
                 // Calculate health score (0-100)
-                const conversionRate = Number(store.visitorCount) > 0 
-                  ? (Number(store.orderCount) / Number(store.visitorCount)) * 100 
-                  : 0;
+                const conversionRate =
+                  Number(store.visitorCount) > 0
+                    ? (Number(store.orderCount) / Number(store.visitorCount)) * 100
+                    : 0;
 
-                const healthScore = Math.min(100, 
+                const healthScore = Math.min(
+                  100,
                   (Number(store.revenue) > 0 ? 30 : 0) +
-                  (conversionRate > 1 ? 25 : 0) + 
-                  (Number(store.customerCount) > 10 ? 25 : (Number(store.customerCount) / 10) * 25) +
-                  (Number(store.vipCount) > 0 ? 20 : 0)
+                    (conversionRate > 1 ? 25 : 0) +
+                    (Number(store.customerCount) > 10
+                      ? 25
+                      : (Number(store.customerCount) / 10) * 25) +
+                    (Number(store.vipCount) > 0 ? 20 : 0)
                 );
-                
-                const healthColor = healthScore >= 70 ? 'bg-green-500' : healthScore >= 40 ? 'bg-yellow-500' : 'bg-red-500';
-                const healthLabel = healthScore >= 70 ? 'Healthy' : healthScore >= 40 ? 'At Risk' : 'Critical';
-                
+
+                const healthColor =
+                  healthScore >= 70
+                    ? 'bg-green-500'
+                    : healthScore >= 40
+                      ? 'bg-yellow-500'
+                      : 'bg-red-500';
+                const healthLabel =
+                  healthScore >= 70 ? 'Healthy' : healthScore >= 40 ? 'At Risk' : 'Critical';
+
                 return (
-                  <div key={store.storeId} className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div
+                    key={store.storeId}
+                    className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl"
+                  >
                     <div className="flex-shrink-0 w-8 text-center font-bold text-gray-400">
                       {i + 1}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center mb-1">
-                        <p className="font-medium text-gray-900 dark:text-white truncate">{store.storeName}</p>
+                        <p className="font-medium text-gray-900 dark:text-white truncate">
+                          {store.storeName}
+                        </p>
                         <span className="text-xs font-mono bg-white dark:bg-gray-800 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-600">
                           CR: {conversionRate.toFixed(1)}%
                         </span>
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
-                          <div className={`h-full ${healthColor} rounded-full`} style={{ width: `${healthScore}%` }} />
+                          <div
+                            className={`h-full ${healthColor} rounded-full`}
+                            style={{ width: `${healthScore}%` }}
+                          />
                         </div>
-                        <span className={`text-xs font-medium ${healthScore >= 70 ? 'text-green-500' : healthScore >= 40 ? 'text-yellow-500' : 'text-red-500'}`}>
+                        <span
+                          className={`text-xs font-medium ${healthScore >= 70 ? 'text-green-500' : healthScore >= 40 ? 'text-yellow-500' : 'text-red-500'}`}
+                        >
                           {healthLabel}
                         </span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-gray-900 dark:text-white">৳{(Number(store.revenue) / 1000).toFixed(1)}k</p>
+                      <p className="font-bold text-gray-900 dark:text-white">
+                        {formatPrice(Number(store.revenue))}
+                      </p>
                       <p className="text-xs text-gray-500">{store.orderCount} orders</p>
                     </div>
                   </div>
@@ -667,10 +729,21 @@ export default function AICommandCenter() {
             </h2>
             <div className="space-y-3">
               {topProducts.map((product, i) => (
-                <div key={i} className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
-                    i === 0 ? 'bg-yellow-500' : i === 1 ? 'bg-gray-400' : i === 2 ? 'bg-orange-600' : 'bg-gray-300'
-                  }`}>
+                <div
+                  key={i}
+                  className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl"
+                >
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
+                      i === 0
+                        ? 'bg-yellow-500'
+                        : i === 1
+                          ? 'bg-gray-400'
+                          : i === 2
+                            ? 'bg-orange-600'
+                            : 'bg-gray-300'
+                    }`}
+                  >
                     {i + 1}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -680,8 +753,12 @@ export default function AICommandCenter() {
                     <p className="text-xs text-gray-500 truncate">{product.storeName}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-gray-900 dark:text-white">{product.soldCount} sold</p>
-                    <p className="text-xs text-green-500">৳{Number(product.revenue).toLocaleString()}</p>
+                    <p className="font-bold text-gray-900 dark:text-white">
+                      {product.soldCount} sold
+                    </p>
+                    <p className="text-xs text-green-500">
+                      ৳{Number(product.revenue).toLocaleString()}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -695,19 +772,19 @@ export default function AICommandCenter() {
 
 // Components
 
-function MetricCardLarge({ 
-  icon: Icon, 
-  label, 
-  value, 
-  change, 
-  trend, 
+function MetricCardLarge({
+  icon: Icon,
+  label,
+  value,
+  change,
+  trend,
   subtext,
-  gradient 
-}: { 
-  icon: any; 
-  label: string; 
-  value: string; 
-  change?: number; 
+  gradient,
+}: {
+  icon: any;
+  label: string;
+  value: string;
+  change?: number;
   trend?: 'up' | 'down';
   subtext?: string;
   gradient: string;
@@ -717,9 +794,11 @@ function MetricCardLarge({
       <div className="flex items-center justify-between mb-4">
         <Icon className="w-8 h-8 text-white/80" />
         {change !== undefined && (
-          <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-            trend === 'up' ? 'bg-green-400/20 text-green-100' : 'bg-red-400/20 text-red-100'
-          }`}>
+          <div
+            className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+              trend === 'up' ? 'bg-green-400/20 text-green-100' : 'bg-red-400/20 text-red-100'
+            }`}
+          >
             {trend === 'up' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
             {Math.abs(change).toFixed(1)}%
           </div>
@@ -732,21 +811,21 @@ function MetricCardLarge({
   );
 }
 
-function SegmentBar({ 
-  label, 
-  count, 
-  total, 
+function SegmentBar({
+  label,
+  count,
+  total,
   color,
-  icon: Icon 
-}: { 
-  label: string; 
-  count: number; 
-  total: number; 
+  icon: Icon,
+}: {
+  label: string;
+  count: number;
+  total: number;
   color: string;
   icon: any;
 }) {
-  const percentage = total > 0 ? (count / total * 100) : 0;
-  
+  const percentage = total > 0 ? (count / total) * 100 : 0;
+
   return (
     <div className="flex items-center gap-3">
       <div className={`w-8 h-8 rounded-lg ${color}/10 flex items-center justify-center`}>
@@ -755,10 +834,15 @@ function SegmentBar({
       <div className="flex-1">
         <div className="flex justify-between text-sm mb-1">
           <span className="text-gray-700 dark:text-gray-300">{label}</span>
-          <span className="font-medium text-gray-900 dark:text-white">{count.toLocaleString()}</span>
+          <span className="font-medium text-gray-900 dark:text-white">
+            {count.toLocaleString()}
+          </span>
         </div>
         <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-          <div className={`h-full ${color} rounded-full transition-all`} style={{ width: `${percentage}%` }} />
+          <div
+            className={`h-full ${color} rounded-full transition-all`}
+            style={{ width: `${percentage}%` }}
+          />
         </div>
       </div>
       <span className="text-xs text-gray-500 w-12 text-right">{percentage.toFixed(1)}%</span>
@@ -766,27 +850,31 @@ function SegmentBar({
   );
 }
 
-function FunnelStep({ 
-  label, 
-  value, 
-  subtext, 
-  color 
-}: { 
-  label: string; 
-  value: number; 
-  subtext: string; 
-  color: string; 
+function FunnelStep({
+  label,
+  value,
+  subtext,
+  color,
+}: {
+  label: string;
+  value: number;
+  subtext: string;
+  color: string;
 }) {
   return (
     <div className="relative bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 text-center z-0 transition-transform hover:scale-105 duration-200">
-      <div className={`w-12 h-12 mx-auto rounded-full ${color.replace('bg-', 'bg-opacity-10 text-')} flex items-center justify-center mb-3`}>
+      <div
+        className={`w-12 h-12 mx-auto rounded-full ${color.replace('bg-', 'bg-opacity-10 text-')} flex items-center justify-center mb-3`}
+      >
         <div className={`w-3 h-3 rounded-full ${color} animate-pulse`} />
       </div>
       <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
         {value >= 1000 ? (value / 1000).toFixed(1) + 'k' : value.toLocaleString()}
       </p>
       <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-2">{label}</p>
-      <div className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${color.replace('bg-', 'bg-opacity-10 text-')}`}>
+      <div
+        className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${color.replace('bg-', 'bg-opacity-10 text-')}`}
+      >
         {subtext}
       </div>
     </div>

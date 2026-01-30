@@ -139,7 +139,7 @@ export function GhorerBazarProductDetail({
                 className="absolute top-4 right-4 w-16 h-16 rounded-full flex flex-col items-center justify-center text-white font-bold"
                 style={{ backgroundColor: redDiscount }}
               >
-                <span className="text-sm">৳{discountAmount}</span>
+                <span className="text-sm">{formatPrice(discountAmount)}</span>
                 <span className="text-xs">ছাড়</span>
               </div>
             )}
@@ -162,7 +162,7 @@ export function GhorerBazarProductDetail({
                     className="px-3 py-1 rounded text-sm font-bold text-white"
                     style={{ backgroundColor: primaryColor }}
                   >
-                    SAVE ৳{discountAmount}
+                    SAVE {formatPrice(discountAmount)}
                   </span>
                 </>
               )}

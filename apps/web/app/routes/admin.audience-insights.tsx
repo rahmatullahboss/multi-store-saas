@@ -1,6 +1,6 @@
 /**
  * Super Admin: Audience Insights (Enhanced)
- * 
+ *
  * Platform-wide customer analytics with advanced features:
  * - Cross-store customer matching (Super VIP identification)
  * - Top trending products nationally
@@ -32,6 +32,7 @@ import {
   Target,
   Zap,
 } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine';
 
 export async function loader({ context, request }: LoaderFunctionArgs) {
   const db = drizzle(context.cloudflare.env.DB);
@@ -40,7 +41,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   // ============================================================
   // BASIC METRICS
   // ============================================================
-  
+
   // Get global segment counts across all stores
   const segmentCounts = await db
     .select({
@@ -76,7 +77,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   // ============================================================
   // CROSS-STORE CUSTOMER MATCHING (Super VIP Detection)
   // ============================================================
-  
+
   // Find customers who shop across multiple stores (same phone)
   const crossStoreCustomers = await db
     .select({
@@ -98,20 +99,21 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
       count: sql<number>`COUNT(*)`.as('count'),
     })
     .from(
-      db.select({
-        phone: customers.phone,
-      })
-      .from(customers)
-      .where(sql`phone IS NOT NULL AND phone != ''`)
-      .groupBy(customers.phone)
-      .having(sql`COUNT(DISTINCT store_id) > 1`)
-      .as('cross_store')
+      db
+        .select({
+          phone: customers.phone,
+        })
+        .from(customers)
+        .where(sql`phone IS NOT NULL AND phone != ''`)
+        .groupBy(customers.phone)
+        .having(sql`COUNT(DISTINCT store_id) > 1`)
+        .as('cross_store')
     );
 
   // ============================================================
   // TOP TRENDING PRODUCTS NATIONALLY
   // ============================================================
-  
+
   const trendingProducts = await db
     .select({
       productId: orderItems.productId,
@@ -130,16 +132,27 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   // ============================================================
   // MERCHANT PERFORMANCE BENCHMARKING
   // ============================================================
-  
+
   // Get store performance metrics
   const merchantPerformance = await db
     .select({
       storeId: stores.id,
       storeName: stores.name,
-      customerCount: sql<number>`(SELECT COUNT(*) FROM customers WHERE store_id = ${stores.id})`.as('customer_count'),
-      orderCount: sql<number>`(SELECT COUNT(*) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled')`.as('order_count'),
-      revenue: sql<number>`(SELECT COALESCE(SUM(total), 0) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled')`.as('revenue'),
-      vipCount: sql<number>`(SELECT COUNT(*) FROM customers WHERE store_id = ${stores.id} AND segment = 'vip')`.as('vip_count'),
+      customerCount: sql<number>`(SELECT COUNT(*) FROM customers WHERE store_id = ${stores.id})`.as(
+        'customer_count'
+      ),
+      orderCount:
+        sql<number>`(SELECT COUNT(*) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled')`.as(
+          'order_count'
+        ),
+      revenue:
+        sql<number>`(SELECT COALESCE(SUM(total), 0) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled')`.as(
+          'revenue'
+        ),
+      vipCount:
+        sql<number>`(SELECT COUNT(*) FROM customers WHERE store_id = ${stores.id} AND segment = 'vip')`.as(
+          'vip_count'
+        ),
     })
     .from(stores)
     .where(eq(stores.isActive, true))
@@ -150,7 +163,10 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   const [industryAverages] = await db
     .select({
       avgOrderValue: sql<number>`AVG(total)`.as('avg_order_value'),
-      avgOrdersPerStore: sql<number>`(SELECT AVG(cnt) FROM (SELECT COUNT(*) as cnt FROM orders WHERE status != 'cancelled' GROUP BY store_id))`.as('avg_orders'),
+      avgOrdersPerStore:
+        sql<number>`(SELECT AVG(cnt) FROM (SELECT COUNT(*) as cnt FROM orders WHERE status != 'cancelled' GROUP BY store_id))`.as(
+          'avg_orders'
+        ),
     })
     .from(orders)
     .where(sql`${orders.status} != 'cancelled'`);
@@ -158,12 +174,15 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   // ============================================================
   // TOP CATEGORIES
   // ============================================================
-  
+
   const topCategories = await db
     .select({
       category: products.category,
       productCount: count().as('product_count'),
-      soldCount: sql<number>`COALESCE((SELECT SUM(quantity) FROM order_items WHERE product_id IN (SELECT id FROM products WHERE category = ${products.category})), 0)`.as('sold_count'),
+      soldCount:
+        sql<number>`COALESCE((SELECT SUM(quantity) FROM order_items WHERE product_id IN (SELECT id FROM products WHERE category = ${products.category})), 0)`.as(
+          'sold_count'
+        ),
     })
     .from(products)
     .where(sql`${products.category} IS NOT NULL AND ${products.category} != ''`)
@@ -174,7 +193,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   // ============================================================
   // CUSTOMERS BY STORE (existing)
   // ============================================================
-  
+
   const customersByStore = await db
     .select({
       storeId: customers.storeId,
@@ -205,7 +224,7 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     storesWithCustomers: storesWithCustomers?.count || 0,
     totalRevenue: Number(totalRevenue?.total) || 0,
     totalOrders: Number(totalRevenue?.orderCount) || 0,
-    
+
     // Advanced metrics
     crossStoreCustomers,
     crossStoreCount: crossStoreCount?.count || 0,
@@ -223,10 +242,34 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
 // Segment config
 const SEGMENTS = [
   { id: 'vip', label: 'VIP', icon: Crown, color: 'text-yellow-500', bgColor: 'bg-yellow-500/10' },
-  { id: 'churn_risk', label: 'Churn Risk', icon: AlertTriangle, color: 'text-red-500', bgColor: 'bg-red-500/10' },
-  { id: 'window_shopper', label: 'Window Shoppers', icon: ShoppingCart, color: 'text-orange-500', bgColor: 'bg-orange-500/10' },
-  { id: 'new', label: 'New Leads', icon: UserPlus, color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
-  { id: 'regular', label: 'Regular', icon: Users, color: 'text-green-500', bgColor: 'bg-green-500/10' },
+  {
+    id: 'churn_risk',
+    label: 'Churn Risk',
+    icon: AlertTriangle,
+    color: 'text-red-500',
+    bgColor: 'bg-red-500/10',
+  },
+  {
+    id: 'window_shopper',
+    label: 'Window Shoppers',
+    icon: ShoppingCart,
+    color: 'text-orange-500',
+    bgColor: 'bg-orange-500/10',
+  },
+  {
+    id: 'new',
+    label: 'New Leads',
+    icon: UserPlus,
+    color: 'text-blue-500',
+    bgColor: 'bg-blue-500/10',
+  },
+  {
+    id: 'regular',
+    label: 'Regular',
+    icon: Users,
+    color: 'text-green-500',
+    bgColor: 'bg-green-500/10',
+  },
 ];
 
 export default function AudienceInsights() {
@@ -264,42 +307,42 @@ export default function AudienceInsights() {
 
         {/* Key Metrics - Row 1 */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-          <MetricCard 
-            icon={Users} 
-            label="Total Customers" 
-            value={totalCustomers.toLocaleString()} 
-            iconColor="text-purple-500/50" 
+          <MetricCard
+            icon={Users}
+            label="Total Customers"
+            value={totalCustomers.toLocaleString()}
+            iconColor="text-purple-500/50"
           />
-          <MetricCard 
-            icon={TrendingUp} 
-            label="Unique Shoppers" 
-            value={uniquePhones.toLocaleString()} 
+          <MetricCard
+            icon={TrendingUp}
+            label="Unique Shoppers"
+            value={uniquePhones.toLocaleString()}
             subtext="By phone"
-            iconColor="text-green-500/50" 
+            iconColor="text-green-500/50"
           />
-          <MetricCard 
-            icon={Store} 
-            label="Active Stores" 
-            value={storesWithCustomers.toLocaleString()} 
-            iconColor="text-blue-500/50" 
+          <MetricCard
+            icon={Store}
+            label="Active Stores"
+            value={storesWithCustomers.toLocaleString()}
+            iconColor="text-blue-500/50"
           />
-          <MetricCard 
-            icon={DollarSign} 
-            label="Total GMV" 
-            value={`৳${(totalRevenue / 1000).toFixed(0)}k`} 
-            iconColor="text-yellow-500/50" 
+          <MetricCard
+            icon={DollarSign}
+            label="Total GMV"
+            value={formatPrice(totalRevenue)}
+            iconColor="text-yellow-500/50"
           />
-          <MetricCard 
-            icon={Package} 
-            label="Total Orders" 
-            value={totalOrders.toLocaleString()} 
-            iconColor="text-indigo-500/50" 
+          <MetricCard
+            icon={Package}
+            label="Total Orders"
+            value={totalOrders.toLocaleString()}
+            iconColor="text-indigo-500/50"
           />
-          <MetricCard 
-            icon={Target} 
-            label="Avg Order Value" 
-            value={`৳${avgOrderValue.toFixed(0)}`} 
-            iconColor="text-pink-500/50" 
+          <MetricCard
+            icon={Target}
+            label="Avg Order Value"
+            value={formatPrice(avgOrderValue)}
+            iconColor="text-pink-500/50"
           />
         </div>
 
@@ -321,7 +364,10 @@ export default function AudienceInsights() {
             {crossStoreCustomers.length > 0 ? (
               <div className="space-y-3">
                 {crossStoreCustomers.slice(0, 5).map((customer, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg"
+                  >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
                         <Crown className="w-4 h-4 text-yellow-500" />
@@ -336,7 +382,7 @@ export default function AudienceInsights() {
                       </div>
                     </div>
                     <span className="font-bold text-yellow-600 dark:text-yellow-400">
-                      ৳{Number(customer.totalSpent).toLocaleString()}
+                      {formatPrice(Number(customer.totalSpent))}
                     </span>
                   </div>
                 ))}
@@ -366,8 +412,12 @@ export default function AudienceInsights() {
                       <p className="text-xs text-gray-500 truncate">{product.storeName}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-gray-900 dark:text-white">{product.soldCount} sold</p>
-                      <p className="text-xs text-green-500">৳{Number(product.revenue).toLocaleString()}</p>
+                      <p className="font-bold text-gray-900 dark:text-white">
+                        {product.soldCount} sold
+                      </p>
+                      <p className="text-xs text-green-500">
+                        {formatPrice(Number(product.revenue))}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -387,14 +437,17 @@ export default function AudienceInsights() {
             {SEGMENTS.map((segment) => {
               const Icon = segment.icon;
               const segmentCount = segmentCounts[segment.id] || 0;
-              const percentage = totalCustomers > 0 ? ((segmentCount / totalCustomers) * 100).toFixed(1) : 0;
+              const percentage =
+                totalCustomers > 0 ? ((segmentCount / totalCustomers) * 100).toFixed(1) : 0;
 
               return (
                 <div key={segment.id} className="text-center">
                   <div className={`inline-flex p-4 rounded-xl ${segment.bgColor} mb-3`}>
                     <Icon className={`w-8 h-8 ${segment.color}`} />
                   </div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{segmentCount.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {segmentCount.toLocaleString()}
+                  </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{segment.label}</p>
                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{percentage}%</p>
                 </div>
@@ -424,11 +477,12 @@ export default function AudienceInsights() {
                 </thead>
                 <tbody className="divide-y dark:divide-gray-700">
                   {merchantPerformance.slice(0, 8).map((store, i) => {
-                    const storeAvgOrderValue = Number(store.orderCount) > 0 
-                      ? Number(store.revenue) / Number(store.orderCount) 
-                      : 0;
+                    const storeAvgOrderValue =
+                      Number(store.orderCount) > 0
+                        ? Number(store.revenue) / Number(store.orderCount)
+                        : 0;
                     const aboveAvg = storeAvgOrderValue > industryAverages.avgOrderValue;
-                    
+
                     return (
                       <tr key={store.storeId} className="text-gray-900 dark:text-white">
                         <td className="py-3 font-bold text-gray-400">{i + 1}</td>
@@ -443,7 +497,9 @@ export default function AudienceInsights() {
                         </td>
                         <td className="py-3 text-right">{store.orderCount}</td>
                         <td className="py-3 text-right">
-                          <span className={`inline-flex items-center gap-1 ${Number(store.vipCount) > 0 ? 'text-yellow-500' : 'text-gray-400'}`}>
+                          <span
+                            className={`inline-flex items-center gap-1 ${Number(store.vipCount) > 0 ? 'text-yellow-500' : 'text-gray-400'}`}
+                          >
                             {Number(store.vipCount) > 0 && <Crown className="w-3 h-3" />}
                             {store.vipCount}
                           </span>
@@ -478,7 +534,10 @@ export default function AudienceInsights() {
               <div className="p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg">
                 <p className="text-sm text-gray-500 dark:text-gray-400">VIP Conversion</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {totalCustomers > 0 ? ((segmentCounts.vip || 0) / totalCustomers * 100).toFixed(1) : 0}%
+                  {totalCustomers > 0
+                    ? (((segmentCounts.vip || 0) / totalCustomers) * 100).toFixed(1)
+                    : 0}
+                  %
                 </p>
               </div>
             </div>
@@ -508,17 +567,17 @@ export default function AudienceInsights() {
 }
 
 // Metric Card Component
-function MetricCard({ 
-  icon: Icon, 
-  label, 
-  value, 
-  subtext, 
-  iconColor 
-}: { 
-  icon: any; 
-  label: string; 
-  value: string; 
-  subtext?: string; 
+function MetricCard({
+  icon: Icon,
+  label,
+  value,
+  subtext,
+  iconColor,
+}: {
+  icon: any;
+  label: string;
+  value: string;
+  subtext?: string;
   iconColor: string;
 }) {
   return (

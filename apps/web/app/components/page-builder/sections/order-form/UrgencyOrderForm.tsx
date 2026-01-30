@@ -296,7 +296,7 @@ export function UrgencyOrderForm({
                     <div className="mt-2 inline-flex items-center gap-1 px-3 py-1 bg-green-900/50 rounded-full">
                       <TrendingUp size={14} className="text-green-400" />
                       <span className="text-green-400 font-medium text-sm">
-                        সেভ করুন ৳{actualComparePrice - actualPrice}
+                        সেভ করুন {formatPrice(actualComparePrice - actualPrice)}
                       </span>
                     </div>
                   )}

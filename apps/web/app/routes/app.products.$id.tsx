@@ -41,7 +41,7 @@ import { VariantManager, type Variant } from '~/components/VariantManager';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useUnsavedChanges, deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
-import { formatPrice } from '~/utils/formatPrice';
+import { formatPrice } from '~/lib/theme-engine';
 import { toCents, fromCents } from '~/utils/money';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -940,7 +940,7 @@ export default function EditProductPage() {
                     <div>
                       <label className="block text-xs text-gray-500 mb-1">সেভ</label>
                       <div className="px-2 py-1.5 text-sm bg-green-50 text-green-700 rounded">
-                        ৳{tier.savings || 0}
+                        {formatPrice(tier.savings || 0)}
                       </div>
                     </div>
                   </div>

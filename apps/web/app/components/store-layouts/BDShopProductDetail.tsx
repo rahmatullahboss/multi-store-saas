@@ -241,7 +241,7 @@ export function BDShopProductDetail({
                     className="inline-block text-sm font-medium px-2 py-1 rounded"
                     style={{ backgroundColor: '#DCFCE7', color: BDSHOP_THEME.green }}
                   >
-                    Save ৳{saveAmount.toLocaleString('en-BD')}
+                    Save {formatPrice(saveAmount)}
                   </span>
                 )}
               </div>
