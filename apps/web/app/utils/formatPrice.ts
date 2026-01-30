@@ -42,6 +42,7 @@ export function formatPrice(
 
   const intlLocale = LOCALE_MAP[locale];
   const isBDT = currency === 'BDT';
+  const priceInUnits = price / 100;
   
   try {
     const formatted = new Intl.NumberFormat(intlLocale, {
@@ -51,15 +52,15 @@ export function formatPrice(
       maximumFractionDigits: isBDT ? 0 : 2,
       // Force Latin numerals
       numberingSystem: 'latn',
-    }).format(price);
+    }).format(priceInUnits);
 
     return formatted;
   } catch {
     // Fallback for unsupported currencies
     const currencyInfo = CURRENCY_CONFIG[currency] || CURRENCY_CONFIG.USD;
     return showSymbol 
-      ? `${currencyInfo.symbol}${price.toFixed(2)}`
-      : price.toFixed(2);
+      ? `${currencyInfo.symbol}${priceInUnits.toFixed(2)}`
+      : priceInUnits.toFixed(2);
   }
 }
 

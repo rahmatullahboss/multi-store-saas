@@ -36,8 +36,8 @@ const BKASH_PAYMENT_NUMBER = '01739416661';
 
 const PLAN_PRICING = {
   free: 0,
-  starter: 500,    // ৫০০ টাকা/মাস
-  premium: 2000,   // ২০০০ টাকা/মাস
+  starter: 50000,    // ৫০০ টাকা/মাস
+  premium: 200000,   // ২০০০ টাকা/মাস
 };
 
 // ==============================================================================
@@ -119,7 +119,7 @@ const CATEGORY_TEMPLATES: Record<string, {
       { icon: '🚚', title: 'featureFastDelivery', description: 'descTwoThreeDays' },
       { icon: '💳', title: 'featureCashOnDelivery', description: 'descPayOnReceive' },
     ],
-    product: { title: 'Premium Fashion Item', price: 1500, description: 'descStylishFashion' },
+    product: { title: 'Premium Fashion Item', price: 150000, description: 'descStylishFashion' },
   },
   electronics: {
     headline: 'categoryElectronicsHeadline',
@@ -129,7 +129,7 @@ const CATEGORY_TEMPLATES: Record<string, {
       { icon: '🚚', title: 'featureFastDelivery', description: 'descTwoThreeDays' },
       { icon: '🔧', title: 'featureAfterSales', description: 'descTechnicalSupport' },
     ],
-    product: { title: 'Quality Electronics', price: 2500, description: 'descPremiumElectronics' },
+    product: { title: 'Quality Electronics', price: 250000, description: 'descPremiumElectronics' },
   },
   beauty: {
     headline: 'categoryBeautyHeadline',
@@ -139,7 +139,7 @@ const CATEGORY_TEMPLATES: Record<string, {
       { icon: '🌿', title: 'featureNatural', description: 'descSkinFriendly' },
       { icon: '💝', title: 'featureFreeGift', description: 'descSurprise' },
     ],
-    product: { title: 'Beauty Product', price: 800, description: 'descPremiumBeauty' },
+    product: { title: 'Beauty Product', price: 80000, description: 'descPremiumBeauty' },
   },
   food: {
     headline: 'categoryFoodHeadline',
@@ -149,7 +149,7 @@ const CATEGORY_TEMPLATES: Record<string, {
       { icon: '🚴', title: 'featureHotDelivery', description: 'descHot' },
       { icon: '😋', title: 'featureTasteGuarantee', description: 'descDelicious' },
     ],
-    product: { title: 'Delicious Food Item', price: 350, description: 'descDeliciousFood' },
+    product: { title: 'Delicious Food Item', price: 35000, description: 'descDeliciousFood' },
   },
   home: {
     headline: 'categoryHomeHeadline',
@@ -159,7 +159,7 @@ const CATEGORY_TEMPLATES: Record<string, {
       { icon: '📦', title: 'featureSafePackaging', description: 'descCorrectCondition' },
       { icon: '🔄', title: 'featureEasyReturn', description: 'descSevenDays' },
     ],
-    product: { title: 'Home & Living Product', price: 1200, description: 'descHomeDecor' },
+    product: { title: 'Home & Living Product', price: 120000, description: 'descHomeDecor' },
   },
   services: {
     headline: 'categoryServicesHeadline',
@@ -169,7 +169,7 @@ const CATEGORY_TEMPLATES: Record<string, {
       { icon: '⏱️', title: 'featureOnTime', description: 'descDeadline' },
       { icon: '💯', title: 'featureSatisfaction', description: 'descBestQuality' },
     ],
-    product: { title: 'Professional Service', price: 2000, description: 'descProfessionalService' },
+    product: { title: 'Professional Service', price: 200000, description: 'descProfessionalService' },
   },
   other: {
     headline: 'categoryOtherHeadline',
@@ -179,7 +179,7 @@ const CATEGORY_TEMPLATES: Record<string, {
       { icon: '🚚', title: 'featureFastDelivery', description: 'descTwoThreeDays' },
       { icon: '💳', title: 'featureCashOnDelivery', description: 'descPayOnReceive' },
     ],
-    product: { title: 'Quality Product', price: 1000, description: 'descPremiumProduct' },
+    product: { title: 'Quality Product', price: 100000, description: 'descPremiumProduct' },
   },
 };
 

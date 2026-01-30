@@ -411,14 +411,14 @@ Your response MUST be valid JSON in this exact format:
   "product": {
     "title": "Product Title",
     "description": "Compelling product description in Bengali or English",
-    "suggestedPrice": 1500
+    "suggestedPrice": 150000
   }
 }
 
 Important:
 - Store name should be memorable and relevant
 - Product description should be persuasive and highlight benefits
-- Price should be realistic for Bangladesh market (in BDT/Taka)
+- Price should be realistic for Bangladesh market (in CENTS, e.g. 1500 Taka = 150000)
 - If business is in Bangladesh, use Bengali for descriptions`;
 
   const userPrompt = `Business description: ${businessDescription}

@@ -77,7 +77,7 @@ export function TechCartPage({ theme, isPreview = false, onCheckout }: TechCartP
     });
   };
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
 
   const getLink = (path: string) => {
     if (isPreview && templateId) {
@@ -128,7 +128,7 @@ export function TechCartPage({ theme, isPreview = false, onCheckout }: TechCartP
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-blue-600">
                         {currencySymbol}
-                        {item.price.toLocaleString()}
+                        {(item.price || 0).toLocaleString()}
                       </span>
                       <span className="text-xs text-gray-400">x {item.quantity}</span>
                     </div>
@@ -173,7 +173,7 @@ export function TechCartPage({ theme, isPreview = false, onCheckout }: TechCartP
                   <span className="text-gray-600">Subtotal</span>
                   <span className="font-medium">
                     {currencySymbol}
-                    {subtotal.toLocaleString()}
+                    {(subtotal || 0).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -190,7 +190,7 @@ export function TechCartPage({ theme, isPreview = false, onCheckout }: TechCartP
                 <span>Total</span>
                 <span className="text-blue-600">
                   {currencySymbol}
-                  {subtotal.toLocaleString()}
+                  {(subtotal || 0).toLocaleString()}
                 </span>
               </div>
 

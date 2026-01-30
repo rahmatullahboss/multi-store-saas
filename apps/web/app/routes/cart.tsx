@@ -178,6 +178,7 @@ export default function CartPage() {
       }
     }
     setIsHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Update cart with fresh prices
@@ -194,7 +195,7 @@ export default function CartPage() {
         })
       );
     }
-  }, [fetcher.data]);
+  }, [fetcher.data, cart.length]);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
@@ -220,7 +221,7 @@ export default function CartPage() {
     setCart((prev) => prev.filter((item) => item.productId !== productId));
   };
 
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
   const hasTemplateSections = template?.sections && template.sections.length > 0;
 
   // Get template definition
@@ -330,7 +331,7 @@ export default function CartPage() {
                     <h3 className="font-medium text-gray-900 truncate">{item.title}</h3>
                     <p className="text-lg font-bold" style={{ color: theme.primary }}>
                       {currency === 'BDT' ? '৳' : '$'}
-                      {item.price.toLocaleString()}
+                      {(item.price || 0).toLocaleString()}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -363,7 +364,7 @@ export default function CartPage() {
                   <span className="text-lg font-medium">Subtotal</span>
                   <span className="text-2xl font-bold" style={{ color: theme.primary }}>
                     {currency === 'BDT' ? '৳' : '$'}
-                    {subtotal.toLocaleString()}
+                    {(subtotal || 0).toLocaleString()}
                   </span>
                 </div>
                 <a

@@ -251,7 +251,7 @@ export function DarazCartPage({
                       </p>
                     )}
                     <p className="font-bold text-lg" style={{ color: DARAZ_THEME.priceOrange }}>
-                      {currency} {item.price.toLocaleString()}
+                      {currency} {(item.price || 0).toLocaleString()}
                     </p>
                   </div>
 
@@ -325,7 +325,7 @@ export function DarazCartPage({
                       Subtotal ({itemCount} items)
                     </span>
                     <span style={{ color: DARAZ_THEME.text }}>
-                      {currency} {subtotal.toLocaleString()}
+                      {currency} {(subtotal || 0).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -342,7 +342,7 @@ export function DarazCartPage({
                     Total
                   </span>
                   <span className="text-xl font-bold" style={{ color: DARAZ_THEME.priceOrange }}>
-                    {currency} {subtotal.toLocaleString()}
+                    {currency} {(subtotal || 0).toLocaleString()}
                   </span>
                 </div>
 

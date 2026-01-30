@@ -62,7 +62,7 @@ export function BDShopCartPage({
   const fetcher = useFetcher();
   const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'pickup'>('delivery');
   
-  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = items.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0);
   const deliveryFee = deliveryMethod === 'delivery' ? 80 : 0;
   const total = subtotal + deliveryFee;
 
@@ -194,7 +194,7 @@ export function BDShopCartPage({
                         className="font-bold text-lg"
                         style={{ color: BDSHOP_THEME.primary }}
                       >
-                        {currency}{item.price.toLocaleString()}
+                        {currency}{(item.price || 0).toLocaleString()}
                       </p>
                     </div>
 
@@ -335,7 +335,7 @@ export function BDShopCartPage({
                 {/* Subtotal */}
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Subtotal ({items.length} items)</span>
-                  <span className="font-medium">{currency}{subtotal.toLocaleString()}</span>
+                  <span className="font-medium">{currency}{(subtotal || 0).toLocaleString()}</span>
                 </div>
 
                 {/* Delivery */}
@@ -362,7 +362,7 @@ export function BDShopCartPage({
                       Total
                     </span>
                     <span className="font-bold text-xl" style={{ color: BDSHOP_THEME.navy }}>
-                      {currency}{total.toLocaleString()}
+                      {currency}{(total || 0).toLocaleString()}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">

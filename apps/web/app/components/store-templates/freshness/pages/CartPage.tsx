@@ -72,7 +72,7 @@ export function FreshnessCartPage({ theme, isPreview = false }: FreshnessCartPro
     });
   };
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
 
   if (!hydrated) return null;
 
@@ -125,7 +125,7 @@ export function FreshnessCartPage({ theme, isPreview = false }: FreshnessCartPro
                     )}
                     <div className="mt-2 font-bold text-gray-900">
                       {currencySymbol}
-                      {item.price.toLocaleString()}
+                      {(item.price || 0).toLocaleString()}
                     </div>
                   </div>
 
@@ -169,7 +169,7 @@ export function FreshnessCartPage({ theme, isPreview = false }: FreshnessCartPro
                   <span>Subtotal</span>
                   <span className="font-bold text-gray-900">
                     {currencySymbol}
-                    {subtotal.toLocaleString()}
+                    {(subtotal || 0).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between text-gray-600">
@@ -183,7 +183,7 @@ export function FreshnessCartPage({ theme, isPreview = false }: FreshnessCartPro
                   <span>Total</span>
                   <span>
                     {currencySymbol}
-                    {subtotal.toLocaleString()}
+                    {(subtotal || 0).toLocaleString()}
                   </span>
                 </div>
               </div>

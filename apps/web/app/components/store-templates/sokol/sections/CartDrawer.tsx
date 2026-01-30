@@ -56,7 +56,7 @@ export function SokolCartDrawer() {
     window.dispatchEvent(new CustomEvent('cart-updated'));
   };
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0);
 
   if (!isOpen) return null;
 
@@ -113,7 +113,7 @@ export function SokolCartDrawer() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-sm truncate">{item.title}</h4>
-                    <p className="text-rose-600 font-bold mt-1">৳{item.price.toLocaleString()}</p>
+                    <p className="text-rose-600 font-bold mt-1">৳{(item.price || 0).toLocaleString()}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <button
                         onClick={() => updateQuantity(item.id, -1)}
@@ -147,7 +147,7 @@ export function SokolCartDrawer() {
           <div className="p-4 border-t border-gray-100 bg-gray-50">
             <div className="flex justify-between items-center mb-4">
               <span className="text-gray-600">Subtotal</span>
-              <span className="text-xl font-bold">৳{subtotal.toLocaleString()}</span>
+              <span className="text-xl font-bold">৳{(subtotal || 0).toLocaleString()}</span>
             </div>
             <Link
               to="/checkout"
