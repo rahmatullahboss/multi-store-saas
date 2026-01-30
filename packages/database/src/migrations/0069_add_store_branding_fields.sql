@@ -1,8 +1,4 @@
 -- Migration: Add store branding fields (tagline, description)
--- bannerUrl already exists in themeConfig JSON, no need for separate column
+-- Note: Columns already exist in production, this is a no-op migration
 
--- Add tagline field for store slogan (SEO + branding)
-ALTER TABLE stores ADD COLUMN tagline TEXT;
-
--- Add description field for SEO and about page
-ALTER TABLE stores ADD COLUMN description TEXT;
+SELECT 1; -- No-op migration - tagline and description already exist

@@ -9,9 +9,9 @@
  * Route: /store-preview-frame
  */
 
-import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
+import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useSearchParams } from '@remix-run/react';
+import { useLoaderData } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores, products as productsTable } from '@db/schema';
@@ -20,6 +20,7 @@ import {
   defaultThemeConfig,
   type ThemeConfig,
   parseSocialLinks,
+  type TypographySettings,
 } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import {
@@ -27,23 +28,95 @@ import {
   DEFAULT_STORE_TEMPLATE_ID,
   STORE_TEMPLATE_THEMES,
   type SerializedProduct,
+  type StoreTemplateTheme,
 } from '~/templates/store-registry';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   ArrowLeft,
   Home,
   ShoppingCart,
-  Package,
   Check,
   Minus,
   Plus,
   CreditCard,
 } from 'lucide-react';
 import { ThemeStoreRenderer } from '~/components/store/ThemeStoreRenderer';
-import { getThemeBridge } from '~/lib/theme-engine/ThemeBridge';
 
 // Demo cart items for preview
 const DEMO_CART_ITEMS_COUNT = 3;
+
+// ============================================================================
+// TYPES
+// ============================================================================
+// Use StoreTemplateTheme base but allow for loose typing during live preview updates
+type ThemeColors = StoreTemplateTheme & {
+  [key: string]: string | undefined;
+};
+
+// LiveConfig should basically mirror ThemeConfig but with optional properties for the editor state
+interface LiveConfig {
+  themeId?: string;
+  primaryColor?: string;
+  accentColor?: string;
+  backgroundColor?: string;
+  textColor?: string;
+  borderColor?: string;
+  typography?: TypographySettings;
+  fontFamily?: string;
+  bannerUrl?: string;
+  bannerText?: string;
+  announcement?: { text: string; link?: string };
+  customCSS?: string;
+  storeTemplateId?: string;
+  sections?: Record<string, unknown>[];
+  productSections?: Record<string, unknown>[];
+  collectionSections?: Record<string, unknown>[];
+  cartSections?: Record<string, unknown>[];
+  checkoutSections?: Record<string, unknown>[];
+  logo?: string;
+  businessInfo?: Record<string, unknown>;
+  socialLinks?: Record<string, unknown>;
+  headerLayout?: ThemeConfig['headerLayout'];
+  headerShowSearch?: boolean;
+  headerShowCart?: boolean;
+  footerDescription?: string;
+  copyrightText?: string;
+  footerColumns?: ThemeConfig['footerColumns']; // Keep any here for complex nested array or define specific type
+  floatingWhatsappEnabled?: boolean;
+  floatingWhatsappNumber?: string;
+  floatingWhatsappMessage?: string;
+  floatingCallEnabled?: boolean;
+  floatingCallNumber?: string;
+  checkoutStyle?: ThemeConfig['checkoutStyle'];
+  flashSale?: {
+    isActive: boolean;
+    text?: string;
+    endTime?: string;
+    backgroundColor?: string;
+    textColor?: string;
+    discountPercentage?: number;
+    discountType?: 'percent' | 'fixed';
+  };
+  trustBadges?: {
+    showPaymentIcons: boolean;
+    showGuaranteeSeals: boolean;
+    customText?: string;
+  };
+  marketingPopup?: {
+    isActive: boolean;
+    title?: string;
+    description?: string;
+    delay?: number;
+    offerCode?: string;
+  };
+}
+
+// ============================================================================
+// META - Viewport for mobile responsiveness
+// ============================================================================
+export const meta: MetaFunction = () => {
+  return [{ name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1' }];
+};
 
 // ============================================================================
 // LOADER - Fetch store data for preview
@@ -93,6 +166,24 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 // ============================================================================
+// TYPES (Data)
+// ============================================================================
+interface StorePreviewData {
+  storeId: number;
+  storeName: string;
+  logo: string | null;
+  fontFamily: string;
+  currency: string;
+  theme: string;
+  themeConfig: ThemeConfig;
+  socialLinks: Record<string, string> | null;
+  businessInfo?: Record<string, string | number | null> | null; // Optional to match Remix serialization behavior
+  products: SerializedProduct[];
+  categories: string[];
+  error?: string;
+}
+
+// ============================================================================
 // PRODUCT DETAIL VIEW COMPONENT
 // ============================================================================
 function ProductDetailView({
@@ -106,7 +197,7 @@ function ProductDetailView({
   onBack: () => void;
   onAddToCart: () => void;
   currency: string;
-  themeColors: any;
+  themeColors: ThemeColors;
 }) {
   const [quantity, setQuantity] = useState(1);
 
@@ -259,7 +350,7 @@ function CartView({
   onBack: () => void;
   onCheckout: () => void;
   currency: string;
-  themeColors: any;
+  themeColors: ThemeColors;
 }) {
   // Use first few products as demo cart items
   const cartItems = products.slice(0, DEMO_CART_ITEMS_COUNT).map((p, i) => ({
@@ -409,7 +500,7 @@ function CheckoutView({
   products: SerializedProduct[];
   onBack: () => void;
   currency: string;
-  themeColors: any;
+  themeColors: ThemeColors;
 }) {
   const cartItems = products.slice(0, DEMO_CART_ITEMS_COUNT).map((p, i) => ({
     ...p,
@@ -628,11 +719,9 @@ function CheckoutView({
 function PreviewNavBar({
   currentPage,
   onNavigate,
-  themeColors,
 }: {
   currentPage: 'home' | 'product' | 'cart' | 'checkout' | 'collection';
   onNavigate: (page: 'home' | 'product' | 'cart' | 'checkout' | 'collection') => void;
-  themeColors: any;
 }) {
   return (
     <div
@@ -667,21 +756,10 @@ function PreviewNavBar({
 // ============================================================================
 // COMPONENT - Preview Frame
 // ============================================================================
-export default function StorePreviewFrame() {
-  const data = useLoaderData<typeof loader>();
-  const [searchParams] = useSearchParams();
-
-  // Check for error response
-  if ('error' in data) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-        <div className="text-center">
-          <p className="text-red-600">{data.error}</p>
-        </div>
-      </div>
-    );
-  }
-
+// ============================================================================
+// COMPONENT - Preview Content (Hooks safely used here)
+// ============================================================================
+function StorePreviewContent({ data }: { data: StorePreviewData }) {
   // Internal navigation state
   const [currentPage, setCurrentPage] = useState<
     'home' | 'product' | 'cart' | 'checkout' | 'collection'
@@ -689,45 +767,8 @@ export default function StorePreviewFrame() {
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
 
   // Live config state (updated via postMessage)
-  const [liveConfig, setLiveConfig] = useState<{
-    themeId?: string; // Bug #3, #12 fix: Track themeId for ThemeStoreRenderer
-    primaryColor?: string;
-    accentColor?: string;
-    backgroundColor?: string;
-    textColor?: string;
-    borderColor?: string;
-    typography?: any;
-    fontFamily?: string;
-    bannerUrl?: string;
-    bannerText?: string;
-    announcement?: { text: string; link?: string };
-    customCSS?: string;
-    storeTemplateId?: string;
-    sections?: any[];
-    productSections?: any[];
-    collectionSections?: any[];
-    cartSections?: any[];
-    checkoutSections?: any[];
-    logo?: string;
-    businessInfo?: any;
-    socialLinks?: any;
-    headerLayout?: string;
-    headerShowSearch?: boolean;
-    headerShowCart?: boolean;
-    footerDescription?: string;
-    copyrightText?: string;
-    footerColumns?: any[];
-    floatingWhatsappEnabled?: boolean;
-    floatingWhatsappNumber?: string;
-    floatingWhatsappMessage?: string;
-    floatingCallEnabled?: boolean;
-    floatingCallNumber?: string;
-    checkoutStyle?: string;
-    flashSale?: any;
-    trustBadges?: any;
-    marketingPopup?: any;
-  }>({
-    themeId: data.themeConfig.storeTemplateId || 'starter-store', // Initialize themeId
+  const [liveConfig, setLiveConfig] = useState<LiveConfig>({
+    themeId: data.themeConfig.storeTemplateId || 'starter-store',
     primaryColor: data.themeConfig.primaryColor,
     accentColor: data.themeConfig.accentColor,
     backgroundColor: data.themeConfig.backgroundColor,
@@ -743,8 +784,8 @@ export default function StorePreviewFrame() {
     sections: data.themeConfig.sections,
     productSections: data.themeConfig.productSections,
     logo: data.logo ?? undefined,
-    businessInfo: data.businessInfo,
-    socialLinks: data.socialLinks,
+    businessInfo: data.businessInfo || undefined,
+    socialLinks: data.socialLinks || undefined,
     headerLayout: data.themeConfig.headerLayout,
     headerShowSearch: data.themeConfig.headerShowSearch,
     headerShowCart: data.themeConfig.headerShowCart,
@@ -822,7 +863,7 @@ export default function StorePreviewFrame() {
     storeTemplateId: liveConfig.storeTemplateId || data.themeConfig.storeTemplateId,
     sections: liveConfig.sections || data.themeConfig.sections,
     productSections: liveConfig.productSections || data.themeConfig.productSections,
-    headerLayout: (liveConfig.headerLayout as any) || data.themeConfig.headerLayout,
+    headerLayout: liveConfig.headerLayout || data.themeConfig.headerLayout,
     headerShowSearch: liveConfig.headerShowSearch ?? data.themeConfig.headerShowSearch,
     headerShowCart: liveConfig.headerShowCart ?? data.themeConfig.headerShowCart,
     footerDescription: liveConfig.footerDescription ?? data.themeConfig.footerDescription,
@@ -836,14 +877,13 @@ export default function StorePreviewFrame() {
       liveConfig.floatingWhatsappMessage ?? data.themeConfig.floatingWhatsappMessage,
     floatingCallEnabled: liveConfig.floatingCallEnabled ?? data.themeConfig.floatingCallEnabled,
     floatingCallNumber: liveConfig.floatingCallNumber ?? data.themeConfig.floatingCallNumber,
-    checkoutStyle: (liveConfig.checkoutStyle as any) ?? data.themeConfig.checkoutStyle,
+    checkoutStyle: liveConfig.checkoutStyle ?? data.themeConfig.checkoutStyle,
     flashSale: liveConfig.flashSale ?? data.themeConfig.flashSale,
     trustBadges: liveConfig.trustBadges ?? data.themeConfig.trustBadges,
     marketingPopup: liveConfig.marketingPopup ?? data.themeConfig.marketingPopup,
   };
 
   // Get template component and theme colors
-  // Bug #3 fix: Use liveConfig.themeId for dynamic theme switching
   const themeId =
     liveConfig.themeId ||
     liveConfig.storeTemplateId ||
@@ -853,7 +893,7 @@ export default function StorePreviewFrame() {
   const { component: StoreTemplateComponent } = getStoreTemplate(templateId);
 
   // Get theme colors from registry or use config colors
-  const themeColors = STORE_TEMPLATE_THEMES[templateId] || {
+  const themeColors = (STORE_TEMPLATE_THEMES[templateId] || {
     primary: mergedConfig.primaryColor || '#6366f1',
     accent: mergedConfig.accentColor || '#f59e0b',
     background: mergedConfig.backgroundColor || '#f9fafb',
@@ -863,7 +903,7 @@ export default function StorePreviewFrame() {
     headerBg: '#ffffff',
     footerBg: '#1f2937',
     footerText: '#f9fafb',
-  };
+  }) as ThemeColors;
 
   // Navigation handlers
   const handleProductClick = useCallback((productId: number) => {
@@ -897,12 +937,10 @@ export default function StorePreviewFrame() {
   );
 
   // Get selected product for product detail view
-  const selectedProduct = data.products.find((p: any) => p.id === selectedProductId);
+  const selectedProduct = data.products.find((p: SerializedProduct) => p.id === selectedProductId);
 
   // Determine which sections to render based on current page
   const getCurrentPageSections = useMemo(() => {
-    const themeId = templateId;
-
     // Try to get sections from liveConfig first (from postMessage)
     switch (currentPage) {
       case 'home':
@@ -935,17 +973,24 @@ export default function StorePreviewFrame() {
     // If we have theme sections, use ThemeStoreRenderer
     if (hasThemeSections) {
       // Convert sections to ThemeStoreRenderer format
-      const formattedSections = getCurrentPageSections.map((s: any) => ({
-        id: s.id,
-        type: s.type,
-        settings: s.settings || s.props || {},
-        blocks: s.blocks || [],
-        disabled: s.disabled,
+      const formattedSections = getCurrentPageSections.map((s: Record<string, unknown>) => ({
+        id: String(s.id || `section-${Math.random()}`),
+        type: String(s.type || 'unknown'),
+        settings: (s.settings as Record<string, unknown>) || (s.props as Record<string, unknown>) || {},
+        blocks: Array.isArray(s.blocks)
+          ? (s.blocks as Record<string, unknown>[]).map((b) => ({
+              id: String(b.id || `block-${Math.random()}`),
+              type: String(b.type || 'unknown'),
+              settings: (b.settings as Record<string, unknown>) || {},
+            }))
+          : [],
+        disabled: s.disabled as boolean | undefined,
         enabled: s.enabled !== false,
       }));
 
       return (
         <ThemeStoreRenderer
+          key={`renderer-${currentPage}-${selectedProductId || 'list'}`}
           themeId={themeId}
           sections={formattedSections}
           store={{
@@ -955,15 +1000,21 @@ export default function StorePreviewFrame() {
             logo: liveConfig.logo || data.logo,
           }}
           pageType={currentPage === 'home' ? 'index' : currentPage}
-          products={data.products.map((p: any) => ({
+          products={data.products.map((p: SerializedProduct) => ({
             id: p.id,
             title: p.title,
             description: p.description || '',
             price: p.price,
             compareAtPrice: p.compareAtPrice,
             imageUrl: p.imageUrl,
-            images: p.images ? JSON.parse(p.images) : p.imageUrl ? [p.imageUrl] : [],
-            inventory: p.inventory,
+            images: Array.isArray(p.images)
+              ? p.images
+              : typeof p.images === 'string'
+                ? JSON.parse(p.images)
+                : p.imageUrl
+                  ? [p.imageUrl]
+                  : [],
+            inventory: p.inventory || 0,
             category: p.category,
           }))}
           product={
@@ -975,11 +1026,13 @@ export default function StorePreviewFrame() {
                   price: selectedProduct.price,
                   compareAtPrice: selectedProduct.compareAtPrice,
                   imageUrl: selectedProduct.imageUrl,
-                  images: selectedProduct.images
-                    ? JSON.parse(selectedProduct.images as string)
-                    : selectedProduct.imageUrl
-                      ? [selectedProduct.imageUrl]
-                      : [],
+                  images: Array.isArray(selectedProduct.images)
+                    ? selectedProduct.images
+                    : typeof selectedProduct.images === 'string'
+                      ? JSON.parse(selectedProduct.images)
+                      : selectedProduct.imageUrl
+                        ? [selectedProduct.imageUrl]
+                        : [],
                   inventory: selectedProduct.inventory ?? 0,
                   category: selectedProduct.category,
                 }
@@ -991,7 +1044,7 @@ export default function StorePreviewFrame() {
             slug: cat.toLowerCase().replace(/\s+/g, '-'),
             description: '',
             imageUrl: undefined,
-            productCount: data.products.filter((p: any) => p.category === cat).length,
+            productCount: data.products.filter((p: SerializedProduct) => p.category === cat).length,
           }))}
           isPreview={true}
           onNavigate={(path) => {
@@ -1014,6 +1067,7 @@ export default function StorePreviewFrame() {
     if (currentPage === 'product' && selectedProduct) {
       return (
         <ProductDetailView
+          key={`product-detail-${selectedProduct.id}`}
           product={selectedProduct as SerializedProduct}
           onBack={handleBack}
           onAddToCart={() => setCurrentPage('cart')}
@@ -1123,9 +1177,6 @@ export default function StorePreviewFrame() {
 
   return (
     <>
-      {/* Viewport Meta for Mobile Responsiveness */}
-      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-
       {/* Inject custom CSS */}
       {mergedConfig.customCSS && (
         <style dangerouslySetInnerHTML={{ __html: mergedConfig.customCSS }} />
@@ -1133,7 +1184,7 @@ export default function StorePreviewFrame() {
 
       {/* Inject Google Fonts - English + Bengali */}
       <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Lato:wght@400;700&family=Open+Sans:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@400;500;600;700&family=Baloo+Da+2:wght@400;500;600;700&family=Tiro+Bangla&family=Anek+Bangla:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Lato:wght@400;700&family=Open+Sans:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&family=NotoSansBengali:wght@400;500;600;700&family=NotoSerifBengali:wght@400;500;600;700&family=Baloo+Da+2:wght@400;500;600;700&family=Tiro+Bangla&family=Anek+Bangla:wght@400;500;600;700&display=swap"
         rel="stylesheet"
       />
 
@@ -1146,10 +1197,30 @@ export default function StorePreviewFrame() {
       <PreviewNavBar
         currentPage={currentPage}
         onNavigate={handleNavigate}
-        themeColors={themeColors}
       />
     </>
   );
+}
+
+// ============================================================================
+// COMPONENT - Preview Frame (Wrapper)
+// ============================================================================
+export default function StorePreviewFrame() {
+  const data = useLoaderData<typeof loader>();
+
+  // Check for error response - Render error UI here directly without hooks
+  if ('error' in data) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <div className="text-center">
+          <p className="text-red-600">{data.error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If data is valid, render the content component which contains the hooks
+  return <StorePreviewContent data={data} />;
 }
 
 // Helper to get font family CSS value

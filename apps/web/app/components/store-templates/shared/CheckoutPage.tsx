@@ -19,7 +19,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useParams } from '@remix-run/react';
+import { Link, useParams, useFetcher } from '@remix-run/react';
 import {
   Shield,
   Truck,
@@ -41,7 +41,7 @@ import {
 } from 'lucide-react';
 import type { StoreTemplateTheme } from '~/templates/store-registry';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
-import { DISTRICTS, getUpazilasByDistrict, getShippingZone } from '~/data/bd-locations';
+import { DISTRICTS, getUpazilasByDistrict, getShippingZone, type District } from '~/data/bd-locations';
 import { SearchableSelect } from '~/components/SearchableSelect';
 
 interface CartItem {
@@ -52,6 +52,7 @@ interface CartItem {
   imageUrl?: string;
   image?: string;
   variantName?: string;
+  variantId?: number; // Added for precise variant tracking
 }
 
 interface FormErrors {
@@ -72,6 +73,10 @@ interface ShippingMethod {
   price: number;
   estimatedDays: string;
   icon: React.ReactNode;
+  zonePricing?: {
+    dhaka: number;
+    outside: number;
+  };
 }
 
 interface SharedCheckoutPageProps {
@@ -79,6 +84,7 @@ interface SharedCheckoutPageProps {
   isPreview?: boolean;
   templateId?: string; // Optional: Pass template ID for preview mode navigation
   onNavigate?: (path: string) => void; // Optional: Callback for internal navigation
+  storeId?: number;
 }
 
 // Bangladesh Cities - REMOVED in favor of DISTRICTS from bd-locations.ts
@@ -153,6 +159,7 @@ export default function SharedCheckoutPage({
   isPreview = false,
   templateId: propTemplateId,
   onNavigate,
+  storeId,
 }: SharedCheckoutPageProps) {
   const params = useParams();
   // Use prop templateId first, fallback to URL params
@@ -179,7 +186,7 @@ export default function SharedCheckoutPage({
   const [fullName, setFullName] = useState('');
   const [address, setAddress] = useState('');
   // const [city, setCity] = useState('Dhaka'); // Removed legacy city state
-  const [selectedDistrictId, setSelectedDistrictId] = useState<string>('');
+  const [selectedDistrictId, setSelectedDistrictId] = useState<District['id'] | ''>(''); // Stricter typing
   const [selectedUpazilaId, setSelectedUpazilaId] = useState<string>('');
   const [area, setArea] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
@@ -425,6 +432,33 @@ export default function SharedCheckoutPage({
   };
 
   // Handle place order
+  const fetcher = useFetcher<{
+    success: boolean;
+    error?: string;
+    orderNumber?: string;
+    details?: Record<string, string[]>;
+  }>();
+
+  useEffect(() => {
+    if (fetcher.state === 'idle' && fetcher.data?.success) {
+      setOrderPlaced(true);
+      setOrderNumber(fetcher.data.orderNumber || '');
+      // Clear cart
+      if (!isPreview) {
+        localStorage.removeItem('cart');
+        window.dispatchEvent(new Event('cart-updated'));
+      }
+      setIsProcessing(false);
+    } else if (fetcher.state === 'idle' && fetcher.data?.success === false) {
+       setIsProcessing(false);
+       // Show global error if any
+       if (fetcher.data.error) {
+         alert(fetcher.data.error); // Simple alert for now, or use a toast
+       }
+    }
+  }, [fetcher.state, fetcher.data, isPreview]);
+
+
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -442,38 +476,40 @@ export default function SharedCheckoutPage({
     const upazilaName = availableUpazilas.find(u => u.id === selectedUpazilaId)?.name || '';
     const fullAddress = `${address}, ${upazilaName}, ${districtName}`;
     
-    // In a real app, you would send { address: fullAddress, district: selectedDistrictId, upazila: selectedUpazilaId }
-    console.warn('Submitting Order:', {
-      fullName,
-      phone,
-      email,
-      address: fullAddress, // legacy support
-      structuredAddress: {
-        street: address,
-        district: selectedDistrictId,
-        upazila: selectedUpazilaId,
-        area
-      },
-      paymentMethod,
-      shippingMethod,
-      items: cartItems,
-      total
-    });
+    // Prepare payload for API
+    const formData = new FormData();
+    formData.append('store_id', String(storeId || 0)); // Ensure storeId is passed props
+    formData.append('customer_name', fullName);
+    formData.append('phone', phone);
+    formData.append('customer_email', email);
+    formData.append('address', fullAddress); // Legacy full string
+    formData.append('district', selectedDistrictId); // Structured
+    formData.append('upazila', selectedUpazilaId);   // Structured
+    formData.append('payment_method', paymentMethod);
+    formData.append('cart_items', JSON.stringify(cartItems.map(item => ({
+        product_id: item.productId,
+        quantity: item.quantity,
+        variant_id: item.variantId // Assuming cart items have this if strictly typed
+    }))));
+    
+    // Legacy single product fallback if needed or empty cart
+    if (cartItems.length > 0) {
+        formData.append('product_id', String(cartItems[0].productId)); 
+        formData.append('quantity', String(cartItems[0].quantity));
+    }
 
-    // Simulate API call
-    setTimeout(() => {
-      const newOrderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
-      setOrderNumber(newOrderNumber);
-
-      // Clear cart
-      if (!isPreview) {
-        localStorage.removeItem('cart');
-        window.dispatchEvent(new Event('cart-updated'));
-      }
-
-      setIsProcessing(false);
-      setOrderPlaced(true);
-    }, 2000);
+    if (isPreview) {
+      // Simulate API call for Preview Mode
+      setTimeout(() => {
+        const newOrderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
+        setOrderNumber(newOrderNumber);
+        setOrderPlaced(true);
+        setIsProcessing(false);
+      }, 2000);
+    } else {
+      // Submit to real API for Live Mode
+      fetcher.submit(formData, { method: 'post', action: '/api/create-order' });
+    }
   };
 
   // Order Success Page

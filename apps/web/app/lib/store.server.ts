@@ -1,20 +1,20 @@
 /**
  * Store Resolution Helper
- * 
+ *
  * Resolves the current store from context or database for storefront routes.
  * Used by public-facing routes like product pages, cart, checkout.
- * 
+ *
  * Supports two modes:
  * - Landing Mode: Only landing pages and custom pages are accessible
  * - Store Mode: Full e-commerce (products, collections, cart, checkout)
  */
 
-import { eq } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, type Store } from '@db/schema';
-import { 
+import {
   type ResolvedSection,
-  resolveTemplate, 
+  resolveTemplate,
   type TemplateResolution,
   type ThemeSettings,
   type TemplateKey,
@@ -61,13 +61,13 @@ export function isRouteAllowedForMode(pathname: string, mode: StoreMode): boolea
     // All routes allowed in store mode
     return true;
   }
-  
+
   // Landing mode - only allow landing pages and custom pages
   const landingOnlyPatterns = [
-    /^\/$/,                    // Home (landing)
-    /^\/p\/[^/]+$/,           // Landing pages /p/:slug
-    /^\/o\/[^/]+$/,           // Offer pages /o/:slug
-    /^\/pages\/[^/]+$/,       // Custom pages /pages/:slug (Shopify-style)
+    /^\/$/, // Home (landing)
+    /^\/p\/[^/]+$/, // Landing pages /p/:slug
+    /^\/o\/[^/]+$/, // Offer pages /o/:slug
+    /^\/pages\/[^/]+$/, // Custom pages /pages/:slug (Shopify-style)
     /^\/about$/,
     /^\/contact$/,
     /^\/policies\/.*/,
@@ -75,8 +75,8 @@ export function isRouteAllowedForMode(pathname: string, mode: StoreMode): boolea
     /^\/terms$/,
     /^\/refund$/,
   ];
-  
-  return landingOnlyPatterns.some(pattern => pattern.test(pathname));
+
+  return landingOnlyPatterns.some((pattern) => pattern.test(pathname));
 }
 
 /**
@@ -100,7 +100,7 @@ export function getRestrictedRoutes(): string[] {
 
 /**
  * Get store from context or resolve from database
- * 
+ *
  * In development (localhost), defaults to first active store.
  * In production, store is resolved by tenant middleware.
  */
@@ -120,29 +120,29 @@ export async function resolveStore(
 
   // Otherwise, resolve from database (development fallback)
   const db = drizzle(context.cloudflare.env.DB);
-  
+
   // Check for store query param in development
   const url = new URL(request.url);
   const storeParam = url.searchParams.get('store');
-  
+
   let store: Store | undefined;
 
   if (storeParam) {
-    // Find by subdomain
+    // Find by subdomain (exclude soft-deleted stores)
     const result = await db
       .select()
       .from(stores)
-      .where(eq(stores.subdomain, storeParam))
+      .where(and(eq(stores.subdomain, storeParam), isNull(stores.deletedAt)))
       .limit(1);
     store = result[0];
   }
-  
-  // If no store param or not found, get first active store
+
+  // If no store param or not found, get first active store (exclude soft-deleted)
   if (!store) {
     const result = await db
       .select()
       .from(stores)
-      .where(eq(stores.isActive, true))
+      .where(and(eq(stores.isActive, true), isNull(stores.deletedAt)))
       .limit(1);
     store = result[0];
   }
@@ -174,11 +174,11 @@ export async function resolveStoreWithTemplate(
   templateKey: TemplateKey
 ): Promise<StoreContextWithTemplate | null> {
   const storeContext = await resolveStore(context, request);
-  
+
   if (!storeContext) {
     return null;
   }
-  
+
   // Only resolve template if in store mode
   if (storeContext.mode !== 'store') {
     return {
@@ -187,15 +187,15 @@ export async function resolveStoreWithTemplate(
       theme: null,
     };
   }
-  
+
   const db = context.cloudflare.env.DB;
-  
+
   // Ensure store has a theme (auto-seed if needed)
   await ensureTheme(db, storeContext.storeId);
-  
+
   // Resolve template for the requested page type
   const template = await resolveTemplate(db, storeContext.storeId, templateKey);
-  
+
   // FALLBACK: If no published template, try to build from themeConfig
   if (!template || !template.sections || template.sections.length === 0) {
     const themeConfigFallback = buildTemplateFromThemeConfig(storeContext.store, templateKey);
@@ -207,7 +207,7 @@ export async function resolveStoreWithTemplate(
       };
     }
   }
-  
+
   return {
     ...storeContext,
     template,
@@ -226,18 +226,17 @@ function buildTemplateFromThemeConfig(
   try {
     const themeConfigRaw = (store as unknown as { themeConfig?: string }).themeConfig;
     if (!themeConfigRaw) return null;
-    
-    const themeConfig = typeof themeConfigRaw === 'string' 
-      ? JSON.parse(themeConfigRaw) 
-      : themeConfigRaw;
-    
+
+    const themeConfig =
+      typeof themeConfigRaw === 'string' ? JSON.parse(themeConfigRaw) : themeConfigRaw;
+
     // Only handle 'home' template for now
     if (templateKey !== 'home') return null;
-    
+
     // Get sections from themeConfig
     const sections = themeConfig.sections || [];
     if (sections.length === 0) return null;
-    
+
     // Build settings from themeConfig
     const settings: ThemeSettings = {
       colors: {
@@ -258,17 +257,22 @@ function buildTemplateFromThemeConfig(
         sidebarPosition: themeConfig.layout?.sidebarPosition || 'left',
       },
     };
-    
+
     // Convert sections to ResolvedSection format
-    const resolvedSections: ResolvedSection[] = sections.map((section: { id: string; type: string; settings?: Record<string, unknown> }, index: number) => ({
-      id: section.id || `section_${index}`,
-      type: section.type,
-      sortOrder: index,
-      enabled: true,
-      props: section.settings || {},
-      blocks: [],
-    }));
-    
+    const resolvedSections: ResolvedSection[] = sections.map(
+      (
+        section: { id: string; type: string; settings?: Record<string, unknown> },
+        index: number
+      ) => ({
+        id: section.id || `section_${index}`,
+        type: section.type,
+        sortOrder: index,
+        enabled: true,
+        props: section.settings || {},
+        blocks: [],
+      })
+    );
+
     // Build full TemplateResolution structure
     return {
       theme: {
@@ -304,16 +308,17 @@ function buildTemplateFromThemeConfig(
  * Returns error response if route not allowed for store mode
  */
 export function checkRouteAccess(
-  pathname: string, 
+  pathname: string,
   mode: StoreMode
 ): { allowed: true } | { allowed: false; redirectTo: string; message: string } {
   if (isRouteAllowedForMode(pathname, mode)) {
     return { allowed: true };
   }
-  
+
   return {
     allowed: false,
     redirectTo: '/',
-    message: 'This feature requires upgrading to Store Mode. Please upgrade your plan to access products, cart, and checkout.',
+    message:
+      'This feature requires upgrading to Store Mode. Please upgrade your plan to access products, cart, and checkout.',
   };
 }

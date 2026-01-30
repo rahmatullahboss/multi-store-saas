@@ -1,8 +1,8 @@
 /**
  * Store Settings Page
- * 
+ *
  * Route: /app/settings
- * 
+ *
  * Features:
  * - Edit store name, currency
  * - Upload store logo & favicon
@@ -18,12 +18,38 @@ import { json } from '@remix-run/cloudflare';
 import { Form, useLoaderData, useActionData, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, count, sum } from 'drizzle-orm';
-import { stores, products, customers, orders, emailSubscribers, savedLandingConfigs, emailCampaigns } from '@db/schema';
+import {
+  stores,
+  products,
+  customers,
+  orders,
+  emailSubscribers,
+  savedLandingConfigs,
+  emailCampaigns,
+} from '@db/schema';
 import { parseSocialLinks, parseFooterConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
+import { KVCache, CACHE_KEYS } from '~/services/kv-cache.server';
 
-
-import { Store, Globe, Loader2, CheckCircle, Upload, X, Image, Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, FileText, AlertTriangle, Palette, List } from 'lucide-react';
+import {
+  Store,
+  Globe,
+  Loader2,
+  CheckCircle,
+  Upload,
+  X,
+  Image,
+  Phone,
+  Mail,
+  MapPin,
+  Facebook,
+  Instagram,
+  MessageCircle,
+  FileText,
+  AlertTriangle,
+  Palette,
+  List,
+} from 'lucide-react';
 import { StoreDeleteWarningModal } from '~/components/StoreDeleteWarningModal';
 import { ThemePreview } from '~/components/ThemePreview';
 import { useState, useEffect, useRef } from 'react';
@@ -46,11 +72,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
-  const storeResult = await db
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
+  const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
 
   const store = storeResult[0];
   const socialLinks = parseSocialLinks(store.socialLinks as string | null);
@@ -60,12 +82,28 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Note: allowStoreMode removed - mode control now in Homepage Settings
 
   // Fetch data counts for retention modal
-  const [productsCount, customersCount, ordersData, subscribersCount, landingPagesCount, campaignsCount] = await Promise.all([
+  const [
+    productsCount,
+    customersCount,
+    ordersData,
+    subscribersCount,
+    landingPagesCount,
+    campaignsCount,
+  ] = await Promise.all([
     db.select({ count: count() }).from(products).where(eq(products.storeId, storeId)),
     db.select({ count: count() }).from(customers).where(eq(customers.storeId, storeId)),
-    db.select({ count: count(), totalRevenue: sum(orders.total) }).from(orders).where(eq(orders.storeId, storeId)),
-    db.select({ count: count() }).from(emailSubscribers).where(eq(emailSubscribers.storeId, storeId)),
-    db.select({ count: count() }).from(savedLandingConfigs).where(eq(savedLandingConfigs.storeId, storeId)),
+    db
+      .select({ count: count(), totalRevenue: sum(orders.total) })
+      .from(orders)
+      .where(eq(orders.storeId, storeId)),
+    db
+      .select({ count: count() })
+      .from(emailSubscribers)
+      .where(eq(emailSubscribers.storeId, storeId)),
+    db
+      .select({ count: count() })
+      .from(savedLandingConfigs)
+      .where(eq(savedLandingConfigs.storeId, storeId)),
     db.select({ count: count() }).from(emailCampaigns).where(eq(emailCampaigns.storeId, storeId)),
   ]);
 
@@ -85,7 +123,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       fontFamily: store.fontFamily || 'inter',
       socialLinks: socialLinks || { facebook: '', instagram: '', whatsapp: '', twitter: '' },
       footerConfig: footerConfig || { description: '', showPoweredBy: true },
-      businessInfo: store.businessInfo ? JSON.parse(store.businessInfo) : { phone: '', email: '', address: '' },
+      businessInfo: store.businessInfo
+        ? JSON.parse(store.businessInfo)
+        : { phone: '', email: '', address: '' },
     },
     // Note: allowStoreMode removed - handled in Homepage Settings
     dataCounts: {
@@ -118,28 +158,53 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (intent === 'deleteStore') {
     const exitReason = formData.get('exitReason') as string;
     const feedback = formData.get('feedback') as string;
-    
+
     // Log exit survey if provided
     if (exitReason) {
       console.log(`[EXIT_SURVEY] Store ${storeId}: reason=${exitReason}, feedback=${feedback}`);
       // TODO: Store in exitSurveys table for Super Admin analysis
     }
 
+    // Get store subdomain and custom domain for cache invalidation
+    const storeData = await db
+      .select({ subdomain: stores.subdomain, customDomain: stores.customDomain })
+      .from(stores)
+      .where(eq(stores.id, storeId))
+      .limit(1);
+
     // Soft delete the store
     await db
       .update(stores)
-      .set({ 
+      .set({
         deletedAt: new Date(),
         isActive: false,
         updatedAt: new Date(),
       })
       .where(eq(stores.id, storeId));
 
+    // Invalidate cache so deleted store is immediately inaccessible
+    const kvNamespace = context.cloudflare.env.STORE_CACHE;
+    if (kvNamespace && storeData.length > 0) {
+      const kvCache = new KVCache(kvNamespace);
+      const { subdomain, customDomain } = storeData[0];
+
+      // Invalidate all cache keys for this store
+      await Promise.all([
+        kvCache.delete(`${CACHE_KEYS.TENANT_SUBDOMAIN}${subdomain}`),
+        customDomain
+          ? kvCache.delete(`${CACHE_KEYS.TENANT_DOMAIN}${customDomain}`)
+          : Promise.resolve(),
+        kvCache.delete(`${CACHE_KEYS.STORE_CONFIG}${storeId}`),
+      ]);
+
+      console.log(`[STORE_DELETE] Cache invalidated for store ${storeId} (${subdomain})`);
+    }
+
     // Redirect to logout (they can no longer access this store)
     return new Response(null, {
       status: 302,
       headers: {
-        'Location': '/auth/logout',
+        Location: '/auth/logout',
       },
     });
   }
@@ -155,7 +220,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const customDomain = formData.get('customDomain') as string;
   // Note: storeMode handling removed - use Homepage Settings (storeEnabled) instead
   const defaultLanguage = formData.get('defaultLanguage') as 'en' | 'bn' | null;
-  
+
   // Social links
   const facebook = formData.get('facebook') as string;
   const instagram = formData.get('instagram') as string;
@@ -193,10 +258,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Note: mode field update removed - use Homepage Settings (storeEnabled) instead
 
-  await db
-    .update(stores)
-    .set(updateData)
-    .where(eq(stores.id, storeId));
+  await db.update(stores).set(updateData).where(eq(stores.id, storeId));
 
   // ========================================================================
   // AI AUTO-SYNC: Update Vector Database
@@ -204,7 +266,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   try {
     const { createAIService } = await import('~/services/ai.server');
     const ai = createAIService(context.cloudflare.env.OPENROUTER_API_KEY, {
-        context: context.cloudflare.env 
+      context: context.cloudflare.env,
     });
 
     const settingsText = `Store Settings:
@@ -215,16 +277,16 @@ Business Phone: ${businessPhone}
 Business Email: ${businessEmail}
 Business Address: ${businessAddress}
 Social Media: Facebook: ${facebook}, Instagram: ${instagram}, WhatsApp: ${whatsapp}`;
-    
+
     context.cloudflare.ctx.waitUntil(
-        ai.insertVector(settingsText, {
-            storeId,
-            type: 'settings',
-            title: 'General Settings',
-            customId: `settings-${storeId}` // Deterministic ID for upsert
-        })
+      ai.insertVector(settingsText, {
+        storeId,
+        type: 'settings',
+        title: 'General Settings',
+        customId: `settings-${storeId}`, // Deterministic ID for upsert
+      })
     );
-     console.log(`[AI SYNC] Queued vector update for settings-${storeId}`);
+    console.log(`[AI SYNC] Queued vector update for settings-${storeId}`);
   } catch (err) {
     console.error('[AI SYNC] Failed to update settings vector:', err);
   }
@@ -248,7 +310,9 @@ const currencies = [
 // ============================================================================
 export default function SettingsPage() {
   const { store, dataCounts } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>() as { success?: boolean; error?: string } | undefined;
+  const actionData = useActionData<typeof action>() as
+    | { success?: boolean; error?: string }
+    | undefined;
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const { t } = useTranslation();
@@ -259,7 +323,7 @@ export default function SettingsPage() {
   // Note: Store mode selection removed from this page. Use Homepage Settings (storeEnabled toggle) instead.
   const [showPreview, setShowPreview] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  
+
   // Logo upload state
   const [logoUrl, setLogoUrl] = useState<string>(store.logo || '');
   const [logoPreview, setLogoPreview] = useState<string>(store.logo || '');
@@ -382,9 +446,9 @@ export default function SettingsPage() {
       fetch('/api/delete-image', {
         method: 'POST',
         body: deleteFormData,
-      }).catch(err => console.warn('Failed to delete logo from R2:', err));
+      }).catch((err) => console.warn('Failed to delete logo from R2:', err));
     }
-    
+
     setLogoUrl('');
     setLogoPreview('');
     if (fileInputRef.current) {
@@ -400,9 +464,9 @@ export default function SettingsPage() {
       fetch('/api/delete-image', {
         method: 'POST',
         body: deleteFormData,
-      }).catch(err => console.warn('Failed to delete favicon from R2:', err));
+      }).catch((err) => console.warn('Failed to delete favicon from R2:', err));
     }
-    
+
     setFaviconUrl('');
     setFaviconPreview('');
     if (faviconInputRef.current) {
@@ -417,7 +481,6 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-bold text-gray-900">{t('settings')}</h1>
         <p className="text-gray-600">{t('settingsSubtitle')}</p>
       </div>
-
 
       {showSuccess && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
@@ -453,7 +516,9 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Logo Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('storeLogo')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('storeLogo')}
+              </label>
               <div className="flex items-center gap-4">
                 <div className="relative">
                   {logoPreview ? (
@@ -607,7 +672,10 @@ export default function SettingsPage() {
 
             {/* Store Language */}
             <div>
-              <label htmlFor="defaultLanguage" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="defaultLanguage"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 {t('storeLanguage')}
               </label>
               <select
@@ -691,7 +759,8 @@ export default function SettingsPage() {
             {/* WhatsApp */}
             <div>
               <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700 mb-1">
-                <MessageCircle className="w-4 h-4 inline mr-1 text-green-600" /> {t('whatsappNumber')}
+                <MessageCircle className="w-4 h-4 inline mr-1 text-green-600" />{' '}
+                {t('whatsappNumber')}
               </label>
               <input
                 type="tel"
@@ -721,7 +790,10 @@ export default function SettingsPage() {
           <div className="space-y-4">
             {/* Phone */}
             <div>
-              <label htmlFor="businessPhone" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="businessPhone"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 <Phone className="w-4 h-4 inline mr-1" /> {t('businessPhoneLabel')}
               </label>
               <input
@@ -736,7 +808,10 @@ export default function SettingsPage() {
 
             {/* Email */}
             <div>
-              <label htmlFor="businessEmail" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="businessEmail"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 <Mail className="w-4 h-4 inline mr-1" /> {t('businessEmailLabel')}
               </label>
               <input
@@ -751,7 +826,10 @@ export default function SettingsPage() {
 
             {/* Address */}
             <div>
-              <label htmlFor="businessAddress" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="businessAddress"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 <MapPin className="w-4 h-4 inline mr-1" /> {t('businessAddressLabel')}
               </label>
               <textarea
@@ -782,14 +860,15 @@ export default function SettingsPage() {
             {/* Current Domain Info */}
             <div className="bg-gray-50 rounded-lg p-4">
               <p className="text-sm text-gray-600">{t('storeCurrentlyAt')}</p>
-              <p className="font-medium text-gray-900 mt-1">
-                https://{store.subdomain}.ozzyl.com
-              </p>
+              <p className="font-medium text-gray-900 mt-1">https://{store.subdomain}.ozzyl.com</p>
             </div>
 
             {/* Custom Domain Input */}
             <div>
-              <label htmlFor="customDomain" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="customDomain"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 {t('customDomainOptional')}
               </label>
               <input
@@ -810,7 +889,8 @@ export default function SettingsPage() {
                 <li>1. {t('dnsStep1')}</li>
                 <li>2. {t('dnsStep2')}</li>
                 <li className="ml-4 font-mono text-xs bg-blue-100 p-2 rounded">
-                  Name: @ or www<br />
+                  Name: @ or www
+                  <br />
                   Value: ozzyl-saas.pages.dev
                 </li>
                 <li>3. {t('dnsStep3')}</li>
@@ -886,7 +966,9 @@ export default function SettingsPage() {
               <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
                 <List className="w-4 h-4 text-emerald-600" />
               </div>
-              <span className="font-medium text-gray-700">{t('navigationSettings') || 'Navigation'}</span>
+              <span className="font-medium text-gray-700">
+                {t('navigationSettings') || 'Navigation'}
+              </span>
             </a>
             <a
               href="/app/settings/courier"
@@ -928,42 +1010,42 @@ export default function SettingsPage() {
         </div>
       </Form>
 
-        {/* Danger Zone - Delete Store */}
-        <div className="bg-red-50 rounded-xl border border-red-200 p-6 mt-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">{t('dangerZone')}</h2>
-              <p className="text-sm text-gray-500">{t('irreversibleActions')}</p>
-            </div>
+      {/* Danger Zone - Delete Store */}
+      <div className="bg-red-50 rounded-xl border border-red-200 p-6 mt-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+            <AlertTriangle className="w-5 h-5 text-red-600" />
           </div>
-
-          <div className="p-4 bg-white rounded-lg border border-red-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold text-gray-900">{t('deleteStore')}</h3>
-                <p className="text-sm text-gray-500">{t('permanentlyDeleteStore')}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowDeleteModal(true)}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-              >
-                {t('delete')}
-              </button>
-            </div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">{t('dangerZone')}</h2>
+            <p className="text-sm text-gray-500">{t('irreversibleActions')}</p>
           </div>
         </div>
 
-        {/* Store Delete Warning Modal */}
-        <StoreDeleteWarningModal
-          isOpen={showDeleteModal}
-          onClose={() => setShowDeleteModal(false)}
-          storeName={store.name}
-          dataCounts={dataCounts}
-        />
+        <div className="p-4 bg-white rounded-lg border border-red-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-gray-900">{t('deleteStore')}</h3>
+              <p className="text-sm text-gray-500">{t('permanentlyDeleteStore')}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowDeleteModal(true)}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+            >
+              {t('delete')}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Store Delete Warning Modal */}
+      <StoreDeleteWarningModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        storeName={store.name}
+        dataCounts={dataCounts}
+      />
     </div>
   );
 }

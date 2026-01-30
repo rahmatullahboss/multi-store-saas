@@ -10,35 +10,24 @@
  */
 
 import { useState, useCallback, createContext, useContext, useMemo, useEffect } from 'react';
-import { Link, useSearchParams } from '@remix-run/react';
+import { Link } from '@remix-run/react';
 import {
   ShoppingBag,
   Search,
   Menu,
   X,
-  ChevronRight,
-  ArrowRight,
   Star,
-  Instagram,
-  Facebook,
-  Twitter,
-  Mail,
-  Phone,
-  Home as HomeIcon,
-  ShoppingCart,
+  Check,
   MessageCircle,
   Heart,
-  Sparkles,
-  Minus,
-  Plus,
-  Check,
+  Phone,
 } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 import { useWishlist } from '~/hooks/useWishlist';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
+import type { ThemeConfig, SectionInstance } from '@db/types';
 import { AddToCartButton } from '~/components/AddToCartButton';
-import { useFormatPrice, useTranslation } from '~/contexts/LanguageContext';
 import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
-import { useCartCount } from '~/hooks/useCartCount';
 import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
 import { useProductPrice } from '~/hooks/useProductPrice';
 import { WishlistProvider } from '~/contexts/WishlistContext';
@@ -454,9 +443,9 @@ function PreviewProductCard({
 
 // --- Home Page ---
 function PreviewHomePage({
-  storeName,
+  storeName: _storeName,
   products,
-  categories,
+  categories: _categories,
   currency,
   config,
   onNavigate,
@@ -465,9 +454,10 @@ function PreviewHomePage({
   products: DemoProduct[];
   categories: (string | null)[];
   currency: string;
-  config: any;
+  config: ThemeConfig | null;
   onNavigate: (page: PageType) => void;
 }) {
+  const { t: _t } = useTranslation();
   return (
     <div className="min-h-screen">
       <section className="relative h-[80vh] flex items-center justify-center bg-gray-900 text-white overflow-hidden">
@@ -514,7 +504,7 @@ function PreviewHomePage({
 // MAIN PREVIEW STORE CONTAINER
 // ============================================================================
 function PreviewNovaLuxStore(props: StoreTemplateProps) {
-  const { storeName, logo, categories, config, currency } = props;
+  const { storeName, storeId, logo, config, currency } = props;
   const [currentPage, setCurrentPage] = useState<PageType>({ type: 'home' });
 
   const navigate = useCallback((page: PageType) => {
@@ -563,7 +553,7 @@ function PreviewNovaLuxStore(props: StoreTemplateProps) {
             onNavigate={navigate}
           />
         );
-      case 'product':
+      case 'product': {
         const product = getDemoProductById(currentPage.productId);
         const relatedProducts = getRelatedProducts(currentPage.productId, 4);
         if (!product) return <div className="pt-32 text-center">Product not found</div>;
@@ -596,6 +586,7 @@ function PreviewNovaLuxStore(props: StoreTemplateProps) {
             />
           </div>
         );
+      }
       case 'cart':
         return (
           <div className="pt-20">
@@ -621,10 +612,11 @@ function PreviewNovaLuxStore(props: StoreTemplateProps) {
               isPreview={true}
               templateId="nova-lux"
               onNavigate={navigateByPath}
+              storeId={storeId}
             />
           </div>
         );
-      case 'category':
+      case 'category': {
         const filtered = products.filter((p) => p.category === currentPage.category);
         return (
           <div className="pt-32 pb-20 px-4 max-w-7xl mx-auto">
@@ -641,6 +633,7 @@ function PreviewNovaLuxStore(props: StoreTemplateProps) {
             </div>
           </div>
         );
+      }
       case 'order-success':
         return (
           <div className="min-h-[60vh] flex items-center justify-center pt-20 flex-col">
@@ -711,20 +704,8 @@ function LiveNovaLuxHomepage({
   businessInfo,
   isPreview,
 }: StoreTemplateProps) {
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const formatPrice = useFormatPrice();
-  const { t } = useTranslation();
-  const count = useCartCount();
-  const [searchParams] = useSearchParams();
-  const categoryFromUrl = searchParams.get('category');
-
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    // Scroll listener removed as isScrolled was unused
   }, []);
 
   const validCategories = categories.filter((c): c is string => Boolean(c));
@@ -766,7 +747,6 @@ function LiveNovaLuxHomepage({
                 logo={logo}
                 categories={categories}
                 currentCategory={currentCategory}
-                socialLinks={socialLinks}
                 config={config}
               />
 
@@ -774,7 +754,7 @@ function LiveNovaLuxHomepage({
                 className={`${announcement?.text ? 'h-[104px] lg:h-[120px]' : 'h-[66px] lg:h-[82px]'}`}
               />
 
-              {(config?.sections ?? DEFAULT_SECTIONS).map((section: any) => {
+              {(config?.sections ?? DEFAULT_SECTIONS).map((section: SectionInstance) => {
                 const SectionComponent = SECTION_REGISTRY[section.type]?.component;
                 if (!SectionComponent) return null;
 

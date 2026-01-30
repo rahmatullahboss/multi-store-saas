@@ -28,5 +28,6 @@ npm-debug.log*
 # Test coverage
 coverage/
 
-# Drizzle
-drizzle/
+
+# Turbo
+.turbo/

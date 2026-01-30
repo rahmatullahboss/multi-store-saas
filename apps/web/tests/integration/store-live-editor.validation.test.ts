@@ -29,16 +29,16 @@ const mockDb = vi.hoisted(() => ({
     return {
       from: (table: any) => {
         state.table = table?.[Symbol.for('drizzle:Name')] ?? table?.name ?? String(table);
-        const rows = mockDb.tables[state.table];
+        const rows = mockDb.tables[state.table as keyof typeof mockDb.tables];
         return makeQuery(rows);
       },
     };
   },
   insert(table: any) {
-    const tableName = table?.[Symbol.for('drizzle:Name')] ?? table?.name ?? String(table);
+    const tableName = (table?.[Symbol.for('drizzle:Name')] ?? table?.name ?? String(table)) as keyof typeof mockDb.tables;
     return {
       values: async (row: any) => {
-        mockDb.tables[tableName].push(row);
+        (mockDb.tables[tableName] as any[]).push(row);
         return { success: true };
       },
     };
@@ -47,7 +47,7 @@ const mockDb = vi.hoisted(() => ({
     return { set: () => ({ where: async () => ({ success: true }) }) };
   },
   delete(table: any) {
-    const tableName = table?.[Symbol.for('drizzle:Name')] ?? table?.name ?? String(table);
+    const tableName = (table?.[Symbol.for('drizzle:Name')] ?? table?.name ?? String(table)) as keyof typeof mockDb.tables;
     return {
       where: async () => {
         mockDb.tables[tableName] = [];
@@ -110,7 +110,7 @@ describe('Store Live Editor Publish Validation', () => {
     });
 
     const response = await editorAction({ request, context } as any);
-    const json = await response.json();
+    const json = await response.json() as any;
     expect(json.success).toBe(true);
   });
 });

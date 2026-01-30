@@ -14,7 +14,11 @@ import { useTranslation } from 'react-i18next';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { StarterProductCard } from '../sections/ProductCard';
 
-import type { SerializedProduct, SerializedVariant, StoreTemplateTheme } from '~/templates/store-registry';
+import type {
+  SerializedProduct,
+  SerializedVariant,
+  StoreTemplateTheme,
+} from '~/templates/store-registry';
 
 interface StarterProductPageProps {
   product: SerializedProduct;
@@ -40,6 +44,14 @@ export function StarterProductPage({
   // Variant State
   const [selectedVariant, setSelectedVariant] = useState<SerializedVariant | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+
+  // Reset state when product changes
+  useEffect(() => {
+    setSelectedImage(product.imageUrl);
+    setQuantity(1);
+    setSelectedVariant(null);
+    setSelectedOptions({});
+  }, [product.id, product.imageUrl]);
 
   // Parse images
   const images = product.images
@@ -87,9 +99,12 @@ export function StarterProductPage({
       const firstVariant = variants[0];
       setSelectedVariant(firstVariant);
       const initialOptions: Record<string, string> = {};
-      if (firstVariant.option1Name && firstVariant.option1Value) initialOptions[firstVariant.option1Name] = firstVariant.option1Value;
-      if (firstVariant.option2Name && firstVariant.option2Value) initialOptions[firstVariant.option2Name] = firstVariant.option2Value;
-      if (firstVariant.option3Name && firstVariant.option3Value) initialOptions[firstVariant.option3Name] = firstVariant.option3Value;
+      if (firstVariant.option1Name && firstVariant.option1Value)
+        initialOptions[firstVariant.option1Name] = firstVariant.option1Value;
+      if (firstVariant.option2Name && firstVariant.option2Value)
+        initialOptions[firstVariant.option2Name] = firstVariant.option2Value;
+      if (firstVariant.option3Name && firstVariant.option3Value)
+        initialOptions[firstVariant.option3Name] = firstVariant.option3Value;
       setSelectedOptions(initialOptions);
     }
   }, [variants, selectedVariant]);
@@ -115,8 +130,9 @@ export function StarterProductPage({
 
   // Pricing based on variant
   const currentPrice = (selectedVariant ? selectedVariant.price : product.price) || 0;
-  const currentComparePrice = (selectedVariant ? selectedVariant.compareAtPrice : product.compareAtPrice) || 0;
-  
+  const currentComparePrice =
+    (selectedVariant ? selectedVariant.compareAtPrice : product.compareAtPrice) || 0;
+
   // Inventory check
   const variantAvailable = selectedVariant?.available ?? 0;
   const productInventory = product.inventory ?? 0;
@@ -184,7 +200,9 @@ export function StarterProductPage({
                     key={idx}
                     onClick={() => setSelectedImage(img)}
                     className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                      mainImage === img ? 'border-blue-600 ring-2 ring-blue-100' : 'border-transparent hover:border-gray-200'
+                      mainImage === img
+                        ? 'border-blue-600 ring-2 ring-blue-100'
+                        : 'border-transparent hover:border-gray-200'
                     }`}
                   >
                     <img src={img} alt={`View ${idx + 1}`} className="w-full h-full object-cover" />
@@ -272,7 +290,9 @@ export function StarterProductPage({
                 <button
                   onClick={() => setIsWishlisted(!isWishlisted)}
                   className={`p-3 rounded-lg border transition-colors ${
-                    isWishlisted ? 'border-red-200 bg-red-50 text-red-500' : 'border-gray-200 hover:bg-gray-50 text-gray-400'
+                    isWishlisted
+                      ? 'border-red-200 bg-red-50 text-red-500'
+                      : 'border-gray-200 hover:bg-gray-50 text-gray-400'
                   }`}
                 >
                   <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
@@ -298,16 +318,16 @@ export function StarterProductPage({
                   <ShoppingBag className="w-5 h-5" />
                   {isAvailable ? t('addToCart') : 'Out of Stock'}
                 </AddToCartButton>
-                
+
                 <AddToCartButton
                   productId={selectedVariant ? selectedVariant.id : product.id}
                   quantity={quantity}
                   mode="buy_now"
                   className="w-full py-4 rounded-xl flex items-center justify-center gap-2 font-bold transition-all hover:scale-[1.02] active:scale-[0.98] border-2"
-                  style={{ 
+                  style={{
                     borderColor: colors.primary,
                     color: colors.primary,
-                    backgroundColor: 'transparent'
+                    backgroundColor: 'transparent',
                   }}
                   disabled={!isAvailable}
                   isPreview={isPreview}

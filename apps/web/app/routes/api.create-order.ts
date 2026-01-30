@@ -1,21 +1,37 @@
 /**
  * Order Creation API Route
- * 
+ *
  * POST /api/create-order
- * 
+ *
  * Handles order submissions from Landing Pages and Store checkout.
  * This route is NOT cached - always dynamic.
- * 
+ *
  * SECURITY: Server-side price calculation - NEVER trust frontend prices
- * 
+ *
  * Input: store_id, product_id, customer_name, phone, address, quantity
  * Output: { success: true, orderId: "...", orderNumber: "..." }
  */
 
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { z } from 'zod';
-import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps, upsellOffers, upsellTokens, pushSubscriptions, customers, templateAnalytics, savedLandingConfigs, checkoutSessions } from '@db/schema';
-import { eq, and, or, inArray, sql, gte } from 'drizzle-orm';
+import {
+  orders,
+  orderItems,
+  products,
+  productVariants,
+  stores,
+  users,
+  abandonedCarts,
+  orderBumps,
+  upsellOffers,
+  upsellTokens,
+  pushSubscriptions,
+  customers,
+  templateAnalytics,
+  savedLandingConfigs,
+  checkoutSessions,
+} from '@db/schema';
+import { eq, and, or, inArray, sql, gte, isNull } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
 import { sendPushNotification } from '~/services/push.server';
 import { dispatchWebhook } from '~/services/webhook.server';
@@ -33,14 +49,13 @@ import { validateDiscount, incrementDiscountUsage } from '~/../server/services/d
 import { acquireCheckoutLock, releaseCheckoutLock } from '~/services/checkout-do.server';
 import { checkRateLimit, getClientIP } from '~/services/rate-limiter-do.server';
 
-
 // ============================================================================
 // VALIDATION SCHEMA with BD Phone validation
 // ============================================================================
 const bdPhoneRegex = /^(\+880|880|0)?1[3-9]\d{8}$/;
 
 // Valid division values
-const validDivisions = BD_DIVISIONS.map(d => d.value);
+const validDivisions = BD_DIVISIONS.map((d) => d.value);
 
 export const OrderSchema = z.object({
   store_id: z.number().int().positive('Store ID is required'),
@@ -50,10 +65,11 @@ export const OrderSchema = z.object({
   combo_discount_2: z.preprocess((v) => Number(v), z.number().min(0).max(100)).optional(),
   combo_discount_3: z.preprocess((v) => Number(v), z.number().min(0).max(100)).optional(),
   customer_name: z.string().min(2, 'নাম কমপক্ষে ২ অক্ষর হতে হবে').max(100),
-  phone: z.string()
+  phone: z
+    .string()
     .min(10, 'মোবাইল নম্বর কমপক্ষে ১০ সংখ্যা হতে হবে')
     .max(20)
-    .refine(val => bdPhoneRegex.test(val.replace(/[\s-]/g, '')), {
+    .refine((val) => bdPhoneRegex.test(val.replace(/[\s-]/g, '')), {
       message: 'সঠিক বাংলাদেশী মোবাইল নম্বর দিন (01XXXXXXXXX)',
     }),
   address: z.string().min(5, 'ঠিকানা কমপক্ষে ৫ অক্ষর হতে হবে').max(500),
@@ -67,10 +83,12 @@ export const OrderSchema = z.object({
   payment_method: z.string().default('cod'), // 'cod', 'bkash', 'nagad'
   transaction_id: z.string().optional(),
   variant_id: z.number().int().optional(), // Product variant ID
-  manual_payment_details: z.object({
-    senderNumber: z.string().optional(),
-    method: z.string().optional(),
-  }).optional(),
+  manual_payment_details: z
+    .object({
+      senderNumber: z.string().optional(),
+      method: z.string().optional(),
+    })
+    .optional(),
   bump_ids: z.array(z.number().int().positive()).optional(), // Order bump product IDs
   landing_page_id: z.number().int().optional(), // Campaign Page ID for attribution
   // Attribution (UTM Parameters)
@@ -79,7 +97,6 @@ export const OrderSchema = z.object({
   utm_campaign: z.string().max(100).optional(),
   discount_code: z.string().max(50).optional(), // Coupon Code
 });
-
 
 // ============================================================================
 // GENERATE ORDER NUMBER
@@ -101,7 +118,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const db = createDb(context.cloudflare.env.DB);
   const env = context.cloudflare.env;
-  
+
   // Checkout lock variables (declared outside try for cleanup in catch)
   let checkoutLockId = '';
   let checkoutLockAcquired = false;
@@ -129,7 +146,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             }
           }
         } else if (['utm_source', 'utm_medium', 'utm_campaign'].includes(key)) {
-           body[key] = (value as string).trim();
+          body[key] = (value as string).trim();
         } else if (key === 'cart_items') {
           try {
             body[key] = JSON.parse(value as string);
@@ -147,7 +164,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
       }
     }
-    
+
     // ========================================================================
     // ANTI-SPAM: HONEYPOT CHECK
     // ========================================================================
@@ -164,8 +181,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // RATE LIMITING (via Durable Object)
     // ========================================================================
     const hasRateLimiter = 'RATE_LIMITER_SERVICE' in env;
-    const storeIdForRateLimit = body.store_id as number || 0;
-    
+    const storeIdForRateLimit = (body.store_id as number) || 0;
+
     if (hasRateLimiter && storeIdForRateLimit > 0) {
       const clientIP = getClientIP(request);
       const rateLimitResult = await checkRateLimit(
@@ -174,25 +191,27 @@ export async function action({ request, context }: ActionFunctionArgs) {
         clientIP,
         'checkout' // 5 requests per minute for checkout
       );
-      
+
       if (!rateLimitResult.allowed) {
-        console.warn(`[RATE_LIMIT] Checkout blocked for store ${storeIdForRateLimit}, IP: ${clientIP}`);
+        console.warn(
+          `[RATE_LIMIT] Checkout blocked for store ${storeIdForRateLimit}, IP: ${clientIP}`
+        );
         return json(
-          { 
-            success: false, 
+          {
+            success: false,
             error: 'অনেক বেশি অর্ডার চেষ্টা করা হয়েছে। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।',
-            retryAfterSeconds: Math.ceil((rateLimitResult.retryAfterMs || 60000) / 1000)
+            retryAfterSeconds: Math.ceil((rateLimitResult.retryAfterMs || 60000) / 1000),
           },
-          { 
+          {
             status: 429,
             headers: {
-              'Retry-After': String(Math.ceil((rateLimitResult.retryAfterMs || 60000) / 1000))
-            }
+              'Retry-After': String(Math.ceil((rateLimitResult.retryAfterMs || 60000) / 1000)),
+            },
           }
         );
       }
     }
-    
+
     // ========================================================================
     // PHONE NORMALIZATION
     // ========================================================================
@@ -221,13 +240,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
       quantity: z.number().int().min(1).max(99).default(1),
 
       cart_items: z.array(CartItemSchema).optional(),
-    }).refine(data => {
-      // Either product_id (single) OR cart_items (multi) must be present
-      return data.product_id || (data.cart_items && data.cart_items.length > 0);
-    }, {
-      message: "Either product_id or cart_items must be provided",
-      path: ["product_id"] // Attach error to product_id
-    });
+    }).refine(
+      (data) => {
+        // Either product_id (single) OR cart_items (multi) must be present
+        return data.product_id || (data.cart_items && data.cart_items.length > 0);
+      },
+      {
+        message: 'Either product_id or cart_items must be provided',
+        path: ['product_id'], // Attach error to product_id
+      }
+    );
 
     // Validate input
     const parseResult = ExtendedOrderSchema.safeParse(body);
@@ -239,28 +261,30 @@ export async function action({ request, context }: ActionFunctionArgs) {
         {
           success: false,
           error: 'ভ্যালিডেশন ব্যর্থ',
-          details: errors.fieldErrors
+          details: errors.fieldErrors,
         },
         { status: 400 }
       );
     }
 
     const input = parseResult.data;
-    
+
     // ========================================================================
     // ANTI-SPAM: RATE LIMITING (IP-based)
     // ========================================================================
-    const clientIP = request.headers.get('CF-Connecting-IP') || 
-                     request.headers.get('X-Forwarded-For')?.split(',')[0] || 
-                     'unknown';
-    
+    const clientIP =
+      request.headers.get('CF-Connecting-IP') ||
+      request.headers.get('X-Forwarded-For')?.split(',')[0] ||
+      'unknown';
+
     const RATE_LIMIT_MAX = 5; // Max orders per window
     const RATE_LIMIT_WINDOW_MINUTES = 10;
-    
+
     // Use D1 for rate limiting (per-phone or per-IP per-store)
     try {
       const phoneOrIp = (body.phone && String(body.phone).trim()) || clientIP;
-      const recentOrderCountResult = await db.select({ count: sql<number>`count(*)` })
+      const recentOrderCountResult = await db
+        .select({ count: sql<number>`count(*)` })
         .from(orders)
         .where(
           and(
@@ -285,20 +309,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
       // Don't block on rate limit check failure
       console.error('[Rate Limit] Check failed:', e);
     }
-    
+
     // ========================================================================
     // ANTI-SPAM: DUPLICATE ORDER DETECTION
     // ========================================================================
     // Check if same phone ordered same product within last 4 hours
-    const primaryProductId = input.product_id || (input.cart_items?.[0]?.product_id);
-    
+    const primaryProductId = input.product_id || input.cart_items?.[0]?.product_id;
+
     if (primaryProductId) {
       try {
-        const duplicateCheck = await db.select({ 
-          id: orders.id, 
-          orderNumber: orders.orderNumber,
-          createdAt: orders.createdAt 
-        })
+        const duplicateCheck = await db
+          .select({
+            id: orders.id,
+            orderNumber: orders.orderNumber,
+            createdAt: orders.createdAt,
+          })
           .from(orders)
           .where(
             and(
@@ -308,22 +333,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
             )
           )
           .limit(1);
-        
+
         if (duplicateCheck.length > 0) {
           const existingOrder = duplicateCheck[0];
           // Duplicate order detected, log to console.warn instead of console.log
           console.warn('[DUPLICATE] Potential duplicate order detected:', {
             phone: input.phone,
             existingOrderId: existingOrder.id,
-            existingOrderNumber: existingOrder.orderNumber
+            existingOrderNumber: existingOrder.orderNumber,
           });
-          
+
           return json(
-            { 
-              success: false, 
+            {
+              success: false,
               error: 'আপনি ইতোমধ্যে একটি অর্ডার করেছেন। সমস্যা হলে আমাদের কল করুন।',
               code: 'DUPLICATE_ORDER',
-              existingOrderNumber: existingOrder.orderNumber
+              existingOrderNumber: existingOrder.orderNumber,
             },
             { status: 429 } // Too Many Requests
           );
@@ -358,7 +383,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       if (existingSession.length > 0) {
         const session = existingSession[0];
-        
+
         // If already completed, return existing order
         if (session.status === 'completed' && session.orderId) {
           const existingOrder = await db
@@ -382,7 +407,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
         // If pending/processing, wait or return busy
         if (session.status === 'pending' || session.status === 'processing') {
           return json(
-            { success: false, error: 'অর্ডার প্রক্রিয়াকরণ হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন।', code: 'PROCESSING' },
+            {
+              success: false,
+              error: 'অর্ডার প্রক্রিয়াকরণ হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন।',
+              code: 'PROCESSING',
+            },
             { status: 409 }
           );
         }
@@ -395,31 +424,32 @@ export async function action({ request, context }: ActionFunctionArgs) {
     let orderItemsData: { productId: number; quantity: number; variantId?: number }[] = [];
 
     if (input.cart_items && input.cart_items.length > 0) {
-      orderItemsData = input.cart_items.map(item => ({
+      orderItemsData = input.cart_items.map((item) => ({
         productId: item.product_id,
         quantity: item.quantity,
-        variantId: item.variant_id
+        variantId: item.variant_id,
       }));
     } else if (input.product_id) {
-      orderItemsData = [{
-        productId: input.product_id,
-        quantity: input.quantity,
-        variantId: input.variant_id
-      }];
+      orderItemsData = [
+        {
+          productId: input.product_id,
+          quantity: input.quantity,
+          variantId: input.variant_id,
+        },
+      ];
     }
 
-    // Verify store exists and is active
+    // Verify store exists and is active (exclude soft-deleted stores)
     const storeResult = await db
       .select()
       .from(stores)
-      .where(and(eq(stores.id, input.store_id), eq(stores.isActive, true)))
+      .where(
+        and(eq(stores.id, input.store_id), eq(stores.isActive, true), isNull(stores.deletedAt))
+      )
       .limit(1);
 
     if (storeResult.length === 0) {
-      return json(
-        { success: false, error: 'স্টোর পাওয়া যায়নি' },
-        { status: 404 }
-      );
+      return json({ success: false, error: 'স্টোর পাওয়া যায়নি' }, { status: 404 });
     }
 
     const storeData = storeResult[0];
@@ -433,7 +463,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json(
         {
           success: false,
-          error: limitCheck.error?.message || 'Monthly order limit reached. Upgrade to accept more orders.',
+          error:
+            limitCheck.error?.message ||
+            'Monthly order limit reached. Upgrade to accept more orders.',
           code: 'LIMIT_REACHED',
           limit: limitCheck.error?.limit,
           current: limitCheck.error?.current,
@@ -445,15 +477,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // ========================================================================
     // PROCESS ITEMS (Fetch Prices & Check Inventory)
     // ========================================================================
-    const productIds = orderItemsData.map(i => i.productId);
-    const dbProducts = await db.select().from(products)
+    const productIds = orderItemsData.map((i) => i.productId);
+    const dbProducts = await db
+      .select()
+      .from(products)
       .where(and(eq(products.storeId, input.store_id), inArray(products.id, productIds)));
 
     // Fetch variants if involved
-    const variantIds = orderItemsData.map(i => i.variantId).filter(Boolean) as number[];
+    const variantIds = orderItemsData.map((i) => i.variantId).filter(Boolean) as number[];
     let dbVariants: (typeof productVariants.$inferSelect)[] = [];
     if (variantIds.length > 0) {
-      dbVariants = await db.select().from(productVariants)
+      dbVariants = await db
+        .select()
+        .from(productVariants)
         .where(inArray(productVariants.id, variantIds));
     }
 
@@ -461,9 +497,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const finalOrderItems = [];
 
     for (const item of orderItemsData) {
-      const product = dbProducts.find(p => p.id === item.productId);
+      const product = dbProducts.find((p) => p.id === item.productId);
       if (!product || !product.isPublished) {
-        return json({ success: false, error: `Product ID ${item.productId} not found or unavailable` }, { status: 400 });
+        return json(
+          { success: false, error: `Product ID ${item.productId} not found or unavailable` },
+          { status: 400 }
+        );
       }
 
       let unitPrice = product.price;
@@ -473,7 +512,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       let variantIdToUpdate = null;
 
       if (item.variantId) {
-        const variant = dbVariants.find(v => v.id === item.variantId);
+        const variant = dbVariants.find((v) => v.id === item.variantId);
         if (variant) {
           unitPrice = variant.price || unitPrice;
           currentStock = variant.inventory || 0;
@@ -485,7 +524,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       // Check Stock
       if (currentStock < item.quantity) {
-        return json({ success: false, error: `Stock unavailable for ${product.title}` }, { status: 400 });
+        return json(
+          { success: false, error: `Stock unavailable for ${product.title}` },
+          { status: 400 }
+        );
       }
 
       // Add to list for atomic update later (or do optimistic check here)
@@ -497,7 +539,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         total: unitPrice * item.quantity,
         isVariantStock,
         variantIdToUpdate,
-        product // keep ref
+        product, // keep ref
       });
 
       subtotal += unitPrice * item.quantity;
@@ -535,15 +577,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
         );
 
       if (activeBumps.length > 0) {
-        const bumpProductIds = activeBumps.map(b => b.bumpProductId);
-        const bumpProducts = await db.select({ id: products.id, title: products.title, price: products.price })
-          .from(products).where(and(eq(products.storeId, input.store_id), inArray(products.id, bumpProductIds)));
+        const bumpProductIds = activeBumps.map((b) => b.bumpProductId);
+        const bumpProducts = await db
+          .select({ id: products.id, title: products.title, price: products.price })
+          .from(products)
+          .where(and(eq(products.storeId, input.store_id), inArray(products.id, bumpProductIds)));
 
         for (const bump of activeBumps) {
-          const bumpProduct = bumpProducts.find(p => p.id === bump.bumpProductId);
+          const bumpProduct = bumpProducts.find((p) => p.id === bump.bumpProductId);
           if (bumpProduct) {
             const discountValue = bump.discount ?? 0;
-            const discountedPrice = discountValue > 0 ? bumpProduct.price * (1 - discountValue / 100) : bumpProduct.price;
+            const discountedPrice =
+              discountValue > 0 ? bumpProduct.price * (1 - discountValue / 100) : bumpProduct.price;
 
             bumpItems.push({
               bumpId: bump.id,
@@ -558,9 +603,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
         // Update stats
         context.cloudflare.ctx.waitUntil(
-          Promise.all(input.bump_ids!.map(bumpId =>
-            context.cloudflare.env.DB.prepare('UPDATE order_bumps SET conversions = conversions + 1 WHERE id = ?').bind(bumpId).run()
-          )).catch(e => console.error('Failed to update bump conversions:', e))
+          Promise.all(
+            input.bump_ids!.map((bumpId) =>
+              context.cloudflare.env.DB.prepare(
+                'UPDATE order_bumps SET conversions = conversions + 1 WHERE id = ?'
+              )
+                .bind(bumpId)
+                .run()
+            )
+          ).catch((e) => console.error('Failed to update bump conversions:', e))
         );
       }
     }
@@ -570,14 +621,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const shippingResult = calculateShipping(shippingConfig, input.division, subtotal);
     const shipping = shippingResult.cost;
     const tax = 0;
-    
+
     // ============================================================================
     // COMBO/BUNDLE DISCOUNT - Apply discount for multiple unique products
     // ============================================================================
     // Count unique products in order
-    const uniqueProductIds = new Set(orderItemsData.map(item => item.productId));
+    const uniqueProductIds = new Set(orderItemsData.map((item) => item.productId));
     const uniqueProductCount = uniqueProductIds.size;
-    
+
     // Combo discount rates (server-authoritative)
     let comboDiscountRate = 0;
     let comboDiscountAmount = 0;
@@ -592,10 +643,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const landingConfigRow = await db
         .select({ landingConfig: savedLandingConfigs.landingConfig })
         .from(savedLandingConfigs)
-        .where(and(
-          eq(savedLandingConfigs.id, input.landing_page_id),
-          eq(savedLandingConfigs.storeId, input.store_id)
-        ))
+        .where(
+          and(
+            eq(savedLandingConfigs.id, input.landing_page_id),
+            eq(savedLandingConfigs.storeId, input.store_id)
+          )
+        )
         .limit(1);
 
       if (landingConfigRow.length > 0) {
@@ -621,7 +674,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Cap to safe max (50%) to prevent abuse
     comboDiscount2 = Math.min(Math.max(comboDiscount2, 0), 50);
     comboDiscount3 = Math.min(Math.max(comboDiscount3, 0), 50);
-    
+
     if (comboDiscountEnabled) {
       if (uniqueProductCount >= 3) {
         comboDiscountRate = comboDiscount3 / 100;
@@ -629,11 +682,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
         comboDiscountRate = comboDiscount2 / 100;
       }
     }
-    
+
     if (comboDiscountRate > 0) {
       comboDiscountAmount = Math.round(subtotal * comboDiscountRate);
     }
-    
+
     // Apply combo discount to subtotal
     const discountedSubtotalBeforeCoupon = subtotal - comboDiscountAmount;
 
@@ -644,16 +697,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
     let appliedCouponId: number | undefined;
 
     if (input.discount_code) {
-      const discountResult = await validateDiscount(db, input.store_id, input.discount_code, discountedSubtotalBeforeCoupon);
-      
+      const discountResult = await validateDiscount(
+        db,
+        input.store_id,
+        input.discount_code,
+        discountedSubtotalBeforeCoupon
+      );
+
       if (discountResult.isValid && discountResult.discount) {
         couponDiscountAmount = discountResult.discount.amount;
         appliedCouponId = discountResult.discount.id;
       } else {
         // Return 400 if code provided but invalid (Strict mode)
         return json(
-            { success: false, error: discountResult.error || 'Invalid Discount Code' }, 
-            { status: 400 }
+          { success: false, error: discountResult.error || 'Invalid Discount Code' },
+          { status: 400 }
         );
       }
     }
@@ -673,23 +731,36 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Since D1 doesn't have full ACID transactions across multiple calls easily without batch,
     // we will optimistic-update and rollback if needed.
 
-    const inventoryRollbacks: { type: 'product' | 'variant', id: number, qty: number }[] = [];
+    const inventoryRollbacks: { type: 'product' | 'variant'; id: number; qty: number }[] = [];
 
     try {
       for (const item of finalOrderItems) {
         let res;
         if (item.isVariantStock && item.variantIdToUpdate) {
-          res = await db.update(productVariants)
+          res = await db
+            .update(productVariants)
             .set({ inventory: sql`${productVariants.inventory} - ${item.quantity}` })
-            .where(and(eq(productVariants.id, item.variantIdToUpdate), gte(productVariants.inventory, item.quantity)))
+            .where(
+              and(
+                eq(productVariants.id, item.variantIdToUpdate),
+                gte(productVariants.inventory, item.quantity)
+              )
+            )
             .returning({ id: productVariants.id });
-          if (res.length > 0) inventoryRollbacks.push({ type: 'variant', id: item.variantIdToUpdate, qty: item.quantity });
+          if (res.length > 0)
+            inventoryRollbacks.push({
+              type: 'variant',
+              id: item.variantIdToUpdate,
+              qty: item.quantity,
+            });
         } else {
-          res = await db.update(products)
+          res = await db
+            .update(products)
             .set({ inventory: sql`${products.inventory} - ${item.quantity}` })
             .where(and(eq(products.id, item.product.id), gte(products.inventory, item.quantity)))
             .returning({ id: products.id });
-          if (res.length > 0) inventoryRollbacks.push({ type: 'product', id: item.product.id, qty: item.quantity });
+          if (res.length > 0)
+            inventoryRollbacks.push({ type: 'product', id: item.product.id, qty: item.quantity });
         }
 
         if (res.length === 0) {
@@ -701,16 +772,32 @@ export async function action({ request, context }: ActionFunctionArgs) {
       console.error('Stock deduction failed, rolling back:', stockError);
       for (const rb of inventoryRollbacks) {
         if (rb.type === 'variant') {
-          await db.update(productVariants).set({ inventory: sql`${productVariants.inventory} + ${rb.qty}` }).where(eq(productVariants.id, rb.id));
+          await db
+            .update(productVariants)
+            .set({ inventory: sql`${productVariants.inventory} + ${rb.qty}` })
+            .where(eq(productVariants.id, rb.id));
         } else {
-          await db.update(products).set({ inventory: sql`${products.inventory} + ${rb.qty}` }).where(eq(products.id, rb.id));
+          await db
+            .update(products)
+            .set({ inventory: sql`${products.inventory} + ${rb.qty}` })
+            .where(eq(products.id, rb.id));
         }
       }
-      return json({ success: false, error: stockError instanceof Error ? stockError.message : 'Inventory Error' }, { status: 400 });
+      return json(
+        {
+          success: false,
+          error: stockError instanceof Error ? stockError.message : 'Inventory Error',
+        },
+        { status: 400 }
+      );
     }
 
     // Check if this is the first order (for celebration email)
-    const existingOrderCheck = await db.select({ id: orders.id }).from(orders).where(eq(orders.storeId, input.store_id)).limit(1);
+    const existingOrderCheck = await db
+      .select({ id: orders.id })
+      .from(orders)
+      .where(eq(orders.storeId, input.store_id))
+      .limit(1);
     const isFirstOrder = existingOrderCheck.length === 0;
 
     // ========================================================================
@@ -718,21 +805,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // ========================================================================
     // Create unique lock ID based on phone + store (prevents same customer double-ordering)
     checkoutLockId = `${input.store_id}-${input.phone.replace(/\D/g, '')}`;
-    
+
     if (hasCheckoutLock) {
       const lockResult = await acquireCheckoutLock(env as any, checkoutLockId, {
         orderId: orderNumber, // Use order number as the lock identifier
         lockedBy: input.phone,
         ttlMs: 5 * 60 * 1000, // 5 minutes
       });
-      
+
       if (!lockResult.success) {
         console.warn(`[CHECKOUT_LOCK] Order blocked - lock already held for ${checkoutLockId}`);
         return json(
-          { 
-            success: false, 
+          {
+            success: false,
             error: 'আপনার আগের অর্ডার প্রক্রিয়াধীন আছে। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন।',
-            existingOrderId: lockResult.existingOrderId
+            existingOrderId: lockResult.existingOrderId,
           },
           { status: 409 }
         );
@@ -743,52 +830,57 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // 2. CREATE ORDER
     let orderId: number | undefined;
     try {
-      const orderResult = await db.insert(orders).values({
-        storeId: input.store_id,
-        orderNumber,
-        status: 'pending',
-        paymentStatus: 'pending',
-        paymentMethod: input.payment_method as 'cod' | 'bkash' | 'nagad',
-        transactionId: input.transaction_id || null,
-        manualPaymentDetails: input.manual_payment_details ? JSON.stringify(input.manual_payment_details) : null,
-        customerName: input.customer_name,
-        customerPhone: input.phone,
-        customerEmail: input.customer_email || '',
-        shippingAddress: input.address,
-        billingAddress: null,
-        subtotal: finalSubtotal, // After combo AND coupon
-        tax,
-        shipping,
-        total,
-        // Store combo discount info in pricingJson
-        pricingJson: JSON.stringify({
-          originalSubtotal: subtotal,
-          comboDiscount: comboDiscountAmount,
-          comboDiscountRate: comboDiscountRate,
-          uniqueProductCount: uniqueProductCount,
-          discountedSubtotal: finalSubtotal,
-          shipping,
+      const orderResult = await db
+        .insert(orders)
+        .values({
+          storeId: input.store_id,
+          orderNumber,
+          status: 'pending',
+          paymentStatus: 'pending',
+          paymentMethod: input.payment_method as 'cod' | 'bkash' | 'nagad',
+          transactionId: input.transaction_id || null,
+          manualPaymentDetails: input.manual_payment_details
+            ? JSON.stringify(input.manual_payment_details)
+            : null,
+          customerName: input.customer_name,
+          customerPhone: input.phone,
+          customerEmail: input.customer_email || '',
+          shippingAddress: input.address,
+          billingAddress: null,
+          subtotal: finalSubtotal, // After combo AND coupon
           tax,
+          shipping,
           total,
-          isFreeShipping: shippingResult.isFree || false,
-          clientIP,
-          couponCode: input.discount_code,
-          couponDiscount: couponDiscountAmount
-        }),
-        notes: input.notes || null,
-        landingPageId: input.landing_page_id || null, // ATTRIBUTION
-        utmSource: input.utm_source || null,
-        utmMedium: input.utm_medium || null,
-        utmCampaign: input.utm_campaign || null,
-        createdAt: now,
-        updatedAt: now,
-      }).returning({ id: orders.id });
+          // Store combo discount info in pricingJson
+          pricingJson: JSON.stringify({
+            originalSubtotal: subtotal,
+            comboDiscount: comboDiscountAmount,
+            comboDiscountRate: comboDiscountRate,
+            uniqueProductCount: uniqueProductCount,
+            discountedSubtotal: finalSubtotal,
+            shipping,
+            tax,
+            total,
+            isFreeShipping: shippingResult.isFree || false,
+            clientIP,
+            couponCode: input.discount_code,
+            couponDiscount: couponDiscountAmount,
+          }),
+          notes: input.notes || null,
+          landingPageId: input.landing_page_id || null, // ATTRIBUTION
+          utmSource: input.utm_source || null,
+          utmMedium: input.utm_medium || null,
+          utmCampaign: input.utm_campaign || null,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning({ id: orders.id });
 
       orderId = orderResult[0].id;
 
       // 3. INSERT ITEMS
       await db.insert(orderItems).values([
-        ...finalOrderItems.map(item => ({
+        ...finalOrderItems.map((item) => ({
           orderId: orderId!,
           productId: item.productId,
           variantId: item.variantId || null,
@@ -796,16 +888,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
           variantTitle: item.variantTitle || null,
           quantity: item.quantity,
           price: item.unitPrice,
-          total: item.total
+          total: item.total,
         })),
-        ...bumpItems.map(bump => ({
+        ...bumpItems.map((bump) => ({
           orderId: orderId!,
           productId: bump.productId,
           title: `[Bump] ${bump.title}`,
           quantity: 1,
           price: bump.discountedPrice,
-          total: bump.discountedPrice
-        }))
+          total: bump.discountedPrice,
+        })),
       ]);
 
       // ========== WEBHOOK: ORDER CREATED ==========
@@ -825,50 +917,54 @@ export async function action({ request, context }: ActionFunctionArgs) {
           total,
           payment_method: input.payment_method,
           item_count: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
-          items: finalOrderItems.map(i => ({
+          items: finalOrderItems.map((i) => ({
             product_id: i.productId,
             title: i.title,
             quantity: i.quantity,
             price: i.unitPrice,
           })),
           created_at: now.toISOString(),
-        }).catch(e => console.error('[Webhook] order.created failed:', e))
+        }).catch((e) => console.error('[Webhook] order.created failed:', e))
       );
 
       // ========== CHECKOUT SESSION: MARK COMPLETED ==========
       // Create checkout session for idempotency tracking
       context.cloudflare.ctx.waitUntil(
-        db.insert(checkoutSessions).values({
-          id: crypto.randomUUID(),
-          storeId: input.store_id,
-          cartJson: JSON.stringify(orderItemsData),
-          phone: input.phone,
-          customerName: input.customer_name,
-          email: input.customer_email || null,
-          shippingAddressJson: JSON.stringify({
-            address: input.address,
-            division: input.division,
-            district: input.district,
-            upazila: input.upazila,
-          }),
-          pricingJson: JSON.stringify({ subtotal, shipping, tax, total }),
-          paymentMethod: input.payment_method as 'cod' | 'bkash' | 'nagad' | 'stripe',
-          status: 'completed',
-          idempotencyKey,
-          orderId,
-          landingPageId: input.landing_page_id,
-          createdAt: now,
-          updatedAt: now,
-        }).catch(e => console.error('[Checkout Session] Creation failed:', e))
+        db
+          .insert(checkoutSessions)
+          .values({
+            id: crypto.randomUUID(),
+            storeId: input.store_id,
+            cartJson: JSON.stringify(orderItemsData),
+            phone: input.phone,
+            customerName: input.customer_name,
+            email: input.customer_email || null,
+            shippingAddressJson: JSON.stringify({
+              address: input.address,
+              division: input.division,
+              district: input.district,
+              upazila: input.upazila,
+            }),
+            pricingJson: JSON.stringify({ subtotal, shipping, tax, total }),
+            paymentMethod: input.payment_method as 'cod' | 'bkash' | 'nagad' | 'stripe',
+            status: 'completed',
+            idempotencyKey,
+            orderId,
+            landingPageId: input.landing_page_id,
+            createdAt: now,
+            updatedAt: now,
+          })
+          .catch((e) => console.error('[Checkout Session] Creation failed:', e))
       );
 
       // ========== DISCOUNT USAGE INCREMENT ==========
       if (appliedCouponId) {
         context.cloudflare.ctx.waitUntil(
-            incrementDiscountUsage(db, appliedCouponId).catch(e => console.error('Failed to increment discount usage:', e))
+          incrementDiscountUsage(db, appliedCouponId).catch((e) =>
+            console.error('Failed to increment discount usage:', e)
+          )
         );
       }
-
     } catch (orderError) {
       console.error('Order creation failed, rolling back inventory:', orderError);
       // Rollback Order
@@ -877,9 +973,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
       // Rollback Inventory
       for (const rb of inventoryRollbacks) {
         if (rb.type === 'variant') {
-          await db.update(productVariants).set({ inventory: sql`${productVariants.inventory} + ${rb.qty}` }).where(eq(productVariants.id, rb.id));
+          await db
+            .update(productVariants)
+            .set({ inventory: sql`${productVariants.inventory} + ${rb.qty}` })
+            .where(eq(productVariants.id, rb.id));
         } else {
-          await db.update(products).set({ inventory: sql`${products.inventory} + ${rb.qty}` }).where(eq(products.id, rb.id));
+          await db
+            .update(products)
+            .set({ inventory: sql`${products.inventory} + ${rb.qty}` })
+            .where(eq(products.id, rb.id));
         }
       }
       throw orderError;
@@ -889,115 +991,129 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // CUSTOMER CREATION/UPDATE (For Segmentation & Marketing)
     // ============================================================================
     // let finalCustomerId: number | undefined;
-    
-    context.cloudflare.ctx.waitUntil((async () => {
-      try {
-        // Check if customer exists (by phone or email)
-        const existingCustomer = await db.select({ id: customers.id, totalOrders: customers.totalOrders, totalSpent: customers.totalSpent })
-          .from(customers)
-          .where(
-            and(
-              eq(customers.storeId, input.store_id),
-              or(
-                eq(customers.phone, input.phone),
-                input.customer_email ? eq(customers.email, input.customer_email) : undefined
+
+    context.cloudflare.ctx.waitUntil(
+      (async () => {
+        try {
+          // Check if customer exists (by phone or email)
+          const existingCustomer = await db
+            .select({
+              id: customers.id,
+              totalOrders: customers.totalOrders,
+              totalSpent: customers.totalSpent,
+            })
+            .from(customers)
+            .where(
+              and(
+                eq(customers.storeId, input.store_id),
+                or(
+                  eq(customers.phone, input.phone),
+                  input.customer_email ? eq(customers.email, input.customer_email) : undefined
+                )
               )
             )
-          )
-          .limit(1);
+            .limit(1);
 
-        if (existingCustomer.length > 0) {
-          // UPDATE existing customer stats
-          const customer = existingCustomer[0];
-          // finalCustomerId = customer.id;
-          const newTotalOrders = (customer.totalOrders || 0) + 1;
-          const newTotalSpent = (customer.totalSpent || 0) + total;
+          if (existingCustomer.length > 0) {
+            // UPDATE existing customer stats
+            const customer = existingCustomer[0];
+            // finalCustomerId = customer.id;
+            const newTotalOrders = (customer.totalOrders || 0) + 1;
+            const newTotalSpent = (customer.totalSpent || 0) + total;
 
-          // Determine new segment
-          let newSegment: 'vip' | 'regular' = 'regular';
-          if (newTotalOrders >= 3 || newTotalSpent >= 10000) {
-            newSegment = 'vip';
+            // Determine new segment
+            let newSegment: 'vip' | 'regular' = 'regular';
+            if (newTotalOrders >= 3 || newTotalSpent >= 10000) {
+              newSegment = 'vip';
+            }
+
+            await db
+              .update(customers)
+              .set({
+                totalOrders: newTotalOrders,
+                totalSpent: newTotalSpent,
+                lastOrderAt: now,
+                segment: newSegment,
+                name: input.customer_name,
+                address: input.address,
+                updatedAt: now,
+              })
+              .where(eq(customers.id, customer.id));
+
+            // Link customer to order
+            await db.update(orders).set({ customerId: customer.id }).where(eq(orders.id, orderId!));
+
+            // ========== LOYALTY POINTS INTEGRATION ==========
+            await addLoyaltyPoints(db, customer.id, input.store_id, total, `Order ${orderNumber}`);
+          } else {
+            // CREATE new customer
+            const [newCustomer] = await db
+              .insert(customers)
+              .values({
+                storeId: input.store_id,
+                email: input.customer_email || null, // Email is optional for BD market
+                name: input.customer_name,
+                phone: input.phone,
+                address: input.address,
+                totalOrders: 1,
+                totalSpent: total,
+                lastOrderAt: now,
+                segment: 'regular', // First order = regular
+              })
+              .returning({ id: customers.id });
+
+            // finalCustomerId = newCustomer.id;
+
+            // Link customer to order
+            await db
+              .update(orders)
+              .set({ customerId: newCustomer.id })
+              .where(eq(orders.id, orderId!));
+
+            // ========== LOYALTY POINTS FOR NEW CUSTOMER ==========
+            await addLoyaltyPoints(
+              db,
+              newCustomer.id,
+              input.store_id,
+              total,
+              `First Order ${orderNumber}`
+            );
+
+            // ========== WEBHOOK: NEW CUSTOMER CREATED ==========
+            dispatchWebhook(context.cloudflare.env, input.store_id, 'customer.created', {
+              customerId: newCustomer.id,
+              email: input.customer_email || null,
+              phone: input.phone,
+              name: input.customer_name,
+              firstOrderNumber: orderNumber,
+            }).catch((e) => console.error('[Webhook] customer.created failed:', e));
           }
 
-          await db.update(customers)
-            .set({
-              totalOrders: newTotalOrders,
-              totalSpent: newTotalSpent,
-              lastOrderAt: now,
-              segment: newSegment,
-              name: input.customer_name,
-              address: input.address,
-              updatedAt: now,
-            })
-            .where(eq(customers.id, customer.id));
-
-          // Link customer to order
-          await db.update(orders)
-            .set({ customerId: customer.id })
-            .where(eq(orders.id, orderId!));
-
-          // ========== LOYALTY POINTS INTEGRATION ==========
-          await addLoyaltyPoints(db, customer.id, input.store_id, total, `Order ${orderNumber}`);
-
-        } else {
-          // CREATE new customer
-          const [newCustomer] = await db.insert(customers).values({
-            storeId: input.store_id,
-            email: input.customer_email || null, // Email is optional for BD market
-            name: input.customer_name,
-            phone: input.phone,
-            address: input.address,
-            totalOrders: 1,
-            totalSpent: total,
-            lastOrderAt: now,
-            segment: 'regular', // First order = regular
-          }).returning({ id: customers.id });
-          
-          // finalCustomerId = newCustomer.id;
-
-          // Link customer to order
-          await db.update(orders)
-            .set({ customerId: newCustomer.id })
-            .where(eq(orders.id, orderId!));
-
-          // ========== LOYALTY POINTS FOR NEW CUSTOMER ==========
-          await addLoyaltyPoints(db, newCustomer.id, input.store_id, total, `First Order ${orderNumber}`);
-
-          // ========== WEBHOOK: NEW CUSTOMER CREATED ==========
-          dispatchWebhook(context.cloudflare.env, input.store_id, 'customer.created', {
-            customerId: newCustomer.id,
-            email: input.customer_email || null,
-            phone: input.phone,
-            name: input.customer_name,
-            firstOrderNumber: orderNumber,
-          }).catch(e => console.error('[Webhook] customer.created failed:', e));
+          // ========== FIRE AUTOMATION TRIGGERS ==========
+          if (input.customer_email && !input.customer_email.includes('@phone.local')) {
+            await triggerAutomation(
+              context.cloudflare.env.DB,
+              'order_placed',
+              {
+                storeId: input.store_id,
+                customerEmail: input.customer_email,
+                customerName: input.customer_name,
+                metadata: {
+                  orderNumber,
+                  total,
+                  currency: storeData.currency || 'BDT',
+                  itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
+                },
+              },
+              context.cloudflare.env.RESEND_API_KEY
+            );
+          }
+        } catch (customerError) {
+          console.error('Customer creation/update failed:', customerError);
+          // Non-blocking - order already created
         }
-
-        // ========== FIRE AUTOMATION TRIGGERS ==========
-        if (input.customer_email && !input.customer_email.includes('@phone.local')) {
-          await triggerAutomation(
-            context.cloudflare.env.DB,
-            'order_placed',
-            {
-              storeId: input.store_id,
-              customerEmail: input.customer_email,
-              customerName: input.customer_name,
-              metadata: {
-                orderNumber,
-                total,
-                currency: storeData.currency || 'BDT',
-                itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
-              }
-            },
-            context.cloudflare.env.RESEND_API_KEY
-          );
-        }
-
-      } catch (customerError) {
-        console.error('Customer creation/update failed:', customerError);
-        // Non-blocking - order already created
-      }
-    })());
+      })()
+    );
 
     // ============================================================================
     // NOTIFICATIONS & TRACKING (Non-blocking)
@@ -1013,18 +1129,32 @@ export async function action({ request, context }: ActionFunctionArgs) {
             customerEmail: input.customer_email,
             total,
             currency: storeData.currency || 'BDT',
-            items: finalOrderItems.map(i => ({ title: i.title, quantity: i.quantity, price: i.unitPrice })),
+            items: finalOrderItems.map((i) => ({
+              title: i.title,
+              quantity: i.quantity,
+              price: i.unitPrice,
+            })),
             shippingAddress: input.address,
-            paymentMethod: input.payment_method === 'cod' ? 'Cash on Delivery' : input.payment_method.toUpperCase(),
+            paymentMethod:
+              input.payment_method === 'cod'
+                ? 'Cash on Delivery'
+                : input.payment_method.toUpperCase(),
             storeName: storeData.name,
             storeLogo: storeData.logo || undefined,
-            primaryColor: (storeData.themeConfig && JSON.parse(storeData.themeConfig as string)?.primaryColor) || undefined
+            primaryColor:
+              (storeData.themeConfig &&
+                JSON.parse(storeData.themeConfig as string)?.primaryColor) ||
+              undefined,
           })
         );
       }
 
       // Merchant Alert
-      const merchantUser = await db.select({ email: users.email, name: users.name }).from(users).where(eq(users.storeId, input.store_id)).limit(1);
+      const merchantUser = await db
+        .select({ email: users.email, name: users.name })
+        .from(users)
+        .where(eq(users.storeId, input.store_id))
+        .limit(1);
       if (merchantUser.length > 0 && merchantUser[0].email) {
         context.cloudflare.ctx.waitUntil(
           emailService.sendNewOrderAlert({
@@ -1046,7 +1176,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
               merchantName: merchantUser[0].name || 'Merchant',
               storeName: storeData.name,
               orderNumber,
-              amount: `${storeData.currency || 'BDT'} ${total}`
+              amount: `${storeData.currency || 'BDT'} ${total}`,
             })
           );
         }
@@ -1055,39 +1185,77 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // Smart Notification (WhatsApp / SMS) - Marketing Research Feature
     context.cloudflare.ctx.waitUntil(
-      sendSmartNotification(db, context.cloudflare.env, orderId!, input.store_id, 'ORDER_CONFIRMATION', {
-        phone: input.phone,
-        customerName: input.customer_name,
-        amount: total,
-        currency: storeData.currency || 'BDT',
-        orderNumber: orderNumber,
-        itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0)
-      }).catch(e => console.error('[Messaging] Notification failed:', e))
+      sendSmartNotification(
+        db,
+        context.cloudflare.env,
+        orderId!,
+        input.store_id,
+        'ORDER_CONFIRMATION',
+        {
+          phone: input.phone,
+          customerName: input.customer_name,
+          amount: total,
+          currency: storeData.currency || 'BDT',
+          orderNumber: orderNumber,
+          itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
+        }
+      ).catch((e) => console.error('[Messaging] Notification failed:', e))
     );
 
     // Push Notifications
-    context.cloudflare.ctx.waitUntil((async () => {
-      try {
-        const subscriptions = await db.select().from(pushSubscriptions).where(eq(pushSubscriptions.storeId, input.store_id));
-        if (subscriptions.length > 0) {
-          const payload = {
-            title: `New Order: ${orderNumber}`,
-            body: `${input.customer_name} - ${storeData.currency} ${total}`,
-            url: `/admin/orders/${orderNumber}`,
-          };
-          await Promise.all(subscriptions.map(sub => sendPushNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload, context.cloudflare.env)));
+    context.cloudflare.ctx.waitUntil(
+      (async () => {
+        try {
+          const subscriptions = await db
+            .select()
+            .from(pushSubscriptions)
+            .where(eq(pushSubscriptions.storeId, input.store_id));
+          if (subscriptions.length > 0) {
+            const payload = {
+              title: `New Order: ${orderNumber}`,
+              body: `${input.customer_name} - ${storeData.currency} ${total}`,
+              url: `/admin/orders/${orderNumber}`,
+            };
+            await Promise.all(
+              subscriptions.map((sub) =>
+                sendPushNotification(
+                  { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+                  payload,
+                  context.cloudflare.env
+                )
+              )
+            );
+          }
+        } catch (e) {
+          console.error('Push failed', e);
         }
-      } catch (e) { console.error('Push failed', e); }
-    })());
+      })()
+    );
 
     // Recover Abandoned Carts
-    context.cloudflare.ctx.waitUntil((async () => {
-      try {
-        await db.update(abandonedCarts).set({ status: 'recovered', recoveredAt: now })
-          .where(and(eq(abandonedCarts.storeId, input.store_id), eq(abandonedCarts.status, 'abandoned'),
-            or(eq(abandonedCarts.customerPhone, input.phone), input.customer_email ? eq(abandonedCarts.customerEmail, input.customer_email) : undefined)));
-      } catch (e) { console.error('Abandon update failed', e); }
-    })());
+    context.cloudflare.ctx.waitUntil(
+      (async () => {
+        try {
+          await db
+            .update(abandonedCarts)
+            .set({ status: 'recovered', recoveredAt: now })
+            .where(
+              and(
+                eq(abandonedCarts.storeId, input.store_id),
+                eq(abandonedCarts.status, 'abandoned'),
+                or(
+                  eq(abandonedCarts.customerPhone, input.phone),
+                  input.customer_email
+                    ? eq(abandonedCarts.customerEmail, input.customer_email)
+                    : undefined
+                )
+              )
+            );
+        } catch (e) {
+          console.error('Abandon update failed', e);
+        }
+      })()
+    );
 
     // FB CAPI
     if (storeData.facebookPixelId && storeData.facebookAccessToken) {
@@ -1102,76 +1270,108 @@ export async function action({ request, context }: ActionFunctionArgs) {
           customerEmail: input.customer_email,
           customerPhone: input.phone,
           customerName: input.customer_name,
-          items: finalOrderItems.map(i => ({ productId: i.productId, title: i.title, quantity: i.quantity, price: i.unitPrice })),
-        }).catch(e => console.error('[FB CAPI] Purchase event failed:', e))
+          items: finalOrderItems.map((i) => ({
+            productId: i.productId,
+            title: i.title,
+            quantity: i.quantity,
+            price: i.unitPrice,
+          })),
+        }).catch((e) => console.error('[FB CAPI] Purchase event failed:', e))
       );
     }
 
     // ========== TEMPLATE ANALYTICS TRACKING ==========
     // Track which template generated this order for conversion analytics
-    context.cloudflare.ctx.waitUntil((async () => {
-      try {
-        const landingConfig = parseLandingConfig(storeData.landingConfig as string | null);
-        const templateId = landingConfig?.templateId || 'unknown';
-
-        // Try to update existing analytics record, or insert new one
-        const existing = await db.select({ id: templateAnalytics.id, ordersGenerated: templateAnalytics.ordersGenerated, revenueGenerated: templateAnalytics.revenueGenerated })
-          .from(templateAnalytics)
-          .where(and(eq(templateAnalytics.storeId, input.store_id), eq(templateAnalytics.templateId, templateId)))
-          .limit(1);
-
-        if (existing.length > 0) {
-          await db.update(templateAnalytics)
-            .set({
-              ordersGenerated: (existing[0].ordersGenerated || 0) + 1,
-              revenueGenerated: (existing[0].revenueGenerated || 0) + total,
-              updatedAt: new Date(),
-            })
-            .where(eq(templateAnalytics.id, existing[0].id));
-        } else {
-          await db.insert(templateAnalytics).values({
-            storeId: input.store_id,
-            templateId,
-            ordersGenerated: 1,
-            revenueGenerated: total,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
-        }
-      } catch (e) {
-        console.error('[Template Analytics] Tracking failed:', e);
-      }
-
-
-      // CAMPAIGN PAGE ANALYTICS
-      if (input.landing_page_id) {
+    context.cloudflare.ctx.waitUntil(
+      (async () => {
         try {
-          await db.update(savedLandingConfigs)
-            .set({
-              orders: sql`orders + 1`,
-              revenue: sql`revenue + ${total}`
+          const landingConfig = parseLandingConfig(storeData.landingConfig as string | null);
+          const templateId = landingConfig?.templateId || 'unknown';
+
+          // Try to update existing analytics record, or insert new one
+          const existing = await db
+            .select({
+              id: templateAnalytics.id,
+              ordersGenerated: templateAnalytics.ordersGenerated,
+              revenueGenerated: templateAnalytics.revenueGenerated,
             })
-            .where(eq(savedLandingConfigs.id, input.landing_page_id));
+            .from(templateAnalytics)
+            .where(
+              and(
+                eq(templateAnalytics.storeId, input.store_id),
+                eq(templateAnalytics.templateId, templateId)
+              )
+            )
+            .limit(1);
+
+          if (existing.length > 0) {
+            await db
+              .update(templateAnalytics)
+              .set({
+                ordersGenerated: (existing[0].ordersGenerated || 0) + 1,
+                revenueGenerated: (existing[0].revenueGenerated || 0) + total,
+                updatedAt: new Date(),
+              })
+              .where(eq(templateAnalytics.id, existing[0].id));
+          } else {
+            await db.insert(templateAnalytics).values({
+              storeId: input.store_id,
+              templateId,
+              ordersGenerated: 1,
+              revenueGenerated: total,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
+          }
         } catch (e) {
-          console.error('[Campaign Analytics] Tracking failed:', e);
+          console.error('[Template Analytics] Tracking failed:', e);
         }
-      }
-    })());
+
+        // CAMPAIGN PAGE ANALYTICS
+        if (input.landing_page_id) {
+          try {
+            await db
+              .update(savedLandingConfigs)
+              .set({
+                orders: sql`orders + 1`,
+                revenue: sql`revenue + ${total}`,
+              })
+              .where(eq(savedLandingConfigs.id, input.landing_page_id));
+          } catch (e) {
+            console.error('[Campaign Analytics] Tracking failed:', e);
+          }
+        }
+      })()
+    );
 
     // Check Upsell
     let upsellUrl;
-    // ... Upsell logic can be complicated for multi-item (which product triggers it?). 
+    // ... Upsell logic can be complicated for multi-item (which product triggers it?).
     // Simplified: Check upsell for the FIRST product in loop.
     if (finalOrderItems.length > 0) {
       try {
         const firstItem = finalOrderItems[0];
-        const upsellOffer = await db.select({ id: upsellOffers.id }).from(upsellOffers)
-          .where(and(eq(upsellOffers.storeId, input.store_id), eq(upsellOffers.productId, firstItem.productId), eq(upsellOffers.isActive, true)))
-          .orderBy(upsellOffers.displayOrder).limit(1);
+        const upsellOffer = await db
+          .select({ id: upsellOffers.id })
+          .from(upsellOffers)
+          .where(
+            and(
+              eq(upsellOffers.storeId, input.store_id),
+              eq(upsellOffers.productId, firstItem.productId),
+              eq(upsellOffers.isActive, true)
+            )
+          )
+          .orderBy(upsellOffers.displayOrder)
+          .limit(1);
 
         if (upsellOffer.length > 0) {
           const token = crypto.randomUUID();
-          await db.insert(upsellTokens).values({ orderId: orderId!, token, offerId: upsellOffer[0].id, expiresAt: new Date(Date.now() + 15 * 60 * 1000) });
+          await db.insert(upsellTokens).values({
+            orderId: orderId!,
+            token,
+            offerId: upsellOffer[0].id,
+            expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+          });
           upsellUrl = `/upsell/${token}`;
         }
       } catch (e) {
@@ -1185,7 +1385,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (checkoutLockAcquired && hasCheckoutLock) {
       // Release lock in background - don't block response
       context.cloudflare.ctx.waitUntil(
-        releaseCheckoutLock(env as any, checkoutLockId, orderNumber).catch(err => {
+        releaseCheckoutLock(env as any, checkoutLockId, orderNumber).catch((err) => {
           console.error('[CHECKOUT_LOCK] Failed to release lock:', err);
         })
       );
@@ -1199,9 +1399,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
       upsellUrl,
       message: 'অর্ডার সফলভাবে সম্পন্ন হয়েছে!',
     });
-
   } catch (error) {
-    const errorDetails = { message: error instanceof Error ? error.message : 'Unknown error', timestamp: new Date().toISOString() };
+    const errorDetails = {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString(),
+    };
     console.error('Order creation error:', JSON.stringify(errorDetails, null, 2));
 
     // Release checkout lock on error (if it was acquired)
@@ -1209,7 +1411,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
       releaseCheckoutLock(env as any, checkoutLockId).catch(() => {});
     }
 
-    return json({ success: false, error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।', debug: errorDetails.message }, { status: 500 });
+    return json(
+      {
+        success: false,
+        error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।',
+        debug: errorDetails.message,
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -1223,7 +1432,15 @@ export async function loader() {
     payload_options: {
       single_item: {
         required_fields: ['store_id', 'product_id', 'customer_name', 'phone', 'address'],
-        optional_fields: ['quantity (default: 1)', 'variant_id', 'notes', 'customer_email', 'payment_method', 'division', 'bump_ids'],
+        optional_fields: [
+          'quantity (default: 1)',
+          'variant_id',
+          'notes',
+          'customer_email',
+          'payment_method',
+          'division',
+          'bump_ids',
+        ],
       },
       multi_item: {
         required_fields: ['store_id', 'cart_items', 'customer_name', 'phone', 'address'],

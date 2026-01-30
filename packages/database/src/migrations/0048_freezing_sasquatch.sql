@@ -1,4 +1,8 @@
-CREATE TABLE `cart_items` (
+-- Migration: Add cart, checkout, location tables (idempotent)
+-- Fixed: Added IF NOT EXISTS to all CREATE statements
+-- Note: ALTER TABLE statements removed as columns already exist in production
+
+CREATE TABLE IF NOT EXISTS `cart_items` (
 	`id` text PRIMARY KEY NOT NULL,
 	`cart_id` text NOT NULL,
 	`store_id` integer NOT NULL,
@@ -17,9 +21,9 @@ CREATE TABLE `cart_items` (
 	FOREIGN KEY (`variant_id`) REFERENCES `product_variants`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
-CREATE INDEX `idx_cart_items_cart` ON `cart_items` (`cart_id`);--> statement-breakpoint
-CREATE INDEX `idx_cart_items_product` ON `cart_items` (`product_id`);--> statement-breakpoint
-CREATE TABLE `carts` (
+CREATE INDEX IF NOT EXISTS `idx_cart_items_cart` ON `cart_items` (`cart_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_cart_items_product` ON `cart_items` (`product_id`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `carts` (
 	`id` text PRIMARY KEY NOT NULL,
 	`store_id` integer NOT NULL,
 	`customer_id` integer,
@@ -34,11 +38,11 @@ CREATE TABLE `carts` (
 	FOREIGN KEY (`customer_id`) REFERENCES `customers`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
-CREATE INDEX `idx_carts_store` ON `carts` (`store_id`);--> statement-breakpoint
-CREATE INDEX `idx_carts_customer` ON `carts` (`customer_id`);--> statement-breakpoint
-CREATE INDEX `idx_carts_visitor` ON `carts` (`visitor_id`);--> statement-breakpoint
-CREATE INDEX `idx_carts_status` ON `carts` (`store_id`,`status`);--> statement-breakpoint
-CREATE TABLE `checkout_sessions` (
+CREATE INDEX IF NOT EXISTS `idx_carts_store` ON `carts` (`store_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_carts_customer` ON `carts` (`customer_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_carts_visitor` ON `carts` (`visitor_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_carts_status` ON `carts` (`store_id`,`status`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `checkout_sessions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`store_id` integer NOT NULL,
 	`cart_json` text NOT NULL,
@@ -66,11 +70,11 @@ CREATE TABLE `checkout_sessions` (
 	FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `checkout_sessions_idempotency_key_unique` ON `checkout_sessions` (`idempotency_key`);--> statement-breakpoint
-CREATE INDEX `idx_checkout_sessions_store` ON `checkout_sessions` (`store_id`);--> statement-breakpoint
-CREATE INDEX `idx_checkout_sessions_status` ON `checkout_sessions` (`store_id`,`status`);--> statement-breakpoint
-CREATE INDEX `idx_checkout_sessions_expires` ON `checkout_sessions` (`expires_at`);--> statement-breakpoint
-CREATE TABLE `location_inventory` (
+CREATE UNIQUE INDEX IF NOT EXISTS `checkout_sessions_idempotency_key_unique` ON `checkout_sessions` (`idempotency_key`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_checkout_sessions_store` ON `checkout_sessions` (`store_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_checkout_sessions_status` ON `checkout_sessions` (`store_id`,`status`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_checkout_sessions_expires` ON `checkout_sessions` (`expires_at`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `location_inventory` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`location_id` integer NOT NULL,
 	`product_id` integer NOT NULL,
@@ -85,10 +89,10 @@ CREATE TABLE `location_inventory` (
 	FOREIGN KEY (`variant_id`) REFERENCES `product_variants`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `idx_location_inventory_location` ON `location_inventory` (`location_id`);--> statement-breakpoint
-CREATE INDEX `idx_location_inventory_product` ON `location_inventory` (`product_id`);--> statement-breakpoint
-CREATE INDEX `idx_location_inventory_variant` ON `location_inventory` (`variant_id`);--> statement-breakpoint
-CREATE TABLE `locations` (
+CREATE INDEX IF NOT EXISTS `idx_location_inventory_location` ON `location_inventory` (`location_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_location_inventory_product` ON `location_inventory` (`product_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_location_inventory_variant` ON `location_inventory` (`variant_id`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `locations` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`store_id` integer NOT NULL,
 	`name` text NOT NULL,
@@ -105,9 +109,9 @@ CREATE TABLE `locations` (
 	FOREIGN KEY (`store_id`) REFERENCES `stores`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE INDEX `idx_locations_store` ON `locations` (`store_id`);--> statement-breakpoint
-CREATE INDEX `idx_locations_active` ON `locations` (`store_id`,`is_active`);--> statement-breakpoint
-CREATE TABLE `shop_domains` (
+CREATE INDEX IF NOT EXISTS `idx_locations_store` ON `locations` (`store_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_locations_active` ON `locations` (`store_id`,`is_active`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `shop_domains` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`store_id` integer NOT NULL,
 	`domain` text NOT NULL,
@@ -120,9 +124,7 @@ CREATE TABLE `shop_domains` (
 	FOREIGN KEY (`store_id`) REFERENCES `stores`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `shop_domains_domain_unique` ON `shop_domains` (`domain`);--> statement-breakpoint
-CREATE INDEX `idx_shop_domains_store` ON `shop_domains` (`store_id`);--> statement-breakpoint
-CREATE INDEX `idx_shop_domains_domain` ON `shop_domains` (`domain`);--> statement-breakpoint
-ALTER TABLE `stores` ADD `store_enabled` integer DEFAULT true;--> statement-breakpoint
-ALTER TABLE `stores` ADD `home_entry` text DEFAULT 'store_home';--> statement-breakpoint
-ALTER TABLE `stores` DROP COLUMN `mode`;
+CREATE UNIQUE INDEX IF NOT EXISTS `shop_domains_domain_unique` ON `shop_domains` (`domain`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_shop_domains_store` ON `shop_domains` (`store_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_shop_domains_domain` ON `shop_domains` (`domain`);
+-- NOTE: ALTER TABLE statements removed - columns store_enabled and home_entry already exist in production

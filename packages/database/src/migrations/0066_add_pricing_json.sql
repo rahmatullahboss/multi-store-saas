@@ -1,4 +1,4 @@
--- Migration number: 0066 	 2024-05-24T00:00:00.000Z
--- Add pricing_json column to orders table for detailed price breakdown
+-- Migration: Add pricing_json column to orders table
+-- Note: Column already exists in production, this is a no-op migration
 
-ALTER TABLE orders ADD COLUMN pricing_json TEXT;
+SELECT 1; -- No-op migration - pricing_json already exists
