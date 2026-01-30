@@ -7,7 +7,9 @@
  */
 
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
+import { formatPrice } from '~/lib/theme-engine';
 import { json } from '@remix-run/cloudflare';
+import { formatPrice } from '~/lib/theme-engine';
 import { useLoaderData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
@@ -93,7 +95,7 @@ export default function CheckoutSuccessPage() {
               )}
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('total')}</span>
-                <span className="font-bold text-emerald-600">৳{order.total.toFixed(2)}</span>
+                <span className="font-bold text-emerald-600">{formatPrice(order.total)}</span>
               </div>
             </div>
           </div>

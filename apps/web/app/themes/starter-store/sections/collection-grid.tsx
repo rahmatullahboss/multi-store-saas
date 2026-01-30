@@ -14,6 +14,7 @@ import type {
   SerializedProduct,
   ThemeConfig,
 } from '~/lib/theme-engine/types';
+import { formatPrice } from '~/lib/theme-engine';
 
 // ============================================================================
 // SCHEMA
@@ -333,11 +334,11 @@ function ProductCard({
           </h3>
           <div className="flex items-center gap-2">
             <span className="font-bold" style={{ color: primaryColor }}>
-              ৳{(product.price / 100).toLocaleString('bn-BD')}
+              {formatPrice(product.price)}
             </span>
             {showComparePrice && product.compareAtPrice && (
               <span className="text-sm line-through" style={{ color: mutedColor }}>
-                ৳{(product.compareAtPrice / 100).toLocaleString('bn-BD')}
+                {formatPrice(product.compareAtPrice)}
               </span>
             )}
           </div>

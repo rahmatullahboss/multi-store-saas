@@ -1,6 +1,6 @@
 /**
  * GhorerBazar Checkout Page Component
- * 
+ *
  * Checkout page styled to match ghorerbazar.com design.
  * Features:
  * - Clean checkout form layout
@@ -12,19 +12,20 @@
 
 import { Link } from '@remix-run/react';
 import { useState } from 'react';
-import { 
-  ShoppingCart, 
-  Truck, 
+import {
+  ShoppingCart,
+  Truck,
   CreditCard,
   MapPin,
   Phone,
   User,
   Mail,
   ChevronLeft,
-  Check
+  Check,
 } from 'lucide-react';
 import { GhorerBazarPageWrapper, GHORER_BAZAR_THEME } from './GhorerBazarPageWrapper';
 import type { SocialLinks } from '@db/types';
+import { formatPrice } from '~/lib/theme-engine';
 
 interface CartItem {
   id: number;
@@ -65,11 +66,7 @@ export function GhorerBazarCheckoutPage({
 
   const { primaryColor } = GHORER_BAZAR_THEME;
 
-  const formatPrice = (priceInCents: number) => {
-    return `৳${(priceInCents / 100).toLocaleString('en-BD')}`;
-  };
-
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = deliveryArea === 'inside' ? insideDhakaShipping : outsideDhakaShipping;
   const total = subtotal + shipping;
 
@@ -225,9 +222,11 @@ export function GhorerBazarCheckoutPage({
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div 
+                  <div
                     className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                      paymentMethod === 'cod' ? 'border-orange-500 bg-orange-500' : 'border-gray-300'
+                      paymentMethod === 'cod'
+                        ? 'border-orange-500 bg-orange-500'
+                        : 'border-gray-300'
                     }`}
                   >
                     {paymentMethod === 'cod' && <Check className="h-4 w-4 text-white" />}
@@ -236,7 +235,7 @@ export function GhorerBazarCheckoutPage({
                     <p className="font-bold">ক্যাশ অন ডেলিভারি (COD)</p>
                     <p className="text-sm text-gray-500">হাতে পণ্য পেয়ে টাকা দিন</p>
                   </div>
-                  <div 
+                  <div
                     className="px-3 py-1 rounded text-sm font-bold text-white"
                     style={{ backgroundColor: primaryColor }}
                   >
@@ -254,9 +253,11 @@ export function GhorerBazarCheckoutPage({
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div 
+                  <div
                     className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                      paymentMethod === 'online' ? 'border-orange-500 bg-orange-500' : 'border-gray-300'
+                      paymentMethod === 'online'
+                        ? 'border-orange-500 bg-orange-500'
+                        : 'border-gray-300'
                     }`}
                   >
                     {paymentMethod === 'online' && <Check className="h-4 w-4 text-white" />}
@@ -296,7 +297,9 @@ export function GhorerBazarCheckoutPage({
                       <p className="text-sm font-medium text-gray-900 line-clamp-2">{item.title}</p>
                       <p className="text-sm text-gray-500">x{item.quantity}</p>
                     </div>
-                    <p className="font-medium text-gray-900">{formatPrice(item.price * item.quantity)}</p>
+                    <p className="font-medium text-gray-900">
+                      {formatPrice(item.price * item.quantity)}
+                    </p>
                   </div>
                 ))}
               </div>

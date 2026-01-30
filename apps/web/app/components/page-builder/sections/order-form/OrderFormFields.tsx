@@ -4,6 +4,7 @@
  */
 
 import { Truck, Package, Loader2, ArrowRight, ShieldCheck, CheckCircle } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine';
 import { SearchableSelect } from '~/components/SearchableSelect';
 import { DISTRICTS } from '~/data/bd-locations';
 import type { OrderFormState, OrderFormActions, OrderFormCalculations } from './useOrderForm';

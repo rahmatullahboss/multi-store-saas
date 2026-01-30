@@ -584,7 +584,7 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
                         />
                         <span className="text-sm">{zone.label}</span>
                       </div>
-                      <span className="text-sm font-medium">৳{zone.cost}</span>
+                      <span className="text-sm font-medium">{formatPrice(zone.cost)}</span>
                     </label>
                   ))}
                 </div>
@@ -608,7 +608,7 @@ function CartModal({ businessInfo, socialLinks }: { businessInfo: any; socialLin
               {step === 'checkout' && (
                 <div className="flex justify-between" style={{ color: theme.textMuted }}>
                   <span>ডেলিভারি চার্জ</span>
-                  <span>৳{shippingCost}</span>
+                  <span>{formatPrice(shippingCost)}</span>
                 </div>
               )}
               <div
@@ -705,7 +705,8 @@ function ProductDetailPage({
     : 0;
 
   const whatsappNumber = socialLinks?.whatsapp || businessInfo?.phone || '01700000000';
-  const whatsappMessage = `হ্যালো, আমি "${product.title}" অর্ডার করতে চাই। দাম: ৳${product.price}`;
+  const formattedPrice = formatPrice(product.price);
+  const whatsappMessage = `হ্যালো, আমি "${product.title}" অর্ডার করতে চাই। দাম: ${formattedPrice}`;
 
   // Related products (same category)
   const relatedProducts = products
@@ -1156,7 +1157,7 @@ function CartCheckoutModal({
                         {item.title}
                       </p>
                       <p className="text-sm" style={{ color: theme.primary }}>
-                        ৳{item.price}
+                        {formatPrice(item.price)}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
                         <button
@@ -1186,7 +1187,7 @@ function CartCheckoutModal({
                       </div>
                     </div>
                     <p className="font-bold text-sm" style={{ color: theme.text }}>
-                      ৳{item.price * item.quantity}
+                      {formatPrice(item.price * item.quantity)}
                     </p>
                   </div>
                 ))}
@@ -1268,7 +1269,7 @@ function CartCheckoutModal({
                         />
                         <span className="text-sm">{zone.label}</span>
                       </div>
-                      <span className="text-sm font-medium">৳{zone.cost}</span>
+                      <span className="text-sm font-medium">{formatPrice(zone.cost)}</span>
                     </label>
                   ))}
                 </div>
@@ -1344,12 +1345,12 @@ function CartCheckoutModal({
                   </div>
                   <div className="flex justify-between" style={{ color: theme.textSecondary }}>
                     <span>ডেলিভারি চার্জ</span>
-                    <span>৳{deliveryCharge}</span>
+                    <span>{formatPrice(deliveryCharge)}</span>
                   </div>
                   {couponApplied && (
                     <div className="flex justify-between text-green-600">
                       <span>ডিসকাউন্ট (১০%)</span>
-                      <span>-৳{discount}</span>
+                      <span>-{formatPrice(discount)}</span>
                     </div>
                   )}
                   <div

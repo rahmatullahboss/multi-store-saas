@@ -31,6 +31,7 @@ import type {
   SerializedProduct,
   ProductVariant,
 } from '~/lib/theme-engine/types';
+import { formatPrice } from '~/lib/theme-engine';
 
 // ============================================================================
 // THEME COLORS
@@ -322,12 +323,6 @@ export default function TechModernProductMain({
   const images = product.images?.length
     ? product.images
     : [product.imageUrl || '/placeholder-product.svg'];
-
-  // Format price
-  const formatPrice = (price: number) => {
-    if (currency === 'BDT') return `৳${(price / 100).toLocaleString('bn-BD')}`;
-    return `$${(price / 100).toFixed(2)}`;
-  };
 
   // Handlers
   const handleAddToCart = () => {

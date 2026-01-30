@@ -1,6 +1,6 @@
 /**
  * Order Bump Checkbox Component
- * 
+ *
  * Displays add-on product offers during checkout with attractive styling
  * and animations to increase average order value (AOV).
  */
@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import { Check, Gift, Sparkles } from 'lucide-react';
 import { OptimizedImage } from '~/components/OptimizedImage';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { formatPrice } from '~/lib/theme-engine';
 
 interface OrderBumpProduct {
   id: number;
@@ -31,30 +32,15 @@ interface OrderBumpProps {
   onToggle: (bumpId: number, selected: boolean) => void;
 }
 
-export function OrderBumpCheckbox({
-  bump,
-  currency,
-  isSelected,
-  onToggle,
-}: OrderBumpProps) {
+export function OrderBumpCheckbox({ bump, currency, isSelected, onToggle }: OrderBumpProps) {
   const { t, lang } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
-  
+
   // Calculate discounted price
   const originalPrice = bump.bumpProduct.price;
-  const discountedPrice = bump.discount > 0 
-    ? originalPrice * (1 - bump.discount / 100) 
-    : originalPrice;
+  const discountedPrice =
+    bump.discount > 0 ? originalPrice * (1 - bump.discount / 100) : originalPrice;
   const savings = originalPrice - discountedPrice;
-  
-  const formatPrice = (price: number) => {
-    if (currency === 'BDT' || currency === '৳') {
-      return lang === 'bn' 
-        ? `৳${price.toLocaleString('bn-BD')}` 
-        : `৳${price.toLocaleString('en-IN')}`;
-    }
-    return `${currency}${price.toFixed(2)}`;
-  };
 
   return (
     <motion.div
@@ -66,9 +52,10 @@ export function OrderBumpCheckbox({
       onClick={() => onToggle(bump.id, !isSelected)}
       className={`
         relative cursor-pointer rounded-xl border-2 p-4 transition-all duration-300
-        ${isSelected 
-          ? 'border-emerald-500 bg-emerald-50 shadow-lg shadow-emerald-100' 
-          : 'border-amber-400 bg-gradient-to-r from-amber-50 to-orange-50 hover:border-amber-500 hover:shadow-md'
+        ${
+          isSelected
+            ? 'border-emerald-500 bg-emerald-50 shadow-lg shadow-emerald-100'
+            : 'border-amber-400 bg-gradient-to-r from-amber-50 to-orange-50 hover:border-amber-500 hover:shadow-md'
         }
       `}
     >
@@ -87,7 +74,7 @@ export function OrderBumpCheckbox({
           }}
         />
       )}
-      
+
       {/* Gift Badge */}
       <div className="absolute -top-3 left-4">
         <motion.div
@@ -108,10 +95,7 @@ export function OrderBumpCheckbox({
             animate={isSelected ? { scale: [1, 1.2, 1] } : {}}
             className={`
               flex h-6 w-6 items-center justify-center rounded-md border-2 transition-all
-              ${isSelected 
-                ? 'border-emerald-500 bg-emerald-500' 
-                : 'border-gray-300 bg-white'
-              }
+              ${isSelected ? 'border-emerald-500 bg-emerald-500' : 'border-gray-300 bg-white'}
             `}
           >
             {isSelected && (
@@ -147,17 +131,11 @@ export function OrderBumpCheckbox({
             <span className="text-sm font-bold text-gray-900">
               {t('landingOrderBump_yesIWant')}
             </span>
-            <span className="font-semibold text-amber-700">
-              {bump.title}
-            </span>
+            <span className="font-semibold text-amber-700">{bump.title}</span>
           </div>
-          
-          {bump.description && (
-            <p className="mt-1 text-sm text-gray-600">
-              {bump.description}
-            </p>
-          )}
-          
+
+          {bump.description && <p className="mt-1 text-sm text-gray-600">{bump.description}</p>}
+
           {/* Pricing */}
           <div className="mt-2 flex items-center gap-3">
             {bump.discount > 0 && (
@@ -174,7 +152,7 @@ export function OrderBumpCheckbox({
               </span>
             )}
           </div>
-          
+
           {savings > 0 && (
             <p className="mt-1 text-xs text-emerald-600">
               {t('landingOrderBump_youAreSaving', { savings: formatPrice(savings) })}
@@ -229,7 +207,7 @@ export function OrderBumpsContainer({
     if (selected) {
       onSelectionChange([...selectedBumpIds, bumpId]);
     } else {
-      onSelectionChange(selectedBumpIds.filter(id => id !== bumpId));
+      onSelectionChange(selectedBumpIds.filter((id) => id !== bumpId));
     }
   };
 
@@ -237,11 +215,9 @@ export function OrderBumpsContainer({
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-amber-700">
         <Gift className="h-5 w-5" />
-        <h3 className="font-semibold">
-          {t('landingOrderBump_addAndSave')}
-        </h3>
+        <h3 className="font-semibold">{t('landingOrderBump_addAndSave')}</h3>
       </div>
-      
+
       <div className="space-y-3">
         {bumps.map((bump) => (
           <OrderBumpCheckbox

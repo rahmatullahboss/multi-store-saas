@@ -385,7 +385,7 @@ function Step2ProductConnection({
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-900 truncate">{p.title}</p>
-                        <p className="text-sm text-emerald-600">৳{p.price}</p>
+                        <p className="text-sm text-emerald-600">{formatPrice(p.price)}</p>
                       </div>
                       <div className={cn(
                         'w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all',
@@ -451,7 +451,7 @@ function Step2ProductConnection({
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-900 truncate">{p.title}</p>
-                      <p className="text-sm text-emerald-600">৳{p.price}</p>
+                      <p className="text-sm text-emerald-600">{formatPrice(p.price)}</p>
                     </div>
                     {selectedProductId === p.id && (
                       <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />

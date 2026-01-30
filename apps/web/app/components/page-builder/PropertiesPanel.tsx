@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { X, Plus, Trash2, Loader2, Link2, Sparkles } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine'
 import ButtonConnectorModal, { type ButtonConnection } from './ButtonConnectorModal';
 import {
   countConnectedButtons,
@@ -501,7 +502,7 @@ function renderPropsForm(
                   <option value="">-- প্রোডাক্ট সিলেক্ট করুন --</option>
                   {products.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name} - ৳{p.price}
+                      {p.name} - {formatPrice(p.price)}
                     </option>
                   ))}
                 </select>
@@ -536,7 +537,7 @@ function renderPropsForm(
                         </h4>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-lg font-bold text-indigo-600">
-                            ৳{selectedProduct.price}
+                            {formatPrice(selectedProduct.price)}
                           </span>
                           {selectedProduct.bundlePricing &&
                             selectedProduct.bundlePricing.length > 0 && (
@@ -623,7 +624,7 @@ function renderPropsForm(
                 <div className="p-3 bg-indigo-50 border border-indigo-200 rounded">
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-600">মূল্য:</span>
-                    <span className="font-bold text-indigo-700">৳{selectedProduct.price}</span>
+                    <span className="font-bold text-indigo-700">{formatPrice(selectedProduct.price)}</span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
                     * প্রোডাক্ট সেটিংস থেকে দাম পরিবর্তন করুন
@@ -642,7 +643,7 @@ function renderPropsForm(
                         >
                           <span className="font-medium text-amber-800">{tier.label}</span>
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-amber-900">৳{tier.price}</span>
+                            <span className="font-bold text-amber-900">{formatPrice(tier.price)}</span>
                             {tier.savings && tier.savings > 0 && (
                               <span className="text-green-600 text-[10px] bg-green-100 px-1 rounded">
                                 সেভ ৳{tier.savings}

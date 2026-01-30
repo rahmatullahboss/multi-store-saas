@@ -4,6 +4,7 @@
  */
 
 import { Check, Crown, Zap, Sparkles } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine'
 import type { PlanType } from '~/utils/plans.server';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -121,7 +122,7 @@ export function PlanSelector({ selectedPlan, onSelectPlan }: PlanSelectorProps) 
                 <div className="text-3xl font-bold text-gray-900">{t('planFree')}</div>
               ) : (
                 <div>
-                  <span className="text-3xl font-bold text-gray-900">৳{plan.price}</span>
+                  <span className="text-3xl font-bold text-gray-900">{formatPrice(plan.price)}</span>
                   <span className="text-gray-500 text-sm">/{plan.period}</span>
                 </div>
               )}

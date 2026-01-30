@@ -14,6 +14,7 @@
 import { Link } from '@remix-run/react';
 import { Star, Heart, ShoppingCart } from 'lucide-react';
 import type { SectionSchema, SectionComponentProps } from '~/lib/theme-engine/types';
+import { formatPrice } from '~/lib/theme-engine';
 
 // ============================================================================
 // SCHEMA (Shopify OS 2.0 Format)
@@ -234,11 +235,11 @@ export default function DarazProductGrid({ section, context, settings }: Section
                 {/* Price */}
                 <div className="flex items-baseline gap-2 mb-1.5">
                   <span className="text-sm md:text-base font-bold" style={{ color: price_color }}>
-                    ৳{(product.price / 100).toLocaleString()}
+                    {formatPrice(product.price)}
                   </span>
                   {hasDiscount && (
                     <span className="text-[10px] md:text-xs line-through text-gray-400">
-                      ৳{(product.compareAtPrice! / 100).toLocaleString()}
+                      {formatPrice(product.compareAtPrice!)}
                     </span>
                   )}
                 </div>

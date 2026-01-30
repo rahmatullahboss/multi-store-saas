@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { AlertTriangle, Clock, Flame, Users, Zap, TrendingUp } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine';
 import type { OrderFormComponentProps } from './types';
 import { useOrderForm } from './useOrderForm';
 import { OrderFormFields } from './OrderFormFields';
@@ -282,11 +283,11 @@ export function UrgencyOrderForm({
                   <div className="flex items-center justify-center gap-3">
                     {actualComparePrice > actualPrice && (
                       <span className="text-xl line-through text-gray-500">
-                        ৳{actualComparePrice}
+                        {formatPrice(actualComparePrice)}
                       </span>
                     )}
                     <span className="text-4xl font-black" style={{ color: '#FBBF24' }}>
-                      ৳{actualPrice}
+                      {formatPrice(actualPrice)}
                     </span>
                   </div>
 

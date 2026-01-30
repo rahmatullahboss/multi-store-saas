@@ -31,16 +31,9 @@ import {
   type StoreTemplateTheme,
 } from '~/templates/store-registry';
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-  ArrowLeft,
-  Home,
-  ShoppingCart,
-  Check,
-  Minus,
-  Plus,
-  CreditCard,
-} from 'lucide-react';
+import { ArrowLeft, Home, ShoppingCart, Check, Minus, Plus, CreditCard } from 'lucide-react';
 import { ThemeStoreRenderer } from '~/components/store/ThemeStoreRenderer';
+import { formatPrice } from '~/lib/theme-engine';
 
 // Demo cart items for preview
 const DEMO_CART_ITEMS_COUNT = 3;
@@ -201,11 +194,6 @@ function ProductDetailView({
 }) {
   const [quantity, setQuantity] = useState(1);
 
-  const formatPrice = (price: number) => {
-    if (currency === 'BDT') return `৳${price.toLocaleString('bn-BD')}`;
-    return `$${price.toFixed(2)}`;
-  };
-
   return (
     <div className="min-h-screen" style={{ backgroundColor: themeColors.background }}>
       {/* Header */}
@@ -358,11 +346,6 @@ function CartView({
     quantity: i === 0 ? 2 : 1,
   }));
 
-  const formatPrice = (price: number) => {
-    if (currency === 'BDT') return `৳${price.toLocaleString('bn-BD')}`;
-    return `$${price.toFixed(2)}`;
-  };
-
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = 60;
   const total = subtotal + shipping;
@@ -506,11 +489,6 @@ function CheckoutView({
     ...p,
     quantity: i === 0 ? 2 : 1,
   }));
-
-  const formatPrice = (price: number) => {
-    if (currency === 'BDT') return `৳${price.toLocaleString('bn-BD')}`;
-    return `$${price.toFixed(2)}`;
-  };
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = 60;
@@ -976,7 +954,8 @@ function StorePreviewContent({ data }: { data: StorePreviewData }) {
       const formattedSections = getCurrentPageSections.map((s: Record<string, unknown>) => ({
         id: String(s.id || `section-${Math.random()}`),
         type: String(s.type || 'unknown'),
-        settings: (s.settings as Record<string, unknown>) || (s.props as Record<string, unknown>) || {},
+        settings:
+          (s.settings as Record<string, unknown>) || (s.props as Record<string, unknown>) || {},
         blocks: Array.isArray(s.blocks)
           ? (s.blocks as Record<string, unknown>[]).map((b) => ({
               id: String(b.id || `block-${Math.random()}`),
@@ -1194,10 +1173,7 @@ function StorePreviewContent({ data }: { data: StorePreviewData }) {
       </div>
 
       {/* Preview Navigation Bar */}
-      <PreviewNavBar
-        currentPage={currentPage}
-        onNavigate={handleNavigate}
-      />
+      <PreviewNavBar currentPage={currentPage} onNavigate={handleNavigate} />
     </>
   );
 }

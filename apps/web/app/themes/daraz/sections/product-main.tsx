@@ -32,6 +32,7 @@ import type {
   SerializedProduct,
   ProductVariant,
 } from '~/lib/theme-engine/types';
+import { formatPrice } from '~/lib/theme-engine';
 
 // ============================================================================
 // SCHEMA
@@ -454,12 +455,12 @@ export default function DarazProductMain({
       <div className="bg-gray-50 p-4 rounded-lg mb-4">
         <div className="flex items-baseline gap-3">
           <span className="text-2xl md:text-3xl font-bold" style={{ color: price_color }}>
-            ৳{(currentPrice / 100).toLocaleString()}
+            {formatPrice(currentPrice)}
           </span>
           {comparePrice && (
             <>
               <span className="text-lg line-through text-gray-400">
-                ৳{(comparePrice / 100).toLocaleString()}
+                {formatPrice(comparePrice)}
               </span>
               <span
                 className="px-2 py-0.5 text-xs font-bold rounded text-white"

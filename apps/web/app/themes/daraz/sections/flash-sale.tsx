@@ -15,6 +15,7 @@ import { Link } from '@remix-run/react';
 import { ChevronLeft, ChevronRight, Zap, Clock, Star } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import type { SectionSchema, SectionComponentProps } from '~/lib/theme-engine/types';
+import { formatPrice } from '~/lib/theme-engine';
 
 // ============================================================================
 // SCHEMA (Shopify OS 2.0 Format)
@@ -348,11 +349,11 @@ export default function DarazFlashSale({ section, context, settings }: SectionCo
 
                   <div className="flex flex-col">
                     <span className="text-sm font-bold" style={{ color: price_color }}>
-                      ৳{(product.price / 100).toLocaleString()}
+                      {formatPrice(product.price)}
                     </span>
                     {hasDiscount && (
                       <span className="text-[10px] line-through text-gray-400">
-                        ৳{(product.compareAtPrice! / 100).toLocaleString()}
+                        {formatPrice(product.compareAtPrice!)}
                       </span>
                     )}
                   </div>

@@ -1,6 +1,6 @@
 /**
  * BDShop Cart Page Component
- * 
+ *
  * Cart page styled to match bdshop.com design.
  * Features:
  * - Navy header banner with "Shopping Cart" title
@@ -15,18 +15,19 @@
  */
 
 import { Link } from '@remix-run/react';
-import { 
-  Minus, 
-  Plus, 
-  Trash2, 
-  ShoppingCart, 
+import {
+  Minus,
+  Plus,
+  Trash2,
+  ShoppingCart,
   ShoppingBag,
   ArrowLeft,
   Truck,
-  Tag
+  Tag,
 } from 'lucide-react';
 import { BDShopPageWrapper, BDSHOP_THEME } from './BDShopPageWrapper';
 import type { SocialLinks } from '@db/types';
+import { formatPrice } from '~/lib/theme-engine';
 
 interface CartItem {
   id: number;
@@ -72,10 +73,6 @@ export function BDShopCartPage({
   onUpdateQuantity,
   onRemoveItem,
 }: BDShopCartPageProps) {
-  const formatPrice = (priceInCents: number) => {
-    return `৳${(priceInCents / 100).toLocaleString('en-BD')}`;
-  };
-
   const handleQuantityChange = (itemId: number, currentQty: number, delta: number) => {
     const newQty = Math.max(1, currentQty + delta);
     if (onUpdateQuantity) {
@@ -90,7 +87,7 @@ export function BDShopCartPage({
   };
 
   // Calculate totals
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shippingCost = subtotal >= 500 ? 0 : 60; // Free shipping over ৳500
   const total = subtotal + shippingCost;
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -115,7 +112,10 @@ export function BDShopCartPage({
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
               {/* Desktop Table Header */}
-              <div className="hidden md:grid grid-cols-12 gap-4 bg-gray-50 rounded-lg p-4 text-sm font-medium" style={{ color: BDSHOP_THEME.text }}>
+              <div
+                className="hidden md:grid grid-cols-12 gap-4 bg-gray-50 rounded-lg p-4 text-sm font-medium"
+                style={{ color: BDSHOP_THEME.text }}
+              >
                 <div className="col-span-6">Product</div>
                 <div className="col-span-2 text-center">Price</div>
                 <div className="col-span-2 text-center">Quantity</div>
@@ -124,7 +124,7 @@ export function BDShopCartPage({
 
               {/* Cart Items */}
               {cartItems.map((item) => (
-                <div 
+                <div
                   key={item.id}
                   className="bg-white rounded-lg shadow-sm p-4 border border-gray-100"
                 >
@@ -133,7 +133,11 @@ export function BDShopCartPage({
                     <div className="flex gap-3">
                       <div className="w-20 h-20 rounded-lg overflow-hidden border border-gray-200 shrink-0">
                         {item.imageUrl ? (
-                          <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                          <img
+                            src={item.imageUrl}
+                            alt={item.title}
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gray-100">
                             <ShoppingBag className="w-8 h-8 text-gray-300" />
@@ -141,7 +145,7 @@ export function BDShopCartPage({
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <Link 
+                        <Link
                           to={`/products/${item.productId}`}
                           className="font-medium text-sm line-clamp-2 hover:text-blue-600 transition"
                           style={{ color: BDSHOP_THEME.text }}
@@ -167,7 +171,9 @@ export function BDShopCartPage({
                         >
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="w-10 text-center text-sm font-medium">{item.quantity}</span>
+                        <span className="w-10 text-center text-sm font-medium">
+                          {item.quantity}
+                        </span>
                         <button
                           onClick={() => handleQuantityChange(item.id, item.quantity, 1)}
                           className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition"
@@ -186,7 +192,11 @@ export function BDShopCartPage({
                     <div className="col-span-6 flex gap-4">
                       <div className="w-20 h-20 rounded-lg overflow-hidden border border-gray-200 shrink-0">
                         {item.imageUrl ? (
-                          <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                          <img
+                            src={item.imageUrl}
+                            alt={item.title}
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gray-100">
                             <ShoppingBag className="w-8 h-8 text-gray-300" />
@@ -194,7 +204,7 @@ export function BDShopCartPage({
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <Link 
+                        <Link
                           to={`/products/${item.productId}`}
                           className="font-medium text-sm line-clamp-2 hover:text-blue-600 transition"
                           style={{ color: BDSHOP_THEME.text }}
@@ -210,7 +220,10 @@ export function BDShopCartPage({
                         </button>
                       </div>
                     </div>
-                    <div className="col-span-2 text-center font-medium" style={{ color: BDSHOP_THEME.navy }}>
+                    <div
+                      className="col-span-2 text-center font-medium"
+                      style={{ color: BDSHOP_THEME.navy }}
+                    >
                       {formatPrice(item.price)}
                     </div>
                     <div className="col-span-2 flex justify-center">
@@ -221,7 +234,9 @@ export function BDShopCartPage({
                         >
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="w-10 text-center text-sm font-medium">{item.quantity}</span>
+                        <span className="w-10 text-center text-sm font-medium">
+                          {item.quantity}
+                        </span>
                         <button
                           onClick={() => handleQuantityChange(item.id, item.quantity, 1)}
                           className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition"
@@ -230,7 +245,10 @@ export function BDShopCartPage({
                         </button>
                       </div>
                     </div>
-                    <div className="col-span-2 text-right font-bold" style={{ color: BDSHOP_THEME.navy }}>
+                    <div
+                      className="col-span-2 text-right font-bold"
+                      style={{ color: BDSHOP_THEME.navy }}
+                    >
                       {formatPrice(item.price * item.quantity)}
                     </div>
                   </div>
@@ -238,7 +256,7 @@ export function BDShopCartPage({
               ))}
 
               {/* Continue Shopping */}
-              <Link 
+              <Link
                 to="/"
                 className="inline-flex items-center gap-2 text-sm font-medium hover:underline transition"
                 style={{ color: BDSHOP_THEME.navy }}
@@ -257,11 +275,16 @@ export function BDShopCartPage({
 
                 <div className="space-y-3 pb-4 border-b border-gray-200">
                   <div className="flex justify-between text-sm">
-                    <span style={{ color: BDSHOP_THEME.textLight }}>Subtotal ({totalItems} items)</span>
+                    <span style={{ color: BDSHOP_THEME.textLight }}>
+                      Subtotal ({totalItems} items)
+                    </span>
                     <span className="font-medium">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="flex items-center gap-1" style={{ color: BDSHOP_THEME.textLight }}>
+                    <span
+                      className="flex items-center gap-1"
+                      style={{ color: BDSHOP_THEME.textLight }}
+                    >
                       <Truck className="w-4 h-4" />
                       Shipping
                     </span>
@@ -287,7 +310,7 @@ export function BDShopCartPage({
                       placeholder="Coupon code"
                       className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
                     />
-                    <button 
+                    <button
                       className="px-4 py-2 text-sm font-medium text-white rounded-lg transition hover:opacity-90"
                       style={{ backgroundColor: BDSHOP_THEME.navy }}
                     >
@@ -298,7 +321,9 @@ export function BDShopCartPage({
 
                 <div className="py-4">
                   <div className="flex justify-between">
-                    <span className="font-bold" style={{ color: BDSHOP_THEME.text }}>Total</span>
+                    <span className="font-bold" style={{ color: BDSHOP_THEME.text }}>
+                      Total
+                    </span>
                     <span className="font-bold text-xl" style={{ color: BDSHOP_THEME.navy }}>
                       {formatPrice(total)}
                     </span>
@@ -322,7 +347,7 @@ export function BDShopCartPage({
         ) : (
           /* Empty Cart State */
           <div className="bg-white rounded-lg shadow-sm p-8 md:p-12 text-center max-w-md mx-auto">
-            <div 
+            <div
               className="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4"
               style={{ backgroundColor: `${BDSHOP_THEME.navy}10` }}
             >

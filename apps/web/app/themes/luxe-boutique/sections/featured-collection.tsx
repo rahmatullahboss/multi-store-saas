@@ -9,6 +9,7 @@
  */
 
 import type { SectionSchema, SectionComponentProps } from '~/lib/theme-engine/types';
+import { formatPrice } from '~/lib/theme-engine';
 import { Heart } from 'lucide-react';
 
 // ============================================================================
@@ -137,11 +138,6 @@ export default function LuxeFeaturedCollection({
 
   const displayProducts = products.slice(0, config.products_to_show);
   const currency = store.currency || 'BDT';
-
-  const formatPrice = (price: number) => {
-    if (currency === 'BDT') return `৳${(price / 100).toLocaleString('bn-BD')}`;
-    return `$${(price / 100).toFixed(2)}`;
-  };
 
   const gridCols = config.columns === '3' ? 'lg:grid-cols-3' : 'lg:grid-cols-4';
 

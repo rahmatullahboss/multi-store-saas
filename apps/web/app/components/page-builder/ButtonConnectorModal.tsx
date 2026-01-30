@@ -10,6 +10,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { X, Link2, ShoppingCart, Phone, MessageCircle, Package, Check, AlertCircle, Search, Loader2 } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine'
 import { useTranslation } from '~/contexts/LanguageContext';
 
 // Button detection patterns (supports English and Bengali)
@@ -354,7 +355,7 @@ export default function ButtonConnectorModal({
                             <option value="">{lang === 'bn' ? 'প্রোডাক্ট সিলেক্ট করুন' : 'Select Product'}</option>
                             {filteredProducts.map(p => (
                               <option key={p.id} value={p.id}>
-                                {p.title} - ৳{p.price}
+                                {p.title} - {formatPrice(p.price)}
                               </option>
                             ))}
                           </select>

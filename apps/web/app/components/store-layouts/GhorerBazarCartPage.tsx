@@ -1,6 +1,6 @@
 /**
  * GhorerBazar Cart Page Component
- * 
+ *
  * Cart page styled to match ghorerbazar.com design.
  * Features:
  * - Orange banner header with "Shopping Cart" title
@@ -14,18 +14,19 @@
 
 import { Link } from '@remix-run/react';
 import { useState } from 'react';
-import { 
-  Minus, 
-  Plus, 
-  Trash2, 
-  ShoppingCart, 
+import {
+  Minus,
+  Plus,
+  Trash2,
+  ShoppingCart,
   ShoppingBag,
   StickyNote,
   Tag,
-  ArrowLeft
+  ArrowLeft,
 } from 'lucide-react';
 import { GhorerBazarPageWrapper, GHORER_BAZAR_THEME } from './GhorerBazarPageWrapper';
 import type { SocialLinks } from '@db/types';
+import { formatPrice } from '~/lib/theme-engine';
 
 interface CartItem {
   id: number;
@@ -73,11 +74,7 @@ export function GhorerBazarCartPage({
 }: GhorerBazarCartPageProps) {
   const { primaryColor, redDiscount, cyanBadge } = GHORER_BAZAR_THEME;
 
-  const formatPrice = (priceInCents: number) => {
-    return `৳${(priceInCents / 100).toLocaleString('en-BD')}`;
-  };
-
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const isEmpty = cartItems.length === 0;
 
   const handleQuantityChange = (itemId: number, currentQty: number, delta: number) => {
@@ -110,18 +107,14 @@ export function GhorerBazarCartPage({
         {isEmpty ? (
           /* Empty Cart State */
           <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-            <div 
+            <div
               className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center"
               style={{ backgroundColor: `${primaryColor}20` }}
             >
               <ShoppingCart className="w-12 h-12" style={{ color: primaryColor }} />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Your cart is currently empty.
-            </h2>
-            <p className="text-gray-500 mb-8">
-              আপনার কার্টে কোনো পণ্য নেই।
-            </p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is currently empty.</h2>
+            <p className="text-gray-500 mb-8">আপনার কার্টে কোনো পণ্য নেই।</p>
             <Link
               to="/"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-bold text-white transition hover:opacity-90"
@@ -166,7 +159,7 @@ export function GhorerBazarCartPage({
                             )}
                           </div>
                           <div>
-                            <Link 
+                            <Link
                               to={`/products/${item.productId}`}
                               className="font-medium text-gray-900 hover:underline line-clamp-2"
                             >
@@ -213,7 +206,9 @@ export function GhorerBazarCartPage({
                         {/* Total */}
                         <div className="md:col-span-2 text-right">
                           <span className="md:hidden text-sm text-gray-500 mr-2">Total:</span>
-                          <span className="font-bold text-lg">{formatPrice(item.price * item.quantity)}</span>
+                          <span className="font-bold text-lg">
+                            {formatPrice(item.price * item.quantity)}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -254,9 +249,7 @@ export function GhorerBazarCartPage({
                     <span className="text-gray-600">Subtotal</span>
                     <span className="text-xl font-bold">{formatPrice(subtotal)}</span>
                   </div>
-                  <p className="text-sm text-gray-500">
-                    Taxes and shipping calculated at checkout
-                  </p>
+                  <p className="text-sm text-gray-500">Taxes and shipping calculated at checkout</p>
                 </div>
 
                 {/* Checkout Buttons */}
@@ -290,9 +283,10 @@ export function GhorerBazarCartPage({
             <h2 className="text-2xl font-bold mb-6">Recently Viewed Products</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {recentlyViewed.slice(0, 5).map((product) => {
-                const discount = product.compareAtPrice && product.compareAtPrice > product.price
-                  ? product.compareAtPrice - product.price
-                  : 0;
+                const discount =
+                  product.compareAtPrice && product.compareAtPrice > product.price
+                    ? product.compareAtPrice - product.price
+                    : 0;
 
                 return (
                   <Link
@@ -314,7 +308,7 @@ export function GhorerBazarCartPage({
                         </div>
                       )}
                       {discount > 0 && (
-                        <div 
+                        <div
                           className="absolute top-2 right-2 px-2 py-0.5 rounded text-xs font-bold text-white"
                           style={{ backgroundColor: cyanBadge }}
                         >
@@ -338,7 +332,7 @@ export function GhorerBazarCartPage({
                       </div>
                     </div>
                     <div className="px-3 pb-3">
-                      <div 
+                      <div
                         className="w-full py-2 rounded text-center text-sm font-bold text-white"
                         style={{ backgroundColor: primaryColor }}
                       >

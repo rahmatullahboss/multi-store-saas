@@ -24,6 +24,7 @@ import type {
   SerializedProduct,
   ProductVariant,
 } from '~/lib/theme-engine/types';
+import { formatPrice } from '~/lib/theme-engine';
 
 // ============================================================================
 // SCHEMA
@@ -441,12 +442,12 @@ export default function ProductMain({ section, context, settings, blocks }: Sect
       {/* Price */}
       <div className="flex items-center gap-3 mb-6">
         <span className="text-3xl font-bold" style={{ color: primaryColor }}>
-          ৳{(currentPrice / 100).toLocaleString('bn-BD')}
+          {formatPrice(currentPrice)}
         </span>
         {comparePrice && (
           <>
             <span className="text-xl line-through" style={{ color: mutedColor }}>
-              ৳{(comparePrice / 100).toLocaleString('bn-BD')}
+              {formatPrice(comparePrice)}
             </span>
             <span
               className="px-2 py-1 text-sm font-medium rounded-full text-white"
@@ -494,7 +495,7 @@ export default function ProductMain({ section, context, settings, blocks }: Sect
                 {variant.option1Value}
                 {variant.price !== product.price && (
                   <span className="ml-1 text-sm" style={{ color: mutedColor }}>
-                    +৳{((variant.price! - product.price) / 100).toLocaleString('bn-BD')}
+                    +{formatPrice(variant.price! - product.price)}
                   </span>
                 )}
               </button>

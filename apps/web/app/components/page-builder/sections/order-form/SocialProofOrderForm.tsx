@@ -4,6 +4,7 @@
  */
 
 import { ThumbsUp, MessageCircle, Share2, Star, Users, Heart, CheckCircle } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine';
 import type { OrderFormComponentProps } from './types';
 import { useOrderForm } from './useOrderForm';
 import { OrderFormFields } from './OrderFormFields';
@@ -129,14 +130,14 @@ export function SocialProofOrderForm({ props, theme, storeId, productId, product
                     className="px-3 py-1 rounded-full text-sm font-bold line-through"
                     style={{ background: 'rgba(0,0,0,0.6)', color: '#fff' }}
                   >
-                    ৳{actualComparePrice}
+                    {formatPrice(actualComparePrice)}
                   </span>
                 )}
                 <span 
                   className="px-4 py-2 rounded-full text-lg font-bold"
                   style={{ background: accentColor, color: '#fff' }}
                 >
-                  ৳{actualPrice}
+                  {formatPrice(actualPrice)}
                 </span>
               </div>
             </div>

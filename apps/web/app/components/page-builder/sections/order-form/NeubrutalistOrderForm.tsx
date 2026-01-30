@@ -4,6 +4,7 @@
  */
 
 import { Zap, Star } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine';
 import type { OrderFormComponentProps } from './types';
 import { useOrderForm } from './useOrderForm';
 import { OrderFormFields } from './OrderFormFields';
@@ -190,7 +191,7 @@ export function NeubrutalistOrderForm({ props, theme, storeId, productId, produc
                         className="text-lg line-through font-bold"
                         style={{ color: '#666' }}
                       >
-                        ৳{actualComparePrice}
+                        {formatPrice(actualComparePrice)}
                       </span>
                     )}
                     <span 
@@ -200,7 +201,7 @@ export function NeubrutalistOrderForm({ props, theme, storeId, productId, produc
                         border: '3px solid #000',
                       }}
                     >
-                      ৳{actualPrice}
+                      {formatPrice(actualPrice)}
                     </span>
                   </div>
                 </div>

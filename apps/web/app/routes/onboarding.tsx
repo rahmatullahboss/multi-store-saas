@@ -12,7 +12,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
+import { formatPrice } from '~/lib/theme-engine';
 import { json, redirect } from '@remix-run/cloudflare';
+import { formatPrice } from '~/lib/theme-engine';
 import { useFetcher, Link } from '@remix-run/react';
 import { ArrowRight, ArrowLeft, Check, Crown, Zap, Gift, Smartphone, Copy, Eye, EyeOff } from 'lucide-react';
 import { drizzle } from 'drizzle-orm/d1';
@@ -898,7 +900,7 @@ export default function OnboardingPage() {
                         <div>
                           <h3 className="font-bold text-gray-900">{t(plan.nameKey)}</h3>
                           <p className="text-lg font-bold">
-                            {plan.price === 0 ? t('freeText') : `৳${plan.price}`}
+                            {plan.price === 0 ? t('freeText') : `{formatPrice(plan.price)}`}
                             {plan.price > 0 && <span className="text-sm font-normal text-gray-500">{t('perMonth')}</span>}
                           </p>
                         </div>
@@ -963,7 +965,7 @@ export default function OnboardingPage() {
                   {/* Amount */}
                   <div className="bg-white rounded-xl p-4 mb-4">
                     <p className="text-sm text-gray-500">{t('amount')}</p>
-                    <p className="text-2xl font-bold text-gray-900">৳{selectedPlanData?.price}</p>
+                    <p className="text-2xl font-bold text-gray-900">{formatPrice(selectedPlanData?.price || 0)}</p>
                   </div>
 
                   {/* Instructions */}

@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { formatPrice } from '~/lib/theme-engine';
 import { useFetcher } from '@remix-run/react';
 import {
   X,
@@ -123,7 +124,7 @@ function OrderSummary({
           {variant && (
             <p className="text-sm text-gray-500">{variant.name}</p>
           )}
-          <p className="text-sm text-emerald-600 font-semibold">৳{unitPrice}</p>
+          <p className="text-sm text-emerald-600 font-semibold">{formatPrice(unitPrice)}</p>
         </div>
         <div className="text-right">
           <span className="text-sm text-gray-500">x{quantity}</span>
@@ -137,15 +138,15 @@ function OrderSummary({
       <div className="space-y-1.5 text-sm">
         <div className="flex justify-between text-gray-600">
           <span>সাবটোটাল</span>
-          <span>৳{subtotal}</span>
+          <span>{formatPrice(subtotal)}</span>
         </div>
         <div className="flex justify-between text-gray-600">
           <span>ডেলিভারি চার্জ</span>
-          <span>৳{shippingFee}</span>
+          <span>{formatPrice(shippingFee)}</span>
         </div>
         <div className="flex justify-between font-semibold text-gray-900 pt-1 border-t">
           <span>মোট</span>
-          <span className="text-emerald-600">৳{total}</span>
+          <span className="text-emerald-600">{formatPrice(total)}</span>
         </div>
       </div>
     </div>
@@ -436,7 +437,7 @@ export function CheckoutModal({
                     >
                       {shippingOptions.map((option) => (
                         <option key={option.id} value={option.id}>
-                          {option.name} - ৳{option.fee}
+                          {option.name} - {formatPrice(option.fee)}
                         </option>
                       ))}
                     </select>

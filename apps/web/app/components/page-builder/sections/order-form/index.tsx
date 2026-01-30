@@ -4,6 +4,7 @@
  */
 
 import type { OrderFormComponentProps } from './types';
+import { formatPrice } from '~/lib/theme-engine';
 import { DefaultOrderForm } from './DefaultOrderForm';
 import { GlassmorphismOrderForm } from './GlassmorphismOrderForm';
 import { NeubrutalistOrderForm } from './NeubrutalistOrderForm';

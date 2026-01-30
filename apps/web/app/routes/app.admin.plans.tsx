@@ -13,7 +13,9 @@
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
+import { formatPrice } from '~/lib/theme-engine';
 import { json } from '@remix-run/cloudflare';
+import { formatPrice } from '~/lib/theme-engine';
 import { Form, useLoaderData, useNavigation, useSearchParams, useActionData } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, like, or, desc, isNotNull } from 'drizzle-orm';
@@ -522,7 +524,7 @@ export default function AdminPlansPage() {
                           )}
                         </td>
                         <td className="py-4">
-                          <span className="font-bold text-[#F9A825]">৳{store.paymentAmount}</span>
+                          <span className="font-bold text-[#F9A825]">{formatPrice(store.paymentAmount)}</span>
                         </td>
                         <td className="py-4">
                           <div className="flex items-center gap-1">

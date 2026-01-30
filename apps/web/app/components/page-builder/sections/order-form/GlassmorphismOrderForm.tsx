@@ -4,6 +4,7 @@
  */
 
 import { Sparkles } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine';
 import type { OrderFormComponentProps } from './types';
 import { useOrderForm } from './useOrderForm';
 import { OrderFormFields } from './OrderFormFields';
@@ -173,7 +174,7 @@ export function GlassmorphismOrderForm({ props, theme, storeId, productId, produ
                   <div className="flex items-center justify-center gap-3">
                     {actualComparePrice > actualPrice && (
                       <span className="text-lg line-through text-gray-500">
-                        ৳{actualComparePrice}
+                        {formatPrice(actualComparePrice)}
                       </span>
                     )}
                     <span 
@@ -184,7 +185,7 @@ export function GlassmorphismOrderForm({ props, theme, storeId, productId, produ
                         WebkitTextFillColor: 'transparent',
                       }}
                     >
-                      ৳{actualPrice}
+                      {formatPrice(actualPrice)}
                     </span>
                   </div>
                 </div>

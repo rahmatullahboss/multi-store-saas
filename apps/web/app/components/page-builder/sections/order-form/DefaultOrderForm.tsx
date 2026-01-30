@@ -399,11 +399,11 @@ export function DefaultOrderForm({
                         className="text-lg line-through opacity-60"
                         style={{ color: mutedColor }}
                       >
-                        ৳{actualComparePrice}
+                        {formatPrice(actualComparePrice)}
                       </span>
                     )}
                     <span className="text-2xl font-bold" style={{ color: primaryColor }}>
-                      ৳{actualPrice}
+                      {formatPrice(actualPrice)}
                     </span>
                   </div>
                 </div>

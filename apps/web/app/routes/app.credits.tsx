@@ -1,4 +1,5 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
+import { formatPrice } from '~/lib/theme-engine';
 import { useLoaderData, useFetcher, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
@@ -158,7 +159,7 @@ export default function AICreditsPage() {
               </div>
               
               <div className="mb-8">
-                 <span className="text-3xl font-bold text-violet-600">৳{pkg.price}</span>
+                 <span className="text-3xl font-bold text-violet-600">{formatPrice(pkg.price)}</span>
                  <span className="text-gray-400 text-sm ml-2">BDT</span>
               </div>
 

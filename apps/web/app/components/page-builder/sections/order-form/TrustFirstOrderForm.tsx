@@ -4,6 +4,7 @@
  */
 
 import { Shield, CheckCircle2, Award, BadgeCheck, Truck, Clock } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine';
 import type { OrderFormComponentProps } from './types';
 import { useOrderForm } from './useOrderForm';
 import { OrderFormFields } from './OrderFormFields';
@@ -164,11 +165,11 @@ export function TrustFirstOrderForm({ props, theme, storeId, productId, product,
                   <div className="flex items-center justify-center gap-3">
                     {actualComparePrice > actualPrice && (
                       <span className="text-lg line-through text-gray-400">
-                        ৳{actualComparePrice}
+                        {formatPrice(actualComparePrice)}
                       </span>
                     )}
                     <span className="text-3xl font-bold text-emerald-600">
-                      ৳{actualPrice}
+                      {formatPrice(actualPrice)}
                     </span>
                   </div>
                   

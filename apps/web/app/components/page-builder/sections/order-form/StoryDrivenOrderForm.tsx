@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Heart, Quote, Sparkles, Gift, Star } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine';
 
 function ClientSideHearts({ count }: { count: number }) {
   const [hearts, setHearts] = useState<Array<{
@@ -230,14 +231,14 @@ export function StoryDrivenOrderForm({ props, theme, storeId, productId, product
                     <div className="flex items-center justify-center gap-3">
                       {actualComparePrice > actualPrice && (
                         <span className="text-lg line-through text-amber-400">
-                          ৳{actualComparePrice}
+                          {formatPrice(actualComparePrice)}
                         </span>
                       )}
                       <span 
                         className="text-3xl font-bold"
                         style={{ color: primaryColor }}
                       >
-                        ৳{actualPrice}
+                        {formatPrice(actualPrice)}
                       </span>
                     </div>
                     <p className="text-sm text-amber-600 mt-1" style={{ fontFamily: 'serif' }}>

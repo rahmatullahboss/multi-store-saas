@@ -990,8 +990,7 @@ export default function SharedCheckoutPage({
                       </div>
                       <div className="text-right">
                         <span className="font-bold" style={{ color: colors.accent }}>
-                          {currencySymbol}
-                          {method.price}
+                          {formatPrice(method.price)}
                         </span>
                         <span className="text-xs block" style={{ color: colors.muted }}>
                           {method.estimatedDays}
