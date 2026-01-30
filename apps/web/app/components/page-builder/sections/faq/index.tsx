@@ -6,19 +6,21 @@ import type { SectionTheme } from '~/lib/page-builder/types';
 import type { FAQProps, FAQSectionPreviewProps, FAQItem } from './types';
 
 import { AccordionFAQ } from './AccordionFAQ';
-import { SimpleFAQ } from './SimpleFAQ';
+// import { SimpleFAQ } from './SimpleFAQ'; // Non-existent component
 import { WorldClassFAQ } from './WorldClassFAQ';
 import { GlassmorphismFAQ } from './GlassmorphismFAQ';
 import { NeubrutalistFAQ } from './NeubrutalistFAQ';
 import { CardsFAQ } from './CardsFAQ';
 import { OrganicFAQ } from './OrganicFAQ';
 
-export type FAQVariant = 
-  | 'accordion' 
-  | 'glassmorphism' 
+export type FAQVariant =
+  | 'accordion'
+  | 'glassmorphism'
   | 'neubrutalism'
   | 'cards'
-  | 'organic';
+  | 'organic'
+  | 'story-driven'
+  | 'story-driven-premium';
 
 export function FAQSectionPreview({ props, theme }: FAQSectionPreviewProps) {
   const {
@@ -60,10 +62,10 @@ export function FAQSectionPreview({ props, theme }: FAQSectionPreviewProps) {
       return <CardsFAQ {...commonProps} />;
     case 'organic':
       return (
-        <OrganicFAQ 
-          title={title} 
+        <OrganicFAQ
+          title={title}
           subtitle={subtitle}
-          items={items.map(item => ({
+          items={items.map((item) => ({
             question: item.question,
             answer: item.answer,
           }))}
@@ -74,8 +76,9 @@ export function FAQSectionPreview({ props, theme }: FAQSectionPreviewProps) {
     case 'story-driven':
     case 'accordion':
       return <AccordionFAQ {...commonProps} />;
-    
+
     case 'story-driven-premium':
+    default:
       return <WorldClassFAQ {...commonProps} />;
   }
 }

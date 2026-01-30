@@ -5,12 +5,12 @@
 import type { SectionTheme } from '~/lib/page-builder/types';
 import type { SectionStyleProps } from '~/lib/page-builder/sectionStyleUtils';
 
-export type HeroVariant = 
-  | 'default' 
+export type HeroVariant =
+  | 'default'
   | 'centered'
   | 'split-left'
   | 'split-right'
-  | 'glow' 
+  | 'glow'
   | 'modern'
   | 'glassmorphism'
   | 'neubrutalism'
@@ -28,6 +28,7 @@ export interface HeroProps extends SectionStyleProps {
   ctaText?: string;
   badgeText?: string;
   backgroundImage?: string;
+  productImage?: string;
   variant?: HeroVariant;
 }
 

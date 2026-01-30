@@ -2,14 +2,16 @@
  * Testimonials Section Types
  */
 
-export type TestimonialsVariant = 
+export type TestimonialsVariant =
   | 'default'
   | 'cards'
   | 'chat-bubbles'
   | 'carousel'
   | 'masonry'
   | 'social-proof'
-  | 'minimal';
+  | 'minimal'
+  | 'organic'
+  | 'highlight';
 
 export interface Testimonial {
   name: string;

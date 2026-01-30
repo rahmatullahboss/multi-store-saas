@@ -25,7 +25,8 @@ import {
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useWishlist } from '~/hooks/useWishlist';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
-import type { ThemeConfig, SectionInstance } from '@db/types';
+import type { ThemeConfig } from '@db/types';
+import type { SectionInstance } from '~/lib/theme-engine/types';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
 import { StoreConfigProvider } from '~/contexts/StoreConfigContext';

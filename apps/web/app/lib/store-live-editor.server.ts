@@ -135,7 +135,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       backgroundColor: themeSettings.colors?.background || themeConfig.backgroundColor,
       textColor: themeSettings.colors?.text || themeConfig.textColor,
       borderColor: themeSettings.colors?.border || themeConfig.borderColor,
-      favicon: themeSettings.favicon || themeConfig.favicon,
+      favicon: (themeSettings as any).favicon || themeConfig.favicon,
     };
   }
 

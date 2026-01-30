@@ -16,16 +16,17 @@ import { StoryDrivenFeatures } from './StoryDrivenFeatures';
 import { StoryTimelineFeatures } from './StoryTimelineFeatures';
 import { OrganicFeatures } from './OrganicFeatures';
 
-export type FeaturesVariant = 
-  | 'grid' 
-  | 'bento' 
-  | 'cards' 
-  | 'glassmorphism' 
+export type FeaturesVariant =
+  | 'grid'
+  | 'bento'
+  | 'cards'
+  | 'glassmorphism'
   | 'neubrutalism'
   | 'trust-first'
   | 'urgency'
   | 'social-proof'
   | 'story-driven'
+  | 'story-driven-premium'
   | 'organic';
 
 export function FeaturesSectionPreview({ props, theme }: FeaturesSectionPreviewProps) {

@@ -4,13 +4,14 @@
 import { describe, it, beforeAll, beforeEach, expect, vi } from 'vitest';
 import { loader as defsLoader, action as defsAction } from '~/routes/api.metafield-definitions';
 import { loader as valuesLoader, action as valuesAction } from '~/routes/api.metafields';
+
 const mockDb = vi.hoisted(() => ({
   tables: {
-    metafield_definitions: [],
-    metafields: [],
+    metafield_definitions: [] as any[],
+    metafields: [] as any[],
   },
   select(fields?: Record<string, any>) {
-    const state = { table: null } as any;
+    const state = { table: null as string | null };
     const makeQuery = (rows: any[]) => {
       const query: any = {
         where: () => makeQuery(rows),
@@ -23,9 +24,10 @@ const mockDb = vi.hoisted(() => ({
     return {
       from: (table: any) => {
         state.table = table?.[Symbol.for('drizzle:Name')] ?? table?.name ?? String(table);
-        const rows = mockDb.tables[state.table];
-        const isCount = fields && Object.keys(fields).some((k) => k.toLowerCase().includes('count'));
-        return makeQuery(isCount ? [{ count: rows.length }] : rows);
+        const rows = mockDb.tables[state.table as keyof typeof mockDb.tables];
+        const isCount =
+          fields && Object.keys(fields).some((k) => k.toLowerCase().includes('count'));
+        return makeQuery(isCount ? [{ count: rows?.length ?? 0 }] : (rows ?? []));
       },
     };
   },
@@ -33,7 +35,7 @@ const mockDb = vi.hoisted(() => ({
     const tableName = table?.[Symbol.for('drizzle:Name')] ?? table?.name ?? String(table);
     return {
       values: async (row: any) => {
-        mockDb.tables[tableName].push(row);
+        (mockDb.tables[tableName as keyof typeof mockDb.tables] as any[]).push(row);
         return { success: true };
       },
     };
@@ -45,7 +47,7 @@ const mockDb = vi.hoisted(() => ({
     const tableName = table?.[Symbol.for('drizzle:Name')] ?? table?.name ?? String(table);
     return {
       where: async () => {
-        mockDb.tables[tableName] = [];
+        (mockDb.tables[tableName as keyof typeof mockDb.tables] as any[]) = [];
         return { success: true };
       },
     };
@@ -80,13 +82,13 @@ describe('Metafields API', () => {
       }),
     });
 
-    const response = await defsAction({ request, context } as any);
-    const result = await response.json();
+    const response = (await defsAction({ request, context } as any)) as Response;
+    const result = (await response.json()) as { success: boolean };
     expect(result.success).toBe(true);
 
     const listReq = new Request('http://localhost/api/metafield-definitions?ownerType=product');
-    const listRes = await defsLoader({ request: listReq, context } as any);
-    const listJson = await listRes.json();
+    const listRes = (await defsLoader({ request: listReq, context } as any)) as Response;
+    const listJson = (await listRes.json()) as { success: boolean; definitions: any[] };
     expect(listJson.success).toBe(true);
     expect(listJson.definitions.length).toBe(1);
   });
@@ -103,8 +105,8 @@ describe('Metafields API', () => {
         ownerType: 'product',
       }),
     });
-    const defRes = await defsAction({ request: defReq, context } as any);
-    const defJson = await defRes.json();
+    const defRes = (await defsAction({ request: defReq, context } as any)) as Response;
+    const defJson = (await defRes.json()) as { id: string };
 
     const valueReq = new Request('http://localhost/api/metafields', {
       method: 'POST',
@@ -120,13 +122,15 @@ describe('Metafields API', () => {
       }),
     });
 
-    const valueRes = await valuesAction({ request: valueReq, context } as any);
-    const valueJson = await valueRes.json();
+    const valueRes = (await valuesAction({ request: valueReq, context } as any)) as Response;
+    const valueJson = (await valueRes.json()) as { success: boolean };
     expect(valueJson.success).toBe(true);
 
-    const getReq = new Request('http://localhost/api/metafields?ownerId=101&ownerType=product&namespace=custom&key=warranty_years');
-    const getRes = await valuesLoader({ request: getReq, context } as any);
-    const getJson = await getRes.json();
+    const getReq = new Request(
+      'http://localhost/api/metafields?ownerId=101&ownerType=product&namespace=custom&key=warranty_years'
+    );
+    const getRes = (await valuesLoader({ request: getReq, context } as any)) as Response;
+    const getJson = (await getRes.json()) as { success: boolean; metafield: { value: number } };
     expect(getJson.success).toBe(true);
     expect(getJson.metafield.value).toBe(2);
   });
@@ -143,8 +147,8 @@ describe('Metafields API', () => {
         ownerType: 'product',
       }),
     });
-    const defRes = await defsAction({ request: defReq, context } as any);
-    const defJson = await defRes.json();
+    const defRes = (await defsAction({ request: defReq, context } as any)) as Response;
+    const defJson = (await defRes.json()) as { id: string };
 
     const valueReq = new Request('http://localhost/api/metafields', {
       method: 'POST',
@@ -164,7 +168,7 @@ describe('Metafields API', () => {
     const deleteReq = new Request(`http://localhost/api/metafield-definitions?id=${defJson.id}`, {
       method: 'DELETE',
     });
-    const delRes = await defsAction({ request: deleteReq, context } as any);
+    const delRes = (await defsAction({ request: deleteReq, context } as any)) as Response;
     expect(delRes.status).toBe(409);
   });
 });

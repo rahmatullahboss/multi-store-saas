@@ -3,16 +3,17 @@
  */
 import { describe, it, beforeAll, beforeEach, expect, vi } from 'vitest';
 import { loader as versionsLoader, action as versionsAction } from '~/routes/api.template-versions';
+
 const mockDb = vi.hoisted(() => ({
   tables: {
-    template_versions: [],
-    template_sections_draft: [],
-    template_sections_published: [],
-    theme_settings_draft: [],
-    theme_settings_published: [],
+    template_versions: [] as any[],
+    template_sections_draft: [] as any[],
+    template_sections_published: [] as any[],
+    theme_settings_draft: [] as any[],
+    theme_settings_published: [] as any[],
   },
   select() {
-    const state = { table: null } as any;
+    const state = { table: null as string | null };
     const makeQuery = (rows: any[]) => {
       const query: any = {
         where: () => makeQuery(rows),
@@ -25,8 +26,8 @@ const mockDb = vi.hoisted(() => ({
     return {
       from: (table: any) => {
         state.table = table?.[Symbol.for('drizzle:Name')] ?? table?.name ?? String(table);
-        const rows = mockDb.tables[state.table];
-        return makeQuery(rows);
+        const rows = mockDb.tables[state.table as keyof typeof mockDb.tables];
+        return makeQuery(rows ?? []);
       },
     };
   },
@@ -34,7 +35,7 @@ const mockDb = vi.hoisted(() => ({
     const tableName = table?.[Symbol.for('drizzle:Name')] ?? table?.name ?? String(table);
     return {
       values: async (row: any) => {
-        mockDb.tables[tableName].push(row);
+        (mockDb.tables[tableName as keyof typeof mockDb.tables] as any[]).push(row);
         return { success: true };
       },
     };
@@ -46,7 +47,7 @@ const mockDb = vi.hoisted(() => ({
     const tableName = table?.[Symbol.for('drizzle:Name')] ?? table?.name ?? String(table);
     return {
       where: async () => {
-        mockDb.tables[tableName] = [];
+        (mockDb.tables[tableName as keyof typeof mockDb.tables] as any[]) = [];
         return { success: true };
       },
     };
@@ -72,7 +73,7 @@ describe('Template Versions API', () => {
   });
 
   it('lists versions for a template', async () => {
-    mockDb.tables.template_versions.push({
+    (mockDb.tables.template_versions as any[]).push({
       id: 'ver_1',
       storeId: 1,
       templateId: 'tmpl_1',
@@ -82,14 +83,14 @@ describe('Template Versions API', () => {
     });
 
     const req = new Request('http://localhost/api/template-versions?templateId=tmpl_1');
-    const res = await versionsLoader({ request: req, context } as any);
-    const json = await res.json();
+    const res = (await versionsLoader({ request: req, context } as any)) as unknown as Response;
+    const json = (await res.json()) as { success: boolean; versions: any[] };
     expect(json.success).toBe(true);
     expect(json.versions.length).toBe(1);
   });
 
   it('rolls back to a version (draft)', async () => {
-    mockDb.tables.template_versions.push({
+    (mockDb.tables.template_versions as any[]).push({
       id: 'ver_1',
       storeId: 1,
       templateId: 'tmpl_1',
@@ -104,8 +105,8 @@ describe('Template Versions API', () => {
       body: JSON.stringify({ versionId: 'ver_1', target: 'draft' }),
     });
 
-    const res = await versionsAction({ request: req, context } as any);
-    const json = await res.json();
+    const res = (await versionsAction({ request: req, context } as any)) as unknown as Response;
+    const json = (await res.json()) as { success: boolean };
     expect(json.success).toBe(true);
   });
 });

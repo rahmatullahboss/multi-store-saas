@@ -3,27 +3,23 @@ import type { ProblemSolutionProps, ProblemSolutionPreviewProps } from './types'
 import { DefaultProblemSolution } from './DefaultProblemSolution';
 import { WorldClassProblemSolution } from './WorldClassProblemSolution';
 
-export type ProblemSolutionVariant = 
-  | 'default' 
-  | 'world-class'
-  | 'story-driven-premium';
+export type ProblemSolutionVariant = 'default' | 'world-class' | 'story-driven-premium';
 
 export function ProblemSolutionPreview({ props, theme }: ProblemSolutionPreviewProps) {
-  const commonProps = { 
+  // Build props that extend SectionStyleProps directly (ProblemSolutionProps interface)
+  const problemSolutionProps = {
     ...props,
-    // Ensure styleProps exists as it is required by ProblemSolutionProps
-    styleProps: { theme, ...((props as any).styleProps || {}) },
-    theme
+    theme,
   } as ProblemSolutionProps;
-  
+
   // Choose variant based on props or theme
   const variant = props.variant || 'default';
 
   if (variant === 'story-driven-premium' || variant === 'world-class') {
-    return <WorldClassProblemSolution {...commonProps} />;
+    return <WorldClassProblemSolution {...(problemSolutionProps as any)} />;
   }
 
-  return <DefaultProblemSolution {...commonProps} />;
+  return <DefaultProblemSolution {...(problemSolutionProps as any)} />;
 }
 
 export type { ProblemSolutionProps, ProblemSolutionPreviewProps };

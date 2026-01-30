@@ -1,8 +1,8 @@
 /**
  * Store Template Preview Route
- * 
+ *
  * Route: /store-template-preview/:templateId
- * 
+ *
  * This route renders the ACTUAL template components (not generic ones)
  * to give merchants a true preview of how each theme looks.
  */
@@ -12,11 +12,11 @@ import { useLoaderData } from '@remix-run/react';
 import { Suspense } from 'react';
 import { Eye, X } from 'lucide-react';
 import { useState } from 'react';
-import { 
-  getStoreTemplate, 
-  STORE_TEMPLATES, 
+import {
+  getStoreTemplate,
+  STORE_TEMPLATES,
   STORE_TEMPLATE_THEMES,
-  type StoreTemplateProps 
+  type StoreTemplateProps,
 } from '~/templates/store-registry';
 import {
   DEMO_PRODUCTS,
@@ -35,7 +35,6 @@ import {
   getActiveBanners,
   getActiveAnnouncement,
 } from '~/utils/store-preview-data';
-
 
 // ============================================================================
 // META
@@ -56,7 +55,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
   const theme = STORE_TEMPLATE_THEMES[templateId] || STORE_TEMPLATE_THEMES['luxe-boutique'];
 
   // Convert demo products to match SerializedProduct type (with full data)
-  const products = DEMO_PRODUCTS.map(p => ({
+  const products = DEMO_PRODUCTS.map((p) => ({
     id: p.id,
     storeId: p.storeId,
     title: p.title,
@@ -106,7 +105,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
     promotions: DEMO_PROMOTIONS,
     announcement: activeAnnouncement,
     testimonials: DEMO_TESTIMONIALS,
-    allTemplates: STORE_TEMPLATES.map(t => ({ id: t.id, name: t.name })),
+    allTemplates: STORE_TEMPLATES.map((t) => ({ id: t.id, name: t.name })),
   });
 }
 
@@ -135,8 +134,10 @@ function PreviewIndicator({ templateName }: { templateName: string }) {
   return (
     <div className="fixed bottom-4 left-4 z-[9999] flex items-center gap-2 px-4 py-2 bg-black/80 backdrop-blur-sm text-white rounded-full shadow-lg text-sm">
       <Eye className="w-4 h-4" />
-      <span>Preview: <strong>{templateName}</strong></span>
-      <button 
+      <span>
+        Preview: <strong>{templateName}</strong>
+      </span>
+      <button
         onClick={() => setDismissed(true)}
         className="ml-1 p-1 hover:bg-white/20 rounded-full transition"
       >
@@ -151,7 +152,7 @@ function PreviewIndicator({ templateName }: { templateName: string }) {
 // ============================================================================
 export default function StoreTemplatePreview() {
   const data = useLoaderData<typeof loader>();
-  
+
   // Get the actual template component
   const template = getStoreTemplate(data.templateId);
   const TemplateComponent = template.component;
@@ -161,7 +162,7 @@ export default function StoreTemplatePreview() {
     storeName: data.storeName,
     storeId: 0, // Demo store
     logo: null,
-    products: data.products,
+    products: data.products as unknown as import('~/templates/store-registry').SerializedProduct[],
     categories: data.categories,
     currentCategory: null,
     config: data.themeConfig,
@@ -176,7 +177,8 @@ export default function StoreTemplatePreview() {
     reviews: data.reviews,
     banners: data.banners,
     flashSale: data.flashSale,
-    flashSaleProducts: data.flashSaleProducts,
+    flashSaleProducts:
+      data.flashSaleProducts as unknown as import('~/templates/store-registry').SerializedProduct[],
     promotions: data.promotions,
     announcement: data.announcement,
     testimonials: data.testimonials,
