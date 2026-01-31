@@ -9,7 +9,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw new Error("Sentry Test Error from Loader");
   }
 
-  return json({ message: "Sentry Debug Page" });
+  return json({ message: "Sentry Debug Page (Renamed to sentry-test)" });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
