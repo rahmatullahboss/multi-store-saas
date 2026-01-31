@@ -269,7 +269,7 @@ export function OzzylAIChatWidget() {
                     <img
                       src={ASSETS.brand.logoSmall}
                       alt="Ozzyl"
-                      className="w-10 h-10 rounded-xl shadow-lg"
+                      className="w-12 h-12 rounded-xl shadow-lg"
                       loading="lazy"
                       decoding="async"
                     />
@@ -318,7 +318,7 @@ export function OzzylAIChatWidget() {
               <img
                 src={ASSETS.brand.logoSmallBlack}
                 alt="Ozzyl AI"
-                className="w-14 h-14 relative z-10 object-contain p-2"
+                className="w-16 h-16 relative z-10 object-contain p-1"
                 loading="lazy"
                 decoding="async"
               />
@@ -349,7 +349,7 @@ export function OzzylAIChatWidget() {
             <div className="flex items-center justify-between px-5 py-4 bg-[#0A2F25]/20 border-b border-[#006A4E]/20 backdrop-blur-md">
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#006A4E] to-[#004D38] p-0.5 shadow-lg shadow-[#006A4E]/20">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#006A4E] to-[#004D38] p-0.5 shadow-lg shadow-[#006A4E]/20">
                     <img
                       src={ASSETS.brand.logoSmallBlack}
                       alt="Ozzyl"
