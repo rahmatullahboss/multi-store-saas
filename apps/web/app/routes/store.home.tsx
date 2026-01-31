@@ -7,6 +7,7 @@
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
+import { useState, useEffect } from 'react';
 import { resolveStoreWithTemplate } from '~/lib/store.server';
 import { ThemeStoreRenderer } from '~/components/store/ThemeStoreRenderer';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
@@ -123,6 +124,89 @@ export default function StoreHomePage() {
   // Check if we have published template sections
   const hasTemplateSections = template?.sections && template.sections.length > 0;
 
+  // Load cart from localStorage on client side
+  const [cart, setCart] = useState<{
+    items: Array<{
+      id: number;
+      productId: number;
+      title: string;
+      price: number;
+      quantity: number;
+      imageUrl?: string;
+    }>;
+    itemCount: number;
+    total: number;
+  } | null>(null);
+
+  useEffect(() => {
+    // Load cart from localStorage
+    const storedCart = localStorage.getItem('cart');
+    if (storedCart) {
+      try {
+        const items = JSON.parse(storedCart) as Array<{
+          productId: number;
+          title: string;
+          price: number;
+          quantity: number;
+          imageUrl: string | null;
+        }>;
+        const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+        const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        setCart({
+          items: items.map((item, index) => ({
+            id: item.productId,
+            productId: item.productId,
+            title: item.title,
+            price: item.price,
+            quantity: item.quantity,
+            imageUrl: item.imageUrl || undefined,
+          })),
+          itemCount,
+          total,
+        });
+      } catch {
+        // Ignore parse errors
+      }
+    }
+
+    // Listen for cart updates from other components
+    const handleCartUpdate = () => {
+      const updatedCart = localStorage.getItem('cart');
+      if (updatedCart) {
+        try {
+          const items = JSON.parse(updatedCart) as Array<{
+            productId: number;
+            title: string;
+            price: number;
+            quantity: number;
+            imageUrl: string | null;
+          }>;
+          const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+          const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+          setCart({
+            items: items.map((item) => ({
+              id: item.productId,
+              productId: item.productId,
+              title: item.title,
+              price: item.price,
+              quantity: item.quantity,
+              imageUrl: item.imageUrl || undefined,
+            })),
+            itemCount,
+            total,
+          });
+        } catch {
+          // Ignore parse errors
+        }
+      } else {
+        setCart(null);
+      }
+    };
+
+    window.addEventListener('cart-updated', handleCartUpdate);
+    return () => window.removeEventListener('cart-updated', handleCartUpdate);
+  }, []);
+
   return (
     <StorePageWrapper
       hideHeaderFooter={hasTemplateSections}
@@ -163,6 +247,8 @@ export default function StoreHomePage() {
             currency,
             logo,
             defaultLanguage: 'en',
+            socialLinks,
+            businessInfo,
           }}
           pageType="index"
           products={featuredProducts.map((p) => ({
@@ -181,6 +267,7 @@ export default function StoreHomePage() {
             slug: (cat as string).toLowerCase().replace(/\s+/g, '-'),
             productCount: featuredProducts.filter((p) => p.category === cat).length,
           }))}
+          cart={cart || undefined}
           skipHeaderFooter={false}
         />
       ) : (

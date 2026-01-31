@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from '@remix-run/react';
 import { Facebook, Instagram, Twitter, Phone, Mail, MapPin } from 'lucide-react';
 import type { SectionComponentProps, SectionSchema } from '~/lib/theme-engine/types';
-import { DEFAULT_THEME_CONFIG } from '../index'; 
+import { DEFAULT_THEME_CONFIG } from '../index';
 import { OzzylBranding } from '~/components/store-templates/shared/OzzylBranding';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -35,11 +35,11 @@ export const schema: SectionSchema = {
       default: true,
     },
     {
-       type: 'checkbox',
-       id: 'show_powered_by',
-       label: 'Show Powered By Ozzyl',
-       default: true,
-     },
+      type: 'checkbox',
+      id: 'show_powered_by',
+      label: 'Show Powered By Ozzyl',
+      default: true,
+    },
   ],
 };
 
@@ -63,19 +63,21 @@ export default function StarterFooter({ context, settings }: SectionComponentPro
     text: activeTheme.colors?.text || '#111827',
   };
 
+  // Read business info from store.businessInfo (passed via ThemeStoreRenderer)
   const businessInfo = {
-      address: store.address || undefined,
-      email: store.email || undefined,
-      phone: store.phone || undefined,
+    address: store.businessInfo?.address || store.address || undefined,
+    email: store.businessInfo?.email || store.email || undefined,
+    phone: store.businessInfo?.phone || store.phone || undefined,
   };
 
+  // Read social links from store.socialLinks (passed via ThemeStoreRenderer)
   const socialLinks = {
-    instagram: store.instagram,
-    facebook: store.facebook,
-    twitter: store.twitter,
+    instagram: store.socialLinks?.instagram || store.instagram,
+    facebook: store.socialLinks?.facebook || store.facebook,
+    twitter: store.socialLinks?.twitter || store.twitter,
   };
-  
-  const categories = context.collections?.map(c => c.title) || [];
+
+  const categories = context.collections?.map((c) => c.title) || [];
   const validCategories = categories.filter(Boolean).slice(0, 6) as string[];
 
   const description = settings.about_text as string;
@@ -301,7 +303,11 @@ export default function StarterFooter({ context, settings }: SectionComponentPro
             © {new Date().getFullYear()} {store.name}. {t('allRightsReserved')}
           </p>
           <div style={{ color: theme.footerText }}>
-            <OzzylBranding planType={store.planType || 'free'} showPoweredBy={showPoweredBy} variant="minimal" />
+            <OzzylBranding
+              planType={store.planType || 'free'}
+              showPoweredBy={showPoweredBy}
+              variant="minimal"
+            />
           </div>
         </div>
       </div>

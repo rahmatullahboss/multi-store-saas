@@ -135,19 +135,19 @@ const DEMO_CART: CartData = {
       productId: 1,
       title: 'Product 1',
       quantity: 2,
-      price: 3999,
+      price: 1299,
     },
     {
       id: '2',
       productId: 2,
       title: 'Product 2',
       quantity: 1,
-      price: 4999,
+      price: 1499,
     },
   ],
   itemCount: 3,
-  subtotal: 12997,
-  total: 12997,
+  subtotal: 4097,
+  total: 4097,
   discounts: [],
 };
 

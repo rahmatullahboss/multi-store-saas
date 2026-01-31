@@ -666,9 +666,6 @@ function PreviewNovaLuxStore(props: StoreTemplateProps) {
           href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
-        <div className="bg-gray-900 text-white text-center py-2 text-xs font-bold tracking-widest uppercase">
-          Preview Mode - Demo Store
-        </div>
         <PreviewHeader
           storeName={storeName}
           logo={logo}

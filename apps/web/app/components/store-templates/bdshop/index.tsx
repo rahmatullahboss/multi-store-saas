@@ -1367,14 +1367,6 @@ function PreviewBDShopStore(props: StoreTemplateProps) {
           fontFamily: "'Inter', 'NotoSans', Arial, sans-serif",
         }}
       >
-        {/* Preview Banner */}
-        <div
-          className="text-white text-center py-2 text-sm font-medium"
-          style={{ backgroundColor: BDSHOP_THEME.accent }}
-        >
-          ⚠️ প্রিভিউ মোড - এটি একটি ডেমো। কোন অর্ডার প্লেস হবে না।
-        </div>
-
         {/* Header */}
         <PreviewHeader
           storeName={storeName}

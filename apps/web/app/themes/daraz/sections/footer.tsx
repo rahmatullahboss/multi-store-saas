@@ -48,18 +48,20 @@ export default function DarazFooter({ context, settings }: SectionComponentProps
   const { store } = context;
   const config = DEFAULT_THEME_CONFIG; // Use the exported config
 
-  // Cast store to any for potentially missing fields until schema is updated
   const storeAny = store as any;
   const businessInfo = {
-    address: storeAny.address || 'House 123, Road 5, Gulshan, Dhaka 1212, Bangladesh',
-    email: storeAny.email || 'hello@store.com',
-    phone: storeAny.phone || '+880 1XXX-XXXXXX',
+    address:
+      storeAny.businessInfo?.address ||
+      storeAny.address ||
+      'House 123, Road 5, Gulshan, Dhaka 1212, Bangladesh',
+    email: storeAny.businessInfo?.email || storeAny.email || 'hello@store.com',
+    phone: storeAny.businessInfo?.phone || storeAny.phone || '+880 1XXX-XXXXXX',
   };
 
   const socialLinks = {
-    instagram: storeAny.instagram,
-    facebook: storeAny.facebook,
-    twitter: storeAny.twitter,
+    instagram: storeAny.socialLinks?.instagram || storeAny.instagram,
+    facebook: storeAny.socialLinks?.facebook || storeAny.facebook,
+    twitter: storeAny.socialLinks?.twitter || storeAny.twitter,
   };
 
   const categories = context.collections?.map((c) => c.title) || [];

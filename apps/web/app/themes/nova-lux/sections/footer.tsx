@@ -16,7 +16,8 @@ export const schema: SectionSchema = {
       type: 'textarea',
       id: 'description',
       label: 'Footer Description',
-      default: 'Curating exceptional products for those who appreciate the finer things in life. Experience luxury redefined.',
+      default:
+        'Curating exceptional products for those who appreciate the finer things in life. Experience luxury redefined.',
     },
     {
       type: 'checkbox',
@@ -24,7 +25,7 @@ export const schema: SectionSchema = {
       label: 'Show Powered By Ozzyl',
       default: true,
     },
-     {
+    {
       type: 'checkbox',
       id: 'show_trust_badges',
       label: 'Show Trust Badges',
@@ -40,37 +41,42 @@ export const schema: SectionSchema = {
 export default function NovaLuxFooter({ context, settings }: SectionComponentProps) {
   const { store } = context;
   const config = NOVALUX_THEME.config;
-  
+
+  // Read business info from store.businessInfo (passed via ThemeStoreRenderer)
   const businessInfo = {
-      address: store.address || 'House 123, Road 5, Gulshan, Dhaka 1212, Bangladesh',
-      email: store.email || 'hello@store.com',
-      phone: store.phone || '+880 1XXX-XXXXXX',
+    address:
+      store.businessInfo?.address ||
+      store.address ||
+      'House 123, Road 5, Gulshan, Dhaka 1212, Bangladesh',
+    email: store.businessInfo?.email || store.email || 'hello@store.com',
+    phone: store.businessInfo?.phone || store.phone || '+880 1XXX-XXXXXX',
   };
 
+  // Read social links from store.socialLinks (passed via ThemeStoreRenderer)
   const socialLinks = {
-    instagram: store.instagram,
-    facebook: store.facebook,
-    twitter: store.twitter,
+    instagram: store.socialLinks?.instagram || store.instagram,
+    facebook: store.socialLinks?.facebook || store.facebook,
+    twitter: store.socialLinks?.twitter || store.twitter,
   };
 
-  const categories = context.collections?.map(c => c.title) || [];
-  
+  const categories = context.collections?.map((c) => c.title) || [];
+
   const footerConfig = {
-      description: settings.description as string,
-      showPoweredBy: settings.show_powered_by as boolean,
-      showTrustBadges: settings.show_trust_badges as boolean,
-  }
+    description: settings.description as string,
+    showPoweredBy: settings.show_powered_by as boolean,
+    showTrustBadges: settings.show_trust_badges as boolean,
+  };
 
   return (
     <StandardFooter
-        storeName={store.name}
-        logo={store.logo}
-        config={config}
-        socialLinks={socialLinks}
-        footerConfig={footerConfig}
-        businessInfo={businessInfo}
-        categories={categories}
-        planType={store.planType || 'free'}
+      storeName={store.name}
+      logo={store.logo}
+      config={config}
+      socialLinks={socialLinks}
+      footerConfig={footerConfig}
+      businessInfo={businessInfo}
+      categories={categories}
+      planType={store.planType || 'free'}
     />
   );
 }

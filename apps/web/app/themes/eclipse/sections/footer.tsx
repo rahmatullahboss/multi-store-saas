@@ -35,15 +35,14 @@ export const schema: SectionSchema = {
 export default function EclipseFooter({ context, settings }: SectionComponentProps) {
   const { store, getLink } = context;
   const config = ECLIPSE_THEME_CONFIG.colors!;
-  
-  // Cast store to any for social links until typed properly
-  const storeAny = store as any;
+
+  // Read social links from store.socialLinks (passed via ThemeStoreRenderer)
   const socialLinks = {
-    instagram: storeAny.instagram,
-    facebook: storeAny.facebook,
-    twitter: storeAny.twitter,
+    instagram: store.socialLinks?.instagram || (store as any).instagram,
+    facebook: store.socialLinks?.facebook || (store as any).facebook,
+    twitter: store.socialLinks?.twitter || (store as any).twitter,
   };
-  
+
   const description = settings.description as string;
   const showPoweredBy = settings.show_powered_by as boolean;
 
@@ -70,9 +69,7 @@ export default function EclipseFooter({ context, settings }: SectionComponentPro
             >
               {store.name}
             </h2>
-            <p className="text-white/50 max-w-xs">
-              {description}
-            </p>
+            <p className="text-white/50 max-w-xs">{description}</p>
           </div>
 
           <div>
@@ -94,18 +91,24 @@ export default function EclipseFooter({ context, settings }: SectionComponentPro
           <div>
             <h4 className="font-bold mb-6 text-white">Support</h4>
             <ul className="space-y-4 text-white/50 text-sm">
-               <li>
+              <li>
                 <Link to={getLink('/contact')} className="hover:text-white transition-colors">
                   Contact
                 </Link>
               </li>
               <li>
-                <Link to={getLink('/policies/shipping')} className="hover:text-white transition-colors">
+                <Link
+                  to={getLink('/policies/shipping')}
+                  className="hover:text-white transition-colors"
+                >
                   Shipping
                 </Link>
               </li>
               <li>
-                <Link to={getLink('/policies/terms')} className="hover:text-white transition-colors">
+                <Link
+                  to={getLink('/policies/terms')}
+                  className="hover:text-white transition-colors"
+                >
                   Terms
                 </Link>
               </li>
@@ -118,7 +121,8 @@ export default function EclipseFooter({ context, settings }: SectionComponentPro
               {socialLinks.instagram && (
                 <a
                   href={socialLinks.instagram}
-                  target="_blank" rel="noopener noreferrer"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition-all text-white"
                 >
                   <Instagram size={18} />
@@ -127,7 +131,8 @@ export default function EclipseFooter({ context, settings }: SectionComponentPro
               {socialLinks.twitter && (
                 <a
                   href={socialLinks.twitter}
-                  target="_blank" rel="noopener noreferrer"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition-all text-white"
                 >
                   <Twitter size={18} />
@@ -136,7 +141,8 @@ export default function EclipseFooter({ context, settings }: SectionComponentPro
               {socialLinks.facebook && (
                 <a
                   href={socialLinks.facebook}
-                  target="_blank" rel="noopener noreferrer"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition-all text-white"
                 >
                   <Facebook size={18} />

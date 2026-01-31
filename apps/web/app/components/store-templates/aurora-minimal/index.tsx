@@ -883,9 +883,6 @@ function PreviewAuroraStore(props: StoreTemplateProps) {
           href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
-        <div className="bg-rose-500 text-white text-center py-2 text-xs font-bold tracking-widest uppercase">
-          Preview Mode
-        </div>
         <PreviewHeader
           storeName={storeName}
           logo={logo}

@@ -853,12 +853,6 @@ function PreviewFreshnessStore(props: StoreTemplateProps) {
           href="https://fonts.googleapis.com/css2?family=Pacifico&family=Inter:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
-        <div
-          className="text-center py-2 text-xs font-bold tracking-widest uppercase text-white"
-          style={{ backgroundColor: FRESHNESS_THEME.secondary }}
-        >
-          Preview Mode - Demo Store
-        </div>
         <PreviewHeader
           storeName={storeName}
           logo={logo}

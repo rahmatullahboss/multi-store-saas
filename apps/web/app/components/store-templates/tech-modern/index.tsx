@@ -758,9 +758,6 @@ function PreviewTechModernStore(props: StoreTemplateProps) {
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
-        <div className="bg-amber-500 text-white text-center py-2 text-sm font-medium">
-          ⚠️ Preview Mode - This is a demo. No orders will be placed.
-        </div>
         <PreviewHeader
           storeName={storeName}
           logo={logo}

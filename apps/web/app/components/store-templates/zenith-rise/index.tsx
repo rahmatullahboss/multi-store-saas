@@ -792,12 +792,6 @@ function PreviewZenithRiseStore(props: StoreTemplateProps) {
           href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
-        <div
-          className="text-center py-2 text-xs font-bold tracking-widest uppercase"
-          style={{ background: ZENITH_RISE_THEME.primaryGradient, color: 'white' }}
-        >
-          Preview Mode - Demo Store
-        </div>
         <PreviewHeader
           storeName={storeName}
           logo={logo}

@@ -829,9 +829,6 @@ function PreviewEclipseStore(props: StoreTemplateProps) {
           href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
         />
-        <div className="bg-violet-600 text-white text-center py-2 text-xs font-bold tracking-widest uppercase">
-          Preview Mode
-        </div>
         <PreviewHeader
           storeName={storeName}
           logo={logo}

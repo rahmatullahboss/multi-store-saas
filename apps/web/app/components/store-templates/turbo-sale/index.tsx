@@ -827,10 +827,6 @@ function PreviewTurboSaleStore(props: StoreTemplateProps) {
           @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap');
         `}</style>
 
-        <div className="bg-gray-900 text-white text-center py-2 text-xs font-bold tracking-widest">
-          প্রিভিউ মোড - ডেমো স্টোর
-        </div>
-
         <PreviewHeader
           storeName={storeName}
           logo={logo}

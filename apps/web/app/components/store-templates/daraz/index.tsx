@@ -1271,11 +1271,6 @@ function PreviewDarazStore(props: StoreTemplateProps) {
           fontFamily: "'Roboto', 'NotoSans', Arial, sans-serif",
         }}
       >
-        {/* Preview Banner */}
-        <div className="bg-amber-500 text-white text-center py-2 text-sm font-medium">
-          ⚠️ Preview Mode - This is a demo. No orders will be placed.
-        </div>
-
         {/* Header */}
         <PreviewHeader
           storeName={storeName}

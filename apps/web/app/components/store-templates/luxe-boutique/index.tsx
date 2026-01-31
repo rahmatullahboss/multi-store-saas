@@ -791,9 +791,6 @@ function PreviewLuxeStore(props: StoreTemplateProps) {
           href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
           rel="stylesheet"
         />
-        <div className="bg-[#c9a961] text-white text-center py-2 text-xs tracking-widest font-bold uppercase">
-          Preview Mode - Demo Store
-        </div>
         <PreviewHeader
           storeName={storeName}
           logo={logo}

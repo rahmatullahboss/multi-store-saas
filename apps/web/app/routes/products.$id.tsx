@@ -15,7 +15,7 @@ import { D1Cache } from '~/services/cache-layer.server';
 import { getStoreConfig } from '~/services/store-config.server';
 import { products, reviews, productVariants } from '@db/schema';
 import { parseSocialLinks } from '@db/types';
-import { useEffect, useRef, Suspense } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import { trackingEvents } from '~/utils/tracking';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import {
@@ -317,6 +317,89 @@ export default function ProductDetail() {
     });
   }, [product, currency]);
 
+  // Cart state management
+  const [cart, setCart] = useState<{
+    items: Array<{
+      id: number;
+      productId: number;
+      title: string;
+      price: number;
+      quantity: number;
+      imageUrl?: string;
+    }>;
+    itemCount: number;
+    total: number;
+  } | null>(null);
+
+  useEffect(() => {
+    // Load cart from localStorage
+    const storedCart = localStorage.getItem('cart');
+    if (storedCart) {
+      try {
+        const items = JSON.parse(storedCart) as Array<{
+          productId: number;
+          title: string;
+          price: number;
+          quantity: number;
+          imageUrl: string | null;
+        }>;
+        const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+        const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        setCart({
+          items: items.map((item, index) => ({
+            id: item.productId,
+            productId: item.productId,
+            title: item.title,
+            price: item.price,
+            quantity: item.quantity,
+            imageUrl: item.imageUrl || undefined,
+          })),
+          itemCount,
+          total,
+        });
+      } catch {
+        // Ignore parse errors
+      }
+    }
+
+    // Listen for cart updates from other components
+    const handleCartUpdate = () => {
+      const updatedCart = localStorage.getItem('cart');
+      if (updatedCart) {
+        try {
+          const items = JSON.parse(updatedCart) as Array<{
+            productId: number;
+            title: string;
+            price: number;
+            quantity: number;
+            imageUrl: string | null;
+          }>;
+          const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+          const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+          setCart({
+            items: items.map((item) => ({
+              id: item.productId,
+              productId: item.productId,
+              title: item.title,
+              price: item.price,
+              quantity: item.quantity,
+              imageUrl: item.imageUrl || undefined,
+            })),
+            itemCount,
+            total,
+          });
+        } catch {
+          // Ignore parse errors
+        }
+      } else {
+        setCart(null);
+      }
+    };
+
+    window.addEventListener('cart-updated', handleCartUpdate);
+    return () => window.removeEventListener('cart-updated', handleCartUpdate);
+  }, []);
+
   // Parse product images
   const images: string[] = product.images
     ? JSON.parse(product.images)
@@ -450,6 +533,8 @@ export default function ProductDetail() {
             currency,
             logo,
             defaultLanguage: 'en',
+            socialLinks,
+            businessInfo,
           }}
           pageType="product"
           product={{
@@ -471,6 +556,7 @@ export default function ProductDetail() {
             images: p.imageUrl ? [p.imageUrl] : [],
             category: p.category || undefined,
           }))}
+          cart={cart || undefined}
           skipHeaderFooter={false}
         />
       );
@@ -479,11 +565,13 @@ export default function ProductDetail() {
     // If no product template but home template exists, use home template's header/footer
     // with SimpleProductPage content in between
     if (hasHomeTemplate && homeTemplate?.sections) {
-      // Extract header and footer sections from home template
+      // Extract header and footer sections from home template (only enabled ones)
       const headerSections = homeTemplate.sections.filter(
-        (s) => s.type === 'header' || s.type === 'announcement-bar'
+        (s) => (s.type === 'header' || s.type === 'announcement-bar') && s.enabled !== false
       );
-      const footerSections = homeTemplate.sections.filter((s) => s.type === 'footer');
+      const footerSections = homeTemplate.sections.filter(
+        (s) => s.type === 'footer' && s.enabled !== false
+      );
 
       // Combine: header + product content (as a pseudo-section) + footer
       const combinedSections = [
@@ -531,6 +619,8 @@ export default function ProductDetail() {
             currency,
             logo,
             defaultLanguage: 'en',
+            socialLinks,
+            businessInfo,
           }}
           pageType="product"
           product={{
@@ -552,6 +642,7 @@ export default function ProductDetail() {
             images: p.imageUrl ? [p.imageUrl] : [],
             category: p.category || undefined,
           }))}
+          cart={cart || undefined}
           skipHeaderFooter={false}
         />
       );
