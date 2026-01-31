@@ -718,7 +718,7 @@ export default function OnboardingPage() {
       <header className="py-6 px-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <img src="/brand/logo-green.png" alt="Ozzyl" className="h-8 w-auto" />
+            <img src="/brand/logo-green.webp" alt="Ozzyl" className="h-8 w-auto" />
           </Link>
           <div className="flex items-center gap-4">
             {/* <LanguageSelector variant="toggle" size="sm" /> */}{' '}

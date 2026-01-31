@@ -10,14 +10,16 @@ export async function getLiveStats(): Promise<D1Stats> {
   const apiToken = process.env.CLOUDFLARE_D1_API_TOKEN;
 
   // Default fallback stats if config is missing (prevents build fail)
+  // IMPORTANT: These should be 0 or very low to avoid showing inflated numbers
+  // when the API fails. Real data is always preferred.
   const fallbackStats = {
-    totalUsers: 120, // Approximate starting numbers
-    totalStores: 85,
+    totalUsers: 0,
+    totalStores: 0,
     uptime: 99.9,
   };
 
   if (!accountId || !databaseId || !apiToken) {
-    console.warn('ClickHouse D1 API credentials missing. Using fallback stats.');
+    console.warn('D1 API credentials missing. Using fallback stats (0).');
     return fallbackStats;
   }
 
@@ -37,7 +39,7 @@ export async function getLiveStats(): Promise<D1Stats> {
             (SELECT COUNT(*) FROM stores) as store_count;
         `,
       }),
-      next: { revalidate: 300 }, // Cache for 5 minutes
+      next: { revalidate: 60 }, // Cache for 1 minute (was 5 minutes - too long)
     });
 
     if (!response.ok) {
@@ -59,9 +61,15 @@ export async function getLiveStats(): Promise<D1Stats> {
 
     const row = data.result[0].results[0];
     
+    // Log actual values for debugging
+    console.log('[getLiveStats] Fetched from D1:', {
+      user_count: row.user_count,
+      store_count: row.store_count,
+    });
+    
     return {
-      totalUsers: Number(row.user_count) || fallbackStats.totalUsers,
-      totalStores: Number(row.store_count) || fallbackStats.totalStores,
+      totalUsers: Number(row.user_count) || 0,
+      totalStores: Number(row.store_count) || 0,
       uptime: 99.9,
     };
   } catch (error) {
