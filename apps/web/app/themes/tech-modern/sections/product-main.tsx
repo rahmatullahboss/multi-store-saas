@@ -303,7 +303,6 @@ export default function TechModernProductMain({
   // Use context product or demo product
   const product = context.product || DEMO_PRODUCT;
   const fetcher = useFetcher();
-  const currency = context.store?.currency || 'BDT';
 
   // State
   const [selectedImage, setSelectedImage] = useState(0);
@@ -436,11 +435,11 @@ export default function TechModernProductMain({
       {/* Price */}
       <div className="flex items-baseline gap-3 mb-6">
         <span className="text-3xl font-bold" style={{ color: THEME.accent }}>
-          {formatPrice(currentPrice)}
+          {formatPrice(currentPrice, context.store?.currency)}
         </span>
         {comparePrice && (
           <span className="text-xl line-through" style={{ color: THEME.muted }}>
-            {formatPrice(comparePrice)}
+            {formatPrice(comparePrice, context.store?.currency)}
           </span>
         )}
       </div>

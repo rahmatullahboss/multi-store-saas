@@ -5,7 +5,9 @@
       "settings": {
         "show_announcement": true,
         "announcement_text": "Welcome to Nova Lux",
-        "announcement_link": "/collections/all"
+        "announcement_link": "/collections/all",
+        "show_wishlist": true,
+        "show_account": true
       }
     },
     "hero": {
@@ -25,9 +27,5 @@
       }
     }
   },
-  "order": [
-    "header",
-    "hero",
-    "footer"
-  ]
+  "order": ["header", "hero", "footer"]
 }

@@ -155,12 +155,14 @@ const DEMO_CART_ITEMS: CartItem[] = [
 function CartItemRow({
   item,
   theme,
+  currency,
   onUpdateQuantity,
   onRemove,
   isUpdating,
 }: {
   item: CartItem;
   theme?: ThemeConfig;
+  currency?: string;
   onUpdateQuantity: (id: string, quantity: number) => void;
   onRemove: (id: string) => void;
   isUpdating: boolean;
@@ -220,12 +222,12 @@ function CartItemRow({
         {/* Price */}
         <div className="flex items-center gap-2 mt-2">
           <span className="font-bold" style={{ color: primaryColor }}>
-            {formatPrice(item.price)}
+            {formatPrice(item.price, currency)}
           </span>
           {item.compareAtPrice && (
             <>
               <span className="text-sm line-through" style={{ color: mutedColor }}>
-                {formatPrice(item.compareAtPrice)}
+                {formatPrice(item.compareAtPrice, currency)}
               </span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
                 -{discount}%
@@ -267,7 +269,7 @@ function CartItemRow({
               মোট
             </p>
             <p className="font-bold" style={{ color: textColor }}>
-              {formatPrice((item.price ?? 0) * item.quantity)}
+              {formatPrice((item.price ?? 0) * item.quantity, currency)}
             </p>
           </div>
 
@@ -414,6 +416,7 @@ export default function CartItems({ section, context, settings }: SectionCompone
                 key={item.id}
                 item={item}
                 theme={context.theme}
+                currency={context.store?.currency}
                 onUpdateQuantity={handleUpdateQuantity}
                 onRemove={handleRemove}
                 isUpdating={isUpdating}

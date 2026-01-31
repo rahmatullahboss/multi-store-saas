@@ -8,18 +8,31 @@
         "show_announcement": false,
         "show_search": true,
         "show_cart": false,
-        "menu_style": "minimal"
+        "menu_style": "minimal",
+        "show_wishlist": true,
+        "show_account": true
       }
     },
-    "hero": {
-      "type": "hero-banner",
+    "cart-items": {
+      "type": "cart-items",
       "settings": {
         "heading": "Shopping Cart",
-        "subheading": "Review your selected items before checkout.",
-        "button_text": "",
-        "button_link": "",
-        "overlay_opacity": 20,
-        "height": "small"
+        "show_continue_shopping": true,
+        "empty_cart_heading": "Your cart is empty",
+        "empty_cart_text": "Discover our exclusive collection",
+        "background_color": "#faf9f7"
+      }
+    },
+    "cart-summary": {
+      "type": "cart-summary",
+      "settings": {
+        "heading": "Order Summary",
+        "show_coupon_input": true,
+        "show_shipping_estimate": true,
+        "shipping_text": "Free shipping on orders over ৳5,000",
+        "checkout_button": "Proceed to Checkout",
+        "show_secure_badge": true,
+        "background_color": "#ffffff"
       }
     },
     "footer": {
@@ -30,5 +43,5 @@
       }
     }
   },
-  "order": ["header", "hero", "footer"]
+  "order": ["header", "cart-items", "cart-summary", "footer"]
 }

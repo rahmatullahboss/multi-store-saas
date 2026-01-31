@@ -137,7 +137,6 @@ export default function LuxeFeaturedCollection({
   const { products = [], getLink, store } = context;
 
   const displayProducts = products.slice(0, config.products_to_show);
-  const currency = store.currency || 'BDT';
 
   const gridCols = config.columns === '3' ? 'lg:grid-cols-3' : 'lg:grid-cols-4';
 
@@ -241,11 +240,11 @@ export default function LuxeFeaturedCollection({
                   </h3>
                   <div className="flex items-center justify-center gap-2">
                     <span className="font-semibold" style={{ color: THEME.primary }}>
-                      {formatPrice(product.price)}
+                      {formatPrice(product.price, store?.currency)}
                     </span>
                     {isSale && (
                       <span className="text-sm line-through" style={{ color: THEME.muted }}>
-                        {formatPrice(product.compareAtPrice!)}
+                        {formatPrice(product.compareAtPrice, store?.currency)}
                       </span>
                     )}
                   </div>

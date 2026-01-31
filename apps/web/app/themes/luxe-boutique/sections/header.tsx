@@ -9,7 +9,7 @@
  */
 
 import type { SectionSchema, SectionComponentProps } from '~/lib/theme-engine/types';
-import { Search, Heart, ShoppingBag, Menu, X } from 'lucide-react';
+import { Search, Heart, User, ShoppingBag, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
 // ============================================================================
@@ -75,6 +75,12 @@ export const schema: SectionSchema = {
     },
     {
       type: 'checkbox',
+      id: 'show_account',
+      label: 'Show account icon',
+      default: true,
+    },
+    {
+      type: 'checkbox',
       id: 'show_gold_line',
       label: 'Show gold accent line',
       default: true,
@@ -101,6 +107,7 @@ export const schema: SectionSchema = {
         show_search: true,
         show_wishlist: true,
         show_cart: true,
+        show_account: true,
         show_gold_line: true,
         menu_style: 'minimal',
       },
@@ -119,6 +126,7 @@ interface HeaderSettings {
   show_search: boolean;
   show_wishlist: boolean;
   show_cart: boolean;
+  show_account: boolean;
   show_gold_line: boolean;
   menu_style: 'minimal' | 'full';
 }
@@ -150,6 +158,9 @@ export default function LuxeHeader({
   const [searchOpen, setSearchOpen] = useState(false);
 
   const { store, collections = [], getLink } = context;
+
+  const cartCount = context.cart?.itemCount || 0;
+  const wishlistCount = context.wishlist?.count || 0;
   const categories = collections
     .map((c: { title?: string }) => c.title)
     .filter((t): t is string => Boolean(t))
@@ -245,10 +256,27 @@ export default function LuxeHeader({
               {settings.show_wishlist && (
                 <a
                   href={getLink?.('/wishlist') || '/wishlist'}
-                  className="hidden sm:block p-2 rounded-full transition-colors hover:bg-gray-100"
+                  className="hidden sm:block p-2 rounded-full transition-colors hover:bg-gray-100 relative"
                   aria-label="Wishlist"
                 >
                   <Heart className="w-5 h-5" style={{ color: THEME.text }} />
+                  {wishlistCount > 0 && (
+                    <span
+                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center"
+                      style={{ backgroundColor: THEME.accent, color: THEME.primary }}
+                    >
+                      {wishlistCount > 9 ? '9+' : wishlistCount}
+                    </span>
+                  )}
+                </a>
+              )}
+              {settings.show_account && (
+                <a
+                  href={getLink?.('/auth/login') || '/auth/login'}
+                  className="hidden sm:block p-2 rounded-full transition-colors hover:bg-gray-100"
+                  aria-label="Account"
+                >
+                  <User className="w-5 h-5" style={{ color: THEME.text }} />
                 </a>
               )}
               {settings.show_cart && (
@@ -258,12 +286,14 @@ export default function LuxeHeader({
                   aria-label="Cart"
                 >
                   <ShoppingBag className="w-5 h-5" style={{ color: THEME.text }} />
-                  <span
-                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center"
-                    style={{ backgroundColor: THEME.accent, color: THEME.primary }}
-                  >
-                    0
-                  </span>
+                  {cartCount > 0 && (
+                    <span
+                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center"
+                      style={{ backgroundColor: THEME.accent, color: THEME.primary }}
+                    >
+                      {cartCount > 9 ? '9+' : cartCount}
+                    </span>
+                  )}
                 </a>
               )}
             </div>
@@ -308,6 +338,33 @@ export default function LuxeHeader({
                   {category}
                 </a>
               ))}
+              <hr className="my-2 border-gray-200" />
+              {settings.show_wishlist && (
+                <a
+                  href={getLink?.('/wishlist') || '/wishlist'}
+                  className="flex items-center justify-between w-full text-left px-6 py-3 text-sm font-medium uppercase tracking-wide"
+                  style={{ color: THEME.text }}
+                >
+                  <span>Wishlist</span>
+                  {wishlistCount > 0 && (
+                    <span
+                      className="px-2 py-0.5 rounded-full text-xs font-bold"
+                      style={{ backgroundColor: THEME.accent, color: THEME.primary }}
+                    >
+                      {wishlistCount > 9 ? '9+' : wishlistCount}
+                    </span>
+                  )}
+                </a>
+              )}
+              {settings.show_account && (
+                <a
+                  href={getLink?.('/auth/login') || '/auth/login'}
+                  className="block w-full text-left px-6 py-3 text-sm font-medium uppercase tracking-wide"
+                  style={{ color: THEME.text }}
+                >
+                  Account / Login
+                </a>
+              )}
             </nav>
           </div>
         )}

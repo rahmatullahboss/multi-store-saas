@@ -25,6 +25,9 @@ import LuxeFeaturedCollection, {
 } from './sections/featured-collection';
 import LuxeTrustBadges, { schema as trustBadgesSchema } from './sections/trust-badges';
 import LuxeFooter, { schema as footerSchema } from './sections/footer';
+import LuxeProductMain, { schema as productMainSchema } from './sections/product-main';
+import LuxeCartItems, { schema as cartItemsSchema } from './sections/cart-items';
+import LuxeCartSummary, { schema as cartSummarySchema } from './sections/cart-summary';
 
 // ============================================================================
 // THEME METADATA
@@ -158,6 +161,21 @@ export const SECTIONS: SectionRegistry = {
     schema: trustBadgesSchema,
     component: LuxeTrustBadges,
   },
+  'product-main': {
+    type: 'product-main',
+    schema: productMainSchema,
+    component: LuxeProductMain,
+  },
+  'cart-items': {
+    type: 'cart-items',
+    schema: cartItemsSchema,
+    component: LuxeCartItems,
+  },
+  'cart-summary': {
+    type: 'cart-summary',
+    schema: cartSummarySchema,
+    component: LuxeCartSummary,
+  },
   footer: {
     type: 'footer',
     schema: footerSchema,
@@ -176,6 +194,9 @@ export {
   LuxeFeaturedCollection,
   LuxeTrustBadges,
   LuxeFooter,
+  LuxeProductMain,
+  LuxeCartItems,
+  LuxeCartSummary,
 
   // Section Schemas
   headerSchema,
@@ -183,6 +204,9 @@ export {
   featuredCollectionSchema,
   trustBadgesSchema,
   footerSchema,
+  productMainSchema,
+  cartItemsSchema,
+  cartSummarySchema,
 };
 
 // Default export for theme loading

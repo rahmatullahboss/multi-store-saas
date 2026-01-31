@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { Link } from '@remix-run/react';
 import { ShoppingCart, Search, Menu, X, Heart, User, Globe } from 'lucide-react';
 import type { SectionSchema, SectionComponentProps } from '~/lib/theme-engine/types';
+import { useLanguage } from '~/contexts/LanguageContext';
 
 // ============================================================================
 // SCHEMA
@@ -163,6 +164,8 @@ export default function Header({ section, context, settings }: SectionComponentP
   const [searchQuery, setSearchQuery] = useState('');
   const [langMenuOpen, setLangMenuOpen] = useState(false);
 
+  const { lang, setLang, t } = useLanguage();
+
   const storeName = context.store?.name || 'Store';
   const categories = context.collections?.map((c) => c.title).filter(Boolean) || [];
   const cartCount = context.cart?.itemCount || 0;
@@ -190,7 +193,7 @@ export default function Header({ section, context, settings }: SectionComponentP
               <button
                 onClick={() => setMobileMenuOpen(true)}
                 className="lg:hidden p-2 -ml-2 hover:opacity-70 transition"
-                aria-label="Open menu"
+                aria-label={t('openMenu')}
               >
                 <Menu className="w-6 h-6" style={{ color: text_color }} />
               </button>
@@ -218,14 +221,14 @@ export default function Header({ section, context, settings }: SectionComponentP
                 className="text-sm font-medium hover:opacity-70 transition"
                 style={{ color: text_color }}
               >
-                হোম
+                {t('home')}
               </Link>
               <Link
                 to="/products"
                 className="text-sm font-medium hover:opacity-70 transition"
                 style={{ color: text_color }}
               >
-                সব পণ্য
+                {t('allProducts')}
               </Link>
               {categories.slice(0, 6).map((cat) => (
                 <Link
@@ -247,22 +250,34 @@ export default function Header({ section, context, settings }: SectionComponentP
                   <button
                     onClick={() => setLangMenuOpen(!langMenuOpen)}
                     className="p-2 hover:opacity-70 transition flex items-center gap-1"
-                    aria-label="Change language"
+                    aria-label={t('changeLanguage')}
                   >
                     <Globe className="w-5 h-5" style={{ color: text_color }} />
                     <span
                       className="text-xs font-medium hidden xl:inline"
                       style={{ color: text_color }}
                     >
-                      English
+                      {lang === 'en' ? 'English' : 'বাংলা'}
                     </span>
                   </button>
                   {langMenuOpen && (
                     <div className="absolute right-0 top-full mt-1 w-32 bg-white rounded-lg shadow-lg border py-1 z-50">
-                      <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 font-medium bg-gray-100">
+                      <button
+                        onClick={() => {
+                          setLang('en');
+                          setLangMenuOpen(false);
+                        }}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${lang === 'en' ? 'font-medium bg-gray-100' : ''}`}
+                      >
                         English
                       </button>
-                      <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50">
+                      <button
+                        onClick={() => {
+                          setLang('bn');
+                          setLangMenuOpen(false);
+                        }}
+                        className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${lang === 'bn' ? 'font-medium bg-gray-100' : ''}`}
+                      >
                         বাংলা
                       </button>
                     </div>
@@ -275,7 +290,7 @@ export default function Header({ section, context, settings }: SectionComponentP
                 <button
                   onClick={() => setSearchOpen(true)}
                   className="p-2 hover:opacity-70 transition"
-                  aria-label="Search"
+                  aria-label={t('searchProducts')}
                 >
                   <Search className="w-5 h-5" style={{ color: text_color }} />
                 </button>
@@ -286,7 +301,7 @@ export default function Header({ section, context, settings }: SectionComponentP
                 <Link
                   to="/wishlist"
                   className="p-2 hover:opacity-70 transition relative hidden md:block"
-                  aria-label="Wishlist"
+                  aria-label={t('viewWishlist')}
                 >
                   <Heart className="w-5 h-5" style={{ color: text_color }} />
                   {wishlistCount > 0 && (
@@ -305,7 +320,7 @@ export default function Header({ section, context, settings }: SectionComponentP
                 <Link
                   to="/auth/login"
                   className="p-2 hover:opacity-70 transition hidden md:block"
-                  aria-label="Account"
+                  aria-label={t('viewAccount')}
                 >
                   <User className="w-5 h-5" style={{ color: text_color }} />
                 </Link>
@@ -316,7 +331,7 @@ export default function Header({ section, context, settings }: SectionComponentP
                 <Link
                   to="/cart"
                   className="p-2 hover:opacity-70 transition relative"
-                  aria-label="Cart"
+                  aria-label={t('viewCart')}
                 >
                   <ShoppingCart className="w-5 h-5" style={{ color: text_color }} />
                   {cartCount > 0 && (
@@ -361,7 +376,7 @@ export default function Header({ section, context, settings }: SectionComponentP
                   borderColor: context.theme?.colors?.border || '#e5e7eb',
                 }}
               >
-                হোম
+                {t('home')}
               </Link>
               <Link
                 to="/products"
@@ -372,7 +387,7 @@ export default function Header({ section, context, settings }: SectionComponentP
                   borderColor: context.theme?.colors?.border || '#e5e7eb',
                 }}
               >
-                সব পণ্য
+                {t('allProducts')}
               </Link>
               {categories.map((cat) => (
                 <Link
@@ -398,7 +413,9 @@ export default function Header({ section, context, settings }: SectionComponentP
                 style={{ color: text_color }}
               >
                 <Heart className="w-5 h-5" />
-                <span>Wishlist ({wishlistCount})</span>
+                <span>
+                  {t('wishlist')} ({wishlistCount})
+                </span>
               </Link>
               <Link
                 to="/auth/login"
@@ -407,7 +424,7 @@ export default function Header({ section, context, settings }: SectionComponentP
                 style={{ color: text_color }}
               >
                 <User className="w-5 h-5" />
-                <span>Account</span>
+                <span>{t('account')}</span>
               </Link>
             </div>
           </div>
@@ -427,7 +444,7 @@ export default function Header({ section, context, settings }: SectionComponentP
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="পণ্য খুঁজুন..."
+                placeholder={t('search') + '...'}
                 autoFocus
                 className="flex-1 px-4 py-3 rounded-lg border focus:outline-none focus:ring-2"
                 style={{

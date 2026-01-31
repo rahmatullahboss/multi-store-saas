@@ -11,6 +11,7 @@
         "show_search": true,
         "show_cart": true,
         "show_wishlist": true,
+        "show_account": true,
         "menu_style": "minimal"
       }
     },

@@ -289,7 +289,7 @@ export default function CartSummary({ section, context, settings }: SectionCompo
         <div className="flex justify-between">
           <span style={{ color: mutedColor }}>সাবটোটাল ({cart.itemCount} আইটেম)</span>
           <span className="font-medium" style={{ color: textColor }}>
-            {formatPrice(cart.subtotal)}
+            {formatPrice(cart.subtotal, context.store?.currency)}
           </span>
         </div>
 
@@ -297,7 +297,7 @@ export default function CartSummary({ section, context, settings }: SectionCompo
           <div className="flex justify-between">
             <span style={{ color: successColor }}>ডিসকাউন্ট</span>
             <span className="font-medium" style={{ color: successColor }}>
-              -{formatPrice(discountTotal)}
+              -{formatPrice(discountTotal, context.store?.currency)}
             </span>
           </div>
         )}
@@ -308,7 +308,7 @@ export default function CartSummary({ section, context, settings }: SectionCompo
             className="font-medium"
             style={{ color: isFreeShipping ? successColor : textColor }}
           >
-            {isFreeShipping ? 'ফ্রি' : formatPrice(shippingCost)}
+            {isFreeShipping ? 'ফ্রি' : formatPrice(shippingCost, context.store?.currency)}
           </span>
         </div>
 
@@ -318,7 +318,7 @@ export default function CartSummary({ section, context, settings }: SectionCompo
               মোট
             </span>
             <span className="text-lg font-bold" style={{ color: primaryColor }}>
-              {formatPrice(total)}
+              {formatPrice(total, context.store?.currency)}
             </span>
           </div>
         </div>
@@ -336,8 +336,8 @@ export default function CartSummary({ section, context, settings }: SectionCompo
               shipping_text
             ) : (
               <>
-                আরো {formatPrice(shippingThreshold - (cart.subtotal ?? 0))} অর্ডার করলে ফ্রি
-                ডেলিভারি
+                আরো {formatPrice(shippingThreshold - (cart.subtotal ?? 0), context.store?.currency)}{' '}
+                অর্ডার করলে ফ্রি ডেলিভারি
               </>
             )}
           </span>

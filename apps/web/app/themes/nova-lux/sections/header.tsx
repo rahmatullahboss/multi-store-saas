@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
-import { ShoppingBag, Search, Menu, X, Sparkles } from 'lucide-react';
+import { ShoppingBag, Search, Menu, X, Sparkles, Heart, User } from 'lucide-react';
 import type { SectionComponentProps, SectionSchema } from '~/lib/theme-engine/types';
 import { NOVALUX_THEME } from '../index';
 
@@ -36,6 +36,18 @@ export const schema: SectionSchema = {
       label: 'Menu',
       default: 'main-menu',
     },
+    {
+      type: 'checkbox',
+      id: 'show_wishlist',
+      label: 'Show Wishlist',
+      default: true,
+    },
+    {
+      type: 'checkbox',
+      id: 'show_account',
+      label: 'Show Account',
+      default: true,
+    },
   ],
 };
 
@@ -47,9 +59,13 @@ export default function NovaLuxHeader({ context, settings }: SectionComponentPro
   const { store, getLink } = context;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const cartItemCount = 0; // Use cart context in production
+  const cartCount = context.cart?.itemCount || 0;
+  const wishlistCount = context.wishlist?.count || 0;
 
   const theme = NOVALUX_THEME.config;
+
+  const showWishlist = settings.show_wishlist !== false;
+  const showAccount = settings.show_account !== false;
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -165,12 +181,39 @@ export default function NovaLuxHeader({ context, settings }: SectionComponentPro
             <button className="p-2.5 rounded-full transition-all duration-300 hover:bg-gray-100">
               <Search className="w-5 h-5" style={{ color: THEME_COLORS.text }} />
             </button>
+            {showWishlist && (
+              <Link
+                to={getLink('/wishlist')}
+                className="p-2.5 rounded-full transition-all duration-300 hover:bg-gray-100 relative"
+              >
+                <Heart className="w-5 h-5" style={{ color: THEME_COLORS.text }} />
+                {wishlistCount > 0 && (
+                  <span
+                    className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center"
+                    style={{
+                      background: THEME_COLORS.accentGradient,
+                      color: THEME_COLORS.primary,
+                    }}
+                  >
+                    {wishlistCount > 9 ? '9+' : wishlistCount}
+                  </span>
+                )}
+              </Link>
+            )}
+            {showAccount && (
+              <Link
+                to={getLink('/auth/login')}
+                className="p-2.5 rounded-full transition-all duration-300 hover:bg-gray-100"
+              >
+                <User className="w-5 h-5" style={{ color: THEME_COLORS.text }} />
+              </Link>
+            )}
             <Link
               to={getLink('/cart')}
               className="p-2.5 rounded-full transition-all duration-300 hover:bg-gray-100 relative"
             >
               <ShoppingBag className="w-5 h-5" style={{ color: THEME_COLORS.text }} />
-              {cartItemCount > 0 && (
+              {cartCount > 0 && (
                 <span
                   className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center"
                   style={{
@@ -178,7 +221,7 @@ export default function NovaLuxHeader({ context, settings }: SectionComponentPro
                     color: THEME_COLORS.primary,
                   }}
                 >
-                  {cartItemCount}
+                  {cartCount > 9 ? '9+' : cartCount}
                 </span>
               )}
             </Link>
@@ -206,6 +249,27 @@ export default function NovaLuxHeader({ context, settings }: SectionComponentPro
                 {category}
               </Link>
             ))}
+            <hr className="my-2" />
+            {showWishlist && (
+              <Link
+                to={getLink('/wishlist')}
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-left py-2 font-medium flex items-center gap-2"
+              >
+                <Heart className="w-4 h-4" />
+                Wishlist {wishlistCount > 0 && `(${wishlistCount > 9 ? '9+' : wishlistCount})`}
+              </Link>
+            )}
+            {showAccount && (
+              <Link
+                to={getLink('/auth/login')}
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-left py-2 font-medium flex items-center gap-2"
+              >
+                <User className="w-4 h-4" />
+                Account
+              </Link>
+            )}
           </nav>
         </div>
       )}

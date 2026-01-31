@@ -7,6 +7,8 @@ export const common = {
   login: 'লগইন',
   register: 'নিবন্ধন',
   logout: 'লগআউট',
+  wishlist: 'উইশলিস্ট',
+  account: 'অ্যাকাউন্ট',
 
   // Common Actions
   loading: 'লোড হচ্ছে...',
@@ -27,6 +29,14 @@ export const common = {
   none: 'কিছুই না',
   yes: 'হ্যাঁ',
   no: 'না',
+
+  // Aria Labels
+  openMenu: 'মেনু খুলুন',
+  changeLanguage: 'ভাষা পরিবর্তন করুন',
+  searchProducts: 'অনুসন্ধান',
+  viewWishlist: 'উইশলিস্ট',
+  viewAccount: 'অ্যাকাউন্ট',
+  viewCart: 'কার্ট',
   retry: 'আবার চেষ্টা করুন',
   startOver: 'আবার শুরু করুন',
   back: 'পিছনে',
@@ -184,7 +194,7 @@ export const common = {
   chooseStyle: 'আপনার স্টাইল বেছে নিন',
   alreadyHaveAccount: 'ইতিমধ্যে একাউন্ট আছে?',
   emailAlreadyRegistered: 'এই ইমেলটি ইতিপূর্বে নিবন্ধিত হয়েছে। অনুগ্রহ করে লগইন করুন।',
-  noAccount: "কোনো একাউন্ট নেই?",
+  noAccount: 'কোনো একাউন্ট নেই?',
   stepAccount: 'একাউন্ট',
   stepBusiness: 'ব্যবসা',
   stepPlan: 'প্ল্যান',
@@ -200,7 +210,8 @@ export const common = {
   storeUrlLabel: 'স্টোর URL',
   useCustomSubdomainLabel: 'কাস্টম সাবডোমেইন ব্যবহার করুন',
   subdomainPlaceholder: 'আপনার-স্টোর',
-  subdomainHint: 'শুধুমাত্র ইংরেজি ছোট হাতের অক্ষর, সংখ্যা এবং হাইফেন ব্যবহার করা যাবে। এটিই হবে আপনার স্টোরের লিঙ্ক।',
+  subdomainHint:
+    'শুধুমাত্র ইংরেজি ছোট হাতের অক্ষর, সংখ্যা এবং হাইফেন ব্যবহার করা যাবে। এটিই হবে আপনার স্টোরের লিঙ্ক।',
   creatingStoreBtn: 'আপনার স্টোর তৈরি হচ্ছে...',
   createStoreBtn: 'স্টোর তৈরি করুন',
   loginHere: 'এখানে লগইন করুন',
@@ -217,7 +228,8 @@ export const common = {
   registrationFailed: 'নিবন্ধনকরণ ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',
   registrationFailedGeneric: 'নিবন্ধন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',
   storeCreationFailed: 'স্টোর তৈরি করতে ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',
-  accountCreatedLoginFailed: 'একাউন্ট তৈরি হয়েছে কিন্তু লগইন করতে ব্যর্থ হয়েছে। অনুগ্রহ করে লগইন করার চেষ্টা করুন।',
+  accountCreatedLoginFailed:
+    'একাউন্ট তৈরি হয়েছে কিন্তু লগইন করতে ব্যর্থ হয়েছে। অনুগ্রহ করে লগইন করার চেষ্টা করুন।',
   aiCredits: 'AI ক্রেডিট',
   manageCredits: 'ক্রেডিট ম্যানেজ',
   invalidCredentials: 'ভুল ইমেল বা পাসওয়ার্ড',
@@ -281,7 +293,8 @@ export const common = {
 
   // Password Reset
   forgotPassword: 'পাসওয়ার্ড ভুলে গেছেন?',
-  enterEmailForReset: 'আপনার ইমেল ঠিকানা লিখুন এবং আমরা আপনাকে পাসওয়ার্ড রিসেট করার একটি লিঙ্ক পাঠাব।',
+  enterEmailForReset:
+    'আপনার ইমেল ঠিকানা লিখুন এবং আমরা আপনাকে পাসওয়ার্ড রিসেট করার একটি লিঙ্ক পাঠাব।',
   sendResetLink: 'রিসেট লিঙ্ক পাঠান',
   backToLogin: 'লগইনে ফিরে যান',
   resetPassword: 'পাসওয়ার্ড রিসেট করুন',

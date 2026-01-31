@@ -275,7 +275,6 @@ export default function NovaLuxProductMain({
   // Use context product or demo product
   const product = context.product || DEMO_PRODUCT;
   const fetcher = useFetcher();
-  const currency = context.store?.currency || 'BDT';
 
   // State
   const [selectedImage, setSelectedImage] = useState(0);
@@ -411,11 +410,11 @@ export default function NovaLuxProductMain({
           className="text-2xl md:text-3xl font-medium"
           style={{ color: THEME.primary, fontFamily: "'Cormorant Garamond', Georgia, serif" }}
         >
-          {formatPrice(currentPrice)}
+          {formatPrice(currentPrice, context.store?.currency)}
         </span>
         {comparePrice && (
           <span className="text-lg line-through" style={{ color: THEME.muted }}>
-            {formatPrice(comparePrice)}
+            {formatPrice(comparePrice, context.store?.currency)}
           </span>
         )}
       </div>

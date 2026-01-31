@@ -8,7 +8,9 @@
         "show_announcement": false,
         "show_search": true,
         "show_cart": true,
-        "menu_style": "minimal"
+        "menu_style": "minimal",
+        "show_wishlist": true,
+        "show_account": true
       }
     },
     "hero": {

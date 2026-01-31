@@ -132,7 +132,6 @@ export default function TechFeaturedProducts({
   const { products = [], getLink, store } = context;
 
   const displayProducts = products.slice(0, config.products_to_show);
-  const currency = store.currency || 'BDT';
 
   const gridCols = config.columns === '3' ? 'lg:grid-cols-3' : 'lg:grid-cols-4';
 
@@ -250,11 +249,11 @@ export default function TechFeaturedProducts({
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-xl font-bold" style={{ color: THEME.primary }}>
-                        {formatPrice(product.price)}
+                        {formatPrice(product.price, store?.currency)}
                       </span>
                       {isSale && (
                         <span className="text-sm line-through ml-2" style={{ color: THEME.muted }}>
-                          {formatPrice(product.compareAtPrice!)}
+                          {formatPrice(product.compareAtPrice, store?.currency)}
                         </span>
                       )}
                     </div>

@@ -150,7 +150,6 @@ export default function LuxeCartItems({ section, context, settings }: SectionCom
   } = settings as unknown as LuxeCartItemsSettings;
 
   const cartItems = context.cart?.items || DEMO_CART;
-  const currency = context.store?.currency || 'BDT';
   const fetcher = useFetcher();
 
   const updateQuantity = (itemId: string, newQuantity: number) => {
@@ -275,7 +274,7 @@ export default function LuxeCartItems({ section, context, settings }: SectionCom
                     </p>
                   )}
                   <p className="text-sm font-medium" style={{ color: THEME.primary }}>
-                    {formatPrice(item.price)}
+                    {formatPrice(item.price, context.store?.currency)}
                   </p>
                 </div>
 
@@ -315,7 +314,7 @@ export default function LuxeCartItems({ section, context, settings }: SectionCom
               {/* Line Total (Desktop) */}
               <div className="hidden md:block text-right min-w-[100px]">
                 <span className="text-sm font-medium" style={{ color: THEME.primary }}>
-                  {formatPrice(item.price * item.quantity)}
+                  {formatPrice(item.price * item.quantity, context.store?.currency)}
                 </span>
               </div>
             </div>

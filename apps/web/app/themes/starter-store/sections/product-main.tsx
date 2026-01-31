@@ -442,12 +442,12 @@ export default function ProductMain({ section, context, settings, blocks }: Sect
       {/* Price */}
       <div className="flex items-center gap-3 mb-6">
         <span className="text-3xl font-bold" style={{ color: primaryColor }}>
-          {formatPrice(currentPrice)}
+          {formatPrice(currentPrice, context.store?.currency)}
         </span>
         {comparePrice && (
           <>
             <span className="text-xl line-through" style={{ color: mutedColor }}>
-              {formatPrice(comparePrice)}
+              {formatPrice(comparePrice, context.store?.currency)}
             </span>
             <span
               className="px-2 py-1 text-sm font-medium rounded-full text-white"

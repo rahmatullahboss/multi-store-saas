@@ -159,6 +159,12 @@ export const schema: SectionSchema = {
       label: 'Show wishlist icon',
       default: true,
     },
+    {
+      type: 'checkbox',
+      id: 'show_account',
+      label: 'Show account icons',
+      default: true,
+    },
   ],
 
   blocks: [
@@ -214,6 +220,7 @@ interface HeaderSettings {
   show_category_nav: boolean;
   max_categories: number;
   show_wishlist: boolean;
+  show_account: boolean;
 }
 
 // ============================================================================
@@ -237,6 +244,7 @@ export default function DarazHeader({ section, context, settings }: SectionCompo
     show_category_nav = true,
     max_categories = 8,
     show_wishlist = true,
+    show_account = true,
   } = config;
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -245,6 +253,7 @@ export default function DarazHeader({ section, context, settings }: SectionCompo
   // Get store data from context
   const storeName = context.store?.name || 'Store';
   const cartCount = context.cart?.itemCount || 0;
+  const wishlistCount = context.wishlist?.count || 0;
 
   // Get categories from collections
   const categories: string[] = (context.collections || [])
@@ -357,32 +366,45 @@ export default function DarazHeader({ section, context, settings }: SectionCompo
               aria-label="Cart"
             >
               <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" />
-              <span
-                className="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 min-w-[18px] h-[18px] md:min-w-[20px] md:h-[20px] px-1 rounded-full flex items-center justify-center text-[10px] md:text-xs font-bold"
-                style={{ backgroundColor: badge_bg, color: '#212121' }}
-              >
-                {cartCount}
-              </span>
+              {cartCount > 0 && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 min-w-[18px] h-[18px] md:min-w-[20px] md:h-[20px] px-1 rounded-full flex items-center justify-center text-[10px] md:text-xs font-bold"
+                  style={{ backgroundColor: badge_bg, color: '#212121' }}
+                >
+                  {cartCount > 99 ? '99+' : cartCount}
+                </span>
+              )}
             </Link>
 
             {/* Wishlist - Desktop only */}
-            {show_wishlist && (
-              <button
+            {show_wishlist && show_account && (
+              <Link
+                to="/wishlist"
                 className="hidden md:flex p-2 text-white hover:bg-white/10 rounded transition-colors relative cursor-pointer"
                 aria-label="Wishlist"
               >
                 <Heart className="h-6 w-6" />
-              </button>
+                {wishlistCount > 0 && (
+                  <span
+                    className="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 min-w-[18px] h-[18px] md:min-w-[20px] md:h-[20px] px-1 rounded-full flex items-center justify-center text-[10px] md:text-xs font-bold"
+                    style={{ backgroundColor: badge_bg, color: '#212121' }}
+                  >
+                    {wishlistCount > 99 ? '99+' : wishlistCount}
+                  </span>
+                )}
+              </Link>
             )}
 
             {/* User - Desktop only */}
-            <Link
-              to="/auth/login"
-              className="hidden md:flex p-2 text-white hover:bg-white/10 rounded transition-colors cursor-pointer"
-              aria-label="Account"
-            >
-              <User className="h-6 w-6" />
-            </Link>
+            {show_account && (
+              <Link
+                to="/auth/login"
+                className="hidden md:flex p-2 text-white hover:bg-white/10 rounded transition-colors cursor-pointer"
+                aria-label="Account"
+              >
+                <User className="h-6 w-6" />
+              </Link>
+            )}
           </div>
         </div>
 
@@ -444,6 +466,23 @@ export default function DarazHeader({ section, context, settings }: SectionCompo
               {/* Divider */}
               <div className="h-px bg-gray-200 my-2" />
 
+              {/* Wishlist */}
+              {show_wishlist && show_account && (
+                <Link
+                  to="/wishlist"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm cursor-pointer text-gray-500"
+                >
+                  <Heart className="w-5 h-5" />
+                  Wishlist
+                  {wishlistCount > 0 && (
+                    <span className="ml-auto text-xs bg-gray-200 px-2 py-0.5 rounded-full">
+                      {wishlistCount > 99 ? '99+' : wishlistCount}
+                    </span>
+                  )}
+                </Link>
+              )}
+
               {/* Help & Support */}
               <a
                 href="#support"
@@ -454,14 +493,16 @@ export default function DarazHeader({ section, context, settings }: SectionCompo
               </a>
 
               {/* Login */}
-              <Link
-                to="/auth/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm cursor-pointer text-gray-500"
-              >
-                <User className="w-5 h-5" />
-                Login / Sign Up
-              </Link>
+              {show_account && (
+                <Link
+                  to="/auth/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm cursor-pointer text-gray-500"
+                >
+                  <User className="w-5 h-5" />
+                  Login / Sign Up
+                </Link>
+              )}
             </div>
           </div>
         )}

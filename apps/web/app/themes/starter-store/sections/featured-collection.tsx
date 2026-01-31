@@ -140,7 +140,15 @@ export interface FeaturedCollectionSettings {
 }
 
 // Product Card Component (internal)
-function ProductCard({ product, theme }: { product: SerializedProduct; theme?: any }) {
+function ProductCard({
+  product,
+  theme,
+  currency,
+}: {
+  product: SerializedProduct;
+  theme?: any;
+  currency?: string;
+}) {
   const discount = product.compareAtPrice
     ? Math.round((1 - product.price / product.compareAtPrice) * 100)
     : 0;
@@ -190,11 +198,11 @@ function ProductCard({ product, theme }: { product: SerializedProduct; theme?: a
           </h3>
           <div className="flex items-center gap-2">
             <span className="font-bold" style={{ color: primaryColor }}>
-              {formatPrice(product.price)}
+              {formatPrice(product.price, currency)}
             </span>
             {product.compareAtPrice && (
               <span className="text-sm line-through" style={{ color: mutedColor }}>
-                {formatPrice(product.compareAtPrice)}
+                {formatPrice(product.compareAtPrice, currency)}
               </span>
             )}
           </div>
@@ -307,7 +315,12 @@ export default function FeaturedCollection({ section, context, settings }: Secti
         {/* Products Grid */}
         <div className={`grid grid-cols-2 ${gridCols} gap-4 md:gap-6`}>
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} theme={context.theme} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              theme={context.theme}
+              currency={context.store?.currency}
+            />
           ))}
         </div>
       </div>

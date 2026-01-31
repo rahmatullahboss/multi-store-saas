@@ -5,6 +5,8 @@ import NovaLuxHeader, { schema as headerSchema } from './sections/header';
 import NovaLuxFooter, { schema as footerSchema } from './sections/footer';
 import NovaLuxHeroBanner, { schema as heroBannerSchema } from './sections/hero-banner';
 import NovaLuxProductMain, { schema as productMainSchema } from './sections/product-main';
+import NovaLuxCartItems, { schema as cartItemsSchema } from './sections/cart-items';
+import NovaLuxCartSummary, { schema as cartSummarySchema } from './sections/cart-summary';
 
 // ============================================================================
 // THEME METADATA
@@ -105,6 +107,16 @@ export const SECTIONS: SectionRegistry = {
     type: 'product-main',
     schema: productMainSchema,
     component: NovaLuxProductMain,
+  },
+  'cart-items': {
+    type: 'cart-items',
+    schema: cartItemsSchema,
+    component: NovaLuxCartItems,
+  },
+  'cart-summary': {
+    type: 'cart-summary',
+    schema: cartSummarySchema,
+    component: NovaLuxCartSummary,
   },
   footer: {
     type: 'footer',

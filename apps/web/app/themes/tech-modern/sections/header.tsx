@@ -9,7 +9,7 @@
  */
 
 import type { SectionSchema, SectionComponentProps } from '~/lib/theme-engine/types';
-import { Search, ShoppingBag, Menu, X, Zap, ChevronRight } from 'lucide-react';
+import { Search, ShoppingBag, Menu, X, Zap, ChevronRight, Heart, User } from 'lucide-react';
 import { useState } from 'react';
 
 // ============================================================================
@@ -67,6 +67,18 @@ export const schema: SectionSchema = {
       label: 'Show cart button',
       default: true,
     },
+    {
+      type: 'checkbox',
+      id: 'show_wishlist',
+      label: 'Show wishlist button',
+      default: true,
+    },
+    {
+      type: 'checkbox',
+      id: 'show_account',
+      label: 'Show account button',
+      default: true,
+    },
   ],
 
   presets: [
@@ -93,6 +105,8 @@ interface HeaderSettings {
   announcement_link?: string;
   show_search: boolean;
   show_cart: boolean;
+  show_wishlist: boolean;
+  show_account: boolean;
 }
 
 // ============================================================================
@@ -120,8 +134,9 @@ export default function TechHeader({ section, context, settings }: SectionCompon
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { store, collections = [], getLink, cart } = context;
+  const { store, collections = [], getLink, cart, wishlist } = context;
   const cartCount = cart?.itemCount || 0;
+  const wishlistCount = wishlist?.count || 0;
 
   const categories = collections
     .map((c: { title?: string }) => c.title)
@@ -221,18 +236,54 @@ export default function TechHeader({ section, context, settings }: SectionCompon
               </div>
             )}
 
-            {/* Cart Button */}
-            {config.show_cart && (
-              <a
-                href={getLink?.('/cart') || '/cart'}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-colors"
-                style={{ backgroundColor: THEME.accent, color: 'white' }}
-              >
-                <ShoppingBag className="w-5 h-5" />
-                <span className="hidden sm:inline">Cart</span>
-                <span className="bg-white/20 px-2 py-0.5 rounded-full text-sm">{cartCount}</span>
-              </a>
-            )}
+            {/* Header Actions */}
+            <div className="flex items-center gap-2">
+              {/* Account Button */}
+              {config.show_account && (
+                <a
+                  href={getLink?.('/auth/login') || '/auth/login'}
+                  className="flex items-center justify-center w-10 h-10 rounded-xl border transition-colors hover:bg-gray-100"
+                  style={{ borderColor: THEME.border }}
+                  title="Account"
+                >
+                  <User className="w-5 h-5" style={{ color: THEME.text }} />
+                </a>
+              )}
+
+              {/* Wishlist Button */}
+              {config.show_wishlist && (
+                <a
+                  href={getLink?.('/wishlist') || '/wishlist'}
+                  className="flex items-center justify-center w-10 h-10 rounded-xl border transition-colors hover:bg-gray-100 relative"
+                  style={{ borderColor: THEME.border }}
+                  title="Wishlist"
+                >
+                  <Heart className="w-5 h-5" style={{ color: THEME.text }} />
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                      {wishlistCount > 9 ? '9+' : wishlistCount}
+                    </span>
+                  )}
+                </a>
+              )}
+
+              {/* Cart Button */}
+              {config.show_cart && (
+                <a
+                  href={getLink?.('/cart') || '/cart'}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-colors"
+                  style={{ backgroundColor: THEME.accent, color: 'white' }}
+                >
+                  <ShoppingBag className="w-5 h-5" />
+                  <span className="hidden sm:inline">Cart</span>
+                  {cartCount > 0 && (
+                    <span className="bg-white/20 px-2 py-0.5 rounded-full text-sm">
+                      {cartCount}
+                    </span>
+                  )}
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -282,6 +333,39 @@ export default function TechHeader({ section, context, settings }: SectionCompon
               </a>
             ))}
           </nav>
+
+          {/* Mobile Account & Wishlist */}
+          {(config.show_account || config.show_wishlist) && (
+            <div className="border-t py-2" style={{ borderColor: THEME.border }}>
+              {config.show_account && (
+                <a
+                  href={getLink?.('/auth/login') || '/auth/login'}
+                  className="flex items-center gap-3 px-4 py-3 font-medium"
+                  style={{ color: THEME.text }}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <User className="w-5 h-5" />
+                  Account
+                </a>
+              )}
+              {config.show_wishlist && (
+                <a
+                  href={getLink?.('/wishlist') || '/wishlist'}
+                  className="flex items-center gap-3 px-4 py-3 font-medium"
+                  style={{ color: THEME.text }}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Heart className="w-5 h-5" />
+                  Wishlist
+                  {wishlistCount > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                      {wishlistCount > 99 ? '99+' : wishlistCount}
+                    </span>
+                  )}
+                </a>
+              )}
+            </div>
+          )}
         </div>
       )}
     </header>

@@ -22,6 +22,8 @@ import TechFeaturedProducts, {
 import TechFeatures, { schema as featuresSchema } from './sections/features';
 import TechFooter, { schema as footerSchema } from './sections/footer';
 import TechProductMain, { schema as productMainSchema } from './sections/product-main';
+import TechCartItems, { schema as cartItemsSchema } from './sections/cart-items';
+import TechCartSummary, { schema as cartSummarySchema } from './sections/cart-summary';
 
 // ============================================================================
 // THEME METADATA
@@ -152,6 +154,16 @@ export const SECTIONS: SectionRegistry = {
     schema: productMainSchema,
     component: TechProductMain,
   },
+  'cart-items': {
+    type: 'cart-items',
+    schema: cartItemsSchema,
+    component: TechCartItems,
+  },
+  'cart-summary': {
+    type: 'cart-summary',
+    schema: cartSummarySchema,
+    component: TechCartSummary,
+  },
   footer: {
     type: 'footer',
     schema: footerSchema,
@@ -170,12 +182,16 @@ export {
   TechFeatures,
   TechFooter,
   TechProductMain,
+  TechCartItems,
+  TechCartSummary,
   headerSchema,
   heroBannerSchema,
   featuredProductsSchema,
   featuresSchema,
   footerSchema,
   productMainSchema,
+  cartItemsSchema,
+  cartSummarySchema,
 };
 
 export default {

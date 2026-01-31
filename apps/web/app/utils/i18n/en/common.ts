@@ -7,6 +7,8 @@ export const common = {
   login: 'Login',
   register: 'Register',
   logout: 'Logout',
+  wishlist: 'Wishlist',
+  account: 'Account',
 
   // Common Actions
   loading: 'Loading...',
@@ -27,6 +29,14 @@ export const common = {
   none: 'None',
   yes: 'Yes',
   no: 'No',
+
+  // Aria Labels
+  openMenu: 'Open menu',
+  changeLanguage: 'Change language',
+  searchProducts: 'Search',
+  viewWishlist: 'Wishlist',
+  viewAccount: 'Account',
+  viewCart: 'Cart',
   retry: 'Retry',
   startOver: 'Start Over',
   back: 'Back',
@@ -249,7 +259,8 @@ export const common = {
 
   // Password Reset
   forgotPassword: 'Forgot Password?',
-  enterEmailForReset: 'Enter your email address and we will send you a link to reset your password.',
+  enterEmailForReset:
+    'Enter your email address and we will send you a link to reset your password.',
   sendResetLink: 'Send Reset Link',
   backToLogin: 'Back to Login',
   resetPassword: 'Reset Password',
@@ -268,7 +279,8 @@ export const common = {
   storeUrlLabel: 'Store URL',
   useCustomSubdomainLabel: 'Use custom subdomain',
   subdomainPlaceholder: 'yourstore',
-  subdomainHint: 'Only lowercase letters, numbers, and hyphens allowed. This will be your store\'s URL.',
+  subdomainHint:
+    "Only lowercase letters, numbers, and hyphens allowed. This will be your store's URL.",
   creatingStoreBtn: 'Creating your store...',
   createStoreBtn: 'Create Store',
   loginHere: 'Login here',

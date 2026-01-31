@@ -95,6 +95,26 @@ import { validateDiscount } from '~/../server/services/discount.service';
 import { TicketPercent } from 'lucide-react';
 import { formatPrice } from '~/lib/theme-engine';
 
+// Helper: Convert English numbers to Bangla
+const toBanglaNumber = (num: number | string): string => {
+  const banglaDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+  return String(num)
+    .split('')
+    .map((char) => {
+      const digit = parseInt(char);
+      return isNaN(digit) ? char : banglaDigits[digit];
+    })
+    .join('');
+};
+
+// Helper: Format price in Bangla
+const formatBanglaPrice = (price: number, currency: string, lang: string): string => {
+  if (lang === 'bn') {
+    return `${currency} ${toBanglaNumber(price)}`;
+  }
+  return `${currency} ${price}`;
+};
+
 export const meta: MetaFunction = () => {
   return [{ title: 'Checkout - Secure Payment' }];
 };
@@ -282,11 +302,9 @@ export default function Checkout() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
-  const [division, setDivision] = useState('dhaka'); // 'dhaka' | 'outside'
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedUpazila, setSelectedUpazila] = useState('');
   const [notes, setNotes] = useState('');
-  const [useDistrictMode, setUseDistrictMode] = useState(true); // Toggle between simple and district mode
 
   // Payment State
   const [paymentMethod, setPaymentMethod] = useState('cod');
@@ -319,9 +337,9 @@ export default function Checkout() {
 
   // Helper: Get shipping zone from district
   const calculatedShippingZone = useMemo(() => {
-    if (!useDistrictMode || !selectedDistrict) return division;
+    if (!selectedDistrict) return 'dhaka';
     return getShippingZone(selectedDistrict);
-  }, [useDistrictMode, selectedDistrict, division]);
+  }, [selectedDistrict]);
 
   const shippingCost = useMemo(() => {
     if (!shippingConfig.enabled) return 0;
@@ -498,9 +516,9 @@ export default function Checkout() {
       customer_name: name,
       phone: phone,
       address: address,
-      division: useDistrictMode ? calculatedShippingZone : division,
-      district_id: useDistrictMode ? selectedDistrict : undefined,
-      upazila_id: useDistrictMode ? selectedUpazila : undefined,
+      division: calculatedShippingZone,
+      district_id: selectedDistrict,
+      upazila_id: selectedUpazila,
       notes: notes,
       payment_method: paymentMethod,
       transaction_id: trxId,
@@ -592,8 +610,61 @@ export default function Checkout() {
                 placeholder="01XXXXXXXXX"
               />
             </div>
+            {/* District & Location Selection - Always District Mode */}
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-gray-700">
+                {lang === 'bn' ? 'ডেলিভারি লোকেশন' : 'Delivery Location'}
+              </label>
+
+              {/* District Selection */}
+              <SearchableSelect
+                options={DISTRICTS.map((d) => ({ id: d.id, name: d.name, nameEn: d.nameEn }))}
+                value={selectedDistrict}
+                onChange={setSelectedDistrict}
+                placeholder={lang === 'bn' ? 'জেলা নির্বাচন করুন' : 'Select District'}
+                label={lang === 'bn' ? 'জেলা' : 'District'}
+                required
+              />
+
+              {/* Shipping Zone Display with Bangla Numbers */}
+              {selectedDistrict && (
+                <div
+                  className={`flex items-center gap-2 text-sm font-medium px-4 py-3 rounded-lg ${
+                    calculatedShippingZone === 'dhaka'
+                      ? 'bg-green-50 text-green-700 border border-green-200'
+                      : 'bg-amber-50 text-amber-700 border border-amber-200'
+                  }`}
+                >
+                  <Truck size={16} />
+                  <span>
+                    {calculatedShippingZone === 'dhaka'
+                      ? `${lang === 'bn' ? 'ঢাকার ভিতরে' : 'Inside Dhaka'}: ${formatBanglaPrice(shippingConfig.insideDhaka, currency, lang)}`
+                      : `${lang === 'bn' ? 'ঢাকার বাইরে' : 'Outside Dhaka'}: ${formatBanglaPrice(shippingConfig.outsideDhaka, currency, lang)}`}
+                  </span>
+                </div>
+              )}
+
+              {/* Upazila Selection (only when district selected) */}
+              {selectedDistrict && availableUpazilas.length > 0 && (
+                <SearchableSelect
+                  options={availableUpazilas.map((u) => ({
+                    id: u.id,
+                    name: u.name,
+                    nameEn: u.nameEn,
+                  }))}
+                  value={selectedUpazila}
+                  onChange={setSelectedUpazila}
+                  placeholder={lang === 'bn' ? 'উপজেলা/থানা নির্বাচন করুন' : 'Select Upazila/Thana'}
+                  label={lang === 'bn' ? 'উপজেলা/থানা' : 'Upazila/Thana'}
+                />
+              )}
+            </div>
+
+            {/* Address - Always at Bottom */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('address')}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {lang === 'bn' ? 'বিস্তারিত ঠিকানা' : 'Detailed Address'}
+              </label>
               <textarea
                 required
                 value={address}
@@ -601,102 +672,11 @@ export default function Checkout() {
                 rows={3}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 placeholder={
-                  lang === 'bn' ? 'সম্পূর্ণ ঠিকানা লিখুন (বাসা নং, রোড নং, এলাকা)' : 'Full address'
+                  lang === 'bn'
+                    ? 'বাসা/ফ্ল্যাট নং, রোড নং, এলাকার নাম লিখুন'
+                    : 'House/Flat No, Road No, Area name'
                 }
               />
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <label className="block text-sm font-medium text-gray-700">
-                  {lang === 'bn' ? 'এলাকা নির্বাচন করুন' : 'Select Area'}
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setUseDistrictMode(!useDistrictMode)}
-                  className="text-xs text-blue-600 hover:underline"
-                >
-                  {useDistrictMode
-                    ? lang === 'bn'
-                      ? 'সাধারণ মোডে যান'
-                      : 'Switch to Simple Mode'
-                    : lang === 'bn'
-                      ? 'জেলা মোডে যান'
-                      : 'Switch to District Mode'}
-                </button>
-              </div>
-
-              {useDistrictMode ? (
-                <div className="space-y-3">
-                  {/* District Selection */}
-                  <SearchableSelect
-                    options={DISTRICTS.map((d) => ({ id: d.id, name: d.name, nameEn: d.nameEn }))}
-                    value={selectedDistrict}
-                    onChange={setSelectedDistrict}
-                    placeholder={lang === 'bn' ? 'জেলা নির্বাচন করুন' : 'Select District'}
-                    label={lang === 'bn' ? 'জেলা' : 'District'}
-                    required
-                  />
-
-                  {/* Shipping Zone Display */}
-                  {selectedDistrict && (
-                    <div
-                      className={`flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg ${
-                        calculatedShippingZone === 'dhaka'
-                          ? 'bg-green-50 text-green-700 border border-green-200'
-                          : 'bg-amber-50 text-amber-700 border border-amber-200'
-                      }`}
-                    >
-                      <Truck size={14} />
-                      <span>
-                        {calculatedShippingZone === 'dhaka'
-                          ? `${lang === 'bn' ? 'ঢাকার ভিতরে' : 'Inside Dhaka'}: ${currency} ${shippingConfig.insideDhaka}`
-                          : `${lang === 'bn' ? 'ঢাকার বাইরে' : 'Outside Dhaka'}: ${currency} ${shippingConfig.outsideDhaka}`}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Upazila Selection (only when district selected) */}
-                  {selectedDistrict && availableUpazilas.length > 0 && (
-                    <SearchableSelect
-                      options={availableUpazilas.map((u) => ({
-                        id: u.id,
-                        name: u.name,
-                        nameEn: u.nameEn,
-                      }))}
-                      value={selectedUpazila}
-                      onChange={setSelectedUpazila}
-                      placeholder={
-                        lang === 'bn' ? 'উপজেলা/থানা নির্বাচন করুন' : 'Select Upazila/Thana'
-                      }
-                      label={lang === 'bn' ? 'উপজেলা/থানা' : 'Upazila/Thana'}
-                    />
-                  )}
-                </div>
-              ) : (
-                /* Simple Mode - Toggle Buttons */
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setDivision('dhaka')}
-                    className={`p-3 rounded-lg border text-sm font-medium transition-all ${division === 'dhaka' ? 'bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500' : 'bg-white border-gray-200 hover:border-gray-300'}`}
-                  >
-                    {lang === 'bn' ? 'ঢাকার ভিতরে' : 'Inside Dhaka'}
-                    <span className="block text-xs mt-1 text-gray-500">
-                      {currency} {shippingConfig.insideDhaka}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDivision('outside')}
-                    className={`p-3 rounded-lg border text-sm font-medium transition-all ${division === 'outside' ? 'bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500' : 'bg-white border-gray-200 hover:border-gray-300'}`}
-                  >
-                    {lang === 'bn' ? 'ঢাকার বাইরে' : 'Outside Dhaka'}
-                    <span className="block text-xs mt-1 text-gray-500">
-                      {currency} {shippingConfig.outsideDhaka}
-                    </span>
-                  </button>
-                </div>
-              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -984,30 +964,71 @@ export default function Checkout() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {lang === 'bn' ? 'এলাকা নির্বাচন করুন' : 'Select Area'}
+                      {lang === 'bn' ? 'জেলা নির্বাচন করুন' : 'Select District'}
                     </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setDivision('dhaka')}
-                        className={`p-3 rounded-lg border text-sm font-medium transition-all ${division === 'dhaka' ? 'bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500' : 'bg-white border-gray-200 hover:border-gray-300'}`}
-                      >
-                        {lang === 'bn' ? 'ঢাকার ভিতরে' : 'Inside Dhaka'}
-                        <span className="block text-xs mt-1 text-gray-500">
-                          {currency} {shippingConfig.insideDhaka}
+                    <SearchableSelect
+                      options={DISTRICTS.map((d) => ({
+                        id: d.id,
+                        name: d.name,
+                        nameEn: d.nameEn,
+                      }))}
+                      value={selectedDistrict}
+                      onChange={setSelectedDistrict}
+                      placeholder={lang === 'bn' ? 'জেলা নির্বাচন করুন' : 'Select district'}
+                    />
+                    {calculatedShippingZone && (
+                      <div className="mt-2 flex items-center gap-2 text-sm">
+                        <span className="text-gray-600">
+                          {lang === 'bn' ? 'শিপিং জোন:' : 'Shipping Zone:'}
                         </span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDivision('outside')}
-                        className={`p-3 rounded-lg border text-sm font-medium transition-all ${division === 'outside' ? 'bg-blue-50 border-blue-500 text-blue-700 ring-1 ring-blue-500' : 'bg-white border-gray-200 hover:border-gray-300'}`}
-                      >
-                        {lang === 'bn' ? 'ঢাকার বাইরে' : 'Outside Dhaka'}
-                        <span className="block text-xs mt-1 text-gray-500">
-                          {currency} {shippingConfig.outsideDhaka}
+                        <span
+                          className={`font-medium px-2 py-1 rounded ${calculatedShippingZone === 'dhaka' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}
+                        >
+                          {calculatedShippingZone === 'dhaka'
+                            ? lang === 'bn'
+                              ? 'ঢাকা'
+                              : 'Dhaka'
+                            : lang === 'bn'
+                              ? 'ঢাকার বাইরে'
+                              : 'Outside Dhaka'}
                         </span>
-                      </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedDistrict && availableUpazilas.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {lang === 'bn' ? 'উপজেলা নির্বাচন করুন' : 'Select Upazila'}
+                      </label>
+                      <SearchableSelect
+                        options={availableUpazilas.map((u) => ({
+                          id: u.id,
+                          name: u.name,
+                          nameEn: u.nameEn,
+                        }))}
+                        value={selectedUpazila}
+                        onChange={setSelectedUpazila}
+                        placeholder={lang === 'bn' ? 'উপজেলা নির্বাচন করুন' : 'Select upazila'}
+                      />
                     </div>
+                  )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {lang === 'bn' ? 'সম্পূর্ণ ঠিকানা' : 'Full Address'}
+                    </label>
+                    <textarea
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      rows={3}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder={
+                        lang === 'bn'
+                          ? 'বাড়ি/রোড নম্বর, এলাকা, থানা ইত্যাদি'
+                          : 'House/Road number, area, police station etc.'
+                      }
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1238,6 +1259,48 @@ export default function Checkout() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   placeholder={lang === 'bn' ? 'ফোন নম্বর' : 'Phone'}
                 />
+                <SearchableSelect
+                  options={DISTRICTS.map((d) => ({
+                    id: d.id,
+                    name: d.name,
+                    nameEn: d.nameEn,
+                  }))}
+                  value={selectedDistrict}
+                  onChange={setSelectedDistrict}
+                  placeholder={lang === 'bn' ? 'জেলা নির্বাচন করুন' : 'Select district'}
+                />
+                {calculatedShippingZone && (
+                  <div className="mt-2 flex items-center gap-2 text-sm">
+                    <span className="text-gray-600">
+                      {lang === 'bn' ? 'শিপিং জোন:' : 'Shipping Zone:'}
+                    </span>
+                    <span
+                      className={`font-medium px-2 py-1 rounded ${calculatedShippingZone === 'dhaka' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}
+                    >
+                      {calculatedShippingZone === 'dhaka'
+                        ? lang === 'bn'
+                          ? 'ঢাকা'
+                          : 'Dhaka'
+                        : lang === 'bn'
+                          ? 'ঢাকার বাইরে'
+                          : 'Outside Dhaka'}
+                    </span>
+                  </div>
+                )}
+
+                {selectedDistrict && availableUpazilas.length > 0 && (
+                  <SearchableSelect
+                    options={availableUpazilas.map((u) => ({
+                      id: u.id,
+                      name: u.name,
+                      nameEn: u.nameEn,
+                    }))}
+                    value={selectedUpazila}
+                    onChange={setSelectedUpazila}
+                    placeholder={lang === 'bn' ? 'উপজেলা নির্বাচন করুন' : 'Select upazila'}
+                  />
+                )}
+
                 <textarea
                   required
                   value={address}
@@ -1246,22 +1309,6 @@ export default function Checkout() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   placeholder={lang === 'bn' ? 'ঠিকানা' : 'Address'}
                 />
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setDivision('dhaka')}
-                    className={`p-2 rounded border text-sm ${division === 'dhaka' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-gray-200'}`}
-                  >
-                    {lang === 'bn' ? 'ঢাকার ভিতরে' : 'Inside Dhaka'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDivision('outside')}
-                    className={`p-2 rounded border text-sm ${division === 'outside' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-gray-200'}`}
-                  >
-                    {lang === 'bn' ? 'ঢাকার বাইরে' : 'Outside Dhaka'}
-                  </button>
-                </div>
               </div>
             </div>
 
