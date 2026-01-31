@@ -79,20 +79,20 @@ export default function ContactPage() {
               <ContactCard
                 icon={<Mail />}
                 title="ইমেইল"
-                detail="support@ozzyl.com"
-                link="mailto:support@ozzyl.com"
+                detail="contact@ozzyl.com"
+                link="mailto:contact@ozzyl.com"
               />
               <ContactCard
                 icon={<MessageCircle />}
                 title="হোয়াটসঅ্যাপ"
-                detail="+880 1XXX-XXXXXX"
-                link="https://wa.me/8801XXXXXXXXX"
+                detail="01739-416661"
+                link="https://wa.me/8801739416661"
               />
               <ContactCard
                 icon={<Phone />}
-                title="ফোন"
-                detail="+880 1XXX-XXXXXX"
-                link="tel:+8801XXXXXXXXX"
+                title="সাপোর্ট ফোন"
+                detail="01570-260118"
+                link="tel:+8801570260118"
               />
               <ContactCard icon={<MapPin />} title="ঠিকানা" detail="ঢাকা, বাংলাদেশ" />
 

@@ -2,9 +2,9 @@
 
 /**
  * Final CTA Section - "আজই শুরু করুন, Future Build করুন"
- * 
+ *
  * Compelling final call-to-action with exclusivity-based urgency
- * 
+ *
  * Features:
  * - Mission statement emphasizing being first Bengali e-commerce platform
  * - Large glowing animated CTA button
@@ -24,9 +24,9 @@ import { ScrollReveal } from '@/components/animations';
 // DESIGN TOKENS
 // ============================================================================
 const COLORS = {
-  primary: '#006A4E',      // Bangladesh Green
+  primary: '#006A4E', // Bangladesh Green
   primaryLight: '#00875F',
-  accent: '#F9A825',       // Golden Yellow
+  accent: '#F9A825', // Golden Yellow
   background: '#0A0A0F',
   violet: '#8B5CF6',
   blue: '#3B82F6',
@@ -66,7 +66,7 @@ const LiveNotification = ({ recentSignups }: { recentSignups: typeof defaultRece
 
   useEffect(() => {
     if (recentSignups.length === 0) return;
-    
+
     const interval = setInterval(() => {
       setIsVisible(false);
       setTimeout(() => {
@@ -95,7 +95,7 @@ const LiveNotification = ({ recentSignups }: { recentSignups: typeof defaultRece
       >
         <Bell className="w-5 h-5 text-[#006A4E]" />
       </motion.div>
-      
+
       <AnimatePresence mode="wait">
         {isVisible && (
           <motion.div
@@ -114,7 +114,7 @@ const LiveNotification = ({ recentSignups }: { recentSignups: typeof defaultRece
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       {/* Live indicator */}
       <motion.div
         className="w-2 h-2 rounded-full bg-green-500"
@@ -148,10 +148,10 @@ const GlowingCTAButton = () => {
         }}
         transition={{ duration: 2, repeat: Infinity }}
       />
-      
+
       {/* Button */}
       <Link
-        href="/auth/register"
+        href="https://app.ozzyl.com/auth/register"
         className="relative flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold text-xl rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-[#006A4E]/50"
         style={{
           boxShadow: `0 0 40px ${COLORS.primary}40`,
@@ -160,10 +160,7 @@ const GlowingCTAButton = () => {
         <span style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>
           {t('finalCtaPrimary')}
         </span>
-        <motion.span
-          animate={{ x: [0, 5, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-        >
+        <motion.span animate={{ x: [0, 5, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
           <ArrowRight className="w-6 h-6" />
         </motion.span>
       </Link>
@@ -215,13 +212,16 @@ const DecorativeDiamonds = () => {
           viewport={{ once: true }}
           transition={{ delay: i * 0.05 }}
         >
-          <Diamond 
+          <Diamond
             className={`w-3 h-3 ${
-              i % 4 === 0 ? 'text-[#006A4E]' : 
-              i % 4 === 1 ? 'text-[#F9A825]' : 
-              i % 4 === 2 ? 'text-[#8B5CF6]' : 
-              'text-white/20'
-            }`} 
+              i % 4 === 0
+                ? 'text-[#006A4E]'
+                : i % 4 === 1
+                  ? 'text-[#F9A825]'
+                  : i % 4 === 2
+                    ? 'text-[#8B5CF6]'
+                    : 'text-white/20'
+            }`}
             fill="currentColor"
           />
         </motion.div>
@@ -238,9 +238,9 @@ export function FinalCTA({ stats }: FinalCTAProps) {
   // Only use real data - don't show fake signups
   const recentSignups = stats?.recentSignups ?? [];
   const totalUsers = stats?.totalUsers || 0;
-  
+
   return (
-    <section 
+    <section
       className="py-16 relative overflow-hidden"
       style={{ backgroundColor: COLORS.background }}
     >
@@ -258,7 +258,7 @@ export function FinalCTA({ stats }: FinalCTAProps) {
           }}
           transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
         />
-        
+
         {/* Gradient orb - bottom right */}
         <motion.div
           className="absolute -bottom-1/4 -right-1/4 w-[500px] h-[500px] rounded-full"
@@ -271,9 +271,9 @@ export function FinalCTA({ stats }: FinalCTAProps) {
           }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         />
-        
+
         {/* Dotted grid overlay */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
             backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)',
@@ -288,12 +288,12 @@ export function FinalCTA({ stats }: FinalCTAProps) {
 
         {/* Main Headline */}
         <ScrollReveal>
-          <h2 
+          <h2
             className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-8"
             style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
             {t('finalCtaTitlePart1')}{' '}
-            <span 
+            <span
               className="bg-clip-text text-transparent"
               style={{
                 backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 50%, ${COLORS.accent} 100%)`,
@@ -313,13 +313,13 @@ export function FinalCTA({ stats }: FinalCTAProps) {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <p 
+          <p
             className="text-xl md:text-2xl text-white/80 leading-relaxed mb-6"
             style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
             {t('finalCtaMission')}
           </p>
-          <p 
+          <p
             className="text-lg text-white/60"
             style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
@@ -363,7 +363,7 @@ export function FinalCTA({ stats }: FinalCTAProps) {
             <Phone className="w-4 h-4" />
             <span>📞 {t('finalCtaSecondaryCall')}</span>
           </Link>
-          
+
           <Link
             href="/contact"
             className="group flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-white/70 hover:text-white transition-all duration-300"
@@ -384,7 +384,6 @@ export function FinalCTA({ stats }: FinalCTAProps) {
             <LiveNotification recentSignups={recentSignups} />
           </motion.div>
         )}
-
       </div>
     </section>
   );

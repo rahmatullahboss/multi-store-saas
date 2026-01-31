@@ -830,7 +830,7 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
               {/* Primary CTA */}
               <Magnetic>
                 <Link
-                  href="/auth/register"
+                  href="https://app.ozzyl.com/auth/register"
                   className="group relative px-8 py-4 rounded-xl font-semibold text-white overflow-hidden flex items-center gap-2 transition-all hover:scale-[1.02] hover:-translate-y-0.5"
                   style={{
                     background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryLight} 100%)`,

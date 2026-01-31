@@ -2,9 +2,9 @@
 
 /**
  * Comparison Section - "কেন আমরাই Best Choice?"
- * 
+ *
  * Showcase why our platform wins for Bangladeshi entrepreneurs
- * 
+ *
  * Features:
  * - Comparison table (Shopify vs Wix vs Our Brand)
  * - Animated checkmarks on scroll
@@ -25,9 +25,9 @@ import { ASSETS } from '@/config/assets';
 // DESIGN TOKENS
 // ============================================================================
 const COLORS = {
-  primary: '#006A4E',      // Bangladesh Green
+  primary: '#006A4E', // Bangladesh Green
   primaryLight: '#00875F',
-  accent: '#F9A825',       // Golden Yellow
+  accent: '#F9A825', // Golden Yellow
   accentLight: '#FFB74D',
   background: '#0A0F0D',
   backgroundAlt: '#0D1512',
@@ -107,7 +107,13 @@ const comparisonFeatures: ComparisonFeature[] = [
 // ============================================================================
 // ANIMATED CHECK ICON
 // ============================================================================
-const AnimatedCheck = ({ delay = 0, isBrandColumn = false }: { delay?: number; isBrandColumn?: boolean }) => {
+const AnimatedCheck = ({
+  delay = 0,
+  isBrandColumn = false,
+}: {
+  delay?: number;
+  isBrandColumn?: boolean;
+}) => {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
 
@@ -118,8 +124,8 @@ const AnimatedCheck = ({ delay = 0, isBrandColumn = false }: { delay?: number; i
         animate={isInView ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -180 }}
         transition={{ delay, duration: 0.5, type: 'spring', stiffness: 200 }}
         className={`w-7 h-7 rounded-full flex items-center justify-center ${
-          isBrandColumn 
-            ? 'bg-gradient-to-br from-[#006A4E] to-[#00875F] shadow-lg shadow-[#006A4E]/40' 
+          isBrandColumn
+            ? 'bg-gradient-to-br from-[#006A4E] to-[#00875F] shadow-lg shadow-[#006A4E]/40'
             : 'bg-green-500/20'
         }`}
       >
@@ -191,7 +197,15 @@ const StrikethroughPrice = ({ price, delay = 0 }: { price: string; delay?: numbe
 // ============================================================================
 // OUR PRICE HIGHLIGHT
 // ============================================================================
-const OurPrice = ({ price, label, delay = 0 }: { price: string; label?: string; delay?: number }) => {
+const OurPrice = ({
+  price,
+  label,
+  delay = 0,
+}: {
+  price: string;
+  label?: string;
+  delay?: number;
+}) => {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
 
@@ -222,14 +236,14 @@ const OurPrice = ({ price, label, delay = 0 }: { price: string; label?: string; 
 // ============================================================================
 // FEATURE CELL RENDERER
 // ============================================================================
-const FeatureCell = ({ 
-  value, 
-  delay = 0, 
+const FeatureCell = ({
+  value,
+  delay = 0,
   isBrandColumn = false,
   isHighlight = false,
-}: { 
-  value: string | boolean; 
-  delay?: number; 
+}: {
+  value: string | boolean;
+  delay?: number;
   isBrandColumn?: boolean;
   isHighlight?: boolean;
 }) => {
@@ -237,17 +251,17 @@ const FeatureCell = ({
   if (value === true) {
     return <AnimatedCheck delay={delay} isBrandColumn={isBrandColumn} />;
   }
-  
+
   // Boolean false = X
   if (value === false) {
     return <AnimatedX delay={delay} />;
   }
-  
+
   // Price (contains ৳ and +)
   if (typeof value === 'string' && value.includes('৳') && value.includes('+')) {
     return <StrikethroughPrice price={value} delay={delay} />;
   }
-  
+
   // Our highlight price
   if (isBrandColumn && typeof value === 'string' && value.includes('৳')) {
     // Check if it's just price or has label
@@ -256,12 +270,12 @@ const FeatureCell = ({
     }
     return <OurPrice price={value} delay={delay} />;
   }
-  
+
   // Brand column - special highlighting
   if (isBrandColumn) {
     const ref = useRef<HTMLDivElement>(null);
     const isInView = useInView(ref, { once: true, margin: '-50px' });
-    
+
     return (
       <div ref={ref}>
         <motion.div
@@ -276,21 +290,19 @@ const FeatureCell = ({
       </div>
     );
   }
-  
+
   // Other text values - muted
-  return (
-    <span className="text-white/40 text-sm">{value}</span>
-  );
+  return <span className="text-white/40 text-sm">{value}</span>;
 };
 
 // ============================================================================
 // MOBILE COMPARISON CARD
 // ============================================================================
-const MobileComparisonCard = ({ 
-  platform, 
+const MobileComparisonCard = ({
+  platform,
   isOurs = false,
   features,
-}: { 
+}: {
   platform: 'shopify' | 'wix' | 'ours';
   isOurs?: boolean;
   features: ComparisonFeature[];
@@ -304,8 +316,8 @@ const MobileComparisonCard = ({
   return (
     <motion.div
       className={`flex-shrink-0 w-[85vw] max-w-[320px] snap-center ${
-        isOurs 
-          ? 'bg-gradient-to-br from-[#006A4E]/20 to-[#00875F]/10 border-2 border-[#006A4E]/50' 
+        isOurs
+          ? 'bg-gradient-to-br from-[#006A4E]/20 to-[#00875F]/10 border-2 border-[#006A4E]/50'
           : 'bg-white/5 border border-white/10'
       } backdrop-blur-xl rounded-3xl p-6 mx-2`}
       whileHover={{ scale: 1.02 }}
@@ -323,21 +335,21 @@ const MobileComparisonCard = ({
             Best Choice
           </motion.div>
         )}
-        <h3 className={`text-xl font-bold ${isOurs ? 'text-white' : 'text-white/60'} flex flex-col items-center gap-2`}>
+        <h3
+          className={`text-xl font-bold ${isOurs ? 'text-white' : 'text-white/60'} flex flex-col items-center gap-2`}
+        >
           {isOurs ? (
-             <>
-               <div className="w-12 h-12 bg-white/10 rounded-xl p-2 backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center">
-                 <img src={ASSETS.brand.logoSmall} alt="Ozzyl" className="w-8 h-8 object-contain" />
-               </div>
-               Ozzyl
-             </>
+            <>
+              <div className="w-12 h-12 bg-white/10 rounded-xl p-2 backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center">
+                <img src={ASSETS.brand.logoSmall} alt="Ozzyl" className="w-8 h-8 object-contain" />
+              </div>
+              Ozzyl
+            </>
           ) : (
             platformNames[platform]
           )}
         </h3>
-        {isOurs && (
-          <span className="text-2xl mt-1 block">🇧🇩</span>
-        )}
+        {isOurs && <span className="text-2xl mt-1 block">🇧🇩</span>}
       </div>
 
       {/* Features List */}
@@ -346,9 +358,9 @@ const MobileComparisonCard = ({
           <div key={i} className="flex items-center justify-between gap-3">
             <span className="text-white/60 text-sm flex-1">{feature.nameBn}</span>
             <div className="flex-shrink-0">
-              <FeatureCell 
-                value={feature[platform]} 
-                delay={i * 0.05} 
+              <FeatureCell
+                value={feature[platform]}
+                delay={i * 0.05}
                 isBrandColumn={isOurs}
                 isHighlight={feature.highlight}
               />
@@ -376,7 +388,7 @@ export function ComparisonSection() {
   };
 
   return (
-    <section 
+    <section
       className="py-16 relative overflow-hidden"
       style={{ backgroundColor: COLORS.background }}
     >
@@ -405,9 +417,9 @@ export function ComparisonSection() {
           }}
           transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
         />
-        
+
         {/* Subtle grid */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
@@ -423,7 +435,7 @@ export function ComparisonSection() {
           <div className="text-center mb-16">
             <motion.div
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-6"
-              style={{ 
+              style={{
                 backgroundColor: `${COLORS.primary}10`,
                 borderColor: `${COLORS.primary}30`,
               }}
@@ -436,13 +448,13 @@ export function ComparisonSection() {
                 সৎ তুলনা
               </span>
             </motion.div>
-            
-            <h2 
+
+            <h2
               className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4"
               style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
             >
               কেন আমরাই{' '}
-              <span 
+              <span
                 className="bg-clip-text text-transparent"
                 style={{
                   backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 50%, ${COLORS.accent} 100%)`,
@@ -468,9 +480,7 @@ export function ComparisonSection() {
           >
             {/* Table Header */}
             <div className="grid grid-cols-4 border-b border-white/10">
-              <div className="p-6 text-white/60 font-semibold text-lg">
-                Feature
-              </div>
+              <div className="p-6 text-white/60 font-semibold text-lg">Feature</div>
               <div className="p-6 text-center text-white/60 font-semibold">
                 <span className="text-lg">Shopify</span>
               </div>
@@ -478,7 +488,7 @@ export function ComparisonSection() {
                 <span className="text-lg">Wix/Others</span>
               </div>
               {/* Highlighted Column Header */}
-              <div 
+              <div
                 className="p-6 text-center relative"
                 style={{
                   background: `linear-gradient(180deg, ${COLORS.primary}30 0%, ${COLORS.primary}10 100%)`,
@@ -491,22 +501,26 @@ export function ComparisonSection() {
                     background: `linear-gradient(135deg, ${COLORS.accent} 0%, ${COLORS.accentLight} 100%)`,
                     color: '#000',
                   }}
-                  animate={{ 
+                  animate={{
                     boxShadow: [
-                      `0 4px 15px ${COLORS.accent}40`, 
-                      `0 4px 25px ${COLORS.accent}70`, 
-                      `0 4px 15px ${COLORS.accent}40`
-                    ] 
+                      `0 4px 15px ${COLORS.accent}40`,
+                      `0 4px 25px ${COLORS.accent}70`,
+                      `0 4px 15px ${COLORS.accent}40`,
+                    ],
                   }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
                   <Sparkles className="w-3 h-3" />
                   Best Choice
                 </motion.div>
-                
+
                 <div className="text-xl font-bold text-white flex flex-col items-center justify-center gap-2 mt-3">
                   <div className="w-12 h-12 bg-white/10 rounded-xl p-2 backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center">
-                    <img src={ASSETS.brand.logoSmall} alt="Ozzyl" className="w-8 h-8 object-contain" />
+                    <img
+                      src={ASSETS.brand.logoSmall}
+                      alt="Ozzyl"
+                      className="w-8 h-8 object-contain"
+                    />
                   </div>
                   <span className="flex items-center gap-2">
                     Ozzyl
@@ -530,28 +544,28 @@ export function ComparisonSection() {
                     <div className="p-5 flex items-center">
                       <span className="text-white/80 font-medium">{feature.nameBn}</span>
                     </div>
-                    
+
                     {/* Shopify */}
                     <div className="p-5 flex items-center justify-center">
                       <FeatureCell value={feature.shopify} delay={i * 0.05} />
                     </div>
-                    
+
                     {/* Wix */}
                     <div className="p-5 flex items-center justify-center">
                       <FeatureCell value={feature.wix} delay={i * 0.05 + 0.1} />
                     </div>
-                    
+
                     {/* Our Platform - Highlighted */}
-                    <div 
+                    <div
                       className="p-5 flex items-center justify-center"
                       style={{
                         background: `linear-gradient(180deg, ${COLORS.primary}15 0%, ${COLORS.primary}05 100%)`,
                         boxShadow: `inset 0 0 30px ${COLORS.primary}10`,
                       }}
                     >
-                      <FeatureCell 
-                        value={feature.ours} 
-                        delay={i * 0.05 + 0.2} 
+                      <FeatureCell
+                        value={feature.ours}
+                        delay={i * 0.05 + 0.2}
                         isBrandColumn={true}
                         isHighlight={feature.highlight}
                       />
@@ -572,9 +586,7 @@ export function ComparisonSection() {
                 key={i}
                 onClick={() => setMobileCardIndex(i)}
                 className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  i === mobileCardIndex 
-                    ? 'w-8 bg-[#006A4E]' 
-                    : 'bg-white/20'
+                  i === mobileCardIndex ? 'w-8 bg-[#006A4E]' : 'bg-white/20'
                 }`}
               />
             ))}
@@ -641,11 +653,11 @@ export function ComparisonSection() {
             দেখুন Details
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
-          
+
           <Link
-            href="/auth/register"
+            href="https://app.ozzyl.com/auth/register"
             className="group px-8 py-3 rounded-xl font-bold text-black overflow-hidden flex items-center gap-2 transition-all duration-300 hover:scale-105 shadow-lg"
-            style={{ 
+            style={{
               background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
               boxShadow: `0 0 30px ${COLORS.primary}40`,
             }}
@@ -668,7 +680,8 @@ export function ComparisonSection() {
           viewport={{ once: true }}
           transition={{ delay: 0.6 }}
         >
-          ✓ কোনো ক্রেডিট কার্ড লাগবে না &nbsp;•&nbsp; ✓ ৫ মিনিটে সেটআপ &nbsp;•&nbsp; ✓ চিরকাল ফ্রি প্ল্যান
+          ✓ কোনো ক্রেডিট কার্ড লাগবে না &nbsp;•&nbsp; ✓ ৫ মিনিটে সেটআপ &nbsp;•&nbsp; ✓ চিরকাল ফ্রি
+          প্ল্যান
         </motion.p>
       </div>
     </section>

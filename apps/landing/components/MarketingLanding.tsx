@@ -670,17 +670,33 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
               </ul>
             </div>
 
-            {/* Company Links */}
+            {/* Contact Info */}
             <div className="text-center sm:text-left">
-              <h4 className="text-[#006A4E] font-semibold mb-4">{t('footerCompany')}</h4>
+              <h4 className="text-[#006A4E] font-semibold mb-4">যোগাযোগ</h4>
               <ul className="space-y-2">
                 <li>
-                  <Link
-                    href="/about"
-                    className="text-white/50 hover:text-[#00875F] transition text-sm"
+                  <a
+                    href="tel:+8801570260118"
+                    className="text-white/50 hover:text-[#00875F] transition text-sm flex items-center gap-2"
                   >
-                    {t('footerLinkAbout')}
-                  </Link>
+                    <span>📞</span> 01570-260118
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://wa.me/8801739416661"
+                    className="text-white/50 hover:text-[#00875F] transition text-sm flex items-center gap-2"
+                  >
+                    <span>💬</span> WhatsApp: 01739-416661
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="mailto:contact@ozzyl.com"
+                    className="text-white/50 hover:text-[#00875F] transition text-sm flex items-center gap-2"
+                  >
+                    <span>📧</span> contact@ozzyl.com
+                  </a>
                 </li>
                 <li>
                   <Link
@@ -750,7 +766,7 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
       {/* Sticky Mobile CTA Button - FAB Style */}
       <div className="sm:hidden fixed bottom-4 left-4 z-40">
         <Link
-          href="/auth/register"
+          href="https://app.ozzyl.com/auth/register"
           className="flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold rounded-full text-sm shadow-xl shadow-[#006A4E]/40 active:scale-[0.95] transition-transform"
         >
           <Rocket className="w-4 h-4" />

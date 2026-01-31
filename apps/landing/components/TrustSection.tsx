@@ -679,7 +679,7 @@ const EarlyAdopterBenefits = () => {
           className="text-center mt-10"
         >
           <Link
-            href="/auth/register"
+            href="https://app.ozzyl.com/auth/register"
             className="group inline-flex items-center gap-3 px-8 py-4 rounded-xl font-semibold text-black transition-all duration-300 hover:scale-[1.02]"
             style={{
               background: `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.accentLight})`,

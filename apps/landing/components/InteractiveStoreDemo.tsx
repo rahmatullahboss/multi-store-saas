@@ -2,7 +2,7 @@
 
 /**
  * Interactive Store Demo - "দেখুন কত সহজ - Try It Now"
- * 
+ *
  * An interactive demo that lets visitors experience creating a store
  * in 30 seconds without signing up. Features:
  * - 3-step wizard (Template → Store Name → Add Product)
@@ -15,21 +15,14 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { 
-  Check, 
-  ShoppingCart, 
-  Sparkles, 
-  ArrowRight,
-  Store,
-  Package
-} from 'lucide-react';
+import { Check, ShoppingCart, Sparkles, ArrowRight, Store, Package } from 'lucide-react';
 
 // ============================================================================
 // DESIGN TOKENS
 // ============================================================================
 const COLORS = {
-  primary: '#006A4E',      // Bangladesh Green
-  accent: '#F9A825',       // Golden Yellow
+  primary: '#006A4E', // Bangladesh Green
+  accent: '#F9A825', // Golden Yellow
   background: '#0A0A0F',
   cardBg: 'rgba(255, 255, 255, 0.05)',
   border: 'rgba(255, 255, 255, 0.1)',
@@ -39,30 +32,30 @@ const COLORS = {
 // TEMPLATE OPTIONS
 // ============================================================================
 const templates = [
-  { 
-    id: 'fashion', 
-    icon: '👗', 
-    name: 'Fashion', 
+  {
+    id: 'fashion',
+    icon: '👗',
+    name: 'Fashion',
     nameBn: 'ফ্যাশন',
-    color: '#8B5CF6', 
+    color: '#8B5CF6',
     gradientFrom: '#8B5CF6',
     gradientTo: '#A855F7',
   },
-  { 
-    id: 'food', 
-    icon: '🍔', 
-    name: 'Food', 
+  {
+    id: 'food',
+    icon: '🍔',
+    name: 'Food',
     nameBn: 'খাবার',
-    color: '#F59E0B', 
+    color: '#F59E0B',
     gradientFrom: '#F59E0B',
     gradientTo: '#FBBF24',
   },
-  { 
-    id: 'digital', 
-    icon: '💻', 
-    name: 'Digital', 
+  {
+    id: 'digital',
+    icon: '💻',
+    name: 'Digital',
     nameBn: 'ডিজিটাল',
-    color: '#3B82F6', 
+    color: '#3B82F6',
     gradientFrom: '#3B82F6',
     gradientTo: '#60A5FA',
   },
@@ -72,14 +65,16 @@ const templates = [
 // CONFETTI ANIMATION COMPONENT - Client-only to prevent hydration mismatch
 // ============================================================================
 const Confetti = () => {
-  const [confettiPieces, setConfettiPieces] = useState<Array<{
-    id: number;
-    x: number;
-    delay: number;
-    duration: number;
-    color: string;
-    rotateDirection: number;
-  }>>([]);
+  const [confettiPieces, setConfettiPieces] = useState<
+    Array<{
+      id: number;
+      x: number;
+      delay: number;
+      duration: number;
+      color: string;
+      rotateDirection: number;
+    }>
+  >([]);
 
   // Generate confetti pieces only on client side to prevent hydration mismatch
   useEffect(() => {
@@ -105,19 +100,19 @@ const Confetti = () => {
         <motion.div
           key={piece.id}
           className="absolute w-2 h-2 rounded-full"
-          style={{ 
-            left: `${piece.x}%`, 
+          style={{
+            left: `${piece.x}%`,
             top: '-10px',
             backgroundColor: piece.color,
           }}
           initial={{ y: 0, opacity: 1, rotate: 0 }}
-          animate={{ 
-            y: '100vh', 
+          animate={{
+            y: '100vh',
             opacity: 0,
             rotate: 360 * piece.rotateDirection,
           }}
-          transition={{ 
-            duration: piece.duration, 
+          transition={{
+            duration: piece.duration,
             delay: piece.delay,
             ease: 'easeIn',
           }}
@@ -142,24 +137,31 @@ const ProgressIndicator = ({ currentStep, totalSteps }: ProgressIndicatorProps) 
         <div key={i} className="flex items-center">
           <motion.div
             className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
-              i + 1 <= currentStep 
-                ? 'bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white' 
+              i + 1 <= currentStep
+                ? 'bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white'
                 : 'bg-white/10 text-white/40'
             }`}
             animate={i + 1 === currentStep ? { scale: [1, 1.1, 1] } : {}}
             transition={{ duration: 0.3 }}
           >
             {i + 1 <= currentStep ? (
-              i + 1 < currentStep ? <Check className="w-4 h-4" /> : i + 1
-            ) : i + 1}
+              i + 1 < currentStep ? (
+                <Check className="w-4 h-4" />
+              ) : (
+                i + 1
+              )
+            ) : (
+              i + 1
+            )}
           </motion.div>
           {i < totalSteps - 1 && (
-            <motion.div 
+            <motion.div
               className="w-8 h-0.5 mx-1"
               style={{
-                background: i + 1 < currentStep 
-                  ? 'linear-gradient(90deg, #006A4E, #00875F)' 
-                  : 'rgba(255, 255, 255, 0.1)',
+                background:
+                  i + 1 < currentStep
+                    ? 'linear-gradient(90deg, #006A4E, #00875F)'
+                    : 'rgba(255, 255, 255, 0.1)',
               }}
               animate={i + 1 < currentStep ? { scaleX: [0, 1] } : {}}
               transition={{ duration: 0.3 }}
@@ -178,14 +180,20 @@ const ProgressIndicator = ({ currentStep, totalSteps }: ProgressIndicatorProps) 
 // LIVE PREVIEW COMPONENT
 // ============================================================================
 interface LivePreviewProps {
-  template: typeof templates[0] | null;
+  template: (typeof templates)[0] | null;
   storeName: string;
   productName: string;
   productPrice: string;
   isComplete: boolean;
 }
 
-const LivePreview = ({ template, storeName, productName, productPrice, isComplete }: LivePreviewProps) => {
+const LivePreview = ({
+  template,
+  storeName,
+  productName,
+  productPrice,
+  isComplete,
+}: LivePreviewProps) => {
   const activeColor = template?.color || '#006A4E';
   const displayName = storeName || 'আপনার Store';
   const displayProduct = productName || 'প্রোডাক্ট';
@@ -194,7 +202,7 @@ const LivePreview = ({ template, storeName, productName, productPrice, isComplet
   return (
     <motion.div
       className="relative rounded-2xl overflow-hidden border backdrop-blur-xl"
-      style={{ 
+      style={{
         backgroundColor: 'rgba(255, 255, 255, 0.03)',
         borderColor: `${activeColor}30`,
       }}
@@ -218,7 +226,9 @@ const LivePreview = ({ template, storeName, productName, productPrice, isComplet
                 animate={{ scale: [0, 1.2, 1] }}
                 transition={{ duration: 0.5 }}
                 className="w-20 h-20 rounded-full flex items-center justify-center mb-4"
-                style={{ background: `linear-gradient(135deg, ${activeColor}, ${template?.gradientTo || activeColor})` }}
+                style={{
+                  background: `linear-gradient(135deg, ${activeColor}, ${template?.gradientTo || activeColor})`,
+                }}
               >
                 <Check className="w-10 h-10 text-white" />
               </motion.div>
@@ -244,9 +254,9 @@ const LivePreview = ({ template, storeName, productName, productPrice, isComplet
                 transition={{ delay: 0.7 }}
               >
                 <Link
-                  href="/auth/register"
+                  href="https://app.ozzyl.com/auth/register"
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-transform hover:scale-105"
-                  style={{ 
+                  style={{
                     background: `linear-gradient(135deg, ${activeColor}, ${template?.gradientTo || activeColor})`,
                     boxShadow: `0 0 30px ${activeColor}60`,
                   }}
@@ -261,7 +271,10 @@ const LivePreview = ({ template, storeName, productName, productPrice, isComplet
       </AnimatePresence>
 
       {/* Preview label */}
-      <div className="flex items-center gap-2 px-4 py-2 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}>
+      <div
+        className="flex items-center gap-2 px-4 py-2 border-b"
+        style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
+      >
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
           <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
@@ -271,21 +284,21 @@ const LivePreview = ({ template, storeName, productName, productPrice, isComplet
       </div>
 
       {/* Store header */}
-      <motion.div 
+      <motion.div
         className="p-4 transition-all duration-500"
-        style={{ 
-          background: template 
-            ? `linear-gradient(135deg, ${activeColor}40, ${activeColor}20)` 
+        style={{
+          background: template
+            ? `linear-gradient(135deg, ${activeColor}40, ${activeColor}20)`
             : 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
         }}
         layout
       >
         <div className="flex items-center gap-3">
-          <motion.div 
+          <motion.div
             className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ 
-              background: template 
-                ? `linear-gradient(135deg, ${activeColor}, ${template.gradientTo})` 
+            style={{
+              background: template
+                ? `linear-gradient(135deg, ${activeColor}, ${template.gradientTo})`
                 : 'rgba(255, 255, 255, 0.1)',
             }}
             animate={template ? { scale: [0.8, 1.1, 1] } : {}}
@@ -298,7 +311,7 @@ const LivePreview = ({ template, storeName, productName, productPrice, isComplet
             )}
           </motion.div>
           <div>
-            <motion.h3 
+            <motion.h3
               className="text-lg font-bold text-white"
               key={displayName}
               initial={{ opacity: 0.5 }}
@@ -316,30 +329,30 @@ const LivePreview = ({ template, storeName, productName, productPrice, isComplet
       {/* Product grid */}
       <div className="p-4">
         <AnimatePresence mode="wait">
-          {(productName || productPrice) ? (
+          {productName || productPrice ? (
             <motion.div
               key="product-card"
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               className="rounded-xl border overflow-hidden"
-              style={{ 
+              style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
                 borderColor: 'rgba(255, 255, 255, 0.1)',
               }}
             >
-              <div 
+              <div
                 className="aspect-square flex items-center justify-center"
-                style={{ 
-                  background: template 
-                    ? `linear-gradient(135deg, ${activeColor}20, ${activeColor}10)` 
+                style={{
+                  background: template
+                    ? `linear-gradient(135deg, ${activeColor}20, ${activeColor}10)`
                     : 'rgba(255, 255, 255, 0.05)',
                 }}
               >
                 <Package className="w-12 h-12" style={{ color: activeColor }} />
               </div>
               <div className="p-3">
-                <motion.p 
+                <motion.p
                   className="font-medium text-white truncate"
                   key={displayProduct}
                   initial={{ opacity: 0.5 }}
@@ -347,7 +360,7 @@ const LivePreview = ({ template, storeName, productName, productPrice, isComplet
                 >
                   {displayProduct}
                 </motion.p>
-                <motion.p 
+                <motion.p
                   className="text-lg font-bold mt-1"
                   style={{ color: activeColor }}
                   key={displayPrice}
@@ -358,9 +371,9 @@ const LivePreview = ({ template, storeName, productName, productPrice, isComplet
                 </motion.p>
                 <motion.button
                   className="w-full mt-3 py-2 rounded-lg text-sm font-medium text-white flex items-center justify-center gap-2"
-                  style={{ 
-                    background: template 
-                      ? `linear-gradient(135deg, ${activeColor}, ${template.gradientTo})` 
+                  style={{
+                    background: template
+                      ? `linear-gradient(135deg, ${activeColor}, ${template.gradientTo})`
                       : 'rgba(255, 255, 255, 0.1)',
                   }}
                   whileHover={{ scale: 1.02 }}
@@ -380,10 +393,10 @@ const LivePreview = ({ template, storeName, productName, productPrice, isComplet
               className="grid grid-cols-2 gap-3"
             >
               {[1, 2].map((i) => (
-                <div 
+                <div
                   key={i}
                   className="aspect-square rounded-xl border flex items-center justify-center"
-                  style={{ 
+                  style={{
                     backgroundColor: 'rgba(255, 255, 255, 0.02)',
                     borderColor: 'rgba(255, 255, 255, 0.05)',
                   }}
@@ -407,7 +420,7 @@ const LivePreview = ({ template, storeName, productName, productPrice, isComplet
 // ============================================================================
 export function InteractiveStoreDemo() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedTemplate, setSelectedTemplate] = useState<typeof templates[0] | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<(typeof templates)[0] | null>(null);
   const [storeName, setStoreName] = useState('');
   const [productName, setProductName] = useState('');
   const [productPrice, setProductPrice] = useState('');
@@ -443,15 +456,18 @@ export function InteractiveStoreDemo() {
   };
 
   return (
-    <section className="py-16 px-4 relative overflow-hidden" style={{ backgroundColor: COLORS.background }}>
+    <section
+      className="py-16 px-4 relative overflow-hidden"
+      style={{ backgroundColor: COLORS.background }}
+    >
       {/* Background gradient orbs */}
-      <motion.div 
+      <motion.div
         className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full blur-3xl opacity-20"
         style={{ background: `radial-gradient(circle, ${COLORS.primary}, transparent)` }}
         animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.25, 0.15] }}
         transition={{ duration: 8, repeat: Infinity }}
       />
-      <motion.div 
+      <motion.div
         className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full blur-3xl opacity-15"
         style={{ background: `radial-gradient(circle, ${COLORS.accent}, transparent)` }}
         animate={{ scale: [1.2, 1, 1.2], opacity: [0.2, 0.1, 0.2] }}
@@ -460,15 +476,15 @@ export function InteractiveStoreDemo() {
 
       <div className="relative max-w-6xl mx-auto">
         {/* Section header */}
-        <motion.div 
+        <motion.div
           className="text-center mb-12"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <motion.div 
+          <motion.div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-6"
-            style={{ 
+            style={{
               backgroundColor: `${COLORS.primary}15`,
               borderColor: `${COLORS.primary}30`,
             }}
@@ -478,7 +494,7 @@ export function InteractiveStoreDemo() {
               Interactive Demo
             </span>
           </motion.div>
-          <h2 
+          <h2
             className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4"
             style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
@@ -494,7 +510,7 @@ export function InteractiveStoreDemo() {
           {/* Left: Interactive Form */}
           <motion.div
             className="p-6 md:p-8 rounded-3xl border backdrop-blur-xl"
-            style={{ 
+            style={{
               backgroundColor: 'rgba(255, 255, 255, 0.03)',
               borderColor: 'rgba(255, 255, 255, 0.1)',
             }}
@@ -507,7 +523,9 @@ export function InteractiveStoreDemo() {
             {/* Step 1: Template Selection */}
             <div className="mb-8">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white text-xs flex items-center justify-center font-bold">1</span>
+                <span className="w-6 h-6 rounded-full bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white text-xs flex items-center justify-center font-bold">
+                  1
+                </span>
                 Template বাছুন
               </h3>
               <div className="grid grid-cols-3 gap-3">
@@ -515,19 +533,23 @@ export function InteractiveStoreDemo() {
                   <motion.button
                     key={template.id}
                     className={`relative p-4 rounded-xl border text-center transition-all ${
-                      selectedTemplate?.id === template.id 
-                        ? 'border-opacity-100' 
+                      selectedTemplate?.id === template.id
+                        ? 'border-opacity-100'
                         : 'border-white/10 hover:border-white/20'
                     }`}
-                    style={{ 
-                      borderColor: selectedTemplate?.id === template.id ? template.color : undefined,
-                      backgroundColor: selectedTemplate?.id === template.id ? `${template.color}15` : 'rgba(255, 255, 255, 0.02)',
+                    style={{
+                      borderColor:
+                        selectedTemplate?.id === template.id ? template.color : undefined,
+                      backgroundColor:
+                        selectedTemplate?.id === template.id
+                          ? `${template.color}15`
+                          : 'rgba(255, 255, 255, 0.02)',
                     }}
                     onClick={() => setSelectedTemplate(template)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <motion.span 
+                    <motion.span
                       className="text-3xl block mb-2"
                       animate={selectedTemplate?.id === template.id ? { scale: [1, 1.2, 1] } : {}}
                     >
@@ -552,14 +574,16 @@ export function InteractiveStoreDemo() {
             {/* Step 2: Store Name */}
             <AnimatePresence>
               {currentStep >= 2 && (
-                <motion.div 
+                <motion.div
                   className="mb-8"
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                 >
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white text-xs flex items-center justify-center font-bold">2</span>
+                    <span className="w-6 h-6 rounded-full bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white text-xs flex items-center justify-center font-bold">
+                      2
+                    </span>
                     আপনার Store এর নাম দিন
                   </h3>
                   <motion.input
@@ -568,8 +592,9 @@ export function InteractiveStoreDemo() {
                     onChange={(e) => setStoreName(e.target.value)}
                     placeholder="আপনার Brand নাম..."
                     className="w-full px-4 py-3 rounded-xl border bg-white/5 text-white placeholder-white/30 focus:outline-none transition-all"
-                    style={{ 
-                      borderColor: storeName.length >= 3 ? `${COLORS.primary}50` : 'rgba(255, 255, 255, 0.1)',
+                    style={{
+                      borderColor:
+                        storeName.length >= 3 ? `${COLORS.primary}50` : 'rgba(255, 255, 255, 0.1)',
                     }}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -582,13 +607,15 @@ export function InteractiveStoreDemo() {
             {/* Step 3: Add Product */}
             <AnimatePresence>
               {currentStep >= 3 && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                 >
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white text-xs flex items-center justify-center font-bold">3</span>
+                    <span className="w-6 h-6 rounded-full bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white text-xs flex items-center justify-center font-bold">
+                      3
+                    </span>
                     একটা Product যোগ করুন
                   </h3>
                   <div className="grid grid-cols-2 gap-3">
@@ -598,28 +625,34 @@ export function InteractiveStoreDemo() {
                       onChange={(e) => setProductName(e.target.value)}
                       placeholder="Product এর নাম..."
                       className="px-4 py-3 rounded-xl border bg-white/5 text-white placeholder-white/30 focus:outline-none transition-all"
-                      style={{ 
-                        borderColor: productName ? `${COLORS.primary}50` : 'rgba(255, 255, 255, 0.1)',
+                      style={{
+                        borderColor: productName
+                          ? `${COLORS.primary}50`
+                          : 'rgba(255, 255, 255, 0.1)',
                       }}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       autoFocus
                     />
-                    <motion.div 
+                    <motion.div
                       className="relative"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
                     >
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50">৳</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50">
+                        ৳
+                      </span>
                       <input
                         type="number"
                         value={productPrice}
                         onChange={(e) => setProductPrice(e.target.value)}
                         placeholder="দাম..."
                         className="w-full pl-8 pr-4 py-3 rounded-xl border bg-white/5 text-white placeholder-white/30 focus:outline-none transition-all"
-                        style={{ 
-                          borderColor: productPrice ? `${COLORS.primary}50` : 'rgba(255, 255, 255, 0.1)',
+                        style={{
+                          borderColor: productPrice
+                            ? `${COLORS.primary}50`
+                            : 'rgba(255, 255, 255, 0.1)',
                         }}
                       />
                     </motion.div>

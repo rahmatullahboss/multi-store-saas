@@ -177,7 +177,7 @@ export function InfrastructureCTA() {
           {/* Primary CTA */}
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
             <Link
-              href="/auth/register"
+              href="https://app.ozzyl.com/auth/register"
               className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-lg overflow-hidden"
               style={{
                 background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
