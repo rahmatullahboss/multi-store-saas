@@ -11,6 +11,8 @@
  */
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
+export type Priority = 'high' | 'medium' | 'low';
+
 interface LazySectionProps {
   children: ReactNode;
   /** Fallback skeleton to show while loading */
@@ -21,6 +23,8 @@ interface LazySectionProps {
   minHeight?: string;
   /** CSS class for the wrapper */
   className?: string;
+  /** Loading priority - affects when section starts loading relative to viewport */
+  priority?: Priority;
 }
 
 /**
@@ -44,17 +48,28 @@ function DefaultSkeleton({ minHeight }: { minHeight?: string }) {
   );
 }
 
+// Priority-based root margins for progressive loading
+const PRIORITY_ROOT_MARGIN: Record<Priority, string> = {
+  high: '500px', // Load when 500px away (early preload for critical sections)
+  medium: '200px', // Load when 200px away (balanced)
+  low: '50px', // Load when very close (save bandwidth for below-fold)
+};
+
 export function LazySection({
   children,
   fallback,
-  rootMargin = '300px', // Increased for smoother loading
+  rootMargin,
   minHeight = '400px',
   className = '',
+  priority = 'medium',
 }: LazySectionProps) {
   // Start with false to match SSR output (skeleton)
   const [shouldRender, setShouldRender] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  // Use priority-based root margin if not explicitly provided
+  const effectiveRootMargin = rootMargin ?? PRIORITY_ROOT_MARGIN[priority];
 
   useEffect(() => {
     setHasMounted(true);
@@ -78,7 +93,7 @@ export function LazySection({
         }
       },
       {
-        rootMargin,
+        rootMargin: effectiveRootMargin,
         threshold: 0.01, // Trigger when even 1% is visible
       }
     );
@@ -86,7 +101,7 @@ export function LazySection({
     observer.observe(ref.current);
 
     return () => observer.disconnect();
-  }, [rootMargin]);
+  }, [effectiveRootMargin]);
 
   // Always show fallback until we've mounted AND section is in view
   const showChildren = hasMounted && shouldRender;

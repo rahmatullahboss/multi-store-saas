@@ -30,6 +30,9 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
+
+  // Next.js 16 Partial Pre-Rendering (PPR) - enables instant static shell with streaming dynamic content
+  cacheComponents: true,
 };
 
 export default nextConfig;

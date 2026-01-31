@@ -1,20 +1,21 @@
 'use client';
 
 /**
- * SaaS Marketing Landing Page - PERFORMANCE OPTIMIZED VERSION
+ * SaaS Marketing Landing Page - NEXT.JS 16 OPTIMIZED VERSION
  *
  * Performance optimizations:
- * - Lazy loading for below-the-fold sections
- * - React.lazy() for heavy components
- * - Intersection Observer based rendering
+ * - Next.js 16 dynamic() for automatic code splitting
+ * - Suspense boundaries for streaming
+ * - Partial Pre-Rendering (PPR) ready
  * - Reduced initial JS bundle
  */
 
-import { lazy, Suspense, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Rocket } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
-import { LazySection, ClientOnly } from '@/components/LazySection';
+import { ClientOnly, LazySection } from '@/components/LazySection';
 import { ASSETS } from '@/config/assets';
 
 // ============================================================================
@@ -24,247 +25,341 @@ import { MarketingHeader } from '@/components/MarketingHeader';
 import { AwardWinningHero } from '@/components/AwardWinningHero';
 
 // ============================================================================
-// LAZY - Load when user scrolls (below the fold)
-// These components are heavy and not needed immediately
+// DYNAMIC IMPORTS - Next.js 16 automatic code splitting
 // ============================================================================
 
-// Hero sections (loaded after first hero)
-const AIHeroSection = lazy(() =>
-  import('@/components/AIHeroSection').then((m) => ({ default: m.AIHeroSection }))
+// Simple skeleton for dynamic components
+const SectionSkeleton = () => (
+  <div className="w-full py-16 animate-pulse">
+    <div className="max-w-6xl mx-auto px-4">
+      <div className="h-8 bg-gray-800/20 rounded-lg w-1/3 mx-auto mb-8" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-48 bg-gray-800/10 rounded-xl" />
+        ))}
+      </div>
+    </div>
+  </div>
 );
 
-// Problem/Solution
-const ProblemSolutionSection = lazy(() =>
-  import('@/components/ProblemSolutionSection').then((m) => ({ default: m.ProblemSolutionSection }))
+// Hero sections (HIGH PRIORITY - early loading)
+const AIHeroSection = dynamic(
+  () => import('@/components/AIHeroSection').then((m) => ({ default: m.AIHeroSection })),
+  { loading: () => <SectionSkeleton /> }
 );
 
-// AI Showcase sections (heavy - 31KB+)
-const AIShowcaseSection = lazy(() =>
-  import('@/components/landing/AIShowcaseSection').then((m) => ({ default: m.AIShowcaseSection }))
+// Problem/Solution (HIGH PRIORITY)
+const ProblemSolutionSection = dynamic(
+  () =>
+    import('@/components/ProblemSolutionSection').then((m) => ({
+      default: m.ProblemSolutionSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
 
-// Builder sections
-const DragDropBuilderShowcase = lazy(() =>
-  import('@/components/landing/DragDropBuilderShowcase').then((m) => ({
-    default: m.DragDropBuilderShowcase,
-  }))
-);
-const EditorModeComparison = lazy(() =>
-  import('@/components/landing/EditorModeComparison').then((m) => ({
-    default: m.EditorModeComparison,
-  }))
-);
-const AIMagicSection = lazy(() =>
-  import('@/components/landing/AIMagicSection').then((m) => ({ default: m.AIMagicSection }))
-);
-const AISocialProofSection = lazy(() =>
-  import('@/components/landing/AISocialProofSection').then((m) => ({
-    default: m.AISocialProofSection,
-  }))
+// AI Showcase sections (MEDIUM PRIORITY - heavy section)
+const AIShowcaseSection = dynamic(
+  () =>
+    import('@/components/landing/AIShowcaseSection').then((m) => ({
+      default: m.AIShowcaseSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
 
-// Features
-const BentoFeaturesSection = lazy(() =>
-  import('@/components/BentoFeaturesSection').then((m) => ({ default: m.BentoFeaturesSection }))
+// Builder sections (MEDIUM PRIORITY)
+const DragDropBuilderShowcase = dynamic(
+  () =>
+    import('@/components/landing/DragDropBuilderShowcase').then((m) => ({
+      default: m.DragDropBuilderShowcase,
+    })),
+  { loading: () => <SectionSkeleton /> }
+);
+const EditorModeComparison = dynamic(
+  () =>
+    import('@/components/landing/EditorModeComparison').then((m) => ({
+      default: m.EditorModeComparison,
+    })),
+  { loading: () => <SectionSkeleton /> }
+);
+const AIMagicSection = dynamic(
+  () => import('@/components/landing/AIMagicSection').then((m) => ({ default: m.AIMagicSection })),
+  { loading: () => <SectionSkeleton /> }
+);
+const AISocialProofSection = dynamic(
+  () =>
+    import('@/components/landing/AISocialProofSection').then((m) => ({
+      default: m.AISocialProofSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
 
-// Infrastructure sections
-const InfrastructureSection = lazy(() =>
-  import('@/components/InfrastructureSection').then((m) => ({ default: m.InfrastructureSection }))
-);
-const SpeedComparison = lazy(() =>
-  import('@/components/SpeedComparison').then((m) => ({ default: m.SpeedComparison }))
-);
-const CDNExplainer = lazy(() =>
-  import('@/components/CDNExplainer').then((m) => ({ default: m.CDNExplainer }))
-);
-const SpeedImpact = lazy(() =>
-  import('@/components/SpeedImpact').then((m) => ({ default: m.SpeedImpact }))
-);
-const CloudflareBenefitsCards = lazy(() =>
-  import('@/components/CloudflareBenefitsCards').then((m) => ({
-    default: m.CloudflareBenefitsCards,
-  }))
-);
-const TechnicalSpecs = lazy(() =>
-  import('@/components/TechnicalSpecs').then((m) => ({ default: m.TechnicalSpecs }))
-);
-const LiveDashboard = lazy(() =>
-  import('@/components/LiveDashboard').then((m) => ({ default: m.LiveDashboard }))
-);
-const InfrastructureCTA = lazy(() =>
-  import('@/components/InfrastructureCTA').then((m) => ({ default: m.InfrastructureCTA }))
+// Features (MEDIUM PRIORITY)
+const BentoFeaturesSection = dynamic(
+  () =>
+    import('@/components/BentoFeaturesSection').then((m) => ({ default: m.BentoFeaturesSection })),
+  { loading: () => <SectionSkeleton /> }
 );
 
-// Trust & Comparison
-const TrustSection = lazy(() =>
-  import('@/components/TrustSection').then((m) => ({ default: m.TrustSection }))
+// Infrastructure sections (MEDIUM PRIORITY)
+const InfrastructureSection = dynamic(
+  () =>
+    import('@/components/InfrastructureSection').then((m) => ({
+      default: m.InfrastructureSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const ComparisonSection = lazy(() =>
-  import('@/components/ComparisonSection').then((m) => ({ default: m.ComparisonSection }))
+const SpeedComparison = dynamic(
+  () => import('@/components/SpeedComparison').then((m) => ({ default: m.SpeedComparison })),
+  { loading: () => <SectionSkeleton /> }
+);
+const CDNExplainer = dynamic(
+  () => import('@/components/CDNExplainer').then((m) => ({ default: m.CDNExplainer })),
+  { loading: () => <SectionSkeleton /> }
+);
+const SpeedImpact = dynamic(
+  () => import('@/components/SpeedImpact').then((m) => ({ default: m.SpeedImpact })),
+  { loading: () => <SectionSkeleton /> }
+);
+const CloudflareBenefitsCards = dynamic(
+  () =>
+    import('@/components/CloudflareBenefitsCards').then((m) => ({
+      default: m.CloudflareBenefitsCards,
+    })),
+  { loading: () => <SectionSkeleton /> }
+);
+const TechnicalSpecs = dynamic(
+  () => import('@/components/TechnicalSpecs').then((m) => ({ default: m.TechnicalSpecs })),
+  { loading: () => <SectionSkeleton /> }
+);
+const LiveDashboard = dynamic(
+  () => import('@/components/LiveDashboard').then((m) => ({ default: m.LiveDashboard })),
+  { loading: () => <SectionSkeleton /> }
+);
+const InfrastructureCTA = dynamic(
+  () => import('@/components/InfrastructureCTA').then((m) => ({ default: m.InfrastructureCTA })),
+  { loading: () => <SectionSkeleton /> }
 );
 
-// Interactive demo
-const InteractiveStoreDemo = lazy(() =>
-  import('@/components/InteractiveStoreDemo').then((m) => ({ default: m.InteractiveStoreDemo }))
+// Trust & Comparison (MEDIUM PRIORITY)
+const TrustSection = dynamic(
+  () => import('@/components/TrustSection').then((m) => ({ default: m.TrustSection })),
+  { loading: () => <SectionSkeleton /> }
+);
+const ComparisonSection = dynamic(
+  () => import('@/components/ComparisonSection').then((m) => ({ default: m.ComparisonSection })),
+  { loading: () => <SectionSkeleton /> }
 );
 
-// FAQ & CTA
-const FAQSection = lazy(() =>
-  import('@/components/FAQSection').then((m) => ({ default: m.FAQSection }))
+// Interactive demo (MEDIUM PRIORITY)
+const InteractiveStoreDemo = dynamic(
+  () =>
+    import('@/components/InteractiveStoreDemo').then((m) => ({ default: m.InteractiveStoreDemo })),
+  { loading: () => <SectionSkeleton /> }
 );
-const AIPoweredFinalCTA = lazy(() =>
-  import('@/components/landing/AIPoweredFinalCTA').then((m) => ({ default: m.AIPoweredFinalCTA }))
-);
-const FinalCTA = lazy(() => import('@/components/FinalCTA').then((m) => ({ default: m.FinalCTA })));
 
-// AI Chat Widget - Only load on user interaction (very heavy - 25KB)
-const OzzylAIChatWidget = lazy(() =>
-  import('@/components/landing/OzzylAIChatWidget').then((m) => ({ default: m.OzzylAIChatWidget }))
+// FAQ & CTA (MEDIUM to LOW PRIORITY)
+const FAQSection = dynamic(
+  () => import('@/components/FAQSection').then((m) => ({ default: m.FAQSection })),
+  { loading: () => <SectionSkeleton /> }
+);
+const AIPoweredFinalCTA = dynamic(
+  () =>
+    import('@/components/landing/AIPoweredFinalCTA').then((m) => ({
+      default: m.AIPoweredFinalCTA,
+    })),
+  { loading: () => <SectionSkeleton /> }
+);
+const FinalCTA = dynamic(
+  () => import('@/components/FinalCTA').then((m) => ({ default: m.FinalCTA })),
+  { loading: () => <SectionSkeleton /> }
+);
+
+// AI Chat Widget - CLIENT ONLY (very heavy - load only on interaction)
+const OzzylAIChatWidget = dynamic(
+  () =>
+    import('@/components/landing/OzzylAIChatWidget').then((m) => ({
+      default: m.OzzylAIChatWidget,
+    })),
+  { ssr: false, loading: () => null }
 );
 
 // New Award-Winning Sections (Extra Features)
-const AllInOneSolution = lazy(() =>
-  import('@/components/landing/AllInOneSolution').then((m) => ({ default: m.AllInOneSolution }))
+const AllInOneSolution = dynamic(
+  () =>
+    import('@/components/landing/AllInOneSolution').then((m) => ({ default: m.AllInOneSolution })),
+  { loading: () => <SectionSkeleton /> }
 );
-const PaymentIntegrationSection = lazy(() =>
-  import('@/components/landing/PaymentIntegrationSection').then((m) => ({
-    default: m.PaymentIntegrationSection,
-  }))
+const PaymentIntegrationSection = dynamic(
+  () =>
+    import('@/components/landing/PaymentIntegrationSection').then((m) => ({
+      default: m.PaymentIntegrationSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const InventoryOrderManagement = lazy(() =>
-  import('@/components/landing/InventoryOrderManagement').then((m) => ({
-    default: m.InventoryOrderManagement,
-  }))
+const InventoryOrderManagement = dynamic(
+  () =>
+    import('@/components/landing/InventoryOrderManagement').then((m) => ({
+      default: m.InventoryOrderManagement,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const StorefrontUXShowcase = lazy(() =>
-  import('@/components/landing/StorefrontUXShowcase').then((m) => ({
-    default: m.StorefrontUXShowcase,
-  }))
+const StorefrontUXShowcase = dynamic(
+  () =>
+    import('@/components/landing/StorefrontUXShowcase').then((m) => ({
+      default: m.StorefrontUXShowcase,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const CRMMarketingGrowth = lazy(() =>
-  import('@/components/landing/CRMMarketingGrowth').then((m) => ({ default: m.CRMMarketingGrowth }))
+const CRMMarketingGrowth = dynamic(
+  () =>
+    import('@/components/landing/CRMMarketingGrowth').then((m) => ({
+      default: m.CRMMarketingGrowth,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const BanglaNativeLocalization = lazy(() =>
-  import('@/components/landing/BanglaNativeLocalization').then((m) => ({
-    default: m.BanglaNativeLocalization,
-  }))
+const BanglaNativeLocalization = dynamic(
+  () =>
+    import('@/components/landing/BanglaNativeLocalization').then((m) => ({
+      default: m.BanglaNativeLocalization,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const SecuritySpeedInfrastructure = lazy(() =>
-  import('@/components/landing/SecuritySpeedInfrastructure').then((m) => ({
-    default: m.SecuritySpeedInfrastructure,
-  }))
+const SecuritySpeedInfrastructure = dynamic(
+  () =>
+    import('@/components/landing/SecuritySpeedInfrastructure').then((m) => ({
+      default: m.SecuritySpeedInfrastructure,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const PricingSection = lazy(() =>
-  import('@/components/PricingSection').then((m) => ({ default: m.PricingSection }))
+const PricingSection = dynamic(
+  () => import('@/components/PricingSection').then((m) => ({ default: m.PricingSection })),
+  { loading: () => <SectionSkeleton /> }
 );
 
 // New Feature Sections (Project 10 Features)
-const MarketingAutomationSection = lazy(() =>
-  import('@/components/landing/MarketingAutomationSection').then((m) => ({
-    default: m.MarketingAutomationSection,
-  }))
+const MarketingAutomationSection = dynamic(
+  () =>
+    import('@/components/landing/MarketingAutomationSection').then((m) => ({
+      default: m.MarketingAutomationSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const LogisticsOperationsSection = lazy(() =>
-  import('@/components/landing/LogisticsOperationsSection').then((m) => ({
-    default: m.LogisticsOperationsSection,
-  }))
+const LogisticsOperationsSection = dynamic(
+  () =>
+    import('@/components/landing/LogisticsOperationsSection').then((m) => ({
+      default: m.LogisticsOperationsSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const BusinessManagementSection = lazy(() =>
-  import('@/components/landing/BusinessManagementSection').then((m) => ({
-    default: m.BusinessManagementSection,
-  }))
+const BusinessManagementSection = dynamic(
+  () =>
+    import('@/components/landing/BusinessManagementSection').then((m) => ({
+      default: m.BusinessManagementSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const CustomerExperienceSection = lazy(() =>
-  import('@/components/landing/CustomerExperienceSection').then((m) => ({
-    default: m.CustomerExperienceSection,
-  }))
+const CustomerExperienceSection = dynamic(
+  () =>
+    import('@/components/landing/CustomerExperienceSection').then((m) => ({
+      default: m.CustomerExperienceSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
 
 // NEW EXTRA SECTIONS (From Prompts 16, 21, 22)
-const AnalyticsInsightsSection = lazy(() =>
-  import('@/components/landing/AnalyticsInsightsSection').then((m) => ({
-    default: m.AnalyticsInsightsSection,
-  }))
+const AnalyticsInsightsSection = dynamic(
+  () =>
+    import('@/components/landing/AnalyticsInsightsSection').then((m) => ({
+      default: m.AnalyticsInsightsSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const UseCaseScenariosSection = lazy(() =>
-  import('@/components/landing/UseCaseScenariosSection').then((m) => ({
-    default: m.UseCaseScenariosSection,
-  }))
+const UseCaseScenariosSection = dynamic(
+  () =>
+    import('@/components/landing/UseCaseScenariosSection').then((m) => ({
+      default: m.UseCaseScenariosSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const FeatureMatrixSection = lazy(() =>
-  import('@/components/landing/FeatureMatrixSection').then((m) => ({
-    default: m.FeatureMatrixSection,
-  }))
+const FeatureMatrixSection = dynamic(
+  () =>
+    import('@/components/landing/FeatureMatrixSection').then((m) => ({
+      default: m.FeatureMatrixSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
 
 // POWER FEATURES (Project 10+ Features from Prompt 23-32)
-const CourierIntegrationSection = lazy(() =>
-  import('@/components/landing/CourierIntegrationSection').then((m) => ({
-    default: m.CourierIntegrationSection,
-  }))
+const CourierIntegrationSection = dynamic(
+  () =>
+    import('@/components/landing/CourierIntegrationSection').then((m) => ({
+      default: m.CourierIntegrationSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const WhatsAppSMSAutomationSection = lazy(() =>
-  import('@/components/landing/WhatsAppSMSAutomationSection').then((m) => ({
-    default: m.WhatsAppSMSAutomationSection,
-  }))
+const WhatsAppSMSAutomationSection = dynamic(
+  () =>
+    import('@/components/landing/WhatsAppSMSAutomationSection').then((m) => ({
+      default: m.WhatsAppSMSAutomationSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const EmailMarketingSection = lazy(() =>
-  import('@/components/landing/EmailMarketingSection').then((m) => ({
-    default: m.EmailMarketingSection,
-  }))
+const EmailMarketingSection = dynamic(
+  () =>
+    import('@/components/landing/EmailMarketingSection').then((m) => ({
+      default: m.EmailMarketingSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const TeamManagementSection = lazy(() =>
-  import('@/components/landing/TeamManagementSection').then((m) => ({
-    default: m.TeamManagementSection,
-  }))
+const TeamManagementSection = dynamic(
+  () =>
+    import('@/components/landing/TeamManagementSection').then((m) => ({
+      default: m.TeamManagementSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const ActivityLogsSection = lazy(() =>
-  import('@/components/landing/ActivityLogsSection').then((m) => ({
-    default: m.ActivityLogsSection,
-  }))
+const ActivityLogsSection = dynamic(
+  () =>
+    import('@/components/landing/ActivityLogsSection').then((m) => ({
+      default: m.ActivityLogsSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const ProductReviewsSection = lazy(() =>
-  import('@/components/landing/ProductReviewsSection').then((m) => ({
-    default: m.ProductReviewsSection,
-  }))
+const ProductReviewsSection = dynamic(
+  () =>
+    import('@/components/landing/ProductReviewsSection').then((m) => ({
+      default: m.ProductReviewsSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const ReturnsRefundsSection = lazy(() =>
-  import('@/components/landing/ReturnsRefundsSection').then((m) => ({
-    default: m.ReturnsRefundsSection,
-  }))
+const ReturnsRefundsSection = dynamic(
+  () =>
+    import('@/components/landing/ReturnsRefundsSection').then((m) => ({
+      default: m.ReturnsRefundsSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const MessengerIntegrationSection = lazy(() =>
-  import('@/components/landing/MessengerIntegrationSection').then((m) => ({
-    default: m.MessengerIntegrationSection,
-  }))
+const MessengerIntegrationSection = dynamic(
+  () =>
+    import('@/components/landing/MessengerIntegrationSection').then((m) => ({
+      default: m.MessengerIntegrationSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const TaxReportsSection = lazy(() =>
-  import('@/components/landing/TaxReportsSection').then((m) => ({ default: m.TaxReportsSection }))
+const TaxReportsSection = dynamic(
+  () =>
+    import('@/components/landing/TaxReportsSection').then((m) => ({
+      default: m.TaxReportsSection,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-const UnifiedCommunicationHub = lazy(() =>
-  import('@/components/landing/UnifiedCommunicationHub').then((m) => ({
-    default: m.UnifiedCommunicationHub,
-  }))
+const UnifiedCommunicationHub = dynamic(
+  () =>
+    import('@/components/landing/UnifiedCommunicationHub').then((m) => ({
+      default: m.UnifiedCommunicationHub,
+    })),
+  { loading: () => <SectionSkeleton /> }
 );
-
-// ============================================================================
-// Simple Section Skeleton
-// ============================================================================
-function SectionSkeleton() {
-  return (
-    <div className="w-full py-16 animate-pulse">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="h-8 bg-gray-800/20 rounded-lg w-1/3 mx-auto mb-8" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-48 bg-gray-800/10 rounded-xl" />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ============================================================================
 // Main Component
@@ -298,316 +393,222 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
           Each LazySection only renders its children when in viewport
           ================================================================ */}
 
-      {/* AI Hero - First lazy section */}
-      <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <AIHeroSection theme="dark" totalUsers={marketingStats?.totalUsers} />
-        </Suspense>
+      {/* AI Hero - First lazy section (HIGH PRIORITY - early preload) */}
+      <LazySection minHeight="600px" priority="high">
+        <AIHeroSection theme="dark" totalUsers={marketingStats?.totalUsers} />
       </LazySection>
 
-      {/* Problem-Solution */}
-      <LazySection minHeight="500px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <ProblemSolutionSection />
-        </Suspense>
+      {/* Problem-Solution (HIGH PRIORITY - early preload) */}
+      <LazySection minHeight="500px" priority="high">
+        <ProblemSolutionSection />
       </LazySection>
 
-      {/* AI Showcase - Heavy section */}
-      <LazySection minHeight="800px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <AIShowcaseSection />
-        </Suspense>
+      {/* AI Showcase - Heavy section (MEDIUM PRIORITY) */}
+      <LazySection minHeight="800px" priority="medium">
+        <AIShowcaseSection />
       </LazySection>
 
-      {/* Builder sections */}
-      <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <DragDropBuilderShowcase />
-        </Suspense>
+      {/* Builder sections (MEDIUM - core features) */}
+      <LazySection minHeight="600px" priority="medium">
+        <DragDropBuilderShowcase />
       </LazySection>
 
-      <LazySection minHeight="500px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <EditorModeComparison />
-        </Suspense>
+      <LazySection minHeight="500px" priority="medium">
+        <EditorModeComparison />
       </LazySection>
 
-      <LazySection minHeight="500px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <AIMagicSection />
-        </Suspense>
+      <LazySection minHeight="500px" priority="medium">
+        <AIMagicSection />
       </LazySection>
 
-      <LazySection minHeight="400px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <AISocialProofSection />
-        </Suspense>
+      <LazySection minHeight="400px" priority="medium">
+        <AISocialProofSection />
       </LazySection>
 
-      {/* Features */}
-      <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <BentoFeaturesSection />
-        </Suspense>
+      {/* Features (MEDIUM - important showcase) */}
+      <LazySection minHeight="600px" priority="medium">
+        <BentoFeaturesSection />
       </LazySection>
 
-      {/* NEW FEATURES: Marketing Automation (Sales/Growth) */}
-      <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <MarketingAutomationSection />
-        </Suspense>
+      {/* NEW FEATURES: Marketing Automation (Sales/Growth) - MEDIUM */}
+      <LazySection minHeight="600px" priority="medium">
+        <MarketingAutomationSection />
       </LazySection>
 
-      {/* NEW FEATURES: Logistics (Operations) */}
-      <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <LogisticsOperationsSection />
-        </Suspense>
+      {/* NEW FEATURES: Logistics (Operations) - MEDIUM */}
+      <LazySection minHeight="600px" priority="medium">
+        <LogisticsOperationsSection />
       </LazySection>
 
-      {/* NEW FEATURES: Customer Experience (Social Proof) */}
-      <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <CustomerExperienceSection />
-        </Suspense>
+      {/* NEW FEATURES: Customer Experience (Social Proof) - MEDIUM */}
+      <LazySection minHeight="600px" priority="medium">
+        <CustomerExperienceSection />
       </LazySection>
 
-      {/* NEW FEATURES: Business Management (Control/Admin) */}
-      <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <BusinessManagementSection />
-        </Suspense>
+      {/* NEW FEATURES: Business Management (Control/Admin) - MEDIUM */}
+      <LazySection minHeight="600px" priority="medium">
+        <BusinessManagementSection />
       </LazySection>
 
       {/* NEW FEATURES: Analytics & Data (Prompt 16) */}
       <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <AnalyticsInsightsSection />
-        </Suspense>
+        <AnalyticsInsightsSection />
       </LazySection>
 
       {/* Infrastructure - Multiple sections */}
       <LazySection minHeight="500px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <InfrastructureSection />
-        </Suspense>
+        <InfrastructureSection />
       </LazySection>
 
       <LazySection minHeight="400px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <SpeedComparison />
-        </Suspense>
+        <SpeedComparison />
       </LazySection>
 
       <LazySection minHeight="400px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <CDNExplainer />
-        </Suspense>
+        <CDNExplainer />
       </LazySection>
 
       <LazySection minHeight="400px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <SpeedImpact />
-        </Suspense>
+        <SpeedImpact />
       </LazySection>
 
       <LazySection minHeight="400px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <CloudflareBenefitsCards />
-        </Suspense>
+        <CloudflareBenefitsCards />
       </LazySection>
 
       <LazySection minHeight="400px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <TechnicalSpecs />
-        </Suspense>
+        <TechnicalSpecs />
       </LazySection>
 
       <LazySection minHeight="500px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <LiveDashboard />
-        </Suspense>
+        <LiveDashboard />
       </LazySection>
 
       <LazySection minHeight="300px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <InfrastructureCTA />
-        </Suspense>
+        <InfrastructureCTA />
       </LazySection>
 
       {/* Trust & Comparison */}
       <LazySection minHeight="400px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <TrustSection stats={marketingStats} />
-        </Suspense>
+        <TrustSection stats={marketingStats} />
       </LazySection>
 
       <LazySection minHeight="500px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <ComparisonSection />
-        </Suspense>
+        <ComparisonSection />
       </LazySection>
 
       {/* NEW FEATURES: Feature Matrix (Prompt 21) */}
       <LazySection minHeight="800px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <FeatureMatrixSection />
-        </Suspense>
+        <FeatureMatrixSection />
       </LazySection>
 
       {/* Interactive Demo */}
       <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <InteractiveStoreDemo />
-        </Suspense>
+        <InteractiveStoreDemo />
       </LazySection>
 
       {/* ================================================================
           NEW FEATURES (Award-Winning Extras)
           ================================================================ */}
       <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <AllInOneSolution />
-        </Suspense>
+        <AllInOneSolution />
       </LazySection>
 
       <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <PaymentIntegrationSection />
-        </Suspense>
+        <PaymentIntegrationSection />
       </LazySection>
 
       {/* 5. Courier Integration [NEW #23] */}
       <LazySection minHeight="800px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <CourierIntegrationSection />
-        </Suspense>
+        <CourierIntegrationSection />
       </LazySection>
 
       <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <InventoryOrderManagement />
-        </Suspense>
+        <InventoryOrderManagement />
       </LazySection>
 
       {/* 6. WhatsApp/SMS Automation [NEW #24] */}
       <LazySection minHeight="800px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <WhatsAppSMSAutomationSection />
-        </Suspense>
+        <WhatsAppSMSAutomationSection />
       </LazySection>
 
       {/* 7. Email Marketing [NEW #25] */}
       <LazySection minHeight="800px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <EmailMarketingSection />
-        </Suspense>
+        <EmailMarketingSection />
       </LazySection>
 
       <LazySection minHeight="700px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <StorefrontUXShowcase />
-        </Suspense>
+        <StorefrontUXShowcase />
       </LazySection>
 
       <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <CRMMarketingGrowth />
-        </Suspense>
+        <CRMMarketingGrowth />
       </LazySection>
 
       {/* 15. Team Management [NEW #26] */}
       <LazySection minHeight="700px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <TeamManagementSection />
-        </Suspense>
+        <TeamManagementSection />
       </LazySection>
 
       {/* 16. Activity Logs [NEW #27] */}
       <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <ActivityLogsSection />
-        </Suspense>
+        <ActivityLogsSection />
       </LazySection>
 
       {/* 17. Product Reviews [NEW #28] */}
       <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <ProductReviewsSection />
-        </Suspense>
+        <ProductReviewsSection />
       </LazySection>
 
       {/* 18. Returns & Refunds [NEW #29] */}
       <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <ReturnsRefundsSection />
-        </Suspense>
+        <ReturnsRefundsSection />
       </LazySection>
 
       {/* 19. Messenger Integration [NEW #30] */}
       <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <MessengerIntegrationSection />
-        </Suspense>
+        <MessengerIntegrationSection />
       </LazySection>
 
       {/* 20. Tax Reports [NEW #31] */}
       <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <TaxReportsSection />
-        </Suspense>
+        <TaxReportsSection />
       </LazySection>
 
       {/* 21. Unified Communication [NEW #32] */}
       <LazySection minHeight="700px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <UnifiedCommunicationHub />
-        </Suspense>
+        <UnifiedCommunicationHub />
       </LazySection>
 
       <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <BanglaNativeLocalization />
-        </Suspense>
+        <BanglaNativeLocalization />
       </LazySection>
 
       <LazySection minHeight="600px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <SecuritySpeedInfrastructure />
-        </Suspense>
+        <SecuritySpeedInfrastructure />
       </LazySection>
 
       {/* NEW FEATURES: Use Cases (Prompt 22) */}
       <LazySection minHeight="700px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <UseCaseScenariosSection />
-        </Suspense>
+        <UseCaseScenariosSection />
       </LazySection>
 
       <LazySection minHeight="800px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <PricingSection />
-        </Suspense>
+        <PricingSection />
       </LazySection>
 
       {/* FAQ */}
       <LazySection minHeight="500px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <FAQSection />
-        </Suspense>
+        <FAQSection />
       </LazySection>
 
       {/* Final CTAs */}
       <LazySection minHeight="400px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <AIPoweredFinalCTA />
-        </Suspense>
+        <AIPoweredFinalCTA />
       </LazySection>
 
       <LazySection minHeight="400px">
-        <Suspense fallback={<SectionSkeleton />}>
-          <FinalCTA stats={marketingStats} />
-        </Suspense>
+        <FinalCTA stats={marketingStats} />
       </LazySection>
 
       {/* Footer - Static, no lazy needed */}
@@ -618,12 +619,12 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
             <div className="sm:col-span-2 md:col-span-1 text-center sm:text-left">
               <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
                 {/* Optimized: Use smaller logo size */}
-                <img
+                <Image
                   src={ASSETS.brand.logoWhite}
                   alt="Ozzyl"
                   className="h-10 w-auto"
-                  width="103"
-                  height="40"
+                  width={103}
+                  height={40}
                   loading="lazy"
                 />
               </div>
@@ -759,9 +760,7 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
 
       {/* AI Chat Widget - Lazy loaded, only renders when user wants to interact */}
       <ClientOnly>
-        <Suspense fallback={null}>
-          <OzzylAIChatWidget />
-        </Suspense>
+        <OzzylAIChatWidget />
       </ClientOnly>
     </div>
   );

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, Outfit } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
@@ -38,6 +38,21 @@ export const metadata: Metadata = {
     shortcut: ASSETS.brand.icon,
     apple: ASSETS.brand.icon,
   },
+  // Preconnect to required origins for faster loading
+  other: {
+    'link[rel="preconnect"][href="https://fonts.googleapis.com"]': '',
+    'link[rel="preconnect"][href="https://fonts.gstatic.com"][crossorigin]': '',
+    'link[rel="preconnect"][href="https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"][crossorigin]':
+      '',
+    'link[rel="preconnect"][href="https://assets.ozzyl.com"][crossorigin]': '',
+    'link[rel="preconnect"][href="https://images.unsplash.com"][crossorigin]': '',
+  },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#0A0A0F',
 };
 
 import { LanguageProvider } from '@/app/contexts/LanguageContext';
