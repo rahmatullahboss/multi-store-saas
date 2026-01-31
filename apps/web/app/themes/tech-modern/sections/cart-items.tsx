@@ -5,7 +5,7 @@
  * Modern tech cart with clean design
  */
 
-import { Link } from '@remix-run/react';
+import { Link, useFetcher } from '@remix-run/react';
 import { Trash2, Minus, Plus, ShoppingCart, ArrowLeft } from 'lucide-react';
 import type { SectionSchema, SectionComponentProps } from '~/lib/theme-engine/types';
 import { formatPrice } from '~/lib/theme-engine';
@@ -88,6 +88,25 @@ export default function TechCartItems({ context, settings }: SectionComponentPro
   const cart = context.cart;
   const items = cart?.items || [];
 
+  const fetcher = useFetcher();
+  const isUpdating = fetcher.state !== 'idle';
+
+  // Handlers
+  const handleUpdateQuantity = (itemId: string, quantity: number) => {
+    if (quantity === 0) {
+      handleRemove(itemId);
+      return;
+    }
+    fetcher.submit(
+      { action: 'update', itemId, quantity: String(quantity) },
+      { method: 'post', action: '/cart' }
+    );
+  };
+
+  const handleRemove = (itemId: string) => {
+    fetcher.submit({ action: 'remove', itemId }, { method: 'post', action: '/cart' });
+  };
+
   // Empty cart state
   if (items.length === 0) {
     return (
@@ -166,14 +185,18 @@ export default function TechCartItems({ context, settings }: SectionComponentPro
                 </p>
 
                 {/* Quantity Controls - Desktop */}
-                <div className="hidden md:flex items-center gap-3 mt-4">
+                <div
+                  className={`hidden md:flex items-center gap-3 mt-4 ${isUpdating ? 'opacity-50' : ''}`}
+                >
                   <div
                     className="flex items-center rounded-lg border"
                     style={{ borderColor: THEME.border }}
                   >
                     <button
+                      onClick={() => handleUpdateQuantity(item.id, Math.max(0, item.quantity - 1))}
                       className="px-3 py-2 hover:bg-gray-50 transition-colors"
                       style={{ color: THEME.text }}
+                      disabled={isUpdating}
                     >
                       <Minus className="w-4 h-4" />
                     </button>
@@ -184,16 +207,21 @@ export default function TechCartItems({ context, settings }: SectionComponentPro
                       {item.quantity}
                     </span>
                     <button
+                      onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                       className="px-3 py-2 hover:bg-gray-50 transition-colors"
                       style={{ color: THEME.text }}
+                      disabled={isUpdating}
                     >
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
 
                   <button
+                    onClick={() => handleRemove(item.id)}
                     className="p-2 hover:bg-red-50 transition-colors"
                     style={{ color: '#ef4444' }}
+                    disabled={isUpdating}
+                    aria-label="Remove item"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
@@ -201,11 +229,19 @@ export default function TechCartItems({ context, settings }: SectionComponentPro
               </div>
 
               {/* Mobile Quantity & Remove */}
-              <div className="md:hidden flex flex-col items-end gap-2">
+              <div
+                className={`md:hidden flex flex-col items-end gap-2 ${isUpdating ? 'opacity-50' : ''}`}
+              >
                 <p className="text-lg font-bold" style={{ color: THEME.accent }}>
                   {formatPrice(item.price * item.quantity, context.store?.currency)}
                 </p>
-                <button className="p-2" style={{ color: '#ef4444' }}>
+                <button
+                  onClick={() => handleRemove(item.id)}
+                  className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                  style={{ color: '#ef4444' }}
+                  disabled={isUpdating}
+                  aria-label="Remove item"
+                >
                   <Trash2 className="w-5 h-5" />
                 </button>
               </div>

@@ -5,21 +5,51 @@
  */
 
 /**
+ * Normalize currency code - handles both codes ('BDT', 'USD') and symbols ('৳', '$')
+ * Returns the standardized currency code
+ */
+function normalizeCurrency(currency: string | undefined | null): string {
+  if (!currency) return 'BDT';
+
+  // Handle symbols
+  if (currency === '৳' || currency === 'TK' || currency === 'Tk') {
+    return 'BDT';
+  }
+  if (currency === '$') {
+    return 'USD';
+  }
+
+  // Already a code
+  const upperCurrency = currency.toUpperCase();
+  if (upperCurrency === 'BDT' || upperCurrency === 'USD') {
+    return upperCurrency;
+  }
+
+  // Default fallback
+  return 'BDT';
+}
+
+/**
  * Format a price for display
  *
  * @param price - Price in taka (e.g., 1499 for ৳1,499)
- * @param currency - Currency code (default: 'BDT')
+ * @param currency - Currency code or symbol (default: 'BDT')
  * @returns Formatted price string
  *
  * @example
  * formatPrice(1499) // "৳1,499"
  * formatPrice(14.99, 'USD') // "$14.99"
+ * formatPrice(1499, '৳') // "৳1,499" (handles symbol)
  * formatPrice(undefined) // "৳0"
  */
-export function formatPrice(price: number | undefined | null, currency: string = 'BDT'): string {
+export function formatPrice(
+  price: number | undefined | null,
+  currency: string | undefined | null = 'BDT'
+): string {
   const safePrice = price ?? 0;
+  const normalizedCurrency = normalizeCurrency(currency);
 
-  if (currency === 'BDT') {
+  if (normalizedCurrency === 'BDT') {
     return `৳${safePrice.toLocaleString('bn-BD')}`;
   }
 
