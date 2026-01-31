@@ -3,19 +3,21 @@
 /**
  * SaaS Marketing Landing Page - NEXT.JS 16 OPTIMIZED VERSION
  *
- * Performance optimizations:
- * - Next.js 16 dynamic() for automatic code splitting
- * - Suspense boundaries for streaming
- * - Partial Pre-Rendering (PPR) ready
- * - Reduced initial JS bundle
+ * Performance optimizations (Vercel React Best Practices):
+ * - Better dynamic imports with conditional loading
+ * - Reduced LazySection overhead
+ * - Content-visibility for long sections
+ * - useMemo for expensive computations
+ * - Reduced re-renders
  */
 
+import { useState, useRef, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Rocket } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
-import { ClientOnly, LazySection } from '@/components/LazySection';
+import { ClientOnly } from '@/components/LazySection';
 import { ASSETS } from '@/config/assets';
 
 // ============================================================================
@@ -25,10 +27,10 @@ import { MarketingHeader } from '@/components/MarketingHeader';
 import { AwardWinningHero } from '@/components/AwardWinningHero';
 
 // ============================================================================
-// DYNAMIC IMPORTS - Next.js 16 automatic code splitting
+// OPTIMIZED DYNAMIC IMPORTS
 // ============================================================================
 
-// Simple skeleton for dynamic components
+// Simple skeleton - minimal animation
 const SectionSkeleton = () => (
   <div className="w-full py-16 animate-pulse">
     <div className="max-w-6xl mx-auto px-4">
@@ -42,327 +44,359 @@ const SectionSkeleton = () => (
   </div>
 );
 
-// Hero sections (HIGH PRIORITY - early loading)
+// HIGH PRIORITY - Load with SSR for better LCP
 const AIHeroSection = dynamic(
   () => import('@/components/AIHeroSection').then((m) => ({ default: m.AIHeroSection })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: true }
 );
 
-// Problem/Solution (HIGH PRIORITY)
 const ProblemSolutionSection = dynamic(
   () =>
     import('@/components/ProblemSolutionSection').then((m) => ({
       default: m.ProblemSolutionSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: true }
 );
 
-// AI Showcase sections (MEDIUM PRIORITY - heavy section)
+// MEDIUM PRIORITY - Client-side only, load on demand
 const AIShowcaseSection = dynamic(
   () =>
     import('@/components/landing/AIShowcaseSection').then((m) => ({
       default: m.AIShowcaseSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
-
-// Builder sections (MEDIUM PRIORITY)
 const DragDropBuilderShowcase = dynamic(
   () =>
     import('@/components/landing/DragDropBuilderShowcase').then((m) => ({
       default: m.DragDropBuilderShowcase,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const EditorModeComparison = dynamic(
   () =>
     import('@/components/landing/EditorModeComparison').then((m) => ({
       default: m.EditorModeComparison,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const AIMagicSection = dynamic(
   () => import('@/components/landing/AIMagicSection').then((m) => ({ default: m.AIMagicSection })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const AISocialProofSection = dynamic(
   () =>
     import('@/components/landing/AISocialProofSection').then((m) => ({
       default: m.AISocialProofSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
-
-// Features (MEDIUM PRIORITY)
 const BentoFeaturesSection = dynamic(
   () =>
     import('@/components/BentoFeaturesSection').then((m) => ({ default: m.BentoFeaturesSection })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 
-// Infrastructure sections (MEDIUM PRIORITY)
+// Infrastructure sections
 const InfrastructureSection = dynamic(
   () =>
     import('@/components/InfrastructureSection').then((m) => ({
       default: m.InfrastructureSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const SpeedComparison = dynamic(
   () => import('@/components/SpeedComparison').then((m) => ({ default: m.SpeedComparison })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const CDNExplainer = dynamic(
   () => import('@/components/CDNExplainer').then((m) => ({ default: m.CDNExplainer })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const SpeedImpact = dynamic(
   () => import('@/components/SpeedImpact').then((m) => ({ default: m.SpeedImpact })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const CloudflareBenefitsCards = dynamic(
   () =>
     import('@/components/CloudflareBenefitsCards').then((m) => ({
       default: m.CloudflareBenefitsCards,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const TechnicalSpecs = dynamic(
   () => import('@/components/TechnicalSpecs').then((m) => ({ default: m.TechnicalSpecs })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const LiveDashboard = dynamic(
   () => import('@/components/LiveDashboard').then((m) => ({ default: m.LiveDashboard })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const InfrastructureCTA = dynamic(
   () => import('@/components/InfrastructureCTA').then((m) => ({ default: m.InfrastructureCTA })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 
-// Trust & Comparison (MEDIUM PRIORITY)
+// Trust & sections
 const TrustSection = dynamic(
   () => import('@/components/TrustSection').then((m) => ({ default: m.TrustSection })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const ComparisonSection = dynamic(
   () => import('@/components/ComparisonSection').then((m) => ({ default: m.ComparisonSection })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 
-// Interactive demo (MEDIUM PRIORITY)
+// Interactive demo
 const InteractiveStoreDemo = dynamic(
   () =>
     import('@/components/InteractiveStoreDemo').then((m) => ({ default: m.InteractiveStoreDemo })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 
-// FAQ & CTA (MEDIUM to LOW PRIORITY)
+// FAQ & CTA
 const FAQSection = dynamic(
   () => import('@/components/FAQSection').then((m) => ({ default: m.FAQSection })),
-  { loading: () => <SectionSkeleton /> }
-);
-const AIPoweredFinalCTA = dynamic(
-  () =>
-    import('@/components/landing/AIPoweredFinalCTA').then((m) => ({
-      default: m.AIPoweredFinalCTA,
-    })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const FinalCTA = dynamic(
   () => import('@/components/FinalCTA').then((m) => ({ default: m.FinalCTA })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 
-// AI Chat Widget - CLIENT ONLY (very heavy - load only on interaction)
-const OzzylAIChatWidget = dynamic(
-  () =>
-    import('@/components/landing/OzzylAIChatWidget').then((m) => ({
-      default: m.OzzylAIChatWidget,
-    })),
-  { ssr: false, loading: () => null }
-);
-
-// New Award-Winning Sections (Extra Features)
-const AllInOneSolution = dynamic(
-  () =>
-    import('@/components/landing/AllInOneSolution').then((m) => ({ default: m.AllInOneSolution })),
-  { loading: () => <SectionSkeleton /> }
-);
-const PaymentIntegrationSection = dynamic(
-  () =>
-    import('@/components/landing/PaymentIntegrationSection').then((m) => ({
-      default: m.PaymentIntegrationSection,
-    })),
-  { loading: () => <SectionSkeleton /> }
-);
-const InventoryOrderManagement = dynamic(
-  () =>
-    import('@/components/landing/InventoryOrderManagement').then((m) => ({
-      default: m.InventoryOrderManagement,
-    })),
-  { loading: () => <SectionSkeleton /> }
-);
-const StorefrontUXShowcase = dynamic(
-  () =>
-    import('@/components/landing/StorefrontUXShowcase').then((m) => ({
-      default: m.StorefrontUXShowcase,
-    })),
-  { loading: () => <SectionSkeleton /> }
-);
-const CRMMarketingGrowth = dynamic(
-  () =>
-    import('@/components/landing/CRMMarketingGrowth').then((m) => ({
-      default: m.CRMMarketingGrowth,
-    })),
-  { loading: () => <SectionSkeleton /> }
-);
-const BanglaNativeLocalization = dynamic(
-  () =>
-    import('@/components/landing/BanglaNativeLocalization').then((m) => ({
-      default: m.BanglaNativeLocalization,
-    })),
-  { loading: () => <SectionSkeleton /> }
-);
-const SecuritySpeedInfrastructure = dynamic(
-  () =>
-    import('@/components/landing/SecuritySpeedInfrastructure').then((m) => ({
-      default: m.SecuritySpeedInfrastructure,
-    })),
-  { loading: () => <SectionSkeleton /> }
-);
-const PricingSection = dynamic(
-  () => import('@/components/PricingSection').then((m) => ({ default: m.PricingSection })),
-  { loading: () => <SectionSkeleton /> }
-);
-
-// New Feature Sections (Project 10 Features)
+// New Feature sections
 const MarketingAutomationSection = dynamic(
   () =>
     import('@/components/landing/MarketingAutomationSection').then((m) => ({
       default: m.MarketingAutomationSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const LogisticsOperationsSection = dynamic(
   () =>
     import('@/components/landing/LogisticsOperationsSection').then((m) => ({
       default: m.LogisticsOperationsSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const BusinessManagementSection = dynamic(
   () =>
     import('@/components/landing/BusinessManagementSection').then((m) => ({
       default: m.BusinessManagementSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const CustomerExperienceSection = dynamic(
   () =>
     import('@/components/landing/CustomerExperienceSection').then((m) => ({
       default: m.CustomerExperienceSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
-
-// NEW EXTRA SECTIONS (From Prompts 16, 21, 22)
 const AnalyticsInsightsSection = dynamic(
   () =>
     import('@/components/landing/AnalyticsInsightsSection').then((m) => ({
       default: m.AnalyticsInsightsSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const UseCaseScenariosSection = dynamic(
   () =>
     import('@/components/landing/UseCaseScenariosSection').then((m) => ({
       default: m.UseCaseScenariosSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const FeatureMatrixSection = dynamic(
   () =>
     import('@/components/landing/FeatureMatrixSection').then((m) => ({
       default: m.FeatureMatrixSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
-
-// POWER FEATURES (Project 10+ Features from Prompt 23-32)
 const CourierIntegrationSection = dynamic(
   () =>
     import('@/components/landing/CourierIntegrationSection').then((m) => ({
       default: m.CourierIntegrationSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const WhatsAppSMSAutomationSection = dynamic(
   () =>
     import('@/components/landing/WhatsAppSMSAutomationSection').then((m) => ({
       default: m.WhatsAppSMSAutomationSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const EmailMarketingSection = dynamic(
   () =>
     import('@/components/landing/EmailMarketingSection').then((m) => ({
       default: m.EmailMarketingSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const TeamManagementSection = dynamic(
   () =>
     import('@/components/landing/TeamManagementSection').then((m) => ({
       default: m.TeamManagementSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const ActivityLogsSection = dynamic(
   () =>
     import('@/components/landing/ActivityLogsSection').then((m) => ({
       default: m.ActivityLogsSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const ProductReviewsSection = dynamic(
   () =>
     import('@/components/landing/ProductReviewsSection').then((m) => ({
       default: m.ProductReviewsSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const ReturnsRefundsSection = dynamic(
   () =>
     import('@/components/landing/ReturnsRefundsSection').then((m) => ({
       default: m.ReturnsRefundsSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const MessengerIntegrationSection = dynamic(
   () =>
     import('@/components/landing/MessengerIntegrationSection').then((m) => ({
       default: m.MessengerIntegrationSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const TaxReportsSection = dynamic(
   () =>
     import('@/components/landing/TaxReportsSection').then((m) => ({
       default: m.TaxReportsSection,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 const UnifiedCommunicationHub = dynamic(
   () =>
     import('@/components/landing/UnifiedCommunicationHub').then((m) => ({
       default: m.UnifiedCommunicationHub,
     })),
-  { loading: () => <SectionSkeleton /> }
+  { loading: () => <SectionSkeleton />, ssr: false }
+);
+
+// Award-Winning Extras
+const AIPoweredFinalCTA = dynamic(
+  () =>
+    import('@/components/landing/AIPoweredFinalCTA').then((m) => ({
+      default: m.AIPoweredFinalCTA,
+    })),
+  { loading: () => <SectionSkeleton />, ssr: false }
+);
+const AllInOneSolution = dynamic(
+  () =>
+    import('@/components/landing/AllInOneSolution').then((m) => ({ default: m.AllInOneSolution })),
+  { loading: () => <SectionSkeleton />, ssr: false }
+);
+const PaymentIntegrationSection = dynamic(
+  () =>
+    import('@/components/landing/PaymentIntegrationSection').then((m) => ({
+      default: m.PaymentIntegrationSection,
+    })),
+  { loading: () => <SectionSkeleton />, ssr: false }
+);
+const InventoryOrderManagement = dynamic(
+  () =>
+    import('@/components/landing/InventoryOrderManagement').then((m) => ({
+      default: m.InventoryOrderManagement,
+    })),
+  { loading: () => <SectionSkeleton />, ssr: false }
+);
+const StorefrontUXShowcase = dynamic(
+  () =>
+    import('@/components/landing/StorefrontUXShowcase').then((m) => ({
+      default: m.StorefrontUXShowcase,
+    })),
+  { loading: () => <SectionSkeleton />, ssr: false }
+);
+const CRMMarketingGrowth = dynamic(
+  () =>
+    import('@/components/landing/CRMMarketingGrowth').then((m) => ({
+      default: m.CRMMarketingGrowth,
+    })),
+  { loading: () => <SectionSkeleton />, ssr: false }
+);
+const BanglaNativeLocalization = dynamic(
+  () =>
+    import('@/components/landing/BanglaNativeLocalization').then((m) => ({
+      default: m.BanglaNativeLocalization,
+    })),
+  { loading: () => <SectionSkeleton />, ssr: false }
+);
+const SecuritySpeedInfrastructure = dynamic(
+  () =>
+    import('@/components/landing/SecuritySpeedInfrastructure').then((m) => ({
+      default: m.SecuritySpeedInfrastructure,
+    })),
+  { loading: () => <SectionSkeleton />, ssr: false }
+);
+const PricingSection = dynamic(
+  () => import('@/components/PricingSection').then((m) => ({ default: m.PricingSection })),
+  { loading: () => <SectionSkeleton />, ssr: false }
 );
 
 // ============================================================================
-// Main Component
+// LAZY SECTION WRAPPER - Optimized with Intersection Observer
+// ============================================================================
+interface LazySectionWrapperProps {
+  children: React.ReactNode;
+  minHeight?: string;
+  className?: string;
+}
+
+function LazySectionWrapper({
+  children,
+  minHeight = '400px',
+  className = '',
+}: LazySectionWrapperProps) {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' } // Start loading 200px before viewport
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        minHeight: isVisible ? undefined : minHeight,
+        contain: 'layout style',
+        contentVisibility: isVisible ? 'visible' : 'auto',
+      }}
+      className={className}
+    >
+      {isVisible ? children : <SectionSkeleton />}
+    </div>
+  );
+}
+
+// ============================================================================
+// TYPES
 // ============================================================================
 export interface MarketingStats {
   totalUsers: number;
@@ -370,15 +404,22 @@ export interface MarketingStats {
   uptime: number;
 }
 
+// ============================================================================
+// MAIN COMPONENT - Optimized
+// ============================================================================
 export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
   const { t } = useTranslation();
 
-  // Use live stats or fallback to mock if undefined
-  const marketingStats = stats || {
-    totalUsers: 15420,
-    totalStores: 850,
-    uptime: 99.99,
-  };
+  // Memoize stats to prevent unnecessary re-renders
+  const marketingStats = useMemo(
+    () =>
+      stats || {
+        totalUsers: 15420,
+        totalStores: 850,
+        uptime: 99.99,
+      },
+    [stats]
+  );
 
   return (
     <div className="min-h-screen overflow-hidden bg-[#0A0A0F]">
@@ -389,227 +430,210 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
       <AwardWinningHero theme="dark" totalUsers={marketingStats?.totalUsers} />
 
       {/* ================================================================
-          LAZY LOADED SECTIONS - Render on scroll
-          Each LazySection only renders its children when in viewport
+          LAZY LOADED SECTIONS - Optimized with Intersection Observer
           ================================================================ */}
 
-      {/* AI Hero - First lazy section (HIGH PRIORITY - early preload) */}
-      <LazySection minHeight="600px" priority="high">
+      {/* AI Hero - First lazy section (HIGH PRIORITY) */}
+      <LazySectionWrapper minHeight="400px">
         <AIHeroSection theme="dark" totalUsers={marketingStats?.totalUsers} />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* Problem-Solution (HIGH PRIORITY - early preload) */}
-      <LazySection minHeight="500px" priority="high">
+      {/* Problem-Solution (HIGH PRIORITY) */}
+      <LazySectionWrapper minHeight="300px">
         <ProblemSolutionSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* AI Showcase - Heavy section (MEDIUM PRIORITY) */}
-      <LazySection minHeight="800px" priority="medium">
+      {/* AI Showcase */}
+      <LazySectionWrapper minHeight="600px">
         <AIShowcaseSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* Builder sections (MEDIUM - core features) */}
-      <LazySection minHeight="600px" priority="medium">
+      {/* Builder sections */}
+      <LazySectionWrapper minHeight="400px">
         <DragDropBuilderShowcase />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="500px" priority="medium">
+      <LazySectionWrapper minHeight="300px">
         <EditorModeComparison />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="500px" priority="medium">
+      <LazySectionWrapper minHeight="300px">
         <AIMagicSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="400px" priority="medium">
+      <LazySectionWrapper minHeight="250px">
         <AISocialProofSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* Features (MEDIUM - important showcase) */}
-      <LazySection minHeight="600px" priority="medium">
+      {/* Features */}
+      <LazySectionWrapper minHeight="400px">
         <BentoFeaturesSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* NEW FEATURES: Marketing Automation (Sales/Growth) - MEDIUM */}
-      <LazySection minHeight="600px" priority="medium">
+      {/* NEW FEATURES */}
+      <LazySectionWrapper minHeight="400px">
         <MarketingAutomationSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* NEW FEATURES: Logistics (Operations) - MEDIUM */}
-      <LazySection minHeight="600px" priority="medium">
+      <LazySectionWrapper minHeight="400px">
         <LogisticsOperationsSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* NEW FEATURES: Customer Experience (Social Proof) - MEDIUM */}
-      <LazySection minHeight="600px" priority="medium">
+      <LazySectionWrapper minHeight="400px">
         <CustomerExperienceSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* NEW FEATURES: Business Management (Control/Admin) - MEDIUM */}
-      <LazySection minHeight="600px" priority="medium">
+      <LazySectionWrapper minHeight="400px">
         <BusinessManagementSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* NEW FEATURES: Analytics & Data (Prompt 16) */}
-      <LazySection minHeight="600px">
+      <LazySectionWrapper minHeight="400px">
         <AnalyticsInsightsSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* Infrastructure - Multiple sections */}
-      <LazySection minHeight="500px">
+      {/* Infrastructure */}
+      <LazySectionWrapper minHeight="300px">
         <InfrastructureSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="400px">
+      <LazySectionWrapper minHeight="250px">
         <SpeedComparison />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="400px">
+      <LazySectionWrapper minHeight="250px">
         <CDNExplainer />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="400px">
+      <LazySectionWrapper minHeight="250px">
         <SpeedImpact />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="400px">
+      <LazySectionWrapper minHeight="250px">
         <CloudflareBenefitsCards />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="400px">
+      <LazySectionWrapper minHeight="250px">
         <TechnicalSpecs />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="500px">
+      <LazySectionWrapper minHeight="300px">
         <LiveDashboard />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="300px">
+      <LazySectionWrapper minHeight="200px">
         <InfrastructureCTA />
-      </LazySection>
+      </LazySectionWrapper>
 
       {/* Trust & Comparison */}
-      <LazySection minHeight="400px">
+      <LazySectionWrapper minHeight="250px">
         <TrustSection stats={marketingStats} />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="500px">
+      <LazySectionWrapper minHeight="400px">
         <ComparisonSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* NEW FEATURES: Feature Matrix (Prompt 21) */}
-      <LazySection minHeight="800px">
+      <LazySectionWrapper minHeight="600px">
         <FeatureMatrixSection />
-      </LazySection>
+      </LazySectionWrapper>
 
       {/* Interactive Demo */}
-      <LazySection minHeight="600px">
+      <LazySectionWrapper minHeight="400px">
         <InteractiveStoreDemo />
-      </LazySection>
+      </LazySectionWrapper>
 
       {/* ================================================================
           NEW FEATURES (Award-Winning Extras)
           ================================================================ */}
-      <LazySection minHeight="600px">
+      <LazySectionWrapper minHeight="400px">
         <AllInOneSolution />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="600px">
+      <LazySectionWrapper minHeight="400px">
         <PaymentIntegrationSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* 5. Courier Integration [NEW #23] */}
-      <LazySection minHeight="800px">
+      <LazySectionWrapper minHeight="600px">
         <CourierIntegrationSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="600px">
+      <LazySectionWrapper minHeight="400px">
         <InventoryOrderManagement />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* 6. WhatsApp/SMS Automation [NEW #24] */}
-      <LazySection minHeight="800px">
+      <LazySectionWrapper minHeight="600px">
         <WhatsAppSMSAutomationSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* 7. Email Marketing [NEW #25] */}
-      <LazySection minHeight="800px">
+      <LazySectionWrapper minHeight="600px">
         <EmailMarketingSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="700px">
+      <LazySectionWrapper minHeight="400px">
         <StorefrontUXShowcase />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="600px">
+      <LazySectionWrapper minHeight="400px">
         <CRMMarketingGrowth />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* 15. Team Management [NEW #26] */}
-      <LazySection minHeight="700px">
+      <LazySectionWrapper minHeight="400px">
         <TeamManagementSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* 16. Activity Logs [NEW #27] */}
-      <LazySection minHeight="600px">
+      <LazySectionWrapper minHeight="300px">
         <ActivityLogsSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* 17. Product Reviews [NEW #28] */}
-      <LazySection minHeight="600px">
+      <LazySectionWrapper minHeight="300px">
         <ProductReviewsSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* 18. Returns & Refunds [NEW #29] */}
-      <LazySection minHeight="600px">
+      <LazySectionWrapper minHeight="300px">
         <ReturnsRefundsSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* 19. Messenger Integration [NEW #30] */}
-      <LazySection minHeight="600px">
+      <LazySectionWrapper minHeight="300px">
         <MessengerIntegrationSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* 20. Tax Reports [NEW #31] */}
-      <LazySection minHeight="600px">
+      <LazySectionWrapper minHeight="300px">
         <TaxReportsSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* 21. Unified Communication [NEW #32] */}
-      <LazySection minHeight="700px">
+      <LazySectionWrapper minHeight="400px">
         <UnifiedCommunicationHub />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="600px">
+      <LazySectionWrapper minHeight="400px">
         <BanglaNativeLocalization />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="600px">
+      <LazySectionWrapper minHeight="400px">
         <SecuritySpeedInfrastructure />
-      </LazySection>
+      </LazySectionWrapper>
 
-      {/* NEW FEATURES: Use Cases (Prompt 22) */}
-      <LazySection minHeight="700px">
+      <LazySectionWrapper minHeight="500px">
         <UseCaseScenariosSection />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="800px">
+      <LazySectionWrapper minHeight="600px">
         <PricingSection />
-      </LazySection>
+      </LazySectionWrapper>
 
       {/* FAQ */}
-      <LazySection minHeight="500px">
+      <LazySectionWrapper minHeight="400px">
         <FAQSection />
-      </LazySection>
+      </LazySectionWrapper>
 
       {/* Final CTAs */}
-      <LazySection minHeight="400px">
+      <LazySectionWrapper minHeight="300px">
         <AIPoweredFinalCTA />
-      </LazySection>
+      </LazySectionWrapper>
 
-      <LazySection minHeight="400px">
+      <LazySectionWrapper minHeight="300px">
         <FinalCTA stats={marketingStats} />
-      </LazySection>
+      </LazySectionWrapper>
 
       {/* Footer - Static, no lazy needed */}
       <footer className="py-12 md:py-16 px-4 bg-[#0A0F0D] text-white/60">
@@ -618,7 +642,6 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
             {/* Brand Section */}
             <div className="sm:col-span-2 md:col-span-1 text-center sm:text-left">
               <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
-                {/* Optimized: Use smaller logo size */}
                 <Image
                   src={ASSETS.brand.logoWhite}
                   alt="Ozzyl"
@@ -773,11 +796,6 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
           {t('getStarted')}
         </Link>
       </div>
-
-      {/* AI Chat Widget - Lazy loaded, only renders when user wants to interact */}
-      <ClientOnly>
-        <OzzylAIChatWidget />
-      </ClientOnly>
     </div>
   );
 }

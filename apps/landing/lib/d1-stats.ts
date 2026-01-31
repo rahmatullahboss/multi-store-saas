@@ -1,18 +1,20 @@
+import { cache } from 'react';
+
 export interface D1Stats {
   totalUsers: number;
   totalStores: number;
   uptime: number;
 }
 
-export async function getLiveStats(): Promise<D1Stats> {
+// Cache the stats fetching with React.cache() for per-request deduplication
+// This prevents multiple calls to the D1 API in a single request
+export const getLiveStats = cache(async (): Promise<D1Stats> => {
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
   const databaseId = process.env.CLOUDFLARE_DATABASE_ID;
   const apiToken = process.env.CLOUDFLARE_D1_API_TOKEN;
 
-  // Default fallback stats if config is missing (prevents build fail)
-  // IMPORTANT: These should be 0 or very low to avoid showing inflated numbers
-  // when the API fails. Real data is always preferred.
-  const fallbackStats = {
+  // Default fallback stats - these will only show if API fails
+  const fallbackStats: D1Stats = {
     totalUsers: 0,
     totalStores: 0,
     uptime: 99.9,
@@ -26,11 +28,13 @@ export async function getLiveStats(): Promise<D1Stats> {
   const endpoint = `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}/query`;
 
   try {
+    // Set cache headers to reduce API calls
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiToken}`,
         'Content-Type': 'application/json',
+        'Cache-Control': 'max-age=60', // Cache for 1 minute on CDN
       },
       body: JSON.stringify({
         sql: `
@@ -39,7 +43,7 @@ export async function getLiveStats(): Promise<D1Stats> {
             (SELECT COUNT(*) FROM stores) as store_count;
         `,
       }),
-      next: { revalidate: 60 }, // Cache for 1 minute (was 5 minutes - too long)
+      next: { revalidate: 60 }, // Next.js ISR cache for 1 minute
     });
 
     if (!response.ok) {
@@ -50,23 +54,14 @@ export async function getLiveStats(): Promise<D1Stats> {
 
     const data = await response.json();
 
-    // Cloudflare D1 API response structure:
-    // { result: [{ results: [{ user_count: 10, store_count: 5 }], meta: ... }], ... }
-    
-    // Check if the query was successful
-    if (!data.success || !data.result || !data.result[0] || !data.result[0].results) {
-      console.error('Invalid D1 API response:', JSON.stringify(data));
+    // Cloudflare D1 API response structure validation
+    if (!data.success || !data.result?.[0]?.results?.[0]) {
+      console.error('Invalid D1 API response structure');
       return fallbackStats;
     }
 
     const row = data.result[0].results[0];
-    
-    // Log actual values for debugging
-    console.log('[getLiveStats] Fetched from D1:', {
-      user_count: row.user_count,
-      store_count: row.store_count,
-    });
-    
+
     return {
       totalUsers: Number(row.user_count) || 0,
       totalStores: Number(row.store_count) || 0,
@@ -76,4 +71,4 @@ export async function getLiveStats(): Promise<D1Stats> {
     console.error('Error fetching D1 stats:', error);
     return fallbackStats;
   }
-}
+});
