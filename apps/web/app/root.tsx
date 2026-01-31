@@ -140,9 +140,6 @@ export default function App() {
   // Inject analytics scripts client-side to avoid hydration mismatches
   // These are dynamic and should not be server-rendered
   useEffect(() => {
-    // Set window.ENV for client-side access
-    (window as Window & { ENV?: typeof ENV }).ENV = ENV;
-
     // Google Analytics 4
     if (store.googleAnalyticsId) {
       // Load gtag.js
@@ -197,6 +194,11 @@ export default function App() {
         toastOptions={{
           duration: 3000,
           className: 'text-sm',
+        }}
+      />
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `window.ENV = ${JSON.stringify(ENV)}`,
         }}
       />
     </LanguageProvider>
