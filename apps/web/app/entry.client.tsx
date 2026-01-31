@@ -18,7 +18,10 @@ Sentry.init({
       useLocation,
       useMatches,
     }),
+    Sentry.replayIntegration(),
   ],
+  replaysSessionSampleRate: 0.1, // Adjust as needed
+  replaysOnErrorSampleRate: 1.0,
 });
 
 async function hydrate() {

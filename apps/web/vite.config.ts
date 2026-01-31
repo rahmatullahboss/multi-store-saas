@@ -1,5 +1,6 @@
 import { vitePlugin as remix, cloudflareDevProxyVitePlugin } from '@remix-run/dev';
 import tailwindcss from '@tailwindcss/vite';
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
@@ -33,8 +34,17 @@ export default defineConfig({
       },
     }),
     tsconfigPaths(),
+    sentryVitePlugin({
+      org: "ozzyl", // Replace with your Sentry org
+      project: "javascript-remix", // Replace with your Sentry project
+      authToken: process.env.SENTRY_AUTH_TOKEN, // Auth token from env (CI/CD)
+      sourcemaps: {
+        filesToDeleteAfterUpload: ["./build/**/*.map"],
+      },
+    }),
   ],
   build: {
+    sourcemap: "hidden", // Upload source maps to Sentry but don't serve them
     minify: true,
     rollupOptions: {
       output: {

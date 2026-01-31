@@ -1,6 +1,6 @@
 /**
  * Login Route
- * 
+ *
  * GET: Render login form
  * POST: Validate credentials, create session, redirect to dashboard
  */
@@ -14,6 +14,7 @@ import { login, createUserSession, getUserId } from '~/services/auth.server';
 // import { LanguageSelector } from '~/components/LanguageSelector'; // Temporarily disabled - Bengali is default
 import { useTranslation } from '~/contexts/LanguageContext';
 import i18next from '~/services/i18n.server';
+import { checkMigrationStatus } from '~/lib/db-migration-check';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Login - Ozzyl' }];
@@ -35,33 +36,36 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Rate Limiting
   const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
   const { checkAuthRateLimit } = await import('~/lib/rateLimit.server');
-  
-  const kv = (context.cloudflare.env as any).KV; 
+
+  const kv = (context.cloudflare.env as any).KV;
   if (kv) {
     const rateLimit = await checkAuthRateLimit(kv, clientIp, 'login');
     if (!rateLimit.allowed) {
-      return json({ 
-        errors: { form: 'Too many login attempts. Please try again in an hour.' },
-        errorCode: 'RATE_LIMITED'
-      }, { status: 429 });
+      return json(
+        {
+          errors: { form: 'Too many login attempts. Please try again in an hour.' },
+          errorCode: 'RATE_LIMITED',
+        },
+        { status: 429 }
+      );
     }
   }
-  
+
   try {
     // Parse form data
     const formData = await request.formData();
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
-    
+
     // Validation
     const errors: Record<string, string> = {};
-    
+
     if (!email) {
       errors.email = t('emailRequired');
     } else if (!email.includes('@')) {
       errors.email = t('validEmailRequired');
     }
-    
+
     if (!password) {
       errors.password = t('passwordRequired');
     }
@@ -82,43 +86,62 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     if (result.error) {
       // Use translated generic error if it's a credentials issue
-      const formError = result.errorCode === 'USER_NOT_FOUND' || result.errorCode === 'INVALID_PASSWORD'
-        ? t('invalidCredentials')
-        : result.error;
-        
-      return json({ 
-        errors: { form: formError },
-        errorCode: result.errorCode || 'LOGIN_FAILED'
-      }, { status: 400 });
+      const formError =
+        result.errorCode === 'USER_NOT_FOUND' || result.errorCode === 'INVALID_PASSWORD'
+          ? t('invalidCredentials')
+          : result.error;
+
+      return json(
+        {
+          errors: { form: formError },
+          errorCode: result.errorCode || 'LOGIN_FAILED',
+          errorDetails: result.errorDetails,
+        },
+        { status: 400 }
+      );
     }
 
     // Validate user data before creating session
     if (!result.user) {
       console.error('[auth.login] Login succeeded but no user returned');
-      return json({ 
-        errors: { form: 'Login failed. Please try again.' },
-        errorCode: 'NO_USER_RETURNED'
-      }, { status: 500 });
+      return json(
+        {
+          errors: { form: 'Login failed. Please try again.' },
+          errorCode: 'NO_USER_RETURNED',
+        },
+        { status: 500 }
+      );
     }
 
     if (!result.user.id) {
       console.error('[auth.login] User object missing ID');
-      return json({ 
-        errors: { form: 'Account error. Please contact support.' },
-        errorCode: 'MISSING_USER_ID'
-      }, { status: 500 });
+      return json(
+        {
+          errors: { form: 'Account error. Please contact support.' },
+          errorCode: 'MISSING_USER_ID',
+        },
+        { status: 500 }
+      );
     }
 
     if (!result.user.storeId) {
       console.error('[auth.login] User has no associated store. UserID:', result.user.id);
-      return json({ 
-        errors: { form: 'Your account is not associated with a store. Please contact support.' },
-        errorCode: 'NO_STORE_ID'
-      }, { status: 400 });
+      return json(
+        {
+          errors: { form: 'Your account is not associated with a store. Please contact support.' },
+          errorCode: 'NO_STORE_ID',
+        },
+        { status: 400 }
+      );
     }
 
     // Create session and redirect
-    console.log('[auth.login] Creating session for user:', result.user.id, 'store:', result.user.storeId);
+    console.log(
+      '[auth.login] Creating session for user:',
+      result.user.id,
+      'store:',
+      result.user.storeId
+    );
     try {
       return await createUserSession(
         result.user.id,
@@ -128,29 +151,35 @@ export async function action({ request, context }: ActionFunctionArgs) {
       );
     } catch (sessionError) {
       console.error('[auth.login] Failed to create session:', sessionError);
-      const errorMessage = sessionError instanceof Error ? sessionError.message : String(sessionError);
-      return json({ 
-        errors: { form: 'Failed to create login session. Please try again.' },
-        errorCode: 'SESSION_ERROR',
-        errorDetails: errorMessage
-      }, { status: 500 });
+      const errorMessage =
+        sessionError instanceof Error ? sessionError.message : String(sessionError);
+      return json(
+        {
+          errors: { form: 'Failed to create login session. Please try again.' },
+          errorCode: 'SESSION_ERROR',
+          errorDetails: errorMessage,
+        },
+        { status: 500 }
+      );
     }
-    
   } catch (error) {
     console.error('[auth.login] Unhandled error in login action:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorStack = error instanceof Error ? error.stack : undefined;
-    
+
     console.error('[auth.login] Error message:', errorMessage);
     if (errorStack) {
       console.error('[auth.login] Error stack:', errorStack);
     }
-    
-    return json({ 
-      errors: { form: 'An unexpected error occurred. Please try again.' },
-      errorCode: 'UNHANDLED_ERROR',
-      errorDetails: errorMessage
-    }, { status: 500 });
+
+    return json(
+      {
+        errors: { form: 'An unexpected error occurred. Please try again.' },
+        errorCode: 'UNHANDLED_ERROR',
+        errorDetails: errorMessage,
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -158,19 +187,20 @@ export default function LoginPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
-  
+
   // Type-safe error access
   const errors = actionData?.errors as Record<string, string> | undefined;
   const errorCode = (actionData as { errorCode?: string } | undefined)?.errorCode;
-  
+  const errorDetails = (actionData as { errorDetails?: string } | undefined)?.errorDetails;
+
   // Translation hook for reactive i18n
   const { t, lang } = useTranslation();
   const [searchParams] = useSearchParams();
   const errorParam = searchParams.get('error');
-  
+
   // Custom message for missing store
   const storeNotFoundError = errorParam === 'store_not_found' ? t('storeNotFound') : null;
-  
+
   // Password visibility toggle
   const [showPassword, setShowPassword] = useState(false);
 
@@ -180,7 +210,7 @@ export default function LoginPage() {
       {/* <div className="absolute top-4 right-4">
         <LanguageSelector variant="toggle" size="sm" />
       </div> */}
-      
+
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8 flex flex-col items-center gap-3">
@@ -191,15 +221,21 @@ export default function LoginPage() {
 
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
-
-
           <Form method="post" className="space-y-6">
             {/* Form Error */}
             {(errors?.form || storeNotFoundError) && (
               <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg text-sm">
                 <p className="font-medium">{errors?.form || storeNotFoundError}</p>
-                {errorCode && (
-                  <p className="text-xs text-red-400 mt-1">Error Code: {errorCode}</p>
+                {errorCode && <p className="text-xs text-red-400 mt-1">Error Code: {errorCode}</p>}
+                {errorDetails && (
+                  <details className="mt-2">
+                    <summary className="text-xs text-red-400 cursor-pointer hover:text-red-500">
+                      Debug Details
+                    </summary>
+                    <pre className="mt-1 text-xs text-red-400 bg-red-100/50 p-2 rounded overflow-auto">
+                      {errorDetails}
+                    </pre>
+                  </details>
                 )}
               </div>
             )}
@@ -217,9 +253,7 @@ export default function LoginPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                 placeholder="you@example.com"
               />
-              {errors?.email && (
-                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-              )}
+              {errors?.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
             </div>
 
             {/* Password */}
@@ -228,7 +262,10 @@ export default function LoginPage() {
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   {t('password')}
                 </label>
-                <Link to="/auth/forgot-password" className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+                <Link
+                  to="/auth/forgot-password"
+                  className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+                >
                   {t('forgotPassword') || 'Forgot Password?'}
                 </Link>
               </div>
@@ -250,9 +287,7 @@ export default function LoginPage() {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              {errors?.password && (
-                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-              )}
+              {errors?.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
             </div>
 
             {/* Submit Button */}

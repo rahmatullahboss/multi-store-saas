@@ -215,13 +215,13 @@ export default function App() {
  * - 500+: Server Error / Maintenance Mode
  * - Unknown: Generic error fallback
  */
+import * as Sentry from "@sentry/remix";
+
 export function ErrorBoundary() {
   const error = useRouteError();
 
-  // Capture the error in Sentry (commented out - enable when Sentry is configured)
-  // if (typeof window !== 'undefined' && 'Sentry' in window) {
-  //   window.Sentry?.captureException(error);
-  // }
+  // Capture the error in Sentry
+  Sentry.captureException(error);
 
   // Layout wraps ErrorBoundary, so we don't need isRootError anymore
   // Just return the error content directly

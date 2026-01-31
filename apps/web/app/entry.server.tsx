@@ -60,10 +60,6 @@ export default async function handleRequest(
         // Log streaming rendering errors from inside the shell
         console.error(error);
         if (loadContext.cloudflare.env.SENTRY_DSN) {
-          Sentry.init({
-            dsn: loadContext.cloudflare.env.SENTRY_DSN,
-            tracesSampleRate: 1.0,
-          });
           Sentry.captureException(error);
         }
         responseStatusCode = 500;
