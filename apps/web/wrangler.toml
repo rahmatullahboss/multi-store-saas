@@ -70,6 +70,7 @@ PAGE_BUILDER_URL = "https://builder.ozzyl.com"  # Separate worker for GrapesJS e
 # OPENROUTER_API_KEY - AI API key (Xiaomi Mimo or OpenRouter) - SET IN DASHBOARD (secret, not here)
 # RESEND_API_KEY - Email service - SET IN DASHBOARD (secret)
 # CLOUDFLARE_API_TOKEN - SSL certificates - SET IN DASHBOARD (secret)
+# AXION_TOKEN - Axiom logging service - SET IN DASHBOARD (secret, for persistent logs dashboard)
 
 # PUSH NOTIFICATIONS (VAPID)
 VAPID_PUBLIC_KEY = "BDl0oSQqYgSjUMZxblMeN1nhfndIyhlAKDujKvNfQyo4gMGVlvKs2aInkK9-PiflVUSDxmPPyienIPQlHMZPwJU"
@@ -92,6 +93,23 @@ GOOGLE_CLIENT_ID = "477759293578-24qqc1l4mg7dtm2f44vtqbrme6p9cqa3.apps.googleuse
 # Access via: Workers & Pages > Observability
 [observability]
 enabled = true
+
+# ============================================================================
+# THIRD-PARTY LOGGING (Axiom)
+# ============================================================================
+# Axiom provides beautiful dashboard for logs with 500GB/month free tier
+# 1. Sign up: https://app.axiom.co
+# 2. Create dataset named "cloudflare-logs"
+# 3. Get API token from Settings > API Tokens
+# 4. Set AXION_TOKEN in Cloudflare Dashboard > Settings > Variables (secret)
+# 5. View logs at: https://app.axiom.co/{your-org}/cloudflare-logs
+#
+# Features:
+# - Search and filter logs
+# - Real-time streaming
+# - 30 days retention (free tier)
+# - Beautiful charts and analytics
+# ============================================================================
 
 # ============================================================================
 # DEVELOPMENT SETTINGS
