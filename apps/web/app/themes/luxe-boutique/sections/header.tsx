@@ -205,20 +205,19 @@ export default function LuxeHeader({
             </button>
 
             {/* Logo */}
-            <a href={getLink?.('/') || '/'} className="flex items-center">
+            <a href={getLink?.('/') || '/'} className="flex items-center gap-3">
               {store.logo ? (
                 <img src={store.logo} alt={store.name} className="h-10 lg:h-12 object-contain" />
-              ) : (
-                <span
-                  className="text-xl lg:text-2xl font-semibold tracking-wide"
-                  style={{
-                    fontFamily: "'Playfair Display', serif",
-                    color: THEME.primary,
-                  }}
-                >
-                  {store.name}
-                </span>
-              )}
+              ) : null}
+              <span
+                className="text-xl lg:text-2xl font-semibold tracking-wide"
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  color: THEME.primary,
+                }}
+              >
+                {store.name}
+              </span>
             </a>
 
             {/* Desktop Navigation */}

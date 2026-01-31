@@ -3,7 +3,7 @@
     "header": {
       "type": "header",
       "settings": {
-        "show_announcement": true,
+        "show_announcement": false,
         "announcement_text": "Welcome to Nova Lux",
         "announcement_link": "/collections/all",
         "show_wishlist": true,

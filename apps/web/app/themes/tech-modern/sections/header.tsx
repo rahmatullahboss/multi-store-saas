@@ -181,17 +181,18 @@ export default function TechHeader({ section, context, settings }: SectionCompon
             </button>
 
             {/* Logo */}
-            <a href={getLink?.('/') || '/'} className="flex items-center flex-shrink-0">
-              <span
-                className="text-xl lg:text-2xl font-bold flex items-center gap-2"
-                style={{ color: THEME.primary }}
-              >
+            <a href={getLink?.('/') || '/'} className="flex items-center flex-shrink-0 gap-3">
+              {store.logo ? (
+                <img src={store.logo} alt={store.name} className="h-8 lg:h-10 object-contain" />
+              ) : (
                 <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center"
                   style={{ backgroundColor: THEME.accent }}
                 >
                   <Zap className="w-5 h-5 text-white" />
                 </div>
+              )}
+              <span className="text-xl lg:text-2xl font-bold" style={{ color: THEME.primary }}>
                 {store.name}
               </span>
             </a>

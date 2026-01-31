@@ -198,7 +198,7 @@ export default function Header({ section, context, settings }: SectionComponentP
                 <Menu className="w-6 h-6" style={{ color: text_color }} />
               </button>
 
-              <Link to="/" className="flex items-center gap-2">
+              <Link to="/" className="flex items-center gap-3">
                 {logo || context.store?.logo ? (
                   <img
                     src={logo || context.store?.logo || ''}
@@ -206,11 +206,10 @@ export default function Header({ section, context, settings }: SectionComponentP
                     className="h-8 w-auto object-contain"
                     style={{ maxWidth: `${logo_width}px` }}
                   />
-                ) : (
-                  <span className="text-xl font-bold" style={{ color: text_color }}>
-                    {storeName}
-                  </span>
-                )}
+                ) : null}
+                <span className="text-xl font-bold" style={{ color: text_color }}>
+                  {storeName}
+                </span>
               </Link>
             </div>
 

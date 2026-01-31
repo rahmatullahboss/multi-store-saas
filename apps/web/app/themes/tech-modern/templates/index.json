@@ -5,7 +5,7 @@
       "id": "header",
       "type": "header",
       "settings": {
-        "show_announcement": true,
+        "show_announcement": false,
         "announcement_text": "Welcome to our store - Premium Tech Gadgets",
         "show_search": true,
         "show_cart": true,

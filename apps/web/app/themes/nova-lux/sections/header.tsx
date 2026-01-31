@@ -160,20 +160,19 @@ export default function NovaLuxHeader({ context, settings }: SectionComponentPro
           </nav>
 
           {/* Logo */}
-          <Link to={getLink('/')} className="flex items-center justify-center">
+          <Link to={getLink('/')} className="flex items-center justify-center gap-3">
             {store.logo ? (
               <img src={store.logo} alt={store.name} className="h-10 lg:h-12 object-contain" />
-            ) : (
-              <span
-                className="text-2xl lg:text-3xl font-semibold tracking-wider"
-                style={{
-                  fontFamily: THEME_COLORS.fontHeading,
-                  color: THEME_COLORS.primary,
-                }}
-              >
-                {store.name}
-              </span>
-            )}
+            ) : null}
+            <span
+              className="text-2xl lg:text-3xl font-semibold tracking-wider"
+              style={{
+                fontFamily: THEME_COLORS.fontHeading,
+                color: THEME_COLORS.primary,
+              }}
+            >
+              {store.name}
+            </span>
           </Link>
 
           {/* Right Navigation */}

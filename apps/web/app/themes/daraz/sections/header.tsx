@@ -316,7 +316,7 @@ export default function DarazHeader({ section, context, settings }: SectionCompo
           </button>
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 shrink-0">
+          <Link to="/" className="flex items-center gap-3 shrink-0">
             {logo ? (
               <img
                 src={logo}
