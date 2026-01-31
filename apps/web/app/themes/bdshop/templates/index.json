@@ -22,8 +22,8 @@
     "top-deals": {
       "type": "flash-sale",
       "settings": {
-        "title": "Top Deals",
-        "subtitle": "Best Offers",
+        "title": "",
+        "subtitle": "",
         "primary_color": "#1E3A8A",
         "price_color": "#1E40AF"
       }

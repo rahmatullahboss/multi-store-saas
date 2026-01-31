@@ -37,13 +37,13 @@ export const schema: SectionSchema = {
       type: 'checkbox',
       id: 'show_announcement',
       label: 'Show announcement bar',
-      default: true,
+      default: false,
     },
     {
       type: 'text',
       id: 'announcement_text',
       label: 'Announcement text',
-      default: 'Free Shipping on Orders Over 5,000',
+      default: '',
     },
     {
       type: 'url',
@@ -102,8 +102,8 @@ export const schema: SectionSchema = {
       name: 'Luxe Header',
       category: 'Header',
       settings: {
-        show_announcement: true,
-        announcement_text: 'Free Shipping on Orders Over 5,000',
+        show_announcement: false,
+        announcement_text: '',
         show_search: true,
         show_wishlist: true,
         show_cart: true,

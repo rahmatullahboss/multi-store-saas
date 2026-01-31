@@ -37,13 +37,13 @@ export const schema: SectionSchema = {
       type: 'checkbox',
       id: 'show_announcement',
       label: 'Show announcement bar',
-      default: true,
+      default: false,
     },
     {
       type: 'text',
       id: 'announcement_text',
       label: 'Announcement text',
-      default: 'Welcome to our store - Premium Tech Gadgets',
+      default: '',
     },
     {
       type: 'url',
@@ -86,8 +86,8 @@ export const schema: SectionSchema = {
       name: 'Tech Header',
       category: 'Header',
       settings: {
-        show_announcement: true,
-        announcement_text: 'Welcome to our store - Premium Tech Gadgets',
+        show_announcement: false,
+        announcement_text: '',
         show_search: true,
         show_cart: true,
       },

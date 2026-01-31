@@ -170,10 +170,11 @@ export default function FreshnessHeader({ context, settings }: SectionComponentP
             </ul>
 
             <div className="flex items-center gap-8">
-              <div className="flex items-center gap-2 font-bold text-gray-800">
+              {/* Weekly Discount - Hidden by default */}
+              {/* <div className="flex items-center gap-2 font-bold text-gray-800">
                 <Percent className="w-5 h-5 text-green-600" />
                 <span>Weekly Discount!</span>
-              </div>
+              </div> */}
               {(settings.show_phone as boolean) && (
                 <div
                   className="text-white px-5 py-2 rounded-lg flex items-center gap-3"

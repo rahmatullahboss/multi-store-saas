@@ -26,7 +26,7 @@ export const schema: SectionSchema = {
       type: 'text',
       id: 'text',
       label: 'Announcement text',
-      default: '🎉 ফ্রি ডেলিভারি ১০০০৳+ অর্ডারে! সীমিত সময়ের অফার।',
+      default: '',
     },
     {
       type: 'url',
@@ -69,7 +69,7 @@ export const schema: SectionSchema = {
       name: 'Announcement Bar',
       category: 'Header',
       settings: {
-        text: '🎉 ফ্রি ডেলিভারি ১০০০৳+ অর্ডারে!',
+        text: '',
         background_color: '#f59e0b',
       },
     },
@@ -91,13 +91,18 @@ export interface AnnouncementBarSettings {
 
 export default function AnnouncementBar({ section, context, settings }: SectionComponentProps) {
   const {
-    text = '🎉 ফ্রি ডেলিভারি ১০০০৳+ অর্ডারে! সীমিত সময়ের অফার।',
+    text = '',
     link,
     background_color = '#f59e0b',
     text_color = '#ffffff',
     padding_y = 10,
     show_close = false,
   } = settings as unknown as AnnouncementBarSettings;
+
+  // Hide if no text is set
+  if (!text || text.trim() === '') {
+    return null;
+  }
 
   const content = <span className="text-sm font-medium">{text}</span>;
 

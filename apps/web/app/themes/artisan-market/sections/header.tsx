@@ -23,13 +23,13 @@ export const schema: SectionSchema = {
       type: 'checkbox',
       id: 'show_announcement',
       label: 'Show Announcement',
-      default: true,
+      default: false,
     },
     {
       type: 'text',
       id: 'announcement_text',
       label: 'Announcement Text',
-      default: 'Free shipping on orders over $50',
+      default: '',
     },
     {
       type: 'url',

@@ -17,13 +17,13 @@ export const schema: SectionSchema = {
       type: 'checkbox',
       id: 'show_announcement',
       label: 'Show Announcement Bar',
-      default: true,
+      default: false,
     },
     {
       type: 'text',
       id: 'announcement_text',
       label: 'Announcement Text',
-      default: 'Welcome to Nova Lux',
+      default: '',
     },
     {
       type: 'url',

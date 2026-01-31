@@ -46,13 +46,13 @@
     "flash-sale": {
       "type": "flash-sale",
       "settings": {
-        "title": "Flash Sale",
-        "subtitle": "On Sale Now",
-        "cta_text": "SHOP ALL PRODUCTS",
-        "cta_link": "/?category=flash-sale",
+        "title": "",
+        "subtitle": "",
+        "cta_text": "",
+        "cta_link": "",
         "products_count": 10,
         "show_timer": false,
-        "show_progress_bar": true
+        "show_progress_bar": false
       }
     },
     "categories": {

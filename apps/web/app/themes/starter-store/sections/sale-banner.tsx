@@ -26,13 +26,13 @@ export const schema: SectionSchema = {
       type: 'text',
       id: 'heading',
       label: 'Heading',
-      default: '🎉 বিশেষ ছাড় চলছে!',
+      default: '',
     },
     {
       type: 'textarea',
       id: 'subheading',
       label: 'Subheading',
-      default: 'সীমিত সময়ের জন্য ৫০% পর্যন্ত ছাড়',
+      default: '',
     },
     {
       type: 'text',
@@ -96,10 +96,10 @@ export const schema: SectionSchema = {
       name: 'Sale Banner',
       category: 'Promotions',
       settings: {
-        heading: '🎉 বিশেষ ছাড় চলছে!',
-        subheading: 'সীমিত সময়ের জন্য ৫০% পর্যন্ত ছাড়',
-        button_label: 'সেল দেখুন',
-        button_link: '/collections/sale',
+        heading: '',
+        subheading: '',
+        button_label: '',
+        button_link: '',
       },
     },
   ],
@@ -124,10 +124,10 @@ export interface SaleBannerSettings {
 
 export default function SaleBanner({ section, context, settings }: SectionComponentProps) {
   const {
-    heading = '🎉 বিশেষ ছাড় চলছে!',
-    subheading = 'সীমিত সময়ের জন্য ৫০% পর্যন্ত ছাড়',
-    button_label = 'সেল দেখুন',
-    button_link = '/collections/sale',
+    heading = '',
+    subheading = '',
+    button_label = '',
+    button_link = '',
     background_color = '#f59e0b',
     text_color = '#ffffff',
     button_background = '#ffffff',
@@ -135,6 +135,11 @@ export default function SaleBanner({ section, context, settings }: SectionCompon
     padding_top = 64,
     padding_bottom = 64,
   } = settings as unknown as SaleBannerSettings;
+
+  // Hide if no heading is set
+  if (!heading || heading.trim() === '') {
+    return null;
+  }
 
   return (
     <section

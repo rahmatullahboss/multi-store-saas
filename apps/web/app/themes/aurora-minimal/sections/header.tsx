@@ -32,13 +32,13 @@ export const schema: SectionSchema = {
       type: 'checkbox',
       id: 'show_announcement',
       label: 'Show announcement',
-      default: true,
+      default: false,
     },
     {
       type: 'text',
       id: 'announcement_text',
       label: 'Announcement text',
-      default: 'Welcome to our store',
+      default: '',
     },
     {
       type: 'url',

@@ -4,7 +4,8 @@
     "urgency": {
       "type": "urgency-bar",
       "settings": {
-        "message": "অফার শেষ হতে বাকি আর মাত্র:",
+        "enabled": false,
+        "message": "",
         "stock_left": 12
       }
     },

@@ -236,7 +236,8 @@ export default function DarazFlashSale({ section, context, settings }: SectionCo
     return () => ref?.removeEventListener('scroll', checkScroll);
   }, [products]);
 
-  if (products.length === 0) return null;
+  // Hide if no title is set (disabled)
+  if (!title || title.trim() === '' || products.length === 0) return null;
 
   return (
     <section

@@ -8,10 +8,16 @@ export const schema: SectionSchema = {
   name: 'Urgency Bar',
   settings: [
     {
+      type: 'checkbox',
+      id: 'enabled',
+      label: 'Show urgency bar',
+      default: false,
+    },
+    {
       type: 'text',
       id: 'message',
       label: 'Message',
-      default: 'অফার শেষ হতে বাকি আর মাত্র:',
+      default: '',
     },
     {
       type: 'number',
@@ -24,6 +30,7 @@ export const schema: SectionSchema = {
 
 export default function UrgencyBar({ settings }: SectionComponentProps) {
   const config = TURBO_SALE_THEME_CONFIG.colors!;
+  const enabled = settings.enabled as boolean;
   
   const [timeLeft, setTimeLeft] = useState<{h: number, m: number, s: number}>({ h: 2, m: 15, s: 0 });
 
@@ -40,6 +47,11 @@ export default function UrgencyBar({ settings }: SectionComponentProps) {
   }, []);
 
   const format = (n: number) => n.toString().padStart(2, '0');
+
+  // Hide if not enabled
+  if (!enabled) {
+    return null;
+  }
 
   return (
     <div 

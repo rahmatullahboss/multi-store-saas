@@ -22,8 +22,8 @@
     "daily-deals": {
       "type": "flash-sale",
       "settings": {
-        "title": "Daily Deals",
-        "subtitle": "Fresh Offers",
+        "title": "",
+        "subtitle": "",
         "primary_color": "#FC8934",
         "price_color": "#059669"
       }
