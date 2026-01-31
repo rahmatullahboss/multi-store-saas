@@ -54,6 +54,12 @@ SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"
 # Must match the SESSION_SECRET from the main app for cross-subdomain auth
 
 # ============================================================================
+# OBSERVABILITY - Permanent Logs Storage
+# ============================================================================
+[observability]
+enabled = true
+
+# ============================================================================
 # DEVELOPMENT SETTINGS
 # ============================================================================
 [dev]
