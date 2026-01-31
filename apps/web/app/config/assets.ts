@@ -1,4 +1,8 @@
-export const R2_BASE_URL = 'https://assets.ozzyl.com';
+// Use environment variable or fallback to R2 public URL
+export const R2_BASE_URL =
+  typeof process !== 'undefined' && process.env.R2_PUBLIC_URL
+    ? process.env.R2_PUBLIC_URL
+    : 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev';
 
 export const ASSETS = {
   // Brand Assets
