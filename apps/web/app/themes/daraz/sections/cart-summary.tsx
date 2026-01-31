@@ -133,8 +133,8 @@ export interface DarazCartSummarySettings {
 const DEMO_CART = {
   items: [] as CartItem[],
   itemCount: 3,
-  subtotal: 1299700,
-  total: 1299700,
+  subtotal: 12997,
+  total: 12997,
 };
 
 export default function DarazCartSummary({ section, context, settings }: SectionComponentProps) {
