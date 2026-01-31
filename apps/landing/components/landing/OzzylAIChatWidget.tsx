@@ -318,7 +318,7 @@ export function OzzylAIChatWidget() {
               <img
                 src={ASSETS.brand.logoSmallBlack}
                 alt="Ozzyl AI"
-                className="w-16 h-16 relative z-10 object-contain p-1"
+                className="w-10 h-10 relative z-10 object-contain"
                 loading="lazy"
                 decoding="async"
               />
