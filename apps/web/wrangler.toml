@@ -55,7 +55,7 @@ binding = "AI"
 # ENVIRONMENT VARIABLES
 # ============================================================================
 [vars]
-SAAS_DOMAIN = "ozzyl.com"  # Custom domain for the SaaS
+SAAS_DOMAIN = "app.ozzyl.com"  # Custom domain for the SaaS (main app subdomain)
 R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"  # R2 bucket public URL
 SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"  # Only this email can impersonate users
 CLOUDFLARE_ZONE_ID = "41147efa7d197cfddda0af7fcbf6d641"  # Zone ID from Cloudflare Dashboard (ozzyl.com)
