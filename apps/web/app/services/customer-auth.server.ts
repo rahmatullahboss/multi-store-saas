@@ -5,11 +5,98 @@
  * Only available for Premium/Business plan stores.
  */
 
-import { createCookieSessionStorage, redirect } from '@remix-run/cloudflare';
+import { createCookieSessionStorage, redirect, Session } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { customers, stores } from '@db/schema';
 import { hashPassword, verifyPassword } from './auth.server';
+
+
+interface TokenPayload {
+  customerId: number;
+  storeId: number;
+  type: string;
+  exp: number;
+  iat: number;
+}
+
+// Simple signed token implementation using web crypto
+async function signToken(data: Record<string, unknown>, secret: string, expiresInSeconds: number): Promise<string> {
+
+  const header = { alg: 'HS256', typ: 'JWT' };
+  const now = Math.floor(Date.now() / 1000);
+  const payload = { ...data, exp: now + expiresInSeconds, iat: now };
+  
+  const encodedHeader = btoa(JSON.stringify(header));
+  const encodedPayload = btoa(JSON.stringify(payload));
+  
+  const signatureInput = `${encodedHeader}.${encodedPayload}`;
+  const encoder = new TextEncoder();
+  
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  
+  const signature = await crypto.subtle.sign(
+    'HMAC',
+    key,
+    encoder.encode(signatureInput)
+  );
+  
+  const encodedSignature = btoa(String.fromCharCode(...new Uint8Array(signature)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+    
+  return `${signatureInput}.${encodedSignature}`;
+}
+
+async function verifyToken(token: string, secret: string): Promise<TokenPayload | null> {
+
+  try {
+    const [encodedHeader, encodedPayload, encodedSignature] = token.split('.');
+    if (!encodedHeader || !encodedPayload || !encodedSignature) return null;
+    
+    const signatureInput = `${encodedHeader}.${encodedPayload}`;
+    const encoder = new TextEncoder();
+    
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
+    
+    const signature = Uint8Array.from(
+      atob(encodedSignature.replace(/-/g, '+').replace(/_/g, '/')),
+      c => c.charCodeAt(0)
+    );
+    
+    const isValid = await crypto.subtle.verify(
+      'HMAC',
+      key,
+      signature,
+      encoder.encode(signatureInput)
+    );
+    
+    if (!isValid) return null;
+    
+    const payload = JSON.parse(atob(encodedPayload));
+    const now = Math.floor(Date.now() / 1000);
+    
+    if (payload.exp && payload.exp < now) return null;
+    
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
 
 // ============================================================================
 // TYPES
@@ -66,12 +153,14 @@ export async function getCustomerSession(request: Request, env: Env) {
   return storage.getSession(request.headers.get('Cookie'));
 }
 
-export async function commitCustomerSession(session: any, env: Env) {
+export async function commitCustomerSession(session: Session<CustomerSessionData, CustomerSessionFlashData>, env: Env) {
+
   const storage = getCustomerSessionStorage(env);
   return storage.commitSession(session);
 }
 
-export async function destroyCustomerSession(session: any, env: Env) {
+export async function destroyCustomerSession(session: Session<CustomerSessionData, CustomerSessionFlashData>, env: Env) {
+
   const storage = getCustomerSessionStorage(env);
   return storage.destroySession(session);
 }
@@ -395,4 +484,49 @@ export async function loginCustomer({ storeId, email, password, db }: CustomerLo
     console.error('[customer-auth] Login verification error:', error);
     return { error: 'An error occurred. Please try again.' };
   }
+}
+
+// ============================================================================
+// SESSION TRANSFER (Multi-domain support)
+// ============================================================================
+
+/**
+ * Create a short-lived token to transfer session to another domain
+ */
+export async function createTransferToken(
+  customerId: number,
+  storeId: number,
+  env: Env
+): Promise<string> {
+  if (!env.SESSION_SECRET) {
+    throw new Error('SESSION_SECRET required for token generation');
+  }
+  
+  // Create a signed token valid for 5 minutes
+  return signToken(
+    { customerId, storeId, type: 'session_transfer' },
+    env.SESSION_SECRET,
+    5 * 60 // 5 minutes
+  );
+}
+
+/**
+ * Validate a transfer token
+ */
+export async function validateTransferToken(
+  token: string,
+  env: Env
+): Promise<{ customerId: number; storeId: number } | null> {
+  if (!env.SESSION_SECRET) return null;
+  
+  const payload = await verifyToken(token, env.SESSION_SECRET);
+  
+  if (!payload || payload.type !== 'session_transfer') {
+    return null;
+  }
+  
+  return {
+    customerId: payload.customerId,
+    storeId: payload.storeId
+  };
 }

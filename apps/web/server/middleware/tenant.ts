@@ -76,17 +76,17 @@ export const tenantMiddleware = (): MiddlewareHandler<{
     const saasDomain = c.env.SAAS_DOMAIN || 'mysaas.com';
     const requestPath = c.req.path;
 
-    console.log(`[TENANT] ============================================`);
-    console.log(`[TENANT] Request: ${c.req.method} ${requestPath}`);
-    console.log(`[TENANT] Hostname: ${hostname}`);
-    console.log(`[TENANT] SAAS_DOMAIN: ${saasDomain}`);
+    console.warn(`[TENANT] ============================================`);
+    console.warn(`[TENANT] Request: ${c.req.method} ${requestPath}`);
+    console.warn(`[TENANT] Hostname: ${hostname}`);
+    console.warn(`[TENANT] SAAS_DOMAIN: ${saasDomain}`);
 
     // Handle localhost development
     if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) {
-      console.log(`[TENANT] Mode: Development (localhost)`);
+      console.warn(`[TENANT] Mode: Development (localhost)`);
       // In development, use query param or default to first store
       const storeParam = c.req.query('store');
-      console.log(`[TENANT] Store param: ${storeParam || 'none'}`);
+      console.warn(`[TENANT] Store param: ${storeParam || 'none'}`);
 
       const db = createDb(c.env.DB);
 
@@ -95,42 +95,42 @@ export const tenantMiddleware = (): MiddlewareHandler<{
       try {
         if (storeParam) {
           // Try to find by subdomain or ID (exclude soft-deleted stores)
-          console.log(`[TENANT] Looking up store by subdomain: ${storeParam}`);
+          console.warn(`[TENANT] Looking up store by subdomain: ${storeParam}`);
           const storeResult = await db
             .select()
             .from(stores)
             .where(and(eq(stores.subdomain, storeParam), isNull(stores.deletedAt)))
             .limit(1);
           store = storeResult[0];
-          console.log(
+          console.warn(
             `[TENANT] Subdomain lookup result: ${store ? `Found (ID: ${store.id})` : 'Not found'}`
           );
 
           if (!store) {
             const idParam = parseInt(storeParam, 10);
             if (!isNaN(idParam)) {
-              console.log(`[TENANT] Looking up store by ID: ${idParam}`);
+              console.warn(`[TENANT] Looking up store by ID: ${idParam}`);
               const storeById = await db
                 .select()
                 .from(stores)
                 .where(and(eq(stores.id, idParam), isNull(stores.deletedAt)))
                 .limit(1);
               store = storeById[0];
-              console.log(
+              console.warn(
                 `[TENANT] ID lookup result: ${store ? `Found (ID: ${store.id})` : 'Not found'}`
               );
             }
           }
         } else {
           // Default to first active store in development (exclude soft-deleted)
-          console.log(`[TENANT] No store param, fetching first active store`);
+          console.warn(`[TENANT] No store param, fetching first active store`);
           const defaultStore = await db
             .select()
             .from(stores)
             .where(and(eq(stores.isActive, true), isNull(stores.deletedAt)))
             .limit(1);
           store = defaultStore[0];
-          console.log(
+          console.warn(
             `[TENANT] Default store result: ${store ? `Found (ID: ${store.id}, Name: ${store.name})` : 'Not found'}`
           );
         }
@@ -159,7 +159,7 @@ export const tenantMiddleware = (): MiddlewareHandler<{
         return c.json({ error: 'Store not found' }, 404);
       }
 
-      console.log(
+      console.warn(
         `[TENANT] Resolved store: ID=${store.id}, Name=${store.name}, Active=${store.isActive}`
       );
       c.set('storeId', store.id);
@@ -171,8 +171,8 @@ export const tenantMiddleware = (): MiddlewareHandler<{
 
     // Production: Parse hostname
     const { type, value } = parseHostname(hostname, saasDomain);
-    console.log(`[TENANT] Mode: Production`);
-    console.log(`[TENANT] Parsed: type=${type}, value=${value}`);
+    console.warn(`[TENANT] Mode: Production`);
+    console.warn(`[TENANT] Parsed: type=${type}, value=${value}`);
 
     // Initialize DB and Cache
     const db = createDb(c.env.DB);
@@ -204,7 +204,7 @@ export const tenantMiddleware = (): MiddlewareHandler<{
     if (kvCache) {
       const kvCached = await kvCache.get<Store>(kvKey);
       if (kvCached) {
-        console.log(`[TENANT] ✓ KV Cache Hit: ID=${kvCached.id}, Name=${kvCached.name}`);
+        console.warn(`[TENANT] ✓ KV Cache Hit: ID=${kvCached.id}, Name=${kvCached.name}`);
         c.set('storeId', kvCached.id);
         c.set('store', kvCached);
         c.set('isCustomDomain', isCustomDomain);
@@ -219,7 +219,7 @@ export const tenantMiddleware = (): MiddlewareHandler<{
     let store = await d1Cache.get<Store>(d1CacheKey);
 
     if (store) {
-      console.log(`[TENANT] ✓ D1 Cache Hit: ID=${store.id}, Name=${store.name}`);
+      console.warn(`[TENANT] ✓ D1 Cache Hit: ID=${store.id}, Name=${store.name}`);
       // Warm KV cache for next request
       if (kvCache) {
         kvCache.set(kvKey, store, CACHE_TTL.TENANT).catch(() => {});
@@ -233,26 +233,26 @@ export const tenantMiddleware = (): MiddlewareHandler<{
     try {
       if (type === 'subdomain') {
         // Lookup by subdomain (exclude soft-deleted stores)
-        console.log(`[TENANT] Looking up store by subdomain: ${value}`);
+        console.warn(`[TENANT] Looking up store by subdomain: ${value}`);
         const result = await db
           .select()
           .from(stores)
           .where(and(eq(stores.subdomain, value), isNull(stores.deletedAt)))
           .limit(1);
         store = result[0];
-        console.log(
+        console.warn(
           `[TENANT] Subdomain lookup result: ${store ? `Found (ID: ${store.id}, Name: ${store.name})` : 'Not found'}`
         );
       } else {
         // Lookup by custom domain (exclude soft-deleted stores)
-        console.log(`[TENANT] Looking up store by custom domain: ${value}`);
+        console.warn(`[TENANT] Looking up store by custom domain: ${value}`);
         const result = await db
           .select()
           .from(stores)
           .where(and(eq(stores.customDomain, value), isNull(stores.deletedAt)))
           .limit(1);
         store = result[0];
-        console.log(
+        console.warn(
           `[TENANT] Custom domain lookup result: ${store ? `Found (ID: ${store.id}, Name: ${store.name})` : 'Not found'}`
         );
       }
@@ -269,10 +269,11 @@ export const tenantMiddleware = (): MiddlewareHandler<{
         // Warm DO cache by fetching config (fire-and-forget)
         // This pre-populates the DO cache for subsequent requests
         if (hasStoreConfigDO) {
-          getStoreConfig(c.env as any, store.id).catch(() => {
+          getStoreConfig({ STORE_CONFIG_SERVICE: c.env.STORE_CONFIG_SERVICE! }, store.id).catch(() => {
             // Ignore errors - DO cache warming is best-effort
           });
         }
+
       }
     } catch (dbError) {
       console.error(`[TENANT] Database error during store lookup:`);
@@ -295,6 +296,13 @@ export const tenantMiddleware = (): MiddlewareHandler<{
 
     // Store not found
     if (!store) {
+      // FIX: Allow Google Auth callback and other auth routes to bypass store resolution
+      // The callback route handles store resolution internally via the state parameter
+      if (requestPath.startsWith('/store/auth/') || requestPath.startsWith('/api/oauth/')) {
+        console.warn(`[TENANT] Bypassing store check for auth route: ${requestPath}`);
+        return next();
+      }
+
       console.warn(`[TENANT] Store not found for ${type}: ${value}`);
       return c.json(
         {
@@ -329,7 +337,7 @@ export const tenantMiddleware = (): MiddlewareHandler<{
     }
 
     // Inject store context
-    console.log(`[TENANT] ✓ Store resolved successfully: ID=${store.id}, Name=${store.name}`);
+    console.warn(`[TENANT] ✓ Store resolved successfully: ID=${store.id}, Name=${store.name}`);
     c.set('storeId', store.id);
     c.set('store', store);
     c.set('isCustomDomain', isCustomDomain);
@@ -372,8 +380,9 @@ export async function getCachedStoreConfig(
   }
 
   try {
-    const result = await getStoreConfig(env as any, storeId);
+    const result = await getStoreConfig({ STORE_CONFIG_SERVICE: env.STORE_CONFIG_SERVICE as Fetcher }, storeId);
     if (result.success && result.config) {
+
       return result.config;
     }
     return null;

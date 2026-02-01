@@ -8,6 +8,16 @@
  * 1. PREVIEW MODE (isPreview=true): Self-contained state-based routing
  * 2. LIVE MODE (isPreview=false): Real Remix routes
  */
+import { useTranslation } from 'react-i18next';
+import { ClientOnly } from 'remix-utils/client-only';
+import { SkeletonLoader } from '~/components/SkeletonLoader';
+import { useCartCount } from '~/hooks/useCartCount';
+import { useProductPrice } from '~/hooks/useProductPrice';
+import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
+import { WishlistProvider } from '~/contexts/WishlistContext';
+
+// Placeholder registry to fix build errors - should be replaced with actual registry import
+const SECTION_REGISTRY: Record<string, { component: any }> = {};
 
 import { useState, useCallback, createContext, useContext, useMemo } from 'react';
 import { Link } from '@remix-run/react';
@@ -369,10 +379,8 @@ function PreviewProductDetailPage({
 
 // --- Cart Page Wrapper ---
 function PreviewCartPageComponent({
-  currency,
   onNavigate,
 }: {
-  currency: string;
   onNavigate: (page: PageType) => void;
 }) {
   return <TechCartPage isPreview={true} onCheckout={() => onNavigate({ type: 'checkout' })} />;
@@ -689,7 +697,7 @@ function PreviewTechModernStore(props: StoreTemplateProps) {
           />
         );
       case 'cart':
-        return <PreviewCartPageComponent currency={currency} onNavigate={navigate} />;
+        return <PreviewCartPageComponent onNavigate={navigate} />;
       case 'checkout':
         return <PreviewCheckoutPage currency={currency} onNavigate={navigate} />;
       case 'search':

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { formatPrice } from '~/lib/theme-engine';
 import type { OrderFormComponentProps } from './types';
-import { formatPrice } from '~/lib/theme-engine';
+
 import { OrderFormFields } from './OrderFormFields';
 import { useOrderForm } from './useOrderForm';
 import { MultiProductSelector, useMultiProductSelection } from './MultiProductSelector';

@@ -9,7 +9,7 @@
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { formatPrice } from '~/lib/theme-engine';
 import { json } from '@remix-run/cloudflare';
-import { formatPrice } from '~/lib/theme-engine';
+
 import { useLoaderData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';

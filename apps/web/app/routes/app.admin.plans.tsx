@@ -19,11 +19,10 @@ import {
   Form,
   useLoaderData,
   useNavigation,
-  useSearchParams,
   useActionData,
 } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, like, or, desc, isNotNull } from 'drizzle-orm';
+import { eq, like, or, desc } from 'drizzle-orm';
 import { stores, users } from '@db/schema';
 import { requireUserId } from '~/services/auth.server';
 import { getBulkUsageStats, PLAN_LIMITS, type PlanType } from '~/utils/plans.server';
@@ -33,16 +32,14 @@ import {
   Gift,
   Search,
   Check,
-  Calendar,
-  ArrowUpCircle,
-  AlertCircle,
-  Mail,
-  Phone,
-  Copy,
-  CheckCircle,
-  XCircle,
-  ArrowDown,
   Star,
+  AlertCircle,
+  Copy,
+  Phone,
+  Mail,
+  CheckCircle,
+  ArrowDown,
+  ArrowUpCircle,
   Sparkles,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -326,7 +323,6 @@ export default function AdminPlansPage() {
   const { stores: allStores, pendingPayments, planCounts, search } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const [searchParams] = useSearchParams();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [copiedTrxId, setCopiedTrxId] = useState<string | null>(null);
   const { t, lang: language } = useTranslation();
@@ -438,7 +434,7 @@ export default function AdminPlansPage() {
 
         {/* Plan Stats Cards - Marketing Style */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          {PLAN_OPTIONS.map((plan, index) => {
+          {PLAN_OPTIONS.map((plan, _index) => {
             const Icon = plan.icon;
             const count = planCounts[plan.value as keyof typeof planCounts] || 0;
 
@@ -495,7 +491,7 @@ export default function AdminPlansPage() {
                   <span
                     className={`text-3xl font-black ${plan.isPopular ? 'text-white' : 'text-white/80'}`}
                   >
-                    {formatPrice(plan.price)}
+                    {plan.price}
                   </span>
                   <span className={`text-sm ${plan.isPopular ? 'text-white/70' : 'text-white/40'}`}>
                     /মাস

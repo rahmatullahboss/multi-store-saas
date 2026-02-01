@@ -44,13 +44,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // Handle OAuth errors from Google
   if (error) {
-    console.error('[store.auth.google.callback] OAuth error from Google:', error);
+    console.warn('[store.auth.google.callback] OAuth error from Google:', error);
     return redirect('/?error=oauth_denied');
+
   }
 
   if (!code || !stateParam) {
-    console.error('[store.auth.google.callback] Missing code or state');
+    console.warn('[store.auth.google.callback] Missing code or state');
     return redirect('/?error=oauth_invalid');
+
   }
 
   // Decode state parameter (contains storeId and origin URL)
@@ -61,8 +63,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const stateData = JSON.parse(atob(stateParam));
     storeIdNum = stateData.storeId;
     originUrl = stateData.origin || '/';
-  } catch (e) {
-    console.error('[store.auth.google.callback] Invalid state parameter');
+  } catch {
+    console.warn('[store.auth.google.callback] Invalid state parameter');
+
     return redirect('/?error=oauth_invalid');
   }
 
@@ -152,15 +155,53 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       db
     );
 
-    console.log(
+    console.warn(
       `[store.auth.google.callback] Customer ${isNew ? 'created' : 'logged in'}:`,
       customer.id,
       'for store:',
       storeIdNum
     );
 
-    // Build redirect URL - use origin from state (supports custom domains)
-    const redirectUrl = originUrl.startsWith('http') ? originUrl : '/';
+
+    // ========================================================================
+    // CROSS-DOMAIN SESSION HANDLING
+    // ========================================================================
+    
+    // Check if we need to transfer session to a different domain
+    // originUrl is where the user came from (e.g. https://mystore.com)
+    // current request.url is the callback (e.g. https://ozzyl.com/store/auth/...)
+    
+    const currentHost = new URL(request.url).hostname;
+    let targetHost = currentHost; // fallback
+    
+    try {
+      if (originUrl.startsWith('http')) {
+        targetHost = new URL(originUrl).hostname;
+      }
+    } catch {
+      // ignore invalid origin
+    }
+
+
+    const needsTransfer = currentHost !== targetHost;
+
+    if (needsTransfer) {
+      console.warn(`[GoogleCallback] Transferring session from ${currentHost} to ${targetHost}`);
+      
+      const { createTransferToken } = await import('~/services/customer-auth.server');
+
+      const token = await createTransferToken(customer.id, storeIdNum, env);
+      
+      // Redirect to the target domain's transfer endpoint
+      // This will set the cookie on the target domain
+      const cleanOrigin = originUrl.endsWith('/') ? originUrl.slice(0, -1) : originUrl;
+      const transferUrl = `${cleanOrigin}/store/auth/session-transfer?token=${token}`;
+      
+      return redirect(transferUrl);
+    }
+
+    // Same domain handling (Subdomains)
+    const redirectUrl = originUrl.startsWith('http') ? originUrl : '/account';
 
     // Create customer session and redirect
     return createCustomerSession(customer.id, storeIdNum, redirectUrl, env);
@@ -169,3 +210,4 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return redirect(`${originUrl}?error=oauth_failed`);
   }
 }
+

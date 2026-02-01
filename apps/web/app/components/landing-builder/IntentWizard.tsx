@@ -9,7 +9,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useFetcher } from '@remix-run/react';
+
 import {
   ShoppingBag,
   Package,
@@ -29,6 +29,7 @@ import {
 import { cn } from '~/utils/cn';
 import type { Intent, QuickProduct, StyleTokens } from '~/utils/landing-builder/intentEngine';
 import { getTemplateSuggestions, DEFAULT_STYLE_TOKENS } from '~/utils/landing-builder/intentEngine';
+import { formatPrice } from '~/lib/theme-engine';
 
 // Step indicator component with accessibility
 function StepIndicator({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
@@ -559,131 +560,7 @@ function Step2ProductConnection({
   );
 }
 
-// Step 3: Style Preferences
-interface Step3StyleProps {
-  styleTokens: StyleTokens;
-  onUpdate: (updates: Partial<StyleTokens>) => void;
-}
 
-const COLOR_PRESETS = [
-  { color: '#10B981', name: 'সবুজ' },      // Emerald
-  { color: '#6366F1', name: 'নীল' },       // Indigo
-  { color: '#EC4899', name: 'গোলাপি' },    // Pink
-  { color: '#F59E0B', name: 'কমলা' },      // Amber
-  { color: '#EF4444', name: 'লাল' },       // Red
-  { color: '#8B5CF6', name: 'বেগুনি' },    // Purple
-];
-
-function Step3StylePreferences({ styleTokens, onUpdate }: Step3StyleProps) {
-  return (
-    <div className="space-y-8">
-      {/* Brand Color */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">
-          ব্র্যান্ড কালার
-        </h3>
-        <p className="text-sm text-gray-500 mb-4">
-          আপনার বাটন এবং গুরুত্বপূর্ণ এলিমেন্টের জন্য রং বেছে নিন
-        </p>
-        <div className="flex flex-wrap gap-3">
-          {COLOR_PRESETS.map((preset) => (
-            <button
-              key={preset.color}
-              type="button"
-              onClick={() => onUpdate({ primaryColor: preset.color })}
-              className={cn(
-                'w-12 h-12 rounded-xl transition-all flex items-center justify-center',
-                styleTokens.primaryColor === preset.color
-                  ? 'ring-2 ring-offset-2 ring-gray-900 scale-110'
-                  : 'hover:scale-105'
-              )}
-              style={{ backgroundColor: preset.color }}
-              title={preset.name}
-            >
-              {styleTokens.primaryColor === preset.color && (
-                <Check className="w-5 h-5 text-white" />
-              )}
-            </button>
-          ))}
-          {/* Custom color input */}
-          <label className="relative w-12 h-12 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors">
-            <input
-              type="color"
-              value={styleTokens.primaryColor}
-              onChange={(e) => onUpdate({ primaryColor: e.target.value })}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-            <span className="text-xs text-gray-400">+</span>
-          </label>
-        </div>
-      </div>
-
-      {/* Button Style */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">
-          বাটন স্টাইল
-        </h3>
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { value: 'rounded', label: 'রাউন্ডেড', preview: 'rounded-lg' },
-            { value: 'sharp', label: 'শার্প', preview: 'rounded-none' },
-            { value: 'pill', label: 'পিল', preview: 'rounded-full' },
-          ].map((style) => (
-            <button
-              key={style.value}
-              type="button"
-              onClick={() => onUpdate({ buttonStyle: style.value as StyleTokens['buttonStyle'] })}
-              className={cn(
-                'p-4 border-2 rounded-xl transition-all text-center',
-                styleTokens.buttonStyle === style.value
-                  ? 'border-emerald-500 bg-emerald-50'
-                  : 'border-gray-200 hover:border-emerald-300'
-              )}
-            >
-              <div
-                className={cn('w-full py-2 mb-2 text-white text-sm font-medium', style.preview)}
-                style={{ backgroundColor: styleTokens.primaryColor }}
-              >
-                অর্ডার করুন
-              </div>
-              <span className="text-sm text-gray-700">{style.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Font Style */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">
-          ফন্ট স্টাইল
-        </h3>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { value: 'default', label: 'ডিফল্ট', sample: 'Aa বাংলা', className: 'font-sans' },
-            { value: 'bengali', label: 'বাংলা', sample: 'Aa বাংলা', className: 'font-bengali' },
-            { value: 'modern', label: 'মডার্ন', sample: 'Aa বাংলা', className: 'font-sans tracking-tight' },
-            { value: 'classic', label: 'ক্লাসিক', sample: 'Aa বাংলা', className: 'font-serif' },
-          ].map((font) => (
-            <button
-              key={font.value}
-              type="button"
-              onClick={() => onUpdate({ fontFamily: font.value as StyleTokens['fontFamily'] })}
-              className={cn(
-                'p-4 border-2 rounded-xl transition-all text-center',
-                styleTokens.fontFamily === font.value
-                  ? 'border-emerald-500 bg-emerald-50'
-                  : 'border-gray-200 hover:border-emerald-300'
-              )}
-            >
-              <div className={cn('text-2xl mb-1', font.className)}>{font.sample}</div>
-              <span className="text-sm text-gray-700">{font.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // Step 3: Template Preview (Previously Step 4)
 interface Step3Props {
@@ -847,7 +724,7 @@ export function IntentWizard({
   const [product, setProduct] = useState<Partial<QuickProduct> | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]); // NEW: Multiple selection
-  const [styleTokens, setStyleTokens] = useState<StyleTokens>(DEFAULT_STYLE_TOKENS);
+  const styleTokens = DEFAULT_STYLE_TOKENS;
   const [selectedTemplate, setSelectedTemplate] = useState('');
   // WhatsApp number - pre-filled from store settings, editable by user
   const [whatsappNumber, setWhatsappNumber] = useState(defaultWhatsAppNumber);

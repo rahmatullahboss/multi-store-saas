@@ -1,12 +1,15 @@
-import type { ReactNode } from 'react';
 import type { StoreTemplateProps } from '~/templates/store-registry';
 import { SokolCartDrawer } from './CartDrawer';
+import { SokolFooter } from './Footer';
+import { SokolHeader } from './Header';
 
 interface SokolLayoutProps extends StoreTemplateProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
-export function SokolLayout({ children }: SokolLayoutProps) {
+export function SokolLayout(props: SokolLayoutProps) {
+  const { children, ...restProps } = props;
+
   return (
     <div className="font-sans antialiased text-gray-900 bg-[#FAFAFA] selection:bg-rose-100 selection:text-rose-900">
       <style>{`
@@ -24,8 +27,11 @@ export function SokolLayout({ children }: SokolLayoutProps) {
         .font-heading { font-family: var(--font-heading); }
       `}</style>
       
+      <SokolHeader {...restProps} />
+      
       {children}
       
+      <SokolFooter {...restProps} />
       <SokolCartDrawer />
     </div>
   );
