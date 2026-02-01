@@ -10,8 +10,7 @@
  * - Mobile: Hamburger menu
  */
 
-import { Link, useSearchParams, useNavigate } from '@remix-run/react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Search,
   ShoppingCart,
@@ -19,7 +18,6 @@ import {
   X,
   Phone,
   User,
-  ChevronDown,
   MessageCircle,
 } from 'lucide-react';
 import { useCartCount } from '~/hooks/useCartCount';
@@ -49,7 +47,6 @@ export function GhorerBazarHeader({
   currentCategory,
   socialLinks,
   businessInfo,
-  config,
   onCartClick,
 }: GhorerBazarHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

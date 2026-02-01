@@ -503,7 +503,7 @@ export async function requestPasswordReset(
       expiresAt,
     });
 
-    console.info('[auth.server] Created password reset token for user:', user.id);
+    console.warn('[auth.server] Created password reset token for user:', user.id);
 
     // Send email
     const emailPromise = sendPasswordResetEmail(email.toLowerCase(), token, env);
@@ -1070,7 +1070,7 @@ export async function createImpersonationSession(
     throw new Response('Target user not found or has no store.', { status: 404 });
   }
 
-  console.log(
+  console.warn(
     '[createImpersonationSession] Super Admin',
     adminEmail,
     'impersonating user',
@@ -1183,16 +1183,11 @@ export function getAuthenticator(env: Env, requestUrl?: string) {
   } else {
     // Determine callback URL dynamically based on request origin
     // This allows the same OAuth credentials to work across multiple domains
-    let callbackURL: string;
-    
-    // Always use the canonical auth domain (app.ozzyl.com)
-    // Cloudflare Pages serves the same app on both custom domain AND pages.dev
-    // Using request.url would give us pages.dev which is not in Google Console
     const saasDomain = env.SAAS_DOMAIN || 'ozzyl.com';
-    const authDomain = saasDomain.startsWith('http') 
+    const authDomain = saasDomain.startsWith('http')  
       ? saasDomain 
       : `https://app.${saasDomain}`;
-    callbackURL = `${authDomain}/auth/google/callback`;
+    const callbackURL = `${authDomain}/auth/google/callback`;
     
     console.warn('[getAuthenticator] Using canonical auth domain:', callbackURL);
     if (requestUrl) {

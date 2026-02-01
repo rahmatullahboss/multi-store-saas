@@ -17,7 +17,7 @@ import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/clo
 import { useLoaderData } from '@remix-run/react';
 import { useState, useEffect } from 'react';
 import { resolveStore } from '~/lib/store.server';
-import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
+
 import {
   getStoreTemplate,
   getStoreTemplateTheme,
@@ -44,11 +44,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     { property: 'og:type', content: 'website' },
   ];
 
-  // Favicon support
-  if (data.favicon) {
-    metaTags.push({ tagName: 'link', rel: 'icon', href: data.favicon });
-    metaTags.push({ tagName: 'link', rel: 'shortcut icon', href: data.favicon });
-  }
+
 
   // Logo as og:image
   if (data.logo) {
@@ -153,9 +149,6 @@ export default function StoreHomePage() {
     socialLinks,
     businessInfo,
     planType,
-    storeTagline,
-    storeDescription,
-    customer,
     featuredProducts,
     categories,
   } = useLoaderData<typeof loader>();
@@ -165,7 +158,7 @@ export default function StoreHomePage() {
   const TemplateComponent = template.component;
 
   // Load cart from localStorage on client side
-  const [cart, setCart] = useState<{
+  const [, setCart] = useState<{
     items: Array<{
       id: number;
       productId: number;
@@ -249,6 +242,12 @@ export default function StoreHomePage() {
 
   return (
     <>
+      {favicon && (
+        <>
+          <link rel="icon" href={favicon} />
+          <link rel="shortcut icon" href={favicon} />
+        </>
+      )}
       {/* Inject CSS variables globally for consistent theming */}
       <style
         dangerouslySetInnerHTML={{

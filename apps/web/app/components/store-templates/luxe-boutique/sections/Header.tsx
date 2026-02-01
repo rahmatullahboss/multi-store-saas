@@ -1,4 +1,3 @@
-import { Link } from '@remix-run/react';
 import React, { useState } from 'react';
 import { Menu, X, Search, Heart, ShoppingBag } from 'lucide-react';
 import { LUXE_BOUTIQUE_THEME } from '../theme';
@@ -6,15 +5,15 @@ import { useTranslation } from '~/contexts/LanguageContext';
 import { useCartCount } from '~/hooks/useCartCount';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { LanguageSelector } from '../../shared/LanguageSelector';
-import type { ThemeConfig } from '@db/types';
+import type { ThemeConfig, SocialLinks } from '@db/types';
 
 interface LuxeBoutiqueHeaderProps {
   storeName: string;
   logo?: string | null;
   categories: (string | null)[];
   currentCategory?: string | null;
-  socialLinks?: any;
-  config?: any;
+  socialLinks?: SocialLinks | null;
+  config?: ThemeConfig | null;
   count?: number;
   mobileMenuOpen?: boolean;
   setMobileMenuOpen?: (open: boolean) => void;

@@ -22,7 +22,7 @@ import {
   isRouteErrorResponse,
   useSearchParams,
 } from '@remix-run/react';
-import { useState, useEffect, Suspense, useMemo } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, type Product, type Store } from '@db/schema';
@@ -41,7 +41,7 @@ import {
 } from '~/templates/store-registry';
 import { getMVPSettings } from '~/services/mvp-settings.server';
 import { parseSocialLinks, parseFooterConfig } from '@db/types';
-import { createDb } from '~/lib/db.server';
+// import { createDb } from '~/lib/db.server';
 
 // ============================================================================
 // AGGRESSIVE CDN CACHING HEADERS
@@ -555,7 +555,7 @@ export default function Index() {
   useTrackVisit(data.mode !== 'marketing' ? data.storeId : undefined);
 
   // Helper for type narrowing
-  const storeData = data.mode === 'store' ? data : undefined;
+  // const storeData = data.mode === 'store' ? data : undefined;
 
   // ============================================================================
   // RENDERING LOGIC - EARLY RETURNS BELOW HERE
@@ -752,7 +752,9 @@ export default function Index() {
             <PreviewTemplateComponent
               storeName={data.storeName}
               storeId={data.storeId}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               product={demoProduct as any}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               config={demoConfig as any}
               currency={data.currency}
               isPreview={true}
@@ -847,6 +849,7 @@ export default function Index() {
               businessInfo={data.businessInfo || undefined}
               config={themeConfig}
               planType={data.planType}
+              hideHeaderFooter={true}
             >
               <TemplateComponent
                 storeName={data.storeName}
