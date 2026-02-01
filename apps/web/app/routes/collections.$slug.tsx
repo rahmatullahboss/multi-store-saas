@@ -46,8 +46,10 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
   // Favicon support
   if (data.favicon) {
-    metaTags.push({ tagName: 'link', rel: 'icon', href: data.favicon });
-    metaTags.push({ tagName: 'link', rel: 'shortcut icon', href: data.favicon });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    metaTags.push({ tagName: 'link', rel: 'icon', href: data.favicon } as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    metaTags.push({ tagName: 'link', rel: 'shortcut icon', href: data.favicon } as any);
   }
 
   return metaTags;
@@ -154,6 +156,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
         updatedAt: products.updatedAt,
       })
       .from(products)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .where(and(...(baseFilters as any)))
       .limit(50)
       .orderBy(orderByClause);
@@ -191,6 +194,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
         })
         .from(products)
         .innerJoin(productCollections, eq(products.id, productCollections.productId))
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .where(and(eq(productCollections.collectionId, collectionData.id), ...(baseFilters as any)))
         .limit(50)
         .orderBy(orderByClause);
@@ -221,6 +225,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
           updatedAt: products.updatedAt,
         })
         .from(products)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .where(and(...(baseFilters as any), like(products.category, slug)))
         .limit(50)
         .orderBy(orderByClause);
@@ -294,7 +299,6 @@ export default function CollectionPage() {
     customer,
   } = useLoaderData<typeof loader>();
 
-  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Filter handlers

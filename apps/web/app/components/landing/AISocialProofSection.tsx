@@ -121,7 +121,7 @@ export function AISocialProofSection() {
               </div>
               <div className="w-1 h-1 bg-white/20 rounded-full" />
               <div className="flex items-center gap-2">
-                 <Cpu className="w-5 h-5" /> <span className="font-bold text-white">Xiaomi</span>
+                 <Cpu className="w-5 h-5" /> <span className="font-bold text-white">DeepSeek</span>
               </div>
               <div className="w-1 h-1 bg-white/20 rounded-full" />
               <div className="flex items-center gap-2">

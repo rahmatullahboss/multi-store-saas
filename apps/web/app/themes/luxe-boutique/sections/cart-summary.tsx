@@ -6,7 +6,7 @@
  */
 
 import { Link } from '@remix-run/react';
-import { CreditCard, Truck, ShieldCheck, Tag } from 'lucide-react';
+import { CreditCard, Truck, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import type { SectionSchema, SectionComponentProps } from '~/lib/theme-engine/types';
 import { formatPrice } from '~/lib/theme-engine';
@@ -90,6 +90,16 @@ export const schema: SectionSchema = {
 // COMPONENT
 // ============================================================================
 
+
+interface CartSummarySettings {
+  heading?: string;
+  show_coupon?: boolean;
+  show_shipping_note?: boolean;
+  shipping_note?: string;
+  checkout_button?: string;
+  show_secure?: boolean;
+}
+
 export default function LuxeCartSummary({ context, settings }: SectionComponentProps) {
   const {
     heading = 'Order Summary',
@@ -98,7 +108,7 @@ export default function LuxeCartSummary({ context, settings }: SectionComponentP
     shipping_note = 'Complimentary shipping on orders over $500',
     checkout_button = 'Proceed to Checkout',
     show_secure = true,
-  } = settings as Record<string, unknown>;
+  } = (settings || {}) as CartSummarySettings;
 
   const cart = context.cart;
   const items = cart?.items || [];

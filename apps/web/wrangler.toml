@@ -62,8 +62,8 @@ CLOUDFLARE_ZONE_ID = "41147efa7d197cfddda0af7fcbf6d641"  # Zone ID from Cloudfla
 # CLOUDFLARE_API_TOKEN = "your_cloudflare_api_token_here"  # Commented to use OAuth login
 
 # AI CONFIGURATION (Xiaomi Mimo or any OpenAI-compatible provider)
-AI_MODEL = "mimo-v2-flash"  # Model ID for AI features
-AI_BASE_URL = "https://api.xiaomimimo.com/v1"  # OpenAI-compatible API endpoint
+AI_MODEL = "tngtech/deepseek-r1t2-chimera:free"  # OpenRouter Model ID
+AI_BASE_URL = "https://openrouter.ai/api/v1"  # OpenRouter API Endpoint
 PAGE_BUILDER_URL = "https://builder.ozzyl.com"  # Separate worker for GrapesJS editor
 
 # IMPORTANT: Sensitive API keys must be set in Cloudflare Dashboard for security

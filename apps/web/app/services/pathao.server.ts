@@ -89,8 +89,15 @@ export const PATHAO_STATUS_MAP: Record<string, string> = {
 /**
  * Create Pathao API client
  */
+/**
+ * Create Pathao API client
+ */
 export function createPathaoClient(credentials: PathaoCredentials) {
-  const baseUrl = credentials.baseUrl || 'https://api-hermes.pathao.com';
+  // Default to Hermes/Aladdin endpoint if not specified
+  // Users can override this with https://api.pathao.com/v1 for standard API
+  // or a sandbox URL like https://hermes-api.p-stageenv.xyz/aladdin/api/v1
+  const baseUrl = credentials.baseUrl?.replace(/\/+$/, '') || 'https://api-hermes.pathao.com/aladdin/api/v1';
+  
   let accessToken: string | null = null;
   let tokenExpiry: number = 0;
 
@@ -103,7 +110,7 @@ export function createPathaoClient(credentials: PathaoCredentials) {
       return accessToken;
     }
 
-    const response = await fetch(`${baseUrl}/aladdin/api/v1/issue-token`, {
+    const response = await fetch(`${baseUrl}/issue-token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -120,7 +127,13 @@ export function createPathaoClient(credentials: PathaoCredentials) {
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(`Pathao auth failed: ${error}`);
+      // Try to parse error as JSON if possible
+      try {
+        const jsonError = JSON.parse(error);
+        throw new Error(`Pathao auth failed: ${jsonError.message || JSON.stringify(jsonError)}`);
+      } catch {
+        throw new Error(`Pathao auth failed: ${error}`);
+      }
     }
 
     const data: PathaoTokenResponse = await response.json();
@@ -136,7 +149,10 @@ export function createPathaoClient(credentials: PathaoCredentials) {
   async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const token = await getAccessToken();
 
-    const response = await fetch(`${baseUrl}${endpoint}`, {
+    // Ensure endpoint starts with /
+    const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+    const response = await fetch(`${baseUrl}${normalizedEndpoint}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -148,7 +164,12 @@ export function createPathaoClient(credentials: PathaoCredentials) {
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(`Pathao API error: ${error}`);
+      try {
+          const jsonError = JSON.parse(error);
+          throw new Error(`Pathao API error: ${jsonError.message || JSON.stringify(jsonError)}`);
+      } catch {
+          throw new Error(`Pathao API error: ${error}`);
+      }
     }
 
     return response.json();
@@ -162,7 +183,8 @@ export function createPathaoClient(credentials: PathaoCredentials) {
       try {
         await getAccessToken();
         return true;
-      } catch {
+      } catch (error) {
+        console.error('Pathao connection test failed:', error);
         return false;
       }
     },
@@ -171,7 +193,7 @@ export function createPathaoClient(credentials: PathaoCredentials) {
      * Get list of cities
      */
     async getCities(): Promise<PathaoCity[]> {
-      const result = await apiRequest<{ data: { data: PathaoCity[] } }>('/aladdin/api/v1/city-list');
+      const result = await apiRequest<{ data: { data: PathaoCity[] } }>('/city-list');
       return result.data.data;
     },
 
@@ -179,7 +201,7 @@ export function createPathaoClient(credentials: PathaoCredentials) {
      * Get zones for a city
      */
     async getZones(cityId: number): Promise<PathaoZone[]> {
-      const result = await apiRequest<{ data: { data: PathaoZone[] } }>(`/aladdin/api/v1/zone-list/${cityId}`);
+      const result = await apiRequest<{ data: { data: PathaoZone[] } }>(`/zone-list/${cityId}`);
       return result.data.data;
     },
 
@@ -187,7 +209,7 @@ export function createPathaoClient(credentials: PathaoCredentials) {
      * Get areas for a zone
      */
     async getAreas(zoneId: number): Promise<PathaoArea[]> {
-      const result = await apiRequest<{ data: { data: PathaoArea[] } }>(`/aladdin/api/v1/area-list/${zoneId}`);
+      const result = await apiRequest<{ data: { data: PathaoArea[] } }>(`/area-list/${zoneId}`);
       return result.data.data;
     },
 
@@ -195,7 +217,7 @@ export function createPathaoClient(credentials: PathaoCredentials) {
      * Get Pathao stores (merchant's pickup locations)
      */
     async getStores(): Promise<{ store_id: number; store_name: string; store_address: string }[]> {
-      const result = await apiRequest<{ data: { data: { store_id: number; store_name: string; store_address: string }[] } }>('/aladdin/api/v1/stores');
+      const result = await apiRequest<{ data: { data: { store_id: number; store_name: string; store_address: string }[] } }>('/stores');
       return result.data.data;
     },
 
@@ -203,7 +225,7 @@ export function createPathaoClient(credentials: PathaoCredentials) {
      * Create a new order/parcel
      */
     async createOrder(order: PathaoCreateOrderRequest): Promise<PathaoOrder> {
-      const result = await apiRequest<{ data: PathaoOrder }>('/aladdin/api/v1/orders', {
+      const result = await apiRequest<{ data: PathaoOrder }>('/orders', {
         method: 'POST',
         body: JSON.stringify(order),
       });
@@ -214,7 +236,7 @@ export function createPathaoClient(credentials: PathaoCredentials) {
      * Get order status
      */
     async getOrderStatus(consignmentId: string): Promise<PathaoOrderStatus> {
-      const result = await apiRequest<{ data: PathaoOrderStatus }>(`/aladdin/api/v1/orders/${consignmentId}`);
+      const result = await apiRequest<{ data: PathaoOrderStatus }>(`/orders/${consignmentId}`);
       return result.data;
     },
 
@@ -223,7 +245,7 @@ export function createPathaoClient(credentials: PathaoCredentials) {
      */
     async cancelOrder(consignmentId: string): Promise<boolean> {
       try {
-        await apiRequest(`/aladdin/api/v1/orders/${consignmentId}/cancel`, {
+        await apiRequest(`/orders/${consignmentId}/cancel`, {
           method: 'POST',
         });
         return true;
@@ -242,7 +264,7 @@ export function createPathaoClient(credentials: PathaoCredentials) {
       itemWeight: number
     ): Promise<{ price: number; discount: number; final_price: number }> {
       const result = await apiRequest<{ data: { price: number; discount: number; final_price: number } }>(
-        '/aladdin/api/v1/merchant/price-plan',
+        '/merchant/price-plan',
         {
           method: 'POST',
           body: JSON.stringify({

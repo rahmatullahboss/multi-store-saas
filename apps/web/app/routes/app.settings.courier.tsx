@@ -20,8 +20,6 @@ import { getStoreId } from '~/services/auth.server';
 import { createPathaoClient } from '~/services/pathao.server';
 import { createSteadfastClient } from '~/services/steadfast.server';
 import { 
-  Truck, 
-  Settings, 
   CheckCircle, 
   XCircle, 
   Loader2, 
@@ -29,7 +27,6 @@ import {
   Save,
   TestTube,
   AlertCircle,
-  Store,
   Key,
   ExternalLink
 } from 'lucide-react';
@@ -49,6 +46,7 @@ interface CourierSettings {
     clientSecret: string;
     username: string;
     password: string;
+    baseUrl?: string;
     defaultStoreId?: number;
   };
   redx?: {
@@ -158,6 +156,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         clientSecret: formData.get('clientSecret') as string,
         username: formData.get('username') as string,
         password: formData.get('password') as string,
+        baseUrl: formData.get('baseUrl') as string,
         defaultStoreId: formData.get('defaultStoreId') 
           ? parseInt(formData.get('defaultStoreId') as string) 
           : undefined,
@@ -216,6 +215,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           clientSecret: courierSettings.pathao.clientSecret,
           username: courierSettings.pathao.username,
           password: courierSettings.pathao.password,
+          baseUrl: courierSettings.pathao.baseUrl,
         });
 
         const connected = await client.testConnection();
@@ -545,6 +545,21 @@ export default function CourierSettingsPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white/50 backdrop-blur-sm"
                       required={!settings.pathao?.password}
                     />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('baseUrl') || 'Base URL'} <span className="text-gray-400 font-normal">(Optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="baseUrl"
+                      defaultValue={settings.pathao?.baseUrl || ''}
+                      placeholder="https://api-hermes.pathao.com/aladdin/api/v1"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white/50 backdrop-blur-sm"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Leave empty for default. For Sandbox, use your provided sandbox URL with path (e.g. <code>https://hermes-api.p-stageenv.xyz/aladdin/api/v1</code>)
+                    </p>
                   </div>
                 </div>
               </div>

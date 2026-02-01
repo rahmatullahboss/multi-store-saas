@@ -83,8 +83,6 @@ import {
   DISTRICTS,
   UPAZILAS,
   getShippingZone,
-  type District,
-  type Upazila,
 } from '~/data/bd-locations';
 import { useState, useEffect, useMemo } from 'react';
 import { Loader2, ArrowLeft, ShoppingBag, ShieldCheck, Truck, CheckCircle } from 'lucide-react';
