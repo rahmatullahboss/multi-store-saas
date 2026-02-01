@@ -2,14 +2,18 @@
 
 ## Relevant Code
 
-- `apps/web/app/lib/page-builder/templates.ts`: Contains the JSON definitions of templates.
-- `docs/theme_development_guide.md`: SOP for theme development.
+- `apps/web/app/services/customer-auth.server.ts`: Handles customer session & Google Auth. **Missing Email/Password logic.**
+- `apps/web/app/routes/store.auth.google.ts`: Existing Google Auth route.
+- `apps/web/app/routes/account.tsx`: Customer account page. Redirects to `/` if not logged in.
+- `packages/database/src/schema.ts`: `customers` table exists and supports `passwordHash` and `storeId`.
 
 ## Documentation
 
-- User wants "World Class UI/UX".
-- User mentioned "Storied Driven Template"- **Action**: Initialized Manus planning files.
-- **Action**: Identified `story-driven` template in `templates.ts`.
-- **Action**: Listing section components to audit current implementation.s.ts`.
-- Current variants used: `story-driven` (Hero), `default` (Problem-Solution), `minimal` (Testimonials), `accordion` (FAQ), `default` (Guarantee), `story-driven` (CTA).
-- Need to check `apps/web/app/components/page-builder/sections/` for these component implementations.
+- **Schema**: `customers` table has `email`, `passwordHash`, `storeId`.
+- **Auth Pattern**: Use `customer-auth.server.ts` similar to `auth.server.ts`.
+
+## Decisions
+
+- [x] Decision 1: Implement Email/Password auth in `customer-auth.server.ts`.
+- [x] Decision 2: Create `store.auth.login.tsx` and `store.auth.register.tsx` for storefront usage.
+- [x] Decision 3: Update `account.tsx` to redirect to `/store/auth/login` instead of `/` when unauthenticated.

@@ -61,30 +61,7 @@ function NagadIcon() {
   );
 }
 
-function VisaIcon() {
-  return (
-    <div
-      className="h-8 px-3 rounded-md flex items-center justify-center text-xs font-bold"
-      style={{ backgroundColor: '#1a1f71', color: 'white' }}
-    >
-      VISA
-    </div>
-  );
-}
 
-function MastercardIcon() {
-  return (
-    <div
-      className="h-8 px-3 rounded-md flex items-center justify-center text-xs font-bold"
-      style={{
-        background: 'linear-gradient(90deg, #eb001b 50%, #f79e1b 50%)',
-        color: 'white',
-      }}
-    >
-      MC
-    </div>
-  );
-}
 
 function CodIcon() {
   return (
@@ -298,8 +275,8 @@ export function NovaLuxFooter({
               <div className="flex flex-wrap gap-2">
                 <BkashIcon />
                 <NagadIcon />
-                <VisaIcon />
-                <MastercardIcon />
+                
+                
                 <CodIcon />
               </div>
             </div>

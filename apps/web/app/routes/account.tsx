@@ -27,7 +27,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = await getCustomerStoreId(request, env);
 
   if (!customerId || !storeId) {
-    return redirect('/');
+    return redirect('/store/auth/login?redirectTo=/account');
   }
 
   // Get customer data

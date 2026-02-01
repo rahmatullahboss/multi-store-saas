@@ -79,7 +79,7 @@
       "settings": {
         "show_app_download": true,
         "show_powered_by": true,
-        "payment_methods": "bKash, Nagad, Visa, Mastercard, COD"
+        "payment_methods": "bKash, Nagad, COD"
       }
     }
   },

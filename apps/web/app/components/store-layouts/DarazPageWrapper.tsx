@@ -221,7 +221,7 @@ export function DarazPageWrapper({
               <div className="flex flex-wrap gap-1.5 md:gap-2">
                 <span className="px-2 md:px-3 py-1 md:py-1.5 bg-gray-100 rounded text-[10px] md:text-xs font-medium">bKash</span>
                 <span className="px-2 md:px-3 py-1 md:py-1.5 bg-gray-100 rounded text-[10px] md:text-xs font-medium">Nagad</span>
-                <span className="px-2 md:px-3 py-1 md:py-1.5 bg-gray-100 rounded text-[10px] md:text-xs font-medium">Visa</span>
+
                 <span className="px-2 md:px-3 py-1 md:py-1.5 bg-gray-100 rounded text-[10px] md:text-xs font-medium">COD</span>
               </div>
               

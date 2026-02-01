@@ -209,7 +209,7 @@ export function DarazFooter({
               Payment Methods
             </h3>
             <div className="flex flex-wrap gap-2 mb-6">
-              {['bKash', 'Nagad', 'Visa', 'Mastercard', 'COD'].map((method) => (
+              {['bKash', 'Nagad', 'COD'].map((method) => (
                 <span
                   key={method}
                   className="px-2.5 py-1.5 text-[10px] md:text-xs font-medium rounded"

@@ -1,17 +1,10 @@
-- **Action**: Identified `story-driven` template in `templates.ts`.
-- **Action**: Listing section components to audit current implementation.
-- **Action**: Reading `StoryDrivenHero.tsx` to understand current quality.
-- **Action**: Checked `package.json` for dependencies (`framer-motion` is key).
-- **Action**: Created `WorldClassStoryHero.tsx` with Playfair Display and Framer Motion.
-- **Action**: Created `StoryTimelineFeatures.tsx` with vertical timeline layout.
-- **Action**: Created `MagneticStoryCTA.tsx` with follow-cursor effect.
-- **Action**: Wiring new components into their respective index files.
-- **Action**: Fixed `hero/types.ts` and `features/types.ts` to support new components.
-- **Action**: Wired `WorldClassStoryHero` into `hero/index.tsx`.
-- **Action**: Wired `StoryTimelineFeatures` into `features/index.tsx`.
-- **Action**: Wired `MagneticStoryCTA` (via alias) into `order-form/index.tsx`.
-- **Action**: Cleaned up unused legacy imports in index files.
-- **Action**: Updating `templates.ts` to use new high-fidelity assets.
-- **Action**: Created `WorldClassOrderForm.tsx` and wired it to `story-driven-premium`.
-- **Action**: Updated `docs/theme_development_guide.md` with new standards.
-- **Action**: Task complete. Ready for verification.
+# Progress Log
+
+## Session 1
+
+- **Action**: Analyzed existing Auth implementation.
+- **Action**: Updated `customer-auth.server.ts` to include `registerCustomer` and `loginCustomer` logic.
+- **Action**: Created `store.auth.login.tsx` for customer login.
+- **Action**: Created `store.auth.register.tsx` for customer registration.
+- **Action**: Updated `account.tsx` to redirect unauthenticated users to `/store/auth/login` instead of `/`.
+- **Result**: Customer authentication system for storefronts is now implemented with both Email/Password and Google OAuth support.

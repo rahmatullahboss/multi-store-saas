@@ -1173,7 +1173,7 @@ function PreviewFooter({
               Payment Methods
             </h4>
             <div className="flex flex-wrap gap-2">
-              {['bKash', 'Nagad', 'Visa', 'COD'].map((method) => (
+              {['bKash', 'Nagad', 'COD'].map((method) => (
                 <span key={method} className="px-2 py-1 text-xs bg-gray-100 rounded">
                   {method}
                 </span>

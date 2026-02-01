@@ -38,5 +38,8 @@ describe('StarterStoreTemplate', () => {
     expect(rootDiv).toHaveClass('min-h-screen');
     expect(rootDiv).toHaveClass('flex');
     expect(rootDiv).toHaveClass('flex-col');
+    expect(rootDiv).toHaveClass('w-full');
+    expect(rootDiv).toHaveClass('m-0');
+    expect(rootDiv).toHaveClass('p-0');
   });
 });

@@ -251,8 +251,13 @@ export default function StoreHomePage() {
   const isDarkTheme = storeTemplateId === 'modern-premium' || storeTemplateId === 'tech-modern';
   const bgClass = isDarkTheme ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900';
 
+  // Defensive check for theme to prevent "Cannot read properties of undefined (reading 'primary')"
+  // This can happen during client-side transitions if data isn't fully ready or cached incorrectly
+  const safeTheme = theme || { primary: '#000000', accent: '#000000', background: '#ffffff' };
+  const safeThemeConfig = themeConfig || {};
+
   return (
-    <>
+    <div className={`min-h-screen w-full flex flex-col m-0 p-0 ${bgClass} transition-colors duration-300`}>
       {favicon && (
         <>
           <link rel="icon" href={favicon} />
@@ -264,8 +269,8 @@ export default function StoreHomePage() {
         dangerouslySetInnerHTML={{
           __html: `
             :root {
-              --color-primary: ${theme.primary};
-              --color-accent: ${theme.accent};
+              --color-primary: ${safeTheme.primary};
+              --color-accent: ${safeTheme.accent};
               --font-heading: ${template.fonts?.heading || 'Inter, sans-serif'};
               --font-body: ${template.fonts?.body || 'Inter, sans-serif'};
             }
@@ -273,37 +278,34 @@ export default function StoreHomePage() {
         }}
       />
 
-      {/* Wrap TemplateComponent in min-h-screen container to match StorePageWrapper */}
-      <div className={`min-h-screen ${bgClass} transition-colors duration-300`}>
-        {/* MVP Simple System: Use old 1000+ line React template component */}
-        {/* Template has its own Header/Footer */}
-        <TemplateComponent
-          storeName={storeName}
-          storeId={storeId}
-          logo={logo}
-          theme={storeTemplateId}
-          fontFamily={template.fonts.body}
-          products={featuredProducts}
-          categories={categories as string[]}
-          currentCategory={null}
-          config={
-            {
-              primaryColor: theme.primary,
-              accentColor: theme.accent,
-              ...themeConfig,
-            } as unknown as ThemeConfig
-          }
-          currency={currency}
-          socialLinks={socialLinks}
-          footerConfig={null}
-          businessInfo={businessInfo}
-          planType={planType}
-          isPreview={false}
-          collections={[]}
-          reviews={[]}
-          banners={[]}
-        />
-      </div>
-    </>
+      {/* Template Component */}
+      {/* Template has its own Header/Footer */}
+      <TemplateComponent
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        theme={storeTemplateId}
+        fontFamily={template.fonts.body}
+        products={featuredProducts}
+        categories={categories as string[]}
+        currentCategory={null}
+        config={
+          {
+            primaryColor: safeTheme.primary,
+            accentColor: safeTheme.accent,
+            ...safeThemeConfig,
+          } as unknown as ThemeConfig
+        }
+        currency={currency}
+        socialLinks={socialLinks}
+        footerConfig={null}
+        businessInfo={businessInfo}
+        planType={planType}
+        isPreview={false}
+        collections={[]}
+        reviews={[]}
+        banners={[]}
+      />
+    </div>
   );
 }

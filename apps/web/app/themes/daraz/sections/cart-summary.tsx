@@ -11,7 +11,7 @@
 
 import { useState } from 'react';
 import { Link, useFetcher } from '@remix-run/react';
-import { Tag, ShieldCheck, CreditCard, Truck, ChevronRight } from 'lucide-react';
+import { Tag, ShieldCheck, Truck, ChevronRight } from 'lucide-react';
 import type { SectionSchema, SectionComponentProps, CartItem } from '~/lib/theme-engine/types';
 import { formatPrice } from '~/lib/theme-engine';
 
@@ -298,9 +298,7 @@ export default function DarazCartSummary({ section, context, settings }: Section
         <div className="mt-4 pt-4 border-t border-gray-200">
           <p className="text-xs text-gray-500 text-center mb-2">We Accept</p>
           <div className="flex items-center justify-center gap-3">
-            <div className="w-10 h-6 bg-gray-100 rounded flex items-center justify-center">
-              <CreditCard size={14} className="text-gray-500" />
-            </div>
+
             <div className="px-2 py-1 bg-pink-100 rounded text-[10px] font-bold text-pink-600">
               bKash
             </div>

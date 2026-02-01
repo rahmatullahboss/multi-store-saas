@@ -41,7 +41,7 @@ export function StarterStoreTemplate({
 
   return (
     <div
-      className="min-h-screen flex flex-col"
+      className="min-h-screen flex flex-col w-full m-0 p-0"
       style={{ backgroundColor: theme.background, fontFamily: STARTER_STORE_FONTS.body }}
     >
       {/* Google Fonts */}

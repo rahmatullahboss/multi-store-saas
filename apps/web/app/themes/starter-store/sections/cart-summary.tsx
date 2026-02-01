@@ -380,9 +380,7 @@ export default function CartSummary({ section, context, settings }: SectionCompo
               <span className="text-white text-[8px] font-bold">Nagad</span>
             </div>
             {/* Card */}
-            <div className="w-10 h-6 bg-blue-600 rounded flex items-center justify-center">
-              <span className="text-white text-[8px] font-bold">VISA</span>
-            </div>
+
             {/* COD */}
             <div className="w-10 h-6 bg-gray-600 rounded flex items-center justify-center">
               <span className="text-white text-[8px] font-bold">COD</span>

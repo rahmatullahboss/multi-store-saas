@@ -9,6 +9,7 @@ import { createCookieSessionStorage, redirect } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { customers, stores } from '@db/schema';
+import { hashPassword, verifyPassword } from './auth.server';
 
 // ============================================================================
 // TYPES
@@ -271,4 +272,127 @@ export async function findOrCreateGoogleCustomer(
     .returning();
 
   return { customer: newCustomerResult[0], isNew: true };
+}
+
+// ============================================================================
+// EMAIL/PASSWORD AUTHENTICATION
+// ============================================================================
+
+interface CustomerRegisterParams {
+  storeId: number;
+  email: string;
+  password: string;
+  name: string;
+  db: D1Database;
+}
+
+interface CustomerLoginParams {
+  storeId: number;
+  email: string;
+  password: string;
+  db: D1Database;
+}
+
+/**
+ * Register a new customer
+ */
+export async function registerCustomer({ storeId, email, password, name, db }: CustomerRegisterParams) {
+  const drizzleDb = drizzle(db);
+  const normalizedEmail = email.toLowerCase().trim();
+
+  // Validate inputs
+  if (!normalizedEmail || !normalizedEmail.includes('@')) {
+    return { error: 'Invalid email address' };
+  }
+
+  if (!password || password.length < 6) {
+    return { error: 'Password must be at least 6 characters long' };
+  }
+
+  if (!name || name.trim().length < 2) {
+    return { error: 'Name must be at least 2 characters long' };
+  }
+
+  // Check if customer exists in this store
+  const existingCustomer = await drizzleDb
+    .select()
+    .from(customers)
+    .where(and(eq(customers.storeId, storeId), eq(customers.email, normalizedEmail)))
+    .limit(1);
+
+  if (existingCustomer.length > 0) {
+    return { error: 'This email is already registered in this store.' };
+  }
+
+  try {
+    const passwordHash = await hashPassword(password);
+    const now = new Date();
+
+    const newCustomer = await drizzleDb
+      .insert(customers)
+      .values({
+        storeId,
+        email: normalizedEmail,
+        name,
+        passwordHash,
+        authProvider: 'email',
+        lastLoginAt: now,
+        segment: 'new',
+      })
+      .returning();
+
+    return { customer: newCustomer[0] };
+  } catch (error) {
+    console.error('[customer-auth] Registration error:', error);
+    return { error: 'Failed to create account. Please try again.' };
+  }
+}
+
+/**
+ * Login a customer
+ */
+export async function loginCustomer({ storeId, email, password, db }: CustomerLoginParams) {
+  const drizzleDb = drizzle(db);
+  const normalizedEmail = email.toLowerCase().trim();
+
+  // Find customer
+  const customerResult = await drizzleDb
+    .select()
+    .from(customers)
+    .where(and(eq(customers.storeId, storeId), eq(customers.email, normalizedEmail)))
+    .limit(1);
+
+  if (customerResult.length === 0) {
+    return { error: 'Invalid email or password' };
+  }
+
+  const customer = customerResult[0];
+
+  // Check password (only if they have a password hash)
+  if (!customer.passwordHash) {
+    // If they signed up via Google but trying to login with password
+    if (customer.authProvider === 'google') {
+      return { error: 'Please sign in with Google' };
+    }
+    return { error: 'Invalid email or password' };
+  }
+
+  try {
+    const isValid = await verifyPassword(password, customer.passwordHash);
+
+    if (!isValid) {
+      return { error: 'Invalid email or password' };
+    }
+
+    // Update last login
+    await drizzleDb
+      .update(customers)
+      .set({ lastLoginAt: new Date() })
+      .where(eq(customers.id, customer.id));
+
+    return { customer };
+  } catch (error) {
+    console.error('[customer-auth] Login verification error:', error);
+    return { error: 'An error occurred. Please try again.' };
+  }
 }

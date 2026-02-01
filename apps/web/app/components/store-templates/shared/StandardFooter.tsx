@@ -70,27 +70,7 @@ function NagadIcon() {
   );
 }
 
-function VisaIcon() {
-  return (
-     <img 
-      src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png" 
-      alt="Visa" 
-      className="h-8 w-auto rounded bg-white p-1 object-contain"
-      style={{ minWidth: '40px' }}
-    />
-  );
-}
 
-function MastercardIcon() {
-  return (
-    <img 
-      src="https://upload.wikimedia.org/wikipedia/commons/b/b7/MasterCard_Logo.svg" 
-      alt="Mastercard" 
-      className="h-8 w-auto rounded bg-white p-1 object-contain"
-      style={{ minWidth: '40px' }}
-    />
-  );
-}
 
 function CodIcon() {
   return (
@@ -339,8 +319,8 @@ export function StandardFooter({
               <div className="flex flex-wrap gap-2">
                 <BkashIcon />
                 <NagadIcon />
-                <VisaIcon />
-                <MastercardIcon />
+                
+                
                 <CodIcon />
               </div>
             </div>
