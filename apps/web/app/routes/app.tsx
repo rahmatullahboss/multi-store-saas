@@ -1,8 +1,8 @@
 /**
  * Dashboard Layout
- * 
+ *
  * Route: /app (layout for all /app/* routes)
- * 
+ *
  * Features:
  * - Protected route (requires authentication)
  * - Responsive sidebar with navigation
@@ -24,7 +24,6 @@ import {
   LogOut,
   Menu,
   X,
-
   BarChart3,
   Tag,
   Truck,
@@ -39,17 +38,14 @@ import {
   Globe,
   Crown,
   ExternalLink,
-
   Home,
   MessageSquare,
   Info,
   AlertTriangle,
-
   AlertCircle,
   BookOpen,
-
   Users,
-  Bell
+  Bell,
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -60,9 +56,14 @@ import type { TranslationKey } from '~/utils/i18n/index';
 // Custom Ozzyl Icon Component (for nav)
 const OzzylIcon = ({ className }: { className?: string }) => {
   const { t } = useTranslation();
-  return <img src="/brand/icon.png" alt={String(t('landingFinalCTA_aiAssistantName'))} className={className || 'w-5 h-5'} />;
+  return (
+    <img
+      src="/brand/icon.png"
+      alt={String(t('landingFinalCTA_aiAssistantName'))}
+      className={className || 'w-5 h-5'}
+    />
+  );
 };
-
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Dashboard - Ozzyl' }];
@@ -72,13 +73,11 @@ export const meta: MetaFunction = () => {
 // LOADER - Protect route and fetch user/store data
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-
   try {
     // Require authentication
     let userId;
     try {
       userId = await requireUserId(request, context.cloudflare.env);
-
     } catch (authError) {
       console.error('[app.loader] Authentication failed:', authError);
       throw authError; // Re-throw to trigger redirect
@@ -87,7 +86,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     let storeId;
     try {
       storeId = await getStoreId(request, context.cloudflare.env);
-
     } catch (storeIdError) {
       console.error('[app.loader] Failed to get storeId from session:', storeIdError);
       throw new Response('Session error. Please login again.', { status: 401 });
@@ -95,7 +93,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     if (!storeId) {
       console.error('[app.loader] No storeId in session for user:', userId);
-      throw new Response('Store not found. Please contact support.', { status: 404 });
+      // User is logged in but has no store - redirect to onboarding to create one
+      return redirect('/onboarding');
     }
 
     // Check database connection
@@ -110,15 +109,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     let storeResult;
     try {
-      storeResult = await db
-        .select()
-        .from(stores)
-        .where(eq(stores.id, storeId))
-        .limit(1);
-
+      storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
     } catch (storeDbError) {
       console.error('[app.loader] Database error fetching store:', storeDbError);
-      const errorMessage = storeDbError instanceof Error ? storeDbError.message : String(storeDbError);
+      const errorMessage =
+        storeDbError instanceof Error ? storeDbError.message : String(storeDbError);
       throw new Response(`Database error: ${errorMessage}`, { status: 500 });
     }
 
@@ -126,12 +121,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     let userResult;
     try {
-      userResult = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, userId))
-        .limit(1);
-
+      userResult = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     } catch (userDbError) {
       console.error('[app.loader] Database error fetching user:', userDbError);
       const errorMessage = userDbError instanceof Error ? userDbError.message : String(userDbError);
@@ -161,13 +151,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
 
     // Check onboarding status - force redirect if not completed
-    const onboardingStatus = (store as { onboardingStatus?: string }).onboardingStatus || 'completed';
+    const onboardingStatus =
+      (store as { onboardingStatus?: string }).onboardingStatus || 'completed';
     if (onboardingStatus !== 'completed') {
-
       throw redirect('/onboarding');
     }
-
-
 
     // Get SAAS_DOMAIN for store URL
     const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'ozzyl.com';
@@ -187,7 +175,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     } catch {
       // Table might not exist yet, ignore
       // Table might not exist yet, ignore
-
     }
 
     // Check for impersonation
@@ -212,7 +199,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       systemNotifications: activeNotifications,
       isImpersonating,
     });
-
   } catch (error) {
     // Re-throw Response errors (redirects, etc.)
     if (error instanceof Response) {
@@ -269,9 +255,7 @@ const navSections: NavSection[] = [
   // === CUSTOMERS ===
   {
     titleKey: 'sidebarCustomers',
-    items: [
-      { to: '/app/customers', labelKey: 'navCustomers', icon: Users },
-    ],
+    items: [{ to: '/app/customers', labelKey: 'navCustomers', icon: Users }],
   },
   // === CATALOG ===
   {
@@ -325,12 +309,17 @@ const adminNavItems: NavItem[] = [
   { to: '/app/admin/domains', labelKey: 'navDomainRequests', icon: Globe },
 ];
 
-
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 export default function AppLayout() {
-  const { store, user, saasDomain, systemNotifications: notifications, isImpersonating } = useLoaderData<typeof loader>();
+  const {
+    store,
+    user,
+    saasDomain,
+    systemNotifications: notifications,
+    isImpersonating,
+  } = useLoaderData<typeof loader>();
   const location = useLocation();
   const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -355,7 +344,7 @@ export default function AppLayout() {
 
   // Filter out dismissed notifications
   const visibleNotifications = (notifications || []).filter(
-    n => !dismissedNotifications.includes(n.id)
+    (n) => !dismissedNotifications.includes(n.id)
   );
 
   const dismissNotification = (id: number) => {
@@ -395,10 +384,15 @@ export default function AppLayout() {
         <div className="bg-red-600 text-white px-4 py-2 flex items-center justify-between sticky top-0 z-[60]">
           <div className="flex items-center gap-2">
             <Eye className="w-5 h-5" />
-            <span className="font-bold">{t('shadowModeActive')}: {t('viewingAs')} {store.name}</span>
+            <span className="font-bold">
+              {t('shadowModeActive')}: {t('viewingAs')} {store.name}
+            </span>
           </div>
           <Form method="post" action="/admin/stop-impersonation">
-            <button type="submit" className="bg-white text-red-600 px-3 py-1 rounded text-xs font-bold uppercase hover:bg-red-50 transition">
+            <button
+              type="submit"
+              className="bg-white text-red-600 px-3 py-1 rounded text-xs font-bold uppercase hover:bg-red-50 transition"
+            >
               {t('exit')}
             </button>
           </Form>
@@ -414,187 +408,192 @@ export default function AppLayout() {
       )}
 
       {/* Sidebar - hide on builder routes */}
-      {!isBuilderRoute && <aside
-        className={`
+      {!isBuilderRoute && (
+        <aside
+          className={`
           fixed top-0 left-0 z-50 h-full w-64 bg-white/90 backdrop-blur-xl border-r border-white/20
           transform transition-transform duration-200 ease-in-out
           lg:translate-x-0
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
-      >
-        <div className="flex flex-col h-full">
-          {/* Logo/Store Header */}
-          <div className="p-4 border-b border-white/10">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center">
-                  <img src="/brand/icon.png" alt="Ozzyl" className="w-6 h-6" />
+        >
+          <div className="flex flex-col h-full">
+            {/* Logo/Store Header */}
+            <div className="p-4 border-b border-white/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center">
+                    <img src="/brand/icon.png" alt="Ozzyl" className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="font-semibold text-gray-900 truncate max-w-[140px]">
+                      {store.name}
+                    </h2>
+                    <p className="text-xs text-gray-500">{store.subdomain}</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="font-semibold text-gray-900 truncate max-w-[140px]">
-                    {store.name}
-                  </h2>
-                  <p className="text-xs text-gray-500">{store.subdomain}</p>
-                </div>
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="lg:hidden p-1 text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="lg:hidden p-1 text-gray-500 hover:text-gray-700"
+              {/* Go to Store Button */}
+              <a
+                href={storeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 flex items-center justify-center gap-2 w-full px-3 py-2 bg-emerald-50/50 hover:bg-emerald-100/80 text-emerald-700 font-medium rounded-lg transition text-sm backdrop-blur-sm"
               >
-                <X className="w-5 h-5" />
-              </button>
+                <ExternalLink className="w-4 h-4" />
+                {t('goToStore')}
+              </a>
             </div>
-            {/* Go to Store Button */}
-            <a
-              href={storeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 flex items-center justify-center gap-2 w-full px-3 py-2 bg-emerald-50/50 hover:bg-emerald-100/80 text-emerald-700 font-medium rounded-lg transition text-sm backdrop-blur-sm"
-            >
-              <ExternalLink className="w-4 h-4" />
-              {t('goToStore')}
-            </a>
-          </div>
 
+            {/* Navigation */}
+            <nav className="flex-1 p-4 space-y-4 overflow-y-auto custom-scrollbar">
+              {navSections
+                // Filter out entire sections that are storeOnly when store is disabled
+                .filter((section) => !section.storeOnly || store.storeEnabled)
+                .map((section) => {
+                  // Filter out individual storeOnly items within sections
+                  const visibleItems = section.items.filter(
+                    (item) => !item.storeOnly || store.storeEnabled
+                  );
 
-          {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-4 overflow-y-auto custom-scrollbar">
-            {navSections
-              // Filter out entire sections that are storeOnly when store is disabled
-              .filter(section => !section.storeOnly || store.storeEnabled)
-              .map((section) => {
-                // Filter out individual storeOnly items within sections
-                const visibleItems = section.items.filter(
-                  item => !item.storeOnly || store.storeEnabled
-                );
-                
-                // Skip rendering section if no visible items
-                if (visibleItems.length === 0) return null;
+                  // Skip rendering section if no visible items
+                  if (visibleItems.length === 0) return null;
 
-                return (
-                  <div key={section.titleKey}>
-                    {/* Section Header - hide for Home */}
-                    {section.titleKey !== 'sidebarHome' && (
-                      <div className="px-3 pb-2">
-                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                          {t(section.titleKey)}
-                        </span>
-                      </div>
-                    )}
-                    {/* Section Items */}
-                    <div className="space-y-1">
-                      {visibleItems.map((item) => {
-                        const Icon = item.icon;
-                        const active = isActive(item.to);
-                        const isLocked = item.isPaidOnly && store.planType === 'free';
+                  return (
+                    <div key={section.titleKey}>
+                      {/* Section Header - hide for Home */}
+                      {section.titleKey !== 'sidebarHome' && (
+                        <div className="px-3 pb-2">
+                          <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                            {t(section.titleKey)}
+                          </span>
+                        </div>
+                      )}
+                      {/* Section Items */}
+                      <div className="space-y-1">
+                        {visibleItems.map((item) => {
+                          const Icon = item.icon;
+                          const active = isActive(item.to);
+                          const isLocked = item.isPaidOnly && store.planType === 'free';
 
-                        // Locked items - show disabled state with upgrade prompt
-                        if (isLocked) {
-                          const featureName = item.to.split('/').pop() || 'marketing';
+                          // Locked items - show disabled state with upgrade prompt
+                          if (isLocked) {
+                            const featureName = item.to.split('/').pop() || 'marketing';
+                            return (
+                              <Link
+                                key={item.to}
+                                to={`/app/upgrade?feature=${featureName}`}
+                                onClick={() => setSidebarOpen(false)}
+                                className="flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition opacity-50 text-gray-400 hover:opacity-70 hover:bg-gray-50 group"
+                              >
+                                <Icon className="w-5 h-5" />
+                                <span className="flex-1">{t(item.labelKey)}</span>
+                                <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-medium group-hover:bg-amber-200">
+                                  {t('upgrade')}
+                                </span>
+                              </Link>
+                            );
+                          }
+
                           return (
                             <Link
                               key={item.to}
-                              to={`/app/upgrade?feature=${featureName}`}
+                              to={item.to}
                               onClick={() => setSidebarOpen(false)}
-                              className="flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition opacity-50 text-gray-400 hover:opacity-70 hover:bg-gray-50 group"
-                            >
-                              <Icon className="w-5 h-5" />
-                              <span className="flex-1">{t(item.labelKey)}</span>
-                              <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-medium group-hover:bg-amber-200">
-                                {t('upgrade')}
-                              </span>
-                            </Link>
-                          );
-                        }
-
-                        return (
-                          <Link
-                            key={item.to}
-                            to={item.to}
-                            onClick={() => setSidebarOpen(false)}
-                            className={`
+                              className={`
                               flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition
-                              ${active
-                                ? 'bg-gradient-to-r from-emerald-50 to-teal-50/50 text-emerald-700 shadow-sm border border-emerald-100/50'
-                                : 'text-gray-600 hover:bg-gray-50/80 hover:text-gray-900'
+                              ${
+                                active
+                                  ? 'bg-gradient-to-r from-emerald-50 to-teal-50/50 text-emerald-700 shadow-sm border border-emerald-100/50'
+                                  : 'text-gray-600 hover:bg-gray-50/80 hover:text-gray-900'
                               }
                             `}
-                          >
-                            <Icon className={`w-5 h-5 ${active ? 'text-emerald-600' : ''}`} />
-                            {t(item.labelKey)}
-                          </Link>
-                        );
-                      })}
+                            >
+                              <Icon className={`w-5 h-5 ${active ? 'text-emerald-600' : ''}`} />
+                              {t(item.labelKey)}
+                            </Link>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-
-            {/* Admin Section */}
-            {user.role === 'admin' && (
-              <>
-                <div className="pt-4 pb-2">
-                  <span className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    {t('sidebarAdmin')}
-                  </span>
-                </div>
-                {adminNavItems.map((item) => {
-                  const Icon = item.icon;
-                  const active = isActive(item.to);
-                  return (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      onClick={() => setSidebarOpen(false)}
-                      className={`
-                        flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition
-                        ${active
-                          ? 'bg-purple-50 text-purple-700'
-                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                        }
-                      `}
-                    >
-                      <Icon className={`w-5 h-5 ${active ? 'text-purple-600' : ''}`} />
-                      {t(item.labelKey)}
-                    </Link>
                   );
                 })}
-              </>
-            )}
-          </nav>
 
-          {/* User Info & Logout */}
-          <div className="p-4 border-t border-white/10 bg-white/30 backdrop-blur-sm">
-            {/* Language Selector - Temporarily disabled - Bengali is default */}
-            {/* <div className="mb-3">
+              {/* Admin Section */}
+              {user.role === 'admin' && (
+                <>
+                  <div className="pt-4 pb-2">
+                    <span className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      {t('sidebarAdmin')}
+                    </span>
+                  </div>
+                  {adminNavItems.map((item) => {
+                    const Icon = item.icon;
+                    const active = isActive(item.to);
+                    return (
+                      <Link
+                        key={item.to}
+                        to={item.to}
+                        onClick={() => setSidebarOpen(false)}
+                        className={`
+                        flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition
+                        ${
+                          active
+                            ? 'bg-purple-50 text-purple-700'
+                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        }
+                      `}
+                      >
+                        <Icon className={`w-5 h-5 ${active ? 'text-purple-600' : ''}`} />
+                        {t(item.labelKey)}
+                      </Link>
+                    );
+                  })}
+                </>
+              )}
+            </nav>
+
+            {/* User Info & Logout */}
+            <div className="p-4 border-t border-white/10 bg-white/30 backdrop-blur-sm">
+              {/* Language Selector - Temporarily disabled - Bengali is default */}
+              {/* <div className="mb-3">
               <LanguageSelector variant="pills" size="sm" className="w-full" />
             </div> */}
 
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 bg-white/50 backdrop-blur rounded-full flex items-center justify-center border border-white/20">
-                <span className="text-sm font-medium text-gray-600">
-                  {user.name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
-                </span>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-9 h-9 bg-white/50 backdrop-blur rounded-full flex items-center justify-center border border-white/20">
+                  <span className="text-sm font-medium text-gray-600">
+                    {user.name?.charAt(0)?.toUpperCase() ||
+                      user.email?.charAt(0)?.toUpperCase() ||
+                      'U'}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {user.name || 'Merchant'}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {user.name || 'Merchant'}
-                </p>
-                <p className="text-xs text-gray-500 truncate">{user.email}</p>
-              </div>
+              <Form action="/auth/logout" method="post">
+                <button
+                  type="submit"
+                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50/50 rounded-lg transition"
+                >
+                  <LogOut className="w-4 h-4" />
+                  {t('logout')}
+                </button>
+              </Form>
             </div>
-            <Form action="/auth/logout" method="post">
-              <button
-                type="submit"
-                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50/50 rounded-lg transition"
-              >
-                <LogOut className="w-4 h-4" />
-                {t('logout')}
-              </button>
-            </Form>
           </div>
-        </div>
-      </aside>}
+        </aside>
+      )}
 
       {/* Main Content - no left padding on builder routes */}
       <div className={isBuilderRoute ? '' : 'lg:pl-64'}>

@@ -765,11 +765,11 @@ export default function Checkout() {
                       </p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-sm font-bold text-red-600">
-                          {currency} {bump.discountedPrice}
+                          {formatPrice(bump.discountedPrice, currency)}
                         </span>
                         {bump.discount > 0 && (
                           <span className="text-xs text-gray-400 line-through">
-                            {currency} {bump.originalPrice}
+                            {formatPrice(bump.originalPrice, currency)}
                           </span>
                         )}
                       </div>
@@ -790,22 +790,16 @@ export default function Checkout() {
           <div className="space-y-3 pt-4 border-t border-gray-100">
             <div className="flex justify-between text-sm text-gray-600">
               <span>{t('subtotal')}</span>
-              <span>
-                {currency} {subtotal}
-              </span>
+              <span>{formatPrice(subtotal, currency)}</span>
             </div>
             <div className="flex justify-between text-sm text-gray-600">
               <span>{t('shipping')}</span>
-              <span>
-                {currency} {shippingCost}
-              </span>
+              <span>{formatPrice(shippingCost, currency)}</span>
             </div>
             {bumpTotal > 0 && (
               <div className="flex justify-between text-sm text-emerald-600">
                 <span>Extra Offers</span>
-                <span>
-                  + {currency} {bumpTotal}
-                </span>
+                <span>+ {formatPrice(bumpTotal, currency)}</span>
               </div>
             )}
 
@@ -817,9 +811,7 @@ export default function Checkout() {
                     <TicketPercent className="w-4 h-4" /> code: {appliedCoupon.code}
                   </span>
                   <div className="flex items-center gap-2">
-                    <span>
-                      - {currency} {appliedCoupon.amount}
-                    </span>
+                    <span>- {formatPrice(appliedCoupon.amount, currency)}</span>
                     <button
                       onClick={() => setAppliedCoupon(null)}
                       className="text-gray-400 hover:text-red-500"
@@ -851,9 +843,7 @@ export default function Checkout() {
 
             <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-200">
               <span>{t('total')}</span>
-              <span style={{ color: primaryColor }}>
-                {currency} {total}
-              </span>
+              <span style={{ color: primaryColor }}>{formatPrice(total, currency)}</span>
             </div>
           </div>
 
@@ -1117,11 +1107,11 @@ export default function Checkout() {
                             </p>
                             <div className="flex items-center gap-2 mt-0.5">
                               <span className="text-sm font-bold text-red-600">
-                                {currency} {bump.discountedPrice}
+                                {formatPrice(bump.discountedPrice, currency)}
                               </span>
                               {bump.discount > 0 && (
                                 <span className="text-xs text-gray-400 line-through">
-                                  {currency} {bump.originalPrice}
+                                  {formatPrice(bump.originalPrice, currency)}
                                 </span>
                               )}
                             </div>
@@ -1141,29 +1131,21 @@ export default function Checkout() {
                 <div className="space-y-3 pt-4 border-t border-gray-100">
                   <div className="flex justify-between text-sm text-gray-600">
                     <span>{t('subtotal')}</span>
-                    <span>
-                      {currency} {subtotal}
-                    </span>
+                    <span>{formatPrice(subtotal, currency)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-600">
                     <span>{t('shipping')}</span>
-                    <span>
-                      {currency} {shippingCost}
-                    </span>
+                    <span>{formatPrice(shippingCost, currency)}</span>
                   </div>
                   {bumpTotal > 0 && (
                     <div className="flex justify-between text-sm text-emerald-600">
                       <span>Extra Offers</span>
-                      <span>
-                        + {currency} {bumpTotal}
-                      </span>
+                      <span>+ {formatPrice(bumpTotal, currency)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-200">
                     <span>{t('total')}</span>
-                    <span style={{ color: primaryColor }}>
-                      {currency} {total}
-                    </span>
+                    <span style={{ color: primaryColor }}>{formatPrice(total, currency)}</span>
                   </div>
                 </div>
                 <button
@@ -1214,7 +1196,7 @@ export default function Checkout() {
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-bold text-gray-800">{t('orderSummary')}</h2>
                 <span className="text-lg font-bold text-purple-600">
-                  {currency} {total}
+                  {formatPrice(total, currency)}
                 </span>
               </div>
               {/* Mini Items List */}
