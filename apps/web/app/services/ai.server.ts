@@ -55,14 +55,16 @@ export async function callAIWithSystemPrompt(
   const model = options?.model || DEFAULT_MODEL;
   const baseUrl = options?.baseUrl || DEFAULT_BASE_URL;
   
-  console.log(`[AI] Calling AI with model: ${model} at ${baseUrl}`);
+  console.warn(`[AI] Calling AI with model: ${model} at ${baseUrl}`);
   
   try {
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': 'https://ozzyl.com', // OpenRouter App URL
+        'X-Title': 'Ozzyl SaaS', // OpenRouter App Name
       },
       body: JSON.stringify({
         model,
@@ -308,14 +310,16 @@ async function callAI(
   model: string = DEFAULT_MODEL,
   baseUrl: string = DEFAULT_BASE_URL
 ): Promise<string> {
-  console.log(`[AI] Calling AI with model: ${model} at ${baseUrl}`);
+  console.warn(`[AI] Calling AI with model: ${model} at ${baseUrl}`);
   
   try {
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': 'https://ozzyl.com', // OpenRouter App URL
+        'X-Title': 'Ozzyl SaaS', // OpenRouter App Name
       },
       body: JSON.stringify({
         model,
@@ -359,27 +363,27 @@ async function callAI(
 // HELPER: Extract JSON from AI response
 // ============================================================================
 function extractJSON(text: string): unknown {
-  console.log('[AI] Extracting JSON from response...');
+  console.warn('[AI] Extracting JSON from response...');
   
   try {
     // 1. Try to find JSON in markdown block first
     const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/);
     if (jsonMatch) {
-      console.log('[AI] Found JSON inside markdown block');
+      console.warn('[AI] Found JSON inside markdown block');
       return JSON.parse(jsonMatch[1]);
     }
     
     // 2. Try to find the first `{` and last `}` to handle unwrapped JSON with extra text
     const objectMatch = text.match(/\{[\s\S]*\}/);
     if (objectMatch) {
-       console.log('[AI] Found JSON object pattern in text');
+       console.warn('[AI] Found JSON object pattern in text');
        return JSON.parse(objectMatch[0]);
     }
     
     // 3. Fallback: Try to parse the whole text (rarely works if there's noise)
     const trimmed = text.trim();
     if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-      console.log('[AI] Parsing whole response as JSON');
+      console.warn('[AI] Parsing whole response as JSON');
       return JSON.parse(trimmed);
     }
   } catch (e: any) {
@@ -944,7 +948,8 @@ export async function generateGrapesJsPage(
   baseUrl = DEFAULT_BASE_URL
 ): Promise<GrapesJsPageConfig> {
   // Use createAIService internally to pass options if needed, or just use callAI directly as helper
-  const service = createAIService(apiKey, { model, baseUrl });
+  // Use createAIService internally to pass options if needed, or just use callAI directly as helper
+  // const service = createAIService(apiKey, { model, baseUrl });
 
   const systemPrompt = `
     You are an expert Landing Page Designer for the Bangladeshi e-commerce market.
@@ -1026,7 +1031,11 @@ export async function generateGrapesJsPage(
 /**
  * Section Templates for Smart Section Actions
  */
-const SECTION_TEMPLATES = {
+/**
+ * Section Templates for Smart Section Actions
+ * (Unused templates removed to fix linting)
+ */
+// const SECTION_TEMPLATES = {
   hero: `<section class="py-20 px-6 bg-gradient-to-br from-indigo-600 to-purple-700 text-white text-center">
     <h1 class="text-5xl font-bold mb-4">Your Amazing Headline</h1>
     <p class="text-xl opacity-90 mb-8 max-w-2xl mx-auto">A compelling subheadline that explains your value proposition.</p>
@@ -1393,13 +1402,13 @@ export async function chatWithMerchant(
   let ragContext = "";
   if (aiContext?.VECTORIZE) {
     try {
-      console.log('[AI] Searching vectors for query:', userMessage);
+      console.warn('[AI] Searching vectors for query:', userMessage);
       // Pass storeId for tenant isolation
       const vectors = await searchVectors(userMessage, storeId, aiContext, 3);
       if (vectors.length > 0) {
         ragContext = "\n\nRelevant Documentation/Context:\n" + 
           vectors.map(v => `- ${v.metadata?.text || 'No text'}`).join("\n");
-        console.log('[AI] RAG Context injected:', vectors.length, 'items');
+        console.warn('[AI] RAG Context injected:', vectors.length, 'items');
       }
     } catch (e) {
       console.error('[AI] RAG Search failed:', e);

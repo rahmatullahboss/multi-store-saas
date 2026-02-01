@@ -96,7 +96,10 @@ export function createPathaoClient(credentials: PathaoCredentials) {
   // Default to Hermes/Aladdin endpoint if not specified
   // Users can override this with https://api.pathao.com/v1 for standard API
   // or a sandbox URL like https://hermes-api.p-stageenv.xyz/aladdin/api/v1
-  const baseUrl = credentials.baseUrl?.replace(/\/+$/, '') || 'https://api-hermes.pathao.com/aladdin/api/v1';
+  // We also strip common suffixes like /orders if the user pasted a specific endpoint
+  const baseUrl = (credentials.baseUrl || 'https://api-hermes.pathao.com/aladdin/api/v1')
+    .replace(/\/+$/, '') // Strip trailing slashes
+    .replace(/\/orders$/, ''); // Strip /orders if user copied full endpoint
   
   let accessToken: string | null = null;
   let tokenExpiry: number = 0;

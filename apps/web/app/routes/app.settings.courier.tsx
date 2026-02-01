@@ -554,11 +554,11 @@ export default function CourierSettingsPage() {
                       type="text"
                       name="baseUrl"
                       defaultValue={settings.pathao?.baseUrl || ''}
-                      placeholder="https://api-hermes.pathao.com/aladdin/api/v1"
+                      placeholder="https://courier-api-sandbox.pathao.com/aladdin/api/v1"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white/50 backdrop-blur-sm"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Leave empty for default. For Sandbox, use your provided sandbox URL with path (e.g. <code>https://hermes-api.p-stageenv.xyz/aladdin/api/v1</code>)
+                      Leave empty for default. For Sandbox, use: <code>https://courier-api-sandbox.pathao.com/aladdin/api/v1</code> (do not include trailing /orders)
                     </p>
                   </div>
                 </div>
