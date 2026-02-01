@@ -1092,7 +1092,7 @@ export type GrapesJsAction = z.infer<typeof GrapesJsCommandSchema.shape.action>;
 export interface GrapesJsCommandResult {
   action: GrapesJsAction;
   target?: 'selected' | 'wrapper';
-  value?: any;
+  value?: unknown;
   message?: string;
   commandId?: string; // Unique ID to prevent loops
 }
@@ -1105,8 +1105,8 @@ export async function commandGrapesJs(
     selectedHtml?: string | null;
     selectedContent?: string;
     selectedClasses?: string[];
-    selectedAttributes?: Record<string, any>;
-    selectedStyles?: Record<string, any>;
+    selectedAttributes?: Record<string, unknown>;
+    selectedStyles?: Record<string, unknown>;
     hasSelection?: boolean;
     productInfo?: { title: string; description?: string; price: number } | null;
   },
@@ -1338,11 +1338,20 @@ export async function chatWithMerchant(
     planType?: string;
     pageContext?: string;
     history?: Array<{ role: 'user' | 'assistant'; content: string }>;
-    analytics?: any;
+    analytics?: {
+      todaySales: string | number;
+      salesTrend: number;
+      revenue: string | number;
+      pendingOrders: number;
+      lowStock: number;
+      orders: number;
+      products: number;
+      abandonedCarts: number;
+    };
   },
   model: string = DEFAULT_MODEL,
   baseUrl: string = DEFAULT_BASE_URL,
-  aiContext?: { AI: any; VECTORIZE: any } // Added Cloudflare Env Context
+  aiContext?: { AI: unknown; VECTORIZE: unknown } // Added Cloudflare Env Context
 ): Promise<string> {
   // 1. RAG: Search for relevant context using Vectorize
   let ragContext = "";
@@ -1472,7 +1481,7 @@ export async function chatWithSuperAdmin(
  * Generate vector embeddings for text using Cloudflare Workers AI
  * Free Tier: 10,000 requests/day
  */
-async function generateEmbedding(text: string, context: { AI: any }): Promise<number[]> {
+async function generateEmbedding(text: string, context: { AI: unknown }): Promise<number[]> {
   if (!context?.AI) {
     console.warn('[AI] Cloudflare Workers AI binding not found. Mocking embedding.');
     // Fallback or throw based on strictness. Throwing for now to ensure config is correct.
@@ -1480,7 +1489,8 @@ async function generateEmbedding(text: string, context: { AI: any }): Promise<nu
   }
 
   try {
-    const response = await context.AI.run(EMBEDDING_MODEL, {
+    const ai = context.AI as { run: (model: string, input: { text: string[] }) => Promise<{ data: number[][] }> };
+    const response = await ai.run(EMBEDDING_MODEL, {
       text: [text] // Array input supported
     });
 
@@ -1508,8 +1518,8 @@ async function generateEmbedding(text: string, context: { AI: any }): Promise<nu
  */
 async function insertVector(
   text: string, 
-  metadata: { storeId: number | string; customId?: string; [key: string]: any }, 
-  context: { AI: any; VECTORIZE: any }
+  metadata: { storeId: number | string; customId?: string; [key: string]: unknown }, 
+  context: { AI: unknown; VECTORIZE: unknown }
 ): Promise<void> {
   if (!context?.VECTORIZE) {
     console.warn('[AI] Vectorize binding missing. Skipping vector insertion.');
@@ -1522,7 +1532,8 @@ async function insertVector(
     const id = metadata.customId || crypto.randomUUID();
     
     // Cloudflare Vectorize upsert (inserts or replaces)
-    await context.VECTORIZE.upsert([{
+    const vectorize = context.VECTORIZE as { upsert: (vectors: unknown[]) => Promise<void> };
+    await vectorize.upsert([{
       id,
       values,
       metadata: {
@@ -1543,11 +1554,12 @@ async function insertVector(
  */
 async function deleteVector(
   id: string,
-  context: { VECTORIZE: any }
+  context: { VECTORIZE: unknown }
 ): Promise<void> {
   if (!context?.VECTORIZE) return;
   try {
-    await context.VECTORIZE.deleteByIds([id]);
+    const vectorize = context.VECTORIZE as { deleteByIds: (ids: string[]) => Promise<void> };
+    await vectorize.deleteByIds([id]);
     console.warn(`[AI] Vector deleted: ${id}`);
   } catch (error) {
     console.error('[AI] Vector Deletion Failed:', error);
@@ -1560,9 +1572,9 @@ async function deleteVector(
 async function searchVectors(
   query: string, 
   storeId: number | string,
-  context: { AI: any; VECTORIZE: any },
+  context: { AI: unknown; VECTORIZE: unknown },
   limit: number = 3
-): Promise<Array<{ score: number; metadata: any }>> {
+): Promise<Array<{ score: number; metadata: Record<string, unknown> }>> {
   if (!context?.VECTORIZE) {
     console.warn('[AI] Vectorize binding missing. Skipping vector search.');
     return [];
@@ -1573,7 +1585,8 @@ async function searchVectors(
     
     // TENANT ISOLATION:
     // We STRICTLY filter by storeId to ensure one store cannot see another's data.
-    const results = await context.VECTORIZE.query(vector, {
+    const vectorize = context.VECTORIZE as { query: (vector: number[], options: unknown) => Promise<{ matches: Array<{ score: number; metadata: Record<string, unknown> }> }> };
+    const results = await vectorize.query(vector, {
       topK: limit,
       filter: { storeId: String(storeId) }, // Only match vectors with this storeId
       returnMetadata: true
@@ -1878,7 +1891,7 @@ export async function commandStoreEditor(
   apiKey: string,
   userPrompt: string,
   context: {
-    sections: Array<{ id: string; type: string; settings: any }>;
+    sections: Array<{ id: string; type: string; settings: unknown }>;
     currentColors: { primary: string; accent: string; background: string; text: string };
     currentFont: string;
     storeName: string;

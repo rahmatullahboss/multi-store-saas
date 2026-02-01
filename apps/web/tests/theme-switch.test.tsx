@@ -36,7 +36,8 @@ vi.mock('~/hooks/useProductPrice', () => ({
 
 vi.mock('~/contexts/LanguageContext', () => ({
   useFormatPrice: () => (price: number) => `$${price}`,
-  useTranslation: () => ({ t: (key: string) => key })
+  useTranslation: () => ({ t: (key: string) => key }),
+  useLanguage: () => ({ lang: 'en', t: (key: string) => key })
 }));
 
 // Mock ClientOnly to render children immediately

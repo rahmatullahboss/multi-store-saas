@@ -40,7 +40,7 @@ export function DarazPageWrapper({
   children,
   storeName,
   logo,
-  currency = 'BDT',
+
   socialLinks,
   businessInfo,
   categories = [],

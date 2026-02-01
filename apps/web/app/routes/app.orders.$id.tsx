@@ -500,17 +500,18 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     };
 
     // Use waitUntil to dispatch webhooks without blocking response
-    (context as any).waitUntil(
+    // Use waitUntil to dispatch webhooks without blocking response
+    context.cloudflare.ctx.waitUntil(
       dispatchWebhook(context.cloudflare.env, storeId, 'order.updated', webhookPayload)
     );
 
     // Also dispatch specific status events
     if (status === 'cancelled') {
-      (context as any).waitUntil(
+      context.cloudflare.ctx.waitUntil(
         dispatchWebhook(context.cloudflare.env, storeId, 'order.cancelled', webhookPayload)
       );
     } else if (status === 'delivered') {
-      (context as any).waitUntil(
+      context.cloudflare.ctx.waitUntil(
         dispatchWebhook(context.cloudflare.env, storeId, 'order.delivered', webhookPayload)
       );
     }
@@ -670,7 +671,8 @@ export default function OrderDetailPage() {
   const isBooking = courierFetcher.state === 'submitting';
   const [selectedProvider, setSelectedProvider] = useState<string>(defaultCourier || (availableCouriers.length > 0 ? availableCouriers[0] : ''));
 
-  const currency = store?.currency || 'BDT';
+
+
   const { t, lang } = useTranslation();
 
   const formatDate = (date: string | Date) => {

@@ -12,7 +12,6 @@
 
 import {
   json,
-  redirect,
   type LoaderFunctionArgs,
   type ActionFunctionArgs,
   type MetaFunction,
@@ -376,7 +375,7 @@ const statusOptionsKeys = [
 // MAIN COMPONENT
 // ============================================================================
 export default function DashboardOrdersPage() {
-  const { orders: storeOrders, currency, stats, courierProvider } = useLoaderData<typeof loader>();
+  const { orders: storeOrders, stats, courierProvider } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { t, lang } = useTranslation();
 
@@ -786,68 +785,8 @@ function StatusDropdown({ orderId, currentStatus }: { orderId: number; currentSt
 // ============================================================================
 // STATUS BADGE COMPONENT
 // ============================================================================
-function StatusBadge({ status }: { status: string }) {
-  const { t } = useTranslation();
-  const configs: Record<
-    string,
-    { icon: typeof Clock; bg: string; text: string; labelKey: string }
-  > = {
-    pending: {
-      icon: Clock,
-      bg: 'bg-yellow-100',
-      text: 'text-yellow-700',
-      labelKey: 'pending',
-    },
-    confirmed: {
-      icon: ThumbsUp,
-      bg: 'bg-cyan-100',
-      text: 'text-cyan-700',
-      labelKey: 'confirmed',
-    },
-    processing: {
-      icon: Package,
-      bg: 'bg-blue-100',
-      text: 'text-blue-700',
-      labelKey: 'processingOrders',
-    },
-    shipped: {
-      icon: Truck,
-      bg: 'bg-purple-100',
-      text: 'text-purple-700',
-      labelKey: 'shippedOrders',
-    },
-    delivered: {
-      icon: CheckCircle,
-      bg: 'bg-emerald-100',
-      text: 'text-emerald-700',
-      labelKey: 'deliveredOrders',
-    },
-    cancelled: {
-      icon: XCircle,
-      bg: 'bg-red-100',
-      text: 'text-red-700',
-      labelKey: 'cancelledOrders',
-    },
-    returned: {
-      icon: PackageX,
-      bg: 'bg-orange-100',
-      text: 'text-orange-700',
-      labelKey: 'returnedOrders',
-    },
-  };
 
-  const config = configs[status] || configs.pending;
-  const Icon = config.icon;
 
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full ${config.bg} ${config.text}`}
-    >
-      <Icon className="w-3.5 h-3.5" />
-      {t(config.labelKey)}
-    </span>
-  );
-}
 
 // ============================================================================
 // FRAUD CHECK BUTTON COMPONENT
