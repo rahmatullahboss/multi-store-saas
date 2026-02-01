@@ -247,6 +247,17 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
     footerBg: '#1C1C1E',
     footerText: '#FAFAFA',
   },
+  'nova-lux-ultra': {
+    primary: '#0D0D0D', // Deep black
+    accent: '#D4AF37', // Rich gold
+    background: '#FAFAFA',
+    text: '#1C1C1E',
+    muted: '#6B6B6B',
+    cardBg: '#FFFFFF',
+    headerBg: '#FFFFFF',
+    footerBg: '#0D0D0D',
+    footerText: '#FAFAFA',
+  },
   eclipse: {
     primary: '#030712',
     accent: '#8B5CF6',
@@ -458,6 +469,31 @@ const GhorerBazarTemplate = React.lazy(() =>
 const NovaLuxTemplate = React.lazy(() =>
   import('~/components/store-templates/nova-lux/index').then((m) => ({
     default: m.NovaLuxTemplate,
+  }))
+);
+const NovaLuxUltraTemplate = React.lazy(() =>
+  import('~/components/store-templates/nova-lux-ultra/index').then((m) => ({
+    default: m.NovaLuxUltraTemplate,
+  }))
+);
+const NovaLuxUltraHeader = React.lazy(() =>
+  import('~/components/store-templates/nova-lux-ultra/sections/Header').then((m) => ({
+    default: m.NovaLuxUltraHeader,
+  }))
+);
+const NovaLuxUltraFooter = React.lazy(() =>
+  import('~/components/store-templates/nova-lux-ultra/sections/Footer').then((m) => ({
+    default: m.NovaLuxUltraFooter,
+  }))
+);
+const NovaLuxUltraProductPage = React.lazy(() =>
+  import('~/components/store-templates/nova-lux-ultra/pages/ProductPage').then((m) => ({
+    default: m.ProductPage,
+  }))
+);
+const NovaLuxUltraCartPage = React.lazy(() =>
+  import('~/components/store-templates/nova-lux-ultra/pages/CartPage').then((m) => ({
+    default: m.CartPage,
   }))
 );
 const EclipseTemplate = React.lazy(() =>
@@ -802,6 +838,26 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     CheckoutPage: SharedCheckoutPage,
   },
   {
+    id: 'nova-lux-ultra',
+    name: 'Nova Lux Ultra',
+    description:
+      'Ultra-premium 10 million worth luxury theme. Cinematic animations, 3D product cards, glassmorphism effects, and world-class micro-interactions. The pinnacle of e-commerce design.',
+    thumbnail: '/templates/nova-lux-ultra.png',
+    category: 'luxury',
+    theme: STORE_TEMPLATE_THEMES['nova-lux-ultra'],
+    fonts: {
+      heading: 'Playfair Display',
+      body: 'Plus Jakarta Sans',
+    },
+    component: NovaLuxUltraTemplate,
+    Header: NovaLuxUltraHeader,
+    Footer: NovaLuxUltraFooter,
+    ProductPage: NovaLuxUltraProductPage,
+    CartPage: NovaLuxUltraCartPage,
+    CollectionPage: SharedCollectionPage,
+    CheckoutPage: SharedCheckoutPage,
+  },
+  {
     id: 'eclipse',
     name: 'Eclipse Future',
     description:
@@ -970,7 +1026,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
  * Other themes remain functional (for already installed stores) but won't
  * appear in the theme selection UI. To add more themes for customers,
  * simply add the theme ID to this array.
- * 
+ *
  * Current MVP Themes:
  * 1. starter-store - স্টার্টার স্টোর (default, simple, modern)
  * 2. ghorer-bazar - ঘরের বাজার (Bangladeshi grocery marketplace)
@@ -983,6 +1039,7 @@ export const MVP_THEME_IDS = [
   'ghorer-bazar',
   'luxe-boutique',
   'nova-lux',
+  'nova-lux-ultra',
   'tech-modern',
 ] as const;
 

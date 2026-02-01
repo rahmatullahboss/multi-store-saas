@@ -105,6 +105,16 @@ export const DEFAULT_MVP_SETTINGS: Record<string, MVPThemeSettings> = {
     announcementText: null,
   },
 
+  'nova-lux-ultra': {
+    storeName: 'Nova Lux Ultra',
+    primaryColor: '#0D0D0D', // Deep black
+    accentColor: '#D4AF37', // Rich gold
+    logo: null,
+    favicon: null,
+    showAnnouncement: true,
+    announcementText: '✨ Welcome to Ultra Luxury - Free Express Shipping on orders over ৳5,000!',
+  },
+
   'tech-modern': {
     storeName: 'Tech Store',
     primaryColor: '#0f172a', // Dark Slate
@@ -303,6 +313,7 @@ export const MVP_THEME_IDS = [
   'ghorer-bazar',
   'luxe-boutique',
   'nova-lux',
+  'nova-lux-ultra',
   'tech-modern',
 ] as const;
 
@@ -346,6 +357,12 @@ export const AVAILABLE_MVP_THEMES = [
     name: 'Nova Lux',
     description: 'Modern charcoal with rose gold accents',
     previewColor: '#1C1C1E',
+  },
+  {
+    id: 'nova-lux-ultra',
+    name: 'Nova Lux Ultra',
+    description: 'Ultra-premium luxury theme worth 10 million. Cinematic animations and 3D effects',
+    previewColor: '#D4AF37',
   },
   {
     id: 'tech-modern',
