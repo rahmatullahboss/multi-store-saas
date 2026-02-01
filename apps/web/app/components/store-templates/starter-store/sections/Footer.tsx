@@ -159,28 +159,27 @@ export function StarterStoreFooter({
           </div>
 
           {/* Categories */}
-          <div>
-            <h4 className="font-semibold mb-4" style={{ color: theme.footerText }}>
-              {t('categories')}
-            </h4>
-            <ul className="space-y-2">
-              {(validCategories.length > 0
-                ? validCategories
-                : ['Electronics', 'Fashion', 'Home & Living', 'Beauty']
-              ).map((cat) => (
-                <li key={cat}>
-                  <PreviewSafeLink
-                    to={`/?category=${encodeURIComponent(cat)}`}
-                    isPreview={isPreview}
-                    className="text-sm hover:underline transition-colors"
-                    style={{ color: theme.footerText + 'CC' }}
-                  >
-                    {cat}
-                  </PreviewSafeLink>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {validCategories.length > 0 && (
+            <div>
+              <h4 className="font-semibold mb-4" style={{ color: theme.footerText }}>
+                {t('categories')}
+              </h4>
+              <ul className="space-y-2">
+                {validCategories.map((cat) => (
+                  <li key={cat}>
+                    <PreviewSafeLink
+                      to={`/?category=${encodeURIComponent(cat)}`}
+                      isPreview={isPreview}
+                      className="text-sm hover:underline transition-colors"
+                      style={{ color: theme.footerText + 'CC' }}
+                    >
+                      {cat}
+                    </PreviewSafeLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Contact Info */}
           <div>
