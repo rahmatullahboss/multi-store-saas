@@ -2,8 +2,8 @@
 
 > **🎯 Mission**: Build the **Shopify of Bangladesh** — A world-class, multi-tenant e-commerce SaaS on Cloudflare's edge. 🇧🇩🚀  
 > **Standard**: 99.99% Uptime, Sub-100ms TTFB, Infinite Scale.  
-> **Last Updated**: 2026-01-31  
-> **Docs Verified**: ✅ Context7 MCP (Cloudflare, Remix v2, Drizzle ORM)
+> **Last Updated**: 2026-02-01  
+> **Docs Verified**: ✅ Context7 MCP (Cloudflare, Remix v2, Drizzle ORM, Shopify Themes)
 
 ---
 
@@ -16,14 +16,15 @@
 5. [Development Workflows](#-development-workflows)
 6. [Code Patterns & Examples](#-code-patterns--examples)
 7. [Shopify OS 2.0 Theme System](#-shopify-os-20-theme-system)
-8. [Store Routes](#-store-routes)
-9. [Cloudflare Edge Patterns](#-cloudflare-edge-patterns)
-10. [Performance Optimization](#-performance-optimization)
-11. [Security & Compliance](#-security--compliance)
-12. [AI/ML Integration](#-aiml-integration)
-13. [Troubleshooting & Debugging](#-troubleshooting--debugging)
-14. [Deployment & Ops](#-deployment--ops)
-15. [API Reference](#-api-reference)
+8. [MVP Simple Theme System (Recommended)](#-mvp-simple-theme-system-recommended)
+9. [Store Routes](#-store-routes)
+10. [Cloudflare Edge Patterns](#-cloudflare-edge-patterns)
+11. [Performance Optimization](#-performance-optimization)
+12. [Security & Compliance](#-security--compliance)
+13. [AI/ML Integration](#-aiml-integration)
+14. [Troubleshooting & Debugging](#-troubleshooting--debugging)
+15. [Deployment & Ops](#-deployment--ops)
+16. [API Reference](#-api-reference)
 
 ---
 
@@ -686,6 +687,378 @@ const SectionComponent = registry['hero-banner'].component;
 - **Theme bridge**: `~/lib/theme-engine/ThemeBridge.ts`
 - **Store renderer**: `~/components/store/ThemeStoreRenderer.tsx`
 - **Live editor**: `~/components/store-builder/LiveEditorV2.client.tsx`
+
+---
+
+## 🏪 MVP Simple Theme System (Recommended)
+
+> **⚠️ IMPORTANT**: For MVP launch, we recommend using the **Simple Theme System** instead of the full Shopify OS 2.0 system to avoid complexity and ensure consistency.
+
+### The Problem with Current Dual System
+
+The codebase currently has **two competing theme systems**:
+
+1. **Old System** (`store-registry.ts`): React components with hardcoded themes
+2. **New System** (Shopify OS 2.0): Database-driven sections with visual editor
+
+**Issues:**
+
+- Routes check both systems with complex fallback chains
+- Color inconsistency: Sections use hardcoded defaults, not theme colors
+- Header/footer vary across pages due to different fallback logic
+- Too complex for MVP - needs extensive testing
+
+### MVP Solution: Simple Theme Configuration
+
+**Approach**: Use the old **React Component System** with a simple settings layer on top.
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│              MVP SIMPLE THEME SYSTEM                         │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Database (Simple Key-Value)                                 │
+│  ┌─────────────────────────────────────┐                     │
+│  │ store_mvp_settings                  │                     │
+│  │  - storeName                        │                     │
+│  │  - logo                             │                     │
+│  │  - primaryColor                     │                     │
+│  │  - accentColor                      │                     │
+│  │  - announcementText                 │                     │
+│  └─────────────────────────────────────┘                     │
+│                          │                                   │
+│                          ▼                                   │
+│  Theme Registry (store-registry.ts)                          │
+│  ┌─────────────────────────────────────┐                     │
+│  │ 1. Get base theme colors            │                     │
+│  │ 2. Merge with user settings         │                     │
+│  │ 3. Pass to React components         │                     │
+│  └─────────────────────────────────────┘                     │
+│                          │                                   │
+│                          ▼                                   │
+│  React Components (Old System)                               │
+│  ┌─────────────────────────────────────┐                     │
+│  │ <Template.component />              │                     │
+│  │ <template.Header />                 │                     │
+│  │ <template.Footer />                 │                     │
+│  │ <template.ProductPage />            │                     │
+│  └─────────────────────────────────────┘                     │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Configuration Schema
+
+**Only 5 settings for MVP** (inspired by Shopify's minimal color requirements):
+
+```typescript
+// ~/config/mvp-theme-settings.ts
+
+export interface MVPThemeSettings {
+  // Identity
+  storeName: string; // Override default store name
+  logo?: string | null; // Store logo URL
+  favicon?: string | null; // Browser favicon
+
+  // Colors (Only 2 for MVP simplicity)
+  primaryColor: string; // Brand color (buttons, links)
+  accentColor: string; // Highlights, badges, CTAs
+
+  // Optional
+  announcementText?: string; // Top banner text
+  showAnnouncement: boolean; // Toggle banner
+}
+
+// Default values for each theme
+export const DEFAULT_MVP_SETTINGS: Record<string, MVPThemeSettings> = {
+  'starter-store': {
+    storeName: 'My Store',
+    primaryColor: '#4F46E5', // Indigo
+    accentColor: '#F59E0B', // Amber
+    showAnnouncement: false,
+  },
+  'ghorer-bazar': {
+    storeName: 'ঘরের বাজার',
+    primaryColor: '#fc8934', // Orange
+    accentColor: '#e53935', // Red
+    showAnnouncement: true,
+    announcementText: '১০০০ টাকার উপরে অর্ডারে ফ্রি ডেলিভারি!',
+  },
+  // ... other themes
+};
+```
+
+### Database Schema
+
+**Single table for all MVP settings**:
+
+```sql
+-- stores table already has themeConfig JSON column
+-- Just add mvpSettings field or use separate table
+
+CREATE TABLE store_mvp_settings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  store_id INTEGER NOT NULL,
+  theme_id TEXT NOT NULL DEFAULT 'starter-store',
+  settings_json TEXT NOT NULL,  -- JSON: {storeName, logo, primaryColor, ...}
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE CASCADE
+);
+
+CREATE UNIQUE INDEX idx_mvp_settings_store ON store_mvp_settings(store_id);
+```
+
+### Route Implementation
+
+**How to modify routes for MVP system**:
+
+```typescript
+// store.home.tsx - Simplified loader
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  const storeContext = await resolveStore(context, request);
+  if (!storeContext) throw new Response('Store not found', { status: 404 });
+
+  const { storeId, store } = storeContext;
+  const db = drizzle(context.cloudflare.env.DB);
+
+  // 1. Get theme ID from store config
+  const themeConfig = parseThemeConfig(store.themeConfig as string | null);
+  const templateId = themeConfig?.storeTemplateId || 'starter-store';
+
+  // 2. Fetch user settings from simple table
+  const userSettings = await getMVPSettings(db, storeId);
+
+  // 3. Get template from registry (OLD SYSTEM)
+  const template = getStoreTemplate(templateId);
+
+  // 4. Merge theme colors with user settings
+  const themeColors = getStoreTemplateTheme(templateId);
+  const mergedTheme = {
+    ...themeColors,
+    primary: userSettings.primaryColor || themeColors.primary,
+    accent: userSettings.accentColor || themeColors.accent,
+  };
+
+  // 5. Fetch products
+  const products = await db.select().from(productsTable)
+    .where(eq(productsTable.storeId, storeId))
+    .limit(12);
+
+  return json({
+    storeId,
+    storeName: userSettings.storeName || store.name,
+    logo: userSettings.logo || store.logo,
+    templateId,
+    theme: mergedTheme,
+    userSettings,
+    products,
+  });
+}
+
+// Component - Use old template system
+export default function StoreHomePage() {
+  const { storeName, logo, templateId, theme, userSettings, products } = useLoaderData<typeof loader>();
+
+  // Get template component from registry
+  const template = getStoreTemplate(templateId);
+
+  return (
+    <StorePageWrapper
+      storeName={storeName}
+      logo={logo}
+      theme={theme}
+    >
+      {/* Use old React component system - consistent across all pages */}
+      <template.component
+        storeName={storeName}
+        logo={logo}
+        theme={theme}
+        products={products}
+        categories={categories}
+        config={userSettings}
+        currency={currency}
+      />
+    </StorePageWrapper>
+  );
+}
+```
+
+### Admin Settings Page
+
+**Simple form for merchants**:
+
+```typescript
+// routes/app.store.settings.tsx
+export default function StoreSettingsPage() {
+  const { store, currentSettings, availableThemes } = useLoaderData<typeof loader>();
+
+  return (
+    <div className="max-w-2xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6">Store Appearance</h1>
+
+      <Form method="post" className="space-y-6">
+        {/* Theme Selector */}
+        <div>
+          <label className="block text-sm font-medium mb-2">Theme</label>
+          <div className="grid grid-cols-3 gap-4">
+            {availableThemes.map((theme) => (
+              <label key={theme.id} className="cursor-pointer">
+                <input
+                  type="radio"
+                  name="templateId"
+                  value={theme.id}
+                  defaultChecked={currentSettings.themeId === theme.id}
+                  className="sr-only peer"
+                />
+                <div className="p-4 border-2 rounded-lg peer-checked:border-blue-500 peer-checked:bg-blue-50">
+                  <img src={theme.thumbnail} alt={theme.name} className="w-full h-24 object-cover rounded mb-2" />
+                  <p className="text-sm font-medium text-center">{theme.name}</p>
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Basic Info */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Store Name</label>
+          <input
+            type="text"
+            name="storeName"
+            defaultValue={currentSettings.storeName}
+            className="w-full border rounded p-2"
+          />
+        </div>
+
+        {/* Logo Upload */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Logo</label>
+          <ImageUploader
+            name="logo"
+            defaultValue={currentSettings.logo}
+          />
+        </div>
+
+        {/* Colors */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Primary Color</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                name="primaryColor"
+                defaultValue={currentSettings.primaryColor}
+                className="w-12 h-10 rounded cursor-pointer"
+              />
+              <input
+                type="text"
+                name="primaryColorText"
+                defaultValue={currentSettings.primaryColor}
+                className="flex-1 border rounded p-2 text-sm"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Accent Color</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                name="accentColor"
+                defaultValue={currentSettings.accentColor}
+                className="w-12 h-10 rounded cursor-pointer"
+              />
+              <input
+                type="text"
+                name="accentColorText"
+                defaultValue={currentSettings.accentColor}
+                className="flex-1 border rounded p-2 text-sm"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Announcement Banner */}
+        <div>
+          <label className="flex items-center gap-2 mb-2">
+            <input
+              type="checkbox"
+              name="showAnnouncement"
+              defaultChecked={currentSettings.showAnnouncement}
+            />
+            <span className="font-medium">Show Announcement Banner</span>
+          </label>
+          {currentSettings.showAnnouncement && (
+            <input
+              type="text"
+              name="announcementText"
+              defaultValue={currentSettings.announcementText}
+              placeholder="e.g., Free delivery over 1000 TK"
+              className="w-full border rounded p-2"
+            />
+          )}
+        </div>
+
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700"
+        >
+          Save Changes
+        </button>
+      </Form>
+    </div>
+  );
+}
+```
+
+### Benefits of MVP Approach
+
+| Aspect             | Full Shopify 2.0                         | MVP Simple                    |
+| ------------------ | ---------------------------------------- | ----------------------------- |
+| **Complexity**     | High - Sections, blocks, schemas         | Low - 5 settings only         |
+| **Consistency**    | Risky - multiple fallback paths          | Guaranteed - single code path |
+| **DB Queries**     | Multiple (templates, sections, settings) | Single settings query         |
+| **Customization**  | Full visual editor                       | Basic colors + logo           |
+| **Time to Launch** | Weeks of testing                         | Days to implement             |
+| **Migration Path** | Complex                                  | Easy - add settings later     |
+
+### Migration to Full System (Future)
+
+When ready to migrate to Shopify 2.0 system:
+
+```typescript
+// 1. Keep MVP settings as base
+const baseSettings = await getMVPSettings(db, storeId);
+
+// 2. Create default template from MVP settings
+const defaultTemplate = createTemplateFromMVP(baseSettings);
+
+// 3. Save to new template system
+await saveTemplateToShopifySystem(db, storeId, defaultTemplate);
+
+// 4. Gradually migrate stores
+```
+
+### Implementation Checklist
+
+- [ ] Create `store_mvp_settings` table migration
+- [ ] Create `~/config/mvp-theme-settings.ts` with schema
+- [ ] Create `~/services/mvp-settings.server.ts` for CRUD operations
+- [ ] Modify `store.home.tsx` to use old template system
+- [ ] Modify `products.$id.tsx` to use old template system
+- [ ] Modify `cart.tsx` to use old template system
+- [ ] Create `app.store.settings.tsx` admin page
+- [ ] Test all 5 MVP themes with custom colors
+- [ ] Document merchant-facing settings page
+
+### Active MVP Themes
+
+| Theme           | Primary              | Accent              | Best For          |
+| --------------- | -------------------- | ------------------- | ----------------- |
+| `starter-store` | #4F46E5 (Indigo)     | #F59E0B (Amber)     | General purpose   |
+| `ghorer-bazar`  | #fc8934 (Orange)     | #e53935 (Red)       | Grocery/Food      |
+| `luxe-boutique` | #1a1a1a (Black)      | #c9a961 (Gold)      | Fashion/Luxury    |
+| `nova-lux`      | #1C1C1E (Charcoal)   | #C4A35A (Rose Gold) | Premium lifestyle |
+| `tech-modern`   | #0f172a (Dark Slate) | #3b82f6 (Blue)      | Electronics       |
 
 ---
 

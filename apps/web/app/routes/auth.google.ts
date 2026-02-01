@@ -10,7 +10,9 @@ import { LoaderFunctionArgs, ActionFunctionArgs, redirect } from '@remix-run/clo
 import { getAuthenticator } from '~/services/auth.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const authenticator = getAuthenticator(context.cloudflare.env);
+  // Pass request.url to enable dynamic callback URL detection
+  // This allows OAuth to work across multiple domains (ozzyl.com, app.ozzyl.com, localhost, etc.)
+  const authenticator = getAuthenticator(context.cloudflare.env, request.url);
   
   // Check if Google OAuth is configured
   if (!context.cloudflare.env.GOOGLE_CLIENT_ID || !context.cloudflare.env.GOOGLE_CLIENT_SECRET) {
@@ -24,7 +26,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const authenticator = getAuthenticator(context.cloudflare.env);
+  // Pass request.url to enable dynamic callback URL detection
+  const authenticator = getAuthenticator(context.cloudflare.env, request.url);
   
   // Authenticate using the "google" strategy
   // This will redirect the user to Google

@@ -1,15 +1,18 @@
 /**
- * Product Detail Page
+ * Product Detail Page - MVP Simple Theme System
  *
- * Shopify OS 2.0 Theme System - Uses ThemeStoreRenderer exclusively
- * for dynamic section rendering with the new theme engine.
+ * Uses the old React Component System (legacy templates)
+ * instead of Shopify OS 2.0 section-based system.
+ *
+ * Each template provides a ProductPage component for product detail pages.
+ *
+ * @see AGENTS.md - MVP Simple Theme System section
  */
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
 import { eq, and, desc, ne, like } from 'drizzle-orm';
 import { resolveStore } from '~/lib/store.server';
-import { resolveTemplate } from '~/lib/template-resolver.server';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { getStoreConfig } from '~/services/store-config.server';
@@ -22,10 +25,11 @@ import {
   getStoreTemplateTheme,
   getStoreTemplate,
   DEFAULT_STORE_TEMPLATE_ID,
+  type SerializedProduct,
 } from '~/templates/store-registry';
-import { ThemeStoreRenderer } from '~/components/store/ThemeStoreRenderer';
 import { getCustomer } from '~/services/customer-auth.server';
 import { formatPrice } from '~/lib/theme-engine';
+import { getMVPSettings } from '~/services/mvp-settings.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data?.product) {
@@ -95,7 +99,18 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
     const { themeConfig, businessInfo, footerConfig } = storeConfig;
     const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
-    const theme = getStoreTemplateTheme(storeTemplateId);
+
+    // Get MVP settings (simple theme settings)
+    const mvpSettings = await getMVPSettings(db, storeId, storeTemplateId);
+
+    // Merge MVP settings with theme colors
+    const baseTheme = getStoreTemplateTheme(storeTemplateId);
+    const theme = {
+      ...baseTheme,
+      primary: mvpSettings.primaryColor || baseTheme.primary,
+      accent: mvpSettings.accentColor || baseTheme.accent,
+    };
+
     const socialLinks =
       storeConfig.socialLinks || parseSocialLinks(store.socialLinks as string | null);
 
@@ -214,20 +229,6 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       }
     }
 
-    // Template resolution (Shopify OS 2.0)
-    let template = null;
-    let homeTemplate = null;
-    try {
-      template = await resolveTemplate(context.cloudflare.env.DB, storeId, 'product');
-
-      // If no product template, get home template for header/footer consistency
-      if (!template || !template.sections || template.sections.length === 0) {
-        homeTemplate = await resolveTemplate(context.cloudflare.env.DB, storeId, 'home');
-      }
-    } catch (templateError) {
-      console.error('[products.$id] Template resolution failed:', templateError);
-    }
-
     const url = new URL(request.url);
     const productUrl = `${url.protocol}//${url.host}/products/${product.id}`;
 
@@ -236,8 +237,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
         ...product,
         variants: variantsResult || [],
       },
-      storeName: store?.name || 'Store',
-      logo: store.logo || null,
+      storeName: mvpSettings.storeName || store?.name || 'Store',
+      logo: mvpSettings.logo || store.logo,
       currency: store?.currency || 'BDT',
       showReviews,
       reviews: productReviews,
@@ -248,15 +249,13 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       theme,
       socialLinks,
       businessInfo,
-      themeConfig,
       footerConfig,
       categories,
       relatedProducts,
       planType: store?.planType || 'free',
       customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
-      template,
-      homeTemplate, // For header/footer fallback
       productUrl,
+      mvpSettings,
     });
   } catch (error) {
     if (error instanceof Response) {
@@ -291,14 +290,12 @@ export default function ProductDetail() {
     theme,
     socialLinks,
     businessInfo,
-    themeConfig,
     footerConfig,
     categories,
     planType,
     customer,
-    template,
-    homeTemplate,
     productUrl,
+    mvpSettings,
   } = useLoaderData<typeof loader>();
 
   const hasTracked = useRef(false);
@@ -407,18 +404,11 @@ export default function ProductDetail() {
       ? [product.imageUrl]
       : [];
 
-  // Check if we have published template sections
-  const hasTemplateSections = template?.sections && template.sections.length > 0;
+  // Get template from registry (MVP Simple System)
+  const template = getStoreTemplate(storeTemplateId);
+  const ProductPageComponent = template.ProductPage;
 
-  // Check if we have home template for header/footer fallback
-  const hasHomeTemplate = homeTemplate?.sections && homeTemplate.sections.length > 0;
-
-  // Use theme sections for consistent header/footer
-  const useThemeSections = hasTemplateSections || hasHomeTemplate;
-
-  // Get template definition to check for ProductPage component
-  const templateDef = getStoreTemplate(storeTemplateId);
-
+  // Create product schema for SEO
   const productSchema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -448,8 +438,116 @@ export default function ProductDetail() {
         : undefined,
   };
 
-  // Simple fallback product page component
-  const SimpleProductPage = () => (
+  // Serialize related products for template
+  const serializedRelatedProducts: SerializedProduct[] = relatedProducts.map((p) => ({
+    id: p.id,
+    storeId: p.storeId,
+    title: p.title,
+    description: p.description,
+    price: p.price,
+    compareAtPrice: p.compareAtPrice,
+    imageUrl: p.imageUrl,
+    images: p.imageUrl ? [p.imageUrl] : [],
+    inventory: p.inventory,
+    category: p.category,
+  }));
+
+  return (
+    <StorePageWrapper
+      storeName={storeName}
+      storeId={storeId}
+      logo={logo}
+      templateId={storeTemplateId}
+      theme={theme}
+      currency={currency}
+      socialLinks={socialLinks}
+      businessInfo={businessInfo}
+      categories={categories as (string | null)[] | undefined}
+      config={{
+        ...mvpSettings,
+        primaryColor: theme.primary,
+        accentColor: theme.accent,
+      }}
+      footerConfig={footerConfig}
+      planType={planType}
+      customer={customer}
+    >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+
+      {/* MVP Simple System: Use template's ProductPage component */}
+      {ProductPageComponent ? (
+        <Suspense
+          fallback={
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+            </div>
+          }
+        >
+          <ProductPageComponent
+            product={{
+              ...product,
+              images,
+            }}
+            currency={currency}
+            relatedProducts={serializedRelatedProducts}
+            reviews={productReviews}
+            avgRating={avgRating}
+            reviewCount={reviewCount}
+            showReviews={showReviews}
+            storeName={storeName}
+            theme={theme}
+          />
+        </Suspense>
+      ) : (
+        // Fallback: Simple product page if template doesn't have ProductPage
+        <SimpleProductPage
+          product={product}
+          currency={currency}
+          relatedProducts={serializedRelatedProducts}
+          theme={theme}
+        />
+      )}
+    </StorePageWrapper>
+  );
+}
+
+// Simple fallback product page component
+function SimpleProductPage({
+  product,
+  currency,
+  relatedProducts,
+  theme,
+}: {
+  product: {
+    id: number;
+    title: string;
+    description: string | null;
+    price: number;
+    compareAtPrice: number | null;
+    imageUrl: string | null;
+    images: string[];
+    inventory: number | null;
+    category: string | null;
+    variants: Array<{
+      id: number;
+      price: number | null;
+      compareAtPrice: number | null;
+      sku: string | null;
+      inventory: number | null;
+      isAvailable: boolean | null;
+    }>;
+  };
+  currency: string;
+  relatedProducts: SerializedProduct[];
+  theme: {
+    primary: string;
+    accent: string;
+  };
+}) {
+  return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="grid md:grid-cols-2 gap-8">
         {/* Image */}
@@ -469,7 +567,7 @@ export default function ProductDetail() {
         {/* Info */}
         <div>
           <h1 className="text-3xl font-bold mb-4">{product.title}</h1>
-          <p className="text-2xl font-semibold text-blue-600 mb-4">
+          <p className="text-2xl font-semibold mb-4" style={{ color: theme.primary }}>
             {formatPrice(product.price, currency)}
             {product.compareAtPrice && product.compareAtPrice > product.price && (
               <span className="ml-2 text-lg text-gray-500 line-through">
@@ -480,201 +578,50 @@ export default function ProductDetail() {
           {product.description && (
             <div className="prose mb-6" dangerouslySetInnerHTML={{ __html: product.description }} />
           )}
-          <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+          <button
+            className="w-full text-white py-3 rounded-lg font-semibold transition"
+            style={{ backgroundColor: theme.primary }}
+          >
             Add to Cart
           </button>
         </div>
       </div>
+
+      {/* Related Products */}
+      {relatedProducts.length > 0 && (
+        <div className="mt-16">
+          <h2 className="text-2xl font-bold mb-6">Related Products</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {relatedProducts.map((related) => (
+              <a
+                key={related.id}
+                href={`/products/${related.id}`}
+                className="block border rounded-lg overflow-hidden hover:shadow-lg transition"
+              >
+                <div className="aspect-square bg-gray-100">
+                  {related.imageUrl ? (
+                    <img
+                      src={related.imageUrl}
+                      alt={related.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      No Image
+                    </div>
+                  )}
+                </div>
+                <div className="p-3">
+                  <h3 className="font-medium truncate">{related.title}</h3>
+                  <p className="text-sm mt-1" style={{ color: theme.primary }}>
+                    {formatPrice(related.price, currency)}
+                  </p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
-  );
-
-  // Render product page content
-  const renderProductContent = () => {
-    // If template has ProductPage component (legacy templates), use it
-    if (templateDef.ProductPage) {
-      const ProductPageComponent = templateDef.ProductPage;
-      return (
-        <Suspense
-          fallback={
-            <div className="min-h-screen flex items-center justify-center">
-              <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
-            </div>
-          }
-        >
-          <ProductPageComponent
-            product={product}
-            currency={currency}
-            relatedProducts={relatedProducts}
-          />
-        </Suspense>
-      );
-    }
-
-    // If template has sections, use ThemeStoreRenderer (Shopify OS 2.0)
-    if (hasTemplateSections && template?.sections) {
-      return (
-        <ThemeStoreRenderer
-          themeId={storeTemplateId}
-          sections={template.sections.map((s) => ({
-            id: s.id,
-            type: s.type,
-            settings: s.props || {},
-            blocks:
-              s.blocks?.map((b) => ({
-                id: b.id,
-                type: b.type,
-                settings: b.props || {},
-              })) || [],
-            enabled: s.enabled,
-          }))}
-          store={{
-            id: storeId,
-            name: storeName,
-            currency,
-            logo,
-            defaultLanguage: 'en',
-            socialLinks,
-            businessInfo,
-          }}
-          pageType="product"
-          product={{
-            id: product.id,
-            title: product.title,
-            description: product.description,
-            price: product.price,
-            compareAtPrice: product.compareAtPrice || undefined,
-            imageUrl: product.imageUrl,
-            images,
-            category: product.category || undefined,
-          }}
-          products={relatedProducts.map((p) => ({
-            id: p.id,
-            title: p.title,
-            price: p.price,
-            compareAtPrice: p.compareAtPrice || undefined,
-            imageUrl: p.imageUrl,
-            images: p.imageUrl ? [p.imageUrl] : [],
-            category: p.category || undefined,
-          }))}
-          cart={cart || undefined}
-          skipHeaderFooter={false}
-        />
-      );
-    }
-
-    // If no product template but home template exists, use home template's header/footer
-    // with SimpleProductPage content in between
-    if (hasHomeTemplate && homeTemplate?.sections) {
-      // Extract header and footer sections from home template (only enabled ones)
-      // Note: Only include header, NOT announcement-bar (keep banner only on homepage)
-      const headerSections = homeTemplate.sections.filter(
-        (s) => s.type === 'header' && s.enabled !== false
-      );
-      const footerSections = homeTemplate.sections.filter(
-        (s) => s.type === 'footer' && s.enabled !== false
-      );
-
-      // Combine: header + product content (as a pseudo-section) + footer
-      const combinedSections = [
-        ...headerSections.map((s) => ({
-          id: s.id,
-          type: s.type,
-          settings: s.props || {},
-          blocks:
-            s.blocks?.map((b) => ({
-              id: b.id,
-              type: b.type,
-              settings: b.props || {},
-            })) || [],
-          enabled: s.enabled,
-        })),
-        // Product main section - this will use the theme's product-main section
-        {
-          id: 'product-main-fallback',
-          type: 'product-main',
-          settings: {},
-          blocks: [],
-          enabled: true,
-        },
-        ...footerSections.map((s) => ({
-          id: s.id,
-          type: s.type,
-          settings: s.props || {},
-          blocks:
-            s.blocks?.map((b) => ({
-              id: b.id,
-              type: b.type,
-              settings: b.props || {},
-            })) || [],
-          enabled: s.enabled,
-        })),
-      ];
-
-      return (
-        <ThemeStoreRenderer
-          themeId={storeTemplateId}
-          sections={combinedSections}
-          store={{
-            id: storeId,
-            name: storeName,
-            currency,
-            logo,
-            defaultLanguage: 'en',
-            socialLinks,
-            businessInfo,
-          }}
-          pageType="product"
-          product={{
-            id: product.id,
-            title: product.title,
-            description: product.description,
-            price: product.price,
-            compareAtPrice: product.compareAtPrice || undefined,
-            imageUrl: product.imageUrl,
-            images,
-            category: product.category || undefined,
-          }}
-          products={relatedProducts.map((p) => ({
-            id: p.id,
-            title: p.title,
-            price: p.price,
-            compareAtPrice: p.compareAtPrice || undefined,
-            imageUrl: p.imageUrl,
-            images: p.imageUrl ? [p.imageUrl] : [],
-            category: p.category || undefined,
-          }))}
-          cart={cart || undefined}
-          skipHeaderFooter={false}
-        />
-      );
-    }
-
-    // Fallback to simple product page
-    return <SimpleProductPage />;
-  };
-
-  return (
-    <StorePageWrapper
-      hideHeaderFooter={useThemeSections}
-      storeName={storeName}
-      storeId={storeId}
-      logo={logo}
-      templateId={storeTemplateId}
-      theme={theme}
-      currency={currency}
-      socialLinks={socialLinks}
-      businessInfo={businessInfo}
-      categories={categories as (string | null)[] | undefined}
-      config={themeConfig}
-      footerConfig={footerConfig}
-      planType={planType}
-      customer={customer}
-    >
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
-      />
-      {renderProductContent()}
-    </StorePageWrapper>
   );
 }

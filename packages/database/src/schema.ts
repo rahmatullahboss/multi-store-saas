@@ -1,6 +1,6 @@
 /**
  * Multi-tenant E-commerce Database Schema
- * 
+ *
  * All tables include store_id for data isolation between tenants.
  * This ensures each store can only access their own data.
  */
@@ -22,18 +22,26 @@ export const stores = sqliteTable('stores', {
   customDomain: text('custom_domain').unique(),
   // Custom Domain Request System
   customDomainRequest: text('custom_domain_request'), // Pending domain request
-  customDomainStatus: text('custom_domain_status').$type<'none' | 'pending' | 'approved' | 'rejected'>().default('none'),
+  customDomainStatus: text('custom_domain_status')
+    .$type<'none' | 'pending' | 'approved' | 'rejected'>()
+    .default('none'),
   customDomainRequestedAt: integer('custom_domain_requested_at', { mode: 'timestamp' }),
   // Cloudflare for SaaS Integration
   cloudflareHostnameId: text('cloudflare_hostname_id'), // Cloudflare custom hostname ID
   sslStatus: text('ssl_status').$type<'pending' | 'active' | 'failed'>().default('pending'), // SSL certificate status
   dnsVerified: integer('dns_verified', { mode: 'boolean' }).default(false), // DNS verification status
-  planType: text('plan_type').$type<'free' | 'starter' | 'premium' | 'business' | 'custom'>().default('free'),
-  subscriptionStatus: text('subscription_status').$type<'active' | 'past_due' | 'canceled'>().default('active'),
+  planType: text('plan_type')
+    .$type<'free' | 'starter' | 'premium' | 'business' | 'custom'>()
+    .default('free'),
+  subscriptionStatus: text('subscription_status')
+    .$type<'active' | 'past_due' | 'canceled'>()
+    .default('active'),
   usageLimits: text('usage_limits'), // JSON: { max_products, max_orders, allow_store_mode, fee_rate }
 
   // === ONBOARDING TRACKING ===
-  onboardingStatus: text('onboarding_status').$type<'pending_plan' | 'pending_info' | 'completed'>().default('pending_plan'),
+  onboardingStatus: text('onboarding_status')
+    .$type<'pending_plan' | 'pending_info' | 'completed'>()
+    .default('pending_plan'),
   setupStep: integer('setup_step').default(0), // Current step in onboarding wizard
 
   // === HYBRID MODE FIELDS ===
@@ -53,7 +61,6 @@ export const stores = sqliteTable('stores', {
   themeConfig: text('theme_config'),
   // Business info: { phone, email, address, city, country }
   businessInfo: text('business_info'),
-
 
   // === BRANDING ===
   logo: text('logo'),
@@ -77,7 +84,9 @@ export const stores = sqliteTable('stores', {
 
   // === NOTIFICATION SETTINGS ===
   notificationEmail: text('notification_email'), // Override email for alerts
-  emailNotificationsEnabled: integer('email_notifications_enabled', { mode: 'boolean' }).default(true),
+  emailNotificationsEnabled: integer('email_notifications_enabled', { mode: 'boolean' }).default(
+    true
+  ),
   lowStockThreshold: integer('low_stock_threshold').default(10),
 
   // === SIMPLIFIED SHIPPING CONFIG (BD SME Friendly) ===
@@ -105,7 +114,9 @@ export const stores = sqliteTable('stores', {
   isCustomerAiEnabled: integer('is_customer_ai_enabled', { mode: 'boolean' }).default(false), // Paid add-on
   aiBotPersona: text('ai_bot_persona'), // Custom AI personality e.g., "You are a friendly fashion expert"
   // AI Agent Activation Request System
-  aiAgentRequestStatus: text('ai_agent_request_status').$type<'none' | 'pending' | 'approved' | 'rejected'>().default('none'),
+  aiAgentRequestStatus: text('ai_agent_request_status')
+    .$type<'none' | 'pending' | 'approved' | 'rejected'>()
+    .default('none'),
   aiAgentRequestedAt: integer('ai_agent_requested_at', { mode: 'timestamp' }),
   aiPlan: text('ai_plan').$type<'lite' | 'standard' | 'pro'>(), // AI Add-on Plan
   aiCredits: integer('ai_credits').default(50), // Default 50 credits for new stores
@@ -121,7 +132,9 @@ export const stores = sqliteTable('stores', {
 
   // === SUBSCRIPTION PAYMENT TRACKING (bKash Manual Verification) ===
   paymentTransactionId: text('payment_transaction_id'), // bKash TRX ID
-  paymentStatus: text('payment_status').$type<'pending_verification' | 'verified' | 'rejected' | 'none'>().default('none'),
+  paymentStatus: text('payment_status')
+    .$type<'pending_verification' | 'verified' | 'rejected' | 'none'>()
+    .default('none'),
   paymentSubmittedAt: integer('payment_submitted_at', { mode: 'timestamp' }),
   paymentAmount: real('payment_amount'), // Amount paid in BDT
   paymentPhone: text('payment_phone'), // Phone number used for payment
@@ -145,218 +158,265 @@ export const stores = sqliteTable('stores', {
 // ============================================================================
 // USERS TABLE - Merchant authentication
 // ============================================================================
-export const users = sqliteTable('users', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  email: text('email').notNull().unique(),
-  passwordHash: text('password_hash').notNull(),
-  name: text('name'),
-  phone: text('phone'), // Merchant mobile number (BD format: 01XXXXXXXXX)
-  storeId: integer('store_id').references(() => stores.id, { onDelete: 'cascade' }),
-  role: text('role').$type<'admin' | 'merchant' | 'staff' | 'super_admin'>().default('merchant'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('users_email_idx').on(table.email),
-  index('users_store_id_idx').on(table.storeId),
-]);
+export const users = sqliteTable(
+  'users',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    email: text('email').notNull().unique(),
+    passwordHash: text('password_hash').notNull(),
+    name: text('name'),
+    phone: text('phone'), // Merchant mobile number (BD format: 01XXXXXXXXX)
+    storeId: integer('store_id').references(() => stores.id, { onDelete: 'cascade' }),
+    role: text('role').$type<'admin' | 'merchant' | 'staff' | 'super_admin'>().default('merchant'),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('users_email_idx').on(table.email),
+    index('users_store_id_idx').on(table.storeId),
+  ]
+);
 
 // ============================================================================
 // PRODUCTS TABLE - Store products with store_id isolation
 // ============================================================================
-export const products = sqliteTable('products', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  title: text('title').notNull(),
-  description: text('description'),
-  price: real('price').notNull(),
-  compareAtPrice: real('compare_at_price'),
-  inventory: integer('inventory').default(0),
-  sku: text('sku'),
-  imageUrl: text('image_url'),
-  images: text('images'), // JSON array of image URLs
-  category: text('category'),
-  tags: text('tags'), // JSON array of tags
-  isPublished: integer('is_published', { mode: 'boolean' }).default(true),
-  // SEO Fields (auto-generated if empty, editable by merchant)
-  seoTitle: text('seo_title'), // Custom meta title (auto: "{title} | {storeName}")
-  seoDescription: text('seo_description'), // Custom meta description (auto: first 155 chars of description)
-  seoKeywords: text('seo_keywords'), // Comma-separated keywords
-  // Bundle/Combo Pricing for landing pages
-  // JSON: [{ qty: 1, price: 1490, label: '১ পিস' }, { qty: 2, price: 2780, label: '২ পিস', savings: 200 }]
-  bundlePricing: text('bundle_pricing'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('products_store_id_idx').on(table.storeId),
-  index('products_category_idx').on(table.storeId, table.category),
-]);
+export const products = sqliteTable(
+  'products',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    description: text('description'),
+    price: real('price').notNull(),
+    compareAtPrice: real('compare_at_price'),
+    inventory: integer('inventory').default(0),
+    sku: text('sku'),
+    imageUrl: text('image_url'),
+    images: text('images'), // JSON array of image URLs
+    category: text('category'),
+    tags: text('tags'), // JSON array of tags
+    isPublished: integer('is_published', { mode: 'boolean' }).default(true),
+    // SEO Fields (auto-generated if empty, editable by merchant)
+    seoTitle: text('seo_title'), // Custom meta title (auto: "{title} | {storeName}")
+    seoDescription: text('seo_description'), // Custom meta description (auto: first 155 chars of description)
+    seoKeywords: text('seo_keywords'), // Comma-separated keywords
+    // Bundle/Combo Pricing for landing pages
+    // JSON: [{ qty: 1, price: 1490, label: '১ পিস' }, { qty: 2, price: 2780, label: '২ পিস', savings: 200 }]
+    bundlePricing: text('bundle_pricing'),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('products_store_id_idx').on(table.storeId),
+    index('products_category_idx').on(table.storeId, table.category),
+  ]
+);
 
 // ============================================================================
 // COLLECTIONS TABLE - New Relational Categories
 // ============================================================================
-export const collections = sqliteTable('collections', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  title: text('title').notNull(),
-  slug: text('slug').notNull(),
-  description: text('description'),
-  imageUrl: text('image_url'),
-  isActive: integer('is_active', { mode: 'boolean' }).default(true),
-  sortOrder: integer('sort_order').default(0),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('collections_store_id_idx').on(table.storeId),
-  index('collections_slug_idx').on(table.storeId, table.slug),
-]);
+export const collections = sqliteTable(
+  'collections',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    slug: text('slug').notNull(),
+    description: text('description'),
+    imageUrl: text('image_url'),
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    sortOrder: integer('sort_order').default(0),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('collections_store_id_idx').on(table.storeId),
+    index('collections_slug_idx').on(table.storeId, table.slug),
+  ]
+);
 
 export const productCollections = sqliteTable('product_collections', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
-  collectionId: integer('collection_id').notNull().references(() => collections.id, { onDelete: 'cascade' }),
+  productId: integer('product_id')
+    .notNull()
+    .references(() => products.id, { onDelete: 'cascade' }),
+  collectionId: integer('collection_id')
+    .notNull()
+    .references(() => collections.id, { onDelete: 'cascade' }),
 });
 
 // ============================================================================
 // CUSTOMERS TABLE - Store customers with store_id isolation
 // ============================================================================
-export const customers = sqliteTable('customers', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  email: text('email'), // Optional - BD customers usually only provide phone
-  name: text('name'),
-  phone: text('phone'),
-  address: text('address'), // Legacy JSON object, migrating to customer_addresses table
-  
-  // New Fields for CRM
-  tags: text('tags'), // JSON array of strings e.g. ["VIP", "Wholesale"]
-  status: text('status').$type<'active' | 'inactive' | 'banned' | 'archived'>().default('active'),
-  notes: text('notes'), // Internal notes (legacy simple field)
+export const customers = sqliteTable(
+  'customers',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    email: text('email'), // Optional - BD customers usually only provide phone
+    name: text('name'),
+    phone: text('phone'),
+    address: text('address'), // Legacy JSON object, migrating to customer_addresses table
 
-  // === CUSTOMER AUTHENTICATION (Premium/Business only) ===
-  passwordHash: text('password_hash'), // For email/password login
-  googleId: text('google_id'), // Google OAuth subject ID
-  authProvider: text('auth_provider').$type<'email' | 'google'>(), // How customer signed up
-  lastLoginAt: integer('last_login_at', { mode: 'timestamp' }), // Last login timestamp
-  // Fraud check cache
-  riskScore: integer('risk_score'), // 0-100 (higher = more risky)
-  riskCheckedAt: integer('risk_checked_at', { mode: 'timestamp' }), // Last check time
+    // New Fields for CRM
+    tags: text('tags'), // JSON array of strings e.g. ["VIP", "Wholesale"]
+    status: text('status').$type<'active' | 'inactive' | 'banned' | 'archived'>().default('active'),
+    notes: text('notes'), // Internal notes (legacy simple field)
 
-  // === SEGMENTATION FIELDS (AI Marketing) ===
-  totalOrders: integer('total_orders').default(0), // Auto-calculated from orders
-  totalSpent: real('total_spent').default(0), // Auto-calculated from orders total
-  lastOrderAt: integer('last_order_at', { mode: 'timestamp' }), // Last purchase date
-  // Segment: vip (>3 orders OR >10k spent), churn_risk (>60 days inactive), 
-  // window_shopper (has abandoned carts, 0 orders), new (0 orders), regular (default)
-  segment: text('segment').$type<CustomerSegment>().default('new'),
+    // === CUSTOMER AUTHENTICATION (Premium/Business only) ===
+    passwordHash: text('password_hash'), // For email/password login
+    googleId: text('google_id'), // Google OAuth subject ID
+    authProvider: text('auth_provider').$type<'email' | 'google'>(), // How customer signed up
+    lastLoginAt: integer('last_login_at', { mode: 'timestamp' }), // Last login timestamp
+    // Fraud check cache
+    riskScore: integer('risk_score'), // 0-100 (higher = more risky)
+    riskCheckedAt: integer('risk_checked_at', { mode: 'timestamp' }), // Last check time
 
-  // === LOYALTY FIELDS (Phase 10) ===
-  loyaltyPoints: integer('loyalty_points').default(0),
-  loyaltyTier: text('loyalty_tier').$type<'bronze' | 'silver' | 'gold' | 'platinum'>().default('bronze'),
-  referredBy: integer('referred_by'), // ID of existing customer who referred this user
+    // === SEGMENTATION FIELDS (AI Marketing) ===
+    totalOrders: integer('total_orders').default(0), // Auto-calculated from orders
+    totalSpent: real('total_spent').default(0), // Auto-calculated from orders total
+    lastOrderAt: integer('last_order_at', { mode: 'timestamp' }), // Last purchase date
+    // Segment: vip (>3 orders OR >10k spent), churn_risk (>60 days inactive),
+    // window_shopper (has abandoned carts, 0 orders), new (0 orders), regular (default)
+    segment: text('segment').$type<CustomerSegment>().default('new'),
 
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('customers_store_id_idx').on(table.storeId),
-  index('customers_email_idx').on(table.storeId, table.email),
-  index('customers_segment_idx').on(table.storeId, table.segment),
-  index('customers_google_id_idx').on(table.storeId, table.googleId),
-]);
+    // === LOYALTY FIELDS (Phase 10) ===
+    loyaltyPoints: integer('loyalty_points').default(0),
+    loyaltyTier: text('loyalty_tier')
+      .$type<'bronze' | 'silver' | 'gold' | 'platinum'>()
+      .default('bronze'),
+    referredBy: integer('referred_by'), // ID of existing customer who referred this user
 
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('customers_store_id_idx').on(table.storeId),
+    index('customers_email_idx').on(table.storeId, table.email),
+    index('customers_segment_idx').on(table.storeId, table.segment),
+    index('customers_google_id_idx').on(table.storeId, table.googleId),
+  ]
+);
 
 // ============================================================================
 // ORDERS TABLE - Store orders with store_id isolation
 // ============================================================================
-export const orders = sqliteTable('orders', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  customerId: integer('customer_id').references(() => customers.id),
-  orderNumber: text('order_number').notNull(),
-  customerEmail: text('customer_email'), // Optional for COD orders
-  customerPhone: text('customer_phone'), // Required for COD orders
-  customerName: text('customer_name'),
-  shippingAddress: text('shipping_address'), // JSON object
-  billingAddress: text('billing_address'), // JSON object
-  status: text('status').$type<'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned'>().default('pending'),
-  // Payment Information
-  paymentStatus: text('payment_status').$type<'pending' | 'paid' | 'failed' | 'refunded' | 'reversed'>().default('pending'),
-  paymentMethod: text('payment_method').default('cod'), // 'cod' | 'bkash' | 'nagad' | 'rocket'
-  transactionId: text('transaction_id'), // For manual payments
-  manualPaymentDetails: text('manual_payment_details'), // JSON: { senderNumber, method, ... }
-  // Courier tracking
-  courierProvider: text('courier_provider').$type<'pathao' | 'redx' | 'steadfast' | null>(),
-  courierConsignmentId: text('courier_consignment_id'), // Tracking ID from courier
-  courierStatus: text('courier_status'), // Latest status from courier
-  subtotal: real('subtotal').notNull(),
-  tax: real('tax').default(0),
-  shipping: real('shipping').default(0),
-  total: real('total').notNull(),
-  pricingJson: text('pricing_json'), // Detailed breakdown: { subtotal, tax, shipping, discounts, ... }
-  notes: text('notes'),
-  // Marketing Automation (Phase 11)
-  reviewRequestSent: integer('review_request_sent', { mode: 'boolean' }).default(false),
-  reviewRequestSentAt: integer('review_request_sent_at', { mode: 'timestamp' }),
+export const orders = sqliteTable(
+  'orders',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    customerId: integer('customer_id').references(() => customers.id),
+    orderNumber: text('order_number').notNull(),
+    customerEmail: text('customer_email'), // Optional for COD orders
+    customerPhone: text('customer_phone'), // Required for COD orders
+    customerName: text('customer_name'),
+    shippingAddress: text('shipping_address'), // JSON object
+    billingAddress: text('billing_address'), // JSON object
+    status: text('status')
+      .$type<
+        'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned'
+      >()
+      .default('pending'),
+    // Payment Information
+    paymentStatus: text('payment_status')
+      .$type<'pending' | 'paid' | 'failed' | 'refunded' | 'reversed'>()
+      .default('pending'),
+    paymentMethod: text('payment_method').default('cod'), // 'cod' | 'bkash' | 'nagad' | 'rocket'
+    transactionId: text('transaction_id'), // For manual payments
+    manualPaymentDetails: text('manual_payment_details'), // JSON: { senderNumber, method, ... }
+    // Courier tracking
+    courierProvider: text('courier_provider').$type<'pathao' | 'redx' | 'steadfast' | null>(),
+    courierConsignmentId: text('courier_consignment_id'), // Tracking ID from courier
+    courierStatus: text('courier_status'), // Latest status from courier
+    subtotal: real('subtotal').notNull(),
+    tax: real('tax').default(0),
+    shipping: real('shipping').default(0),
+    total: real('total').notNull(),
+    pricingJson: text('pricing_json'), // Detailed breakdown: { subtotal, tax, shipping, discounts, ... }
+    notes: text('notes'),
+    // Marketing Automation (Phase 11)
+    reviewRequestSent: integer('review_request_sent', { mode: 'boolean' }).default(false),
+    reviewRequestSentAt: integer('review_request_sent_at', { mode: 'timestamp' }),
 
-  // Attribution Tracking (Analytics)
-  landingPageId: integer('landing_page_id').references(() => savedLandingConfigs.id), // Campaign Page ID
-  utmSource: text('utm_source'), // e.g. "facebook", "google"
-  utmMedium: text('utm_medium'), // e.g. "cpc", "email"
-  utmCampaign: text('utm_campaign'), // e.g. "summer_sale"
+    // Attribution Tracking (Analytics)
+    landingPageId: integer('landing_page_id').references(() => savedLandingConfigs.id), // Campaign Page ID
+    utmSource: text('utm_source'), // e.g. "facebook", "google"
+    utmMedium: text('utm_medium'), // e.g. "cpc", "email"
+    utmCampaign: text('utm_campaign'), // e.g. "summer_sale"
 
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('orders_store_id_idx').on(table.storeId),
-  index('orders_customer_id_idx').on(table.customerId),
-  index('orders_status_idx').on(table.storeId, table.status),
-]);
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('orders_store_id_idx').on(table.storeId),
+    index('orders_customer_id_idx').on(table.customerId),
+    index('orders_status_idx').on(table.storeId, table.status),
+  ]
+);
 
 // ============================================================================
 // ORDER ITEMS TABLE - Individual items in an order
 // ============================================================================
-export const orderItems = sqliteTable('order_items', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
-  productId: integer('product_id').references(() => products.id, { onDelete: 'set null' }),
-  variantId: integer('variant_id').references(() => productVariants.id, { onDelete: 'set null' }),
-  title: text('title').notNull(),
-  variantTitle: text('variant_title'), // e.g., "Red / Large"
-  quantity: integer('quantity').notNull(),
-  price: real('price').notNull(),
-  total: real('total').notNull(),
-}, (table) => [
-  index('order_items_order_id_idx').on(table.orderId),
-]);
+export const orderItems = sqliteTable(
+  'order_items',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    orderId: integer('order_id')
+      .notNull()
+      .references(() => orders.id, { onDelete: 'cascade' }),
+    productId: integer('product_id').references(() => products.id, { onDelete: 'set null' }),
+    variantId: integer('variant_id').references(() => productVariants.id, { onDelete: 'set null' }),
+    title: text('title').notNull(),
+    variantTitle: text('variant_title'), // e.g., "Red / Large"
+    quantity: integer('quantity').notNull(),
+    price: real('price').notNull(),
+    total: real('total').notNull(),
+  },
+  (table) => [index('order_items_order_id_idx').on(table.orderId)]
+);
 
 // ============================================================================
 // PRODUCT VARIANTS TABLE - Size, color, and other variations
 // ============================================================================
-export const productVariants = sqliteTable('product_variants', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
-  // Variant options (could be size, color, material, etc.)
-  option1Name: text('option1_name'), // e.g., "Size"
-  option1Value: text('option1_value'), // e.g., "Large"
-  option2Name: text('option2_name'), // e.g., "Color"
-  option2Value: text('option2_value'), // e.g., "Red"
-  option3Name: text('option3_name'), // Optional third option
-  option3Value: text('option3_value'),
-  // Pricing
-  price: real('price'), // Override product price if set
-  compareAtPrice: real('compare_at_price'),
-  // Inventory
-  sku: text('sku'),
-  inventory: integer('inventory').default(0),
-  // Inventory Reserve System (P1) - Prevents overselling
-  available: integer('available').default(0), // Can be sold
-  reserved: integer('reserved').default(0), // In checkout, not yet paid
-  // Variant-specific image
-  imageUrl: text('image_url'),
-  // Status
-  isAvailable: integer('is_available', { mode: 'boolean' }).default(true),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('product_variants_product_id_idx').on(table.productId),
-]);
+export const productVariants = sqliteTable(
+  'product_variants',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    productId: integer('product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    // Variant options (could be size, color, material, etc.)
+    option1Name: text('option1_name'), // e.g., "Size"
+    option1Value: text('option1_value'), // e.g., "Large"
+    option2Name: text('option2_name'), // e.g., "Color"
+    option2Value: text('option2_value'), // e.g., "Red"
+    option3Name: text('option3_name'), // Optional third option
+    option3Value: text('option3_value'),
+    // Pricing
+    price: real('price'), // Override product price if set
+    compareAtPrice: real('compare_at_price'),
+    // Inventory
+    sku: text('sku'),
+    inventory: integer('inventory').default(0),
+    // Inventory Reserve System (P1) - Prevents overselling
+    available: integer('available').default(0), // Can be sold
+    reserved: integer('reserved').default(0), // In checkout, not yet paid
+    // Variant-specific image
+    imageUrl: text('image_url'),
+    // Status
+    isAvailable: integer('is_available', { mode: 'boolean' }).default(true),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('product_variants_product_id_idx').on(table.productId)]
+);
 
 // ============================================================================
 // RELATIONS - Drizzle ORM relations for type-safe queries
@@ -398,29 +458,33 @@ export const customersRelations = relations(customers, ({ one, many }) => ({
 // ============================================================================
 // CUSTOMER ADDRESSES TABLE - Multiple addresses per customer
 // ============================================================================
-export const customerAddresses = sqliteTable('customer_addresses', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  customerId: integer('customer_id').notNull().references(() => customers.id, { onDelete: 'cascade' }),
-  type: text('type').$type<'shipping' | 'billing'>().default('shipping'),
-  
-  firstName: text('first_name'),
-  lastName: text('last_name'),
-  company: text('company'),
-  address1: text('address1'),
-  address2: text('address2'),
-  city: text('city'),
-  province: text('province'), // State/Division
-  zip: text('zip'),
-  country: text('country'),
-  phone: text('phone'),
-  
-  isDefault: integer('is_default', { mode: 'boolean' }).default(false),
-  
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('idx_customer_addresses_customer').on(table.customerId),
-]);
+export const customerAddresses = sqliteTable(
+  'customer_addresses',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    customerId: integer('customer_id')
+      .notNull()
+      .references(() => customers.id, { onDelete: 'cascade' }),
+    type: text('type').$type<'shipping' | 'billing'>().default('shipping'),
+
+    firstName: text('first_name'),
+    lastName: text('last_name'),
+    company: text('company'),
+    address1: text('address1'),
+    address2: text('address2'),
+    city: text('city'),
+    province: text('province'), // State/Division
+    zip: text('zip'),
+    country: text('country'),
+    phone: text('phone'),
+
+    isDefault: integer('is_default', { mode: 'boolean' }).default(false),
+
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('idx_customer_addresses_customer').on(table.customerId)]
+);
 
 export const customerAddressesRelations = relations(customerAddresses, ({ one }) => ({
   customer: one(customers, {
@@ -432,17 +496,21 @@ export const customerAddressesRelations = relations(customerAddresses, ({ one })
 // ============================================================================
 // CUSTOMER NOTES TABLE - Timeline/CRM notes
 // ============================================================================
-export const customerNotes = sqliteTable('customer_notes', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  customerId: integer('customer_id').notNull().references(() => customers.id, { onDelete: 'cascade' }),
-  content: text('content').notNull(),
-  authorName: text('author_name'), // Name of the staff member who added the note
-  isPinned: integer('is_pinned', { mode: 'boolean' }).default(false),
-  
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('idx_customer_notes_customer').on(table.customerId),
-]);
+export const customerNotes = sqliteTable(
+  'customer_notes',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    customerId: integer('customer_id')
+      .notNull()
+      .references(() => customers.id, { onDelete: 'cascade' }),
+    content: text('content').notNull(),
+    authorName: text('author_name'), // Name of the staff member who added the note
+    isPinned: integer('is_pinned', { mode: 'boolean' }).default(false),
+
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('idx_customer_notes_customer').on(table.customerId)]
+);
 
 export const customerNotesRelations = relations(customerNotes, ({ one }) => ({
   customer: one(customers, {
@@ -454,17 +522,21 @@ export const customerNotesRelations = relations(customerNotes, ({ one }) => ({
 // ============================================================================
 // CUSTOMER SEGMENTS TABLE - Saved searches/groups
 // ============================================================================
-export const customerSegments = sqliteTable('customer_segments', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  query: text('query').notNull(), // JSON criteria e.g. { totalSpent: { gt: 1000 } }
-  
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('idx_customer_segments_store').on(table.storeId),
-]);
+export const customerSegments = sqliteTable(
+  'customer_segments',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    query: text('query').notNull(), // JSON criteria e.g. { totalSpent: { gt: 1000 } }
+
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('idx_customer_segments_store').on(table.storeId)]
+);
 
 export const customerSegmentsRelations = relations(customerSegments, ({ one }) => ({
   store: one(stores, {
@@ -532,7 +604,9 @@ export const productCollectionsRelations = relations(productCollections, ({ one 
 // ============================================================================
 export const payouts = sqliteTable('payouts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').references(() => stores.id, { onDelete: 'cascade' }).notNull(),
+  storeId: integer('store_id')
+    .references(() => stores.id, { onDelete: 'cascade' })
+    .notNull(),
 
   // Period
   periodStart: integer('period_start', { mode: 'timestamp' }).notNull(),
@@ -568,19 +642,23 @@ export const payoutsRelations = relations(payouts, ({ one }) => ({
 // ============================================================================
 // SHIPPING ZONES TABLE - Delivery areas and rates
 // ============================================================================
-export const shippingZones = sqliteTable('shipping_zones', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(), // "Dhaka City", "Outside Dhaka"
-  regions: text('regions'), // JSON array of regions/districts
-  rate: real('rate').notNull().default(0), // Shipping cost
-  freeAbove: real('free_above'), // Free shipping threshold
-  estimatedDays: text('estimated_days'), // "2-3 days"
-  isActive: integer('is_active', { mode: 'boolean' }).default(true),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('shipping_zones_store_id_idx').on(table.storeId),
-]);
+export const shippingZones = sqliteTable(
+  'shipping_zones',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(), // "Dhaka City", "Outside Dhaka"
+    regions: text('regions'), // JSON array of regions/districts
+    rate: real('rate').notNull().default(0), // Shipping cost
+    freeAbove: real('free_above'), // Free shipping threshold
+    estimatedDays: text('estimated_days'), // "2-3 days"
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('shipping_zones_store_id_idx').on(table.storeId)]
+);
 
 export const shippingZonesRelations = relations(shippingZones, ({ one }) => ({
   store: one(stores, {
@@ -592,20 +670,28 @@ export const shippingZonesRelations = relations(shippingZones, ({ one }) => ({
 // ============================================================================
 // SHIPMENTS TABLE - Order tracking
 // ============================================================================
-export const shipments = sqliteTable('shipments', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
-  courier: text('courier'), // "pathao", "redx", "manual"
-  trackingNumber: text('tracking_number'),
-  status: text('status').$type<'pending' | 'picked_up' | 'in_transit' | 'out_for_delivery' | 'delivered' | 'returned'>().default('pending'),
-  courierData: text('courier_data'), // JSON response from courier API
-  shippedAt: integer('shipped_at', { mode: 'timestamp' }),
-  deliveredAt: integer('delivered_at', { mode: 'timestamp' }),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('shipments_order_id_idx').on(table.orderId),
-]);
+export const shipments = sqliteTable(
+  'shipments',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    orderId: integer('order_id')
+      .notNull()
+      .references(() => orders.id, { onDelete: 'cascade' }),
+    courier: text('courier'), // "pathao", "redx", "manual"
+    trackingNumber: text('tracking_number'),
+    status: text('status')
+      .$type<
+        'pending' | 'picked_up' | 'in_transit' | 'out_for_delivery' | 'delivered' | 'returned'
+      >()
+      .default('pending'),
+    courierData: text('courier_data'), // JSON response from courier API
+    shippedAt: integer('shipped_at', { mode: 'timestamp' }),
+    deliveredAt: integer('delivered_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('shipments_order_id_idx').on(table.orderId)]
+);
 
 export const shipmentsRelations = relations(shipments, ({ one }) => ({
   order: one(orders, {
@@ -617,32 +703,38 @@ export const shipmentsRelations = relations(shipments, ({ one }) => ({
 // ============================================================================
 // DISCOUNTS TABLE - Promo codes and coupons
 // ============================================================================
-export const discounts = sqliteTable('discounts', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  code: text('code').notNull(),
-  type: text('type').$type<'percentage' | 'fixed'>().default('percentage'),
-  ruleType: text('rule_type').$type<'standard' | 'segment' | 'behavior'>().default('standard'), // Changed for Advanced Rules
-  value: real('value').notNull(), // Percentage (0-100) or fixed amount
-  minOrderAmount: real('min_order_amount'), // Minimum order to apply
-  maxDiscountAmount: real('max_discount_amount'), // Cap for percentage discounts
-  maxUses: integer('max_uses'), // Total uses allowed (null = unlimited)
-  usedCount: integer('used_count').default(0),
-  perCustomerLimit: integer('per_customer_limit').default(1), // Uses per customer
-  startsAt: integer('starts_at', { mode: 'timestamp' }),
-  expiresAt: integer('expires_at', { mode: 'timestamp' }),
-  isActive: integer('is_active', { mode: 'boolean' }).default(true),
-  // Flash Sale fields
-  isFlashSale: integer('is_flash_sale', { mode: 'boolean' }).default(false),
-  flashSaleEndTime: integer('flash_sale_end_time', { mode: 'timestamp' }),
-  showOnHomepage: integer('show_on_homepage', { mode: 'boolean' }).default(false),
-  flashSaleTitle: text('flash_sale_title'), // e.g., "Flash Sale! 50% OFF"
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('discounts_store_id_idx').on(table.storeId),
-  index('discounts_code_idx').on(table.storeId, table.code),
-]);
+export const discounts = sqliteTable(
+  'discounts',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    code: text('code').notNull(),
+    type: text('type').$type<'percentage' | 'fixed'>().default('percentage'),
+    ruleType: text('rule_type').$type<'standard' | 'segment' | 'behavior'>().default('standard'), // Changed for Advanced Rules
+    value: real('value').notNull(), // Percentage (0-100) or fixed amount
+    minOrderAmount: real('min_order_amount'), // Minimum order to apply
+    maxDiscountAmount: real('max_discount_amount'), // Cap for percentage discounts
+    maxUses: integer('max_uses'), // Total uses allowed (null = unlimited)
+    usedCount: integer('used_count').default(0),
+    perCustomerLimit: integer('per_customer_limit').default(1), // Uses per customer
+    startsAt: integer('starts_at', { mode: 'timestamp' }),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }),
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    // Flash Sale fields
+    isFlashSale: integer('is_flash_sale', { mode: 'boolean' }).default(false),
+    flashSaleEndTime: integer('flash_sale_end_time', { mode: 'timestamp' }),
+    showOnHomepage: integer('show_on_homepage', { mode: 'boolean' }).default(false),
+    flashSaleTitle: text('flash_sale_title'), // e.g., "Flash Sale! 50% OFF"
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('discounts_store_id_idx').on(table.storeId),
+    index('discounts_code_idx').on(table.storeId, table.code),
+  ]
+);
 
 export const discountsRelations = relations(discounts, ({ one }) => ({
   store: one(stores, {
@@ -654,20 +746,26 @@ export const discountsRelations = relations(discounts, ({ one }) => ({
 // ============================================================================
 // STAFF INVITES TABLE - Team member invitations
 // ============================================================================
-export const staffInvites = sqliteTable('staff_invites', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  email: text('email').notNull(),
-  role: text('role').$type<'admin' | 'staff' | 'viewer'>().default('staff'),
-  token: text('token').notNull().unique(),
-  invitedBy: integer('invited_by').references(() => users.id),
-  expiresAt: integer('expires_at', { mode: 'timestamp' }),
-  acceptedAt: integer('accepted_at', { mode: 'timestamp' }),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('staff_invites_store_id_idx').on(table.storeId),
-  index('staff_invites_token_idx').on(table.token),
-]);
+export const staffInvites = sqliteTable(
+  'staff_invites',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    email: text('email').notNull(),
+    role: text('role').$type<'admin' | 'staff' | 'viewer'>().default('staff'),
+    token: text('token').notNull().unique(),
+    invitedBy: integer('invited_by').references(() => users.id),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }),
+    acceptedAt: integer('accepted_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('staff_invites_store_id_idx').on(table.storeId),
+    index('staff_invites_token_idx').on(table.token),
+  ]
+);
 
 export const staffInvitesRelations = relations(staffInvites, ({ one }) => ({
   store: one(stores, {
@@ -683,20 +781,26 @@ export const staffInvitesRelations = relations(staffInvites, ({ one }) => ({
 // ============================================================================
 // ACTIVITY LOGS TABLE - Audit trail
 // ============================================================================
-export const activityLogs = sqliteTable('activity_logs', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  userId: integer('user_id').references(() => users.id),
-  action: text('action').notNull(), // "product_created", "order_updated", "settings_changed"
-  entityType: text('entity_type'), // "product", "order", "settings"
-  entityId: integer('entity_id'), // ID of the affected entity
-  details: text('details'), // JSON with before/after or additional info
-  ipAddress: text('ip_address'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('activity_logs_store_id_idx').on(table.storeId),
-  index('activity_logs_user_id_idx').on(table.userId),
-]);
+export const activityLogs = sqliteTable(
+  'activity_logs',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    userId: integer('user_id').references(() => users.id),
+    action: text('action').notNull(), // "product_created", "order_updated", "settings_changed"
+    entityType: text('entity_type'), // "product", "order", "settings"
+    entityId: integer('entity_id'), // ID of the affected entity
+    details: text('details'), // JSON with before/after or additional info
+    ipAddress: text('ip_address'),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('activity_logs_store_id_idx').on(table.storeId),
+    index('activity_logs_user_id_idx').on(table.userId),
+  ]
+);
 
 export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
   store: one(stores, {
@@ -712,26 +816,32 @@ export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
 // ============================================================================
 // ABANDONED CARTS TABLE - Cart recovery tracking
 // ============================================================================
-export const abandonedCarts = sqliteTable('abandoned_carts', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  sessionId: text('session_id').notNull(), // Browser session ID
-  customerEmail: text('customer_email'),
-  customerPhone: text('customer_phone'),
-  customerName: text('customer_name'),
-  cartItems: text('cart_items').notNull(), // JSON array of cart items
-  totalAmount: real('total_amount').notNull(),
-  currency: text('currency').default('BDT'),
-  abandonedAt: integer('abandoned_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  recoveredAt: integer('recovered_at', { mode: 'timestamp' }),
-  recoveryEmailSent: integer('recovery_email_sent', { mode: 'boolean' }).default(false),
-  recoveryEmailSentAt: integer('recovery_email_sent_at', { mode: 'timestamp' }),
-  status: text('status').$type<'abandoned' | 'recovered' | 'expired'>().default('abandoned'),
-}, (table) => [
-  index('abandoned_carts_store_id_idx').on(table.storeId),
-  index('abandoned_carts_session_idx').on(table.sessionId),
-  index('abandoned_carts_status_idx').on(table.storeId, table.status),
-]);
+export const abandonedCarts = sqliteTable(
+  'abandoned_carts',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    sessionId: text('session_id').notNull(), // Browser session ID
+    customerEmail: text('customer_email'),
+    customerPhone: text('customer_phone'),
+    customerName: text('customer_name'),
+    cartItems: text('cart_items').notNull(), // JSON array of cart items
+    totalAmount: real('total_amount').notNull(),
+    currency: text('currency').default('BDT'),
+    abandonedAt: integer('abandoned_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    recoveredAt: integer('recovered_at', { mode: 'timestamp' }),
+    recoveryEmailSent: integer('recovery_email_sent', { mode: 'boolean' }).default(false),
+    recoveryEmailSentAt: integer('recovery_email_sent_at', { mode: 'timestamp' }),
+    status: text('status').$type<'abandoned' | 'recovered' | 'expired'>().default('abandoned'),
+  },
+  (table) => [
+    index('abandoned_carts_store_id_idx').on(table.storeId),
+    index('abandoned_carts_session_idx').on(table.sessionId),
+    index('abandoned_carts_status_idx').on(table.storeId, table.status),
+  ]
+);
 
 export const abandonedCartsRelations = relations(abandonedCarts, ({ one }) => ({
   store: one(stores, {
@@ -743,20 +853,26 @@ export const abandonedCartsRelations = relations(abandonedCarts, ({ one }) => ({
 // ============================================================================
 // EMAIL SUBSCRIBERS TABLE - Store email list
 // ============================================================================
-export const emailSubscribers = sqliteTable('email_subscribers', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  email: text('email').notNull(),
-  name: text('name'),
-  status: text('status').$type<'subscribed' | 'unsubscribed'>().default('subscribed'),
-  source: text('source'), // 'checkout', 'popup', 'manual', 'import'
-  tags: text('tags'), // JSON array of tags for segmentation
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('email_subscribers_store_id_idx').on(table.storeId),
-  index('email_subscribers_email_idx').on(table.storeId, table.email),
-]);
+export const emailSubscribers = sqliteTable(
+  'email_subscribers',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    email: text('email').notNull(),
+    name: text('name'),
+    status: text('status').$type<'subscribed' | 'unsubscribed'>().default('subscribed'),
+    source: text('source'), // 'checkout', 'popup', 'manual', 'import'
+    tags: text('tags'), // JSON array of tags for segmentation
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('email_subscribers_store_id_idx').on(table.storeId),
+    index('email_subscribers_email_idx').on(table.storeId, table.email),
+  ]
+);
 
 export const emailSubscribersRelations = relations(emailSubscribers, ({ one }) => ({
   store: one(stores, {
@@ -768,27 +884,35 @@ export const emailSubscribersRelations = relations(emailSubscribers, ({ one }) =
 // ============================================================================
 // EMAIL CAMPAIGNS TABLE - Marketing campaigns
 // ============================================================================
-export const emailCampaigns = sqliteTable('email_campaigns', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  subject: text('subject').notNull(),
-  previewText: text('preview_text'), // Email preview text
-  content: text('content').notNull(), // HTML content
-  status: text('status').$type<'draft' | 'scheduled' | 'sending' | 'sent' | 'failed'>().default('draft'),
-  scheduledAt: integer('scheduled_at', { mode: 'timestamp' }),
-  sentAt: integer('sent_at', { mode: 'timestamp' }),
-  recipientCount: integer('recipient_count').default(0),
-  sentCount: integer('sent_count').default(0),
-  openCount: integer('open_count').default(0),
-  clickCount: integer('click_count').default(0),
-  createdBy: integer('created_by').references(() => users.id),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('email_campaigns_store_id_idx').on(table.storeId),
-  index('email_campaigns_status_idx').on(table.storeId, table.status),
-]);
+export const emailCampaigns = sqliteTable(
+  'email_campaigns',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    subject: text('subject').notNull(),
+    previewText: text('preview_text'), // Email preview text
+    content: text('content').notNull(), // HTML content
+    status: text('status')
+      .$type<'draft' | 'scheduled' | 'sending' | 'sent' | 'failed'>()
+      .default('draft'),
+    scheduledAt: integer('scheduled_at', { mode: 'timestamp' }),
+    sentAt: integer('sent_at', { mode: 'timestamp' }),
+    recipientCount: integer('recipient_count').default(0),
+    sentCount: integer('sent_count').default(0),
+    openCount: integer('open_count').default(0),
+    clickCount: integer('click_count').default(0),
+    createdBy: integer('created_by').references(() => users.id),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('email_campaigns_store_id_idx').on(table.storeId),
+    index('email_campaigns_status_idx').on(table.storeId, table.status),
+  ]
+);
 
 export const emailCampaignsRelations = relations(emailCampaigns, ({ one }) => ({
   store: one(stores, {
@@ -804,23 +928,29 @@ export const emailCampaignsRelations = relations(emailCampaigns, ({ one }) => ({
 // ============================================================================
 // SAVED LANDING CONFIGS TABLE - Preserve landing pages when switching to Store mode
 // ============================================================================
-export const savedLandingConfigs = sqliteTable('saved_landing_configs', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  productId: integer('product_id').references(() => products.id, { onDelete: 'set null' }),
-  name: text('name').notNull(), // e.g., "Homepage Backup - Jan 2026"
-  landingConfig: text('landing_config').notNull(), // Full JSON config
-  offerSlug: text('offer_slug'), // Custom slug like "old-home"
-  isHomepageBackup: integer('is_homepage_backup', { mode: 'boolean' }).default(false),
-  isActive: integer('is_active', { mode: 'boolean' }).default(true),
-  viewCount: integer('view_count').default(0),
-  orders: integer('orders').default(0),
-  revenue: real('revenue').default(0),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('saved_landing_configs_store_id_idx').on(table.storeId),
-  index('saved_landing_configs_slug_idx').on(table.storeId, table.offerSlug), // Added index for slug lookup
-]);
+export const savedLandingConfigs = sqliteTable(
+  'saved_landing_configs',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    productId: integer('product_id').references(() => products.id, { onDelete: 'set null' }),
+    name: text('name').notNull(), // e.g., "Homepage Backup - Jan 2026"
+    landingConfig: text('landing_config').notNull(), // Full JSON config
+    offerSlug: text('offer_slug'), // Custom slug like "old-home"
+    isHomepageBackup: integer('is_homepage_backup', { mode: 'boolean' }).default(false),
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    viewCount: integer('view_count').default(0),
+    orders: integer('orders').default(0),
+    revenue: real('revenue').default(0),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('saved_landing_configs_store_id_idx').on(table.storeId),
+    index('saved_landing_configs_slug_idx').on(table.storeId, table.offerSlug), // Added index for slug lookup
+  ]
+);
 
 export const savedLandingConfigsRelations = relations(savedLandingConfigs, ({ one }) => ({
   store: one(stores, {
@@ -836,32 +966,38 @@ export const savedLandingConfigsRelations = relations(savedLandingConfigs, ({ on
 // ============================================================================
 // PUBLISHED PAGES TABLE - Pre-rendered HTML cache for landing pages
 // ============================================================================
-export const publishedPages = sqliteTable('published_pages', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+export const publishedPages = sqliteTable(
+  'published_pages',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
 
-  // Page identification
-  pageType: text('page_type').$type<'landing' | 'product'>().default('landing'),
-  productId: integer('product_id').references(() => products.id, { onDelete: 'set null' }), // For product-specific landing pages
+    // Page identification
+    pageType: text('page_type').$type<'landing' | 'product'>().default('landing'),
+    productId: integer('product_id').references(() => products.id, { onDelete: 'set null' }), // For product-specific landing pages
 
-  // Cached content
-  htmlContent: text('html_content').notNull(), // Full rendered HTML
-  cssContent: text('css_content'), // Extracted/bundled CSS
-  metaTags: text('meta_tags'), // JSON: { title, description, ogImage }
+    // Cached content
+    htmlContent: text('html_content').notNull(), // Full rendered HTML
+    cssContent: text('css_content'), // Extracted/bundled CSS
+    metaTags: text('meta_tags'), // JSON: { title, description, ogImage }
 
-  // Cache metadata
-  templateId: text('template_id'), // Template used for rendering
-  configHash: text('config_hash'), // Hash of landingConfig for cache invalidation
+    // Cache metadata
+    templateId: text('template_id'), // Template used for rendering
+    configHash: text('config_hash'), // Hash of landingConfig for cache invalidation
 
-  // Timestamps
-  publishedAt: integer('published_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  expiresAt: integer('expires_at', { mode: 'timestamp' }), // Optional expiry
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('published_pages_store_id_idx').on(table.storeId),
-  index('published_pages_config_hash_idx').on(table.storeId, table.configHash),
-]);
+    // Timestamps
+    publishedAt: integer('published_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }), // Optional expiry
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('published_pages_store_id_idx').on(table.storeId),
+    index('published_pages_config_hash_idx').on(table.storeId, table.configHash),
+  ]
+);
 
 export const publishedPagesRelations = relations(publishedPages, ({ one }) => ({
   store: one(stores, {
@@ -877,22 +1013,28 @@ export const publishedPagesRelations = relations(publishedPages, ({ one }) => ({
 // ============================================================================
 // LANDING PAGES TABLE - GrapesJS Custom Pages
 // ============================================================================
-export const landingPages = sqliteTable('landing_pages', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  slug: text('slug').notNull(),
-  projectData: text('project_data'), // GrapesJS Internal JSON
-  htmlContent: text('html_content'),
-  cssContent: text('css_content'),
-  pageConfig: text('page_config'), // JSON configuration for featured product, WhatsApp, etc.
-  isPublished: integer('is_published', { mode: 'boolean' }).default(false),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('landing_pages_store_id_idx').on(table.storeId),
-  index('landing_pages_slug_idx').on(table.storeId, table.slug),
-]);
+export const landingPages = sqliteTable(
+  'landing_pages',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    slug: text('slug').notNull(),
+    projectData: text('project_data'), // GrapesJS Internal JSON
+    htmlContent: text('html_content'),
+    cssContent: text('css_content'),
+    pageConfig: text('page_config'), // JSON configuration for featured product, WhatsApp, etc.
+    isPublished: integer('is_published', { mode: 'boolean' }).default(false),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('landing_pages_store_id_idx').on(table.storeId),
+    index('landing_pages_slug_idx').on(table.storeId, table.slug),
+  ]
+);
 
 export const landingPagesRelations = relations(landingPages, ({ one }) => ({
   store: one(stores, {
@@ -904,19 +1046,27 @@ export const landingPagesRelations = relations(landingPages, ({ one }) => ({
 // ============================================================================
 // REVIEWS TABLE - Product reviews with moderation (Paid plans only)
 // ============================================================================
-export const reviews = sqliteTable('reviews', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
-  customerName: text('customer_name').notNull(),
-  rating: integer('rating').notNull(), // 1-5 stars
-  comment: text('comment'),
-  status: text('status').$type<'pending' | 'approved' | 'rejected'>().default('pending'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('reviews_store_product_idx').on(table.storeId, table.productId),
-  index('reviews_status_idx').on(table.storeId, table.status),
-]);
+export const reviews = sqliteTable(
+  'reviews',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    productId: integer('product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    customerName: text('customer_name').notNull(),
+    rating: integer('rating').notNull(), // 1-5 stars
+    comment: text('comment'),
+    status: text('status').$type<'pending' | 'approved' | 'rejected'>().default('pending'),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('reviews_store_product_idx').on(table.storeId, table.productId),
+    index('reviews_status_idx').on(table.storeId, table.status),
+  ]
+);
 
 export const reviewsRelations = relations(reviews, ({ one }) => ({
   store: one(stores, {
@@ -944,40 +1094,50 @@ export const systemNotifications = sqliteTable('system_notifications', {
 // ============================================================================
 // SAAS COUPONS TABLE - Platform-level subscription coupons
 // ============================================================================
-export const saasCoupons = sqliteTable('saas_coupons', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  code: text('code').notNull().unique(), // e.g., "START50", "LAUNCH20"
-  discountType: text('discount_type').$type<'percentage' | 'fixed'>().notNull(),
-  discountAmount: real('discount_amount').notNull(), // 50 for 50% or 500 for ৳500 off
-  maxUses: integer('max_uses'), // null = unlimited
-  usedCount: integer('used_count').default(0),
-  expiresAt: integer('expires_at', { mode: 'timestamp' }),
-  isActive: integer('is_active', { mode: 'boolean' }).default(true),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('saas_coupons_code_idx').on(table.code),
-]);
+export const saasCoupons = sqliteTable(
+  'saas_coupons',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    code: text('code').notNull().unique(), // e.g., "START50", "LAUNCH20"
+    discountType: text('discount_type').$type<'percentage' | 'fixed'>().notNull(),
+    discountAmount: real('discount_amount').notNull(), // 50 for 50% or 500 for ৳500 off
+    maxUses: integer('max_uses'), // null = unlimited
+    usedCount: integer('used_count').default(0),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }),
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('saas_coupons_code_idx').on(table.code)]
+);
 
 // ============================================================================
 // ORDER BUMPS TABLE - Add-on offers during checkout
 // ============================================================================
-export const orderBumps = sqliteTable('order_bumps', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }), // Main product
-  bumpProductId: integer('bump_product_id').notNull().references(() => products.id, { onDelete: 'cascade' }), // Bump offer
-  title: text('title').notNull(), // e.g., "Add Express Shipping"
-  description: text('description'), // e.g., "Get your order faster!"
-  discount: real('discount').default(0), // Percentage discount on bump product
-  isActive: integer('is_active', { mode: 'boolean' }).default(true),
-  displayOrder: integer('display_order').default(0),
-  // Stats
-  views: integer('views').default(0),
-  conversions: integer('conversions').default(0),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('order_bumps_store_product_idx').on(table.storeId, table.productId),
-]);
+export const orderBumps = sqliteTable(
+  'order_bumps',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    productId: integer('product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }), // Main product
+    bumpProductId: integer('bump_product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }), // Bump offer
+    title: text('title').notNull(), // e.g., "Add Express Shipping"
+    description: text('description'), // e.g., "Get your order faster!"
+    discount: real('discount').default(0), // Percentage discount on bump product
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    displayOrder: integer('display_order').default(0),
+    // Stats
+    views: integer('views').default(0),
+    conversions: integer('conversions').default(0),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('order_bumps_store_product_idx').on(table.storeId, table.productId)]
+);
 
 export const orderBumpsRelations = relations(orderBumps, ({ one }) => ({
   store: one(stores, {
@@ -993,28 +1153,36 @@ export const orderBumpsRelations = relations(orderBumps, ({ one }) => ({
 // ============================================================================
 // UPSELL OFFERS TABLE - Post-purchase upsell/downsell offers
 // ============================================================================
-export const upsellOffers = sqliteTable('upsell_offers', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }), // Trigger product
-  offerProductId: integer('offer_product_id').notNull().references(() => products.id, { onDelete: 'cascade' }), // Upsell product
-  type: text('type').$type<'upsell' | 'downsell'>().default('upsell'),
-  headline: text('headline').notNull(), // "Wait! Special Offer!"
-  subheadline: text('subheadline'), // "Add this to your order for just ৳499"
-  description: text('description'),
-  discount: real('discount').default(0), // Percentage off original price
-  displayOrder: integer('display_order').default(0),
-  // Sequence: which offer to show if this is declined
-  nextOfferId: integer('next_offer_id'), // Next upsell/downsell in sequence
-  isActive: integer('is_active', { mode: 'boolean' }).default(true),
-  // Stats
-  views: integer('views').default(0),
-  conversions: integer('conversions').default(0),
-  revenue: real('revenue').default(0),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('upsell_offers_store_product_idx').on(table.storeId, table.productId),
-]);
+export const upsellOffers = sqliteTable(
+  'upsell_offers',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    productId: integer('product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }), // Trigger product
+    offerProductId: integer('offer_product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }), // Upsell product
+    type: text('type').$type<'upsell' | 'downsell'>().default('upsell'),
+    headline: text('headline').notNull(), // "Wait! Special Offer!"
+    subheadline: text('subheadline'), // "Add this to your order for just ৳499"
+    description: text('description'),
+    discount: real('discount').default(0), // Percentage off original price
+    displayOrder: integer('display_order').default(0),
+    // Sequence: which offer to show if this is declined
+    nextOfferId: integer('next_offer_id'), // Next upsell/downsell in sequence
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    // Stats
+    views: integer('views').default(0),
+    conversions: integer('conversions').default(0),
+    revenue: real('revenue').default(0),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('upsell_offers_store_product_idx').on(table.storeId, table.productId)]
+);
 
 export const upsellOffersRelations = relations(upsellOffers, ({ one }) => ({
   store: one(stores, {
@@ -1030,17 +1198,21 @@ export const upsellOffersRelations = relations(upsellOffers, ({ one }) => ({
 // ============================================================================
 // UPSELL TOKENS TABLE - One-click purchase tokens (no re-enter payment)
 // ============================================================================
-export const upsellTokens = sqliteTable('upsell_tokens', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
-  token: text('token').notNull().unique(),
-  offerId: integer('offer_id').references(() => upsellOffers.id),
-  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
-  usedAt: integer('used_at', { mode: 'timestamp' }),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('upsell_tokens_token_idx').on(table.token),
-]);
+export const upsellTokens = sqliteTable(
+  'upsell_tokens',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    orderId: integer('order_id')
+      .notNull()
+      .references(() => orders.id, { onDelete: 'cascade' }),
+    token: text('token').notNull().unique(),
+    offerId: integer('offer_id').references(() => upsellOffers.id),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+    usedAt: integer('used_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('upsell_tokens_token_idx').on(table.token)]
+);
 
 export const upsellTokensRelations = relations(upsellTokens, ({ one }) => ({
   order: one(orders, {
@@ -1056,45 +1228,56 @@ export const upsellTokensRelations = relations(upsellTokens, ({ one }) => ({
 // ============================================================================
 // A/B TESTS TABLE - Split testing for landing pages
 // ============================================================================
-export const abTests = sqliteTable('ab_tests', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  testKey: text('test_key').notNull(),
-  variantA: text('variant_a').notNull(),
-  variantB: text('variant_b').notNull(),
-  trafficSplit: integer('traffic_split').default(50),
-  status: text('status').$type<'active' | 'paused' | 'concluded'>().default('active'),
-  viewsA: integer('views_a').default(0),
-  conversionsA: integer('conversions_a').default(0),
-  viewsB: integer('views_b').default(0),
-  conversionsB: integer('conversions_b').default(0),
-  winner: text('winner'), // 'A' or 'B'
-  startedAt: integer('started_at', { mode: 'timestamp' }),
-  endedAt: integer('ended_at', { mode: 'timestamp' }),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('ab_tests_store_key_idx').on(table.storeId, table.testKey),
-  index('ab_tests_status_idx').on(table.storeId, table.status),
-]);
-
+export const abTests = sqliteTable(
+  'ab_tests',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    testKey: text('test_key').notNull(),
+    variantA: text('variant_a').notNull(),
+    variantB: text('variant_b').notNull(),
+    trafficSplit: integer('traffic_split').default(50),
+    status: text('status').$type<'active' | 'paused' | 'concluded'>().default('active'),
+    viewsA: integer('views_a').default(0),
+    conversionsA: integer('conversions_a').default(0),
+    viewsB: integer('views_b').default(0),
+    conversionsB: integer('conversions_b').default(0),
+    winner: text('winner'), // 'A' or 'B'
+    startedAt: integer('started_at', { mode: 'timestamp' }),
+    endedAt: integer('ended_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('ab_tests_store_key_idx').on(table.storeId, table.testKey),
+    index('ab_tests_status_idx').on(table.storeId, table.status),
+  ]
+);
 
 // ============================================================================
 // PUSH SUBSCRIPTIONS TABLE - Web Push Notifications
 // ============================================================================
-export const pushSubscriptions = sqliteTable('push_subscriptions', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  userId: integer('user_id').references(() => users.id), // Optional: link to specific user (e.g. Admin)
-  endpoint: text('endpoint').notNull().unique(),
-  p256dh: text('p256dh').notNull(),
-  auth: text('auth').notNull(),
-  userAgent: text('user_agent'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('push_subscriptions_store_id_idx').on(table.storeId),
-  index('push_subscriptions_user_id_idx').on(table.userId),
-]);
+export const pushSubscriptions = sqliteTable(
+  'push_subscriptions',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    userId: integer('user_id').references(() => users.id), // Optional: link to specific user (e.g. Admin)
+    endpoint: text('endpoint').notNull().unique(),
+    p256dh: text('p256dh').notNull(),
+    auth: text('auth').notNull(),
+    userAgent: text('user_agent'),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('push_subscriptions_store_id_idx').on(table.storeId),
+    index('push_subscriptions_user_id_idx').on(table.userId),
+  ]
+);
 
 export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one }) => ({
   store: one(stores, {
@@ -1107,27 +1290,27 @@ export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one })
   }),
 }));
 
-
-
-
-
 // ============================================================================
 // A/B TEST VARIANTS TABLE - Individual test variants
 // ============================================================================
-export const abTestVariants = sqliteTable('ab_test_variants', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  testId: integer('test_id').notNull().references(() => abTests.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(), // "Control", "Variant A", "Variant B"
-  landingConfig: text('landing_config'), // JSON config for this variant
-  trafficWeight: integer('traffic_weight').default(50), // Percentage of traffic (0-100)
-  // Stats
-  visitors: integer('visitors').default(0),
-  conversions: integer('conversions').default(0),
-  revenue: real('revenue').default(0),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('ab_test_variants_test_idx').on(table.testId),
-]);
+export const abTestVariants = sqliteTable(
+  'ab_test_variants',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    testId: integer('test_id')
+      .notNull()
+      .references(() => abTests.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(), // "Control", "Variant A", "Variant B"
+    landingConfig: text('landing_config'), // JSON config for this variant
+    trafficWeight: integer('traffic_weight').default(50), // Percentage of traffic (0-100)
+    // Stats
+    visitors: integer('visitors').default(0),
+    conversions: integer('conversions').default(0),
+    revenue: real('revenue').default(0),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('ab_test_variants_test_idx').on(table.testId)]
+);
 
 export const abTestVariantsRelations = relations(abTestVariants, ({ one, many }) => ({
   test: one(abTests, {
@@ -1140,17 +1323,23 @@ export const abTestVariantsRelations = relations(abTestVariants, ({ one, many })
 // ============================================================================
 // A/B TEST ASSIGNMENTS TABLE - Visitor to variant assignments
 // ============================================================================
-export const abTestAssignments = sqliteTable('ab_test_assignments', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  testId: integer('test_id').notNull().references(() => abTests.id, { onDelete: 'cascade' }),
-  variantId: integer('variant_id').notNull().references(() => abTestVariants.id, { onDelete: 'cascade' }),
-  visitorId: text('visitor_id').notNull(), // Cookie-based visitor ID
-  assignedAt: integer('assigned_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  convertedAt: integer('converted_at', { mode: 'timestamp' }),
-  orderAmount: real('order_amount'),
-}, (table) => [
-  index('ab_test_assignments_visitor_idx').on(table.testId, table.visitorId),
-]);
+export const abTestAssignments = sqliteTable(
+  'ab_test_assignments',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    testId: integer('test_id')
+      .notNull()
+      .references(() => abTests.id, { onDelete: 'cascade' }),
+    variantId: integer('variant_id')
+      .notNull()
+      .references(() => abTestVariants.id, { onDelete: 'cascade' }),
+    visitorId: text('visitor_id').notNull(), // Cookie-based visitor ID
+    assignedAt: integer('assigned_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    convertedAt: integer('converted_at', { mode: 'timestamp' }),
+    orderAmount: real('order_amount'),
+  },
+  (table) => [index('ab_test_assignments_visitor_idx').on(table.testId, table.visitorId)]
+);
 
 export const abTestAssignmentsRelations = relations(abTestAssignments, ({ one }) => ({
   test: one(abTests, {
@@ -1166,21 +1355,27 @@ export const abTestAssignmentsRelations = relations(abTestAssignments, ({ one })
 // ============================================================================
 // EMAIL AUTOMATIONS TABLE - Trigger-based email workflows
 // ============================================================================
-export const emailAutomations = sqliteTable('email_automations', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  trigger: text('trigger').$type<'order_placed' | 'order_delivered' | 'cart_abandoned' | 'signup'>().notNull(),
-  isActive: integer('is_active', { mode: 'boolean' }).default(true),
-  // Stats
-  totalSent: integer('total_sent').default(0),
-  totalOpened: integer('total_opened').default(0),
-  totalClicked: integer('total_clicked').default(0),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('email_automations_store_idx').on(table.storeId),
-]);
+export const emailAutomations = sqliteTable(
+  'email_automations',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    trigger: text('trigger')
+      .$type<'order_placed' | 'order_delivered' | 'cart_abandoned' | 'signup'>()
+      .notNull(),
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    // Stats
+    totalSent: integer('total_sent').default(0),
+    totalOpened: integer('total_opened').default(0),
+    totalClicked: integer('total_clicked').default(0),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('email_automations_store_idx').on(table.storeId)]
+);
 
 export const emailAutomationsRelations = relations(emailAutomations, ({ one, many }) => ({
   store: one(stores, {
@@ -1193,22 +1388,26 @@ export const emailAutomationsRelations = relations(emailAutomations, ({ one, man
 // ============================================================================
 // EMAIL AUTOMATION STEPS TABLE - Individual steps in automation
 // ============================================================================
-export const emailAutomationSteps = sqliteTable('email_automation_steps', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  automationId: integer('automation_id').notNull().references(() => emailAutomations.id, { onDelete: 'cascade' }),
-  delayMinutes: integer('delay_minutes').default(0), // 0 = immediate, 60 = 1 hour, 1440 = 1 day
-  subject: text('subject').notNull(),
-  previewText: text('preview_text'),
-  content: text('content').notNull(), // HTML template with variables
-  stepOrder: integer('step_order').default(0),
-  // Stats per step
-  sentCount: integer('sent_count').default(0),
-  openCount: integer('open_count').default(0),
-  clickCount: integer('click_count').default(0),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('email_automation_steps_automation_idx').on(table.automationId),
-]);
+export const emailAutomationSteps = sqliteTable(
+  'email_automation_steps',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    automationId: integer('automation_id')
+      .notNull()
+      .references(() => emailAutomations.id, { onDelete: 'cascade' }),
+    delayMinutes: integer('delay_minutes').default(0), // 0 = immediate, 60 = 1 hour, 1440 = 1 day
+    subject: text('subject').notNull(),
+    previewText: text('preview_text'),
+    content: text('content').notNull(), // HTML template with variables
+    stepOrder: integer('step_order').default(0),
+    // Stats per step
+    sentCount: integer('sent_count').default(0),
+    openCount: integer('open_count').default(0),
+    clickCount: integer('click_count').default(0),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('email_automation_steps_automation_idx').on(table.automationId)]
+);
 
 export const emailAutomationStepsRelations = relations(emailAutomationSteps, ({ one }) => ({
   automation: one(emailAutomations, {
@@ -1220,24 +1419,30 @@ export const emailAutomationStepsRelations = relations(emailAutomationSteps, ({ 
 // ============================================================================
 // EMAIL QUEUE TABLE - Scheduled emails to be sent
 // ============================================================================
-export const emailQueue = sqliteTable('email_queue', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  stepId: integer('step_id').references(() => emailAutomationSteps.id, { onDelete: 'set null' }),
-  recipientEmail: text('recipient_email').notNull(),
-  recipientName: text('recipient_name'),
-  subject: text('subject').notNull(),
-  content: text('content').notNull(), // Rendered HTML
-  scheduledAt: integer('scheduled_at', { mode: 'timestamp' }).notNull(),
-  sentAt: integer('sent_at', { mode: 'timestamp' }),
-  status: text('status').$type<'pending' | 'sent' | 'failed'>().default('pending'),
-  errorMessage: text('error_message'),
-  metadata: text('metadata'), // JSON with order info, customer name, etc.
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('email_queue_scheduled_idx').on(table.scheduledAt, table.status),
-  index('email_queue_store_idx').on(table.storeId),
-]);
+export const emailQueue = sqliteTable(
+  'email_queue',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    stepId: integer('step_id').references(() => emailAutomationSteps.id, { onDelete: 'set null' }),
+    recipientEmail: text('recipient_email').notNull(),
+    recipientName: text('recipient_name'),
+    subject: text('subject').notNull(),
+    content: text('content').notNull(), // Rendered HTML
+    scheduledAt: integer('scheduled_at', { mode: 'timestamp' }).notNull(),
+    sentAt: integer('sent_at', { mode: 'timestamp' }),
+    status: text('status').$type<'pending' | 'sent' | 'failed'>().default('pending'),
+    errorMessage: text('error_message'),
+    metadata: text('metadata'), // JSON with order info, customer name, etc.
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('email_queue_scheduled_idx').on(table.scheduledAt, table.status),
+    index('email_queue_store_idx').on(table.storeId),
+  ]
+);
 
 export const emailQueueRelations = relations(emailQueue, ({ one }) => ({
   store: one(stores, {
@@ -1253,23 +1458,29 @@ export const emailQueueRelations = relations(emailQueue, ({ one }) => ({
 // ============================================================================
 // PAGE VIEWS TABLE - Visitor analytics for Super Admin
 // ============================================================================
-export const pageViews = sqliteTable('page_views', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  path: text('path').notNull(), // Page path visited
-  visitorId: text('visitor_id').notNull(), // Cookie-based anonymous ID
-  ipAddress: text('ip_address'),
-  userAgent: text('user_agent'),
-  referrer: text('referrer'), // Where visitor came from
-  country: text('country'), // From IP geolocation
-  city: text('city'),
-  deviceType: text('device_type').$type<'mobile' | 'desktop' | 'tablet'>(), // Parsed from user-agent
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('page_views_store_idx').on(table.storeId),
-  index('page_views_date_idx').on(table.storeId, table.createdAt),
-  index('page_views_visitor_idx').on(table.storeId, table.visitorId),
-]);
+export const pageViews = sqliteTable(
+  'page_views',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    path: text('path').notNull(), // Page path visited
+    visitorId: text('visitor_id').notNull(), // Cookie-based anonymous ID
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+    referrer: text('referrer'), // Where visitor came from
+    country: text('country'), // From IP geolocation
+    city: text('city'),
+    deviceType: text('device_type').$type<'mobile' | 'desktop' | 'tablet'>(), // Parsed from user-agent
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('page_views_store_idx').on(table.storeId),
+    index('page_views_date_idx').on(table.storeId, table.createdAt),
+    index('page_views_visitor_idx').on(table.storeId, table.visitorId),
+  ]
+);
 
 export const pageViewsRelations = relations(pageViews, ({ one }) => ({
   store: one(stores, {
@@ -1281,22 +1492,30 @@ export const pageViewsRelations = relations(pageViews, ({ one }) => ({
 // ============================================================================
 // ADMIN AUDIT LOGS TABLE - Track all Super Admin actions
 // ============================================================================
-export const adminAuditLogs = sqliteTable('admin_audit_logs', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  actorId: integer('actor_id').notNull().references(() => users.id), // Who performed the action
-  action: text('action').notNull(), // e.g., "update_settings", "delete_user"
-  resource: text('resource').notNull(), // e.g., "settings", "users"
-  resourceId: text('resource_id'), // ID of the affected resource
-  diff: text('diff'), // JSON object highlighting changes {before, after}
-  ipAddress: text('ip_address'),
-  userAgent: text('user_agent'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('admin_audit_logs_store_idx').on(table.storeId),
-  index('admin_audit_logs_actor_idx').on(table.actorId),
-  index('admin_audit_logs_action_idx').on(table.storeId, table.action),
-]);
+export const adminAuditLogs = sqliteTable(
+  'admin_audit_logs',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    actorId: integer('actor_id')
+      .notNull()
+      .references(() => users.id), // Who performed the action
+    action: text('action').notNull(), // e.g., "update_settings", "delete_user"
+    resource: text('resource').notNull(), // e.g., "settings", "users"
+    resourceId: text('resource_id'), // ID of the affected resource
+    diff: text('diff'), // JSON object highlighting changes {before, after}
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('admin_audit_logs_store_idx').on(table.storeId),
+    index('admin_audit_logs_actor_idx').on(table.actorId),
+    index('admin_audit_logs_action_idx').on(table.storeId, table.action),
+  ]
+);
 
 export const adminAuditLogsRelations = relations(adminAuditLogs, ({ one }) => ({
   store: one(stores, {
@@ -1312,17 +1531,21 @@ export const adminAuditLogsRelations = relations(adminAuditLogs, ({ one }) => ({
 // ============================================================================
 // ADMIN ROLES TABLE - Role-Based Access Control for Admin Team
 // ============================================================================
-export const adminRoles = sqliteTable('admin_roles', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  role: text('role').notNull().$type<'super_admin' | 'support' | 'finance' | 'developer'>(),
-  permissions: text('permissions'), // JSON: { canSuspend, canDelete, canBilling, canImpersonate }
-  createdBy: integer('created_by').references(() => users.id),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('admin_roles_user_idx').on(table.userId),
-]);
+export const adminRoles = sqliteTable(
+  'admin_roles',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    role: text('role').notNull().$type<'super_admin' | 'support' | 'finance' | 'developer'>(),
+    permissions: text('permissions'), // JSON: { canSuspend, canDelete, canBilling, canImpersonate }
+    createdBy: integer('created_by').references(() => users.id),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('admin_roles_user_idx').on(table.userId)]
+);
 
 export const adminRolesRelations = relations(adminRoles, ({ one }) => ({
   user: one(users, {
@@ -1338,31 +1561,39 @@ export const adminRolesRelations = relations(adminRoles, ({ one }) => ({
 // ============================================================================
 // STORE TAGS TABLE - Tagging system for stores (VIP, Problematic, etc.)
 // ============================================================================
-export const storeTags = sqliteTable('store_tags', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  tag: text('tag').notNull(), // VIP, Problematic, HighValue, Churning, etc.
-  note: text('note'), // Admin note about this tag
-  createdBy: integer('created_by').references(() => users.id),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('store_tags_store_idx').on(table.storeId),
-  index('store_tags_tag_idx').on(table.tag),
-]);
+export const storeTags = sqliteTable(
+  'store_tags',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    tag: text('tag').notNull(), // VIP, Problematic, HighValue, Churning, etc.
+    note: text('note'), // Admin note about this tag
+    createdBy: integer('created_by').references(() => users.id),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('store_tags_store_idx').on(table.storeId),
+    index('store_tags_tag_idx').on(table.tag),
+  ]
+);
 
 // ============================================================================
 // MARKETING LEADS TABLE - Platform-level email collection (homepage)
 // ============================================================================
-export const marketingLeads = sqliteTable('marketing_leads', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  email: text('email').notNull().unique(),
-  source: text('source').default('homepage'), // 'homepage', 'pricing', 'footer'
-  ipAddress: text('ip_address'),
-  userAgent: text('user_agent'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('marketing_leads_email_idx').on(table.email),
-]);
+export const marketingLeads = sqliteTable(
+  'marketing_leads',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    email: text('email').notNull().unique(),
+    source: text('source').default('homepage'), // 'homepage', 'pricing', 'footer'
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('marketing_leads_email_idx').on(table.email)]
+);
 
 // ============================================================================
 // TYPE EXPORTS - For use throughout the application
@@ -1448,7 +1679,9 @@ export type NewPasswordReset = typeof passwordResets.$inferInsert;
 // ============================================================================
 export const payments = sqliteTable('payments', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id),
+  storeId: integer('store_id')
+    .notNull()
+    .references(() => stores.id),
   amount: integer('amount').notNull(),
   currency: text('currency').default('BDT'),
   status: text('status').$type<'pending' | 'paid' | 'failed' | 'refunded'>().default('pending'),
@@ -1491,7 +1724,9 @@ export type NewSystemLog = typeof systemLogs.$inferInsert;
 // ============================================================================
 export const apiKeys = sqliteTable('api_keys', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id),
+  storeId: integer('store_id')
+    .notNull()
+    .references(() => stores.id),
   name: text('name').notNull(), // e.g. "Production Key"
   keyPrefix: text('key_prefix').notNull(), // First 8 chars for display
   keyHash: text('key_hash').notNull(), // SHA-256 hash of full key
@@ -1529,39 +1764,55 @@ export const apps = sqliteTable('apps', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });
 
-export const appInstallations = sqliteTable('app_installations', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  appId: integer('app_id').notNull().references(() => apps.id, { onDelete: 'cascade' }),
-  accessToken: text('access_token').notNull(),
-  refreshToken: text('refresh_token'),
-  scopes: text('scopes'), // Granted scopes
-  status: text('status').$type<'active' | 'suspended'>().default('active'),
-  installedAt: integer('installed_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('app_installations_store_id_idx').on(table.storeId),
-  index('app_installations_app_id_idx').on(table.appId),
-]);
+export const appInstallations = sqliteTable(
+  'app_installations',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    appId: integer('app_id')
+      .notNull()
+      .references(() => apps.id, { onDelete: 'cascade' }),
+    accessToken: text('access_token').notNull(),
+    refreshToken: text('refresh_token'),
+    scopes: text('scopes'), // Granted scopes
+    status: text('status').$type<'active' | 'suspended'>().default('active'),
+    installedAt: integer('installed_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('app_installations_store_id_idx').on(table.storeId),
+    index('app_installations_app_id_idx').on(table.appId),
+  ]
+);
 
 // ============================================================================
 // WEBHOOKS
 // ============================================================================
-export const webhooks = sqliteTable('webhooks', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  appInstallationId: integer('app_installation_id').references(() => appInstallations.id, { onDelete: 'cascade' }), // Nullable for manual webhooks
-  topic: text('topic').notNull(), // 'orders/create', 'products/update'
-  url: text('url').notNull(),
-  secret: text('secret'), // HMAC secret
-  format: text('format').$type<'json' | 'xml'>().default('json'),
-  isActive: integer('is_active', { mode: 'boolean' }).default(true),
-  failureCount: integer('failure_count').default(0), // Keep this field
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('webhooks_store_id_idx').on(table.storeId),
-  index('webhooks_topic_idx').on(table.storeId, table.topic),
-]);
+export const webhooks = sqliteTable(
+  'webhooks',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    appInstallationId: integer('app_installation_id').references(() => appInstallations.id, {
+      onDelete: 'cascade',
+    }), // Nullable for manual webhooks
+    topic: text('topic').notNull(), // 'orders/create', 'products/update'
+    url: text('url').notNull(),
+    secret: text('secret'), // HMAC secret
+    format: text('format').$type<'json' | 'xml'>().default('json'),
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    failureCount: integer('failure_count').default(0), // Keep this field
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('webhooks_store_id_idx').on(table.storeId),
+    index('webhooks_topic_idx').on(table.storeId, table.topic),
+  ]
+);
 
 // Relations
 export const appsRelations = relations(apps, ({ many }) => ({
@@ -1576,7 +1827,10 @@ export const appInstallationsRelations = relations(appInstallations, ({ one, man
 
 export const webhooksRelations = relations(webhooks, ({ one }) => ({
   store: one(stores, { fields: [webhooks.storeId], references: [stores.id] }),
-  appInstallation: one(appInstallations, { fields: [webhooks.appInstallationId], references: [appInstallations.id] }),
+  appInstallation: one(appInstallations, {
+    fields: [webhooks.appInstallationId],
+    references: [appInstallations.id],
+  }),
 }));
 
 export type App = typeof apps.$inferSelect;
@@ -1588,26 +1842,30 @@ export type NewAppInstallation = typeof appInstallations.$inferInsert;
 export type Webhook = typeof webhooks.$inferSelect;
 export type NewWebhook = typeof webhooks.$inferInsert;
 
-
-
 // ============================================================================
 // WEBHOOK DELIVERY LOGS - Track delivery attempts
 // ============================================================================
-export const webhookDeliveryLogs = sqliteTable('webhook_delivery_logs', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  webhookId: integer('webhook_id').notNull().references(() => webhooks.id, { onDelete: 'cascade' }),
-  eventType: text('event_type').notNull(), // order.created, order.updated, etc.
-  payload: text('payload').notNull(), // JSON payload sent
-  statusCode: integer('status_code'), // HTTP response code
-  responseBody: text('response_body'), // Response from endpoint
-  success: integer('success', { mode: 'boolean' }).default(false),
-  errorMessage: text('error_message'),
-  attemptCount: integer('attempt_count').default(1),
-  deliveredAt: integer('delivered_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('webhook_logs_webhook_idx').on(table.webhookId),
-  index('webhook_logs_event_idx').on(table.eventType),
-]);
+export const webhookDeliveryLogs = sqliteTable(
+  'webhook_delivery_logs',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    webhookId: integer('webhook_id')
+      .notNull()
+      .references(() => webhooks.id, { onDelete: 'cascade' }),
+    eventType: text('event_type').notNull(), // order.created, order.updated, etc.
+    payload: text('payload').notNull(), // JSON payload sent
+    statusCode: integer('status_code'), // HTTP response code
+    responseBody: text('response_body'), // Response from endpoint
+    success: integer('success', { mode: 'boolean' }).default(false),
+    errorMessage: text('error_message'),
+    attemptCount: integer('attempt_count').default(1),
+    deliveredAt: integer('delivered_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('webhook_logs_webhook_idx').on(table.webhookId),
+    index('webhook_logs_event_idx').on(table.eventType),
+  ]
+);
 
 export const webhookDeliveryLogsRelations = relations(webhookDeliveryLogs, ({ one }) => ({
   webhook: one(webhooks, {
@@ -1631,17 +1889,23 @@ export const visitors = sqliteTable('visitors', {
 // ============================================================================
 // PASSWORD RESETS TABLE - Forgot Password Tokens
 // ============================================================================
-export const passwordResets = sqliteTable('password_resets', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  token: text('token').notNull().unique(), // Hashed token for security
-  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
-  usedAt: integer('used_at', { mode: 'timestamp' }),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('password_resets_token_idx').on(table.token),
-  index('password_resets_user_idx').on(table.userId),
-]);
+export const passwordResets = sqliteTable(
+  'password_resets',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    token: text('token').notNull().unique(), // Hashed token for security
+    expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+    usedAt: integer('used_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('password_resets_token_idx').on(table.token),
+    index('password_resets_user_idx').on(table.userId),
+  ]
+);
 
 export const passwordResetsRelations = relations(passwordResets, ({ one }) => ({
   user: one(users, {
@@ -1650,15 +1914,19 @@ export const passwordResetsRelations = relations(passwordResets, ({ one }) => ({
   }),
 }));
 
-export const visitorMessages = sqliteTable('visitor_messages', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  visitorId: integer('visitor_id').notNull().references(() => visitors.id, { onDelete: 'cascade' }),
-  role: text('role').$type<'user' | 'assistant'>().notNull(),
-  content: text('content').notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('visitor_messages_visitor_id_idx').on(table.visitorId),
-]);
+export const visitorMessages = sqliteTable(
+  'visitor_messages',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    visitorId: integer('visitor_id')
+      .notNull()
+      .references(() => visitors.id, { onDelete: 'cascade' }),
+    role: text('role').$type<'user' | 'assistant'>().notNull(),
+    content: text('content').notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('visitor_messages_visitor_id_idx').on(table.visitorId)]
+);
 
 export const visitorsRelations = relations(visitors, ({ many }) => ({
   messages: many(visitorMessages),
@@ -1698,30 +1966,38 @@ export const marketplaceThemesRelations = relations(marketplaceThemes, ({ one })
 // ============================================================================
 // STORE THEMES TABLE - User's installed/purchased theme collection
 // ============================================================================
-export const storeThemes = sqliteTable('store_themes', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+export const storeThemes = sqliteTable(
+  'store_themes',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
 
-  // Source: either a system template ID or a marketplace theme ID
-  templateId: text('template_id'), // e.g., 'luxe-boutique', 'tech-modern' (from STORE_TEMPLATES)
-  marketplaceThemeId: integer('marketplace_theme_id').references(() => marketplaceThemes.id, { onDelete: 'set null' }),
+    // Source: either a system template ID or a marketplace theme ID
+    templateId: text('template_id'), // e.g., 'luxe-boutique', 'tech-modern' (from STORE_TEMPLATES)
+    marketplaceThemeId: integer('marketplace_theme_id').references(() => marketplaceThemes.id, {
+      onDelete: 'set null',
+    }),
 
-  // Saved config snapshot (allows customization without losing original)
-  name: text('name').notNull(), // User's name for this theme (e.g., "My Custom Luxe")
-  config: text('config').notNull(), // JSON: Full ThemeConfig snapshot
-  thumbnail: text('thumbnail'), // Custom screenshot or original thumbnail
+    // Saved config snapshot (allows customization without losing original)
+    name: text('name').notNull(), // User's name for this theme (e.g., "My Custom Luxe")
+    config: text('config').notNull(), // JSON: Full ThemeConfig snapshot
+    thumbnail: text('thumbnail'), // Custom screenshot or original thumbnail
 
-  // Status
-  isActive: integer('is_active', { mode: 'boolean' }).default(false), // Currently applied theme
+    // Status
+    isActive: integer('is_active', { mode: 'boolean' }).default(false), // Currently applied theme
 
-  // Timestamps
-  installedAt: integer('installed_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('store_themes_store_id_idx').on(table.storeId),
-  index('store_themes_active_idx').on(table.storeId, table.isActive),
-]);
+    // Timestamps
+    installedAt: integer('installed_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('store_themes_store_id_idx').on(table.storeId),
+    index('store_themes_active_idx').on(table.storeId, table.isActive),
+  ]
+);
 
 export const storeThemesRelations = relations(storeThemes, ({ one }) => ({
   store: one(stores, {
@@ -1739,7 +2015,9 @@ export const storeThemesRelations = relations(storeThemes, ({ one }) => ({
 // ============================================================================
 export const creditUsageLogs = sqliteTable('credit_usage_logs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id),
+  storeId: integer('store_id')
+    .notNull()
+    .references(() => stores.id),
   amount: integer('amount').notNull(), // Positive for add, Negative for deduct
   type: text('type').$type<'purchase' | 'usage' | 'bonus' | 'refund' | 'adjustment'>().notNull(),
   description: text('description'), // E.g. "Generated Landing Page", "Purchased Starter Pack"
@@ -1757,34 +2035,38 @@ export const creditUsageLogsRelations = relations(creditUsageLogs, ({ one }) => 
 // ============================================================================
 // MERCHANT AI AGENTS TABLE - Store's AI chatbot configuration
 // ============================================================================
-export const agents = sqliteTable('agents', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(), // Agent display name e.g. "সাহায্যকারী বট"
+export const agents = sqliteTable(
+  'agents',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(), // Agent display name e.g. "সাহায্যকারী বট"
 
-  // AI Configuration
-  agentSettings: text('agent_settings'), // JSON: AgentConfig from agent.prompts.ts
-  systemPrompt: text('system_prompt'), // Custom system prompt override
-  tone: text('tone').$type<'friendly' | 'formal' | 'urgent'>().default('friendly'),
-  language: text('language').$type<'bn' | 'en' | 'banglish'>().default('bn'),
-  objectives: text('objectives'), // JSON array: ['answer_only', 'lead_gen', 'order']
+    // AI Configuration
+    agentSettings: text('agent_settings'), // JSON: AgentConfig from agent.prompts.ts
+    systemPrompt: text('system_prompt'), // Custom system prompt override
+    tone: text('tone').$type<'friendly' | 'formal' | 'urgent'>().default('friendly'),
+    language: text('language').$type<'bn' | 'en' | 'banglish'>().default('bn'),
+    objectives: text('objectives'), // JSON array: ['answer_only', 'lead_gen', 'order']
 
-  // RAG Knowledge Base
-  knowledgeBaseId: text('knowledge_base_id'), // Vectorize namespace
+    // RAG Knowledge Base
+    knowledgeBaseId: text('knowledge_base_id'), // Vectorize namespace
 
-  // Channel Settings
-  enabledChannels: text('enabled_channels'), // JSON: ['web', 'whatsapp', 'messenger']
-  whatsappPhoneId: text('whatsapp_phone_id'), // WhatsApp Business Phone ID
-  messengerPageId: text('messenger_page_id'), // Facebook Page ID
+    // Channel Settings
+    enabledChannels: text('enabled_channels'), // JSON: ['web', 'whatsapp', 'messenger']
+    whatsappPhoneId: text('whatsapp_phone_id'), // WhatsApp Business Phone ID
+    messengerPageId: text('messenger_page_id'), // Facebook Page ID
 
-  // Status
-  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    // Status
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
 
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('agents_store_id_idx').on(table.storeId),
-]);
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('agents_store_id_idx').on(table.storeId)]
+);
 
 export const agentsRelations = relations(agents, ({ one, many }) => ({
   store: one(stores, {
@@ -1797,31 +2079,39 @@ export const agentsRelations = relations(agents, ({ one, many }) => ({
 // ============================================================================
 // AI CONVERSATIONS TABLE - Chat sessions with customers
 // ============================================================================
-export const aiConversations = sqliteTable('ai_conversations', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  agentId: integer('agent_id').notNull().references(() => agents.id, { onDelete: 'cascade' }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+export const aiConversations = sqliteTable(
+  'ai_conversations',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    agentId: integer('agent_id')
+      .notNull()
+      .references(() => agents.id, { onDelete: 'cascade' }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
 
-  // Customer Identification
-  customerId: integer('customer_id').references(() => customers.id, { onDelete: 'set null' }),
-  visitorId: text('visitor_id'), // Anonymous visitor tracking
-  customerPhone: text('customer_phone'),
-  customerName: text('customer_name'),
+    // Customer Identification
+    customerId: integer('customer_id').references(() => customers.id, { onDelete: 'set null' }),
+    visitorId: text('visitor_id'), // Anonymous visitor tracking
+    customerPhone: text('customer_phone'),
+    customerName: text('customer_name'),
 
-  // Channel
-  channel: text('channel').$type<'web' | 'whatsapp' | 'messenger'>().default('web'),
-  externalId: text('external_id'), // WhatsApp/Messenger conversation ID
+    // Channel
+    channel: text('channel').$type<'web' | 'whatsapp' | 'messenger'>().default('web'),
+    externalId: text('external_id'), // WhatsApp/Messenger conversation ID
 
-  // Status
-  status: text('status').$type<'active' | 'closed' | 'transferred'>().default('active'),
-  lastMessageAt: integer('last_message_at', { mode: 'timestamp' }),
+    // Status
+    status: text('status').$type<'active' | 'closed' | 'transferred'>().default('active'),
+    lastMessageAt: integer('last_message_at', { mode: 'timestamp' }),
 
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('ai_conversations_agent_idx').on(table.agentId),
-  index('ai_conversations_store_idx').on(table.storeId),
-  index('ai_conversations_customer_idx').on(table.customerId),
-]);
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('ai_conversations_agent_idx').on(table.agentId),
+    index('ai_conversations_store_idx').on(table.storeId),
+    index('ai_conversations_customer_idx').on(table.customerId),
+  ]
+);
 
 export const aiConversationsRelations = relations(aiConversations, ({ one, many }) => ({
   agent: one(agents, {
@@ -1843,26 +2133,30 @@ export const aiConversationsRelations = relations(aiConversations, ({ one, many 
 // ============================================================================
 // MESSAGES TABLE - Individual chat messages
 // ============================================================================
-export const messages = sqliteTable('messages', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  conversationId: integer('conversation_id').notNull().references(() => aiConversations.id, { onDelete: 'cascade' }),
+export const messages = sqliteTable(
+  'messages',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    conversationId: integer('conversation_id')
+      .notNull()
+      .references(() => aiConversations.id, { onDelete: 'cascade' }),
 
-  role: text('role').$type<'user' | 'assistant' | 'system'>().notNull(),
-  content: text('content').notNull(),
+    role: text('role').$type<'user' | 'assistant' | 'system'>().notNull(),
+    content: text('content').notNull(),
 
-  // Function calls (if AI called a tool)
-  functionName: text('function_name'),
-  functionArgs: text('function_args'), // JSON
-  functionResult: text('function_result'),
+    // Function calls (if AI called a tool)
+    functionName: text('function_name'),
+    functionArgs: text('function_args'), // JSON
+    functionResult: text('function_result'),
 
-  // Metadata
-  tokensUsed: integer('tokens_used'),
-  creditsUsed: integer('credits_used').default(1), // Each message costs 1 credit
+    // Metadata
+    tokensUsed: integer('tokens_used'),
+    creditsUsed: integer('credits_used').default(1), // Each message costs 1 credit
 
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('messages_conversation_idx').on(table.conversationId),
-]);
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('messages_conversation_idx').on(table.conversationId)]
+);
 
 export const messagesRelations = relations(messages, ({ one }) => ({
   conversation: one(aiConversations, {
@@ -1874,17 +2168,21 @@ export const messagesRelations = relations(messages, ({ one }) => ({
 // ============================================================================
 // LEADS DATA TABLE - Information captured by AI during conversations
 // ============================================================================
-export const leadsData = sqliteTable('leads_data', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  conversationId: integer('conversation_id').notNull().references(() => aiConversations.id, { onDelete: 'cascade' }),
+export const leadsData = sqliteTable(
+  'leads_data',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    conversationId: integer('conversation_id')
+      .notNull()
+      .references(() => aiConversations.id, { onDelete: 'cascade' }),
 
-  key: text('key').notNull(), // 'phone', 'name', 'budget', 'product_interest'
-  value: text('value').notNull(),
+    key: text('key').notNull(), // 'phone', 'name', 'budget', 'product_interest'
+    value: text('value').notNull(),
 
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('leads_data_conversation_idx').on(table.conversationId),
-]);
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('leads_data_conversation_idx').on(table.conversationId)]
+);
 
 export const leadsDataRelations = relations(leadsData, ({ one }) => ({
   conversation: one(aiConversations, {
@@ -1893,26 +2191,43 @@ export const leadsDataRelations = relations(leadsData, ({ one }) => ({
   }),
 }));
 
-
 // ============================================================================
 // LOYALTY TRANSACTIONS - History of points earned/redeemed
 // ============================================================================
-export const loyaltyTransactions = sqliteTable('loyalty_transactions', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  customerId: integer('customer_id').notNull().references(() => customers.id, { onDelete: 'cascade' }),
+export const loyaltyTransactions = sqliteTable(
+  'loyalty_transactions',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    customerId: integer('customer_id')
+      .notNull()
+      .references(() => customers.id, { onDelete: 'cascade' }),
 
-  points: integer('points').notNull(), // Positive = Earned, Negative = Redeemed
-  type: text('type').$type<'purchase' | 'referral' | 'signup' | 'redemption' | 'manual_adjustment' | 'tier_bonus' | 'review_reward'>().notNull(),
-  referenceId: text('reference_id'), // Link to order_id or other entity
-  description: text('description'), // "Order #1234", "Referral Bonus"
+    points: integer('points').notNull(), // Positive = Earned, Negative = Redeemed
+    type: text('type')
+      .$type<
+        | 'purchase'
+        | 'referral'
+        | 'signup'
+        | 'redemption'
+        | 'manual_adjustment'
+        | 'tier_bonus'
+        | 'review_reward'
+      >()
+      .notNull(),
+    referenceId: text('reference_id'), // Link to order_id or other entity
+    description: text('description'), // "Order #1234", "Referral Bonus"
 
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('loyalty_tx_customer_idx').on(table.customerId),
-  index('loyalty_tx_store_idx').on(table.storeId),
-  index('loyalty_tx_type_idx').on(table.storeId, table.type),
-]);
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('loyalty_tx_customer_idx').on(table.customerId),
+    index('loyalty_tx_store_idx').on(table.storeId),
+    index('loyalty_tx_type_idx').on(table.storeId, table.type),
+  ]
+);
 
 export const loyaltyTransactionsRelations = relations(loyaltyTransactions, ({ one }) => ({
   store: one(stores, {
@@ -1928,21 +2243,28 @@ export const loyaltyTransactionsRelations = relations(loyaltyTransactions, ({ on
 // A/B TESTS TABLE - Split testing framework
 // ============================================================================
 
-
 // ============================================================================
 // PRODUCT RECOMMENDATIONS CACHE TABLE - Pre-calculated recommendations
 // ============================================================================
-export const productRecommendations = sqliteTable('product_recommendations', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  sourceProductId: integer('source_product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
-  recommendedProductId: integer('recommended_product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
-  score: real('score').default(0), // Relevance score
-  reason: text('reason').default('similar_category'), // 'bought_together', 'similar_category'
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('prod_recs_source_idx').on(table.storeId, table.sourceProductId),
-]);
+export const productRecommendations = sqliteTable(
+  'product_recommendations',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    sourceProductId: integer('source_product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    recommendedProductId: integer('recommended_product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    score: real('score').default(0), // Relevance score
+    reason: text('reason').default('similar_category'), // 'bought_together', 'similar_category'
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('prod_recs_source_idx').on(table.storeId, table.sourceProductId)]
+);
 
 export const productRecommendationsRelations = relations(productRecommendations, ({ one }) => ({
   store: one(stores, {
@@ -1962,39 +2284,47 @@ export const productRecommendationsRelations = relations(productRecommendations,
 // ============================================================================
 // CACHE STORE - Performance critical key-value storage
 // ============================================================================
-export const cacheStore = sqliteTable('cache_store', {
-  key: text('key').primaryKey(),
-  value: text('value').notNull(),
-  expiresAt: integer('expires_at').notNull(),
-}, (table) => [
-  index('idx_cache_expires').on(table.expiresAt),
-]);
+export const cacheStore = sqliteTable(
+  'cache_store',
+  {
+    key: text('key').primaryKey(),
+    value: text('value').notNull(),
+    expiresAt: integer('expires_at').notNull(),
+  },
+  (table) => [index('idx_cache_expires').on(table.expiresAt)]
+);
 
 // ============================================================================
 // AI CACHE - AI generated responses cache
 // ============================================================================
-export const aiCache = sqliteTable('ai_cache', {
-  key: text('key').primaryKey(),
-  response: text('response').notNull(),
-  expiresAt: integer('expires_at').notNull(),
-}, (table) => [
-  index('idx_ai_cache_expires').on(table.expiresAt),
-]);
+export const aiCache = sqliteTable(
+  'ai_cache',
+  {
+    key: text('key').primaryKey(),
+    response: text('response').notNull(),
+    expiresAt: integer('expires_at').notNull(),
+  },
+  (table) => [index('idx_ai_cache_expires').on(table.expiresAt)]
+);
 
 // ============================================================================
 // PAGE VERSIONS TABLE - Version history for landing pages
 // ============================================================================
-export const pageVersions = sqliteTable('page_versions', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  configJson: text('config_json').notNull(), // Full landingConfig snapshot
-  versionLabel: text('version_label'), // Optional label like "v1.0" or "Before redesign"
-  createdBy: integer('created_by').references(() => users.id),
-  publishedAt: integer('published_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('page_versions_store_id_idx').on(table.storeId),
-]);
+export const pageVersions = sqliteTable(
+  'page_versions',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    configJson: text('config_json').notNull(), // Full landingConfig snapshot
+    versionLabel: text('version_label'), // Optional label like "v1.0" or "Before redesign"
+    createdBy: integer('created_by').references(() => users.id),
+    publishedAt: integer('published_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('page_versions_store_id_idx').on(table.storeId)]
+);
 
 export const pageVersionsRelations = relations(pageVersions, ({ one }) => ({
   store: one(stores, {
@@ -2010,24 +2340,30 @@ export const pageVersionsRelations = relations(pageVersions, ({ one }) => ({
 // ============================================================================
 // TEMPLATE ANALYTICS TABLE - Track template conversion performance
 // ============================================================================
-export const templateAnalytics = sqliteTable('template_analytics', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  templateId: text('template_id').notNull(), // e.g., "modern-dark", "quick-start"
-  pageViews: integer('page_views').default(0),
-  uniqueVisitors: integer('unique_visitors').default(0),
-  ordersGenerated: integer('orders_generated').default(0),
-  revenueGenerated: real('revenue_generated').default(0),
-  conversionRate: real('conversion_rate').default(0), // orders / pageViews * 100
-  // Time period
-  periodStart: integer('period_start', { mode: 'timestamp' }),
-  periodEnd: integer('period_end', { mode: 'timestamp' }),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('template_analytics_store_id_idx').on(table.storeId),
-  index('template_analytics_template_idx').on(table.storeId, table.templateId),
-]);
+export const templateAnalytics = sqliteTable(
+  'template_analytics',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    templateId: text('template_id').notNull(), // e.g., "modern-dark", "quick-start"
+    pageViews: integer('page_views').default(0),
+    uniqueVisitors: integer('unique_visitors').default(0),
+    ordersGenerated: integer('orders_generated').default(0),
+    revenueGenerated: real('revenue_generated').default(0),
+    conversionRate: real('conversion_rate').default(0), // orders / pageViews * 100
+    // Time period
+    periodStart: integer('period_start', { mode: 'timestamp' }),
+    periodEnd: integer('period_end', { mode: 'timestamp' }),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('template_analytics_store_id_idx').on(table.storeId),
+    index('template_analytics_template_idx').on(table.storeId, table.templateId),
+  ]
+);
 
 export const templateAnalyticsRelations = relations(templateAnalytics, ({ one }) => ({
   store: one(stores, {
@@ -2040,30 +2376,38 @@ export const templateAnalyticsRelations = relations(templateAnalytics, ({ one })
 // CARTS TABLE - Server-side shopping cart
 // ============================================================================
 // Enables: Cross-device sync, abandoned cart with items, server-side stock validation
-export const carts = sqliteTable('carts', {
-  id: text('id').primaryKey(), // UUID
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+export const carts = sqliteTable(
+  'carts',
+  {
+    id: text('id').primaryKey(), // UUID
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
 
-  // Customer/Visitor identification
-  customerId: integer('customer_id').references(() => customers.id, { onDelete: 'set null' }),
-  visitorId: text('visitor_id'), // Anonymous visitor tracking (localStorage ID)
-  sessionId: text('session_id'), // Server session ID
+    // Customer/Visitor identification
+    customerId: integer('customer_id').references(() => customers.id, { onDelete: 'set null' }),
+    visitorId: text('visitor_id'), // Anonymous visitor tracking (localStorage ID)
+    sessionId: text('session_id'), // Server session ID
 
-  // Currency for price consistency
-  currency: text('currency').default('BDT'),
+    // Currency for price consistency
+    currency: text('currency').default('BDT'),
 
-  // Status and expiration
-  status: text('status').$type<'active' | 'converted' | 'abandoned' | 'merged'>().default('active'),
-  expiresAt: integer('expires_at', { mode: 'timestamp' }), // For cleanup
+    // Status and expiration
+    status: text('status')
+      .$type<'active' | 'converted' | 'abandoned' | 'merged'>()
+      .default('active'),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }), // For cleanup
 
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('idx_carts_store').on(table.storeId),
-  index('idx_carts_customer').on(table.customerId),
-  index('idx_carts_visitor').on(table.visitorId),
-  index('idx_carts_status').on(table.storeId, table.status),
-]);
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_carts_store').on(table.storeId),
+    index('idx_carts_customer').on(table.customerId),
+    index('idx_carts_visitor').on(table.visitorId),
+    index('idx_carts_status').on(table.storeId, table.status),
+  ]
+);
 
 export const cartsRelations = relations(carts, ({ one, many }) => ({
   store: one(stores, {
@@ -2083,31 +2427,41 @@ export type NewCart = typeof carts.$inferInsert;
 // ============================================================================
 // CART ITEMS TABLE - Individual items in a cart
 // ============================================================================
-export const cartItems = sqliteTable('cart_items', {
-  id: text('id').primaryKey(), // UUID
-  cartId: text('cart_id').notNull().references(() => carts.id, { onDelete: 'cascade' }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+export const cartItems = sqliteTable(
+  'cart_items',
+  {
+    id: text('id').primaryKey(), // UUID
+    cartId: text('cart_id')
+      .notNull()
+      .references(() => carts.id, { onDelete: 'cascade' }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
 
-  // Product reference
-  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
-  variantId: integer('variant_id').references(() => productVariants.id, { onDelete: 'set null' }),
+    // Product reference
+    productId: integer('product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    variantId: integer('variant_id').references(() => productVariants.id, { onDelete: 'set null' }),
 
-  // Quantity
-  quantity: integer('quantity').notNull().default(1),
+    // Quantity
+    quantity: integer('quantity').notNull().default(1),
 
-  // Price snapshot at add time (for comparison / discount detection)
-  unitPriceSnapshot: real('unit_price_snapshot'),
-  titleSnapshot: text('title_snapshot'),
-  imageSnapshot: text('image_snapshot'),
-  variantTitleSnapshot: text('variant_title_snapshot'),
+    // Price snapshot at add time (for comparison / discount detection)
+    unitPriceSnapshot: real('unit_price_snapshot'),
+    titleSnapshot: text('title_snapshot'),
+    imageSnapshot: text('image_snapshot'),
+    variantTitleSnapshot: text('variant_title_snapshot'),
 
-  // Metadata
-  addedAt: integer('added_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('idx_cart_items_cart').on(table.cartId),
-  index('idx_cart_items_product').on(table.productId),
-]);
+    // Metadata
+    addedAt: integer('added_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_cart_items_cart').on(table.cartId),
+    index('idx_cart_items_product').on(table.productId),
+  ]
+);
 
 export const cartItemsRelations = relations(cartItems, ({ one }) => ({
   cart: one(carts, {
@@ -2135,53 +2489,63 @@ export type NewCartItem = typeof cartItems.$inferInsert;
 // CHECKOUT SESSIONS TABLE - Server-side checkout with stock reservation
 // ============================================================================
 // Enables: Stock reservation, abandoned checkout recovery, server-side pricing, idempotent order creation
-export const checkoutSessions = sqliteTable('checkout_sessions', {
-  id: text('id').primaryKey(), // UUID
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
+export const checkoutSessions = sqliteTable(
+  'checkout_sessions',
+  {
+    id: text('id').primaryKey(), // UUID
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
 
-  // Cart snapshot (items, quantities, prices at checkout time)
-  cartJson: text('cart_json').notNull(), // JSON: [{ variantId, qty, price, title, image }]
+    // Cart snapshot (items, quantities, prices at checkout time)
+    cartJson: text('cart_json').notNull(), // JSON: [{ variantId, qty, price, title, image }]
 
-  // Customer info
-  customerId: integer('customer_id').references(() => customers.id, { onDelete: 'set null' }),
-  email: text('email'),
-  phone: text('phone'),
-  customerName: text('customer_name'),
+    // Customer info
+    customerId: integer('customer_id').references(() => customers.id, { onDelete: 'set null' }),
+    email: text('email'),
+    phone: text('phone'),
+    customerName: text('customer_name'),
 
-  // Addresses
-  shippingAddressJson: text('shipping_address_json'), // JSON: { name, phone, address, district, upazila, postcode }
-  billingAddressJson: text('billing_address_json'), // JSON: same structure
+    // Addresses
+    shippingAddressJson: text('shipping_address_json'), // JSON: { name, phone, address, district, upazila, postcode }
+    billingAddressJson: text('billing_address_json'), // JSON: same structure
 
-  // Server-calculated pricing (prevents client-side manipulation)
-  pricingJson: text('pricing_json'), // JSON: { subtotal, shipping, discount, tax, total }
-  discountCode: text('discount_code'),
+    // Server-calculated pricing (prevents client-side manipulation)
+    pricingJson: text('pricing_json'), // JSON: { subtotal, shipping, discount, tax, total }
+    discountCode: text('discount_code'),
 
-  // Payment method selection
-  paymentMethod: text('payment_method').$type<'cod' | 'bkash' | 'nagad' | 'stripe'>().default('cod'),
+    // Payment method selection
+    paymentMethod: text('payment_method')
+      .$type<'cod' | 'bkash' | 'nagad' | 'stripe'>()
+      .default('cod'),
 
-  // Status tracking
-  status: text('status').$type<'pending' | 'processing' | 'completed' | 'abandoned' | 'expired'>().default('pending'),
+    // Status tracking
+    status: text('status')
+      .$type<'pending' | 'processing' | 'completed' | 'abandoned' | 'expired'>()
+      .default('pending'),
 
-  // Idempotency (prevents duplicate order creation)
-  idempotencyKey: text('idempotency_key').unique(),
-  orderId: integer('order_id').references(() => orders.id, { onDelete: 'set null' }), // Created order if completed
+    // Idempotency (prevents duplicate order creation)
+    idempotencyKey: text('idempotency_key').unique(),
+    orderId: integer('order_id').references(() => orders.id, { onDelete: 'set null' }), // Created order if completed
 
-  // Expiration for stock release
-  expiresAt: integer('expires_at', { mode: 'timestamp' }),
+    // Expiration for stock release
+    expiresAt: integer('expires_at', { mode: 'timestamp' }),
 
-  // Attribution
-  landingPageId: integer('landing_page_id'),
-  utmSource: text('utm_source'),
-  utmMedium: text('utm_medium'),
-  utmCampaign: text('utm_campaign'),
+    // Attribution
+    landingPageId: integer('landing_page_id'),
+    utmSource: text('utm_source'),
+    utmMedium: text('utm_medium'),
+    utmCampaign: text('utm_campaign'),
 
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('idx_checkout_sessions_store').on(table.storeId),
-  index('idx_checkout_sessions_status').on(table.storeId, table.status),
-  index('idx_checkout_sessions_expires').on(table.expiresAt),
-]);
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_checkout_sessions_store').on(table.storeId),
+    index('idx_checkout_sessions_status').on(table.storeId, table.status),
+    index('idx_checkout_sessions_expires').on(table.expiresAt),
+  ]
+);
 
 export const checkoutSessionsRelations = relations(checkoutSessions, ({ one }) => ({
   store: one(stores, {
@@ -2205,19 +2569,21 @@ export type NewCheckoutSession = typeof checkoutSessions.$inferInsert;
 // WEBHOOK EVENTS TABLE - Idempotent Webhook Processing (P0 Critical)
 // ============================================================================
 // Prevents duplicate processing of webhooks from Stripe, bKash, couriers, etc.
-export const webhookEvents = sqliteTable('webhook_events', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').references(() => stores.id, { onDelete: 'cascade' }),
-  provider: text('provider').notNull(), // 'stripe', 'bkash', 'steadfast', 'pathao', 'redx'
-  eventId: text('event_id').notNull(), // Provider's unique event ID
-  eventType: text('event_type'), // e.g., 'payment_intent.succeeded'
-  payloadJson: text('payload_json'), // Full webhook payload for debugging
-  status: text('status').$type<'processed' | 'failed' | 'skipped'>().default('processed'),
-  processedAt: integer('processed_at', { mode: 'timestamp' }),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('idx_webhook_events_store').on(table.storeId, table.createdAt),
-]);
+export const webhookEvents = sqliteTable(
+  'webhook_events',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id').references(() => stores.id, { onDelete: 'cascade' }),
+    provider: text('provider').notNull(), // 'stripe', 'bkash', 'steadfast', 'pathao', 'redx'
+    eventId: text('event_id').notNull(), // Provider's unique event ID
+    eventType: text('event_type'), // e.g., 'payment_intent.succeeded'
+    payloadJson: text('payload_json'), // Full webhook payload for debugging
+    status: text('status').$type<'processed' | 'failed' | 'skipped'>().default('processed'),
+    processedAt: integer('processed_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [index('idx_webhook_events_store').on(table.storeId, table.createdAt)]
+);
 
 export const webhookEventsRelations = relations(webhookEvents, ({ one }) => ({
   store: one(stores, {
@@ -2229,20 +2595,28 @@ export const webhookEventsRelations = relations(webhookEvents, ({ one }) => ({
 // ============================================================================
 // SHOP DOMAINS TABLE - Multi-domain support per store
 // ============================================================================
-export const shopDomains = sqliteTable('shop_domains', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  domain: text('domain').notNull().unique(),
-  isPrimary: integer('is_primary', { mode: 'boolean' }).default(false),
-  sslStatus: text('ssl_status').$type<'pending' | 'provisioning' | 'active' | 'failed'>().default('pending'),
-  verifiedAt: integer('verified_at', { mode: 'timestamp' }),
-  dnsVerified: integer('dns_verified', { mode: 'boolean' }).default(false),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('idx_shop_domains_store').on(table.storeId),
-  index('idx_shop_domains_domain').on(table.domain),
-]);
+export const shopDomains = sqliteTable(
+  'shop_domains',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    domain: text('domain').notNull().unique(),
+    isPrimary: integer('is_primary', { mode: 'boolean' }).default(false),
+    sslStatus: text('ssl_status')
+      .$type<'pending' | 'provisioning' | 'active' | 'failed'>()
+      .default('pending'),
+    verifiedAt: integer('verified_at', { mode: 'timestamp' }),
+    dnsVerified: integer('dns_verified', { mode: 'boolean' }).default(false),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_shop_domains_store').on(table.storeId),
+    index('idx_shop_domains_domain').on(table.domain),
+  ]
+);
 
 export const shopDomainsRelations = relations(shopDomains, ({ one }) => ({
   store: one(stores, {
@@ -2257,24 +2631,30 @@ export type NewShopDomain = typeof shopDomains.$inferInsert;
 // ============================================================================
 // LOCATIONS TABLE - Multi-warehouse inventory management
 // ============================================================================
-export const locations = sqliteTable('locations', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id').notNull().references(() => stores.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  code: text('code'), // Short code like "DHK-1"
-  address: text('address'),
-  city: text('city'),
-  district: text('district'),
-  phone: text('phone'),
-  isDefault: integer('is_default', { mode: 'boolean' }).default(false),
-  isActive: integer('is_active', { mode: 'boolean' }).default(true),
-  fulfillmentPriority: integer('fulfillment_priority').default(0),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('idx_locations_store').on(table.storeId),
-  index('idx_locations_active').on(table.storeId, table.isActive),
-]);
+export const locations = sqliteTable(
+  'locations',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    code: text('code'), // Short code like "DHK-1"
+    address: text('address'),
+    city: text('city'),
+    district: text('district'),
+    phone: text('phone'),
+    isDefault: integer('is_default', { mode: 'boolean' }).default(false),
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    fulfillmentPriority: integer('fulfillment_priority').default(0),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_locations_store').on(table.storeId),
+    index('idx_locations_active').on(table.storeId, table.isActive),
+  ]
+);
 
 export const locationsRelations = relations(locations, ({ one, many }) => ({
   store: one(stores, {
@@ -2290,21 +2670,29 @@ export type NewLocation = typeof locations.$inferInsert;
 // ============================================================================
 // LOCATION INVENTORY TABLE - Per-location stock levels
 // ============================================================================
-export const locationInventory = sqliteTable('location_inventory', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  locationId: integer('location_id').notNull().references(() => locations.id, { onDelete: 'cascade' }),
-  productId: integer('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
-  variantId: integer('variant_id').references(() => productVariants.id, { onDelete: 'cascade' }),
-  quantity: integer('quantity').notNull().default(0),
-  reservedQuantity: integer('reserved_quantity').notNull().default(0),
-  reorderPoint: integer('reorder_point').default(0),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, (table) => [
-  index('idx_location_inventory_location').on(table.locationId),
-  index('idx_location_inventory_product').on(table.productId),
-  index('idx_location_inventory_variant').on(table.variantId),
-]);
+export const locationInventory = sqliteTable(
+  'location_inventory',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    locationId: integer('location_id')
+      .notNull()
+      .references(() => locations.id, { onDelete: 'cascade' }),
+    productId: integer('product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    variantId: integer('variant_id').references(() => productVariants.id, { onDelete: 'cascade' }),
+    quantity: integer('quantity').notNull().default(0),
+    reservedQuantity: integer('reserved_quantity').notNull().default(0),
+    reorderPoint: integer('reorder_point').default(0),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_location_inventory_location').on(table.locationId),
+    index('idx_location_inventory_product').on(table.productId),
+    index('idx_location_inventory_variant').on(table.variantId),
+  ]
+);
 
 export const locationInventoryRelations = relations(locationInventory, ({ one }) => ({
   location: one(locations, {
@@ -2323,3 +2711,40 @@ export const locationInventoryRelations = relations(locationInventory, ({ one })
 
 export type LocationInventory = typeof locationInventory.$inferSelect;
 export type NewLocationInventory = typeof locationInventory.$inferInsert;
+
+// ============================================================================
+// MVP THEME SETTINGS TABLE - Simple theme configuration for MVP
+// ============================================================================
+// This is a simplified theme configuration system for MVP launch.
+// Instead of complex Shopify OS 2.0 sections, we store just 5 customizable
+// settings as JSON: storeName, logo, primaryColor, accentColor, announcementText
+//
+// @see AGENTS.md - MVP Simple Theme System section
+// ============================================================================
+export const storeMvpSettings = sqliteTable(
+  'store_mvp_settings',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    themeId: text('theme_id').notNull().default('starter-store'), // Active theme template ID
+    settingsJson: text('settings_json').notNull(), // JSON: { storeName, logo, primaryColor, accentColor, announcementText, showAnnouncement, favicon }
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_mvp_settings_store').on(table.storeId),
+    index('idx_mvp_settings_theme').on(table.storeId, table.themeId),
+  ]
+);
+
+export const storeMvpSettingsRelations = relations(storeMvpSettings, ({ one }) => ({
+  store: one(stores, {
+    fields: [storeMvpSettings.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export type StoreMvpSettings = typeof storeMvpSettings.$inferSelect;
+export type NewStoreMvpSettings = typeof storeMvpSettings.$inferInsert;

@@ -18,7 +18,9 @@ import { logAuditAction } from '~/services/audit.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = context.cloudflare.env.DB;
-  const authenticator = getAuthenticator(context.cloudflare.env);
+  // Pass request.url to enable dynamic callback URL detection
+  // This ensures the callback URL matches the origin that initiated the OAuth flow
+  const authenticator = getAuthenticator(context.cloudflare.env, request.url);
 
   // 1. Get the user profile from Google (via authenticator)
   const authUser = await authenticator.authenticate('google', request, {

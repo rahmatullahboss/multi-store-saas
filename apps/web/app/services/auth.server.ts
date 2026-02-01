@@ -683,12 +683,21 @@ export async function register({
 
     // Create store first
     console.log('[register] Creating store...');
+    const defaultThemeConfig = {
+      storeTemplateId: 'starter-store',
+      primaryColor: '#6366f1',
+      accentColor: '#f59e0b',
+      backgroundColor: '#ffffff',
+      textColor: '#111827',
+      fontFamily: 'Inter',
+    };
     const storeResult = await drizzleDb
       .insert(stores)
       .values({
         name: storeName,
         subdomain,
         currency: 'BDT',
+        themeConfig: JSON.stringify(defaultThemeConfig),
       })
       .returning({ id: stores.id });
 
@@ -1160,19 +1169,38 @@ export async function requireAdminPermission(
 
 /**
  * Initialize Authenticator
+ * 
+ * @param env - Environment variables
+ * @param requestUrl - Optional request URL to determine dynamic callback URL
+ *                     This allows OAuth to work across multiple domains (ozzyl.com, app.ozzyl.com, etc.)
  */
-export function getAuthenticator(env: Env) {
+export function getAuthenticator(env: Env, requestUrl?: string) {
   const sessionStorage = getSessionStorage(env);
   const authenticator = new Authenticator<AuthUser>(sessionStorage);
 
   if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
     console.warn('Google OAuth Environment Variables missing. SSO disabled.');
   } else {
+    // Determine callback URL dynamically based on request origin
+    // This allows the same OAuth credentials to work across multiple domains
+    let callbackURL: string;
+    
+    if (requestUrl) {
+      // Use the request's origin to build the callback URL
+      const origin = new URL(requestUrl).origin;
+      callbackURL = `${origin}/auth/google/callback`;
+      console.log('[getAuthenticator] Using dynamic callback URL:', callbackURL);
+    } else {
+      // Fallback to SAAS_DOMAIN if no request URL provided
+      callbackURL = `${env.SAAS_DOMAIN}/auth/google/callback`;
+      console.log('[getAuthenticator] Using SAAS_DOMAIN callback URL:', callbackURL);
+    }
+
     const googleStrategy = new GoogleStrategy(
       {
         clientID: env.GOOGLE_CLIENT_ID,
         clientSecret: env.GOOGLE_CLIENT_SECRET,
-        callbackURL: `${env.SAAS_DOMAIN}/auth/google/callback`,
+        callbackURL,
       },
       async ({ profile }) => {
         // We return a minimal profile object here.

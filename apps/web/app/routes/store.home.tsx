@@ -1,23 +1,35 @@
 /**
- * Store Homepage Route
+ * Store Homepage Route - MVP Simple Theme System
  *
- * Shopify OS 2.0 Theme System - Uses ThemeStoreRenderer exclusively
- * for dynamic section rendering with the new theme engine.
+ * Uses the old React Component System (1000+ line templates)
+ * instead of Shopify OS 2.0 section-based system.
+ *
+ * Each template provides:
+ * - Main component (homepage)
+ * - Header component
+ * - Footer component
+ * - Custom ProductPage, CartPage, CollectionPage (optional)
+ *
+ * @see AGENTS.md - MVP Simple Theme System section
  */
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
 import { useState, useEffect } from 'react';
-import { resolveStoreWithTemplate } from '~/lib/store.server';
-import { ThemeStoreRenderer } from '~/components/store/ThemeStoreRenderer';
+import { resolveStore } from '~/lib/store.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
-import { parseThemeConfig, parseSocialLinks } from '@db/types';
+import {
+  getStoreTemplate,
+  getStoreTemplateTheme,
+  DEFAULT_STORE_TEMPLATE_ID,
+  type SerializedProduct,
+} from '~/templates/store-registry';
+import { parseThemeConfig, parseSocialLinks, type ThemeConfig } from '@db/types';
 import { getCustomer } from '~/services/customer-auth.server';
+import { getMVPSettings } from '~/services/mvp-settings.server';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, and } from 'drizzle-orm';
-import { products } from '@db/schema';
-import { formatPrice } from '~/lib/theme-engine';
+import { products as productsTable } from '@db/schema';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) {
@@ -27,25 +39,37 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
     { title: `${data.storeName} - Home` },
     { name: 'description', content: data.storeDescription || `Welcome to ${data.storeName}` },
+    // Favicon support
+    ...(data.favicon ? [{ rel: 'icon', href: data.favicon, type: 'image/x-icon' }] : []),
   ];
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  // Resolve store with home template
-  const storeContext = await resolveStoreWithTemplate(context, request, 'home');
+  // Resolve store (get storeId from context/subdomain)
+  const storeContext = await resolveStore(context, request);
 
   if (!storeContext) {
     throw new Response('Store not found', { status: 404 });
   }
 
-  const { storeId, store, template } = storeContext;
+  const { storeId, store } = storeContext;
   const db = drizzle(context.cloudflare.env.DB);
 
   // Get theme config from store
   const themeConfig = parseThemeConfig(store.themeConfig as string | null);
   const socialLinks = parseSocialLinks(store.socialLinks as string | null);
   const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
-  const theme = getStoreTemplateTheme(storeTemplateId);
+
+  // Get MVP settings (simple theme settings)
+  const mvpSettings = await getMVPSettings(db, storeId, storeTemplateId);
+
+  // Merge MVP settings with theme colors
+  const baseTheme = getStoreTemplateTheme(storeTemplateId);
+  const theme = {
+    ...baseTheme,
+    primary: mvpSettings.primaryColor || baseTheme.primary,
+    accent: mvpSettings.accentColor || baseTheme.accent,
+  };
 
   // Parse businessInfo
   let businessInfo = null;
@@ -60,19 +84,20 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Load customer session
   const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
 
-  // Fetch featured products
+  // Fetch featured products (with storeId filter for multi-tenancy)
   const featuredProducts = await db
     .select({
-      id: products.id,
-      title: products.title,
-      price: products.price,
-      compareAtPrice: products.compareAtPrice,
-      imageUrl: products.imageUrl,
-      category: products.category,
+      id: productsTable.id,
+      title: productsTable.title,
+      price: productsTable.price,
+      compareAtPrice: productsTable.compareAtPrice,
+      imageUrl: productsTable.imageUrl,
+      category: productsTable.category,
+      inventory: productsTable.inventory,
     })
-    .from(products)
-    .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
-    .orderBy(desc(products.createdAt))
+    .from(productsTable)
+    .where(and(eq(productsTable.storeId, storeId), eq(productsTable.isPublished, true)))
+    .orderBy(desc(productsTable.createdAt))
     .limit(12);
 
   // Get unique categories
@@ -80,24 +105,26 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   return json({
     storeId,
-    storeName: store.name,
-    logo: store.logo,
+    storeName: mvpSettings.storeName || store.name,
+    logo: mvpSettings.logo || store.logo,
+    favicon: mvpSettings.favicon || store.favicon,
     currency: store.currency || 'BDT',
     storeTemplateId,
     theme,
     socialLinks,
     businessInfo,
-    themeConfig,
     planType: store.planType || 'free',
     storeTagline: store.tagline || '',
     storeDescription: store.description || '',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
-    template,
     featuredProducts: featuredProducts.map((p) => ({
       ...p,
       handle: String(p.id),
-    })),
+      storeId,
+      description: null,
+    })) as unknown as SerializedProduct[],
     categories,
+    mvpSettings,
   });
 }
 
@@ -106,23 +133,24 @@ export default function StoreHomePage() {
     storeId,
     storeName,
     logo,
+    favicon,
     currency,
     storeTemplateId,
     theme,
     socialLinks,
     businessInfo,
-    themeConfig,
     planType,
     storeTagline,
     storeDescription,
     customer,
-    template,
     featuredProducts,
     categories,
+    mvpSettings,
   } = useLoaderData<typeof loader>();
 
-  // Check if we have published template sections
-  const hasTemplateSections = template?.sections && template.sections.length > 0;
+  // Get the template from registry (OLD SYSTEM - 1000+ line components)
+  const template = getStoreTemplate(storeTemplateId);
+  const TemplateComponent = template.component;
 
   // Load cart from localStorage on client side
   const [cart, setCart] = useState<{
@@ -153,7 +181,7 @@ export default function StoreHomePage() {
         const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
         const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
         setCart({
-          items: items.map((item, index) => ({
+          items: items.map((item) => ({
             id: item.productId,
             productId: item.productId,
             title: item.title,
@@ -209,7 +237,6 @@ export default function StoreHomePage() {
 
   return (
     <StorePageWrapper
-      hideHeaderFooter={hasTemplateSections}
       storeName={storeName}
       storeId={storeId}
       logo={logo}
@@ -223,110 +250,41 @@ export default function StoreHomePage() {
       storeDescription={storeDescription}
       customer={customer}
       categories={categories as string[]}
-      config={themeConfig}
+      config={
+        {
+          ...mvpSettings,
+          primaryColor: theme.primary,
+          accentColor: theme.accent,
+        } as unknown as ThemeConfig
+      }
     >
-      {hasTemplateSections ? (
-        // Use Shopify OS 2.0 theme system via ThemeStoreRenderer
-        <ThemeStoreRenderer
-          themeId={storeTemplateId}
-          sections={template!.sections.map((s) => ({
-            id: s.id,
-            type: s.type,
-            settings: s.props || {},
-            blocks:
-              s.blocks?.map((b) => ({
-                id: b.id,
-                type: b.type,
-                settings: b.props || {},
-              })) || [],
-            enabled: s.enabled,
-          }))}
-          store={{
-            id: storeId,
-            name: storeName,
-            currency,
-            logo,
-            defaultLanguage: 'en',
-            socialLinks,
-            businessInfo,
-          }}
-          pageType="index"
-          products={featuredProducts.map((p) => ({
-            id: p.id,
-            title: p.title,
-            price: p.price,
-            compareAtPrice: p.compareAtPrice || undefined,
-            imageUrl: p.imageUrl,
-            images: p.imageUrl ? [p.imageUrl] : [],
-            category: p.category || undefined,
-          }))}
-          collections={categories.map((cat, i) => ({
-            id: i + 1,
-            title: cat as string,
-            handle: (cat as string).toLowerCase().replace(/\s+/g, '-'),
-            slug: (cat as string).toLowerCase().replace(/\s+/g, '-'),
-            productCount: featuredProducts.filter((p) => p.category === cat).length,
-          }))}
-          cart={cart || undefined}
-          skipHeaderFooter={false}
-        />
-      ) : (
-        // Fallback: Default home content when no template sections exist
-        <div className="min-h-screen">
-          {/* Hero Section Fallback */}
-          <section
-            className="relative py-20 px-4 text-center"
-            style={{ backgroundColor: theme.primary }}
-          >
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                Welcome to {storeName}
-              </h1>
-              <p className="text-xl text-white/80 mb-8">Discover our amazing products</p>
-              <a
-                href="/products"
-                className="inline-block px-8 py-3 bg-white text-gray-900 rounded-lg font-semibold hover:bg-gray-100 transition"
-              >
-                Shop Now
-              </a>
-            </div>
-          </section>
-
-          {/* Featured Products Fallback */}
-          <section className="py-16 px-4">
-            <div className="max-w-7xl mx-auto">
-              <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
-                Featured Products
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {featuredProducts.slice(0, 8).map((product) => (
-                  <a
-                    key={product.id}
-                    href={`/products/${product.id}`}
-                    className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition"
-                  >
-                    <div className="aspect-square bg-gray-100">
-                      {product.imageUrl && (
-                        <img
-                          src={product.imageUrl}
-                          alt={product.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition"
-                        />
-                      )}
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-medium text-gray-900 truncate">{product.title}</h3>
-                      <p className="text-lg font-bold mt-1" style={{ color: theme.primary }}>
-                        {formatPrice(product.price)}
-                      </p>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </div>
-          </section>
-        </div>
-      )}
+      {/* MVP Simple System: Use old 1000+ line React template component */}
+      <TemplateComponent
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        theme={storeTemplateId}
+        fontFamily={template.fonts.body}
+        products={featuredProducts}
+        categories={categories as string[]}
+        currentCategory={null}
+        config={
+          {
+            ...mvpSettings,
+            primaryColor: theme.primary,
+            accentColor: theme.accent,
+          } as unknown as ThemeConfig
+        }
+        currency={currency}
+        socialLinks={socialLinks}
+        footerConfig={null}
+        businessInfo={businessInfo}
+        planType={planType}
+        isPreview={false}
+        collections={[]}
+        reviews={[]}
+        banners={[]}
+      />
     </StorePageWrapper>
   );
 }

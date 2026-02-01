@@ -508,6 +508,41 @@ export function parseManualPaymentConfig(json: string | null): ManualPaymentConf
   }
 }
 
+// Business info parsing
+export interface BusinessInfo {
+  phone?: string;
+  email?: string;
+  address?: string;
+}
+
+export function parseBusinessInfo(json: string | null): BusinessInfo | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as BusinessInfo;
+  } catch {
+    return null;
+  }
+}
+
+// Shipping config parsing
+export interface ShippingConfig {
+  deliveryCharge?: number;
+  freeDeliveryAbove?: number | null;
+  insideDhaka?: number;
+  outsideDhaka?: number;
+  freeShippingAbove?: number;
+  enabled?: boolean;
+}
+
+export function parseShippingConfig(json: string | null): ShippingConfig | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as ShippingConfig;
+  } catch {
+    return null;
+  }
+}
+
 // Default landing config for new stores
 export const defaultLandingConfig: LandingConfig = {
   headline: 'আপনার পণ্যের আকর্ষণীয় শিরোনাম এখানে দিন',
