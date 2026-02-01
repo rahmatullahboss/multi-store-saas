@@ -314,6 +314,7 @@ interface CartActionData {
       // We need to map back to the state shape if it differs, but here it looks compatible-ish
       // Actually state expects: productId, title, price, compareAtPrice, quantity, imageUrl
       // validatedItems has these.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setCartItems(validatedItems as any); 
     }
   }, [fetcher.data]);

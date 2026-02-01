@@ -207,7 +207,7 @@ export default function SharedCartPage({
         })
       );
     }
-  }, [fetcher.data, isPreview]);
+  }, [fetcher.data, isPreview]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Save cart to localStorage
   useEffect(() => {
@@ -839,7 +839,6 @@ export default function SharedCartPage({
                       {product.title}
                     </h3>
                     <p className="mt-1 font-bold" style={{ color: colors.accent }}>
-                      {currencySymbol}
                       {formatPrice(product.price, currency)}
                     </p>
                   </div>
