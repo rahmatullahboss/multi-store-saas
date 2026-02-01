@@ -34,17 +34,19 @@ export default defineConfig({
       },
     }),
     tsconfigPaths(),
-    sentryVitePlugin({
-      org: "ozzyl", // Replace with your Sentry org
-      project: "javascript-remix", // Replace with your Sentry project
-      authToken: process.env.SENTRY_AUTH_TOKEN, // Auth token from env (CI/CD)
-      sourcemaps: {
-        filesToDeleteAfterUpload: ["./build/**/*.map"],
-      },
-    }),
+    // Sentry plugin disabled for faster builds
+    // Uncomment when Sentry integration is needed
+    // sentryVitePlugin({
+    //   org: "ozzyl",
+    //   project: "javascript-remix",
+    //   authToken: process.env.SENTRY_AUTH_TOKEN,
+    //   sourcemaps: {
+    //     filesToDeleteAfterUpload: ["./build/**/*.map"],
+    //   },
+    // }),
   ],
   build: {
-    sourcemap: "hidden", // Upload source maps to Sentry but don't serve them
+    sourcemap: false, // Disable source maps in production for faster builds
     minify: true,
     rollupOptions: {
       output: {
