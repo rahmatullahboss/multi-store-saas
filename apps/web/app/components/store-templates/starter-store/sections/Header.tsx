@@ -8,7 +8,7 @@
  */
 
 import { Link, useNavigate } from '@remix-run/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ShoppingCart, Search, Menu, X, User, Heart } from 'lucide-react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { useWishlist } from '~/hooks/useWishlist';
@@ -28,6 +28,7 @@ interface StarterStoreHeaderProps {
   categories: (string | null)[];
   currentCategory?: string | null;
   socialLinks?: SocialLinks | null;
+  variant?: 'default' | 'overlay';
 }
 
 export function StarterStoreHeader({
@@ -37,10 +38,12 @@ export function StarterStoreHeader({
   categories = [],
   currentCategory,
   config,
+  variant = 'default',
 }: StarterStoreHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isScrolled, setIsScrolled] = useState(false);
   
   // Use real cart count in live mode, demo count in preview
   const realCartCount = useCartCount();
@@ -54,6 +57,15 @@ export function StarterStoreHeader({
   const getPreviewUrl = usePreviewUrl(isPreview);
   const navigate = useNavigate();
 
+  // Scroll detection for immersive header
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -65,12 +77,25 @@ export function StarterStoreHeader({
     }
   };
 
+  // Determine styles based on variant and scroll state
+  const isTransparent = variant === 'overlay' && !isScrolled && !mobileMenuOpen;
+  const headerBg = isTransparent ? 'transparent' : theme.headerBg;
+  const textColor = isTransparent ? 'white' : theme.text;
+  const iconColor = isTransparent ? 'white' : theme.text;
+  const logoBg = isTransparent ? 'bg-white/90 backdrop-blur' : 'bg-transparent';
+  
+  const headerClass = variant === 'overlay' 
+    ? 'fixed top-0 left-0 right-0 z-50 transition-all duration-300'
+    : 'sticky top-0 z-50 shadow-sm transition-all duration-300';
+    
+  const containerClass = isScrolled || !isTransparent ? 'shadow-sm' : '';
+
   return (
     <>
-      {/* Announcement Bar */}
-      {config?.announcement?.text?.trim() && (
+      {/* Announcement Bar - Only show if not overlay or if scrolled */}
+      {config?.announcement?.text?.trim() && (!isTransparent || isScrolled) && (
         <div 
-          className="text-center py-2 text-sm font-medium text-white"
+          className="text-center py-2 text-sm font-medium text-white relative z-50"
           style={{ backgroundColor: theme.accent }}
         >
           {config.announcement.text}
@@ -79,21 +104,21 @@ export function StarterStoreHeader({
 
       {/* Main Header */}
       <header 
-        className="sticky top-0 z-50 shadow-sm"
-        style={{ backgroundColor: theme.headerBg }}
+        className={`${headerClass} ${containerClass}`}
+        style={{ backgroundColor: headerBg }}
       >
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className={`lg:hidden p-2 rounded-lg transition-colors ${isTransparent ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? (
-                <X className="h-6 w-6" style={{ color: theme.text }} />
+                <X className="h-6 w-6" style={{ color: iconColor }} />
               ) : (
-                <Menu className="h-6 w-6" style={{ color: theme.text }} />
+                <Menu className="h-6 w-6" style={{ color: iconColor }} />
               )}
             </button>
 
@@ -107,12 +132,12 @@ export function StarterStoreHeader({
                 <img 
                   src={logo} 
                   alt={storeName} 
-                  className="h-10 w-auto object-contain bg-white rounded px-2 py-1" 
+                  className={`h-10 w-auto object-contain rounded px-2 py-1 ${logoBg}`} 
                 />
               )}
               <span 
                 className="text-xl font-bold"
-                style={{ color: theme.primary }}
+                style={{ color: isTransparent ? 'white' : theme.primary }}
               >
                 {storeName}
               </span>
@@ -124,7 +149,7 @@ export function StarterStoreHeader({
                 to="/" 
                 isPreview={isPreview}
                 className="text-sm font-medium hover:opacity-70 transition-opacity"
-                style={{ color: theme.text }}
+                style={{ color: textColor }}
               >
                 {t('home')}
               </PreviewSafeLink>
@@ -132,7 +157,7 @@ export function StarterStoreHeader({
                 to="/products" 
                 isPreview={isPreview}
                 className="text-sm font-medium hover:opacity-70 transition-opacity"
-                style={{ color: theme.text }}
+                style={{ color: textColor }}
               >
                 {t('allProducts')}
               </PreviewSafeLink>
@@ -142,7 +167,7 @@ export function StarterStoreHeader({
                   to={`/?category=${encodeURIComponent(cat)}`}
                   isPreview={isPreview}
                   className="text-sm font-medium hover:opacity-70 transition-opacity"
-                  style={{ color: currentCategory === cat ? theme.primary : theme.text }}
+                  style={{ color: currentCategory === cat && !isTransparent ? theme.primary : textColor }}
                 >
                   {cat}
                 </PreviewSafeLink>
@@ -151,15 +176,17 @@ export function StarterStoreHeader({
 
             {/* Search, Wishlist, Cart, Account */}
             <div className="flex items-center gap-2">
-              <LanguageSelector className="mr-1" />
+              <div className={isTransparent ? 'text-white' : ''}>
+                <LanguageSelector className="mr-1" />
+              </div>
               
               {/* Search Toggle */}
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className={`p-2 rounded-lg transition-colors ${isTransparent ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
                 aria-label="Search"
               >
-                <Search className="h-5 w-5" style={{ color: theme.text }} />
+                <Search className="h-5 w-5" style={{ color: iconColor }} />
               </button>
 
               {/* Wishlist */}
@@ -167,9 +194,9 @@ export function StarterStoreHeader({
                 <PreviewSafeLink 
                   to="/wishlist" 
                   isPreview={isPreview}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative"
+                  className={`p-2 rounded-lg transition-colors relative ${isTransparent ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
                 >
-                  <Heart className="h-5 w-5" style={{ color: theme.text }} />
+                  <Heart className="h-5 w-5" style={{ color: iconColor }} />
                   {wishlistCount > 0 && (
                     <span 
                       className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-white text-xs flex items-center justify-center font-medium"
@@ -185,9 +212,9 @@ export function StarterStoreHeader({
               <PreviewSafeLink 
                 to="/cart" 
                 isPreview={isPreview}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative"
+                className={`p-2 rounded-lg transition-colors relative ${isTransparent ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
               >
-                <ShoppingCart className="h-5 w-5" style={{ color: theme.text }} />
+                <ShoppingCart className="h-5 w-5" style={{ color: iconColor }} />
                 {cartCount > 0 && (
                   <span 
                     className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-white text-xs flex items-center justify-center font-medium"
@@ -202,9 +229,9 @@ export function StarterStoreHeader({
               {!isPreview && (
                 <Link 
                   to="/account"
-                  className="hidden sm:flex p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  className={`hidden sm:flex p-2 rounded-lg transition-colors ${isTransparent ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
                 >
-                  <User className="h-5 w-5" style={{ color: theme.text }} />
+                  <User className="h-5 w-5" style={{ color: iconColor }} />
                 </Link>
               )}
             </div>
@@ -223,6 +250,7 @@ export function StarterStoreHeader({
                   style={{ 
                     borderColor: theme.muted + '40',
                     backgroundColor: theme.background,
+                    color: theme.text
                   }}
                   autoFocus
                 />
@@ -241,7 +269,7 @@ export function StarterStoreHeader({
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div 
-            className="lg:hidden border-t"
+            className="lg:hidden border-t shadow-lg"
             style={{ 
               backgroundColor: theme.headerBg,
               borderColor: theme.muted + '30'

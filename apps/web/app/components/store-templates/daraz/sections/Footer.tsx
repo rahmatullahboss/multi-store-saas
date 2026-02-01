@@ -28,7 +28,7 @@ export function DarazFooter({
   storeName,
   logo: _logo,
   socialLinks,
-  footerConfig,
+  footerConfig: _footerConfig,
   businessInfo,
   categories,
   planType = 'free',
@@ -321,7 +321,7 @@ export function DarazFooter({
 
         {/* Viral Loop / Branding */}
         <div className="mt-6 pt-4 border-t border-gray-100 flex justify-center items-center">
-          <OzzylBranding planType={planType} showPoweredBy={footerConfig?.showPoweredBy} />
+          <OzzylBranding planType={planType} showPoweredBy={true} />
         </div>
       </div>
     </footer>

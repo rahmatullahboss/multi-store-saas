@@ -94,7 +94,7 @@ export function NovaLuxFooter({
   };
 
   const validCategories = categories.filter(Boolean).slice(0, 6) as string[];
-  const showPoweredBy = footerConfig?.showPoweredBy ?? planType === 'free';
+  const showPoweredBy = true; // Enforce Ozzyl branding globally
 
   // Default business info for preview
   const defaultBusinessInfo = {

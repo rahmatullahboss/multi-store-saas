@@ -113,7 +113,7 @@ export function StandardFooter({
   };
 
   const validCategories = categories.filter(Boolean).slice(0, 6) as string[];
-  const showPoweredBy = footerConfig?.showPoweredBy ?? planType === 'free';
+  const showPoweredBy = true; // Enforce Ozzyl branding globally
   const showTrustBadges = footerConfig?.showTrustBadges ?? true;
 
   // Default business info for preview

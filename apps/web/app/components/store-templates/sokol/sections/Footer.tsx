@@ -45,7 +45,7 @@ export function SokolFooter({
       footerConfig={{
         ...footerConfig,
         description: footerConfig?.description || 'Premium quality products designed for your lifestyle.',
-        showPoweredBy: footerConfig?.showPoweredBy ?? true,
+        showPoweredBy: true, // Enforce Ozzyl branding
         showTrustBadges: footerConfig?.showTrustBadges ?? true,
       }}
       businessInfo={businessInfo}

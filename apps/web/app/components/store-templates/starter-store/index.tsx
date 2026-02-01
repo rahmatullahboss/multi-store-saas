@@ -58,6 +58,7 @@ export function StarterStoreTemplate({
         categories={categories}
         currentCategory={currentCategory}
         socialLinks={socialLinks}
+        variant={!currentCategory ? 'overlay' : 'default'}
       />
 
       <main>

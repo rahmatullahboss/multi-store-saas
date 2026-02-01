@@ -1,6 +1,4 @@
 import type { StoreTemplateProps } from '~/templates/store-registry';
-import { SokolHeader } from './sections/Header';
-import { SokolFooter } from './sections/Footer';
 import { SokolLayout } from './sections/Layout';
 import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
 import { SOKOL_DEFAULT_SECTIONS, SOKOL_DUMMY_PRODUCTS, SOKOL_DUMMY_CATEGORIES } from './theme';
@@ -17,16 +15,7 @@ export function SokolTemplate(props: StoreTemplateProps) {
   const displayCategories = categories?.length ? categories : SOKOL_DUMMY_CATEGORIES;
 
   return (
-    <SokolLayout {...props}>
-      <SokolHeader 
-        storeName={props.storeName} 
-        logo={props.logo} 
-        categories={displayCategories}
-        currentCategory={props.currentCategory || null}
-        socialLinks={props.socialLinks}
-        isPreview={props.isPreview}
-      />
-      
+    <SokolLayout {...props} categories={displayCategories}>
       <main className="min-h-screen">
         <SectionRenderer 
           sections={sections} 
@@ -36,16 +25,6 @@ export function SokolTemplate(props: StoreTemplateProps) {
           currency={props.currency}
         />
       </main>
-
-      <SokolFooter 
-        storeName={props.storeName}
-        logo={props.logo}
-        businessInfo={props.businessInfo}
-        socialLinks={props.socialLinks}
-        categories={displayCategories}
-        footerConfig={props.footerConfig}
-        planType={props.planType}
-      />
     </SokolLayout>
   );
 }
