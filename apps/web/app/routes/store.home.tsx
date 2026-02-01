@@ -13,7 +13,7 @@
  * @see AGENTS.md - MVP Simple Theme System section
  */
 
-import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
+import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
 
 export async function action() {
   // Gracefully handle accidental POST requests to home by returning null
@@ -32,34 +32,10 @@ import {
 } from '~/templates/store-registry';
 import { parseThemeConfig, parseSocialLinks, type ThemeConfig } from '@db/types';
 import { getCustomer } from '~/services/customer-auth.server';
-import { drizzle } from 'drizzle-orm/d1';
+import { createDb } from '~/lib/db.server';
+import { D1Cache } from '~/services/cache-layer.server';
 import { eq, desc, and } from 'drizzle-orm';
 import { products as productsTable } from '@db/schema';
-
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  if (!data) {
-    return [{ title: 'Store' }];
-  }
-
-  const metaTags = [
-    { title: `${data.storeName} - Home` },
-    { name: 'description', content: data.storeDescription || `Welcome to ${data.storeName}` },
-    { name: 'robots', content: 'index, follow' },
-    { property: 'og:title', content: `${data.storeName} - Home` },
-    {
-      property: 'og:description',
-      content: data.storeDescription || `Welcome to ${data.storeName}`,
-    },
-    { property: 'og:type', content: 'website' },
-  ];
-
-  // Logo as og:image
-  if (data.logo) {
-    metaTags.push({ property: 'og:image', content: data.logo });
-  }
-
-  return metaTags;
-};
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   // Resolve store (get storeId from context/subdomain)
@@ -70,7 +46,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   const { storeId, store } = storeContext;
-  const db = drizzle(context.cloudflare.env.DB);
+  const db = createDb(context.cloudflare.env.DB);
+  const cache = new D1Cache(db);
 
   // Get theme config from store (fallback to legacy 'theme' field for backward compatibility)
   const themeConfig = parseThemeConfig(store.themeConfig as string | null);
@@ -99,24 +76,54 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Load customer session
   const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
 
-  // Fetch featured products (with storeId filter for multi-tenancy)
-  const featuredProducts = await db
-    .select({
-      id: productsTable.id,
-      title: productsTable.title,
-      price: productsTable.price,
-      compareAtPrice: productsTable.compareAtPrice,
-      imageUrl: productsTable.imageUrl,
-      category: productsTable.category,
-      inventory: productsTable.inventory,
-    })
-    .from(productsTable)
-    .where(and(eq(productsTable.storeId, storeId), eq(productsTable.isPublished, true)))
-    .orderBy(desc(productsTable.createdAt))
-    .limit(12);
+  // CACHING STRATEGY: Cache expensive product queries to prevent loader timeouts
+  const productsCacheKey = `store:${storeId}:home:products:v1`;
+  const categoriesCacheKey = `store:${storeId}:home:categories:v1`;
 
-  // Get unique categories
-  const categories = [...new Set(featuredProducts.map((p) => p.category).filter(Boolean))];
+  let featuredProducts: SerializedProduct[] | null = await cache.get<SerializedProduct[]>(productsCacheKey);
+  let categories: string[] | null = await cache.get<string[]>(categoriesCacheKey);
+
+  // If cache miss, fetch from DB
+  if (!featuredProducts) {
+      const dbProducts = await db
+        .select({
+          id: productsTable.id,
+          title: productsTable.title,
+          price: productsTable.price,
+          compareAtPrice: productsTable.compareAtPrice,
+          imageUrl: productsTable.imageUrl,
+          category: productsTable.category,
+          inventory: productsTable.inventory,
+        })
+        .from(productsTable)
+        .where(and(eq(productsTable.storeId, storeId), eq(productsTable.isPublished, true)))
+        .orderBy(desc(productsTable.createdAt))
+        .limit(12);
+      
+      featuredProducts = dbProducts.map((p) => ({
+          ...p,
+          handle: String(p.id),
+          storeId,
+          description: null,
+      })) as unknown as SerializedProduct[];
+
+      // Cache for 5 minutes (300 seconds)
+      await cache.set(productsCacheKey, featuredProducts, 300);
+  }
+
+  if (!categories) {
+      // Derive categories from products or fetch distinct if needed
+      // Ideally we should query distinct categories, but unique from products is a good startup approximation
+      // If we want all categories, we should query them. For now, sticking to logic derived from featured.
+      // However, to be robust, let's just derive from the (possibly cached) featured products to save a query
+      // unless we want *all* categories. The original code derived from featuredProducts.
+      
+      // Let's stick to original logic: derive from featuredProducts
+      categories = [...new Set(featuredProducts.map((p) => p.category).filter(Boolean))] as string[];
+      
+      // Cache categories too
+      await cache.set(categoriesCacheKey, categories, 300);
+  }
 
   return json({
     storeId,
@@ -133,12 +140,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     storeTagline: store.tagline || '',
     storeDescription: store.description || '',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
-    featuredProducts: featuredProducts.map((p) => ({
-      ...p,
-      handle: String(p.id),
-      storeId,
-      description: null,
-    })) as unknown as SerializedProduct[],
+    featuredProducts,
     categories,
   });
 }
