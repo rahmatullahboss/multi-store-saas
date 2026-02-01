@@ -68,7 +68,7 @@ export function StarterStoreHeader({
   return (
     <>
       {/* Announcement Bar */}
-      {config?.announcement?.text && (
+      {config?.announcement?.text?.trim() && (
         <div 
           className="text-center py-2 text-sm font-medium text-white"
           style={{ backgroundColor: theme.accent }}
