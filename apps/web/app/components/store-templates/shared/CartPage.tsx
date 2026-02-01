@@ -117,7 +117,7 @@ export default function SharedCartPage({
     footerText: '#ffffff',
   };
 
-  const currencySymbol = '৳';
+  /* currencySymbol removed - formatPrice handles it */
   const currency = 'BDT';
 
   // State
@@ -306,7 +306,7 @@ export default function SharedCartPage({
       }
 
       if (coupon.minOrder && subtotal < coupon.minOrder) {
-        setCouponError(`Minimum order of ${currencySymbol}${coupon.minOrder} required`);
+        setCouponError(`Minimum order of ${formatPrice(coupon.minOrder, currency)} required`);
         return;
       }
 
@@ -425,8 +425,7 @@ export default function SharedCartPage({
                 <div className="flex items-center gap-2" style={{ color: colors.text }}>
                   <Truck className="w-5 h-5" style={{ color: colors.accent }} />
                   <span className="text-sm font-medium">
-                    Add {currencySymbol}
-                    {formatPrice(remainingForFreeShipping, currency)} more for FREE shipping!
+                    Add {formatPrice(remainingForFreeShipping, currency)} more for FREE shipping!
                   </span>
                 </div>
                 <span className="text-sm font-bold" style={{ color: colors.accent }}>
@@ -525,7 +524,6 @@ export default function SharedCartPage({
 
                       {/* Price */}
                       <div className="font-bold text-lg mt-2" style={{ color: colors.accent }}>
-                        {currencySymbol}
                         {formatPrice(item.price, currency)}
                       </div>
                     </div>
@@ -586,7 +584,6 @@ export default function SharedCartPage({
 
                       {/* Line Total */}
                       <div className="font-bold ml-auto" style={{ color: colors.text }}>
-                        {currencySymbol}
                         {formatPrice(item.price * item.quantity, currency)}
                       </div>
                     </div>
@@ -643,8 +640,7 @@ export default function SharedCartPage({
                       <Tag className="w-4 h-4" />
                       <span className="font-medium">{appliedCoupon}</span>
                       <span className="text-sm">
-                        (-{currencySymbol}
-                        {formatPrice(couponDiscount, currency)})
+                        (-{formatPrice(couponDiscount, currency)})
                       </span>
                     </div>
                     <button onClick={removeCoupon} className="p-1 text-green-600 hover:opacity-70">
@@ -701,7 +697,6 @@ export default function SharedCartPage({
                 <div className="flex justify-between" style={{ color: colors.muted }}>
                   <span>Subtotal ({totalItems} items)</span>
                   <span style={{ color: colors.text }}>
-                    {currencySymbol}
                     {formatPrice(subtotal, currency)}
                   </span>
                 </div>
@@ -709,8 +704,7 @@ export default function SharedCartPage({
                   <div className="flex justify-between text-green-600">
                     <span>Discount</span>
                     <span>
-                      -{currencySymbol}
-                      {formatPrice(couponDiscount, currency)}
+                      -{formatPrice(couponDiscount, currency)}
                     </span>
                   </div>
                 )}
@@ -723,7 +717,7 @@ export default function SharedCartPage({
                     {hasEarnedFreeShipping
                       ? 'FREE'
                       : shipping > 0
-                        ? `${currencySymbol}${formatPrice(shipping, currency)}`
+                        ? `${formatPrice(shipping, currency)}`
                         : 'Calculated at checkout'}
                   </span>
                 </div>
@@ -735,7 +729,6 @@ export default function SharedCartPage({
                     Total
                   </span>
                   <span className="text-2xl font-bold" style={{ color: colors.accent }}>
-                    {currencySymbol}
                     {formatPrice(total, currency)}
                   </span>
                 </div>
