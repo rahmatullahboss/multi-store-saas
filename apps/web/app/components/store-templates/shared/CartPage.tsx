@@ -187,7 +187,7 @@ export default function SharedCartPage({
       }
     }
     setIsHydrated(true);
-  }, [isPreview]);
+  }, [isPreview, fetcher]);
 
   // Live Mode: Update cart with fresh prices from server
   useEffect(() => {
@@ -221,7 +221,7 @@ export default function SharedCartPage({
       localStorage.setItem('cart', JSON.stringify(storageItems));
       window.dispatchEvent(new Event('cart-updated'));
     }
-  }, [cartItems, isHydrated, isPreview]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [cartItems, isHydrated, isPreview]);
 
   // Calculate totals
   const subtotal = useMemo(
