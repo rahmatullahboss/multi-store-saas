@@ -312,12 +312,15 @@ export function themeConfigToCSSVariables(config: ThemeConfig): Record<string, s
     '--color-warning': config.colors.warning || '#f59e0b',
     '--color-error': config.colors.error || '#ef4444',
 
-    // Typography
-    '--font-family': config.typography.fontFamily,
-    '--font-family-heading': config.typography.fontFamilyHeading || config.typography.fontFamily,
-    '--font-size-base': `${config.typography.baseFontSize}px`,
-    '--line-height': String(config.typography.lineHeight),
-    '--line-height-heading': String(config.typography.headingLineHeight || 1.2),
+    // Typography - with safe defaults for missing typography config
+    '--font-family': config.typography?.fontFamily || "'Inter', sans-serif",
+    '--font-family-heading':
+      config.typography?.fontFamilyHeading ||
+      config.typography?.fontFamily ||
+      "'Inter', sans-serif",
+    '--font-size-base': `${config.typography?.baseFontSize || 16}px`,
+    '--line-height': String(config.typography?.lineHeight || 1.6),
+    '--line-height-heading': String(config.typography?.headingLineHeight || 1.2),
 
     // Spacing
     '--spacing-unit': `${config.spacing.unit}px`,

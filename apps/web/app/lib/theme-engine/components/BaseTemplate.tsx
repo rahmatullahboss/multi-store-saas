@@ -146,8 +146,12 @@ export function BaseTemplate({
 
   // Get Google Fonts URL
   const fontsUrl = useMemo(() => {
-    const heading = themeConfig.typography.fontFamilyHeading || themeConfig.typography.fontFamily;
-    const body = themeConfig.typography.fontFamily;
+    // Safely access typography with defaults
+    const heading =
+      themeConfig.typography?.fontFamilyHeading ||
+      themeConfig.typography?.fontFamily ||
+      "'Inter', sans-serif";
+    const body = themeConfig.typography?.fontFamily || "'Inter', sans-serif";
     // Extract font names from font-family strings
     const extractFontName = (fontFamily: string): string => {
       const match = fontFamily.match(/'([^']+)'/);
@@ -197,7 +201,7 @@ export function BaseTemplate({
       ...cssVariables,
       backgroundColor: themeConfig.colors.background,
       color: themeConfig.colors.text,
-      fontFamily: themeConfig.typography.fontFamily,
+      fontFamily: themeConfig.typography?.fontFamily || "'Inter', sans-serif",
       minHeight: '100vh',
       ...style,
     }),
