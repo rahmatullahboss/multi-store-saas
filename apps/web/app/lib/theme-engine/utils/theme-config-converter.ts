@@ -278,16 +278,19 @@ export function convertTemplateToThemeConfig(template: StoreTemplateDefinition):
  * Used when we need to pass data to legacy components that expect the old format
  */
 export function convertToStoreTemplateTheme(config: ThemeConfig): StoreTemplateTheme {
+  // Use safe defaults if config properties are undefined
+  const colors = config.colors || DEFAULT_THEME_CONFIG.colors;
+
   return {
-    primary: config.colors.primary,
-    accent: config.colors.accent,
-    background: config.colors.background,
-    text: config.colors.text,
-    muted: config.colors.textMuted,
-    cardBg: config.colors.surface,
-    headerBg: config.colors.surface,
-    footerBg: config.colors.primary,
-    footerText: config.colors.background,
+    primary: colors.primary,
+    accent: colors.accent,
+    background: colors.background,
+    text: colors.text,
+    muted: colors.textMuted,
+    cardBg: colors.surface,
+    headerBg: colors.surface,
+    footerBg: colors.primary,
+    footerText: colors.background,
   };
 }
 
@@ -298,57 +301,64 @@ export function convertToStoreTemplateTheme(config: ThemeConfig): StoreTemplateT
  * to make theme values available as CSS custom properties
  */
 export function themeConfigToCSSVariables(config: ThemeConfig): Record<string, string> {
+  // Use safe defaults for all potentially undefined properties
+  const colors = config.colors || DEFAULT_THEME_CONFIG.colors;
+  const typography = config.typography || DEFAULT_THEME_CONFIG.typography;
+  const spacing = config.spacing || DEFAULT_THEME_CONFIG.spacing;
+  const borders = config.borders || DEFAULT_THEME_CONFIG.borders;
+  const shadows = config.shadows || DEFAULT_THEME_CONFIG.shadows;
+  const buttons = config.buttons || DEFAULT_THEME_CONFIG.buttons;
+  const cards = config.cards || DEFAULT_THEME_CONFIG.cards;
+  const animation = config.animation || DEFAULT_THEME_CONFIG.animation;
+
   return {
     // Colors
-    '--color-primary': config.colors.primary,
-    '--color-secondary': config.colors.secondary || config.colors.textMuted,
-    '--color-accent': config.colors.accent,
-    '--color-background': config.colors.background,
-    '--color-surface': config.colors.surface,
-    '--color-text': config.colors.text,
-    '--color-text-muted': config.colors.textMuted,
-    '--color-border': config.colors.border,
-    '--color-success': config.colors.success || '#22c55e',
-    '--color-warning': config.colors.warning || '#f59e0b',
-    '--color-error': config.colors.error || '#ef4444',
+    '--color-primary': colors.primary,
+    '--color-secondary': colors.secondary || colors.textMuted,
+    '--color-accent': colors.accent,
+    '--color-background': colors.background,
+    '--color-surface': colors.surface,
+    '--color-text': colors.text,
+    '--color-text-muted': colors.textMuted,
+    '--color-border': colors.border,
+    '--color-success': colors.success || '#22c55e',
+    '--color-warning': colors.warning || '#f59e0b',
+    '--color-error': colors.error || '#ef4444',
 
-    // Typography - with safe defaults for missing typography config
-    '--font-family': config.typography?.fontFamily || "'Inter', sans-serif",
-    '--font-family-heading':
-      config.typography?.fontFamilyHeading ||
-      config.typography?.fontFamily ||
-      "'Inter', sans-serif",
-    '--font-size-base': `${config.typography?.baseFontSize || 16}px`,
-    '--line-height': String(config.typography?.lineHeight || 1.6),
-    '--line-height-heading': String(config.typography?.headingLineHeight || 1.2),
+    // Typography
+    '--font-family': typography.fontFamily,
+    '--font-family-heading': typography.fontFamilyHeading || typography.fontFamily,
+    '--font-size-base': `${typography.baseFontSize}px`,
+    '--line-height': String(typography.lineHeight),
+    '--line-height-heading': String(typography.headingLineHeight),
 
     // Spacing
-    '--spacing-unit': `${config.spacing.unit}px`,
-    '--container-max-width': config.spacing.containerMaxWidth,
-    '--container-padding': config.spacing.containerPadding,
+    '--spacing-unit': `${spacing.unit}px`,
+    '--container-max-width': spacing.containerMaxWidth,
+    '--container-padding': spacing.containerPadding,
 
     // Borders
-    '--border-radius': config.borders.radius,
-    '--border-radius-lg': config.borders.radiusLarge,
-    '--border-width': config.borders.width,
+    '--border-radius': borders.radius,
+    '--border-radius-lg': borders.radiusLarge,
+    '--border-width': borders.width,
 
     // Shadows
-    '--shadow-sm': config.shadows.sm,
-    '--shadow-md': config.shadows.md,
-    '--shadow-lg': config.shadows.lg,
+    '--shadow-sm': shadows.sm,
+    '--shadow-md': shadows.md,
+    '--shadow-lg': shadows.lg,
 
     // Buttons
-    '--button-radius': config.buttons.borderRadius,
-    '--button-font-weight': config.buttons.fontWeight,
+    '--button-radius': buttons.borderRadius,
+    '--button-font-weight': buttons.fontWeight,
 
     // Cards
-    '--card-radius': config.cards.borderRadius,
-    '--card-shadow': config.cards.shadow,
-    '--card-padding': config.cards.padding,
+    '--card-radius': cards.borderRadius,
+    '--card-shadow': cards.shadow,
+    '--card-padding': cards.padding,
 
     // Animation
-    '--animation-duration': config.animation.duration,
-    '--animation-easing': config.animation.easing,
+    '--animation-duration': animation.duration,
+    '--animation-easing': animation.easing,
   };
 }
 
@@ -359,15 +369,15 @@ export function themeConfigToCSSVariables(config: ThemeConfig): Record<string, s
  */
 export function createThemeStyles(config: ThemeConfig): React.CSSProperties {
   return {
-    '--color-primary': config.colors.primary,
-    '--color-accent': config.colors.accent,
-    '--color-background': config.colors.background,
-    '--color-surface': config.colors.surface,
-    '--color-text': config.colors.text,
-    '--color-text-muted': config.colors.textMuted,
-    fontFamily: config.typography.fontFamily,
-    backgroundColor: config.colors.background,
-    color: config.colors.text,
+    '--color-primary': config.colors?.primary || DEFAULT_THEME_CONFIG.colors.primary,
+    '--color-accent': config.colors?.accent || DEFAULT_THEME_CONFIG.colors.accent,
+    '--color-background': config.colors?.background || DEFAULT_THEME_CONFIG.colors.background,
+    '--color-surface': config.colors?.surface || DEFAULT_THEME_CONFIG.colors.surface,
+    '--color-text': config.colors?.text || DEFAULT_THEME_CONFIG.colors.text,
+    '--color-text-muted': config.colors?.textMuted || DEFAULT_THEME_CONFIG.colors.textMuted,
+    fontFamily: config.typography?.fontFamily || DEFAULT_THEME_CONFIG.typography.fontFamily,
+    backgroundColor: config.colors?.background || DEFAULT_THEME_CONFIG.colors.background,
+    color: config.colors?.text || DEFAULT_THEME_CONFIG.colors.text,
   } as React.CSSProperties;
 }
 
