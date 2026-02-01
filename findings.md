@@ -7,10 +7,9 @@
 
 ## Documentation
 
-- User pointed out the issue was on `Starter Store`, not `Sokol`.
-- Issue: Sticky solid header was pushing content down, creating unwanted space on the homepage.
+- User requested: "Header position seems correct, but use white background instead of transparent."
 
 ## Decisions
 
-- [x] Fix: Implemented immersive header (overlay) for Starter Store homepage. This removes the solid space and overlays the header on the hero banner.
-- [x] Fix (Previous): Removed duplicate rendering in Sokol (kept as a righteous fix, though not the user's immediate problem).
+- [x] Fix: Updated `StarterStoreHeader` to usage fixed positioning (overlay) but with a **solid white background**.
+- [x] Fix: Resolved `Cannot read properties of undefined (reading 'typography')` by adding `nova-lux-ultra` to `TEMPLATE_ENHANCEMENTS` in `theme-config-converter.ts`.

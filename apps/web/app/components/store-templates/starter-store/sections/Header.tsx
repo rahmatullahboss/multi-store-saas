@@ -8,7 +8,7 @@
  */
 
 import { Link, useNavigate } from '@remix-run/react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ShoppingCart, Search, Menu, X, User, Heart } from 'lucide-react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { useWishlist } from '~/hooks/useWishlist';
@@ -43,7 +43,6 @@ export function StarterStoreHeader({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isScrolled, setIsScrolled] = useState(false);
   
   // Use real cart count in live mode, demo count in preview
   const realCartCount = useCartCount();
@@ -57,14 +56,14 @@ export function StarterStoreHeader({
   const getPreviewUrl = usePreviewUrl(isPreview);
   const navigate = useNavigate();
 
-  // Scroll detection for immersive header
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // Scroll detection removed as user requested solid header always
+  // useEffect(() => {
+  //   const handleScroll = () => {
+  //     setIsScrolled(window.scrollY > 20);
+  //   };
+  //   window.addEventListener('scroll', handleScroll);
+  //   return () => window.removeEventListener('scroll', handleScroll);
+  // }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,22 +77,23 @@ export function StarterStoreHeader({
   };
 
   // Determine styles based on variant and scroll state
-  const isTransparent = variant === 'overlay' && !isScrolled && !mobileMenuOpen;
-  const headerBg = isTransparent ? 'transparent' : theme.headerBg;
-  const textColor = isTransparent ? 'white' : theme.text;
-  const iconColor = isTransparent ? 'white' : theme.text;
-  const logoBg = isTransparent ? 'bg-white/90 backdrop-blur' : 'bg-transparent';
+  // User requested white background instead of transparent, but keeping fixed positioning
+  const isTransparent = false; // Forced to false based on user feedback
+  const headerBg = theme.headerBg; // Always use theme header bg (white)
+  const textColor = theme.text; // Always use theme text color
+  const iconColor = theme.text; // Always use theme icon color
+  const logoBg = 'bg-transparent'; // No special bg needed for logo since header is white
   
   const headerClass = variant === 'overlay' 
     ? 'fixed top-0 left-0 right-0 z-50 transition-all duration-300'
     : 'sticky top-0 z-50 shadow-sm transition-all duration-300';
     
-  const containerClass = isScrolled || !isTransparent ? 'shadow-sm' : '';
+  const containerClass = 'shadow-sm'; // Always show shadow since it is white
 
   return (
     <>
-      {/* Announcement Bar - Only show if not overlay or if scrolled */}
-      {config?.announcement?.text?.trim() && (!isTransparent || isScrolled) && (
+      {/* Announcement Bar - Always show since background is solid */}
+      {config?.announcement?.text?.trim() && (
         <div 
           className="text-center py-2 text-sm font-medium text-white relative z-50"
           style={{ backgroundColor: theme.accent }}
@@ -137,7 +137,7 @@ export function StarterStoreHeader({
               )}
               <span 
                 className="text-xl font-bold"
-                style={{ color: isTransparent ? 'white' : theme.primary }}
+                style={{ color: theme.primary }}
               >
                 {storeName}
               </span>

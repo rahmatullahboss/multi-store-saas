@@ -145,6 +145,20 @@ const TEMPLATE_ENHANCEMENTS: Record<string, TemplateEnhancements> = {
     },
     animation: { duration: '300ms', easing: 'cubic-bezier(0.4, 0, 0.2, 1)' },
   },
+  'nova-lux-ultra': {
+    borders: { radius: '1rem', radiusLarge: '1.5rem' },
+    shadows: {
+      sm: '0 4px 12px rgba(0, 0, 0, 0.08)',
+      md: '0 8px 30px rgba(0, 0, 0, 0.12)',
+      lg: '0 20px 60px rgba(0, 0, 0, 0.2)',
+    },
+    buttons: { borderRadius: '9999px', fontWeight: '600' },
+    cards: {
+      borderRadius: '1.5rem',
+      shadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+    },
+    animation: { duration: '400ms', easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' },
+  },
   eclipse: {
     borders: { radius: '0.75rem' },
     shadows: {
@@ -201,7 +215,7 @@ export function convertToThemeConfig(
   fonts: { heading: string; body: string },
   templateId?: string
 ): ThemeConfig {
-  const enhancements = templateId ? TEMPLATE_ENHANCEMENTS[templateId] : {};
+  const enhancements = (templateId && TEMPLATE_ENHANCEMENTS[templateId]) || {};
 
   return {
     name: templateId || 'Custom Theme',
@@ -470,11 +484,7 @@ export function getFontLinkProps(fonts: { heading: string; body: string }): {
 // ALL TEMPLATE CONFIGS (Pre-computed)
 // ============================================================================
 
-import {
-  STORE_TEMPLATES,
-  STORE_TEMPLATE_THEMES,
-  type StoreTemplateDefinition as TemplateDef,
-} from '~/templates/store-registry';
+import { STORE_TEMPLATES } from '~/templates/store-registry';
 
 /**
  * Pre-computed ThemeConfigs for all templates
