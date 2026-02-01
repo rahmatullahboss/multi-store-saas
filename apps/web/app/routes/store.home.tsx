@@ -248,29 +248,23 @@ export default function StoreHomePage() {
   }, []);
 
   return (
-    <StorePageWrapper
-      storeName={storeName}
-      storeId={storeId}
-      logo={logo}
-      templateId={storeTemplateId}
-      theme={theme}
-      currency={currency}
-      socialLinks={socialLinks}
-      businessInfo={businessInfo}
-      planType={planType}
-      tagline={storeTagline}
-      storeDescription={storeDescription}
-      customer={customer}
-      categories={categories as string[]}
-      config={
-        {
-          primaryColor: theme.primary,
-          accentColor: theme.accent,
-          ...themeConfig,
-        } as unknown as ThemeConfig
-      }
-    >
+    <>
+      {/* Inject CSS variables globally for consistent theming */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            :root {
+              --color-primary: ${theme.primary};
+              --color-accent: ${theme.accent};
+              --font-heading: ${template.fonts?.heading || 'Inter, sans-serif'};
+              --font-body: ${template.fonts?.body || 'Inter, sans-serif'};
+            }
+          `,
+        }}
+      />
+      
       {/* MVP Simple System: Use old 1000+ line React template component */}
+      {/* Template has its own Header/Footer - no wrapper needed */}
       <TemplateComponent
         storeName={storeName}
         storeId={storeId}
@@ -297,6 +291,6 @@ export default function StoreHomePage() {
         reviews={[]}
         banners={[]}
       />
-    </StorePageWrapper>
+    </>
   );
 }

@@ -85,7 +85,7 @@ export function TechModernHeader({
           {/* Logo */}
           <PreviewSafeLink to="/" className="flex items-center flex-shrink-0" isPreview={isPreview}>
             {logo ? (
-              <img src={logo} alt={storeName} className="h-8 lg:h-10 object-contain" />
+              <img src={logo} alt={storeName} className="h-8 lg:h-10 object-contain bg-white rounded px-2 py-1" />
             ) : (
               <span
                 className="text-xl lg:text-2xl font-bold flex items-center gap-2"

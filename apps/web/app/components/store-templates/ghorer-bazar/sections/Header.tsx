@@ -160,7 +160,7 @@ export function GhorerBazarHeader({
               {/* Logo */}
               <PreviewSafeLink to="/" className="flex items-center gap-2" isPreview={isPreview}>
                 {logo ? (
-                  <img src={logo} alt={storeName} className="h-8 md:h-10 w-auto" />
+                  <img src={logo} alt={storeName} className="h-8 md:h-10 w-auto object-contain bg-white rounded px-2 py-1" />
                 ) : (
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-lg flex items-center justify-center">

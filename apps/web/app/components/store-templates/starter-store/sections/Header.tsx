@@ -101,7 +101,11 @@ export function StarterStoreHeader({
               className="flex items-center gap-2"
             >
               {logo && (
-                <img src={logo} alt={storeName} className="h-10 w-auto object-contain" />
+                <img 
+                  src={logo} 
+                  alt={storeName} 
+                  className="h-10 w-auto object-contain bg-white rounded px-2 py-1" 
+                />
               )}
               <span 
                 className="text-xl font-bold"

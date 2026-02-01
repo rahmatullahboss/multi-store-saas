@@ -72,7 +72,7 @@ export function LuxeBoutiqueHeader({
           {/* Logo */}
           <PreviewSafeLink to="/" className="flex items-center" isPreview={isPreview}>
             {logo ? (
-              <img src={logo} alt={storeName} className="h-10 lg:h-12 object-contain" />
+              <img src={logo} alt={storeName} className="h-10 lg:h-12 object-contain bg-white rounded px-2 py-1" />
             ) : (
               <span 
                 className="text-xl lg:text-2xl font-semibold tracking-wide"
