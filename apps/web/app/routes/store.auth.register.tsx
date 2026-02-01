@@ -8,6 +8,8 @@
 
 import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, useActionData, Form, Link, useNavigation } from '@remix-run/react';
+import { parseThemeConfig } from '@db/types';
+import { DEFAULT_STORE_TEMPLATE_ID, getStoreTemplateTheme } from '~/templates/store-registry';
 import { resolveStore } from '~/lib/store.server';
 import {
   getCustomerId,
@@ -16,7 +18,6 @@ import {
   canStoreUseGoogleAuth,
 } from '~/services/customer-auth.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { getStoreTemplateTheme } from '~/templates/store-registry';
 import { Lock, Mail, User, ArrowRight, Loader2 } from 'lucide-react';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -39,9 +40,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const canUseGoogle = await canStoreUseGoogleAuth(storeId, env.DB);
   
   // 4. Get template theme
-  const templateId = (store.themeConfig as any)?.storeTemplateId || 
-                     (store.theme as string) || 
-                     'starter-store';
+  const themeConfig = parseThemeConfig(store.themeConfig as string | null);
+  const templateId = themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
 
   return json({
     store: {
@@ -57,6 +57,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   });
 }
 
+import { z } from 'zod';
+
+const registerSchema = z.object({
+  name: z.string().min(1, "Full Name is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters long"),
+});
+
 export async function action({ request, context }: ActionFunctionArgs) {
   const storeContext = await resolveStore(context, request);
   if (!storeContext) {
@@ -66,20 +74,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const { storeId } = storeContext;
   const env = context.cloudflare.env;
   const formData = await request.formData();
+  const payload = Object.fromEntries(formData);
 
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
-  const name = formData.get('name') as string;
+  const result = registerSchema.safeParse(payload);
 
-  if (!email || !password || !name) {
-    return json({ error: 'Please provide all required fields' }, { status: 400 });
+  if (!result.success) {
+    return json({ error: result.error.errors[0].message }, { status: 400 });
   }
 
-  if (password.length < 6) {
-    return json({ error: 'Password must be at least 6 characters long' }, { status: 400 });
-  }
+  const { name, email, password } = result.data;
 
-  const result = await registerCustomer({
+  const registerResult = await registerCustomer({
     storeId,
     email,
     password,
@@ -87,16 +92,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
     db: env.DB,
   });
 
-  if (result.error || !result.customer) {
-    return json({ error: result.error }, { status: 400 });
+  if (registerResult.error || !registerResult.customer) {
+    return json({ error: registerResult.error || "Registration failed" }, { status: 400 });
   }
 
-  return createCustomerSession(result.customer.id, storeId, '/account', env);
+  return createCustomerSession(registerResult.customer.id, storeId, '/account', env);
 }
 
 export default function StoreRegister() {
   const { store, canUseGoogle } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+  const actionData = useActionData<{ error?: string }>(); // Typed action data
   const navigation = useNavigation();
   
   const theme = getStoreTemplateTheme(store.templateId);
@@ -110,7 +115,7 @@ export default function StoreRegister() {
       templateId={store.templateId}
       theme={theme}
       currency={store.currency || 'BDT'}
-      planType={store.planType}
+      planType={store.planType || 'free'}
     >
       <div className="min-h-[calc(100vh-200px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
@@ -145,7 +150,7 @@ export default function StoreRegister() {
                     type="text"
                     required
                     className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent sm:text-sm transition-shadow"
-                    style={{ '--tw-ring-color': theme.primary } as any}
+                    style={{ '--tw-ring-color': theme.primary } as React.CSSProperties}
                     placeholder="John Doe"
                   />
                 </div>
@@ -166,7 +171,7 @@ export default function StoreRegister() {
                     autoComplete="email"
                     required
                     className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent sm:text-sm transition-shadow"
-                    style={{ '--tw-ring-color': theme.primary } as any}
+                    style={{ '--tw-ring-color': theme.primary } as React.CSSProperties}
                     placeholder="you@example.com"
                   />
                 </div>
@@ -187,7 +192,7 @@ export default function StoreRegister() {
                     autoComplete="new-password"
                     required
                     className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent sm:text-sm transition-shadow"
-                    style={{ '--tw-ring-color': theme.primary } as any}
+                    style={{ '--tw-ring-color': theme.primary } as React.CSSProperties}
                     placeholder="••••••••"
                   />
                 </div>
@@ -199,7 +204,7 @@ export default function StoreRegister() {
               type="submit"
               disabled={isSubmitting}
               className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-              style={{ backgroundColor: theme.primary, '--tw-ring-color': theme.primary } as any}
+              style={{ backgroundColor: theme.primary, '--tw-ring-color': theme.primary } as React.CSSProperties}
             >
               {isSubmitting ? (
                 <Loader2 className="animate-spin h-5 w-5" />

@@ -1,0 +1,47 @@
+app/components/landing-builder/IntentWizard.tsx(388,66): error TS2304: Cannot find name 'formatPrice'.
+app/components/landing-builder/IntentWizard.tsx(454,64): error TS2304: Cannot find name 'formatPrice'.
+app/components/page-builder/sections/order-form/OrganicOrderForm.tsx(2,10): error TS2300: Duplicate identifier 'formatPrice'.
+app/components/page-builder/sections/order-form/OrganicOrderForm.tsx(4,10): error TS2300: Duplicate identifier 'formatPrice'.
+app/components/page-builder/sections/order-form/WorldClassOrderForm.tsx(2,10): error TS2300: Duplicate identifier 'formatPrice'.
+app/components/page-builder/sections/order-form/WorldClassOrderForm.tsx(4,10): error TS2300: Duplicate identifier 'formatPrice'.
+app/components/store-templates/tech-modern/index.tsx(802,17): error TS2552: Cannot find name 'useTranslation'. Did you mean 'BaseAiTranslation'?
+app/components/store-templates/tech-modern/index.tsx(803,17): error TS2304: Cannot find name 'useCartCount'.
+app/components/store-templates/tech-modern/index.tsx(808,6): error TS2304: Cannot find name 'StoreConfigProvider'.
+app/components/store-templates/tech-modern/index.tsx(809,8): error TS2304: Cannot find name 'WishlistProvider'.
+app/components/store-templates/tech-modern/index.tsx(810,10): error TS2304: Cannot find name 'ClientOnly'.
+app/components/store-templates/tech-modern/index.tsx(810,32): error TS2304: Cannot find name 'SkeletonLoader'.
+app/components/store-templates/tech-modern/index.tsx(938,42): error TS2304: Cannot find name 'SECTION_REGISTRY'.
+app/components/store-templates/tech-modern/index.tsx(1069,11): error TS2304: Cannot find name 'ClientOnly'.
+app/components/store-templates/tech-modern/index.tsx(1070,9): error TS2304: Cannot find name 'WishlistProvider'.
+app/components/store-templates/tech-modern/index.tsx(1071,7): error TS2304: Cannot find name 'StoreConfigProvider'.
+app/components/store-templates/tech-modern/index.tsx(1097,7): error TS2304: Cannot find name 'useProductPrice'.
+app/routes/account.profile.tsx(79,21): error TS2339: Property 'success' does not exist on type 'JsonifyObject<{ error: string | undefined; }> | JsonifyObject<{ success: boolean; }>'.
+  Property 'success' does not exist on type 'JsonifyObject<{ error: string | undefined; }>'.
+app/routes/account.profile.tsx(81,28): error TS2339: Property 'error' does not exist on type 'JsonifyObject<{ error: string | undefined; }> | JsonifyObject<{ success: boolean; }>'.
+  Property 'error' does not exist on type 'JsonifyObject<{ success: boolean; }>'.
+app/routes/account.profile.tsx(82,30): error TS2339: Property 'error' does not exist on type 'JsonifyObject<{ error: string | undefined; }> | JsonifyObject<{ success: boolean; }>'.
+  Property 'error' does not exist on type 'JsonifyObject<{ success: boolean; }>'.
+app/routes/account.tsx(28,39): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+app/routes/account.tsx(40,23): error TS2322: Type '{ children: Element; store: JsonifyObject<{ id: number; name: string; subdomain: string; customDomain: string | null; customDomainRequest: string | null; customDomainStatus: "none" | "pending" | "approved" | "rejected" | null; ... 64 more ...; updatedAt: Date | null; }>; theme: JsonifyObject<...>; }' is not assignable to type 'IntrinsicAttributes & StorePageWrapperProps'.
+  Property 'store' does not exist on type 'IntrinsicAttributes & StorePageWrapperProps'. Did you mean 'storeId'?
+app/routes/app.admin.plans.tsx(498,34): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+app/routes/app.orders.$id.tsx(189,5): error TS1117: An object literal cannot have multiple properties with the same name.
+app/routes/checkout.success.tsx(10,10): error TS2300: Duplicate identifier 'formatPrice'.
+app/routes/checkout.success.tsx(12,10): error TS2300: Duplicate identifier 'formatPrice'.
+app/routes/pages.$slug.tsx(63,44): error TS2345: Argument of type 'DrizzleD1Database<typeof import("/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/packages/database/src/schema")> & { $client: D1Database; }' is not assignable to parameter of type 'DrizzleD1Database<Record<string, never>>'.
+  The types of '_.schema' are incompatible between these types.
+    Type 'ExtractTablesWithRelations<typeof import("/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/packages/database/src/schema")> | undefined' is not assignable to type 'ExtractTablesWithRelations<Record<string, never>> | undefined'.
+      Type 'ExtractTablesWithRelations<typeof import("/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/packages/database/src/schema")>' is not assignable to type 'ExtractTablesWithRelations<Record<string, never>>'.
+        Property 'stores' is incompatible with index signature.
+          Type '{ tsName: "stores"; dbName: "stores"; columns: { id: SQLiteColumn<{ name: "id"; tableName: "stores"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, {}>; ... 69 more ...; updatedAt: SQLiteColumn<...>; };...' is not assignable to type '{ tsName: string; dbName: never; columns: never; relations: Record<string, Relation<string>>; primaryKey: AnyColumn[]; }'.
+            Types of property 'dbName' are incompatible.
+              Type '"stores"' is not assignable to type 'never'.
+app/routes/search.tsx(90,44): error TS2345: Argument of type 'DrizzleD1Database<typeof import("/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/packages/database/src/schema")> & { $client: D1Database; }' is not assignable to parameter of type 'DrizzleD1Database<Record<string, never>>'.
+  The types of '_.schema' are incompatible between these types.
+    Type 'ExtractTablesWithRelations<typeof import("/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/packages/database/src/schema")> | undefined' is not assignable to type 'ExtractTablesWithRelations<Record<string, never>> | undefined'.
+      Type 'ExtractTablesWithRelations<typeof import("/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/packages/database/src/schema")>' is not assignable to type 'ExtractTablesWithRelations<Record<string, never>>'.
+        Property 'stores' is incompatible with index signature.
+          Type '{ tsName: "stores"; dbName: "stores"; columns: { id: SQLiteColumn<{ name: "id"; tableName: "stores"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, {}>; ... 69 more ...; updatedAt: SQLiteColumn<...>; };...' is not assignable to type '{ tsName: string; dbName: never; columns: never; relations: Record<string, Relation<string>>; primaryKey: AnyColumn[]; }'.
+            Types of property 'dbName' are incompatible.
+              Type '"stores"' is not assignable to type 'never'.

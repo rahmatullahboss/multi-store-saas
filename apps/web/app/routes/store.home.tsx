@@ -107,8 +107,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
           description: null,
       })) as unknown as SerializedProduct[];
 
-      // Cache for 5 minutes (300 seconds)
-      await cache.set(productsCacheKey, featuredProducts, 300);
+      // Cache for 1 hour (3600 seconds) - Best practice for Storefront Home
+      await cache.set(productsCacheKey, featuredProducts, 3600);
   }
 
   if (!categories) {
@@ -122,7 +122,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       categories = [...new Set(featuredProducts.map((p) => p.category).filter(Boolean))] as string[];
       
       // Cache categories too
-      await cache.set(categoriesCacheKey, categories, 300);
+      await cache.set(categoriesCacheKey, categories, 3600);
+  }
+
+  // EDGE CACHING STRATEGY
+  // If no customer is logged in, we can cache the HTML at the edge (Cloudflare CDN)
+  // This prevents the Worker from running on every visit, significantly reducing costs/invocations.
+  const headers = new Headers();
+  if (!customer) {
+    // Guest: Cache for 1 hour at Edge (s-maxage) and Browser (max-age)
+    // "public" allows the CDN to store it.
+    headers.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+  } else {
+    // Logged In: Private cache only (Browser), potentially for a short time or 0
+    // We MUST NOT cache shared (CDN) because it contains user-specific data (Name)
+    headers.set('Cache-Control', 'private, max-age=60'); 
   }
 
   return json({
@@ -142,8 +156,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
     featuredProducts,
     categories,
-  });
+  }, { headers });
 }
+
+export const headers = ({ loaderHeaders }: { loaderHeaders: Headers }) => {
+  return {
+    'Cache-Control': loaderHeaders.get('Cache-Control') || 'private, max-age=60',
+  };
+};
 
 export default function StoreHomePage() {
   const {

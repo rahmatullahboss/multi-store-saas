@@ -400,6 +400,11 @@ export default {
     if (match) {
       const storeId = match[1];
       const doPath = match[2] || '/';
+
+      // Log source for debugging high traffic
+      const origin = request.headers.get('Origin') || 'unknown';
+      const referer = request.headers.get('Referer') || 'unknown';
+      console.log(`[StoreConfig] Request for store ${storeId} from ${origin} (Ref: ${referer})`);
       
       const id = env.STORE_CONFIG.idFromName(`store-${storeId}`);
       const stub = env.STORE_CONFIG.get(id);

@@ -43,7 +43,30 @@ export default {
       return fetch(cdnUrl.toString());
     }
     
-    console.log(`[Proxy] Request: ${hostname}${pathname}`);
+    // ========================================================================
+    // LOOP DETECTION: Prevent infinite recursion
+    // ========================================================================
+    
+    // 1. Check standard CDN-Loop header (Cloudflare adds this)
+    const cdnLoop = request.headers.get('CDN-Loop');
+    if (cdnLoop && cdnLoop.includes('cloudflare')) {
+      // If we see our own worker execution count getting too high
+      // Format usually: "cloudflare; count=1"
+      const countMatch = cdnLoop.match(/count=(\d+)/);
+      if (countMatch && parseInt(countMatch[1]) > 5) {
+         console.error(`[Proxy] Loop detected via CDN-Loop: ${cdnLoop}`);
+         return new Response('Loop Detected', { status: 508 });
+      }
+    }
+
+    // 2. Check custom proxy recursion depth
+    const currentDepth = parseInt(request.headers.get('X-Worker-Proxy-Count') || '0');
+    if (currentDepth > 3) {
+      console.error(`[Proxy] Infinite loop detected! Depth: ${currentDepth} URL: ${url.href}`);
+      return new Response('Loop Detected - Too many redirects', { status: 508 });
+    }
+    
+    console.log(`[Proxy] Request: ${hostname}${pathname} (Depth: ${currentDepth})`);
     
     // Build the Pages URL
     const pagesUrl = env.PAGES_URL || 'https://multi-store-saas.pages.dev';
@@ -55,12 +78,15 @@ export default {
     headers.set('X-Original-Host', hostname);
     headers.set('Host', new URL(pagesUrl).hostname);
     
+    // Increment proxy depth counter
+    headers.set('X-Worker-Proxy-Count', (currentDepth + 1).toString());
+    
     // Create the proxied request
     const proxyRequest = new Request(targetUrl.toString(), {
       method: request.method,
       headers: headers,
       body: request.body,
-      redirect: 'manual',
+      redirect: 'manual', // Prevent following redirects automatically loops
     });
     
     try {

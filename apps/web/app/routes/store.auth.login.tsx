@@ -9,6 +9,8 @@
 
 import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, useActionData, Form, Link, useNavigation, useSearchParams } from '@remix-run/react';
+import { parseThemeConfig } from '@db/types';
+import { DEFAULT_STORE_TEMPLATE_ID, getStoreTemplateTheme } from '~/templates/store-registry';
 import { resolveStore } from '~/lib/store.server';
 import {
   getCustomerId,
@@ -17,7 +19,6 @@ import {
   canStoreUseGoogleAuth,
 } from '~/services/customer-auth.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { getStoreTemplateTheme } from '~/templates/store-registry';
 import { Lock, Mail, ArrowRight, Loader2 } from 'lucide-react';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -41,9 +42,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const canUseGoogle = await canStoreUseGoogleAuth(storeId, env.DB);
   
   // 4. Get template theme
-  const templateId = (store.themeConfig as any)?.storeTemplateId || 
-                     (store.theme as string) || 
-                     'starter-store';
+  const themeConfig = parseThemeConfig(store.themeConfig as string | null);
+  const templateId = themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
 
   return json({
     store: {
@@ -59,6 +59,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   });
 }
 
+import { z } from 'zod';
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+  redirectTo: z.string().optional().default('/account'),
+});
+
 export async function action({ request, context }: ActionFunctionArgs) {
   const storeContext = await resolveStore(context, request);
   if (!storeContext) {
@@ -68,32 +76,36 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const { storeId } = storeContext;
   const env = context.cloudflare.env;
   const formData = await request.formData();
+  const payload = Object.fromEntries(formData);
 
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
-  const redirectTo = (formData.get('redirectTo') as string) || '/account';
+  const result = loginSchema.safeParse(payload);
 
-  if (!email || !password) {
-    return json({ error: 'Please provide both email and password' }, { status: 400 });
+  if (!result.success) {
+    return json({ error: result.error.errors[0].message }, { status: 400 });
   }
 
-  const result = await loginCustomer({
+  const { email, password, redirectTo } = result.data;
+
+  // Validate redirectTo to prevent Open Redirects
+  const safeRedirectTo = redirectTo.startsWith('/') ? redirectTo : '/account';
+
+  const loginResult = await loginCustomer({
     storeId,
     email,
     password,
     db: env.DB,
   });
 
-  if (result.error || !result.customer) {
-    return json({ error: result.error }, { status: 400 });
+  if (loginResult.error || !loginResult.customer) {
+    return json({ error: loginResult.error || "Invalid credentials" }, { status: 400 });
   }
 
-  return createCustomerSession(result.customer.id, storeId, redirectTo, env);
+  return createCustomerSession(loginResult.customer.id, storeId, safeRedirectTo, env);
 }
 
 export default function StoreLogin() {
   const { store, canUseGoogle } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+  const actionData = useActionData<{ error?: string }>(); // Typed action data
   const navigation = useNavigation();
   const [searchParams] = useSearchParams();
   
@@ -111,7 +123,7 @@ export default function StoreLogin() {
       templateId={store.templateId}
       theme={theme}
       currency={store.currency || 'BDT'}
-      planType={store.planType}
+      planType={store.planType || 'free'}
       // Hide header/footer if needed, but usually we want them
     >
       <div className="min-h-[calc(100vh-200px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -150,7 +162,7 @@ export default function StoreLogin() {
                     autoComplete="email"
                     required
                     className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent sm:text-sm transition-shadow"
-                    style={{ '--tw-ring-color': theme.primary } as any}
+                    style={{ '--tw-ring-color': theme.primary } as React.CSSProperties}
                     placeholder="you@example.com"
                   />
                 </div>
@@ -171,7 +183,7 @@ export default function StoreLogin() {
                     autoComplete="current-password"
                     required
                     className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent sm:text-sm transition-shadow"
-                    style={{ '--tw-ring-color': theme.primary } as any}
+                    style={{ '--tw-ring-color': theme.primary } as React.CSSProperties}
                     placeholder="••••••••"
                   />
                 </div>
@@ -203,7 +215,7 @@ export default function StoreLogin() {
               type="submit"
               disabled={isSubmitting}
               className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-              style={{ backgroundColor: theme.primary, '--tw-ring-color': theme.primary } as any}
+              style={{ backgroundColor: theme.primary, '--tw-ring-color': theme.primary } as React.CSSProperties}
             >
               {isSubmitting ? (
                 <Loader2 className="animate-spin h-5 w-5" />

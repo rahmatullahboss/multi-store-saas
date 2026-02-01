@@ -87,7 +87,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const socialLinks = parseSocialLinks(storeData.socialLinks as string | null);
 
   // Get MVP settings for theme colors
-  const mvpSettings = await getMVPSettings(db, storeId, storeTemplateId);
+  const mvpSettings = await getMVPSettings(db as any, storeId, storeTemplateId);
 
   // Merge MVP colors with template theme
   const mergedTheme = {

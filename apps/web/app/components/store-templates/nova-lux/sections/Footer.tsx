@@ -106,7 +106,6 @@ export function NovaLuxFooter({
   const displayBusinessInfo = isPreview ? defaultBusinessInfo : businessInfo || defaultBusinessInfo;
 
 
-
   return (
     <footer style={{ backgroundColor: THEME.footerBg, color: THEME.footerText }}>
       {/* Trust Badges Bar */}

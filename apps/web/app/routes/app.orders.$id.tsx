@@ -186,7 +186,6 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     order,
     items: itemsWithImages,
     store,
-    store,
     availableCouriers,
     defaultCourier,
     activityLogs: orderActivityLogs,

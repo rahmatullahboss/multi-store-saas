@@ -60,7 +60,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   };
 
   // Get MVP settings for theme colors
-  const mvpSettings = await getMVPSettings(db, storeId, storeTemplateId);
+  const mvpSettings = await getMVPSettings(db as any, storeId, storeTemplateId);
 
   // Merge MVP colors with template theme
   const mergedTheme = {
