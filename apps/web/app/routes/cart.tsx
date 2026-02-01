@@ -100,6 +100,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     accent: themeConfig?.accentColor || theme.accent,
   };
 
+  // Fetch unique categories for footer
+  const categoriesResult = await db
+    .select({ category: products.category })
+    .from(products)
+    .where(and(eq(products.storeId, storeId as number), eq(products.isPublished, true)));
+
+  const categories = [
+    ...new Set(categoriesResult.map((p) => p.category).filter((c): c is string => Boolean(c))),
+  ];
+
   return json({
     storeId: storeId as number,
     storeName: storeData?.name || 'Store',
@@ -113,6 +123,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     themeConfig,
     planType: storeData?.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
+    categories,
   });
 }
 
@@ -220,6 +231,7 @@ export default function CartPage() {
     themeConfig,
     planType,
     customer,
+    categories,
   } = useLoaderData<typeof loader>();
 
   const { t } = useTranslation();
@@ -332,6 +344,7 @@ export default function CartPage() {
         config={themeConfig || undefined}
         planType={planType}
         customer={customer || undefined}
+        categories={categories}
       >
         <Suspense
           fallback={

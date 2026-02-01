@@ -52,10 +52,23 @@ export function getSessionStorage(env: Env) {
     throw new Error('SESSION_SECRET must be set in your environment variables.');
   }
 
-  // Check if we're in development mode
-  // SAAS_DOMAIN will be 'localhost:5173' or similar in dev, 'ozzyl.com' in prod
-  const saasDomain = env.SAAS_DOMAIN || 'ozzyl.com';
-  const isLocalhost = saasDomain.includes('localhost') || saasDomain.includes('127.0.0.1');
+  // Parse SAAS_DOMAIN - can be 'localhost:5173', 'ozzyl.com', 'https://ozzyl.com', etc.
+  const rawDomain = env.SAAS_DOMAIN || 'ozzyl.com';
+  const isLocalhost = rawDomain.includes('localhost') || rawDomain.includes('127.0.0.1');
+
+  // Extract clean domain without protocol
+  let saasDomain = rawDomain;
+  if (saasDomain.includes('://')) {
+    saasDomain = saasDomain.split('://')[1];
+  }
+  // Remove port if present
+  if (saasDomain.includes(':')) {
+    saasDomain = saasDomain.split(':')[0];
+  }
+  // Remove www. prefix if present
+  if (saasDomain.startsWith('www.')) {
+    saasDomain = saasDomain.slice(4);
+  }
 
   return createCookieSessionStorage<SessionData, SessionFlashData>({
     cookie: {
@@ -67,9 +80,10 @@ export function getSessionStorage(env: Env) {
       // Only require HTTPS in production (localhost uses HTTP)
       secure: !isLocalhost,
       maxAge: 60 * 60 * 24 * 7, // 7 days
-      // Only set domain in production for cross-subdomain access
-      // In dev mode, omitting domain allows cookies to work on localhost
-      ...(isLocalhost ? {} : { domain: '.ozzyl.com' }),
+      // Set domain for cross-subdomain cookie sharing
+      // Leading dot allows cookie to be shared across all subdomains
+      // e.g., .ozzyl.com works for ozzyl.com, app.ozzyl.com, builder.ozzyl.com
+      ...(isLocalhost ? {} : { domain: `.${saasDomain}` }),
     },
   });
 }
@@ -1169,7 +1183,7 @@ export async function requireAdminPermission(
 
 /**
  * Initialize Authenticator
- * 
+ *
  * @param env - Environment variables
  * @param requestUrl - Optional request URL to determine dynamic callback URL
  *                     This allows OAuth to work across multiple domains (ozzyl.com, app.ozzyl.com, etc.)
@@ -1184,11 +1198,9 @@ export function getAuthenticator(env: Env, requestUrl?: string) {
     // Determine callback URL dynamically based on request origin
     // This allows the same OAuth credentials to work across multiple domains
     const saasDomain = env.SAAS_DOMAIN || 'ozzyl.com';
-    const authDomain = saasDomain.startsWith('http')  
-      ? saasDomain 
-      : `https://app.${saasDomain}`;
+    const authDomain = saasDomain.startsWith('http') ? saasDomain : `https://app.${saasDomain}`;
     const callbackURL = `${authDomain}/auth/google/callback`;
-    
+
     console.warn('[getAuthenticator] Using canonical auth domain:', callbackURL);
     if (requestUrl) {
       console.warn('[getAuthenticator] Original request was:', requestUrl);

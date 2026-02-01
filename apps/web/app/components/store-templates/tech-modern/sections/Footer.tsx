@@ -294,26 +294,28 @@ export function TechModernFooter({
           </div>
 
           {/* Quick Links */}
-          <div>
-            <h4 className="text-sm font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
-              <span className="w-1 h-4 rounded-full" style={{ background: theme.accent }}></span>
-              {t('explore')}
-            </h4>
-            <ul className="space-y-3">
-              {validCategories.map((category) => (
-                <li key={category}>
-                  <PreviewSafeLink
-                    to={`/?category=${encodeURIComponent(category)}`}
-                    className="text-sm opacity-70 hover:opacity-100 hover:text-blue-400 transition-colors flex items-center gap-2 group"
-                    isPreview={isPreview}
-                  >
-                    <ChevronRight className="w-3 h-3 opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-                    {category}
-                  </PreviewSafeLink>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {validCategories.length > 0 && (
+            <div>
+              <h4 className="text-sm font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
+                <span className="w-1 h-4 rounded-full" style={{ background: theme.accent }}></span>
+                {t('explore')}
+              </h4>
+              <ul className="space-y-3">
+                {validCategories.map((category) => (
+                  <li key={category}>
+                    <PreviewSafeLink
+                      to={`/?category=${encodeURIComponent(category)}`}
+                      className="text-sm opacity-70 hover:opacity-100 hover:text-blue-400 transition-colors flex items-center gap-2 group"
+                      isPreview={isPreview}
+                    >
+                      <ChevronRight className="w-3 h-3 opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+                      {category}
+                    </PreviewSafeLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Support */}
           <div>

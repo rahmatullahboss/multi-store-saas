@@ -204,6 +204,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Load customer session for Google Sign-In header
   const customer = await getCustomer(request, cloudflare.env, cloudflare.env.DB);
 
+  // Fetch unique categories for footer
+  const categoriesResult = await db
+    .select({ category: products.category })
+    .from(products)
+    .where(and(eq(products.storeId, storeId as number), eq(products.isPublished, true)));
+
+  const categories = [
+    ...new Set(categoriesResult.map((p) => p.category).filter((c): c is string => Boolean(c))),
+  ];
+
   // ========== TEMPLATE RESOLUTION (New Template System) ==========
   const checkoutTemplate = await resolveTemplate(cloudflare.env.DB, storeId as number, 'checkout');
 
@@ -224,6 +234,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     planType: storeData.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
     checkoutTemplate,
+    categories,
   });
 }
 
@@ -285,6 +296,7 @@ export default function Checkout() {
     themeConfig,
     planType,
     customer,
+    categories,
   } = useLoaderData<typeof loader>();
 
   const fetcher = useFetcher();
@@ -561,6 +573,7 @@ export default function Checkout() {
         businessInfo={businessInfo}
         planType={planType}
         customer={customer}
+        categories={categories}
       >
         <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-6">
           <ShoppingBag className="w-16 h-16 text-gray-300 mb-4" />
@@ -1183,6 +1196,7 @@ export default function Checkout() {
         businessInfo={businessInfo}
         planType={planType}
         customer={customer}
+        categories={categories}
       >
         <div className="max-w-2xl mx-auto px-4 py-8">
           <div className="text-center mb-8">
@@ -1340,6 +1354,7 @@ export default function Checkout() {
       businessInfo={businessInfo}
       planType={planType}
       customer={customer}
+      categories={categories}
     >
       {content}
     </StorePageWrapper>

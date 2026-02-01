@@ -145,10 +145,7 @@ export function StandardFooter({
 
   const displayBusinessInfo = isPreview ? (businessInfo || defaultBusinessInfo) : businessInfo;
 
-  const displayCategories =
-    validCategories.length > 0
-      ? validCategories
-      : ['New Arrivals', 'Best Sellers', 'Luxury Collection', 'Limited Edition'];
+
 
   return (
     <footer style={{ backgroundColor: THEME.footerBg, color: THEME.footerText }}>
@@ -407,27 +404,29 @@ export function StandardFooter({
           </div>
 
           {/* Categories */}
-          <div>
-            <h5
-              className="font-semibold uppercase text-sm tracking-wider mb-6"
-              style={{ color: THEME.accent }}
-            >
-              Collections
-            </h5>
-            <ul className="space-y-3 text-sm">
-              {displayCategories.map((cat) => (
-                <li key={cat}>
-                  <Link
-                    to={`/collections/${cat ? cat.toLowerCase().replace(/\s+/g, '-') : ''}`}
-                    className="opacity-70 hover:opacity-100 transition-colors flex items-center gap-2 group"
-                  >
-                    <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-                    {cat}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {validCategories.length > 0 && (
+            <div>
+              <h5
+                className="font-semibold uppercase text-sm tracking-wider mb-6"
+                style={{ color: THEME.accent }}
+              >
+                Collections
+              </h5>
+              <ul className="space-y-3 text-sm">
+                {validCategories.map((cat) => (
+                  <li key={cat}>
+                    <Link
+                      to={`/?category=${encodeURIComponent(cat)}`}
+                      className="opacity-70 hover:opacity-100 transition-colors flex items-center gap-2 group"
+                    >
+                      <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+                      {cat}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Contact */}
           <div>

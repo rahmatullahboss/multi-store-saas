@@ -128,11 +128,7 @@ export function NovaLuxFooter({
 
   const displayBusinessInfo = isPreview ? defaultBusinessInfo : businessInfo || defaultBusinessInfo;
 
-  // Default categories for preview
-  const displayCategories =
-    validCategories.length > 0
-      ? validCategories
-      : ['New Arrivals', 'Best Sellers', 'Luxury Collection', 'Limited Edition'];
+
 
   return (
     <footer style={{ backgroundColor: THEME.footerBg, color: THEME.footerText }}>
@@ -372,28 +368,30 @@ export function NovaLuxFooter({
           </div>
 
           {/* Categories */}
-          <div>
-            <h5
-              className="font-semibold uppercase text-sm tracking-wider mb-6"
-              style={{ color: THEME.accent }}
-            >
-              {t('collections')}
-            </h5>
-            <ul className="space-y-3 text-sm">
-              {displayCategories.map((cat) => (
-                <li key={cat}>
-                  <PreviewSafeLink
-                    to={`/?category=${encodeURIComponent(cat)}`}
-                    className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"
-                    isPreview={isPreview}
-                  >
-                    <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-                    {cat}
-                  </PreviewSafeLink>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {validCategories.length > 0 && (
+            <div>
+              <h5
+                className="font-semibold uppercase text-sm tracking-wider mb-6"
+                style={{ color: THEME.accent }}
+              >
+                {t('collections')}
+              </h5>
+              <ul className="space-y-3 text-sm">
+                {validCategories.map((cat) => (
+                  <li key={cat}>
+                    <PreviewSafeLink
+                      to={`/?category=${encodeURIComponent(cat)}`}
+                      className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"
+                      isPreview={isPreview}
+                    >
+                      <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+                      {cat}
+                    </PreviewSafeLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Contact */}
           <div>

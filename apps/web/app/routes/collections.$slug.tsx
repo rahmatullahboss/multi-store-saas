@@ -389,6 +389,7 @@ export default function CollectionPage() {
         config={themeConfig || undefined}
         planType={planType}
         customer={customer || undefined}
+        categories={categories}
       >
         <Suspense
           fallback={

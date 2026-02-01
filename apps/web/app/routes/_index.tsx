@@ -509,7 +509,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
     const storeData: StoreModeData = {
       mode: 'store',
       storeId: validatedStoreId,
-      storeName: mvpSettings.storeName || validatedStore.name || 'Store',
+      storeName: validatedStore.name || mvpSettings.storeName || 'Store',
       logo: mvpSettings.logo || validatedStore.logo || null,
       favicon: validatedStore.favicon || null,
       fontFamily: validatedStore.fontFamily || 'inter',

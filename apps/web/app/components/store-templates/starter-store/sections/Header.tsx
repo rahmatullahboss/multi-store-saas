@@ -36,6 +36,7 @@ export function StarterStoreHeader({
   isPreview = false,
   categories = [],
   currentCategory,
+  config,
 }: StarterStoreHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -71,7 +72,7 @@ export function StarterStoreHeader({
         className="text-center py-2 text-sm font-medium text-white"
         style={{ backgroundColor: theme.accent }}
       >
-        {t('starterAnnouncement')}
+        {config?.announcement?.text || t('starterAnnouncement')}
       </div>
 
       {/* Main Header */}
