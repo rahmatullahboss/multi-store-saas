@@ -509,6 +509,8 @@ export default function Checkout() {
     // But I cannot do two things at once.
     // I will construct the payload assuming I will fix API in next step.
 
+    const selectedDistrictObj = DISTRICTS.find(d => d.id === selectedDistrict);
+
     const payload = {
       store_id: storeId,
       // Hack for legacy API compliance: use first item as "main" product
@@ -526,9 +528,9 @@ export default function Checkout() {
       customer_name: name,
       phone: phone,
       address: address,
-      division: calculatedShippingZone,
-      district_id: selectedDistrict,
-      upazila_id: selectedUpazila,
+      division: selectedDistrictObj ? selectedDistrictObj.divisionId : 'dhaka',
+      district: selectedDistrict,
+      upazila: selectedUpazila,
       notes: notes,
       payment_method: paymentMethod,
       transaction_id: trxId,
