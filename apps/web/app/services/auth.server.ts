@@ -1185,17 +1185,18 @@ export function getAuthenticator(env: Env, requestUrl?: string) {
     // This allows the same OAuth credentials to work across multiple domains
     let callbackURL: string;
     
+    // Always use the canonical auth domain (app.ozzyl.com)
+    // Cloudflare Pages serves the same app on both custom domain AND pages.dev
+    // Using request.url would give us pages.dev which is not in Google Console
+    const saasDomain = env.SAAS_DOMAIN || 'ozzyl.com';
+    const authDomain = saasDomain.startsWith('http') 
+      ? saasDomain 
+      : `https://app.${saasDomain}`;
+    callbackURL = `${authDomain}/auth/google/callback`;
+    
+    console.warn('[getAuthenticator] Using canonical auth domain:', callbackURL);
     if (requestUrl) {
-      // Use the request's origin to build the callback URL
-      const origin = new URL(requestUrl).origin;
-      callbackURL = `${origin}/auth/google/callback`;
-      console.warn('[getAuthenticator] Using dynamic callback URL:', callbackURL);
-      console.warn('[getAuthenticator] Request URL was:', requestUrl);
-    } else {
-      // Fallback to SAAS_DOMAIN if no request URL provided
-      callbackURL = `${env.SAAS_DOMAIN}/auth/google/callback`;
-      console.warn('[getAuthenticator] Using SAAS_DOMAIN callback URL:', callbackURL);
-      console.warn('[getAuthenticator] SAAS_DOMAIN:', env.SAAS_DOMAIN);
+      console.warn('[getAuthenticator] Original request was:', requestUrl);
     }
 
     const googleStrategy = new GoogleStrategy(
