@@ -40,11 +40,12 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     { name: 'description', content: data.storeDescription || `Welcome to ${data.storeName}` },
     { name: 'robots', content: 'index, follow' },
     { property: 'og:title', content: `${data.storeName} - Home` },
-    { property: 'og:description', content: data.storeDescription || `Welcome to ${data.storeName}` },
+    {
+      property: 'og:description',
+      content: data.storeDescription || `Welcome to ${data.storeName}`,
+    },
     { property: 'og:type', content: 'website' },
   ];
-
-
 
   // Logo as og:image
   if (data.logo) {
@@ -240,6 +241,10 @@ export default function StoreHomePage() {
     return () => window.removeEventListener('cart-updated', handleCartUpdate);
   }, []);
 
+  // Determine background class based on theme (same logic as StorePageWrapper)
+  const isDarkTheme = storeTemplateId === 'modern-premium' || storeTemplateId === 'tech-modern';
+  const bgClass = isDarkTheme ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900';
+
   return (
     <>
       {favicon && (
@@ -261,35 +266,38 @@ export default function StoreHomePage() {
           `,
         }}
       />
-      
-      {/* MVP Simple System: Use old 1000+ line React template component */}
-      {/* Template has its own Header/Footer - no wrapper needed */}
-      <TemplateComponent
-        storeName={storeName}
-        storeId={storeId}
-        logo={logo}
-        theme={storeTemplateId}
-        fontFamily={template.fonts.body}
-        products={featuredProducts}
-        categories={categories as string[]}
-        currentCategory={null}
-        config={
-          {
-            primaryColor: theme.primary,
-            accentColor: theme.accent,
-            ...themeConfig,
-          } as unknown as ThemeConfig
-        }
-        currency={currency}
-        socialLinks={socialLinks}
-        footerConfig={null}
-        businessInfo={businessInfo}
-        planType={planType}
-        isPreview={false}
-        collections={[]}
-        reviews={[]}
-        banners={[]}
-      />
+
+      {/* Wrap TemplateComponent in min-h-screen container to match StorePageWrapper */}
+      <div className={`min-h-screen ${bgClass} transition-colors duration-300`}>
+        {/* MVP Simple System: Use old 1000+ line React template component */}
+        {/* Template has its own Header/Footer */}
+        <TemplateComponent
+          storeName={storeName}
+          storeId={storeId}
+          logo={logo}
+          theme={storeTemplateId}
+          fontFamily={template.fonts.body}
+          products={featuredProducts}
+          categories={categories as string[]}
+          currentCategory={null}
+          config={
+            {
+              primaryColor: theme.primary,
+              accentColor: theme.accent,
+              ...themeConfig,
+            } as unknown as ThemeConfig
+          }
+          currency={currency}
+          socialLinks={socialLinks}
+          footerConfig={null}
+          businessInfo={businessInfo}
+          planType={planType}
+          isPreview={false}
+          collections={[]}
+          reviews={[]}
+          banners={[]}
+        />
+      </div>
     </>
   );
 }

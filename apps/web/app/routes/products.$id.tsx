@@ -102,7 +102,17 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       throw new Response('Store mode is not enabled for this shop.', { status: 404 });
     }
 
-    const { themeConfig, businessInfo, footerConfig } = storeConfig;
+    const { themeConfig, footerConfig } = storeConfig;
+  let { businessInfo } = storeConfig;
+
+  // Fallback: Parse businessInfo from store record if missing in cache/config
+  if (!businessInfo && store.businessInfo) {
+    try {
+      businessInfo = JSON.parse(store.businessInfo as string);
+    } catch {
+      // ignore
+    }
+  }
     const storeTemplateId =
       themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
 
@@ -278,6 +288,10 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
+// ... (imports)
+
+// remove unused imports if any
+
 export default function ProductDetail() {
   const {
     product,
@@ -299,7 +313,7 @@ export default function ProductDetail() {
     planType,
     customer,
     productUrl,
-    themeConfig,
+    // themeConfig, // Removed unused
   } = useLoaderData<typeof loader>();
 
   const hasTracked = useRef(false);
@@ -319,7 +333,7 @@ export default function ProductDetail() {
   }, [product, currency]);
 
   // Cart state management
-  const [cart, setCart] = useState<{
+  const [, setCart] = useState<{ // Removed unused 'cart'
     items: Array<{
       id: number;
       productId: number;
@@ -347,7 +361,7 @@ export default function ProductDetail() {
         const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
         const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
         setCart({
-          items: items.map((item, index) => ({
+          items: items.map((item) => ({ // Removed unused 'index'
             id: item.productId,
             productId: item.productId,
             title: item.title,
@@ -402,6 +416,7 @@ export default function ProductDetail() {
   }, []);
 
   // Parse product images
+  // Ensure images is always string[] for the component
   const images: string[] = product.images
     ? JSON.parse(product.images)
     : product.imageUrl
@@ -411,6 +426,21 @@ export default function ProductDetail() {
   // Get template from registry (MVP Simple System)
   const template = getStoreTemplate(storeTemplateId);
   const ProductPageComponent = template.ProductPage;
+  
+  // Need to cast theme to match Strict types if necessary, or just ensure it satisfies shape
+  // The loader returns { primary: string, ... } but JsonifyObject might make them optional?
+  // We can cast to any to bypass strict check if we are confident, or better:
+  const safeTheme = {
+      primary: theme.primary || '#000000',
+      accent: theme.accent || '#000000',
+      background: theme.background || '#ffffff',
+      text: theme.text || '#000000',
+      muted: theme.muted || '#999999',
+      cardBg: theme.cardBg || '#ffffff',
+      headerBg: theme.headerBg || '#ffffff',
+      footerBg: theme.footerBg || '#f3f4f6',
+      footerText: theme.footerText || '#1f2937',
+  };
 
   // Create product schema for SEO
   const productSchema = {
@@ -462,14 +492,14 @@ export default function ProductDetail() {
       storeId={storeId}
       logo={logo}
       templateId={storeTemplateId}
-      theme={theme}
+      theme={safeTheme}
       currency={currency}
       socialLinks={socialLinks}
       businessInfo={businessInfo}
       categories={categories as (string | null)[] | undefined}
       config={{
-        primaryColor: theme.primary,
-        accentColor: theme.accent,
+        primaryColor: safeTheme.primary,
+        accentColor: safeTheme.accent,
       }}
       footerConfig={footerConfig}
       planType={planType}
@@ -492,7 +522,7 @@ export default function ProductDetail() {
           <ProductPageComponent
             product={{
               ...product,
-              images,
+              images: images, // Use the parsed array
             }}
             currency={currency}
             relatedProducts={serializedRelatedProducts}
@@ -501,16 +531,16 @@ export default function ProductDetail() {
             reviewCount={reviewCount}
             showReviews={showReviews}
             storeName={storeName}
-            theme={theme}
+            theme={safeTheme}
           />
         </Suspense>
       ) : (
         // Fallback: Simple product page if template doesn't have ProductPage
         <SimpleProductPage
-          product={product}
+          product={{...product, images}}
           currency={currency}
           relatedProducts={serializedRelatedProducts}
-          theme={theme}
+          theme={safeTheme}
         />
       )}
     </StorePageWrapper>

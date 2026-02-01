@@ -375,7 +375,12 @@ export function StarterProductPage({
             </nav>
           </div>
           <div className="py-8 prose max-w-none text-gray-600 leading-relaxed">
-            {product.description}
+            {product.description && (
+              <div 
+                dangerouslySetInnerHTML={{ __html: product.description }} 
+                className="prose max-w-none"
+              />
+            )}
           </div>
         </div>
 

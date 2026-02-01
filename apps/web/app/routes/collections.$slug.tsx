@@ -19,7 +19,7 @@ import {
 } from '@remix-run/react';
 import { useTranslation } from 'react-i18next';
 import { eq, and, desc, like, asc, gte, lte } from 'drizzle-orm';
-import { products, stores, productCollections, type Store } from '@db/schema';
+import { products, productCollections } from '@db/schema';
 import { parseThemeConfig, parseSocialLinks } from '@db/types';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
@@ -71,13 +71,12 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const { storeId } = storeContext;
   const db = createDb(context.cloudflare.env.DB);
 
-  // Fetch store data for config
-  const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
-
-  const storeData = storeResult[0] as Store | undefined;
+  // Use store from context (already resolved by middleware/helper)
+  const storeData = storeContext.store;
   if (!storeData) {
     throw new Response('Store not found', { status: 404 });
   }
+
   const themeConfig = parseThemeConfig(storeData?.themeConfig as string | null);
   const socialLinks = parseSocialLinks(storeData?.socialLinks as string | null);
   const storeTemplateId =

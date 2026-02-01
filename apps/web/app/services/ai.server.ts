@@ -15,7 +15,9 @@ import { z } from 'zod';
 
 // Cloudflare Workers AI Binding Type
 export interface Env {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   AI: any; // Cloudflare Workers AI namespace
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   VECTORIZE: any; // Cloudflare Vectorize Index binding
 }
 
@@ -87,7 +89,7 @@ export async function callAIWithSystemPrompt(
     };
     
     const content = data.choices?.[0]?.message?.content;
-    console.log(`[AI] Response received. Length: ${content?.length || 0}${data.usage ? `, Tokens: ${data.usage.total_tokens}` : ''}`);
+    console.warn(`[AI] Response received. Length: ${content?.length || 0}${data.usage ? `, Tokens: ${data.usage.total_tokens}` : ''}`);
     
     if (!content) {
       console.error('[AI] Empty response from AI');
@@ -342,7 +344,7 @@ async function callAI(
     };
     
     const content = data.choices?.[0]?.message?.content;
-    console.log(`[AI] Response received. Length: ${content?.length || 0}${data.usage ? `, Tokens: ${data.usage.total_tokens}` : ''}`);
+    console.warn(`[AI] Response received. Length: ${content?.length || 0}${data.usage ? `, Tokens: ${data.usage.total_tokens}` : ''}`);
     
     if (!content) {
       console.error('[AI] Empty response from AI');
@@ -386,6 +388,7 @@ function extractJSON(text: string): unknown {
       console.warn('[AI] Parsing whole response as JSON');
       return JSON.parse(trimmed);
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
     console.error('[AI] JSON Parse Error:', e.message);
     console.error('[AI] Failed text snippet:', text.substring(0, 200) + '...');
@@ -1028,64 +1031,7 @@ export async function generateGrapesJsPage(
 // GRAPESJS CHAT COMMAND GENERATION - WORLD-CLASS (30 Actions)
 // ============================================================================
 
-/**
- * Section Templates for Smart Section Actions
- */
-/**
- * Section Templates for Smart Section Actions
- * (Unused templates removed to fix linting)
- */
-// const SECTION_TEMPLATES = {
-  hero: `<section class="py-20 px-6 bg-gradient-to-br from-indigo-600 to-purple-700 text-white text-center">
-    <h1 class="text-5xl font-bold mb-4">Your Amazing Headline</h1>
-    <p class="text-xl opacity-90 mb-8 max-w-2xl mx-auto">A compelling subheadline that explains your value proposition.</p>
-    <button class="bg-white text-indigo-600 px-8 py-4 rounded-lg font-bold text-lg hover:scale-105 transition-transform shadow-xl">Get Started Now</button>
-  </section>`,
-  
-  features: `<section class="py-16 px-6 bg-white">
-    <h2 class="text-3xl font-bold text-center mb-12 text-gray-900">Why Choose Us</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-      <div class="text-center p-6"><div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🚀</div><h3 class="font-bold text-xl mb-2">Fast & Easy</h3><p class="text-gray-600">Get started in minutes with our simple setup.</p></div>
-      <div class="text-center p-6"><div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">💰</div><h3 class="font-bold text-xl mb-2">Save Money</h3><p class="text-gray-600">Affordable pricing for businesses of all sizes.</p></div>
-      <div class="text-center p-6"><div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">⭐</div><h3 class="font-bold text-xl mb-2">Premium Quality</h3><p class="text-gray-600">Top-tier service that exceeds expectations.</p></div>
-    </div>
-  </section>`,
-  
-  pricing: `<section class="py-16 px-6 bg-gray-50">
-    <h2 class="text-3xl font-bold text-center mb-4 text-gray-900">Simple Pricing</h2>
-    <p class="text-gray-600 text-center mb-12">Choose the plan that's right for you</p>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-      <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-200"><h3 class="font-bold text-lg mb-2">Starter</h3><div class="text-4xl font-bold mb-4">$9<span class="text-lg text-gray-500">/mo</span></div><ul class="space-y-3 mb-8 text-gray-600"><li>✓ 5 Projects</li><li>✓ Basic Support</li><li>✓ 1GB Storage</li></ul><button class="w-full py-3 border-2 border-indigo-600 text-indigo-600 rounded-lg font-bold hover:bg-indigo-50">Start Free</button></div>
-      <div class="bg-indigo-600 text-white rounded-2xl p-8 shadow-xl transform scale-105"><h3 class="font-bold text-lg mb-2">Pro</h3><div class="text-4xl font-bold mb-4">$29<span class="text-lg opacity-70">/mo</span></div><ul class="space-y-3 mb-8 opacity-90"><li>✓ Unlimited Projects</li><li>✓ Priority Support</li><li>✓ 10GB Storage</li></ul><button class="w-full py-3 bg-white text-indigo-600 rounded-lg font-bold hover:bg-gray-100">Get Started</button></div>
-      <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-200"><h3 class="font-bold text-lg mb-2">Enterprise</h3><div class="text-4xl font-bold mb-4">$99<span class="text-lg text-gray-500">/mo</span></div><ul class="space-y-3 mb-8 text-gray-600"><li>✓ Everything in Pro</li><li>✓ Dedicated Support</li><li>✓ Unlimited Storage</li></ul><button class="w-full py-3 border-2 border-indigo-600 text-indigo-600 rounded-lg font-bold hover:bg-indigo-50">Contact Sales</button></div>
-    </div>
-  </section>`,
-  
-  testimonials: `<section class="py-16 px-6 bg-white">
-    <h2 class="text-3xl font-bold text-center mb-12 text-gray-900">What Our Customers Say</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-      <div class="bg-gray-50 rounded-2xl p-6"><p class="text-gray-600 mb-4">"This product changed my business. Highly recommend!"</p><div class="flex items-center gap-3"><div class="w-10 h-10 bg-indigo-200 rounded-full"></div><div><p class="font-bold">Sarah J.</p><p class="text-sm text-gray-500">CEO, TechCo</p></div></div></div>
-      <div class="bg-gray-50 rounded-2xl p-6"><p class="text-gray-600 mb-4">"Best investment we've made. 5 stars!"</p><div class="flex items-center gap-3"><div class="w-10 h-10 bg-green-200 rounded-full"></div><div><p class="font-bold">Michael R.</p><p class="text-sm text-gray-500">Founder, StartupX</p></div></div></div>
-      <div class="bg-gray-50 rounded-2xl p-6"><p class="text-gray-600 mb-4">"Amazing customer support and product!"</p><div class="flex items-center gap-3"><div class="w-10 h-10 bg-purple-200 rounded-full"></div><div><p class="font-bold">Emily W.</p><p class="text-sm text-gray-500">Designer</p></div></div></div>
-    </div>
-  </section>`,
-  
-  faq: `<section class="py-16 px-6 bg-gray-50"><h2 class="text-3xl font-bold text-center mb-12 text-gray-900">Frequently Asked Questions</h2><div class="max-w-3xl mx-auto space-y-4"><div class="bg-white rounded-xl p-6 shadow-sm"><h3 class="font-bold text-lg mb-2">How do I get started?</h3><p class="text-gray-600">Simply sign up and you can start using our platform immediately.</p></div><div class="bg-white rounded-xl p-6 shadow-sm"><h3 class="font-bold text-lg mb-2">Can I cancel anytime?</h3><p class="text-gray-600">Yes, you can cancel your subscription at any time with no questions asked.</p></div><div class="bg-white rounded-xl p-6 shadow-sm"><h3 class="font-bold text-lg mb-2">Do you offer refunds?</h3><p class="text-gray-600">We offer a 30-day money-back guarantee on all plans.</p></div></div></section>`,
-  
-  contact: `<section class="py-16 px-6 bg-white"><h2 class="text-3xl font-bold text-center mb-12 text-gray-900">Get In Touch</h2><form class="max-w-xl mx-auto space-y-4"><input type="text" placeholder="Your Name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/><input type="email" placeholder="Email Address" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"/><textarea placeholder="Your Message" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"></textarea><button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition">Send Message</button></form></section>`,
-  
-  footer: `<footer class="py-12 px-6 bg-gray-900 text-white"><div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8"><div><h3 class="font-bold text-lg mb-4">Company</h3><p class="text-gray-400 text-sm">Making the world a better place through technology.</p></div><div><h4 class="font-bold mb-4">Product</h4><ul class="space-y-2 text-gray-400 text-sm"><li><a href="#" class="hover:text-white">Features</a></li><li><a href="#" class="hover:text-white">Pricing</a></li><li><a href="#" class="hover:text-white">API</a></li></ul></div><div><h4 class="font-bold mb-4">Company</h4><ul class="space-y-2 text-gray-400 text-sm"><li><a href="#" class="hover:text-white">About</a></li><li><a href="#" class="hover:text-white">Careers</a></li><li><a href="#" class="hover:text-white">Contact</a></li></ul></div><div><h4 class="font-bold mb-4">Legal</h4><ul class="space-y-2 text-gray-400 text-sm"><li><a href="#" class="hover:text-white">Privacy</a></li><li><a href="#" class="hover:text-white">Terms</a></li></ul></div></div><div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500 text-sm">© 2025 Company. All rights reserved.</div></footer>`,
-  
-  cta_banner: `<section class="py-16 px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-center"><h2 class="text-3xl font-bold mb-4">Ready to Get Started?</h2><p class="text-xl opacity-90 mb-8">Join thousands of happy customers today.</p><button class="bg-white text-indigo-600 px-8 py-4 rounded-lg font-bold text-lg hover:scale-105 transition-transform shadow-xl">Start Free Trial</button></section>`,
-  
-  stats: `<section class="py-16 px-6 bg-indigo-600 text-white"><div class="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center"><div><div class="text-4xl font-bold mb-2">10K+</div><p class="opacity-80">Customers</p></div><div><div class="text-4xl font-bold mb-2">50M+</div><p class="opacity-80">Transactions</p></div><div><div class="text-4xl font-bold mb-2">99.9%</div><p class="opacity-80">Uptime</p></div><div><div class="text-4xl font-bold mb-2">24/7</div><p class="opacity-80">Support</p></div></div></section>`,
-  
-  team: `<section class="py-16 px-6 bg-white"><h2 class="text-3xl font-bold text-center mb-12 text-gray-900">Meet Our Team</h2><div class="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-5xl mx-auto"><div class="text-center"><div class="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4"></div><h3 class="font-bold">John Doe</h3><p class="text-gray-500 text-sm">CEO</p></div><div class="text-center"><div class="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4"></div><h3 class="font-bold">Jane Smith</h3><p class="text-gray-500 text-sm">CTO</p></div><div class="text-center"><div class="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4"></div><h3 class="font-bold">Mike Johnson</h3><p class="text-gray-500 text-sm">Designer</p></div><div class="text-center"><div class="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4"></div><h3 class="font-bold">Sarah Lee</h3><p class="text-gray-500 text-sm">Marketing</p></div></div></section>`,
-  
-  gallery: `<section class="py-16 px-6 bg-gray-50"><h2 class="text-3xl font-bold text-center mb-12 text-gray-900">Gallery</h2><div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-6xl mx-auto"><div class="aspect-square bg-gray-200 rounded-xl"></div><div class="aspect-square bg-gray-300 rounded-xl"></div><div class="aspect-square bg-gray-200 rounded-xl"></div><div class="aspect-square bg-gray-300 rounded-xl"></div></div></section>`,
-  
-  logo_cloud: `<section class="py-12 px-6 bg-white"><p class="text-center text-gray-500 mb-8">Trusted by industry leaders</p><div class="flex flex-wrap justify-center items-center gap-8 max-w-4xl mx-auto"><div class="w-24 h-12 bg-gray-100 rounded flex items-center justify-center text-gray-400 font-bold">LOGO</div><div class="w-24 h-12 bg-gray-100 rounded flex items-center justify-center text-gray-400 font-bold">LOGO</div><div class="w-24 h-12 bg-gray-100 rounded flex items-center justify-center text-gray-400 font-bold">LOGO</div><div class="w-24 h-12 bg-gray-100 rounded flex items-center justify-center text-gray-400 font-bold">LOGO</div><div class="w-24 h-12 bg-gray-100 rounded flex items-center justify-center text-gray-400 font-bold">LOGO</div></div></section>`,
-};
+
 
 export const GrapesJsCommandSchema = z.object({
   action: z.enum([

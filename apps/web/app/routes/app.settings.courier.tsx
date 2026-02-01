@@ -150,26 +150,40 @@ export async function action({ request, context }: ActionFunctionArgs) {
       isConnected: false,
     };
 
+    const currentSettings = themeConfig.courier || {};
+
     if (provider === 'pathao') {
+      const existingPathao = currentSettings.pathao || {};
+      const newClientSecret = formData.get('clientSecret') as string;
+      const newPassword = formData.get('password') as string;
+
       courierSettings.pathao = {
         clientId: formData.get('clientId') as string,
-        clientSecret: formData.get('clientSecret') as string,
+        // If new value is provided, use it. Otherwise keep existing value.
+        clientSecret: newClientSecret ? newClientSecret : (existingPathao.clientSecret || ''),
         username: formData.get('username') as string,
-        password: formData.get('password') as string,
+        // If new value is provided, use it. Otherwise keep existing value.
+        password: newPassword ? newPassword : (existingPathao.password || ''),
         baseUrl: formData.get('baseUrl') as string,
         defaultStoreId: formData.get('defaultStoreId') 
           ? parseInt(formData.get('defaultStoreId') as string) 
           : undefined,
       };
     } else if (provider === 'redx') {
+      const existingRedx = currentSettings.redx || {};
+      const newSecretKey = formData.get('secretKey') as string;
+
       courierSettings.redx = {
         apiKey: formData.get('apiKey') as string,
-        secretKey: formData.get('secretKey') as string,
+        secretKey: newSecretKey ? newSecretKey : (existingRedx.secretKey || ''),
       };
     } else if (provider === 'steadfast') {
+      const existingSteadfast = currentSettings.steadfast || {};
+      const newSecretKey = formData.get('secretKey') as string;
+
       courierSettings.steadfast = {
         apiKey: formData.get('apiKey') as string,
-        secretKey: formData.get('secretKey') as string,
+        secretKey: newSecretKey ? newSecretKey : (existingSteadfast.secretKey || ''),
       };
     }
 

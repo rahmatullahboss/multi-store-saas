@@ -124,10 +124,10 @@ export function FreshnessProductPage({
                 )}
               </div>
 
-              <p className="text-gray-600 mb-8 leading-relaxed">
-                {product.description ||
-                  'Experience the freshness of nature with our premium quality products. Sourced directly from trusted farms to your table.'}
-              </p>
+              <div 
+                className="text-gray-600 mb-8 leading-relaxed prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: product.description || 'Experience the freshness of nature with our premium quality products. Sourced directly from trusted farms to your table.' }}
+              />
 
               {/* Quantity */}
               <div className="flex items-center gap-4 mb-6">
