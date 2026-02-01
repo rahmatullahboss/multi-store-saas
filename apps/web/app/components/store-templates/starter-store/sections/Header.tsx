@@ -68,12 +68,14 @@ export function StarterStoreHeader({
   return (
     <>
       {/* Announcement Bar */}
-      <div 
-        className="text-center py-2 text-sm font-medium text-white"
-        style={{ backgroundColor: theme.accent }}
-      >
-        {config?.announcement?.text || t('starterAnnouncement')}
-      </div>
+      {config?.announcement?.text && (
+        <div 
+          className="text-center py-2 text-sm font-medium text-white"
+          style={{ backgroundColor: theme.accent }}
+        >
+          {config.announcement.text}
+        </div>
+      )}
 
       {/* Main Header */}
       <header 
