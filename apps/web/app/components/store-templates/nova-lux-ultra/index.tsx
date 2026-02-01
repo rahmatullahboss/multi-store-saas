@@ -19,21 +19,15 @@ import {
   createContext,
   useContext,
   useMemo,
-  useEffect,
   useRef,
 } from 'react';
-import { Link } from '@remix-run/react';
+
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
 import {
   ShoppingBag,
-  Search,
-  Menu,
-  X,
   Star,
   Check,
-  MessageCircle,
   Heart,
-  Phone,
   ArrowRight,
   Sparkles,
   Crown,
@@ -42,26 +36,12 @@ import {
   Shield,
   RotateCcw,
 } from 'lucide-react';
-import { useTranslation } from '~/contexts/LanguageContext';
-import { useWishlist } from '~/hooks/useWishlist';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
 import type { ThemeConfig } from '@db/types';
-import type { SectionInstance } from '~/lib/theme-engine/types';
-import { AddToCartButton } from '~/components/AddToCartButton';
-import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
-import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
-import { useProductPrice } from '~/hooks/useProductPrice';
-import { WishlistProvider } from '~/contexts/WishlistContext';
-import { ClientOnly } from 'remix-utils/client-only';
-import { SkeletonLoader } from '~/components/SkeletonLoader';
 import { formatPrice } from '~/lib/theme-engine';
 
 import {
   NOVALUX_ULTRA_THEME,
-  fadeInUp,
-  staggerContainer,
-  cardHover,
-  shimmerAnimation,
 } from './theme';
 import { NovaLuxUltraHeader } from './sections/Header';
 import { NovaLuxUltraFooter } from './sections/Footer';
@@ -441,6 +421,13 @@ function PremiumProductCard({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={() => onNavigate({ type: 'product', productId: product.id })}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          onNavigate({ type: 'product', productId: product.id });
+        }
+      }}
     >
       {/* Image Container */}
       <div className="relative aspect-[4/5] overflow-hidden">
@@ -709,9 +696,9 @@ function PremiumFeatures() {
 
 // Preview Home Page
 function PreviewHomePage({
-  storeName,
+  storeName: _storeName,
   products,
-  categories,
+  categories: _categories,
   currency,
   config,
   onNavigate,
@@ -723,7 +710,7 @@ function PreviewHomePage({
   config: ThemeConfig | null;
   onNavigate: (page: PageType) => void;
 }) {
-  const { t: _t } = useTranslation();
+
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: NOVALUX_ULTRA_THEME.background }}>
