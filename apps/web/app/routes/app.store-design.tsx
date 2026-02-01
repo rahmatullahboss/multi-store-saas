@@ -49,7 +49,6 @@ import {
 import { useEffect, useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { StoreImageUpload } from '~/components/StoreImageUpload';
-import { StoreTemplatePreviewModal } from '~/components/StoreTemplatePreview';
 
 // Default theme ID for fallback
 const DEFAULT_THEME_ID = 'starter-store';
@@ -120,7 +119,13 @@ export const meta: MetaFunction = () => [{ title: 'Store Design - Ozzyl' }];
 // ============================================================================
 // LOADER - Fetch current store config
 // ============================================================================
-export const loader = async ({ request, context }: { request: Request; context: { cloudflare: { env: Env } } }) => {
+export const loader = async ({
+  request,
+  context,
+}: {
+  request: Request;
+  context: { cloudflare: { env: Env } };
+}) => {
   await requireUserId(request, context.cloudflare.env);
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) throw new Response('Store not found', { status: 404 });
@@ -135,10 +140,16 @@ export const loader = async ({ request, context }: { request: Request; context: 
 
   // Get Shopify OS 2.0 themes from ThemeBridge
   const availableThemes = ThemeBridge.getAvailableThemes();
-  
+
   // MVP: Only show 5 approved themes
-  const MVP_THEME_IDS = ['starter-store', 'ghorer-bazar', 'luxe-boutique', 'nova-lux', 'tech-modern'];
-  const mvpThemes = availableThemes.filter(t => MVP_THEME_IDS.includes(t.id));
+  const MVP_THEME_IDS = [
+    'starter-store',
+    'ghorer-bazar',
+    'luxe-boutique',
+    'nova-lux',
+    'tech-modern',
+  ];
+  const mvpThemes = availableThemes.filter((t) => MVP_THEME_IDS.includes(t.id));
 
   return json({
     currentTemplateId,
@@ -174,7 +185,13 @@ export const loader = async ({ request, context }: { request: Request; context: 
 // ============================================================================
 // ACTION - Save store customization
 // ============================================================================
-export const action = async ({ request, context }: { request: Request; context: { cloudflare: { env: Env } } }) => {
+export const action = async ({
+  request,
+  context,
+}: {
+  request: Request;
+  context: { cloudflare: { env: Env } };
+}) => {
   await requireUserId(request, context.cloudflare.env);
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) throw new Response('Store not found', { status: 404 });
@@ -326,8 +343,6 @@ export default function StoreDesignPage() {
   >('templates'); // Default to templates tab
   const [selectedTemplateId, setSelectedTemplateId] = useState(currentTemplateId);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
-
   // Theme state
   const [primaryColor, setPrimaryColor] = useState(themeConfig.primaryColor || '#6366f1');
   const [accentColor, setAccentColor] = useState(themeConfig.accentColor || '#f59e0b');
@@ -590,24 +605,15 @@ export default function StoreDesignPage() {
                       </div>
                     )}
 
-                    {/* Preview Button Overlay */}
+                    {/* Full Preview Button Overlay */}
                     <div className="absolute inset-0 bg-black/0 hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
-                      <div className="flex flex-col gap-2">
-                        <Link
-                          to={`/store-template-preview/${template.id}`}
-                          className="bg-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg hover:bg-gray-50 transition"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                          {t('fullPreview')}
-                        </Link>
-                        <button
-                          onClick={() => setPreviewTemplate(template.id)}
-                          className="bg-gray-800 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg hover:bg-gray-700 transition"
-                        >
-                          <Eye className="w-4 h-4" />
-                          {t('quickPreview')}
-                        </button>
-                      </div>
+                      <Link
+                        to={`/store-template-preview/${template.id}`}
+                        className="bg-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg hover:bg-gray-50 transition"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        {t('fullPreview')}
+                      </Link>
                     </div>
                   </div>
 
@@ -999,8 +1005,8 @@ export default function StoreDesignPage() {
                   {lang === 'bn' ? 'স্টোর ব্র্যান্ডিং' : 'Store Branding'}
                 </h3>
                 <p className="text-sm text-gray-500 mb-4">
-                  {lang === 'bn' 
-                    ? 'আপনার স্টোরের জন্য ট্যাগলাইন এবং বিবরণ যোগ করুন। এগুলো হেডার, ফুটার এবং SEO তে দেখাবে।' 
+                  {lang === 'bn'
+                    ? 'আপনার স্টোরের জন্য ট্যাগলাইন এবং বিবরণ যোগ করুন। এগুলো হেডার, ফুটার এবং SEO তে দেখাবে।'
                     : 'Add a tagline and description for your store. These will appear in header, footer and SEO.'}
                 </p>
 
@@ -1014,7 +1020,11 @@ export default function StoreDesignPage() {
                       name="tagline"
                       value={tagline}
                       onChange={(e) => setTagline(e.target.value)}
-                      placeholder={lang === 'bn' ? 'যেমন: বাংলাদেশের সেরা ফ্যাশন স্টোর' : 'e.g., Bangladesh\'s Best Fashion Store'}
+                      placeholder={
+                        lang === 'bn'
+                          ? 'যেমন: বাংলাদেশের সেরা ফ্যাশন স্টোর'
+                          : "e.g., Bangladesh's Best Fashion Store"
+                      }
                       maxLength={100}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
@@ -1031,14 +1041,18 @@ export default function StoreDesignPage() {
                       name="description"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      placeholder={lang === 'bn' 
-                        ? 'আপনার স্টোর সম্পর্কে সংক্ষেপে লিখুন। এটি About পেজ এবং SEO তে ব্যবহার হবে।' 
-                        : 'Write a brief description about your store. This will be used in About page and SEO.'}
+                      placeholder={
+                        lang === 'bn'
+                          ? 'আপনার স্টোর সম্পর্কে সংক্ষেপে লিখুন। এটি About পেজ এবং SEO তে ব্যবহার হবে।'
+                          : 'Write a brief description about your store. This will be used in About page and SEO.'
+                      }
                       rows={3}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      {lang === 'bn' ? 'SEO এর জন্য ১৫০-১৬০ অক্ষর আদর্শ' : 'Ideal 150-160 characters for SEO'}
+                      {lang === 'bn'
+                        ? 'SEO এর জন্য ১৫০-১৬০ অক্ষর আদর্শ'
+                        : 'Ideal 150-160 characters for SEO'}
                     </p>
                   </div>
                 </div>
@@ -1223,20 +1237,6 @@ export default function StoreDesignPage() {
           </Form>
         )}
       </div>
-
-      {/* Preview Modal */}
-      <StoreTemplatePreviewModal
-        isOpen={!!previewTemplate}
-        onClose={() => setPreviewTemplate(null)}
-        templateId={previewTemplate || ''}
-        templateName={templates.find((t) => t.id === previewTemplate)?.name || ''}
-        storeName={storeName}
-        onApply={() => {
-          if (previewTemplate) {
-            setSelectedTemplateId(previewTemplate);
-          }
-        }}
-      />
     </div>
   );
 }

@@ -10,21 +10,22 @@
 ## 📑 Table of Contents
 
 1. [Quick Start](#-quick-start)
-2. [Architecture & System Design](#-architecture--system-design)
-3. [Monorepo Structure](#-monorepo-structure--commands)
-4. [Tech Stack](#-tech-stack-cloudflare-native)
-5. [Development Workflows](#-development-workflows)
-6. [Code Patterns & Examples](#-code-patterns--examples)
-7. [Shopify OS 2.0 Theme System](#-shopify-os-20-theme-system)
-8. [MVP Simple Theme System (Recommended)](#-mvp-simple-theme-system-recommended)
-9. [Store Routes](#-store-routes)
-10. [Cloudflare Edge Patterns](#-cloudflare-edge-patterns)
-11. [Performance Optimization](#-performance-optimization)
-12. [Security & Compliance](#-security--compliance)
-13. [AI/ML Integration](#-aiml-integration)
-14. [Troubleshooting & Debugging](#-troubleshooting--debugging)
-15. [Deployment & Ops](#-deployment--ops)
-16. [API Reference](#-api-reference)
+2. [Opencode Subagents](#-opencode-subagents)
+3. [Architecture & System Design](#-architecture--system-design)
+4. [Monorepo Structure](#-monorepo-structure--commands)
+5. [Tech Stack](#-tech-stack-cloudflare-native)
+6. [Development Workflows](#-development-workflows)
+7. [Code Patterns & Examples](#-code-patterns--examples)
+8. [Shopify OS 2.0 Theme System](#-shopify-os-20-theme-system)
+9. [MVP Simple Theme System (Recommended)](#-mvp-simple-theme-system-recommended)
+10. [Store Routes](#-store-routes)
+11. [Cloudflare Edge Patterns](#-cloudflare-edge-patterns)
+12. [Performance Optimization](#-performance-optimization)
+13. [Security & Compliance](#-security--compliance)
+14. [AI/ML Integration](#-aiml-integration)
+15. [Troubleshooting & Debugging](#-troubleshooting--debugging)
+16. [Deployment & Ops](#-deployment--ops)
+17. [API Reference](#-api-reference)
 
 ---
 
@@ -53,6 +54,138 @@ npm run db:migrate:local
 | **Lint**       | `npm run turbo:lint`  | `npm run lint`                         |
 | **Type Check** | -                     | `npm run typecheck`                    |
 | **DB Migrate** | -                     | `npm run db:migrate:local` / `:prod`   |
+
+---
+
+## 🤖 Opencode Subagents
+
+We have created **7 specialized subagents** to help you build the Ozzyl Multi Store SaaS platform efficiently. These agents are configured in `.opencode/agents/` and are tuned with best practices from Context7.
+
+### Available Subagents
+
+| Subagent                     | Use For                                                          | Invoke With                |
+| ---------------------------- | ---------------------------------------------------------------- | -------------------------- |
+| **@multi-tenant-specialist** | Multi-tenancy architecture, tenant isolation, store_id filtering | `@multi-tenant-specialist` |
+| **@security-reviewer**       | Security audits, vulnerability checks, best practices review     | `@security-reviewer`       |
+| **@database-architect**      | D1 schema design, Drizzle ORM patterns, query optimization       | `@database-architect`      |
+| **@theme-developer**         | Shopify OS 2.0 themes, section creation, theme customization     | `@theme-developer`         |
+| **@api-developer**           | Hono + Remix API development, type-safe endpoints                | `@api-developer`           |
+| **@performance-optimizer**   | Cloudflare edge optimization, caching strategies                 | `@performance-optimizer`   |
+| **@testing-expert**          | Vitest unit tests, Playwright E2E tests                          | `@testing-expert`          |
+
+### How to Use Subagents
+
+#### 1. Manual Invocation
+
+Type `@` followed by the agent name in your prompt:
+
+```
+@multi-tenant-specialist Please review this API route for tenant isolation
+@database-architect Help me optimize this database query
+@security-reviewer Check this file for security vulnerabilities
+```
+
+#### 2. Automatic Invocation
+
+The Build agent will automatically invoke the appropriate subagent based on their descriptions when:
+
+- Working on database-related tasks → @database-architect
+- Creating new themes → @theme-developer
+- Reviewing security → @security-reviewer
+- Optimizing performance → @performance-optimizer
+
+#### 3. Agent Hierarchy
+
+```
+┌─────────────────────────────────────────┐
+│           Primary Agent (Build)         │
+│    (Handles main conversation)          │
+└──────────────┬──────────────────────────┘
+               │
+    ┌──────────┼──────────┬──────────┐
+    │          │          │          │
+    ▼          ▼          ▼          ▼
+┌──────┐ ┌────────┐ ┌────────┐ ┌────────┐
+│Multi │ │Security│ │Database│ │Theme   │
+│Tenant│ │Reviewer│ │Architect│ │Dev    │
+└──────┘ └────────┘ └────────┘ └────────┘
+```
+
+### Best Practices When Using Agents
+
+1. **Be Specific**: Provide context about what you're working on
+
+   ```
+   @database-architect I need to add a new orders table with proper store_id indexing
+   ```
+
+2. **Share Code**: Show the relevant code when asking for help
+
+   ```
+   @security-reviewer Please review this loader function:
+   [paste code]
+   ```
+
+3. **Multi-Agent Workflow**: Chain agents for complex tasks
+   ```
+   Step 1: @database-architect Design the schema
+   Step 2: @api-developer Create the API endpoints
+   Step 3: @security-reviewer Review for vulnerabilities
+   Step 4: @testing-expert Write tests
+   ```
+
+### Agent Capabilities
+
+#### @multi-tenant-specialist
+
+- **Expertise**: Tenant isolation, store_id filtering, data leakage prevention
+- **Best Practices**: D1 batch API, prepared statements, error handling patterns
+- **Use When**: Creating any store-scoped feature, reviewing queries
+
+#### @database-architect
+
+- **Expertise**: D1 + Drizzle ORM schema design, indexing strategies
+- **Best Practices**: Batch operations, prepared statements, relations
+- **Use When**: Creating tables, optimizing queries, designing migrations
+
+#### @security-reviewer
+
+- **Expertise**: Multi-tenancy security, authentication, authorization
+- **Best Practices**: Input validation, SQL injection prevention, access control
+- **Use When**: Before merging code, reviewing sensitive routes
+
+#### @api-developer
+
+- **Expertise**: Hono middleware, Remix loaders/actions, type-safe APIs
+- **Best Practices**: Error boundaries, validation, structured responses
+- **Use When**: Building new API endpoints, creating route handlers
+
+#### @performance-optimizer
+
+- **Expertise**: Cloudflare edge optimization, caching strategies
+- **Best Practices**: KV caching, D1 sessions, image optimization
+- **Use When**: Slow queries, optimizing TTFB, scaling issues
+
+#### @theme-developer
+
+- **Expertise**: Shopify OS 2.0 theme system, visual editor
+- **Best Practices**: Section schemas, theme rendering, MVP themes
+- **Use When**: Creating new sections, customizing themes
+
+#### @testing-expert
+
+- **Expertise**: Vitest unit tests, Playwright E2E, multi-tenancy testing
+- **Best Practices**: Mocking Cloudflare services, test isolation
+- **Use When**: Writing tests, debugging failures, test coverage
+
+### Context7 Integration
+
+All agents are tuned with **latest best practices** from Context7 documentation:
+
+- ✅ Cloudflare D1 batch API and prepared statements
+- ✅ Drizzle ORM relations and type inference
+- ✅ Remix error boundaries and data loading patterns
+- ✅ Hono type-safe bindings and middleware
 
 ---
 

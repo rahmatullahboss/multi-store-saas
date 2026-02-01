@@ -32,8 +32,6 @@ import {
   DEMO_TESTIMONIALS,
   getActiveFlashSale,
   getFlashSaleProducts,
-  getActiveBanners,
-  getActiveAnnouncement,
 } from '~/utils/store-preview-data';
 
 // ============================================================================
@@ -77,10 +75,6 @@ export async function loader({ params }: LoaderFunctionArgs) {
   const activeFlashSale = getActiveFlashSale();
   const flashSaleProducts = getFlashSaleProducts();
 
-  // Get active banners and announcement
-  const activeBanners = getActiveBanners();
-  const activeAnnouncement = getActiveAnnouncement();
-
   return json({
     templateId: template.id,
     templateName: template.name,
@@ -99,11 +93,9 @@ export async function loader({ params }: LoaderFunctionArgs) {
       // sections: DEMO_THEME_CONFIG.sections || DEFAULT_SECTIONS, // Duplicate property, handled in spread or unnecessary
     },
     // New demo data
-    banners: activeBanners,
     flashSale: activeFlashSale,
     flashSaleProducts,
     promotions: DEMO_PROMOTIONS,
-    announcement: activeAnnouncement,
     testimonials: DEMO_TESTIMONIALS,
     allTemplates: STORE_TEMPLATES.map((t) => ({ id: t.id, name: t.name })),
   });
@@ -175,12 +167,10 @@ export default function StoreTemplatePreview() {
     // Extended demo data for rich preview
     collections: data.collections,
     reviews: data.reviews,
-    banners: data.banners,
     flashSale: data.flashSale,
     flashSaleProducts:
       data.flashSaleProducts as unknown as import('~/templates/store-registry').SerializedProduct[],
     promotions: data.promotions,
-    announcement: data.announcement,
     testimonials: data.testimonials,
   };
 
