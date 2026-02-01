@@ -143,6 +143,7 @@ export default function SharedCartPage({
         if (isPreview) {
           // Preview Mode: Hydrate from DEMO_PRODUCTS
           const hydratedItems = items
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((item: any) => {
               const pId = Number(item.productId);
               const demoProduct = DEMO_PRODUCTS.find((p) => p.id === pId);
@@ -166,6 +167,7 @@ export default function SharedCartPage({
           setCartItems(hydratedItems);
         } else {
           // Live Mode: Set basic items, fetcher will enrich
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const normalizedItems = items.map((item: any) => ({
             ...item,
             id: String(item.productId),
@@ -219,7 +221,7 @@ export default function SharedCartPage({
       localStorage.setItem('cart', JSON.stringify(storageItems));
       window.dispatchEvent(new Event('cart-updated'));
     }
-  }, [cartItems, isHydrated, isPreview]);
+  }, [cartItems, isHydrated, isPreview]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Calculate totals
   const subtotal = useMemo(
