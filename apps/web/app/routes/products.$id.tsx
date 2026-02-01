@@ -63,6 +63,12 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     metaTags.push({ name: 'twitter:image', content: data.product.imageUrl });
   }
 
+  // Favicon support
+  if (data.favicon) {
+    metaTags.push({ tagName: 'link', rel: 'icon', href: data.favicon });
+    metaTags.push({ tagName: 'link', rel: 'shortcut icon', href: data.favicon });
+  }
+
   return metaTags;
 };
 
@@ -236,6 +242,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       },
       storeName: store?.name || 'Store',
       logo: store?.logo || null,
+      favicon: store?.favicon || null,
       currency: store?.currency || 'BDT',
       showReviews,
       reviews: productReviews,

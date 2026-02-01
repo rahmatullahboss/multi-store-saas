@@ -10,7 +10,7 @@
  */
 
 import { Suspense, useMemo } from 'react';
-import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import {
   useLoaderData,
   useSearchParams,
@@ -32,6 +32,26 @@ import {
 import { getCustomer } from '~/services/customer-auth.server';
 import { parsePriceRange } from '~/utils/price';
 import { formatPrice } from '~/lib/theme-engine';
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  if (!data) {
+    return [{ title: 'Collection' }];
+  }
+
+  const metaTags = [
+    { title: `${data.collectionName} | ${data.storeName}` },
+    { name: 'description', content: `Browse ${data.collectionName} collection at ${data.storeName}` },
+    { name: 'robots', content: 'index, follow' },
+  ];
+
+  // Favicon support
+  if (data.favicon) {
+    metaTags.push({ tagName: 'link', rel: 'icon', href: data.favicon });
+    metaTags.push({ tagName: 'link', rel: 'shortcut icon', href: data.favicon });
+  }
+
+  return metaTags;
+};
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const { slug } = params;
@@ -227,6 +247,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     storeId,
     storeName: storeData?.name || 'Store',
     logo: storeData?.logo || null,
+    favicon: storeData?.favicon || null,
+    collectionName: collection?.title || slug,
     currency: storeData?.currency || 'BDT',
     storeTemplateId,
     theme: mergedTheme,

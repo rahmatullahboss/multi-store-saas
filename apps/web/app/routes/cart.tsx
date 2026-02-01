@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, Suspense } from 'react';
-import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
+import { json, type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher, useRouteError, isRouteErrorResponse } from '@remix-run/react';
 import { useTranslation } from 'react-i18next';
 import { eq, and, inArray } from 'drizzle-orm';
@@ -28,6 +28,26 @@ import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
 import { formatPrice } from '~/lib/theme-engine';
 import { createDb } from '~/lib/db.server';
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  if (!data) {
+    return [{ title: 'Shopping Cart' }];
+  }
+
+  const metaTags = [
+    { title: `Shopping Cart | ${data.storeName}` },
+    { name: 'description', content: `View and manage your shopping cart at ${data.storeName}` },
+    { name: 'robots', content: 'noindex, nofollow' }, // Cart pages shouldn't be indexed
+  ];
+
+  // Favicon support
+  if (data.favicon) {
+    metaTags.push({ tagName: 'link', rel: 'icon', href: data.favicon });
+    metaTags.push({ tagName: 'link', rel: 'shortcut icon', href: data.favicon });
+  }
+
+  return metaTags;
+};
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeContext = await resolveStore(context, request);
@@ -84,6 +104,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     storeId: storeId as number,
     storeName: storeData?.name || 'Store',
     logo: storeData?.logo || null,
+    favicon: storeData?.favicon || null,
     currency: storeData?.currency || 'BDT',
     storeTemplateId,
     theme: mergedTheme,

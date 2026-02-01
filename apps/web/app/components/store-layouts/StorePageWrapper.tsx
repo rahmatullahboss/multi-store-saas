@@ -72,8 +72,36 @@ export function StorePageWrapper({
 
   const bgClass = isDarkTheme ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900';
 
+  // Generate CSS variables for consistent theming across all pages
+  const cssVariables = `
+    :root {
+      --color-primary: ${resolvedTheme.primary};
+      --color-accent: ${resolvedTheme.accent};
+      --color-background: ${resolvedTheme.background};
+      --color-text: ${resolvedTheme.text};
+      --color-muted: ${resolvedTheme.muted};
+      --color-card-bg: ${resolvedTheme.cardBg};
+      --color-header-bg: ${resolvedTheme.headerBg};
+      --color-footer-bg: ${resolvedTheme.footerBg};
+      --color-footer-text: ${resolvedTheme.footerText};
+      --font-heading: ${template.fonts?.heading || 'Inter, sans-serif'};
+      --font-body: ${template.fonts?.body || 'Inter, sans-serif'};
+    }
+    
+    body {
+      font-family: var(--font-body);
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--font-heading);
+    }
+  `;
+
   return (
     <WishlistProvider>
+      {/* Inject CSS variables globally */}
+      <style dangerouslySetInnerHTML={{ __html: cssVariables }} />
+      
       <div className={`min-h-screen ${bgClass} transition-colors duration-300`}>
         {/* Background Decorations (light mode only) */}
         {!isDarkTheme && (

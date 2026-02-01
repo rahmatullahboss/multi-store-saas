@@ -35,12 +35,27 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     return [{ title: 'Store' }];
   }
 
-  return [
+  const metaTags = [
     { title: `${data.storeName} - Home` },
     { name: 'description', content: data.storeDescription || `Welcome to ${data.storeName}` },
-    // Favicon support
-    ...(data.favicon ? [{ rel: 'icon', href: data.favicon, type: 'image/x-icon' }] : []),
+    { name: 'robots', content: 'index, follow' },
+    { property: 'og:title', content: `${data.storeName} - Home` },
+    { property: 'og:description', content: data.storeDescription || `Welcome to ${data.storeName}` },
+    { property: 'og:type', content: 'website' },
   ];
+
+  // Favicon support
+  if (data.favicon) {
+    metaTags.push({ tagName: 'link', rel: 'icon', href: data.favicon });
+    metaTags.push({ tagName: 'link', rel: 'shortcut icon', href: data.favicon });
+  }
+
+  // Logo as og:image
+  if (data.logo) {
+    metaTags.push({ property: 'og:image', content: data.logo });
+  }
+
+  return metaTags;
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {

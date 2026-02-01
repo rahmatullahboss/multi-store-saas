@@ -823,9 +823,11 @@ const SectionComponent = registry['hero-banner'].component;
 
 ---
 
-## 🏪 MVP Simple Theme System (Recommended)
+## 🏪 MVP Simple Theme System (ACTIVE - Production Ready)
 
-> **⚠️ IMPORTANT**: For MVP launch, we recommend using the **Simple Theme System** instead of the full Shopify OS 2.0 system to avoid complexity and ensure consistency.
+> **✅ STATUS**: This is the **ACTIVE PRODUCTION SYSTEM** for MVP launch.  
+> **🔵 FROZEN**: Shopify OS 2.0 system (`themes/` folder) is frozen for future v2.0 release.  
+> **📖 DOCS**: See [docs/MVP_THEME_SYSTEM.md](docs/MVP_THEME_SYSTEM.md) for complete guide.
 
 ### The Problem with Current Dual System
 
