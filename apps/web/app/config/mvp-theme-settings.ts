@@ -314,3 +314,43 @@ export type MVPThemeId = (typeof MVP_THEME_IDS)[number];
 export function isValidMVPTheme(themeId: string): themeId is MVPThemeId {
   return MVP_THEME_IDS.includes(themeId as MVPThemeId);
 }
+
+// ============================================================================
+// AVAILABLE THEMES FOR UI
+// ============================================================================
+
+/**
+ * Theme metadata for the theme selector UI
+ */
+export const AVAILABLE_MVP_THEMES = [
+  {
+    id: 'starter-store',
+    name: 'Starter Store',
+    description: 'Clean, minimal design perfect for any business',
+    previewColor: '#4F46E5',
+  },
+  {
+    id: 'ghorer-bazar',
+    name: 'Ghorer Bazar',
+    description: 'Vibrant marketplace style for grocery and essentials',
+    previewColor: '#fc8934',
+  },
+  {
+    id: 'luxe-boutique',
+    name: 'Luxe Boutique',
+    description: 'Elegant black and gold for luxury fashion',
+    previewColor: '#1a1a1a',
+  },
+  {
+    id: 'nova-lux',
+    name: 'Nova Lux',
+    description: 'Modern charcoal with rose gold accents',
+    previewColor: '#1C1C1E',
+  },
+  {
+    id: 'tech-modern',
+    name: 'Tech Modern',
+    description: 'Sleek dark theme perfect for electronics',
+    previewColor: '#0f172a',
+  },
+];

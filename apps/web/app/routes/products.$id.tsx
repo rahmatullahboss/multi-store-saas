@@ -10,7 +10,7 @@
  */
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
+import { useLoaderData, useRouteError, isRouteErrorResponse } from '@remix-run/react';
 import { eq, and, desc, ne, like } from 'drizzle-orm';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
@@ -29,7 +29,6 @@ import {
 } from '~/templates/store-registry';
 import { getCustomer } from '~/services/customer-auth.server';
 import { formatPrice } from '~/lib/theme-engine';
-import { getMVPSettings } from '~/services/mvp-settings.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data?.product) {
@@ -98,17 +97,15 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     }
 
     const { themeConfig, businessInfo, footerConfig } = storeConfig;
-    const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
+    const storeTemplateId =
+      themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
 
-    // Get MVP settings (simple theme settings)
-    const mvpSettings = await getMVPSettings(db, storeId, storeTemplateId);
-
-    // Merge MVP settings with theme colors
+    // Get theme colors from themeConfig
     const baseTheme = getStoreTemplateTheme(storeTemplateId);
     const theme = {
       ...baseTheme,
-      primary: mvpSettings.primaryColor || baseTheme.primary,
-      accent: mvpSettings.accentColor || baseTheme.accent,
+      primary: themeConfig?.primaryColor || baseTheme.primary,
+      accent: themeConfig?.accentColor || baseTheme.accent,
     };
 
     const socialLinks =
@@ -237,8 +234,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
         ...product,
         variants: variantsResult || [],
       },
-      storeName: mvpSettings.storeName || store?.name || 'Store',
-      logo: mvpSettings.logo || store.logo,
+      storeName: store?.name || 'Store',
+      logo: store?.logo || null,
       currency: store?.currency || 'BDT',
       showReviews,
       reviews: productReviews,
@@ -255,7 +252,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       planType: store?.planType || 'free',
       customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
       productUrl,
-      mvpSettings,
+      themeConfig,
     });
   } catch (error) {
     if (error instanceof Response) {
@@ -295,7 +292,7 @@ export default function ProductDetail() {
     planType,
     customer,
     productUrl,
-    mvpSettings,
+    themeConfig,
   } = useLoaderData<typeof loader>();
 
   const hasTracked = useRef(false);
@@ -464,7 +461,6 @@ export default function ProductDetail() {
       businessInfo={businessInfo}
       categories={categories as (string | null)[] | undefined}
       config={{
-        ...mvpSettings,
         primaryColor: theme.primary,
         accentColor: theme.accent,
       }}
@@ -622,6 +618,49 @@ function SimpleProductPage({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ============================================================================
+// ERROR BOUNDARY
+// ============================================================================
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+
+  if (isRouteErrorResponse(error)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center px-4">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">{error.status}</h1>
+          <p className="text-gray-600 mb-2">{error.statusText}</p>
+          {error.data && <p className="text-sm text-gray-500 mb-6">{error.data}</p>}
+          <a
+            href="/products"
+            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            Browse Products
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center px-4">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Product Not Available</h1>
+        <p className="text-gray-600 mb-6">
+          {error instanceof Error ? error.message : 'Something went wrong loading this product.'}
+        </p>
+        <a
+          href="/products"
+          className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          Browse Products
+        </a>
+      </div>
     </div>
   );
 }

@@ -14,7 +14,7 @@
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import { json, redirect } from '@remix-run/cloudflare';
 import { Form, useLoaderData, useActionData, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, count, sum } from 'drizzle-orm';
@@ -234,10 +234,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Note: Store mode validation removed - handled in Homepage Settings (storeEnabled)
 
   // Build update object
+  const themeValue = theme || 'starter-store';
   const updateData: Record<string, unknown> = {
     name: name.trim(),
     currency: currency || 'BDT',
-    theme: theme || 'default',
+    theme: themeValue, // Legacy field for backward compatibility
     logo: logo || null,
     favicon: favicon || null,
     fontFamily: fontFamily || 'inter',
@@ -254,6 +255,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }),
     defaultLanguage: defaultLanguage || 'en',
     updatedAt: new Date(),
+    // MVP System: Save theme to themeConfig for new system compatibility
+    themeConfig: JSON.stringify({
+      storeTemplateId: themeValue,
+      primaryColor: null, // Will be set via MVP settings if needed
+      accentColor: null,
+    }),
   };
 
   // Note: mode field update removed - use Homepage Settings (storeEnabled) instead

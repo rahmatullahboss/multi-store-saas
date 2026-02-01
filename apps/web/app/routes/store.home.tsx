@@ -26,7 +26,6 @@ import {
 } from '~/templates/store-registry';
 import { parseThemeConfig, parseSocialLinks, type ThemeConfig } from '@db/types';
 import { getCustomer } from '~/services/customer-auth.server';
-import { getMVPSettings } from '~/services/mvp-settings.server';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, and } from 'drizzle-orm';
 import { products as productsTable } from '@db/schema';
@@ -55,20 +54,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const { storeId, store } = storeContext;
   const db = drizzle(context.cloudflare.env.DB);
 
-  // Get theme config from store
+  // Get theme config from store (fallback to legacy 'theme' field for backward compatibility)
   const themeConfig = parseThemeConfig(store.themeConfig as string | null);
   const socialLinks = parseSocialLinks(store.socialLinks as string | null);
-  const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
+  const storeTemplateId =
+    themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
 
-  // Get MVP settings (simple theme settings)
-  const mvpSettings = await getMVPSettings(db, storeId, storeTemplateId);
-
-  // Merge MVP settings with theme colors
+  // Get theme colors from themeConfig
   const baseTheme = getStoreTemplateTheme(storeTemplateId);
   const theme = {
     ...baseTheme,
-    primary: mvpSettings.primaryColor || baseTheme.primary,
-    accent: mvpSettings.accentColor || baseTheme.accent,
+    primary: themeConfig?.primaryColor || baseTheme.primary,
+    accent: themeConfig?.accentColor || baseTheme.accent,
   };
 
   // Parse businessInfo
@@ -105,12 +102,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   return json({
     storeId,
-    storeName: mvpSettings.storeName || store.name,
-    logo: mvpSettings.logo || store.logo,
-    favicon: mvpSettings.favicon || store.favicon,
+    storeName: store.name,
+    logo: store.logo,
+    favicon: store.favicon,
     currency: store.currency || 'BDT',
     storeTemplateId,
     theme,
+    themeConfig,
     socialLinks,
     businessInfo,
     planType: store.planType || 'free',
@@ -124,7 +122,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       description: null,
     })) as unknown as SerializedProduct[],
     categories,
-    mvpSettings,
   });
 }
 
@@ -137,6 +134,7 @@ export default function StoreHomePage() {
     currency,
     storeTemplateId,
     theme,
+    themeConfig,
     socialLinks,
     businessInfo,
     planType,
@@ -145,7 +143,6 @@ export default function StoreHomePage() {
     customer,
     featuredProducts,
     categories,
-    mvpSettings,
   } = useLoaderData<typeof loader>();
 
   // Get the template from registry (OLD SYSTEM - 1000+ line components)
@@ -252,9 +249,9 @@ export default function StoreHomePage() {
       categories={categories as string[]}
       config={
         {
-          ...mvpSettings,
           primaryColor: theme.primary,
           accentColor: theme.accent,
+          ...themeConfig,
         } as unknown as ThemeConfig
       }
     >
@@ -270,9 +267,9 @@ export default function StoreHomePage() {
         currentCategory={null}
         config={
           {
-            ...mvpSettings,
             primaryColor: theme.primary,
             accentColor: theme.accent,
+            ...themeConfig,
           } as unknown as ThemeConfig
         }
         currency={currency}

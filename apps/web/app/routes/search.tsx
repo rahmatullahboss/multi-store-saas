@@ -1,22 +1,25 @@
 /**
- * Search Results Page
+ * Search Results Page - MVP Simple Theme System
  *
- * Shopify OS 2.0 Theme System - Uses ThemeStoreRenderer
- * Route: /search?q=query
+ * Uses the old React Component System (legacy templates)
+ * instead of Shopify OS 2.0 section-based system.
+ *
+ * @see AGENTS.md - MVP Simple Theme System section
  */
 
+import { Suspense } from 'react';
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
+import { useLoaderData, Link, useRouteError, isRouteErrorResponse } from '@remix-run/react';
 import { eq, and, like, desc } from 'drizzle-orm';
 import { products, stores, type Store } from '@db/schema';
-import { parseThemeConfig, parseSocialLinks } from '@db/types';
+import { parseSocialLinks } from '@db/types';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
-import { ThemeStoreRenderer } from '~/components/store/ThemeStoreRenderer';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
-import { getCustomer } from '~/services/customer-auth.server';
-import { resolveTemplate } from '~/lib/template-resolver.server';
+import { getMVPSettings } from '~/services/mvp-settings.server';
+import { Search, ShoppingBag, ChevronRight } from 'lucide-react';
+import { formatPrice } from '~/lib/theme-engine';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: 'Search' }];
@@ -45,39 +48,53 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const searchQuery = url.searchParams.get('q') || '';
 
-  // Resolve store
   const storeContext = await resolveStore(context, request);
   if (!storeContext) {
     throw new Response('Store not found', { status: 404 });
   }
 
-  const { storeId } = storeContext;
+  const { storeId, store } = storeContext;
+  const storeData = store;
   const db = createDb(context.cloudflare.env.DB);
 
-  // Fetch store data
-  const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
-  const storeData = storeResult[0] as Store | undefined;
-
-  if (!storeData) {
-    throw new Response('Store not found', { status: 404 });
+  // Route guard: Check if store routes are enabled
+  if (store.storeEnabled === false) {
+    throw new Response('Store mode is not enabled for this shop.', { status: 404 });
   }
 
-  const themeConfig = parseThemeConfig(storeData?.themeConfig as string | null);
-  const socialLinks = parseSocialLinks(storeData?.socialLinks as string | null);
-  const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
-  const theme = getStoreTemplateTheme(storeTemplateId);
-
-  // Parse businessInfo
-  let businessInfo: { phone?: string; email?: string; address?: string } | null = null;
+  // Parse theme config
+  let themeConfig = null;
   try {
-    if (storeData?.businessInfo) {
+    if (storeData.themeConfig) {
+      themeConfig = JSON.parse(storeData.themeConfig as string);
+    }
+  } catch {
+    // Ignore parse errors
+  }
+
+  let businessInfo = null;
+  try {
+    if (storeData.businessInfo) {
       businessInfo = JSON.parse(storeData.businessInfo as string);
     }
   } catch {
-    // Ignore JSON parse errors
+    // Ignore parse errors
   }
 
-  // Customer session can be loaded here if needed for personalized search
+  const storeTemplateId =
+    themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
+  const theme = getStoreTemplateTheme(storeTemplateId);
+  const socialLinks = parseSocialLinks(storeData.socialLinks as string | null);
+
+  // Get MVP settings for theme colors
+  const mvpSettings = await getMVPSettings(db, storeId, storeTemplateId);
+
+  // Merge MVP colors with template theme
+  const mergedTheme = {
+    ...theme,
+    primary: mvpSettings.primaryColor || theme.primary,
+    accent: mvpSettings.accentColor || theme.accent,
+  };
 
   // Search products
   let searchResults: SearchProduct[] = [];
@@ -124,33 +141,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       slug: c.category.toLowerCase().replace(/\s+/g, '-'),
     }));
 
-  // Resolve template (use collection template as base for search results)
-  let template = null;
-  try {
-    template = await resolveTemplate(context.cloudflare.env.DB, storeId, 'collection');
-  } catch (templateError) {
-    console.error('[search] Template resolution failed:', templateError);
-  }
-
   return json({
     searchQuery: searchQuery.trim(),
     products: searchResults,
     productCount: searchResults.length,
     collections,
-    template,
-    store: {
-      id: storeId,
-      name: storeData.name,
-      currency: storeData.currency || '৳',
-      logo: storeData.logo || null,
-      themeConfig,
-    },
-    storeName: storeData.name,
+    storeId: storeId as number,
+    storeName: mvpSettings.storeName || storeData.name || 'Store',
+    logo: mvpSettings.logo || storeData?.logo || null,
+    currency: storeData?.currency || '৳',
     storeTemplateId,
-    theme,
-    currency: storeData.currency || '৳',
+    theme: mergedTheme,
     socialLinks,
     businessInfo,
+    themeConfig,
+    planType: storeData?.planType || 'free',
   });
 }
 
@@ -160,108 +165,240 @@ export default function SearchPage() {
     products,
     productCount,
     collections,
-    template,
-    store,
+    storeId,
+    storeName,
+    logo,
+    currency,
     storeTemplateId,
     theme,
-    currency,
     socialLinks,
     businessInfo,
+    themeConfig,
+    planType,
   } = useLoaderData<typeof loader>();
 
-  // Format price helper
-  const formatPrice = (price: number) => {
-    return `${currency} ${price.toLocaleString()}`;
-  };
-
-  // Cart data (empty for now)
-  const cart = {
-    items: [] as {
-      id: number;
-      productId: number;
-      title: string;
-      price: number;
-      quantity: number;
-      imageUrl?: string;
-    }[],
-    itemCount: 0,
-    total: 0,
-  };
+  // Generate CSS variables for MVP colors
+  const cssVariables = `
+    :root {
+      --color-primary: ${theme.primary};
+      --color-accent: ${theme.accent};
+      --color-text: ${theme.text};
+      --color-muted: ${theme.muted};
+      --color-background: ${theme.background};
+    }
+  `;
 
   return (
-    <StorePageWrapper
-      storeName={store.name}
-      storeId={store.id}
-      logo={store.logo}
-      templateId={storeTemplateId}
-      theme={theme}
-      currency={currency}
-      socialLinks={socialLinks}
-      businessInfo={businessInfo}
-    >
-      {template && template.sections ? (
-        <ThemeStoreRenderer
-          themeId={storeTemplateId}
-          sections={template.sections.map((section) => ({
-            id: section.id,
-            type: section.type,
-            settings: section.props || {},
-            blocks: section.blocks || [],
-            enabled: section.enabled,
-          }))}
-          store={store}
-          pageType="search"
-          products={products}
-          collections={collections}
-          cart={cart}
-        />
-      ) : (
-        // Fallback if no template
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">
-              {searchQuery ? `Search Results: "${searchQuery}"` : 'Search'}
-            </h1>
-            <p className="text-gray-600">
-              {productCount > 0
-                ? `Found ${productCount} product${productCount === 1 ? '' : 's'}`
-                : searchQuery
-                  ? 'No products found. Try a different search term.'
-                  : 'Enter a search term to find products.'}
-            </p>
-          </div>
-
-          {products.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {products.map((product) => (
-                <a
-                  key={product.id}
-                  href={`/products/${product.id}`}
-                  className="group block border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
-                >
-                  <div className="aspect-square bg-gray-100 overflow-hidden">
-                    {product.imageUrl ? (
-                      <img
-                        src={product.imageUrl}
-                        alt={product.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        No Image
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-medium mb-1 truncate">{product.title}</h3>
-                    <p className="text-lg font-bold text-blue-600">{formatPrice(product.price)}</p>
-                  </div>
-                </a>
-              ))}
+    <>
+      <style dangerouslySetInnerHTML={{ __html: cssVariables }} />
+      <StorePageWrapper
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        templateId={storeTemplateId}
+        theme={theme}
+        currency={currency}
+        socialLinks={socialLinks || undefined}
+        businessInfo={businessInfo || undefined}
+        config={themeConfig || undefined}
+        planType={planType}
+      >
+        <Suspense
+          fallback={
+            <div className="min-h-[60vh] flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
             </div>
-          )}
+          }
+        >
+          <SimpleSearchPage
+            query={searchQuery}
+            products={products}
+            productCount={productCount}
+            collections={collections}
+            currency={currency}
+          />
+        </Suspense>
+      </StorePageWrapper>
+    </>
+  );
+}
+
+// ============================================================================
+// SIMPLE SEARCH PAGE (Fallback)
+// ============================================================================
+function SimpleSearchPage({
+  query,
+  products,
+  productCount,
+  currency,
+}: {
+  query: string;
+  products: SearchProduct[];
+  productCount: number;
+  currency: string;
+  collections?: SearchCollection[];
+}) {
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-12">
+      {/* Search Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-4">
+          <Search className="w-8 h-8 text-[var(--color-primary)]" />
+          <h1 className="text-3xl font-bold text-gray-900">
+            {query ? `Search Results: "${query}"` : 'Search'}
+          </h1>
+        </div>
+        <p className="text-gray-600">
+          {productCount > 0
+            ? `Found ${productCount} product${productCount === 1 ? '' : 's'}`
+            : query
+              ? 'No products found. Try a different search term.'
+              : 'Enter a search term to find products.'}
+        </p>
+      </div>
+
+      {/* Search Input */}
+      <div className="mb-12">
+        <form action="/search" method="get" className="flex gap-2 max-w-2xl">
+          <input
+            type="text"
+            name="q"
+            defaultValue={query}
+            placeholder="Search for products..."
+            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+          />
+          <button
+            type="submit"
+            className="px-6 py-3 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition flex items-center gap-2"
+          >
+            <Search className="w-5 h-5" />
+            Search
+          </button>
+        </form>
+      </div>
+
+      {/* Search Results */}
+      {products.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {products.map((product) => (
+            <Link
+              key={product.id}
+              to={`/products/${product.id}`}
+              className="group block border rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-white"
+            >
+              {/* Product Image */}
+              <div className="aspect-square bg-gray-100 overflow-hidden relative">
+                {product.imageUrl ? (
+                  <img
+                    src={product.imageUrl}
+                    alt={product.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <ShoppingBag className="w-12 h-12" />
+                  </div>
+                )}
+              </div>
+
+              {/* Product Info */}
+              <div className="p-4">
+                <h3 className="font-medium text-gray-900 mb-1 truncate group-hover:text-[var(--color-primary)] transition-colors">
+                  {product.title}
+                </h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-[var(--color-primary)]">
+                    {formatPrice(product.price, currency)}
+                  </span>
+                  {product.compareAtPrice && product.compareAtPrice > product.price && (
+                    <span className="text-sm text-gray-400 line-through">
+                      {formatPrice(product.compareAtPrice, currency)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      ) : query ? (
+        /* No Results */
+        <div className="text-center py-16">
+          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Search className="w-10 h-10 text-gray-400" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">No products found</h2>
+          <p className="text-gray-500 mb-6 max-w-md mx-auto">
+            We couldn&apos;t find any products matching &quot;{query}&quot;. Try checking your
+            spelling or use a different search term.
+          </p>
+          <Link
+            to="/products"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition"
+          >
+            Browse All Products
+            <ChevronRight className="w-4 h-4" />
+          </Link>
+        </div>
+      ) : (
+        /* Empty Search */
+        <div className="text-center py-16">
+          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Search className="w-10 h-10 text-gray-400" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">What are you looking for?</h2>
+          <p className="text-gray-500 mb-6 max-w-md mx-auto">
+            Enter a keyword above to search our product catalog.
+          </p>
+          <Link
+            to="/products"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition"
+          >
+            Browse All Products
+            <ChevronRight className="w-4 h-4" />
+          </Link>
         </div>
       )}
-    </StorePageWrapper>
+    </div>
+  );
+}
+
+// ============================================================================
+// ERROR BOUNDARY
+// ============================================================================
+export function ErrorBoundary() {
+  const error = useRouteError();
+
+  if (isRouteErrorResponse(error)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center px-4">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">{error.status}</h1>
+          <p className="text-gray-600 mb-2">{error.statusText}</p>
+          <a
+            href="/"
+            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            Go Home
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center px-4">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
+        <p className="text-gray-600 mb-6">
+          {error instanceof Error ? error.message : 'Something went wrong'}
+        </p>
+        <a
+          href="/"
+          className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          Go Home
+        </a>
+      </div>
+    </div>
   );
 }

@@ -1,24 +1,36 @@
 /**
- * Collection Page
+ * Collection Page - MVP Simple Theme System
  *
- * Shopify OS 2.0 Theme System - Uses ThemeStoreRenderer exclusively
- * for dynamic section rendering with the new theme engine.
+ * Uses the old React Component System (legacy templates)
+ * instead of Shopify OS 2.0 section-based system.
+ *
+ * Each template provides a CollectionPage component for collection display.
+ *
+ * @see AGENTS.md - MVP Simple Theme System section
  */
 
+import { Suspense, useMemo } from 'react';
 import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { useLoaderData, useSearchParams } from '@remix-run/react';
+import {
+  useLoaderData,
+  useSearchParams,
+  useRouteError,
+  isRouteErrorResponse,
+} from '@remix-run/react';
 import { useTranslation } from 'react-i18next';
 import { eq, and, desc, like, asc, gte, lte } from 'drizzle-orm';
 import { products, stores, productCollections, type Store } from '@db/schema';
 import { parseThemeConfig, parseSocialLinks } from '@db/types';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
-import { ThemeStoreRenderer } from '~/components/store/ThemeStoreRenderer';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
+import {
+  getStoreTemplateTheme,
+  getStoreTemplate,
+  DEFAULT_STORE_TEMPLATE_ID,
+} from '~/templates/store-registry';
 import { getCustomer } from '~/services/customer-auth.server';
 import { parsePriceRange } from '~/utils/price';
-import { resolveTemplate } from '~/lib/template-resolver.server';
 import { formatPrice } from '~/lib/theme-engine';
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
@@ -46,7 +58,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   }
   const themeConfig = parseThemeConfig(storeData?.themeConfig as string | null);
   const socialLinks = parseSocialLinks(storeData?.socialLinks as string | null);
-  const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
+  const storeTemplateId =
+    themeConfig?.storeTemplateId || (storeData.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
   const theme = getStoreTemplateTheme(storeTemplateId);
 
   // Parse businessInfo
@@ -61,6 +74,13 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
   // Load customer session
   const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
+
+  // Merge themeConfig colors with template theme
+  const mergedTheme = {
+    ...theme,
+    primary: themeConfig?.primaryColor || theme.primary,
+    accent: themeConfig?.accentColor || theme.accent,
+  };
 
   const url = new URL(request.url);
   const sortBy = url.searchParams.get('sort') || 'newest';
@@ -194,19 +214,14 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     slug,
   };
 
-  // Template resolution (Shopify OS 2.0)
-  let template = null;
-  let homeTemplate = null;
-  try {
-    template = await resolveTemplate(context.cloudflare.env.DB, storeId, 'collection');
+  // Get unique categories for filter
+  const categoryResult = await db
+    .select({ category: products.category })
+    .from(products)
+    .where(eq(products.storeId, storeId))
+    .groupBy(products.category);
 
-    // If no collection template, get home template for header/footer consistency
-    if (!template || !template.sections || template.sections.length === 0) {
-      homeTemplate = await resolveTemplate(context.cloudflare.env.DB, storeId, 'home');
-    }
-  } catch {
-    // Continue without template
-  }
+  const categories = categoryResult.map((r) => r.category);
 
   return json({
     storeId,
@@ -214,12 +229,13 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     logo: storeData?.logo || null,
     currency: storeData?.currency || 'BDT',
     storeTemplateId,
-    theme,
+    theme: mergedTheme,
     socialLinks,
     businessInfo,
     themeConfig,
     collection,
     products: collectionProducts,
+    categories,
     sortBy,
     inStock,
     onSale,
@@ -227,11 +243,12 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     maxPrice,
     planType: storeData?.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
-    template,
-    homeTemplate,
   });
 }
 
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 export default function CollectionPage() {
   const {
     storeId,
@@ -245,6 +262,7 @@ export default function CollectionPage() {
     themeConfig,
     collection,
     products,
+    categories,
     sortBy,
     inStock,
     onSale,
@@ -252,13 +270,12 @@ export default function CollectionPage() {
     maxPrice,
     planType,
     customer,
-    template,
-    homeTemplate,
   } = useLoaderData<typeof loader>();
 
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
 
+  // Filter handlers
   const handleSortChange = (value: string) => {
     const params = new URLSearchParams(searchParams);
     params.set('sort', value);
@@ -295,266 +312,284 @@ export default function CollectionPage() {
     setSearchParams(params);
   };
 
-  const hasTemplateSections = template?.sections && template.sections.length > 0;
+  // Get template
+  const template = useMemo(() => getStoreTemplate(storeTemplateId), [storeTemplateId]);
+  const CollectionPageComponent = template.CollectionPage;
 
-  // Check if we have home template for header/footer fallback
-  const hasHomeTemplate = homeTemplate?.sections && homeTemplate.sections.length > 0;
-
-  // Use theme sections for consistent header/footer
-  const useThemeSections = hasTemplateSections || hasHomeTemplate;
-
-  // Render collection content
-  const renderCollectionContent = () => {
-    // If template has sections, use ThemeStoreRenderer (Shopify OS 2.0)
-    if (hasTemplateSections && template?.sections) {
-      return (
-        <ThemeStoreRenderer
-          themeId={storeTemplateId}
-          sections={template.sections.map((s) => ({
-            id: s.id,
-            type: s.type,
-            settings: s.props || {},
-            blocks:
-              s.blocks?.map((b) => ({
-                id: b.id,
-                type: b.type,
-                settings: b.props || {},
-              })) || [],
-            enabled: s.enabled,
-          }))}
-          store={{
-            id: storeId,
-            name: storeName,
-            currency,
-            logo,
-            defaultLanguage: 'en',
-            socialLinks,
-            businessInfo,
-          }}
-          pageType="collection"
-          collection={{
-            id: 1,
-            title: collection.title,
-            slug: collection.slug,
-            description: collection.description,
-            productCount: products.length,
-          }}
-          products={products.map((p) => ({
-            id: p.id,
-            title: p.title,
-            price: p.price,
-            compareAtPrice: p.compareAtPrice || undefined,
-            imageUrl: p.imageUrl,
-            images: p.imageUrl ? [p.imageUrl] : [],
-            category: p.category || undefined,
-          }))}
-          skipHeaderFooter={false}
-        />
-      );
+  // Generate CSS variables for MVP colors
+  const cssVariables = `
+    :root {
+      --color-primary: ${theme.primary};
+      --color-accent: ${theme.accent};
+      --color-text: ${theme.text};
+      --color-muted: ${theme.muted};
+      --color-background: ${theme.background};
     }
+  `;
 
-    // If no collection template but home template exists, use home template's header/footer
-    if (hasHomeTemplate && homeTemplate?.sections) {
-      // Extract header and footer sections from home template
-      // Note: Only include header, NOT announcement-bar (keep banner only on homepage)
-      const headerSections = homeTemplate.sections.filter((s) => s.type === 'header');
-      const footerSections = homeTemplate.sections.filter((s) => s.type === 'footer');
-
-      // Combine: header + collection-grid section + footer
-      const combinedSections = [
-        ...headerSections.map((s) => ({
-          id: s.id,
-          type: s.type,
-          settings: s.props || {},
-          blocks:
-            s.blocks?.map((b) => ({
-              id: b.id,
-              type: b.type,
-              settings: b.props || {},
-            })) || [],
-          enabled: s.enabled,
-        })),
-        // Collection grid section
-        {
-          id: 'collection-grid-fallback',
-          type: 'collection-grid',
-          settings: {},
-          blocks: [],
-          enabled: true,
-        },
-        ...footerSections.map((s) => ({
-          id: s.id,
-          type: s.type,
-          settings: s.props || {},
-          blocks:
-            s.blocks?.map((b) => ({
-              id: b.id,
-              type: b.type,
-              settings: b.props || {},
-            })) || [],
-          enabled: s.enabled,
-        })),
-      ];
-
-      return (
-        <ThemeStoreRenderer
-          themeId={storeTemplateId}
-          sections={combinedSections}
-          store={{
-            id: storeId,
-            name: storeName,
-            currency,
-            logo,
-            defaultLanguage: 'en',
-          }}
-          pageType="collection"
-          collection={{
-            id: 1,
-            title: collection.title,
-            slug: collection.slug,
-            description: collection.description,
-            productCount: products.length,
-          }}
-          products={products.map((p) => ({
-            id: p.id,
-            title: p.title,
-            price: p.price,
-            compareAtPrice: p.compareAtPrice || undefined,
-            imageUrl: p.imageUrl,
-            images: p.imageUrl ? [p.imageUrl] : [],
-            category: p.category || undefined,
-          }))}
-          skipHeaderFooter={false}
-        />
-      );
-    }
-
-    // Fallback: Default collection grid
-    return (
-      <div
-        className="min-h-screen flex flex-col"
-        style={{ backgroundColor: theme?.background || '#ffffff' }}
-      >
-        {/* Collection Header with Filters */}
-        <div className="border-b border-gray-200 bg-white/70 backdrop-blur">
-          <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{collection.title}</h1>
-              <p className="text-sm text-gray-600">{collection.description}</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">{t('sortBy')}</span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => handleSortChange(e.target.value)}
-                  className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
-                >
-                  <option value="newest">{t('sortNewest')}</option>
-                  <option value="price-low">{t('sortPriceLowHigh')}</option>
-                  <option value="price-high">{t('sortPriceHighLow')}</option>
-                </select>
-              </div>
-              <label className="inline-flex items-center gap-2 text-sm text-gray-600">
-                <input
-                  type="checkbox"
-                  checked={inStock}
-                  onChange={(e) => handleInStockToggle(e.target.checked)}
-                  className="rounded border-gray-300"
-                />
-                {t('inStockLabel')}
-              </label>
-              <label className="inline-flex items-center gap-2 text-sm text-gray-600">
-                <input
-                  type="checkbox"
-                  checked={onSale}
-                  onChange={(e) => handleOnSaleToggle(e.target.checked)}
-                  className="rounded border-gray-300"
-                />
-                {t('onSale')}
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  value={minPrice ?? ''}
-                  onChange={(e) => handlePriceChange('min', e.target.value)}
-                  placeholder={t('min')}
-                  className="w-24 px-2 py-2 border border-gray-200 rounded-lg text-sm"
-                />
-                <input
-                  type="number"
-                  value={maxPrice ?? ''}
-                  onChange={(e) => handlePriceChange('max', e.target.value)}
-                  placeholder={t('max')}
-                  className="w-24 px-2 py-2 border border-gray-200 rounded-lg text-sm"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Product Grid */}
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          {products.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-gray-500 text-lg">No products found in this collection.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {products.map((product) => (
-                <a
-                  key={product.id}
-                  href={`/products/${product.id}`}
-                  className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition"
-                >
-                  <div className="aspect-square bg-gray-100">
-                    {product.imageUrl ? (
-                      <img
-                        src={product.imageUrl}
-                        alt={product.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        No Image
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-medium text-gray-900 truncate">{product.title}</h3>
-                    <p className="text-lg font-bold mt-1" style={{ color: theme.primary }}>
-                      {formatPrice(product.price, currency)}
-                      {product.compareAtPrice && product.compareAtPrice > product.price && (
-                        <span className="ml-2 text-sm text-gray-500 line-through">
-                          {formatPrice(product.compareAtPrice, currency)}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    );
+  // Prepare collection page props
+  const collectionPageProps = {
+    storeName,
+    storeId,
+    logo,
+    theme,
+    currency,
+    collection,
+    products,
+    categories,
+    sortBy,
+    inStock,
+    onSale,
+    minPrice,
+    maxPrice,
+    onSortChange: handleSortChange,
+    onInStockToggle: handleInStockToggle,
+    onPriceChange: handlePriceChange,
+    onOnSaleToggle: handleOnSaleToggle,
+    config: themeConfig,
+    socialLinks,
+    businessInfo,
+    planType,
   };
 
   return (
-    <StorePageWrapper
-      hideHeaderFooter={hasTemplateSections}
-      storeName={storeName}
-      storeId={storeId}
-      logo={logo}
-      templateId={storeTemplateId}
-      theme={theme}
-      currency={currency}
-      socialLinks={socialLinks}
-      businessInfo={businessInfo}
-      planType={planType}
-      customer={customer}
+    <>
+      <style dangerouslySetInnerHTML={{ __html: cssVariables }} />
+      <StorePageWrapper
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        templateId={storeTemplateId}
+        theme={theme}
+        currency={currency}
+        socialLinks={socialLinks || undefined}
+        businessInfo={businessInfo || undefined}
+        config={themeConfig || undefined}
+        planType={planType}
+        customer={customer || undefined}
+      >
+        <Suspense
+          fallback={
+            <div className="min-h-[60vh] flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+            </div>
+          }
+        >
+          {CollectionPageComponent ? (
+            <CollectionPageComponent {...collectionPageProps} />
+          ) : (
+            <SimpleCollectionPage {...collectionPageProps} />
+          )}
+        </Suspense>
+      </StorePageWrapper>
+    </>
+  );
+}
+
+// ============================================================================
+// SIMPLE COLLECTION PAGE (Fallback)
+// ============================================================================
+interface SimpleCollectionPageProps {
+  storeName: string;
+  storeId: number;
+  logo: string | null;
+  theme: {
+    primary: string;
+    accent: string;
+    background: string;
+    text: string;
+    muted: string;
+  };
+  currency: string;
+  collection: {
+    title: string;
+    description: string;
+    slug: string;
+  };
+  products: Array<{
+    id: number;
+    title: string;
+    price: number;
+    compareAtPrice: number | null;
+    imageUrl: string | null;
+    category: string | null;
+  }>;
+  categories: (string | null)[];
+  sortBy: string;
+  inStock: boolean;
+  onSale: boolean;
+  minPrice: number | null;
+  maxPrice: number | null;
+  onSortChange: (value: string) => void;
+  onInStockToggle: (checked: boolean) => void;
+  onPriceChange: (type: 'min' | 'max', value: string) => void;
+  onOnSaleToggle: (checked: boolean) => void;
+}
+
+function SimpleCollectionPage({
+  collection,
+  products,
+  currency,
+  theme,
+  sortBy,
+  inStock,
+  onSale,
+  minPrice,
+  maxPrice,
+  onSortChange,
+  onInStockToggle,
+  onPriceChange,
+  onOnSaleToggle,
+}: SimpleCollectionPageProps) {
+  const { t } = useTranslation();
+
+  return (
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ backgroundColor: theme?.background || '#ffffff' }}
     >
-      {renderCollectionContent()}
-    </StorePageWrapper>
+      {/* Collection Header with Filters */}
+      <div className="border-b border-gray-200 bg-white/70 backdrop-blur">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{collection.title}</h1>
+            <p className="text-sm text-gray-600">{collection.description}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">{t('sortBy')}</span>
+              <select
+                value={sortBy}
+                onChange={(e) => onSortChange(e.target.value)}
+                className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
+              >
+                <option value="newest">{t('sortNewest')}</option>
+                <option value="price-low">{t('sortPriceLowHigh')}</option>
+                <option value="price-high">{t('sortPriceHighLow')}</option>
+              </select>
+            </div>
+            <label className="inline-flex items-center gap-2 text-sm text-gray-600">
+              <input
+                type="checkbox"
+                checked={inStock}
+                onChange={(e) => onInStockToggle(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              {t('inStockLabel')}
+            </label>
+            <label className="inline-flex items-center gap-2 text-sm text-gray-600">
+              <input
+                type="checkbox"
+                checked={onSale}
+                onChange={(e) => onOnSaleToggle(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              {t('onSale')}
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                value={minPrice ?? ''}
+                onChange={(e) => onPriceChange('min', e.target.value)}
+                placeholder={t('min')}
+                className="w-24 px-2 py-2 border border-gray-200 rounded-lg text-sm"
+              />
+              <input
+                type="number"
+                value={maxPrice ?? ''}
+                onChange={(e) => onPriceChange('max', e.target.value)}
+                placeholder={t('max')}
+                className="w-24 px-2 py-2 border border-gray-200 rounded-lg text-sm"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Product Grid */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {products.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-gray-500 text-lg">No products found in this collection.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {products.map((product) => (
+              <a
+                key={product.id}
+                href={`/products/${product.id}`}
+                className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition"
+              >
+                <div className="aspect-square bg-gray-100">
+                  {product.imageUrl ? (
+                    <img
+                      src={product.imageUrl}
+                      alt={product.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      No Image
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <h3 className="font-medium text-gray-900 truncate">{product.title}</h3>
+                  <p className="text-lg font-bold mt-1" style={{ color: theme.primary }}>
+                    {formatPrice(product.price, currency)}
+                    {product.compareAtPrice && product.compareAtPrice > product.price && (
+                      <span className="ml-2 text-sm text-gray-500 line-through">
+                        {formatPrice(product.compareAtPrice, currency)}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// ERROR BOUNDARY
+// ============================================================================
+export function ErrorBoundary() {
+  const error = useRouteError();
+
+  if (isRouteErrorResponse(error)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center px-4">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">{error.status}</h1>
+          <p className="text-gray-600 mb-2">{error.statusText}</p>
+          <a
+            href="/"
+            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            Go Home
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center px-4">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
+        <p className="text-gray-600 mb-6">
+          {error instanceof Error ? error.message : 'Something went wrong'}
+        </p>
+        <a
+          href="/"
+          className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          Go Home
+        </a>
+      </div>
+    </div>
   );
 }

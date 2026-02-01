@@ -1,21 +1,27 @@
 /**
- * Storefront Custom Pages Route (Shopify-like)
+ * Storefront Custom Pages Route - MVP Simple Theme System
  *
  * Route: /pages/:slug
  *
- * Shopify OS 2.0 Theme System - Uses ThemeStoreRenderer exclusively
- * for dynamic section rendering with the new theme engine.
+ * Uses the old React Component System (legacy templates)
+ * instead of Shopify OS 2.0 section-based system.
+ *
+ * @see AGENTS.md - MVP Simple Theme System section
  */
 
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
-import { resolveStore, isRouteAllowedForMode } from '~/lib/store.server';
+import { useLoaderData, useRouteError, isRouteErrorResponse } from '@remix-run/react';
+import { resolveStore } from '~/lib/store.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { ThemeStoreRenderer } from '~/components/store/ThemeStoreRenderer';
-import { resolveTemplate } from '~/lib/template-resolver.server';
-import { parseThemeConfig, parseSocialLinks, defaultThemeConfig } from '@db/types';
-import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
+import {
+  getStoreTemplateTheme,
+  DEFAULT_STORE_TEMPLATE_ID,
+  type StoreTemplateTheme,
+} from '~/templates/store-registry';
+import { parseSocialLinks, parseThemeConfig, defaultThemeConfig } from '@db/types';
+import { getMVPSettings } from '~/services/mvp-settings.server';
+import { createDb } from '~/lib/db.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: 'Page Not Found' }];
@@ -31,22 +37,19 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     throw new Response('Page not found', { status: 404 });
   }
 
-  const storeResolution = await resolveStore(context, request);
-  if (!storeResolution) {
+  const storeContext = await resolveStore(context, request);
+  if (!storeContext) {
     throw new Response('Store not found', { status: 404 });
   }
 
-  const { storeId, store, mode } = storeResolution;
+  const { storeId, store } = storeContext;
+  const db = createDb(context.cloudflare.env.DB);
 
-  // Check if /pages/:slug is allowed for this mode
-  const url = new URL(request.url);
-  if (!isRouteAllowedForMode(url.pathname, mode)) {
-    throw new Response('Page not available in this mode', { status: 404 });
-  }
-
+  // Parse theme config
   const themeConfig = parseThemeConfig(store.themeConfig as string | null) || defaultThemeConfig;
   const socialLinks = parseSocialLinks(store.socialLinks as string | null);
-  const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
+  const storeTemplateId =
+    themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
   const theme = getStoreTemplateTheme(storeTemplateId);
 
   const storeAny = store as Record<string, unknown>;
@@ -56,44 +59,50 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     address: (storeAny.address as string) || undefined,
   };
 
-  // Resolve template system (Shopify OS 2.0)
-  let template = null;
-  let homeTemplate = null;
-  try {
-    template = await resolveTemplate(context.cloudflare.env.DB, storeId, 'page');
+  // Get MVP settings for theme colors
+  const mvpSettings = await getMVPSettings(db, storeId, storeTemplateId);
 
-    // If no page template, get home template for header/footer consistency
-    if (!template || !template.sections || template.sections.length === 0) {
-      homeTemplate = await resolveTemplate(context.cloudflare.env.DB, storeId, 'home');
-    }
-  } catch (templateError) {
-    console.error('[pages.$slug] Template resolution failed:', templateError);
-  }
-
-  // Build page context
-  const pageContext = {
-    title: slug.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
-    slug,
-    content: `This is the ${slug} page. You can customize this content using the theme editor.`,
+  // Merge MVP colors with template theme
+  const mergedTheme = {
+    ...theme,
+    primary: mvpSettings.primaryColor || theme.primary,
+    accent: mvpSettings.accentColor || theme.accent,
   };
+
+  // Fetch page content from database if available
+  // This is a placeholder - you may have a pages table or store pages in another way
+  let pageContent = `This is the ${slug} page. You can customize this content in your store settings.`;
+  let pageTitle = slug.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+  let pageDescription = `${pageTitle} page`;
+
+  // TODO: Fetch actual page content from database if you have a pages table
+  // Example:
+  // const page = await db
+  //   .select()
+  //   .from(pagesTable)
+  //   .where(and(eq(pagesTable.storeId, storeId), eq(pagesTable.slug, slug)))
+  //   .get();
+  // if (page) {
+  //   pageContent = page.content;
+  //   pageTitle = page.title;
+  //   pageDescription = page.description || pageDescription;
+  // }
 
   return json({
     storeId,
-    storeName: store.name,
-    logo: store.logo,
+    storeName: mvpSettings.storeName || store.name,
+    logo: mvpSettings.logo || store.logo,
     currency: store.currency || 'BDT',
     storeTemplateId,
-    theme,
+    theme: mergedTheme,
     socialLinks,
     businessInfo,
     themeConfig,
-    template,
-    homeTemplate, // For header/footer fallback
-    pageTitle: pageContext.title,
-    pageSlug: slug,
-    pageContent: pageContext.content,
-    pageDescription: `${pageContext.title} page`,
     planType: store.planType || 'free',
+    pageTitle,
+    pageSlug: slug,
+    pageContent,
+    pageDescription,
   });
 }
 
@@ -108,144 +117,114 @@ export default function CustomPageRoute() {
     socialLinks,
     businessInfo,
     themeConfig,
-    template,
-    homeTemplate,
+    planType,
     pageTitle,
     pageSlug,
     pageContent,
-    planType,
   } = useLoaderData<typeof loader>();
 
-  const hasTemplateSections = template?.sections && template.sections.length > 0;
-  const hasHomeTemplate = homeTemplate?.sections && homeTemplate.sections.length > 0;
-  const useThemeSections = hasTemplateSections || hasHomeTemplate;
-
-  // Render page content
-  const renderPageContent = () => {
-    // If template has sections, use ThemeStoreRenderer (Shopify OS 2.0)
-    if (hasTemplateSections && template?.sections) {
-      return (
-        <ThemeStoreRenderer
-          themeId={storeTemplateId}
-          sections={template.sections.map((s) => ({
-            id: s.id,
-            type: s.type,
-            settings: s.props || {},
-            blocks:
-              s.blocks?.map((b) => ({
-                id: b.id,
-                type: b.type,
-                settings: b.props || {},
-              })) || [],
-            enabled: s.enabled,
-          }))}
-          store={{
-            id: storeId,
-            name: storeName,
-            currency,
-            logo,
-            defaultLanguage: 'en',
-          }}
-          pageType="page"
-          pageHandle={pageSlug}
-          skipHeaderFooter={false}
-        />
-      );
+  // Generate CSS variables for MVP colors
+  const cssVariables = `
+    :root {
+      --color-primary: ${theme.primary};
+      --color-accent: ${theme.accent};
+      --color-text: ${theme.text};
+      --color-muted: ${theme.muted};
+      --color-background: ${theme.background};
     }
+  `;
 
-    // If no page template but home template exists, use home template's header/footer
-    if (hasHomeTemplate && homeTemplate?.sections) {
-      // Extract header and footer sections from home template
-      // Note: Only include header, NOT announcement-bar (keep banner only on homepage)
-      const headerSections = homeTemplate.sections.filter((s) => s.type === 'header');
-      const footerSections = homeTemplate.sections.filter((s) => s.type === 'footer');
+  return (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: cssVariables }} />
+      <StorePageWrapper
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        templateId={storeTemplateId}
+        theme={theme}
+        currency={currency}
+        socialLinks={socialLinks || undefined}
+        businessInfo={businessInfo || undefined}
+        config={themeConfig || undefined}
+        planType={planType}
+      >
+        <SimplePage title={pageTitle} content={pageContent} slug={pageSlug} theme={theme} />
+      </StorePageWrapper>
+    </>
+  );
+}
 
-      // Combine: header + rich-text (page content) + footer
-      const combinedSections = [
-        ...headerSections.map((s) => ({
-          id: s.id,
-          type: s.type,
-          settings: s.props || {},
-          blocks:
-            s.blocks?.map((b) => ({
-              id: b.id,
-              type: b.type,
-              settings: b.props || {},
-            })) || [],
-          enabled: s.enabled,
-        })),
-        // Page content as rich-text section
-        {
-          id: 'page-content-fallback',
-          type: 'rich-text',
-          settings: {
-            heading: pageTitle,
-            text: pageContent,
-            text_alignment: 'center',
-          },
-          blocks: [],
-          enabled: true,
-        },
-        ...footerSections.map((s) => ({
-          id: s.id,
-          type: s.type,
-          settings: s.props || {},
-          blocks:
-            s.blocks?.map((b) => ({
-              id: b.id,
-              type: b.type,
-              settings: b.props || {},
-            })) || [],
-          enabled: s.enabled,
-        })),
-      ];
+// ============================================================================
+// SIMPLE PAGE (Fallback)
+// ============================================================================
+function SimplePage({
+  title,
+  content,
+  slug,
+  theme,
+}: {
+  title: string;
+  content: string;
+  slug: string;
+  theme: StoreTemplateTheme;
+}) {
+  return (
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="prose prose-lg max-w-none">
+        <h1 className="text-3xl sm:text-4xl font-bold mb-6" style={{ color: theme.text }}>
+          {title}
+        </h1>
+        <div className="leading-relaxed" style={{ color: theme.muted }}>
+          <p>{content}</p>
+        </div>
+        <div className="mt-8 pt-8 border-t border-gray-200">
+          <p className="text-sm text-gray-500">
+            Page: <code className="bg-gray-100 px-2 py-1 rounded">{slug}</code>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-      return (
-        <ThemeStoreRenderer
-          themeId={storeTemplateId}
-          sections={combinedSections}
-          store={{
-            id: storeId,
-            name: storeName,
-            currency,
-            logo,
-            defaultLanguage: 'en',
-          }}
-          pageType="page"
-          pageHandle={pageSlug}
-          skipHeaderFooter={false}
-        />
-      );
-    }
+// ============================================================================
+// ERROR BOUNDARY
+// ============================================================================
+export function ErrorBoundary() {
+  const error = useRouteError();
 
-    // Fallback: Default page content
+  if (isRouteErrorResponse(error)) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">{pageTitle}</h1>
-          <div className="prose prose-lg">
-            <p className="text-gray-600">{pageContent}</p>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center px-4">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">{error.status}</h1>
+          <p className="text-gray-600 mb-2">{error.statusText}</p>
+          <a
+            href="/"
+            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            Go Home
+          </a>
         </div>
       </div>
     );
-  };
+  }
 
   return (
-    <StorePageWrapper
-      hideHeaderFooter={useThemeSections}
-      storeName={storeName}
-      storeId={storeId}
-      logo={logo}
-      currency={currency}
-      templateId={storeTemplateId}
-      theme={theme}
-      socialLinks={socialLinks}
-      businessInfo={businessInfo}
-      config={themeConfig}
-      planType={planType}
-    >
-      {renderPageContent()}
-    </StorePageWrapper>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center px-4">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
+        <p className="text-gray-600 mb-6">
+          {error instanceof Error ? error.message : 'Something went wrong'}
+        </p>
+        <a
+          href="/"
+          className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          Go Home
+        </a>
+      </div>
+    </div>
   );
 }

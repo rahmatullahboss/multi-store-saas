@@ -491,6 +491,9 @@ export default function OnboardingPage() {
     selectedPlan: 'free' as 'free' | 'starter' | 'premium',
     transactionId: '',
     paymentPhone: '',
+    deliveryCharge: 60,
+    enableFreeDelivery: false,
+    freeDeliveryAbove: 1000,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -563,12 +566,12 @@ export default function OnboardingPage() {
   // Track if subdomain was manually edited
   const [subdomainManuallyEdited, setSubdomainManuallyEdited] = useState(false);
 
-  const updateField = (field: string, value: string) => {
+  const updateField = (field: string, value: string | number | boolean) => {
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
 
       // Auto-generate subdomain from storeName
-      if (field === 'storeName' && !subdomainManuallyEdited) {
+      if (field === 'storeName' && !subdomainManuallyEdited && typeof value === 'string') {
         const autoSubdomain = value
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
@@ -903,6 +906,66 @@ export default function OnboardingPage() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Delivery Settings */}
+              <div className="border-t border-gray-200 pt-6 mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Delivery Settings</h3>
+
+                {/* Delivery Charge */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Delivery Charge (৳) *
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.deliveryCharge}
+                    onChange={(e) => updateField('deliveryCharge', parseInt(e.target.value) || 60)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="60"
+                    min="0"
+                    step="10"
+                  />
+                  <p className="text-gray-500 text-sm mt-1">Standard delivery charge per order</p>
+                </div>
+
+                {/* Free Delivery Toggle */}
+                <div className="mb-4">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={formData.enableFreeDelivery}
+                      onChange={(e) => updateField('enableFreeDelivery', e.target.checked)}
+                      className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">
+                      Enable free delivery for large orders
+                    </span>
+                  </label>
+                </div>
+
+                {/* Free Delivery Threshold */}
+                {formData.enableFreeDelivery && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Free Delivery Above (৳)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.freeDeliveryAbove}
+                      onChange={(e) =>
+                        updateField('freeDeliveryAbove', parseInt(e.target.value) || 1000)
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      placeholder="1000"
+                      min="100"
+                      step="100"
+                    />
+                    <p className="text-gray-500 text-sm mt-1">
+                      Orders above this amount get free delivery
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}

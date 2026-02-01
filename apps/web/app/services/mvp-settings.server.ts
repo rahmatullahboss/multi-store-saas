@@ -9,6 +9,7 @@
 
 import { eq } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
+import { storeMvpSettings } from '@db/schema';
 import type { storeMvpSettings as StoreMvpSettingsTable } from '@db/schema';
 import {
   type MVPThemeSettings,
@@ -18,6 +19,9 @@ import {
   deserializeMVPSettings,
   DEFAULT_MVP_SETTINGS,
 } from '~/config/mvp-theme-settings';
+
+// Re-export types for consumers
+export type { MVPThemeSettings, MVPSettingsWithTheme };
 
 // ============================================================================
 // GET SETTINGS
@@ -36,8 +40,8 @@ export async function getMVPSettings(
     // Fetch from database
     const result = await db
       .select()
-      .from((db as any).schema.storeMvpSettings)
-      .where(eq((db as any).schema.storeMvpSettings.storeId, storeId))
+      .from(storeMvpSettings)
+      .where(eq(storeMvpSettings.storeId, storeId))
       .limit(1);
 
     if (result.length > 0 && (result[0] as any).settingsJson) {
@@ -75,8 +79,8 @@ export async function getRawMVPSettings(
   try {
     const result = await db
       .select()
-      .from((db as any).schema.storeMvpSettings)
-      .where(eq((db as any).schema.storeMvpSettings.storeId, storeId))
+      .from(storeMvpSettings)
+      .where(eq(storeMvpSettings.storeId, storeId))
       .limit(1);
 
     if (result.length > 0) {
@@ -102,7 +106,7 @@ export async function saveMVPSettings(
   settings: MVPSettingsWithTheme
 ): Promise<void> {
   const serialized = serializeMVPSettings(settings);
-  const storeMvpSettingsTable = (db as any).schema.storeMvpSettings;
+  const storeMvpSettingsTable = storeMvpSettings;
 
   try {
     // Check if settings already exist
@@ -171,7 +175,7 @@ export async function updatePartialMVPSettings(
  */
 export async function deleteMVPSettings(db: DrizzleD1Database, storeId: number): Promise<void> {
   try {
-    const storeMvpSettingsTable = (db as any).schema.storeMvpSettings;
+    const storeMvpSettingsTable = storeMvpSettings;
     await db.delete(storeMvpSettingsTable).where(eq(storeMvpSettingsTable.storeId, storeId));
   } catch (error) {
     console.error('Failed to delete MVP settings:', error);

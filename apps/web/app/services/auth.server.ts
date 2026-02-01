@@ -164,7 +164,7 @@ export async function verifyPassword(password: string, storedHash: string): Prom
   try {
     const encoder = new TextEncoder();
 
-    console.log('[verifyPassword] Starting verification, hash length:', storedHash.length);
+    console.warn('[verifyPassword] Starting verification, hash length:', storedHash.length);
 
     // Try to decode the hash - supports both base64 and base64url formats
     let combined: Uint8Array;
@@ -173,8 +173,8 @@ export async function verifyPassword(password: string, storedHash: string): Prom
       // First try the new base64url format (no padding, URL-safe chars)
       combined = base64UrlToBytes(storedHash);
       decodeMethod = 'base64url';
-    } catch (base64urlError) {
-      console.log('[verifyPassword] base64url decode failed, trying legacy base64');
+    } catch {
+      console.warn('[verifyPassword] base64url decode failed, trying legacy base64');
       try {
         // Fall back to legacy base64 format
         combined = Uint8Array.from(atob(storedHash), (c) => c.charCodeAt(0));
@@ -185,7 +185,7 @@ export async function verifyPassword(password: string, storedHash: string): Prom
       }
     }
 
-    console.log(
+    console.warn(
       '[verifyPassword] Decoded using:',
       decodeMethod,
       'combined length:',
@@ -196,7 +196,7 @@ export async function verifyPassword(password: string, storedHash: string): Prom
     const salt = combined.slice(0, 16);
     const originalHash = combined.slice(16);
 
-    console.log('[verifyPassword] Salt length:', salt.length, 'Hash length:', originalHash.length);
+    console.warn('[verifyPassword] Salt length:', salt.length, 'Hash length:', originalHash.length);
 
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
@@ -219,7 +219,7 @@ export async function verifyPassword(password: string, storedHash: string): Prom
 
     // Compare hashes
     const newHashArray = new Uint8Array(newHash);
-    console.log(
+    console.warn(
       '[verifyPassword] New hash length:',
       newHashArray.length,
       'Original hash length:',
@@ -227,7 +227,7 @@ export async function verifyPassword(password: string, storedHash: string): Prom
     );
 
     if (originalHash.length !== newHashArray.length) {
-      console.log('[verifyPassword] Hash length mismatch!');
+      console.warn('[verifyPassword] Hash length mismatch!');
       return false;
     }
 
@@ -239,7 +239,7 @@ export async function verifyPassword(password: string, storedHash: string): Prom
       }
     }
 
-    console.log('[verifyPassword] Hash match result:', match);
+    console.warn('[verifyPassword] Hash match result:', match);
     return match;
   } catch (error) {
     console.error('[verifyPassword] Error during verification:', error);
@@ -356,14 +356,14 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
     let isValid;
     try {
       // Debug logging
-      console.log('[login] Verifying password for user:', user.id);
-      console.log('[login] Stored hash length:', user.passwordHash.length);
-      console.log('[login] Stored hash preview:', user.passwordHash.substring(0, 20) + '...');
-      console.log('[login] Input password length:', password.length);
+      console.warn('[login] Verifying password for user:', user.id);
+      console.warn('[login] Stored hash length:', user.passwordHash.length);
+      console.warn('[login] Stored hash preview:', user.passwordHash.substring(0, 20) + '...');
+      console.warn('[login] Input password length:', password.length);
 
       isValid = await verifyPassword(password, user.passwordHash);
 
-      console.log('[login] Password verification result:', isValid);
+      console.warn('[login] Password verification result:', isValid);
     } catch (cryptoError) {
       console.error('[login] Crypto error during password verification:', cryptoError);
       const errorMessage = cryptoError instanceof Error ? cryptoError.message : String(cryptoError);
@@ -595,8 +595,8 @@ export async function register({
   subdomain: customSubdomain,
   db,
 }: RegisterParams) {
-  console.log('[register] Starting registration process');
-  console.log('[register] Input validation:', {
+  console.warn('[register] Starting registration process');
+  console.warn('[register] Input validation:', {
     email: email ? 'provided' : 'missing',
     password: password ? `provided (${password.length} chars)` : 'missing',
     name: name ? 'provided' : 'missing',
@@ -607,7 +607,7 @@ export async function register({
 
   try {
     const drizzleDb = drizzle(db);
-    console.log('[register] Database connection established');
+    console.warn('[register] Database connection established');
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -629,7 +629,7 @@ export async function register({
     }
 
     // Check if email exists
-    console.log('[register] Checking if email exists:', email.toLowerCase());
+    console.warn('[register] Checking if email exists:', email.toLowerCase());
     const existingUser = await drizzleDb
       .select()
       .from(users)
@@ -642,12 +642,12 @@ export async function register({
         error: 'This email is already registered. Please login instead or use a different email.',
       };
     }
-    console.log('[register] Email is available');
+    console.warn('[register] Email is available');
 
     // Hash password
-    console.log('[register] Hashing password...');
+    console.warn('[register] Hashing password...');
     const passwordHash = await hashPassword(password);
-    console.log('[register] Password hashed successfully, length:', passwordHash.length);
+    console.warn('[register] Password hashed successfully, length:', passwordHash.length);
 
     // Use custom subdomain if provided, otherwise generate from store name
     const subdomain = customSubdomain
@@ -657,7 +657,7 @@ export async function register({
           .slice(0, 30)
       : storeName.toLowerCase().replace(/^-|-$/g, '').replace(/^-|-$/g, '').slice(0, 30);
 
-    console.log('[register] Generated subdomain:', subdomain);
+    console.warn('[register] Generated subdomain:', subdomain);
 
     // Validate subdomain
     if (subdomain.length < 2) {
@@ -666,7 +666,7 @@ export async function register({
     }
 
     // Check subdomain uniqueness
-    console.log('[register] Checking subdomain availability:', subdomain);
+    console.warn('[register] Checking subdomain availability:', subdomain);
     const existingStore = await drizzleDb
       .select()
       .from(stores)
@@ -679,10 +679,10 @@ export async function register({
         error: `The subdomain "${subdomain}" is already taken. Please choose a different one.`,
       };
     }
-    console.log('[register] Subdomain is available');
+    console.warn('[register] Subdomain is available');
 
     // Create store first
-    console.log('[register] Creating store...');
+    console.warn('[register] Creating store...');
     const defaultThemeConfig = {
       storeTemplateId: 'starter-store',
       primaryColor: '#6366f1',
@@ -707,10 +707,10 @@ export async function register({
     }
 
     const storeId = storeResult[0].id;
-    console.log('[register] Store created successfully, ID:', storeId);
+    console.warn('[register] Store created successfully, ID:', storeId);
 
     // Create user
-    console.log('[register] Creating user...');
+    console.warn('[register] Creating user...');
     const userResult = await drizzleDb
       .insert(users)
       .values({
@@ -728,8 +728,8 @@ export async function register({
       return { error: 'Failed to create account. Please try again.' };
     }
 
-    console.log('[register] User created successfully, ID:', userResult[0].id);
-    console.log('[register] Registration complete!');
+    console.warn('[register] User created successfully, ID:', userResult[0].id);
+    console.warn('[register] Registration complete!');
 
     return { user: userResult[0], storeId };
   } catch (error) {
@@ -1189,13 +1189,13 @@ export function getAuthenticator(env: Env, requestUrl?: string) {
       // Use the request's origin to build the callback URL
       const origin = new URL(requestUrl).origin;
       callbackURL = `${origin}/auth/google/callback`;
-      console.log('[getAuthenticator] Using dynamic callback URL:', callbackURL);
-      console.log('[getAuthenticator] Request URL was:', requestUrl);
+      console.warn('[getAuthenticator] Using dynamic callback URL:', callbackURL);
+      console.warn('[getAuthenticator] Request URL was:', requestUrl);
     } else {
       // Fallback to SAAS_DOMAIN if no request URL provided
       callbackURL = `${env.SAAS_DOMAIN}/auth/google/callback`;
-      console.log('[getAuthenticator] Using SAAS_DOMAIN callback URL:', callbackURL);
-      console.log('[getAuthenticator] SAAS_DOMAIN:', env.SAAS_DOMAIN);
+      console.warn('[getAuthenticator] Using SAAS_DOMAIN callback URL:', callbackURL);
+      console.warn('[getAuthenticator] SAAS_DOMAIN:', env.SAAS_DOMAIN);
     }
 
     const googleStrategy = new GoogleStrategy(

@@ -1,19 +1,12 @@
 /**
- * Store Homepage Route - Hybrid Mode
+ * Store Homepage Route - MVP Simple Theme System
  *
- * Uses homeEntry field to determine what to show:
- * - 'store_home' = Full product catalog (default)
- * - 'page:{pageId}' = Redirect to a builder page
+ * Uses the old React Component System (legacy templates)
+ * instead of Shopify OS 2.0 section-based system.
  *
- * CACHING STRATEGY:
- * - max-age=60: Browser cache for 1 minute
- * - s-maxage=3600: CDN cache for 1 hour
- * - stale-while-revalidate=86400: Serve stale for 24h while revalidating
+ * Each template provides a main component for the homepage.
  *
- * ERROR BOUNDARY:
- * - This route has its own ErrorBoundary for isolated error handling
- * - If the product grid fails, only this section shows the error
- * - Parent layout (Header/Footer) remains visible
+ * @see AGENTS.md - MVP Simple Theme System section
  */
 
 import {
@@ -33,16 +26,22 @@ import { useState, useEffect, Suspense, useMemo } from 'react';
 import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, type Product, type Store } from '@db/schema';
-import {
-  type LandingConfig,
-} from '@db/types';
+import { type LandingConfig } from '@db/types';
 import { getTemplate, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { WishlistProvider } from '~/contexts/WishlistContext';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { useTrackVisit } from '~/hooks/use-track-visit';
-import { ThemeStoreRenderer } from '~/components/store/ThemeStoreRenderer';
-import { resolveTemplate } from '~/lib/template-resolver.server';
+import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
+import {
+  getStoreTemplate,
+  getStoreTemplateTheme,
+  DEFAULT_STORE_TEMPLATE_ID,
+  type SerializedProduct,
+} from '~/templates/store-registry';
+import { getMVPSettings } from '~/services/mvp-settings.server';
+import { parseSocialLinks, parseFooterConfig } from '@db/types';
+import { createDb } from '~/lib/db.server';
 
 // ============================================================================
 // AGGRESSIVE CDN CACHING HEADERS
@@ -172,24 +171,24 @@ interface StoreModeData {
   favicon: string | null;
   fontFamily: string;
   currency: string;
-  themeId: string; // Theme ID for ThemeStoreRenderer (e.g., 'daraz', 'luxe-boutique')
-  products: Product[];
+  storeTemplateId: string;
+  theme: {
+    primary: string;
+    accent: string;
+    background: string;
+    text: string;
+    muted: string;
+    cardBg: string;
+    headerBg: string;
+    footerBg: string;
+    footerText: string;
+  };
+  products: SerializedProduct[];
   categories: string[];
   currentCategory: string | null;
-  // Shopify OS 2.0 sections from template_sections_published
-  sections: Array<{
-    id: string;
-    type: string;
-    enabled: boolean;
-    sortOrder?: number;
-    props: Record<string, unknown>;
-    blocks?: Array<{
-      id: string;
-      type: string;
-      settings?: Record<string, unknown>;
-    }>;
-  }>;
-  themeSettings: Record<string, unknown> | null;
+  socialLinks: ReturnType<typeof parseSocialLinks>;
+  footerConfig: ReturnType<typeof parseFooterConfig>;
+  businessInfo: { phone?: string; email?: string; address?: string } | null;
   planType: string;
   // Explicitly null for this mode
   featuredProduct: null;
@@ -241,7 +240,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   if (!cloudflare?.env?.DB) {
     const url = new URL(request.url);
     const hostname = url.hostname;
-    
+
     console.error('[LOADER] Database connection not available');
     throw new Response(
       JSON.stringify({
@@ -263,7 +262,6 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   }
 
   const db = drizzle(cloudflare.env.DB);
-
 
   // ========== MAIN DOMAIN CHECK - Show Marketing Page ==========
   const url = new URL(request.url);
@@ -314,13 +312,6 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
         storeId = fallbackStore[0].id;
       } else {
         // No stores - show marketing page
-        // But if we are clearly on a domain that SHOULD display a store but none exists,
-        // we might want to show marketing page data.
-        // However, we must ensure we don't trigger the component redirect loop.
-
-        // If 'mode: marketing' is returned, the component might try to redirect.
-        // We need to handle that.
-
         return json({ mode: 'marketing' } as MarketingModeData);
       }
     }
@@ -339,7 +330,6 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   }
 
   // At this point, store is guaranteed to exist
-  // TypeScript assertion for safety
   if (!store) {
     throw new Response('Store not found', { status: 404 });
   }
@@ -353,8 +343,6 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   // ========================================================================
   // HYBRID MODE - homeEntry based resolution
   // ========================================================================
-  // All users (including free) have access to both store + landing pages
-  // Limits are enforced via usage_limits (products, orders per month)
   const homeEntry = (validatedStore as Store & { homeEntry?: string }).homeEntry || 'store_home';
 
   // Check if homepage should show a page (builder or grapes)
@@ -477,70 +465,63 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       ...new Set(allProducts.map((p) => p.category).filter((c): c is string => Boolean(c))),
     ];
 
-    // ========== SHOPIFY OS 2.0 TEMPLATE RESOLUTION ==========
-    // Load sections from template_sections_published table
-    const templateResolution = await resolveTemplate(cloudflare.env.DB, validatedStoreId, 'home');
+    // ========== MVP TEMPLATE RESOLUTION ==========
+    // Get theme ID from store themeConfig
+    const storeThemeConfig = parseJsonSafe<{ storeTemplateId?: string }>(
+      validatedStore.themeConfig
+    );
+    const storeTemplateId = storeThemeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
 
-    // Get themeId from resolved theme presetId, store themeConfig, or fallback to 'starter-store'
-    // presetId maps to our theme system (e.g., 'daraz', 'luxe-boutique', 'starter-store')
-    const storeThemeConfig = parseJsonSafe<{ storeTemplateId?: string }>(validatedStore.themeConfig);
-    const themeId: string = templateResolution?.theme?.presetId 
-      || (typeof storeThemeConfig?.storeTemplateId === 'string' ? storeThemeConfig.storeTemplateId : null)
-      || 'starter-store';
+    // Get base theme colors from registry
+    const baseTheme = getStoreTemplateTheme(storeTemplateId);
 
-    // Get sections from resolution
-    let sections = templateResolution?.sections || [];
+    // Get MVP settings for theme colors
+    const mvpSettings = await getMVPSettings(db, validatedStoreId, storeTemplateId);
 
-    // FALLBACK: If no sections in DB, load default sections from theme's template JSON
-    if (sections.length === 0) {
-      try {
-        const { getThemeBridge } = await import('~/lib/theme-engine/ThemeBridge');
-        const themeBridge = getThemeBridge(themeId);
-        const defaultTemplate = themeBridge.getTemplate('index');
-        
-        if (defaultTemplate?.sections && defaultTemplate?.order) {
-          // Convert Shopify-format template to our section format
-          sections = defaultTemplate.order.map((sectionId, index) => {
-            const sectionData = defaultTemplate.sections[sectionId];
-            // Convert blocks from BlockInstance format (settings) to ResolvedSection format (props)
-            const blocks = (sectionData?.blocks || []).map((block) => ({
-              id: block.id,
-              type: block.type,
-              props: block.settings || {},
-            }));
-            return {
-              id: sectionId,
-              type: sectionData?.type || 'unknown',
-              enabled: true,
-              sortOrder: index,
-              props: sectionData?.settings || {},
-              blocks,
-            };
-          });
-          console.warn(`[LOADER] Using default template sections for theme "${themeId}" (${sections.length} sections)`);
-        }
-      } catch (e) {
-        console.warn('[LOADER] Failed to load default template sections:', e);
-      }
-    }
+    // Merge MVP colors with template theme
+    const mergedTheme = {
+      ...baseTheme,
+      primary: mvpSettings.primaryColor || baseTheme.primary,
+      accent: mvpSettings.accentColor || baseTheme.accent,
+    };
 
-    // Get theme settings
-    const themeSettings = templateResolution?.settings || null;
+    // Parse social links, footer config, business info
+    const socialLinks = parseSocialLinks(validatedStore.socialLinks as string | null);
+    const footerConfig = parseFooterConfig(validatedStore.footerConfig as string | null);
+    const businessInfo = parseJsonSafe<{ phone?: string; email?: string; address?: string }>(
+      validatedStore.businessInfo as string | null
+    );
+
+    // Serialize products for template
+    const serializedProducts: SerializedProduct[] = storeProducts.map((p) => ({
+      id: p.id,
+      storeId: p.storeId,
+      title: p.title,
+      description: p.description,
+      price: p.price,
+      compareAtPrice: p.compareAtPrice,
+      imageUrl: p.imageUrl,
+      images: p.images,
+      inventory: p.inventory,
+      category: p.category,
+    }));
 
     const storeData: StoreModeData = {
       mode: 'store',
       storeId: validatedStoreId,
-      storeName: validatedStore.name ?? 'Store',
-      logo: validatedStore.logo ?? null,
-      favicon: validatedStore.favicon ?? null,
-      fontFamily: validatedStore.fontFamily ?? 'inter',
-      currency: validatedStore.currency ?? 'USD',
-      themeId, // Shopify OS 2.0 theme ID
-      products: storeProducts,
+      storeName: mvpSettings.storeName || validatedStore.name || 'Store',
+      logo: mvpSettings.logo || validatedStore.logo || null,
+      favicon: validatedStore.favicon || null,
+      fontFamily: validatedStore.fontFamily || 'inter',
+      currency: validatedStore.currency || 'BDT',
+      storeTemplateId,
+      theme: mergedTheme,
+      products: serializedProducts,
       categories,
       currentCategory: category,
-      sections, // Sections from template_sections_published
-      themeSettings,
+      socialLinks,
+      footerConfig,
+      businessInfo,
       planType: validatedStore.planType || 'free',
       // Explicitly null for store mode
       featuredProduct: null,
@@ -561,9 +542,6 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
 // ============================================================================
 // COMPONENT - Conditional rendering based on mode
 // ============================================================================
-// ============================================================================
-// COMPONENT - Conditional rendering based on mode
-// ============================================================================
 export default function Index() {
   // Translation hook for reactive i18n
   const { t } = useTranslation();
@@ -580,67 +558,22 @@ export default function Index() {
   const storeData = data.mode === 'store' ? data : undefined;
 
   // ============================================================================
-  // HOOKS - EXECUTE UNCONDITIONALLY FOR ALL MODES
-  // ============================================================================
-
-  // ========== FULL STORE MODE - Shopify OS 2.0 Only ==========
-  // Convert sections from DB format to ThemeStoreRenderer format
-  const formattedSections = useMemo(() => {
-    if (!storeData) return [];
-    
-    return (storeData.sections || []).map((s: any) => ({
-      id: s.id,
-      type: s.type,
-      settings: s.props || {},
-      blocks: s.blocks || [],
-      disabled: !s.enabled,
-      enabled: s.enabled,
-    }));
-  }, [storeData]);
-
-  // Prepare products for ThemeStoreRenderer
-  const serializedProducts = useMemo(() => {
-    if (!storeData) return [];
-
-    return (storeData.products || []).map((p: any) => ({
-      id: p.id,
-      title: p.title,
-      description: p.description || '',
-      price: p.price,
-      compareAtPrice: p.compareAtPrice,
-      imageUrl: p.imageUrl,
-      images: p.images ? JSON.parse(p.images as string) : p.imageUrl ? [p.imageUrl] : [],
-      inventory: p.inventory ?? undefined,
-      category: p.category,
-    }));
-  }, [storeData]);
-
-  // Prepare collections from categories
-  const serializedCollections = useMemo(() => {
-    if (!storeData) return [];
-
-    return (storeData.categories || []).map((cat: string, idx: number) => ({
-      id: idx + 1,
-      title: cat,
-      slug: cat.toLowerCase().replace(/\s+/g, '-'),
-      description: '',
-      imageUrl: undefined,
-      productCount: (storeData.products || []).filter((p: any) => p.category === cat).length,
-    }));
-  }, [storeData]);
-
-
-  // ============================================================================
   // RENDERING LOGIC - EARLY RETURNS BELOW HERE
   // ============================================================================
 
   // ========== MARKETING MODE (REDIRECT TO LANDING) ==========
   if (data.mode === 'marketing') {
     // Check if we are physically on ozzyl.com
-    if (typeof window !== 'undefined' && window.location.hostname !== 'ozzyl.com' && window.location.hostname !== 'www.ozzyl.com' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('pages.dev')) {
-        // This effectively redirects other domains that accidentally got here
-        window.location.href = 'https://ozzyl.com';
-        return null; 
+    if (
+      typeof window !== 'undefined' &&
+      window.location.hostname !== 'ozzyl.com' &&
+      window.location.hostname !== 'www.ozzyl.com' &&
+      !window.location.hostname.includes('localhost') &&
+      !window.location.hostname.includes('pages.dev')
+    ) {
+      // This effectively redirects other domains that accidentally got here
+      window.location.href = 'https://ozzyl.com';
+      return null;
     }
     // Render nothing or marketing content if this route is responsible for it
     return null;
@@ -674,7 +607,6 @@ export default function Index() {
 
       const demoConfig = {
         templateId: previewTemplateId,
-        // ... (rest of demo config is static so okay to define here or move out if needed)
         headline: '🔥 আমাদের বেস্ট সেলিং প্রোডাক্ট পান সেরা দামে!',
         subheadline: 'সীমিত সময়ের জন্য বিশেষ ছাড় - আজই অর্ডার করুন',
         ctaText: 'এখনই অর্ডার করুন',
@@ -684,12 +616,20 @@ export default function Index() {
         videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
 
         features: [
-          { icon: '✅', title: 'প্রিমিয়াম কোয়ালিটি', description: 'সেরা মানের উপাদান দিয়ে তৈরি' },
+          {
+            icon: '✅',
+            title: 'প্রিমিয়াম কোয়ালিটি',
+            description: 'সেরা মানের উপাদান দিয়ে তৈরি',
+          },
           { icon: '🚚', title: 'দ্রুত ডেলিভারি', description: '২-৩ কার্যদিবসের মধ্যে ডেলিভারি' },
-          { icon: '💯', title: 'সন্তুষ্টির গ্যারান্টি', description: 'পছন্দ না হলে সম্পূর্ণ টাকা ফেরত' },
+          {
+            icon: '💯',
+            title: 'সন্তুষ্টির গ্যারান্টি',
+            description: 'পছন্দ না হলে সম্পূর্ণ টাকা ফেরত',
+          },
           { icon: '🔒', title: 'নিরাপদ পেমেন্ট', description: 'আপনার পেমেন্ট ১০০% নিরাপদ' },
         ],
-        
+
         galleryImages: [
           'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
           'https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?w=400&h=400&fit=crop',
@@ -700,31 +640,64 @@ export default function Index() {
         benefits: [
           { icon: '💪', title: 'দীর্ঘস্থায়ী', description: 'বছরের পর বছর ব্যবহার করতে পারবেন' },
           { icon: '🎨', title: 'স্টাইলিশ ডিজাইন', description: 'আধুনিক ও আকর্ষণীয় ডিজাইন' },
-          { icon: '🛡️', title: '১ বছর ওয়ারেন্টি', description: 'কোন সমস্যা হলে বিনামূল্যে মেরামত' },
+          {
+            icon: '🛡️',
+            title: '১ বছর ওয়ারেন্টি',
+            description: 'কোন সমস্যা হলে বিনামূল্যে মেরামত',
+          },
           { icon: '📦', title: 'ফ্রি প্যাকেজিং', description: 'সুন্দর গিফট বক্সে প্যাক করা' },
         ],
 
         comparison: {
-          beforeImage: 'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=400&h=300&fit=crop',
-          afterImage: 'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400&h=300&fit=crop',
+          beforeImage:
+            'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=400&h=300&fit=crop',
+          afterImage:
+            'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400&h=300&fit=crop',
           beforeLabel: 'সাধারণ প্রোডাক্ট',
           afterLabel: 'আমাদের প্রোডাক্ট',
           description: 'দেখুন পার্থক্য - আমাদের প্রোডাক্ট কতটা ভালো!',
         },
 
         testimonials: [
-          { name: 'রহিম উদ্দিন', imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop', text: 'অসাধারণ প্রোডাক্ট! ৫ স্টার রেটিং দিলাম।' },
-          { name: 'সাবিনা আক্তার', imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop', text: 'দারুণ কোয়ালিটি, দাম অনুযায়ী সেরা।' },
-          { name: 'করিম সাহেব', imageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop', text: 'দ্রুত ডেলিভারি পেয়েছি, খুব খুশি।' },
+          {
+            name: 'রহিম উদ্দিন',
+            imageUrl:
+              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
+            text: 'অসাধারণ প্রোডাক্ট! ৫ স্টার রেটিং দিলাম।',
+          },
+          {
+            name: 'সাবিনা আক্তার',
+            imageUrl:
+              'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop',
+            text: 'দারুণ কোয়ালিটি, দাম অনুযায়ী সেরা।',
+          },
+          {
+            name: 'করিম সাহেব',
+            imageUrl:
+              'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop',
+            text: 'দ্রুত ডেলিভারি পেয়েছি, খুব খুশি।',
+          },
         ],
 
         socialProof: { count: 5000, text: 'জন সন্তুষ্ট গ্রাহক' },
 
         faq: [
-          { question: 'ডেলিভারি কতদিনে পাব?', answer: 'অর্ডার করার ২-৩ কার্যদিবসের মধ্যে ডেলিভারি পাবেন। ঢাকায় ২৪ ঘণ্টায় ডেলিভারি।' },
-          { question: 'পেমেন্ট কিভাবে করব?', answer: 'ক্যাশ অন ডেলিভারি বা অনলাইন পেমেন্ট (বিকাশ/নগদ) দুটোই গ্রহণযোগ্য।' },
-          { question: 'রিটার্ন পলিসি কি?', answer: 'পণ্য পছন্দ না হলে ৭ দিনের মধ্যে রিটার্ন করতে পারবেন। সম্পূর্ণ টাকা ফেরত।' },
-          { question: 'ওয়ারেন্টি আছে?', answer: 'হ্যাঁ, ১ বছরের ম্যানুফ্যাকচারিং ওয়ারেন্টি আছে।' },
+          {
+            question: 'ডেলিভারি কতদিনে পাব?',
+            answer: 'অর্ডার করার ২-৩ কার্যদিবসের মধ্যে ডেলিভারি পাবেন। ঢাকায় ২৪ ঘণ্টায় ডেলিভারি।',
+          },
+          {
+            question: 'পেমেন্ট কিভাবে করব?',
+            answer: 'ক্যাশ অন ডেলিভারি বা অনলাইন পেমেন্ট (বিকাশ/নগদ) দুটোই গ্রহণযোগ্য।',
+          },
+          {
+            question: 'রিটার্ন পলিসি কি?',
+            answer: 'পণ্য পছন্দ না হলে ৭ দিনের মধ্যে রিটার্ন করতে পারবেন। সম্পূর্ণ টাকা ফেরত।',
+          },
+          {
+            question: 'ওয়ারেন্টি আছে?',
+            answer: 'হ্যাঁ, ১ বছরের ম্যানুফ্যাকচারিং ওয়ারেন্টি আছে।',
+          },
         ],
 
         countdownEnabled: true,
@@ -734,7 +707,21 @@ export default function Index() {
         whatsappEnabled: true,
         whatsappNumber: '01700000000',
         whatsappMessage: 'হাই, আমি এই প্রোডাক্ট সম্পর্কে জানতে চাই',
-        sectionOrder: ['hero', 'trust', 'features', 'gallery', 'video', 'benefits', 'comparison', 'testimonials', 'social', 'delivery', 'faq', 'guarantee', 'cta'],
+        sectionOrder: [
+          'hero',
+          'trust',
+          'features',
+          'gallery',
+          'video',
+          'benefits',
+          'comparison',
+          'testimonials',
+          'social',
+          'delivery',
+          'faq',
+          'guarantee',
+          'cta',
+        ],
         hiddenSections: [],
         primaryColor: '#10b981',
         accentColor: '#f59e0b',
@@ -750,8 +737,15 @@ export default function Index() {
               <span className="text-xs">👁️</span>
               <span className="font-medium text-xs">{t('templatePreviewMode')}</span>
               <span className="text-white/60 text-xs hidden sm:inline">|</span>
-              <span className="hidden sm:inline text-xs text-white/80">{t('templatePreviewDesc')}</span>
-              <button onClick={() => window.close()} className="px-2 py-0.5 bg-white/20 hover:bg-white/30 rounded text-xs font-medium transition">{t('close')} ✕</button>
+              <span className="hidden sm:inline text-xs text-white/80">
+                {t('templatePreviewDesc')}
+              </span>
+              <button
+                onClick={() => window.close()}
+                className="px-2 py-0.5 bg-white/20 hover:bg-white/30 rounded text-xs font-medium transition"
+              >
+                {t('close')} ✕
+              </button>
             </div>
           </div>
           <div className="pt-8">
@@ -797,8 +791,36 @@ export default function Index() {
     );
   }
 
-  // ========== STORE MODE RENDERING ==========
+  // ========== STORE MODE RENDERING (MVP Simple Theme System) ==========
   if (data.mode === 'store') {
+    // Get template from registry
+    const template = getStoreTemplate(data.storeTemplateId);
+    const TemplateComponent = template.component;
+
+    // Generate CSS variables for MVP colors
+    const cssVariables = `
+      :root {
+        --color-primary: ${data.theme.primary};
+        --color-accent: ${data.theme.accent};
+        --color-text: ${data.theme.text};
+        --color-muted: ${data.theme.muted};
+        --color-background: ${data.theme.background};
+        --color-card-bg: ${data.theme.cardBg};
+        --color-header-bg: ${data.theme.headerBg};
+        --color-footer-bg: ${data.theme.footerBg};
+        --color-footer-text: ${data.theme.footerText};
+      }
+    `;
+
+    // Build proper ThemeConfig from theme data
+    const themeConfig = {
+      primaryColor: data.theme.primary,
+      accentColor: data.theme.accent,
+      storeTemplateId: data.storeTemplateId,
+      fontFamily: data.fontFamily,
+      favicon: data.favicon || undefined,
+    };
+
     return (
       <Suspense
         fallback={
@@ -811,21 +833,38 @@ export default function Index() {
         }
       >
         <WishlistProvider>
-          <ThemeStoreRenderer
-            themeId={data.themeId}
-            sections={formattedSections}
-            store={{
-              id: data.storeId,
-              name: data.storeName,
-              currency: data.currency,
-              logo: data.logo,
-            }}
-            pageType="index"
-            products={serializedProducts}
-            collections={serializedCollections}
-            isPreview={false}
-            skipHeaderFooter={false}
-          />
+          <>
+            <style dangerouslySetInnerHTML={{ __html: cssVariables }} />
+            <StorePageWrapper
+              storeName={data.storeName}
+              storeId={data.storeId}
+              logo={data.logo}
+              templateId={data.storeTemplateId}
+              theme={data.theme}
+              currency={data.currency}
+              socialLinks={data.socialLinks || undefined}
+              footerConfig={data.footerConfig || undefined}
+              businessInfo={data.businessInfo || undefined}
+              config={themeConfig}
+              planType={data.planType}
+            >
+              <TemplateComponent
+                storeName={data.storeName}
+                storeId={data.storeId}
+                logo={data.logo}
+                products={data.products}
+                categories={data.categories}
+                currentCategory={data.currentCategory}
+                config={themeConfig}
+                currency={data.currency}
+                socialLinks={data.socialLinks}
+                footerConfig={data.footerConfig}
+                businessInfo={data.businessInfo}
+                planType={data.planType}
+                isPreview={false}
+              />
+            </StorePageWrapper>
+          </>
         </WishlistProvider>
       </Suspense>
     );
@@ -837,17 +876,6 @@ export default function Index() {
 // ============================================================================
 // NESTED ERROR BOUNDARY - Isolates errors to this route only
 // ============================================================================
-/**
- * Nested ErrorBoundary for the store homepage
- *
- * When an error occurs in this route:
- * - Only the content area shows the error UI
- * - Parent layouts (if any) remain intact
- * - Users can retry or navigate without full page refresh
- *
- * For 404 errors (store not found), this bubbles up to root
- * For other errors, shows an inline error message
- */
 export function ErrorBoundary() {
   const error = useRouteError();
   const [clientInfo, setClientInfo] = useState({ url: '', hostname: '' });

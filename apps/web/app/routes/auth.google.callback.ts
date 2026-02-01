@@ -39,7 +39,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // 3. If user doesn't exist, auto-create them (Google OAuth signup)
   if (!user) {
-    console.log('[auth.google.callback] New Google user, creating account:', email);
+    console.warn('[auth.google.callback] New Google user, creating account:', email);
     
     // Get name from Google profile (available in authUser from our strategy)
     const name = authUser.email.split('@')[0]; // Fallback to email prefix
@@ -76,7 +76,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // 4. Existing user - check if they have a store
   if (!user.storeId) {
     // User exists but hasn't completed profile (no store)
-    console.log('[auth.google.callback] Existing user without store, redirecting to complete-profile:', email);
+    console.warn('[auth.google.callback] Existing user without store, redirecting to complete-profile:', email);
     return createUserSession(user.id, 0, '/complete-profile', context.cloudflare.env);
   }
   
