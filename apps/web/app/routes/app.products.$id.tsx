@@ -41,6 +41,7 @@ import { VariantManager, type Variant } from '~/components/VariantManager';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useUnsavedChanges, deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
+import { LazyRichTextEditor } from '~/components/RichTextEditor.lazy';
 import { formatPrice } from '~/lib/theme-engine';
 import { toCents, fromCents } from '~/utils/money';
 
@@ -275,7 +276,6 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         customId: `product-${productId}`, // Deterministic ID for upsert
       })
     );
-    console.log(`[AI SYNC] Queued vector update for product ${productId}`);
   } catch (err) {
     console.error('[AI SYNC] Failed to update vector:', err);
   }
@@ -336,7 +336,7 @@ export default function EditProductPage() {
   type BundleTier = { qty: number; price: number; label: string; savings?: number };
   const initialBundlePricing: BundleTier[] = (() => {
     try {
-      return JSON.parse((product as any).bundlePricing || '[]');
+      return JSON.parse(product.bundlePricing || '[]');
     } catch {
       return [];
     }
@@ -352,12 +352,12 @@ export default function EditProductPage() {
 
   // SEO state
   const [seoExpanded, setSeoExpanded] = useState(false);
-  const [formSeoTitle, setFormSeoTitle] = useState<string>((product as any).seoTitle || '');
+  const [formSeoTitle, setFormSeoTitle] = useState<string>(product.seoTitle || '');
   const [formSeoDescription, setFormSeoDescription] = useState<string>(
-    (product as any).seoDescription || ''
+    product.seoDescription || ''
   );
   const [formSeoKeywords, setFormSeoKeywords] = useState<string>(
-    (product as any).seoKeywords || ''
+    product.seoKeywords || ''
   );
 
   // Auto-generate SEO values
@@ -440,9 +440,6 @@ export default function EditProductPage() {
         format,
       });
       fileToUpload = new File([compressedBlob], `image.${format}`, { type: `image/${format}` });
-      console.log(
-        `Image compressed: ${file.size} -> ${compressedBlob.size} bytes (${Math.round((1 - compressedBlob.size / file.size) * 100)}% reduction)`
-      );
     } catch (error) {
       console.warn('Image compression failed, uploading original:', error);
     }
@@ -702,13 +699,11 @@ export default function EditProductPage() {
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
               Description
             </label>
-            <textarea
-              id="description"
-              name="description"
-              rows={4}
-              value={formDescription}
-              onChange={(e) => setFormDescription(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
+            <input type="hidden" name="description" value={formDescription} />
+            <LazyRichTextEditor
+              content={formDescription}
+              onChange={setFormDescription}
+              placeholder={t('describeProduct') || 'Describe your product...'}
             />
           </div>
 

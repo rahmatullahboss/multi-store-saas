@@ -53,10 +53,27 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
   // Fetch store info
   const store = await db
-    .select({ name: stores.name, currency: stores.currency, planType: stores.planType })
+    .select({ 
+      name: stores.name, 
+      currency: stores.currency, 
+      planType: stores.planType,
+      businessInfo: stores.businessInfo,
+    })
     .from(stores)
     .where(eq(stores.id, order[0].storeId))
     .limit(1);
+
+  let storePhone = '01XXXXXXXXX'; // Fallback
+  try {
+    if (store[0]?.businessInfo) {
+      const info = JSON.parse(store[0].businessInfo);
+      if (info.phone) {
+        storePhone = info.phone;
+      }
+    }
+  } catch {
+    console.error('Failed to parse business info for store', order[0].storeId);
+  }
 
   return json({
     order: order[0],
@@ -64,11 +81,12 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     storeName: store[0]?.name || 'Store',
     currency: store[0]?.currency || 'BDT',
     planType: store[0]?.planType || 'free',
+    storePhone,
   });
 }
 
 export default function ThankYouPage() {
-  const { order, items, storeName, currency, planType } = useLoaderData<typeof loader>();
+  const { order, items, storeName, currency, planType, storePhone } = useLoaderData<typeof loader>();
   const hasTracked = useRef(false);
   
   // Track Purchase event (FB Pixel + GA4) - only once on mount
@@ -92,7 +110,6 @@ export default function ThankYouPage() {
       })),
     });
     
-    console.log('[Tracking] Purchase event fired:', order.orderNumber, order.total);
   }, [order, items, currency]);
 
   const formatPrice = (price: number) => {
@@ -241,7 +258,7 @@ export default function ThankYouPage() {
 
           <div className="mt-12 text-center text-gray-500 text-sm">
             <p>© {new Date().getFullYear()} {storeName}</p>
-            <p className="mt-1">যেকোনো প্রশ্নে কল করুন: 01XXXXXXXXX</p>
+            <p className="mt-1">যেকোনো প্রশ্নে কল করুন: {storePhone}</p>
 
             {/* Viral Loop / Branding */}
             {planType === 'free' && (

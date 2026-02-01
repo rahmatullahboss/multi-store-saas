@@ -14,6 +14,12 @@
  */
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
+
+export async function action() {
+  // Gracefully handle accidental POST requests to home by returning null
+  // This causes a data revalidation (refresh) instead of a 405 error
+  return null;
+}
 import { useLoaderData } from '@remix-run/react';
 import { useState, useEffect } from 'react';
 import { resolveStore } from '~/lib/store.server';

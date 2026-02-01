@@ -16,6 +16,13 @@ import {
   type HeadersFunction,
   redirect,
 } from '@remix-run/cloudflare';
+
+export async function action() {
+  // Gracefully handle accidental POST requests to root by refreshing
+  // This prevents 405 Method Not Allowed errors if a form submission redirects here
+  // or if a link is somehow treated as a submit
+  return null;
+}
 import {
   useLoaderData,
   useRouteError,

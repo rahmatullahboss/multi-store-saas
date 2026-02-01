@@ -145,12 +145,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // SAVE CREDENTIALS
   // ----------------------------------------
   if (intent === 'save') {
-    const courierSettings: CourierSettings = {
-      provider,
-      isConnected: false,
-    };
-
     const currentSettings = themeConfig.courier || {};
+    // Preserve existing settings
+    const courierSettings: CourierSettings = {
+      ...currentSettings,
+      provider, // update the default/selected provider
+      isConnected: currentSettings.isConnected || false, // keep connection status generally or reset? 
+      // User wants multiple setups. 'isConnected' is a bit ambiguous if it refers to the *selected* one.
+      // For now, let's assume we want to preserve the object structure.
+      // But we primarily want to ensure pathao/redx/steadfast keys are not lost.
+    };
 
     if (provider === 'pathao') {
       const existingPathao = currentSettings.pathao || {};
@@ -159,10 +163,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       courierSettings.pathao = {
         clientId: formData.get('clientId') as string,
-        // If new value is provided, use it. Otherwise keep existing value.
         clientSecret: newClientSecret ? newClientSecret : (existingPathao.clientSecret || ''),
         username: formData.get('username') as string,
-        // If new value is provided, use it. Otherwise keep existing value.
         password: newPassword ? newPassword : (existingPathao.password || ''),
         baseUrl: formData.get('baseUrl') as string,
         defaultStoreId: formData.get('defaultStoreId') 
@@ -363,7 +365,7 @@ export default function CourierSettingsPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
 
   const [selectedProvider, setSelectedProvider] = useState<string>(settings.provider || '');
 

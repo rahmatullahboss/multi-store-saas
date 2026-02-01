@@ -126,12 +126,21 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
   // Get courier settings from store
   const courierSettings = store?.courierSettings as string | null;
-  let connectedCourier: string | null = null;
+  const availableCouriers: string[] = [];
+  let defaultCourier: string | null = null;
+
   if (courierSettings) {
     try {
       const settings = JSON.parse(courierSettings);
-      if (settings.isConnected && settings.provider) {
-        connectedCourier = settings.provider;
+      // Check for each provider's credentials to determine availability
+      if (settings.pathao?.clientId && settings.pathao?.clientSecret) availableCouriers.push('pathao');
+      if (settings.steadfast?.apiKey && settings.steadfast?.secretKey) availableCouriers.push('steadfast');
+      if (settings.redx?.apiKey && settings.redx?.secretKey) availableCouriers.push('redx');
+      
+      if (settings.provider && availableCouriers.includes(settings.provider)) {
+        defaultCourier = settings.provider;
+      } else if (availableCouriers.length > 0) {
+        defaultCourier = availableCouriers[0];
       }
     } catch {
       // Invalid JSON
@@ -177,7 +186,9 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     order,
     items: itemsWithImages,
     store,
-    connectedCourier,
+    store,
+    availableCouriers,
+    defaultCourier,
     activityLogs: orderActivityLogs,
   });
 }
@@ -652,12 +663,13 @@ function StatusBadge({ status }: { status: string }) {
 // MAIN COMPONENT
 // ============================================================================
 export default function OrderDetailPage() {
-  const { order, items, store, connectedCourier, activityLogs } = useLoaderData<typeof loader>();
+  const { order, items, store, availableCouriers, defaultCourier, activityLogs } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isUpdating = navigation.state === 'submitting';
   const [isTrackingOpen, setIsTrackingOpen] = useState(false);
-  const steadfastFetcher = useFetcher();
-  const isBooking = steadfastFetcher.state === 'submitting';
+  const courierFetcher = useFetcher();
+  const isBooking = courierFetcher.state === 'submitting';
+  const [selectedProvider, setSelectedProvider] = useState<string>(defaultCourier || (availableCouriers.length > 0 ? availableCouriers[0] : ''));
 
   const currency = store?.currency || 'BDT';
   const { t, lang } = useTranslation();
@@ -947,10 +959,32 @@ export default function OrderDetailPage() {
               <div className="pt-3 mt-3 border-t border-gray-100">
                 {!order.courierConsignmentId ? (
                   // Not shipped yet - show booking button
-                  connectedCourier === 'steadfast' ? (
-                    <steadfastFetcher.Form method="post" action="/api/courier/steadfast">
-                      <input type="hidden" name="intent" value="BOOK_ORDER" />
-                      <input type="hidden" name="orderId" value={order.id} />
+                  availableCouriers.length > 0 ? (
+                    <courierFetcher.Form method="post" className="space-y-3">
+                      <input type="hidden" name="intent" value="bookCourier" />
+                      
+                      {/* Provider Selector if multiple */}
+                      {availableCouriers.length > 1 && (
+                        <div>
+                           <label className="block text-xs font-medium text-gray-700 mb-1">Select Courier</label>
+                           <select 
+                            name="provider" 
+                            value={selectedProvider}
+                            onChange={(e) => setSelectedProvider(e.target.value)}
+                            className="w-full text-sm border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
+                           >
+                             {availableCouriers.map(p => (
+                               <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+                             ))}
+                           </select>
+                        </div>
+                      )}
+                      
+                      {/* Hidden input for single provider or passed from select */}
+                      {availableCouriers.length === 1 && (
+                         <input type="hidden" name="provider" value={availableCouriers[0]} />
+                      )}
+
                       <button
                         type="submit"
                         disabled={
@@ -963,9 +997,9 @@ export default function OrderDetailPage() {
                         ) : (
                           <Send className="w-4 h-4" />
                         )}
-                        Send to Steadfast
+                        Send to {selectedProvider ? selectedProvider.charAt(0).toUpperCase() + selectedProvider.slice(1) : 'Courier'}
                       </button>
-                    </steadfastFetcher.Form>
+                    </courierFetcher.Form>
                   ) : (
                     <Link
                       to="/app/settings/courier"
@@ -987,7 +1021,7 @@ export default function OrderDetailPage() {
                   </button>
                 )}
                 {(() => {
-                  const data = steadfastFetcher.data as
+                  const data = courierFetcher.data as
                     | { error?: string; success?: boolean }
                     | undefined;
                   if (data?.error) {

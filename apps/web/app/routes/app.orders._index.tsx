@@ -87,11 +87,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .reduce((sum, o) => sum + o.total, 0),
   };
 
+  // Parse theme config to get courier provider
+  const themeConfig = store.themeConfig ? JSON.parse(store.themeConfig) : {};
+  const courierProvider = themeConfig.courier?.provider || null;
+
   return json({
     orders: storeOrders,
     storeName: store.name,
     currency: store.currency || 'BDT',
     stats,
+    courierProvider,
   });
 }
 
@@ -109,6 +114,127 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const orderId = parseInt(formData.get('orderId') as string);
 
   const db = drizzle(context.cloudflare.env.DB);
+
+  // Handle courier booking
+  if (intent === 'bookCourier') {
+    const provider = formData.get('provider') as string;
+
+    // Get order
+    const orderResult = await db
+      .select()
+      .from(orders)
+      .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)))
+      .limit(1);
+
+    if (!orderResult[0]) {
+      return json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    const order = orderResult[0];
+
+    // Get store courier settings
+    const storeResultCourier = await db
+      .select({ courierSettings: stores.courierSettings, name: stores.name })
+      .from(stores)
+      .where(eq(stores.id, storeId))
+      .limit(1);
+
+    if (!storeResultCourier[0]?.courierSettings) {
+      return json(
+        { error: 'Courier not configured. Go to Settings > Courier to connect.' },
+        { status: 400 }
+      );
+    }
+
+    const courierSettings = JSON.parse(storeResultCourier[0].courierSettings as string);
+    let consignmentId = '';
+
+    try {
+      // Parse shipping address
+      let address = '';
+      let city = '';
+      if (order.shippingAddress) {
+        const parsed =
+          typeof order.shippingAddress === 'string'
+            ? JSON.parse(order.shippingAddress)
+            : order.shippingAddress;
+        address = parsed.address || '';
+        city = parsed.city || '';
+      }
+
+      if (provider === 'pathao' && courierSettings.pathao) {
+        const { createPathaoClient } = await import('~/services/pathao.server');
+        const client = createPathaoClient(courierSettings.pathao);
+
+        const result = await client.createOrder({
+          store_id: courierSettings.pathao.defaultStoreId || 1,
+          merchant_order_id: order.orderNumber,
+          sender_name: storeResultCourier[0].name || 'Merchant',
+          sender_phone: courierSettings.pathao.senderPhone || '',
+          recipient_name: order.customerName || 'Customer',
+          recipient_phone: order.customerPhone || '',
+          recipient_address: address,
+          recipient_city: 1,
+          recipient_zone: 1,
+          delivery_type: 48,
+          item_type: 2,
+          item_quantity: 1,
+          item_weight: 0.5,
+          amount_to_collect: order.total,
+        });
+        consignmentId = result.consignment_id;
+      } else if (provider === 'redx' && courierSettings.redx) {
+        const { createRedXClient } = await import('~/services/redx.server');
+        const client = createRedXClient(courierSettings.redx);
+
+        const result = await client.createParcel({
+          customer_name: order.customerName || 'Customer',
+          customer_phone: order.customerPhone || '',
+          delivery_area: city || 'Dhaka',
+          delivery_area_id: 1,
+          customer_address: address,
+          merchant_invoice_id: order.orderNumber,
+          cash_collection_amount: order.total,
+          parcel_weight: 500,
+        });
+        consignmentId = result.tracking_id;
+      } else if (provider === 'steadfast' && courierSettings.steadfast) {
+        const { createSteadfastClient } = await import('~/services/steadfast.server');
+        const client = createSteadfastClient(courierSettings.steadfast);
+
+        const result = await client.createOrder({
+          invoice: order.orderNumber,
+          recipient_name: order.customerName || 'Customer',
+          recipient_phone: order.customerPhone || '',
+          recipient_address: address,
+          cod_amount: order.total,
+        });
+        consignmentId = result.consignment_id;
+      } else {
+        return json({ error: 'Selected courier not configured' }, { status: 400 });
+      }
+
+      // Update order with courier info
+      await db
+        .update(orders)
+        .set({
+          courierProvider: provider as 'pathao' | 'redx' | 'steadfast',
+          courierConsignmentId: consignmentId,
+          courierStatus: 'booked',
+          status: 'processing',
+          updatedAt: new Date(),
+        })
+        .where(eq(orders.id, orderId));
+
+      return json({ success: true, consignmentId });
+    } catch (error) {
+      console.error('Courier booking error:', error);
+      return json(
+        { error: error instanceof Error ? error.message : 'Booking failed' },
+        { status: 500 }
+      );
+    }
+  }
 
   // ========================================================================
   // FRAUD_CHECK - Check customer fraud risk and auto-confirm if low risk
@@ -250,7 +376,7 @@ const statusOptionsKeys = [
 // MAIN COMPONENT
 // ============================================================================
 export default function DashboardOrdersPage() {
-  const { orders: storeOrders, currency, stats } = useLoaderData<typeof loader>();
+  const { orders: storeOrders, currency, stats, courierProvider } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { t, lang } = useTranslation();
 
@@ -487,6 +613,16 @@ export default function DashboardOrdersPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {/* Send to Courier Button */}
+                        {courierProvider && (
+                          <SendToCourierButton
+                            orderId={order.id}
+                            orderNumber={order.orderNumber}
+                            status={order.status || 'pending'}
+                            courierStatus={order.courierStatus}
+                            courierProvider={courierProvider}
+                          />
+                        )}
                         <FraudCheckButton
                           orderId={order.id}
                           currentStatus={order.status || 'pending'}
@@ -519,6 +655,20 @@ export default function DashboardOrdersPage() {
                   </Link>
                   <StatusDropdown orderId={order.id} currentStatus={order.status || 'pending'} />
                 </div>
+                
+                {/* Courier Actions for Mobile */}
+                {courierProvider && (
+                  <div className="mb-3 flex justify-end">
+                    <SendToCourierButton
+                       orderId={order.id}
+                       orderNumber={order.orderNumber}
+                       status={order.status || 'pending'}
+                       courierStatus={order.courierStatus}
+                       courierProvider={courierProvider}
+                    />
+                  </div>
+                )}
+                
                 <Link to={`/app/orders/${order.id}`} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 font-medium text-sm">
@@ -767,5 +917,72 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
       )}
       চেক
     </button>
+  );
+}
+
+// ============================================================================
+// SEND TO COURIER BUTTON COMPONENT
+// ============================================================================
+function SendToCourierButton({ 
+  orderId, 
+  orderNumber,
+  status, 
+  courierStatus,
+  courierProvider 
+}: { 
+  orderId: number; 
+  orderNumber: string;
+  status: string; 
+  courierStatus?: string | null;
+  courierProvider: string;
+}) {
+  const { t } = useTranslation();
+  const fetcher = useFetcher<{
+    success?: boolean;
+    error?: string;
+    consignmentId?: string;
+  }>();
+
+  const isSubmitting = fetcher.state !== 'idle';
+  const isBooked = courierStatus === 'booked' || courierStatus === 'in_transit' || courierStatus === 'delivered' || courierStatus === 'shipped';
+  
+  // Show button only if status is valid for booking (e.g. confirmed) and not already booked
+  if (status !== 'confirmed') return null;
+  
+  // If already booked, show status badge
+  if (isBooked) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg">
+        <Truck className="w-3.5 h-3.5" />
+        {courierStatus === 'booked' ? t('booked') : courierStatus}
+      </span>
+    );
+  }
+
+  return (
+    <fetcher.Form method="post">
+      <input type="hidden" name="intent" value="bookCourier" />
+      <input type="hidden" name="orderId" value={orderId} />
+      <input type="hidden" name="provider" value={courierProvider} />
+      
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        onClick={(e) => {
+          if (!confirm(`Are you sure you want to send order ${orderNumber} to ${courierProvider}?`)) {
+            e.preventDefault();
+          }
+        }}
+        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 border border-blue-600 hover:border-blue-700 rounded-lg transition disabled:opacity-50 shadow-sm"
+        title={`Send to ${courierProvider}`}
+      >
+        {isSubmitting ? (
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        ) : (
+          <Truck className="w-3.5 h-3.5" />
+        )}
+        কুরিয়ারে পাঠান
+      </button>
+    </fetcher.Form>
   );
 }
