@@ -51,7 +51,8 @@ export const meta: MetaFunction = () => {
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
+    // User has no store yet - redirect to onboarding to create one
+    return redirect('/onboarding');
   }
 
   const db = drizzle(context.cloudflare.env.DB, { schema }); // Fix: Initialize with schema
@@ -63,7 +64,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const store = storeResult; // drizzle-orm query findFirst returns the object directly or undefined
   if (!store) {
-    throw new Response('Store not found', { status: 404 });
+    // Store was deleted or doesn't exist - redirect to onboarding
+    return redirect('/onboarding');
   }
 
   // Fetch store stats using shared service

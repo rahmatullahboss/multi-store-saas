@@ -10,6 +10,7 @@ import { Link } from '@remix-run/react';
 import { ShoppingCart, Search, Menu, X, Heart, User, Globe } from 'lucide-react';
 import type { SectionSchema, SectionComponentProps } from '~/lib/theme-engine/types';
 import { useLanguage } from '~/contexts/LanguageContext';
+import { useCartCount } from '~/hooks/useCartCount';
 
 // ============================================================================
 // SCHEMA
@@ -168,7 +169,10 @@ export default function Header({ section, context, settings }: SectionComponentP
 
   const storeName = context.store?.name || 'Store';
   const categories = context.collections?.map((c) => c.title).filter(Boolean) || [];
-  const cartCount = context.cart?.itemCount || 0;
+  // Use useCartCount hook for reactive cart count from localStorage
+  // Falls back to context.cart.itemCount for server-side rendering
+  const hookCartCount = useCartCount();
+  const cartCount = hookCartCount || context.cart?.itemCount || 0;
   const wishlistCount = context.wishlist?.count || 0;
 
   const handleSearch = (e: React.FormEvent) => {

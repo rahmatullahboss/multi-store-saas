@@ -1006,7 +1006,7 @@ function PreviewCheckoutPage({
                         color: cart.total >= 500 ? BDSHOP_THEME.success : BDSHOP_THEME.text,
                       }}
                     >
-                      {cart.total >= 500 ? '🎉 ফ্রি ডেলিভারি' : `${currency}60`}
+                      {cart.total >= 500 ? '🎉 ফ্রি ডেলিভারি' : formatPrice(60, currency)}
                     </p>
                   </button>
 
@@ -1116,7 +1116,7 @@ function PreviewCheckoutPage({
                   <div className="flex justify-between">
                     <span>শিপিং</span>
                     <span className={`font-medium ${deliveryFee === 0 ? 'text-green-300' : ''}`}>
-                      {deliveryFee === 0 ? 'ফ্রি! 🎉' : `${currency}${deliveryFee}`}
+                      {deliveryFee === 0 ? 'ফ্রি! 🎉' : formatPrice(deliveryFee, currency)}
                     </span>
                   </div>
                   <div className="border-t border-white/20 pt-3 mt-3">

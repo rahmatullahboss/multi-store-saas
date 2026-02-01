@@ -1036,16 +1036,12 @@ function PreviewCheckoutPage({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">ডেলিভারি ফি</span>
-                  <span>
-                    {currency} {deliveryFee}
-                  </span>
+                  <span>{formatPrice(deliveryFee, currency)}</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span>ডেলিভারি ডিসকাউন্ট</span>
-                    <span>
-                      - {currency} {discount}
-                    </span>
+                    <span>- {formatPrice(discount, currency)}</span>
                   </div>
                 )}
                 <hr className="my-2" />

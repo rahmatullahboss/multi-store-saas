@@ -321,7 +321,7 @@ export function BDShopCartPage({
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Delivery</span>
                   <span className={`font-medium ${deliveryFee === 0 ? 'text-green-600' : ''}`}>
-                    {deliveryFee === 0 ? 'Free' : `${currency}${deliveryFee}`}
+                    {deliveryFee === 0 ? 'Free' : formatPrice(deliveryFee, currency)}
                   </span>
                 </div>
 

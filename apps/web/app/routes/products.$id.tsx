@@ -566,8 +566,9 @@ export default function ProductDetail() {
     // with SimpleProductPage content in between
     if (hasHomeTemplate && homeTemplate?.sections) {
       // Extract header and footer sections from home template (only enabled ones)
+      // Note: Only include header, NOT announcement-bar (keep banner only on homepage)
       const headerSections = homeTemplate.sections.filter(
-        (s) => (s.type === 'header' || s.type === 'announcement-bar') && s.enabled !== false
+        (s) => s.type === 'header' && s.enabled !== false
       );
       const footerSections = homeTemplate.sections.filter(
         (s) => s.type === 'footer' && s.enabled !== false

@@ -610,7 +610,7 @@ function PreviewCheckoutPage({
             <div className="flex justify-between text-sm mb-1">
               <span>ডেলিভারি চার্জ</span>
               <span className={shippingCost === 0 ? 'text-green-600' : ''}>
-                {shippingCost === 0 ? 'ফ্রি' : `${currency}${shippingCost}`}
+                {shippingCost === 0 ? 'ফ্রি' : formatPrice(shippingCost, currency)}
               </span>
             </div>
             <div className="flex justify-between font-bold text-lg pt-2 border-t mt-2">

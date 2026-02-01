@@ -156,9 +156,8 @@ export default function CustomPageRoute() {
     // If no page template but home template exists, use home template's header/footer
     if (hasHomeTemplate && homeTemplate?.sections) {
       // Extract header and footer sections from home template
-      const headerSections = homeTemplate.sections.filter(
-        (s) => s.type === 'header' || s.type === 'announcement-bar'
-      );
+      // Note: Only include header, NOT announcement-bar (keep banner only on homepage)
+      const headerSections = homeTemplate.sections.filter((s) => s.type === 'header');
       const footerSections = homeTemplate.sections.filter((s) => s.type === 'footer');
 
       // Combine: header + rich-text (page content) + footer
