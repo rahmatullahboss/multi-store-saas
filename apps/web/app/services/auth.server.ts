@@ -1190,10 +1190,12 @@ export function getAuthenticator(env: Env, requestUrl?: string) {
       const origin = new URL(requestUrl).origin;
       callbackURL = `${origin}/auth/google/callback`;
       console.log('[getAuthenticator] Using dynamic callback URL:', callbackURL);
+      console.log('[getAuthenticator] Request URL was:', requestUrl);
     } else {
       // Fallback to SAAS_DOMAIN if no request URL provided
       callbackURL = `${env.SAAS_DOMAIN}/auth/google/callback`;
       console.log('[getAuthenticator] Using SAAS_DOMAIN callback URL:', callbackURL);
+      console.log('[getAuthenticator] SAAS_DOMAIN:', env.SAAS_DOMAIN);
     }
 
     const googleStrategy = new GoogleStrategy(
