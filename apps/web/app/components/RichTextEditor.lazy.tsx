@@ -1,33 +1,18 @@
 /**
  * Lazy-loaded Rich Text Editor
  * 
- * This wrapper uses React.lazy to ensure TipTap (~370KB) is only loaded
- * when the editor is actually needed. This prevents the TipTap bundle
- * from being included in routes that don't use the editor.
+ * This wrapper uses the generic lazyLoad helper to ensure TipTap (~370KB) 
+ * is only loaded when the editor is actually needed. 
  * 
  * Usage:
  * import { LazyRichTextEditor } from '~/components/RichTextEditor.lazy';
  * 
- * <Suspense fallback={<EditorSkeleton />}>
- *   <LazyRichTextEditor content={content} onChange={setContent} />
- * </Suspense>
+ * <LazyRichTextEditor content={content} onChange={setContent} />
  */
 
-import { lazy, Suspense } from 'react';
+import { lazyLoad } from '~/lib/lazy-imports';
 
-// Lazy load the actual RichTextEditor component
-const RichTextEditorImpl = lazy(() => 
-  import('./RichTextEditor').then(module => ({ default: module.RichTextEditor }))
-);
-
-interface LazyRichTextEditorProps {
-  content: string;
-  onChange: (html: string) => void;
-  placeholder?: string;
-  className?: string;
-}
-
-// Skeleton loader for the editor
+// Skeleton specific to the editor structure
 function EditorSkeleton() {
   return (
     <div className="border border-gray-200 rounded-lg bg-white overflow-hidden shadow-sm animate-pulse">
@@ -54,14 +39,11 @@ function EditorSkeleton() {
   );
 }
 
-// Exported lazy-loaded component with built-in fallback
-export function LazyRichTextEditor(props: LazyRichTextEditorProps) {
-  return (
-    <Suspense fallback={<EditorSkeleton />}>
-      <RichTextEditorImpl {...props} />
-    </Suspense>
-  );
-}
+// Exported lazy-loaded component
+export const LazyRichTextEditor = lazyLoad(
+  () => import('./RichTextEditor').then(m => ({ default: m.RichTextEditor })),
+  <EditorSkeleton />
+);
 
-// Export skeleton for external use
+// Export skeleton for re-use if needed
 export { EditorSkeleton };
