@@ -26,7 +26,6 @@ import {
   MapPin,
   Crown,
   Sparkles,
-  Star,
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { motion, useInView } from 'framer-motion';
@@ -167,7 +166,7 @@ export function NovaLuxUltraFooter({
   const footerRef = useRef(null);
   const isInView = useInView(footerRef, { once: true, margin: '-100px' });
 
-  const validCategories = categories.filter(Boolean).slice(0, 6) as string[];
+  const validCategories = categories.filter(Boolean).slice(0, 10) as string[];
   const showPoweredBy = true;
 
   const defaultBusinessInfo = {
@@ -176,7 +175,10 @@ export function NovaLuxUltraFooter({
     address: 'House 123, Road 5, Gulshan, Dhaka 1212, Bangladesh',
   };
 
-  const displayBusinessInfo = isPreview ? defaultBusinessInfo : businessInfo || defaultBusinessInfo;
+  // Only use default info if in preview mode. Otherwise use provided info or empty fallback.
+  const displayBusinessInfo = isPreview 
+    ? defaultBusinessInfo 
+    : businessInfo || { phone: null, email: null, address: null };
 
   return (
     <footer
@@ -359,27 +361,6 @@ export function NovaLuxUltraFooter({
               {footerConfig?.description || t('luxeDescription')}
             </p>
 
-            {/* Animated Stars Rating */}
-            <div className="flex items-center gap-2 mb-8">
-              {[...Array(5)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                  transition={{ delay: 0.5 + i * 0.1, type: 'spring' }}
-                >
-                  <Star
-                    className="w-5 h-5"
-                    style={{
-                      color: NOVALUX_ULTRA_THEME.accent,
-                      fill: NOVALUX_ULTRA_THEME.accent,
-                    }}
-                  />
-                </motion.div>
-              ))}
-              <span className="text-sm text-white/60 ml-2">4.9/5 from 2,000+ reviews</span>
-            </div>
-
             {/* Social Links */}
             <div className="flex gap-3 mb-8">
               {(socialLinks?.instagram || isPreview) && (
@@ -420,8 +401,6 @@ export function NovaLuxUltraFooter({
               <div className="flex flex-wrap gap-2">
                 <PaymentIcon label="bKash" bg="#e2136e" />
                 <PaymentIcon label="Nagad" bg="#f26922" />
-                <PaymentIcon label="Visa" bg="#1A1F71" />
-                <PaymentIcon label="Mastercard" bg="#EB001B" />
                 <PaymentIcon label="COD" bg="transparent" text="rgba(255,255,255,0.8)" />
               </div>
             </div>

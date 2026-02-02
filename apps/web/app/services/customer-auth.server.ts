@@ -140,9 +140,9 @@ export function getCustomerSessionStorage(env: Env) {
       name: '__customer_session',
       httpOnly: true,
       path: '/',
-      sameSite: 'lax',
+      sameSite: 'lax', // Lax is better for top-level redirects
       secrets: [env.SESSION_SECRET],
-      secure: true,
+      secure: process.env.NODE_ENV === 'production', // Only secure in production
       maxAge: 60 * 60 * 24 * 30, // 30 days for customer sessions
     },
   });

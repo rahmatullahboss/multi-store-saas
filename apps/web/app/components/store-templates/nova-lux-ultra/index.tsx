@@ -13,14 +13,7 @@
  * Worth 10 Million - World-class design
  */
 
-import {
-  useState,
-  useCallback,
-  createContext,
-  useContext,
-  useMemo,
-  useRef,
-} from 'react';
+import { useState, useCallback, createContext, useContext, useMemo, useRef } from 'react';
 
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
 import {
@@ -40,9 +33,7 @@ import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-re
 import type { ThemeConfig } from '@db/types';
 import { formatPrice } from '~/lib/theme-engine';
 
-import {
-  NOVALUX_ULTRA_THEME,
-} from './theme';
+import { NOVALUX_ULTRA_THEME } from './theme';
 import { NovaLuxUltraHeader } from './sections/Header';
 import { NovaLuxUltraFooter } from './sections/Footer';
 import {
@@ -366,7 +357,7 @@ function PremiumProductCard({
   onNavigate,
   index,
 }: {
-  product: DemoProduct;
+  product: DemoProduct | SerializedProduct;
   currency: string;
   onNavigate: (page: PageType) => void;
   index: number;
@@ -704,14 +695,12 @@ function PreviewHomePage({
   onNavigate,
 }: {
   storeName: string;
-  products: DemoProduct[];
+  products: DemoProduct[] | SerializedProduct[];
   categories: (string | null)[];
   currency: string;
   config: ThemeConfig | null;
   onNavigate: (page: PageType) => void;
 }) {
-
-
   return (
     <div className="min-h-screen" style={{ backgroundColor: NOVALUX_ULTRA_THEME.background }}>
       {/* Cinematic Hero */}
@@ -915,7 +904,7 @@ function PreviewHomePage({
 // MAIN PREVIEW STORE CONTAINER
 // ============================================================================
 function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
-  const { storeName, storeId, logo, config, currency } = props;
+  const { storeName, storeId, logo, config, currency, isPreview } = props;
   const [currentPage, setCurrentPage] = useState<PageType>({ type: 'home' });
 
   const navigate = useCallback((page: PageType) => {
@@ -946,8 +935,9 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
     [navigate]
   );
 
-  const products = DEMO_PRODUCTS;
-  const validCategories = DEMO_CATEGORIES;
+  // Use real products from props in production, demo only in preview mode
+  const products = props.products || DEMO_PRODUCTS;
+  const validCategories = props.categories || DEMO_CATEGORIES;
 
   const renderPage = () => {
     switch (currentPage.type) {
@@ -963,7 +953,10 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
           />
         );
       case 'product': {
-        const product = getDemoProductById(currentPage.productId);
+        // Look up product in real products first, then fallback to demo
+        const product =
+          products.find((p) => p.id === currentPage.productId) ||
+          getDemoProductById(currentPage.productId);
         const relatedProducts = getRelatedProducts(currentPage.productId, 4);
         if (!product) return <div className="pt-32 text-center">Product not found</div>;
         return (
@@ -1004,7 +997,7 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
               isPreview={true}
               templateId="nova-lux-ultra"
               onNavigate={navigateByPath}
-              recommendedProducts={DEMO_PRODUCTS.slice(0, 4).map((p) => ({
+              recommendedProducts={products.slice(0, 4).map((p) => ({
                 id: p.id,
                 title: p.title,
                 price: p.price,
@@ -1107,14 +1100,19 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
           storeName={storeName}
           logo={logo}
           categories={validCategories}
-          isPreview={true}
+          config={config}
+          isPreview={isPreview}
         />
         <main>{renderPage()}</main>
         <NovaLuxUltraFooter
           storeName={storeName}
           logo={logo}
           categories={validCategories}
-          isPreview={true}
+          socialLinks={props.socialLinks}
+          footerConfig={props.footerConfig}
+          businessInfo={props.businessInfo}
+          planType={props.planType}
+          isPreview={isPreview}
         />
       </div>
     </CartProvider>

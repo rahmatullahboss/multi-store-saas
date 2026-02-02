@@ -9,7 +9,11 @@
 
 import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, useActionData, Form, Link, useNavigation, useSearchParams } from '@remix-run/react';
-import { parseThemeConfig } from '@db/types';
+import { parseThemeConfig, parseSocialLinks } from '@db/types';
+import { createDb } from '~/lib/db.server';
+import { D1Cache } from '~/services/cache-layer.server';
+import { products as productsTable } from '@db/schema';
+import { desc, eq, and } from 'drizzle-orm';
 import { DEFAULT_STORE_TEMPLATE_ID, getStoreTemplateTheme } from '~/templates/store-registry';
 import { resolveStore } from '~/lib/store.server';
 import {
@@ -42,8 +46,38 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const canUseGoogle = await canStoreUseGoogleAuth(storeId, env.DB);
   
   // 4. Get template theme
+  // 4. Get template theme
   const themeConfig = parseThemeConfig(store.themeConfig as string | null);
+  const socialLinks = parseSocialLinks(store.socialLinks as string | null);
   const templateId = themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
+
+  // 5. Parse Business Info
+  let businessInfo = null;
+  try {
+    if (store.businessInfo) {
+      businessInfo = JSON.parse(store.businessInfo as string);
+    }
+  } catch {
+    // Ignore parse errors
+  }
+
+  // 6. Get Categories (Cached)
+  const db = createDb(env.DB);
+  const cache = new D1Cache(db);
+  const categoriesCacheKey = `store:${store.id}:categories:v1`;
+  let categories: string[] | null = await cache.get<string[]>(categoriesCacheKey);
+
+  if (!categories) {
+    const dbProducts = await db
+      .select({ category: productsTable.category })
+      .from(productsTable)
+      .where(and(eq(productsTable.storeId, store.id), eq(productsTable.isPublished, true)))
+      .orderBy(desc(productsTable.createdAt))
+      .limit(50);
+      
+    categories = [...new Set(dbProducts.map((p) => p.category).filter(Boolean))] as string[];
+    await cache.set(categoriesCacheKey, categories, 3600);
+  }
 
   return json({
     store: {
@@ -56,6 +90,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       planType: store.planType,
     },
     canUseGoogle,
+    socialLinks,
+    businessInfo,
+    categories,
+    themeConfig,
   });
 }
 
@@ -104,7 +142,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function StoreLogin() {
-  const { store, canUseGoogle } = useLoaderData<typeof loader>();
+  const { store, canUseGoogle, socialLinks, businessInfo, categories, themeConfig } = useLoaderData<typeof loader>();
   const actionData = useActionData<{ error?: string }>(); // Typed action data
   const navigation = useNavigation();
   const [searchParams] = useSearchParams();
@@ -124,6 +162,10 @@ export default function StoreLogin() {
       theme={theme}
       currency={store.currency || 'BDT'}
       planType={store.planType || 'free'}
+      socialLinks={socialLinks}
+      businessInfo={businessInfo}
+      categories={categories}
+      config={themeConfig}
       // Hide header/footer if needed, but usually we want them
     >
       <div className="min-h-[calc(100vh-200px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
