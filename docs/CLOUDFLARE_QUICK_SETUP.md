@@ -13,12 +13,12 @@ Your Cloudflare domain setup for **ozzyl.com** needs these 3 critical fixes:
 ### ✅ **FIX 2: Set Fallback Origin**
 
 1. In same page, click **"Add Fallback Origin"**
-2. Enter: `multi-store-saas.pages.dev`
+2. Enter: `multi-store-saas.ozzyl.workers.dev`
 3. Wait for verification
 
 ### ✅ **FIX 3: Add API Token to Pages**
 
-1. Go to **Cloudflare Dashboard** → **Pages** → **multi-store-saas** → **Settings**
+1. Go to **Cloudflare Dashboard** → **Workers & Pages** → **multi-store-saas** → **Settings**
 2. Add environment variable:
    - **Name**: `CLOUDFLARE_API_TOKEN`
    - **Value**: [Create new token](https://dash.cloudflare.com/profile/api-tokens)
@@ -29,7 +29,7 @@ Your Cloudflare domain setup for **ozzyl.com** needs these 3 critical fixes:
 
 ## 🎯 What You Fixed Today
 
-✅ **DNS Target Correction**: Changed from `ozzyl-saas.pages.dev` → `multi-store-saas.pages.dev`  
+✅ **DNS Target Correction**: Changed from `ozzyl-saas.pages.dev` → `multi-store-saas.ozzyl.workers.dev`  
 ✅ **Documentation**: Created comprehensive setup guides  
 ✅ **Code Updates**: Fixed all DNS references in your application
 
@@ -38,11 +38,11 @@ Your Cloudflare domain setup for **ozzyl.com** needs these 3 critical fixes:
 ## 📋 Verification Checklist
 
 - [ ] Cloudflare for SaaS enabled on ozzyl.com
-- [ ] Fallback origin set to multi-store-saas.pages.dev
+- [ ] Fallback origin set to multi-store-saas.ozzyl.workers.dev
 - [ ] Wildcard \*.ozzyl.com custom hostname added
-- [ ] CLOUDFLARE_API_TOKEN set in Pages environment
+- [ ] CLOUDFLARE_API_TOKEN set in Worker environment
 - [ ] CLOUDFLARE_ZONE_ID = 41147efa7d197cfddda0af7fcbf6d641
-- [ ] Pages project deployed and accessible
+- [ ] Worker deployed and accessible
 
 ---
 

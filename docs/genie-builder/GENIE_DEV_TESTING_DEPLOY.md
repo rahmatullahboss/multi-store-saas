@@ -18,6 +18,7 @@ npm run test:coverage    # Generate coverage report
 ```
 
 **Expected Output:**
+
 ```
 ✓ app/tests/unit/... (X tests passed)
 Coverage: 85%+
@@ -38,6 +39,7 @@ npm run e2e:report          # View HTML report
 ```
 
 **Expected Output:**
+
 ```
 6 passed (12.3s)
 HTML Report: playwright-report/index.html
@@ -79,7 +81,7 @@ export default {
     console.log('Worker request:', request.url);
     console.log('ENV vars available:', Object.keys(env));
     // logs appear in wrangler tail
-  }
+  },
 };
 ```
 
@@ -101,37 +103,49 @@ wrangler tail --follow
 ### Common Errors & Fixes
 
 #### D1 Binding Errors
+
 ```
 Error: D1_DATABASE is not defined
 ```
+
 **Fix**: Check `wrangler.toml` bindings:
+
 ```toml
 [[d1_databases]]
 binding = "DB"
 database_name = "multi-store-saas-db"
 ```
+
 Restart: `npm run start` (page-builder) or `npm run dev:wrangler` (main).
 
 #### R2 Upload Failures
+
 ```
 Error: R2 is not defined / No such object
 ```
+
 **Fix**: Verify R2 binding in `wrangler.toml`:
+
 ```toml
 [[r2_buckets]]
 binding = "R2"
 bucket_name = "ozzyl-assets"
 ```
+
 Check CORS: `r2-cors.json` must be applied to bucket.
 
 #### Session Errors
+
 ```
 Error: session.get() undefined / SESSION_SECRET missing
 ```
+
 **Fix**: Ensure `.env` has:
+
 ```
 SESSION_SECRET=your-super-secret-key-min-32-chars
 ```
+
 And it matches the main app's `SESSION_SECRET` for shared auth between builder + main app.
 
 ---
@@ -151,6 +165,7 @@ npm run start
 ```
 
 Alternatively, run Remix dev (for SSR development):
+
 ```bash
 npm run dev        # Remix dev at http://localhost:3000
 ```
@@ -162,16 +177,17 @@ Test a staging deployment before production:
 ```bash
 cd apps/page-builder
 npm run build
-wrangler pages deploy ./build/client
+wrangler deploy --name=multi-store-saas
 
 # Or use the shortcut:
 npm run deploy
 ```
 
 **Expected Output:**
+
 ```
 ✓ Built successfully
-✓ Deployed to https://[hash].pages.dev
+✓ Deployed to https://multi-store-saas.ozzyl.workers.dev
 ```
 
 Visit the preview URL to verify sections load, GrapesJS renders, and KV/D1 access works.
@@ -192,6 +208,7 @@ npm run deploy
 ### Rollback via Cloudflare Dashboard
 
 If production breaks:
+
 1. Go to Cloudflare Dashboard → Workers & Pages → Page Builder
 2. Click **Deployments** tab
 3. Select the previous stable deployment
@@ -213,8 +230,8 @@ const pageId: string = req.query.pageId;
 const published: boolean = await kv.getJSON('page:' + pageId);
 
 // ✗ Bad
-const pageId = req.query.pageId;  // any type
-const published = await kv.get('page');  // unsafe
+const pageId = req.query.pageId; // any type
+const published = await kv.get('page'); // unsafe
 ```
 
 ### Tailwind for Styling
@@ -238,7 +255,7 @@ import { Save, Trash2, Eye } from 'lucide-react';
 
 <button className="flex items-center gap-2">
   <Save size={20} /> Save Changes
-</button>
+</button>;
 ```
 
 ### OptimizedImage Component
@@ -267,21 +284,21 @@ const schema = z.object({
 const validated = schema.parse(req.body);
 
 // ✗ Bad
-const { pageId, sectionData } = req.body;  // no validation
+const { pageId, sectionData } = req.body; // no validation
 ```
 
 ---
 
 ## Quick Command Reference
 
-| Command | Purpose |
-|---------|---------|
-| `npm run test` | Unit tests |
-| `npm run e2e` | End-to-end tests |
+| Command                | Purpose                       |
+| ---------------------- | ----------------------------- |
+| `npm run test`         | Unit tests                    |
+| `npm run e2e`          | End-to-end tests              |
 | `npm run dev:wrangler` | Local Pages dev with bindings |
-| `npm run deploy` | Preview or production deploy |
-| `wrangler tail` | Stream live logs |
-| `npm run typecheck` | TypeScript errors |
+| `npm run deploy`       | Preview or production deploy  |
+| `wrangler tail`        | Stream live logs              |
+| `npm run typecheck`    | TypeScript errors             |
 
 ---
 
@@ -296,4 +313,4 @@ const { pageId, sectionData } = req.body;  // no validation
 
 **Last Updated**: 2025  
 **Environment**: Cloudflare Workers + Pages + D1 + R2 + KV  
-**Framework**: Remix SSR + GrapesJS  
+**Framework**: Remix SSR + GrapesJS

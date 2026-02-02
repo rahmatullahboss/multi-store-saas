@@ -1,5 +1,5 @@
 {
-  "name": "rate-limiter",
+  "name": "wildcard-proxy",
   "private": true,
   "type": "module",
   "scripts": {

@@ -898,7 +898,7 @@ export default function SettingsPage() {
                 <li className="ml-4 font-mono text-xs bg-blue-100 p-2 rounded">
                   Name: @ or www
                   <br />
-                  Value: ozzyl-saas.pages.dev
+                  Value: multi-store-saas.ozzyl.workers.dev
                 </li>
                 <li>3. {t('dnsStep3')}</li>
                 <li>4. {t('dnsStep4')}</li>

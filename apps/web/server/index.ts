@@ -33,11 +33,41 @@ import { graphqlApi } from './api/graphql';
 import { oauthApi } from './api/oauth';
 import customersApi from './api/routes/customers';
 
+// Forward all other requests to Remix (via Vite build output)
+import { createRequestHandler } from '@remix-run/cloudflare';
+import * as build from '../build/server/index.js';
+
 // Type definitions for Cloudflare bindings
 interface Env extends TenantEnv {
   ASSETS: Fetcher;
   RATE_LIMIT_KV?: KVNamespace;
-  ENVIRONMENT?: string;
+  ENVIRONMENT?: 'development' | 'production' | 'staging';
+  
+  // Bindings
+  AI: Ai;
+  VECTORIZE: VectorizeIndex;
+
+  // Variables
+  R2_PUBLIC_URL: string;
+  SUPER_ADMIN_EMAIL: string;
+  CLOUDFLARE_ZONE_ID: string;
+  AI_MODEL: string;
+  AI_BASE_URL: string;
+  PAGE_BUILDER_URL: string;
+  VAPID_PUBLIC_KEY: string;
+  VAPID_SUBJECT: string;
+  SENTRY_DSN: string;
+  MASTER_FACEBOOK_PIXEL_ID: string;
+  GOOGLE_CLIENT_ID: string;
+
+  // Secrets
+  SESSION_SECRET: string;
+  RESEND_API_KEY: string;
+  VAPID_PRIVATE_KEY: string;
+  OPENROUTER_API_KEY: string;
+  CLOUDFLARE_API_TOKEN: string;
+  GOOGLE_CLIENT_SECRET: string;
+  AXION_TOKEN: string;
 }
 
 type AppContext = {
@@ -70,13 +100,27 @@ app.notFound((c) => {
 
 // Logger for development
 app.use('*', logger());
-app.use('*', requestTracker());
+
+// Skip noisy logging for static assets
+app.use('*', async (c, next) => {
+  const url = new URL(c.req.url);
+  const isAssetRequest =
+    url.pathname.startsWith('/assets/') ||
+    url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|eot|map)$/);
+
+  if (isAssetRequest) {
+    return next();
+  }
+
+  return requestTracker()(c, next);
+});
 
 // Security Headers for all routes
 app.use('*', securityHeaders());
 
 // API-specific security headers (stricter CSP)
 app.use('/api/*', apiSecurityHeaders());
+
 
 // ============================================================================
 // DYNAMIC CORS - Supports merchant custom domains from database
@@ -254,20 +298,118 @@ app.get(
 // ============================================================================
 
 // Forward all other requests to Remix (via Vite build output)
-// Forward all other requests to Remix (via Vite build output)
 app.all('*', async (c) => {
-  // Try to serve static asset first
-  const response = await c.env.ASSETS.fetch(c.req.raw);
+  const url = new URL(c.req.url);
   
-  // If not found (404), fallback to index.html to support SPA routing
-  // This is crucial for paths like /auth/login that don't match a physical file
-  if (response.status === 404) {
-    const url = new URL(c.req.url);
-    // Maintain the original URL but fetch index.html content
-    return c.env.ASSETS.fetch(new Request(new URL('/index.html', url.origin), c.req.raw));
+  // 2. Try to fetch from ASSETS binding first
+  // According to Cloudflare docs: https://developers.cloudflare.com/workers/static-assets/binding
+  // When run_worker_first = true, we must forward requests to ASSETS binding
+  // Avoid consuming request bodies for API/non-GET requests (ReadableStream can only be read once)
+  if (url.pathname.startsWith('/api/') || (c.req.method !== 'GET' && c.req.method !== 'HEAD')) {
+    const handler = createRequestHandler(build, c.env.ENVIRONMENT);
+
+    return handler(c.req.raw, {
+      cloudflare: {
+        env: c.env,
+        ctx: c.executionCtx,
+      },
+      storeId: c.get('storeId'),
+      store: c.get('store'),
+      isCustomDomain: c.get('isCustomDomain'),
+    });
+  }
+
+  const assetResponse = await c.env.ASSETS.fetch(c.req.raw);
+  
+  // 3. If asset found (200), return it with optimized cache headers
+  if (assetResponse.status === 200) {
+    const response = new Response(assetResponse.body, assetResponse);
+    
+    // Immutable assets (hashed filenames) - aggressive caching
+    if (url.pathname.match(/\.[a-f0-9]{8,}\.(js|css|woff2?|ttf|eot)$/)) {
+      response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+    // Images and fonts - moderate caching
+    else if (url.pathname.match(/\.(png|jpg|jpeg|gif|svg|webp|ico|woff2?|ttf)$/)) {
+      response.headers.set('Cache-Control', 'public, max-age=86400');
+    }
+    // Other assets - short caching
+    else if (url.pathname.startsWith('/assets/')) {
+      response.headers.set('Cache-Control', 'public, max-age=3600');
+    }
+    
+    return response;
   }
   
-  return response;
+  // 4. If explicit asset request failed (404), don't fall through to Remix
+  // This prevents Remix from trying to handle missing JS/CSS files
+  if (url.pathname.startsWith('/assets/') || 
+      url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|eot|map)$/)) {
+    console.warn(`[ASSETS] 404 Not Found: ${url.pathname}`);
+    return new Response('Asset not found', { 
+      status: 404,
+      headers: { 'Content-Type': 'text/plain' }
+    });
+  }
+  
+  // 5. Not an asset - run Remix SSR for application routes
+  // This handles all page routes (/auth/login, /dashboard, /store.home, etc.)
+  const handler = createRequestHandler(build, c.env.ENVIRONMENT);
+
+  const isCacheablePath =
+    url.pathname === '/' ||
+    url.pathname.startsWith('/products') ||
+    url.pathname.startsWith('/collections') ||
+    url.pathname.startsWith('/p/') ||
+    url.pathname.startsWith('/offers/');
+  const isSensitivePath =
+    url.pathname.startsWith('/cart') ||
+    url.pathname.startsWith('/checkout') ||
+    url.pathname.startsWith('/account') ||
+    url.pathname.startsWith('/admin');
+  const hasAuthHeaders = Boolean(c.req.header('authorization') || c.req.header('cookie'));
+
+  if (c.req.method === 'GET' && isCacheablePath && !isSensitivePath && !hasAuthHeaders) {
+    const cache = caches.default;
+    const cacheKey = new Request(c.req.raw.url, c.req.raw);
+    const cachedResponse = await cache.match(cacheKey);
+
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
+    const response = await handler(c.req.raw, {
+      cloudflare: {
+        env: c.env,
+        ctx: c.executionCtx,
+      },
+      storeId: c.get('storeId'),
+      store: c.get('store'),
+      isCustomDomain: c.get('isCustomDomain'),
+    });
+
+    const cacheableResponse = new Response(response.body, response);
+    cacheableResponse.headers.set(
+      'Cache-Control',
+      'public, s-maxage=60, stale-while-revalidate=300'
+    );
+
+    c.executionCtx.waitUntil(cache.put(cacheKey, cacheableResponse.clone()));
+
+    return cacheableResponse;
+  }
+
+  // Pass Cloudflare Environment and Hono Context to Remix
+  // This makes `context.cloudflare.env` available in Loaders/Actions
+  return handler(c.req.raw, {
+    cloudflare: {
+      env: c.env,
+      ctx: c.executionCtx,
+    },
+    storeId: c.get('storeId'),
+    store: c.get('store'),
+    isCustomDomain: c.get('isCustomDomain'),
+  });
 });
 
 export default app;

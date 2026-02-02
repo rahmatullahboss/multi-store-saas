@@ -2,8 +2,8 @@
 
 ## Current Status
 
-- **Pages Project**: `multi-store-saas`
-- **Default Domain**: `multi-store-saas.pages.dev`
+- **Worker**: `multi-store-saas`
+- **Default Domain**: `multi-store-saas.ozzyl.workers.dev`
 - **Target**: Add custom domains like `yourstore.ozzyl.com`
 
 ## 🔍 **Why Domain Verification Fails**
@@ -23,11 +23,11 @@ This is **required** for custom domains to work:
 1. Go to **Cloudflare Dashboard** → **ozzyl.com** zone
 2. Navigate to **SSL/TLS** → **Custom Hostnames**
 3. Click **"Enable Cloudflare for SaaS"**
-4. Set **Fallback Origin**: `multi-store-saas.pages.dev`
+4. Set **Fallback Origin**: `multi-store-saas.ozzyl.workers.dev`
 
 ### **Step 2: Add Environment Variables**
 
-**Cloudflare Dashboard** → **Pages** → **multi-store-saas** → **Settings**
+**Cloudflare Dashboard** → **Workers & Pages** → **multi-store-saas** → **Settings**
 
 Add these variables:
 
@@ -62,7 +62,7 @@ If automatic provisioning fails, users can manually add domains:
 3. User needs to add DNS record:
    - **Type**: CNAME
    - **Name**: `@` (or subdomain part)
-   - **Target**: `multi-store-saas.pages.dev`
+   - **Target**: `multi-store-saas.ozzyl.workers.dev`
 
 ### **For external domains (yourstore.com):**
 
@@ -71,7 +71,7 @@ If automatic provisioning fails, users can manually add domains:
 3. User needs to add DNS record:
    - **Type**: CNAME
    - **Name**: `@`
-   - **Target**: `multi-store-saas.pages.dev`
+   - **Target**: `multi-store-saas.ozzyl.workers.dev`
 
 ## 🎯 **What Should Happen**
 
@@ -96,8 +96,8 @@ If automatic provisioning fails, users can manually add domains:
 # Check if Cloudflare for SaaS is enabled
 # Go to: Cloudflare Dashboard → ozzyl.com → SSL/TLS → Custom Hostnames
 
-# Check Pages project domains
-npx wrangler pages project list
+# Check Worker domains
+npx wrangler worker list
 
 # Test API connection (replace with actual values)
 curl -X GET "https://api.cloudflare.com/client/v4/zones/YOUR_ZONE_ID/custom_hostnames" \
@@ -129,4 +129,4 @@ Once Cloudflare for SaaS is enabled and API token is set:
 
 ---
 
-**Your Pages project is ready!** The issue is Cloudflare for SaaS configuration. Enable it and domains will work automatically.
+**Your Worker is ready!** The issue is Cloudflare for SaaS configuration. Enable it and domains will work automatically.

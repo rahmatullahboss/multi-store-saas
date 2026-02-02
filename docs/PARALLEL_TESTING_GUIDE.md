@@ -8,7 +8,7 @@
 
 ```bash
 # Production URL
-https://multistore-saas.pages.dev
+https://multistore-saas.ozzyl.workers.dev
 
 # অথবা Local Development
 npm run dev
@@ -31,14 +31,12 @@ npm run dev
 ## 1️⃣ Authentication Tests
 
 - [ ] **Registration** (`/auth/register`)
-
   - Store Name: `Test Store`
   - Subdomain: `test-store`
   - Email: `tester@test.com`
   - Password: `TestPass123!`
 
 - [ ] **Login** (`/auth/login`)
-
   - Login with credentials
   - Session persistence (close & reopen browser)
 
@@ -51,7 +49,6 @@ npm run dev
 ## 2️⃣ Product Management Tests
 
 - [ ] **Add New Product** (`/app/products/new`)
-
   - Title: `Test Product 1`
   - Description: Any text
   - Price: 500 | Compare at Price: 600
@@ -62,18 +59,15 @@ npm run dev
   - Tags: `test, product`
 
 - [ ] **Add Product with Variants**
-
   - Title: `Test Variant Product`
   - Size variants: Small (900), Medium (1000), Large (1100)
   - Color variants: Red, Blue, Green
   - Each variant has own inventory
 
 - [ ] **Edit Product** (`/app/products/$id`)
-
   - Change title, price, inventory, image
 
 - [ ] **Delete Product**
-
   - Delete a product with confirmation modal
 
 - [ ] **Product List View** (`/app/products`)
@@ -84,12 +78,10 @@ npm run dev
 ## 3️⃣ Inventory Management Tests
 
 - [ ] **Inventory Overview** (`/app/inventory`)
-
   - Low stock products visible
   - Stock update functionality
 
 - [ ] **Bulk Import** (`/app/inventory/import`)
-
   - CSV file upload and preview
   - Import confirmation
 
@@ -101,7 +93,6 @@ npm run dev
 ## 4️⃣ Storefront Tests
 
 - [ ] **Homepage** (`/` or `test-store.localhost:5173`)
-
   - Products grid | Category navigation | Store branding
 
 - [ ] **Product Detail Page** (`/products/$id`)
@@ -112,35 +103,29 @@ npm run dev
 ## 5️⃣ Cart & Checkout Tests
 
 - [ ] **Cart Functionality** (`/cart`)
-
   - Single product add | Multiple products add
   - Quantity update | Remove item
   - Cart persistence (localStorage)
 
 - [ ] **Discount Code Apply**
-
   - Valid code → price reduction
   - Invalid code → error message
   - Expired code → error message
   - Minimum order amount check
 
 - [ ] **Checkout Page**
-
   - Customer info form
   - Shipping address | Phone number | Email
 
 - [ ] **COD Order**
-
   - Complete order without payment
   - Order confirmation page
   - Order number generation
 
 - [ ] **bKash Payment** (`/api/bkash/initiate`)
-
   - Initiate → Redirect → Callback → Success
 
 - [ ] **Nagad Payment** (`/api/nagad/initiate`)
-
   - Payment flow complete
 
 - [ ] **Stripe Payment** (`/api/stripe/initiate`)
@@ -152,20 +137,16 @@ npm run dev
 ## 6️⃣ Order Management Tests
 
 - [ ] **Orders List** (`/app/dashboard/orders`)
-
   - All orders visible | Status filter | Date filter
 
 - [ ] **Order Detail** (`/app/dashboard/orders/$id`)
-
   - Customer info | Order items | Payment status | Shipping status
 
 - [ ] **Order Status Update**
-
   - Pending → Processing → Shipped → Delivered
   - Add tracking number
 
 - [ ] **Courier Integration** (`/app/settings/courier`)
-
   - Pathao integration | Create shipment | Track shipment
 
 - [ ] **Abandoned Carts** (`/app/abandoned-carts`)
@@ -176,12 +157,10 @@ npm run dev
 ## 7️⃣ Discounts & Promotions Tests
 
 - [ ] **Create Discount** (`/app/discounts`)
-
   - Code: `TEST20` | Type: Percentage | Value: 20
   - Min order: 500 | Max uses: 100 | Expiry date
 
 - [ ] **Flash Sale**
-
   - Create flash sale | Homepage toggle | Timer functionality
 
 - [ ] **Edit/Delete Discount**
@@ -192,16 +171,13 @@ npm run dev
 ## 8️⃣ Email Marketing Tests
 
 - [ ] **Subscriber List** (`/app/subscribers`)
-
   - View all | Add manually | Export CSV
 
 - [ ] **Create Campaign** (`/app/campaigns/new`)
-
   - Name: `Test Campaign`
   - Subject: `Test Email` | HTML content | Preview text
 
 - [ ] **Campaign Management** (`/app/campaigns`)
-
   - Draft | Schedule | View sent | Stats (open, click)
 
 - [ ] **Unsubscribe** (`/unsubscribe?email=test@test.com`)
@@ -211,7 +187,6 @@ npm run dev
 ## 9️⃣ Analytics & Reports Tests
 
 - [ ] **Analytics Dashboard** (`/app/analytics`)
-
   - Sales chart | Top products | Customer demographics | Conversion metrics
 
 - [ ] **Reports** (`/app/reports`)
@@ -223,23 +198,18 @@ npm run dev
 ## 🔟 Store Settings Tests
 
 - [ ] **General Settings** (`/app/settings`)
-
   - Store name | Logo upload | Currency | Language (EN/BN)
 
 - [ ] **Theme & Branding**
-
   - Accent color picker | Font selection | Favicon upload
 
 - [ ] **Social Links**
-
   - Facebook URL | Instagram URL | WhatsApp number
 
 - [ ] **SEO Settings** (`/app/settings/seo`)
-
   - Meta title | Meta description | OG image
 
 - [ ] **Shipping Settings** (`/app/settings/shipping`)
-
   - Add zone: `Dhaka City` - Rate: 60
   - Add zone: `Outside Dhaka` - Rate: 120
   - Free shipping threshold
@@ -252,15 +222,12 @@ npm run dev
 ## 1️⃣1️⃣ Team & Notification Tests
 
 - [ ] **Invite Team Member** (`/app/settings/team`)
-
   - Email: `team@test.com` | Role: Staff | Send invite
 
 - [ ] **Accept Invite** (`/invite/$token`)
-
   - Open invite link | Create password | Login
 
 - [ ] **Activity Logs** (`/app/settings/activity`)
-
   - Recent activities | Filter by action | User attribution
 
 - [ ] **Email Notifications**

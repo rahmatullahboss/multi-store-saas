@@ -1673,7 +1673,7 @@ console.error('Payment failed:', {
 # Main App (Cloudflare Pages)
 cd apps/web
 npm run build
-wrangler pages deploy
+wrangler deploy
 
 # Page Builder Worker
 cd apps/page-builder
@@ -1814,10 +1814,11 @@ import { Button } from '@ozzyl/ui';
 
 1. **Multi-Tenancy Safety** - ALWAYS filter by `store_id` in database queries
 2. **Zod Validation** - ALL user inputs must be validated server-side
-3. **No Secrets in Code** - Use Cloudflare Dashboard for API keys
-4. **Type Safety** - No `any` types, use explicit TypeScript types
-5. **Test Before Claim** - Run `npm run test:all` before claiming done
-6. **Edge-First** - All code runs on Cloudflare Edge, optimize accordingly
+3. **Context7 Required** - Use Context7 MCP for clarifications and best-practice checks before making changes
+4. **No Secrets in Code** - Use Cloudflare Dashboard for API keys
+5. **Type Safety** - No `any` types, use explicit TypeScript types
+6. **Test Before Claim** - Run `npm run test:all` before claiming done
+7. **Edge-First** - All code runs on Cloudflare Edge, optimize accordingly
 
 ---
 

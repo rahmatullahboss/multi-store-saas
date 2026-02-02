@@ -10,14 +10,14 @@ All technical issues in the codebase have been resolved. The domain setup system
 
 ### 1. **DNS Target Mismatch** ✅ FIXED
 
-**Problem**: Code referenced `ozzyl-saas.pages.dev` but actual Pages project is `multi-store-saas`
+**Problem**: Code referenced `ozzyl-saas.pages.dev` but actual Worker is `multi-store-saas`
 
 **Files Fixed**:
 
 - `app/services/cloudflare.server.ts` (lines 125, 172, 266)
 - `app/routes/app.settings.domain.tsx` (line 90)
 
-**Current DNS Target**: `multi-store-saas.pages.dev`
+**Current DNS Target**: `multi-store-saas.ozzyl.workers.dev`
 
 ### 2. **Missing Documentation** ✅ CREATED
 
@@ -45,20 +45,18 @@ Clear instructions for:
 This is the **root cause** of your domain verification failures.
 
 1. **Login to Cloudflare Dashboard**
-
    - Go to https://dash.cloudflare.com
    - Select your **ozzyl.com** zone
 
 2. **Enable Cloudflare for SaaS**
    - Navigate to **SSL/TLS** → **Custom Hostnames**
    - Click **"Enable Cloudflare for SaaS"**
-   - Set **Fallback Origin** to: `multi-store-saas.pages.dev`
+   - Set **Fallback Origin** to: `multi-store-saas.ozzyl.workers.dev`
    - Save settings
 
 ### Step 2: Create API Token
 
 1. **Go to API Tokens**
-
    - https://dash.cloudflare.com/profile/api-tokens
    - Click **"Create Token"**
 
@@ -77,7 +75,7 @@ This is the **root cause** of your domain verification failures.
 }
 ```
 
-3. **Copy the token** and add it to your Pages environment:
+3. **Copy the token** and add it to your Worker environment:
    - Go to **Cloudflare Dashboard** → **Workers & Pages** → **multi-store-saas**
    - **Settings** → **Environment Variables**
    - Add: `CLOUDFLARE_API_TOKEN` = `[your-token]`
@@ -101,7 +99,7 @@ git push
 2. Enters custom domain: `myshop.com`
 3. System automatically:
    - Creates Cloudflare custom hostname
-   - Returns DNS target: `multi-store-saas.pages.dev`
+   - Returns DNS target: `multi-store-saas.ozzyl.workers.dev`
    - Shows instructions to add CNAME record
 4. Merchant adds CNAME in their DNS
 5. Cloudflare automatically provisions SSL
@@ -121,9 +119,9 @@ git push
 After completing the setup above, verify:
 
 - [ ] Cloudflare for SaaS is enabled on ozzyl.com
-- [ ] Fallback origin is set to `multi-store-saas.pages.dev`
-- [ ] `CLOUDFLARE_API_TOKEN` is set in Pages environment
-- [ ] `CLOUDFLARE_ZONE_ID` is set in Pages environment
+- [ ] Fallback origin is set to `multi-store-saas.ozzyl.workers.dev`
+- [ ] `CLOUDFLARE_API_TOKEN` is set in Worker environment
+- [ ] `CLOUDFLARE_ZONE_ID` is set in Worker environment
 - [ ] Latest code is deployed
 - [ ] Test adding a custom domain
 
@@ -134,18 +132,15 @@ After completing the setup above, verify:
 ### If domains still fail to verify:
 
 1. **Check Cloudflare for SaaS is enabled**:
-
    - Go to SSL/TLS → Custom Hostnames
    - Should show "Cloudflare for SaaS: Active"
 
 2. **Verify API token permissions**:
-
    - Token must have "SSL and Certificates: Edit"
    - Must be restricted to ozzyl.com zone
 
 3. **Check fallback origin**:
-
-   - Should be exactly: `multi-store-saas.pages.dev`
+   - Should be exactly: `multi-store-saas.ozzyl.workers.dev`
    - No trailing slashes or protocols
 
 4. **Test API access**:

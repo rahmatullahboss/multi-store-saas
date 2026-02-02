@@ -76,7 +76,7 @@ wrangler d1 execute multi-store-saas-db --command "SELECT name FROM sqlite_maste
 
 ```bash
 # Via wrangler
-wrangler pages secret put SECRET_NAME
+wrangler secret put SECRET_NAME --name=multi-store-saas
 
 # Or via Cloudflare Dashboard (recommended)
 ```
@@ -94,7 +94,7 @@ npm run build
 # Deploy
 npm run deploy
 # OR
-wrangler pages deploy ./build/client --project-name=multi-store-saas
+wrangler deploy --name=multi-store-saas
 ```
 
 ### Page Builder Worker (if changed)
@@ -122,7 +122,7 @@ wrangler deploy
 
 ```bash
 # Watch production logs
-wrangler tail --project-name=multi-store-saas
+wrangler tail --name=multi-store-saas
 ```
 
 ### Check Error Tracking
@@ -134,7 +134,7 @@ wrangler tail --project-name=multi-store-saas
 
 ### Quick Rollback via Cloudflare Dashboard
 
-1. Go to Cloudflare Pages > multi-store-saas
+1. Go to Cloudflare Workers & Pages > multi-store-saas
 2. Deployments tab
 3. Find previous working deployment
 4. Click "Rollback to this deployment"

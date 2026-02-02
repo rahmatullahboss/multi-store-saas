@@ -1,5 +1,5 @@
 {
-  "name": "rate-limiter",
+  "name": "webhook-dispatcher",
   "private": true,
   "type": "module",
   "scripts": {

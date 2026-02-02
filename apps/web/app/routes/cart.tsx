@@ -139,14 +139,37 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ success: true, items: [] });
     }
 
+    if (typeof cartItemsJson !== 'string') {
+      return json({ error: 'Invalid cart payload' }, { status: 400 });
+    }
+
     try {
-      const cartItems = JSON.parse(cartItemsJson as string) as Array<{
+      const cartItems = JSON.parse(cartItemsJson) as Array<{
         productId: number;
         quantity: number;
       }>;
 
+      if (!Array.isArray(cartItems)) {
+        return json({ error: 'Invalid cart payload' }, { status: 400 });
+      }
+
+      const normalizedItems = cartItems
+        .filter((item) => Number.isFinite(item.productId) && Number.isFinite(item.quantity))
+        .map((item) => ({
+          productId: Number(item.productId),
+          quantity: Math.max(0, Number(item.quantity)),
+        }))
+        .filter((item) => item.quantity > 0);
+
+      if (normalizedItems.length === 0) {
+        return json({ success: true, items: [] });
+      }
+
       const storeContext = await resolveStore(context, request);
       if (!storeContext) {
+        console.error('Cart validation error: store not found', {
+          url: request.url,
+        });
         return json({ error: 'Store not found' }, { status: 404 });
       }
 
@@ -154,7 +177,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const db = drizzle(context.cloudflare.env.DB);
 
       // Fetch current product data
-      const productIds = cartItems.map((item) => item.productId);
+      const productIds = normalizedItems.map((item) => item.productId);
       const productData = await db
         .select({
           id: products.id,
@@ -169,7 +192,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         .where(and(eq(products.storeId, storeId), inArray(products.id, productIds)));
 
       // Validate each cart item
-      const validatedItems = cartItems.map((cartItem) => {
+      const validatedItems = normalizedItems.map((cartItem) => {
         const product = productData.find((p) => p.id === cartItem.productId);
 
         if (!product || !product.isPublished) {
@@ -208,7 +231,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         hasInvalidItems: validatedItems.some((item) => !item.isValid),
       });
     } catch (error) {
-      console.error('Cart validation error:', error);
+      console.error('Cart validation error:', error, {
+        url: request.url,
+      });
       return json({ error: 'Failed to validate cart' }, { status: 500 });
     }
   }
@@ -259,21 +284,25 @@ export default function CartPage() {
         const items = JSON.parse(storedCart);
         setCartItems(items);
 
-      // Validate cart items with server
+        // Validate cart items with server (debounced)
         if (items.length > 0) {
-          const formData = new FormData();
-          formData.append('intent', 'validate-cart');
-          formData.append(
-            'cartItems',
-            JSON.stringify(
-              items.map((item: { productId: number; quantity: number }) => ({
-                productId: item.productId,
-                quantity: item.quantity,
-              }))
-            )
-          );
+          const timeout = window.setTimeout(() => {
+            const formData = new FormData();
+            formData.append('intent', 'validate-cart');
+            formData.append(
+              'cartItems',
+              JSON.stringify(
+                items.map((item: { productId: number; quantity: number }) => ({
+                  productId: item.productId,
+                  quantity: item.quantity,
+                }))
+              )
+            );
 
-          fetcher.submit(formData, { method: 'post' });
+            fetcher.submit(formData, { method: 'post' });
+          }, 1000);
+
+          return () => window.clearTimeout(timeout);
         }
       } catch {
         setCartItems([]);

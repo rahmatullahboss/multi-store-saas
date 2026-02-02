@@ -1,6 +1,9 @@
+#:schema node_modules/wrangler/config-schema.json
+
 name = "webhook-dispatcher"
 main = "src/index.ts"
-compatibility_date = "2024-11-18"
+compatibility_date = "2025-04-14"
+compatibility_flags = ["nodejs_compat"]
 
 # Bind to the same D1 database to read subscriptions
 [[d1_databases]]

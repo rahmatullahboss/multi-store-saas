@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { useLocation } from '@remix-run/react';
 
 const STORAGE_KEY = 'store_visitor_id';
+const BATCH_KEY = 'store_analytics_batch';
+const FLUSH_DELAY_MS = 1000;
 
 export function useTrackVisit(storeId: number | undefined | null) {
   const location = useLocation();
@@ -18,24 +20,40 @@ export function useTrackVisit(storeId: number | undefined | null) {
 
     // 2. Prepare payload
     const payload = {
+      type: 'visit' as const,
       storeId,
       path: location.pathname,
       visitorId,
+      ts: Date.now(),
     };
 
-    // 3. Send tracking request (fire and forget)
-    // using fetch with keepalive to ensure it completes even if page unloads
-    fetch('/api/track-visit', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-      keepalive: true,
-    }).catch((err) => {
-      // Silently fail for analytics
-      console.error('[Analytics] Failed to track visit:', err);
-    });
+    // 3. Queue payload for batch send
+    const queued = localStorage.getItem(BATCH_KEY);
+    const batch = queued ? (JSON.parse(queued) as typeof payload[]) : [];
+    batch.push(payload);
+    localStorage.setItem(BATCH_KEY, JSON.stringify(batch));
 
+    // 4. Debounced batch flush
+    const timeout = window.setTimeout(() => {
+      const queuedBatch = localStorage.getItem(BATCH_KEY);
+      if (!queuedBatch) return;
+
+      localStorage.removeItem(BATCH_KEY);
+
+      fetch('/api/track-events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ events: JSON.parse(queuedBatch) }),
+        keepalive: true,
+      }).catch((err) => {
+        // Restore batch on failure
+        localStorage.setItem(BATCH_KEY, queuedBatch);
+        console.error('[Analytics] Failed to track visit:', err);
+      });
+    }, FLUSH_DELAY_MS);
+
+    return () => window.clearTimeout(timeout);
   }, [storeId, location.pathname]);
 }

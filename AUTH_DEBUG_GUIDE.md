@@ -67,7 +67,7 @@ File: `apps/web/app/routes/auth.login.tsx`
 
 ```bash
 cd apps/web
-npx wrangler pages deployment tail --project-name=multi-store-saas --format=pretty
+npx wrangler tail --name=multi-store-saas --format=pretty
 ```
 
 লগইন করার চেষ্টা করুন এবং দেখুন কী error আসে।

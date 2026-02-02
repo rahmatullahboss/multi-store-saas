@@ -15,7 +15,6 @@
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",
     "@remix-run/cloudflare": "^2.15.0",
-    "@remix-run/cloudflare-pages": "^2.15.0",
     "@remix-run/react": "^2.15.0",
     "drizzle-orm": "^0.38.0",
     "grapesjs": "^0.22.14",

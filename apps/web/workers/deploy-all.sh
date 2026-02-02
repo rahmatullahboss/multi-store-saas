@@ -26,6 +26,7 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Worker directories (in deployment order)
+# Order matters: deploy service workers first, then proxy
 WORKERS=(
     "order-processor"
     "cart-processor"
@@ -34,6 +35,8 @@ WORKERS=(
     "store-config"
     "editor-state"
     "pdf-generator"
+    "webhook-dispatcher"
+    "subdomain-proxy"
 )
 
 # Parse arguments

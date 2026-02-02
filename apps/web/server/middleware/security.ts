@@ -38,17 +38,18 @@ const defaultOptions: SecurityHeadersOptions = {
  * Generate Content-Security-Policy header
  */
 function generateCSP(options: SecurityHeadersOptions): string {
-  const trustedDomains = options.trustedDomains || [];
+  // const trustedDomains = options.trustedDomains || [];
   
   // Add common trusted domains
-  const defaultSources = [
-    "'self'",
-    'https://fonts.googleapis.com',
-    'https://fonts.gstatic.com',
-    'https://res.cloudinary.com',
-    'https://*.cloudinary.com',
-    ...trustedDomains,
-  ];
+  // Add common trusted domains
+  // const defaultSources = [
+  //   "'self'",
+  //   'https://fonts.googleapis.com',
+  //   'https://fonts.gstatic.com',
+  //   'https://res.cloudinary.com',
+  //   'https://*.cloudinary.com',
+  //   ...trustedDomains,
+  // ];
   
   // For strict API mode
   if (options.strictCSP) {
@@ -61,11 +62,12 @@ function generateCSP(options: SecurityHeadersOptions): string {
   // For page rendering
   return [
     `default-src 'self'`,
-    `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com`,
+    `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com https://static.cloudflareinsights.com blob:`,
+    `worker-src 'self' blob:`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     `img-src 'self' data: blob: https: http:`,
     `font-src 'self' https://fonts.gstatic.com data:`,
-    `connect-src 'self' https://api.openrouter.ai https://accounts.google.com https://sslcommerz.com https://*.sslcommerz.com wss: ws:`,
+    `connect-src 'self' https://api.openrouter.ai https://accounts.google.com https://sslcommerz.com https://*.sslcommerz.com https://static.cloudflareinsights.com https://fonts.googleapis.com https://fonts.gstatic.com https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev https://images.unsplash.com https://o4509758332141568.ingest.de.sentry.io wss: ws:`,
     `frame-src 'self' https://accounts.google.com https://sslcommerz.com`,
     `frame-ancestors ${options.allowIframe ? '*' : "'self'"}`,
     `base-uri 'self'`,

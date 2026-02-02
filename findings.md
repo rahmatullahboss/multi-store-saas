@@ -4,7 +4,7 @@
 
 **Status:** Diagnosed
 **Issue:** Google Auth Callback returns 404 on `ozzyl.com`.
-**Root Cause:** The domain `ozzyl.com` is currently pointing to a **Vercel** deployment (Legacy/Old App), not the new Cloudflare Pages application.
+**Root Cause:** The domain `ozzyl.com` is currently pointing to a **Vercel** deployment (Legacy/Old App), not the new Cloudflare Workers application.
 
 - `apps/web` (Cloudflare) has the correct route: `/store/auth/google/callback`.
 - `ozzyl.com` (Vercel) does NOT have this route, returning a Next.js 404.
@@ -12,10 +12,10 @@
 **Proof:**
 
 - `curl -I https://ozzyl.com/store/auth/google/callback` -> Returns **404** (Vercel Headers: `x-vercel-cache: HIT`).
-- `curl -I https://multi-store-saas.pages.dev/store/auth/google/callback` -> Returns **302 Redirect** (Works Correctly).
+- `curl -I https://multi-store-saas.ozzyl.workers.dev/store/auth/google/callback` -> Returns **302 Redirect** (Works Correctly).
 
 **Action Required:**
-Update DNS settings for `ozzyl.com` to point to the new Cloudflare Pages project.
+Update DNS settings for `ozzyl.com` to point to the new Cloudflare Workers project.
 
 ## Relevant Code
 

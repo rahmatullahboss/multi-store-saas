@@ -6,7 +6,7 @@ Your system is configured for **ozzyl.com** as the SaaS domain with the followin
 
 - **Zone ID**: `41147efa7d197cfddda0af7fcbf6d641`
 - **SaaS Domain**: `ozzyl.com`
-- **Pages Project**: `multi-store-saas`
+- **Worker**: `multi-store-saas`
 
 ## Problem Diagnosis
 
@@ -25,7 +25,6 @@ The domain setup issue for ozzyl.com is likely due to one of these common proble
 1. **Go to Cloudflare Dashboard** → **ozzyl.com** zone → **SSL/TLS** → **Custom Hostnames**
 
 2. **Check if Cloudflare for SaaS is enabled**:
-
    - If you see "Enable Cloudflare for SaaS" button → **Not enabled**
    - If you see custom hostnames list → **Already enabled**
 
@@ -36,9 +35,9 @@ The domain setup issue for ozzyl.com is likely due to one of these common proble
 ### Step 2: Configure Fallback Origin
 
 1. In **Custom Hostnames** page → Click **"Add Fallback Origin"**
-2. Enter: `multi-store-saas.pages.dev`
+2. Enter: `multi-store-saas.ozzyl.workers.dev`
 3. Wait for verification (usually instant)
-4. **Important**: The fallback origin must be your actual Pages deployment
+4. **Important**: The fallback origin must be your actual Worker deployment
 
 ### Step 3: Add Wildcard Custom Hostname
 
@@ -49,7 +48,7 @@ The domain setup issue for ozzyl.com is likely due to one of these common proble
 
 ### Step 4: Set Environment Variables in Cloudflare Pages
 
-**Cloudflare Dashboard** → **Pages** → **multi-store-saas** → **Settings** → **Environment Variables**
+**Cloudflare Dashboard** → **Workers & Pages** → **multi-store-saas** → **Settings** → **Environment Variables**
 
 Add these Production variables:
 
@@ -94,7 +93,7 @@ After adding environment variables, re-deploy:
 
 ```bash
 npm run build
-npx wrangler pages deploy ./build/client --project-name=multi-store-saas
+npx wrangler deploy --name=multi-store-saas
 ```
 
 ## Verification Steps
@@ -117,7 +116,7 @@ npx wrangler pages deploy ./build/client --project-name=multi-store-saas
 
 After adding a domain, users should see:
 
-- **CNAME Record**: `@` → `multi-store-saas.pages.dev`
+- **CNAME Record**: `@` → `multi-store-saas.ozzyl.workers.dev`
 - **SSL Status**: Pending → Active
 - **DNS Status**: Pending → Verified
 
@@ -125,7 +124,7 @@ After adding a domain, users should see:
 
 ### Issue 1: "Cloudflare credentials not configured"
 
-**Solution**: Set `CLOUDFLARE_API_TOKEN` in Pages environment variables
+**Solution**: Set `CLOUDFLARE_API_TOKEN` in Worker environment variables
 
 ### Issue 2: "Failed to create custom hostname"
 
@@ -139,7 +138,7 @@ After adding a domain, users should see:
 
 **Solution**:
 
-- User needs to add CNAME record: `@` → `multi-store-saas.pages.dev`
+- User needs to add CNAME record: `@` → `multi-store-saas.ozzyl.workers.dev`
 - Or wait for HTTP validation to complete
 - Click "Refresh Status" in domain settings
 
@@ -167,7 +166,7 @@ Your database should have these columns in `stores` table:
 
 1. **User adds domain**: `mystore.com`
 2. **System creates**: Cloudflare custom hostname
-3. **User gets**: DNS instructions (CNAME to `multi-store-saas.pages.dev`)
+3. **User gets**: DNS instructions (CNAME to `multi-store-saas.ozzyl.workers.dev`)
 4. **System monitors**: SSL/DNS status automatically
 5. **Result**: `https://mystore.com` loads your store
 
@@ -209,12 +208,12 @@ curl -X GET "https://api.cloudflare.com/client/v4/zones/YOUR_ZONE_ID/custom_host
 If domains still don't work after following this guide:
 
 - [ ] Cloudflare for SaaS is enabled on ozzyl.com zone
-- [ ] Fallback origin is set to `multi-store-saas.pages.dev`
+- [ ] Fallback origin is set to `multi-store-saas.ozzyl.workers.dev`
 - [ ] Wildcard `*.ozzyl.com` custom hostname exists
-- [ ] `CLOUDFLARE_API_TOKEN` is set in Pages environment
+- [ ] `CLOUDFLARE_API_TOKEN` is set in Worker environment
 - [ ] `CLOUDFLARE_ZONE_ID` is correct (`41147efa7d197cfddda0af7fcbf6d641`)
 - [ ] API token has SSL and Certificates: Edit permission
-- [ ] Pages project is deployed and accessible
+- [ ] Worker is deployed and accessible
 - [ ] User adds domain in correct format (e.g., `mystore.com`)
 
 ## Expected Behavior After Fix

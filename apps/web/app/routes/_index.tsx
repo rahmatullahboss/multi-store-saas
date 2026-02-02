@@ -278,7 +278,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   const mainDomains = [
     'localhost',
     '127.0.0.1',
-    'ozzyl-saas.pages.dev',
+    'multi-store-saas.ozzyl.workers.dev',
     'ozzyl.com',
     'www.ozzyl.com',
     'app.ozzyl.com',
@@ -286,7 +286,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
 
   // Check if this is a main domain (should show marketing page)
   const isMainDomain =
-    mainDomains.includes(host) || (host.endsWith('.pages.dev') && host.split('.').length <= 3);
+    mainDomains.includes(host) || (host.endsWith('.workers.dev') && host.split('.').length <= 3);
 
   // If it's a main domain AND no store was resolved, show marketing page
   if (isMainDomain && (!store || storeId === 0)) {
@@ -576,7 +576,7 @@ export default function Index() {
       window.location.hostname !== 'ozzyl.com' &&
       window.location.hostname !== 'www.ozzyl.com' &&
       !window.location.hostname.includes('localhost') &&
-      !window.location.hostname.includes('pages.dev')
+      !window.location.hostname.includes('workers.dev')
     ) {
       // This effectively redirects other domains that accidentally got here
       window.location.href = 'https://ozzyl.com';

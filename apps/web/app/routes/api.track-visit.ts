@@ -65,14 +65,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
       storeId?: number;
       path?: string;
       visitorId?: string;
+      events?: Array<{ storeId?: number; path?: string; visitorId?: string }>;
     };
 
-    const { storeId, path, visitorId } = body;
-
-    // Validate required fields
-    if (!storeId || !path || !visitorId) {
-      return json({ error: 'Missing required fields' }, { status: 400 });
-    }
+    const events = Array.isArray(body.events)
+      ? body.events
+      : [{ storeId: body.storeId, path: body.path, visitorId: body.visitorId }];
 
     const db = drizzle(context.cloudflare.env.DB);
     const userAgent = request.headers.get('User-Agent') || '';
@@ -84,57 +82,76 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const country = request.headers.get('CF-IPCountry') || null;
     const city = request.headers.get('CF-IPCity') || null;
 
-    // Insert page view
-    await db.insert(pageViews).values({
-      storeId,
-      path,
-      visitorId,
-      ipAddress,
-      userAgent: userAgent.substring(0, 500), // Limit length
-      referrer: referrer.substring(0, 500),
-      country,
-      city,
-      deviceType,
-    });
+    for (const event of events) {
+      const { storeId, path, visitorId } = event;
 
-    // Increment monthly visitor count for the store
-    // First check if we need to reset the counter (new month)
-    const store = await db
-      .select({ 
-        visitorCountResetAt: stores.visitorCountResetAt,
-        monthlyVisitorCount: stores.monthlyVisitorCount,
-      })
-      .from(stores)
-      .where(eq(stores.id, storeId))
-      .limit(1);
+      // Validate required fields
+      if (!storeId || !path || !visitorId) {
+        continue;
+      }
 
-    if (store.length > 0) {
-      const needsReset = shouldResetVisitorCount(store[0].visitorCountResetAt);
-      
-      if (needsReset) {
-        // Reset counter to 1 and update reset timestamp
-        await db
-          .update(stores)
-          .set({
-            monthlyVisitorCount: 1,
-            visitorCountResetAt: new Date(),
+      // Insert page view (wrapped in try-catch to not block on error)
+      try {
+        await db.insert(pageViews).values({
+          storeId,
+          path,
+          visitorId,
+          ipAddress,
+          userAgent: userAgent.substring(0, 500), // Limit length
+          referrer: referrer.substring(0, 500),
+          country,
+          city,
+          deviceType,
+        });
+      } catch (insertError) {
+        console.error('[api.track-visit] Page view insert failed:', insertError);
+        // Continue to visitor count update
+      }
+
+      // Increment monthly visitor count for the store
+      // Wrapped separately so failure here doesn't affect page view tracking
+      try {
+        const store = await db
+          .select({
+            visitorCountResetAt: stores.visitorCountResetAt,
+            monthlyVisitorCount: stores.monthlyVisitorCount,
           })
-          .where(eq(stores.id, storeId));
-      } else {
-        // Just increment the counter
-        await db
-          .update(stores)
-          .set({
-            monthlyVisitorCount: sql`COALESCE(${stores.monthlyVisitorCount}, 0) + 1`,
-          })
-          .where(eq(stores.id, storeId));
+          .from(stores)
+          .where(eq(stores.id, storeId))
+          .limit(1);
+
+        if (store.length > 0) {
+          const needsReset = shouldResetVisitorCount(store[0].visitorCountResetAt);
+
+          if (needsReset) {
+            // Reset counter to 1 and update reset timestamp
+            await db
+              .update(stores)
+              .set({
+                monthlyVisitorCount: 1,
+                visitorCountResetAt: new Date(),
+              })
+              .where(eq(stores.id, storeId));
+          } else {
+            // Just increment the counter
+            await db
+              .update(stores)
+              .set({
+                monthlyVisitorCount: sql`COALESCE(${stores.monthlyVisitorCount}, 0) + 1`,
+              })
+              .where(eq(stores.id, storeId));
+          }
+        }
+      } catch (visitorCountError) {
+        console.error('[api.track-visit] Visitor count update failed:', visitorCountError);
+        // Non-critical - continue
       }
     }
 
     return json({ success: true });
   } catch (error) {
-    console.error('[api.track-visit] Error:', error);
-    // Return success anyway to not block client
+    console.error('[api.track-visit] Unexpected error:', error);
+    // Return success anyway to not block client-side rendering
     return json({ success: true });
   }
 }

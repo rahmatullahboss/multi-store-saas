@@ -1,8 +1,8 @@
 /**
  * Super Admin - Domain Health Monitor
- * 
+ *
  * Route: /admin/domains
- * 
+ *
  * Features:
  * - View all custom domains connected to the platform
  * - Real-time status checking via Cloudflare API
@@ -12,28 +12,34 @@
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { Form, useActionData, useLoaderData, useNavigation, useRevalidator } from '@remix-run/react';
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useNavigation,
+  useRevalidator,
+} from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, isNotNull, or, desc } from 'drizzle-orm';
 import { stores, users } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
-import { 
-  getHostnameStatus, 
+import {
+  getHostnameStatus,
   deleteCustomHostname,
   refreshHostnameValidation,
   isCloudflareConfigured,
-  type CloudflareEnv 
+  type CloudflareEnv,
 } from '~/services/cloudflare.server';
-import { 
-  Globe, 
-  Check, 
-  X, 
-  Clock, 
-  ExternalLink, 
-  Copy, 
-  RefreshCw, 
-  Trash2, 
-  AlertTriangle, 
+import {
+  Globe,
+  Check,
+  X,
+  Clock,
+  ExternalLink,
+  Copy,
+  RefreshCw,
+  Trash2,
+  AlertTriangle,
   Zap,
   Shield,
   Info,
@@ -41,7 +47,7 @@ import {
   XCircle,
   AlertCircle,
   Search,
-  ChevronDown
+  ChevronDown,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -73,14 +79,14 @@ interface DomainEntry {
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = context.cloudflare.env.DB;
-  
+
   // Require super admin access
   await requireSuperAdmin(request, context.cloudflare.env, db);
-  
+
   const drizzleDb = drizzle(db);
   const env = context.cloudflare.env as CloudflareEnv;
   const cloudflareConfigured = isCloudflareConfigured(env);
-  
+
   // Get all stores with custom domains or pending requests
   const domainsData = await drizzleDb
     .select({
@@ -100,7 +106,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .from(stores)
     .where(or(isNotNull(stores.customDomain), isNotNull(stores.customDomainRequest)))
     .orderBy(desc(stores.createdAt));
-  
+
   // Get store owner emails
   const domains: DomainEntry[] = [];
   for (const store of domainsData) {
@@ -114,18 +120,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       ownerEmail: owner[0]?.email || null,
     });
   }
-  
+
   // Separate by status
-  const activeDomains = domains.filter(d => d.customDomain && d.sslStatus === 'active');
-  const pendingDomains = domains.filter(d => d.customDomain && d.sslStatus !== 'active');
-  const failedDomains = domains.filter(d => d.customDomain && d.sslStatus === 'failed');
-  
+  const activeDomains = domains.filter((d) => d.customDomain && d.sslStatus === 'active');
+  const pendingDomains = domains.filter((d) => d.customDomain && d.sslStatus !== 'active');
+  const failedDomains = domains.filter((d) => d.customDomain && d.sslStatus === 'failed');
+
   // DNS target for CNAME records
-  const dnsTarget = 'ozzyl-saas.pages.dev';
-  
-  return json({ 
+  const dnsTarget = 'multi-store-saas.ozzyl.workers.dev';
+
+  return json({
     domains,
-    activeDomains, 
+    activeDomains,
     pendingDomains,
     failedDomains,
     cloudflareConfigured,
@@ -135,7 +141,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       active: activeDomains.length,
       pending: pendingDomains.length,
       failed: failedDomains.length,
-    }
+    },
   });
 }
 
@@ -144,80 +150,88 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
   const db = context.cloudflare.env.DB;
-  
+
   // Require super admin access
   await requireSuperAdmin(request, context.cloudflare.env, db);
-  
+
   const drizzleDb = drizzle(db);
   const env = context.cloudflare.env as CloudflareEnv;
-  
+
   const formData = await request.formData();
   const storeId = Number(formData.get('storeId'));
   const actionType = formData.get('action') as string;
-  
+
   if (!storeId || !actionType) {
     return json({ error: 'Invalid request', success: false }, { status: 400 });
   }
-  
+
   // Get the store
-  const store = await drizzleDb
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
-  
+  const store = await drizzleDb.select().from(stores).where(eq(stores.id, storeId)).limit(1);
+
   if (!store[0]) {
     return json({ error: 'Store not found', success: false }, { status: 404 });
   }
-  
+
   // Refresh status from Cloudflare
   if (actionType === 'refresh' && store[0].cloudflareHostnameId) {
     try {
       const result = await getHostnameStatus(store[0].cloudflareHostnameId, env);
-      await drizzleDb.update(stores).set({
-        sslStatus: result.sslStatus,
-        dnsVerified: result.status === 'active',
-        updatedAt: new Date(),
-      }).where(eq(stores.id, storeId));
-      
-      return json({ 
-        success: true, 
+      await drizzleDb
+        .update(stores)
+        .set({
+          sslStatus: result.sslStatus,
+          dnsVerified: result.status === 'active',
+          updatedAt: new Date(),
+        })
+        .where(eq(stores.id, storeId));
+
+      return json({
+        success: true,
         message: `Status refreshed: SSL ${result.sslStatus}, DNS ${result.status === 'active' ? 'verified' : 'pending'}`,
         storeId,
       });
     } catch (error) {
       console.error('[Admin Domains] Refresh error:', error);
-      return json({ 
-        error: 'Failed to refresh status from Cloudflare', 
-        success: false 
-      }, { status: 500 });
+      return json(
+        {
+          error: 'Failed to refresh status from Cloudflare',
+          success: false,
+        },
+        { status: 500 }
+      );
     }
   }
-  
+
   // Force refresh/retry validation
   if (actionType === 'retry' && store[0].cloudflareHostnameId) {
     try {
       const result = await refreshHostnameValidation(store[0].cloudflareHostnameId, env);
-      await drizzleDb.update(stores).set({
-        sslStatus: result.sslStatus,
-        dnsVerified: result.status === 'active',
-        updatedAt: new Date(),
-      }).where(eq(stores.id, storeId));
-      
-      return json({ 
-        success: true, 
+      await drizzleDb
+        .update(stores)
+        .set({
+          sslStatus: result.sslStatus,
+          dnsVerified: result.status === 'active',
+          updatedAt: new Date(),
+        })
+        .where(eq(stores.id, storeId));
+
+      return json({
+        success: true,
         message: 'Validation retry triggered. Check status again in a few minutes.',
         storeId,
       });
     } catch (error) {
       console.error('[Admin Domains] Retry validation error:', error);
-      return json({ 
-        error: 'Failed to trigger validation retry', 
-        success: false 
-      }, { status: 500 });
+      return json(
+        {
+          error: 'Failed to trigger validation retry',
+          success: false,
+        },
+        { status: 500 }
+      );
     }
   }
-  
+
   // Force remove domain
   if (actionType === 'delete') {
     try {
@@ -225,32 +239,38 @@ export async function action({ request, context }: ActionFunctionArgs) {
       if (store[0].cloudflareHostnameId && isCloudflareConfigured(env)) {
         await deleteCustomHostname(store[0].cloudflareHostnameId, env);
       }
-      
+
       // Clear domain from database
-      await drizzleDb.update(stores).set({
-        customDomain: null,
-        cloudflareHostnameId: null,
-        sslStatus: 'pending',
-        dnsVerified: false,
-        customDomainStatus: 'none',
-        customDomainRequest: null,
-        updatedAt: new Date(),
-      }).where(eq(stores.id, storeId));
-      
-      return json({ 
-        success: true, 
+      await drizzleDb
+        .update(stores)
+        .set({
+          customDomain: null,
+          cloudflareHostnameId: null,
+          sslStatus: 'pending',
+          dnsVerified: false,
+          customDomainStatus: 'none',
+          customDomainRequest: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(stores.id, storeId));
+
+      return json({
+        success: true,
         message: `Domain ${store[0].customDomain} removed successfully`,
         storeId,
       });
     } catch (error) {
       console.error('[Admin Domains] Delete error:', error);
-      return json({ 
-        error: 'Failed to remove domain', 
-        success: false 
-      }, { status: 500 });
+      return json(
+        {
+          error: 'Failed to remove domain',
+          success: false,
+        },
+        { status: 500 }
+      );
     }
   }
-  
+
   return json({ error: 'Invalid action', success: false }, { status: 400 });
 }
 
@@ -263,27 +283,28 @@ export default function AdminDomainHealthMonitor() {
   const navigation = useNavigation();
   const revalidator = useRevalidator();
   const isSubmitting = navigation.state === 'submitting';
-  
+
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'pending' | 'failed'>('all');
   const [expandedDomain, setExpandedDomain] = useState<number | null>(null);
-  
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedText(text);
     setTimeout(() => setCopiedText(null), 2000);
   };
-  
+
   // Filter domains
-  const filteredDomains = domains.filter(d => {
+  const filteredDomains = domains.filter((d) => {
     // Search filter
     const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = !searchQuery || 
+    const matchesSearch =
+      !searchQuery ||
       d.name.toLowerCase().includes(searchLower) ||
       d.customDomain?.toLowerCase().includes(searchLower) ||
       d.ownerEmail?.toLowerCase().includes(searchLower);
-    
+
     // Status filter
     let matchesStatus = true;
     if (statusFilter === 'active') {
@@ -293,10 +314,10 @@ export default function AdminDomainHealthMonitor() {
     } else if (statusFilter === 'failed') {
       matchesStatus = d.sslStatus === 'failed';
     }
-    
+
     return matchesSearch && matchesStatus;
   });
-  
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -315,36 +336,48 @@ export default function AdminDomainHealthMonitor() {
           disabled={revalidator.state === 'loading'}
           className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-700"
         >
-          <RefreshCw className={`w-4 h-4 ${revalidator.state === 'loading' ? 'animate-spin' : ''}`} />
+          <RefreshCw
+            className={`w-4 h-4 ${revalidator.state === 'loading' ? 'animate-spin' : ''}`}
+          />
           Refresh All
         </button>
       </div>
-      
+
       {/* Action feedback */}
       {actionData && (
-        <div className={`p-4 rounded-lg border ${
-          actionData.success 
-            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
-            : 'bg-red-500/10 border-red-500/30 text-red-400'
-        }`}>
-          {actionData.success 
-            ? ('message' in actionData ? actionData.message : 'Success') 
-            : ('error' in actionData ? actionData.error : 'An error occurred')}
+        <div
+          className={`p-4 rounded-lg border ${
+            actionData.success
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+              : 'bg-red-500/10 border-red-500/30 text-red-400'
+          }`}
+        >
+          {actionData.success
+            ? 'message' in actionData
+              ? actionData.message
+              : 'Success'
+            : 'error' in actionData
+              ? actionData.error
+              : 'An error occurred'}
         </div>
       )}
-      
+
       {/* Cloudflare Status */}
-      <div className={`p-4 rounded-xl flex items-center gap-3 ${
-        cloudflareConfigured 
-          ? 'bg-emerald-500/10 border border-emerald-500/30' 
-          : 'bg-yellow-500/10 border border-yellow-500/30'
-      }`}>
-        <Zap className={`w-5 h-5 ${cloudflareConfigured ? 'text-emerald-400' : 'text-yellow-400'}`} />
+      <div
+        className={`p-4 rounded-xl flex items-center gap-3 ${
+          cloudflareConfigured
+            ? 'bg-emerald-500/10 border border-emerald-500/30'
+            : 'bg-yellow-500/10 border border-yellow-500/30'
+        }`}
+      >
+        <Zap
+          className={`w-5 h-5 ${cloudflareConfigured ? 'text-emerald-400' : 'text-yellow-400'}`}
+        />
         <div className="flex-1">
-          <p className={`font-medium ${cloudflareConfigured ? 'text-emerald-300' : 'text-yellow-300'}`}>
-            {cloudflareConfigured 
-              ? 'Cloudflare API Connected' 
-              : 'Cloudflare API Not Configured'}
+          <p
+            className={`font-medium ${cloudflareConfigured ? 'text-emerald-300' : 'text-yellow-300'}`}
+          >
+            {cloudflareConfigured ? 'Cloudflare API Connected' : 'Cloudflare API Not Configured'}
           </p>
           {!cloudflareConfigured && (
             <p className="text-sm text-yellow-400/80 mt-0.5">
@@ -353,7 +386,7 @@ export default function AdminDomainHealthMonitor() {
           )}
         </div>
       </div>
-      
+
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-4">
@@ -367,7 +400,7 @@ export default function AdminDomainHealthMonitor() {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
@@ -379,7 +412,7 @@ export default function AdminDomainHealthMonitor() {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-yellow-500/20 rounded-lg flex items-center justify-center">
@@ -391,7 +424,7 @@ export default function AdminDomainHealthMonitor() {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
@@ -404,7 +437,7 @@ export default function AdminDomainHealthMonitor() {
           </div>
         </div>
       </div>
-      
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
@@ -431,14 +464,14 @@ export default function AdminDomainHealthMonitor() {
           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
         </div>
       </div>
-      
+
       {/* Domains Table */}
       {filteredDomains.length === 0 ? (
         <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-12 text-center">
           <Globe className="w-12 h-12 text-slate-600 mx-auto mb-4" />
           <p className="text-slate-400">
-            {searchQuery || statusFilter !== 'all' 
-              ? 'No domains match your filters' 
+            {searchQuery || statusFilter !== 'all'
+              ? 'No domains match your filters'
               : 'No custom domains configured yet'}
           </p>
         </div>
@@ -448,12 +481,24 @@ export default function AdminDomainHealthMonitor() {
             <table className="w-full">
               <thead className="bg-slate-900/50 border-b border-slate-700">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Store</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Domain URL</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">SSL Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">DNS Verified</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Plan</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                    Store
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                    Domain URL
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                    SSL Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                    DNS Verified
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                    Plan
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-700/50">
@@ -476,9 +521,11 @@ export default function AdminDomainHealthMonitor() {
                             className="p-1 text-slate-400 hover:text-white transition-colors"
                             title="Copy domain"
                           >
-                            {copiedText === domain.customDomain 
-                              ? <Check className="w-4 h-4 text-emerald-400" /> 
-                              : <Copy className="w-4 h-4" />}
+                            {copiedText === domain.customDomain ? (
+                              <Check className="w-4 h-4 text-emerald-400" />
+                            ) : (
+                              <Copy className="w-4 h-4" />
+                            )}
                           </button>
                           <a
                             href={`https://${domain.customDomain}`}
@@ -492,7 +539,9 @@ export default function AdminDomainHealthMonitor() {
                         </div>
                       </td>
                       <td className="px-4 py-4">
-                        <SSLStatusBadge status={domain.sslStatus as 'pending' | 'active' | 'failed' | null} />
+                        <SSLStatusBadge
+                          status={domain.sslStatus as 'pending' | 'active' | 'failed' | null}
+                        />
                       </td>
                       <td className="px-4 py-4">
                         <DNSStatusBadge verified={domain.dnsVerified} />
@@ -507,14 +556,16 @@ export default function AdminDomainHealthMonitor() {
                           {/* Show DNS Guide button for pending domains */}
                           {(domain.sslStatus !== 'active' || !domain.dnsVerified) && (
                             <button
-                              onClick={() => setExpandedDomain(expandedDomain === domain.id ? null : domain.id)}
+                              onClick={() =>
+                                setExpandedDomain(expandedDomain === domain.id ? null : domain.id)
+                              }
                               className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
                               title="DNS Configuration Guide"
                             >
                               <Info className="w-4 h-4" />
                             </button>
                           )}
-                          
+
                           {/* Refresh Status */}
                           <Form method="post">
                             <input type="hidden" name="storeId" value={domain.id} />
@@ -525,16 +576,25 @@ export default function AdminDomainHealthMonitor() {
                               className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
                               title="Refresh Status"
                             >
-                              <RefreshCw className={`w-4 h-4 ${isSubmitting ? 'animate-spin' : ''}`} />
+                              <RefreshCw
+                                className={`w-4 h-4 ${isSubmitting ? 'animate-spin' : ''}`}
+                              />
                             </button>
                           </Form>
-                          
+
                           {/* Remove Domain */}
-                          <Form method="post" onSubmit={(e) => {
-                            if (!confirm(`Are you sure you want to remove ${domain.customDomain}? This action cannot be undone.`)) {
-                              e.preventDefault();
-                            }
-                          }}>
+                          <Form
+                            method="post"
+                            onSubmit={(e) => {
+                              if (
+                                !confirm(
+                                  `Are you sure you want to remove ${domain.customDomain}? This action cannot be undone.`
+                                )
+                              ) {
+                                e.preventDefault();
+                              }
+                            }}
+                          >
                             <input type="hidden" name="storeId" value={domain.id} />
                             <input type="hidden" name="action" value="delete" />
                             <button
@@ -549,13 +609,13 @@ export default function AdminDomainHealthMonitor() {
                         </div>
                       </td>
                     </tr>
-                    
+
                     {/* DNS Configuration Guide (expandable) */}
                     {expandedDomain === domain.id && (
                       <tr key={`${domain.id}-dns`}>
                         <td colSpan={6} className="px-4 py-4 bg-slate-900/50">
-                          <DNSConfigGuide 
-                            domain={domain.customDomain || ''} 
+                          <DNSConfigGuide
+                            domain={domain.customDomain || ''}
                             dnsTarget={dnsTarget}
                             onCopy={copyToClipboard}
                             copiedText={copiedText}
@@ -599,11 +659,13 @@ function SSLStatusBadge({ status }: { status: 'pending' | 'active' | 'failed' | 
       label: 'Failed',
     },
   };
-  
+
   const { bg, text, icon: Icon, label } = config[status || 'pending'];
-  
+
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${bg} ${text}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${bg} ${text}`}
+    >
       <Icon className="w-3.5 h-3.5" />
       {label}
     </span>
@@ -612,13 +674,13 @@ function SSLStatusBadge({ status }: { status: 'pending' | 'active' | 'failed' | 
 
 function DNSStatusBadge({ verified }: { verified: boolean | null }) {
   const isVerified = verified === true;
-  
+
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-      isVerified 
-        ? 'bg-emerald-500/20 text-emerald-400' 
-        : 'bg-yellow-500/20 text-yellow-400'
-    }`}>
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+        isVerified ? 'bg-emerald-500/20 text-emerald-400' : 'bg-yellow-500/20 text-yellow-400'
+      }`}
+    >
       {isVerified ? (
         <>
           <CheckCircle2 className="w-3.5 h-3.5" />
@@ -634,13 +696,13 @@ function DNSStatusBadge({ verified }: { verified: boolean | null }) {
   );
 }
 
-function DNSConfigGuide({ 
-  domain, 
-  dnsTarget, 
-  onCopy, 
-  copiedText 
-}: { 
-  domain: string; 
+function DNSConfigGuide({
+  domain,
+  dnsTarget,
+  onCopy,
+  copiedText,
+}: {
+  domain: string;
   dnsTarget: string;
   onCopy: (text: string) => void;
   copiedText: string | null;
@@ -649,7 +711,7 @@ function DNSConfigGuide({
   const parts = domain.split('.');
   const isSubdomain = parts.length > 2;
   const subdomain = isSubdomain ? parts.slice(0, -2).join('.') : '@';
-  
+
   return (
     <div className="rounded-lg bg-slate-800 border border-slate-700 p-4">
       <div className="flex items-start gap-3 mb-4">
@@ -663,7 +725,7 @@ function DNSConfigGuide({
           </p>
         </div>
       </div>
-      
+
       <div className="space-y-4">
         {/* CNAME Record */}
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
@@ -684,7 +746,11 @@ function DNSConfigGuide({
                   onClick={() => onCopy(subdomain)}
                   className="p-1 text-slate-400 hover:text-white"
                 >
-                  {copiedText === subdomain ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                  {copiedText === subdomain ? (
+                    <Check className="w-3 h-3 text-emerald-400" />
+                  ) : (
+                    <Copy className="w-3 h-3" />
+                  )}
                 </button>
               </div>
             </div>
@@ -696,28 +762,44 @@ function DNSConfigGuide({
                   onClick={() => onCopy(dnsTarget)}
                   className="p-1 text-slate-400 hover:text-white"
                 >
-                  {copiedText === dnsTarget ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                  {copiedText === dnsTarget ? (
+                    <Check className="w-3 h-3 text-emerald-400" />
+                  ) : (
+                    <Copy className="w-3 h-3" />
+                  )}
                 </button>
               </div>
             </div>
           </div>
         </div>
-        
+
         {/* Copyable message for support chat */}
         <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-blue-400">📋 Quick Copy for Support Chat</span>
+            <span className="text-xs font-medium text-blue-400">
+              📋 Quick Copy for Support Chat
+            </span>
             <button
-              onClick={() => onCopy(`Please add this DNS record to your domain:\n\nType: CNAME\nName: ${subdomain}\nValue: ${dnsTarget}\n\nAfter adding the record, wait 5-10 minutes for propagation, then click "Refresh Status" in your settings.`)}
+              onClick={() =>
+                onCopy(
+                  `Please add this DNS record to your domain:\n\nType: CNAME\nName: ${subdomain}\nValue: ${dnsTarget}\n\nAfter adding the record, wait 5-10 minutes for propagation, then click "Refresh Status" in your settings.`
+                )
+              }
               className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
             >
-              {copiedText?.includes('Please add this DNS record') 
-                ? <><Check className="w-3 h-3" /> Copied!</>
-                : <><Copy className="w-3 h-3" /> Copy Message</>}
+              {copiedText?.includes('Please add this DNS record') ? (
+                <>
+                  <Check className="w-3 h-3" /> Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3 h-3" /> Copy Message
+                </>
+              )}
             </button>
           </div>
           <pre className="text-sm text-slate-300 whitespace-pre-wrap font-mono bg-slate-900/50 p-3 rounded">
-{`Please add this DNS record to your domain:
+            {`Please add this DNS record to your domain:
 
 Type: CNAME
 Name: ${subdomain}

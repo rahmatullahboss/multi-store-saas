@@ -31,9 +31,13 @@ zone_name = "ozzyl.com"
 # ============================================================================
 # Serves static assets from the build directory directly
 # No need for R2 or separate Pages project
+# CRITICAL: run_worker_first prevents SPA fallback from intercepting API routes
+# Reference: https://github.com/cloudflare/workers-sdk/issues/8879
 [assets]
 directory = "build/client"
 binding = "ASSETS"
+not_found_handling = "none"
+run_worker_first = false
 
 # ============================================================================
 # BINDINGS - Work in Pages Functions

@@ -9,7 +9,10 @@ A Shopify-like multi-tenant e-commerce platform built with Cloudflare Workers, H
 - **Frontend**: Remix (SSR)
 - **Database**: Cloudflare D1 (SQLite) + Drizzle ORM
 - **Storage**: Cloudflare R2
+- **Cache**: Cloudflare KV
+- **AI/ML**: Cloudflare AI + Vectorize
 - **Styling**: Tailwind CSS v4
+- **Workers**: 9 microservice workers with Durable Objects
 
 ## Architecture
 
@@ -135,6 +138,96 @@ Every request is processed through `tenantMiddleware` which:
 | PATCH  | `/api/orders/:id/status` | Update order status  |
 | GET    | `/api/stores/current`    | Get current store    |
 | POST   | `/api/stores`            | Create store (admin) |
+
+## Microservices Workers
+
+The platform uses 9 specialized workers for different tasks:
+
+| Worker                 | Purpose                      | Technology           |
+| ---------------------- | ---------------------------- | -------------------- |
+| **order-processor**    | Order processing & inventory | Durable Objects      |
+| **cart-processor**     | Cart management              | Durable Objects      |
+| **checkout-lock**      | Atomic checkout locking      | Durable Objects      |
+| **rate-limiter**       | API rate limiting            | Durable Objects      |
+| **store-config**       | Store configuration cache    | Durable Objects + KV |
+| **editor-state**       | Page builder state           | Durable Objects      |
+| **pdf-generator**      | Invoice PDF generation       | Worker               |
+| **webhook-dispatcher** | Async webhook delivery       | Queue Consumer       |
+| **subdomain-proxy**    | Wildcard subdomain routing   | Worker               |
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        Cloudflare Edge                          │
+├─────────────────────────────────────────────────────────────────┤
+│  Builder (builder.ozzyl.com)                                    │
+│  ├── GrapesJS Page Builder                                      │
+│  └── Separate Worker Deployment                                 │
+├─────────────────────────────────────────────────────────────────┤
+│  Main App (multi-store-saas.ozzyl.workers.dev)                  │
+│  ├── Remix SSR + Hono API                                       │
+│  ├── Static Assets (ASSETS binding)                             │
+│  └── Service Bindings to Workers                                │
+├─────────────────────────────────────────────────────────────────┤
+│  Workers (Microservices)                                        │
+│  ├── Order/Cart/Checkout (Durable Objects)                      │
+│  ├── Rate Limiting & Config Cache                               │
+│  └── PDF Generation & Webhooks                                  │
+├─────────────────────────────────────────────────────────────────┤
+│  Data Layer                                                     │
+│  ├── D1 (SQLite) - Multi-tenant database                        │
+│  ├── R2 - Asset storage                                         │
+│  ├── KV - Edge caching                                          │
+│  └── Vectorize - AI search                                      │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Deployment
+
+### Quick Deploy
+
+```bash
+# 1. Deploy all workers
+cd apps/web/workers
+./deploy-all.sh
+
+# 2. Deploy page builder
+cd ../../page-builder
+npm run build && wrangler deploy
+
+# 3. Deploy main app
+cd ../web
+npm run build && wrangler deploy
+```
+
+### Verification
+
+```bash
+# Pre-deployment check
+cd apps/web/workers
+./verify-deployment.sh
+
+# Post-deployment health check
+./health-check.sh
+```
+
+### Documentation
+
+- [Deployment Guide](DEPLOYMENT_GUIDE.md) - Step-by-step deployment instructions
+- [Migration Verification](MIGRATION_VERIFICATION.md) - Configuration checklist
+- [Migration Summary](MIGRATION_COMPLETE.md) - What was changed
+
+## Migration Notes
+
+This project was migrated from **Cloudflare Pages** to **Cloudflare Workers** to enable:
+
+- Better microservices architecture with Service Bindings
+- Durable Objects for stateful operations
+- Improved performance with `run_worker_first` static assets
+- Latest Wrangler 4.x with auto-provisioning
+
+All 11 components (2 apps + 9 workers) now follow official Cloudflare Worker Base Stack best practices.
 
 ## License
 

@@ -4,8 +4,8 @@
 
 - **SaaS Domain**: `ozzyl.com`
 - **Zone ID**: `41147efa7d197cfddda0af7fcbf6d641`
-- **Pages Project**: `multi-store-saas`
-- **DNS Target**: `multi-store-saas.pages.dev`
+- **Worker**: `multi-store-saas`
+- **DNS Target**: `multi-store-saas.ozzyl.workers.dev`
 
 ## Step 1: Enable Cloudflare for SaaS
 
@@ -18,9 +18,9 @@
 ## Step 2: Configure Fallback Origin
 
 1. In **Custom Hostnames** page → Click **"Add Fallback Origin"**
-2. Enter: `multi-store-saas.pages.dev`
+2. Enter: `multi-store-saas.ozzyl.workers.dev`
 3. Wait for verification (usually instant if Pages is already deployed)
-4. **Important**: This must be your actual Pages deployment URL
+4. **Important**: This must be your actual Worker deployment URL
 
 ---
 
@@ -35,7 +35,7 @@
 
 ## Step 4: Add Environment Variables for Auto-Provisioning
 
-**Cloudflare Dashboard** → **Pages** → **multi-store-saas** → **Settings** → **Environment Variables**
+**Cloudflare Dashboard** → **Workers & Pages** → **multi-store-saas** → **Settings** → **Environment Variables**
 
 Add these Production variables:
 
@@ -79,7 +79,7 @@ After adding variables, re-deploy to apply:
 
 ```bash
 npm run build
-npx wrangler pages deploy ./build/client --project-name=multi-store-saas
+npx wrangler deploy --name=multi-store-saas
 ```
 
 ---
@@ -98,13 +98,13 @@ npx wrangler pages deploy ./build/client --project-name=multi-store-saas
 
 ### Domain shows "Host Error" or 522
 
-- Verify fallback origin is set to `multi-store-saas.pages.dev`
+- Verify fallback origin is set to `multi-store-saas.ozzyl.workers.dev`
 - Check wildcard hostname `*.ozzyl.com` is active
-- Ensure Pages project is deployed and accessible
+- Ensure Worker is deployed and accessible
 
 ### Custom domain not auto-provisioning
 
-- Check `CLOUDFLARE_API_TOKEN` is set in Pages environment variables
+- Check `CLOUDFLARE_API_TOKEN` is set in Worker environment variables
 - Verify `CLOUDFLARE_ZONE_ID` is correct: `41147efa7d197cfddda0af7fcbf6d641`
 - Verify token has correct permissions (SSL and Certificates: Edit)
 - Check Pages logs for API errors
@@ -112,7 +112,7 @@ npx wrangler pages deploy ./build/client --project-name=multi-store-saas
 
 ### SSL certificate not issuing
 
-- User must add CNAME record: `@` → `multi-store-saas.pages.dev`
+- User must add CNAME record: `@` → `multi-store-saas.ozzyl.workers.dev`
 - Or wait for HTTP validation to complete
 - Click "Refresh Status" in domain settings
 
@@ -141,7 +141,7 @@ Ensure your `stores` table has these columns:
 
 1. **User adds domain**: `mystore.com`
 2. **System creates**: Cloudflare custom hostname
-3. **User gets**: DNS instructions (CNAME to `multi-store-saas.pages.dev`)
+3. **User gets**: DNS instructions (CNAME to `multi-store-saas.ozzyl.workers.dev`)
 4. **System monitors**: SSL/DNS status automatically
 5. **Result**: `https://mystore.com` loads your store
 

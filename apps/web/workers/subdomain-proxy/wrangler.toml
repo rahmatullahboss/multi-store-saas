@@ -1,8 +1,9 @@
 # Subdomain Proxy Worker Configuration
-# Handles *.ozzyl.com/* requests
+# Routes *.ozzyl.com/* requests to the main Workers instance
 name = "wildcard-proxy"
-main = "subdomain-proxy/index.ts"
-compatibility_date = "2024-12-30"
+main = "index.ts"
+compatibility_date = "2025-04-14"
+compatibility_flags = ["nodejs_compat"]
 
 [vars]
 WORKER_URL = "https://multi-store-saas.ozzyl.workers.dev"

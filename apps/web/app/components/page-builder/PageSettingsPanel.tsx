@@ -32,7 +32,7 @@ export default function PageSettingsPanel({ config, onChange }: PageSettingsPane
     async function fetchProducts() {
       setLoading(true);
       try {
-        const response = await fetch('/api/products');
+        const response = await fetch('/api/bootstrap');
         if (response.ok) {
           const data = await response.json() as { products: any[] };
           const fetchedProducts = data.products || [];

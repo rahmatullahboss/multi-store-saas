@@ -1,11 +1,12 @@
 #:schema node_modules/wrangler/config-schema.json
 
 name = "subdomain-proxy"
-main = "workers/subdomain-proxy/index.ts"
-compatibility_date = "2024-12-30"
+main = "apps/web/workers/subdomain-proxy/index.ts"
+compatibility_date = "2025-04-14"
+compatibility_flags = ["nodejs_compat"]
 
 [vars]
-PAGES_URL = "https://multi-store-saas.pages.dev"
+WORKER_URL = "https://multi-store-saas.ozzyl.workers.dev"
 
 [observability]
 enabled = true

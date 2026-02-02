@@ -1,9 +1,9 @@
 /**
  * Cloudflare for SaaS Service
- * 
+ *
  * Handles automatic provisioning of custom hostnames via Cloudflare API.
  * This enables paid users to connect their own domains with automatic SSL.
- * 
+ *
  * Required Environment Variables:
  * - CLOUDFLARE_API_TOKEN: API token with "SSL and Certificates: Edit" permission
  * - CLOUDFLARE_ZONE_ID: Zone ID for the SaaS domain (ozzyl.com)
@@ -68,7 +68,7 @@ const CLOUDFLARE_API_BASE = 'https://api.cloudflare.com/client/v4';
 
 /**
  * Create a new custom hostname in Cloudflare
- * 
+ *
  * @param domain - The custom hostname to create (e.g., shop.example.com)
  * @param env - Environment with Cloudflare credentials
  * @returns Created hostname details or throws error
@@ -78,58 +78,58 @@ export async function createCustomHostname(
   env: CloudflareEnv
 ): Promise<HostnameStatusResult> {
   const { CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID } = env;
-  
+
   if (!CLOUDFLARE_API_TOKEN || !CLOUDFLARE_ZONE_ID) {
     throw new Error(
       'Cloudflare credentials not configured. Please set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ZONE_ID.'
     );
   }
-  
+
   const url = `${CLOUDFLARE_API_BASE}/zones/${CLOUDFLARE_ZONE_ID}/custom_hostnames`;
-  
+
   const response = await fetch(url, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
+      Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       hostname: domain,
       ssl: {
-        method: 'http',  // HTTP validation (auto-validates when CNAME is set)
-        type: 'dv',      // Domain Validation certificate
+        method: 'http', // HTTP validation (auto-validates when CNAME is set)
+        type: 'dv', // Domain Validation certificate
         settings: {
           min_tls_version: '1.2',
         },
       },
     }),
   });
-  
+
   const data: CloudflareResponse<CustomHostname> = await response.json();
-  
+
   if (!data.success) {
-    const errorMessage = data.errors.map(e => e.message).join(', ');
+    const errorMessage = data.errors.map((e) => e.message).join(', ');
     console.error('[Cloudflare] Create hostname failed:', errorMessage);
     throw new Error(`Failed to create custom hostname: ${errorMessage}`);
   }
-  
+
   const hostname = data.result;
-  
+
   console.log(`[Cloudflare] Created custom hostname: ${hostname.hostname} (ID: ${hostname.id})`);
-  
+
   return {
     status: mapHostnameStatus(hostname.status),
     sslStatus: mapSslStatus(hostname.ssl.status),
     hostnameId: hostname.id,
     hostname: hostname.hostname,
-    dnsTarget: 'multi-store-saas.pages.dev', // CNAME target - your actual Pages project
+    dnsTarget: 'multi-store-saas.ozzyl.workers.dev', // CNAME target - your actual Workers project
     ownershipVerification: hostname.ownership_verification,
   };
 }
 
 /**
  * Get the current status of a custom hostname
- * 
+ *
  * @param hostnameId - Cloudflare hostname ID
  * @param env - Environment with Cloudflare credentials
  * @returns Current hostname status
@@ -139,44 +139,44 @@ export async function getHostnameStatus(
   env: CloudflareEnv
 ): Promise<HostnameStatusResult> {
   const { CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID } = env;
-  
+
   if (!CLOUDFLARE_API_TOKEN || !CLOUDFLARE_ZONE_ID) {
     throw new Error('Cloudflare credentials not configured.');
   }
-  
+
   const url = `${CLOUDFLARE_API_BASE}/zones/${CLOUDFLARE_ZONE_ID}/custom_hostnames/${hostnameId}`;
-  
+
   const response = await fetch(url, {
     method: 'GET',
     headers: {
-      'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
+      Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
       'Content-Type': 'application/json',
     },
   });
-  
+
   const data: CloudflareResponse<CustomHostname> = await response.json();
-  
+
   if (!data.success) {
-    const errorMessage = data.errors.map(e => e.message).join(', ');
+    const errorMessage = data.errors.map((e) => e.message).join(', ');
     console.error('[Cloudflare] Get hostname status failed:', errorMessage);
     throw new Error(`Failed to get hostname status: ${errorMessage}`);
   }
-  
+
   const hostname = data.result;
-  
+
   return {
     status: mapHostnameStatus(hostname.status),
     sslStatus: mapSslStatus(hostname.ssl.status),
     hostnameId: hostname.id,
     hostname: hostname.hostname,
-    dnsTarget: 'multi-store-saas.pages.dev',
+    dnsTarget: 'multi-store-saas.ozzyl.workers.dev',
     ownershipVerification: hostname.ownership_verification,
   };
 }
 
 /**
  * Delete a custom hostname from Cloudflare
- * 
+ *
  * @param hostnameId - Cloudflare hostname ID
  * @param env - Environment with Cloudflare credentials
  * @returns true if deleted successfully
@@ -186,29 +186,29 @@ export async function deleteCustomHostname(
   env: CloudflareEnv
 ): Promise<boolean> {
   const { CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID } = env;
-  
+
   if (!CLOUDFLARE_API_TOKEN || !CLOUDFLARE_ZONE_ID) {
     throw new Error('Cloudflare credentials not configured.');
   }
-  
+
   const url = `${CLOUDFLARE_API_BASE}/zones/${CLOUDFLARE_ZONE_ID}/custom_hostnames/${hostnameId}`;
-  
+
   const response = await fetch(url, {
     method: 'DELETE',
     headers: {
-      'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
+      Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
       'Content-Type': 'application/json',
     },
   });
-  
+
   const data: CloudflareResponse<{ id: string }> = await response.json();
-  
+
   if (!data.success) {
-    const errorMessage = data.errors.map(e => e.message).join(', ');
+    const errorMessage = data.errors.map((e) => e.message).join(', ');
     console.error('[Cloudflare] Delete hostname failed:', errorMessage);
     throw new Error(`Failed to delete hostname: ${errorMessage}`);
   }
-  
+
   console.log(`[Cloudflare] Deleted custom hostname: ${hostnameId}`);
   return true;
 }
@@ -216,7 +216,7 @@ export async function deleteCustomHostname(
 /**
  * Refresh/retry hostname validation
  * Useful when DNS has been updated and you want to trigger re-validation
- * 
+ *
  * @param hostnameId - Cloudflare hostname ID
  * @param env - Environment with Cloudflare credentials
  */
@@ -225,18 +225,18 @@ export async function refreshHostnameValidation(
   env: CloudflareEnv
 ): Promise<HostnameStatusResult> {
   const { CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID } = env;
-  
+
   if (!CLOUDFLARE_API_TOKEN || !CLOUDFLARE_ZONE_ID) {
     throw new Error('Cloudflare credentials not configured.');
   }
-  
+
   // PATCH the hostname to trigger re-validation
   const url = `${CLOUDFLARE_API_BASE}/zones/${CLOUDFLARE_ZONE_ID}/custom_hostnames/${hostnameId}`;
-  
+
   const response = await fetch(url, {
     method: 'PATCH',
     headers: {
-      'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
+      Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -246,24 +246,24 @@ export async function refreshHostnameValidation(
       },
     }),
   });
-  
+
   const data: CloudflareResponse<CustomHostname> = await response.json();
-  
+
   if (!data.success) {
-    const errorMessage = data.errors.map(e => e.message).join(', ');
+    const errorMessage = data.errors.map((e) => e.message).join(', ');
     console.error('[Cloudflare] Refresh validation failed:', errorMessage);
     throw new Error(`Failed to refresh validation: ${errorMessage}`);
   }
-  
+
   const hostname = data.result;
   console.log(`[Cloudflare] Refreshed validation for: ${hostname.hostname}`);
-  
+
   return {
     status: mapHostnameStatus(hostname.status),
     sslStatus: mapSslStatus(hostname.ssl.status),
     hostnameId: hostname.id,
     hostname: hostname.hostname,
-    dnsTarget: 'multi-store-saas.pages.dev',
+    dnsTarget: 'multi-store-saas.ozzyl.workers.dev',
     ownershipVerification: hostname.ownership_verification,
   };
 }

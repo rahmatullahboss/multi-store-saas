@@ -26,7 +26,7 @@ Configure the application to use `app.ozzyl.com` as the canonical domain for aut
 
 Configure Vercel (`next.config.js`) to rewrite specific paths to Cloudflare.
 
-- **Rule:** `/store/auth/*` -> `https://multi-store-saas.pages.dev/store/auth/*`
+- **Rule:** `/store/auth/*` -> `https://multi-store-saas.ozzyl.workers.dev/store/auth/*`
 - **Pros:** Keeps `ozzyl.com` as the visible URL.
 - **Cons:** Adds latency (double hop). Requires maintaining Vercel config.
 

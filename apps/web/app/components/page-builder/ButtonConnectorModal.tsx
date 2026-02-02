@@ -182,7 +182,7 @@ export default function ButtonConnectorModal({
     const fetchProducts = async () => {
       setLoadingProducts(true);
       try {
-        const response = await fetch('/api/products');
+        const response = await fetch('/api/bootstrap');
         const data = await response.json() as { products?: Product[] };
         if (data.products) {
           setProducts(data.products);

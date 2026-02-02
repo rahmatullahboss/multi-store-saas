@@ -23,6 +23,8 @@ interface CartTrackingData {
 
 const DEBOUNCE_MS = 2500; // Wait 2.5 seconds after user stops typing
 const SESSION_KEY = 'cart_session_id';
+const ANALYTICS_BATCH_KEY = 'store_analytics_batch';
+const FLUSH_DELAY_MS = 1000;
 
 // Generate a unique session ID
 function generateSessionId(): string {
@@ -77,23 +79,40 @@ export function useCartTracking(storeId: number | undefined, productId: number |
 
       // Debounce the API call
       timeoutRef.current = setTimeout(() => {
-        fetch('/api/track-cart', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            store_id: storeId,
-            product_id: productId,
-            session_id: sessionId,
-            customer_name: data.customer_name || undefined,
-            customer_email: data.customer_email || undefined,
-            customer_phone: data.customer_phone || undefined,
-            quantity: data.quantity || 1,
-            variant_id: data.variant_id,
-            variant_info: data.variant_info,
-          }),
-        }).catch(() => {
-          // Fail silently - don't break user experience
-        });
+        const payload = {
+          type: 'cart' as const,
+          store_id: storeId,
+          product_id: productId,
+          session_id: sessionId,
+          customer_name: data.customer_name || undefined,
+          customer_email: data.customer_email || undefined,
+          customer_phone: data.customer_phone || undefined,
+          quantity: data.quantity || 1,
+          variant_id: data.variant_id,
+          variant_info: data.variant_info,
+          ts: Date.now(),
+        };
+
+        const queued = localStorage.getItem(ANALYTICS_BATCH_KEY);
+        const batch = queued ? (JSON.parse(queued) as typeof payload[]) : [];
+        batch.push(payload);
+        localStorage.setItem(ANALYTICS_BATCH_KEY, JSON.stringify(batch));
+
+        window.setTimeout(() => {
+          const queuedBatch = localStorage.getItem(ANALYTICS_BATCH_KEY);
+          if (!queuedBatch) return;
+
+          localStorage.removeItem(ANALYTICS_BATCH_KEY);
+
+          fetch('/api/track-events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ events: JSON.parse(queuedBatch) }),
+            keepalive: true,
+          }).catch(() => {
+            localStorage.setItem(ANALYTICS_BATCH_KEY, queuedBatch);
+          });
+        }, FLUSH_DELAY_MS);
       }, DEBOUNCE_MS);
     },
     [storeId, productId, sessionId]

@@ -1,5 +1,5 @@
 ---
-description: Deploy to Cloudflare Pages/Workers with bindings verification
+description: Deploy to Cloudflare Workers with bindings verification
 ---
 
 # Cloudflare Deployment Workflow
@@ -109,7 +109,7 @@ npx wrangler d1 migrations apply DB --remote
 
 ---
 
-## Step 4: Deploy to Cloudflare Pages
+## Step 4: Deploy to Cloudflare Workers
 
 ### 4.1 Deploy Main App
 
@@ -122,13 +122,13 @@ npm run deploy
 Or manually:
 
 ```bash
-npx wrangler pages deploy ./build/client --project-name=multi-store-saas
+npx wrangler deploy --name=multi-store-saas
 ```
 
 ### 4.2 Verify Deployment
 
 ```bash
-npx wrangler pages deployment list --project-name=multi-store-saas
+npx wrangler deployment list --name=multi-store-saas
 ```
 
 ---
@@ -201,7 +201,7 @@ curl https://your-domain.com/health
 ### 8.3 Monitor Logs
 
 ```bash
-npx wrangler pages deployment tail --project-name=multi-store-saas
+npx wrangler tail --name=multi-store-saas
 ```
 
 ---
@@ -211,10 +211,10 @@ npx wrangler pages deployment tail --project-name=multi-store-saas
 ### 9.1 Rollback to Previous Deployment
 
 ```bash
-npx wrangler pages deployment list --project-name=multi-store-saas
+npx wrangler deployment list --name=multi-store-saas
 # Find previous deployment ID
 
-npx wrangler pages deployment rollback --deployment-id=<id>
+npx wrangler deployment rollback --id=<id>
 ```
 
 ### 9.2 Rollback Database Migration

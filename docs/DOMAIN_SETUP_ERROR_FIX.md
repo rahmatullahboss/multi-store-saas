@@ -23,7 +23,7 @@ CLOUDFLARE_API_TOKEN = "your-actual-api-token-here"  # ← ADD THIS
 
 **But wait!** For security, you should set this in Cloudflare Dashboard instead:
 
-1. Go to **Cloudflare Dashboard** → **Pages** → **multi-store-saas** → **Settings**
+1. Go to **Cloudflare Dashboard** → **Workers & Pages** → **multi-store-saas** → **Settings**
 2. Add environment variable:
    - **Name**: `CLOUDFLARE_API_TOKEN`
    - **Value**: `[Create new token](https://dash.cloudflare.com/profile/api-tokens)`
@@ -38,7 +38,7 @@ Your system falls back to manual approval because it can't connect to Cloudflare
 
 1. Go to **Cloudflare Dashboard** → **ozzyl.com** → **SSL/TLS** → **Custom Hostnames**
 2. If you see "Enable Cloudflare for SaaS" → **Click it!**
-3. Set fallback origin to: `multi-store-saas.pages.dev`
+3. Set fallback origin to: `multi-store-saas.ozzyl.workers.dev`
 
 ---
 
@@ -88,19 +88,16 @@ curl -X GET "https://api.cloudflare.com/client/v4/zones/41147efa7d197cfddda0af7f
 ### **Option A: Quick Fix (Recommended)**
 
 1. **Enable Cloudflare for SaaS** (2 minutes)
-
    - Dashboard → ozzyl.com → SSL/TLS → Custom Hostnames
    - Enable + Set fallback origin
 
 2. **Create API Token** (3 minutes)
-
    - Profile → API Tokens → Create Token
    - Use template: "Edit Cloudflare for SaaS"
    - Set zone: ozzyl.com
 
-3. **Add to Pages Environment** (1 minute)
-
-   - Pages → multi-store-saas → Settings
+3. **Add to Worker Environment** (1 minute)
+   - Workers & Pages → multi-store-saas → Settings
    - Add: `CLOUDFLARE_API_TOKEN` = your token
 
 4. **Test** (1 minute)
@@ -123,11 +120,11 @@ If auto-provisioning still fails, your system already has fallback:
 After fixes, verify:
 
 - [ ] Cloudflare for SaaS enabled on ozzyl.com
-- [ ] Fallback origin = `multi-store-saas.pages.dev`
-- [ ] `CLOUDFLARE_API_TOKEN` set in Pages environment
+- [ ] Fallback origin = `multi-store-saas.ozzyl.workers.dev`
+- [ ] `CLOUDFLARE_API_TOKEN` set in Worker environment
 - [ ] Token has SSL & Certificates: Edit permission
 - [ ] Token scoped to ozzyl.com zone
-- [ ] Pages project deployed and accessible
+- [ ] Worker deployed and accessible
 - [ ] User can add domain without error
 
 ---
@@ -139,7 +136,7 @@ After fixes, verify:
 **System response**:
 
 1. ✅ "Domain added successfully!"
-2. ✅ Shows DNS instructions (CNAME → multi-store-saas.pages.dev)
+2. ✅ Shows DNS instructions (CNAME → multi-store-saas.ozzyl.workers.dev)
 3. ✅ SSL status: "pending"
 4. ✅ Auto-refreshes every 30 seconds
 5. ✅ After DNS setup: SSL becomes "active"
@@ -150,7 +147,7 @@ After fixes, verify:
 ## 🚨 **If Still Getting Errors**
 
 **Error**: "Cloudflare credentials not configured"
-→ API token not set in Pages environment
+→ API token not set in Worker environment
 
 **Error**: "Failed to create custom hostname: [API error]"
 → Token permissions incorrect or Cloudflare for SaaS not enabled
@@ -170,6 +167,6 @@ After fixes, verify:
 3. **Check browser console** for exact error message
 4. **Check server logs** for Cloudflare API errors
 
-Your DNS target is now correctly set to `multi-store-saas.pages.dev` ✅
+Your DNS target is now correctly set to `multi-store-saas.ozzyl.workers.dev` ✅
 
 The remaining issue is **Cloudflare API authentication** - fix the token setup above!
