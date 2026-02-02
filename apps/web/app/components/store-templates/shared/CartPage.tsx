@@ -187,7 +187,8 @@ export default function SharedCartPage({
       }
     }
     setIsHydrated(true);
-  }, [isPreview, fetcher]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPreview]); // fetcher is unstable and causes infinite loops
 
   // Live Mode: Update cart with fresh prices from server
   useEffect(() => {

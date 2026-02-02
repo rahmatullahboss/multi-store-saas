@@ -44,6 +44,8 @@ declare global {
     AI_RATE_LIMIT?: KVNamespace;
     // KV Namespace for Store/Page Caching
     STORE_CACHE?: KVNamespace;
+    // KV Namespace for Product Page Caching
+    PRODUCT_CACHE?: KVNamespace;
     // Session Secret for Cookie Encryption
     SESSION_SECRET: string;
     // Google OAuth

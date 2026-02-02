@@ -574,7 +574,7 @@ export function NovaLuxUltraFooter({
               { label: t('refundPolicy'), href: '/policies/refund' },
               { label: t('shippingPolicy'), href: '/policies/shipping' },
               { label: t('termsOfService'), href: '/policies/terms' },
-            ].map((link, i) => (
+            ].map((link) => (
               <motion.div key={link.label} whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
                 <PreviewSafeLink
                   to={link.href}

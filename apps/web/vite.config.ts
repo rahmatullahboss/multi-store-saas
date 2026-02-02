@@ -6,8 +6,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 
 // CDN base URL for static assets in production
 // This serves JS/CSS/images from the main Pages domain, reducing Worker CPU usage
-const CDN_BASE_URL =
-  process.env.NODE_ENV === 'production' ? 'https://multi-store-saas.pages.dev/' : '/';
+const CDN_BASE_URL = '/';
 
 export default defineConfig({
   server: {
@@ -16,8 +15,8 @@ export default defineConfig({
       allow: ['..'],
     },
   },
-  // In production, assets are served from CDN domain
-  // This means HTML from subdomains will reference assets from the main domain
+  // In production, assets are served from the Worker via ASSETS binding
+  // HTML from subdomains will reference assets from the main domain (if configured) or same origin
   base: CDN_BASE_URL,
 
   plugins: [

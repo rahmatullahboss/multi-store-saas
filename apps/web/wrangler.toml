@@ -3,14 +3,37 @@
 name = "multi-store-saas"
 compatibility_date = "2024-11-18"
 compatibility_flags = ["nodejs_compat"]
+main = "server/index.ts"
 
 # ============================================================================
-# CLOUDFLARE PAGES CONFIGURATION
+# ROUTING & CUSTOM DOMAINS
 # ============================================================================
-# For Pages deployment - Pages uses the functions directory automatically
-# Deploy with: npx wrangler pages deploy ./build/client --project-name=multi-store-saas
+# Routes for the worker - Replaces Pages custom domains
+# ============================================================================
+# ROUTING & CUSTOM DOMAINS
+# ============================================================================
+# 1. Main App (Admin/Dashboard)
+[[routes]]
+pattern = "app.ozzyl.com"
+custom_domain = true
 
-pages_build_output_dir = "build/client"
+# 2. Store Subdomains (Wildcard)
+# Wildcards must be standard Routes, not "Custom Domains" in Wrangler config
+[[routes]]
+pattern = "*.ozzyl.com/*"
+zone_name = "ozzyl.com"
+
+
+# Note: "ozzyl.com" (Landing Page) is on Vercel, so we DO NOT route it here.
+
+# ============================================================================
+# CLOUDFLARE WORKER ASSETS (Replaces Pages)
+# ============================================================================
+# Serves static assets from the build directory directly
+# No need for R2 or separate Pages project
+[assets]
+directory = "build/client"
+binding = "ASSETS"
 
 # ============================================================================
 # BINDINGS - Work in Pages Functions
@@ -73,7 +96,7 @@ PAGE_BUILDER_URL = "https://builder.ozzyl.com"  # Separate worker for GrapesJS e
 # AXION_TOKEN - Axiom logging service - SET IN DASHBOARD (secret, for persistent logs dashboard)
 
 # PUSH NOTIFICATIONS (VAPID)
-VAPID_PUBLIC_KEY = "BDl0oSQqYgSjUMZxblMeN1nhfndIyhlAKDujKvNfQyo4gMGVlvKs2aInkK9-PiflVUSDxmPPyienIPQlHMZPwJU"
+VAPID_PUBLIC_KEY = "BDUvy4YEADMYrwmybG-tSOE7iEc_4ouSWUDhxlgszleXlFcJhqUi_be2T9WObp5S9bcuh-0pDQZTLyBNDQk41mY"
 
 # Sentry DSN
 SENTRY_DSN = "https://49f43a7c79f0476ad9a12671b579d42c@o4509758332141568.ingest.de.sentry.io/4510691126214736"

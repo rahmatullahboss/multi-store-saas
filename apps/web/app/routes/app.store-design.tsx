@@ -324,7 +324,6 @@ export default function StoreDesignPage() {
     themeConfig,
     templates,
     storeSubdomain,
-    storeName,
     storeMode,
     storeLogo,
     businessInfo,

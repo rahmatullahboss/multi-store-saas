@@ -84,7 +84,7 @@ import {
   UPAZILAS,
   getShippingZone,
 } from '~/data/bd-locations';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Loader2, ArrowLeft, ShoppingBag, ShieldCheck, Truck, CheckCircle } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
 import { resolveTemplate } from '~/lib/template-resolver.server';
@@ -386,16 +386,23 @@ export default function Checkout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount - fetcher is stable
 
-  // Auto-apply Discount from URL - only once when conditions are met
+  // Auto-apply Discount from URL - PROTECTION: Use ref to ensure single attempt
+  const attemptedUrlCoupon = useRef(false);
+
   useEffect(() => {
     const urlCode = searchParams.get('discount');
-    if (urlCode && !appliedCoupon && !isApplyingCoupon && subtotal > 0) {
-      setCouponCode(urlCode);
-      setIsApplyingCoupon(true);
-      fetcher.submit({ intent: 'apply-coupon', code: urlCode, subtotal: '0' }, { method: 'post' });
+    // Only run if we haven't attempted yet, have a code, and have a subtotal
+    if (urlCode && subtotal > 0 && !attemptedUrlCoupon.current) {
+      attemptedUrlCoupon.current = true; // LOCK immediately to prevent loop
+      
+      if (!appliedCoupon && !isApplyingCoupon) {
+        setCouponCode(urlCode);
+        setIsApplyingCoupon(true);
+        fetcher.submit({ intent: 'apply-coupon', code: urlCode, subtotal: String(subtotal) }, { method: 'post' });
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, appliedCoupon, isApplyingCoupon, subtotal]); // Remove fetcher from deps
+  }, [searchParams, subtotal]); // Minimized dependencies
 
   // Handle fetcher response for products
   useEffect(() => {

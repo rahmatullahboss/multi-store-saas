@@ -1,6 +1,6 @@
 /**
  * Hono Server Entry Point
- * 
+ *
  * Main entry for Cloudflare Workers. Combines:
  * - Security headers middleware
  * - Rate limiting middleware
@@ -10,7 +10,6 @@
  */
 
 import { Hono, Context } from 'hono';
-import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { cache } from 'hono/cache';
 import { drizzle } from 'drizzle-orm/d1';
@@ -18,7 +17,15 @@ import { eq, and } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { tenantMiddleware, type TenantEnv, type TenantContext } from './middleware/tenant';
 import { securityHeaders, apiSecurityHeaders } from './middleware/security';
-import { standardApiLimit, authLimit, orderLimit, aiChatLimit } from './middleware/rate-limit';
+import {
+  standardApiLimit,
+  authLimit,
+  orderLimit,
+  aiChatLimit,
+  checkoutLimit,
+  cartLimit,
+} from './middleware/rate-limit';
+import { requestTracker } from './lib/debug/request-tracker';
 import { productsApi } from './api/products';
 import { ordersApi } from './api/orders';
 import { storesApi } from './api/stores';
@@ -44,10 +51,13 @@ const app = new Hono<AppContext>();
 // Error and Not Found Handlers
 app.onError((err, c) => {
   console.error('[SERVER ERROR]', err);
-  return c.json({
-    error: err.message || 'Internal Server Error',
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-  }, 500);
+  return c.json(
+    {
+      error: err.message || 'Internal Server Error',
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    },
+    500
+  );
 });
 
 app.notFound((c) => {
@@ -60,6 +70,7 @@ app.notFound((c) => {
 
 // Logger for development
 app.use('*', logger());
+app.use('*', requestTracker());
 
 // Security Headers for all routes
 app.use('*', securityHeaders());
@@ -80,7 +91,7 @@ const staticAllowedOrigins = [
 
 // Trusted domain patterns
 const trustedPatterns = [
-  /^https:\/\/.*\.ozzyl\.com$/,        // *.ozzyl.com subdomains
+  /^https:\/\/.*\.ozzyl\.com$/, // *.ozzyl.com subdomains
   /^https:\/\/.*\.digitalcare\.site$/, // Temporary - ozzyl.com
 ];
 
@@ -91,26 +102,29 @@ const trustedPatterns = [
  * 2. Subdomain patterns (ozzyl.com)
  * 3. Database approved custom domains
  */
-async function validateOrigin(origin: string | undefined, c: Context<AppContext>): Promise<string | null> {
+async function validateOrigin(
+  origin: string | undefined,
+  c: Context<AppContext>
+): Promise<string | null> {
   // No origin = same-origin request
   if (!origin) return 'https://ozzyl.com';
-  
+
   // 1. Check static allowed origins
   if (staticAllowedOrigins.includes(origin)) return origin;
-  
+
   // 2. Check trusted patterns
   for (const pattern of trustedPatterns) {
     if (pattern.test(origin)) return origin;
   }
-  
+
   // 3. Check ozzyl.com subdomains
   if (origin.endsWith('.ozzyl.com')) return origin;
-  
+
   // 4. Check database for approved custom domains
   try {
     const db = drizzle(c.env.DB);
     const originHost = new URL(origin).hostname;
-    
+
     // Query database for this custom domain
     const store = await db
       .select({ id: stores.id })
@@ -123,7 +137,7 @@ async function validateOrigin(origin: string | undefined, c: Context<AppContext>
         )
       )
       .limit(1);
-    
+
     if (store.length > 0) {
       return origin; // Valid custom domain
     }
@@ -131,7 +145,7 @@ async function validateOrigin(origin: string | undefined, c: Context<AppContext>
     console.error('CORS DB check error:', error);
     // Fail closed - deny on error
   }
-  
+
   // 5. Deny unknown origins
   return null;
 }
@@ -140,22 +154,25 @@ async function validateOrigin(origin: string | undefined, c: Context<AppContext>
 app.use('/api/*', async (c, next) => {
   const origin = c.req.header('origin');
   const allowedOrigin = await validateOrigin(origin, c);
-  
+
   // Set CORS headers manually for dynamic validation
   if (allowedOrigin) {
     c.header('Access-Control-Allow-Origin', allowedOrigin);
     c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    c.header('Access-Control-Expose-Headers', 'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset');
+    c.header(
+      'Access-Control-Expose-Headers',
+      'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset'
+    );
     c.header('Access-Control-Allow-Credentials', 'true');
     c.header('Access-Control-Max-Age', '86400');
   }
-  
+
   // Handle preflight
   if (c.req.method === 'OPTIONS') {
     return new Response(null, { status: 204 });
   }
-  
+
   return next();
 });
 
@@ -168,6 +185,11 @@ app.use('/api/create-order', orderLimit()); // 10 req/min
 app.use('/api/ai/*', aiChatLimit()); // 20 req/min
 app.use('/api/chat', aiChatLimit());
 
+// Rate limiting for billing and cart operations
+app.use('/checkout', checkoutLimit()); // 30 req/min - Page loads
+app.use('/checkout/*', checkoutLimit()); // 30 req/min - All checkout routes
+app.use('/cart', cartLimit()); // 50 req/min - Cart operations (separate limit)
+
 // Apply tenant middleware to all routes
 app.use('*', tenantMiddleware());
 
@@ -177,8 +199,8 @@ app.use('*', tenantMiddleware());
 
 // Health check (no tenant required)
 app.get('/api/health', (c) => {
-  return c.json({ 
-    status: 'ok', 
+  return c.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
     store: c.get('store')?.name || 'unknown',
   });
@@ -232,10 +254,20 @@ app.get(
 // ============================================================================
 
 // Forward all other requests to Remix (via Vite build output)
+// Forward all other requests to Remix (via Vite build output)
 app.all('*', async (c) => {
-  // In production, serve from built assets
-  // The Remix Vite plugin handles SSR
-  return c.env.ASSETS.fetch(c.req.raw);
+  // Try to serve static asset first
+  const response = await c.env.ASSETS.fetch(c.req.raw);
+  
+  // If not found (404), fallback to index.html to support SPA routing
+  // This is crucial for paths like /auth/login that don't match a physical file
+  if (response.status === 404) {
+    const url = new URL(c.req.url);
+    // Maintain the original URL but fetch index.html content
+    return c.env.ASSETS.fetch(new Request(new URL('/index.html', url.origin), c.req.raw));
+  }
+  
+  return response;
 });
 
 export default app;

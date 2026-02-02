@@ -1080,6 +1080,80 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
 }));
 
 // ============================================================================
+// WISHLISTS TABLE - Customer wishlists for saving products
+// ============================================================================
+export const wishlists = sqliteTable(
+  'wishlists',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    customerId: integer('customer_id')
+      .notNull()
+      .references(() => customers.id, { onDelete: 'cascade' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('wishlists_store_id_idx').on(table.storeId),
+    index('wishlists_customer_id_idx').on(table.customerId),
+    index('wishlists_store_customer_idx').on(table.storeId, table.customerId),
+  ]
+);
+
+export const wishlistsRelations = relations(wishlists, ({ one, many }) => ({
+  store: one(stores, {
+    fields: [wishlists.storeId],
+    references: [stores.id],
+  }),
+  customer: one(customers, {
+    fields: [wishlists.customerId],
+    references: [customers.id],
+  }),
+  items: many(wishlistItems),
+}));
+
+// ============================================================================
+// WISHLIST ITEMS TABLE - Individual items in a wishlist
+// ============================================================================
+export const wishlistItems = sqliteTable(
+  'wishlist_items',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    wishlistId: integer('wishlist_id')
+      .notNull()
+      .references(() => wishlists.id, { onDelete: 'cascade' }),
+    productId: integer('product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    variantId: integer('variant_id').references(() => productVariants.id, { onDelete: 'set null' }),
+    addedAt: integer('added_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    notes: text('notes'), // Optional customer notes
+  },
+  (table) => [
+    index('wishlist_items_wishlist_id_idx').on(table.wishlistId),
+    index('wishlist_items_product_id_idx').on(table.productId),
+    index('wishlist_items_unique_item').on(table.wishlistId, table.productId, table.variantId),
+  ]
+);
+
+export const wishlistItemsRelations = relations(wishlistItems, ({ one }) => ({
+  wishlist: one(wishlists, {
+    fields: [wishlistItems.wishlistId],
+    references: [wishlists.id],
+  }),
+  product: one(products, {
+    fields: [wishlistItems.productId],
+    references: [products.id],
+  }),
+  variant: one(productVariants, {
+    fields: [wishlistItems.variantId],
+    references: [productVariants.id],
+  }),
+}));
+
+// ============================================================================
 // SYSTEM NOTIFICATIONS TABLE - Global announcements from Super Admin
 // ============================================================================
 export const systemNotifications = sqliteTable('system_notifications', {

@@ -174,6 +174,14 @@ export const tenantMiddleware = (): MiddlewareHandler<{
     console.warn(`[TENANT] Mode: Production`);
     console.warn(`[TENANT] Parsed: type=${type}, value=${value}`);
 
+    // ADMIN APP EXEMPTION:
+    // If subdomain is 'app', this is the Admin Panel / Platform Dashboard.
+    // We skip store lookup and allow the request to proceed (handled by admin routes).
+    if (type === 'subdomain' && value === 'app') {
+      console.warn(`[TENANT] Routing to Admin App (app.${saasDomain})`);
+      return next();
+    }
+
     // Initialize DB and Cache
     const db = createDb(c.env.DB);
     const d1Cache = new D1Cache(db);
