@@ -34,6 +34,7 @@ import RovoTheme, { SECTIONS as RovoSections } from '~/themes/rovo';
 import SokolTheme, { SECTIONS as SokolSections } from '~/themes/sokol';
 import TurboSaleTheme, { SECTIONS as TurboSaleSections } from '~/themes/turbo-sale';
 import ZenithRiseTheme, { SECTIONS as ZenithRiseSections } from '~/themes/zenith-rise';
+import NovaLuxUltraTheme, { theme as NovaLuxUltraThemeExport } from '~/themes/nova-lux-ultra';
 
 // Static template imports (Bug #5 fix - dynamic imports don't work in bundled environments)
 import starterStoreIndexTemplate from '~/themes/starter-store/templates/index.json';
@@ -262,6 +263,21 @@ const THEME_REGISTRY: Record<string, LoadedTheme> = {
     },
     config: ZenithRiseTheme.config,
     sections: ZenithRiseSections,
+  },
+  'nova-lux-ultra': {
+    metadata: {
+      id: 'nova-lux-ultra',
+      name: 'Nova Lux Ultra',
+      version: '1.0.0',
+      description: 'Ultra-premium luxury theme with cinematic animations and 3D effects.',
+      previewImage: '/templates/nova-lux-ultra.png',
+      features: ['Ultra Luxury', 'Cinematic Animations', '3D Effects', 'Rich Gold Accents'],
+      templates: ['index'],
+      categories: ['luxury', 'fashion', 'premium'],
+      author: 'Ozzyl Team',
+    },
+    config: NovaLuxUltraThemeExport.config,
+    sections: NovaLuxUltraThemeExport.sections,
   },
 };
 

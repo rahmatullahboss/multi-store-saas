@@ -80,10 +80,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   // IMPORTANT: Callback URL must be on the main SAAS domain (registered in Google Console)
-  const saasDomain = env.SAAS_DOMAIN?.startsWith('http') 
-    ? env.SAAS_DOMAIN 
-    : `https://${env.SAAS_DOMAIN}`;
-  const callbackUrl = `${saasDomain}/store/auth/google/callback`;
+  // IMPORTANT: Callback URL must be on the main SAAS domain (registered in Google Console)
+  // FIX: Use app.ozzyl.com for auth callbacks because ozzyl.com points to Vercel (Legacy)
+  // which causes 404s. app.ozzyl.com points to Cloudflare where the app lives.
+  const authDomain = 'https://app.ozzyl.com';
+  const callbackUrl = `${authDomain}/store/auth/google/callback`;
 
   // Build state parameter with storeId and origin (for redirect after OAuth)
   // This is passed through OAuth and returned in callback

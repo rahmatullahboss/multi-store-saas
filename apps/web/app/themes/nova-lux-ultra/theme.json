@@ -1,0 +1,54 @@
+{
+  "name": "Nova Lux Ultra",
+  "version": "1.0.0",
+  "author": "Ozzyl",
+  "description": "Ultra-premium luxury theme worth 10 million. Cinematic animations and 3D effects",
+  "colors": {
+    "primary": "#0D0D0D",
+    "accent": "#D4AF37",
+    "background": "#0D0D0D",
+    "surface": "#1A1A1A",
+    "text": "#FFFFFF",
+    "textMuted": "#A0A0A0",
+    "border": "#333333",
+    "success": "#22c55e",
+    "warning": "#f59e0b",
+    "error": "#ef4444"
+  },
+  "typography": {
+    "fontFamily": "'Cormorant Garamond', serif",
+    "fontFamilyHeading": "'Cormorant Garamond', serif",
+    "baseFontSize": 16,
+    "lineHeight": 1.6,
+    "headingLineHeight": 1.2
+  },
+  "spacing": {
+    "unit": 4,
+    "containerMaxWidth": "1400px",
+    "containerPadding": "2rem"
+  },
+  "borders": {
+    "radius": "0.75rem",
+    "radiusLarge": "1rem",
+    "width": "1px"
+  },
+  "shadows": {
+    "sm": "0 2px 8px rgba(0, 0, 0, 0.04)",
+    "md": "0 4px 20px rgba(0, 0, 0, 0.05)",
+    "lg": "0 12px 40px rgba(0, 0, 0, 0.12)"
+  },
+  "buttons": {
+    "borderRadius": "9999px",
+    "fontWeight": "600",
+    "textTransform": "uppercase"
+  },
+  "cards": {
+    "borderRadius": "1rem",
+    "shadow": "0 4px 20px rgba(0, 0, 0, 0.05)",
+    "padding": "1.25rem"
+  },
+  "animation": {
+    "duration": "300ms",
+    "easing": "cubic-bezier(0.4, 0, 0.2, 1)"
+  }
+}

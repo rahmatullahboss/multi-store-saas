@@ -107,10 +107,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   // Callback URL (must match what was registered)
-  const saasDomain = env.SAAS_DOMAIN?.startsWith('http') 
-    ? env.SAAS_DOMAIN 
-    : `https://${env.SAAS_DOMAIN}`;
-  const callbackUrl = `${saasDomain}/store/auth/google/callback`;
+  // Callback URL (must match what was registered)
+  // FIX: Use app.ozzyl.com because ozzyl.com points to Vercel
+  const authDomain = 'https://app.ozzyl.com';
+  const callbackUrl = `${authDomain}/store/auth/google/callback`;
 
   try {
     // Exchange authorization code for tokens

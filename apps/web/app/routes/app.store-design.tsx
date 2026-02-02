@@ -141,13 +141,14 @@ export const loader = async ({
   // Get Shopify OS 2.0 themes from ThemeBridge
   const availableThemes = ThemeBridge.getAvailableThemes();
 
-  // MVP: Only show 5 approved themes
+  // MVP: Only show approved themes
   const MVP_THEME_IDS = [
     'starter-store',
     'ghorer-bazar',
     'luxe-boutique',
     'nova-lux',
     'tech-modern',
+    'nova-lux-ultra', // Ultra premium theme
   ];
   const mvpThemes = availableThemes.filter((t) => MVP_THEME_IDS.includes(t.id));
 
