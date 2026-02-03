@@ -15,6 +15,14 @@ export async function sendPushToStore(
   storeId: number, 
   message: PushMessage
 ) {
+  // Cloudflare Workers do not support Node's https.request used by web-push
+  // Avoid noisy errors in Workers runtime
+  const isCloudflareWorker = typeof (globalThis as any).WebSocketPair !== 'undefined';
+  if (isCloudflareWorker) {
+    console.warn('[PUSH] Skipping push in Workers runtime (web-push not supported)');
+    return;
+  }
+
   if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY) {
     console.warn('[PUSH] VAPID keys not configured');
     return;
@@ -73,6 +81,14 @@ export async function sendPushNotification(
   payload: PushMessage | string,
   env: Env
 ) {
+  // Cloudflare Workers do not support Node's https.request used by web-push
+  // Avoid noisy errors in Workers runtime
+  const isCloudflareWorker = typeof (globalThis as any).WebSocketPair !== 'undefined';
+  if (isCloudflareWorker) {
+    console.warn('[PUSH] Skipping push in Workers runtime (web-push not supported)');
+    return;
+  }
+
   if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY) {
     console.warn('[PUSH] VAPID keys not configured');
     return;

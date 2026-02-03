@@ -210,6 +210,7 @@ export const products = sqliteTable(
   (table) => [
     index('products_store_id_idx').on(table.storeId),
     index('products_category_idx').on(table.storeId, table.category),
+    index('products_store_published_idx').on(table.storeId, table.isPublished),
   ]
 );
 
@@ -359,6 +360,7 @@ export const orders = sqliteTable(
     index('orders_store_id_idx').on(table.storeId),
     index('orders_customer_id_idx').on(table.customerId),
     index('orders_status_idx').on(table.storeId, table.status),
+    index('orders_store_created_idx').on(table.storeId, table.createdAt),
   ]
 );
 
@@ -415,7 +417,10 @@ export const productVariants = sqliteTable(
     isAvailable: integer('is_available', { mode: 'boolean' }).default(true),
     createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   },
-  (table) => [index('product_variants_product_id_idx').on(table.productId)]
+  (table) => [
+    index('product_variants_product_id_idx').on(table.productId),
+    index('product_variants_product_available_idx').on(table.productId, table.isAvailable),
+  ]
 );
 
 // ============================================================================
@@ -840,6 +845,7 @@ export const abandonedCarts = sqliteTable(
     index('abandoned_carts_store_id_idx').on(table.storeId),
     index('abandoned_carts_session_idx').on(table.sessionId),
     index('abandoned_carts_status_idx').on(table.storeId, table.status),
+    index('abandoned_carts_store_created_idx').on(table.storeId, table.abandonedAt),
   ]
 );
 
@@ -1553,6 +1559,7 @@ export const pageViews = sqliteTable(
     index('page_views_store_idx').on(table.storeId),
     index('page_views_date_idx').on(table.storeId, table.createdAt),
     index('page_views_visitor_idx').on(table.storeId, table.visitorId),
+    index('page_views_store_created_idx').on(table.storeId, table.createdAt),
   ]
 );
 

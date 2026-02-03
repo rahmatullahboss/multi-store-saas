@@ -37,7 +37,8 @@ import { getOrderConfirmationHtml, getNewOrderAlertHtml } from '~/services/email
 import { sendPushNotification } from '~/services/push.server';
 import { dispatchWebhook } from '~/services/webhook.server';
 import { checkUsageLimit } from '~/utils/plans.server';
-import { parseShippingConfig, calculateShipping, BD_DIVISIONS } from '~/utils/shipping';
+import { calculateShipping, BD_DIVISIONS } from '~/utils/shipping';
+import { resolveShippingConfig } from '~/services/shipping.server';
 import { sendPurchaseEvent } from '~/services/facebook-capi.server';
 import { createDb } from '~/lib/db.server';
 import { sendSmartNotification } from '~/services/messaging.server';
@@ -620,7 +621,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     // Calculate shipping
-    const shippingConfig = parseShippingConfig(storeData.shippingConfig as string | null);
+    const shippingConfig = await resolveShippingConfig(
+      context.cloudflare.env.DB,
+      input.store_id,
+      storeData.shippingConfig as string | null
+    );
     const shippingResult = calculateShipping(shippingConfig, input.division, subtotal);
     const shipping = shippingResult.cost;
     const tax = 0;

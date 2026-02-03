@@ -302,6 +302,8 @@ export default function CartPage() {
             fetcher.submit(formData, { method: 'post' });
           }, 1000);
 
+          // Stop loading immediately after scheduling validation
+          setIsLoading(false);
           return () => window.clearTimeout(timeout);
         }
       } catch {

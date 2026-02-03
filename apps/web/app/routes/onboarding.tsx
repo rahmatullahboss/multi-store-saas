@@ -348,6 +348,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const selectedPlan = (formData.get('selectedPlan') as 'free' | 'starter' | 'premium') || 'free';
     const transactionId = (formData.get('transactionId') as string) || '';
     const paymentPhone = (formData.get('paymentPhone') as string) || '';
+    const deliveryCharge = Number(formData.get('deliveryCharge') || 60);
+    const enableFreeDelivery = String(formData.get('enableFreeDelivery')) === 'true';
+    const freeDeliveryAbove = Number(formData.get('freeDeliveryAbove') || 0);
+    const shippingConfig = {
+      insideDhaka: deliveryCharge,
+      outsideDhaka: Math.max(deliveryCharge * 2, deliveryCharge),
+      freeShippingAbove: enableFreeDelivery ? freeDeliveryAbove : 0,
+      enabled: true,
+    };
 
     // console.log('[Onboarding] Creating store:', { storeName, subdomain, category, selectedPlan, phone });
 
@@ -414,6 +423,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           landingConfig: JSON.stringify(landingConfig),
           onboardingStatus: 'completed',
           setupStep: 4,
+          shippingConfig: JSON.stringify(shippingConfig),
           // Payment tracking
           paymentTransactionId: transactionId || null,
           paymentStatus,
@@ -678,6 +688,9 @@ export default function OnboardingPage() {
       submitData.append('selectedPlan', formData.selectedPlan);
       submitData.append('transactionId', formData.transactionId);
       submitData.append('paymentPhone', formData.paymentPhone);
+      submitData.append('deliveryCharge', String(formData.deliveryCharge));
+      submitData.append('enableFreeDelivery', String(formData.enableFreeDelivery));
+      submitData.append('freeDeliveryAbove', String(formData.freeDeliveryAbove));
 
       fetcher.submit(submitData, { method: 'POST' });
       return;
@@ -703,6 +716,9 @@ export default function OnboardingPage() {
     submitData.append('selectedPlan', 'free');
     submitData.append('transactionId', '');
     submitData.append('paymentPhone', '');
+    submitData.append('deliveryCharge', String(formData.deliveryCharge));
+    submitData.append('enableFreeDelivery', String(formData.enableFreeDelivery));
+    submitData.append('freeDeliveryAbove', String(formData.freeDeliveryAbove));
 
     fetcher.submit(submitData, { method: 'POST' });
   };

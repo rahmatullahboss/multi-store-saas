@@ -95,13 +95,19 @@ export default function SharedCartPage({
   // Use prop templateId first, fallback to URL params
   const templateId = propTemplateId || params.templateId;
   const fetcher = useFetcher<{
-    products: Array<{
-      id: number;
+    success?: boolean;
+    items?: Array<{
+      removed?: boolean;
+      productId: number;
+      quantity: number;
       title: string;
       price: number;
-      imageUrl: string | null;
-      stock?: number;
+      imageUrl?: string | null;
+      isValid?: boolean;
+      error?: string;
     }>;
+    hasInvalidItems?: boolean;
+    error?: string;
   }>();
 
   // Default theme if not provided
@@ -175,10 +181,20 @@ export default function SharedCartPage({
           }));
           setCartItems(normalizedItems);
 
-          // Fetch fresh product data from server
+          // Fetch fresh product data from server (validate cart items)
           if (normalizedItems.length > 0) {
-            const productIds = normalizedItems.map((item) => item.productId);
-            fetcher.submit({ productIds: JSON.stringify(productIds) }, { method: 'post' });
+            const formData = new FormData();
+            formData.append('intent', 'validate-cart');
+            formData.append(
+              'cartItems',
+              JSON.stringify(
+                normalizedItems.map((item) => ({
+                  productId: item.productId,
+                  quantity: item.quantity,
+                }))
+              )
+            );
+            fetcher.submit(formData, { method: 'post' });
           }
         }
       } catch (e) {
@@ -190,24 +206,20 @@ export default function SharedCartPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPreview]); // fetcher is unstable and causes infinite loops
 
-  // Live Mode: Update cart with fresh prices from server
+  // Live Mode: Update cart with validated items from server
   useEffect(() => {
-    if (!isPreview && fetcher.data?.products && cartItems.length > 0) {
-      const productMap = new Map(fetcher.data.products.map((p) => [p.id, p]));
-      setCartItems((prev) =>
-        prev.map((item) => {
-          const fresh = productMap.get(item.productId);
-          if (fresh) {
-            return {
-              ...item,
-              price: fresh.price,
-              title: fresh.title,
-              image: fresh.imageUrl || item.image,
-              stock: fresh.stock,
-            };
-          }
-          return item;
-        })
+    if (!isPreview && fetcher.data?.success && fetcher.data.items) {
+      const validatedItems = fetcher.data.items.filter((item) => !item.removed && item.isValid);
+      setCartItems(
+        validatedItems.map((item) => ({
+          id: String(item.productId),
+          productId: item.productId,
+          title: item.title,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.imageUrl || undefined,
+          imageUrl: item.imageUrl || undefined,
+        }))
       );
     }
   }, [fetcher.data, isPreview]); // eslint-disable-line react-hooks/exhaustive-deps

@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { parseShippingConfig } from '~/utils/shipping';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Shipping Zones - Settings' }];
@@ -43,7 +44,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .where(eq(shippingZones.storeId, storeId));
 
   const store = await db
-    .select({ currency: stores.currency })
+    .select({ currency: stores.currency, shippingConfig: stores.shippingConfig })
     .from(stores)
     .where(eq(stores.id, storeId))
     .limit(1);
@@ -51,6 +52,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json({
     zones,
     currency: store[0]?.currency || 'BDT',
+    shippingConfig: parseShippingConfig(store[0]?.shippingConfig || null),
   });
 }
 
@@ -103,6 +105,27 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: true });
   }
 
+  if (intent === 'save-simple') {
+    const insideDhaka = parseFloat(formData.get('insideDhaka') as string) || 60;
+    const outsideDhaka = parseFloat(formData.get('outsideDhaka') as string) || 120;
+    const freeShippingAbove = parseFloat(formData.get('freeShippingAbove') as string) || 0;
+    const enabled = formData.get('enabled') === 'on';
+
+    await db
+      .update(stores)
+      .set({
+        shippingConfig: JSON.stringify({
+          insideDhaka,
+          outsideDhaka,
+          freeShippingAbove,
+          enabled,
+        }),
+      })
+      .where(eq(stores.id, storeId));
+
+    return json({ success: true });
+  }
+
   if (intent === 'delete') {
     const id = parseInt(formData.get('id') as string);
     await db.delete(shippingZones).where(eq(shippingZones.id, id));
@@ -113,7 +136,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function ShippingZonesPage() {
-  const { zones, currency } = useLoaderData<typeof loader>();
+  const { zones, currency, shippingConfig } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const { t, lang } = useTranslation();
@@ -168,6 +191,77 @@ export default function ShippingZonesPage() {
       </div>
 
       {/* Form */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Simple Shipping (Recommended)
+        </h2>
+        <Form method="post" className="space-y-4">
+          <input type="hidden" name="intent" value="save-simple" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Inside Dhaka ({currency})
+              </label>
+              <input
+                type="number"
+                name="insideDhaka"
+                defaultValue={shippingConfig.insideDhaka}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                min="0"
+                step="10"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Outside Dhaka ({currency})
+              </label>
+              <input
+                type="number"
+                name="outsideDhaka"
+                defaultValue={shippingConfig.outsideDhaka}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                min="0"
+                step="10"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Free Shipping Above ({currency})
+              </label>
+              <input
+                type="number"
+                name="freeShippingAbove"
+                defaultValue={shippingConfig.freeShippingAbove}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                min="0"
+                step="50"
+              />
+            </div>
+          </div>
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              name="enabled"
+              defaultChecked={shippingConfig.enabled}
+              className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+            />
+            Enable shipping charges
+          </label>
+          <div>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+            >
+              Save Shipping Settings
+            </button>
+          </div>
+          <p className="text-xs text-gray-500">
+            This controls checkout, order total, and free delivery threshold.
+          </p>
+        </Form>
+      </div>
+
+      {/* Zones Form */}
       {showForm && (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">

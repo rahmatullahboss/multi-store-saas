@@ -33,6 +33,14 @@ export default function BarChartImpl({
   showTooltip = true,
   showLegend = false,
 }: BarChartProps) {
+  const isAdminRoute =
+    typeof window !== 'undefined' &&
+    (window.location.pathname.startsWith('/admin') ||
+      window.location.pathname.startsWith('/app'));
+  if (!isAdminRoute) {
+    return null;
+  }
+
   return (
     <ResponsiveContainer width="100%" height={height} initialDimension={{ width: 500, height }}>
       <RechartsBarChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>

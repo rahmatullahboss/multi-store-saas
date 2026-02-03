@@ -57,15 +57,20 @@ function useIsClient() {
 export function ClientChart({ children, fallback, height = 300 }: ClientChartProps) {
   const isClient = useIsClient();
   const [recharts, setRecharts] = useState<RechartsModule | null>(null);
+  const isAdminRoute =
+    isClient &&
+    typeof window !== 'undefined' &&
+    (window.location.pathname.startsWith('/admin') ||
+      window.location.pathname.startsWith('/app'));
 
   useEffect(() => {
-    if (!isClient) return;
+    if (!isClient || !isAdminRoute) return;
     
     // Dynamic import - only happens on client after hydration
     import('recharts').then((mod) => {
       setRecharts(mod);
     });
-  }, [isClient]);
+  }, [isClient, isAdminRoute]);
 
   // Don't render during SSR
   if (!isClient) {
@@ -77,6 +82,11 @@ export function ClientChart({ children, fallback, height = 300 }: ClientChartPro
         <span className="text-slate-500 dark:text-slate-500 text-gray-400 text-sm">Loading chart...</span>
       </div>
     );
+  }
+
+  // If somehow rendered on non-admin routes, avoid loading charts
+  if (!isAdminRoute) {
+    return <>{fallback || null}</>;
   }
 
   // Show fallback while loading recharts

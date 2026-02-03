@@ -92,6 +92,7 @@ import { toast } from 'sonner';
 import { validateDiscount } from '~/../server/services/discount.service';
 import { TicketPercent } from 'lucide-react';
 import { formatPrice } from '~/lib/theme-engine';
+import { resolveShippingConfig } from '~/services/shipping.server';
 
 // Helper: Convert English numbers to Bangla
 const toBanglaNumber = (num: number | string): string => {
@@ -157,9 +158,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   try {
     businessInfo = storeData.businessInfo ? JSON.parse(storeData.businessInfo as string) : {};
-    if (storeData.shippingConfig) {
-      shippingConfig = { ...shippingConfig, ...JSON.parse(storeData.shippingConfig as string) };
-    }
+    shippingConfig = await resolveShippingConfig(
+      cloudflare.env.DB,
+      storeId as number,
+      storeData.shippingConfig as string | null
+    );
     if (storeData.manualPaymentConfig) {
       manualPaymentConfig = JSON.parse(storeData.manualPaymentConfig as string);
     }
