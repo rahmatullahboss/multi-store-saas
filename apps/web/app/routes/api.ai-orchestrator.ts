@@ -2,8 +2,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudfla
 import { json } from '@remix-run/cloudflare';
 import { handleChatAction } from '~/routes/api.chat';
 import { handleAiChatAction, handleAiChatLoader } from '~/routes/api.ai.chat';
-import { handleVisitorChatAction } from '~/routes/api.visitor-chat';
-import { handleAgentChatAction } from '~/routes/api.agent.chat';
+import { handleVisitorChatAction } from '~/services/visitor-chat.server';
+import { handleAgentChatAction } from '~/services/agent-chat.server';
 
 /**
  * Unified AI Orchestrator Endpoint

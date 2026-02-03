@@ -132,7 +132,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     // Get current stock
-    const product = await db.select().from(products).where(eq(products.id, productId)).limit(1);
+    const product = await db
+      .select()
+      .from(products)
+      .where(and(eq(products.id, productId), eq(products.storeId, storeId)))
+      .limit(1);
     if (!product[0]) {
       return json({ error: 'Product not found' }, { status: 404 });
     }
@@ -178,7 +182,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: 'Invalid data' }, { status: 400 });
     }
 
-    const product = await db.select().from(products).where(eq(products.id, productId)).limit(1);
+    const product = await db
+      .select()
+      .from(products)
+      .where(and(eq(products.id, productId), eq(products.storeId, storeId)))
+      .limit(1);
     if (!product[0]) {
       return json({ error: 'Product not found' }, { status: 404 });
     }
@@ -226,6 +234,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     } catch {
       return json({ error: 'Invalid product list' }, { status: 400 });
     }
+
+    productIds = productIds.map((id) => Number(id)).filter((id) => Number.isFinite(id));
 
     if (!productIds.length) {
       return json({ error: 'No products selected' }, { status: 400 });
@@ -439,8 +449,19 @@ export default function InventoryPage() {
   useEffect(() => {
     if (actionData?.undoItems?.length) {
       setUndoItems(actionData.undoItems);
+      return;
+    }
+    if (actionData?.success) {
+      setUndoItems([]);
     }
   }, [actionData]);
+
+  useEffect(() => {
+    const currentQuery = searchParams.get('q') || '';
+    if (currentQuery !== searchQuery) {
+      setSearchQuery(currentQuery);
+    }
+  }, [searchParams, searchQuery]);
 
   useEffect(() => {
     setSelectedIds((prev) => {
@@ -526,7 +547,14 @@ export default function InventoryPage() {
 
   const parsedStockChanges = useMemo(() => {
     return recentStockChanges.map((log) => {
-      const details = log.details ? JSON.parse(log.details) : null;
+      let details: Record<string, unknown> | null = null;
+      if (log.details) {
+        try {
+          details = JSON.parse(log.details) as Record<string, unknown>;
+        } catch {
+          details = null;
+        }
+      }
       return {
         ...log,
         details,
