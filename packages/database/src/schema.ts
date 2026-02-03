@@ -81,6 +81,9 @@ export const stores = sqliteTable('stores', {
   customPrivacyPolicy: text('custom_privacy_policy'), // Override auto-generated privacy policy
   customTermsOfService: text('custom_terms_of_service'), // Override auto-generated terms
   customRefundPolicy: text('custom_refund_policy'), // Override auto-generated refund policy
+  customShippingPolicy: text('custom_shipping_policy'), // Override auto-generated shipping policy
+  customSubscriptionPolicy: text('custom_subscription_policy'), // Override auto-generated subscription policy
+  customLegalNotice: text('custom_legal_notice'), // Override auto-generated legal notice
 
   // === NOTIFICATION SETTINGS ===
   notificationEmail: text('notification_email'), // Override email for alerts

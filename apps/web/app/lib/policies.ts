@@ -304,6 +304,85 @@ If you have any further questions, please don't hesitate to contact us at ${emai
 }
 
 /**
+ * Generate a Subscription Policy for a store
+ */
+export function getSubscriptionPolicy(storeName: string, email: string): string {
+  return `
+# Subscription Policy
+
+**Last Updated:** ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+
+## Overview
+
+This policy applies to any subscription or recurring purchase offered by ${storeName}.
+
+## Billing & Renewal
+
+- Subscription charges are billed on a recurring basis (weekly/monthly) as selected at checkout.
+- Subscriptions renew automatically unless canceled before the next billing date.
+- We will notify you if there are changes to pricing or billing schedule.
+
+## Managing Your Subscription
+
+You can pause or cancel your subscription by contacting us at ${email}.
+
+## Cancellations
+
+- Cancellations take effect at the end of the current billing cycle.
+- No prorated refunds are issued unless required by law.
+
+## Failed Payments
+
+- If a payment fails, we may retry within a short period.
+- Continued failures may result in suspension or cancellation of the subscription.
+
+## Changes to This Policy
+
+We may update this policy from time to time. Changes will be posted on this page with an updated revision date.
+
+## Contact Us
+
+If you have questions, please contact:
+- **Email:** ${email}
+- **Store:** ${storeName}
+`.trim();
+}
+
+/**
+ * Generate a Legal Notice for a store
+ */
+export function getLegalNotice(storeName: string, email: string): string {
+  return `
+# Legal Notice
+
+**Last Updated:** ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+
+## Business Information
+
+- **Store Name:** ${storeName}
+- **Contact Email:** ${email}
+
+## Liability Disclaimer
+
+We strive to keep information on this website accurate and up to date. However, ${storeName} makes no warranties regarding the completeness or accuracy of information and is not liable for any losses or damages arising from its use.
+
+## External Links
+
+This website may contain links to external sites. We are not responsible for the content or practices of third‑party websites.
+
+## Intellectual Property
+
+All content on this site (text, images, logos) is owned by ${storeName} or licensed to us. Unauthorized use is prohibited.
+
+## Contact
+
+If you have questions about this legal notice, please contact:
+- **Email:** ${email}
+- **Store:** ${storeName}
+`.trim();
+}
+
+/**
  * Generate a Privacy Policy for a store (Bengali)
  */
 export function getPrivacyPolicyBn(storeName: string, email: string): string {
@@ -593,9 +672,88 @@ export function getShippingPolicyBn(storeName: string, email: string): string {
 }
 
 /**
+ * Generate a Subscription Policy for a store (Bengali)
+ */
+export function getSubscriptionPolicyBn(storeName: string, email: string): string {
+  return `
+# সাবস্ক্রিপশন পলিসি
+
+**সর্বশেষ আপডেট:** ${new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' })}
+
+## সারসংক্ষেপ
+
+এই পলিসি ${storeName}-এর সাবস্ক্রিপশন বা রিকারিং অর্ডারগুলোর ক্ষেত্রে প্রযোজ্য।
+
+## বিলিং ও রিনিউ
+
+- সাবস্ক্রিপশন ফি নির্ধারিত সময় অনুযায়ী (সাপ্তাহিক/মাসিক) চার্জ হবে।
+- ক্যানসেল না করলে সাবস্ক্রিপশন অটোমেটিক রিনিউ হবে।
+- মূল্য বা বিলিং শিডিউলে পরিবর্তন হলে আমরা জানিয়ে দেব।
+
+## সাবস্ক্রিপশন ম্যানেজমেন্ট
+
+আপনি ${email}‑এ যোগাযোগ করে সাবস্ক্রিপশন পজ/ক্যানসেল করতে পারবেন।
+
+## ক্যানসেলেশন
+
+- ক্যানসেলেশন বর্তমান বিলিং সাইকেল শেষ হলে কার্যকর হবে।
+- আইনগত বাধ্যবাধকতা ছাড়া প্রোরেটেড রিফান্ড দেওয়া হবে না।
+
+## ব্যর্থ পেমেন্ট
+
+- পেমেন্ট ব্যর্থ হলে আমরা নির্দিষ্ট সময়ের মধ্যে পুনরায় চেষ্টা করতে পারি।
+- একাধিকবার ব্যর্থ হলে সাবস্ক্রিপশন স্থগিত বা বাতিল হতে পারে।
+
+## পলিসি পরিবর্তন
+
+সময় অনুযায়ী আমরা পলিসি আপডেট করতে পারি এবং এই পাতায় আপডেট প্রকাশ করা হবে।
+
+## যোগাযোগ
+
+কোনো প্রশ্ন থাকলে যোগাযোগ করুন:
+- **ইমেল:** ${email}
+- **স্টোর:** ${storeName}
+`.trim();
+}
+
+/**
+ * Generate a Legal Notice for a store (Bengali)
+ */
+export function getLegalNoticeBn(storeName: string, email: string): string {
+  return `
+# লিগ্যাল নোটিশ
+
+**সর্বশেষ আপডেট:** ${new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' })}
+
+## ব্যবসার তথ্য
+
+- **স্টোরের নাম:** ${storeName}
+- **যোগাযোগ ইমেল:** ${email}
+
+## দায়মুক্তি (ডিসক্লেইমার)
+
+আমরা যথাসাধ্য সঠিক তথ্য প্রদানের চেষ্টা করি। তবে ${storeName} কোনো তথ্যের সম্পূর্ণতা/নির্ভুলতা সম্পর্কে নিশ্চয়তা দেয় না এবং এর ব্যবহারজনিত ক্ষতির জন্য দায়ী নয়।
+
+## বাহ্যিক লিংক
+
+এই সাইটে তৃতীয়‑পক্ষের লিংক থাকতে পারে। সেসব সাইটের কনটেন্ট বা প্র্যাকটিসের জন্য আমরা দায়ী নই।
+
+## বুদ্ধিবৃত্তিক সম্পত্তি
+
+এই সাইটের সব কনটেন্ট (লেখা, ছবি, লোগো) ${storeName}‑এর মালিকানাধীন অথবা লাইসেন্সপ্রাপ্ত। অনুমতি ছাড়া ব্যবহার নিষিদ্ধ।
+
+## যোগাযোগ
+
+লিগ্যাল নোটিশ সম্পর্কিত প্রশ্ন থাকলে:
+- **ইমেল:** ${email}
+- **স্টোর:** ${storeName}
+`.trim();
+}
+
+/**
  * Get policy content by type
  */
-export type PolicyType = 'privacy' | 'terms' | 'refund' | 'shipping';
+export type PolicyType = 'privacy' | 'terms' | 'refund' | 'shipping' | 'subscription' | 'legal';
 export type Language = 'en' | 'bn';
 
 export function getPolicyContent(
@@ -626,6 +784,16 @@ export function getPolicyContent(
       return {
         title: isBn ? 'শিপিং পলিসি' : 'Shipping Policy',
         content: isBn ? getShippingPolicyBn(storeName, email) : getShippingPolicy(storeName, email),
+      };
+    case 'subscription':
+      return {
+        title: isBn ? 'সাবস্ক্রিপশন পলিসি' : 'Subscription Policy',
+        content: isBn ? getSubscriptionPolicyBn(storeName, email) : getSubscriptionPolicy(storeName, email),
+      };
+    case 'legal':
+      return {
+        title: isBn ? 'লিগ্যাল নোটিশ' : 'Legal Notice',
+        content: isBn ? getLegalNoticeBn(storeName, email) : getLegalNotice(storeName, email),
       };
     default:
       throw new Error(`Unknown policy type: ${type}`);

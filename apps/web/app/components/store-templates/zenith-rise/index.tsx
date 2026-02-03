@@ -27,6 +27,7 @@ import {
 } from '~/utils/store-preview-data';
 import { ShoppingBag, Minus, Plus, Check, Star, ArrowLeft, Sparkles } from 'lucide-react';
 import { formatPrice } from '~/lib/theme-engine';
+import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 
 // ============================================================================
 // TYPES
@@ -621,16 +622,31 @@ function PreviewHomePage({
   config: ThemeConfig | null;
   onNavigate: (page: PageType) => void;
 }) {
+  const heroImage = config?.bannerUrl;
+  const isUnsplashHero = heroImage?.includes('unsplash.com') ?? false;
+  const heroSrc = heroImage
+    ? isUnsplashHero
+      ? optimizeUnsplashUrl(heroImage, { width: 1600, height: 900, quality: 80, format: 'webp' })
+      : heroImage
+    : null;
+  const heroSrcSet =
+    heroImage && isUnsplashHero ? generateSrcset(heroImage, [640, 960, 1280, 1600]) : undefined;
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative h-[80vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0" style={{ background: ZENITH_RISE_THEME.heroGradient }} />
-        {config?.bannerUrl && (
+        {heroSrc && (
           <img
-            src={config.bannerUrl}
+            src={heroSrc}
             alt="Banner"
             className="absolute inset-0 w-full h-full object-cover opacity-30"
+            srcSet={heroSrcSet}
+            sizes="100vw"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
           />
         )}
         <div className="relative z-10 text-center max-w-4xl px-4">

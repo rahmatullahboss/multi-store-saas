@@ -12,6 +12,7 @@
  */
 
 import { z } from 'zod';
+import { PLAN_LIMITS, PLAN_PRICES } from '~/utils/plans.server';
 
 // Cloudflare Workers AI Binding Type
 export interface Env {
@@ -1393,7 +1394,7 @@ export async function chatWithMerchant(
   const systemPrompt = `You are a helpful AI Assistant for a Merchant on the MultiStore SaaS platform.
   
   Your goal is to help the merchant (${context.userName} from store "${context.storeName}") manage their business.
-  You have access to their REAL-TIME business data. Use it to provide intelligent insights.
+  You have access to their REAL-TIME business data only through the "Store Health Report" below. Use it to provide intelligent insights.
   
   ### Context
   - Store ID: ${storeId}
@@ -1426,7 +1427,7 @@ export async function chatWithMerchant(
      - IF User speaks **English** -> Reply in **English**.
      - Be friendly, professional, and concise.
   2. **Data Safety**: You CANNOT access data from other stores. If asked about global stats, say you can only see their store.
-  3. **Capabilities**: You can explain how to use features or answer questions about *their* store if you had access (currently answering based on general knowledge).
+  3. **Capabilities**: You can explain how to use features or answer questions about *their* store based on the provided data only.
   4. **Strictness**: If asked to generate code or SQL, refuse politely. You are a business assistant.
   5. **Analytics Usage & UI**: 
      - You have real-time data. USE IT. 
@@ -1460,6 +1461,12 @@ export async function chatWithSuperAdmin(
   context: {
     userId: number;
     userName: string;
+    platformStats?: {
+      currentRevenue: number;
+      currentOrders: number;
+      revenueGrowth: number;
+      activeStores: number;
+    };
   },
   model: string = DEFAULT_MODEL,
   baseUrl: string = DEFAULT_BASE_URL
@@ -1469,9 +1476,16 @@ export async function chatWithSuperAdmin(
   
   User: ${context.userName} (Super Admin)
   
+  CURRENT PLATFORM METRICS (USE ONLY THESE VALUES):
+  - Revenue (Last 7 days): ৳${context.platformStats?.currentRevenue ?? 0}
+  - Orders (Last 7 days): ${context.platformStats?.currentOrders ?? 0}
+  - Revenue Growth vs previous 7 days: ${context.platformStats?.revenueGrowth ?? 0}%
+  - Active Stores: ${context.platformStats?.activeStores ?? 0}
+  
   Rules:
   1. Be professional and concise.
-  2. You can discuss sensitive platform metrics.
+  2. You can discuss sensitive platform metrics ONLY from the data above.
+  3. NEVER invent numbers. If a metric is not provided, say you don't have access.
   `;
 
   return callAI(apiKey, systemPrompt, userMessage, model, baseUrl);
@@ -1650,26 +1664,26 @@ export async function chatWithVisitor(
 
 ## 💰 প্রাইসিং (BDT)
 
-### Free Plan (৳০/মাস)
-- ১টি প্রোডাক্ট
-- ৫০ অর্ডার/মাস
+### Free Plan (৳${PLAN_PRICES.free}/মাস)
+- ${PLAN_LIMITS.free.max_products}টি প্রোডাক্ট
+- ${PLAN_LIMITS.free.max_orders} অর্ডার/মাস
 - Landing Page Mode
 - Cash on Delivery
 - Basic Analytics
 - Subdomain: yourstore.ozzyl.com
 
-### Starter Plan (৳৫০০/মাস) ⭐ সবচেয়ে জনপ্রিয়
-- ৫০টি প্রোডাক্ট
-- ৫০০ অর্ডার/মাস
+### Starter Plan (৳${PLAN_PRICES.starter}/মাস) ⭐ সবচেয়ে জনপ্রিয়
+- ${PLAN_LIMITS.starter.max_products}টি প্রোডাক্ট
+- ${PLAN_LIMITS.starter.max_orders} অর্ডার/মাস
 - Full Store Mode
 - বিকাশ + নগদ + COD
 - Inventory Tracking
 - Email Notifications
 - Order Management Dashboard
 
-### Premium Plan (৳২,০০০/মাস)
-- আনলিমিটেড প্রোডাক্ট
-- আনলিমিটেড অর্ডার
+### Premium Plan (৳${PLAN_PRICES.premium}/মাস)
+- ${PLAN_LIMITS.premium.max_products}টি প্রোডাক্ট
+- ${PLAN_LIMITS.premium.max_orders} অর্ডার/মাস
 - কাস্টম ডোমেইন
 - Priority Support
 - Team Members (৩ জন)

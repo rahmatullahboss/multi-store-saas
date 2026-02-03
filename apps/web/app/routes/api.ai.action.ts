@@ -18,7 +18,8 @@ import { getSession } from '~/services/auth.server';
 import { canUseAI, type PlanType, type AIPlanType } from '~/utils/plans.server';
 import { createAIService, callAIWithSystemPrompt, AI_CONFIG } from '~/services/ai.server';
 import { checkAIRateLimit, incrementAIUsage } from '~/lib/rateLimit.server';
-import { checkCredits, deductCredits, CREDIT_COSTS, type AIFeatureName } from '~/utils/credit.server';
+import { CREDIT_COSTS, type AIFeatureName } from '~/utils/credit.server';
+import { requireCredits, chargeCredits } from '~/services/ai-credits.server';
 import { SECTION_REGISTRY } from '~/components/store-sections/registry';
 import { createDb } from '~/lib/db.server';
 
@@ -123,14 +124,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Check Credits
   if (cost > 0 && userRole !== 'super_admin') {
-    const creditCheck = await checkCredits(db, storeId, cost);
-    if (!creditCheck.allowed) {
+    const creditGate = await requireCredits(db, storeId, cost, 'merchant');
+    if (!creditGate.allowed) {
       return json({
-        error: `Insufficient AI credits. This action costs ${cost} credits.`,
-        code: 'INSUFFICIENT_CREDITS',
+        error: creditGate.error,
+        code: creditGate.code,
         required: cost,
-        available: creditCheck.currentBalance
-      }, { status: 402 });
+      }, { status: creditGate.status });
     }
   }
 
@@ -444,7 +444,7 @@ Verify: "Am I ONLY touching targetId ${selectedComponent.id}?"`;
     // SUCCESS - DEDUCT CREDITS
     let newBalance: number | undefined;
     if (cost > 0 && userRole !== 'super_admin') {
-      const deduction = await deductCredits(
+      const deduction = await chargeCredits(
         db, 
         storeId, 
         cost, 

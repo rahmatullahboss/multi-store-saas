@@ -7,11 +7,14 @@ import { agents, conversations, messages } from '@db/schema_agent';
 import { eq, desc, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { createDb } from '~/lib/db.server';
-import { checkCredits, deductCredits, CREDIT_COSTS } from '~/utils/credit.server';
+import { CREDIT_COSTS } from '~/utils/credit.server';
+import { requireCredits, chargeCredits } from '~/services/ai-credits.server';
 import { getStoreStats } from '~/services/analytics.server';
 import type { PlanType, AIPlanType } from '~/utils/plans.server';
+import { buildInsightCardResponse, detectLanguage, isMetricsQuestion } from '~/services/ai-chat-guard.server';
+import { getPlatformStats } from '~/services/ai-orchestrator.server';
 
-export async function loader({ request, context }: LoaderFunctionArgs) {
+export async function handleAiChatLoader({ request, context }: LoaderFunctionArgs) {
   const { env } = context.cloudflare;
   const db = createDb(env.DB);
   const session = await getSession(request, env);
@@ -68,7 +71,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   });
 }
 
-export async function action({ request, context }: ActionFunctionArgs) {
+export async function handleAiChatAction({ request, context }: ActionFunctionArgs) {
   if (request.method !== 'POST') {
     return json({ error: 'Method not allowed' }, { status: 405 });
   }
@@ -193,12 +196,42 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // Dispatch based on role
     if (user.role === 'super_admin') {
-       // Super Admin Chat - NO RATE LIMIT
-       response = await ai.chatWithSuperAdmin(message, {
-         userId: user.id,
-         userName: user.name || 'Admin',
-         ...clientContext
-       });
+      // Super Admin Chat - NO RATE LIMIT
+      const platformStats = await getPlatformStats(drizzle(env.DB));
+      if (isMetricsQuestion(message)) {
+        const lang = detectLanguage(message);
+        const suggestions = lang === 'bn'
+          ? [
+              platformStats.activeStores > 0 ? 'অ্যাকটিভ স্টোরগুলো পর্যবেক্ষণ করুন' : 'নতুন স্টোর অনবোর্ড করুন',
+              'চর্ন কমাতে সাপোর্ট টিমকে অ্যালার্ট দিন',
+              'টপ স্টোরগুলো হাইলাইট করুন',
+            ]
+          : [
+              platformStats.activeStores > 0 ? 'Monitor active stores' : 'Onboard new stores',
+              'Alert support to reduce churn',
+              'Highlight top stores',
+            ];
+
+        return json({
+          success: true,
+          response: buildInsightCardResponse(
+            {
+              totalSales: platformStats.currentRevenue,
+              orderCount: platformStats.currentOrders,
+              trend: platformStats.revenueGrowth,
+              suggestions,
+            },
+            lang
+          ),
+        });
+      }
+
+      response = await ai.chatWithSuperAdmin(message, {
+        userId: user.id,
+        userName: user.name || 'Admin',
+        platformStats,
+        ...clientContext,
+      });
     } else {
        // Merchant Chat - RATE LIMITED
        if (!user.storeId || !store) {
@@ -207,16 +240,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
        // Rate Limit Check
        // Credit Check
-       const creditCheck = await checkCredits(db, user.storeId, CREDIT_COSTS.AI_CHAT_MESSAGE);
-
-       if (!creditCheck.allowed) {
-         return json(
-           { 
-             error: `Insufficient credits. This action costs ${CREDIT_COSTS.AI_CHAT_MESSAGE} credits.`,
-             code: 'INSUFFICIENT_CREDITS'
-           }, 
-           { status: 402 }
-         );
+       const creditGate = await requireCredits(db, user.storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'merchant');
+       if (!creditGate.allowed) {
+         return json({ error: creditGate.error, code: creditGate.code }, { status: creditGate.status });
        }
 
        // Fetch recent history
@@ -248,6 +274,35 @@ export async function action({ request, context }: ActionFunctionArgs) {
        // Fetch Store Stats
        const analytics = await getStoreStats(db, user.storeId);
 
+       // If question is metrics-related, return DB-grounded response without AI
+       if (isMetricsQuestion(message)) {
+         const lang = detectLanguage(message);
+         const suggestions = lang === 'bn'
+           ? [
+               analytics.pendingOrders > 0 ? 'পেন্ডিং অর্ডার দেখুন' : 'আজকের অর্ডারগুলো রিভিউ করুন',
+               analytics.lowStock > 0 ? 'লো স্টক রিস্টক করুন' : 'বেস্ট সেলিং প্রোডাক্ট প্রোমোট করুন',
+               'নতুন ক্যাম্পেইন চালু করুন',
+             ]
+           : [
+               analytics.pendingOrders > 0 ? 'Review pending orders' : 'Review today’s orders',
+               analytics.lowStock > 0 ? 'Restock low inventory' : 'Promote best sellers',
+               'Launch a new campaign',
+             ];
+
+         return json({
+           success: true,
+           response: buildInsightCardResponse(
+             {
+               totalSales: Number(analytics.todaySales || 0),
+               orderCount: Number(analytics.todayOrders || 0),
+               trend: Number(analytics.salesTrend || 0),
+               suggestions,
+             },
+             lang
+           ),
+         });
+       }
+
        response = await ai.chatWithMerchant(message, user.storeId, {
          storeName: store.name,
          userName: user.name || 'Merchant',
@@ -258,7 +313,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
        });
 
        // Deduct credits BEFORE sending the response
-        const deductResult = await deductCredits(db, user.storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'AI Chat Message');
+        const deductResult = await chargeCredits(db, user.storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'AI Chat Message');
 
         if (!deductResult.success) {
           console.error('[AI Chat] Credit deduction failed:', deductResult.error);
@@ -292,4 +347,40 @@ export async function action({ request, context }: ActionFunctionArgs) {
     console.error('[AI Chat API] Error:', error);
     return json({ error: error.message || 'Failed to process chat request' }, { status: 500 });
   }
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const upstreamUrl = new URL('/api/ai-orchestrator', request.url);
+  upstreamUrl.searchParams.set('channel', 'super_admin');
+  upstreamUrl.searchParams.set('mode', 'history');
+
+  const upstream = await fetch(upstreamUrl, {
+    method: 'GET',
+    headers: {
+      cookie: request.headers.get('cookie') || '',
+      authorization: request.headers.get('authorization') || '',
+    },
+  });
+
+  return upstream;
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  if (request.method !== 'POST') {
+    return json({ error: 'Method not allowed' }, { status: 405 });
+  }
+
+  const payload = await request.json().catch(() => ({}));
+  const upstreamUrl = new URL('/api/ai-orchestrator', request.url);
+  const upstream = await fetch(upstreamUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      cookie: request.headers.get('cookie') || '',
+      authorization: request.headers.get('authorization') || '',
+    },
+    body: JSON.stringify({ ...payload, channel: 'super_admin' }),
+  });
+
+  return upstream;
 }

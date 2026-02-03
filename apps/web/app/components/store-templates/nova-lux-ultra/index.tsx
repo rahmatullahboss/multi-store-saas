@@ -32,6 +32,7 @@ import {
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
 import type { ThemeConfig } from '@db/types';
 import { formatPrice } from '~/lib/theme-engine';
+import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 
 import { NOVALUX_ULTRA_THEME } from './theme';
 import { NovaLuxUltraHeader } from './sections/Header';
@@ -178,6 +179,15 @@ function CinematicHero({
   config: ThemeConfig | null;
   onNavigate: (page: PageType) => void;
 }) {
+  const heroImage = config?.bannerUrl || null;
+  const isUnsplashHero = heroImage?.includes('unsplash.com') ?? false;
+  const heroSrc = heroImage
+    ? isUnsplashHero
+      ? optimizeUnsplashUrl(heroImage, { width: 1800, height: 1000, quality: 80, format: 'webp' })
+      : heroImage
+    : null;
+  const heroSrcSet =
+    heroImage && isUnsplashHero ? generateSrcset(heroImage, [640, 960, 1280, 1600, 1800]) : undefined;
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -192,8 +202,17 @@ function CinematicHero({
     <div ref={ref} className="relative h-[90vh] overflow-hidden">
       {/* Background Image with Parallax */}
       <motion.div className="absolute inset-0" style={{ y, scale }}>
-        {config?.bannerUrl ? (
-          <img src={config.bannerUrl} alt="Hero" className="w-full h-full object-cover" />
+        {heroSrc ? (
+          <img
+            src={heroSrc}
+            alt="Hero"
+            className="w-full h-full object-cover"
+            srcSet={heroSrcSet}
+            sizes="100vw"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+          />
         ) : (
           <div
             className="w-full h-full"

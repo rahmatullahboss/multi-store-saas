@@ -7,6 +7,7 @@
 
 import { Link } from '@remix-run/react';
 import type { SectionSchema, SectionComponentProps } from '~/lib/theme-engine/types';
+import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 
 // ============================================================================
 // SCHEMA
@@ -222,6 +223,11 @@ export default function HeroBanner({ section, context, settings }: SectionCompon
   // Use config banner if no image specified
   const bannerUrl =
     image || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&h=900&fit=crop';
+  const isUnsplashBanner = bannerUrl.includes('unsplash.com');
+  const bannerSrc = isUnsplashBanner
+    ? optimizeUnsplashUrl(bannerUrl, { width: 1600, height: 900, quality: 80, format: 'webp' })
+    : bannerUrl;
+  const bannerSrcSet = isUnsplashBanner ? generateSrcset(bannerUrl, [640, 960, 1280, 1600]) : undefined;
 
   const alignmentClass = {
     left: 'text-left items-start',
@@ -237,7 +243,16 @@ export default function HeroBanner({ section, context, settings }: SectionCompon
       data-section-type="hero-banner"
     >
       {/* Background Image */}
-      <img src={bannerUrl} alt="Hero" className="w-full h-full object-cover" loading="eager" />
+      <img
+        src={bannerSrc}
+        alt="Hero"
+        className="w-full h-full object-cover"
+        srcSet={bannerSrcSet}
+        sizes="100vw"
+        loading="eager"
+        fetchPriority="high"
+        decoding="async"
+      />
 
       {/* Overlay */}
       <div

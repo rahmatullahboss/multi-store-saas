@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, CheckCircle, Play } from 'lucide-react';
 import type { SectionSettings } from '~/components/store-sections/registry';
 import { withAISchema } from '~/utils/ai-editable';
+import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 
 interface ZenithHeroSectionProps {
   settings: SectionSettings;
@@ -54,6 +55,13 @@ function ZenithHeroSectionBase({ settings, theme }: ZenithHeroSectionProps) {
     image,
     titleHighlight = "Workflow"
   } = settings || {};
+  const isUnsplashImage = image?.includes('unsplash.com') ?? false;
+  const heroSrc = image
+    ? isUnsplashImage
+      ? optimizeUnsplashUrl(image, { width: 960, height: 720, quality: 80, format: 'webp' })
+      : image
+    : null;
+  const heroSrcSet = image && isUnsplashImage ? generateSrcset(image, [480, 720, 960]) : undefined;
 
   // Construct heading with highlight if present
   const renderHeading = () => {
@@ -130,8 +138,17 @@ function ZenithHeroSectionBase({ settings, theme }: ZenithHeroSectionProps) {
         {/* Right Content - Visual */}
         <div className="relative group animate-fade-in-up delay-400 lg:block hidden">
            <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl shadow-indigo-500/20 border border-slate-700 bg-slate-900/50 backdrop-blur-sm transform transition-transform duration-700 hover:rotate-1 hover:scale-[1.02]">
-              {image ? (
-                <img src={image} alt="App Preview" className="w-full h-auto object-cover" />
+              {heroSrc ? (
+                <img
+                  src={heroSrc}
+                  alt="App Preview"
+                  className="w-full h-auto object-cover"
+                  srcSet={heroSrcSet}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                />
               ) : (
                 <div className="aspect-[4/3] bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
                   <span className="text-slate-600 font-mono text-sm">App Dashboard Preview</span>

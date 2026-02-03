@@ -9,6 +9,9 @@ export interface AgentConfig {
   delivery_charge?: number;
   delivery_time?: string;
   return_policy?: string;
+  shipping_policy?: string;
+  subscription_policy?: string;
+  legal_notice?: string;
   payment_methods?: string[];
   product_list?: string;
   tone?: 'friendly' | 'formal' | 'urgent';
@@ -61,6 +64,9 @@ const PROMPTS = {
       delivery: 'ডেলিভারি',
       returnPolicy: 'রিটার্ন',
       payment: 'পেমেন্ট',
+      shippingPolicy: 'শিপিং পলিসি',
+      subscriptionPolicy: 'সাবস্ক্রিপশন পলিসি',
+      legalNotice: 'লিগ্যাল নোটিশ',
       products: 'প্রোডাক্ট',
       rules: 'নিয়ম',
       noFakeProducts: 'নেই এমন প্রোডাক্টের কথা বলবেন না',
@@ -93,6 +99,9 @@ const PROMPTS = {
       delivery: 'Delivery',
       returnPolicy: 'Return Policy',
       payment: 'Payment',
+      shippingPolicy: 'Shipping Policy',
+      subscriptionPolicy: 'Subscription Policy',
+      legalNotice: 'Legal Notice',
       products: 'Products',
       rules: 'Rules',
       noFakeProducts: 'Do not mention products we don\'t have',
@@ -118,7 +127,10 @@ export function buildEcommercePrompt(config: Partial<AgentConfig>, ragContext: s
     .map(obj => p.objectives[obj])
     .join('\n- ');
 
-  const deliveryText = `${l.currency}${config.delivery_charge || 0} (${config.delivery_time || '2-3 days'})`;
+  const hasDelivery = config.delivery_charge !== undefined || !!config.delivery_time;
+  const deliveryCharge = config.delivery_charge !== undefined ? `${l.currency}${config.delivery_charge}` : 'N/A';
+  const deliveryTime = config.delivery_time || 'N/A';
+  const deliveryText = hasDelivery ? `${deliveryCharge} (${deliveryTime})` : 'Not specified';
 
   return `${personaIntro}
 
@@ -134,6 +146,9 @@ ${p.languageInstruction}
 - ${l.website}: ${config.store_url || 'N/A'}
 - ${l.delivery}: ${deliveryText}
 - ${l.returnPolicy}: ${config.return_policy || 'N/A'}
+- ${l.shippingPolicy}: ${config.shipping_policy || 'N/A'}
+- ${l.subscriptionPolicy}: ${config.subscription_policy || 'N/A'}
+- ${l.legalNotice}: ${config.legal_notice || 'N/A'}
 - ${l.payment}: ${config.payment_methods?.join(', ') || 'Cash on Delivery'}
 
 ## ${l.products}:
@@ -141,9 +156,9 @@ ${config.product_list || ragContext || 'See catalog.'}
 
 ## ${l.rules}:
 - ${l.noFakeProducts}
-- ${l.noFakeProducts}
 - ${l.noWrongPrice}
 - ${l.bePolite}
+- If any policy (delivery/payment/return/shipping/subscription/legal) is "Not specified", say you don't have that information.
 
 ## STRUCTURED RESPONSE FORMAT (FOR RICH UI):
 For data-heavy answers (stats, warnings, lists), return a JSON object (NOT markdown):

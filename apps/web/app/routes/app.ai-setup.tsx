@@ -14,7 +14,8 @@ import { getSession } from '~/services/auth.server';
 import { canUseAI, type PlanType } from '~/utils/plans.server';
 import { createAIService } from '~/services/ai.server';
 import { Sparkles, Loader2, AlertCircle, ArrowRight, Zap } from 'lucide-react';
-import { checkCredits, deductCredits, CREDIT_COSTS } from '~/utils/credit.server';
+import { CREDIT_COSTS } from '~/utils/credit.server';
+import { requireCredits, chargeCredits } from '~/services/ai-credits.server';
 
 export const meta = () => [
   { title: 'AI Store Setup - Ozzyl' },
@@ -121,11 +122,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // ========================================================================
     const SETUP_COST = CREDIT_COSTS.SETUP_STORE;
     if (userRole !== 'super_admin') {
-      const creditCheck = await checkCredits(db, storeId, SETUP_COST);
-      if (!creditCheck.allowed) {
+      const creditGate = await requireCredits(db, storeId, SETUP_COST, 'merchant');
+      if (!creditGate.allowed) {
         return json({ 
-          error: `Insufficient AI credits. Setup costs ${SETUP_COST} credits. You have ${creditCheck.currentBalance}.` 
-        }, { status: 402 });
+          error: creditGate.error
+        }, { status: creditGate.status });
       }
     }
 
@@ -182,7 +183,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // Deduct Credits after success
     if (userRole !== 'super_admin') {
-      await deductCredits(db, storeId, SETUP_COST);
+      await chargeCredits(db, storeId, SETUP_COST, 'AI Setup');
     }
 
     return redirect('/app?ai_setup=success');

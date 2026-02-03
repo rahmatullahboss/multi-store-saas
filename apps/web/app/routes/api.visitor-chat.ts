@@ -14,7 +14,7 @@ import { visitors, visitorMessages } from '@db/schema';
  * 
  * Rate limited by Cloudflare
  */
-export async function action({ request, context }: ActionFunctionArgs) {
+export async function handleVisitorChatAction({ request, context }: ActionFunctionArgs) {
   if (request.method !== 'POST') {
     return json({ error: 'Method not allowed' }, { status: 405 });
   }
@@ -101,4 +101,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
     console.error('[Ozzyl AI] Error:', error);
     return json({ error: 'দুঃখিত, সাময়িক সমস্যা হয়েছে। আবার চেষ্টা করুন।' }, { status: 500 });
   }
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  if (request.method !== 'POST') {
+    return json({ error: 'Method not allowed' }, { status: 405 });
+  }
+
+  const payload = await request.json().catch(() => ({}));
+  const upstreamUrl = new URL('/api/ai-orchestrator', request.url);
+  const upstream = await fetch(upstreamUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      cookie: request.headers.get('cookie') || '',
+      authorization: request.headers.get('authorization') || '',
+    },
+    body: JSON.stringify({ ...payload, channel: 'visitor' }),
+  });
+
+  return upstream;
 }

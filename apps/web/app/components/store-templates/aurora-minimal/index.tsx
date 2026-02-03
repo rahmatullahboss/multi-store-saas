@@ -38,6 +38,7 @@ import { useTranslation } from '~/contexts/LanguageContext';
 import { formatPrice } from '~/lib/theme-engine';
 import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
 import { useCartCount } from '~/hooks/useCartCount';
+import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
 import { useProductPrice } from '~/hooks/useProductPrice';
 import { WishlistProvider } from '~/contexts/WishlistContext';
@@ -180,6 +181,15 @@ function PreviewHeader({
   const [isScrolled, setIsScrolled] = useState(false);
   const { t: _t } = useTranslation();
   const theme = AURORA_THEME;
+  const heroImage = config?.bannerUrl;
+  const isUnsplashHero = heroImage?.includes('unsplash.com') ?? false;
+  const heroSrc = heroImage
+    ? isUnsplashHero
+      ? optimizeUnsplashUrl(heroImage, { width: 1600, height: 900, quality: 80, format: 'webp' })
+      : heroImage
+    : null;
+  const heroSrcSet =
+    heroImage && isUnsplashHero ? generateSrcset(heroImage, [640, 960, 1280, 1600]) : undefined;
   const THEME_COLORS = {
     primary: theme.primary,
     text: theme.text,
@@ -727,8 +737,17 @@ function PreviewHomePage({
     <div className="min-h-screen">
       <section className="relative h-[85vh] flex items-center justify-center overflow-hidden rounded-b-[3rem]">
         <div className="absolute inset-0 bg-gray-100">
-          {config?.bannerUrl && (
-            <img src={config.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+          {heroSrc && (
+            <img
+              src={heroSrc}
+              alt="Banner"
+              className="w-full h-full object-cover"
+              srcSet={heroSrcSet}
+              sizes="100vw"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+            />
           )}
           <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px]" />
         </div>

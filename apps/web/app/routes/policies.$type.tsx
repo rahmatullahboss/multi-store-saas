@@ -26,7 +26,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   const { type } = params;
   
   // Validate policy type
-  const validTypes: PolicyType[] = ['privacy', 'terms', 'refund', 'shipping'];
+  const validTypes: PolicyType[] = ['privacy', 'terms', 'refund', 'shipping', 'subscription', 'legal'];
   if (!type || !validTypes.includes(type as PolicyType)) {
     throw new Response('Policy not found', { status: 404 });
   }
@@ -64,6 +64,15 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
       break;
     case 'refund':
       customContent = store.customRefundPolicy || null;
+      break;
+    case 'shipping':
+      customContent = store.customShippingPolicy || null;
+      break;
+    case 'subscription':
+      customContent = store.customSubscriptionPolicy || null;
+      break;
+    case 'legal':
+      customContent = store.customLegalNotice || null;
       break;
   }
   
@@ -244,6 +253,36 @@ export default function PolicyPage() {
               }`}
             >
               Refund Policy
+            </Link>
+            <Link
+              to="/policies/shipping"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                policyType === 'shipping'
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Shipping Policy
+            </Link>
+            <Link
+              to="/policies/subscription"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                policyType === 'subscription'
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Subscription Policy
+            </Link>
+            <Link
+              to="/policies/legal"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                policyType === 'legal'
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Legal Notice
             </Link>
           </nav>
           

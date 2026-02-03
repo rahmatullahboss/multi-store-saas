@@ -12,6 +12,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from '@remix-run/react';
 import { ChevronLeft, ChevronRight, Smartphone } from 'lucide-react';
 import { DARAZ_THEME } from '../theme';
+import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 
 interface Banner {
   id: string;
@@ -102,11 +103,34 @@ export function DarazHeroCarousel({
                   index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
                 }`}
               >
-                <img
-                  src={banner.image}
-                  alt={banner.title || `Banner ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
+                {(() => {
+                  const isUnsplash = banner.image.includes('unsplash.com');
+                  const bannerSrc = isUnsplash
+                    ? optimizeUnsplashUrl(banner.image, {
+                        width: 1600,
+                        height: 600,
+                        quality: 80,
+                        format: 'webp',
+                      })
+                    : banner.image;
+                  const bannerSrcSet = isUnsplash
+                    ? generateSrcset(banner.image, [640, 960, 1280, 1600])
+                    : undefined;
+                  const isPriority = index === 0;
+
+                  return (
+                    <img
+                      src={bannerSrc}
+                      alt={banner.title || `Banner ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      srcSet={bannerSrcSet}
+                      sizes="100vw"
+                      loading={isPriority ? 'eager' : 'lazy'}
+                      fetchPriority={isPriority ? 'high' : 'auto'}
+                      decoding="async"
+                    />
+                  );
+                })()}
                 
                 {/* Overlay content */}
                 {(banner.title || banner.subtitle) && (

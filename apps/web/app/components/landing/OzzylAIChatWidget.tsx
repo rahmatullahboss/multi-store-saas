@@ -182,8 +182,8 @@ export function OzzylAIChatWidget() {
     }
 
     fetcher.submit(
-      { action: 'register', name: regName.trim(), phone: cleanedPhone },
-      { method: 'post', action: '/api/visitor-chat', encType: 'application/json' }
+      { channel: 'visitor', action: 'register', name: regName.trim(), phone: cleanedPhone },
+      { method: 'post', action: '/api/ai-orchestrator', encType: 'application/json' }
     );
   };
 
@@ -206,8 +206,8 @@ export function OzzylAIChatWidget() {
     }));
 
     fetcher.submit(
-      { action: 'chat', message: text.trim(), visitorId, history },
-      { method: 'post', action: '/api/visitor-chat', encType: 'application/json' }
+      { channel: 'visitor', action: 'chat', message: text.trim(), visitorId, history },
+      { method: 'post', action: '/api/ai-orchestrator', encType: 'application/json' }
     );
   };
 

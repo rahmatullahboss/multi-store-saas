@@ -14,7 +14,7 @@ import { json } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { sql, count, sum, avg, desc, eq, and, gte, lte } from 'drizzle-orm';
-import { customers, stores, orders, products, orderItems } from '@db/schema';
+import { customers, stores, orders, products, orderItems, pageViews, carts, checkoutSessions } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { callAIWithSystemPrompt } from '~/services/ai.server';
 import { useState, useEffect } from 'react';
@@ -258,6 +258,27 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     {} as Record<string, number>
   );
 
+  // ============================================================
+  // GLOBAL CONVERSION FUNNEL (DB-GROUNDED)
+  // ============================================================
+
+  const [viewMetrics] = await db
+    .select({ count: sql<number>`COUNT(DISTINCT ${pageViews.visitorId})`.as('count') })
+    .from(pageViews);
+
+  const [cartMetrics] = await db
+    .select({ count: sql<number>`COUNT(DISTINCT ${carts.visitorId})`.as('count') })
+    .from(carts);
+
+  const [checkoutMetrics] = await db
+    .select({ count: sql<number>`COUNT(DISTINCT ${checkoutSessions.id})`.as('count') })
+    .from(checkoutSessions);
+
+  const [orderMetrics] = await db
+    .select({ count: sql<number>`COUNT(DISTINCT ${orders.id})`.as('count') })
+    .from(orders)
+    .where(sql`${orders.status} != 'cancelled'`);
+
   return json({
     // Current metrics
     currentPeriod: {
@@ -306,12 +327,12 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     cohortData,
     revenueByMonth,
 
-    // New: Global Conversion Funnel
+    // New: Global Conversion Funnel (DB-grounded)
     conversionFunnel: {
-      visitors: Number(storeMetrics?.activeStores) * 150, // Estimate for now based on active stores
-      carts: Number(currentPeriod?.orderCount) * 3, // Estimate cart adds (usually 3x orders)
-      checkouts: Number(currentPeriod?.orderCount) * 1.5, // Estimate reached checkout
-      orders: Number(currentPeriod?.orderCount) || 0,
+      visitors: Number(viewMetrics?.count) || 0,
+      carts: Number(cartMetrics?.count) || 0,
+      checkouts: Number(checkoutMetrics?.count) || 0,
+      orders: Number(orderMetrics?.count) || 0,
     },
   });
 }
@@ -344,6 +365,7 @@ RULES:
 1. Answer in Bangla when asked in Bangla, English otherwise
 2. Be concise and actionable
 3. Use numbers and percentages
+4. NEVER invent metrics not present in CURRENT PLATFORM DATA
 (See structured format below)
 
 ## STRUCTURED RESPONSE FORMAT (MANDATORY):

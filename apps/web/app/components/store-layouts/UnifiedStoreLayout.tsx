@@ -310,6 +310,9 @@ function NewTemplateSystemLayout({
         theme={{
           primary: settings.primaryColor || primaryColor,
           accent: settings.accentColor || accentColor,
+          background: settings.backgroundColor || bgColor,
+          text: settings.textColor || textColor,
+          cardBg: settings.backgroundColor || bgColor,
         }}
         wishlistEnabled={true}
       />

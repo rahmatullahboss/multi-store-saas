@@ -294,8 +294,21 @@ function StorePageWrapperComponent({
     () => ({
       primary: resolvedTheme.primary,
       accent: resolvedTheme.accent,
+      background: resolvedTheme.background,
+      text: resolvedTheme.text,
+      muted: resolvedTheme.muted,
+      cardBg: resolvedTheme.cardBg,
+      border: resolvedTheme.cardBorder,
     }),
-    [resolvedTheme.primary, resolvedTheme.accent]
+    [
+      resolvedTheme.primary,
+      resolvedTheme.accent,
+      resolvedTheme.background,
+      resolvedTheme.text,
+      resolvedTheme.muted,
+      resolvedTheme.cardBg,
+      resolvedTheme.cardBorder,
+    ]
   );
 
   // Error handlers

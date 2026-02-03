@@ -50,9 +50,9 @@ export const meta: MetaFunction = () => {
 
 // Plan config for display
 const PLAN_CONFIG = {
-  free: { label: 'Free', price: 0, icon: Gift, color: 'gray' },
-  starter: { label: 'Starter', price: 50000, icon: Zap, color: 'emerald' },
-  premium: { label: 'Premium', price: 200000, icon: Crown, color: 'purple' },
+  free: { label: 'Free', icon: Gift, color: 'gray' },
+  starter: { label: 'Starter', icon: Zap, color: 'emerald' },
+  premium: { label: 'Premium', icon: Crown, color: 'purple' },
 } as const;
 
 // ============================================================================
@@ -113,19 +113,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return hasValidPlan && hasExpiredEndDate;
   });
   
-  // Calculate MRR
+  // Calculate MRR from DB-stored amounts (no extra pricing logic)
   const calculateMRR = (subs: typeof activeSubscribers) => {
-    return subs.reduce((total, s) => {
-      const planPrice = PLAN_CONFIG[s.planType as keyof typeof PLAN_CONFIG]?.price || 0;
-      return total + planPrice;
-    }, 0);
+    return subs.reduce((total, s) => total + (Number(s.paymentAmount) || 0), 0);
   };
 
-  // Total MRR = all active subscribers with paid plans
+  // Total MRR = sum of paymentAmount for active subscribers
   const totalMRR = calculateMRR(activeSubscribers);
-  // Manual MRR = all non-stripe (or no payment method set = assumed manual)
   const stripeMRR = calculateMRR(activeSubscribers.filter(s => s.subscriptionPaymentMethod === 'stripe'));
-  const manualMRR = totalMRR - stripeMRR;
+  const manualMRR = calculateMRR(activeSubscribers.filter(s => s.subscriptionPaymentMethod !== 'stripe'));
   
   // Fetch recent payments (History)
   const recentPayments = await drizzleDb

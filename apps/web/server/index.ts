@@ -228,6 +228,7 @@ app.use('/api/auth/*', authLimit()); // 5 req/15min
 app.use('/api/create-order', orderLimit()); // 10 req/min
 app.use('/api/ai/*', aiChatLimit()); // 20 req/min
 app.use('/api/chat', aiChatLimit());
+app.use('/api/ai-orchestrator', aiChatLimit());
 
 // Rate limiting for billing and cart operations
 app.use('/checkout', checkoutLimit()); // 30 req/min - Page loads

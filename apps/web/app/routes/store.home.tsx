@@ -13,7 +13,7 @@
  * @see AGENTS.md - MVP Simple Theme System section
  */
 
-import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { json, type LinksFunction, type LoaderFunctionArgs } from '@remix-run/cloudflare';
 
 export async function action() {
   // Gracefully handle accidental POST requests to home by returning null
@@ -30,6 +30,7 @@ import {
   DEFAULT_STORE_TEMPLATE_ID,
   type SerializedProduct,
 } from '~/templates/store-registry';
+import { getFontLinkProps } from '~/lib/theme-engine/utils/theme-config-converter';
 import { parseThemeConfig, parseSocialLinks, type ThemeConfig } from '@db/types';
 import { getCustomer } from '~/services/customer-auth.server';
 import { createDb } from '~/lib/db.server';
@@ -158,6 +159,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     categories,
   }, { headers });
 }
+
+export const links: LinksFunction<typeof loader> = ({ data }) => {
+  if (!data) return [];
+  const template = getStoreTemplate(data.storeTemplateId);
+  const fontLink = getFontLinkProps(template.fonts);
+
+  return [
+    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
+    ...(fontLink ? [fontLink] : []),
+  ];
+};
 
 export const headers = ({ loaderHeaders }: { loaderHeaders: Headers }) => {
   return {

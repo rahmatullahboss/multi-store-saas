@@ -32,6 +32,7 @@ import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-re
 import { GhorerBazarHeader } from './sections/Header';
 import { GhorerBazarFooter } from './sections/Footer';
 import { GHORER_BAZAR_THEME, GHORER_BAZAR_FONTS } from './theme';
+import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 
 // Export components for registry
 export { GhorerBazarHeader } from './sections/Header';
@@ -289,6 +290,14 @@ function GhorerBazarProductCard({ product, onProductClick, onQuickAdd }: Product
 // ============================================================================
 function HeroSection({ storeName, config }: { storeName: string; config: any }) {
   const theme = GHORER_BAZAR_THEME;
+  const heroImage =
+    config?.bannerUrl ||
+    'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=500&h=500&fit=crop';
+  const isUnsplashHero = heroImage.includes('unsplash.com');
+  const heroSrc = isUnsplashHero
+    ? optimizeUnsplashUrl(heroImage, { width: 640, height: 640, quality: 80, format: 'webp' })
+    : heroImage;
+  const heroSrcSet = isUnsplashHero ? generateSrcset(heroImage, [320, 480, 640]) : undefined;
 
   return (
     <section className="relative py-10 md:py-16" style={{ backgroundColor: theme.primaryLight }}>
@@ -338,12 +347,14 @@ function HeroSection({ storeName, config }: { storeName: string; config: any }) 
           <div className="flex-1 flex justify-center">
             <div className="relative">
               <img
-                src={
-                  config?.bannerUrl ||
-                  'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=500&h=500&fit=crop'
-                }
+                src={heroSrc}
                 alt="Featured Product"
                 className="w-64 h-64 md:w-80 md:h-80 object-contain drop-shadow-2xl"
+                srcSet={heroSrcSet}
+                sizes="(max-width: 768px) 256px, 320px"
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
               />
               {/* Floating Badge */}
               <div

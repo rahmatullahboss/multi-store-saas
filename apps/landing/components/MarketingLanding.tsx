@@ -19,6 +19,7 @@ import { Rocket } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { ClientOnly } from '@/components/LazySection';
 import { ASSETS } from '@/config/assets';
+import { OzzylAIChatWidget } from '@/components/landing/OzzylAIChatWidget';
 
 // ============================================================================
 // CRITICAL - Load immediately (above the fold)
@@ -796,6 +797,11 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
           {t('getStarted')}
         </Link>
       </div>
+
+      {/* Visitor AI Chat Widget */}
+      <ClientOnly>
+        <OzzylAIChatWidget />
+      </ClientOnly>
     </div>
   );
 }

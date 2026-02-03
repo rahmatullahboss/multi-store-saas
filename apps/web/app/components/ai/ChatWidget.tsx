@@ -120,14 +120,15 @@ export function ChatWidget({
     setMessages(prev => [...prev, userMessage]);
     setInput('');
 
-    // Send to API using native fetch
-    const formData = new FormData();
-    formData.append('message', input.trim());
-    formData.append('storeId', String(storeId || ''));
-    
-    fetch('/api/chat', {
+    // Send to unified orchestrator
+    fetch('/api/ai-orchestrator', {
       method: 'POST',
-      body: formData,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        channel: mode,
+        message: input.trim(),
+        storeId: storeId || undefined,
+      }),
     })
       .then(res => res.json() as Promise<{ success?: boolean; response?: string; error?: string }>)
       .then((data) => {

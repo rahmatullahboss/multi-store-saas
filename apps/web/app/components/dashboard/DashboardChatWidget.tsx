@@ -44,7 +44,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
   // Load History on Open
   useEffect(() => {
     if (isOpen && historyFetcher.state === 'idle' && !historyFetcher.data) {
-      historyFetcher.load('/api/ai/chat');
+      historyFetcher.load('/api/ai-orchestrator?channel=super_admin&mode=history');
     }
   }, [isOpen, historyFetcher]);
 
@@ -122,14 +122,15 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
     setInput('');
 
     // Send to API
-    fetcher.submit(
+      fetcher.submit(
       { 
         message: currentInput,
+        channel: 'super_admin',
         context: {
           pageContext: location.pathname
         }
       },
-      { method: 'post', action: '/api/ai/chat', encType: 'application/json' }
+      { method: 'post', action: '/api/ai-orchestrator', encType: 'application/json' }
     );
   };
 

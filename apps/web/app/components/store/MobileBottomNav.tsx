@@ -10,6 +10,11 @@ interface MobileBottomNavProps {
   theme?: {
     primary?: string;
     accent?: string;
+    background?: string;
+    text?: string;
+    muted?: string;
+    cardBg?: string;
+    border?: string;
   };
   wishlistEnabled?: boolean;
 }
@@ -35,7 +40,13 @@ export function MobileBottomNav({
   // Only show on mobile
   if (!isMobile) return null;
 
-  const primaryColor = theme?.primary || '#4F46E5';
+  const primaryColor = theme?.primary || 'var(--color-primary, var(--theme-primary, #4F46E5))';
+  const accentColor = theme?.accent || 'var(--color-accent, var(--theme-accent, #F59E0B))';
+  const backgroundColor =
+    theme?.cardBg || theme?.background || 'var(--color-card-bg, var(--theme-background, #FFFFFF))';
+  const textColor = theme?.text || 'var(--color-text, var(--theme-text, #111827))';
+  const mutedColor = theme?.muted || 'var(--color-muted, #6B7280)';
+  const borderColor = theme?.border || theme?.muted || 'var(--color-muted, #E5E7EB)';
 
   const navItems = [
     { href: '/store', icon: Home, label: 'Home', exact: true },
@@ -49,8 +60,13 @@ export function MobileBottomNav({
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-t border-gray-200 shadow-lg"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="fixed bottom-0 left-0 right-0 z-50 backdrop-blur-lg border-t shadow-lg"
+      style={{
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        backgroundColor: backgroundColor,
+        borderColor: borderColor,
+        color: textColor,
+      }}
     >
       <div className="flex items-center justify-around h-16 px-2 max-w-lg mx-auto">
         {navItems.map((item) => {
@@ -63,17 +79,16 @@ export function MobileBottomNav({
               key={item.href}
               to={item.href}
               className={cn(
-                'flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all duration-200 relative',
-                isActive ? 'text-primary' : 'text-gray-500 hover:text-gray-700 active:scale-95'
+                'flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all duration-200 relative active:scale-95'
               )}
-              style={{ color: isActive ? primaryColor : undefined }}
+              style={{ color: isActive ? primaryColor : mutedColor }}
             >
               <div className="relative">
                 <Icon className={cn('w-5 h-5 transition-transform', isActive && 'scale-110')} />
                 {item.badge !== undefined && item.badge > 0 && (
                   <span
                     className="absolute -top-2 -right-2 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center animate-in zoom-in duration-200"
-                    style={{ backgroundColor: theme?.accent || '#F59E0B' }}
+                    style={{ backgroundColor: accentColor }}
                   >
                     {item.badge > 9 ? '9+' : item.badge}
                   </span>

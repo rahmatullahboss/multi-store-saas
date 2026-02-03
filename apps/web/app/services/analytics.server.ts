@@ -37,8 +37,15 @@ export async function getStoreStats(db: Database, storeId: number) {
   const revenueResult = await db.select({ total: sql<number>`sum(total)` }).from(orders).where(and(eq(orders.storeId, storeId), sql`status != 'cancelled'`));
   const revenue = revenueResult[0]?.total || 0;
 
-  const todayResult = await db.select({ total: sql<number>`sum(total)` }).from(orders).where(and(eq(orders.storeId, storeId), gte(orders.createdAt, today), sql`status != 'cancelled'`));
+  const todayResult = await db
+    .select({
+      total: sql<number>`sum(total)`,
+      count: sql<number>`count(*)`,
+    })
+    .from(orders)
+    .where(and(eq(orders.storeId, storeId), gte(orders.createdAt, today), sql`status != 'cancelled'`));
   const todaySales = todayResult[0]?.total || 0;
+  const todayOrders = todayResult[0]?.count || 0;
 
   const yesterdayResult = await db.select({ total: sql<number>`sum(total)` }).from(orders).where(and(eq(orders.storeId, storeId), gte(orders.createdAt, yesterday), sql`created_at < ${today.getTime()/1000}` /* approximated */, sql`status != 'cancelled'`));
   // Note: D1 dates are stored as integers/timestamps usually or strings depending on schema. 
@@ -91,6 +98,7 @@ export async function getStoreStats(db: Database, storeId: number) {
       orders: orderCount.count,
       revenue,
       todaySales,
+      todayOrders,
       salesTrend,
       pendingOrders: pendingOrders.count,
       abandonedCarts: abandonedCartsCount.count,

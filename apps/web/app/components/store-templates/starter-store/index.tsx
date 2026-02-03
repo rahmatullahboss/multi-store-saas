@@ -12,6 +12,7 @@ import { StarterStoreHeader } from './sections/Header';
 import { StarterStoreFooter } from './sections/Footer';
 import { StarterProductCard } from './sections/ProductCard';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
+import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 
 const theme = STARTER_STORE_THEME;
 
@@ -39,17 +40,20 @@ export function StarterStoreTemplate({
   const featuredProducts = products.slice(0, 4);
   const newArrivals = products.slice(4, 8);
 
+  const heroImage =
+    config?.bannerUrl ||
+    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&h=900&fit=crop';
+  const isUnsplashHero = heroImage.includes('unsplash.com');
+  const heroSrc = isUnsplashHero
+    ? optimizeUnsplashUrl(heroImage, { width: 1600, height: 900, quality: 80, format: 'webp' })
+    : heroImage;
+  const heroSrcSet = isUnsplashHero ? generateSrcset(heroImage, [640, 960, 1280, 1600]) : undefined;
+
   return (
     <div
       className="min-h-screen flex flex-col w-full m-0 p-0"
       style={{ backgroundColor: theme.background, fontFamily: STARTER_STORE_FONTS.body }}
     >
-      {/* Google Fonts */}
-      <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap"
-        rel="stylesheet"
-      />
-
       {/* Header */}
       <StarterStoreHeader
         storeName={storeName}
@@ -65,12 +69,14 @@ export function StarterStoreTemplate({
         {/* Hero Banner */}
         <section className="relative h-[50vh] md:h-[70vh]">
           <img
-            src={
-              config?.bannerUrl ||
-              'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&h=900&fit=crop'
-            }
+            src={heroSrc}
             alt="Hero"
             className="w-full h-full object-cover"
+            srcSet={heroSrcSet}
+            sizes="100vw"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
           />
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
             <div className="text-center text-white px-4">

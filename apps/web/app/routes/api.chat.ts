@@ -10,11 +10,18 @@
 
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, like, or, and, sql } from 'drizzle-orm';
-import { stores, products, orders } from '@db/schema';
+import { eq } from 'drizzle-orm';
+import { stores } from '@db/schema';
 import { getSession } from '~/services/auth.server';
 import { callAIWithSystemPrompt } from '~/services/ai.server';
-import { checkCredits, deductCredits, CREDIT_COSTS } from '~/utils/credit.server';
+import { CREDIT_COSTS } from '~/utils/credit.server';
+import { requireCredits, chargeCredits } from '~/services/ai-credits.server';
+import { getStoreStats as getStoreAnalytics } from '~/services/analytics.server';
+import { resolveStore } from '~/lib/store.server';
+import { buildInsightCardResponse, detectLanguage, isMetricsQuestion } from '~/services/ai-chat-guard.server';
+import { createDb } from '~/lib/db.server';
+import { PLAN_LIMITS, PLAN_PRICES } from '~/utils/plans.server';
+import { handleCustomerChat } from '~/services/ai-orchestrator.server';
 
 // ============================================================================
 // TYPES
@@ -26,112 +33,10 @@ interface ChatRequest {
   storeId?: number;
 }
 
-interface StoreStats {
-  todaySales: number;
-  todayOrders: number;
-  totalProducts: number;
-  pendingOrders: number;
-}
-
-// ============================================================================
-// SECURITY: Strict Store-Scoped Product Search
-// ============================================================================
-async function findRelevantProducts(
-  db: ReturnType<typeof drizzle>,
-  query: string,
-  storeId: number
-): Promise<Array<{ title: string; price: number; description: string | null }>> {
-  const searchTerm = `%${query}%`;
-
-  // CRITICAL SECURITY: Always filter by storeId first
-  const matchingProducts = await db
-    .select({
-      title: products.title,
-      price: products.price,
-      description: products.description,
-    })
-    .from(products)
-    .where(
-      and(
-        eq(products.storeId, storeId), // ALWAYS enforce storeId
-        eq(products.isPublished, true),
-        or(
-          like(products.title, searchTerm),
-          like(products.description, searchTerm),
-          like(products.category, searchTerm)
-        )
-      )
-    )
-    .limit(5);
-
-  // If no matches, get top 5 products for this store only
-  if (matchingProducts.length === 0) {
-    return await db
-      .select({
-        title: products.title,
-        price: products.price,
-        description: products.description,
-      })
-      .from(products)
-      .where(
-        and(
-          eq(products.storeId, storeId), // ALWAYS enforce storeId
-          eq(products.isPublished, true)
-        )
-      )
-      .limit(5);
-  }
-
-  return matchingProducts;
-}
-
-// ============================================================================
-// HELPER: Get Store Stats (Scoped to storeId)
-// ============================================================================
-async function getStoreStats(
-  db: ReturnType<typeof drizzle>,
-  storeId: number
-): Promise<StoreStats> {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayTimestamp = Math.floor(today.getTime() / 1000);
-
-  // Get today's orders - ALWAYS scoped to storeId
-  const allOrders = await db
-    .select({
-      total: orders.total,
-      status: orders.status,
-      createdAt: orders.createdAt,
-    })
-    .from(orders)
-    .where(eq(orders.storeId, storeId)); // SECURITY: Strict storeId filter
-
-  const todayOrders = allOrders.filter(o => {
-    if (!o.createdAt) return false;
-    return o.createdAt >= today;
-  });
-
-  const todaySales = todayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-  const pendingOrders = allOrders.filter(o => o.status === 'pending').length;
-
-  // Get product count - ALWAYS scoped to storeId
-  const productCount = await db
-    .select({ id: products.id })
-    .from(products)
-    .where(eq(products.storeId, storeId)); // SECURITY: Strict storeId filter
-
-  return {
-    todaySales,
-    todayOrders: todayOrders.length,
-    totalProducts: productCount.length,
-    pendingOrders,
-  };
-}
-
 // ============================================================================
 // SYSTEM PROMPTS
 // ============================================================================
-function getMerchantSystemPrompt(stats: StoreStats, storeName: string): string {
+function getMerchantSystemPrompt(stats: Awaited<ReturnType<typeof getStoreAnalytics>>, storeName: string): string {
   return `You are an intelligent AI assistant for "${storeName}" on our e-commerce platform.
 
 ## Your Role
@@ -141,10 +46,10 @@ function getMerchantSystemPrompt(stats: StoreStats, storeName: string): string {
 - Be proactive about highlighting important metrics
 
 ## Current Store Stats (Real-time Data)
-- Today's Sales: ৳${stats.todaySales.toLocaleString()}
-- Today's Orders: ${stats.todayOrders}
-- Pending Orders: ${stats.pendingOrders}
-- Total Products: ${stats.totalProducts}
+- Today's Sales: ৳${Number(stats.todaySales || 0).toLocaleString()}
+  - Today's Orders: ${Number(stats.todayOrders || 0)}
+- Pending Orders: ${Number(stats.pendingOrders || 0)}
+- Total Products: ${Number(stats.products || 0)}
 
 ## CRITICAL LANGUAGE RULES
 **YOU MUST ALWAYS RESPOND IN THE SAME LANGUAGE THE USER WRITES IN.**
@@ -233,56 +138,6 @@ For simple questions or explanations, use plain text:
 - Do NOT return plain text outside the JSON.`;
 }
 
-function getCustomerSystemPrompt(
-  storeName: string,
-  storeProducts: Array<{ title: string; price: number; description: string | null }>,
-  persona?: string
-): string {
-  const productList = storeProducts
-    .map(p => `- ${p.title}: ৳${p.price} - ${p.description || 'Quality product'}`)
-    .join('\n');
-
-  const defaultPersona = 'You are a helpful sales assistant.';
-
-  return `${persona || defaultPersona}
-
-## Store: ${storeName}
-
-## Available Products (Use ONLY these to recommend)
-${productList || 'No specific products found. Ask what they are looking for!'}
-
-## Store Policies
-- Delivery: Dhaka 24hrs (৳60), Outside Dhaka 2-3 days (৳120)
-- Payment: Cash on Delivery, bKash, Nagad
-- Returns: 7-day easy return policy
-
-## Guidelines
-- Be warm, friendly and conversational
-- Use Bengali if customer writes in Bengali, otherwise use English
-- ONLY recommend products from the list above
-- If the answer is not in the context, say you don't have that information
-- Keep responses short and engaging
-- Never make up product information
-
-## STRICT KNOWLEDGE RULES (ANTI-HALLUCINATION)
-- Recommend ONLY products listed in "Available Products".
-- If the user asks for a product not in the list, say: "Sorry, we don't have that item currently."
-- Do NOT invent products, prices, or features.
-- If asked about stock/colors not listed, say "Please check the website for details."
-
-## STRUCTURED RESPONSE FORMAT (MANDATORY):
-Return JSON object:
-1. 'insight_cards' (Products): 
-   \`{ "type": "insight_cards", "data": [{ "title": "Product A", "value": "৳500", "icon": "products", "color": "blue" }] }\`
-2. 'text' (Simple Answer):
-   \`{ "type": "text", "content": "Sure, here are some items." }\`
-3. 'mixed' (Text + Cards):
-   \`{ "type": "mixed", "items": [{ "type": "text", "data": "Recommending:" }, { "type": "insight_cards", "data": [...] }] }\`
-
-## FORMATTING:
-- Response MUST be valid JSON. No Markdown.`;
-}
-
 // ============================================================================
 // LOADER - Required for Remix single-fetch compatibility
 // ============================================================================
@@ -293,11 +148,20 @@ export async function loader() {
 // ============================================================================
 // MAIN ACTION
 // ============================================================================
-export async function action({ request, context }: ActionFunctionArgs) {
+export async function handleChatAction({ request, context }: ActionFunctionArgs) {
   console.log('[AI Chat] Action started');
   
   const { env } = context.cloudflare;
   const db = drizzle(env.DB);
+  const analyticsDb = createDb(env.DB);
+  const resolved = await resolveStore(
+    {
+      storeId: (context as unknown as { storeId?: number }).storeId,
+      store: (context as unknown as { store?: any }).store,
+      cloudflare: { env },
+    },
+    request
+  );
 
   // Parse request - Remix fetcher sends FormData by default
   let message: string;
@@ -330,10 +194,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Step 1: Identify Context
   const session = await getSession(request, env);
   const merchantStoreId = session.get('storeId');
+  const resolvedStoreId = resolved?.storeId;
   
   // Determine context: Merchant (logged in), Customer (store visitor), or Marketing (SaaS visitor)
   const context_type: ChatContext = merchantStoreId ? 'merchant' : 'customer';
-  const storeId = context_type === 'merchant' ? merchantStoreId : clientStoreId;
+  const isDev = ['localhost', '127.0.0.1'].includes(new URL(request.url).hostname);
+  const storeId = context_type === 'merchant'
+    ? merchantStoreId
+    : (resolvedStoreId || (isDev ? clientStoreId : undefined));
 
   // MARKETING PAGE MODE: storeId = 0 or undefined = SaaS landing page visitor
   if (!storeId || storeId === 0) {
@@ -344,9 +212,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
 ## About Ozzyl
 - E-commerce platform to create online stores
 - Supports bKash, Nagad, Cash on Delivery
-- Free plan: 1 product, 50 orders/month
-- Starter: ৳500/month - 50 products, 500 orders
-- Premium: ৳1500/month - unlimited products, custom domain
+- Free plan: ${PLAN_LIMITS.free.max_products} product, ${PLAN_LIMITS.free.max_orders} orders/month
+- Starter: ৳${PLAN_PRICES.starter}/month - ${PLAN_LIMITS.starter.max_products} products, ${PLAN_LIMITS.starter.max_orders} orders
+- Premium: ৳${PLAN_PRICES.premium}/month - ${PLAN_LIMITS.premium.max_products} products, ${PLAN_LIMITS.premium.max_orders} orders, custom domain
 
 ## Features
 - Instant subdomain (yourstore.ozzyl.com)
@@ -393,6 +261,11 @@ Return JSON object:
     }
   }
 
+  // If store resolved from hostname but client passed a different ID, reject
+  if (context_type === 'customer' && resolvedStoreId && clientStoreId && resolvedStoreId !== clientStoreId) {
+    return json({ error: 'Store context mismatch' }, { status: 403 });
+  }
+
   // Get store data
   const storeResult = await db
     .select({
@@ -415,16 +288,43 @@ Return JSON object:
   // ============================================================================
   if (context_type === 'merchant') {
     // Check credits
-    const creditCheck = await checkCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE);
-    if (!creditCheck.allowed) {
-      return json({
-        error: `Insufficient credits. Need ${CREDIT_COSTS.AI_CHAT_MESSAGE} credits.`,
-        code: 'INSUFFICIENT_CREDITS',
-      }, { status: 402 });
+    const creditGate = await requireCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'merchant');
+    if (!creditGate.allowed) {
+      return json({ error: creditGate.error, code: creditGate.code }, { status: creditGate.status });
     }
 
     // Step 2: Retrieve Data (RAG) - Get store stats
-    const stats = await getStoreStats(db, storeId);
+    const stats = await getStoreAnalytics(analyticsDb, storeId);
+
+    // If question is about metrics, return DB-grounded response without AI
+    if (isMetricsQuestion(message)) {
+      const lang = detectLanguage(message);
+      const suggestions = lang === 'bn'
+        ? [
+            stats.pendingOrders > 0 ? 'পেন্ডিং অর্ডার যাচাই করুন' : 'আজকের অর্ডারগুলো রিভিউ করুন',
+            stats.lowStock > 0 ? 'লো স্টক আইটেম রিস্টক করুন' : 'টপ প্রোডাক্টগুলো প্রোমোট করুন',
+            'নতুন ক্যাম্পেইন চালু করুন',
+          ]
+        : [
+            stats.pendingOrders > 0 ? 'Review pending orders' : 'Review today’s orders',
+            stats.lowStock > 0 ? 'Restock low inventory' : 'Promote top products',
+            'Launch a new campaign',
+          ];
+
+      return json({
+        success: true,
+        response: buildInsightCardResponse(
+          {
+            totalSales: Number(stats.todaySales || 0),
+            orderCount: Number(stats.todayOrders || 0),
+            trend: Number(stats.salesTrend || 0),
+            suggestions,
+          },
+          lang
+        ),
+        context: 'merchant',
+      });
+    }
 
     // Step 3: Construct System Prompt
     const systemPrompt = getMerchantSystemPrompt(stats, store.name);
@@ -438,7 +338,7 @@ Return JSON object:
         { model: env.AI_MODEL, baseUrl: env.AI_BASE_URL }
       );
 
-      await deductCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'Merchant Co-pilot Chat');
+      await chargeCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'Merchant Co-pilot Chat');
       return json({ success: true, response: responseText, context: 'merchant' });
     } catch (error) {
       console.error('[AI Chat] Merchant error:', error);
@@ -459,36 +359,24 @@ Return JSON object:
     }
 
     // Check credits (Store Owner pays)
-    const creditCheck = await checkCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE);
-    if (!creditCheck.allowed) {
-      // For customers, we fail gracefully or just say "AI Busy"
+    const creditGate = await requireCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'customer');
+    if (!creditGate.allowed) {
       console.log(`[AI Chat] Store ${storeId} out of credits for customer chat`);
-      return json({
-        error: 'AI assistant is currently unavailable.',
-        code: 'STORE_LIMIT_REACHED',
-      }, { status: 503 });
+      return json({ error: creditGate.error, code: creditGate.code }, { status: creditGate.status });
     }
 
-    // Step 2: Retrieve Data (RAG) - Find relevant products (SECURITY: Strict storeId)
-    const matchingProducts = await findRelevantProducts(db, message, storeId);
-
-    // Step 3: Construct System Prompt
-    const systemPrompt = getCustomerSystemPrompt(
-      store.name,
-      matchingProducts,
-      store.aiBotPersona || undefined
-    );
-
-    // Step 4: Generate response
     try {
-      const responseText = await callAIWithSystemPrompt(
-        apiKey,
-        systemPrompt,
+      const responseText = await handleCustomerChat({
+        env,
+        db,
+        analyticsDb,
         message,
-        { model: env.AI_MODEL, baseUrl: env.AI_BASE_URL }
-      );
+        storeId,
+        storeName: store.name,
+        persona: store.aiBotPersona || undefined,
+      });
 
-      await deductCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'Customer Sales Agent Chat');
+      await chargeCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'Customer Sales Agent Chat');
       return json({ success: true, response: responseText, context: 'customer' });
     } catch (error) {
       console.error('[AI Chat] Customer error:', error);
@@ -497,4 +385,31 @@ Return JSON object:
   }
 
   return json({ error: 'Invalid context' }, { status: 400 });
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  if (request.method !== 'POST') {
+    return json({ error: 'Method not allowed' }, { status: 405 });
+  }
+
+  const formData = await request.formData();
+  const message = formData.get('message')?.toString() || '';
+  const storeId = formData.get('storeId')?.toString();
+
+  const upstreamUrl = new URL('/api/ai-orchestrator', request.url);
+  const upstream = await fetch(upstreamUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      cookie: request.headers.get('cookie') || '',
+      authorization: request.headers.get('authorization') || '',
+    },
+    body: JSON.stringify({
+      channel: 'merchant',
+      message,
+      storeId: storeId ? Number(storeId) : undefined,
+    }),
+  });
+
+  return upstream;
 }

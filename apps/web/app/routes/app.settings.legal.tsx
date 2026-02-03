@@ -14,12 +14,14 @@ import { json, redirect } from '@remix-run/cloudflare';
 import { useLoaderData, Form, Link, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
-import { stores } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { stores, users } from '@db/schema';
+import { policyVersions, generatePolicyVersionId } from '@db/schema_versions';
+import { getSession, getStoreId } from '~/services/auth.server';
 import { getPolicyContent } from '~/lib/policies';
 import { useState } from 'react';
 import { FileText, Eye, Save, RotateCcw, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { desc } from 'drizzle-orm';
 
 export const meta: MetaFunction = () => [
   { title: 'Legal Policies - Settings' },
@@ -39,6 +41,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       customPrivacyPolicy: stores.customPrivacyPolicy,
       customTermsOfService: stores.customTermsOfService,
       customRefundPolicy: stores.customRefundPolicy,
+      customShippingPolicy: stores.customShippingPolicy,
+      customSubscriptionPolicy: stores.customSubscriptionPolicy,
+      customLegalNotice: stores.customLegalNotice,
       businessInfo: stores.businessInfo,
     })
     .from(stores)
@@ -65,12 +70,29 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     privacy: getPolicyContent('privacy', store.name, contactEmail).content,
     terms: getPolicyContent('terms', store.name, contactEmail).content,
     refund: getPolicyContent('refund', store.name, contactEmail).content,
+    shipping: getPolicyContent('shipping', store.name, contactEmail).content,
+    subscription: getPolicyContent('subscription', store.name, contactEmail).content,
+    legal: getPolicyContent('legal', store.name, contactEmail).content,
   };
+
+  const policyHistory = await db
+    .select({
+      id: policyVersions.id,
+      version: policyVersions.version,
+      label: policyVersions.label,
+      changedBy: policyVersions.changedBy,
+      createdAt: policyVersions.createdAt,
+    })
+    .from(policyVersions)
+    .where(eq(policyVersions.storeId, storeId))
+    .orderBy(desc(policyVersions.version))
+    .limit(10);
 
   return json({
     store,
     defaultPolicies,
     contactEmail,
+    policyHistory,
   });
 }
 
@@ -84,21 +106,86 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const intent = formData.get('intent') as string;
   
   const db = drizzle(context.cloudflare.env.DB);
+  const session = await getSession(request, context.cloudflare.env);
+  const userId = session.get('userId');
+  let changedBy: string | null = null;
+  if (userId) {
+    const user = await db
+      .select({ email: users.email })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    changedBy = user[0]?.email || null;
+  }
+  if (!changedBy) changedBy = 'system';
+
+  const getNextPolicyVersion = async () => {
+    const latest = await db
+      .select({ version: policyVersions.version })
+      .from(policyVersions)
+      .where(eq(policyVersions.storeId, storeId))
+      .orderBy(desc(policyVersions.version))
+      .limit(1);
+    return (latest[0]?.version || 0) + 1;
+  };
+
+  const buildPolicySnapshot = (data: {
+    privacy?: string | null;
+    terms?: string | null;
+    refund?: string | null;
+    shipping?: string | null;
+    subscription?: string | null;
+    legal?: string | null;
+  }) => ({
+    privacy: data.privacy ?? null,
+    terms: data.terms ?? null,
+    refund: data.refund ?? null,
+    shipping: data.shipping ?? null,
+    subscription: data.subscription ?? null,
+    legal: data.legal ?? null,
+  });
 
   if (intent === 'save') {
     const privacyPolicy = formData.get('privacyPolicy') as string || null;
     const termsOfService = formData.get('termsOfService') as string || null;
     const refundPolicy = formData.get('refundPolicy') as string || null;
+    const shippingPolicy = formData.get('shippingPolicy') as string || null;
+    const subscriptionPolicy = formData.get('subscriptionPolicy') as string || null;
+    const legalNotice = formData.get('legalNotice') as string || null;
 
-    await db
-      .update(stores)
-      .set({
-        customPrivacyPolicy: privacyPolicy?.trim() || null,
-        customTermsOfService: termsOfService?.trim() || null,
-        customRefundPolicy: refundPolicy?.trim() || null,
-        updatedAt: new Date(),
-      })
-      .where(eq(stores.id, storeId));
+    const snapshot = buildPolicySnapshot({
+      privacy: privacyPolicy?.trim() || null,
+      terms: termsOfService?.trim() || null,
+      refund: refundPolicy?.trim() || null,
+      shipping: shippingPolicy?.trim() || null,
+      subscription: subscriptionPolicy?.trim() || null,
+      legal: legalNotice?.trim() || null,
+    });
+
+    const nextVersion = await getNextPolicyVersion();
+
+    await db.batch([
+      db
+        .update(stores)
+        .set({
+          customPrivacyPolicy: snapshot.privacy,
+          customTermsOfService: snapshot.terms,
+          customRefundPolicy: snapshot.refund,
+          customShippingPolicy: snapshot.shipping,
+          customSubscriptionPolicy: snapshot.subscription,
+          customLegalNotice: snapshot.legal,
+          updatedAt: new Date(),
+        })
+        .where(eq(stores.id, storeId)),
+      db.insert(policyVersions).values({
+        id: generatePolicyVersionId(storeId, nextVersion),
+        storeId,
+        version: nextVersion,
+        label: 'Manual update',
+        policiesJson: JSON.stringify(snapshot),
+        changedBy,
+      }),
+    ]);
 
     // ========================================================================
     // AI AUTO-SYNC: Update Vector Database
@@ -124,6 +211,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const effectivePrivacy = updatedStore.customPrivacyPolicy || getPolicyContent('privacy', updatedStore.name, contactEmail).content;
       const effectiveTerms = updatedStore.customTermsOfService || getPolicyContent('terms', updatedStore.name, contactEmail).content;
       const effectiveRefund = updatedStore.customRefundPolicy || getPolicyContent('refund', updatedStore.name, contactEmail).content;
+      const effectiveShipping = updatedStore.customShippingPolicy || getPolicyContent('shipping', updatedStore.name, contactEmail).content;
+      const effectiveSubscription = updatedStore.customSubscriptionPolicy || getPolicyContent('subscription', updatedStore.name, contactEmail).content;
+      const effectiveLegal = updatedStore.customLegalNotice || getPolicyContent('legal', updatedStore.name, contactEmail).content;
 
       const policiesText = `Store Policies:
       
@@ -134,7 +224,16 @@ Terms of Service:
 ${effectiveTerms}
 
 Refund Policy:
-${effectiveRefund}`;
+${effectiveRefund}
+
+Shipping Policy:
+${effectiveShipping}
+
+Subscription Policy:
+${effectiveSubscription}
+
+Legal Notice:
+${effectiveLegal}`;
       
       context.cloudflare.ctx.waitUntil(
           ai.insertVector(policiesText, {
@@ -159,22 +258,216 @@ ${effectiveRefund}`;
     if (policyType === 'privacy') updateData.customPrivacyPolicy = null;
     if (policyType === 'terms') updateData.customTermsOfService = null;
     if (policyType === 'refund') updateData.customRefundPolicy = null;
+    if (policyType === 'shipping') updateData.customShippingPolicy = null;
+    if (policyType === 'subscription') updateData.customSubscriptionPolicy = null;
+    if (policyType === 'legal') updateData.customLegalNotice = null;
     
     if (Object.keys(updateData).length > 0) {
-      await db
-        .update(stores)
-        .set({ ...updateData, updatedAt: new Date() })
-        .where(eq(stores.id, storeId));
+      const [current] = await db
+        .select({
+          customPrivacyPolicy: stores.customPrivacyPolicy,
+          customTermsOfService: stores.customTermsOfService,
+          customRefundPolicy: stores.customRefundPolicy,
+          customShippingPolicy: stores.customShippingPolicy,
+          customSubscriptionPolicy: stores.customSubscriptionPolicy,
+          customLegalNotice: stores.customLegalNotice,
+        })
+        .from(stores)
+        .where(eq(stores.id, storeId))
+        .limit(1);
+
+      const snapshot = buildPolicySnapshot({
+        privacy: policyType === 'privacy' ? null : current?.customPrivacyPolicy ?? null,
+        terms: policyType === 'terms' ? null : current?.customTermsOfService ?? null,
+        refund: policyType === 'refund' ? null : current?.customRefundPolicy ?? null,
+        shipping: policyType === 'shipping' ? null : current?.customShippingPolicy ?? null,
+        subscription: policyType === 'subscription' ? null : current?.customSubscriptionPolicy ?? null,
+        legal: policyType === 'legal' ? null : current?.customLegalNotice ?? null,
+      });
+
+      const nextVersion = await getNextPolicyVersion();
+
+      await db.batch([
+        db
+          .update(stores)
+          .set({ ...updateData, updatedAt: new Date() })
+          .where(eq(stores.id, storeId)),
+        db.insert(policyVersions).values({
+          id: generatePolicyVersionId(storeId, nextVersion),
+          storeId,
+          version: nextVersion,
+          label: `Reset ${policyType} to auto-generated`,
+          policiesJson: JSON.stringify(snapshot),
+          changedBy,
+        }),
+      ]);
+
+      // Trigger AI policy sync after reset
+      try {
+        const { createAIService } = await import('~/services/ai.server');
+        const ai = createAIService(context.cloudflare.env.OPENROUTER_API_KEY, {
+          context: context.cloudflare.env,
+        });
+
+        const [updatedStore] = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
+        let contactEmail = 'support@yourstore.com';
+        if (updatedStore?.businessInfo) {
+          try {
+            const info = JSON.parse(updatedStore.businessInfo as string);
+            if (info.email) contactEmail = info.email;
+          } catch {}
+        }
+
+        const effectivePrivacy = updatedStore.customPrivacyPolicy || getPolicyContent('privacy', updatedStore.name, contactEmail).content;
+        const effectiveTerms = updatedStore.customTermsOfService || getPolicyContent('terms', updatedStore.name, contactEmail).content;
+        const effectiveRefund = updatedStore.customRefundPolicy || getPolicyContent('refund', updatedStore.name, contactEmail).content;
+        const effectiveShipping = updatedStore.customShippingPolicy || getPolicyContent('shipping', updatedStore.name, contactEmail).content;
+        const effectiveSubscription = updatedStore.customSubscriptionPolicy || getPolicyContent('subscription', updatedStore.name, contactEmail).content;
+        const effectiveLegal = updatedStore.customLegalNotice || getPolicyContent('legal', updatedStore.name, contactEmail).content;
+
+        const policiesText = `Store Policies:
+      
+Privacy Policy:
+${effectivePrivacy}
+
+Terms of Service:
+${effectiveTerms}
+
+Refund Policy:
+${effectiveRefund}
+
+Shipping Policy:
+${effectiveShipping}
+
+Subscription Policy:
+${effectiveSubscription}
+
+Legal Notice:
+${effectiveLegal}`;
+        
+        context.cloudflare.ctx.waitUntil(
+          ai.insertVector(policiesText, {
+            storeId,
+            type: 'policies',
+            title: 'Legal Policies',
+            customId: `policies-${storeId}`,
+          })
+        );
+      } catch (err) {
+        console.error('[AI SYNC] Failed to update policies vector:', err);
+      }
     }
 
     return json({ success: true, message: 'Policy reset to auto-generated' });
+  }
+
+  if (intent === 'rollback') {
+    const versionId = formData.get('versionId') as string | null;
+    if (!versionId) {
+      return json({ error: 'Version ID required' }, { status: 400 });
+    }
+
+    const version = await db
+      .select()
+      .from(policyVersions)
+      .where(eq(policyVersions.id, versionId))
+      .limit(1);
+
+    const record = version[0];
+    if (!record || record.storeId !== storeId) {
+      return json({ error: 'Version not found' }, { status: 404 });
+    }
+
+    const policies = JSON.parse(record.policiesJson || '{}') as Record<string, string | null>;
+    const nextVersion = await getNextPolicyVersion();
+
+    await db.batch([
+      db
+        .update(stores)
+        .set({
+          customPrivacyPolicy: policies.privacy ?? null,
+          customTermsOfService: policies.terms ?? null,
+          customRefundPolicy: policies.refund ?? null,
+          customShippingPolicy: policies.shipping ?? null,
+          customSubscriptionPolicy: policies.subscription ?? null,
+          customLegalNotice: policies.legal ?? null,
+          updatedAt: new Date(),
+        })
+        .where(eq(stores.id, storeId)),
+      db.insert(policyVersions).values({
+        id: generatePolicyVersionId(storeId, nextVersion),
+        storeId,
+        version: nextVersion,
+        label: `Rollback to v${record.version}`,
+        policiesJson: record.policiesJson,
+        changedBy,
+      }),
+    ]);
+
+    // Trigger AI policy sync for rollback
+    try {
+      const { createAIService } = await import('~/services/ai.server');
+      const ai = createAIService(context.cloudflare.env.OPENROUTER_API_KEY, {
+        context: context.cloudflare.env,
+      });
+
+      const [updatedStore] = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
+      let contactEmail = 'support@yourstore.com';
+      if (updatedStore?.businessInfo) {
+        try {
+          const info = JSON.parse(updatedStore.businessInfo as string);
+          if (info.email) contactEmail = info.email;
+        } catch {}
+      }
+
+      const effectivePrivacy = updatedStore.customPrivacyPolicy || getPolicyContent('privacy', updatedStore.name, contactEmail).content;
+      const effectiveTerms = updatedStore.customTermsOfService || getPolicyContent('terms', updatedStore.name, contactEmail).content;
+      const effectiveRefund = updatedStore.customRefundPolicy || getPolicyContent('refund', updatedStore.name, contactEmail).content;
+      const effectiveShipping = updatedStore.customShippingPolicy || getPolicyContent('shipping', updatedStore.name, contactEmail).content;
+      const effectiveSubscription = updatedStore.customSubscriptionPolicy || getPolicyContent('subscription', updatedStore.name, contactEmail).content;
+      const effectiveLegal = updatedStore.customLegalNotice || getPolicyContent('legal', updatedStore.name, contactEmail).content;
+
+      const policiesText = `Store Policies:
+      
+Privacy Policy:
+${effectivePrivacy}
+
+Terms of Service:
+${effectiveTerms}
+
+Refund Policy:
+${effectiveRefund}
+
+Shipping Policy:
+${effectiveShipping}
+
+Subscription Policy:
+${effectiveSubscription}
+
+Legal Notice:
+${effectiveLegal}`;
+      
+      context.cloudflare.ctx.waitUntil(
+        ai.insertVector(policiesText, {
+          storeId,
+          type: 'policies',
+          title: 'Legal Policies',
+          customId: `policies-${storeId}`,
+        })
+      );
+      console.log(`[AI SYNC] Queued vector update for policies-${storeId}`);
+    } catch (err) {
+      console.error('[AI SYNC] Failed to update policies vector:', err);
+    }
+
+    return json({ success: true, message: `Rolled back to version ${record.version}` });
   }
 
   return json({ error: 'Invalid action' }, { status: 400 });
 }
 
 export default function LegalSettingsPage() {
-  const { store, defaultPolicies, contactEmail } = useLoaderData<typeof loader>();
+  const { store, defaultPolicies, contactEmail, policyHistory } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const { t, lang } = useTranslation();
@@ -183,15 +476,21 @@ export default function LegalSettingsPage() {
   const [privacyPolicy, setPrivacyPolicy] = useState(store.customPrivacyPolicy || '');
   const [termsOfService, setTermsOfService] = useState(store.customTermsOfService || '');
   const [refundPolicy, setRefundPolicy] = useState(store.customRefundPolicy || '');
+  const [shippingPolicy, setShippingPolicy] = useState(store.customShippingPolicy || '');
+  const [subscriptionPolicy, setSubscriptionPolicy] = useState(store.customSubscriptionPolicy || '');
+  const [legalNotice, setLegalNotice] = useState(store.customLegalNotice || '');
 
   // Expanded states for each section
   const [expanded, setExpanded] = useState({
     privacy: false,
     terms: false,
     refund: false,
+    shipping: false,
+    subscription: false,
+    legal: false,
   });
 
-  const toggleExpanded = (key: 'privacy' | 'terms' | 'refund') => {
+  const toggleExpanded = (key: 'privacy' | 'terms' | 'refund' | 'shipping' | 'subscription' | 'legal') => {
     setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
@@ -278,6 +577,51 @@ export default function LegalSettingsPage() {
             inputName="refundPolicy"
             previewUrl="/policies/refund"
           />
+
+          {/* Shipping Policy */}
+          <PolicySection
+            title={t('shippingPolicy')}
+            description={t('shippingPolicyDesc')}
+            icon="🚚"
+            policyKey="shipping"
+            value={shippingPolicy}
+            onChange={setShippingPolicy}
+            defaultContent={defaultPolicies.shipping}
+            expanded={expanded.shipping}
+            onToggle={() => toggleExpanded('shipping')}
+            inputName="shippingPolicy"
+            previewUrl="/policies/shipping"
+          />
+
+          {/* Subscription Policy */}
+          <PolicySection
+            title={t('subscriptionPolicy')}
+            description={t('subscriptionPolicyDesc')}
+            icon="🔁"
+            policyKey="subscription"
+            value={subscriptionPolicy}
+            onChange={setSubscriptionPolicy}
+            defaultContent={defaultPolicies.subscription}
+            expanded={expanded.subscription}
+            onToggle={() => toggleExpanded('subscription')}
+            inputName="subscriptionPolicy"
+            previewUrl="/policies/subscription"
+          />
+
+          {/* Legal Notice */}
+          <PolicySection
+            title={t('legalNotice')}
+            description={t('legalNoticeDesc')}
+            icon="⚖️"
+            policyKey="legal"
+            value={legalNotice}
+            onChange={setLegalNotice}
+            defaultContent={defaultPolicies.legal}
+            expanded={expanded.legal}
+            onToggle={() => toggleExpanded('legal')}
+            inputName="legalNotice"
+            previewUrl="/policies/legal"
+          />
         </div>
 
         {/* Save Button */}
@@ -298,6 +642,42 @@ export default function LegalSettingsPage() {
           </button>
         </div>
       </Form>
+
+      {/* Policy History */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('policyHistory')}</h2>
+        {policyHistory && policyHistory.length > 0 ? (
+          <div className="space-y-3">
+            {policyHistory.map((ver: any) => (
+              <div
+                key={ver.id}
+                className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 border border-gray-100 rounded-lg p-3"
+              >
+                <div className="text-sm text-gray-700">
+                  <span className="font-medium">{t('versionLabel')} {ver.version}</span>
+                  {ver.label ? <span className="text-gray-500"> • {ver.label}</span> : null}
+                  <div className="text-xs text-gray-500 mt-1">
+                    {t('savedAt')}: {ver.createdAt ? new Date(ver.createdAt).toLocaleString() : '—'} • {t('savedBy')}:{' '}
+                    {ver.changedBy || '—'}
+                  </div>
+                </div>
+                <Form method="post">
+                  <input type="hidden" name="intent" value="rollback" />
+                  <input type="hidden" name="versionId" value={ver.id} />
+                  <button
+                    type="submit"
+                    className="px-3 py-1.5 text-xs font-semibold rounded-md bg-gray-900 text-white hover:bg-gray-800 transition"
+                  >
+                    {t('restore')}
+                  </button>
+                </Form>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">{t('noPolicyHistory')}</p>
+        )}
+      </div>
     </div>
   );
 }
@@ -306,7 +686,7 @@ interface PolicySectionProps {
   title: string;
   description: string;
   icon: string;
-  policyKey: 'privacy' | 'terms' | 'refund';
+  policyKey: 'privacy' | 'terms' | 'refund' | 'shipping' | 'subscription' | 'legal';
   value: string;
   onChange: (value: string) => void;
   defaultContent: string;

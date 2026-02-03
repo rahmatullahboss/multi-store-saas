@@ -3,7 +3,11 @@ import { eq, desc, and } from 'drizzle-orm';
 import * as schema from '../../db/schema';
 import { buildEcommercePrompt, ECOMMERCE_FUNCTION_DEFINITIONS, type AgentConfig } from './agent.prompts';
 import { getRAGContext } from './rag.server';
-import { checkUsageLimit, LIMIT_CODES } from '../utils/plans.server';
+import { CREDIT_COSTS } from '~/utils/credit.server';
+import { requireCredits, chargeCredits } from '~/services/ai-credits.server';
+import { detectLanguage, isMetricsQuestion } from './ai-chat-guard.server';
+import { createDb } from '~/lib/db.server';
+import { getStorePolicyBundle } from './store-policy.server';
 
 // Types derived from schema or environment
 type Env = {
@@ -49,6 +53,7 @@ export async function processMessage(
   env: Env
 ): Promise<AIResponse> {
   const db = drizzle(env.DB, { schema });
+  const policyDb = createDb(env.DB);
   
   // 1. Fetch Agent Config
   const agent = await db.query.agents.findFirst({
@@ -75,17 +80,21 @@ export async function processMessage(
     }
   }
 
-  // B. Credit Check & Deduction (NEW)
-  // Check if store has credits
-  const creditLogs = await db.select({
-      amount: schema.creditUsageLogs.amount
-  }).from(schema.creditUsageLogs)
-  .where(eq(schema.creditUsageLogs.storeId, agent.storeId));
-  
-  const totalCredits = creditLogs.reduce((sum, log) => sum + log.amount, 0);
+  // B. Credit Check (pay-as-you-go)
+  const creditGate = await requireCredits(db, agent.storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'omnichannel');
+  if (!creditGate.allowed) {
+    return { text: '⚠️ দোকানের ক্রেডিট শেষ হয়ে গেছে। দয়া করে রিচার্জ করুন।' };
+  }
 
-  if (totalCredits <= 0) {
-      return { text: '⚠️ দোকানের ক্রেডিট শেষ হয়ে গেছে। দয়া করে রিচার্জ করুন।' };
+  // Metrics questions should not be answered in omnichannel/customer contexts
+  if (isMetricsQuestion(userMessage)) {
+    const lang = detectLanguage(userMessage);
+    return {
+      text:
+        lang === 'bn'
+          ? 'দুঃখিত, এই তথ্যটি আমি শেয়ার করতে পারি না। প্রোডাক্ট বা অর্ডার সম্পর্কিত প্রশ্ন করুন।'
+          : 'Sorry, I can’t share that information. Please ask about products or orders.',
+    };
   }
   
   // 3. RAG Search
@@ -94,7 +103,26 @@ export async function processMessage(
   // 4. Build System Prompt
   const config = JSON.parse(agent.agentSettings || '{}') as Partial<AgentConfig>;
   // Fallback to defaults
-  config.store_name = agent.name; 
+  config.store_name = agent.name;
+
+  // Enrich with store policy bundle (DB-grounded)
+  const policyBundle = await getStorePolicyBundle(policyDb, agent.storeId);
+  if (policyBundle) {
+    config.business_name = policyBundle.businessName;
+    config.store_url = policyBundle.storeUrl;
+    if (policyBundle.deliveryText) {
+      const match = policyBundle.deliveryText.match(/Dhaka: ৳(\\d+)/);
+      if (match) {
+        config.delivery_charge = Number(match[1]);
+      }
+      config.delivery_time = policyBundle.deliveryText;
+    }
+    if (policyBundle.returnPolicy) config.return_policy = policyBundle.returnPolicy;
+    if (policyBundle.shippingPolicy) config.shipping_policy = policyBundle.shippingPolicy;
+    if (policyBundle.subscriptionPolicy) config.subscription_policy = policyBundle.subscriptionPolicy;
+    if (policyBundle.legalNotice) config.legal_notice = policyBundle.legalNotice;
+    if (policyBundle.paymentMethods) config.payment_methods = policyBundle.paymentMethods;
+  }
   
   const systemPrompt = buildEcommercePrompt(config, ragContext);
   
@@ -170,15 +198,13 @@ export async function processMessage(
         functionResult: toolCallData ? responseText : null,
         creditsUsed: 1, 
     });
-
-    // Log Credit Usage Transaction
-    await db.insert(schema.creditUsageLogs).values({
-        storeId: agent.storeId,
-        amount: -1, // Deduct 1
-        type: 'usage',
-        description: 'AI Chat Response',
-        metadata: JSON.stringify({ conversationId }),
-    });
+    await chargeCredits(
+      db,
+      agent.storeId,
+      CREDIT_COSTS.AI_CHAT_MESSAGE,
+      'Omnichannel AI Chat Message',
+      { conversationId }
+    );
 
     return {
       text: responseText,
