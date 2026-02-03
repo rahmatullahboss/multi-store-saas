@@ -3,7 +3,13 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "build/**", "dist/**"]
+      "outputs": [".next/**", "build/**", "dist/**"],
+      "env": [
+        "CLOUDFLARE_ACCOUNT_ID",
+        "CLOUDFLARE_DATABASE_ID",
+        "CLOUDFLARE_D1_API_TOKEN",
+        "OZZYL_APP_API_BASE"
+      ]
     },
     "dev": {
       "cache": false,
