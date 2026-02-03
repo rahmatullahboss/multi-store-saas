@@ -18,8 +18,16 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({ ...body, channel: 'visitor' }),
     });
 
-    const data = await upstream.json();
-    return NextResponse.json(data, { status: upstream.status });
+    const raw = await upstream.text();
+    try {
+      const data = JSON.parse(raw);
+      return NextResponse.json(data, { status: upstream.status });
+    } catch {
+      return NextResponse.json(
+        { error: raw || 'Upstream returned non-JSON response' },
+        { status: upstream.status || 502 }
+      );
+    }
   } catch (error: any) {
     console.error('API Error:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });

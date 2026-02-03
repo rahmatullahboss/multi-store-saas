@@ -155,7 +155,13 @@ export function OzzylAIChatWidget() {
         body: JSON.stringify({ action: 'register', name: regName, phone: regPhone }),
       });
 
-      const data = await res.json();
+      const raw = await res.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        data = { error: raw || 'Invalid server response' };
+      }
 
       if (!res.ok) throw new Error(data.error || 'Registration failed');
 
@@ -200,7 +206,13 @@ export function OzzylAIChatWidget() {
         }),
       });
 
-      const data = await res.json();
+      const raw = await res.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        data = { error: raw || 'Invalid server response' };
+      }
 
       if (!res.ok) throw new Error(data.error || 'Failed to send message');
 
