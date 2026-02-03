@@ -22,7 +22,19 @@ function ChartSkeleton({ height = 300 }: { height?: number }) {
 }
 
 // Lazy load the implementation
-export const LazyBarChart = lazyLoad(
+const LazyBarChartImpl = lazyLoad(
   () => import('./BarChart.impl'),
   <ChartSkeleton />
 );
+
+export function LazyBarChart(props: BarChartProps) {
+  const isAdminRoute =
+    typeof window !== 'undefined' &&
+    (window.location.pathname.startsWith('/admin') ||
+      window.location.pathname.startsWith('/app'));
+  if (!isAdminRoute) {
+    return null;
+  }
+
+  return <LazyBarChartImpl {...props} />;
+}

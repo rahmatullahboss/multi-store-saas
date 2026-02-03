@@ -3,7 +3,7 @@
  * Handles offline fallback and Push Notifications
  */
 
-const CACHE_NAME = 'multi-store-saas-v2';
+const CACHE_NAME = 'multi-store-saas-v3';
 const OFFLINE_URL = '/offline';
 
 // Install Event
@@ -40,13 +40,21 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
 
+  // Avoid caching JS/CSS/fonts to prevent stale bundles on storefront
+  const destination = request.destination;
+  const shouldCache =
+    request.url.startsWith(self.location.origin) &&
+    destination !== 'script' &&
+    destination !== 'style' &&
+    destination !== 'font';
+
   event.respondWith((async () => {
     try {
       const networkResponse = await fetch(request);
       const responseClone = networkResponse.clone();
       const cache = await caches.open(CACHE_NAME);
       // Cache only same-origin requests
-      if (request.url.startsWith(self.location.origin)) {
+      if (shouldCache) {
         cache.put(request, responseClone);
       }
       return networkResponse;

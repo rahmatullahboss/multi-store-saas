@@ -22,7 +22,19 @@ function ChartSkeleton({ height = 300 }: { height?: number }) {
 }
 
 // Lazy load the implementation
-export const LazyAreaChart = lazyLoad(
+const LazyAreaChartImpl = lazyLoad(
   () => import('./AreaChart.impl'),
   <ChartSkeleton />
 );
+
+export function LazyAreaChart(props: AreaChartProps) {
+  const isAdminRoute =
+    typeof window !== 'undefined' &&
+    (window.location.pathname.startsWith('/admin') ||
+      window.location.pathname.startsWith('/app'));
+  if (!isAdminRoute) {
+    return null;
+  }
+
+  return <LazyAreaChartImpl {...props} />;
+}

@@ -29,12 +29,13 @@ import {
   isRouteErrorResponse,
   useSearchParams,
 } from '@remix-run/react';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, type ComponentType } from 'react';
 import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, type Product, type Store } from '@db/schema';
 import { type LandingConfig } from '@db/types';
-import { getTemplate, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
+// NOTE: Avoid static import of landing template registry to keep storefront bundle lean.
+const DEFAULT_LANDING_TEMPLATE_ID = 'premium-bd';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { WishlistProvider } from '~/contexts/WishlistContext';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
@@ -554,12 +555,62 @@ export default function Index() {
   const { t } = useTranslation();
   const data = useLoaderData<LoaderData>();
   const [searchParams] = useSearchParams();
+  const previewTemplateId = searchParams.get('preview_template');
+  const landingTemplateId = data.landingConfig?.templateId || DEFAULT_LANDING_TEMPLATE_ID;
+  const [LandingTemplateComponent, setLandingTemplateComponent] =
+    useState<ComponentType<any> | null>(null);
+  const [PreviewTemplateComponent, setPreviewTemplateComponent] =
+    useState<ComponentType<any> | null>(null);
 
   // Check for edit mode via URL param (for merchant editing)
   const isEditMode = searchParams.get('edit') === 'true';
 
   // Track visitor (only for store pages)
   useTrackVisit(data.mode !== 'marketing' ? data.storeId : undefined);
+
+  // Lazy-load landing templates only when landing mode is active.
+  useEffect(() => {
+    if (data.mode !== 'landing') return;
+    let isActive = true;
+
+    import('~/templates/registry')
+      .then(({ getTemplate }) => {
+        if (!isActive) return;
+        const { component } = getTemplate(landingTemplateId);
+        setLandingTemplateComponent(() => component);
+      })
+      .catch((error) => {
+        console.error('[landing-template] Failed to load:', error);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [data.mode, landingTemplateId]);
+
+  useEffect(() => {
+    if (data.mode !== 'landing') return;
+    if (!previewTemplateId) {
+      setPreviewTemplateComponent(null);
+      return;
+    }
+
+    let isActive = true;
+
+    import('~/templates/registry')
+      .then(({ getTemplate }) => {
+        if (!isActive) return;
+        const { component } = getTemplate(previewTemplateId);
+        setPreviewTemplateComponent(() => component);
+      })
+      .catch((error) => {
+        console.error('[landing-template-preview] Failed to load:', error);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [data.mode, previewTemplateId]);
 
   // Helper for type narrowing
   // const storeData = data.mode === 'store' ? data : undefined;
@@ -589,8 +640,6 @@ export default function Index() {
   // ========== LANDING MODE ==========
   if (data.mode === 'landing') {
     // Check for template preview mode
-    const previewTemplateId = searchParams.get('preview_template');
-
     if (previewTemplateId) {
       // Template Preview Mode - Show demo content with the selected template
       const demoProduct = {
@@ -735,8 +784,6 @@ export default function Index() {
         orderFormVariant: 'full-width' as const,
       };
 
-      const { component: PreviewTemplateComponent } = getTemplate(previewTemplateId);
-
       return (
         <div className="relative">
           <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600 to-pink-500 text-white px-2 py-1.5 text-center shadow-md">
@@ -756,16 +803,25 @@ export default function Index() {
             </div>
           </div>
           <div className="pt-8">
-            <PreviewTemplateComponent
-              storeName={data.storeName}
-              storeId={data.storeId}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              product={demoProduct as any}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              config={demoConfig as any}
-              currency={data.currency}
-              isPreview={true}
-            />
+            {PreviewTemplateComponent ? (
+              <PreviewTemplateComponent
+                storeName={data.storeName}
+                storeId={data.storeId}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                product={demoProduct as any}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                config={demoConfig as any}
+                currency={data.currency}
+                isPreview={true}
+              />
+            ) : (
+              <div className="min-h-[60vh] flex items-center justify-center">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600 mx-auto mb-3"></div>
+                  <p className="text-gray-600">Loading template preview...</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       );
@@ -782,11 +838,19 @@ export default function Index() {
       );
     }
 
-    const templateId = data.landingConfig?.templateId || DEFAULT_TEMPLATE_ID;
-    const { component: TemplateComponent } = getTemplate(templateId);
+    if (!LandingTemplateComponent) {
+      return (
+        <div className="min-h-[70vh] flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading landing template...</p>
+          </div>
+        </div>
+      );
+    }
 
     return (
-      <TemplateComponent
+      <LandingTemplateComponent
         storeName={data.storeName}
         storeId={data.storeId}
         product={data.featuredProduct}

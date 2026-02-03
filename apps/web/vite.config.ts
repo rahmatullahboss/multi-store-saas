@@ -70,18 +70,6 @@ export default defineConfig({
           if (id.includes('grapesjs')) {
             return 'grapesjs';
           }
-          // Recharts - ~315KB (but NOT its React dependencies)
-          if (id.includes('recharts') && !id.includes('react')) {
-            return 'recharts';
-          }
-          // D3 libraries (used by recharts) - separate chunk
-          if (id.includes('d3-')) {
-            return 'd3';
-          }
-          // TipTap/ProseMirror - ~370KB
-          if (id.includes('@tiptap') || id.includes('prosemirror')) {
-            return 'tiptap';
-          }
         },
       },
     },
