@@ -559,9 +559,9 @@ export default function InventoryPage() {
         ...log,
         details,
         title:
-          details?.productTitle ||
+        details?.productTitle ||
           (log.entityId ? productTitleMap.get(log.entityId) : null) ||
-          t('unknownProduct'),
+          t('inventoryUnknownProduct'),
       };
     });
   }, [recentStockChanges, productTitleMap, t]);
@@ -609,7 +609,7 @@ export default function InventoryPage() {
               type="submit"
               className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-800 font-medium hover:bg-gray-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
             >
-              {t('undo')}
+              {t('inventoryUndo')}
             </button>
           </Form>
         </GlassCard>
@@ -757,7 +757,7 @@ export default function InventoryPage() {
                   disabled={isSubmitting || parseInt(bulkAdjustment || '0', 10) === 0}
                   className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 disabled:opacity-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 >
-                  {t('apply')}
+                  {t('inventoryApply')}
                 </button>
                 <button
                   type="button"
@@ -813,7 +813,7 @@ export default function InventoryPage() {
                           type="checkbox"
                           checked={selectedIds.has(product.id)}
                           onChange={() => toggleSelectOne(product.id)}
-                          aria-label={t('selectProduct', { name: product.title })}
+                          aria-label={t('inventorySelectProduct', { name: product.title })}
                           className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                         />
                       </td>
@@ -955,7 +955,7 @@ export default function InventoryPage() {
             <p className="text-sm text-gray-500">{t('stockHistoryDesc')}</p>
           </div>
           <Link to="/app/settings/activity" className="text-sm text-emerald-600 hover:text-emerald-700">
-            {t('viewAll')}
+            {t('inventoryViewAll')}
           </Link>
         </div>
         <div className="mt-4 space-y-3">
@@ -967,7 +967,7 @@ export default function InventoryPage() {
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{log.title}</p>
                   <p className="text-xs text-gray-500">
-                    {log.userName || log.userEmail || t('systemUser')} • {formatDate(log.createdAt)}
+                    {log.userName || log.userEmail || t('inventorySystemUser')} • {formatDate(log.createdAt)}
                   </p>
                 </div>
                 <div className="text-sm font-semibold tabular-nums text-gray-700">
