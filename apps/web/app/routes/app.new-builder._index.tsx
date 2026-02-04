@@ -26,6 +26,7 @@ import {
   type StyleTokens,
 } from '~/utils/landing-builder/intentEngine';
 import { products } from '@db/schema';
+import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 
 // ============================================================================
 // LOADER
@@ -308,8 +309,15 @@ export default function NewBuilderIndex() {
 
   // Image upload handler for Intent Wizard
   const handleImageUpload = async (file: File): Promise<string> => {
+    const format = getOptimalFormat();
+    const compressedBlob = await compressImage(file, {
+      maxWidth: 1200,
+      maxHeight: 1200,
+      quality: 0.8,
+      format,
+    });
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', compressedBlob, `hero-${Date.now()}.${format}`);
     formData.append('storeId', String(storeId));
 
     const response = await fetch('/api/upload-image', {

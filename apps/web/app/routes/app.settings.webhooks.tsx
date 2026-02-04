@@ -13,20 +13,30 @@
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
-import { Form, useLoaderData, useNavigation, useFetcher } from '@remix-run/react';
+import { Form, useLoaderData, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, and } from 'drizzle-orm';
 import { webhooks, webhookDeliveryLogs } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { getStoreId, getUserId } from '~/services/auth.server';
 import { useState } from 'react';
 import { Plus, Trash2, Eye, EyeOff, Copy, Check, Webhook, ExternalLink, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { z } from 'zod';
+import { logActivity } from '~/lib/activity.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Webhook Settings' }];
 };
 
 // Available webhook event types
+const EVENT_TYPE_VALUES = [
+  'order.created',
+  'order.updated',
+  'order.cancelled',
+  'order.delivered',
+  'payment.received',
+] as const;
+
 const EVENT_TYPES = [
   { value: 'order.created', label: 'Order Created', labelBn: 'অর্ডার তৈরি হয়েছে' },
   { value: 'order.updated', label: 'Order Updated', labelBn: 'অর্ডার আপডেট হয়েছে' },
@@ -34,6 +44,11 @@ const EVENT_TYPES = [
   { value: 'order.delivered', label: 'Order Delivered', labelBn: 'অর্ডার ডেলিভারি হয়েছে' },
   { value: 'payment.received', label: 'Payment Received', labelBn: 'পেমেন্ট এসেছে' },
 ];
+
+const WebhookCreateSchema = z.object({
+  url: z.string().trim().url().refine((v) => v.startsWith('https://'), 'URL must start with https://'),
+  events: z.array(z.enum(EVENT_TYPE_VALUES)).min(1).max(5),
+});
 
 // ============================================================================
 // LOADER
@@ -72,6 +87,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export async function action({ request, context }: ActionFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) return json({ error: 'Unauthorized' }, { status: 401 });
+  const userId = await getUserId(request, context.cloudflare.env);
 
   const formData = await request.formData();
   const intent = formData.get('intent') as string;
@@ -79,16 +95,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Create new webhook
   if (intent === 'create') {
-    const url = formData.get('url') as string;
-    const selectedEvents = formData.getAll('events') as string[];
-
-    if (!url || !url.startsWith('https://')) {
-      return json({ error: 'URL must start with https://' }, { status: 400 });
+    const parsed = WebhookCreateSchema.safeParse({
+      url: formData.get('url'),
+      events: formData.getAll('events'),
+    });
+    if (!parsed.success) {
+      return json({ error: parsed.error.issues[0]?.message || 'Invalid webhook payload' }, { status: 400 });
     }
-
-    if (selectedEvents.length === 0) {
-      return json({ error: 'Select at least one event' }, { status: 400 });
-    }
+    const { url, events: selectedEvents } = parsed.data;
 
     // Generate secret
     const array = new Uint8Array(24);
@@ -103,16 +117,43 @@ export async function action({ request, context }: ActionFunctionArgs) {
       isActive: true,
     });
 
+    await logActivity(db, {
+      storeId,
+      userId,
+      action: 'settings_updated',
+      entityType: 'settings',
+      details: {
+        section: 'webhooks',
+        intent: 'create',
+        topic: selectedEvents[0] || 'order.created',
+      },
+    });
+
     return json({ success: true });
   }
 
   // Delete webhook
   if (intent === 'delete') {
     const webhookId = Number(formData.get('webhookId'));
+    if (!Number.isInteger(webhookId) || webhookId <= 0) {
+      return json({ error: 'Invalid webhook id' }, { status: 400 });
+    }
     
     await db
       .delete(webhooks)
       .where(and(eq(webhooks.id, webhookId), eq(webhooks.storeId, storeId)));
+
+    await logActivity(db, {
+      storeId,
+      userId,
+      action: 'settings_updated',
+      entityType: 'settings',
+      details: {
+        section: 'webhooks',
+        intent: 'delete',
+        webhookId,
+      },
+    });
 
     return json({ success: true });
   }
@@ -120,12 +161,28 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Toggle active
   if (intent === 'toggle') {
     const webhookId = Number(formData.get('webhookId'));
+    if (!Number.isInteger(webhookId) || webhookId <= 0) {
+      return json({ error: 'Invalid webhook id' }, { status: 400 });
+    }
     const isActive = formData.get('isActive') === 'true';
     
     await db
       .update(webhooks)
       .set({ isActive: !isActive })
       .where(and(eq(webhooks.id, webhookId), eq(webhooks.storeId, storeId)));
+
+    await logActivity(db, {
+      storeId,
+      userId,
+      action: 'settings_updated',
+      entityType: 'settings',
+      details: {
+        section: 'webhooks',
+        intent: 'toggle',
+        webhookId,
+        nextIsActive: !isActive,
+      },
+    });
 
     return json({ success: true });
   }
@@ -139,7 +196,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export default function WebhookSettings() {
   const { webhooks: webhookList, recentLogs } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
-  const { t, lang } = useTranslation();
+  const { lang } = useTranslation();
   const [showSecrets, setShowSecrets] = useState<Record<number, boolean>>({});
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);

@@ -35,6 +35,12 @@ import { SkeletonLoader } from '~/components/SkeletonLoader';
 import { formatPrice } from '~/lib/theme-engine';
 import { getHeroBehavior } from '~/lib/hero-slides';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
+import {
+  buildProxyImageUrl,
+  generateProxySrcset,
+  generateSrcset,
+  optimizeUnsplashUrl,
+} from '~/utils/imageOptimization';
 
 import { NOVALUX_THEME } from './theme';
 import { NovaLuxHeader } from './sections/Header';
@@ -371,9 +377,13 @@ function PreviewProductCard({
       <div className="relative aspect-[4/5] overflow-hidden">
         {product.imageUrl ? (
           <img
-            src={product.imageUrl}
+            src={buildProxyImageUrl(product.imageUrl, { width: 640, quality: 75 })}
             alt={product.title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            srcSet={generateProxySrcset(product.imageUrl, [320, 480, 640], 75)}
+            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-100">
@@ -465,6 +475,14 @@ function PreviewHomePage({
   const heroHeading = heroSlide?.heading || config?.bannerText || 'Redefining Luxury';
   const heroSubheading = heroSlide?.subheading || 'Discover our exclusive collection.';
   const heroCta = heroSlide?.ctaText || 'Shop Now';
+  const isUnsplashHero = heroImage.includes('unsplash.com');
+  const heroSrc = isUnsplashHero
+    ? optimizeUnsplashUrl(heroImage, { width: 1800, height: 1000, quality: 80, format: 'webp' })
+    : buildProxyImageUrl(heroImage, { width: 1800, height: 1000, quality: 78 });
+  const heroSrcSet =
+    heroImage && isUnsplashHero
+      ? generateSrcset(heroImage, [640, 960, 1280, 1600, 1800])
+      : generateProxySrcset(heroImage, [640, 960, 1280, 1600, 1800], 78);
 
   useEffect(() => {
     if (!heroBehavior.isCarousel || !heroBehavior.autoplay) return;
@@ -486,9 +504,14 @@ function PreviewHomePage({
         <div className="absolute inset-0 bg-black/40 z-10" />
         {heroImage && (
           <img
-            src={heroImage}
+            src={heroSrc}
             alt="Banner"
             className="absolute inset-0 w-full h-full object-cover"
+            srcSet={heroSrcSet}
+            sizes="100vw"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
           />
         )}
         <div className="relative z-20 text-center max-w-4xl px-4">
@@ -877,9 +900,13 @@ function NovaLuxProductCard({ product, storeId, formatPrice, isPreview }: NovaLu
       <Link to={`/product/${product.id}`} className="block relative aspect-[4/5] overflow-hidden">
         {product.imageUrl ? (
           <img
-            src={product.imageUrl}
+            src={buildProxyImageUrl(product.imageUrl, { width: 640, quality: 75 })}
             alt={product.title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            srcSet={generateProxySrcset(product.imageUrl, [320, 480, 640], 75)}
+            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div

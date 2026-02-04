@@ -16,7 +16,7 @@ import { useLoaderData, useActionData, Form, useNavigation, Link } from '@remix-
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { getStoreId, getUserId } from '~/services/auth.server';
 import { createPathaoClient } from '~/services/pathao.server';
 import { createSteadfastClient } from '~/services/steadfast.server';
 import { 
@@ -33,6 +33,8 @@ import {
 import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { GlassCard } from '~/components/ui/GlassCard';
+import { z } from 'zod';
+import { logActivity } from '~/lib/activity.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Courier Settings - Ozzyl' }];
@@ -59,6 +61,21 @@ interface CourierSettings {
   };
   isConnected: boolean;
 }
+
+const ProviderSchema = z.enum(['pathao', 'redx', 'steadfast']);
+const IntentSchema = z.enum(['save', 'test', 'disconnect']);
+const PathaoInputSchema = z.object({
+  clientId: z.string().trim().min(1).max(120),
+  clientSecret: z.string().trim().max(255).optional(),
+  username: z.string().trim().min(1).max(120),
+  password: z.string().trim().max(255).optional(),
+  baseUrl: z.string().trim().url().max(255).optional().or(z.literal('')),
+  defaultStoreId: z.number().int().positive().optional(),
+});
+const ApiCredentialSchema = z.object({
+  apiKey: z.string().trim().min(1).max(255),
+  secretKey: z.string().trim().max(255).optional(),
+});
 
 // ============================================================================
 // LOADER
@@ -123,10 +140,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
+  const userId = await getUserId(request, context.cloudflare.env);
 
   const formData = await request.formData();
-  const intent = formData.get('intent') as string;
-  const provider = formData.get('provider') as 'pathao' | 'redx' | 'steadfast';
+  const intentParsed = IntentSchema.safeParse(formData.get('intent'));
+  if (!intentParsed.success) {
+    return json({ error: 'Invalid action' }, { status: 400 });
+  }
+  const intent = intentParsed.data;
+  const providerParsed = ProviderSchema.safeParse(formData.get('provider'));
+  const provider = providerParsed.success ? providerParsed.data : undefined;
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -137,15 +160,25 @@ export async function action({ request, context }: ActionFunctionArgs) {
     .where(eq(stores.id, storeId))
     .limit(1);
 
-  const themeConfig = storeResult[0]?.themeConfig 
-    ? JSON.parse(storeResult[0].themeConfig) 
-    : {};
+  let themeConfig: Record<string, unknown> = {};
+  if (storeResult[0]?.themeConfig) {
+    try {
+      themeConfig = JSON.parse(storeResult[0].themeConfig);
+    } catch {
+      themeConfig = {};
+    }
+  }
 
   // ----------------------------------------
   // SAVE CREDENTIALS
   // ----------------------------------------
   if (intent === 'save') {
-    const currentSettings = themeConfig.courier || {};
+    if (!provider) {
+      return json({ error: 'Provider is required' }, { status: 400 });
+    }
+    const currentSettings = (themeConfig.courier && typeof themeConfig.courier === 'object'
+      ? themeConfig.courier
+      : {}) as Partial<CourierSettings>;
     // Preserve existing settings
     const courierSettings: CourierSettings = {
       ...currentSettings,
@@ -158,33 +191,58 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     if (provider === 'pathao') {
       const existingPathao = currentSettings.pathao || {};
-      const newClientSecret = formData.get('clientSecret') as string;
-      const newPassword = formData.get('password') as string;
+      const parsedPathao = PathaoInputSchema.safeParse({
+        clientId: formData.get('clientId'),
+        clientSecret: formData.get('clientSecret') || undefined,
+        username: formData.get('username'),
+        password: formData.get('password') || undefined,
+        baseUrl: (formData.get('baseUrl') as string) || '',
+        defaultStoreId: formData.get('defaultStoreId')
+          ? Number(formData.get('defaultStoreId'))
+          : undefined,
+      });
+      if (!parsedPathao.success) {
+        return json({ error: 'Invalid Pathao credentials' }, { status: 400 });
+      }
+      const newClientSecret = parsedPathao.data.clientSecret;
+      const newPassword = parsedPathao.data.password;
 
       courierSettings.pathao = {
-        clientId: formData.get('clientId') as string,
+        clientId: parsedPathao.data.clientId,
         clientSecret: newClientSecret ? newClientSecret : (existingPathao.clientSecret || ''),
-        username: formData.get('username') as string,
+        username: parsedPathao.data.username,
         password: newPassword ? newPassword : (existingPathao.password || ''),
-        baseUrl: formData.get('baseUrl') as string,
-        defaultStoreId: formData.get('defaultStoreId') 
-          ? parseInt(formData.get('defaultStoreId') as string) 
-          : undefined,
+        baseUrl: parsedPathao.data.baseUrl || undefined,
+        defaultStoreId: parsedPathao.data.defaultStoreId,
       };
     } else if (provider === 'redx') {
       const existingRedx = currentSettings.redx || {};
-      const newSecretKey = formData.get('secretKey') as string;
+      const parsedRedx = ApiCredentialSchema.safeParse({
+        apiKey: formData.get('apiKey'),
+        secretKey: formData.get('secretKey') || undefined,
+      });
+      if (!parsedRedx.success) {
+        return json({ error: 'Invalid RedX credentials' }, { status: 400 });
+      }
+      const newSecretKey = parsedRedx.data.secretKey;
 
       courierSettings.redx = {
-        apiKey: formData.get('apiKey') as string,
+        apiKey: parsedRedx.data.apiKey,
         secretKey: newSecretKey ? newSecretKey : (existingRedx.secretKey || ''),
       };
     } else if (provider === 'steadfast') {
       const existingSteadfast = currentSettings.steadfast || {};
-      const newSecretKey = formData.get('secretKey') as string;
+      const parsedSteadfast = ApiCredentialSchema.safeParse({
+        apiKey: formData.get('apiKey'),
+        secretKey: formData.get('secretKey') || undefined,
+      });
+      if (!parsedSteadfast.success) {
+        return json({ error: 'Invalid Steadfast credentials' }, { status: 400 });
+      }
+      const newSecretKey = parsedSteadfast.data.secretKey;
 
       courierSettings.steadfast = {
-        apiKey: formData.get('apiKey') as string,
+        apiKey: parsedSteadfast.data.apiKey,
         secretKey: newSecretKey ? newSecretKey : (existingSteadfast.secretKey || ''),
       };
     }
@@ -200,16 +258,26 @@ export async function action({ request, context }: ActionFunctionArgs) {
       })
       .where(eq(stores.id, storeId));
 
-    // Also save to courierSettings for Steadfast/RedX
-    if (provider === 'steadfast' || provider === 'redx') {
-      await db
-        .update(stores)
-        .set({ 
-          courierSettings: JSON.stringify(courierSettings),
-          updatedAt: new Date(),
-        })
-        .where(eq(stores.id, storeId));
-    }
+    // Keep courierSettings in sync for all providers (orders API reads this field).
+    await db
+      .update(stores)
+      .set({
+        courierSettings: JSON.stringify(courierSettings),
+        updatedAt: new Date(),
+      })
+      .where(eq(stores.id, storeId));
+
+    await logActivity(db, {
+      storeId,
+      userId,
+      action: 'settings_updated',
+      entityType: 'settings',
+      details: {
+        section: 'courier',
+        intent: 'save',
+        provider,
+      },
+    });
 
     return json({ success: true, message: 'Credentials saved!' });
   }
@@ -242,10 +310,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
           await db
             .update(stores)
             .set({ 
+              courierSettings: JSON.stringify(themeConfig.courier),
               themeConfig: JSON.stringify(themeConfig),
               updatedAt: new Date(),
             })
             .where(eq(stores.id, storeId));
+
+          await logActivity(db, {
+            storeId,
+            userId,
+            action: 'settings_updated',
+            entityType: 'settings',
+            details: {
+              section: 'courier',
+              intent: 'test',
+              provider: 'pathao',
+              connected: true,
+            },
+          });
 
           // Get stores for dropdown
           const pathaoStores = await client.getStores();
@@ -276,6 +358,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         if (connected) {
           // Update connection status and save to courierSettings field
           courierSettings.isConnected = true;
+          themeConfig.courier = courierSettings;
           
           await db
             .update(stores)
@@ -285,6 +368,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
               updatedAt: new Date(),
             })
             .where(eq(stores.id, storeId));
+
+          await logActivity(db, {
+            storeId,
+            userId,
+            action: 'settings_updated',
+            entityType: 'settings',
+            details: {
+              section: 'courier',
+              intent: 'test',
+              provider: 'steadfast',
+              connected: true,
+            },
+          });
 
           const balance = await client.getBalance();
           
@@ -307,49 +403,31 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // DISCONNECT
   // ----------------------------------------
   if (intent === 'disconnect') {
-    themeConfig.courier = {
+    const disconnectedCourier = {
       provider: null,
       isConnected: false,
     };
+    themeConfig.courier = disconnectedCourier;
 
     await db
       .update(stores)
       .set({ 
         themeConfig: JSON.stringify(themeConfig),
-        updatedAt: new Date(),
-      })
-      .where(eq(stores.id, storeId));
-
-    return json({ success: true, message: 'Connected successfully!' });
-  }
-
-  if (intent === 'disconnect') {
-    // ... logic for disconnecting
-    
-    // Reset courier settings in store record too
-    await db
-      .update(stores)
-      .set({ 
         courierSettings: null,
         updatedAt: new Date(),
       })
       .where(eq(stores.id, storeId));
 
-    // Reset theme config courier settings
-    if (themeConfig.courier) {
-      themeConfig.courier = {
-        provider: null,
-        isConnected: false,
-      };
-      
-      await db
-      .update(stores)
-      .set({ 
-        themeConfig: JSON.stringify(themeConfig),
-        updatedAt: new Date(),
-      })
-      .where(eq(stores.id, storeId));
-    }
+    await logActivity(db, {
+      storeId,
+      userId,
+      action: 'settings_updated',
+      entityType: 'settings',
+      details: {
+        section: 'courier',
+        intent: 'disconnect',
+      },
+    });
 
     return json({ success: true, message: 'Courier disconnected!' });
   }

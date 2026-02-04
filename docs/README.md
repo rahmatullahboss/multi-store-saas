@@ -6,6 +6,7 @@
 | --------------------------------- | ---------------------------------------------- |
 | [AGENTS.md](../AGENTS.md)         | Main development guidelines & coding standards |
 | [NEXT_STEPS.md](../NEXT_STEPS.md) | Current development roadmap & next tasks       |
+| [LAUNCH_READINESS_2026-02-04.md](LAUNCH_READINESS_2026-02-04.md) | Sprint delivery, pending work, and go-live checklist |
 
 ---
 

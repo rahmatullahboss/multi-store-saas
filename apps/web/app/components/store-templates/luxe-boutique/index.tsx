@@ -40,6 +40,7 @@ import { SkeletonLoader } from '~/components/SkeletonLoader';
 import { getHeroBehavior } from '~/lib/hero-slides';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
+import { buildProxyImageUrl, generateProxySrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 
 import { LUXE_BOUTIQUE_THEME } from './theme';
 import { LuxeBoutiqueHeader } from './sections/Header';
@@ -334,9 +335,13 @@ function PreviewProductCard({
       >
         {product.imageUrl ? (
           <img
-            src={product.imageUrl}
+            src={buildProxyImageUrl(product.imageUrl, { width: 640, quality: 75 })}
             alt={product.title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            srcSet={generateProxySrcset(product.imageUrl, [320, 480, 640], 75)}
+            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div
@@ -625,6 +630,9 @@ function PreviewHomePage({
     heroSlide?.imageUrl ||
     config?.bannerUrl ||
     'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop';
+  const heroBgUrl = heroImage.includes('unsplash.com')
+    ? optimizeUnsplashUrl(heroImage, { width: 1600, height: 900, quality: 80, format: 'webp' })
+    : buildProxyImageUrl(heroImage, { width: 1600, height: 900, quality: 78 });
   const heroHeading = heroSlide?.heading || config?.bannerText || 'Redefining Elegance';
   const heroSubheading =
     heroSlide?.subheading || 'Discover a world of timeless style and uncompromising quality.';
@@ -651,7 +659,7 @@ function PreviewHomePage({
         <div
           className="absolute inset-0 z-0 bg-cover bg-center"
           style={{
-            backgroundImage: `url(${heroImage})`,
+            backgroundImage: `url(${heroBgUrl})`,
           }}
         >
           <div className="absolute inset-0 bg-black/30" />
@@ -755,7 +763,7 @@ function PreviewLuxeStore(props: StoreTemplateProps) {
         return <PreviewCheckoutPage currency={currency} onNavigate={navigate} />;
       case 'search':
         return <div className="p-20 text-center">Search results for {currentPage.query}</div>;
-      case 'category':
+      case 'category': {
         const filtered = products.filter((p) => p.category === currentPage.category);
         return (
           <div className="py-20 bg-[#faf9f7] min-h-screen">
@@ -774,6 +782,7 @@ function PreviewLuxeStore(props: StoreTemplateProps) {
             </div>
           </div>
         );
+      }
       case 'order-success':
         return (
           <div className="min-h-[60vh] flex items-center justify-center text-center p-8">

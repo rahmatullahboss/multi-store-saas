@@ -24,6 +24,7 @@ import { Link } from '@remix-run/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 
 // Zod schemas for input validation
 const IntentSchema = z.object({
@@ -314,8 +315,15 @@ export default function QuickBuilderNew() {
   }
 
   const handleImageUpload = async (file: File): Promise<string> => {
+    const format = getOptimalFormat();
+    const compressedBlob = await compressImage(file, {
+      maxWidth: 1200,
+      maxHeight: 1200,
+      quality: 0.8,
+      format,
+    });
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', compressedBlob, `hero-${Date.now()}.${format}`);
     formData.append('storeId', String(storeId));
 
     const response = await fetch('/api/upload-image', {

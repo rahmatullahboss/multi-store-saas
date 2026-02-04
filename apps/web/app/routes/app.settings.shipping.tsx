@@ -10,9 +10,9 @@ import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remi
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData, Form, useNavigation, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { shippingZones, stores } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { getStoreId, getUserId } from '~/services/auth.server';
 import { 
   Truck, 
   Plus, 
@@ -25,10 +25,28 @@ import {
 import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { parseShippingConfig } from '~/utils/shipping';
+import { z } from 'zod';
+import { logActivity } from '~/lib/activity.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Shipping Zones - Settings' }];
 };
+
+const zoneSchema = z.object({
+  id: z.number().int().positive().nullable(),
+  name: z.string().trim().min(1).max(80),
+  rate: z.number().min(0).max(1000000),
+  freeAbove: z.number().min(0).max(10000000).nullable(),
+  estimatedDays: z.string().trim().max(80).nullable(),
+  regions: z.string().trim().max(2000).nullable(),
+});
+
+const simpleShippingSchema = z.object({
+  insideDhaka: z.number().min(0).max(1000000),
+  outsideDhaka: z.number().min(0).max(1000000),
+  freeShippingAbove: z.number().min(0).max(10000000),
+  enabled: z.boolean(),
+});
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -61,22 +79,25 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (!storeId) {
     throw new Response('Unauthorized', { status: 401 });
   }
+  const userId = await getUserId(request, context.cloudflare.env);
 
   const formData = await request.formData();
   const intent = formData.get('intent') as string;
   const db = drizzle(context.cloudflare.env.DB);
 
   if (intent === 'create' || intent === 'update') {
-    const id = formData.get('id') ? parseInt(formData.get('id') as string) : null;
-    const name = formData.get('name') as string;
-    const rate = parseFloat(formData.get('rate') as string) || 0;
-    const freeAbove = formData.get('freeAbove') ? parseFloat(formData.get('freeAbove') as string) : null;
-    const estimatedDays = formData.get('estimatedDays') as string;
-    const regions = formData.get('regions') as string;
-
-    if (!name) {
-      return json({ error: 'Zone name is required' }, { status: 400 });
+    const parsed = zoneSchema.safeParse({
+      id: formData.get('id') ? Number(formData.get('id')) : null,
+      name: (formData.get('name') as string) || '',
+      rate: Number(formData.get('rate') || 0),
+      freeAbove: formData.get('freeAbove') ? Number(formData.get('freeAbove')) : null,
+      estimatedDays: ((formData.get('estimatedDays') as string) || '').trim() || null,
+      regions: ((formData.get('regions') as string) || '').trim() || null,
+    });
+    if (!parsed.success) {
+      return json({ error: 'invalid_zone_data' }, { status: 400 });
     }
+    const { id, name, rate, freeAbove, estimatedDays, regions } = parsed.data;
 
     if (id) {
       // Update
@@ -89,7 +110,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           estimatedDays: estimatedDays || null,
           regions: regions || null,
         })
-        .where(eq(shippingZones.id, id));
+        .where(and(eq(shippingZones.id, id), eq(shippingZones.storeId, storeId)));
     } else {
       // Create
       await db.insert(shippingZones).values({
@@ -102,14 +123,33 @@ export async function action({ request, context }: ActionFunctionArgs) {
       });
     }
 
+    await logActivity(db, {
+      storeId,
+      userId,
+      action: 'settings_updated',
+      entityType: 'settings',
+      details: {
+        section: 'shipping',
+        intent,
+        zoneId: id ?? null,
+        hasFreeAbove: freeAbove !== null,
+      },
+    });
+
     return json({ success: true });
   }
 
   if (intent === 'save-simple') {
-    const insideDhaka = parseFloat(formData.get('insideDhaka') as string) || 60;
-    const outsideDhaka = parseFloat(formData.get('outsideDhaka') as string) || 120;
-    const freeShippingAbove = parseFloat(formData.get('freeShippingAbove') as string) || 0;
-    const enabled = formData.get('enabled') === 'on';
+    const parsed = simpleShippingSchema.safeParse({
+      insideDhaka: Number(formData.get('insideDhaka') ?? 60),
+      outsideDhaka: Number(formData.get('outsideDhaka') ?? 120),
+      freeShippingAbove: Number(formData.get('freeShippingAbove') ?? 0),
+      enabled: formData.get('enabled') === 'on',
+    });
+    if (!parsed.success) {
+      return json({ error: 'invalid_shipping_config' }, { status: 400 });
+    }
+    const { insideDhaka, outsideDhaka, freeShippingAbove, enabled } = parsed.data;
 
     await db
       .update(stores)
@@ -123,12 +163,42 @@ export async function action({ request, context }: ActionFunctionArgs) {
       })
       .where(eq(stores.id, storeId));
 
+    await logActivity(db, {
+      storeId,
+      userId,
+      action: 'settings_updated',
+      entityType: 'settings',
+      details: {
+        section: 'shipping',
+        intent: 'save-simple',
+        enabled,
+      },
+    });
+
     return json({ success: true });
   }
 
   if (intent === 'delete') {
-    const id = parseInt(formData.get('id') as string);
-    await db.delete(shippingZones).where(eq(shippingZones.id, id));
+    const id = Number(formData.get('id'));
+    if (!Number.isInteger(id) || id <= 0) {
+      return json({ error: 'invalid_zone_id' }, { status: 400 });
+    }
+    await db
+      .delete(shippingZones)
+      .where(and(eq(shippingZones.id, id), eq(shippingZones.storeId, storeId)));
+
+    await logActivity(db, {
+      storeId,
+      userId,
+      action: 'settings_updated',
+      entityType: 'settings',
+      details: {
+        section: 'shipping',
+        intent: 'delete',
+        zoneId: id,
+      },
+    });
+
     return json({ success: true });
   }
 

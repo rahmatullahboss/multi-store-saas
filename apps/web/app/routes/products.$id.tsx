@@ -30,6 +30,7 @@ import {
   type SerializedProduct,
 } from '~/templates/store-registry';
 import { getCustomer } from '~/services/customer-auth.server';
+import { getProductDetailsMetafields } from '~/lib/product-details.server';
 
 // ============================================================================
 // CACHE CONFIGURATION
@@ -295,6 +296,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       throw new Response('Product not found', { status: 404 });
     }
 
+    const productDetails = await getProductDetailsMetafields(db, storeId, productId);
+
     // Process categories
     if (!categories && categoriesResult) {
       categories = categoriesResult.map((c) => c.category).filter((c): c is string => Boolean(c));
@@ -311,14 +314,17 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     const url = new URL(request.url);
     const productUrl = `${url.protocol}//${url.host}/products/${product.id}`;
 
-    const shippingInfo =
-      shippingConfig && shippingConfig.enabled !== false
+    const shippingInfo = productDetails.shippingInfo
+      ? productDetails.shippingInfo
+      : shippingConfig && shippingConfig.enabled !== false
         ? `Shipping inside Dhaka: ${store?.currency || 'BDT'} ${shippingConfig.insideDhaka ?? 60}. Outside Dhaka: ${store?.currency || 'BDT'} ${shippingConfig.outsideDhaka ?? 120}.${shippingConfig.freeShippingAbove ? ` Free shipping above ${store?.currency || 'BDT'} ${shippingConfig.freeShippingAbove}.` : ''}`
         : null;
 
     const responseData = {
       product: {
         ...product,
+        specifications: productDetails.specifications,
+        returnPolicy: productDetails.returnPolicy || store?.customRefundPolicy || null,
         variants: variantsResult || [],
       },
       storeName: store?.name || 'Store',
@@ -352,7 +358,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       productUrl,
       themeConfig,
       storeShippingInfo: shippingInfo,
-      storeRefundPolicy: store?.customRefundPolicy || null,
+      storeRefundPolicy: productDetails.returnPolicy || store?.customRefundPolicy || null,
     };
 
     // ============================================================

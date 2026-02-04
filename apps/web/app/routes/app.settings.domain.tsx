@@ -22,7 +22,7 @@ import {
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { getStoreId, getUserId } from '~/services/auth.server';
 import { canUseCustomDomain, type PlanType } from '~/utils/plans.server';
 import {
   createCustomHostname,
@@ -49,6 +49,8 @@ import {
 import { useEffect, useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { GlassCard } from '~/components/ui/GlassCard';
+import { z } from 'zod';
+import { logActivity } from '~/lib/activity.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Domain Settings' }];
@@ -59,6 +61,8 @@ interface ActionData {
   error?: string;
   message?: string;
 }
+
+const DomainActionSchema = z.enum(['add', 'refresh', 'remove', 'cancel']);
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -121,11 +125,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (!storeId) {
     return json<ActionData>({ error: 'unauthorized' }, { status: 401 });
   }
+  const userId = await getUserId(request, context.cloudflare.env);
 
   const db = drizzle(context.cloudflare.env.DB);
   const env = context.cloudflare.env as CloudflareEnv;
   const formData = await request.formData();
-  const actionType = formData.get('actionType') as string;
+  const actionTypeParsed = DomainActionSchema.safeParse(formData.get('actionType'));
+  if (!actionTypeParsed.success) {
+    return json<ActionData>({ error: 'Invalid action' }, { status: 400 });
+  }
+  const actionType = actionTypeParsed.data;
 
   // Get current store data
   const store = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
@@ -194,6 +203,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
         })
         .where(eq(stores.id, storeId));
 
+      await logActivity(db, {
+        storeId,
+        userId,
+        action: 'settings_updated',
+        entityType: 'settings',
+        details: {
+          section: 'domain',
+          intent: 'add',
+          domain,
+          mode: 'manual-request',
+        },
+      });
+
       return json<ActionData>({
         success: true,
         message: 'domainRequestSubmitted',
@@ -221,6 +243,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
       console.info(
         `[Domain] Store ${storeId} added domain: ${domain} (CF ID: ${result.hostnameId})`
       );
+
+      await logActivity(db, {
+        storeId,
+        userId,
+        action: 'settings_updated',
+        entityType: 'settings',
+        details: {
+          section: 'domain',
+          intent: 'add',
+          domain,
+          sslStatus: result.sslStatus,
+        },
+      });
 
       return json<ActionData>({
         success: true,
@@ -257,6 +292,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
         })
         .where(eq(stores.id, storeId));
 
+      await logActivity(db, {
+        storeId,
+        userId,
+        action: 'settings_updated',
+        entityType: 'settings',
+        details: {
+          section: 'domain',
+          intent: 'refresh',
+          sslStatus: result.sslStatus,
+          dnsVerified: result.status === 'active',
+        },
+      });
+
       return json<ActionData>({ success: true, message: 'hostnameRefreshSuccess' });
     } catch (error) {
       console.error('[Domain] Refresh failed:', error);
@@ -290,6 +338,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       console.info(`[Domain] Store ${storeId} removed custom domain`);
 
+      await logActivity(db, {
+        storeId,
+        userId,
+        action: 'settings_updated',
+        entityType: 'settings',
+        details: {
+          section: 'domain',
+          intent: 'remove',
+        },
+      });
+
       return json<ActionData>({ success: true, message: 'domainRemovalSuccess' });
     } catch (error) {
       console.error('[Domain] Remove failed:', error);
@@ -309,6 +368,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
         updatedAt: new Date(),
       })
       .where(eq(stores.id, storeId));
+
+    await logActivity(db, {
+      storeId,
+      userId,
+      action: 'settings_updated',
+      entityType: 'settings',
+      details: {
+        section: 'domain',
+        intent: 'cancel',
+      },
+    });
 
     return json<ActionData>({ success: true });
   }

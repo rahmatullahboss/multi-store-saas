@@ -16,7 +16,7 @@ import { Form, useLoaderData, useActionData, useNavigation, useFetcher, Link } f
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { getStoreId, getUserId } from '~/services/auth.server';
 import { 
   Search, 
   Loader2, 
@@ -31,6 +31,8 @@ import {
 import { useState, useEffect, useRef } from 'react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { z } from 'zod';
+import { logActivity } from '~/lib/activity.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'SEO Settings - Ozzyl' }];
@@ -43,6 +45,13 @@ interface SeoConfig {
   ogImage?: string;
   keywords?: string[];
 }
+
+const SeoSettingsSchema = z.object({
+  metaTitle: z.string().trim().max(70).optional(),
+  metaDescription: z.string().trim().max(180).optional(),
+  ogImage: z.string().trim().max(1000).optional(),
+  keywords: z.string().trim().max(500).optional(),
+});
 
 // ============================================================================
 // LOADER
@@ -99,18 +108,29 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (!storeId) {
     return json({ error: 'unauthorized' }, { status: 401 });
   }
+  const userId = await getUserId(request, context.cloudflare.env);
 
   const formData = await request.formData();
-  const metaTitle = formData.get('metaTitle') as string;
-  const metaDescription = formData.get('metaDescription') as string;
-  const ogImage = formData.get('ogImage') as string;
-  const keywords = formData.get('keywords') as string;
+  const parsed = SeoSettingsSchema.safeParse({
+    metaTitle: (formData.get('metaTitle') as string) || undefined,
+    metaDescription: (formData.get('metaDescription') as string) || undefined,
+    ogImage: (formData.get('ogImage') as string) || undefined,
+    keywords: (formData.get('keywords') as string) || undefined,
+  });
+  if (!parsed.success) {
+    return json({ error: 'invalid_seo_input' }, { status: 400 });
+  }
+
+  const metaTitle = parsed.data.metaTitle || '';
+  const metaDescription = parsed.data.metaDescription || '';
+  const ogImage = parsed.data.ogImage || '';
+  const keywords = parsed.data.keywords || '';
 
   const db = drizzle(context.cloudflare.env.DB);
 
   // Get current themeConfig
   const storeResult = await db
-    .select({ themeConfig: stores.themeConfig })
+    .select({ themeConfig: stores.themeConfig, landingConfig: stores.landingConfig })
     .from(stores)
     .where(eq(stores.id, storeId))
     .limit(1);
@@ -124,21 +144,58 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
   }
 
+  let landingConfig: Record<string, unknown> = {};
+  if (storeResult[0]?.landingConfig) {
+    try {
+      landingConfig = JSON.parse(storeResult[0].landingConfig);
+    } catch {
+      // Ignore parse errors
+    }
+  }
+
   // Update SEO config
+  const keywordList = keywords
+    ? keywords
+        .split(',')
+        .map((k) => k.trim())
+        .filter(Boolean)
+        .slice(0, 20)
+    : [];
+
   themeConfig.seo = {
     metaTitle: metaTitle?.trim() || null,
     metaDescription: metaDescription?.trim() || null,
     ogImage: ogImage?.trim() || null,
-    keywords: keywords ? keywords.split(',').map(k => k.trim()).filter(Boolean) : [],
+    keywords: keywordList,
   };
+
+  // Keep landing/offer pages in sync (they read SEO keys from landingConfig).
+  landingConfig.seoTitle = metaTitle?.trim() || null;
+  landingConfig.seoDescription = metaDescription?.trim() || null;
+  landingConfig.ogImage = ogImage?.trim() || null;
 
   await db
     .update(stores)
     .set({
       themeConfig: JSON.stringify(themeConfig),
+      landingConfig: JSON.stringify(landingConfig),
       updatedAt: new Date(),
     })
     .where(eq(stores.id, storeId));
+
+  await logActivity(db, {
+    storeId,
+    userId,
+    action: 'settings_updated',
+    entityType: 'settings',
+    details: {
+      section: 'seo',
+      hasMetaTitle: Boolean(metaTitle?.trim()),
+      hasMetaDescription: Boolean(metaDescription?.trim()),
+      hasOgImage: Boolean(ogImage?.trim()),
+      keywordCount: keywordList.length,
+    },
+  });
 
   return json({ success: true });
 }

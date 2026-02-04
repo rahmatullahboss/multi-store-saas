@@ -32,7 +32,12 @@ import {
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
 import type { ThemeConfig } from '@db/types';
 import { formatPrice } from '~/lib/theme-engine';
-import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
+import {
+  buildProxyImageUrl,
+  generateProxySrcset,
+  generateSrcset,
+  optimizeUnsplashUrl,
+} from '~/utils/imageOptimization';
 import { getHeroBehavior } from '~/lib/hero-slides';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
 
@@ -189,10 +194,14 @@ function CinematicHero({
   const heroSrc = heroImage
     ? isUnsplashHero
       ? optimizeUnsplashUrl(heroImage, { width: 1800, height: 1000, quality: 80, format: 'webp' })
-      : heroImage
+      : buildProxyImageUrl(heroImage, { width: 1800, height: 1000, quality: 78 })
     : null;
   const heroSrcSet =
-    heroImage && isUnsplashHero ? generateSrcset(heroImage, [640, 960, 1280, 1600, 1800]) : undefined;
+    heroImage && isUnsplashHero
+      ? generateSrcset(heroImage, [640, 960, 1280, 1600, 1800])
+      : heroImage
+      ? generateProxySrcset(heroImage, [640, 960, 1280, 1600, 1800], 78)
+      : undefined;
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -466,11 +475,15 @@ function PremiumProductCard({
       <div className="relative aspect-[4/5] overflow-hidden">
         {product.imageUrl ? (
           <motion.img
-            src={product.imageUrl}
+            src={buildProxyImageUrl(product.imageUrl, { width: 640, quality: 75 })}
             alt={product.title}
             className="w-full h-full object-cover"
             animate={{ scale: isHovered ? 1.1 : 1 }}
             transition={{ duration: 0.7 }}
+            srcSet={generateProxySrcset(product.imageUrl, [320, 480, 640], 75)}
+            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div

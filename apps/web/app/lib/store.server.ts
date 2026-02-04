@@ -106,7 +106,8 @@ export function getRestrictedRoutes(): string[] {
  */
 export async function resolveStore(
   context: { storeId?: number; store?: Store | null; cloudflare: { env: { DB: D1Database } } },
-  request: Request
+  request: Request,
+  options?: { redirectOnNotFound?: boolean; allowNull?: boolean }
 ): Promise<StoreContext | null> {
   // If store is already resolved in context
   if (context.storeId && context.storeId > 0 && context.store) {
@@ -148,6 +149,40 @@ export async function resolveStore(
   }
 
   if (!store) {
+    // Check if we're on a subdomain (not localhost or main domain)
+    const url = new URL(request.url);
+    const hostname = url.hostname;
+    const isSubdomain = 
+      hostname !== 'localhost' && 
+      hostname !== '127.0.0.1' &&
+      !hostname.startsWith('192.168.') &&
+      !hostname.startsWith('10.') &&
+      hostname !== 'ozzyl.com' &&
+      hostname !== 'www.ozzyl.com' &&
+      hostname !== 'app.ozzyl.com' &&
+      hostname.includes('.');
+    
+    // If on subdomain and store not found, redirect to main site
+    // Unless explicitly allowed to return null
+    if (isSubdomain && !options?.allowNull) {
+      throw new Response(null, {
+        status: 302,
+        headers: {
+          Location: 'https://ozzyl.com',
+        },
+      });
+    }
+    
+    // For explicit redirectOnNotFound option
+    if (options?.redirectOnNotFound) {
+      throw new Response(null, {
+        status: 302,
+        headers: {
+          Location: 'https://ozzyl.com',
+        },
+      });
+    }
+    
     return null;
   }
 

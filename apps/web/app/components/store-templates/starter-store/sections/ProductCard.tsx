@@ -4,6 +4,7 @@ import { ShoppingCart } from 'lucide-react';
 import { STARTER_STORE_THEME } from '../theme';
 import type { SerializedProduct, StoreTemplateTheme } from '~/templates/store-registry';
 import { useTranslation } from 'react-i18next';
+import { buildProxyImageUrl, generateProxySrcset } from '~/utils/imageOptimization';
 
 
 export function StarterProductCard({ 
@@ -23,6 +24,8 @@ export function StarterProductCard({
   const discount = product.compareAtPrice 
     ? Math.round((1 - product.price / product.compareAtPrice) * 100) 
     : 0;
+  const imageUrl = product.imageUrl || '/placeholder-product.svg';
+  const isRemoteImage = Boolean(product.imageUrl);
     
   // Format Price
   const formatPrice = (price: number) => {
@@ -42,10 +45,13 @@ export function StarterProductCard({
       >
         <div className="relative aspect-square rounded-xl overflow-hidden mb-3" style={{ backgroundColor: theme.cardBg }}>
           <img 
-            src={product.imageUrl || '/placeholder-product.svg'} 
+            src={isRemoteImage ? buildProxyImageUrl(imageUrl, { width: 640, quality: 75 }) : imageUrl}
             alt={product.title} 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
             loading="lazy" 
+            srcSet={isRemoteImage ? generateProxySrcset(imageUrl, [320, 480, 640], 75) : undefined}
+            sizes={isRemoteImage ? '(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw' : undefined}
+            decoding="async"
           />
           {discount > 0 && (
             <span 

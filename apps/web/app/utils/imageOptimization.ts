@@ -56,6 +56,40 @@ export function generateSrcset(url: string, widths: number[] = [320, 640, 1024, 
     .join(', ');
 }
 
+export function buildProxyImageUrl(
+  url: string,
+  options: {
+    width?: number;
+    height?: number;
+    quality?: number;
+  } = {}
+): string {
+  // NOTE: Cloudflare Image Resizing is paid.
+  // For MVP, we disable proxy resizing and rely on browser-side WebP upload.
+  const ENABLE_IMAGE_PROXY = false;
+  if (!ENABLE_IMAGE_PROXY) return url;
+
+  if (!url) return url;
+  const params = new URLSearchParams({ url });
+  if (options.width) params.set('w', String(options.width));
+  if (options.height) params.set('h', String(options.height));
+  if (options.quality) params.set('q', String(options.quality));
+  return `/api/proxy-image?${params.toString()}`;
+}
+
+export function generateProxySrcset(
+  url: string,
+  widths: number[] = [320, 480, 640, 960],
+  quality = 75
+): string {
+  const ENABLE_IMAGE_PROXY = false;
+  if (!ENABLE_IMAGE_PROXY) return '';
+
+  return widths
+    .map((w) => `${buildProxyImageUrl(url, { width: w, quality })} ${w}w`)
+    .join(', ');
+}
+
 /**
  * Preload hint for LCP images
  * Use in route-specific links function (e.g., marketing landing page)

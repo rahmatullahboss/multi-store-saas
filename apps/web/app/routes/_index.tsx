@@ -116,10 +116,17 @@ export const meta: MetaFunction = ({ data }) => {
   }
 
   // Store mode - basic SEO
-  const description = `Shop the best products at ${loaderData.storeName}`;
+  const seo = (loaderData.themeConfig as ThemeConfig | null | undefined)?.seo as
+    | { metaTitle?: string; seoTitle?: string; metaDescription?: string; seoDescription?: string }
+    | undefined;
+  const title = seo?.metaTitle || seo?.seoTitle || loaderData.storeName || 'Store';
+  const description =
+    seo?.metaDescription ||
+    seo?.seoDescription ||
+    `Shop the best products at ${loaderData.storeName}`;
 
   return [
-    { title: loaderData.storeName || 'Store' },
+    { title },
     { name: 'description', content: description },
   ];
 };

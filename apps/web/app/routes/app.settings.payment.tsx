@@ -3,11 +3,30 @@ import { useLoaderData, useFetcher, useActionData, Link } from '@remix-run/react
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { getStoreId, getUserId } from '~/services/auth.server';
 import { parseManualPaymentConfig, ManualPaymentConfig } from '@db/types';
 import { useState } from 'react';
 import { Save, AlertCircle, CheckCircle, CreditCard, Wallet, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { z } from 'zod';
+import { logActivity } from '~/lib/activity.server';
+
+const bdPhoneRegex = /^(?:\+?88)?01[3-9]\d{8}$/;
+
+const PaymentSettingsSchema = z.object({
+  bkashPersonal: z.string().trim().optional(),
+  bkashMerchant: z.string().trim().optional(),
+  nagadPersonal: z.string().trim().optional(),
+  nagadMerchant: z.string().trim().optional(),
+  rocketPersonal: z.string().trim().optional(),
+  rocketMerchant: z.string().trim().optional(),
+  instructions: z.string().trim().max(1000).optional(),
+});
+
+function validateOptionalPhone(input?: string) {
+  if (!input) return true;
+  return bdPhoneRegex.test(input);
+}
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -27,23 +46,64 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export async function action({ request, context }: ActionFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) throw new Response('Unauthorized', { status: 401 });
+  const userId = await getUserId(request, context.cloudflare.env);
 
   const formData = await request.formData();
-  const config: ManualPaymentConfig = {
-    bkashPersonal: formData.get('bkashPersonal') as string || undefined,
-    bkashMerchant: formData.get('bkashMerchant') as string || undefined,
-    nagadPersonal: formData.get('nagadPersonal') as string || undefined,
-    nagadMerchant: formData.get('nagadMerchant') as string || undefined,
-    rocketPersonal: formData.get('rocketPersonal') as string || undefined,
-    rocketMerchant: formData.get('rocketMerchant') as string || undefined,
-    instructions: formData.get('instructions') as string || undefined,
+  const parsed = PaymentSettingsSchema.safeParse({
+    bkashPersonal: (formData.get('bkashPersonal') as string) || undefined,
+    bkashMerchant: (formData.get('bkashMerchant') as string) || undefined,
+    nagadPersonal: (formData.get('nagadPersonal') as string) || undefined,
+    nagadMerchant: (formData.get('nagadMerchant') as string) || undefined,
+    rocketPersonal: (formData.get('rocketPersonal') as string) || undefined,
+    rocketMerchant: (formData.get('rocketMerchant') as string) || undefined,
+    instructions: (formData.get('instructions') as string) || undefined,
+  });
+  if (!parsed.success) {
+    return json({ success: false, message: 'invalid_input' }, { status: 400 });
+  }
+
+  const normalized: ManualPaymentConfig = {
+    bkashPersonal: parsed.data.bkashPersonal || undefined,
+    bkashMerchant: parsed.data.bkashMerchant || undefined,
+    nagadPersonal: parsed.data.nagadPersonal || undefined,
+    nagadMerchant: parsed.data.nagadMerchant || undefined,
+    rocketPersonal: parsed.data.rocketPersonal || undefined,
+    rocketMerchant: parsed.data.rocketMerchant || undefined,
+    instructions: parsed.data.instructions || undefined,
   };
+
+  const allPhones = [
+    normalized.bkashPersonal,
+    normalized.bkashMerchant,
+    normalized.nagadPersonal,
+    normalized.nagadMerchant,
+    normalized.rocketPersonal,
+    normalized.rocketMerchant,
+  ];
+  if (!allPhones.every(validateOptionalPhone)) {
+    return json({ success: false, message: 'invalid_phone_number' }, { status: 400 });
+  }
 
   const db = drizzle(context.cloudflare.env.DB);
   await db
     .update(stores)
-    .set({ manualPaymentConfig: JSON.stringify(config) })
+    .set({ manualPaymentConfig: JSON.stringify(normalized) })
     .where(eq(stores.id, storeId));
+
+  await logActivity(db, {
+    storeId,
+    userId,
+    action: 'settings_updated',
+    entityType: 'settings',
+    details: {
+      section: 'payment',
+      enabledMethods: {
+        bkash: Boolean(normalized.bkashMerchant || normalized.bkashPersonal),
+        nagad: Boolean(normalized.nagadMerchant || normalized.nagadPersonal),
+        rocket: Boolean(normalized.rocketMerchant || normalized.rocketPersonal),
+      },
+    },
+  });
 
   return json({ success: true, message: 'saved' });
 }

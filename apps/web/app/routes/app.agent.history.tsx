@@ -33,11 +33,11 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   }
 
   // 2. Get Conversations List
-  let conversations: typeof schema.conversations.$inferSelect[] = [];
+  let conversations: typeof schema.aiConversations.$inferSelect[] = [];
   try {
-    conversations = await db.query.conversations.findMany({
-      where: eq(schema.conversations.agentId, agent.id),
-      orderBy: [desc(schema.conversations.lastMessageAt)],
+    conversations = await db.query.aiConversations.findMany({
+      where: eq(schema.aiConversations.agentId, agent.id),
+      orderBy: [desc(schema.aiConversations.lastMessageAt)],
       limit: 50,
     });
   } catch (error) {
@@ -49,8 +49,8 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   let selectedConversation = null;
   if (selectedConvId) {
     try {
-      const conv = await db.query.conversations.findFirst({
-          where: eq(schema.conversations.id, parseInt(selectedConvId)),
+      const conv = await db.query.aiConversations.findFirst({
+          where: eq(schema.aiConversations.id, parseInt(selectedConvId)),
           with: {
               messages: {
                   orderBy: (messages, { asc }) => [asc(messages.createdAt)]

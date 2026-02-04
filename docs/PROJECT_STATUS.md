@@ -1,6 +1,7 @@
 # Multi-Store SaaS - Project Status
 
-> **Last Updated**: January 5, 2026
+> **Last Updated**: February 4, 2026
+> **Latest launch notes**: See `docs/LAUNCH_READINESS_2026-02-04.md`
 
 ## 🚀 Project Overview
 

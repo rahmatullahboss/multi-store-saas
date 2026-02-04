@@ -41,6 +41,7 @@ import { AddToCartButton } from '~/components/AddToCartButton';
 import { getHeroBehavior } from '~/lib/hero-slides';
 import { formatPrice } from '~/lib/theme-engine';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
+import { buildProxyImageUrl, generateProxySrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 
 import { TECH_MODERN_THEME } from './theme';
 import { TechModernHeader } from './sections/Header';
@@ -486,9 +487,13 @@ function PreviewProductCard({
       <div className="relative aspect-square bg-gray-50 overflow-hidden">
         {product.imageUrl ? (
           <img
-            src={product.imageUrl}
+            src={buildProxyImageUrl(product.imageUrl, { width: 640, quality: 75 })}
             alt={product.title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            srcSet={generateProxySrcset(product.imageUrl, [320, 480, 640], 75)}
+            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -583,6 +588,9 @@ function PreviewHomePage({
   const heroSlide = heroBehavior.slides[heroIndex];
   const heroImage =
     heroSlide?.imageUrl || 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80';
+  const heroBgUrl = heroImage.includes('unsplash.com')
+    ? optimizeUnsplashUrl(heroImage, { width: 1600, height: 900, quality: 80, format: 'webp' })
+    : buildProxyImageUrl(heroImage, { width: 1600, height: 900, quality: 78 });
   const heroHeading = heroSlide?.heading || config?.bannerText || `Next-Gen Tech from ${storeName}`;
   const heroSubheading =
     heroSlide?.subheading || 'Discover the latest innovations. Premium quality, unbeatable prices.';
@@ -608,7 +616,7 @@ function PreviewHomePage({
       <section className="relative overflow-hidden bg-[#0f172a] text-white py-20 lg:py-32">
         <div
           className="absolute inset-0 z-0 opacity-20 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroImage})` }}
+          style={{ backgroundImage: `url(${heroBgUrl})` }}
         />
         <div className="relative z-10 max-w-7xl mx-auto px-4 text-center lg:text-left lg:flex items-center gap-12">
           <div className="max-w-2xl">
@@ -1128,9 +1136,13 @@ function TechProductCard({
       >
         {product.imageUrl ? (
           <img
-            src={product.imageUrl}
+            src={buildProxyImageUrl(product.imageUrl, { width: 640, quality: 75 })}
             alt={product.title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            srcSet={generateProxySrcset(product.imageUrl, [320, 480, 640], 75)}
+            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">

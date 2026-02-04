@@ -25,6 +25,7 @@ import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useUnsavedChanges, deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
 import { LazyRichTextEditor } from '~/components/RichTextEditor.lazy';
+import { saveProductDetailsMetafields } from '~/lib/product-details.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Add Product - Ozzyl' }];
@@ -51,6 +52,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const seoTitle = formData.get('seoTitle') as string;
   const seoDescription = formData.get('seoDescription') as string;
   const seoKeywords = formData.get('seoKeywords') as string;
+  const material = formData.get('material') as string;
+  const weight = formData.get('weight') as string;
+  const dimensions = formData.get('dimensions') as string;
+  const origin = formData.get('origin') as string;
+  const warranty = formData.get('warranty') as string;
+  const shippingInfo = formData.get('shippingInfo') as string;
+  const returnPolicy = formData.get('returnPolicy') as string;
 
   // Validation
   const errors: Record<string, string> = {};
@@ -122,6 +130,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
       console.error('Failed to parse variants', e);
     }
   }
+
+  await saveProductDetailsMetafields(db, storeId, inserted.id, {
+    material,
+    weight,
+    dimensions,
+    origin,
+    warranty,
+    shippingInfo,
+    returnPolicy,
+  });
 
   // ========================================================================
   // AUTO-PUBLISH LOGIC: If this is the first product, auto-set as featured & publish store
@@ -218,6 +236,7 @@ export default function NewProductPage() {
   const [formSeoTitle, setFormSeoTitle] = useState<string>('');
   const [formSeoDescription, setFormSeoDescription] = useState<string>('');
   const [formSeoKeywords, setFormSeoKeywords] = useState<string>('');
+  const [detailsExpanded, setDetailsExpanded] = useState(false);
 
   // Auto-generate SEO values
   const autoSeoTitle = formTitle;
@@ -485,6 +504,76 @@ export default function NewProductPage() {
             <input type="hidden" name="description" value={formDescription} />
             <LazyRichTextEditor content={formDescription} onChange={setFormDescription} placeholder={t('describeProduct')} />
           </div>
+        </div>
+
+        {/* Product Details Tabs Content (MVP) */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setDetailsExpanded(!detailsExpanded)}
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition"
+          >
+            <div className="text-left">
+              <h3 className="font-semibold text-gray-900">Product Details (MVP)</h3>
+              <p className="text-xs text-gray-500">
+                Specifications + Shipping & Returns tabs এর জন্য optional field
+              </p>
+            </div>
+            {detailsExpanded ? (
+              <ChevronUp className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+
+          {detailsExpanded && (
+            <div className="p-4 pt-0 border-t border-gray-100 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  name="material"
+                  placeholder="Material (e.g. Cotton)"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                />
+                <input
+                  type="text"
+                  name="weight"
+                  placeholder="Weight (e.g. 500g)"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                />
+                <input
+                  type="text"
+                  name="dimensions"
+                  placeholder="Dimensions (e.g. 30 x 20 x 10 cm)"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                />
+                <input
+                  type="text"
+                  name="origin"
+                  placeholder="Origin (e.g. Bangladesh)"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                />
+              </div>
+              <input
+                type="text"
+                name="warranty"
+                placeholder="Warranty (e.g. 1 Year)"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              />
+              <textarea
+                name="shippingInfo"
+                rows={3}
+                placeholder="Shipping information (optional)"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
+              />
+              <textarea
+                name="returnPolicy"
+                rows={3}
+                placeholder="Return policy (optional)"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
+              />
+            </div>
+          )}
         </div>
 
         {/* SEO Settings (Collapsible) */}

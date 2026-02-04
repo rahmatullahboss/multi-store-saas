@@ -13,6 +13,9 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { defaultThemeConfig, parseThemeConfig, type ThemeConfig } from '@db/types';
+import { z } from 'zod';
+import { getStoreId, getUserId } from '~/services/auth.server';
+import { logActivity } from '~/lib/activity.server';
 
 const MAX_HEADER_ITEMS = 8;
 const MAX_DEPTH = 3;
@@ -21,10 +24,22 @@ const MAX_COLUMN_LINKS = 6;
 
 const emptyMenuItem = () => ({ label: '', url: '', children: [] as Array<{ label: string; url: string; children?: any[] }> });
 const emptyFooterColumn = () => ({ title: '', links: [] as Array<{ label: string; url: string }> });
-import { getStoreId } from '~/services/auth.server';
 import { ArrowLeft, CheckCircle, Loader2, Plus, Trash2, List } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
+
+const FooterDescriptionSchema = z.string().trim().max(500);
+
+function isValidNavigationUrl(url: string): boolean {
+  if (!url) return false;
+  if (url.startsWith('/')) return true;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
 
 export const meta: MetaFunction = () => [{ title: 'Navigation Settings' }];
 
@@ -62,11 +77,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
+  const userId = await getUserId(request, context.cloudflare.env);
 
   const formData = await request.formData();
   const menuJson = formData.get('headerMenu') as string | null;
   const footerColumnsJson = formData.get('footerColumns') as string | null;
-  const footerDescription = (formData.get('footerDescription') as string | null)?.trim() || '';
+  const footerDescriptionParsed = FooterDescriptionSchema.safeParse(formData.get('footerDescription') || '');
+  if (!footerDescriptionParsed.success) {
+    return json({ error: 'Invalid footer description.' }, { status: 400 });
+  }
+  const footerDescription = footerDescriptionParsed.data;
 
   let headerMenu: ThemeConfig['headerMenu'] = defaultThemeConfig.headerMenu || [];
   let footerColumns: ThemeConfig['footerColumns'] = defaultThemeConfig.footerColumns || [];
@@ -82,7 +102,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             url: (item?.url || '').trim(),
             children: Array.isArray(item?.children) ? sanitizeMenu(item.children, depth + 1) : [],
           }))
-          .filter(item => item.label && item.url)
+          .filter(item => item.label && isValidNavigationUrl(item.url))
           .slice(0, depth === 1 ? MAX_HEADER_ITEMS : MAX_COLUMN_LINKS);
       };
 
@@ -104,7 +124,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
                   label: (link?.label || '').trim(),
                   url: (link?.url || '').trim(),
                 }))
-                .filter((link: any) => link.label && link.url)
+                .filter((link: any) => link.label && isValidNavigationUrl(link.url))
                 .slice(0, MAX_COLUMN_LINKS)
             : [],
         }))
@@ -142,6 +162,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
       updatedAt: new Date(),
     })
     .where(eq(stores.id, storeId));
+
+  await logActivity(db, {
+    storeId,
+    userId,
+    action: 'settings_updated',
+    entityType: 'settings',
+    details: {
+      section: 'navigation',
+      headerMenuItems: headerMenu.length,
+      footerColumns: footerColumns.length,
+      hasFooterDescription: Boolean(footerDescription),
+    },
+  });
 
   return json({ success: true });
 }

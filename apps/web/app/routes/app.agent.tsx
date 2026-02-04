@@ -32,13 +32,13 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 
   // Calculate Metrics
   const [convCount] = await db.select({ count: count() })
-    .from(schema.conversations)
-    .where(eq(schema.conversations.agentId, agent?.id || 0));
+    .from(schema.aiConversations)
+    .where(eq(schema.aiConversations.agentId, agent?.id || 0));
 
   const [leadsCount] = await db.select({ count: count() })
     .from(schema.leadsData)
-    .innerJoin(schema.conversations, eq(schema.leadsData.conversationId, schema.conversations.id))
-    .where(eq(schema.conversations.agentId, agent?.id || 0));
+    .innerJoin(schema.aiConversations, eq(schema.leadsData.conversationId, schema.aiConversations.id))
+    .where(eq(schema.aiConversations.agentId, agent?.id || 0));
 
   const [ordersCount] = await db.select({ count: count() })
       .from(schema.orders)
@@ -52,7 +52,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
     SELECT 
         strftime('%Y-%m-%d', created_at / 1000, 'unixepoch') as date,
         count(*) as count
-    FROM conversations
+    FROM ai_conversations
     WHERE agent_id = ${agent?.id || 0}
     AND created_at >= ${sevenDaysAgo.getTime()}
     GROUP BY date

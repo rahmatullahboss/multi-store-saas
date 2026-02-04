@@ -14,7 +14,7 @@ import { StarterStoreFooter } from './sections/Footer';
 import { StarterProductCard } from './sections/ProductCard';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
-import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
+import { buildProxyImageUrl, generateProxySrcset, generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 import { getHeroBehavior } from '~/lib/hero-slides';
 
 const theme = STARTER_STORE_THEME;
@@ -72,8 +72,10 @@ export function StarterStoreTemplate({
   const isUnsplashHero = heroImage.includes('unsplash.com');
   const heroSrc = isUnsplashHero
     ? optimizeUnsplashUrl(heroImage, { width: 1600, height: 900, quality: 80, format: 'webp' })
-    : heroImage;
-  const heroSrcSet = isUnsplashHero ? generateSrcset(heroImage, [640, 960, 1280, 1600]) : undefined;
+    : buildProxyImageUrl(heroImage, { width: 1600, height: 900, quality: 78 });
+  const heroSrcSet = isUnsplashHero
+    ? generateSrcset(heroImage, [640, 960, 1280, 1600])
+    : generateProxySrcset(heroImage, [640, 960, 1280, 1600], 78);
 
   return (
     <div
