@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Ozzyl AI Chat Widget
  * Enterprise-grade visitor chatbot for the marketing landing page

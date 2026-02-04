@@ -1,6 +1,9 @@
 import { Metadata } from 'next';
 import { MarketingHeader } from '@/components/MarketingHeader';
 import { PricingSection } from '@/components/PricingSection';
+import { Footer } from '@/components/Footer';
+import { OzzylAIChatWidget } from '@/components/landing/OzzylAIChatWidget';
+import { ClientOnly } from '@/components/LazySection';
 
 export const metadata: Metadata = {
   title: 'মূল্য তালিকা - Ozzyl | সাশ্রয়ী ই-কমার্স সমাধান',
@@ -15,6 +18,14 @@ export default function PricingPage() {
       <div className="pt-20">
         <PricingSection />
       </div>
+
+      {/* Footer */}
+      <Footer />
+
+      {/* Chat Widget */}
+      <ClientOnly>
+        <OzzylAIChatWidget />
+      </ClientOnly>
     </div>
   );
 }

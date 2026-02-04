@@ -1,5 +1,8 @@
 import { Metadata } from 'next';
 import { MarketingHeader } from '@/components/MarketingHeader';
+import { Footer } from '@/components/Footer';
+import { OzzylAIChatWidget } from '@/components/landing/OzzylAIChatWidget';
+import { ClientOnly } from '@/components/LazySection';
 import { Mail, MessageCircle, Phone, MapPin } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -109,6 +112,14 @@ export default function ContactPage() {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
+
+      {/* Chat Widget */}
+      <ClientOnly>
+        <OzzylAIChatWidget />
+      </ClientOnly>
     </div>
   );
 }

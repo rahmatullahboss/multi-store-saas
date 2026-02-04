@@ -1,5 +1,8 @@
 import { Metadata } from 'next';
 import { MarketingHeader } from '@/components/MarketingHeader';
+import { Footer } from '@/components/Footer';
+import { OzzylAIChatWidget } from '@/components/landing/OzzylAIChatWidget';
+import { ClientOnly } from '@/components/LazySection';
 
 export const metadata: Metadata = {
   title: 'শর্তাবলী - Ozzyl',
@@ -69,6 +72,14 @@ export default function TermsPage() {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
+
+      {/* Chat Widget */}
+      <ClientOnly>
+        <OzzylAIChatWidget />
+      </ClientOnly>
     </div>
   );
 }
