@@ -12,22 +12,24 @@ import { handleVisitorChatAction } from '~/services/visitor-chat.server';
  * 
  * Rate limited by Cloudflare
  */
-export async function action({ request }: ActionFunctionArgs) {
-  if (request.method !== 'POST') {
-    return json({ error: 'Method not allowed' }, { status: 405 });
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Max-Age': '86400',
+};
+
+export async function action({ request, context }: ActionFunctionArgs) {
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
-  const payload = await request.json().catch(() => ({}));
-  const upstreamUrl = new URL('/api/ai-orchestrator', request.url);
-  const upstream = await fetch(upstreamUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      cookie: request.headers.get('cookie') || '',
-      authorization: request.headers.get('authorization') || '',
-    },
-    body: JSON.stringify({ ...payload, channel: 'visitor' }),
-  });
+  if (request.method !== 'POST') {
+    return json({ error: 'Method not allowed' }, { status: 405, headers: corsHeaders });
+  }
 
-  return upstream;
+  const response = await handleVisitorChatAction({ request, context } as ActionFunctionArgs);
+  const headers = new Headers(response.headers);
+  Object.entries(corsHeaders).forEach(([key, value]) => headers.set(key, value));
+  return new Response(response.body, { status: response.status, headers });
 }

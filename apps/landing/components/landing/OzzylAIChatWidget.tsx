@@ -130,6 +130,14 @@ export function OzzylAIChatWidget() {
     return bdPhoneRegex.test(cleaned);
   };
 
+  const getVisitorChatEndpoint = () => {
+    const baseUrl =
+      process.env.NEXT_PUBLIC_OZZYL_APP_API_BASE ||
+      process.env.NEXT_PUBLIC_OZZYL_APP_BASE ||
+      'https://app.ozzyl.com';
+    return `${baseUrl.replace(/\/$/, '')}/api/visitor-chat`;
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setPhoneError('');
@@ -149,7 +157,7 @@ export function OzzylAIChatWidget() {
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/visitor-chat', {
+      const res = await fetch(getVisitorChatEndpoint(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'register', name: regName, phone: regPhone }),
@@ -195,7 +203,7 @@ export function OzzylAIChatWidget() {
     }));
 
     try {
-      const res = await fetch('/api/visitor-chat', {
+      const res = await fetch(getVisitorChatEndpoint(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

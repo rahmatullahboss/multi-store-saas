@@ -43,7 +43,7 @@ function buildFormRequest(original: Request, formData: FormData) {
   });
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const channel = url.searchParams.get('channel');
   const mode = url.searchParams.get('mode');
@@ -60,7 +60,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ messages: [] });
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request, context }: ActionFunctionArgs) {
   if (request.method !== 'POST') {
     return json({ error: 'Method not allowed' }, { status: 405 });
   }
