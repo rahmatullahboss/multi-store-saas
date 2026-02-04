@@ -517,9 +517,7 @@ export default function ProductsIndexPage() {
       ) : filteredProducts.length === 0 ? (
         <GlassCard intensity="low" className="p-12 text-center">
           <p className="text-gray-500">
-            {lang === 'bn'
-              ? 'কোনো প্রোডাক্ট আপনার ফিল্টারের সাথে মিলছে না।'
-              : 'No products match your filters.'}
+            {t('noProductsMatchFilters')}
           </p>
           <button
             onClick={() => {
@@ -528,7 +526,7 @@ export default function ProductsIndexPage() {
             }}
             className="mt-3 text-emerald-600 hover:text-emerald-700 font-medium"
           >
-            {lang === 'bn' ? 'ফিল্টার সাফ করুন' : 'Clear filters'}
+            {t('clearFilters')}
           </button>
         </GlassCard>
       ) : (
@@ -612,7 +610,7 @@ export default function ProductsIndexPage() {
                                 title="This is your featured product in Landing Mode"
                               >
                                 <Star className="w-3 h-3 fill-amber-400" />
-                                Primary
+                                {t('primary')}
                               </span>
                             )}
                           </div>
@@ -667,7 +665,7 @@ export default function ProductsIndexPage() {
                           ) : (
                             <>
                               <Rocket className="w-4 h-4" />
-                              Ad Link
+                              {t('adLink')}
                             </>
                           )}
                         </button>
@@ -677,7 +675,7 @@ export default function ProductsIndexPage() {
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded-lg transition"
                         >
                           <Pencil className="w-4 h-4" />
-                          Edit
+                          {t('edit')}
                         </Link>
                       </div>
                     </td>
@@ -760,12 +758,12 @@ export default function ProductsIndexPage() {
                         {copiedProductId === product.id ? (
                           <>
                             <Check className="w-4 h-4" />
-                            Copied!
+                            {t('copied')}
                           </>
                         ) : (
                           <>
                             <Rocket className="w-4 h-4" />
-                            Ad Link
+                            {t('adLink')}
                           </>
                         )}
                       </button>
@@ -775,7 +773,7 @@ export default function ProductsIndexPage() {
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded-lg transition"
                       >
                         <Pencil className="w-4 h-4" />
-                        Edit
+                        {t('edit')}
                       </Link>
                     </div>
                   </div>
@@ -791,12 +789,10 @@ export default function ProductsIndexPage() {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
           <GlassCard intensity="high" className="p-6 shadow-xl max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {lang === 'bn' ? 'প্রোডাক্ট ডিলিট করুন?' : 'Delete Products?'}
+              {t('deleteProducts')}
             </h3>
             <p className="text-gray-600 mb-4">
-              {lang === 'bn'
-                ? `${selectedIds.size}টি প্রোডাক্ট ডিলিট হবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।`
-                : `${selectedIds.size} product(s) will be deleted. This cannot be undone.`}
+              {t('deleteProductsConfirm', { count: selectedIds.size })}
             </p>
             <div className="flex justify-end gap-3">
               <button
@@ -829,7 +825,7 @@ export default function ProductsIndexPage() {
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
           <GlassCard intensity="high" className="p-4 shadow-xl flex items-center gap-3">
             <Loader2 className="w-5 h-5 animate-spin text-emerald-600" />
-            <span>Processing...</span>
+            <span>{t('processing')}</span>
           </GlassCard>
         </div>
       )}
@@ -841,13 +837,8 @@ export default function ProductsIndexPage() {
 // STATUS BADGE COMPONENT
 // ============================================================================
 function StatusBadge({ published, lang }: { published: boolean; lang: string }) {
-  const label = published
-    ? lang === 'bn'
-      ? 'প্রকাশিত'
-      : 'Published'
-    : lang === 'bn'
-      ? 'ড্রাফট'
-      : 'Draft';
+  const { t } = useTranslation();
+  const label = published ? t('publishedStatus') : t('draftStatus');
   return (
     <span
       className={`
@@ -865,6 +856,8 @@ function StatusBadge({ published, lang }: { published: boolean; lang: string }) 
 // STOCK BADGE COMPONENT
 // ============================================================================
 function StockBadge({ stock, lang }: { stock: number; lang: string }) {
+  const { t } = useTranslation();
+  
   if (stock <= 0) {
     return (
       <span
@@ -872,7 +865,7 @@ function StockBadge({ stock, lang }: { stock: number; lang: string }) {
         suppressHydrationWarning
       >
         <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-        {lang === 'bn' ? 'স্টক নেই' : 'Out of stock'}
+        {t('outOfStock')}
       </span>
     );
   }
@@ -884,7 +877,7 @@ function StockBadge({ stock, lang }: { stock: number; lang: string }) {
         suppressHydrationWarning
       >
         <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></span>
-        {lang === 'bn' ? `${stock}টি বাকি` : `${stock} left`}
+        {t('stockLeft', { count: stock })}
       </span>
     );
   }

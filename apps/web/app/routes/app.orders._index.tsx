@@ -493,7 +493,7 @@ export default function DashboardOrdersPage() {
           className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-sm font-medium transition border border-red-200"
         >
           <PackageX className="w-4 h-4" />
-          রিটার্ন পার্সেল দেখুন
+          {t('viewReturnParcels')}
         </Link>
       </div>
 
@@ -800,6 +800,7 @@ interface FraudCheckResult {
 }
 
 function FraudCheckButton({ orderId, currentStatus }: { orderId: number; currentStatus: string }) {
+  const { t, lang } = useTranslation();
   const fetcher = useFetcher<{
     success?: boolean;
     riskResult?: FraudCheckResult;
@@ -847,14 +848,14 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
       onClick={handleCheck}
       disabled={isChecking}
       className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-orange-600 hover:text-white hover:bg-orange-500 border border-orange-200 hover:border-orange-500 rounded-lg transition disabled:opacity-50"
-      title="ফ্রড চেক করুন"
+      title={t('checkFraud')}
     >
       {isChecking ? (
         <Loader2 className="w-3.5 h-3.5 animate-spin" />
       ) : (
         <Shield className="w-3.5 h-3.5" />
       )}
-      চেক
+      {lang === 'bn' ? 'চেক' : 'Check'}
     </button>
   );
 }
@@ -920,7 +921,7 @@ function SendToCourierButton({
         ) : (
           <Truck className="w-3.5 h-3.5" />
         )}
-        কুরিয়ারে পাঠান
+        {t('courierSend')}
       </button>
     </fetcher.Form>
   );
