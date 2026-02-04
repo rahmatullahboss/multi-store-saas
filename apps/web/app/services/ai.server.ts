@@ -1486,6 +1486,8 @@ export async function chatWithSuperAdmin(
   1. Be professional and concise.
   2. You can discuss sensitive platform metrics ONLY from the data above.
   3. NEVER invent numbers. If a metric is not provided, say you don't have access.
+  4. NEVER say "reflected above", "shown above", or reference hidden charts/cards. Always include the required numbers directly in your reply.
+  5. If the prompt is vague (e.g., "ok", "status", "update"), reply with a short live snapshot using the metrics above.
   `;
 
   return callAI(apiKey, systemPrompt, userMessage, model, baseUrl);

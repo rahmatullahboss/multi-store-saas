@@ -16,6 +16,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { tenantMiddleware, type TenantEnv, type TenantContext } from './middleware/tenant';
+import { workerTelemetryMiddleware } from './middleware/worker-telemetry';
 import { securityHeaders, apiSecurityHeaders } from './middleware/security';
 import {
   standardApiLimit,
@@ -98,13 +99,21 @@ app.notFound((c) => {
 // GLOBAL MIDDLEWARE
 // ============================================================================
 
-// Logger for development
-app.use('*', logger());
+// Logger middleware is useful during development, but expensive/noisy in production.
+// Keep production logs focused on business/API paths via requestTracker + explicit errors.
+const honoLogger = logger();
+app.use('*', async (c, next) => {
+  if (c.env.ENVIRONMENT === 'production') {
+    return next();
+  }
+  return honoLogger(c, next);
+});
 
 // Skip noisy logging for static assets
 app.use('*', async (c, next) => {
   const url = new URL(c.req.url);
   const isAssetRequest =
+    url.pathname === '/__manifest' ||
     url.pathname.startsWith('/assets/') ||
     url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|eot|map)$/);
 
@@ -238,6 +247,8 @@ app.use('/cart', cartLimit()); // 50 req/min - Cart operations (separate limit)
 
 // Apply tenant middleware to all routes
 app.use('*', tenantMiddleware());
+// Cost monitoring telemetry (sampled) to detect abnormal request amplification
+app.use('*', workerTelemetryMiddleware());
 
 // ============================================================================
 // API ROUTES - Hono handles these directly

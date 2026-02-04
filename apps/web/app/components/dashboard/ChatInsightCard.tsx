@@ -15,6 +15,7 @@ interface ChatInsightCardProps {
 export default function ChatInsightCard({ data }: ChatInsightCardProps) {
   const { t } = useTranslation();
   const isPositive = data.trend >= 0;
+  const suggestions = Array.isArray(data.suggestions) ? data.suggestions : [];
 
   return (
     <div className="w-full max-w-sm bg-white border border-gray-100 rounded-xl overflow-hidden shadow-md my-2">
@@ -57,13 +58,13 @@ export default function ChatInsightCard({ data }: ChatInsightCardProps) {
         </div>
 
         {/* Suggestions */}
-        {data.suggestions.length > 0 && (
+        {suggestions.length > 0 && (
             <div className="space-y-2">
                 <div className="flex items-center gap-2 mb-2">
                     <Lightbulb size={12} className="text-yellow-600" />
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t('suggestions') || 'Suggestions'}</span>
                 </div>
-                {data.suggestions.map((suggestion, idx) => (
+                {suggestions.map((suggestion, idx) => (
                     <div key={idx} className="flex items-start gap-2 text-sm text-gray-600 bg-gray-50 p-2 rounded border border-gray-100 hover:border-emerald-200 transition cursor-default">
                         <span className="text-emerald-500 font-bold">•</span>
                         <span>{suggestion}</span>

@@ -22,8 +22,8 @@ import {
   addToCart as addToCartDB,
   updateCartItemQuantity as updateCartItemQuantityDB,
   removeFromCart as removeFromCartDB,
+  clearCart as clearCartDB,
   syncCartFromLocalStorage,
-  type CartItemInput,
 } from '~/services/cart.server';
 import {
   getCart as getCartDO,
@@ -43,7 +43,10 @@ import { resolveStore } from '~/lib/store.server';
 // ============================================================================
 const AddItemSchema = z.object({
   productId: z.coerce.number().int().positive(),
-  variantId: z.coerce.number().int().positive().optional(),
+  variantId: z.preprocess(
+    (value) => (value === '' || value === null || value === undefined ? undefined : value),
+    z.coerce.number().int().positive().optional()
+  ),
   quantity: z.coerce.number().int().min(1).max(99).default(1),
 });
 
@@ -52,8 +55,25 @@ const UpdateItemSchema = z.object({
   quantity: z.coerce.number().int().min(0).max(99),
 });
 
+const UpdateItemByProductSchema = z.object({
+  productId: z.coerce.number().int().positive(),
+  variantId: z.preprocess(
+    (value) => (value === '' || value === null || value === undefined ? undefined : value),
+    z.coerce.number().int().positive().optional()
+  ),
+  quantity: z.coerce.number().int().min(0).max(99),
+});
+
 const RemoveItemSchema = z.object({
   itemId: z.string().uuid(),
+});
+
+const RemoveItemByProductSchema = z.object({
+  productId: z.coerce.number().int().positive(),
+  variantId: z.preprocess(
+    (value) => (value === '' || value === null || value === undefined ? undefined : value),
+    z.coerce.number().int().positive().optional()
+  ),
 });
 
 const SyncCartSchema = z.object({
@@ -84,6 +104,29 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     sessionId = generateSessionId();
   }
 
+  // Authenticated storefront customers should always use DB-backed carts
+  // so cart state can persist across devices/sessions.
+  const customer = await getCustomer(request, env, db);
+  if (customer) {
+    const cart = await getOrCreateCart(db, storeId, {
+      customerId: customer.id,
+    });
+    const cartWithItems = await getCartWithItems(db, cart.id);
+    const headers = new Headers();
+    if (isNewSession) {
+      headers.set('Set-Cookie', createCartSessionCookie(sessionId));
+    }
+
+    return json(
+      {
+        success: true,
+        cart: cartWithItems,
+        source: 'db-auth',
+      },
+      { headers }
+    );
+  }
+
   // Check if CART_SERVICE is available (DO workers deployed)
   const hasCartService = 'CART_SERVICE' in env;
   
@@ -106,12 +149,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   // Fallback to D1 database
-  const customer = await getCustomer(request, env, db);
   const visitorId = getVisitorId(request);
 
   const cart = await getOrCreateCart(db, storeId, {
-    customerId: customer?.id,
-    visitorId: customer ? undefined : visitorId,
+    visitorId,
   });
 
   const cartWithItems = await getCartWithItems(db, cart.id);
@@ -151,11 +192,203 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const hasCartService = 'CART_SERVICE' in env;
 
   try {
-    const body = await request.json() as Record<string, unknown>;
+    const body = await parseRequestBody(request);
     const headers = new Headers();
+    const customer = await getCustomer(request, env, db);
     
     if (isNewSession) {
       headers.set('Set-Cookie', createCartSessionCookie(sessionId));
+    }
+
+    // Authenticated customers use DB-backed carts as source of truth.
+    if (customer) {
+      const cart = await getOrCreateCart(db, storeId, { customerId: customer.id });
+
+      if (method === 'POST') {
+        if (body.intent === 'clear') {
+          await clearCartDB(db, cart.id);
+          const cartWithItems = await getCartWithItems(db, cart.id);
+          return json(
+            {
+              success: true,
+              cart: cartWithItems,
+              source: 'db-auth',
+            },
+            { headers }
+          );
+        }
+
+        if (body.intent === 'sync') {
+          const parseResult = SyncCartSchema.safeParse(body);
+          if (!parseResult.success) {
+            return json({ error: 'Invalid sync data' }, { status: 400 });
+          }
+
+          const cartWithItems = await syncCartFromLocalStorage(
+            db,
+            cart.id,
+            storeId,
+            parseResult.data.items
+          );
+
+          return json(
+            {
+              success: true,
+              cart: cartWithItems,
+              message: 'Cart synced',
+              source: 'db-auth',
+            },
+            { headers }
+          );
+        }
+
+        const parseResult = AddItemSchema.safeParse(body);
+        if (!parseResult.success) {
+          return json(
+            { error: 'Invalid input', details: parseResult.error.flatten() },
+            { status: 400 }
+          );
+        }
+
+        const item = await addToCartDB(db, cart.id, storeId, parseResult.data);
+        const cartWithItems = await getCartWithItems(db, cart.id);
+
+        return json(
+          {
+            success: true,
+            item,
+            cart: cartWithItems,
+            source: 'db-auth',
+          },
+          { headers }
+        );
+      }
+
+      if (method === 'PUT') {
+        const byProductResult = UpdateItemByProductSchema.safeParse(body);
+
+        if (byProductResult.success) {
+          const { productId, variantId, quantity } = byProductResult.data;
+          const cartWithItems = await getCartWithItems(db, cart.id);
+          const existingItem = cartWithItems?.items.find(
+            (item) =>
+              item.productId === productId &&
+              normalizeVariantId(item.variantId) === normalizeVariantId(variantId)
+          );
+
+          if (existingItem) {
+            await updateCartItemQuantityDB(db, existingItem.id, quantity);
+          } else if (quantity > 0) {
+            await addToCartDB(db, cart.id, storeId, {
+              productId,
+              variantId,
+              quantity,
+            });
+          }
+
+          const updatedCart = await getCartWithItems(db, cart.id);
+          return json(
+            {
+              success: true,
+              cart: updatedCart,
+              source: 'db-auth',
+            },
+            { headers }
+          );
+        }
+
+        const parseResult = UpdateItemSchema.safeParse(body);
+        if (!parseResult.success) {
+          return json(
+            { error: 'Invalid input', details: parseResult.error.flatten() },
+            { status: 400 }
+          );
+        }
+
+        const item = await updateCartItemQuantityDB(
+          db,
+          parseResult.data.itemId,
+          parseResult.data.quantity
+        );
+        const updatedCart = await getCartWithItems(db, cart.id);
+
+        return json(
+          {
+            success: true,
+            item,
+            cart: updatedCart,
+            source: 'db-auth',
+          },
+          { headers }
+        );
+      }
+
+      if (method === 'DELETE') {
+        const byProductResult = RemoveItemByProductSchema.safeParse(body);
+        if (byProductResult.success) {
+          const { productId, variantId } = byProductResult.data;
+          const cartWithItems = await getCartWithItems(db, cart.id);
+          const existingItem = cartWithItems?.items.find(
+            (item) =>
+              item.productId === productId &&
+              normalizeVariantId(item.variantId) === normalizeVariantId(variantId)
+          );
+
+          if (existingItem) {
+            await removeFromCartDB(db, existingItem.id);
+          }
+
+          const updatedCart = await getCartWithItems(db, cart.id);
+          return json(
+            {
+              success: true,
+              cart: updatedCart,
+              source: 'db-auth',
+            },
+            { headers }
+          );
+        }
+
+        const parseResult = RemoveItemSchema.safeParse(body);
+        if (!parseResult.success) {
+          return json(
+            { error: 'Invalid input', details: parseResult.error.flatten() },
+            { status: 400 }
+          );
+        }
+
+        await removeFromCartDB(db, parseResult.data.itemId);
+        const updatedCart = await getCartWithItems(db, cart.id);
+        return json(
+          {
+            success: true,
+            cart: updatedCart,
+            source: 'db-auth',
+          },
+          { headers }
+        );
+      }
+
+      return json({ error: 'Method not allowed' }, { status: 405 });
+    }
+
+    // Handle clear for guest carts before add-item validation (POST only).
+    if (method === 'POST' && body.intent === 'clear') {
+      if (hasCartService) {
+        const doResult = await clearCartDO(env as any, sessionId);
+        if (doResult.success) {
+          return json(
+            {
+              success: true,
+              cart: doResult.cart,
+              source: 'do',
+            },
+            { headers }
+          );
+        }
+      }
+
+      return json({ success: true, message: 'Cart cleared' }, { headers });
     }
 
     // ========================================================================
@@ -169,12 +402,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
           return json({ error: 'Invalid sync data' }, { status: 400 });
         }
 
-        // For sync, get D1 cart first
-        const customer = await getCustomer(request, env, db);
+        // For guests, sync into visitor cart in D1.
         const visitorId = getVisitorId(request);
         const cart = await getOrCreateCart(db, storeId, {
-          customerId: customer?.id,
-          visitorId: customer ? undefined : visitorId,
+          visitorId,
         });
 
         const cartWithItems = await syncCartFromLocalStorage(
@@ -236,11 +467,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
       // Fallback to D1
-      const customer = await getCustomer(request, env, db);
       const visitorId = getVisitorId(request);
       const cart = await getOrCreateCart(db, storeId, {
-        customerId: customer?.id,
-        visitorId: customer ? undefined : visitorId,
+        visitorId,
       });
 
       const item = await addToCartDB(db, cart.id, storeId, parseResult.data);
@@ -290,11 +519,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         );
       }
 
-      const customer = await getCustomer(request, env, db);
       const visitorId = getVisitorId(request);
       const cart = await getOrCreateCart(db, storeId, {
-        customerId: customer?.id,
-        visitorId: customer ? undefined : visitorId,
+        visitorId,
       });
 
       const item = await updateCartItemQuantityDB(
@@ -346,11 +573,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         );
       }
 
-      const customer = await getCustomer(request, env, db);
       const visitorId = getVisitorId(request);
       const cart = await getOrCreateCart(db, storeId, {
-        customerId: customer?.id,
-        visitorId: customer ? undefined : visitorId,
+        visitorId,
       });
 
       await removeFromCartDB(db, parseResult.data.itemId);
@@ -363,24 +588,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }, { headers });
     }
 
-    // ========================================================================
-    // CLEAR CART (POST with intent=clear)
-    // ========================================================================
-    if (body.intent === 'clear') {
-      if (hasCartService) {
-        const doResult = await clearCartDO(env as any, sessionId);
-        if (doResult.success) {
-          return json({
-            success: true,
-            cart: doResult.cart,
-            source: 'do',
-          }, { headers });
-        }
-      }
-      
-      return json({ success: true, message: 'Cart cleared' }, { headers });
-    }
-
     return json({ error: 'Method not allowed' }, { status: 405 });
   } catch (error) {
     console.error('[Cart API] Error:', error);
@@ -389,6 +596,28 @@ export async function action({ request, context }: ActionFunctionArgs) {
       { status: 500 }
     );
   }
+}
+
+function normalizeVariantId(variantId: number | null | undefined): number | null {
+  if (variantId === undefined || variantId === null) return null;
+  return variantId;
+}
+
+async function parseRequestBody(request: Request): Promise<Record<string, unknown>> {
+  const contentType = request.headers.get('content-type') || '';
+
+  if (contentType.includes('application/json')) {
+    return (await request.json()) as Record<string, unknown>;
+  }
+
+  const formData = await request.formData();
+  const body: Record<string, unknown> = {};
+
+  for (const [key, value] of formData.entries()) {
+    body[key] = typeof value === 'string' ? value : value.name;
+  }
+
+  return body;
 }
 
 // ============================================================================

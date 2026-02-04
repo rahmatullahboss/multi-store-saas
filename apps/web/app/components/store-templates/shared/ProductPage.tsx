@@ -547,27 +547,31 @@ export default function SharedProductPage({
     }
   };
 
+  const updateLocalCart = () => {
+    try {
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      const existingIndex = cart.findIndex((item: { productId: number }) => item.productId === product.id);
+
+      if (existingIndex >= 0) {
+        cart[existingIndex].quantity += quantity;
+      } else {
+        cart.push({ productId: product.id, quantity });
+      }
+
+      localStorage.setItem('cart', JSON.stringify(cart));
+      window.dispatchEvent(new Event('cart-updated'));
+      window.dispatchEvent(new Event('storage'));
+    } catch (e) {
+      console.error('Failed to update local cart', e);
+    }
+  };
+
   const handleAddToCart = () => {
     if (isOutOfStock) return;
 
     if (isPreview) {
       setIsAdding(true);
-      try {
-        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        const existingIndex = cart.findIndex((item: any) => item.productId === product.id);
-
-        if (existingIndex >= 0) {
-          cart[existingIndex].quantity += quantity;
-        } else {
-          cart.push({ productId: product.id, quantity });
-        }
-
-        localStorage.setItem('cart', JSON.stringify(cart));
-        window.dispatchEvent(new Event('cart-updated'));
-        window.dispatchEvent(new Event('storage'));
-      } catch (e) {
-        console.error('Failed to update preview cart', e);
-      }
+      updateLocalCart();
 
       setTimeout(() => {
         setIsAdding(false);
@@ -578,6 +582,8 @@ export default function SharedProductPage({
     }
 
     setIsAdding(true);
+    // Keep storefront cart UX consistent (cart page reads localStorage)
+    updateLocalCart();
     fetcher.submit(
       {
         productId: String(product.id),

@@ -18,6 +18,31 @@ import {
 } from '~/services/ai-chat-guard.server';
 import { getPlatformStats } from '~/services/ai-orchestrator.server';
 
+function isQuickSnapshotPrompt(message: string): boolean {
+  const text = message.trim().toLowerCase();
+  if (!text) return false;
+  if (text.length <= 4) return true;
+
+  const hints = [
+    'ok',
+    'status',
+    'update',
+    'snapshot',
+    'summary',
+    'report',
+    'current',
+    'latest',
+    'kemon',
+    'ki obostha',
+    'অবস্থা',
+    'আপডেট',
+    'স্ন্যাপশট',
+    'রিপোর্ট',
+    'স্ট্যাটাস',
+  ];
+  return hints.some((h) => text.includes(h));
+}
+
 export async function handleAiChatLoader({ request, context }: LoaderFunctionArgs) {
   const { env } = context.cloudflare;
   const db = createDb(env.DB);
@@ -200,6 +225,33 @@ export async function handleAiChatAction({ request, context }: ActionFunctionArg
         conversationId = newConv[0].id;
       }
 
+      // Prevent duplicate responses for accidental double-submit/retry
+      const recent = await db
+        .select({
+          role: messages.role,
+          content: messages.content,
+          createdAt: messages.createdAt,
+        })
+        .from(messages)
+        .where(eq(messages.conversationId, conversationId))
+        .orderBy(desc(messages.createdAt))
+        .limit(2);
+
+      if (recent.length >= 2) {
+        const [latest, previous] = recent;
+        const latestAt = new Date(latest.createdAt as unknown as string).getTime();
+        const withinWindow = Number.isFinite(latestAt) && Date.now() - latestAt < 15_000;
+
+        if (
+          withinWindow &&
+          latest.role === 'assistant' &&
+          previous.role === 'user' &&
+          previous.content.trim() === message.trim()
+        ) {
+          return json({ success: true, response: latest.content });
+        }
+      }
+
       // 3. Save User Message
       await db.insert(messages).values({
         conversationId,
@@ -219,14 +271,22 @@ export async function handleAiChatAction({ request, context }: ActionFunctionArg
     if (user.role === 'super_admin') {
       // Super Admin Chat - NO RATE LIMIT
       const platformStats = await getPlatformStats(drizzle(env.DB));
+      const shouldReturnCard = isMetricsQuestion(message) || isQuickSnapshotPrompt(message);
 
-      if (isMetricsQuestion(message)) {
+      if (shouldReturnCard) {
+        const lang = detectLanguage(message);
+        const suggestions =
+          lang === 'bn'
+            ? ['অ্যাকটিভ স্টোর মনিটর করুন', 'রাজস্ব ট্রেন্ড রিভিউ করুন', 'সাপোর্ট অ্যালার্ট চেক করুন']
+            : ['Monitor active stores', 'Review revenue trend', 'Check support alerts'];
         response = buildInsightCardResponse({
-          platformStats,
-          storeStats: null,
+          totalSales: platformStats.currentRevenue,
+          orderCount: platformStats.currentOrders,
+          trend: platformStats.revenueGrowth,
+          suggestions,
         });
       } else {
-        response = await ai.chatWithAdmin(message, {
+        response = await ai.chatWithSuperAdmin(message, {
           role: user.role,
           userName: user.name || 'Admin',
           platformStats,
@@ -252,12 +312,23 @@ export async function handleAiChatAction({ request, context }: ActionFunctionArg
       const storeStats = user.storeId ? await getStoreStats(db, user.storeId) : null;
 
       if (isMetricsQuestion(message)) {
+        const lang = detectLanguage(message);
+        const suggestions =
+          lang === 'bn'
+            ? ['পেন্ডিং অর্ডার ফলোআপ করুন', 'লো-স্টক আইটেম রিস্টক করুন', 'টপ পণ্যে অফার চালু করুন']
+            : ['Follow up pending orders', 'Restock low-stock items', 'Run offers on top products'];
         response = buildInsightCardResponse({
-          platformStats: null,
-          storeStats,
+          totalSales: Number(storeStats?.todaySales || 0),
+          orderCount: Number(storeStats?.todayOrders || 0),
+          trend: Number(storeStats?.salesTrend || 0),
+          suggestions,
         });
       } else {
-        response = await ai.chatWithAdmin(message, {
+        if (!user.storeId) {
+          return json({ error: 'Merchant store not found' }, { status: 400 });
+        }
+
+        response = await ai.chatWithMerchant(message, user.storeId, {
           role: user.role,
           userName: user.name || 'Merchant',
           platformStats: null,

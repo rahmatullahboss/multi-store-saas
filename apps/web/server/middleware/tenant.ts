@@ -70,11 +70,23 @@ export const tenantMiddleware = (): MiddlewareHandler<{
   Variables: TenantContext;
 }> => {
   return async (c, next) => {
+    const requestPath = c.req.path;
+    const isFrameworkInternalRequest =
+      requestPath === '/__manifest' || requestPath.startsWith('/__manifest?');
+    const isStaticAssetRequest =
+      requestPath.startsWith('/assets/') ||
+      /\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|eot|map)$/.test(requestPath);
+
+    // Skip tenant resolution for framework internals/static assets.
+    // These requests are store-agnostic and don't need DB/KV lookups.
+    if (isFrameworkInternalRequest || isStaticAssetRequest) {
+      return next();
+    }
+
     // Check X-Forwarded-Host first (set by wildcard proxy worker)
     // This preserves the original subdomain when proxied through Pages
     const hostname = c.req.header('x-forwarded-host') || c.req.header('host') || '';
     const saasDomain = c.env.SAAS_DOMAIN || 'mysaas.com';
-    const requestPath = c.req.path;
 
     console.warn(`[TENANT] ============================================`);
     console.warn(`[TENANT] Request: ${c.req.method} ${requestPath}`);

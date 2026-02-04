@@ -29,7 +29,9 @@ export default defineConfig({
         v3_relativeSplatPath: true,
         v3_throwAbortReason: true,
         v3_singleFetch: true,
-        v3_lazyRouteDiscovery: true,
+        // Cost optimization: disable /__manifest fog-of-war requests
+        // so one storefront visit does not trigger an extra Worker hit.
+        v3_lazyRouteDiscovery: false,
       },
     }),
     tsconfigPaths(),

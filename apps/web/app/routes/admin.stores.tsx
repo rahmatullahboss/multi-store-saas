@@ -42,6 +42,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { GlassCard } from '~/components/ui/GlassCard';
+import { useTranslation } from 'react-i18next';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'All Stores - Super Admin' }];
@@ -403,6 +404,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // ============================================================================
 export default function AdminStores() {
   const { stores: allStores, showDeleted } = useLoaderData<typeof loader>();
+  const { t } = useTranslation('admin');
   const [searchQuery, setSearchQuery] = useState('');
   const fetcher = useFetcher();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -430,21 +432,21 @@ export default function AdminStores() {
         return (
           <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-400">
             <Crown className="w-3 h-3" />
-            Premium
+            {t('premium')}
           </span>
         );
       case 'starter':
         return (
           <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-emerald-500/20 text-emerald-400">
             <Zap className="w-3 h-3" />
-            Starter
+            {t('starter')}
           </span>
         );
       default:
         return (
           <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-slate-700 text-slate-400">
             <Gift className="w-3 h-3" />
-            Free
+            {t('free')}
           </span>
         );
     }
@@ -469,7 +471,7 @@ export default function AdminStores() {
 
   const handleBulkSuspend = () => {
     if (selectedStores.length === 0) return;
-    if (!confirm(`Suspend ${selectedStores.length} selected stores?`)) return;
+    if (!confirm(t('confirmBulkSuspend', { count: selectedStores.length }))) return;
 
     fetcher.submit(
       { intent: 'bulkSuspend', storeIds: JSON.stringify(selectedStores) },
@@ -484,10 +486,13 @@ export default function AdminStores() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white">
-            {showDeleted ? 'Deleted Stores' : 'All Stores'}
+            {showDeleted ? t('deletedStores') : t('allStores')}
           </h1>
           <p className="text-slate-400">
-            {allStores.length} {showDeleted ? 'deleted' : 'active'} stores
+            {showDeleted 
+              ? t('deletedStoresCount', { count: allStores.length })
+              : t('activeStoresCount', { count: allStores.length })
+            }
           </p>
         </div>
 
@@ -499,24 +504,24 @@ export default function AdminStores() {
             className="px-3 py-2 rounded-lg text-sm font-medium bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition flex items-center gap-2"
           >
             <Download className="w-4 h-4" />
-            Export CSV
+            {t('exportCSV')}
           </a>
 
           {/* Bulk Actions (when stores selected) */}
           {selectedStores.length > 0 && !showDeleted && (
             <div className="flex items-center gap-2 bg-slate-800 px-3 py-2 rounded-lg">
-              <span className="text-sm text-slate-400">{selectedStores.length} selected</span>
+              <span className="text-sm text-slate-400">{t('selected', { count: selectedStores.length })}</span>
               <button
                 onClick={handleBulkSuspend}
                 className="px-2 py-1 text-xs bg-orange-500/20 text-orange-400 rounded hover:bg-orange-500/30"
               >
-                Suspend All
+                {t('suspendAll')}
               </button>
               <button
                 onClick={() => setSelectedStores([])}
                 className="px-2 py-1 text-xs bg-slate-700 text-slate-400 rounded hover:bg-slate-600"
               >
-                Clear
+                {t('clear')}
               </button>
             </div>
           )}
@@ -531,7 +536,7 @@ export default function AdminStores() {
             }`}
           >
             <Trash2 className="w-4 h-4" />
-            {showDeleted ? 'Show Active' : 'Show Deleted'}
+            {showDeleted ? t('showActive') : t('showDeleted')}
           </button>
 
           {/* Search */}
@@ -539,7 +544,7 @@ export default function AdminStores() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input
               type="text"
-              placeholder="Search stores..."
+              placeholder={t('searchStores')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full sm:w-64 pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500"
@@ -568,28 +573,28 @@ export default function AdminStores() {
                   </th>
                 )}
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Store
+                  {t('store')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Owner
+                  {t('owner')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Plan
+                  {t('plan')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Credits
+                  {t('credits')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Usage
+                  {t('usage')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Status
+                  {t('status')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Created
+                  {t('created')}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Actions
+                  {t('actions')}
                 </th>
               </tr>
             </thead>
@@ -730,7 +735,7 @@ export default function AdminStores() {
                       <div className="space-y-1">
                         {/* Orders */}
                         <div className="flex items-center gap-2 text-xs">
-                          <span className="text-slate-500 w-10">Orders:</span>
+                          <span className="text-slate-500 w-10">{t('ordersLabel')}</span>
                           <span
                             className={`font-medium ${
                               store.usage.ordersLimit !== Infinity &&
@@ -748,7 +753,7 @@ export default function AdminStores() {
                         </div>
                         {/* Products */}
                         <div className="flex items-center gap-2 text-xs">
-                          <span className="text-slate-500 w-10">Prods:</span>
+                          <span className="text-slate-500 w-10">{t('productsLabel')}</span>
                           <span
                             className={`font-medium ${
                               store.usage.productsLimit !== Infinity &&
@@ -809,7 +814,7 @@ export default function AdminStores() {
                                 ? 'bg-orange-500/20 hover:bg-orange-500/30 text-orange-400'
                                 : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400'
                             }`}
-                            title={store.isActive ? 'Suspend Store' : 'Unsuspend Store'}
+                            title={store.isActive ? t('suspendStore') : t('unsuspendStore')}
                           >
                             {store.isActive ? (
                               <Ban className="w-4 h-4" />
@@ -829,10 +834,10 @@ export default function AdminStores() {
                             <button
                               type="submit"
                               className="px-3 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition flex items-center gap-2 text-xs font-medium"
-                              title="Login as User (Impersonate)"
+                              title={t('loginAsUser')}
                             >
                               <UserRound className="w-4 h-4" />
-                              Impersonate
+                              {t('impersonate')}
                             </button>
                           </Form>
                         )}
@@ -846,7 +851,7 @@ export default function AdminStores() {
                             <button
                               type="submit"
                               className="p-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 transition"
-                              title="Restore Store"
+                              title={t('restoreStore')}
                             >
                               <RotateCcw className="w-4 h-4" />
                             </button>
@@ -870,7 +875,7 @@ export default function AdminStores() {
                             <button
                               type="submit"
                               className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition"
-                              title="Delete Store"
+                              title={t('deleteStore')}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -912,12 +917,12 @@ export default function AdminStores() {
                 {store.isActive ? (
                   <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400">
                     <CheckCircle className="w-3 h-3" />
-                    Active
+                    {t('active')}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-400">
                     <XCircle className="w-3 h-3" />
-                    Suspended
+                    {t('suspended')}
                   </span>
                 )}
               </div>
@@ -925,10 +930,10 @@ export default function AdminStores() {
               {/* Store Info Grid */}
               <div className="grid grid-cols-3 gap-3 text-sm">
                 <div>
-                  <p className="text-xs text-slate-500">Owner</p>
+                  <p className="text-xs text-slate-500">{t('owner')}</p>
                   <p className="text-slate-300 truncate">{store.ownerName || 'N/A'}</p>
                   <p className="text-xs text-slate-500 truncate">
-                    {store.ownerEmail || 'No owner'}
+                    {store.ownerEmail || t('noOwner')}
                   </p>
                 </div>
                 <div>
@@ -965,12 +970,12 @@ export default function AdminStores() {
                     {store.isActive ? (
                       <>
                         <Ban className="w-4 h-4" />
-                        Suspend
+                        {t('suspend')}
                       </>
                     ) : (
                       <>
                         <CheckCircle className="w-4 h-4" />
-                        Unsuspend
+                        {t('unsuspend')}
                       </>
                     )}
                   </button>
@@ -986,7 +991,7 @@ export default function AdminStores() {
                       className="w-full py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition flex items-center justify-center gap-2 text-sm font-medium"
                     >
                       <UserRound className="w-4 h-4" />
-                      Impersonate
+                      {t('impersonate')}
                     </button>
                   </Form>
                 )}
@@ -1001,14 +1006,14 @@ export default function AdminStores() {
                       className="py-2 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 transition flex items-center justify-center gap-2 text-sm font-medium"
                     >
                       <RotateCcw className="w-4 h-4" />
-                      Restore
+                      {t('restore')}
                     </button>
                   </fetcher.Form>
                 ) : (
                   <fetcher.Form
                     method="post"
                     onSubmit={(e) => {
-                      if (!confirm(`Delete "${store.name}"?`)) {
+                      if (!confirm(t('deleteConfirmShort', { name: store.name }))) {
                         e.preventDefault();
                       }
                     }}
@@ -1034,11 +1039,9 @@ export default function AdminStores() {
         <div className="flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
           <div>
-            <h4 className="text-sm font-medium text-red-400">Impersonation Security Notice</h4>
+            <h4 className="text-sm font-medium text-red-400">{t('impersonationNotice')}</h4>
             <p className="text-xs text-red-300/80 mt-1">
-              The "Login as User" action creates a session as the selected user. This action is
-              logged and can only be performed by the configured Super Admin email. Use responsibly
-              for support purposes only.
+              {t('impersonationWarning')}
             </p>
           </div>
         </div>

@@ -23,6 +23,10 @@ import {
 } from '@db/types';
 import { requireUserId, getStoreId } from '~/services/auth.server';
 import { ThemeBridge } from '~/lib/theme-engine/ThemeBridge';
+import { D1Cache } from '~/services/cache-layer.server';
+import { KVCache, CACHE_KEYS } from '~/services/kv-cache.server';
+import { createDb } from '~/lib/db.server';
+import { invalidateStoreConfig } from '~/services/store-config-do.server';
 import {
   Check,
   ExternalLink,
@@ -116,6 +120,39 @@ const FONT_OPTIONS = [
 
 export const meta: MetaFunction = () => [{ title: 'Store Design - Ozzyl' }];
 
+async function invalidateStoreTemplateCaches(
+  env: Env,
+  storeId: number,
+  subdomain: string,
+  customDomain: string | null
+) {
+  const tasks: Array<Promise<unknown>> = [];
+
+  // Invalidate tenant cache keys used by middleware (KV)
+  if (env.STORE_CACHE) {
+    const kvCache = new KVCache(env.STORE_CACHE);
+    tasks.push(kvCache.delete(`${CACHE_KEYS.TENANT_SUBDOMAIN}${subdomain}`));
+    if (customDomain) {
+      tasks.push(kvCache.delete(`${CACHE_KEYS.TENANT_DOMAIN}${customDomain}`));
+    }
+    tasks.push(kvCache.delete(`${CACHE_KEYS.STORE_CONFIG}${storeId}`));
+  }
+
+  // Invalidate tenant cache keys used by middleware (D1 cache table)
+  const d1Cache = new D1Cache(createDb(env.DB));
+  tasks.push(d1Cache.delete(`tenant:subdomain:${subdomain}`));
+  if (customDomain) {
+    tasks.push(d1Cache.delete(`tenant:custom:${customDomain}`));
+  }
+
+  // Invalidate DO-backed store config cache if binding is available
+  if (env.STORE_CONFIG_SERVICE) {
+    tasks.push(invalidateStoreConfig({ STORE_CONFIG_SERVICE: env.STORE_CONFIG_SERVICE }, storeId));
+  }
+
+  await Promise.allSettled(tasks);
+}
+
 // ============================================================================
 // LOADER - Fetch current store config
 // ============================================================================
@@ -144,7 +181,6 @@ export const loader = async ({
   // MVP: Only show approved themes
   const MVP_THEME_IDS = [
     'starter-store',
-    'ghorer-bazar',
     'luxe-boutique',
     'nova-lux',
     'tech-modern',
@@ -222,6 +258,13 @@ export const action = async ({
       })
       .where(eq(stores.id, storeId));
 
+    await invalidateStoreTemplateCaches(
+      context.cloudflare.env,
+      storeId,
+      store[0].subdomain,
+      store[0].customDomain
+    );
+
     return json({ success: true, message: 'templateApplied' });
   }
 
@@ -239,6 +282,13 @@ export const action = async ({
         updatedAt: new Date(),
       })
       .where(eq(stores.id, storeId));
+
+    await invalidateStoreTemplateCaches(
+      context.cloudflare.env,
+      storeId,
+      store[0].subdomain,
+      store[0].customDomain
+    );
 
     return json({ success: true, message: 'themeSaved' });
   }
@@ -264,6 +314,13 @@ export const action = async ({
         updatedAt: new Date(),
       })
       .where(eq(stores.id, storeId));
+
+    await invalidateStoreTemplateCaches(
+      context.cloudflare.env,
+      storeId,
+      store[0].subdomain,
+      store[0].customDomain
+    );
 
     return json({ success: true, message: 'bannerSaved' });
   }
@@ -294,6 +351,13 @@ export const action = async ({
       })
       .where(eq(stores.id, storeId));
 
+    await invalidateStoreTemplateCaches(
+      context.cloudflare.env,
+      storeId,
+      store[0].subdomain,
+      store[0].customDomain
+    );
+
     return json({ success: true, message: 'infoSaved' });
   }
 
@@ -308,6 +372,13 @@ export const action = async ({
         updatedAt: new Date(),
       })
       .where(eq(stores.id, storeId));
+
+    await invalidateStoreTemplateCaches(
+      context.cloudflare.env,
+      storeId,
+      store[0].subdomain,
+      store[0].customDomain
+    );
 
     return json({ success: true, message: 'advancedSaved' });
   }
@@ -367,6 +438,12 @@ export default function StoreDesignPage() {
   const [whatsapp, setWhatsapp] = useState(socialLinks.whatsapp || '');
 
   const isSubmitting = navigation.state === 'submitting';
+  const pendingIntent = navigation.formData?.get('intent')?.toString();
+  const pendingTemplateId = navigation.formData?.get('templateId')?.toString();
+  const effectiveTemplateId =
+    pendingIntent === 'select-template' && pendingTemplateId
+      ? pendingTemplateId
+      : currentTemplateId;
 
   // Show success toast
   useEffect(() => {
@@ -517,7 +594,7 @@ export default function StoreDesignPage() {
         {activeTab === 'templates' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {templates.map((template) => {
-              const isActive = template.id === currentTemplateId;
+              const isActive = template.id === effectiveTemplateId;
               const theme = getThemeColors(template.id);
               const category = template.categories?.[0] || 'general';
 

@@ -18,12 +18,32 @@ interface Message {
   content: string;
 }
 
+function dedupeConsecutiveAssistantMessages(list: Message[]): Message[] {
+  if (list.length < 2) return list;
+  const result: Message[] = [];
+  for (const msg of list) {
+    const prev = result[result.length - 1];
+    if (
+      prev &&
+      prev.role === 'assistant' &&
+      msg.role === 'assistant' &&
+      prev.content.trim() === msg.content.trim()
+    ) {
+      continue;
+    }
+    result.push(msg);
+  }
+  return result;
+}
+
 export default function DashboardChatWidget({ userName, storeName, isLocked = false }: DashboardChatWidgetProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastHandledResponseRef = useRef<string | null>(null);
   const fetcher = useFetcher<{ success: boolean; response?: string; error?: string }>();
   const historyFetcher = useFetcher<{ messages: Message[] }>();
   const location = useLocation();
@@ -56,7 +76,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
           ...m,
           role: (m.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant'
       }));
-      setMessages(validMessages);
+      setMessages(dedupeConsecutiveAssistantMessages(validMessages));
     }
   }, [historyFetcher.data]);
 
@@ -69,15 +89,40 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
   useEffect(() => {
     const data = fetcher.data;
     if (fetcher.state === 'idle' && data) {
+      const responseKey = JSON.stringify(data);
+      if (lastHandledResponseRef.current === responseKey) return;
+      lastHandledResponseRef.current = responseKey;
+
       if (data.success && data.response) {
-        setMessages(prev => [
-          ...prev, 
-          { 
-            id: Date.now().toString(), 
-            role: 'assistant', 
-            content: data.response! 
+        const cleanResponse = data.response.replace(/^\s+/, '');
+        const last = messages[messages.length - 1];
+        if (
+          last &&
+          last.role === 'assistant' &&
+          last.content.trim() === cleanResponse.trim()
+        ) {
+          return;
+        }
+        const assistantId = `${Date.now()}-assistant`;
+
+        // Add placeholder message first, then stream characters for ChatGPT-like UX
+        setMessages((prev) => [...prev, { id: assistantId, role: 'assistant', content: '' }]);
+
+        let i = 0;
+        if (typingTimerRef.current) clearInterval(typingTimerRef.current);
+        typingTimerRef.current = setInterval(() => {
+          i += 1;
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId ? { ...m, content: cleanResponse.slice(0, i) } : m
+            )
+          );
+
+          if (i >= cleanResponse.length && typingTimerRef.current) {
+            clearInterval(typingTimerRef.current);
+            typingTimerRef.current = null;
           }
-        ]);
+        }, 10);
         // Re-validate history to keep consistent? No need to re-fetch immediately.
       } else if (data.error) {
         setMessages(prev => [
@@ -90,7 +135,14 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
           ]);
       }
     }
-  }, [fetcher.state, fetcher.data]);
+  }, [fetcher.state, fetcher.data, messages]);
+
+  // Cleanup typing timer on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimerRef.current) clearInterval(typingTimerRef.current);
+    };
+  }, []);
 
   // Helper to render content (JSON or Text)
   const renderMessageContent = (content: string) => {
@@ -109,7 +161,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
     } catch {
       // Not JSON, render as text
     }
-    return content;
+    return content.replace(/^\s+/, '');
   };
 
   const handleSubmit = (e?: React.FormEvent) => {

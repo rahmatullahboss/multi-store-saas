@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '~/utils/money';
 import { GlassCard } from '~/components/ui/GlassCard';
+import { useTranslation } from 'react-i18next';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Dashboard - Super Admin' }];
@@ -130,42 +131,43 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 export default function AdminDashboard() {
   const { metrics, recentStores } = useLoaderData<typeof loader>();
+  const { t } = useTranslation('admin');
 
   const statCards = [
     {
-      title: 'Total Stores',
+      title: t('totalStores'),
       value: metrics.totalStores,
-      subtitle: `${metrics.activeStores} active, ${metrics.suspendedStores} suspended`,
+      subtitle: t('activeStoresSubtitle', { active: metrics.activeStores, suspended: metrics.suspendedStores }),
       icon: Store,
       color: 'blue',
     },
     {
-      title: 'Monthly Revenue',
+      title: t('monthlyRevenue'),
       value: formatCurrency(metrics.monthlyRevenue, 'BDT', { fromCents: true }),
-      subtitle: 'This month',
+      subtitle: t('thisMonth'),
       icon: DollarSign,
       color: 'green',
     },
     {
-      title: 'Total Orders',
+      title: t('totalOrders'),
       value: metrics.totalOrders,
-      subtitle: `${metrics.monthlyOrders} this month`,
+      subtitle: t('ordersThisMonth', { count: metrics.monthlyOrders }),
       icon: ShoppingCart,
       color: 'purple',
     },
     {
-      title: 'Total Users',
+      title: t('totalUsers'),
       value: metrics.totalUsers,
-      subtitle: 'All merchants',
+      subtitle: t('allMerchants'),
       icon: Users,
       color: 'orange',
     },
   ];
 
   const planStats = [
-    { label: 'Premium', count: metrics.premiumStores, color: 'bg-amber-500' },
-    { label: 'Starter', count: metrics.starterStores, color: 'bg-emerald-500' },
-    { label: 'Free', count: metrics.totalStores - metrics.premiumStores - metrics.starterStores, color: 'bg-slate-500' },
+    { label: t('premium'), count: metrics.premiumStores, color: 'bg-amber-500' },
+    { label: t('starter'), count: metrics.starterStores, color: 'bg-emerald-500' },
+    { label: t('free'), count: metrics.totalStores - metrics.premiumStores - metrics.starterStores, color: 'bg-slate-500' },
   ];
 
   const colorMap: Record<string, { bg: string; text: string; icon: string }> = {
@@ -179,8 +181,8 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">Dashboard Overview</h1>
-        <p className="text-slate-400">Global platform metrics and recent activity</p>
+        <h1 className="text-2xl font-bold text-white">{t('dashboardOverview')}</h1>
+        <p className="text-slate-400">{t('globalPlatformMetricsAndRecentActivity')}</p>
       </div>
 
       {/* Stat Cards */}
@@ -214,7 +216,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Plan Distribution */}
         <GlassCard className="bg-slate-900/50 border-white/10 p-5 backdrop-blur-md">
-          <h3 className="text-lg font-semibold text-white mb-4">Plan Distribution</h3>
+          <h3 className="text-lg font-semibold text-white mb-4">{t('planDistribution')}</h3>
           <div className="space-y-3">
             {planStats.map((plan) => {
               const percentage = metrics.totalStores > 0 
@@ -224,7 +226,7 @@ export default function AdminDashboard() {
                 <div key={plan.label} className="space-y-1">
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-300">{plan.label}</span>
-                    <span className="text-slate-400">{plan.count} stores ({percentage}%)</span>
+                    <span className="text-slate-400">{plan.count} {t('stores')} ({percentage}%)</span>
                   </div>
                   <div className="h-2 bg-slate-800/50 rounded-full overflow-hidden">
                     <div 
@@ -240,10 +242,10 @@ export default function AdminDashboard() {
 
         {/* Recent Stores */}
         <GlassCard className="bg-slate-900/50 border-white/10 p-5 backdrop-blur-md">
-          <h3 className="text-lg font-semibold text-white mb-4">Recent Stores</h3>
+          <h3 className="text-lg font-semibold text-white mb-4">{t('recentStores')}</h3>
           <div className="space-y-3">
             {recentStores.length === 0 ? (
-              <p className="text-slate-500 text-sm">No stores yet</p>
+              <p className="text-slate-500 text-sm">{t('noStoresYet')}</p>
             ) : (
               recentStores.map((store) => (
                 <div 
@@ -283,19 +285,19 @@ export default function AdminDashboard() {
 
       {/* Quick Actions */}
       <GlassCard className="bg-slate-900/50 border-white/10 p-5 backdrop-blur-md">
-        <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
+        <h3 className="text-lg font-semibold text-white mb-4">{t('quickActions')}</h3>
         <div className="flex flex-wrap gap-3">
           <a 
             href="/admin/stores"
             className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg text-sm font-medium transition"
           >
-            View All Stores
+            {t('viewAllStores')}
           </a>
           <a 
             href="/admin/broadcasts"
             className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg text-sm font-medium transition"
           >
-            Create Broadcast
+            {t('createBroadcast')}
           </a>
         </div>
       </GlassCard>
