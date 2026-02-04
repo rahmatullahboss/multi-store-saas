@@ -13,6 +13,7 @@ import { StarterStoreHeader } from './sections/Header';
 import { StarterStoreFooter } from './sections/Footer';
 import { StarterProductCard } from './sections/ProductCard';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
+import { FloatingContactButtons } from '~/components/FloatingContactButtons';
 import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 import { getHeroBehavior } from '~/lib/hero-slides';
 
@@ -316,6 +317,17 @@ export function StarterStoreTemplate({
         planType={planType}
         isPreview={isPreview}
       />
+
+      {!isPreview && (
+        <FloatingContactButtons
+          whatsappEnabled={config?.floatingWhatsappEnabled}
+          whatsappNumber={config?.floatingWhatsappNumber || businessInfo?.phone || undefined}
+          whatsappMessage={config?.floatingWhatsappMessage || undefined}
+          callEnabled={config?.floatingCallEnabled}
+          callNumber={config?.floatingCallNumber || businessInfo?.phone || undefined}
+          storeName={storeName}
+        />
+      )}
     </div>
   );
 }

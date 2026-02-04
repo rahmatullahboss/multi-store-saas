@@ -172,6 +172,9 @@ Your database should have these columns in `stores` table:
 
 ## Monitoring & Debugging
 
+For WAF custom rules, API scope planning, and bot/cost control runbook, see:
+- `docs/CLOUDFLARE_WAF_RULES_SCOPE_MATRIX.md`
+
 ### Check Cloudflare API Logs
 
 ```bash

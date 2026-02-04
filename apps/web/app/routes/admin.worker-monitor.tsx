@@ -23,6 +23,7 @@ type StoreAggregate = {
   uniqueVisitors: number;
   pageViews: number;
   requestsPerVisitor: number | null;
+  requestsPerPageView: number | null;
 };
 
 function toHourBucketUTC(date: Date): string {
@@ -47,31 +48,43 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const hours = Math.max(6, Math.min(72, Number.parseInt(url.searchParams.get('hours') || '24', 10)));
   const sinceDate = new Date(Date.now() - hours * 60 * 60 * 1000);
+  const sinceUnixSeconds = Math.floor(sinceDate.getTime() / 1000);
   const sinceBucket = toHourBucketUTC(sinceDate);
 
   const db = drizzle(context.cloudflare.env.DB);
 
-  const visitSummaryRows = await db.all(sql`
-    SELECT
-      COUNT(*) as pageViews,
-      COUNT(DISTINCT visitor_id) as uniqueVisitors
-    FROM page_views
-    WHERE created_at >= ${sinceDate}
-  `);
+  let visitSummaryRows: unknown[] = [];
+  let storeVisitRows: unknown[] = [];
+  let dataWarnings: string[] = [];
+
+  try {
+    visitSummaryRows = await db.all(sql`
+      SELECT
+        COUNT(*) as pageViews,
+        COUNT(DISTINCT visitor_id) as uniqueVisitors
+      FROM page_views
+      WHERE created_at >= ${sinceUnixSeconds}
+    `);
+
+    storeVisitRows = await db.all(sql`
+      SELECT
+        store_id as storeId,
+        COUNT(*) as pageViews,
+        COUNT(DISTINCT visitor_id) as uniqueVisitors
+      FROM page_views
+      WHERE created_at >= ${sinceUnixSeconds}
+      GROUP BY store_id
+    `);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('[admin.worker-monitor] Failed to query page_views:', message);
+    dataWarnings.push('Page view data unavailable right now. Showing telemetry-only metrics.');
+  }
+
   const visitSummary = (visitSummaryRows?.[0] ?? { pageViews: 0, uniqueVisitors: 0 }) as {
     pageViews: number;
     uniqueVisitors: number;
   };
-
-  const storeVisitRows = await db.all(sql`
-    SELECT
-      store_id as storeId,
-      COUNT(*) as pageViews,
-      COUNT(DISTINCT visitor_id) as uniqueVisitors
-    FROM page_views
-    WHERE created_at >= ${sinceDate}
-    GROUP BY store_id
-  `);
 
   const storeVisitMap = new Map<number, { pageViews: number; uniqueVisitors: number }>();
   for (const row of storeVisitRows as Array<{ storeId: number; pageViews: number; uniqueVisitors: number }>) {
@@ -92,30 +105,36 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const sampledByStore = new Map<number, number>();
 
   if (context.cloudflare.env.STORE_CACHE) {
-    let cursor: string | undefined;
-    do {
-      const page = await context.cloudflare.env.STORE_CACHE.list({
-        prefix: `${TELEMETRY_PREFIX}:`,
-        limit: 1000,
-        cursor,
-      });
+    try {
+      let cursor: string | undefined;
+      do {
+        const page = await context.cloudflare.env.STORE_CACHE.list({
+          prefix: `${TELEMETRY_PREFIX}:`,
+          limit: 1000,
+          cursor,
+        });
 
-      for (const keyInfo of page.keys) {
-        const parsed = parseTelemetryKey(keyInfo.name);
-        if (!parsed) continue;
-        if (parsed.bucket < sinceBucket) continue;
+        for (const keyInfo of page.keys) {
+          const parsed = parseTelemetryKey(keyInfo.name);
+          if (!parsed) continue;
+          if (parsed.bucket < sinceBucket) continue;
 
-        const raw = await context.cloudflare.env.STORE_CACHE.get(keyInfo.name);
-        const sampledCount = Number.parseInt(raw ?? '0', 10);
-        if (!Number.isFinite(sampledCount) || sampledCount <= 0) continue;
+          const raw = await context.cloudflare.env.STORE_CACHE.get(keyInfo.name);
+          const sampledCount = Number.parseInt(raw ?? '0', 10);
+          if (!Number.isFinite(sampledCount) || sampledCount <= 0) continue;
 
-        sampledTotal += sampledCount;
-        sampledByCategory[parsed.category] += sampledCount;
-        sampledByStore.set(parsed.storeId, (sampledByStore.get(parsed.storeId) ?? 0) + sampledCount);
-      }
+          sampledTotal += sampledCount;
+          sampledByCategory[parsed.category] += sampledCount;
+          sampledByStore.set(parsed.storeId, (sampledByStore.get(parsed.storeId) ?? 0) + sampledCount);
+        }
 
-      cursor = page.list_complete ? undefined : page.cursor;
-    } while (cursor);
+        cursor = page.list_complete ? undefined : page.cursor;
+      } while (cursor);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('[admin.worker-monitor] Failed to read telemetry KV:', message);
+      dataWarnings.push('Telemetry cache unavailable right now. Try again in a few minutes.');
+    }
   }
 
   const estimatedTotalRequests = Math.round(sampledTotal / SAMPLE_RATE);
@@ -131,6 +150,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     visitSummary.uniqueVisitors > 0
       ? Number((estimatedTotalRequests / visitSummary.uniqueVisitors).toFixed(2))
       : null;
+  const requestsPerPageView =
+    visitSummary.pageViews > 0 ? Number((estimatedTotalRequests / visitSummary.pageViews).toFixed(2)) : null;
 
   const manifestShare =
     estimatedTotalRequests > 0
@@ -157,6 +178,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         visitStats.uniqueVisitors > 0
           ? Number((estimatedRequests / visitStats.uniqueVisitors).toFixed(2))
           : null;
+      const pageViewRatio =
+        visitStats.pageViews > 0 ? Number((estimatedRequests / visitStats.pageViews).toFixed(2)) : null;
 
       return {
         storeId,
@@ -166,6 +189,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         uniqueVisitors: visitStats.uniqueVisitors,
         pageViews: visitStats.pageViews,
         requestsPerVisitor: ratio,
+        requestsPerPageView: pageViewRatio,
       };
     })
     .sort((a, b) => b.estimatedRequests - a.estimatedRequests)
@@ -175,12 +199,19 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   if (requestsPerVisitor !== null && requestsPerVisitor > 8) {
     alerts.push(`High worker amplification detected: ${requestsPerVisitor} requests per visitor.`);
   }
+  if (requestsPerPageView !== null && requestsPerPageView > 4) {
+    alerts.push(`High requests/page-view detected: ${requestsPerPageView}. This can indicate duplicate fetches.`);
+  }
   if (manifestShare > 5) {
     alerts.push(`Manifest traffic is high (${manifestShare}%). Check route discovery/prefetch behavior.`);
   }
   if (estimatedByCategory.api > estimatedByCategory.document * 3 && estimatedByCategory.document > 0) {
     alerts.push('API traffic is disproportionately high compared to document requests.');
   }
+  const abnormalStores = storeAgg
+    .filter((row) => (row.requestsPerVisitor ?? 0) > 10 || (row.requestsPerPageView ?? 0) > 5)
+    .slice(0, 10);
+  alerts.push(...dataWarnings);
 
   return json({
     hours,
@@ -189,9 +220,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     estimatedTotalRequests,
     estimatedByCategory,
     requestsPerVisitor,
+    requestsPerPageView,
     manifestShare,
     alerts,
     storeAgg,
+    abnormalStores,
   });
 }
 
@@ -243,7 +276,7 @@ export default function AdminWorkerMonitorPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <MetricCard
           icon={Zap}
           label="Estimated Worker Requests"
@@ -261,6 +294,12 @@ export default function AdminWorkerMonitorPage() {
           label="Requests / Visitor"
           value={data.requestsPerVisitor !== null ? data.requestsPerVisitor.toFixed(2) : '-'}
           color="text-violet-300"
+        />
+        <MetricCard
+          icon={BarChart3}
+          label="Requests / Page View"
+          value={data.requestsPerPageView !== null ? data.requestsPerPageView.toFixed(2) : '-'}
+          color="text-sky-300"
         />
         <MetricCard
           icon={Activity}
@@ -281,6 +320,23 @@ export default function AdminWorkerMonitorPage() {
         </div>
       </div>
 
+      {data.abnormalStores.length > 0 && (
+        <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4">
+          <div className="text-red-300 font-semibold flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5" />
+            Store-Level Anomaly Detection
+          </div>
+          <ul className="mt-2 space-y-1 text-sm text-red-100">
+            {data.abnormalStores.map((row) => (
+              <li key={row.storeId}>
+                {row.storeName} ({row.subdomain}): req/visitor {row.requestsPerVisitor ?? '-'}, req/page-view{' '}
+                {row.requestsPerPageView ?? '-'}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="rounded-xl border border-slate-800 bg-slate-900/70 overflow-hidden">
         <div className="px-4 py-3 border-b border-slate-800">
           <h2 className="text-white font-semibold">Top Stores by Estimated Worker Requests</h2>
@@ -294,6 +350,7 @@ export default function AdminWorkerMonitorPage() {
                 <th className="text-left px-4 py-3">Unique Visitors</th>
                 <th className="text-left px-4 py-3">Page Views</th>
                 <th className="text-left px-4 py-3">Requests / Visitor</th>
+                <th className="text-left px-4 py-3">Requests / Page View</th>
               </tr>
             </thead>
             <tbody>
@@ -309,11 +366,14 @@ export default function AdminWorkerMonitorPage() {
                   <td className="px-4 py-3">
                     {row.requestsPerVisitor !== null ? row.requestsPerVisitor.toFixed(2) : '-'}
                   </td>
+                  <td className="px-4 py-3">
+                    {row.requestsPerPageView !== null ? row.requestsPerPageView.toFixed(2) : '-'}
+                  </td>
                 </tr>
               ))}
               {data.storeAgg.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-slate-400">
+                  <td colSpan={6} className="px-4 py-6 text-center text-slate-400">
                     No telemetry yet. Wait a few minutes after storefront traffic.
                   </td>
                 </tr>

@@ -18,6 +18,7 @@ import { StoreFooter } from './StoreFooter';
 import { WishlistProvider } from '~/contexts/WishlistContext';
 import { getStoreTemplate, type StoreTemplateTheme } from '~/templates/store-registry';
 import { MobileBottomNav } from '~/components/store/MobileBottomNav';
+import { FloatingContactButtons } from '~/components/FloatingContactButtons';
 import type { SocialLinks, ThemeConfig, FooterConfig } from '@db/types';
 
 interface StorePageWrapperProps {
@@ -367,6 +368,17 @@ function StorePageWrapperComponent({
               )}
             </FooterErrorBoundary>
           </Suspense>
+        )}
+
+        {!isPreview && !hideHeaderFooter && (
+          <FloatingContactButtons
+            whatsappEnabled={config?.floatingWhatsappEnabled}
+            whatsappNumber={config?.floatingWhatsappNumber || businessInfo?.phone || undefined}
+            whatsappMessage={config?.floatingWhatsappMessage || undefined}
+            callEnabled={config?.floatingCallEnabled}
+            callNumber={config?.floatingCallNumber || businessInfo?.phone || undefined}
+            storeName={storeName}
+          />
         )}
 
         {/* Mobile Bottom Navigation - DC Store Style */}

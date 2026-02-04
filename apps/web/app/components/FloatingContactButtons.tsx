@@ -13,7 +13,7 @@ interface FloatingContactButtonsProps {
   callEnabled?: boolean;
   callNumber?: string;
   storeName?: string;
-  bottomOffset?: string; // For mobile with sticky footer, default "bottom-24"
+  bottomOffset?: string; // For mobile with sticky footer
 }
 
 export function FloatingContactButtons({
@@ -23,7 +23,7 @@ export function FloatingContactButtons({
   callNumber,
   whatsappMessage,
   storeName = 'Store',
-  bottomOffset = 'bottom-8',
+  bottomOffset = 'bottom-20 md:bottom-8',
 }: FloatingContactButtonsProps) {
   // Format WhatsApp number (remove any spaces or dashes)
   const formatWhatsAppNumber = (num: string) => {
@@ -42,15 +42,21 @@ export function FloatingContactButtons({
 
   const phoneLink = callNumber ? `tel:${callNumber}` : '';
 
+  // Backward compatibility:
+  // - explicit false => disabled
+  // - true/undefined + number => enabled
+  const hasWhatsApp = Boolean(whatsappNumber) && whatsappEnabled !== false;
+  const hasCall = Boolean(callNumber) && callEnabled !== false;
+
   // Don't render if no buttons are enabled
-  if (!((whatsappEnabled && whatsappNumber) || (callEnabled && callNumber))) {
+  if (!(hasWhatsApp || hasCall)) {
     return null;
   }
 
   return (
     <>
       {/* WhatsApp Floating Button */}
-      {whatsappEnabled && whatsappNumber && (
+      {hasWhatsApp && whatsappNumber && (
         <a
           href={whatsappLink}
           target="_blank"
@@ -66,10 +72,10 @@ export function FloatingContactButtons({
       )}
 
       {/* Call Floating Button */}
-      {callEnabled && callNumber && (
+      {hasCall && callNumber && (
         <a
           href={phoneLink}
-          className={`fixed ${bottomOffset} ${whatsappEnabled && whatsappNumber ? 'right-20' : 'right-4'} z-40 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110`}
+          className={`fixed ${bottomOffset} ${hasWhatsApp ? 'right-20' : 'right-4'} z-40 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110`}
           title="কল করুন"
           aria-label="Call Us"
         >

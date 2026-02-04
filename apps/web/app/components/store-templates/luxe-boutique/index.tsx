@@ -24,8 +24,6 @@ import {
   Home as HomeIcon,
   Grid3X3,
   User,
-  Phone,
-  MessageCircle,
   ShoppingCart,
 } from 'lucide-react';
 import { useWishlist } from '~/hooks/useWishlist';
@@ -41,6 +39,7 @@ import { ClientOnly } from 'remix-utils/client-only';
 import { SkeletonLoader } from '~/components/SkeletonLoader';
 import { getHeroBehavior } from '~/lib/hero-slides';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
+import { FloatingContactButtons } from '~/components/FloatingContactButtons';
 
 import { LUXE_BOUTIQUE_THEME } from './theme';
 import { LuxeBoutiqueHeader } from './sections/Header';
@@ -1047,30 +1046,14 @@ function LiveLuxeBoutiqueHomepage({
 
               {/* Floating Contact Buttons */}
               {!isPreview && (
-                <>
-                  {config?.floatingWhatsappEnabled && config?.floatingWhatsappNumber && (
-                    <a
-                      href={`https://wa.me/${config.floatingWhatsappNumber.replace(/\D/g, '').replace(/^01/, '8801')}?text=${encodeURIComponent(config.floatingWhatsappMessage || `Hello ${storeName}, I'd like to know...`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="fixed bottom-20 md:bottom-8 right-4 z-40 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110"
-                      title="Message on WhatsApp"
-                    >
-                      <MessageCircle className="h-7 w-7 text-white" />
-                      <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-25" />
-                    </a>
-                  )}
-                  {config?.floatingCallEnabled && config?.floatingCallNumber && (
-                    <a
-                      href={`tel:${config.floatingCallNumber}`}
-                      className={`fixed bottom-20 md:bottom-8 ${config?.floatingWhatsappEnabled && config?.floatingWhatsappNumber ? 'right-20' : 'right-4'} z-40 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110`}
-                      title="Call us"
-                    >
-                      <Phone className="h-7 w-7 text-white" />
-                      <span className="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-25" />
-                    </a>
-                  )}
-                </>
+                <FloatingContactButtons
+                  whatsappEnabled={config?.floatingWhatsappEnabled}
+                  whatsappNumber={config?.floatingWhatsappNumber || businessInfo?.phone || undefined}
+                  whatsappMessage={config?.floatingWhatsappMessage || undefined}
+                  callEnabled={config?.floatingCallEnabled}
+                  callNumber={config?.floatingCallNumber || businessInfo?.phone || undefined}
+                  storeName={storeName}
+                />
               )}
             </div>
           )}

@@ -33,7 +33,7 @@ import { useState, useEffect, Suspense, type ComponentType } from 'react';
 import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, type Product, type Store } from '@db/schema';
-import { type LandingConfig } from '@db/types';
+import { type LandingConfig, type ThemeConfig } from '@db/types';
 // NOTE: Avoid static import of landing template registry to keep storefront bundle lean.
 const DEFAULT_LANDING_TEMPLATE_ID = 'premium-bd';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -197,6 +197,7 @@ interface StoreModeData {
   socialLinks: ReturnType<typeof parseSocialLinks>;
   footerConfig: ReturnType<typeof parseFooterConfig>;
   businessInfo: { phone?: string; email?: string; address?: string } | null;
+  themeConfig: ThemeConfig | null;
   planType: string;
   // Explicitly null for this mode
   featuredProduct: null;
@@ -475,9 +476,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
 
     // ========== MVP TEMPLATE RESOLUTION ==========
     // Get theme ID from store themeConfig
-    const storeThemeConfig = parseJsonSafe<{ storeTemplateId?: string }>(
-      validatedStore.themeConfig
-    );
+    const storeThemeConfig = parseJsonSafe<ThemeConfig>(validatedStore.themeConfig);
     const storeTemplateId = storeThemeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
 
     // Get base theme colors from registry
@@ -530,6 +529,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       socialLinks,
       footerConfig,
       businessInfo,
+      themeConfig: storeThemeConfig,
       planType: validatedStore.planType || 'free',
       // Explicitly null for store mode
       featuredProduct: null,
@@ -885,8 +885,9 @@ export default function Index() {
       }
     `;
 
-    // Build proper ThemeConfig from theme data
+    // Build storefront config by combining saved merchant config + runtime color overrides
     const themeConfig = {
+      ...(data.themeConfig || {}),
       primaryColor: data.theme.primary,
       accentColor: data.theme.accent,
       storeTemplateId: data.storeTemplateId,

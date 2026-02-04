@@ -34,6 +34,7 @@ import type { ThemeConfig } from '@db/types';
 import { formatPrice } from '~/lib/theme-engine';
 import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 import { getHeroBehavior } from '~/lib/hero-slides';
+import { FloatingContactButtons } from '~/components/FloatingContactButtons';
 
 import { NOVALUX_ULTRA_THEME } from './theme';
 import { NovaLuxUltraHeader } from './sections/Header';
@@ -1155,6 +1156,16 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
           planType={props.planType}
           isPreview={isPreview}
         />
+        {!isPreview && (
+          <FloatingContactButtons
+            whatsappEnabled={config?.floatingWhatsappEnabled}
+            whatsappNumber={config?.floatingWhatsappNumber || props.businessInfo?.phone || undefined}
+            whatsappMessage={config?.floatingWhatsappMessage || undefined}
+            callEnabled={config?.floatingCallEnabled}
+            callNumber={config?.floatingCallNumber || props.businessInfo?.phone || undefined}
+            storeName={storeName}
+          />
+        )}
       </div>
     </CartProvider>
   );

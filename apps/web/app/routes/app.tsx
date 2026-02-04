@@ -79,7 +79,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     try {
       userId = await requireUserId(request, context.cloudflare.env);
     } catch (authError) {
-      console.error('[app.loader] Authentication failed:', authError);
+      if (authError instanceof Response) {
+        // Expected for expired/missing session; avoid noisy [object Response] error logs.
+        console.warn(
+          '[app.loader] Authentication required:',
+          `status=${authError.status}`,
+          `location=${authError.headers.get('Location') || 'n/a'}`
+        );
+      } else {
+        console.error('[app.loader] Authentication failed:', authError);
+      }
       throw authError; // Re-throw to trigger redirect
     }
 
