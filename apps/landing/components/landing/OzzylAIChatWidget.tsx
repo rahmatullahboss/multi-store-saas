@@ -510,7 +510,7 @@ export function OzzylAIChatWidget() {
                         {msg.role === 'user' ? (
                           <User className="w-4 h-4 text-white/70" />
                         ) : (
-                          <img src={ASSETS.brand.logoSmall} alt="Ozzyl" className="w-3.5 h-3.5" />
+                          <img src={ASSETS.brand.logoSmall} alt="Ozzyl" className="w-6 h-6" />
                         )}
                       </div>
 
@@ -538,8 +538,8 @@ export function OzzylAIChatWidget() {
                       animate={{ opacity: 1, y: 0 }}
                       className="flex items-start gap-2"
                     >
-                      <div className="w-7 h-7 rounded-lg overflow-hidden flex items-center justify-center">
-                        <img src={ASSETS.brand.logoSmall} alt="Ozzyl" className="w-3.5 h-3.5" />
+                      <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+                        <img src={ASSETS.brand.logoSmall} alt="Ozzyl" className="w-6 h-6" />
                       </div>
                       <div className="bg-white/5 border border-white/5 px-4 py-3 rounded-2xl rounded-tl-sm flex gap-1.5">
                         <span
