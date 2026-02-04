@@ -361,6 +361,18 @@ export interface ThemeConfig {
   checkoutStyle?: 'standard' | 'minimal' | 'one_page'; // Checkout Layout Style
   bannerUrl?: string;
   bannerText?: string;
+  heroMode?: 'single' | 'carousel';
+  heroSlides?: Array<{
+    id: string;
+    imageUrl: string;
+    heading?: string;
+    subheading?: string;
+    ctaText?: string;
+    ctaLink?: string;
+    alt?: string;
+  }>;
+  heroAutoplay?: boolean;
+  heroDelayMs?: number;
   favicon?: string;
   collections?: {
     id: string;

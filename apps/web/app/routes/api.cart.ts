@@ -104,18 +104,35 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     sessionId = generateSessionId();
   }
 
-  // Authenticated storefront customers should always use DB-backed carts
-  // so cart state can persist across devices/sessions.
+  // Authenticated storefront customers use hybrid cart:
+  // DO for real-time race-free reads, D1 as persistent source of truth.
   const customer = await getCustomer(request, env, db);
   if (customer) {
-    const cart = await getOrCreateCart(db, storeId, {
-      customerId: customer.id,
-    });
-    const cartWithItems = await getCartWithItems(db, cart.id);
+    const authSessionId = getAuthCartSessionId(storeId, customer.id);
+    const hasCartService = 'CART_SERVICE' in env;
     const headers = new Headers();
     if (isNewSession) {
       headers.set('Set-Cookie', createCartSessionCookie(sessionId));
     }
+
+    if (hasCartService) {
+      const doResult = await getCartDO(env as any, authSessionId);
+      if (doResult.success && doResult.cart) {
+        return json(
+          {
+            success: true,
+            cart: doResult.cart,
+            source: 'do-auth',
+          },
+          { headers }
+        );
+      }
+    }
+
+    const cart = await getOrCreateCart(db, storeId, {
+      customerId: customer.id,
+    });
+    const cartWithItems = await getCartWithItems(db, cart.id);
 
     return json(
       {
@@ -202,17 +219,23 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // Authenticated customers use DB-backed carts as source of truth.
     if (customer) {
+      const authSessionId = getAuthCartSessionId(storeId, customer.id);
       const cart = await getOrCreateCart(db, storeId, { customerId: customer.id });
 
       if (method === 'POST') {
         if (body.intent === 'clear') {
           await clearCartDB(db, cart.id);
           const cartWithItems = await getCartWithItems(db, cart.id);
+
+          if (hasCartService) {
+            await clearCartDO(env as any, authSessionId);
+          }
+
           return json(
             {
               success: true,
               cart: cartWithItems,
-              source: 'db-auth',
+              source: hasCartService ? 'do+db-auth' : 'db-auth',
             },
             { headers }
           );
@@ -231,12 +254,32 @@ export async function action({ request, context }: ActionFunctionArgs) {
             parseResult.data.items
           );
 
+          if (hasCartService) {
+            await clearCartDO(env as any, authSessionId);
+            for (const item of parseResult.data.items) {
+              const product = await db
+                .prepare(`SELECT id, title, price, image_url FROM products WHERE id = ? AND store_id = ?`)
+                .bind(item.productId, storeId)
+                .first<{ id: number; title: string; price: number; image_url: string | null }>();
+              if (!product) continue;
+              await addToCartDO(env as any, authSessionId, {
+                productId: item.productId,
+                variantId: item.variantId,
+                quantity: item.quantity,
+                price: product.price,
+                name: product.title,
+                image: product.image_url || undefined,
+                storeId,
+              });
+            }
+          }
+
           return json(
             {
               success: true,
               cart: cartWithItems,
               message: 'Cart synced',
-              source: 'db-auth',
+              source: hasCartService ? 'do+db-auth' : 'db-auth',
             },
             { headers }
           );
@@ -253,12 +296,31 @@ export async function action({ request, context }: ActionFunctionArgs) {
         const item = await addToCartDB(db, cart.id, storeId, parseResult.data);
         const cartWithItems = await getCartWithItems(db, cart.id);
 
+        if (hasCartService) {
+          const product = await db
+            .prepare(`SELECT id, title, price, image_url FROM products WHERE id = ? AND store_id = ?`)
+            .bind(parseResult.data.productId, storeId)
+            .first<{ id: number; title: string; price: number; image_url: string | null }>();
+
+          if (product) {
+            await addToCartDO(env as any, authSessionId, {
+              productId: parseResult.data.productId,
+              variantId: parseResult.data.variantId,
+              quantity: parseResult.data.quantity,
+              price: product.price,
+              name: product.title,
+              image: product.image_url || undefined,
+              storeId,
+            });
+          }
+        }
+
         return json(
           {
             success: true,
             item,
             cart: cartWithItems,
-            source: 'db-auth',
+            source: hasCartService ? 'do+db-auth' : 'db-auth',
           },
           { headers }
         );
@@ -287,11 +349,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
           }
 
           const updatedCart = await getCartWithItems(db, cart.id);
+
+          if (hasCartService) {
+            await updateCartItemQuantityDO(
+              env as any,
+              authSessionId,
+              productId,
+              quantity,
+              variantId
+            );
+          }
+
           return json(
             {
               success: true,
               cart: updatedCart,
-              source: 'db-auth',
+              source: hasCartService ? 'do+db-auth' : 'db-auth',
             },
             { headers }
           );
@@ -312,12 +385,27 @@ export async function action({ request, context }: ActionFunctionArgs) {
         );
         const updatedCart = await getCartWithItems(db, cart.id);
 
+        if (hasCartService && updatedCart) {
+          const updatedItem = updatedCart.items.find((cartItem) => cartItem.id === parseResult.data.itemId);
+          if (updatedItem) {
+            await updateCartItemQuantityDO(
+              env as any,
+              authSessionId,
+              updatedItem.productId,
+              parseResult.data.quantity,
+              updatedItem.variantId ?? undefined
+            );
+          } else {
+            await syncAuthDoFromDbCart(env as any, authSessionId, storeId, updatedCart);
+          }
+        }
+
         return json(
           {
             success: true,
             item,
             cart: updatedCart,
-            source: 'db-auth',
+            source: hasCartService ? 'do+db-auth' : 'db-auth',
           },
           { headers }
         );
@@ -336,6 +424,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
           if (existingItem) {
             await removeFromCartDB(db, existingItem.id);
+            if (hasCartService) {
+              await removeFromCartDO(
+                env as any,
+                authSessionId,
+                productId,
+                variantId
+              );
+            }
           }
 
           const updatedCart = await getCartWithItems(db, cart.id);
@@ -343,7 +439,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             {
               success: true,
               cart: updatedCart,
-              source: 'db-auth',
+              source: hasCartService ? 'do+db-auth' : 'db-auth',
             },
             { headers }
           );
@@ -359,11 +455,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
         await removeFromCartDB(db, parseResult.data.itemId);
         const updatedCart = await getCartWithItems(db, cart.id);
+
+        if (hasCartService && updatedCart) {
+          await syncAuthDoFromDbCart(env as any, authSessionId, storeId, updatedCart);
+        }
+
         return json(
           {
             success: true,
             cart: updatedCart,
-            source: 'db-auth',
+            source: hasCartService ? 'do+db-auth' : 'db-auth',
           },
           { headers }
         );
@@ -601,6 +702,37 @@ export async function action({ request, context }: ActionFunctionArgs) {
 function normalizeVariantId(variantId: number | null | undefined): number | null {
   if (variantId === undefined || variantId === null) return null;
   return variantId;
+}
+
+function getAuthCartSessionId(storeId: number, customerId: number): string {
+  return `auth:${storeId}:${customerId}`;
+}
+
+async function syncAuthDoFromDbCart(
+  env: any,
+  authSessionId: string,
+  storeId: number,
+  cart: Awaited<ReturnType<typeof getCartWithItems>>
+) {
+  if (!cart) return;
+
+  await clearCartDO(env as any, authSessionId);
+
+  for (const item of cart.items) {
+    const fallbackPrice = Number(item.unitPriceSnapshot ?? 0);
+    const fallbackName = item.titleSnapshot || 'Product';
+    const fallbackImage = item.imageSnapshot || undefined;
+
+    await addToCartDO(env as any, authSessionId, {
+      productId: item.productId,
+      variantId: item.variantId ?? undefined,
+      quantity: item.quantity,
+      price: item.product?.price ?? fallbackPrice,
+      name: item.product?.title ?? fallbackName,
+      image: item.product?.imageUrl ?? fallbackImage,
+      storeId,
+    });
+  }
 }
 
 async function parseRequestBody(request: Request): Promise<Record<string, unknown>> {

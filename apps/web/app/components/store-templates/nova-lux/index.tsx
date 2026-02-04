@@ -35,6 +35,7 @@ import { WishlistProvider } from '~/contexts/WishlistContext';
 import { ClientOnly } from 'remix-utils/client-only';
 import { SkeletonLoader } from '~/components/SkeletonLoader';
 import { formatPrice } from '~/lib/theme-engine';
+import { getHeroBehavior } from '~/lib/hero-slides';
 
 import { NOVALUX_THEME } from './theme';
 import { NovaLuxHeader } from './sections/Header';
@@ -458,27 +459,49 @@ function PreviewHomePage({
   onNavigate: (page: PageType) => void;
 }) {
   const { t: _t } = useTranslation();
+  const heroBehavior = getHeroBehavior(config);
+  const [heroIndex, setHeroIndex] = useState(0);
+  const heroSlide = heroBehavior.slides[heroIndex];
+  const heroImage = heroSlide?.imageUrl || config?.bannerUrl || '';
+  const heroHeading = heroSlide?.heading || config?.bannerText || 'Redefining Luxury';
+  const heroSubheading = heroSlide?.subheading || 'Discover our exclusive collection.';
+  const heroCta = heroSlide?.ctaText || 'Shop Now';
+
+  useEffect(() => {
+    if (!heroBehavior.isCarousel || !heroBehavior.autoplay) return;
+    const timer = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % heroBehavior.slides.length);
+    }, heroBehavior.delayMs);
+    return () => clearInterval(timer);
+  }, [heroBehavior.autoplay, heroBehavior.delayMs, heroBehavior.isCarousel, heroBehavior.slides.length]);
+
+  useEffect(() => {
+    if (heroIndex >= heroBehavior.slides.length) {
+      setHeroIndex(0);
+    }
+  }, [heroBehavior.slides.length, heroIndex]);
+
   return (
     <div className="min-h-screen">
       <section className="relative h-[80vh] flex items-center justify-center bg-gray-900 text-white overflow-hidden">
         <div className="absolute inset-0 bg-black/40 z-10" />
-        {config?.bannerUrl && (
+        {heroImage && (
           <img
-            src={config.bannerUrl}
+            src={heroImage}
             alt="Banner"
             className="absolute inset-0 w-full h-full object-cover"
           />
         )}
         <div className="relative z-20 text-center max-w-4xl px-4">
           <h1 className="text-5xl md:text-7xl font-serif mb-6">
-            {config?.bannerText || 'Redefining Luxury'}
+            {heroHeading}
           </h1>
-          <p className="text-xl mb-8 opacity-90">Discover our exclusive collection.</p>
+          <p className="text-xl mb-8 opacity-90">{heroSubheading}</p>
           <button
             onClick={() => onNavigate({ type: 'home' })}
             className="px-8 py-3 bg-white text-black font-semibold rounded-full hover:bg-gray-100 transition"
           >
-            Shop Now
+            {heroCta}
           </button>
         </div>
       </section>

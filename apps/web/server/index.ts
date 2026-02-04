@@ -17,6 +17,7 @@ import { eq, and } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { tenantMiddleware, type TenantEnv, type TenantContext } from './middleware/tenant';
 import { workerTelemetryMiddleware } from './middleware/worker-telemetry';
+import { botControlMiddleware } from './middleware/bot-control';
 import { securityHeaders, apiSecurityHeaders } from './middleware/security';
 import {
   standardApiLimit,
@@ -126,6 +127,8 @@ app.use('*', async (c, next) => {
 
 // Security Headers for all routes
 app.use('*', securityHeaders());
+// SEO-safe bot control: allow verified search crawlers, block non-essential scraping bots
+app.use('*', botControlMiddleware());
 
 // API-specific security headers (stricter CSP)
 app.use('/api/*', apiSecurityHeaders());

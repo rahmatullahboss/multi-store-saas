@@ -49,10 +49,15 @@ import {
   MessageCircle,
   Type,
   Code,
+  Plus,
+  Trash2,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { StoreImageUpload } from '~/components/StoreImageUpload';
+import { HERO_SLIDES_MAX, type HeroSlide } from '~/lib/hero-slides';
 
 // Default theme ID for fallback
 const DEFAULT_THEME_ID = 'starter-store';
@@ -117,6 +122,18 @@ const FONT_OPTIONS = [
     previewKey: 'fontMontserratDesc',
   },
 ];
+
+function createEmptyHeroSlide(index: number): HeroSlide {
+  return {
+    id: `hero-slide-${Date.now()}-${index}`,
+    imageUrl: '',
+    heading: '',
+    subheading: '',
+    ctaText: '',
+    ctaLink: '',
+    alt: '',
+  };
+}
 
 export const meta: MetaFunction = () => [{ title: 'Store Design - Ozzyl' }];
 
@@ -296,13 +313,54 @@ export const action = async ({
   if (intent === 'save-banner') {
     const bannerUrl = (formData.get('bannerUrl') as string) || '';
     const bannerText = (formData.get('bannerText') as string) || '';
+    const heroModeRaw = (formData.get('heroMode') as string) || 'single';
+    const heroMode = heroModeRaw === 'carousel' ? 'carousel' : 'single';
+    const heroAutoplay = (formData.get('heroAutoplay') as string) === 'true';
+    const heroDelayMsRaw = Number(formData.get('heroDelayMs') as string);
+    const heroDelayMs = Number.isFinite(heroDelayMsRaw)
+      ? Math.min(15000, Math.max(1500, heroDelayMsRaw))
+      : 4000;
+    const heroSlidesRaw = (formData.get('heroSlides') as string) || '[]';
     const announcementText = (formData.get('announcementText') as string) || '';
     const announcementLink = (formData.get('announcementLink') as string) || '';
 
+    let parsedSlides: HeroSlide[] = [];
+    try {
+      const input = JSON.parse(heroSlidesRaw) as unknown[];
+      if (Array.isArray(input)) {
+        parsedSlides = input.slice(0, HERO_SLIDES_MAX).reduce<HeroSlide[]>((acc, slide, index) => {
+          if (!slide || typeof slide !== 'object') return acc;
+          const row = slide as Record<string, unknown>;
+          const imageUrl = String(row.imageUrl || '').trim();
+          if (!imageUrl) return acc;
+          acc.push({
+            id: String(row.id || `hero-slide-${index + 1}`),
+            imageUrl,
+            heading: String(row.heading || '').trim() || undefined,
+            subheading: String(row.subheading || '').trim() || undefined,
+            ctaText: String(row.ctaText || '').trim() || undefined,
+            ctaLink: String(row.ctaLink || '').trim() || undefined,
+            alt: String(row.alt || '').trim() || undefined,
+          });
+          return acc;
+        }, []);
+      }
+    } catch {
+      parsedSlides = [];
+    }
+
+    const normalizedSlides = heroMode === 'single' ? parsedSlides.slice(0, 1) : parsedSlides;
+    const fallbackBannerUrl = normalizedSlides[0]?.imageUrl || bannerUrl || undefined;
+    const fallbackBannerText = normalizedSlides[0]?.heading || bannerText || undefined;
+
     const updatedConfig: ThemeConfig = {
       ...currentConfig,
-      bannerUrl: bannerUrl || undefined,
-      bannerText: bannerText || undefined,
+      bannerUrl: fallbackBannerUrl,
+      bannerText: fallbackBannerText,
+      heroMode,
+      heroSlides: normalizedSlides,
+      heroAutoplay,
+      heroDelayMs,
       announcement: announcementText
         ? { text: announcementText, link: announcementLink || undefined }
         : undefined,
@@ -421,8 +479,43 @@ export default function StoreDesignPage() {
   const [customCSS, setCustomCSS] = useState(themeConfig.customCSS || '');
 
   // Banner state
-  const [bannerUrl, setBannerUrl] = useState(themeConfig.bannerUrl || '');
+  const [bannerUrl] = useState(themeConfig.bannerUrl || '');
   const [bannerText, setBannerText] = useState(themeConfig.bannerText || '');
+  const [heroMode, setHeroMode] = useState<'single' | 'carousel'>(
+    themeConfig.heroMode === 'carousel' ? 'carousel' : 'single'
+  );
+  const [heroAutoplay, setHeroAutoplay] = useState(themeConfig.heroAutoplay !== false);
+  const [heroDelayMs, setHeroDelayMs] = useState(themeConfig.heroDelayMs || 4000);
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(() => {
+    if (Array.isArray(themeConfig.heroSlides) && themeConfig.heroSlides.length > 0) {
+      return themeConfig.heroSlides
+        .filter((slide) => slide && slide.imageUrl)
+        .slice(0, HERO_SLIDES_MAX)
+        .map((slide, index) => ({
+          id: slide.id || `hero-slide-${index + 1}`,
+          imageUrl: slide.imageUrl,
+          heading: slide.heading || '',
+          subheading: slide.subheading || '',
+          ctaText: slide.ctaText || '',
+          ctaLink: slide.ctaLink || '',
+          alt: slide.alt || '',
+        }));
+    }
+    if (themeConfig.bannerUrl) {
+      return [
+        {
+          id: 'hero-slide-1',
+          imageUrl: themeConfig.bannerUrl,
+          heading: themeConfig.bannerText || '',
+          subheading: '',
+          ctaText: '',
+          ctaLink: '',
+          alt: '',
+        },
+      ];
+    }
+    return [createEmptyHeroSlide(1)];
+  });
   const [announcementText, setAnnouncementText] = useState(themeConfig.announcement?.text || '');
   const [announcementLink, setAnnouncementLink] = useState(themeConfig.announcement?.link || '');
 
@@ -481,6 +574,35 @@ export default function StoreDesignPage() {
     { name: t('colorSky'), primary: '#0ea5e9', accent: '#f97316' },
     { name: t('colorSlate'), primary: '#1e293b', accent: '#c9a961' },
   ];
+
+  const updateHeroSlide = (index: number, patch: Partial<HeroSlide>) => {
+    setHeroSlides((prev) => prev.map((slide, i) => (i === index ? { ...slide, ...patch } : slide)));
+  };
+
+  const addHeroSlide = () => {
+    setHeroSlides((prev) => {
+      if (prev.length >= HERO_SLIDES_MAX) return prev;
+      return [...prev, createEmptyHeroSlide(prev.length + 1)];
+    });
+  };
+
+  const removeHeroSlide = (index: number) => {
+    setHeroSlides((prev) => {
+      if (prev.length <= 1) return prev;
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const moveHeroSlide = (index: number, direction: 'up' | 'down') => {
+    setHeroSlides((prev) => {
+      const nextIndex = direction === 'up' ? index - 1 : index + 1;
+      if (nextIndex < 0 || nextIndex >= prev.length) return prev;
+      const copy = [...prev];
+      const [item] = copy.splice(index, 1);
+      copy.splice(nextIndex, 0, item);
+      return copy;
+    });
+  };
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -937,6 +1059,10 @@ export default function StoreDesignPage() {
         {activeTab === 'banner' && (
           <Form method="post" className="max-w-2xl">
             <input type="hidden" name="intent" value="save-banner" />
+            <input type="hidden" name="heroMode" value={heroMode} />
+            <input type="hidden" name="heroAutoplay" value={heroAutoplay ? 'true' : 'false'} />
+            <input type="hidden" name="heroDelayMs" value={String(heroDelayMs)} />
+            <input type="hidden" name="heroSlides" value={JSON.stringify(heroSlides)} />
 
             <div className="space-y-6">
               {/* Banner Image */}
@@ -947,27 +1073,172 @@ export default function StoreDesignPage() {
                 </h3>
 
                 <div className="space-y-4">
-                  <StoreImageUpload
-                    value={bannerUrl}
-                    onChange={setBannerUrl}
-                    folder="banners"
-                    label={t('bannerImage')}
-                    hint={t('bannerSizeHint')}
-                    aspectRatio="banner"
-                    maxWidth={1920}
-                    maxHeight={600}
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-lg">
+                    <button
+                      type="button"
+                      onClick={() => setHeroMode('single')}
+                      className={`px-3 py-2 rounded-md text-sm font-medium transition ${
+                        heroMode === 'single'
+                          ? 'bg-white text-purple-700 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-800'
+                      }`}
+                    >
+                      Single Image
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setHeroMode('carousel')}
+                      className={`px-3 py-2 rounded-md text-sm font-medium transition ${
+                        heroMode === 'carousel'
+                          ? 'bg-white text-purple-700 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-800'
+                      }`}
+                    >
+                      Carousel ({heroSlides.length}/{HERO_SLIDES_MAX})
+                    </button>
+                  </div>
+
+                  {heroMode === 'carousel' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                        <input
+                          type="checkbox"
+                          checked={heroAutoplay}
+                          onChange={(e) => setHeroAutoplay(e.target.checked)}
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                        />
+                        Autoplay
+                      </label>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Delay (ms)
+                        </label>
+                        <input
+                          type="number"
+                          min={1500}
+                          max={15000}
+                          step={500}
+                          value={heroDelayMs}
+                          onChange={(e) => setHeroDelayMs(Number(e.target.value || 4000))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    {heroSlides.map((slide, index) => (
+                      <div key={slide.id} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-semibold text-gray-900">Slide {index + 1}</p>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => moveHeroSlide(index, 'up')}
+                              disabled={index === 0}
+                              className="p-1.5 rounded border border-gray-200 text-gray-600 disabled:opacity-40"
+                            >
+                              <ChevronUp className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => moveHeroSlide(index, 'down')}
+                              disabled={index === heroSlides.length - 1}
+                              className="p-1.5 rounded border border-gray-200 text-gray-600 disabled:opacity-40"
+                            >
+                              <ChevronDown className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeHeroSlide(index)}
+                              disabled={heroSlides.length <= 1}
+                              className="p-1.5 rounded border border-red-200 text-red-600 disabled:opacity-40"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <StoreImageUpload
+                          value={slide.imageUrl}
+                          onChange={(value) => updateHeroSlide(index, { imageUrl: value })}
+                          folder="banners"
+                          label={t('bannerImage')}
+                          hint={t('bannerSizeHint')}
+                          aspectRatio="banner"
+                          maxWidth={1920}
+                          maxHeight={600}
+                        />
+
+                        <input
+                          type="text"
+                          value={slide.heading || ''}
+                          onChange={(e) => updateHeroSlide(index, { heading: e.target.value })}
+                          placeholder={t('bannerHeadlinePlaceholder')}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+
+                        <input
+                          type="text"
+                          value={slide.subheading || ''}
+                          onChange={(e) => updateHeroSlide(index, { subheading: e.target.value })}
+                          placeholder="Subheading (optional)"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <input
+                            type="text"
+                            value={slide.ctaText || ''}
+                            onChange={(e) => updateHeroSlide(index, { ctaText: e.target.value })}
+                            placeholder="CTA text (optional)"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          />
+                          <input
+                            type="url"
+                            value={slide.ctaLink || ''}
+                            onChange={(e) => updateHeroSlide(index, { ctaLink: e.target.value })}
+                            placeholder="https://example.com/products"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-500">
+                      Use up to {HERO_SLIDES_MAX} slides. First slide is used as fallback banner.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={addHeroSlide}
+                      disabled={heroSlides.length >= HERO_SLIDES_MAX}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 disabled:opacity-40"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Slide
+                    </button>
+                  </div>
+
+                  <input
+                    type="hidden"
+                    name="bannerUrl"
+                    value={heroSlides[0]?.imageUrl || bannerUrl}
                   />
-                  <input type="hidden" name="bannerUrl" value={bannerUrl} />
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('bannerHeadline')}
+                      {t('bannerHeadline')} (fallback)
                     </label>
                     <input
                       type="text"
                       name="bannerText"
-                      value={bannerText}
-                      onChange={(e) => setBannerText(e.target.value)}
+                      value={heroSlides[0]?.heading || bannerText}
+                      onChange={(e) => {
+                        setBannerText(e.target.value);
+                        updateHeroSlide(0, { heading: e.target.value });
+                      }}
                       placeholder={t('bannerHeadlinePlaceholder')}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />

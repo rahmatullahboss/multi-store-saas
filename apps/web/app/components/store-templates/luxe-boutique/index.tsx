@@ -9,7 +9,7 @@
  * 2. LIVE MODE (isPreview=false): Real Remix routes
  */
 
-import { useState, useCallback, createContext, useContext, useMemo } from 'react';
+import { useState, useCallback, createContext, useContext, useMemo, useEffect } from 'react';
 import { Link } from '@remix-run/react';
 import {
   ShoppingBag,
@@ -39,6 +39,7 @@ import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
 import { WishlistProvider } from '~/contexts/WishlistContext';
 import { ClientOnly } from 'remix-utils/client-only';
 import { SkeletonLoader } from '~/components/SkeletonLoader';
+import { getHeroBehavior } from '~/lib/hero-slides';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 
 import { LUXE_BOUTIQUE_THEME } from './theme';
@@ -618,6 +619,31 @@ function PreviewHomePage({
   onNavigate: (page: PageType) => void;
 }) {
   const theme = LUXE_BOUTIQUE_THEME;
+  const heroBehavior = getHeroBehavior(config);
+  const [heroIndex, setHeroIndex] = useState(0);
+  const heroSlide = heroBehavior.slides[heroIndex];
+  const heroImage =
+    heroSlide?.imageUrl ||
+    config?.bannerUrl ||
+    'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop';
+  const heroHeading = heroSlide?.heading || config?.bannerText || 'Redefining Elegance';
+  const heroSubheading =
+    heroSlide?.subheading || 'Discover a world of timeless style and uncompromising quality.';
+  const heroCta = heroSlide?.ctaText || 'Shop Collection';
+
+  useEffect(() => {
+    if (!heroBehavior.isCarousel || !heroBehavior.autoplay) return;
+    const timer = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % heroBehavior.slides.length);
+    }, heroBehavior.delayMs);
+    return () => clearInterval(timer);
+  }, [heroBehavior.autoplay, heroBehavior.delayMs, heroBehavior.isCarousel, heroBehavior.slides.length]);
+
+  useEffect(() => {
+    if (heroIndex >= heroBehavior.slides.length) {
+      setHeroIndex(0);
+    }
+  }, [heroBehavior.slides.length, heroIndex]);
 
   return (
     <div className="min-h-screen">
@@ -626,7 +652,7 @@ function PreviewHomePage({
         <div
           className="absolute inset-0 z-0 bg-cover bg-center"
           style={{
-            backgroundImage: `url(${config?.bannerUrl || 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop'})`,
+            backgroundImage: `url(${heroImage})`,
           }}
         >
           <div className="absolute inset-0 bg-black/30" />
@@ -634,16 +660,16 @@ function PreviewHomePage({
 
         <div className="relative z-10 text-center text-white px-4 max-w-4xl">
           <h1 className="text-5xl md:text-7xl font-serif mb-6 leading-tight">
-            {config?.bannerText || 'Redefining Elegance'}
+            {heroHeading}
           </h1>
           <p className="text-lg md:text-xl mb-8 font-light tracking-wide opacity-90">
-            Discover a world of timeless style and uncompromising quality.
+            {heroSubheading}
           </p>
           <button
             onClick={() => onNavigate({ type: 'home' })}
             className="px-10 py-4 bg-white text-black uppercase tracking-[0.2em] text-xs font-bold hover:bg-[#c9a961] hover:text-white transition-colors"
           >
-            Shop Collection
+            {heroCta}
           </button>
         </div>
       </section>

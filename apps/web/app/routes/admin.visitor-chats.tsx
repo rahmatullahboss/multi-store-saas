@@ -5,7 +5,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { desc, sql, eq } from 'drizzle-orm';
 import { visitors, visitorMessages } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
-import { MessageCircle, User, Phone, Clock, Search, ChevronRight } from 'lucide-react';
+import { MessageCircle, User, Phone, Clock, ChevronRight } from 'lucide-react';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Visitor Chats - Super Admin' }];
@@ -14,6 +14,8 @@ export const meta: MetaFunction = () => {
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { env } = context.cloudflare;
   const db = drizzle(env.DB);
+  const url = new URL(request.url);
+  const selectedVisitorId = Number(url.searchParams.get('visitorId') || '0');
   
   // Require Super Admin
   await requireSuperAdmin(request, env, env.DB);
@@ -60,11 +62,38 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       return dateB - dateA;
   });
 
-  return json({ visitors: visitorsWithData });
+  let selectedVisitor: typeof visitorsWithData[number] | null = null;
+  let selectedMessages: Array<{
+    id: number;
+    role: string;
+    content: string;
+    createdAt: string | number | Date | null;
+  }> = [];
+
+  if (selectedVisitorId > 0) {
+    selectedVisitor = visitorsWithData.find((v) => v.id === selectedVisitorId) ?? null;
+    if (selectedVisitor) {
+      selectedMessages = await db
+        .select({
+          id: visitorMessages.id,
+          role: visitorMessages.role,
+          content: visitorMessages.content,
+          createdAt: visitorMessages.createdAt,
+        })
+        .from(visitorMessages)
+        .where(eq(visitorMessages.visitorId, selectedVisitorId))
+        .orderBy(desc(visitorMessages.createdAt))
+        .limit(200);
+
+      selectedMessages.reverse();
+    }
+  }
+
+  return json({ visitors: visitorsWithData, selectedVisitorId, selectedVisitor, selectedMessages });
 }
 
 export default function VisitorChats() {
-  const { visitors } = useLoaderData<typeof loader>();
+  const { visitors, selectedVisitorId, selectedVisitor, selectedMessages } = useLoaderData<typeof loader>();
 
   return (
     <div className="space-y-6">
@@ -135,13 +164,14 @@ export default function VisitorChats() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                       {/* 
-                          TODO: Implement Chat View Modal or Page. 
-                          For now, just a placeholder button.
-                       */}
-                      <button className="text-blue-400 hover:text-blue-300 text-sm font-medium inline-flex items-center gap-1 opacity-50 cursor-not-allowed">
+                      <Link
+                        to={`/admin/visitor-chats?visitorId=${visitor.id}`}
+                        className={`text-blue-400 hover:text-blue-300 text-sm font-medium inline-flex items-center gap-1 ${
+                          selectedVisitorId === visitor.id ? 'underline' : ''
+                        }`}
+                      >
                         View Chat <ChevronRight className="w-4 h-4" />
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 ))
@@ -150,6 +180,46 @@ export default function VisitorChats() {
           </table>
         </div>
       </div>
+
+      {selectedVisitor && (
+        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+            <div>
+              <h2 className="text-white font-semibold">Chat History: {selectedVisitor.name}</h2>
+              <p className="text-xs text-slate-400">Visitor ID: {selectedVisitor.id} • {selectedVisitor.phone}</p>
+            </div>
+            <Link to="/admin/visitor-chats" className="text-xs text-slate-400 hover:text-slate-200">
+              Close
+            </Link>
+          </div>
+
+          <div className="max-h-[540px] overflow-y-auto p-4 space-y-3">
+            {selectedMessages.length === 0 ? (
+              <div className="text-sm text-slate-500">No messages found for this visitor.</div>
+            ) : (
+              selectedMessages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-xl px-4 py-3 text-sm whitespace-pre-wrap ${
+                      msg.role === 'user'
+                        ? 'bg-blue-600/20 border border-blue-500/30 text-blue-100'
+                        : 'bg-slate-800 border border-slate-700 text-slate-200'
+                    }`}
+                  >
+                    <div className="text-[11px] opacity-70 mb-1">
+                      {msg.role === 'user' ? 'Visitor' : 'AI'} • {msg.createdAt ? new Date(msg.createdAt as any).toLocaleString() : 'N/A'}
+                    </div>
+                    <div>{msg.content}</div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

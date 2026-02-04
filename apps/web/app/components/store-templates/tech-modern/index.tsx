@@ -19,7 +19,7 @@ import { WishlistProvider } from '~/contexts/WishlistContext';
 // Placeholder registry to fix build errors - should be replaced with actual registry import
 const SECTION_REGISTRY: Record<string, { component: any }> = {};
 
-import { useState, useCallback, createContext, useContext, useMemo } from 'react';
+import { useState, useCallback, createContext, useContext, useMemo, useEffect } from 'react';
 import { Link } from '@remix-run/react';
 import {
   ShoppingCart,
@@ -38,6 +38,7 @@ import {
 import { useWishlist } from '~/hooks/useWishlist';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
+import { getHeroBehavior } from '~/lib/hero-slides';
 import { formatPrice } from '~/lib/theme-engine';
 
 import { TECH_MODERN_THEME } from './theme';
@@ -576,25 +577,51 @@ function PreviewHomePage({
   onNavigate: (page: PageType) => void;
 }) {
   const theme = TECH_MODERN_THEME;
+  const heroBehavior = getHeroBehavior(config);
+  const [heroIndex, setHeroIndex] = useState(0);
+  const heroSlide = heroBehavior.slides[heroIndex];
+  const heroImage =
+    heroSlide?.imageUrl || 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80';
+  const heroHeading = heroSlide?.heading || config?.bannerText || `Next-Gen Tech from ${storeName}`;
+  const heroSubheading =
+    heroSlide?.subheading || 'Discover the latest innovations. Premium quality, unbeatable prices.';
+  const heroCta = heroSlide?.ctaText || 'Shop Now';
+
+  useEffect(() => {
+    if (!heroBehavior.isCarousel || !heroBehavior.autoplay) return;
+    const timer = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % heroBehavior.slides.length);
+    }, heroBehavior.delayMs);
+    return () => clearInterval(timer);
+  }, [heroBehavior.autoplay, heroBehavior.delayMs, heroBehavior.isCarousel, heroBehavior.slides.length]);
+
+  useEffect(() => {
+    if (heroIndex >= heroBehavior.slides.length) {
+      setHeroIndex(0);
+    }
+  }, [heroBehavior.slides.length, heroIndex]);
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-[#0f172a] text-white py-20 lg:py-32">
-        <div className="absolute inset-0 z-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80')] bg-cover bg-center" />
+        <div
+          className="absolute inset-0 z-0 opacity-20 bg-cover bg-center"
+          style={{ backgroundImage: `url(${heroImage})` }}
+        />
         <div className="relative z-10 max-w-7xl mx-auto px-4 text-center lg:text-left lg:flex items-center gap-12">
           <div className="max-w-2xl">
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
-              {config?.bannerText || `Next-Gen Tech from ${storeName}`}
+              {heroHeading}
             </h1>
             <p className="text-lg md:text-xl text-blue-100 mb-8 leading-relaxed max-w-xl">
-              Discover the latest innovations. Premium quality, unbeatable prices.
+              {heroSubheading}
             </p>
             <button
               onClick={() => onNavigate({ type: 'home' })}
               className="inline-flex items-center px-8 py-4 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 transition-all hover:scale-105 shadow-lg shadow-blue-500/30"
             >
-              Shop Now <ArrowRight className="ml-2 w-5 h-5" />
+              {heroCta} <ArrowRight className="ml-2 w-5 h-5" />
             </button>
           </div>
         </div>
@@ -809,6 +836,8 @@ function LiveTechModernHomepage({
   const [searchQuery, setSearchQuery] = useState('');
   const { t } = useTranslation();
   const count = useCartCount();
+  const heroBehavior = getHeroBehavior(config);
+  const primaryHeroSlide = heroBehavior.slides[0];
 
   const validCategories = categories.filter((c): c is string => Boolean(c));
 
@@ -849,12 +878,14 @@ function LiveTechModernHomepage({
                     id: 'hero',
                     type: 'hero',
                     settings: {
-                      heading: config?.bannerText || `Next-Gen Tech from ${storeName}`,
+                      heading:
+                        primaryHeroSlide?.heading || config?.bannerText || `Next-Gen Tech from ${storeName}`,
                       subheading:
+                        primaryHeroSlide?.subheading ||
                         'Discover the latest innovations. Premium quality, unbeatable prices.',
                       primaryAction: { label: t('buyNow'), url: '/#products' },
                       secondaryAction: { label: 'Browse Categories', url: '/#categories' },
-                      image: config?.bannerUrl,
+                      image: primaryHeroSlide?.imageUrl || config?.bannerUrl,
                       layout: 'standard',
                       alignment: 'left',
                     },

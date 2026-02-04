@@ -181,15 +181,6 @@ function PreviewHeader({
   const [isScrolled, setIsScrolled] = useState(false);
   const { t: _t } = useTranslation();
   const theme = AURORA_THEME;
-  const heroImage = config?.bannerUrl;
-  const isUnsplashHero = heroImage?.includes('unsplash.com') ?? false;
-  const heroSrc = heroImage
-    ? isUnsplashHero
-      ? optimizeUnsplashUrl(heroImage, { width: 1600, height: 900, quality: 80, format: 'webp' })
-      : heroImage
-    : null;
-  const heroSrcSet =
-    heroImage && isUnsplashHero ? generateSrcset(heroImage, [640, 960, 1280, 1600]) : undefined;
   const THEME_COLORS = {
     primary: theme.primary,
     text: theme.text,
@@ -732,6 +723,15 @@ function PreviewHomePage({
   onNavigate: (page: PageType) => void;
 }) {
   const theme = AURORA_THEME;
+  const heroImage = config?.bannerUrl;
+  const isUnsplashHero = heroImage?.includes('unsplash.com') ?? false;
+  const heroSrc = heroImage
+    ? isUnsplashHero
+      ? optimizeUnsplashUrl(heroImage, { width: 1600, height: 900, quality: 80, format: 'webp' })
+      : heroImage
+    : null;
+  const heroSrcSet =
+    heroImage && isUnsplashHero ? generateSrcset(heroImage, [640, 960, 1280, 1600]) : undefined;
 
   return (
     <div className="min-h-screen">

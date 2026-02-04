@@ -6,6 +6,7 @@
  */
 
 import { Truck, Shield, RotateCcw } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import type { StoreTemplateProps } from '~/templates/store-registry';
 import { STARTER_STORE_THEME, STARTER_STORE_FONTS } from './theme';
 import { StarterStoreHeader } from './sections/Header';
@@ -13,6 +14,7 @@ import { StarterStoreFooter } from './sections/Footer';
 import { StarterProductCard } from './sections/ProductCard';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
+import { getHeroBehavior } from '~/lib/hero-slides';
 
 const theme = STARTER_STORE_THEME;
 
@@ -40,9 +42,32 @@ export function StarterStoreTemplate({
   const featuredProducts = products.slice(0, 4);
   const newArrivals = products.slice(4, 8);
 
-  const heroImage =
-    config?.bannerUrl ||
+  const heroBehavior = getHeroBehavior(config);
+  const fallbackHero =
     'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&h=900&fit=crop';
+  const [heroIndex, setHeroIndex] = useState(0);
+  const heroImage =
+    heroBehavior.slides[heroIndex]?.imageUrl ||
+    heroBehavior.slides[0]?.imageUrl ||
+    config?.bannerUrl ||
+    fallbackHero;
+  const heroHeading =
+    heroBehavior.slides[heroIndex]?.heading || config?.bannerText || `${storeName} এ স্বাগতম`;
+
+  useEffect(() => {
+    if (!heroBehavior.isCarousel || !heroBehavior.autoplay) return;
+    const timer = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % heroBehavior.slides.length);
+    }, heroBehavior.delayMs);
+    return () => clearInterval(timer);
+  }, [heroBehavior.autoplay, heroBehavior.delayMs, heroBehavior.isCarousel, heroBehavior.slides.length]);
+
+  useEffect(() => {
+    if (heroIndex >= heroBehavior.slides.length) {
+      setHeroIndex(0);
+    }
+  }, [heroBehavior.slides.length, heroIndex]);
+
   const isUnsplashHero = heroImage.includes('unsplash.com');
   const heroSrc = isUnsplashHero
     ? optimizeUnsplashUrl(heroImage, { width: 1600, height: 900, quality: 80, format: 'webp' })
@@ -81,7 +106,7 @@ export function StarterStoreTemplate({
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
             <div className="text-center text-white px-4">
               <h1 className="text-3xl md:text-5xl font-bold mb-4">
-                {config?.bannerText || `${storeName} এ স্বাগতম`}
+                {heroHeading}
               </h1>
               <p className="text-lg mb-6 opacity-90">সেরা মানের পণ্য, সেরা দামে</p>
               <PreviewSafeLink

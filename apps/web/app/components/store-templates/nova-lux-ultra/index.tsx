@@ -13,7 +13,7 @@
  * Worth 10 Million - World-class design
  */
 
-import { useState, useCallback, createContext, useContext, useMemo, useRef } from 'react';
+import { useState, useCallback, useEffect, createContext, useContext, useMemo, useRef } from 'react';
 
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
 import {
@@ -33,6 +33,7 @@ import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-re
 import type { ThemeConfig } from '@db/types';
 import { formatPrice } from '~/lib/theme-engine';
 import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
+import { getHeroBehavior } from '~/lib/hero-slides';
 
 import { NOVALUX_ULTRA_THEME } from './theme';
 import { NovaLuxUltraHeader } from './sections/Header';
@@ -179,7 +180,10 @@ function CinematicHero({
   config: ThemeConfig | null;
   onNavigate: (page: PageType) => void;
 }) {
-  const heroImage = config?.bannerUrl || null;
+  const heroBehavior = getHeroBehavior(config);
+  const [heroIndex, setHeroIndex] = useState(0);
+  const heroSlide = heroBehavior.slides[heroIndex];
+  const heroImage = heroSlide?.imageUrl || config?.bannerUrl || null;
   const isUnsplashHero = heroImage?.includes('unsplash.com') ?? false;
   const heroSrc = heroImage
     ? isUnsplashHero
@@ -197,6 +201,24 @@ function CinematicHero({
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+  const heroHeading = heroSlide?.heading || config?.bannerText || 'Redefining\nLuxury';
+  const heroSubheading =
+    heroSlide?.subheading || 'Discover our exclusive collection crafted for the discerning few';
+  const heroCta = heroSlide?.ctaText || 'Explore Collection';
+
+  useEffect(() => {
+    if (!heroBehavior.isCarousel || !heroBehavior.autoplay) return;
+    const timer = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % heroBehavior.slides.length);
+    }, heroBehavior.delayMs);
+    return () => clearInterval(timer);
+  }, [heroBehavior.autoplay, heroBehavior.delayMs, heroBehavior.isCarousel, heroBehavior.slides.length]);
+
+  useEffect(() => {
+    if (heroIndex >= heroBehavior.slides.length) {
+      setHeroIndex(0);
+    }
+  }, [heroBehavior.slides.length, heroIndex]);
 
   return (
     <div ref={ref} className="relative h-[90vh] overflow-hidden">
@@ -296,7 +318,7 @@ function CinematicHero({
               textShadow: '0 4px 30px rgba(0,0,0,0.3)',
             }}
           >
-            {config?.bannerText || 'Redefining\nLuxury'}
+            {heroHeading}
           </motion.h1>
 
           <motion.p
@@ -306,7 +328,7 @@ function CinematicHero({
             className="text-xl md:text-2xl mb-12"
             style={{ color: 'rgba(255,255,255,0.8)' }}
           >
-            Discover our exclusive collection crafted for the discerning few
+            {heroSubheading}
           </motion.p>
 
           <motion.div
@@ -329,7 +351,7 @@ function CinematicHero({
               }}
               whileTap={{ scale: 0.95 }}
             >
-              Explore Collection
+              {heroCta}
               <ArrowRight className="w-5 h-5" />
             </motion.button>
 
