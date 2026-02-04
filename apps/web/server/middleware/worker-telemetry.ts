@@ -6,6 +6,7 @@ type WorkerTelemetryCategory = 'document' | 'api' | 'manifest' | 'asset' | 'othe
 const TELEMETRY_PREFIX = 'telemetry:worker:v1';
 const SAMPLE_RATE = 0.1; // 10% sampling to keep write cost low
 const TTL_SECONDS = 60 * 60 * 24 * 3; // Keep 3 days of hourly buckets
+const MAX_PATH_LENGTH = 120;
 
 function toHourBucketUTC(date: Date): string {
   return date.toISOString().slice(0, 13).replace(/[-T:]/g, '');
@@ -35,6 +36,20 @@ function shouldTrackHost(hostname: string, saasDomain: string): boolean {
   if (!host || host === 'localhost' || host.startsWith('127.0.0.1')) return false;
   if (host === `app.${saasDomain}`) return false; // skip super admin app traffic
   return true;
+}
+
+function normalizeTelemetryPath(pathname: string): string {
+  const noTrailingSlash = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+  const normalized = noTrailingSlash
+    // UUIDs
+    .replace(
+      /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi,
+      ':id'
+    )
+    // Numeric IDs in route segments
+    .replace(/\/\d+(?=\/|$)/g, '/:id');
+
+  return normalized.slice(0, MAX_PATH_LENGTH);
 }
 
 async function incrementCounter(kv: KVNamespace, key: string): Promise<void> {
@@ -74,6 +89,15 @@ export const workerTelemetryMiddleware = (): MiddlewareHandler<{
     const key = `${TELEMETRY_PREFIX}:${bucket}:${category}:${storeKey}`;
 
     c.executionCtx.waitUntil(incrementCounter(c.env.STORE_CACHE, key));
+
+    // Keep a small endpoint-level sample for root-cause debugging in monitor UI.
+    // Skip very high-cardinality asset/other paths to keep KV cost bounded.
+    if (category === 'document' || category === 'api' || category === 'manifest') {
+      const normalizedPath = normalizeTelemetryPath(requestPath);
+      const encodedPath = encodeURIComponent(normalizedPath);
+      const endpointKey = `${TELEMETRY_PREFIX}:endpoint:${bucket}:${storeKey}:${encodedPath}`;
+      c.executionCtx.waitUntil(incrementCounter(c.env.STORE_CACHE, endpointKey));
+    }
 
     return next();
   };

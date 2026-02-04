@@ -27,7 +27,6 @@ import {
   ArrowLeft,
   Plus,
   Trash2,
-  Target,
   Video,
   Users,
   Sparkles,
@@ -97,7 +96,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   const formData = await request.formData();
-  const mode = formData.get('mode') as 'store' | 'landing';
   const featuredProductId = formData.get('featuredProductId') as string;
   const headline = formData.get('headline') as string;
   const subheadline = formData.get('subheadline') as string;
@@ -165,7 +163,6 @@ export default function LandingSettingsPage() {
   const isSubmitting = navigation.state === 'submitting';
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const [mode, setMode] = useState(store.mode);
   const [featuredProductId, setFeaturedProductId] = useState<number | null>(
     store.featuredProductId || null
   );
@@ -262,71 +259,8 @@ export default function LandingSettingsPage() {
 
       <Form method="post" className="space-y-6">
         <input type="hidden" name="testimonials" value={JSON.stringify(testimonials)} />
-
-        {/* Store Mode Toggle */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-rose-100 rounded-lg flex items-center justify-center">
-              <Target className="w-5 h-5 text-rose-600" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">{t('storeMode')}</h2>
-              <p className="text-sm text-gray-500">{t('storeModeDesc')}</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <label
-              className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition ${
-                mode === 'store'
-                  ? 'border-emerald-500 bg-emerald-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <input
-                type="radio"
-                name="mode"
-                value="store"
-                checked={mode === 'store'}
-                onChange={() => setMode('store')}
-                className="sr-only"
-              />
-              <span className="text-2xl mb-2">🏪</span>
-              <span className="font-semibold text-gray-900">{t('fullStore')}</span>
-              <span className="text-sm text-gray-500">{t('fullStoreDesc')}</span>
-              {mode === 'store' && (
-                <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-emerald-600" />
-              )}
-            </label>
-
-            <label
-              className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition ${
-                mode === 'landing'
-                  ? 'border-emerald-500 bg-emerald-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <input
-                type="radio"
-                name="mode"
-                value="landing"
-                checked={mode === 'landing'}
-                onChange={() => setMode('landing')}
-                className="sr-only"
-              />
-              <span className="text-2xl mb-2">🎯</span>
-              <span className="font-semibold text-gray-900">{t('landingPage')}</span>
-              <span className="text-sm text-gray-500">{t('landingPageDesc')}</span>
-              {mode === 'landing' && (
-                <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-emerald-600" />
-              )}
-            </label>
-          </div>
-        </div>
-
-        {/* Landing Page Settings (only shown in landing mode) */}
-        {mode === 'landing' && (
-          <>
+        {/* Landing Page Settings */}
+        <>
             {/* Featured Product */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <div className="flex items-center gap-3 mb-6">
@@ -696,8 +630,7 @@ export default function LandingSettingsPage() {
                 )}
               </div>
             </div>
-          </>
-        )}
+        </>
 
         {/* Submit Button */}
         <div className="flex justify-end">

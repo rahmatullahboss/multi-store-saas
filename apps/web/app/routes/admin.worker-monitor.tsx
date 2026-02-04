@@ -10,6 +10,14 @@ import { requireSuperAdmin } from '~/services/auth.server';
 
 const TELEMETRY_PREFIX = 'telemetry:worker:v1';
 const SAMPLE_RATE = 0.1;
+const MIN_VISITORS_FOR_ALERT = 25;
+const MIN_PAGE_VIEWS_FOR_ALERT = 100;
+const MIN_STORE_VISITORS_FOR_ALERT = 10;
+const MIN_STORE_PAGE_VIEWS_FOR_ALERT = 30;
+const REQ_PER_VISITOR_WARN = 12;
+const REQ_PER_PAGE_VIEW_WARN = 3.5;
+const REQ_PER_PAGE_VIEW_CRITICAL = 5;
+const MANIFEST_SHARE_WARN = 8;
 
 export const meta: MetaFunction = () => [{ title: 'Worker Monitor - Super Admin' }];
 
@@ -26,6 +34,14 @@ type StoreAggregate = {
   requestsPerPageView: number | null;
 };
 
+type EndpointAggregate = {
+  storeId: number;
+  storeName: string;
+  subdomain: string;
+  path: string;
+  estimatedRequests: number;
+};
+
 function toHourBucketUTC(date: Date): string {
   return date.toISOString().slice(0, 13).replace(/[-T:]/g, '');
 }
@@ -39,6 +55,26 @@ function parseTelemetryKey(
     bucket: match[1],
     category: match[2] as Category,
     storeId: Number.parseInt(match[3], 10),
+  };
+}
+
+function parseEndpointTelemetryKey(
+  key: string
+): { bucket: string; storeId: number; path: string } | null {
+  const match = key.match(/^telemetry:worker:v1:endpoint:(\d{10}):s(\d+):(.+)$/);
+  if (!match) return null;
+
+  let path = '';
+  try {
+    path = decodeURIComponent(match[3]);
+  } catch {
+    return null;
+  }
+
+  return {
+    bucket: match[1],
+    storeId: Number.parseInt(match[2], 10),
+    path,
   };
 }
 
@@ -103,6 +139,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     other: 0,
   };
   const sampledByStore = new Map<number, number>();
+  const sampledByEndpoint = new Map<string, number>();
+  const endpointStoreIds = new Set<number>();
 
   if (context.cloudflare.env.STORE_CACHE) {
     try {
@@ -115,18 +153,28 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         });
 
         for (const keyInfo of page.keys) {
-          const parsed = parseTelemetryKey(keyInfo.name);
-          if (!parsed) continue;
-          if (parsed.bucket < sinceBucket) continue;
+        const parsed = parseTelemetryKey(keyInfo.name);
+        const endpointParsed = parsed ? null : parseEndpointTelemetryKey(keyInfo.name);
+        if (!parsed && !endpointParsed) continue;
 
-          const raw = await context.cloudflare.env.STORE_CACHE.get(keyInfo.name);
-          const sampledCount = Number.parseInt(raw ?? '0', 10);
-          if (!Number.isFinite(sampledCount) || sampledCount <= 0) continue;
+        const bucket = parsed ? parsed.bucket : endpointParsed!.bucket;
+        if (bucket < sinceBucket) continue;
 
+        const raw = await context.cloudflare.env.STORE_CACHE.get(keyInfo.name);
+        const sampledCount = Number.parseInt(raw ?? '0', 10);
+        if (!Number.isFinite(sampledCount) || sampledCount <= 0) continue;
+
+        if (parsed) {
           sampledTotal += sampledCount;
           sampledByCategory[parsed.category] += sampledCount;
           sampledByStore.set(parsed.storeId, (sampledByStore.get(parsed.storeId) ?? 0) + sampledCount);
+          continue;
         }
+
+        const endpointKey = `${endpointParsed!.storeId}|${endpointParsed!.path}`;
+        sampledByEndpoint.set(endpointKey, (sampledByEndpoint.get(endpointKey) ?? 0) + sampledCount);
+        if (endpointParsed!.storeId > 0) endpointStoreIds.add(endpointParsed!.storeId);
+      }
 
         cursor = page.list_complete ? undefined : page.cursor;
       } while (cursor);
@@ -158,7 +206,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       ? Number(((estimatedByCategory.manifest / estimatedTotalRequests) * 100).toFixed(2))
       : 0;
 
-  const storeIds = [...sampledByStore.keys()].filter((id) => id > 0);
+  const storeIds = [...new Set([...sampledByStore.keys(), ...endpointStoreIds])].filter((id) => id > 0);
   const storeRows =
     storeIds.length > 0
       ? await db
@@ -195,23 +243,84 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .sort((a, b) => b.estimatedRequests - a.estimatedRequests)
     .slice(0, 20);
 
+  const topEndpoints: EndpointAggregate[] = [...sampledByEndpoint.entries()]
+    .map(([key, sampled]) => {
+      const [storeIdRaw, path] = key.split('|');
+      const storeId = Number.parseInt(storeIdRaw, 10);
+      const estimatedRequests = Math.round(sampled / SAMPLE_RATE);
+      const meta = storeMetaMap.get(storeId);
+      return {
+        storeId,
+        storeName: meta?.name || `Store #${storeId}`,
+        subdomain: meta?.subdomain || '-',
+        path,
+        estimatedRequests,
+      };
+    })
+    .sort((a, b) => b.estimatedRequests - a.estimatedRequests)
+    .slice(0, 15);
+
   const alerts: string[] = [];
-  if (requestsPerVisitor !== null && requestsPerVisitor > 8) {
-    alerts.push(`High worker amplification detected: ${requestsPerVisitor} requests per visitor.`);
+  const enoughGlobalSample =
+    Number(visitSummary.uniqueVisitors) >= MIN_VISITORS_FOR_ALERT ||
+    Number(visitSummary.pageViews) >= MIN_PAGE_VIEWS_FOR_ALERT;
+
+  if (enoughGlobalSample && requestsPerVisitor !== null && requestsPerVisitor > REQ_PER_VISITOR_WARN) {
+    alerts.push(
+      `High worker amplification detected: ${requestsPerVisitor} requests per visitor (threshold ${REQ_PER_VISITOR_WARN}).`
+    );
   }
-  if (requestsPerPageView !== null && requestsPerPageView > 4) {
-    alerts.push(`High requests/page-view detected: ${requestsPerPageView}. This can indicate duplicate fetches.`);
+  if (enoughGlobalSample && requestsPerPageView !== null && requestsPerPageView > REQ_PER_PAGE_VIEW_WARN) {
+    alerts.push(
+      `High requests/page-view detected: ${requestsPerPageView} (threshold ${REQ_PER_PAGE_VIEW_WARN}). This can indicate duplicate fetches.`
+    );
   }
-  if (manifestShare > 5) {
+  if (manifestShare > MANIFEST_SHARE_WARN) {
     alerts.push(`Manifest traffic is high (${manifestShare}%). Check route discovery/prefetch behavior.`);
   }
   if (estimatedByCategory.api > estimatedByCategory.document * 3 && estimatedByCategory.document > 0) {
     alerts.push('API traffic is disproportionately high compared to document requests.');
   }
   const abnormalStores = storeAgg
-    .filter((row) => (row.requestsPerVisitor ?? 0) > 10 || (row.requestsPerPageView ?? 0) > 5)
+    .filter(
+      (row) =>
+        (row.uniqueVisitors >= MIN_STORE_VISITORS_FOR_ALERT ||
+          row.pageViews >= MIN_STORE_PAGE_VIEWS_FOR_ALERT) &&
+        ((row.requestsPerVisitor ?? 0) > REQ_PER_VISITOR_WARN ||
+          (row.requestsPerPageView ?? 0) > REQ_PER_PAGE_VIEW_CRITICAL)
+    )
     .slice(0, 10);
   alerts.push(...dataWarnings);
+
+  const recommendations: string[] = [];
+  if (!enoughGlobalSample) {
+    recommendations.push(
+      `Low sample window: collect at least ${MIN_VISITORS_FOR_ALERT} visitors or ${MIN_PAGE_VIEWS_FOR_ALERT} page views before acting on anomalies.`
+    );
+  }
+  if (manifestShare > MANIFEST_SHARE_WARN) {
+    recommendations.push(
+      'High /__manifest share: keep route discovery in initial mode or reduce aggressive prefetch on links.'
+    );
+  }
+  if (requestsPerPageView !== null && requestsPerPageView > REQ_PER_PAGE_VIEW_WARN) {
+    recommendations.push(
+      'Check duplicate client fetches: inspect Network tab for repeated calls, disable duplicate loaders/effects, and de-duplicate background polling.'
+    );
+  }
+  if (estimatedByCategory.api > estimatedByCategory.document * 3 && estimatedByCategory.document > 0) {
+    recommendations.push(
+      'API-heavy pattern: add cache headers for read APIs and move repeated read paths to edge cache/KV where possible.'
+    );
+  }
+  if (abnormalStores.length > 0) {
+    recommendations.push(
+      'Open affected store in /admin/worker-monitor and compare its top route/category mix; then review theme scripts, third-party widgets, and auto-refresh intervals.'
+    );
+  }
+  if (recommendations.length === 0) {
+    recommendations.push('No critical anomaly signal. Continue monitoring 24h and compare against 7-day baseline.');
+  }
 
   return json({
     hours,
@@ -225,6 +334,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     alerts,
     storeAgg,
     abnormalStores,
+    recommendations,
+    topEndpoints,
   });
 }
 
@@ -337,6 +448,15 @@ export default function AdminWorkerMonitorPage() {
         </div>
       )}
 
+      <div className="rounded-xl border border-sky-500/40 bg-sky-500/10 p-4">
+        <div className="text-sky-300 font-semibold">Next Steps</div>
+        <ul className="mt-2 space-y-1 text-sm text-sky-100">
+          {data.recommendations.map((item) => (
+            <li key={item}>- {item}</li>
+          ))}
+        </ul>
+      </div>
+
       <div className="rounded-xl border border-slate-800 bg-slate-900/70 overflow-hidden">
         <div className="px-4 py-3 border-b border-slate-800">
           <h2 className="text-white font-semibold">Top Stores by Estimated Worker Requests</h2>
@@ -375,6 +495,42 @@ export default function AdminWorkerMonitorPage() {
                 <tr>
                   <td colSpan={6} className="px-4 py-6 text-center text-slate-400">
                     No telemetry yet. Wait a few minutes after storefront traffic.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-slate-800 bg-slate-900/70 overflow-hidden">
+        <div className="px-4 py-3 border-b border-slate-800">
+          <h2 className="text-white font-semibold">Top Noisy Endpoints (Sampled)</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-950/70 text-slate-300">
+              <tr>
+                <th className="text-left px-4 py-3">Store</th>
+                <th className="text-left px-4 py-3">Path</th>
+                <th className="text-left px-4 py-3">Estimated Requests</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.topEndpoints.map((row) => (
+                <tr key={`${row.storeId}-${row.path}`} className="border-t border-slate-800 text-slate-200">
+                  <td className="px-4 py-3">
+                    <div className="font-medium">{row.storeName}</div>
+                    <div className="text-xs text-slate-400">{row.subdomain}</div>
+                  </td>
+                  <td className="px-4 py-3 font-mono text-xs">{row.path}</td>
+                  <td className="px-4 py-3">{row.estimatedRequests.toLocaleString()}</td>
+                </tr>
+              ))}
+              {data.topEndpoints.length === 0 && (
+                <tr>
+                  <td colSpan={3} className="px-4 py-6 text-center text-slate-400">
+                    No endpoint telemetry yet. Generate traffic and refresh in a few minutes.
                   </td>
                 </tr>
               )}

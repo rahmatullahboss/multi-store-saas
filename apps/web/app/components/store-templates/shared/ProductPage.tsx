@@ -20,7 +20,7 @@
  * - FULLY THEME-AWARE - adapts colors from StoreTemplateTheme
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useFetcher, useParams } from '@remix-run/react';
 import { formatPrice } from '~/lib/theme-engine';
 import {
@@ -625,24 +625,49 @@ export default function SharedProductPage({
     colors.background.startsWith('#2') ||
     colors.background === 'rgba(3, 7, 18, 0.7)';
 
-  // Default specifications if not provided
-  const defaultSpecs = {
-    Material: 'Premium Quality',
-    Weight: '500g',
-    Dimensions: '30 x 20 x 10 cm',
-    Origin: 'Bangladesh',
-    Warranty: '1 Year',
-  };
+  const hasDescription = Boolean(product.description && product.description.trim().length > 0);
+  const specifications = product.specifications || {};
+  const hasSpecifications = Object.keys(specifications).length > 0;
+  const hasShippingInfo = Boolean(
+    (product.shippingInfo && product.shippingInfo.trim().length > 0) ||
+      (product.returnPolicy && product.returnPolicy.trim().length > 0)
+  );
+  const hasReviews = Boolean(product.reviews);
 
-  const specifications = product.specifications || defaultSpecs;
+  // Tab content - only show tabs with real data (no demo/fallback tabs in MVP)
+  const tabs = useMemo<
+    Array<{
+      id: 'description' | 'specifications' | 'shipping' | 'reviews';
+      label: string;
+    }>
+  >(() => {
+    const nextTabs: Array<{
+      id: 'description' | 'specifications' | 'shipping' | 'reviews';
+      label: string;
+    }> = [];
 
-  // Tab content
-  const tabs = [
-    { id: 'description' as const, label: 'Description' },
-    { id: 'specifications' as const, label: 'Specifications' },
-    { id: 'shipping' as const, label: 'Shipping & Returns' },
-    { id: 'reviews' as const, label: `Reviews (${product.reviews?.count || 0})` },
-  ];
+    if (hasDescription) {
+      nextTabs.push({ id: 'description', label: 'Description' });
+    }
+    if (hasSpecifications) {
+      nextTabs.push({ id: 'specifications', label: 'Specifications' });
+    }
+    if (hasShippingInfo) {
+      nextTabs.push({ id: 'shipping', label: 'Shipping & Returns' });
+    }
+    if (hasReviews) {
+      nextTabs.push({ id: 'reviews', label: `Reviews (${product.reviews?.count || 0})` });
+    }
+
+    return nextTabs;
+  }, [hasDescription, hasSpecifications, hasShippingInfo, hasReviews, product.reviews?.count]);
+
+  useEffect(() => {
+    if (tabs.length === 0) return;
+    if (!tabs.some((tab) => tab.id === activeTab)) {
+      setActiveTab(tabs[0].id);
+    }
+  }, [activeTab, tabs]);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: colors.background }}>
@@ -1200,7 +1225,7 @@ export default function SharedProductPage({
         )}
 
         {/* Tabs: Description, Specifications, Shipping & Returns, Reviews */}
-        <div className="mt-16">
+        {tabs.length > 0 && <div className="mt-16">
           <div className="border-b" style={{ borderColor: colors.muted + '20' }}>
             <div className="flex gap-0 overflow-x-auto scrollbar-hide">
               {tabs.map((tab) => (
@@ -1226,10 +1251,7 @@ export default function SharedProductPage({
                 {product.description ? (
                   <div dangerouslySetInnerHTML={{ __html: product.description }} />
                 ) : (
-                  <p style={{ color: colors.muted }}>
-                    This is a premium quality product that meets the highest standards. Perfect for
-                    everyday use with exceptional durability and style.
-                  </p>
+                  <p style={{ color: colors.muted }}>No description available yet.</p>
                 )}
               </div>
             )}
@@ -1255,42 +1277,44 @@ export default function SharedProductPage({
             {/* Shipping & Returns Tab */}
             {activeTab === 'shipping' && (
               <div className="space-y-6">
-                <div className="p-6 rounded-xl" style={{ backgroundColor: colors.cardBg }}>
-                  <div className="flex items-start gap-4">
-                    <div
-                      className="p-3 rounded-full"
-                      style={{ backgroundColor: colors.accent + '15' }}
-                    >
-                      <Truck className="w-6 h-6" style={{ color: colors.accent }} />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2" style={{ color: colors.text }}>
-                        Shipping Information
-                      </h3>
-                      <p className="text-sm leading-relaxed" style={{ color: colors.muted }}>
-                        {product.shippingInfo ||
-                          'We offer nationwide delivery across Bangladesh. Orders are typically processed within 1-2 business days. Standard delivery takes 3-5 business days, while express delivery is available for select areas with 1-2 day delivery. Free shipping on orders over ৳1,000.'}
-                      </p>
+                {product.shippingInfo && (
+                  <div className="p-6 rounded-xl" style={{ backgroundColor: colors.cardBg }}>
+                    <div className="flex items-start gap-4">
+                      <div
+                        className="p-3 rounded-full"
+                        style={{ backgroundColor: colors.accent + '15' }}
+                      >
+                        <Truck className="w-6 h-6" style={{ color: colors.accent }} />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold mb-2" style={{ color: colors.text }}>
+                          Shipping Information
+                        </h3>
+                        <p className="text-sm leading-relaxed" style={{ color: colors.muted }}>
+                          {product.shippingInfo}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                <div className="p-6 rounded-xl" style={{ backgroundColor: colors.cardBg }}>
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-full" style={{ backgroundColor: '#dbeafe' }}>
-                      <RotateCcw className="w-6 h-6 text-blue-500" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2" style={{ color: colors.text }}>
-                        Return Policy
-                      </h3>
-                      <p className="text-sm leading-relaxed" style={{ color: colors.muted }}>
-                        {product.returnPolicy ||
-                          'We offer a 7-day return policy for all products. Items must be unused and in original packaging. Refunds are processed within 5-7 business days after we receive the returned item. For defective products, we offer free returns and full refund or replacement.'}
-                      </p>
+                {product.returnPolicy && (
+                  <div className="p-6 rounded-xl" style={{ backgroundColor: colors.cardBg }}>
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 rounded-full" style={{ backgroundColor: '#dbeafe' }}>
+                        <RotateCcw className="w-6 h-6 text-blue-500" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold mb-2" style={{ color: colors.text }}>
+                          Return Policy
+                        </h3>
+                        <p className="text-sm leading-relaxed" style={{ color: colors.muted }}>
+                          {product.returnPolicy}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 
@@ -1420,7 +1444,7 @@ export default function SharedProductPage({
               </div>
             )}
           </div>
-        </div>
+        </div>}
 
         {/* Related Products - "You might also like" */}
         {relatedProducts.length > 0 && (

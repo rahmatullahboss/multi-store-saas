@@ -154,7 +154,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       throw new Response('Store mode is not enabled for this shop.', { status: 404 });
     }
 
-    const { themeConfig, footerConfig, businessInfo: cachedBusinessInfo } = storeConfig;
+    const { themeConfig, footerConfig, businessInfo: cachedBusinessInfo, shippingConfig } =
+      storeConfig;
 
     // Fallback: Parse businessInfo from store record if missing
     let businessInfo = cachedBusinessInfo;
@@ -310,6 +311,11 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     const url = new URL(request.url);
     const productUrl = `${url.protocol}//${url.host}/products/${product.id}`;
 
+    const shippingInfo =
+      shippingConfig && shippingConfig.enabled !== false
+        ? `Shipping inside Dhaka: ${store?.currency || 'BDT'} ${shippingConfig.insideDhaka ?? 60}. Outside Dhaka: ${store?.currency || 'BDT'} ${shippingConfig.outsideDhaka ?? 120}.${shippingConfig.freeShippingAbove ? ` Free shipping above ${store?.currency || 'BDT'} ${shippingConfig.freeShippingAbove}.` : ''}`
+        : null;
+
     const responseData = {
       product: {
         ...product,
@@ -345,6 +351,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
       productUrl,
       themeConfig,
+      storeShippingInfo: shippingInfo,
+      storeRefundPolicy: store?.customRefundPolicy || null,
     };
 
     // ============================================================
@@ -415,6 +423,8 @@ export default function ProductDetail() {
     planType,
     customer,
     productUrl,
+    storeShippingInfo,
+    storeRefundPolicy,
   } = useLoaderData<typeof loader>();
 
   const hasTracked = useRef(false);
@@ -486,7 +496,20 @@ export default function ProductDetail() {
     >
       {template.ProductPage ? (
         <template.ProductPage
-          product={product as SerializedProduct}
+          product={
+            {
+              ...(product as SerializedProduct),
+              shippingInfo: storeShippingInfo,
+              returnPolicy: storeRefundPolicy,
+              reviews: showReviews
+                ? {
+                    average: avgRating,
+                    count: reviewCount,
+                    items: productReviews,
+                  }
+                : undefined,
+            } as SerializedProduct
+          }
           relatedProducts={relatedProducts}
           reviews={showReviews ? productReviews : []}
           avgRating={avgRating}

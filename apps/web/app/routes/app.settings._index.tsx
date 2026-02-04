@@ -235,6 +235,25 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Build update object
   const themeValue = theme || 'starter-store';
+  const existingStore = await db
+    .select({ themeConfig: stores.themeConfig })
+    .from(stores)
+    .where(eq(stores.id, storeId))
+    .limit(1);
+
+  let existingThemeConfig: Record<string, unknown> = {};
+  const rawThemeConfig = existingStore[0]?.themeConfig;
+  if (rawThemeConfig) {
+    try {
+      existingThemeConfig =
+        typeof rawThemeConfig === 'string'
+          ? (JSON.parse(rawThemeConfig) as Record<string, unknown>)
+          : (rawThemeConfig as Record<string, unknown>);
+    } catch {
+      existingThemeConfig = {};
+    }
+  }
+
   const updateData: Record<string, unknown> = {
     name: name.trim(),
     currency: currency || 'BDT',
@@ -255,11 +274,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }),
     defaultLanguage: defaultLanguage || 'en',
     updatedAt: new Date(),
-    // MVP System: Save theme to themeConfig for new system compatibility
+    // Preserve existing themeConfig fields (e.g. floating buttons, hero slides) and only update
+    // general settings values controlled by this page.
     themeConfig: JSON.stringify({
+      ...existingThemeConfig,
       storeTemplateId: themeValue,
-      primaryColor: null, // Will be set via MVP settings if needed
-      accentColor: null,
+      primaryColor: existingThemeConfig.primaryColor ?? null,
+      accentColor: existingThemeConfig.accentColor ?? null,
     }),
   };
 
