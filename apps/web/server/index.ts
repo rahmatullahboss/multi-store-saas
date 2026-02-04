@@ -214,7 +214,8 @@ app.use('/api/*', async (c, next) => {
 
   // Handle preflight
   if (c.req.method === 'OPTIONS') {
-    return new Response(null, { status: 204 });
+    // Use Hono response helpers so CORS headers set above are preserved
+    return c.body(null, 204);
   }
 
   return next();

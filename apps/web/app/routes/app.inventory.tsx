@@ -312,13 +312,26 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: 'Invalid data' }, { status: 400 });
     }
 
-    if (!items.length) {
+    const normalizedItems = items
+      .map((item) => ({
+        productId: Number(item.productId),
+        previousStock: Number(item.previousStock),
+        productTitle: item.productTitle,
+      }))
+      .filter(
+        (item) =>
+          Number.isFinite(item.productId) &&
+          Number.isFinite(item.previousStock) &&
+          item.productId > 0
+      );
+
+    if (!normalizedItems.length) {
       return json({ error: 'No items to undo' }, { status: 400 });
     }
 
     const now = new Date();
     await db.batch(
-      items.map((item) =>
+      normalizedItems.map((item) =>
         db
           .update(products)
           .set({ inventory: Math.max(0, item.previousStock), updatedAt: now })
@@ -327,7 +340,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     );
 
     await Promise.all(
-      items.map((item) =>
+      normalizedItems.map((item) =>
         logActivity(db, {
           storeId,
           userId,
