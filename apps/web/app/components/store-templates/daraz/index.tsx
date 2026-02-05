@@ -1181,7 +1181,10 @@ function PreviewFooter({
             </div>
           </div>
         </div>
-        <div className="border-t mt-8 pt-6 text-center text-sm text-gray-500">
+        <div
+          className="border-t mt-8 pt-6 text-center text-sm text-gray-500"
+          suppressHydrationWarning
+        >
           © {new Date().getFullYear()} {storeName}. All rights reserved.
         </div>
       </div>

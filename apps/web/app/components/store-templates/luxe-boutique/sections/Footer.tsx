@@ -1,5 +1,5 @@
 import { Link } from '@remix-run/react';
-import { Mail, Instagram, Facebook } from 'lucide-react';
+import { Mail, Phone, MapPin, Instagram, Facebook } from 'lucide-react';
 import { LUXE_BOUTIQUE_THEME } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';
 import type { SocialLinks, FooterConfig } from '@db/types';
@@ -90,12 +90,22 @@ export function LuxeBoutiqueFooter({
             <ul className="space-y-2 text-sm text-white/70">
               {businessInfo?.email && (
                 <li className="flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
+                  <Mail className="w-4 h-4 flex-shrink-0" />
                   {businessInfo.email}
                 </li>
               )}
-              {businessInfo?.phone && <li>{businessInfo.phone}</li>}
-              {businessInfo?.address && <li>{businessInfo.address}</li>}
+              {businessInfo?.phone && (
+                <li className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 flex-shrink-0" />
+                  {businessInfo.phone}
+                </li>
+              )}
+              {businessInfo?.address && (
+                <li className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 flex-shrink-0" />
+                  {businessInfo.address}
+                </li>
+              )}
             </ul>
 
             {/* Social Links */}
@@ -125,14 +135,15 @@ export function LuxeBoutiqueFooter({
         </div>
       </div>
 
-      {/* Copyright & Branding */}
+      {/* Copyright & Branding - Side by Side */}
       <div className="border-t border-white/10 py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-2">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          {/* Copyright - Left/Bottom */}
           <p className="text-sm text-white/50" suppressHydrationWarning>
             © {new Date().getFullYear()} {storeName}. {t('allRightsReserved')}
           </p>
 
-          {/* Viral Loop / Branding */}
+          {/* Viral Loop / Branding - Right */}
           <OzzylBranding planType={planType} showPoweredBy={footerConfig?.showPoweredBy} />
         </div>
       </div>

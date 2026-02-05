@@ -17,10 +17,20 @@
  */
 
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
-import { 
-  Truck, RotateCcw, Shield, CreditCard, 
-  Instagram, Facebook, Twitter, Youtube, Linkedin, 
-  ArrowRight, Mail, Phone, MapPin 
+import {
+  Truck,
+  RotateCcw,
+  Shield,
+  CreditCard,
+  Instagram,
+  Facebook,
+  Twitter,
+  Youtube,
+  Linkedin,
+  ArrowRight,
+  Mail,
+  Phone,
+  MapPin,
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { NOVALUX_THEME } from '../theme';
@@ -60,8 +70,6 @@ function NagadIcon() {
     </div>
   );
 }
-
-
 
 function CodIcon() {
   return (
@@ -105,7 +113,6 @@ export function NovaLuxFooter({
 
   const displayBusinessInfo = isPreview ? defaultBusinessInfo : businessInfo || defaultBusinessInfo;
 
-
   return (
     <footer style={{ backgroundColor: THEME.footerBg, color: THEME.footerText }}>
       {/* Trust Badges Bar */}
@@ -121,7 +128,9 @@ export function NovaLuxFooter({
               </div>
               <div>
                 <p className="font-medium text-sm">{t('freeShipping')}</p>
-                <p className="text-xs text-white/60">{t('freeShippingDesc', { amount: '৳1,000' })}</p>
+                <p className="text-xs text-white/60">
+                  {t('freeShippingDesc', { amount: '৳1,000' })}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -173,9 +182,7 @@ export function NovaLuxFooter({
           >
             {t('joinFamily', { name: storeName })}
           </h3>
-          <p className="text-white/60 mb-8 max-w-lg mx-auto">
-            {t('subscribeText')}
-          </p>
+          <p className="text-white/60 mb-8 max-w-lg mx-auto">{t('subscribeText')}</p>
           <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <input
               type="email"
@@ -274,8 +281,7 @@ export function NovaLuxFooter({
               <div className="flex flex-wrap gap-2">
                 <BkashIcon />
                 <NagadIcon />
-                
-                
+
                 <CodIcon />
               </div>
             </div>
@@ -454,7 +460,11 @@ export function NovaLuxFooter({
               {t('shippingPolicy')}
             </PreviewSafeLink>
             <span className="text-white/20 hidden md:inline">•</span>
-            <PreviewSafeLink to="/policies/terms" className="text-white/60 hover:text-white transition-colors" isPreview={isPreview}>
+            <PreviewSafeLink
+              to="/policies/terms"
+              className="text-white/60 hover:text-white transition-colors"
+              isPreview={isPreview}
+            >
               {t('termsOfService')}
             </PreviewSafeLink>
           </div>
@@ -463,7 +473,7 @@ export function NovaLuxFooter({
         {/* Bottom Bar */}
         <div className="mt-8 pt-8 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-white/50 text-sm">
+            <p className="text-white/50 text-sm" suppressHydrationWarning>
               © {new Date().getFullYear()} {storeName}. {t('allRightsReserved')}
             </p>
             <OzzylBranding planType={planType} showPoweredBy={showPoweredBy} />

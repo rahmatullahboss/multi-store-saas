@@ -6,7 +6,6 @@
  * Works in both preview and live modes.
  */
 
-
 import { Facebook, Instagram, Twitter, Phone, Mail, MapPin } from 'lucide-react';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { STARTER_STORE_THEME } from '../theme';
@@ -279,7 +278,7 @@ export function StarterStoreFooter({
         }}
       >
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm">
-          <p style={{ color: theme.footerText + 'AA' }}>
+          <p style={{ color: theme.footerText + 'AA' }} suppressHydrationWarning>
             © {new Date().getFullYear()} {storeName}. {t('allRightsReserved')}
           </p>
           <div style={{ color: theme.footerText }}>

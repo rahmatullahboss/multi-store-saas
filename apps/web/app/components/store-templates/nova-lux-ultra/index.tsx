@@ -13,7 +13,15 @@
  * Worth 10 Million - World-class design
  */
 
-import { useState, useCallback, useEffect, createContext, useContext, useMemo, useRef } from 'react';
+import {
+  useState,
+  useCallback,
+  useEffect,
+  createContext,
+  useContext,
+  useMemo,
+  useRef,
+} from 'react';
 
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
 import {
@@ -178,6 +186,58 @@ function CartProvider({ children }: { children: React.ReactNode }) {
 // PREMIUM COMPONENTS
 // ============================================================================
 
+// Client-side only particles to prevent hydration mismatch
+function ClientParticles() {
+  const [particles, setParticles] = useState<Array<{
+    left: number;
+    top: number;
+    duration: number;
+    delay: number;
+  }> | null>(null);
+
+  useEffect(() => {
+    // Generate particles only on client side
+    const newParticles = Array.from({ length: 20 }, () => ({
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      duration: 3 + Math.random() * 2,
+      delay: Math.random() * 2,
+    }));
+    setParticles(newParticles);
+  }, []);
+
+  if (!particles) {
+    // Return empty placeholder during SSR to ensure consistent HTML
+    return <div className="absolute inset-0 overflow-hidden pointer-events-none" />;
+  }
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {particles.map((particle, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-1 h-1 rounded-full"
+          style={{
+            background: NOVALUX_ULTRA_THEME.accent,
+            left: `${particle.left}%`,
+            top: `${particle.top}%`,
+          }}
+          animate={{
+            y: [0, -100, 0],
+            opacity: [0, 1, 0],
+            scale: [0, 1, 0],
+          }}
+          transition={{
+            duration: particle.duration,
+            repeat: Infinity,
+            delay: particle.delay,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 // Cinematic Hero Section with Parallax
 function CinematicHero({
   config,
@@ -200,8 +260,8 @@ function CinematicHero({
     heroImage && isUnsplashHero
       ? generateSrcset(heroImage, [640, 960, 1280, 1600, 1800])
       : heroImage
-      ? generateProxySrcset(heroImage, [640, 960, 1280, 1600, 1800], 78)
-      : undefined;
+        ? generateProxySrcset(heroImage, [640, 960, 1280, 1600, 1800], 78)
+        : undefined;
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -222,7 +282,12 @@ function CinematicHero({
       setHeroIndex((prev) => (prev + 1) % heroBehavior.slides.length);
     }, heroBehavior.delayMs);
     return () => clearInterval(timer);
-  }, [heroBehavior.autoplay, heroBehavior.delayMs, heroBehavior.isCarousel, heroBehavior.slides.length]);
+  }, [
+    heroBehavior.autoplay,
+    heroBehavior.delayMs,
+    heroBehavior.isCarousel,
+    heroBehavior.slides.length,
+  ]);
 
   useEffect(() => {
     if (heroIndex >= heroBehavior.slides.length) {
@@ -260,30 +325,8 @@ function CinematicHero({
         />
       </motion.div>
 
-      {/* Animated Particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 rounded-full"
-            style={{
-              background: NOVALUX_ULTRA_THEME.accent,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, -100, 0],
-              opacity: [0, 1, 0],
-              scale: [0, 1, 0],
-            }}
-            transition={{
-              duration: 3 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
-      </div>
+      {/* Animated Particles - Client-side only to prevent hydration mismatch */}
+      <ClientParticles />
 
       {/* Content */}
       <motion.div
@@ -1172,7 +1215,9 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
         {!isPreview && (
           <FloatingContactButtons
             whatsappEnabled={config?.floatingWhatsappEnabled}
-            whatsappNumber={config?.floatingWhatsappNumber || props.businessInfo?.phone || undefined}
+            whatsappNumber={
+              config?.floatingWhatsappNumber || props.businessInfo?.phone || undefined
+            }
             whatsappMessage={config?.floatingWhatsappMessage || undefined}
             callEnabled={config?.floatingCallEnabled}
             callNumber={config?.floatingCallNumber || props.businessInfo?.phone || undefined}

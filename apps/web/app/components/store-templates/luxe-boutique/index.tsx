@@ -40,7 +40,11 @@ import { SkeletonLoader } from '~/components/SkeletonLoader';
 import { getHeroBehavior } from '~/lib/hero-slides';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
-import { buildProxyImageUrl, generateProxySrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
+import {
+  buildProxyImageUrl,
+  generateProxySrcset,
+  optimizeUnsplashUrl,
+} from '~/utils/imageOptimization';
 
 import { LUXE_BOUTIQUE_THEME } from './theme';
 import { LuxeBoutiqueHeader } from './sections/Header';
@@ -597,7 +601,7 @@ function PreviewFooter({
           </div>
         </div>
         <div className="border-t border-white/10 mt-8 py-6 text-center">
-          <p className="text-sm text-white/50">
+          <p className="text-sm text-white/50" suppressHydrationWarning>
             © {new Date().getFullYear()} {storeName}. All rights reserved.
           </p>
         </div>
@@ -644,7 +648,12 @@ function PreviewHomePage({
       setHeroIndex((prev) => (prev + 1) % heroBehavior.slides.length);
     }, heroBehavior.delayMs);
     return () => clearInterval(timer);
-  }, [heroBehavior.autoplay, heroBehavior.delayMs, heroBehavior.isCarousel, heroBehavior.slides.length]);
+  }, [
+    heroBehavior.autoplay,
+    heroBehavior.delayMs,
+    heroBehavior.isCarousel,
+    heroBehavior.slides.length,
+  ]);
 
   useEffect(() => {
     if (heroIndex >= heroBehavior.slides.length) {
@@ -666,9 +675,7 @@ function PreviewHomePage({
         </div>
 
         <div className="relative z-10 text-center text-white px-4 max-w-4xl">
-          <h1 className="text-5xl md:text-7xl font-serif mb-6 leading-tight">
-            {heroHeading}
-          </h1>
+          <h1 className="text-5xl md:text-7xl font-serif mb-6 leading-tight">{heroHeading}</h1>
           <p className="text-lg md:text-xl mb-8 font-light tracking-wide opacity-90">
             {heroSubheading}
           </p>
@@ -1057,7 +1064,9 @@ function LiveLuxeBoutiqueHomepage({
               {!isPreview && (
                 <FloatingContactButtons
                   whatsappEnabled={config?.floatingWhatsappEnabled}
-                  whatsappNumber={config?.floatingWhatsappNumber || businessInfo?.phone || undefined}
+                  whatsappNumber={
+                    config?.floatingWhatsappNumber || businessInfo?.phone || undefined
+                  }
                   whatsappMessage={config?.floatingWhatsappMessage || undefined}
                   callEnabled={config?.floatingCallEnabled}
                   callNumber={config?.floatingCallNumber || businessInfo?.phone || undefined}

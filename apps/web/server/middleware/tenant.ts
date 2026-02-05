@@ -324,6 +324,22 @@ export const tenantMiddleware = (): MiddlewareHandler<{
       }
 
       console.warn(`[TENANT] Store not found for ${type}: ${value}`);
+      
+      // Redirect invalid subdomains to main landing page
+      // But keep localhost/dev environments working normally
+      const isLocalDev = 
+        hostname === 'localhost' || 
+        hostname === '127.0.0.1' ||
+        hostname.startsWith('192.168.') ||
+        hostname.startsWith('10.') ||
+        hostname.includes('localhost:');
+      
+      if (!isLocalDev && type === 'subdomain') {
+        // Redirect to main landing page for invalid subdomains
+        return c.redirect('https://ozzyl.com', 302);
+      }
+      
+      // For API routes or localhost, return JSON error
       return c.json(
         {
           error: 'Store not found',

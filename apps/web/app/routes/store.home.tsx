@@ -38,6 +38,86 @@ import { D1Cache } from '~/services/cache-layer.server';
 import { eq, desc, and } from 'drizzle-orm';
 import { products as productsTable } from '@db/schema';
 
+function normalizeLegacySections(sections: Array<{ id?: string; type?: string; settings?: any }>) {
+  const badgeIconMap: Record<string, string> = {
+    truck: 'Truck',
+    shield: 'Shield',
+    refresh: 'RotateCcw',
+    phone: 'Headphones',
+    delivery: 'Truck',
+    secure: 'Shield',
+    support: 'Headphones',
+  };
+
+  return (sections || []).map((section) => {
+    if (!section?.type) return section;
+    const settings = section.settings || {};
+
+    if (section.type === 'hero') {
+      return {
+        ...section,
+        settings: {
+          ...settings,
+          heading: settings.heading ?? settings.headline,
+          subheading: settings.subheading ?? settings.subheadline,
+          image: settings.image ?? settings.backgroundImage,
+          primaryAction:
+            settings.primaryAction ??
+            (settings.buttonText
+              ? { label: settings.buttonText, url: settings.buttonLink || '/products' }
+              : undefined),
+        },
+      };
+    }
+
+    if (section.type === 'featured-products') {
+      return {
+        ...section,
+        type: 'product-grid',
+        settings: {
+          ...settings,
+          heading: settings.heading ?? settings.title,
+          subheading: settings.subheading ?? settings.subtitle,
+        },
+      };
+    }
+
+    if (section.type === 'collection-list') {
+      return {
+        ...section,
+        type: 'category-list',
+        settings: {
+          ...settings,
+          heading: settings.heading ?? settings.title,
+          layout: settings.layout || 'grid',
+          limit:
+            settings.limit ??
+            (settings.columns ? settings.columns * 2 : undefined),
+        },
+      };
+    }
+
+    if (section.type === 'trust-badges') {
+      const badges = Array.isArray(settings.badges) ? settings.badges : [];
+      return {
+        ...section,
+        type: 'features',
+        settings: {
+          heading: settings.heading ?? settings.title ?? 'Why Shop With Us',
+          subheading: settings.subheading ?? settings.subtitle,
+          features: badges.map((badge: any) => ({
+            icon: badgeIconMap[(badge.icon || '').toLowerCase()] || 'Truck',
+            title: badge.title,
+            description: badge.description,
+          })),
+        },
+      };
+    }
+
+    return section;
+  });
+}
+
 export async function loader({ request, context }: LoaderFunctionArgs) {
   // Resolve store (get storeId from context/subdomain)
   const storeContext = await resolveStore(context, request);
@@ -51,7 +131,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const cache = new D1Cache(db);
 
   // Get theme config from store (fallback to legacy 'theme' field for backward compatibility)
-  const themeConfig = parseThemeConfig(store.themeConfig as string | null);
+  const themeConfigRaw = parseThemeConfig(store.themeConfig as string | null);
+  const themeConfig = themeConfigRaw
+    ? { ...themeConfigRaw, sections: normalizeLegacySections(themeConfigRaw.sections || []) }
+    : themeConfigRaw;
   const socialLinks = parseSocialLinks(store.socialLinks as string | null);
   const storeTemplateId =
     themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
