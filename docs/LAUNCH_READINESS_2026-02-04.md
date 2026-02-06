@@ -1,6 +1,6 @@
-# Launch Readiness - 2026-02-04
+# Launch Readiness - 2026-02-04 (Updated)
 
-> Updated: **February 4, 2026**  
+> Updated: **February 6, 2026**  
 > Scope: MVP storefront/settings hardening + launch preparation
 
 ## ✅ এই sprint-এ যা করা হয়েছে
@@ -82,14 +82,45 @@ Changed files:
 - Settings save + storefront wiring status documented in:
   - `docs/MVP_SETTINGS_AUDIT_2026-02-04.md`
 
+### 8) Floating WhatsApp/Call buttons (brand + consistency)
+- Floating WhatsApp button-এ generic chat icon বাদ দিয়ে WhatsApp brand glyph (SVG) ব্যবহার করা হয়েছে।
+- একই glyph reuse করা হয়েছে:
+  - Storefront floating contact buttons
+  - Page builder floating action buttons
+  - Landing templates floating buttons (core + wrapper)
+
+Changed files:
+- `apps/web/app/components/icons/WhatsAppIcon.tsx`
+- `apps/web/app/components/FloatingContactButtons.tsx`
+- `apps/web/app/components/page-builder/FloatingActionButtons.tsx`
+- `apps/web/app/components/templates/FloatingButtons.tsx`
+- `apps/web/app/components/templates/_core/FloatingButtons.tsx`
+
+### 9) Checkout safety hardening (P0: duplicate/double-order guard)
+Goal: real inventory + real money হওয়ায় order create flow-এ safe retries + idempotency নিশ্চিত করা।
+
+Key changes:
+- Checkout lock acquisition এখন **inventory mutation-এর আগে**।
+- `checkout_sessions` এখন create-order flow-এ:
+  - আগে `processing` session create হয় (unique `idempotency_key`)
+  - order সফল হলে session `completed` + `orderId` update হয়
+  - validation/stock/coupon fail হলে session `abandoned` হয়
+- Lock release centralized via `finally` → early return path-এ lock আটকে থাকার ঝুঁকি কমে।
+
+Changed files:
+- `apps/web/app/routes/api.create-order.ts`
+
 ## 🚀 Latest deployed versions
-- `42c622cb-467e-4886-aed1-f5a5824cc42a` (latest)
-- `b26ab9ee-5d1d-40d1-a81b-74785627bdd5`
-- `6496e79f-689c-4ebc-8c25-d4e82ff23e99`
-- `de7f9bca-967d-45aa-808a-57cf0ed89fdc`
-- `c5c8c81a-0ba0-4678-828f-f412aed9821b`
+- `61b9c0e0-9bf2-4558-84b9-40d1295897bf` (latest)
+- `2451a73d-302d-4d18-b5cc-04b692a24445`
+- `2217efb8-901c-4ba8-a1a0-dea928188d64`
 
 ## 🟡 কী কী বাকি (high priority)
+
+### P0) Transaction safety (must-have before taking real payments)
+- E2E test matrix (success/fail/retry) for create-order + checkout + inventory consistency।
+- Webhook idempotency smoke test (replay safe) for payment/courier providers যখন routes যুক্ত হবে।
+- CSRF/session-hardening audit for authenticated admin actions।
 
 ### A) Settings hardening phase 2 follow-up
 - Cross-route error payload standardization (`code`, `message`, `fieldErrors`)।

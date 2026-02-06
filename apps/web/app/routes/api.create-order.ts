@@ -127,6 +127,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
   let checkoutLockId = '';
   let checkoutLockAcquired = false;
   const hasCheckoutLock = 'CHECKOUT_SERVICE' in env;
+  // Used for lock release in finally even on early-return paths
+  let orderNumberForLock = '';
+  let checkoutSessionId: string | null = null;
 
   try {
     // Parse request body - handle both JSON and FormData
@@ -314,54 +317,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       console.error('[Rate Limit] Check failed:', e);
     }
 
-    // ========================================================================
-    // ANTI-SPAM: DUPLICATE ORDER DETECTION
-    // ========================================================================
-    // Check if same phone ordered same product within last 4 hours
     const primaryProductId = input.product_id || input.cart_items?.[0]?.product_id;
-
-    if (primaryProductId) {
-      try {
-        const duplicateCheck = await db
-          .select({
-            id: orders.id,
-            orderNumber: orders.orderNumber,
-            createdAt: orders.createdAt,
-          })
-          .from(orders)
-          .where(
-            and(
-              eq(orders.storeId, input.store_id),
-              eq(orders.customerPhone, input.phone),
-              sql`${orders.createdAt} > datetime('now', '-4 hours')`
-            )
-          )
-          .limit(1);
-
-        if (duplicateCheck.length > 0) {
-          const existingOrder = duplicateCheck[0];
-          // Duplicate order detected, log to console.warn instead of console.log
-          console.warn('[DUPLICATE] Potential duplicate order detected:', {
-            phone: input.phone,
-            existingOrderId: existingOrder.id,
-            existingOrderNumber: existingOrder.orderNumber,
-          });
-
-          return json(
-            {
-              success: false,
-              error: 'আপনি ইতোমধ্যে একটি অর্ডার করেছেন। সমস্যা হলে আমাদের কল করুন।',
-              code: 'DUPLICATE_ORDER',
-              existingOrderNumber: existingOrder.orderNumber,
-            },
-            { status: 429 } // Too Many Requests
-          );
-        }
-      } catch (e) {
-        // Don't block on duplicate check failure
-        console.error('[Duplicate Check] Failed:', e);
-      }
-    }
 
     // ========================================================================
     // IDEMPOTENT ORDER CREATION via checkout_sessions
@@ -424,6 +380,55 @@ export async function action({ request, context }: ActionFunctionArgs) {
       console.error('[Idempotency Check] Failed:', e);
     }
 
+    // ========================================================================
+    // ANTI-SPAM: DUPLICATE ORDER DETECTION (fallback only)
+    // ========================================================================
+    // NOTE:
+    // - For production ecommerce, legitimate repeat orders must be allowed.
+    // - We rely on Durable Object checkout lock + checkout_sessions idempotency for double-submit.
+    // - This duplicate check is only a fallback when checkout lock is unavailable.
+    if (!hasCheckoutLock && primaryProductId) {
+      try {
+        const duplicateCheck = await db
+          .select({
+            id: orders.id,
+            orderNumber: orders.orderNumber,
+            createdAt: orders.createdAt,
+          })
+          .from(orders)
+          .where(
+            and(
+              eq(orders.storeId, input.store_id),
+              eq(orders.customerPhone, input.phone),
+              sql`${orders.createdAt} > datetime('now', '-10 minutes')`
+            )
+          )
+          .limit(1);
+
+        if (duplicateCheck.length > 0) {
+          const existingOrder = duplicateCheck[0];
+          console.warn('[DUPLICATE] Potential rapid duplicate (fallback mode):', {
+            phone: input.phone,
+            existingOrderId: existingOrder.id,
+            existingOrderNumber: existingOrder.orderNumber,
+          });
+
+          return json(
+            {
+              success: false,
+              error: 'আপনার আগের অর্ডার প্রক্রিয়াধীন আছে। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন।',
+              code: 'PROCESSING',
+              existingOrderNumber: existingOrder.orderNumber,
+            },
+            { status: 409 }
+          );
+        }
+      } catch (e) {
+        // Don't block on duplicate check failure
+        console.error('[Duplicate Check] Failed:', e);
+      }
+    }
+
     // Normalize input to a list of items
     let orderItemsData: { productId: number; quantity: number; variantId?: number }[] = [];
 
@@ -479,6 +484,145 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     // ========================================================================
+    // CHECKOUT LOCK (via Durable Object) - MUST happen BEFORE any stock mutation
+    // ========================================================================
+    // Create unique lock ID based on phone + store (prevents same customer double-ordering)
+    checkoutLockId = `${input.store_id}-${input.phone.replace(/\D/g, '')}`;
+
+    // Generate order number early so lock metadata can reference it.
+    orderNumberForLock = generateOrderNumber();
+
+    if (hasCheckoutLock) {
+      const lockResult = await acquireCheckoutLock(env as any, checkoutLockId, {
+        orderId: orderNumberForLock, // lock identifier (not DB id)
+        lockedBy: input.phone,
+        ttlMs: 5 * 60 * 1000, // 5 minutes
+      });
+
+      if (!lockResult.success) {
+        console.warn(`[CHECKOUT_LOCK] Order blocked - lock already held for ${checkoutLockId}`);
+        return json(
+          {
+            success: false,
+            error: 'আপনার আগের অর্ডার প্রক্রিয়াধীন আছে। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন।',
+            existingOrderId: lockResult.existingOrderId,
+          },
+          { status: 409 }
+        );
+      }
+      checkoutLockAcquired = true;
+    }
+
+    // ========================================================================
+    // CREATE CHECKOUT SESSION (processing) - Enforced by unique idempotency_key
+    // This prevents duplicate orders even if the client retries quickly.
+    // ========================================================================
+    // Minimal snapshot now; we update pricingJson + orderId later.
+    checkoutSessionId = crypto.randomUUID();
+    const checkoutSessionExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15m
+    const initialCartJson = JSON.stringify(
+      input.cart_items && input.cart_items.length > 0
+        ? input.cart_items
+        : [
+            {
+              product_id: input.product_id,
+              quantity: input.quantity,
+              variant_id: input.variant_id,
+            },
+          ]
+    );
+
+    try {
+      await db.insert(checkoutSessions).values({
+        id: checkoutSessionId,
+        storeId: input.store_id,
+        cartJson: initialCartJson,
+        customerId: null,
+        email: input.customer_email || null,
+        phone: input.phone,
+        customerName: input.customer_name,
+        shippingAddressJson: JSON.stringify({
+          address: input.address,
+          division: input.division,
+          district: input.district,
+          upazila: input.upazila,
+        }),
+        billingAddressJson: null,
+        pricingJson: null,
+        discountCode: input.discount_code || null,
+        paymentMethod: input.payment_method as 'cod' | 'bkash' | 'nagad' | 'stripe',
+        status: 'processing',
+        idempotencyKey,
+        orderId: null,
+        expiresAt: checkoutSessionExpiresAt,
+        landingPageId: input.landing_page_id || null,
+        utmSource: input.utm_source || null,
+        utmMedium: input.utm_medium || null,
+        utmCampaign: input.utm_campaign || null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    } catch (e) {
+      // Likely a unique constraint race; re-check the existing session and respond safely.
+      console.error('[Checkout Session] Insert failed:', e);
+      const existingSession = await db
+        .select({
+          id: checkoutSessions.id,
+          status: checkoutSessions.status,
+          orderId: checkoutSessions.orderId,
+        })
+        .from(checkoutSessions)
+        .where(eq(checkoutSessions.idempotencyKey, idempotencyKey))
+        .limit(1);
+
+      if (existingSession.length > 0) {
+        const session = existingSession[0];
+        if (session.status === 'completed' && session.orderId) {
+          const existingOrder = await db
+            .select({ orderNumber: orders.orderNumber, id: orders.id, total: orders.total })
+            .from(orders)
+            .where(eq(orders.id, session.orderId))
+            .limit(1);
+          if (existingOrder.length > 0) {
+            return json({
+              success: true,
+              orderId: existingOrder[0].id,
+              orderNumber: existingOrder[0].orderNumber,
+              total: existingOrder[0].total,
+              message: 'Order already exists',
+              isIdempotent: true,
+            });
+          }
+        }
+        // In-flight checkout: tell client to wait.
+        return json(
+          {
+            success: false,
+            error: 'অর্ডার প্রক্রিয়াকরণ হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন।',
+            code: 'PROCESSING',
+          },
+          { status: 409 }
+        );
+      }
+
+      // If we can't create a session and none exists, fail safe to avoid duplicates.
+      return json(
+        { success: false, error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।' },
+        { status: 500 }
+      );
+    }
+
+    const abandonCheckoutSession = async () => {
+      if (!checkoutSessionId) return;
+      try {
+        await db
+          .update(checkoutSessions)
+          .set({ status: 'abandoned', updatedAt: new Date() })
+          .where(eq(checkoutSessions.id, checkoutSessionId));
+      } catch {}
+    };
+
+    // ========================================================================
     // PROCESS ITEMS (Fetch Prices & Check Inventory)
     // ========================================================================
     const productIds = orderItemsData.map((i) => i.productId);
@@ -503,6 +647,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     for (const item of orderItemsData) {
       const product = dbProducts.find((p) => p.id === item.productId);
       if (!product || !product.isPublished) {
+        await abandonCheckoutSession();
         return json(
           { success: false, error: `Product ID ${item.productId} not found or unavailable` },
           { status: 400 }
@@ -528,6 +673,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       // Check Stock
       if (currentStock < item.quantity) {
+        await abandonCheckoutSession();
         return json(
           { success: false, error: `Stock unavailable for ${product.title}` },
           { status: 400 }
@@ -717,6 +863,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         appliedCouponId = discountResult.discount.id;
       } else {
         // Return 400 if code provided but invalid (Strict mode)
+        await abandonCheckoutSession();
         return json(
           { success: false, error: discountResult.error || 'Invalid Discount Code' },
           { status: 400 }
@@ -727,8 +874,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const finalSubtotal = Math.max(0, discountedSubtotalBeforeCoupon - couponDiscountAmount);
     const total = finalSubtotal + tax + shipping;
 
-    // Generate order number
-    const orderNumber = generateOrderNumber();
+    // Use the pre-generated number if we have it (for lock metadata consistency)
+    const orderNumber = orderNumberForLock || generateOrderNumber();
     const now = new Date();
 
     // ========================================================================
@@ -791,6 +938,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             .where(eq(products.id, rb.id));
         }
       }
+      await abandonCheckoutSession();
       return json(
         {
           success: false,
@@ -807,33 +955,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .where(eq(orders.storeId, input.store_id))
       .limit(1);
     const isFirstOrder = existingOrderCheck.length === 0;
-
-    // ========================================================================
-    // CHECKOUT LOCK (via Durable Object) - Prevents double payment
-    // ========================================================================
-    // Create unique lock ID based on phone + store (prevents same customer double-ordering)
-    checkoutLockId = `${input.store_id}-${input.phone.replace(/\D/g, '')}`;
-
-    if (hasCheckoutLock) {
-      const lockResult = await acquireCheckoutLock(env as any, checkoutLockId, {
-        orderId: orderNumber, // Use order number as the lock identifier
-        lockedBy: input.phone,
-        ttlMs: 5 * 60 * 1000, // 5 minutes
-      });
-
-      if (!lockResult.success) {
-        console.warn(`[CHECKOUT_LOCK] Order blocked - lock already held for ${checkoutLockId}`);
-        return json(
-          {
-            success: false,
-            error: 'আপনার আগের অর্ডার প্রক্রিয়াধীন আছে। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন।',
-            existingOrderId: lockResult.existingOrderId,
-          },
-          { status: 409 }
-        );
-      }
-      checkoutLockAcquired = true;
-    }
 
     // 2. CREATE ORDER
     let orderId: number | undefined;
@@ -912,34 +1033,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
       // See NOTIFICATIONS & TRACKING section below
 
       // ========== CHECKOUT SESSION: MARK COMPLETED ==========
-      // Create checkout session for idempotency tracking
-      context.cloudflare.ctx.waitUntil(
-        db
-          .insert(checkoutSessions)
-          .values({
-            id: crypto.randomUUID(),
-            storeId: input.store_id,
+      // Update existing processing checkout session to completed (sync)
+      if (checkoutSessionId) {
+        await db
+          .update(checkoutSessions)
+          .set({
             cartJson: JSON.stringify(orderItemsData),
-            phone: input.phone,
-            customerName: input.customer_name,
-            email: input.customer_email || null,
-            shippingAddressJson: JSON.stringify({
-              address: input.address,
-              division: input.division,
-              district: input.district,
-              upazila: input.upazila,
-            }),
             pricingJson: JSON.stringify({ subtotal, shipping, tax, total }),
-            paymentMethod: input.payment_method as 'cod' | 'bkash' | 'nagad' | 'stripe',
             status: 'completed',
-            idempotencyKey,
             orderId,
-            landingPageId: input.landing_page_id,
-            createdAt: now,
             updatedAt: now,
           })
-          .catch((e) => console.error('[Checkout Session] Creation failed:', e))
-      );
+          .where(eq(checkoutSessions.id, checkoutSessionId));
+      }
 
       // ========== DISCOUNT USAGE INCREMENT ==========
       if (appliedCouponId) {
@@ -1440,17 +1546,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     // ========================================================================
-    // RELEASE CHECKOUT LOCK (Order completed successfully)
-    // ========================================================================
-    if (checkoutLockAcquired && hasCheckoutLock) {
-      // Release lock in background - don't block response
-      context.cloudflare.ctx.waitUntil(
-        releaseCheckoutLock(env as any, checkoutLockId, orderNumber).catch((err) => {
-          console.error('[CHECKOUT_LOCK] Failed to release lock:', err);
-        })
-      );
-    }
-
     return json({
       success: true,
       orderId,
@@ -1466,9 +1561,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
     };
     console.error('Order creation error:', JSON.stringify(errorDetails, null, 2));
 
-    // Release checkout lock on error (if it was acquired)
-    if (checkoutLockAcquired && hasCheckoutLock && checkoutLockId) {
-      releaseCheckoutLock(env as any, checkoutLockId).catch(() => {});
+    // Best-effort: mark checkout session abandoned on failure to avoid "stuck processing"
+    if (checkoutSessionId) {
+      try {
+        await db
+          .update(checkoutSessions)
+          .set({ status: 'abandoned', updatedAt: new Date() })
+          .where(eq(checkoutSessions.id, checkoutSessionId));
+      } catch {}
     }
 
     return json(
@@ -1479,6 +1579,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
       },
       { status: 500 }
     );
+  } finally {
+    // Always release checkout lock (covers early-return paths after acquiring)
+    if (checkoutLockAcquired && hasCheckoutLock && checkoutLockId) {
+      context.cloudflare.ctx.waitUntil(
+        releaseCheckoutLock(env as any, checkoutLockId, orderNumberForLock || undefined).catch(
+          (err) => {
+            console.error('[CHECKOUT_LOCK] Failed to release lock (finally):', err);
+          }
+        )
+      );
+    }
   }
 }
 

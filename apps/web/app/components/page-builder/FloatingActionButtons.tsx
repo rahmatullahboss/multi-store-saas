@@ -6,8 +6,9 @@
  * Layout: WhatsApp/Call vertical on top, Order button at bottom.
  */
 
-import { Phone, MessageCircle, ShoppingCart } from 'lucide-react';
+import { Phone, ShoppingCart } from 'lucide-react';
 import { scrollToOrderForm } from './OrderNowButton';
+import { WhatsAppIcon } from '~/components/icons/WhatsAppIcon';
 
 interface FloatingActionButtonsProps {
   /** WhatsApp settings */
@@ -106,7 +107,7 @@ export function FloatingActionButtons({
             style={{ backgroundColor: whatsappColor }}
             title="WhatsApp"
           >
-            <MessageCircle className="w-6 h-6 text-white" />
+            <WhatsAppIcon className="w-6 h-6 text-white" />
           </a>
         )}
       </div>
@@ -131,4 +132,3 @@ export function FloatingActionButtons({
 }
 
 export default FloatingActionButtons;
-

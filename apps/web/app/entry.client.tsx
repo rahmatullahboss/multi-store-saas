@@ -102,8 +102,15 @@ async function initSentry() {
 }
 
 async function hydrate() {
-  // Initialize Sentry before hydration (production only)
-  await initSentry();
+  // Initialize Sentry after first paint to reduce blocking JS on initial load
+  const runWhenIdle = (fn: () => void) => {
+    if ('requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(fn, { timeout: 2000 });
+    } else {
+      setTimeout(fn, 1500);
+    }
+  };
+  runWhenIdle(() => void initSentry());
 
   await i18next
     .use(initReactI18next)

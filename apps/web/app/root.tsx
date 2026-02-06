@@ -12,7 +12,7 @@ import { json } from '@remix-run/cloudflare';
 import { useTranslation } from 'react-i18next';
 import { Toaster } from 'sonner';
 
-import './styles/tailwind.css';
+import tailwindStyles from './styles/tailwind.css?url';
 import { GeneralError } from '~/components/GeneralError';
 import { LanguageProvider } from '~/contexts/LanguageContext';
 import i18nextServer from '~/services/i18n.server';
@@ -21,8 +21,16 @@ import { useEffect } from 'react';
 import { parseThemeConfig } from '@db/types';
 
 export const links: LinksFunction = () => [
+  { rel: 'preload', href: tailwindStyles, as: 'style' },
+  { rel: 'stylesheet', href: tailwindStyles },
   { rel: 'dns-prefetch', href: 'https://images.unsplash.com' },
   { rel: 'preconnect', href: 'https://images.unsplash.com', crossOrigin: 'anonymous' },
+  { rel: 'dns-prefetch', href: 'https://o4509758332141568.ingest.de.sentry.io' },
+  { rel: 'preconnect', href: 'https://o4509758332141568.ingest.de.sentry.io', crossOrigin: 'anonymous' },
+  { rel: 'dns-prefetch', href: 'https://www.googletagmanager.com' },
+  { rel: 'preconnect', href: 'https://www.googletagmanager.com', crossOrigin: 'anonymous' },
+  { rel: 'dns-prefetch', href: 'https://connect.facebook.net' },
+  { rel: 'preconnect', href: 'https://connect.facebook.net', crossOrigin: 'anonymous' },
   { rel: 'manifest', href: '/manifest.webmanifest' },
 ];
 
@@ -125,48 +133,59 @@ export default function App() {
   // Inject analytics scripts client-side to avoid hydration mismatches
   // These are dynamic and should not be server-rendered
   useEffect(() => {
-    // Google Analytics 4
-    if (store.googleAnalyticsId) {
-      // Load gtag.js
-      const gaScript = document.createElement('script');
-      gaScript.async = true;
-      gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${store.googleAnalyticsId}`;
-      document.head.appendChild(gaScript);
+    const runWhenIdle = (fn: () => void) => {
+      if (typeof window === 'undefined') return;
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(fn, { timeout: 2000 });
+      } else {
+        setTimeout(fn, 1500);
+      }
+    };
 
-      // Initialize GA4
-      const gaInitScript = document.createElement('script');
-      gaInitScript.textContent = `
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', '${store.googleAnalyticsId}');
-      `;
-      document.head.appendChild(gaInitScript);
-    }
+    runWhenIdle(() => {
+      // Google Analytics 4
+      if (store.googleAnalyticsId) {
+        // Load gtag.js
+        const gaScript = document.createElement('script');
+        gaScript.async = true;
+        gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${store.googleAnalyticsId}`;
+        document.head.appendChild(gaScript);
 
-    // Facebook Pixel
-    const pixelId = store.facebookPixelId || masterPixelId;
-    if (pixelId) {
-      const fbScript = document.createElement('script');
-      fbScript.textContent = `
-        !function(f,b,e,v,n,t,s)
-        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-        n.queue=[];t=b.createElement(e);t.async=!0;
-        t.src=v;s=b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t,s)}(window, document,'script',
-        'https://connect.facebook.net/en_US/fbevents.js');
-        fbq('init', '${pixelId}');
-        ${
-          store.facebookPixelId && masterPixelId && store.facebookPixelId !== masterPixelId
-            ? `fbq('init', '${masterPixelId}');`
-            : ''
-        }
-        fbq('track', 'PageView');
-      `;
-      document.head.appendChild(fbScript);
-    }
+        // Initialize GA4
+        const gaInitScript = document.createElement('script');
+        gaInitScript.textContent = `
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${store.googleAnalyticsId}');
+        `;
+        document.head.appendChild(gaInitScript);
+      }
+
+      // Facebook Pixel
+      const pixelId = store.facebookPixelId || masterPixelId;
+      if (pixelId) {
+        const fbScript = document.createElement('script');
+        fbScript.textContent = `
+          !function(f,b,e,v,n,t,s)
+          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+          n.queue=[];t=b.createElement(e);t.async=!0;
+          t.src=v;s=b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t,s)}(window, document,'script',
+          'https://connect.facebook.net/en_US/fbevents.js');
+          fbq('init', '${pixelId}');
+          ${
+            store.facebookPixelId && masterPixelId && store.facebookPixelId !== masterPixelId
+              ? `fbq('init', '${masterPixelId}');`
+              : ''
+          }
+          fbq('track', 'PageView');
+        `;
+        document.head.appendChild(fbScript);
+      }
+    });
   }, [store.googleAnalyticsId, store.facebookPixelId, masterPixelId, ENV]);
 
   return (

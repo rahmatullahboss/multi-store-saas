@@ -394,7 +394,19 @@ export function ThemeStoreRenderer({
         {headerSections.map(renderSection)}
 
         {/* Main Content */}
-        <main className="main-content">{bodySections.map(renderSection)}</main>
+        <main className="main-content">
+          {bodySections.map((section) => (
+            <div
+              key={`cv-${section.id}`}
+              style={{
+                contentVisibility: 'auto',
+                containIntrinsicSize: '1px 1000px',
+              }}
+            >
+              {renderSection(section)}
+            </div>
+          ))}
+        </main>
 
         {/* Footer */}
         {footerSections.map(renderSection)}

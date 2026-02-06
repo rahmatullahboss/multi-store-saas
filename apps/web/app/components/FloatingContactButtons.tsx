@@ -4,7 +4,8 @@
  * Reusable component for WhatsApp and Call floating buttons
  * Used in store templates when enabled in settings
  */
-import { Phone, MessageCircle } from 'lucide-react';
+import { Phone } from 'lucide-react';
+import { WhatsAppIcon } from '~/components/icons/WhatsAppIcon';
 
 interface FloatingContactButtonsProps {
   whatsappEnabled?: boolean;
@@ -65,7 +66,7 @@ export function FloatingContactButtons({
           title="WhatsApp এ মেসেজ করুন"
           aria-label="Chat on WhatsApp"
         >
-          <MessageCircle className="w-7 h-7 text-white" />
+          <WhatsAppIcon className="w-7 h-7 text-white" />
           {/* Pulse animation ring */}
           <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-25" />
         </a>

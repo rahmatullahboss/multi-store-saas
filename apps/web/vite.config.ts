@@ -47,6 +47,8 @@ export default defineConfig({
     // }),
   ],
   build: {
+    // Target modern browsers to reduce legacy polyfills/transforms
+    target: 'es2020',
     sourcemap: false, // Disable source maps in production for faster builds
     minify: true,
     rollupOptions: {
@@ -75,6 +77,9 @@ export default defineConfig({
         },
       },
     },
+  },
+  esbuild: {
+    target: 'es2020',
   },
   ssr: {
     resolve: {
@@ -115,5 +120,8 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['lucide-react'],
+    esbuildOptions: {
+      target: 'es2020',
+    },
   },
 });
