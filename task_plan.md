@@ -1,28 +1,35 @@
-# Task Plan: Fix Homepage Header Spacing
+# Task Plan: Integration of OpenLovable (landing.ozzyl.com)
 
 ## Goal
 
-Remove the unwanted space appearing above the header specifically on the homepage, ensuring consistency with other pages.
+Deploy a modified version of **OpenLovable** as a separate Cloudflare Worker/Pages application at `landing.ozzyl.com`.
 
 ## Success Criteria
 
-- [ ] Identified the source of the extra space on the homepage.
-- [ ] Removed or corrected the CSS/Layout logic causing the space.
-- [ ] Verified that the header is correctly positioned at the top on the homepage.
-- [ ] Verified that other pages remain unaffected.
+- [ ] `open-lovable` repo is cloned into `apps/landing-builder`.
+- [ ] Application runs on Cloudflare (Hono + React/Vite/Remix).
+- [ ] Deployed to `landing.ozzyl.com`.
+- [ ] Accessible via "Landing Page Builder" tab in Admin (`app.ozzyl.com`).
+- [ ] Authentication is secured.
 
 ## Phases
 
-### Phase 1: Context & Research
+### Phase 1: Setup & Context
 
-- [ ] [AGENT: Research Agent] [CONTEXT] Locate homepage route file (likely `store.home.tsx` or `_index.tsx`).
-- [ ] [AGENT: Research Agent] [CONTEXT] Inspect layout wrappers (e.g., `DarazPageWrapper`, root layout).
-- [ ] [AGENT: Research Agent] [RESEARCH] Check for conditional rendering of elements above the header (banners, spacers).
+- [x] [AGENT] Fetch Context7 docs for Firecrawl.
+- [x] [AGENT] Clone `firecrawl/open-lovable` repo.
+- [x] [AGENT] Audit `package.json` and API structure.
 
-### Phase 2: Implementation
+### Phase 2: Adaptation (Execution)
 
-- [ ] [AGENT: Coding Agent] [CODE] Apply fix to CSS or Component structure.
+- [x] [AGENT] Create `implementation_plan.md`.
+- [x] [AGENT] Config `wrangler.toml` for `landing.ozzyl.com`.
+- [x] [AGENT] Install `@cloudflare/next-on-pages` and update build scripts.
+- [ ] [AGENT] Verify E2B provider in `lib/sandbox`.
+- [ ] [AGENT] Refactor `create-ai-sandbox` to be stateless (E2B).
+- [ ] [AGENT] Refactor `generate-ai-code-stream` to use `Sandbox.connect`.
 
-### Phase 3: Verification
+### Phase 3: Integration
 
-- [ ] [AGENT: Testing Agent] [VERIFY] specific check of the fix.
+- [ ] [AGENT] Add navigation link in Main Admin.
+- [ ] [AGENT] Verify Auth flow.
