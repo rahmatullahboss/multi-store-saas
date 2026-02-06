@@ -236,7 +236,7 @@ html {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-950 rounded-xl overflow-hidden border border-gray-800">
+    <div className="flex flex-col h-full min-h-0 bg-gray-950 rounded-xl overflow-hidden border border-gray-800">
       {/* Toolbar */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-800 bg-gray-900/50">
         <div className="flex items-center gap-2">
@@ -295,14 +295,13 @@ html {
       </div>
 
       {/* Preview/Code Area */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 min-h-0 overflow-hidden">
         {showCode ? (
-          // Streaming Code View - Real-time line by line
-          <div className="h-full bg-gray-900 overflow-auto">
+          // Streaming Code View - Real-time line by line with scroll
+          <div className="h-full overflow-auto bg-gray-900">
             <pre 
               ref={codeDisplayRef}
               className="p-4 text-sm font-mono text-gray-300 whitespace-pre-wrap"
-              style={{ minHeight: '100%' }}
             >
               {processedCode || '// কোড এখানে দেখা যাবে...'}
               {isStreaming && (
@@ -311,21 +310,23 @@ html {
             </pre>
           </div>
         ) : (
-          <SandpackProvider
-            template="react"
-            theme="dark"
-            files={files}
-            options={{
-              externalResources: ['https://cdn.tailwindcss.com'],
-            }}
-          >
-            <SandpackPreview
-              showNavigator={false}
-              showRefreshButton={true}
-              showOpenInCodeSandbox={false}
-              style={{ height: '100%', minHeight: '500px' }}
-            />
-          </SandpackProvider>
+          <div className="h-full w-full">
+            <SandpackProvider
+              template="react"
+              theme="dark"
+              files={files}
+              options={{
+                externalResources: ['https://cdn.tailwindcss.com'],
+              }}
+            >
+              <SandpackPreview
+                showNavigator={false}
+                showRefreshButton={true}
+                showOpenInCodeSandbox={false}
+                style={{ height: '100%', width: '100%' }}
+              />
+            </SandpackProvider>
+          </div>
         )}
       </div>
 
