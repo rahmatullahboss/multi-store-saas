@@ -48,7 +48,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         body: JSON.stringify(visitPayload),
       });
 
-      await trackVisitAction({ request: visitRequest, context });
+      await trackVisitAction({ request: visitRequest, context, params: {} } as ActionFunctionArgs);
     }
 
     const cartEvents = events.filter((event) => event.type === 'cart');
@@ -71,7 +71,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         body: JSON.stringify(cartPayload),
       });
 
-      await trackCartAction({ request: cartRequest, context });
+      await trackCartAction({ request: cartRequest, context, params: {} } as ActionFunctionArgs);
     }
 
     return json({ success: true });

@@ -7,9 +7,20 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // CDN base URL for static assets in production
 // This serves JS/CSS/images from the main Pages domain, reducing Worker CPU usage
 const CDN_BASE_URL = '/';
+const IS_E2E = process.env.E2E === '1' || process.env.NODE_ENV === 'test' || !!process.env.CI;
 
 export default defineConfig({
   server: {
+    // Multi-tenant local dev + E2E:
+    // allow subdomain routing like http://mystore.localhost:5173
+    // (Vite otherwise blocks unknown Host headers).
+    host: true,
+    // Use env override for E2E to avoid port conflicts with an already-running dev server.
+    port: Number(process.env.PORT || 5173),
+    strictPort: true,
+    // Vite 5/6 host-check: allow *.localhost for tenant subdomains.
+    // Keep this tight (not "all") to avoid accidentally exposing dev server.
+    allowedHosts: ['.localhost', 'localhost', '127.0.0.1'],
     fs: {
       // Allow serving files from one level up to the project root
       allow: ['..'],
@@ -119,6 +130,8 @@ export default defineConfig({
     mainFields: ['browser', 'module', 'main'],
   },
   optimizeDeps: {
+    // E2E/dev-server reliability: refresh optimized deps to avoid "missing chunk" flakes.
+    ...(IS_E2E ? { force: true } : null),
     include: ['lucide-react'],
     esbuildOptions: {
       target: 'es2020',

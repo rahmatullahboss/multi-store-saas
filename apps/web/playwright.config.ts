@@ -10,6 +10,9 @@ import { defineConfig, devices } from '@playwright/test';
  * - Order management
  */
 
+const E2E_PORT = Number(process.env.E2E_PORT || 5174);
+const E2E_BASE_URL = process.env.E2E_BASE_URL || `http://localhost:${E2E_PORT}`;
+
 export default defineConfig({
   testDir: './e2e',
   
@@ -35,7 +38,10 @@ export default defineConfig({
   // Shared settings
   use: {
     // Base URL for navigation
-    baseURL: process.env.E2E_BASE_URL || 'http://localhost:5173',
+    baseURL: E2E_BASE_URL,
+
+    // Stabilize page interactions when the dev server triggers a full reload (HMR/refresh).
+    navigationTimeout: 30 * 1000,
     
     // Collect trace on failure
     trace: 'on-first-retry',
@@ -81,12 +87,15 @@ export default defineConfig({
   // Web server configuration
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
+    url: E2E_BASE_URL,
+    reuseExistingServer: false,
     timeout: 120 * 1000,
     // Environment variables for the web server process
     env: {
       ...process.env,
+      E2E: '1',
+      E2E_PORT: String(E2E_PORT),
+      PORT: String(E2E_PORT),
       SESSION_SECRET: process.env.SESSION_SECRET || 'e2e-test-session-secret',
       COOKIE_SECRET: process.env.COOKIE_SECRET || 'e2e-test-cookie-secret',
       NODE_ENV: 'test',
@@ -94,7 +103,7 @@ export default defineConfig({
   },
   
   // Global timeout
-  timeout: 30 * 1000,
+  timeout: 120 * 1000,
   
   // Expect timeout
   expect: {

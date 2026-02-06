@@ -307,7 +307,7 @@ function CinematicHero({
             srcSet={heroSrcSet}
             sizes="100vw"
             loading="eager"
-            fetchPriority="high"
+            {...({ fetchpriority: 'high' } as Record<string, unknown>)}
             decoding="async"
           />
         ) : (
@@ -1216,7 +1216,10 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
           <FloatingContactButtons
             whatsappEnabled={config?.floatingWhatsappEnabled}
             whatsappNumber={
-              config?.floatingWhatsappNumber || props.businessInfo?.phone || undefined
+              config?.floatingWhatsappNumber ||
+              props.socialLinks?.whatsapp ||
+              props.businessInfo?.phone ||
+              undefined
             }
             whatsappMessage={config?.floatingWhatsappMessage || undefined}
             callEnabled={config?.floatingCallEnabled}

@@ -9,6 +9,46 @@ import { eq } from 'drizzle-orm';
 import type { Database } from '~/lib/db.server';
 import type { D1Cache } from './cache-layer.server';
 
+function safeJsonParse<T>(value: string | null): T | null {
+  if (!value) return null;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Normalize ThemeConfig for MVP correctness:
+ * - Empty `sections: []` should behave like "unset" so templates can fall back to defaults.
+ * - Floating button flags defaulted to `false` in older configs; treat `false` as "unset"
+ *   unless the merchant explicitly provided a floating number (meaning they likely toggled it).
+ */
+function normalizeThemeConfig(themeConfig: any | null): any | null {
+  if (!themeConfig || typeof themeConfig !== 'object') return themeConfig;
+
+  // If the editor saved empty arrays, treat them as unset so storefront doesn't go blank.
+  if (Array.isArray(themeConfig.sections) && themeConfig.sections.length === 0) {
+    delete themeConfig.sections;
+  }
+
+  // Clean up empty string fields.
+  if (themeConfig.floatingWhatsappNumber === '') delete themeConfig.floatingWhatsappNumber;
+  if (themeConfig.floatingCallNumber === '') delete themeConfig.floatingCallNumber;
+  if (themeConfig.floatingWhatsappMessage === '') delete themeConfig.floatingWhatsappMessage;
+
+  // Backward-compat: old configs defaulted enabled flags to false even when merchant
+  // only set socialLinks/businessInfo. If no explicit floating number is set, treat false as unset.
+  if (themeConfig.floatingWhatsappEnabled === false && !themeConfig.floatingWhatsappNumber) {
+    delete themeConfig.floatingWhatsappEnabled;
+  }
+  if (themeConfig.floatingCallEnabled === false && !themeConfig.floatingCallNumber) {
+    delete themeConfig.floatingCallEnabled;
+  }
+
+  return themeConfig;
+}
+
 /**
  * Get store configuration with caching
  */
@@ -36,11 +76,11 @@ export async function getStoreConfig(db: Database, cache: D1Cache, storeId: numb
   // Parse JSON strings to objects for cleaner usage
   const config = {
     ...store,
-    themeConfig: store.themeConfig ? JSON.parse(store.themeConfig) : null,
-    businessInfo: store.businessInfo ? JSON.parse(store.businessInfo) : null,
-    shippingConfig: store.shippingConfig ? JSON.parse(store.shippingConfig) : null,
-    landingConfig: store.landingConfig ? JSON.parse(store.landingConfig) : null,
-    footerConfig: store.footerConfig ? JSON.parse(store.footerConfig) : null,
+    themeConfig: normalizeThemeConfig(safeJsonParse<any>(store.themeConfig)),
+    businessInfo: safeJsonParse<any>(store.businessInfo),
+    shippingConfig: safeJsonParse<any>(store.shippingConfig),
+    landingConfig: safeJsonParse<any>(store.landingConfig),
+    footerConfig: safeJsonParse<any>(store.footerConfig),
   };
   
   // 3. Cache the result (5 minutes)

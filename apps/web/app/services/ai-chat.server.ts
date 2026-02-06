@@ -296,20 +296,25 @@ export async function handleAiChatAction({ request, context }: ActionFunctionArg
       }
     } else {
       // Merchant Chat - Rate limited & credits checked
-      const requiredCredits = CREDIT_COSTS.CHAT;
-      const creditCheck = await requireCredits(db, user.id, requiredCredits);
+      const requiredCredits = CREDIT_COSTS.AI_CHAT_MESSAGE;
 
-      if (!creditCheck.ok) {
+      if (!user.storeId) {
+        return json({ error: 'Merchant store not found' }, { status: 400 });
+      }
+
+      const creditCheck = await requireCredits(db, user.storeId, requiredCredits, 'merchant');
+
+      if (!creditCheck.allowed) {
         return json(
           {
-            error: creditCheck.error || 'Insufficient credits',
-            code: 'INSUFFICIENT_CREDITS',
+            error: creditCheck.error,
+            code: creditCheck.code,
           },
-          { status: 402 }
+          { status: creditCheck.status }
         );
       }
 
-      const storeStats = user.storeId ? await getStoreStats(db, user.storeId) : null;
+      const storeStats = await getStoreStats(db, user.storeId);
 
       if (isMetricsQuestion(message)) {
         const lang = detectLanguage(message);
@@ -324,10 +329,6 @@ export async function handleAiChatAction({ request, context }: ActionFunctionArg
           suggestions,
         });
       } else {
-        if (!user.storeId) {
-          return json({ error: 'Merchant store not found' }, { status: 400 });
-        }
-
         response = await ai.chatWithMerchant(message, user.storeId, {
           role: user.role,
           userName: user.name || 'Merchant',
@@ -338,7 +339,9 @@ export async function handleAiChatAction({ request, context }: ActionFunctionArg
       }
 
       // Deduct credits
-      const deductResult = await chargeCredits(db, user.id, requiredCredits);
+      const deductResult = await chargeCredits(db, user.storeId, requiredCredits, 'AI chat message', {
+        feature: 'AI_CHAT_MESSAGE',
+      });
       if (!deductResult.success) {
         return json(
           {

@@ -314,11 +314,18 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     const url = new URL(request.url);
     const productUrl = `${url.protocol}//${url.host}/products/${product.id}`;
 
-    const shippingInfo = productDetails.shippingInfo
-      ? productDetails.shippingInfo
-      : shippingConfig && shippingConfig.enabled !== false
-        ? `Shipping inside Dhaka: ${store?.currency || 'BDT'} ${shippingConfig.insideDhaka ?? 60}. Outside Dhaka: ${store?.currency || 'BDT'} ${shippingConfig.outsideDhaka ?? 120}.${shippingConfig.freeShippingAbove ? ` Free shipping above ${store?.currency || 'BDT'} ${shippingConfig.freeShippingAbove}.` : ''}`
-        : null;
+    // MVP rule:
+    // - If product-level shipping info exists => use it
+    // - Else if store-level custom shipping policy exists => use it
+    // - Else if simplified shippingConfig enabled => show the computed summary
+    const shippingInfo =
+      (productDetails.shippingInfo && productDetails.shippingInfo.trim().length > 0
+        ? productDetails.shippingInfo
+        : store?.customShippingPolicy && store.customShippingPolicy.trim().length > 0
+          ? store.customShippingPolicy
+          : shippingConfig && shippingConfig.enabled !== false
+            ? `Shipping inside Dhaka: ${store?.currency || 'BDT'} ${shippingConfig.insideDhaka ?? 60}. Outside Dhaka: ${store?.currency || 'BDT'} ${shippingConfig.outsideDhaka ?? 120}.${shippingConfig.freeShippingAbove ? ` Free shipping above ${store?.currency || 'BDT'} ${shippingConfig.freeShippingAbove}.` : ''}`
+            : null) ?? null;
 
     const responseData = {
       product: {

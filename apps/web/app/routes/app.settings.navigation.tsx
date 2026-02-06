@@ -88,13 +88,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
   const footerDescription = footerDescriptionParsed.data;
 
-  let headerMenu: ThemeConfig['headerMenu'] = defaultThemeConfig.headerMenu || [];
+  let headerMenu: NonNullable<ThemeConfig['headerMenu']> = defaultThemeConfig.headerMenu ?? [];
   let footerColumns: ThemeConfig['footerColumns'] = defaultThemeConfig.footerColumns || [];
 
   if (menuJson) {
     try {
       const parsed = JSON.parse(menuJson) as Array<any>;
-      const sanitizeMenu = (items: Array<any>, depth = 1): ThemeConfig['headerMenu'] => {
+      const sanitizeMenu = (
+        items: Array<any>,
+        depth = 1
+      ): NonNullable<ThemeConfig['headerMenu']> => {
         if (depth > MAX_DEPTH) return [];
         return items
           .map(item => ({

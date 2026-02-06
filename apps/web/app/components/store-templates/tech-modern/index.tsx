@@ -15,9 +15,7 @@ import { useCartCount } from '~/hooks/useCartCount';
 import { useProductPrice } from '~/hooks/useProductPrice';
 import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
 import { WishlistProvider } from '~/contexts/WishlistContext';
-
-// Placeholder registry to fix build errors - should be replaced with actual registry import
-const SECTION_REGISTRY: Record<string, { component: any }> = {};
+import { SECTION_REGISTRY } from '~/components/store-sections/registry';
 
 import { useState, useCallback, createContext, useContext, useMemo, useEffect } from 'react';
 import { Link } from '@remix-run/react';
@@ -882,7 +880,9 @@ function LiveTechModernHomepage({
 
               {/* Dynamic Sections */}
               {(
-                config?.sections ?? [
+                config?.sections?.length
+                  ? config.sections
+                  : [
                   {
                     id: 'hero',
                     type: 'hero',
@@ -1089,7 +1089,12 @@ function LiveTechModernHomepage({
               {!isPreview && (
                 <FloatingContactButtons
                   whatsappEnabled={config?.floatingWhatsappEnabled}
-                  whatsappNumber={config?.floatingWhatsappNumber || businessInfo?.phone || undefined}
+                  whatsappNumber={
+                    config?.floatingWhatsappNumber ||
+                    socialLinks?.whatsapp ||
+                    businessInfo?.phone ||
+                    undefined
+                  }
                   whatsappMessage={config?.floatingWhatsappMessage || undefined}
                   callEnabled={config?.floatingCallEnabled}
                   callNumber={config?.floatingCallNumber || businessInfo?.phone || undefined}

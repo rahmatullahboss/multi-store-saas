@@ -299,7 +299,7 @@ function StorePageWrapperComponent({
       text: resolvedTheme.text,
       muted: resolvedTheme.muted,
       cardBg: resolvedTheme.cardBg,
-      border: resolvedTheme.cardBorder,
+      border: resolvedTheme.cardBorder ?? 'rgba(0,0,0,0.08)',
     }),
     [
       resolvedTheme.primary,
@@ -373,7 +373,12 @@ function StorePageWrapperComponent({
         {!isPreview && !hideHeaderFooter && (
           <FloatingContactButtons
             whatsappEnabled={config?.floatingWhatsappEnabled}
-            whatsappNumber={config?.floatingWhatsappNumber || businessInfo?.phone || undefined}
+            whatsappNumber={
+              config?.floatingWhatsappNumber ||
+              socialLinks?.whatsapp ||
+              businessInfo?.phone ||
+              undefined
+            }
             whatsappMessage={config?.floatingWhatsappMessage || undefined}
             callEnabled={config?.floatingCallEnabled}
             callNumber={config?.floatingCallNumber || businessInfo?.phone || undefined}

@@ -55,7 +55,9 @@ const mockDb = vi.hoisted(() => ({
 }));
 
 vi.mock('~/services/auth.server', () => ({
-  getSession: async () => ({ storeId: 1 }),
+  getSession: async () => ({
+    get: (key: string) => (key === 'storeId' ? 1 : undefined),
+  }),
 }));
 vi.mock('drizzle-orm/d1', () => ({
   drizzle: () => mockDb,

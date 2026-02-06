@@ -48,6 +48,11 @@ import { useTranslation } from '~/contexts/LanguageContext';
 import { formatPrice } from '~/utils/formatPrice';
 import { logActivity } from '~/lib/activity.server';
 import { dispatchWebhook } from '~/services/webhook.server';
+import {
+  type OrderStatus,
+  isOrderStatus,
+  assertOrderStatusTransition,
+} from '~/lib/orderStatus';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [{ title: data?.order ? `Order ${data.order.orderNumber}` : 'Order Details' }];
@@ -356,21 +361,12 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   }
 
   // Handle status update (default)
-  const status = formData.get('status') as string;
+  const statusRaw = formData.get('status');
 
-  if (
-    ![
-      'pending',
-      'confirmed',
-      'processing',
-      'shipped',
-      'delivered',
-      'cancelled',
-      'returned',
-    ].includes(status)
-  ) {
+  if (!isOrderStatus(statusRaw)) {
     return json({ error: 'Invalid status' }, { status: 400 });
   }
+  const status: OrderStatus = statusRaw;
 
   // Fetch order before update to check if we need to send email or manage inventory
   const orderResult = await db
@@ -384,7 +380,16 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   }
 
   const order = orderResult[0];
-  const previousStatus = order.status;
+  const previousStatus = (order.status || 'pending') as OrderStatus;
+
+  try {
+    assertOrderStatusTransition(previousStatus, status);
+  } catch (err) {
+    return json(
+      { error: err instanceof Error ? err.message : 'Invalid status transition' },
+      { status: 400 }
+    );
+  }
 
   const isCancelled = ['cancelled', 'returned'].includes(status);
   const wasCancelled = ['cancelled', 'returned'].includes(previousStatus || '');
@@ -470,7 +475,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   await db
     .update(orders)
     .set({
-      status: status as 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled',
+      status,
       updatedAt: new Date(),
     })
     .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
@@ -550,7 +555,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   }
 
   // Send shipping notification if status changed to shipped/delivered and customer has email
-  const shippingStatuses = ['shipped', 'out_for_delivery', 'delivered'];
+  const shippingStatuses: OrderStatus[] = ['shipped', 'delivered'];
   if (shippingStatuses.includes(status) && previousStatus !== status && order.customerEmail) {
     const resendApiKey = context.cloudflare.env.RESEND_API_KEY;
 
@@ -575,7 +580,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           customerName: order.customerName || 'Valued Customer',
           orderNumber: order.orderNumber || `#${orderId}`,
           storeName,
-          status: status as 'shipped' | 'out_for_delivery' | 'delivered',
+          status: status as 'shipped' | 'delivered',
           trackingNumber: order.courierConsignmentId || undefined,
           trackingUrl: order.courierConsignmentId
             ? `https://${storeName.toLowerCase().replace(/\s+/g, '')}.ozzyl.com/track/${order.courierConsignmentId}`

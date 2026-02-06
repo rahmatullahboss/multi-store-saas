@@ -904,7 +904,7 @@ function LiveLuxeBoutiqueHomepage({
               />
 
               {/* ==================== DYNAMIC SECTIONS ==================== */}
-              {(config?.sections ?? DEFAULT_SECTIONS).map((section: any) => {
+              {(config?.sections?.length ? config.sections : DEFAULT_SECTIONS).map((section: any) => {
                 const SectionComponent = SECTION_REGISTRY[section.type]?.component;
                 if (!SectionComponent) return null;
 
@@ -1065,7 +1065,10 @@ function LiveLuxeBoutiqueHomepage({
                 <FloatingContactButtons
                   whatsappEnabled={config?.floatingWhatsappEnabled}
                   whatsappNumber={
-                    config?.floatingWhatsappNumber || businessInfo?.phone || undefined
+                    config?.floatingWhatsappNumber ||
+                    socialLinks?.whatsapp ||
+                    businessInfo?.phone ||
+                    undefined
                   }
                   whatsappMessage={config?.floatingWhatsappMessage || undefined}
                   callEnabled={config?.floatingCallEnabled}

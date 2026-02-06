@@ -251,16 +251,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     const now = new Date();
-    await db.batch(
-      productsToUpdate.map((product) => {
+    const updateQueries = productsToUpdate.map((product) => {
         const currentStock = product.inventory || 0;
         const newStock = Math.max(0, currentStock + adjustment);
         return db
           .update(products)
           .set({ inventory: newStock, updatedAt: now })
           .where(and(eq(products.id, product.id), eq(products.storeId, storeId)));
-      })
-    );
+      });
+    // Drizzle's D1 batch typing expects a non-empty tuple; we already guard length at runtime.
+    await db.batch(updateQueries as any);
 
     await Promise.all(
       productsToUpdate.map((product) => {
@@ -330,14 +330,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     const now = new Date();
-    await db.batch(
-      normalizedItems.map((item) =>
-        db
-          .update(products)
-          .set({ inventory: Math.max(0, item.previousStock), updatedAt: now })
-          .where(and(eq(products.id, item.productId), eq(products.storeId, storeId)))
-      )
+    const undoQueries = normalizedItems.map((item) =>
+      db
+        .update(products)
+        .set({ inventory: Math.max(0, item.previousStock), updatedAt: now })
+        .where(and(eq(products.id, item.productId), eq(products.storeId, storeId)))
     );
+    // Drizzle's D1 batch typing expects a non-empty tuple; we already guard length at runtime.
+    await db.batch(undoQueries as any);
 
     await Promise.all(
       normalizedItems.map((item) =>
@@ -460,11 +460,15 @@ export default function InventoryPage() {
   }, [lowStockThreshold]);
 
   useEffect(() => {
-    if (actionData?.undoItems?.length) {
-      setUndoItems(actionData.undoItems);
+    // Action payload varies by intent; safely narrow before reading optional fields.
+    const data = actionData as unknown;
+    if (!data || typeof data !== 'object') return;
+    const maybe = data as { undoItems?: unknown; success?: unknown };
+    if (Array.isArray(maybe.undoItems) && maybe.undoItems.length) {
+      setUndoItems(maybe.undoItems as any);
       return;
     }
-    if (actionData?.success) {
+    if (maybe.success === true) {
       setUndoItems([]);
     }
   }, [actionData]);
@@ -559,20 +563,32 @@ export default function InventoryPage() {
   }, [storeProducts]);
 
   const parsedStockChanges = useMemo(() => {
+    type StockChangeDetails = {
+      productTitle?: string;
+      delta?: number;
+      before?: number;
+      after?: number;
+      source?: string;
+    };
+
     return recentStockChanges.map((log) => {
-      let details: Record<string, unknown> | null = null;
+      let details: StockChangeDetails | null = null;
       if (log.details) {
         try {
-          details = JSON.parse(log.details) as Record<string, unknown>;
+          details = JSON.parse(log.details) as StockChangeDetails;
         } catch {
           details = null;
         }
       }
+
+      const productTitleFromDetails =
+        typeof details?.productTitle === 'string' ? details.productTitle : null;
+
       return {
         ...log,
         details,
         title:
-        details?.productTitle ||
+          productTitleFromDetails ||
           (log.entityId ? productTitleMap.get(log.entityId) : null) ||
           t('inventoryUnknownProduct'),
       };
@@ -984,7 +1000,7 @@ export default function InventoryPage() {
                   </p>
                 </div>
                 <div className="text-sm font-semibold tabular-nums text-gray-700">
-                  {log.details?.delta !== undefined && (
+                  {typeof log.details?.delta === 'number' && (
                     <span className={log.details.delta >= 0 ? 'text-emerald-600' : 'text-red-600'}>
                       {log.details.delta >= 0 ? '+' : ''}
                       {log.details.delta}

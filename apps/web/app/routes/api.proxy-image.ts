@@ -1,33 +1,45 @@
 import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
 
+const DEFAULT_CACHE_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days at edge
+
+function isAllowedImageHost(hostname: string) {
+  // Prevent SSRF/open-proxy abuse. Expand this list intentionally.
+  if (hostname === 'images.unsplash.com') return true;
+  if (hostname.endsWith('.r2.dev')) return true;
+  if (hostname.endsWith('.ozzyl.com')) return true;
+  return false;
+}
+
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const imageUrl = url.searchParams.get('url');
-  const width = Number(url.searchParams.get('w') || 0);
-  const height = Number(url.searchParams.get('h') || 0);
-  const quality = Number(url.searchParams.get('q') || 75);
+  // NOTE: We keep these params for forward-compat, but we DO NOT use CF Image Resizing here
+  // because it may require paid features. Images should be optimized client-side before upload.
+  // const width = Number(url.searchParams.get('w') || 0);
+  // const height = Number(url.searchParams.get('h') || 0);
+  // const quality = Number(url.searchParams.get('q') || 75);
 
   if (!imageUrl) {
     return new Response('Missing url parameter', { status: 400 });
   }
 
   try {
-    const safeWidth = Number.isFinite(width) && width > 0 ? Math.min(Math.floor(width), 2400) : undefined;
-    const safeHeight = Number.isFinite(height) && height > 0 ? Math.min(Math.floor(height), 2400) : undefined;
-    const safeQuality = Number.isFinite(quality) && quality > 10 ? Math.min(Math.floor(quality), 95) : 75;
+    const parsed = new URL(imageUrl);
+    if (parsed.protocol !== 'https:') {
+      return new Response('Only https URLs are allowed', { status: 400 });
+    }
+    if (!isAllowedImageHost(parsed.hostname)) {
+      return new Response('Image host not allowed', { status: 403 });
+    }
 
-    const imageResponse = await fetch(imageUrl, {
-      cf: {
-        image: {
-          width: safeWidth,
-          height: safeHeight,
-          fit: 'cover',
-          quality: safeQuality,
-          format: 'auto',
-          metadata: 'none',
-        },
+    const imageResponse = await fetch(parsed.toString(), {
+      // Wrangler/Workers typing for `cf` varies; cast to keep strict TS happy.
+      cf: { cacheEverything: true, cacheTtl: DEFAULT_CACHE_TTL_SECONDS } as any,
+      headers: {
+        // Preserve Accept so origin can content-negotiate (e.g. WebP/AVIF).
+        accept: request.headers.get('accept') || '*/*',
       },
-    });
+    } as any);
     
     if (!imageResponse.ok) {
       return new Response(`Failed to fetch image: ${imageResponse.statusText}`, { 
@@ -42,7 +54,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       headers: {
         'Content-Type': contentType,
         'Access-Control-Allow-Origin': '*',
-        'Cache-Control': 'public, s-maxage=31536000, max-age=86400, stale-while-revalidate=604800',
+        'Cache-Control': `public, s-maxage=${DEFAULT_CACHE_TTL_SECONDS}, max-age=86400, stale-while-revalidate=604800`,
       },
     });
   } catch (error) {

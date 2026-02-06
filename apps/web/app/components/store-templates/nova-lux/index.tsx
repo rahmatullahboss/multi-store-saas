@@ -510,7 +510,7 @@ function PreviewHomePage({
             srcSet={heroSrcSet}
             sizes="100vw"
             loading="eager"
-            fetchPriority="high"
+            {...({ fetchpriority: 'high' } as Record<string, unknown>)}
             decoding="async"
           />
         )}
@@ -796,7 +796,7 @@ function LiveNovaLuxHomepage({
                 className={`${announcement?.text ? 'h-[104px] lg:h-[120px]' : 'h-[66px] lg:h-[82px]'}`}
               />
 
-              {(config?.sections ?? DEFAULT_SECTIONS).map((section: SectionInstance) => {
+              {(config?.sections?.length ? config.sections : DEFAULT_SECTIONS).map((section: SectionInstance) => {
                 const SectionComponent = SECTION_REGISTRY[section.type]?.component;
                 if (!SectionComponent) return null;
 
@@ -824,7 +824,12 @@ function LiveNovaLuxHomepage({
               {!isPreview && (
                 <FloatingContactButtons
                   whatsappEnabled={config?.floatingWhatsappEnabled}
-                  whatsappNumber={config?.floatingWhatsappNumber || businessInfo?.phone || undefined}
+                  whatsappNumber={
+                    config?.floatingWhatsappNumber ||
+                    socialLinks?.whatsapp ||
+                    businessInfo?.phone ||
+                    undefined
+                  }
                   whatsappMessage={config?.floatingWhatsappMessage || undefined}
                   callEnabled={config?.floatingCallEnabled}
                   callNumber={config?.floatingCallNumber || businessInfo?.phone || undefined}

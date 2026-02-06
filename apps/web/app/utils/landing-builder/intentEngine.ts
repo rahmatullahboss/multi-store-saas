@@ -171,14 +171,14 @@ export function selectOptimalTemplate(intent: Intent): string {
   const templateMap: Record<string, Record<string, string>> = {
     facebook: {
       direct_sales: 'flash-sale',      // Urgency focused
-      lead_whatsapp: 'modern-dark',    // Clean, modern dark theme
+      lead_whatsapp: 'mobile-first',   // High conversion on mobile + WhatsApp
     },
     tiktok: {
       direct_sales: 'video-focus',     // Video-first design
       lead_whatsapp: 'social-proof-style', // WhatsApp style fit
     },
     organic: {
-      direct_sales: 'trust-first',     // Trust building for organic
+      direct_sales: 'premium-bd',      // Long-form, trust + details (default MVP template)
       lead_whatsapp: 'story-driven',   // Narrative approach
     },
   };
@@ -197,6 +197,8 @@ export function getTemplateSuggestions(intent: Intent): string[] {
     'tech-ultra',
     'flash-sale',
     'organic',
+    'premium-bd',
+    'mobile-first',
     'modern-dark',
     'minimal-clean',
     'video-focus',
@@ -214,19 +216,21 @@ export function getTemplateSuggestions(intent: Intent): string[] {
   const suggestions = [primary];
   
   if (intent.trafficSource === 'facebook') {
-    suggestions.push('flash-sale', 'social-proof-style');
+    // Make sure we always return 3 unique suggestions even when `primary` is already `flash-sale`.
+    suggestions.push('social-proof-style', 'premium-bd');
   } else if (intent.trafficSource === 'tiktok') {
     suggestions.push('video-focus', 'modern-dark');
   } else {
-    suggestions.push('minimal-clean', 'story-driven');
+    suggestions.push('trust-first', 'minimal-clean');
   }
 
   // Ensure unique and max 3
-  // return Array.from(new Set(suggestions)).slice(0, 3);
-  
-  // NEW: Return ALL templates, but prioritize suggestions at the top
-  const finalSuggestions = Array.from(new Set([...suggestions, ...allTemplates]));
-  return finalSuggestions;
+  const unique = Array.from(new Set(suggestions));
+  for (const t of allTemplates) {
+    if (unique.length >= 3) break;
+    if (!unique.includes(t)) unique.push(t);
+  }
+  return unique.slice(0, 3);
 }
 
 /**

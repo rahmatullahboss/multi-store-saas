@@ -85,7 +85,9 @@ describe('Flash Sale Persistence (Theme Switch)', () => {
     currency: 'USD',
     socialLinks: {},
     businessInfo: {},
-    isPreview: true
+    // Use live mode so templates render from provided `products` and `useProductPrice` mock.
+    // Preview mode uses demo data and can drift from pricing/flash-sale expectations.
+    isPreview: false
   };
 
   it('renders flash sale discount in TechModern theme', () => {

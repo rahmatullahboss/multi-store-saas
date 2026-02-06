@@ -38,7 +38,8 @@ export function StarterStoreFooter({
 }: StarterStoreFooterProps) {
   const { t } = useTranslation();
   const validCategories = categories.filter(Boolean).slice(0, 6) as string[];
-  const showPoweredBy = true; // Enforce Ozzyl branding globally
+  // Free plan: always show branding. Paid plans: merchant can toggle (MVP).
+  const showPoweredBy = planType === 'free' ? true : (_footerConfig?.showPoweredBy ?? true);
 
   // Default business info for preview
   const defaultBusinessInfo = {

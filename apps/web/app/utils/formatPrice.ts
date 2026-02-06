@@ -45,7 +45,14 @@ export function formatPrice(price: number, options: FormatPriceOptions = {}): st
   try {
     if (showSymbol && isBDT) {
       // For BDT, use simple ৳ symbol instead of "BDT" text from Intl
-      return `৳${priceInUnits.toLocaleString('bn-BD')}`;
+      // Use Intl explicitly so we can force Latin numerals via `numberingSystem`,
+      // even in environments where `toLocaleString()` may ignore Unicode extensions.
+      const formattedNumber = new Intl.NumberFormat(intlLocale, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+        numberingSystem: 'latn',
+      }).format(priceInUnits);
+      return `৳${formattedNumber}`;
     }
 
     const formatted = new Intl.NumberFormat(intlLocale, {

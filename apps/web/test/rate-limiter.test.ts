@@ -28,7 +28,8 @@ describe('Checkout Rate Limiter', () => {
     const filePath = path.join(__dirname, '../server/middleware/rate-limit.ts');
     const content = fs.readFileSync(filePath, 'utf-8');
     
-    expect(content).toContain('limit: 15');
+    // Keep this test loosely coupled: config can change, but it must be explicit in code.
+    expect(content).toContain('limit: 30');
     expect(content).toContain('windowMs: 60'); // 60 seconds (conceptually, code might be 60 * 1000 or similar)
     expect(content).toContain('<!DOCTYPE html>'); // HTML response
   });

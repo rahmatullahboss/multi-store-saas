@@ -160,10 +160,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     .where(eq(stores.id, storeId))
     .limit(1);
 
-  let themeConfig: Record<string, unknown> = {};
+  let themeConfig: (Record<string, unknown> & { courier?: CourierSettings }) = {};
   if (storeResult[0]?.themeConfig) {
     try {
-      themeConfig = JSON.parse(storeResult[0].themeConfig);
+      themeConfig = JSON.parse(storeResult[0].themeConfig) as Record<string, unknown> & {
+        courier?: CourierSettings;
+      };
     } catch {
       themeConfig = {};
     }
@@ -190,7 +192,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
     };
 
     if (provider === 'pathao') {
-      const existingPathao = currentSettings.pathao || {};
+      const existingPathao = (currentSettings.pathao ?? {}) as Partial<
+        NonNullable<CourierSettings['pathao']>
+      >;
       const parsedPathao = PathaoInputSchema.safeParse({
         clientId: formData.get('clientId'),
         clientSecret: formData.get('clientSecret') || undefined,
@@ -216,7 +220,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         defaultStoreId: parsedPathao.data.defaultStoreId,
       };
     } else if (provider === 'redx') {
-      const existingRedx = currentSettings.redx || {};
+      const existingRedx = (currentSettings.redx ?? {}) as Partial<
+        NonNullable<CourierSettings['redx']>
+      >;
       const parsedRedx = ApiCredentialSchema.safeParse({
         apiKey: formData.get('apiKey'),
         secretKey: formData.get('secretKey') || undefined,
@@ -231,7 +237,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         secretKey: newSecretKey ? newSecretKey : (existingRedx.secretKey || ''),
       };
     } else if (provider === 'steadfast') {
-      const existingSteadfast = currentSettings.steadfast || {};
+      const existingSteadfast = (currentSettings.steadfast ?? {}) as Partial<
+        NonNullable<CourierSettings['steadfast']>
+      >;
       const parsedSteadfast = ApiCredentialSchema.safeParse({
         apiKey: formData.get('apiKey'),
         secretKey: formData.get('secretKey') || undefined,
@@ -306,6 +314,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
         if (connected) {
           // Update connection status
+          themeConfig.courier = courierSettings;
           themeConfig.courier.isConnected = true;
           await db
             .update(stores)

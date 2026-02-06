@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from '@remix-run/react';
 import { ShoppingCart, Star, ShieldCheck, Truck, Cpu, ChevronRight } from 'lucide-react';
 import type { SerializedProduct } from '~/templates/store-registry';
@@ -7,7 +7,12 @@ import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { formatPrice } from '~/lib/theme-engine';
 
 interface TechProductProps {
-  product: SerializedProduct;
+  product: SerializedProduct & {
+    specifications?: Record<string, string>;
+    shippingInfo?: string | null;
+    returnPolicy?: string | null;
+    reviews?: { average: number; count: number };
+  };
   currency: string;
   relatedProducts?: SerializedProduct[];
   isPreview?: boolean;
@@ -24,6 +29,9 @@ export function TechModernProductPage({
   onNavigate,
 }: TechProductProps) {
   const [selectedImage, setSelectedImage] = useState(0);
+  const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'shipping' | 'reviews'>(
+    'description'
+  );
   const currencySymbol = currency === 'BDT' ? '৳' : '$';
 
   // Helper for navigation
@@ -34,15 +42,37 @@ export function TechModernProductPage({
     }
   };
 
-  // Mock specs if not in DB
-  const specs = [
-    { label: 'Brand', value: 'TechBrand' },
-    { label: 'Warranty', value: '1 Year Official' },
-    { label: 'Model', value: `TM-${product.id}X` },
-    { label: 'Availability', value: 'In Stock' },
-  ];
+  const specifications = product.specifications || {};
+  const hasSpecifications = Object.keys(specifications).length > 0;
+  const hasShipping = Boolean(
+    (product.shippingInfo && product.shippingInfo.trim().length > 0) ||
+      (product.returnPolicy && product.returnPolicy.trim().length > 0)
+  );
+  const hasReviews = Boolean(product.reviews && product.reviews.count > 0);
+
+  const tabs = useMemo(() => {
+    const next: Array<{
+      id: 'description' | 'specifications' | 'shipping' | 'reviews';
+      label: string;
+    }> = [{ id: 'description', label: 'Description' }];
+    if (hasSpecifications) next.push({ id: 'specifications', label: 'Specifications' });
+    if (hasShipping) next.push({ id: 'shipping', label: 'Shipping & Returns' });
+    if (hasReviews) next.push({ id: 'reviews', label: `Reviews (${product.reviews?.count || 0})` });
+    return next;
+  }, [hasSpecifications, hasShipping, hasReviews, product.reviews?.count]);
+
+  // Keep active tab valid when tabs change (e.g. when data becomes absent).
+  useEffect(() => {
+    if (tabs.length === 0) return;
+    if (!tabs.some((t) => t.id === activeTab)) {
+      setActiveTab(tabs[0].id);
+    }
+  }, [activeTab, tabs]);
 
   const images = product.imageUrl ? [product.imageUrl] : [];
+  const isInStock = product.inventory == null ? true : product.inventory > 0;
+  const rating = product.reviews?.average;
+  const reviewCount = product.reviews?.count;
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-[#0f172a] font-sans pb-12">
@@ -96,13 +126,19 @@ export function TechModernProductPage({
                 {product.title}
               </h1>
               <div className="flex items-center gap-4 mt-3">
-                <div className="flex items-center bg-blue-50 px-2 py-1 rounded text-blue-700 text-xs font-bold">
-                  <Star className="w-3 h-3 fill-current mr-1" />
-                  4.8
-                </div>
-                <span className="text-sm text-gray-500">124 Reviews</span>
-                <span className="text-gray-300">|</span>
-                <span className="text-sm text-green-600 font-medium">In Stock</span>
+                {typeof rating === 'number' && typeof reviewCount === 'number' && (
+                  <>
+                    <div className="flex items-center bg-blue-50 px-2 py-1 rounded text-blue-700 text-xs font-bold">
+                      <Star className="w-3 h-3 fill-current mr-1" />
+                      {rating.toFixed(1)}
+                    </div>
+                    <span className="text-sm text-gray-500">{reviewCount} Reviews</span>
+                    <span className="text-gray-300">|</span>
+                  </>
+                )}
+                <span className={`text-sm font-medium ${isInStock ? 'text-green-600' : 'text-red-600'}`}>
+                  {isInStock ? 'In Stock' : 'Out of Stock'}
+                </span>
               </div>
             </div>
 
@@ -121,21 +157,23 @@ export function TechModernProductPage({
               <p className="text-xs text-gray-500 mt-2">+ VAT included where applicable</p>
             </div>
 
-            {/* Specs Table */}
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-              <table className="w-full text-sm text-left">
-                <tbody>
-                  {specs.map((spec, idx) => (
-                    <tr key={idx} className="border-b last:border-0 border-gray-100">
-                      <td className="py-2 px-4 bg-gray-50 font-medium text-gray-600 w-1/3">
-                        {spec.label}
-                      </td>
-                      <td className="py-2 px-4 text-gray-800">{spec.value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            {/* Specs Table (only when real data exists) */}
+            {hasSpecifications && (
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <table className="w-full text-sm text-left">
+                  <tbody>
+                    {Object.entries(specifications).map(([label, value]) => (
+                      <tr key={label} className="border-b last:border-0 border-gray-100">
+                        <td className="py-2 px-4 bg-gray-50 font-medium text-gray-600 w-1/3">
+                          {label}
+                        </td>
+                        <td className="py-2 px-4 text-gray-800">{value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {/* Features List */}
             <ul className="space-y-2 text-sm text-gray-600">
@@ -195,16 +233,78 @@ export function TechModernProductPage({
           </div>
         </div>
 
-        {/* Description & Details */}
-        <div className="mt-12 bg-white p-6 md:p-8 rounded-xl border border-gray-200">
-          <h2 className="text-xl font-bold mb-6 border-b pb-2 border-gray-100">
-            Product Description
-          </h2>
-          <div className="prose max-w-none text-gray-600">
-            {product.description ? (
-              <div dangerouslySetInnerHTML={{ __html: product.description }} />
-            ) : (
-              <p>No description available for this product.</p>
+        {/* Details Tabs (real data only; no demo placeholders) */}
+        <div className="mt-12 bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="flex flex-wrap gap-2 px-4 pt-4 border-b border-gray-100">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2 text-sm font-semibold rounded-t-lg border-b-2 transition-colors ${
+                  activeTab === tab.id
+                    ? 'text-blue-700 border-blue-600'
+                    : 'text-gray-500 border-transparent hover:text-gray-800'
+                }`}
+                type="button"
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="p-6 md:p-8">
+            {activeTab === 'description' && (
+              <div className="prose max-w-none text-gray-600">
+                {product.description ? (
+                  <div dangerouslySetInnerHTML={{ __html: product.description }} />
+                ) : (
+                  <p>No description available for this product.</p>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'specifications' && hasSpecifications && (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <tbody>
+                    {Object.entries(specifications).map(([key, value]) => (
+                      <tr key={key} className="border-b last:border-0 border-gray-100">
+                        <td className="py-3 pr-4 font-semibold text-gray-700 w-1/3">{key}</td>
+                        <td className="py-3 text-gray-600">{value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {activeTab === 'shipping' && hasShipping && (
+              <div className="space-y-6 text-gray-600">
+                {product.shippingInfo && product.shippingInfo.trim().length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900 mb-2">Shipping</h3>
+                    <p className="whitespace-pre-line">{product.shippingInfo}</p>
+                  </div>
+                )}
+                {product.returnPolicy && product.returnPolicy.trim().length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900 mb-2">Returns</h3>
+                    <p className="whitespace-pre-line">{product.returnPolicy}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'reviews' && hasReviews && (
+              <div className="text-gray-600">
+                <p>
+                  Average rating: <span className="font-semibold text-gray-900">{rating?.toFixed(1)}</span> / 5
+                </p>
+                <p>Total reviews: <span className="font-semibold text-gray-900">{reviewCount}</span></p>
+                <p className="mt-3 text-sm text-gray-500">
+                  Detailed review list UI is available in the shared product page; Tech Modern currently shows summary only.
+                </p>
+              </div>
             )}
           </div>
         </div>

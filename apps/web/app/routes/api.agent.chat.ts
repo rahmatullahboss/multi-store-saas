@@ -6,7 +6,7 @@ export async function action({ request }: ActionFunctionArgs) {
     return json({ error: 'Method not allowed' }, { status: 405 });
   }
 
-  const payload = await request.json().catch(() => ({}));
+  const payload = (await request.json().catch(() => ({}))) as Record<string, unknown>;
   const upstreamUrl = new URL('/api/ai-orchestrator', request.url);
   const upstream = await fetch(upstreamUrl, {
     method: 'POST',

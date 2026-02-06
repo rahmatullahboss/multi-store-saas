@@ -106,6 +106,7 @@ const navItems = [
   { to: '/admin/audit-logs', label: 'Audit Logs', icon: History },
   { to: '/admin/health', label: 'System Health', icon: Activity },
   { to: '/admin/tutorials', label: 'Tutorials', icon: BookOpen },
+  { to: 'https://ai-builder-rouge.vercel.app', label: 'Landing Builder', icon: LayoutDashboard },
 ];
 
 // ============================================================================

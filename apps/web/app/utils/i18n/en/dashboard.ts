@@ -152,6 +152,7 @@ export const dashboard = {
   // navPlans already defined
   navPageBuilder: 'Advanced Builder (WIP)',
   navPageBuilderV2: 'New Landing Builder',
+  navLandingBuilder: 'AI Landing Builder',
   navStoreTemplates: 'Store Design',
   navHomepage: 'Homepage Settings',
   navShipping: 'Shipping',

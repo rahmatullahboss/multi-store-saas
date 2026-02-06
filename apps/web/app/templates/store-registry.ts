@@ -123,6 +123,8 @@ export interface StoreTemplateTheme {
   text: string;
   muted: string;
   cardBg: string;
+  /** Optional border color used by some shared UI (fallbacks applied when missing). */
+  cardBorder?: string;
   headerBg: string;
   footerBg: string;
   footerText: string;

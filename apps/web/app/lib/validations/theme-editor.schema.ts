@@ -202,14 +202,16 @@ export const themeEditorFormSchema = z.object({
   footerColumns: footerColumnsSchema,
 
   // Floating buttons
-  floatingWhatsappEnabled: z.boolean().default(false),
+  // If undefined => "auto" (show when a number exists). Explicit false => disabled.
+  floatingWhatsappEnabled: z.boolean().optional(),
   floatingWhatsappNumber: z
     .string()
     .regex(/^[0-9+\-\s]*$/)
     .max(20)
     .default(''),
   floatingWhatsappMessage: safeTextSchema,
-  floatingCallEnabled: z.boolean().default(false),
+  // If undefined => "auto" (show when a number exists). Explicit false => disabled.
+  floatingCallEnabled: z.boolean().optional(),
   floatingCallNumber: z
     .string()
     .regex(/^[0-9+\-\s]*$/)
@@ -305,14 +307,23 @@ export function parseThemeEditorFormData(formData: FormData):
   ];
 
   for (const field of stringFields) {
-    rawData[field] = formData.get(field) ?? '';
+    // Important: if the field is missing, keep it `undefined` so Zod defaults can apply.
+    // Using '' for missing fields breaks enum defaults like `themeId`.
+    const value = formData.get(field);
+    rawData[field] = typeof value === 'string' ? value : undefined;
   }
 
   // Boolean fields
   rawData.headerShowSearch = formData.get('headerShowSearch') === 'true';
   rawData.headerShowCart = formData.get('headerShowCart') === 'true';
-  rawData.floatingWhatsappEnabled = formData.get('floatingWhatsappEnabled') === 'true';
-  rawData.floatingCallEnabled = formData.get('floatingCallEnabled') === 'true';
+  {
+    const v = formData.get('floatingWhatsappEnabled');
+    rawData.floatingWhatsappEnabled = v == null ? undefined : v === 'true';
+  }
+  {
+    const v = formData.get('floatingCallEnabled');
+    rawData.floatingCallEnabled = v == null ? undefined : v === 'true';
+  }
 
   // JSON fields that need parsing
   const jsonFields = [

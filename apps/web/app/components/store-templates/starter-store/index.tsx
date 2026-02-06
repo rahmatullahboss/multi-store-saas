@@ -104,7 +104,7 @@ export function StarterStoreTemplate({
             srcSet={heroSrcSet}
             sizes="100vw"
             loading="eager"
-            fetchPriority="high"
+            {...({ fetchpriority: 'high' } as Record<string, unknown>)}
             decoding="async"
           />
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -336,7 +336,9 @@ export function StarterStoreTemplate({
       {!isPreview && (
         <FloatingContactButtons
           whatsappEnabled={config?.floatingWhatsappEnabled}
-          whatsappNumber={config?.floatingWhatsappNumber || businessInfo?.phone || undefined}
+          whatsappNumber={
+            config?.floatingWhatsappNumber || socialLinks?.whatsapp || businessInfo?.phone || undefined
+          }
           whatsappMessage={config?.floatingWhatsappMessage || undefined}
           callEnabled={config?.floatingCallEnabled}
           callNumber={config?.floatingCallNumber || businessInfo?.phone || undefined}

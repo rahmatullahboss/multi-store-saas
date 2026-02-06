@@ -30,7 +30,6 @@ import {
   DEFAULT_STORE_TEMPLATE_ID,
   type SerializedProduct,
 } from '~/templates/store-registry';
-import { getFontLinkProps } from '~/lib/theme-engine/utils/theme-config-converter';
 import { parseThemeConfig, parseSocialLinks, type ThemeConfig } from '@db/types';
 import { getCustomer } from '~/services/customer-auth.server';
 import { createDb } from '~/lib/db.server';
@@ -118,6 +117,26 @@ function normalizeLegacySections(sections: Array<{ id?: string; type?: string; s
   });
 }
 
+function normalizeThemeConfigForMvp(themeConfig: any | null) {
+  if (!themeConfig || typeof themeConfig !== 'object') return themeConfig;
+
+  // If an editor saved empty arrays, treat them as unset so templates can fall back.
+  if (Array.isArray(themeConfig.sections) && themeConfig.sections.length === 0) {
+    delete themeConfig.sections;
+  }
+
+  // Backward-compat: old configs defaulted enabled flags to false even when merchant
+  // only set socialLinks/businessInfo. If no explicit floating number is set, treat false as unset.
+  if (themeConfig.floatingWhatsappEnabled === false && !themeConfig.floatingWhatsappNumber) {
+    delete themeConfig.floatingWhatsappEnabled;
+  }
+  if (themeConfig.floatingCallEnabled === false && !themeConfig.floatingCallNumber) {
+    delete themeConfig.floatingCallEnabled;
+  }
+
+  return themeConfig;
+}
+
 export async function loader({ request, context }: LoaderFunctionArgs) {
   // Resolve store (get storeId from context/subdomain)
   const storeContext = await resolveStore(context, request);
@@ -131,7 +150,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const cache = new D1Cache(db);
 
   // Get theme config from store (fallback to legacy 'theme' field for backward compatibility)
-  const themeConfigRaw = parseThemeConfig(store.themeConfig as string | null);
+  const themeConfigRaw = normalizeThemeConfigForMvp(parseThemeConfig(store.themeConfig as string | null));
   const themeConfig = themeConfigRaw
     ? { ...themeConfigRaw, sections: normalizeLegacySections(themeConfigRaw.sections || []) }
     : themeConfigRaw;
@@ -243,15 +262,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }, { headers });
 }
 
-export const links: LinksFunction<typeof loader> = ({ data }) => {
-  if (!data) return [];
-  const template = getStoreTemplate(data.storeTemplateId);
-  const fontLink = getFontLinkProps(template.fonts);
-
+export const links: LinksFunction = () => {
+  // Route-level `links` does not receive loader `data` in this Remix setup,
+  // so we keep this minimal and safe.
   return [
     { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
-    ...(fontLink ? [fontLink] : []),
+    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' as const },
   ];
 };
 

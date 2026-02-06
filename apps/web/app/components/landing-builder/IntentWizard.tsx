@@ -729,6 +729,15 @@ export function IntentWizard({
   // WhatsApp number - pre-filled from store settings, editable by user
   const [whatsappNumber, setWhatsappNumber] = useState(defaultWhatsAppNumber);
 
+  // Ensure we always have a default template selected for the current intent.
+  // Without this, a user who keeps defaults can reach the final step with no template selected.
+  useEffect(() => {
+    if (intent.productType && intent.goal && intent.trafficSource) {
+      const suggestions = getTemplateSuggestions(intent as Intent);
+      setSelectedTemplate((prev) => (prev && suggestions.includes(prev) ? prev : suggestions[0]));
+    }
+  }, [intent.productType, intent.goal, intent.trafficSource]);
+
   // Set default template when intent is complete
   const handleIntentUpdate = (updates: Partial<Intent>) => {
     const newIntent = { ...intent, ...updates };

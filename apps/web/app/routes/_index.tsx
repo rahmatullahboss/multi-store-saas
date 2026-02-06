@@ -245,6 +245,42 @@ function parseJsonSafe<T = Record<string, unknown>>(json: string | null | undefi
   }
 }
 
+/**
+ * Storefront safety net:
+ * If a store has products but their saved homepage sections accidentally omit any product listing,
+ * we inject a minimal product grid section at runtime to avoid a "blank store" experience.
+ *
+ * This does NOT persist to DB; it only affects rendering.
+ */
+function ensureHomepageHasCatalogSection(themeConfig: ThemeConfig | null | undefined, hasProducts: boolean) {
+  if (!themeConfig || !hasProducts) return themeConfig || null;
+
+  const sections = Array.isArray(themeConfig.sections) ? themeConfig.sections : null;
+  if (!sections || sections.length === 0) return themeConfig;
+
+  const hasCatalog = sections.some(
+    (s: any) => s?.type === 'product-grid' || s?.type === 'product-scroll'
+  );
+  if (hasCatalog) return themeConfig;
+
+  return {
+    ...themeConfig,
+    sections: [
+      ...sections,
+      {
+        id: 'auto-products-1',
+        type: 'product-grid',
+        settings: {
+          heading: 'Products',
+          productCount: 8,
+          paddingTop: 'large',
+          paddingBottom: 'large',
+        },
+      },
+    ],
+  } as ThemeConfig;
+}
+
 // ============================================================================
 // LOADER - Mode-based data fetching with defensive programming
 // ============================================================================
@@ -536,7 +572,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       socialLinks,
       footerConfig,
       businessInfo,
-      themeConfig: storeThemeConfig,
+      themeConfig: ensureHomepageHasCatalogSection(storeThemeConfig, serializedProducts.length > 0),
       planType: validatedStore.planType || 'free',
       // Explicitly null for store mode
       featuredProduct: null,
@@ -563,7 +599,10 @@ export default function Index() {
   const data = useLoaderData<LoaderData>();
   const [searchParams] = useSearchParams();
   const previewTemplateId = searchParams.get('preview_template');
-  const landingTemplateId = data.landingConfig?.templateId || DEFAULT_LANDING_TEMPLATE_ID;
+  const landingTemplateId =
+    data.mode === 'landing'
+      ? data.landingConfig?.templateId || DEFAULT_LANDING_TEMPLATE_ID
+      : DEFAULT_LANDING_TEMPLATE_ID;
   const [LandingTemplateComponent, setLandingTemplateComponent] =
     useState<ComponentType<any> | null>(null);
   const [PreviewTemplateComponent, setPreviewTemplateComponent] =
