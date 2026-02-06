@@ -64,8 +64,14 @@ class ArenaClient:
         # Handle Terms of Use modal if present
         await self._accept_terms()
         
+        # Dismiss any overlay modals
+        await self._dismiss_modals()
+        
         # Switch to Direct Chat mode
         await self._switch_to_direct_chat()
+        
+        # Dismiss modals again after mode switch
+        await self._dismiss_modals()
         
     async def _accept_terms(self):
         """Accept Terms of Use modal if it appears."""
@@ -79,6 +85,31 @@ class ArenaClient:
                 await self.page.wait_for_timeout(500)
         except:
             pass  # Modal not present, continue
+    
+    async def _dismiss_modals(self):
+        """Dismiss any overlay modals that might be blocking."""
+        try:
+            # Press Escape to close any modal
+            await self.page.keyboard.press("Escape")
+            await self.page.wait_for_timeout(300)
+            
+            # Try clicking close buttons
+            close_buttons = await self.page.query_selector_all('[aria-label="Close"], button:has-text("Close"), button:has-text("Skip")')
+            for btn in close_buttons:
+                try:
+                    await btn.click()
+                    await self.page.wait_for_timeout(200)
+                except:
+                    pass
+            
+            # Click on overlay backdrop
+            overlay = await self.page.query_selector('div[data-state="open"][class*="bg-black"]')
+            if overlay:
+                # Click outside to dismiss
+                await self.page.keyboard.press("Escape")
+                await self.page.wait_for_timeout(300)
+        except:
+            pass
             
     async def _switch_to_direct_chat(self):
         """Switch from Battle mode to Direct Chat."""
@@ -214,9 +245,13 @@ IMPORTANT:
     async def _extract_code(self) -> str:
         """Extract generated code from the Code tab."""
         try:
+            # Dismiss any modals first
+            await self._dismiss_modals()
+            
             # Click on Code tab
             code_tab = await self.page.query_selector('[aria-label="Code"], button:has-text("Code")')
             if code_tab:
+                await self._dismiss_modals()  # Dismiss again before click
                 await code_tab.click()
                 await self.page.wait_for_timeout(500)
             

@@ -280,12 +280,6 @@ const navSections: NavSection[] = [
     items: [
       { to: '/app/new-builder', labelKey: 'navPages', icon: FileText },
       { to: '/app/page-builder', labelKey: 'navDragDropBuilder', icon: Layers },
-      { 
-        to: 'https://landing.ozzyl.com', 
-        labelKey: 'navLandingBuilder', 
-        icon: Globe,
-        isExternal: true 
-      },
       { to: '/app/store-design', labelKey: 'navTheme', icon: Palette },
     ],
   },
