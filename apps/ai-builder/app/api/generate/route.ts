@@ -77,7 +77,7 @@ Remember to include the {ORDER_FORM} placeholder where the order form should app
         ],
         stream: true,
         temperature: 0.7,
-        max_tokens: 8000,
+        max_tokens: 16000,
       }),
     });
 
