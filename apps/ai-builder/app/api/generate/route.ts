@@ -4,7 +4,7 @@ export const runtime = 'edge';
 export const maxDuration = 60;
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const MODEL = process.env.AI_MODEL || 'anthropic/claude-3.5-sonnet';
+const MODEL = process.env.AI_MODEL || 'arcee-ai/trinity-large-preview:free';
 
 export async function POST(req: Request) {
   try {
