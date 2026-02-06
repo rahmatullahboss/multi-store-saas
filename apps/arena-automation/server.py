@@ -21,6 +21,8 @@ CORS(app, origins=["*"])  # Allow all origins for development
 
 # Top models from arena.ai Code leaderboard
 ALLOWED_MODELS = [
+    "claude-opus-4-6-thinking",
+    "claude-opus-4-6",
     "claude-opus-4-5-thinking",
     "gpt-5.2-high",
     "claude-opus-4-5",

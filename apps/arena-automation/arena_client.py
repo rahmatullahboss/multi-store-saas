@@ -19,6 +19,8 @@ class ArenaClient:
     
     # Top models from arena.ai Code leaderboard
     MODELS = {
+        "claude-opus-4-6-thinking": "Claude Opus 4.6 Thinking",
+        "claude-opus-4-6": "Claude Opus 4.6",
         "claude-opus-4-5-thinking": "Claude Opus 4.5 Thinking",
         "gpt-5.2-high": "GPT-5.2 High",
         "claude-opus-4-5": "Claude Opus 4.5",
@@ -30,7 +32,7 @@ class ArenaClient:
         "gpt-5.2": "GPT-5.2",
     }
     
-    def __init__(self, headless: bool = True, model: str = "claude-opus-4-5-thinking"):
+    def __init__(self, headless: bool = True, model: str = "claude-opus-4-6-thinking"):
         self.headless = headless
         self.model = model
         self.browser: Optional[Browser] = None

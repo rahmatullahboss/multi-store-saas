@@ -14,14 +14,16 @@ interface ChatInterfaceProps {
 }
 
 const ARENA_MODELS = [
-  { id: 'claude-opus-4-5-thinking', name: 'Claude Opus 4.5 Thinking', icon: '🧠' },
+  { id: 'claude-opus-4-6-thinking', name: 'Claude Opus 4.6 Thinking', icon: '🧠' },
+  { id: 'claude-opus-4-6', name: 'Claude Opus 4.6', icon: '✨' },
+  { id: 'claude-opus-4-5-thinking', name: 'Claude Opus 4.5 Thinking', icon: '💭' },
   { id: 'gpt-5.2-high', name: 'GPT-5.2 High', icon: '🚀' },
   { id: 'claude-opus-4-5', name: 'Claude Opus 4.5', icon: '🤖' },
   { id: 'gemini-3-pro', name: 'Gemini 3 Pro', icon: '💎' },
-  { id: 'kimi-k2.5-thinking', name: 'Kimi K2.5 Thinking', icon: '💭' },
+  { id: 'kimi-k2.5-thinking', name: 'Kimi K2.5 Thinking', icon: '🔮' },
   { id: 'gemini-3-flash', name: 'Gemini 3 Flash', icon: '⚡' },
-  { id: 'glm-4.7', name: 'GLM 4.7', icon: '🔮' },
-  { id: 'minimax-m2.1-preview', name: 'MiniMax M2.1', icon: '🎯' },
+  { id: 'glm-4.7', name: 'GLM 4.7', icon: '🎯' },
+  { id: 'minimax-m2.1-preview', name: 'MiniMax M2.1', icon: '🎭' },
   { id: 'gpt-5.2', name: 'GPT-5.2', icon: '🤖' },
 ];
 
@@ -31,7 +33,7 @@ export function ChatInterface({ onCodeGenerated, storeId = 1, productId = 1 }: C
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCode, setGeneratedCode] = useState('');
   const [backend, setBackend] = useState<Backend>('arena');
-  const [selectedModel, setSelectedModel] = useState('claude-opus-4-5-thinking');
+  const [selectedModel, setSelectedModel] = useState('claude-opus-4-6-thinking');
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
