@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import { Send, Loader2, Sparkles, RefreshCw } from 'lucide-react';
+import { Send, Loader2, Sparkles, RefreshCw, Zap, Bot } from 'lucide-react';
 import { ImageUpload } from './ImageUpload';
 import { toast } from 'sonner';
 
+type Backend = 'arena' | 'openrouter';
 
 interface ChatInterfaceProps {
   onCodeGenerated: (code: string) => void;
@@ -12,11 +13,20 @@ interface ChatInterfaceProps {
   productId?: number;
 }
 
+const ARENA_MODELS = [
+  { id: 'claude-opus-4.5', name: 'Claude Opus 4.5', icon: '🧠' },
+  { id: 'claude-sonnet-4', name: 'Claude Sonnet 4', icon: '⚡' },
+  { id: 'gpt-4o', name: 'GPT-4o', icon: '🤖' },
+  { id: 'gemini-2', name: 'Gemini 2.0', icon: '💎' },
+];
+
 export function ChatInterface({ onCodeGenerated, storeId = 1, productId = 1 }: ChatInterfaceProps) {
   const [images, setImages] = useState<string[]>([]);
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCode, setGeneratedCode] = useState('');
+  const [backend, setBackend] = useState<Backend>('arena');
+  const [selectedModel, setSelectedModel] = useState('claude-opus-4.5');
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -30,61 +40,85 @@ export function ChatInterface({ onCodeGenerated, storeId = 1, productId = 1 }: C
     setGeneratedCode('');
 
     try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: prompt.trim(),
-          images: images.length > 0 ? images : undefined,
-          storeId,
-          productId,
-        }),
-      });
+      if (backend === 'arena') {
+        // Use Arena automation backend (non-streaming)
+        const response = await fetch('/api/generate-arena', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: prompt.trim(),
+            images: images.length > 0 ? images : undefined,
+            storeId,
+            productId,
+            model: selectedModel,
+          }),
+        });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Generation failed');
-      }
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Arena generation failed');
+        }
 
-      // Handle streaming response
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let fullCode = '';
+        const data = await response.json();
+        setGeneratedCode(data.code);
+        onCodeGenerated(data.code);
+        toast.success(`Generated with ${data.model}!`);
+      } else {
+        // Use OpenRouter (streaming)
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: prompt.trim(),
+            images: images.length > 0 ? images : undefined,
+            storeId,
+            productId,
+          }),
+        });
 
-      if (reader) {
-        let buffer = '';
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          
-          buffer += decoder.decode(value, { stream: true });
-          
-          // Parse SSE format: data: {...}
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || ''; // Keep incomplete line in buffer
-          
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6).trim();
-              if (data === '[DONE]') continue;
-              
-              try {
-                const json = JSON.parse(data);
-                const content = json.choices?.[0]?.delta?.content;
-                if (content) {
-                  fullCode += content;
-                  setGeneratedCode(fullCode);
-                  onCodeGenerated(fullCode);
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Generation failed');
+        }
+
+        // Handle streaming response
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        let fullCode = '';
+
+        if (reader) {
+          let buffer = '';
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            buffer += decoder.decode(value, { stream: true });
+            
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+            
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6).trim();
+                if (data === '[DONE]') continue;
+                
+                try {
+                  const json = JSON.parse(data);
+                  const content = json.choices?.[0]?.delta?.content;
+                  if (content) {
+                    fullCode += content;
+                    setGeneratedCode(fullCode);
+                    onCodeGenerated(fullCode);
+                  }
+                } catch {
+                  // Ignore parse errors
                 }
-              } catch {
-                // Ignore parse errors for incomplete chunks
               }
             }
           }
         }
+        toast.success('Landing page generated!');
       }
-
-      toast.success('Landing page generated!');
     } catch (error) {
       console.error('Generation error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to generate');
@@ -97,7 +131,6 @@ export function ChatInterface({ onCodeGenerated, storeId = 1, productId = 1 }: C
     'Create a shoe product landing page with dark theme',
     'Design a skincare product page with elegant pink colors',
     'Build a fitness supplement landing page with energetic design',
-    'Make a premium watch landing page with luxury feel',
   ];
 
   return (
@@ -111,6 +144,49 @@ export function ChatInterface({ onCodeGenerated, storeId = 1, productId = 1 }: C
         <p className="text-sm text-gray-400 mt-1">
           Describe your landing page and watch it come to life
         </p>
+      </div>
+
+      {/* Backend Selector */}
+      <div className="p-3 border-b border-gray-800 space-y-3">
+        <div className="flex gap-2">
+          <button
+            onClick={() => setBackend('arena')}
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${
+              backend === 'arena'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+            }`}
+          >
+            <Bot className="w-4 h-4" />
+            Arena (Free)
+          </button>
+          <button
+            onClick={() => setBackend('openrouter')}
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${
+              backend === 'openrouter'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+            }`}
+          >
+            <Zap className="w-4 h-4" />
+            OpenRouter
+          </button>
+        </div>
+
+        {/* Model selector for Arena */}
+        {backend === 'arena' && (
+          <select
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm focus:outline-none focus:border-purple-500"
+          >
+            {ARENA_MODELS.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.icon} {m.name}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* Content */}
@@ -193,7 +269,10 @@ export function ChatInterface({ onCodeGenerated, storeId = 1, productId = 1 }: C
         {isGenerating && (
           <p className="text-xs text-purple-400 mt-2 flex items-center gap-1">
             <span className="streaming">●</span>
-            Generating your landing page...
+            {backend === 'arena' 
+              ? 'Generating via Arena (may take 30-60s)...'
+              : 'Generating your landing page...'
+            }
           </p>
         )}
       </form>
