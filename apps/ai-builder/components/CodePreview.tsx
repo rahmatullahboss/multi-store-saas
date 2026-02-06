@@ -1,25 +1,49 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   SandpackProvider,
   SandpackPreview,
   SandpackCodeEditor,
 } from '@codesandbox/sandpack-react';
-import { Code, Eye, Maximize2, Minimize2, Copy, Check, Download, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Code, Eye, Maximize2, Minimize2, Copy, Check, Download, AlertTriangle, ExternalLink, Terminal } from 'lucide-react';
 import { toast } from 'sonner';
 import { injectOrderForm, extractCode, type OrderConfig } from '@/lib/order-integration';
 
 interface CodePreviewProps {
   code: string;
   orderConfig: OrderConfig;
+  isFullscreen?: boolean;
 }
 
-export function CodePreview({ code, orderConfig }: CodePreviewProps) {
+export function CodePreview({ code, orderConfig, isFullscreen = false }: CodePreviewProps) {
   const [showCode, setShowCode] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showFullscreen, setShowFullscreen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const prevCodeLengthRef = useRef(0);
+  const codeDisplayRef = useRef<HTMLPreElement>(null);
+
+  // Detect streaming state
+  useEffect(() => {
+    if (code.length > prevCodeLengthRef.current) {
+      setIsStreaming(true);
+    }
+    prevCodeLengthRef.current = code.length;
+    
+    // Auto-scroll to bottom of code display while streaming
+    if (codeDisplayRef.current && isStreaming) {
+      codeDisplayRef.current.scrollTop = codeDisplayRef.current.scrollHeight;
+    }
+    
+    // Stop streaming detection after 1 second of no changes
+    const timer = setTimeout(() => {
+      setIsStreaming(false);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, [code, isStreaming]);
 
   // Process the code: extract and inject order form
   const processedCode = useMemo(() => {
@@ -31,7 +55,9 @@ export function CodePreview({ code, orderConfig }: CodePreviewProps) {
       
       // Basic validation - check if code looks complete
       const hasExport = withOrderForm.includes('export default') || withOrderForm.includes('export function');
-      const balanced = (withOrderForm.match(/\{/g) || []).length === (withOrderForm.match(/\}/g) || []).length;
+      const openBraces = (withOrderForm.match(/\{/g) || []).length;
+      const closeBraces = (withOrderForm.match(/\}/g) || []).length;
+      const balanced = openBraces === closeBraces && openBraces > 0;
       
       if (!hasExport || !balanced) {
         setHasError(true);
@@ -46,7 +72,7 @@ export function CodePreview({ code, orderConfig }: CodePreviewProps) {
     }
   }, [code, orderConfig]);
 
-  // Wrap code in safe component if it seems incomplete
+  // Safe code wrapper for incomplete code
   const safeCode = useMemo(() => {
     if (!processedCode) {
       return `
@@ -55,7 +81,12 @@ export default function App() {
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black flex items-center justify-center">
       <div className="text-center p-8">
         <h1 className="text-4xl font-bold text-white mb-4">🚀 AI Landing Builder</h1>
-        <p className="text-gray-400">আপনার পণ্যের বিবরণ দিন, সুন্দর ল্যান্ডিং পেজ তৈরি হবে!</p>
+        <p className="text-gray-400 text-lg">আপনার পণ্যের বিবরণ দিন, সুন্দর ল্যান্ডিং পেজ তৈরি হবে!</p>
+        <div className="mt-8 flex justify-center gap-4">
+          <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce"></div>
+          <div className="w-3 h-3 bg-pink-500 rounded-full animate-bounce delay-100"></div>
+          <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce delay-200"></div>
+        </div>
       </div>
     </div>
   );
@@ -63,17 +94,22 @@ export default function App() {
 `;
     }
     
-    // If code looks incomplete, wrap it
-    if (hasError) {
+    if (hasError || isStreaming) {
       return `
 export default function App() {
   return (
-    <div className="min-h-screen bg-gray-900">
-      <div className="bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 p-4 text-sm">
-        ⚠️ কোড জেনারেট হচ্ছে... সম্পূর্ণ হলে preview দেখা যাবে।
-      </div>
-      <div className="p-8">
-        <pre className="text-xs text-gray-500 overflow-auto">${processedCode.slice(0, 200).replace(/`/g, '\\`')}...</pre>
+    <div className="min-h-screen bg-gray-900 p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-xl p-6 mb-6">
+          <div className="flex items-center gap-3 text-purple-400 mb-2">
+            <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
+            <span className="font-semibold">কোড জেনারেট হচ্ছে...</span>
+          </div>
+          <p className="text-gray-400 text-sm">সম্পূর্ণ হলে preview দেখা যাবে</p>
+        </div>
+        <div className="bg-gray-800/50 rounded-xl p-4 font-mono text-xs text-green-400 overflow-auto max-h-[500px]">
+          <pre className="whitespace-pre-wrap">${processedCode.replace(/`/g, '\\`').replace(/\$/g, '\\$')}</pre>
+        </div>
       </div>
     </div>
   );
@@ -82,7 +118,7 @@ export default function App() {
     }
     
     return processedCode;
-  }, [processedCode, hasError]);
+  }, [processedCode, hasError, isStreaming]);
 
   // Sandpack files
   const files = useMemo(() => ({
@@ -104,12 +140,10 @@ body {
   font-family: 'Hind Siliguri', 'Inter', sans-serif;
 }
 
-/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -123,9 +157,8 @@ html {
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
-}
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
 `,
     },
   }), [safeCode]);
@@ -148,13 +181,13 @@ html {
     toast.success('কোড ডাউনলোড হয়েছে');
   };
 
-  // Fullscreen mode
-  if (isFullscreen) {
+  // Fullscreen mode (internal toggle)
+  if (showFullscreen) {
     return (
       <div className="fixed inset-0 z-50 bg-black">
         <div className="absolute top-4 right-4 z-10 flex gap-2">
           <button
-            onClick={() => setIsFullscreen(false)}
+            onClick={() => setShowFullscreen(false)}
             className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors text-white"
           >
             <Minimize2 className="w-5 h-5" />
@@ -164,13 +197,31 @@ html {
           template="react"
           theme="dark"
           files={files}
-          customSetup={{
-            dependencies: {},
-          }}
           options={{
-            externalResources: [
-              'https://cdn.tailwindcss.com',
-            ],
+            externalResources: ['https://cdn.tailwindcss.com'],
+          }}
+        >
+          <SandpackPreview 
+            showNavigator={false}
+            showRefreshButton={true}
+            showOpenInCodeSandbox={false}
+            style={{ height: '100vh', width: '100%' }}
+          />
+        </SandpackProvider>
+      </div>
+    );
+  }
+
+  // Prop-based fullscreen (from parent)
+  if (isFullscreen) {
+    return (
+      <div className="h-full w-full">
+        <SandpackProvider
+          template="react"
+          theme="dark"
+          files={files}
+          options={{
+            externalResources: ['https://cdn.tailwindcss.com'],
           }}
         >
           <SandpackPreview 
@@ -208,10 +259,10 @@ html {
             Code
           </button>
           
-          {hasError && code && (
-            <span className="flex items-center gap-1 text-xs text-yellow-500 ml-2">
-              <AlertTriangle className="w-3 h-3" />
-              Generating...
+          {(hasError || isStreaming) && code && (
+            <span className="flex items-center gap-1 text-xs text-purple-400 ml-2">
+              <Terminal className="w-3 h-3 animate-pulse" />
+              {isStreaming ? 'Streaming...' : 'Generating...'}
             </span>
           )}
         </div>
@@ -221,7 +272,7 @@ html {
             onClick={copyCode}
             disabled={!processedCode}
             className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors disabled:opacity-50"
-            title="Copy code"
+            title="কোড কপি করুন"
           >
             {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
           </button>
@@ -229,14 +280,14 @@ html {
             onClick={downloadCode}
             disabled={!processedCode}
             className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors disabled:opacity-50"
-            title="Download code"
+            title="কোড ডাউনলোড করুন"
           >
             <Download className="w-4 h-4" />
           </button>
           <button
-            onClick={() => setIsFullscreen(true)}
+            onClick={() => setShowFullscreen(true)}
             className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
-            title="Fullscreen preview"
+            title="ফুলস্ক্রিন প্রিভিউ"
           >
             <Maximize2 className="w-4 h-4" />
           </button>
@@ -245,55 +296,51 @@ html {
 
       {/* Preview/Code Area */}
       <div className="flex-1 overflow-hidden">
-        <SandpackProvider
-          template="react"
-          theme="dark"
-          files={files}
-          customSetup={{
-            dependencies: {},
-          }}
-          options={{
-            externalResources: [
-              'https://cdn.tailwindcss.com',
-            ],
-          }}
-        >
-          {showCode ? (
-            <SandpackCodeEditor
-              showLineNumbers
-              showTabs={false}
-              style={{ height: '100%', minHeight: '500px' }}
-            />
-          ) : (
+        {showCode ? (
+          // Streaming Code View - Real-time line by line
+          <div className="h-full bg-gray-900 overflow-auto">
+            <pre 
+              ref={codeDisplayRef}
+              className="p-4 text-sm font-mono text-gray-300 whitespace-pre-wrap"
+              style={{ minHeight: '100%' }}
+            >
+              {processedCode || '// কোড এখানে দেখা যাবে...'}
+              {isStreaming && (
+                <span className="inline-block w-2 h-4 bg-purple-500 animate-pulse ml-1" />
+              )}
+            </pre>
+          </div>
+        ) : (
+          <SandpackProvider
+            template="react"
+            theme="dark"
+            files={files}
+            options={{
+              externalResources: ['https://cdn.tailwindcss.com'],
+            }}
+          >
             <SandpackPreview
               showNavigator={false}
               showRefreshButton={true}
               showOpenInCodeSandbox={false}
               style={{ height: '100%', minHeight: '500px' }}
             />
-          )}
-        </SandpackProvider>
+          </SandpackProvider>
+        )}
       </div>
 
-      {/* Open in Sandbox button */}
-      {processedCode && !hasError && (
-        <div className="px-4 py-2 border-t border-gray-800 bg-gray-900/30">
-          <button
-            onClick={() => {
-              // Open in new sandbox
-              const sandboxUrl = `https://codesandbox.io/api/v1/sandboxes/define?parameters=${encodeURIComponent(JSON.stringify({
-                files: {
-                  'App.js': { content: processedCode },
-                  'package.json': { content: JSON.stringify({ dependencies: { react: 'latest', 'react-dom': 'latest' }}) }
-                }
-              }))}`;
-              window.open(sandboxUrl, '_blank');
-            }}
-            className="w-full flex items-center justify-center gap-2 py-2 text-sm text-gray-400 hover:text-white transition-colors"
-          >
-            <ExternalLink className="w-4 h-4" />
-            Open in CodeSandbox
-          </button>
+      {/* Status bar */}
+      {processedCode && (
+        <div className="px-4 py-2 border-t border-gray-800 bg-gray-900/30 flex items-center justify-between text-xs text-gray-500">
+          <span>
+            {processedCode.split('\n').length} lines • {(processedCode.length / 1024).toFixed(1)} KB
+          </span>
+          {!hasError && !isStreaming && (
+            <span className="text-green-500 flex items-center gap-1">
+              <Check className="w-3 h-3" />
+              সম্পূর্ণ
+            </span>
+          )}
         </div>
       )}
     </div>
