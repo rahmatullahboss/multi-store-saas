@@ -17,15 +17,20 @@ class ArenaClient:
     
     ARENA_URL = "https://arena.ai"
     
-    # Default models available
+    # Top models from arena.ai Code leaderboard
     MODELS = {
-        "claude-opus-4.5": "Claude Opus 4.5",
-        "claude-sonnet-4": "Claude Sonnet 4", 
-        "gpt-4o": "GPT-4o",
-        "gemini-2": "Gemini 2.0",
+        "claude-opus-4-5-thinking": "Claude Opus 4.5 Thinking",
+        "gpt-5.2-high": "GPT-5.2 High",
+        "claude-opus-4-5": "Claude Opus 4.5",
+        "gemini-3-pro": "Gemini 3 Pro",
+        "kimi-k2.5-thinking": "Kimi K2.5 Thinking",
+        "gemini-3-flash": "Gemini 3 Flash",
+        "glm-4.7": "GLM 4.7",
+        "minimax-m2.1-preview": "MiniMax M2.1",
+        "gpt-5.2": "GPT-5.2",
     }
     
-    def __init__(self, headless: bool = True, model: str = "claude-opus-4.5"):
+    def __init__(self, headless: bool = True, model: str = "claude-opus-4-5-thinking"):
         self.headless = headless
         self.model = model
         self.browser: Optional[Browser] = None

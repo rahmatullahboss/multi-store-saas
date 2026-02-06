@@ -19,12 +19,17 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app, origins=["*"])  # Allow all origins for development
 
-# Configuration
+# Top models from arena.ai Code leaderboard
 ALLOWED_MODELS = [
-    "claude-opus-4.5",
-    "claude-sonnet-4",
-    "gpt-4o",
-    "gemini-2",
+    "claude-opus-4-5-thinking",
+    "gpt-5.2-high",
+    "claude-opus-4-5",
+    "gemini-3-pro",
+    "kimi-k2.5-thinking",
+    "gemini-3-flash",
+    "glm-4.7",
+    "minimax-m2.1-preview",
+    "gpt-5.2",
 ]
 
 @app.route("/health", methods=["GET"])
