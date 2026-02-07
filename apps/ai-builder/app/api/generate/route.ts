@@ -1,4 +1,4 @@
-import { LANDING_PAGE_SYSTEM_PROMPT, IMAGE_ANALYSIS_PROMPT } from '@/lib/prompts';
+import { LANDING_PAGE_SYSTEM_PROMPT, IMAGE_ANALYSIS_PROMPT, EDIT_MODE_SYSTEM_PROMPT } from '@/lib/prompts';
 
 export const runtime = 'edge';
 export const maxDuration = 60;
@@ -8,7 +8,7 @@ const MODEL = process.env.AI_MODEL || 'arcee-ai/trinity-large-preview:free';
 
 export async function POST(req: Request) {
   try {
-    const { prompt, images, storeId, productId } = await req.json();
+    const { prompt, images, storeId, productId, existingCode } = await req.json();
 
     if (!prompt) {
       return Response.json({ error: 'Prompt is required' }, { status: 400 });
@@ -17,6 +17,9 @@ export async function POST(req: Request) {
     if (!OPENROUTER_API_KEY) {
       return Response.json({ error: 'OpenRouter API key not configured' }, { status: 500 });
     }
+
+    // Determine if this is edit mode (existing code needs modification)
+    const isEditMode = Boolean(existingCode && existingCode.trim().length > 100);
 
     // Build user message content
     const userContent: Array<{ type: string; text?: string; image_url?: { url: string } }> = [];
@@ -37,22 +40,44 @@ export async function POST(req: Request) {
       }
     }
 
-    // Add the main prompt with store/product context
-    const contextualPrompt = `
+    // Build the appropriate prompt
+    let contextualPrompt: string;
+    
+    if (isEditMode) {
+      // Edit mode: Include existing code and ask for modifications
+      contextualPrompt = `
+## EXISTING CODE TO MODIFY:
+\`\`\`jsx
+${existingCode}
+\`\`\`
+
+## USER'S MODIFICATION REQUEST:
+${prompt}
+
+## INSTRUCTIONS:
+Apply ONLY the requested changes to the existing code above.
+Keep everything else EXACTLY the same.
+Return the complete modified code.
+`;
+    } else {
+      // Generate mode: Create new landing page
+      contextualPrompt = `
 Create a landing page for the following requirement:
 
 ${prompt}
 
 ${storeId ? `Store ID: ${storeId}` : ''}
 ${productId ? `Product ID: ${productId}` : ''}
-
-Remember to include the {ORDER_FORM} placeholder where the order form should appear.
 `;
+    }
 
     userContent.push({
       type: 'text',
       text: contextualPrompt,
     });
+
+    // Choose system prompt based on mode
+    const systemPrompt = isEditMode ? EDIT_MODE_SYSTEM_PROMPT : LANDING_PAGE_SYSTEM_PROMPT;
 
     // Call OpenRouter API directly with streaming
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -68,7 +93,7 @@ Remember to include the {ORDER_FORM} placeholder where the order form should app
         messages: [
           {
             role: 'system',
-            content: LANDING_PAGE_SYSTEM_PROMPT,
+            content: systemPrompt,
           },
           {
             role: 'user',
@@ -76,7 +101,7 @@ Remember to include the {ORDER_FORM} placeholder where the order form should app
           },
         ],
         stream: true,
-        temperature: 0.7,
+        temperature: isEditMode ? 0.3 : 0.7, // Lower temperature for edits to be more precise
         max_tokens: 16000,
       }),
     });

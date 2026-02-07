@@ -67,12 +67,7 @@ export function ChatInterface({ onCodeGenerated, storeId = 1, productId = 1 }: C
     }]);
 
     try {
-      // Build the prompt - if we have existing code, ask to modify it
-      let finalPrompt = currentPrompt;
-      if (currentCode && messages.length > 0) {
-        finalPrompt = `The user wants to modify the existing landing page. Here is the current code:\n\n${currentCode}\n\nUser's modification request: ${currentPrompt}\n\nPlease provide the complete updated code with the changes applied.`;
-      }
-
+      // API will handle edit mode automatically based on existingCode
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
