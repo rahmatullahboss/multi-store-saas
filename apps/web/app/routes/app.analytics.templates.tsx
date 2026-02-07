@@ -96,8 +96,7 @@ export default function TemplateAnalyticsPage() {
   const { report, totals, currency } = useLoaderData<typeof loader>();
   const { t, lang } = useTranslation();
 
-  const formatPrice = (amountInCents: number) => {
-    const amount = amountInCents / 100;
+  const formatPrice = (amount: number) => {
     const symbols: Record<string, string> = { BDT: '৳', USD: '$', EUR: '€', GBP: '£', INR: '₹' };
     return `${symbols[currency] || currency} ${amount.toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-BD')}`;
   };

@@ -214,8 +214,7 @@ export default function ShippingZonesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingZone, setEditingZone] = useState<typeof zones[0] | null>(null);
 
-  const formatPrice = (amountInCents: number) => {
-    const amount = amountInCents / 100;
+  const formatPrice = (amount: number) => {
     return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
       style: 'currency',
       currency,
