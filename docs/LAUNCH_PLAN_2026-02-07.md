@@ -33,8 +33,10 @@
 1. **Production DB backup/restore path নিশ্চিত করা**
    - Wrangler docs অনুযায়ী `d1 migrations apply` চালালে **automatic backup** নেয়। (Cloudflare Workers docs)
    - অতিরিক্তভাবে, `wrangler d1 export` ব্যবহার করে schema/data dump নেওয়া (CLI supported)।
-2. **Staging DB বানানো (prod clone/fork)**
-   - `wrangler d1 time-travel` দিয়ে prod থেকে fork/copy করে staging বানান।
+2. **Staging DB বানানো (prod clone via export/import)**
+   - Wrangler CLI (v4) এ আলাদা “fork/copy” কমান্ড নেই; তাই safest approach:
+     - prod DB export (`wrangler d1 export --remote`)
+     - staging DB create করে সেই SQL staging-এ execute (`wrangler d1 execute --remote --file`)
    - উদ্দেশ্য: production data সহ **ঝুঁকি ছাড়া** migration adopt/verify করা।
 3. **Staging-এ migration adoption rehearsal**
    - staging-এ `wrangler d1 migrations apply <db> --remote` চালানোর আগে:
@@ -51,7 +53,7 @@
 - staging-এ নতুন migration apply করলে schema drift হচ্ছে না
 - `d1_migrations` এ expected rows আছে এবং নতুন migration নাম append হয়
 
-**Deliverable (we will create):**
+**Deliverable (created):**
 - `docs/DB_BASELINE_ADOPTION_RUNBOOK.md` (স্টেপ-বাই-স্টেপ কমান্ড + রিস্ক নোট)
 
 ### 1.2 Checkout → Order Correctness (COD-first) (P0)
@@ -179,4 +181,3 @@ Examples:
 1. Staging strategy: prod clone via `time-travel` vs separate clean staging DB
 2. COD flow details: order confirmation SMS/email immediate vs later
 3. Data retention: customer PII retention duration (minimum viable policy)
-

@@ -441,6 +441,8 @@ export default function ProductDetail() {
     productUrl,
     storeShippingInfo,
     storeRefundPolicy,
+    isCustomerAiEnabled,
+    aiCredits,
   } = useLoaderData<typeof loader>();
 
   const hasTracked = useRef(false);
@@ -509,8 +511,8 @@ export default function ProductDetail() {
       footerConfig={footerConfig}
       planType={planType}
       customer={customer}
-      isCustomerAiEnabled={data.isCustomerAiEnabled}
-      aiCredits={data.aiCredits}
+      isCustomerAiEnabled={isCustomerAiEnabled}
+      aiCredits={aiCredits}
     >
       {template.ProductPage ? (
         <template.ProductPage
