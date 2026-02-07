@@ -13,7 +13,7 @@
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import { useLoaderData, useRouteError, isRouteErrorResponse } from '@remix-run/react';
-import { eq, and, desc, ne, like, sql } from 'drizzle-orm';
+import { eq, and, desc, ne, sql } from 'drizzle-orm';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
@@ -367,8 +367,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       storeShippingInfo: shippingInfo,
       storeRefundPolicy: productDetails.returnPolicy || store?.customRefundPolicy || null,
       // AI Chat props
-      isCustomerAiEnabled: (store as any)?.isCustomerAiEnabled ?? false,
-      aiCredits: (store as any)?.aiCredits ?? 0,
+      isCustomerAiEnabled: Boolean(store?.isCustomerAiEnabled),
+      aiCredits: Number(store?.aiCredits) || 0,
     };
 
     // ============================================================
@@ -438,8 +438,6 @@ export default function ProductDetail() {
     categories,
     planType,
     customer,
-    productUrl,
-    storeShippingInfo,
     storeRefundPolicy,
     isCustomerAiEnabled,
     aiCredits,
