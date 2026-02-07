@@ -255,10 +255,21 @@ app.use('/checkout', checkoutLimit()); // 30 req/min - Page loads
 app.use('/checkout/*', checkoutLimit()); // 30 req/min - All checkout routes
 app.use('/cart', cartLimit()); // 50 req/min - Cart operations (separate limit)
 
-// Apply tenant middleware to all routes
-app.use('*', tenantMiddleware());
-// Cost monitoring telemetry (sampled) to detect abnormal request amplification
-app.use('*', workerTelemetryMiddleware());
+// Apply tenant middleware to all routes except platform health checks.
+// This keeps /api/health usable on workers.dev even when hostname→store mapping doesn't exist.
+const tenantMw = tenantMiddleware<AppContext>();
+app.use('*', async (c, next) => {
+  if (c.req.path === '/api/health') return next();
+  return tenantMw(c, next);
+});
+
+// Cost monitoring telemetry (sampled) to detect abnormal request amplification.
+// Skip /api/health to reduce noise and avoid relying on tenant context.
+const telemetryMw = workerTelemetryMiddleware<AppContext>();
+app.use('*', async (c, next) => {
+  if (c.req.path === '/api/health') return next();
+  return telemetryMw(c, next);
+});
 
 // ============================================================================
 // API ROUTES - Hono handles these directly

@@ -72,7 +72,7 @@ const PLAN_DISPLAY = {
     nameBn: 'স্টার্টার',
     description: 'For growing businesses',
     descriptionBn: 'বাড়তে থাকা ব্যবসার জন্য',
-    price: '৳৪৯৯',
+    price: '৳৭৯৯',
     period: '/মাস',
     icon: Zap,
     color: 'emerald',
@@ -99,7 +99,7 @@ const PLAN_DISPLAY = {
     color: 'purple',
     features: [
       { text: '২০০টি Product', textEn: '200 products', included: true },
-      { text: '৩,০০০ Orders/মাস', textEn: '3,000 orders/month', included: true },
+      { text: '২,০০০ Orders/মাস', textEn: '2,000 orders/month', included: true },
       { text: 'সীমাহীন Visitors*', textEn: 'Unlimited visitors*', included: true },
       { text: 'Facebook CAPI', textEn: 'Facebook CAPI', included: true },
       { text: 'Priority Support', textEn: 'Priority support', included: true },

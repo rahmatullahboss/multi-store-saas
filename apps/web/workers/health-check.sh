@@ -48,22 +48,23 @@ if [[ "$1" == "--workers" ]]; then
     CHECK_BUILDER=false
 elif [[ "$1" == "--main" ]]; then
     CHECK_WORKERS=false
+    CHECK_BUILDER=false
 fi
 
 # Helper functions
 check_pass() {
     echo -e "${GREEN}✅${NC} $1"
-    ((HEALTHY++))
+    HEALTHY=$((HEALTHY + 1))
 }
 
 check_fail() {
     echo -e "${RED}❌${NC} $1"
-    ((UNHEALTHY++))
+    UNHEALTHY=$((UNHEALTHY + 1))
 }
 
 check_warn() {
     echo -e "${YELLOW}⚠️${NC} $1"
-    ((WARNINGS++))
+    WARNINGS=$((WARNINGS + 1))
 }
 
 check_header() {

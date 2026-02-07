@@ -111,7 +111,15 @@ const PricingCard = ({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) => {
 
   // Format price display
   const displayPrice =
-    price === 0 ? (lang === 'bn' ? 'ফ্রি' : 'Free') : formatPrice(price).replace('.00', '');
+    price === -1
+      ? lang === 'bn'
+        ? 'কাস্টম'
+        : 'Custom'
+      : price === 0
+      ? lang === 'bn'
+        ? 'ফ্রি'
+        : 'Free'
+      : formatPrice(price).replace('.00', '');
 
   return (
     <motion.div
@@ -154,9 +162,11 @@ const PricingCard = ({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) => {
           >
             {displayPrice}
           </span>
-          <span className="text-white/40 mb-1">/{lang === 'bn' ? 'মাস' : 'month'}</span>
+          <span className="text-white/40 mb-1">
+            {price !== -1 && (lang === 'bn' ? '/মাস' : '/month')}
+          </span>
         </div>
-        {isAnnual && (
+        {isAnnual && price !== -1 && (
           <div className="text-emerald-400 text-xs font-bold mt-2 flex items-center gap-1">
             <Zap className="w-3 h-3" />
             {lang === 'bn' ? 'বার্ষিক প্ল্যানে ২০% ছাড়' : 'Save 20% with annual billing'}
@@ -203,7 +213,7 @@ const PricingCard = ({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) => {
 // ============================================================================
 export function PricingSection() {
   const { lang } = useTranslation();
-  const [isAnnual, setIsAnnual] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(true);
 
   const TEXT = {
     en: {
@@ -295,19 +305,19 @@ export function PricingSection() {
       name: lang === 'bn' ? 'স্টার্টার' : 'Starter',
       description:
         lang === 'bn' ? 'লঞ্চ করার জন্য যা যা প্রয়োজন।' : 'Everything you need to launch.',
-      price: { monthly: 999, annual: 799 },
+      price: { monthly: 799, annual: 639 },
       features:
         lang === 'bn'
           ? [
               '৫০টি প্রোডাক্ট',
-              '১,০০০ অর্ডার লিমিট',
+              '৫০০ অর্ডার লিমিট',
               '৩টি প্রিমিয়াম থিম',
               'কাস্টম ডোমেইন',
               'স্ট্যান্ডার্ড অ্যানালিটিক্স',
             ]
           : [
               '50 Products',
-              '1,000 Orders Limit',
+              '500 Orders Limit',
               '3 Premium Themes',
               'Custom Domain',
               'Standard Analytics',
@@ -319,19 +329,19 @@ export function PricingSection() {
       name: lang === 'bn' ? 'প্রিমিয়াম' : 'Premium',
       description:
         lang === 'bn' ? 'গ্রোইং ব্যবসার জন্য সেরা পছন্দ।' : 'Best for growing businesses.',
-      price: { monthly: 1500, annual: 1200 },
+      price: { monthly: 1999, annual: 1599 },
       features:
         lang === 'bn'
           ? [
               'আনলিমিটেড প্রোডাক্ট',
-              '৩,০০০ অর্ডার লিমিট',
+              '২,০০০ অর্ডার লিমিট',
               'সব প্রিমিয়াম থিম',
               'মার্কেটিং অটোমেশন',
               'প্রায়োরিটি সাপোর্ট',
             ]
           : [
               'Unlimited Products',
-              '3,000 Orders Limit',
+              '2,000 Orders Limit',
               'All Premium Themes',
               'Marketing Automation',
               'Priority Support',
@@ -343,7 +353,7 @@ export function PricingSection() {
       name: lang === 'bn' ? 'বিজনেস' : 'Business',
       description:
         lang === 'bn' ? 'বড় টিম এবং ভলিউম সেলারদের জন্য।' : 'For high-volume sellers & teams.',
-      price: { monthly: 3000, annual: 2400 },
+      price: { monthly: -1, annual: -1 },
       features:
         lang === 'bn'
           ? [

@@ -45,7 +45,7 @@ const UPGRADE_PLANS = {
   starter: {
     name: 'Starter',
     nameBn: 'স্টার্টার',
-    price: 49900,
+    price: 79900,
     description: 'For growing businesses',
     descriptionBn: 'বাড়তে থাকা ব্যবসার জন্য',
     icon: Zap,
@@ -79,7 +79,7 @@ const UPGRADE_PLANS = {
     color: 'purple',
     features: [
       '২০০টি Product',
-      '৩,০০০ Orders/মাস',
+      '২,০০০ Orders/মাস',
       'সীমাহীন Visitors*',
       'Facebook CAPI',
       'Priority Support',
@@ -89,7 +89,7 @@ const UPGRADE_PLANS = {
     ],
     featuresEn: [
       '200 products',
-      '3,000 orders/month',
+      '2,000 orders/month',
       'Unlimited visitors*',
       'Facebook CAPI',
       'Priority Support',

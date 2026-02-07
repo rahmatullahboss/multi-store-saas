@@ -44,7 +44,7 @@ export const PLAN_NAMES: Record<PlanType, { en: string; bn: string }> = {
 // Plan prices in BDT
 export const PLAN_PRICES: Record<PlanType, number> = {
   free: 0,
-  starter: 499,
+  starter: 799,
   premium: 1999,
   business: 4999, // Base price, can be customized
 };
@@ -89,7 +89,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   },
   premium: {
     max_products: 200,
-    max_orders: 3000,
+    max_orders: 2000,
     max_visitors: Infinity, // No limit - tracking for analytics only
     max_storage_mb: 2048, // 2GB
     max_staff: 5,

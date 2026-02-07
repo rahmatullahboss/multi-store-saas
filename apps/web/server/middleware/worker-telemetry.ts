@@ -58,11 +58,10 @@ async function incrementCounter(kv: KVNamespace, key: string): Promise<void> {
   await kv.put(key, String(next), { expirationTtl: TTL_SECONDS });
 }
 
-export const workerTelemetryMiddleware = (): MiddlewareHandler<{
-  Bindings: TenantEnv;
-  Variables: TenantContext;
-}> => {
-  return async (c: Context<{ Bindings: TenantEnv; Variables: TenantContext }>, next) => {
+export const workerTelemetryMiddleware = <
+  TContext extends { Bindings: TenantEnv; Variables: TenantContext },
+>(): MiddlewareHandler<TContext> => {
+  return async (c: Context<TContext>, next) => {
     const requestPath = c.req.path;
     const method = c.req.method;
 

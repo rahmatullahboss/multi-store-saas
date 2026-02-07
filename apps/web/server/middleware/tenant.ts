@@ -73,11 +73,10 @@ function parseHostname(
  * Resolves the store from the request hostname and injects it into the context.
  * Returns 404 if store is not found.
  */
-export const tenantMiddleware = (): MiddlewareHandler<{
-  Bindings: TenantEnv;
-  Variables: TenantContext;
-}> => {
-  return async (c, next) => {
+export const tenantMiddleware = <
+  TContext extends { Bindings: TenantEnv; Variables: TenantContext },
+>(): MiddlewareHandler<TContext> => {
+  return async (c: Context<TContext>, next) => {
     const requestPath = c.req.path;
     const isFrameworkInternalRequest =
       requestPath === '/__manifest' || requestPath.startsWith('/__manifest?');
