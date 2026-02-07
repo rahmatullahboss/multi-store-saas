@@ -5,6 +5,7 @@
  * - WhatsApp/Call buttons above the main AI button
  * - Credit-based messaging (shows recharge message when credits exhausted)
  * - Store-specific styling based on accent color
+ * - Structured AI response rendering (text, product cards, etc.)
  */
 
 import { useState, useRef, useEffect } from 'react';
@@ -12,10 +13,216 @@ import { useFetcher } from '@remix-run/react';
 import { Send, X, Loader2, Bot, User, Phone, MessageCircle } from 'lucide-react';
 import { WhatsAppIcon } from '~/components/icons/WhatsAppIcon';
 
+// Types for structured AI responses
+interface InsightCard {
+  title: string;
+  value: string;
+  icon?: string;
+  color?: string;
+  trend?: number;
+  url?: string;
+}
+
+interface ActionChip {
+  label: string;
+  url: string;
+}
+
+interface StructuredResponse {
+  type: 'text' | 'insight_cards' | 'action_chips' | 'mixed' | 'alert';
+  content?: string;
+  data?: InsightCard[] | ActionChip[] | Record<string, unknown>;
+  items?: Array<{ type: string; data: string | InsightCard[] | ActionChip[] | Record<string, unknown> }>;
+}
+
+/**
+ * Parse AI response - handles both JSON and plain text
+ */
+function parseAIResponse(content: string): StructuredResponse {
+  // Try to parse as JSON first
+  try {
+    // Remove markdown code blocks if present
+    let cleaned = content.trim();
+    if (cleaned.startsWith('```json')) {
+      cleaned = cleaned.slice(7);
+    }
+    if (cleaned.startsWith('```')) {
+      cleaned = cleaned.slice(3);
+    }
+    if (cleaned.endsWith('```')) {
+      cleaned = cleaned.slice(0, -3);
+    }
+    cleaned = cleaned.trim();
+    
+    const parsed = JSON.parse(cleaned);
+    
+    // Validate it's a structured response
+    if (parsed.type) {
+      return parsed as StructuredResponse;
+    }
+    
+    // If it has text.content structure (from screenshot issue)
+    if (parsed.text?.content) {
+      return { type: 'text', content: parsed.text.content };
+    }
+    
+    // Fallback: return as text
+    return { type: 'text', content: content };
+  } catch {
+    // Not JSON, return as plain text
+    return { type: 'text', content: content };
+  }
+}
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+}
+
+/**
+ * Renders structured AI message content
+ */
+function MessageContent({ content, isUser, accentColor }: { content: string; isUser: boolean; accentColor: string }) {
+  // User messages are always plain text
+  if (isUser) {
+    return <p className="text-sm whitespace-pre-wrap text-white">{content}</p>;
+  }
+
+  // Parse AI response
+  const parsed = parseAIResponse(content);
+
+  // Render based on type
+  switch (parsed.type) {
+    case 'text':
+      return <p className="text-sm whitespace-pre-wrap text-gray-700">{parsed.content}</p>;
+
+    case 'insight_cards': {
+      const cards = Array.isArray(parsed.data) ? parsed.data as InsightCard[] : [];
+      return (
+        <div className="space-y-2">
+          {cards.map((card, idx) => (
+            <div 
+              key={idx}
+              className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 border border-gray-200"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500">{card.title}</span>
+                {card.trend !== undefined && (
+                  <span className={`text-xs font-medium ${card.trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {card.trend >= 0 ? '↑' : '↓'} {Math.abs(card.trend)}%
+                  </span>
+                )}
+              </div>
+              <p className="text-sm font-semibold text-gray-900 mt-1">{card.value}</p>
+              {card.url && (
+                <a 
+                  href={card.url} 
+                  className="text-xs mt-2 inline-block hover:underline"
+                  style={{ color: accentColor }}
+                >
+                  বিস্তারিত দেখুন →
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    case 'action_chips': {
+      const chips = Array.isArray(parsed.data) ? parsed.data as ActionChip[] : [];
+      return (
+        <div className="flex flex-wrap gap-2 mt-2">
+          {chips.map((chip, idx) => (
+            <a
+              key={idx}
+              href={chip.url}
+              className="px-3 py-1.5 text-xs rounded-full text-white transition-opacity hover:opacity-90"
+              style={{ backgroundColor: accentColor }}
+            >
+              {chip.label}
+            </a>
+          ))}
+        </div>
+      );
+    }
+
+    case 'mixed': {
+      const items = parsed.items || [];
+      return (
+        <div className="space-y-3">
+          {items.map((item, idx) => {
+            if (item.type === 'text') {
+              return <p key={idx} className="text-sm text-gray-700">{typeof item.data === 'string' ? item.data : item.data?.content}</p>;
+            }
+            if (item.type === 'insight_cards') {
+              const cards = Array.isArray(item.data) ? item.data as InsightCard[] : [];
+              return (
+                <div key={idx} className="space-y-2">
+                  {cards.map((card, cardIdx) => (
+                    <div 
+                      key={cardIdx}
+                      className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 border border-gray-200"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">{card.title}</span>
+                        {card.trend !== undefined && (
+                          <span className={`text-xs font-medium ${card.trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {card.trend >= 0 ? '↑' : '↓'} {Math.abs(card.trend)}%
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm font-semibold text-gray-900 mt-1">{card.value}</p>
+                    </div>
+                  ))}
+                </div>
+              );
+            }
+            if (item.type === 'action_chips') {
+              const chips = Array.isArray(item.data) ? item.data as ActionChip[] : [];
+              return (
+                <div key={idx} className="flex flex-wrap gap-2">
+                  {chips.map((chip, chipIdx) => (
+                    <a
+                      key={chipIdx}
+                      href={chip.url}
+                      className="px-3 py-1.5 text-xs rounded-full text-white transition-opacity hover:opacity-90"
+                      style={{ backgroundColor: accentColor }}
+                    >
+                      {chip.label}
+                    </a>
+                  ))}
+                </div>
+              );
+            }
+            return null;
+          })}
+        </div>
+      );
+    }
+
+    case 'alert': {
+      const alert = parsed.data as { severity?: string; title?: string; message?: string; actionLabel?: string; actionUrl?: string };
+      const bgColor = alert.severity === 'warning' ? 'bg-amber-50 border-amber-200' : 
+                      alert.severity === 'error' ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200';
+      return (
+        <div className={`${bgColor} border rounded-lg p-3`}>
+          {alert.title && <p className="text-sm font-semibold">{alert.title}</p>}
+          {alert.message && <p className="text-xs text-gray-600 mt-1">{alert.message}</p>}
+          {alert.actionLabel && alert.actionUrl && (
+            <a href={alert.actionUrl} className="text-xs font-medium mt-2 inline-block" style={{ color: accentColor }}>
+              {alert.actionLabel} →
+            </a>
+          )}
+        </div>
+      );
+    }
+
+    default:
+      // Fallback: show as plain text
+      return <p className="text-sm whitespace-pre-wrap text-gray-700">{content}</p>;
+  }
 }
 
 interface StorefrontAIChatWidgetProps {
@@ -346,9 +553,11 @@ export function StorefrontAIChatWidget({
                       : 'bg-white rounded-tl-none'
                   }`}
                 >
-                  <p className={`text-sm whitespace-pre-wrap ${msg.role === 'user' ? 'text-white' : 'text-gray-700'}`}>
-                    {msg.content}
-                  </p>
+                  <MessageContent 
+                    content={msg.content} 
+                    isUser={msg.role === 'user'} 
+                    accentColor={accentColor} 
+                  />
                 </div>
               </div>
             ))}

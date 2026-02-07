@@ -3,6 +3,9 @@
 > Updated: **February 7, 2026**  
 > Scope: storefront reliability + transaction safety + “go-live” gates for real orders/payments.
 
+For the detailed “what’s left + how to do it” plan, see:
+- `docs/LAUNCH_PLAN_2026-02-07.md`
+
 This doc is intentionally **truthful + verifiable**: every “Done” item includes at least one concrete file reference.
 
 ## ✅ Done (Implemented + Shipping)
