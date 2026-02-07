@@ -524,7 +524,7 @@ export function StorefrontAIChatWidget({
     <>
       {/* Contact Buttons (Above AI Button) */}
       {!isOpen && (hasWhatsApp || hasCall) && (
-        <div className="fixed bottom-24 right-4 z-40 flex flex-col gap-2">
+        <div className="fixed bottom-24 md:bottom-24 right-4 z-40 flex flex-col gap-2 pb-16 md:pb-0">
           {hasWhatsApp && whatsappNumber && (
             <a
               href={whatsappLink}
@@ -551,7 +551,7 @@ export function StorefrontAIChatWidget({
       {/* Greeting Popup */}
       {showGreeting && !isOpen && (
         <div 
-          className="fixed bottom-24 right-6 z-50 max-w-[260px] p-4 rounded-2xl shadow-2xl cursor-pointer hover:scale-105 transition-transform bg-white border border-gray-100"
+          className="fixed bottom-36 md:bottom-24 right-6 z-50 max-w-[260px] p-4 rounded-2xl shadow-2xl cursor-pointer hover:scale-105 transition-transform bg-white border border-gray-100"
           onClick={() => setIsOpen(true)}
         >
           <div className="flex items-start gap-3">
@@ -576,7 +576,7 @@ export function StorefrontAIChatWidget({
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-4 z-50 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all duration-300"
+          className="fixed bottom-20 md:bottom-6 right-4 z-50 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all duration-300"
           style={{ backgroundColor: accentColor }}
         >
           <MessageCircle className="w-7 h-7 text-white" />
@@ -592,7 +592,7 @@ export function StorefrontAIChatWidget({
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-4 z-50 w-[360px] max-w-[calc(100vw-32px)] h-[500px] max-h-[calc(100vh-100px)] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200">
+        <div className="fixed bottom-20 md:bottom-6 right-4 z-50 w-[360px] max-w-[calc(100vw-32px)] h-[500px] max-h-[calc(100vh-100px)] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200">
           {/* Header */}
           <div 
             className="flex items-center justify-between px-4 py-3 text-white"
