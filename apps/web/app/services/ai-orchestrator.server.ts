@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/d1';
 import { and, count, eq, gte, lt, or, sql, like } from 'drizzle-orm';
 import { orders, products, stores } from '@db/schema';
-import { callAIWithSystemPrompt, createAIService } from '~/services/ai.server';
+import { callAIWithSystemPrompt } from '~/services/ai.server';
 import { buildInsightCardResponse, detectLanguage, isMetricsQuestion } from './ai-chat-guard.server';
 import { getStorePolicyBundle, type StorePolicyBundle } from './store-policy.server';
 import type { Database } from '~/lib/db.server';
@@ -208,18 +208,18 @@ export async function handleCustomerChat(args: {
       });
     }
 
-    console.log('[CustomerChat] Finding products for storeId:', storeId);
+    console.warn('[CustomerChat] Finding products for storeId:', storeId);
     const matchingProducts = await findRelevantProducts(db, message, storeId);
-    console.log('[CustomerChat] Found products:', matchingProducts?.length || 0);
+    console.warn('[CustomerChat] Found products:', matchingProducts?.length || 0);
 
-    console.log('[CustomerChat] Getting policy bundle');
+    console.warn('[CustomerChat] Getting policy bundle');
     const policyBundle = await getStorePolicyBundle(analyticsDb, storeId);
-    console.log('[CustomerChat] Policy bundle:', policyBundle ? 'found' : 'null');
+    console.warn('[CustomerChat] Policy bundle:', policyBundle ? 'found' : 'null');
 
     // Provide default empty policy if store has no policies
     const policies: Partial<StorePolicyBundle> = policyBundle ?? {};
 
-    console.log('[CustomerChat] Building system prompt');
+    console.warn('[CustomerChat] Building system prompt');
     const systemPrompt = buildCustomerSystemPrompt(
       storeName,
       matchingProducts || [],
@@ -234,7 +234,7 @@ export async function handleCustomerChat(args: {
       persona
     );
 
-    console.log('[CustomerChat] Calling AI');
+    console.warn('[CustomerChat] Calling AI');
     return callAIWithSystemPrompt(env.OPENROUTER_API_KEY, systemPrompt, message, {
       model: env.AI_MODEL,
       baseUrl: env.AI_BASE_URL,
