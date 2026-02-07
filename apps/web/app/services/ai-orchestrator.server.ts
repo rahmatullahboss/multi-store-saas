@@ -51,14 +51,17 @@ export async function findRelevantProducts(
   db: ReturnType<typeof drizzle>,
   query: string,
   storeId: number
-): Promise<Array<{ title: string; price: number; description: string | null }>> {
+): Promise<Array<{ id: number; title: string; price: number; description: string | null; slug: string | null; imageUrl: string | null }>> {
   const searchTerm = `%${query}%`;
 
   const matchingProducts = await db
     .select({
+      id: products.id,
       title: products.title,
       price: products.price,
       description: products.description,
+      slug: products.slug,
+      imageUrl: products.imageUrl,
     })
     .from(products)
     .where(
@@ -77,9 +80,12 @@ export async function findRelevantProducts(
   if (matchingProducts.length === 0) {
     return await db
       .select({
+        id: products.id,
         title: products.title,
         price: products.price,
         description: products.description,
+        slug: products.slug,
+        imageUrl: products.imageUrl,
       })
       .from(products)
       .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
@@ -91,7 +97,7 @@ export async function findRelevantProducts(
 
 export function buildCustomerSystemPrompt(
   storeName: string,
-  storeProducts: Array<{ title: string; price: number; description: string | null }>,
+  storeProducts: Array<{ id: number; title: string; price: number; description: string | null; slug: string | null; imageUrl: string | null }>,
   policy: {
     deliveryText?: string;
     paymentMethods?: string[];
@@ -103,7 +109,7 @@ export function buildCustomerSystemPrompt(
   persona?: string
 ): string {
   const productList = storeProducts
-    .map((p) => `- ${p.title}: ৳${p.price} - ${p.description || 'Quality product'}`)
+    .map((p) => `- ID:${p.id} | ${p.title} | ৳${p.price} | Image:${p.imageUrl || 'none'} | Slug:${p.slug || p.id}`)
     .join('\n');
 
   const defaultPersona = 'You are a helpful sales assistant.';
@@ -139,16 +145,18 @@ ${productList || 'No specific products found. Ask what they are looking for!'}
 - If any policy is "Not specified", say you don't have that information.
 
 ## STRUCTURED RESPONSE FORMAT (MANDATORY):
-Return JSON object:
-1. 'insight_cards' (Products): 
-   { "type": "insight_cards", "data": [{ "title": "Product A", "value": "৳500", "icon": "products", "color": "blue" }] }
+Return JSON object. For product recommendations, use "product_cards":
+
+1. 'product_cards' (Products with image and link):
+   { "type": "product_cards", "data": [{ "id": 1, "title": "Product Name", "price": 500, "imageUrl": "https://...", "slug": "product-slug" }] }
 2. 'text' (Simple Answer):
    { "type": "text", "content": "Sure, here are some items." }
-3. 'mixed' (Text + Cards):
-   { "type": "mixed", "items": [{ "type": "text", "data": "Recommending:" }, { "type": "insight_cards", "data": [...] }] }
+3. 'mixed' (Text + Products):
+   { "type": "mixed", "items": [{ "type": "text", "data": "Recommending:" }, { "type": "product_cards", "data": [...] }] }
 
 ## FORMATTING:
-- Response MUST be valid JSON. No Markdown.`;
+- Response MUST be valid JSON. No Markdown.
+- For products: ALWAYS include id, title, price, imageUrl (from product list), and slug.`;
 }
 
 export async function handleSuperAdminMetrics(message: string, db: ReturnType<typeof drizzle>) {

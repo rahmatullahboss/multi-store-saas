@@ -28,11 +28,19 @@ interface ActionChip {
   url: string;
 }
 
+interface ProductCard {
+  id: number;
+  title: string;
+  price: number;
+  imageUrl?: string | null;
+  slug?: string | null;
+}
+
 interface StructuredResponse {
-  type: 'text' | 'insight_cards' | 'action_chips' | 'mixed' | 'alert';
+  type: 'text' | 'insight_cards' | 'action_chips' | 'mixed' | 'alert' | 'product_cards';
   content?: string;
-  data?: InsightCard[] | ActionChip[] | Record<string, unknown>;
-  items?: Array<{ type: string; data: string | InsightCard[] | ActionChip[] | Record<string, unknown> }>;
+  data?: InsightCard[] | ActionChip[] | ProductCard[] | Record<string, unknown>;
+  items?: Array<{ type: string; data: string | InsightCard[] | ActionChip[] | ProductCard[] | Record<string, unknown> }>;
 }
 
 /**
@@ -130,6 +138,44 @@ function MessageContent({ content, isUser, accentColor }: { content: string; isU
       );
     }
 
+    case 'product_cards': {
+      const productCards = Array.isArray(parsed.data) ? parsed.data as ProductCard[] : [];
+      return (
+        <div className="space-y-2">
+          {productCards.map((product, idx) => (
+            <a
+              key={idx}
+              href={`/products/${product.slug || product.id}`}
+              className="flex gap-3 bg-white rounded-lg p-2 border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"
+            >
+              {/* Product Image */}
+              <div className="w-16 h-16 flex-shrink-0 rounded-md overflow-hidden bg-gray-100">
+                {product.imageUrl ? (
+                  <img 
+                    src={product.imageUrl} 
+                    alt={product.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              {/* Product Info */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600">{product.title}</p>
+                <p className="text-sm font-bold mt-1" style={{ color: accentColor }}>৳{product.price.toLocaleString()}</p>
+                <p className="text-xs text-gray-500 mt-0.5">ক্লিক করে দেখুন →</p>
+              </div>
+            </a>
+          ))}
+        </div>
+      );
+    }
+
     case 'action_chips': {
       const chips = Array.isArray(parsed.data) ? parsed.data as ActionChip[] : [];
       return (
@@ -193,6 +239,41 @@ function MessageContent({ content, isUser, accentColor }: { content: string; isU
                       style={{ backgroundColor: accentColor }}
                     >
                       {chip.label}
+                    </a>
+                  ))}
+                </div>
+              );
+            }
+            if (item.type === 'product_cards') {
+              const productCards = Array.isArray(item.data) ? item.data as ProductCard[] : [];
+              return (
+                <div key={idx} className="space-y-2">
+                  {productCards.map((product, productIdx) => (
+                    <a
+                      key={productIdx}
+                      href={`/products/${product.slug || product.id}`}
+                      className="flex gap-3 bg-white rounded-lg p-2 border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"
+                    >
+                      <div className="w-16 h-16 flex-shrink-0 rounded-md overflow-hidden bg-gray-100">
+                        {product.imageUrl ? (
+                          <img 
+                            src={product.imageUrl} 
+                            alt={product.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600">{product.title}</p>
+                        <p className="text-sm font-bold mt-1" style={{ color: accentColor }}>৳{product.price.toLocaleString()}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">ক্লিক করে দেখুন →</p>
+                      </div>
                     </a>
                   ))}
                 </div>
