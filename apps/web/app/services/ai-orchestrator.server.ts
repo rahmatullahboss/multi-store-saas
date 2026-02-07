@@ -154,7 +154,8 @@ Return JSON object. For product recommendations, use "product_cards":
 
 ## FORMATTING:
 - Response MUST be valid JSON. No Markdown.
-- For products: ALWAYS include id, title, price, imageUrl (from product list), and slug.`;
+- For products: ALWAYS include id (numeric), title, price, imageUrl from the product list above.
+- IMPORTANT: Product links use numeric ID (e.g., /products/123). The "id" field is the NUMBER shown after "ID:" in the product list.`;
 }
 
 export async function handleSuperAdminMetrics(message: string, db: ReturnType<typeof drizzle>) {
