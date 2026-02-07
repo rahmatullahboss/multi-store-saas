@@ -58,16 +58,14 @@ export async function callAIWithSystemPrompt(
   const model = options?.model || DEFAULT_MODEL;
   const baseUrl = options?.baseUrl || DEFAULT_BASE_URL;
   
-  console.warn(`[AI] Calling AI with model: ${model} at ${baseUrl}`);
-  
   try {
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': 'https://ozzyl.com', // OpenRouter App URL
-        'X-Title': 'Ozzyl SaaS', // OpenRouter App Name
+        'HTTP-Referer': 'https://ozzyl.com',
+        'X-Title': 'Ozzyl SaaS',
       },
       body: JSON.stringify({
         model,
@@ -90,7 +88,6 @@ export async function callAIWithSystemPrompt(
     };
     
     const content = data.choices?.[0]?.message?.content;
-    console.warn(`[AI] Response received. Length: ${content?.length || 0}${data.usage ? `, Tokens: ${data.usage.total_tokens}` : ''}`);
     
     if (!content) {
       console.error('[AI] Empty response from AI');
@@ -313,16 +310,14 @@ async function callAI(
   model: string = DEFAULT_MODEL,
   baseUrl: string = DEFAULT_BASE_URL
 ): Promise<string> {
-  console.warn(`[AI] Calling AI with model: ${model} at ${baseUrl}`);
-  
   try {
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': 'https://ozzyl.com', // OpenRouter App URL
-        'X-Title': 'Ozzyl SaaS', // OpenRouter App Name
+        'HTTP-Referer': 'https://ozzyl.com',
+        'X-Title': 'Ozzyl SaaS',
       },
       body: JSON.stringify({
         model,
@@ -345,7 +340,6 @@ async function callAI(
     };
     
     const content = data.choices?.[0]?.message?.content;
-    console.warn(`[AI] Response received. Length: ${content?.length || 0}${data.usage ? `, Tokens: ${data.usage.total_tokens}` : ''}`);
     
     if (!content) {
       console.error('[AI] Empty response from AI');

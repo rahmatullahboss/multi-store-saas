@@ -6,6 +6,19 @@ import { buildInsightCardResponse, detectLanguage, isMetricsQuestion } from './a
 import { getStorePolicyBundle, type StorePolicyBundle } from './store-policy.server';
 import type { Database } from '~/lib/db.server';
 
+/**
+ * Sanitize text for use in AI prompts to prevent prompt injection
+ */
+function sanitizeForPrompt(text: string | null | undefined): string {
+  if (!text) return '';
+  // Remove backticks, curly braces, and other special characters that could inject prompts
+  return text
+    .replace(/[`${}\[\]]/g, '')
+    .replace(/\n+/g, ' ')
+    .substring(0, 200)
+    .trim();
+}
+
 export async function getPlatformStats(db: ReturnType<typeof drizzle>) {
   const now = new Date();
   const sevenDaysAgo = new Date(now);
@@ -107,7 +120,7 @@ export function buildCustomerSystemPrompt(
   persona?: string
 ): string {
   const productList = storeProducts
-    .map((p) => `- ID:${p.id} | ${p.title} | ৳${p.price} | Image:${p.imageUrl || 'none'}`)
+    .map((p) => `- ID:${p.id} | ${sanitizeForPrompt(p.title)} | ৳${p.price} | Image:${p.imageUrl || 'none'}`)
     .join('\n');
 
   const defaultPersona = 'You are a helpful sales assistant.';
@@ -209,13 +222,9 @@ export async function handleCustomerChat(args: {
       });
     }
 
-    console.warn('[CustomerChat] Finding products for storeId:', storeId);
     const matchingProducts = await findRelevantProducts(db, message, storeId);
-    console.warn('[CustomerChat] Found products:', matchingProducts?.length || 0);
 
-    console.warn('[CustomerChat] Getting policy bundle');
     const policyBundle = await getStorePolicyBundle(analyticsDb, storeId);
-    console.warn('[CustomerChat] Policy bundle:', policyBundle ? 'found' : 'null');
 
     // Provide default empty policy if store has no policies
     const policies: Partial<StorePolicyBundle> = policyBundle ?? {};
@@ -235,7 +244,6 @@ export async function handleCustomerChat(args: {
       persona
     );
 
-    console.warn('[CustomerChat] Calling AI');
     return callAIWithSystemPrompt(env.OPENROUTER_API_KEY, systemPrompt, message, {
       model: env.AI_MODEL,
       baseUrl: env.AI_BASE_URL,

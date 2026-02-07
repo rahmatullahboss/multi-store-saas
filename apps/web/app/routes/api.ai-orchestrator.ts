@@ -65,6 +65,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'Method not allowed' }, { status: 405 });
   }
 
+  // Rate limiting: 30 requests per minute per IP
+  const kv = context.cloudflare.env.KV as KVNamespace | undefined;
+  if (kv) {
+    const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for') || 'unknown';
+    const rateLimitKey = `ai_chat:${ip}:${Math.floor(Date.now() / 60000)}`; // per minute
+    const countStr = await kv.get(rateLimitKey);
+    const count = countStr ? parseInt(countStr, 10) : 0;
+    
+    if (count >= 30) {
+      return json({ error: 'Too many requests. Please wait a moment.' }, { status: 429 });
+    }
+    
+    await kv.put(rateLimitKey, (count + 1).toString(), { expirationTtl: 60 });
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let payload: any = {};
   try {
