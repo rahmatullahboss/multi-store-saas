@@ -92,6 +92,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
       if (payload.storeId !== undefined && payload.storeId !== null) {
         formData.append('storeId', String(payload.storeId));
       }
+      // Pass customer info for conversation tracking
+      if (payload.customerName) formData.append('customerName', String(payload.customerName));
+      if (payload.customerPhone) formData.append('customerPhone', String(payload.customerPhone));
+      if (payload.customerId) formData.append('customerId', String(payload.customerId));
       const nextRequest = buildFormRequest(request, formData);
       return handleChatAction({ request: nextRequest, context } as ActionFunctionArgs);
     }

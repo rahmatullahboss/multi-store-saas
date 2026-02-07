@@ -10,8 +10,8 @@
 
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq } from 'drizzle-orm';
-import { stores } from '@db/schema';
+import { eq, and, desc } from 'drizzle-orm';
+import { stores, aiConversations, messages, agents } from '@db/schema';
 import { getSession } from '~/services/auth.server';
 import { callAIWithSystemPrompt } from '~/services/ai.server';
 import { CREDIT_COSTS } from '~/utils/credit.server';
@@ -156,13 +156,23 @@ export async function handleChatAction({ request, context }: ActionFunctionArgs)
   // Parse request - Remix fetcher sends FormData by default
   let message: string;
   let clientStoreId: number | undefined;
+  let customerName: string | undefined;
+  let customerPhone: string | undefined;
+  let customerId: number | undefined;
   
   try {
     const formData = await request.formData();
     message = formData.get('message')?.toString() || '';
     const storeIdStr = formData.get('storeId')?.toString();
     clientStoreId = storeIdStr ? parseInt(storeIdStr) : undefined;
-    console.log('[AI Chat] Parsed message:', message, 'storeId:', clientStoreId);
+    
+    // Extract customer info for conversation tracking
+    customerName = formData.get('customerName')?.toString();
+    customerPhone = formData.get('customerPhone')?.toString();
+    const customerIdStr = formData.get('customerId')?.toString();
+    customerId = customerIdStr ? parseInt(customerIdStr) : undefined;
+    
+    console.log('[AI Chat] Parsed message:', message, 'storeId:', clientStoreId, 'customer:', customerName);
   } catch (err) {
     console.error('[AI Chat] FormData parse error:', err);
     return json({ error: 'Invalid request' }, { status: 400 });
@@ -351,11 +361,93 @@ Return JSON object:
     // Check credits (Store Owner pays)
     const creditGate = await requireCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'customer');
     if (!creditGate.allowed) {
-      console.log(`[AI Chat] Store ${storeId} out of credits for customer chat`);
+      console.warn(`[AI Chat] Store ${storeId} out of credits for customer chat`);
       return json({ error: creditGate.error, code: creditGate.code }, { status: creditGate.status });
     }
 
     try {
+      // Get or create agent for this store
+      const agentResult = await db
+        .select({ id: agents.id })
+        .from(agents)
+        .where(and(eq(agents.storeId, storeId), eq(agents.isActive, true)))
+        .limit(1);
+      
+      let agentId = agentResult[0]?.id;
+      
+      // Create agent if none exists
+      if (!agentId) {
+        const newAgent = await db
+          .insert(agents)
+          .values({
+            storeId,
+            name: 'Sales Assistant',
+            isActive: true,
+          })
+          .returning({ id: agents.id });
+        agentId = newAgent[0].id;
+      }
+
+      // Find or create conversation for this customer session
+      // Use customerPhone as unique identifier if available, otherwise use a session-based approach
+      let conversationId: number;
+      
+      if (customerPhone) {
+        // Look for existing active conversation with this phone
+        const existingConv = await db
+          .select({ id: aiConversations.id })
+          .from(aiConversations)
+          .where(and(
+            eq(aiConversations.storeId, storeId),
+            eq(aiConversations.customerPhone, customerPhone),
+            eq(aiConversations.status, 'active')
+          ))
+          .orderBy(desc(aiConversations.createdAt))
+          .limit(1);
+        
+        if (existingConv[0]) {
+          conversationId = existingConv[0].id;
+        } else {
+          // Create new conversation
+          const newConv = await db
+            .insert(aiConversations)
+            .values({
+              agentId,
+              storeId,
+              customerId: customerId || null,
+              customerName: customerName || null,
+              customerPhone: customerPhone || null,
+              channel: 'web',
+              status: 'active',
+            })
+            .returning({ id: aiConversations.id });
+          conversationId = newConv[0].id;
+        }
+      } else {
+        // No phone - create new conversation each time (anonymous)
+        const newConv = await db
+          .insert(aiConversations)
+          .values({
+            agentId,
+            storeId,
+            customerId: customerId || null,
+            customerName: customerName || null,
+            channel: 'web',
+            status: 'active',
+          })
+          .returning({ id: aiConversations.id });
+        conversationId = newConv[0].id;
+      }
+
+      // Save user message
+      await db.insert(messages).values({
+        conversationId,
+        role: 'user',
+        content: message,
+        creditsUsed: 0,
+      });
+
+      // Generate AI response
       const responseText = await handleCustomerChat({
         env,
         db,
@@ -366,8 +458,22 @@ Return JSON object:
         persona: store.aiBotPersona || undefined,
       });
 
+      // Save AI response
+      await db.insert(messages).values({
+        conversationId,
+        role: 'assistant',
+        content: responseText,
+        creditsUsed: CREDIT_COSTS.AI_CHAT_MESSAGE,
+      });
+
+      // Update conversation lastMessageAt
+      await db
+        .update(aiConversations)
+        .set({ lastMessageAt: new Date() })
+        .where(eq(aiConversations.id, conversationId));
+
       await chargeCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'Customer Sales Agent Chat');
-      return json({ success: true, response: responseText, context: 'customer' });
+      return json({ success: true, response: responseText, context: 'customer', conversationId });
     } catch (error) {
       console.error('[AI Chat] Customer error:', error);
       return json({ error: 'AI service error' }, { status: 500 });
