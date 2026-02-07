@@ -630,7 +630,7 @@ function PaymentSubmitForm({
   selectedPlan: 'starter' | 'premium';
   appliedCoupon: { finalPrice: number } | null;
   planPrice: number;
-  t: (key: any) => string;
+  t: (key: string) => string;
 }) {
   const fetcher = useFetcher<{ success?: boolean; error?: string; message?: string }>();
   const [transactionId, setTransactionId] = useState('');

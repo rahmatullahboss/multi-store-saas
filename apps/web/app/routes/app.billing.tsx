@@ -12,7 +12,7 @@
 
 import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link, useSearchParams, useFetcher } from '@remix-run/react';
+import { useLoaderData, Link, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import { stores, payments } from '@db/schema';
@@ -261,7 +261,7 @@ export default function BillingPage() {
     usage: rawUsage
   } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
-  const fetcher = useFetcher<{ success?: boolean; error?: string; aiAgentRequestStatus?: string; isCustomerAiEnabled?: boolean }>();
+
   // Use a minimal T function if language context is missing or fix usage
   // The user's rule says "Use Context7 MCP server: Fetch latest docs...". 
   // Assuming 't' exists in useTranslation.
@@ -293,7 +293,7 @@ export default function BillingPage() {
   
   const currentPlan = PLAN_DISPLAY[planType as keyof typeof PLAN_DISPLAY] || PLAN_DISPLAY.free;
   
-  const isSubmitting = fetcher.state !== 'idle';
+
 
   return (
     <div className="space-y-8">
