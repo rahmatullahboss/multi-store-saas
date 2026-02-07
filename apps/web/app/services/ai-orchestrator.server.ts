@@ -188,7 +188,7 @@ export async function handleSuperAdminMetrics(message: string, db: ReturnType<ty
 }
 
 export async function handleCustomerChat(args: {
-  env: any;
+  env: { OPENROUTER_API_KEY: string; AI_MODEL: string; AI_BASE_URL: string };
   db: ReturnType<typeof drizzle>;
   analyticsDb: Database;
   message: string;
@@ -197,36 +197,53 @@ export async function handleCustomerChat(args: {
   persona?: string;
 }) {
   const { env, db, analyticsDb, message, storeId, storeName, persona } = args;
-  if (isMetricsQuestion(message)) {
-    const lang = detectLanguage(message);
-    return JSON.stringify({
-      type: 'text',
-      content:
-        lang === 'bn'
-          ? 'দুঃখিত, এই তথ্যটি আমি শেয়ার করতে পারি না। প্রোডাক্ট বা অর্ডার সম্পর্কিত প্রশ্ন করুন।'
-          : 'Sorry, I can’t share that information. Please ask about products or orders.',
+  
+  try {
+    if (isMetricsQuestion(message)) {
+      const lang = detectLanguage(message);
+      return JSON.stringify({
+        type: 'text',
+        content:
+          lang === 'bn'
+            ? 'দুঃখিত, এই তথ্যটি আমি শেয়ার করতে পারি না। প্রোডাক্ট বা অর্ডার সম্পর্কিত প্রশ্ন করুন।'
+            : "Sorry, I can't share that information. Please ask about products or orders.",
+      });
+    }
+
+    console.log('[CustomerChat] Finding products for storeId:', storeId);
+    const matchingProducts = await findRelevantProducts(db, message, storeId);
+    console.log('[CustomerChat] Found products:', matchingProducts?.length || 0);
+
+    console.log('[CustomerChat] Getting policy bundle');
+    const policyBundle = await getStorePolicyBundle(analyticsDb, storeId);
+    console.log('[CustomerChat] Policy bundle:', policyBundle ? 'found' : 'null');
+
+    // Provide default empty policy if store has no policies
+    const policies = policyBundle ?? {};
+
+    console.log('[CustomerChat] Building system prompt');
+    const systemPrompt = buildCustomerSystemPrompt(
+      storeName,
+      matchingProducts || [],
+      {
+        deliveryText: policies.deliveryText,
+        paymentMethods: policies.paymentMethods,
+        returnPolicy: policies.returnPolicy,
+        shippingPolicy: policies.shippingPolicy,
+        subscriptionPolicy: policies.subscriptionPolicy,
+        legalNotice: policies.legalNotice,
+      },
+      persona
+    );
+
+    console.log('[CustomerChat] Calling AI');
+    return callAIWithSystemPrompt(env.OPENROUTER_API_KEY, systemPrompt, message, {
+      model: env.AI_MODEL,
+      baseUrl: env.AI_BASE_URL,
     });
+  } catch (error) {
+    console.error('[CustomerChat] Error details:', error);
+    console.error('[CustomerChat] Error stack:', (error as Error)?.stack);
+    throw error;
   }
-
-  const matchingProducts = await findRelevantProducts(db, message, storeId);
-  const policyBundle = await getStorePolicyBundle(analyticsDb, storeId);
-
-  const systemPrompt = buildCustomerSystemPrompt(
-    storeName,
-    matchingProducts,
-    {
-      deliveryText: policyBundle?.deliveryText,
-      paymentMethods: policyBundle?.paymentMethods,
-      returnPolicy: policyBundle?.returnPolicy,
-      shippingPolicy: policyBundle?.shippingPolicy,
-      subscriptionPolicy: policyBundle?.subscriptionPolicy,
-      legalNotice: policyBundle?.legalNotice,
-    },
-    persona
-  );
-
-  return callAIWithSystemPrompt(env.OPENROUTER_API_KEY, systemPrompt, message, {
-    model: env.AI_MODEL,
-    baseUrl: env.AI_BASE_URL,
-  });
 }
