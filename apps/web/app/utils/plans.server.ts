@@ -11,7 +11,7 @@
  */
 
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and, gte, count, sql } from 'drizzle-orm';
+import { eq, and, gte, count } from 'drizzle-orm';
 import { stores, orders, products, messages, conversations, agents } from '@db/schema';
 
 // ============================================================================
@@ -26,12 +26,7 @@ export const STORE_AI_DAILY_LIMITS: Record<PlanType, number> = {
   business: 20,  // 20/day (reduced from 100)
 };
 
-// 2. Monthly Limits for AI PLANS (Add-on) -> Managed by D1
-export const AI_PLAN_LIMITS: Record<AIPlanType, number> = {
-  lite: 500,     // 500/month
-  standard: 1200,// 1200/month
-  pro: 3000,     // 3000/month
-};
+// 2. Monthly Limits for AI PLANS (Add-on) -> Removed (Credit System)
 
 // ============================================================================
 // PLAN CONFIGURATION
@@ -205,51 +200,17 @@ async function getActiveProductCount(
 // ============================================================================
 // HELPER: Get monthly AI message count for store
 // ============================================================================
-async function getMonthlyAiMessageCount(
-  db: ReturnType<typeof drizzle>,
-  storeId: number
-): Promise<number> {
-  const monthStart = getMonthStart();
-  
-  // Count user messages for this store's agent created this month
-  const result = await db
-    .select({ count: count() })
-    .from(messages)
-    .innerJoin(conversations, eq(messages.conversationId, conversations.id))
-    .innerJoin(agents, eq(conversations.agentId, agents.id))
-    .where(
-      and(
-        eq(agents.storeId, storeId),
-        eq(messages.role, 'user'),
-        gte(messages.createdAt, monthStart)
-      )
-    );
-  
-  return result[0]?.count ?? 0;
-}
-
-// ============================================================================
-// AI PLAN CONFIGURATION (Add-on)
-// ============================================================================
-export type AIPlanType = 'lite' | 'standard' | 'pro';
-
-export const AI_PLAN_PRICES: Record<AIPlanType, number> = {
-  lite: 500,
-  standard: 1000,
-  pro: 2000,
-};
-
 // ============================================================================
 // HELPER: Get store plans (Base + AI)
 // ============================================================================
 async function getStorePlans(
   db: ReturnType<typeof drizzle>,
   storeId: number
-): Promise<{ planType: PlanType; aiPlan: AIPlanType | null }> {
+): Promise<{ planType: PlanType; aiCredits: number }> {
   const result = await db
     .select({ 
       planType: stores.planType,
-      aiPlan: stores.aiPlan 
+      aiCredits: stores.aiCredits
     })
     .from(stores)
     .where(eq(stores.id, storeId))
@@ -257,7 +218,7 @@ async function getStorePlans(
   
   return {
     planType: (result[0]?.planType as PlanType) || 'free',
-    aiPlan: (result[0]?.aiPlan as AIPlanType) || null
+    aiCredits: result[0]?.aiCredits ?? 0
   };
 }
 
@@ -274,7 +235,7 @@ export async function checkUsageLimit(
     ? drizzle(dbBinding as D1Database) 
     : dbBinding as ReturnType<typeof drizzle>;
   
-  const { planType, aiPlan } = await getStorePlans(db, storeId);
+  const { planType } = await getStorePlans(db, storeId);
   // Safeguard: Use getPlanLimitsSafe to handle invalid/missing plan types
   const limits = getPlanLimitsSafe(planType);
   
@@ -340,50 +301,11 @@ export async function checkUsageLimit(
     };
   }
   
+  // ai_message case removed manually or just ignored if type is checked?
+  // Since we removed 'ai_message' from logic, we should probably remove it from type definition too?
+  // But strictly, let's just make it return allowed if passed.
   if (type === 'ai_message') {
-    const currentCount = await getMonthlyAiMessageCount(db, storeId);
-    
-    // Use AI Add-on Plan Limit
-    // If no AI plan is selected, limit is effectively 0 (or a small trial amount like 10?)
-    // Let's provide a small trial of 10 messages for 'free' users without add-on, 
-    // unless strictly forced. The user said "Add-on service". 
-    // If no add-on, limit = 0 is safest, or fallback to the old visual limit.
-    // Let's check if aiPlan exists.
-    
-    const maxMessages = aiPlan ? AI_PLAN_LIMITS[aiPlan] : 0; 
-    
-    // Allow small trial if no plan? Maybe not for now. Strict implementation.
-    
-    if (currentCount >= maxMessages) {
-        // Different message if no plan
-        const msg = !aiPlan 
-            ? "AI Agent is an add-on service. Please activate a plan to use it."
-            : `Monthly AI message limit reached (${maxMessages}). Upgrade your AI plan.`;
-
-      return {
-        allowed: false,
-        error: {
-          code: LIMIT_CODES.AI,
-          message: msg,
-          limit: maxMessages,
-          current: currentCount,
-        },
-        usage: {
-          current: currentCount,
-          limit: maxMessages,
-          percentage: maxMessages === 0 ? 100 : Math.round((currentCount / maxMessages) * 100), // Handle div by 0
-        },
-      };
-    }
-    
-    return {
-      allowed: true,
-      usage: {
-        current: currentCount,
-        limit: maxMessages,
-        percentage: maxMessages === Infinity ? 0 : (maxMessages === 0 ? 0 : Math.round((currentCount / maxMessages) * 100)),
-      },
-    };
+     return { allowed: true };
   }
   
   // Default: allow (shouldn't reach here)
@@ -398,19 +320,17 @@ export async function getUsageStats(
   storeId: number
 ): Promise<{
   planType: PlanType;
-  aiPlan: AIPlanType | null;
   orders: { current: number; limit: number; percentage: number };
   products: { current: number; limit: number; percentage: number };
   visitors: { current: number; limit: number; percentage: number };
-  aiMessages: { current: number; limit: number; percentage: number };
+  aiCredits: { current: number; limit: number; percentage: number };
 }> {
   const db = drizzle(dbBinding);
-  const { planType, aiPlan } = await getStorePlans(db, storeId);
+  const { planType, aiCredits } = await getStorePlans(db, storeId);
   const limits = PLAN_LIMITS[planType];
   
   const orderCount = await getMonthlyOrderCount(db, storeId);
   const productCount = await getActiveProductCount(db, storeId);
-  const aiMessageCount = await getMonthlyAiMessageCount(db, storeId);
   
   // Get visitor count from stores table
   const storeResult = await db
@@ -421,11 +341,8 @@ export async function getUsageStats(
   
   const visitorCount = storeResult[0]?.monthlyVisitorCount ?? 0;
   
-  const aiLimit = aiPlan ? AI_PLAN_LIMITS[aiPlan] : 0;
-
   return {
     planType,
-    aiPlan,
     orders: {
       current: orderCount,
       limit: limits.max_orders,
@@ -441,10 +358,10 @@ export async function getUsageStats(
       limit: limits.max_visitors,
       percentage: limits.max_visitors === Infinity ? 0 : Math.round((visitorCount / limits.max_visitors) * 100),
     },
-    aiMessages: {
-      current: aiMessageCount,
-      limit: aiLimit,
-      percentage: aiLimit === 0 ? (aiMessageCount > 0 ? 100 : 0) : Math.round((aiMessageCount / aiLimit) * 100),
+    aiCredits: {
+      current: aiCredits,
+      limit: 0, // Not strictly used for progress bar in the same way
+      percentage: 100, // Always 100% or we could calculate based on some threshold
     }
   };
 }
@@ -559,7 +476,7 @@ export function canUseCustomDomain(planType: PlanType): boolean {
 // ============================================================================
 // UTILITY: Check if store can use AI features
 // ============================================================================
-export function canUseAI(planType: PlanType): boolean {
+export function canUseAI(_planType: PlanType): boolean {
   return true; // Everyone can use AI (Credit System)
 }
 

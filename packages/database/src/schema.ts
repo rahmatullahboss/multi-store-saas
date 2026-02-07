@@ -121,7 +121,7 @@ export const stores = sqliteTable('stores', {
     .$type<'none' | 'pending' | 'approved' | 'rejected'>()
     .default('none'),
   aiAgentRequestedAt: integer('ai_agent_requested_at', { mode: 'timestamp' }),
-  aiPlan: text('ai_plan').$type<'lite' | 'standard' | 'pro'>(), // AI Add-on Plan
+  // aiPlan removed
   aiCredits: integer('ai_credits').default(50), // Default 50 credits for new stores
 
   // === CUSTOM GOOGLE OAUTH (Premium/Business only) ===

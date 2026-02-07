@@ -10,7 +10,7 @@ import { createDb } from '~/lib/db.server';
 import { CREDIT_COSTS } from '~/utils/credit.server';
 import { requireCredits, chargeCredits } from '~/services/ai-credits.server';
 import { getStoreStats } from '~/services/analytics.server';
-import type { PlanType, AIPlanType } from '~/utils/plans.server';
+import type { PlanType } from '~/utils/plans.server';
 import {
   buildInsightCardResponse,
   detectLanguage,

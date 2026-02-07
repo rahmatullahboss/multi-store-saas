@@ -36,9 +36,7 @@ import { getStoreAIUsage } from '~/lib/rateLimit.server';
 import {
   getBulkUsageStats,
   STORE_AI_DAILY_LIMITS,
-  AI_PLAN_LIMITS,
   type PlanType,
-  type AIPlanType,
 } from '~/utils/plans.server';
 import { useState } from 'react';
 import { formatPrice } from '~/lib/theme-engine';
@@ -64,7 +62,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       planType: stores.planType,
       aiAgentRequestedAt: stores.aiAgentRequestedAt,
       isCustomerAiEnabled: stores.isCustomerAiEnabled,
-      aiPlan: stores.aiPlan,
+      // aiPlan removed
       paymentTransactionId: stores.paymentTransactionId,
       paymentPhone: stores.paymentPhone,
       paymentAmount: stores.paymentAmount,
@@ -82,7 +80,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       subdomain: stores.subdomain,
       planType: stores.planType,
       isCustomerAiEnabled: stores.isCustomerAiEnabled,
-      aiPlan: stores.aiPlan,
     })
     .from(stores)
     .where(or(eq(stores.aiAgentRequestStatus, 'approved'), eq(stores.isCustomerAiEnabled, true)));
@@ -96,25 +93,17 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const usageStats = await Promise.all(
     activeStores.map(async (store) => {
       const planType = (store.planType as PlanType) || 'free';
-      const aiPlan = (store.aiPlan as AIPlanType) || null;
+      // aiPlan logic removed
 
       let usage = 0;
       let limit = 0;
       let mode: 'daily' | 'monthly' = 'daily';
 
-      if (aiPlan) {
-        // === MONTHLY MODE (Paid AI Plan) ===
-        // Fetch from D1 bulk stats
-        usage = monthlyStats.get(store.id)?.aiMessages || 0;
-        limit = AI_PLAN_LIMITS[aiPlan];
-        mode = 'monthly';
-      } else {
-        // === DAILY MODE (Store Plan Trial) ===
-        // Fetch from KV (Real-time daily)
-        usage = await getStoreAIUsage(context.cloudflare.env.AI_RATE_LIMIT, store.id);
-        limit = STORE_AI_DAILY_LIMITS[planType];
-        mode = 'daily';
-      }
+      // === DAILY MODE (Store Plan Trial) ===
+      // Fetch from KV (Real-time daily)
+      usage = await getStoreAIUsage(context.cloudflare.env.AI_RATE_LIMIT, store.id);
+      limit = STORE_AI_DAILY_LIMITS[planType];
+      mode = 'daily';
 
       return {
         ...store,
@@ -488,11 +477,6 @@ export default function AdminAiRequests() {
                               >
                                 {store.planType || 'Free'}
                               </span>
-                              {store.aiPlan && (
-                                <span className="w-fit px-2 py-0.5 text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded uppercase font-bold tracking-wide">
-                                  {store.aiPlan} AI
-                                </span>
-                              )}
                             </div>
                           </td>
                           <td className="px-6 py-4 min-w-[250px]">

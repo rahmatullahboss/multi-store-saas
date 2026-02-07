@@ -15,12 +15,11 @@ import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { eq } from 'drizzle-orm';
 import { stores, users, products } from '@db/schema';
 import { getSession } from '~/services/auth.server';
-import { canUseAI, type PlanType, type AIPlanType } from '~/utils/plans.server';
+import { type PlanType } from '~/utils/plans.server';
 import { createAIService, callAIWithSystemPrompt, AI_CONFIG } from '~/services/ai.server';
-import { checkAIRateLimit, incrementAIUsage } from '~/lib/rateLimit.server';
+import { incrementAIUsage } from '~/lib/rateLimit.server';
 import { CREDIT_COSTS, type AIFeatureName } from '~/utils/credit.server';
 import { requireCredits, chargeCredits } from '~/services/ai-credits.server';
-import { SECTION_REGISTRY } from '~/components/store-sections/registry';
 import { createDb } from '~/lib/db.server';
 
 interface ActionPayload {
@@ -72,7 +71,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const storeResult = await db
     .select({ 
       planType: stores.planType,
-      aiPlan: stores.aiPlan
+      // aiPlan removed
     })
     .from(stores)
     .where(eq(stores.id, storeId))
@@ -91,7 +90,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   const planType = (store.planType as PlanType) || 'free';
-  const aiPlan = (store.aiPlan as AIPlanType) || null;
+  // aiPlan removed
 
   // Check for API key
   const apiKey = env.OPENROUTER_API_KEY;
@@ -458,7 +457,7 @@ Verify: "Am I ONLY touching targetId ${selectedComponent.id}?"`;
       }
     }
 
-    await incrementAIUsage(env.AI_RATE_LIMIT, storeId, !aiPlan);
+    await incrementAIUsage(env.AI_RATE_LIMIT, storeId, true);
 
     return json({ success: true, data: result, newBalance, cost });
 

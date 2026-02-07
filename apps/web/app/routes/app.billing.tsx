@@ -17,14 +17,12 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import { stores, payments } from '@db/schema';
 import { requireUserId, getStoreId } from '~/services/auth.server';
-import { getUsageStats, PLAN_LIMITS, type PlanType, AI_PLAN_LIMITS, AI_PLAN_PRICES } from '~/utils/plans.server';
+import { getUsageStats, PLAN_LIMITS, type PlanType } from '~/utils/plans.server';
 
 // Client-side constant for AI plan prices (mirrored from server)
-const CLIENT_AI_PLAN_PRICES = {
-  lite: 500,
-  standard: 1000,
-  pro: 2000,
-} as const;
+// Client-side constant for AI plan prices (mirrored from server)
+// Moved to credit system
+
 import { 
   Check, 
   X, 
@@ -37,14 +35,8 @@ import {
   ShoppingCart,
   ArrowRight,
   Bot,
-  Loader2,
-  Users,
-  CreditCard,
-  Clock,
-  Send,
-  Copy
+  Users
 } from 'lucide-react';
-import { toast } from 'sonner';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { GlassCard } from '~/components/ui/GlassCard';
 
@@ -140,7 +132,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       name: stores.name,
       isCustomerAiEnabled: stores.isCustomerAiEnabled,
       aiAgentRequestStatus: stores.aiAgentRequestStatus,
-      aiPlan: stores.aiPlan,
+      // aiPlan removed
       paymentStatus: stores.paymentStatus,
       paymentTransactionId: stores.paymentTransactionId,
       paymentPhone: stores.paymentPhone,
@@ -173,7 +165,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     limits: PLAN_LIMITS[planType],
     isCustomerAiEnabled: store?.isCustomerAiEnabled || false,
     aiAgentRequestStatus: store?.aiAgentRequestStatus || 'none',
-    aiPlan: store?.aiPlan || null,
+    // aiPlan removed
     paymentStatus: store?.paymentStatus || 'none',
     paymentTransactionId: store?.paymentTransactionId || null,
     paymentPhone: store?.paymentPhone || null,
@@ -198,31 +190,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
-  if (actionType === 'activate_ai_plan') {
-    const plan = formData.get('plan') as 'lite' | 'standard' | 'pro';
-    if (!['lite', 'standard', 'pro'].includes(plan)) {
-         return json({ error: 'Invalid plan' }, { status: 400 });
-    }
-
-    // Set request as pending and store the plan
-    await db
-      .update(stores)
-      .set({ 
-        aiPlan: plan, 
-        aiAgentRequestStatus: 'pending',
-        aiAgentRequestedAt: new Date(),
-        updatedAt: new Date()
-      })
-      .where(eq(stores.id, storeId));
-    
-    return json({ success: true, aiPlan: plan });
-  }
+  // activate_ai_plan action removed as we moved to credit system
 
   if (actionType === 'submit_ai_payment') {
     const transactionId = formData.get('transactionId') as string;
     const phoneNumber = formData.get('phoneNumber') as string;
     const amount = parseFloat(formData.get('amount') as string);
-    const aiPlan = formData.get('aiPlan') as string;
 
     if (!transactionId || transactionId.length < 6) {
       return json({ error: 'Invalid Transaction ID' }, { status: 400 });
@@ -252,7 +225,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .update(stores)
       .set({ 
         isCustomerAiEnabled: false,
-        aiPlan: null, // Clear plan
+        // aiPlan: null, // Removed
         aiAgentRequestStatus: 'none',
         updatedAt: new Date()
       })
@@ -283,18 +256,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // ============================================================================
 export default function BillingPage() {
   const { 
-    storeName, 
     planType, 
     subscriptionStatus, 
-    usage: rawUsage, 
-    isCustomerAiEnabled, 
-    aiAgentRequestStatus, 
-    aiPlan, 
-    paymentStatus, 
-    paymentTransactionId, 
-    paymentPhone, 
-    paymentAmount, 
-    paymentHistory 
+    usage: rawUsage
   } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const fetcher = useFetcher<{ success?: boolean; error?: string; aiAgentRequestStatus?: string; isCustomerAiEnabled?: boolean }>();

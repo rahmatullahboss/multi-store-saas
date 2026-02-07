@@ -91,4 +91,11 @@ declare module '@remix-run/cloudflare' {
   }
 }
 
+// Remix build output is generated at runtime (not present during `tsc --noEmit`).
+// This keeps typecheck green without requiring a build step.
+declare module '../build/server/index.js' {
+  const build: any;
+  export default build;
+}
+
 export {};

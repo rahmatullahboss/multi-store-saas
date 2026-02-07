@@ -355,54 +355,48 @@ export default function DashboardPage() {
           />
         </GlassCard>
 
-        {/* AI Usage Card */}
-        {usage.aiPlan && (
+        {/* AI Credits Card */}
+        {usage.aiCredits && (
           <GlassCard
             variant="default"
-            className="p-6 flex flex-col justify-between border-orange-100 bg-orange-50/50"
+            className="p-6 flex flex-col justify-between border-purple-100 bg-purple-50/50"
           >
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-gray-500 text-sm font-medium">
-                    {t('aiMessages') || 'AI Messages'}
+                    {t('aiCredits') || 'AI Credits'}
                   </p>
                   <h3 className="text-2xl font-bold text-gray-900 mt-1">
-                    {usage.aiMessages?.current}
+                    {usage.aiCredits.current}
                     <span className="text-sm font-normal text-gray-400">
                       {' '}
-                      / {usage.aiMessages?.limit}
+                      {t('available') || 'Available'}
                     </span>
                   </h3>
                 </div>
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 shadow-md flex items-center justify-center text-white">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 shadow-md flex items-center justify-center text-white">
                   <Bot className="w-5 h-5" />
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="h-2 bg-gray-200/60 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all shadow-sm ${
-                      (usage.aiMessages?.percentage || 0) >= 90
-                        ? 'bg-red-500'
-                        : 'bg-gradient-to-r from-orange-400 to-orange-600'
-                    }`}
-                    style={{ width: `${Math.min(usage.aiMessages?.percentage || 0, 100)}%` }}
-                  />
-                </div>
-                {(usage.aiMessages?.percentage || 0) >= 80 && (
+                {usage.aiCredits.current < 10 && (
                   <p className="text-xs text-orange-600 font-medium flex items-center gap-1">
                     <AlertTriangle className="w-3 h-3" />
-                    {usage.aiMessages?.percentage >= 100
-                      ? t('limitReached') || 'Limit Reached'
-                      : t('runningLow') || 'Running Low'}
+                    {t('lowCredits') || 'Low Credits'}
                     <Link
                       to="/app/billing"
                       className="ml-1 underline font-bold hover:text-orange-700"
                     >
-                      {t('upgrade') || 'Upgrade'}
+                      {t('topUp') || 'Top Up'}
                     </Link>
                   </p>
+                )}
+                {usage.aiCredits.current >= 10 && (
+                   <p className="text-xs text-purple-600 font-medium flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    {t('active') || 'Active'}
+                   </p>
                 )}
               </div>
             </div>
