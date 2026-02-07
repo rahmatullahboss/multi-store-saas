@@ -134,6 +134,15 @@ Files:
 - `packages/database/src/schema.ts` (adds `aiCredits`, removes `aiPlan`)
 - `packages/database/src/migrations/0076_remove_ai_plan.sql`
 
+### 10) DB integrity hardening: `store_users` shim for legacy FK
+Behavior:
+- Some existing schema objects reference `store_users(id)` (e.g. `page_revisions.created_by`).
+- Missing `store_users` can break later schema operations (ALTER/RENAME/rebuild) with `no such table: main.store_users`.
+- Added a minimal `store_users` table that mirrors `users.id`, with backfill + triggers to keep in sync.
+
+Files:
+- `packages/database/src/migrations/0077_create_store_users_shim.sql`
+
 ## 🚀 Deployment (Cloudflare Workers)
 
 Latest deployed version (as of **2026-02-06**):
