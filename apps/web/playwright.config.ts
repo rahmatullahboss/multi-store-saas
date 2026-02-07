@@ -15,6 +15,7 @@ const E2E_BASE_URL = process.env.E2E_BASE_URL || `http://localhost:${E2E_PORT}`;
 
 export default defineConfig({
   testDir: './e2e',
+  globalSetup: './e2e/global-setup.ts',
   
   // Run tests in parallel
   fullyParallel: true,
@@ -94,6 +95,8 @@ export default defineConfig({
     env: {
       ...process.env,
       E2E: '1',
+      E2E_ENABLED: '1',
+      E2E_TOKEN: process.env.E2E_TOKEN || 'local-e2e-token',
       E2E_PORT: String(E2E_PORT),
       PORT: String(E2E_PORT),
       SESSION_SECRET: process.env.SESSION_SECRET || 'e2e-test-session-secret',

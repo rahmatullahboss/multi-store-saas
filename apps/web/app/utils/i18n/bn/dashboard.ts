@@ -1035,6 +1035,10 @@ export const dashboard = {
   primaryLanguage: 'প্রধান ভাষা',
   saveConfiguration: 'কনফিগারেশন সেভ করুন',
   failedToSave: 'সেটিংস সেভ করতে ব্যর্থ হয়েছে',
+  buyCredits: 'আরও ক্রেডিট কিনুন',
+  storefrontAiAgent: 'স্টোরফ্রন্ট AI এজেন্ট',
+  storefrontAiDesc: 'আপনার স্টোরফ্রন্টে কাস্টমাররা AI অ্যাসিস্ট্যান্টের সাথে চ্যাট করতে পারবে',
+  creditCostPerMessage: 'প্রতি মেসেজে খরচ',
 
   // AI Agent - Simulator
   simulator: 'সিমুলেটর',

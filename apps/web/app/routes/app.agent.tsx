@@ -7,8 +7,8 @@ import { getStoreId } from '~/services/auth.server';
 import { Sparkles, MessageSquare, Settings, Book, Bot, Zap, TrendingUp } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { ASSETS } from '~/config/assets';
-import { getUsageStats } from '~/utils/plans.server';
 import { LazyAreaChart } from '~/components/charts/LazyAreaChart';
+import { Coins } from 'lucide-react';
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -16,10 +16,10 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 
   const db = drizzle(context.cloudflare.env.DB, { schema });
 
-  // Check if store has Agent enabled
+  // Check if store has Agent enabled and get credits
   const store = await db.query.stores.findFirst({
     where: eq(schema.stores.id, storeId),
-    columns: { isCustomerAiEnabled: true, aiPlan: true }
+    columns: { isCustomerAiEnabled: true, aiCredits: true }
   });
 
   // Fetch Agent
@@ -27,8 +27,6 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
     where: eq(schema.agents.storeId, storeId)
   });
 
-  // Get Usage Stats
-  const usageStats = await getUsageStats(context.cloudflare.env.DB, storeId);
 
   // Calculate Metrics
   const [convCount] = await db.select({ count: count() })
@@ -62,19 +60,18 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   return json({ 
     agent, 
     isLocked: !store?.isCustomerAiEnabled,
-    aiPlan: store?.aiPlan,
+    aiCredits: store?.aiCredits || 0,
     stats: {
         conversations: convCount?.count || 0,
         leads: leadsCount?.count || 0, 
         orders: ordersCount?.count || 0,
-        daily: dailyDataRaw,
-        usage: usageStats.aiMessages // { current, limit, percentage }
+        daily: dailyDataRaw
     }
   });
 };
 
 export default function AgentDashboard() {
-  const { agent, isLocked, stats, aiPlan } = useLoaderData<typeof loader>();
+  const { agent, isLocked, stats, aiCredits } = useLoaderData<typeof loader>();
   const location = useLocation();
   const { t } = useTranslation();
 
@@ -153,33 +150,29 @@ export default function AgentDashboard() {
              <div className="space-y-6">
                  {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    {/* Usage Card */}
-                    <div className="p-6 bg-white rounded-xl border border-gray-100 shadow-sm relative overflow-hidden">
+                    {/* Credits Card */}
+                    <div className="p-6 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl shadow-lg relative overflow-hidden text-white">
                         <div className="flex items-center justify-between mb-4">
                             <div>
-                                <span className="text-gray-500 text-sm font-medium">{t('messageUsageLimit')}</span>
-                                <div className="text-xs text-emerald-600 font-bold mt-1 uppercase">{aiPlan || 'Trial'} {t('plan')}</div>
+                                <span className="text-violet-200 text-sm font-medium">{t('aiCredits')}</span>
+                                <div className="text-xs text-violet-300 mt-1">Pay As You Go</div>
                             </div>
-                            <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-                                <Zap className="w-5 h-5 text-emerald-600" />
+                            <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                                <Coins className="w-5 h-5 text-white" />
                             </div>
                         </div>
-                        <div className="mb-2">
-                             <div className="text-2xl font-bold text-gray-900">
-                                {stats.usage.current.toLocaleString()} 
-                                <span className="text-sm font-normal text-gray-400"> / {stats.usage.limit === Infinity ? '∞' : (stats.usage.limit === 0 && stats.usage.current > 0 ? 'Trial' : stats.usage.limit.toLocaleString())}</span>
+                        <div className="mb-3">
+                             <div className="text-3xl font-bold">
+                                {aiCredits.toLocaleString()}
+                                <span className="text-sm font-normal text-violet-200 ml-1">{t('creditsLabel')}</span>
                              </div>
                         </div>
-                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div 
-                                className={`h-full rounded-full transition-all duration-500 ${
-                                    stats.usage.percentage >= 90 ? 'bg-red-500' : 
-                                    stats.usage.percentage >= 70 ? 'bg-amber-500' : 
-                                    'bg-emerald-500'
-                                }`}
-                                style={{ width: `${Math.min(stats.usage.percentage, 100)}%` }}
-                            />
-                        </div>
+                        <Link 
+                            to="/app/credits" 
+                            className="inline-flex items-center gap-1 text-sm text-violet-200 hover:text-white transition-colors"
+                        >
+                            {t('buyCredits')} <Zap className="w-3 h-3" />
+                        </Link>
                     </div>
 
                     <div className="p-6 bg-white rounded-xl border border-gray-100 shadow-sm">

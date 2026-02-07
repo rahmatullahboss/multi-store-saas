@@ -1060,6 +1060,10 @@ export const dashboard = {
   primaryLanguage: 'Primary Language',
   saveConfiguration: 'Save Configuration',
   failedToSave: 'Failed to save settings',
+  buyCredits: 'Buy More Credits',
+  storefrontAiAgent: 'Storefront AI Agent',
+  storefrontAiDesc: 'Allow customers to chat with your AI assistant on your storefront',
+  creditCostPerMessage: 'Cost per message',
 
   // AI Agent - Simulator
   simulator: 'Simulator',

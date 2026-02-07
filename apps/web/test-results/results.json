@@ -4,7 +4,7 @@
     "rootDir": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/e2e",
     "forbidOnly": false,
     "fullyParallel": true,
-    "globalSetup": null,
+    "globalSetup": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/e2e/global-setup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
@@ -150,10 +150,10 @@
         "NVM_DIR": "/Users/rahmatullahzisan/.nvm",
         "COMMAND_MODE": "unix2003",
         "npm_config_globalconfig": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/etc/npmrc",
-        "SSH_AUTH_SOCK": "/private/tmp/com.apple.launchd.MMhyAv9Oeg/Listeners",
+        "SSH_AUTH_SOCK": "/private/tmp/com.apple.launchd.G9W3gtE86Y/Listeners",
         "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0",
         "npm_execpath": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/lib/node_modules/npm/bin/npm-cli.js",
-        "PATH": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/node_modules/.bin:/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/node_modules/.bin:/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/node_modules/.bin:/Users/rahmatullahzisan/Desktop/Dev/node_modules/.bin:/Users/rahmatullahzisan/Desktop/node_modules/.bin:/Users/rahmatullahzisan/node_modules/.bin:/Users/node_modules/.bin:/node_modules/.bin:/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/node-gyp-bin:/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/Users/rahmatullahzisan/.codex/tmp/arg0/codex-arg0zNBfoB:/Users/rahmatullahzisan/.opencode/bin:/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/bin:/Applications/Codex.app/Contents/Resources",
+        "PATH": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/node_modules/.bin:/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/node_modules/.bin:/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/node_modules/.bin:/Users/rahmatullahzisan/Desktop/Dev/node_modules/.bin:/Users/rahmatullahzisan/Desktop/node_modules/.bin:/Users/rahmatullahzisan/node_modules/.bin:/Users/node_modules/.bin:/node_modules/.bin:/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/node-gyp-bin:/Users/rahmatullahzisan/.codex/tmp/arg0/codex-arg0JJdszA:/Users/rahmatullahzisan/.opencode/bin:/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/Applications/Codex.app/Contents/Resources",
         "npm_package_json": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/package.json",
         "_": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/node_modules/.bin/playwright",
         "npm_config_userconfig": "/Users/rahmatullahzisan/.npmrc",
@@ -186,6 +186,8 @@
         "npm_config_prefix": "/Users/rahmatullahzisan/.nvm/versions/node/v24.11.1",
         "CODEX_INTERNAL_ORIGINATOR_OVERRIDE": "Codex Desktop",
         "E2E": "1",
+        "E2E_ENABLED": "1",
+        "E2E_TOKEN": "local-e2e-token",
         "E2E_PORT": "5174",
         "PORT": "5174",
         "SESSION_SECRET": "e2e-test-session-secret",
@@ -203,13 +205,13 @@
       "specs": [],
       "suites": [
         {
-          "title": "Critical Path: Store Creation to Purchase",
+          "title": "Critical Path: Seeded Storefront",
           "file": "smoke.test.ts",
-          "line": 4,
+          "line": 3,
           "column": 6,
           "specs": [
             {
-              "title": "full merchant and customer journey",
+              "title": "seed store + product, then render product + cart",
               "ok": false,
               "tags": [],
               "tests": [
@@ -224,52 +226,57 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 42071,
+                      "duration": 30988,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/e2e/smoke.test.ts:88:40",
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/e2e/smoke.test.ts:35:23",
                         "location": {
                           "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/e2e/smoke.test.ts",
-                          "column": 40,
-                          "line": 88
+                          "column": 23,
+                          "line": 35
                         },
-                        "snippet": "  86 |     \n  87 |     // Verify we're logged in (either dashboard or some app page)\n> 88 |     await expect(page.locator('body')).toBeVisible();\n     |                                        ^\n  89 |     \n  90 |     // Check if we can access the products page\n  91 |     await page.goto('/app/products');"
+                        "snippet": "  33 |       }\n  34 |     }\n> 35 |     expect(navigated).toBeTruthy();\n     |                       ^\n  36 |\n  37 |     // Product title should render (template markup can vary).\n  38 |     await expect(page.getByText(seeded.productTitle).first()).toBeVisible();"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/e2e/smoke.test.ts",
-                            "column": 40,
-                            "line": 88
+                            "column": 23,
+                            "line": 35
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('body')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('body')\u001b[22m\n\n\n  86 |     \n  87 |     // Verify we're logged in (either dashboard or some app page)\n> 88 |     await expect(page.locator('body')).toBeVisible();\n     |                                        ^\n  89 |     \n  90 |     // Check if we can access the products page\n  91 |     await page.goto('/app/products');\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/e2e/smoke.test.ts:88:40"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  33 |       }\n  34 |     }\n> 35 |     expect(navigated).toBeTruthy();\n     |                       ^\n  36 |\n  37 |     // Product title should render (template markup can vary).\n  38 |     await expect(page.getByText(seeded.productTitle).first()).toBeVisible();\n    at /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/e2e/smoke.test.ts:35:23"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-06T04:00:39.082Z",
+                      "startTime": "2026-02-07T01:10:12.492Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "screenshot",
                           "contentType": "image/png",
-                          "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/test-results/smoke-Critical-Path-Store--4aca2-rchant-and-customer-journey-chromium/test-failed-1.png"
+                          "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/test-results/smoke-Critical-Path-Seeded-e1298-ct-then-render-product-cart-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/test-results/smoke-Critical-Path-Seeded-e1298-ct-then-render-product-cart-chromium/error-context.md"
                         }
                       ],
                       "errorLocation": {
                         "file": "/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/e2e/smoke.test.ts",
-                        "column": 40,
-                        "line": 88
+                        "column": 23,
+                        "line": 35
                       }
                     }
                   ],
                   "status": "unexpected"
                 }
               ],
-              "id": "4a239ced0e52b6754d8b-57781e6275caf5461761",
+              "id": "4a239ced0e52b6754d8b-6f74c4b7fb16f947162e",
               "file": "smoke.test.ts",
-              "line": 11,
+              "line": 4,
               "column": 3
             }
           ]
@@ -279,8 +286,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-02-06T03:59:59.870Z",
-    "duration": 82192.95899999999,
+    "startTime": "2026-02-07T01:08:48.127Z",
+    "duration": 120530.948,
     "expected": 0,
     "skipped": 0,
     "unexpected": 1,

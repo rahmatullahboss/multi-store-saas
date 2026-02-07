@@ -46,7 +46,13 @@ export interface StoreContextWithTemplate extends StoreContext {
  * Check if store is in store mode (full e-commerce enabled)
  */
 export function isStoreModeEnabled(store: Store): boolean {
-  // Check the storeMode field - defaults to 'landing' if not set
+  // MVP/Hybrid: store access is controlled by `storeEnabled` (boolean in DB).
+  // Older code used `storeMode` ("landing" | "store") which is no longer persisted.
+  if (typeof (store as any).storeEnabled === 'boolean') {
+    return (store as any).storeEnabled === true;
+  }
+
+  // Back-compat (if any store object still contains `storeMode`).
   const mode = (store as unknown as { storeMode?: string }).storeMode;
   return mode === 'store';
 }

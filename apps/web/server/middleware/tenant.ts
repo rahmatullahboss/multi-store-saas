@@ -44,6 +44,14 @@ function parseHostname(
   // Remove port if present
   const cleanHostname = hostname.split(':')[0];
 
+  // Local development subdomains:
+  // Playwright/E2E and Vite dev commonly use `store.localhost` to simulate tenants.
+  // Treat `*.localhost` as a subdomain and resolve by `stores.subdomain`.
+  if (cleanHostname.endsWith('.localhost')) {
+    const subdomain = cleanHostname.replace(/\.localhost$/, '');
+    return { type: 'subdomain', value: subdomain };
+  }
+
   // Check if it's a subdomain of the main SaaS domain
   if (cleanHostname.endsWith(`.${saasDomain}`)) {
     const subdomain = cleanHostname.replace(`.${saasDomain}`, '');

@@ -3,8 +3,9 @@ import { useLoaderData, Form, useNavigation, useActionData } from '@remix-run/re
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import * as schema from '../../db/schema';
+import { stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { Save } from 'lucide-react';
+import { Save, ToggleLeft, ToggleRight, Sparkles } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
@@ -16,7 +17,13 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
     where: eq(schema.agents.storeId, storeId)
   });
 
-  return json({ agent });
+  // Fetch store settings for Storefront AI
+  const store = await db.query.stores.findFirst({
+    where: eq(schema.stores.id, storeId),
+    columns: { isCustomerAiEnabled: true, aiCredits: true }
+  });
+
+  return json({ agent, isCustomerAiEnabled: store?.isCustomerAiEnabled || false, aiCredits: store?.aiCredits || 0 });
 };
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
@@ -30,6 +37,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   const tone = formData.get('tone') as string;
   const language = formData.get('language') as string;
   const isActive = formData.get('isActive') === 'on';
+  const isStorefrontAiEnabled = formData.get('isStorefrontAiEnabled') === 'on';
 
   // Construct settings JSON
   const agentSettings = JSON.stringify({
@@ -55,6 +63,11 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         });
     }
 
+    // Update store's isCustomerAiEnabled setting
+    await db.update(stores)
+        .set({ isCustomerAiEnabled: isStorefrontAiEnabled })
+        .where(eq(stores.id, storeId));
+
     return json({ success: true });
   } catch (error) {
     return json({ error: 'Failed to save settings' }, { status: 500 });
@@ -62,7 +75,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
 };
 
 export default function AgentConfig() {
-  const { agent } = useLoaderData<typeof loader>();
+  const { agent, isCustomerAiEnabled, aiCredits } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const { t } = useTranslation();
@@ -94,6 +107,31 @@ export default function AgentConfig() {
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                 </label>
+            </div>
+
+            {/* Storefront AI Toggle */}
+            <div className="p-4 bg-gradient-to-r from-violet-50 to-indigo-50 rounded-lg border border-violet-100">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <label className="font-medium text-gray-900 flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-violet-600" />
+                            {t('storefrontAiAgent')}
+                        </label>
+                        <p className="text-sm text-gray-500 mt-1">{t('storefrontAiDesc')}</p>
+                        <p className="text-xs text-violet-600 mt-1 flex items-center gap-1">
+                            {t('creditCostPerMessage')}: 1 {t('creditsLabel')} • {t('availableBalance')}: {aiCredits} {t('creditsLabel')}
+                        </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                            type="checkbox" 
+                            name="isStorefrontAiEnabled" 
+                            className="sr-only peer" 
+                            defaultChecked={isCustomerAiEnabled}
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-violet-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-600"></div>
+                    </label>
+                </div>
             </div>
 
             {/* Basic Info */}
