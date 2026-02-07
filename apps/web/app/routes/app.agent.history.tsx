@@ -4,9 +4,35 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import * as schema from '../../db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { Bot, User, Clock, Search, MessageSquare, ArrowLeft } from 'lucide-react';
+import { Bot, User, Clock, Search, MessageSquare, ArrowLeft, Phone } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { ClientDate, ClientTime } from '~/components/ui/ClientDate';
+
+// Helper to parse AI response content
+function parseMessageContent(content: string): string {
+  try {
+    const parsed = JSON.parse(content);
+    // Handle structured AI responses
+    if (parsed.type === 'text' && parsed.content) {
+      return parsed.content;
+    }
+    if (parsed.type === 'product_cards' && parsed.data) {
+      const products = parsed.data.map((p: any) => p.title).join(', ');
+      return `[Products: ${products}]`;
+    }
+    if (parsed.type === 'insight_cards' && parsed.data) {
+      return parsed.data.map((c: any) => `${c.title}: ${c.value}`).join(', ');
+    }
+    if (parsed.type === 'action_chips' && parsed.data) {
+      return parsed.data.map((a: any) => a.label).join(', ');
+    }
+    // Return original if no known format
+    return content;
+  } catch {
+    // Not JSON, return as-is
+    return content;
+  }
+}
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -124,6 +150,12 @@ export default function AgentHistory() {
                                 <ClientDate date={conv.lastMessageAt} />
                             </span>
                         </div>
+                        {conv.customerPhone && (
+                            <div className="flex items-center gap-1 text-xs text-gray-600 mb-1">
+                                <Phone className="w-3 h-3" />
+                                <span>{conv.customerPhone}</span>
+                            </div>
+                        )}
                         <div className="flex items-center gap-1 text-xs text-gray-500">
                             {conv.status === 'active' ? (
                                 <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
@@ -157,6 +189,12 @@ export default function AgentHistory() {
                         <h3 className="font-semibold text-gray-900">
                             {selectedConversation.customerName || t('guestUser')}
                         </h3>
+                        {selectedConversation.customerPhone && (
+                            <p className="text-sm text-gray-700 flex items-center gap-1 font-medium">
+                                <Phone className="w-3 h-3" />
+                                {selectedConversation.customerPhone}
+                            </p>
+                        )}
                         <p className="text-xs text-gray-500 flex items-center gap-1">
                            {t('started')} <ClientDate date={selectedConversation.createdAt} />
                         </p>
@@ -178,7 +216,7 @@ export default function AgentHistory() {
                                             ? 'bg-white text-gray-800 rounded-tl-none border border-gray-200' 
                                             : 'bg-emerald-600 text-white rounded-tr-none'}
                                     `}>
-                                        {msg.content}
+                                        {parseMessageContent(msg.content)}
                                     </div>
                                     <div className={`text-[10px] text-gray-400 mt-1 ${msg.role === 'assistant' ? 'text-right' : ''}`}>
                                         <ClientTime date={msg.createdAt} />
