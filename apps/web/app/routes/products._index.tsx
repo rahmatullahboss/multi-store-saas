@@ -158,6 +158,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     maxPrice,
     planType: store?.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
+    // AI Chat props
+    isCustomerAiEnabled: (store as any)?.isCustomerAiEnabled ?? false,
+    aiCredits: (store as any)?.aiCredits ?? 0,
   });
 }
 
@@ -183,6 +186,8 @@ export default function ProductsIndex() {
     maxPrice,
     planType,
     customer,
+    isCustomerAiEnabled,
+    aiCredits,
   } = useLoaderData<typeof loader>();
   const { t } = useTranslation();
 
@@ -260,6 +265,8 @@ export default function ProductsIndex() {
       footerConfig={footerConfig}
       planType={planType}
       customer={customer}
+      isCustomerAiEnabled={isCustomerAiEnabled}
+      aiCredits={aiCredits}
     >
       <div className={`min-h-screen ${bgColor}`}>
         {/* Breadcrumb */}

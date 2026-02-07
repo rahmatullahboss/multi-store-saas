@@ -47,6 +47,11 @@ interface StorePageWrapperProps {
     name: string | null;
     email: string | null;
   } | null;
+  // AI Chat props
+  isCustomerAiEnabled?: boolean;
+  aiCredits?: number;
+  accentColor?: string;
+  agentName?: string;
 }
 
 // ============================================================================
@@ -135,6 +140,11 @@ function StorePageWrapperComponent({
   storeDescription,
   isPreview = false,
   customer,
+  // AI props
+  isCustomerAiEnabled = false,
+  aiCredits = 0,
+  accentColor,
+  agentName,
 }: StorePageWrapperProps) {
   // Memoize template lookup (expensive operation)
   const template = useMemo(() => getStoreTemplate(templateId), [templateId]);
@@ -383,6 +393,12 @@ function StorePageWrapperComponent({
             callEnabled={config?.floatingCallEnabled}
             callNumber={config?.floatingCallNumber || businessInfo?.phone || undefined}
             storeName={storeName}
+            // AI Chat props
+            aiEnabled={isCustomerAiEnabled}
+            aiCredits={aiCredits}
+            storeId={storeId}
+            accentColor={accentColor}
+            agentName={agentName}
           />
         )}
 

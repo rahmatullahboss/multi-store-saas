@@ -373,6 +373,11 @@ export interface ThemeConfig {
   }>;
   heroAutoplay?: boolean;
   heroDelayMs?: number;
+  // Hero text customization
+  heroOverlayOpacity?: number; // 0 to 1 (0 = no overlay, 0.4 = default with text)
+  heroSubheading?: string; // Subheading text (optional)
+  heroButtonText?: string; // CTA button text (optional)
+  heroButtonLink?: string; // CTA button link (optional)
   favicon?: string;
   collections?: {
     id: string;

@@ -125,6 +125,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     planType: storeData?.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
     categories,
+    // AI Chat props
+    isCustomerAiEnabled: (storeData as any)?.isCustomerAiEnabled ?? false,
+    aiCredits: (storeData as any)?.aiCredits ?? 0,
   });
 }
 
@@ -258,6 +261,8 @@ export default function CartPage() {
     planType,
     customer,
     categories,
+    isCustomerAiEnabled,
+    aiCredits,
   } = useLoaderData<typeof loader>();
 
   const fetcher = useFetcher<typeof action>();
@@ -397,6 +402,8 @@ interface CartActionData {
         planType={planType}
         customer={customer || undefined}
         categories={categories}
+        isCustomerAiEnabled={isCustomerAiEnabled}
+        aiCredits={aiCredits}
       >
         <Suspense
           fallback={

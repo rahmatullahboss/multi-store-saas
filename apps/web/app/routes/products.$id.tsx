@@ -366,6 +366,9 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       themeConfig,
       storeShippingInfo: shippingInfo,
       storeRefundPolicy: productDetails.returnPolicy || store?.customRefundPolicy || null,
+      // AI Chat props
+      isCustomerAiEnabled: (store as any)?.isCustomerAiEnabled ?? false,
+      aiCredits: (store as any)?.aiCredits ?? 0,
     };
 
     // ============================================================
@@ -506,6 +509,8 @@ export default function ProductDetail() {
       footerConfig={footerConfig}
       planType={planType}
       customer={customer}
+      isCustomerAiEnabled={data.isCustomerAiEnabled}
+      aiCredits={data.aiCredits}
     >
       {template.ProductPage ? (
         <template.ProductPage

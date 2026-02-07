@@ -55,8 +55,21 @@ export function StarterStoreTemplate({
     heroBehavior.slides[0]?.imageUrl ||
     config?.bannerUrl ||
     fallbackHero;
-  const heroHeading =
-    heroBehavior.slides[heroIndex]?.heading || config?.bannerText || `${storeName} এ স্বাগতম`;
+  // Heading from slide or config - if empty string, no text overlay
+  const rawHeading = heroBehavior.slides[heroIndex]?.heading ?? config?.bannerText ?? '';
+  const heroHeading = rawHeading || null;  // null if empty string
+  const heroSubheading = heroBehavior.slides[heroIndex]?.subheading ?? config?.heroSubheading ?? null;
+  const heroButtonText = heroBehavior.slides[heroIndex]?.buttonText ?? config?.heroButtonText ?? null;
+  const heroButtonLink = heroBehavior.slides[heroIndex]?.buttonLink ?? '/products';
+  
+  // Show text content only if there's a heading
+  const showHeroText = Boolean(heroHeading);
+  
+  // Overlay opacity: 0 = no overlay (full image), 0.4 = default dark overlay
+  // Users can set heroOverlayOpacity in config (0 to 1)
+  const heroOverlayOpacity = showHeroText 
+    ? (config?.heroOverlayOpacity ?? 0.4)  // Default to 40% if showing text for readability
+    : (config?.heroOverlayOpacity ?? 0);   // Default to 0% (no overlay) if no text
 
   useEffect(() => {
     if (!heroBehavior.isCarousel || !heroBehavior.autoplay) return;
@@ -109,21 +122,31 @@ export function StarterStoreTemplate({
             {...({ fetchpriority: 'high' } as Record<string, unknown>)}
             decoding="async"
           />
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <div className="text-center text-white px-4">
-              <h1 className="text-3xl md:text-5xl font-bold mb-4">
-                {heroHeading}
-              </h1>
-              <p className="text-lg mb-6 opacity-90">সেরা মানের পণ্য, সেরা দামে</p>
-              <PreviewSafeLink
-                to="/products"
-                isPreview={isPreview}
-                className="inline-block px-8 py-3 rounded-lg font-medium transition hover:opacity-90"
-                style={{ backgroundColor: theme.accent, color: '#fff' }}
-              >
-                শপিং করুন
-              </PreviewSafeLink>
-            </div>
+          {/* Overlay - opacity is configurable, defaults to 0 (no overlay) if no text */}
+          <div 
+            className="absolute inset-0 flex items-center justify-center"
+            style={{ backgroundColor: heroOverlayOpacity > 0 ? `rgba(0, 0, 0, ${heroOverlayOpacity})` : 'transparent' }}
+          >
+            {showHeroText && (
+              <div className="text-center text-white px-4">
+                <h1 className="text-3xl md:text-5xl font-bold mb-4">
+                  {heroHeading}
+                </h1>
+                {heroSubheading && (
+                  <p className="text-lg mb-6 opacity-90">{heroSubheading}</p>
+                )}
+                {heroButtonText && (
+                  <PreviewSafeLink
+                    to={heroButtonLink}
+                    isPreview={isPreview}
+                    className="inline-block px-8 py-3 rounded-lg font-medium transition hover:opacity-90"
+                    style={{ backgroundColor: theme.accent, color: '#fff' }}
+                  >
+                    {heroButtonText}
+                  </PreviewSafeLink>
+                )}
+              </div>
+            )}
           </div>
         </section>
 
