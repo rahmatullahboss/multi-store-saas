@@ -154,7 +154,9 @@ function MessageContent({ content, isUser, accentColor }: { content: string; isU
         <div className="space-y-3">
           {items.map((item, idx) => {
             if (item.type === 'text') {
-              return <p key={idx} className="text-sm text-gray-700">{typeof item.data === 'string' ? item.data : item.data?.content}</p>;
+              const textData = item.data as string | { content?: string };
+              const textContent = typeof textData === 'string' ? textData : (textData as { content?: string })?.content || '';
+              return <p key={idx} className="text-sm text-gray-700">{textContent}</p>;
             }
             if (item.type === 'insight_cards') {
               const cards = Array.isArray(item.data) ? item.data as InsightCard[] : [];

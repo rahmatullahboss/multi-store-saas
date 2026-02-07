@@ -125,9 +125,6 @@
   "viewStackTrace": "স্ট্যাক ট্রেস দেখুন",
   "vipConversion": "ভিআইপি কনভার্সন",
   "visitors": "ভিজিটরগণ",
-  
-  "dashboardOverview": "ড্যাশবোর্ড ওভারভিউ",
-  "globalPlatformMetricsAndRecentActivity": "গ্লোবাল প্ল্যাটফর্ম মেট্রিক্স এবং সাম্প্রতিক কার্যকলাপ",
   "totalStores": "মোট স্টোর",
   "activeStoresSubtitle": "{{active}}টি সক্রিয়, {{suspended}}টি সাসপেন্ডেড",
   "monthlyRevenue": "মাসিক রাজস্ব",
