@@ -36,7 +36,7 @@ SAAS_DOMAIN = "ozzyl.com"
 R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"
 SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"
 CLOUDFLARE_ZONE_ID = "41147efa7d197cfddda0af7fcbf6d641"
-AI_MODEL = "google/gemini-2.0-flash-001"
+AI_MODEL = "arcee-ai/trinity-large-preview:free"
 AI_BASE_URL = "https://openrouter.ai/api/v1"
 PAGE_BUILDER_URL = "https://builder.ozzyl.com"
 VAPID_PUBLIC_KEY = "BDUvy4YEADMYrwmybG-tSOE7iEc_4ouSWUDhxlgszleXlFcJhqUi_be2T9WObp5S9bcuh-0pDQZTLyBNDQk41mY"
@@ -181,7 +181,7 @@ CLOUDFLARE_ZONE_ID = "41147efa7d197cfddda0af7fcbf6d641"  # Zone ID from Cloudfla
 # CLOUDFLARE_API_TOKEN = "your_cloudflare_api_token_here"  # Commented to use OAuth login
 
 # AI CONFIGURATION (Xiaomi Mimo or any OpenAI-compatible provider)
-AI_MODEL = "google/gemini-2.0-flash-001"  # Reliable model for production
+AI_MODEL = "arcee-ai/trinity-large-preview:free"  # Free model for production
 AI_BASE_URL = "https://openrouter.ai/api/v1"  # OpenRouter API Endpoint
 PAGE_BUILDER_URL = "https://builder.ozzyl.com"  # Separate worker for GrapesJS editor
 
