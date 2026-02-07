@@ -66,7 +66,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   // Rate limiting: 30 requests per minute per IP
-  const kv = context.cloudflare.env.KV as KVNamespace | undefined;
+  const kv = context.cloudflare.env.AI_RATE_LIMIT;
   if (kv) {
     const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for') || 'unknown';
     const rateLimitKey = `ai_chat:${ip}:${Math.floor(Date.now() / 60000)}`; // per minute

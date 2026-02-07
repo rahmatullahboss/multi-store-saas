@@ -13,7 +13,7 @@ function sanitizeForPrompt(text: string | null | undefined): string {
   if (!text) return '';
   // Remove backticks, curly braces, and other special characters that could inject prompts
   return text
-    .replace(/[`${}\[\]]/g, '')
+    .replace(/[`${}]|\[|\]/g, '')
     .replace(/\n+/g, ' ')
     .substring(0, 200)
     .trim();
