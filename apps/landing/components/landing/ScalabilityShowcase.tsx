@@ -273,7 +273,7 @@ export function ScalabilityShowcase() {
                 <div className="absolute top-4 right-4 flex flex-col gap-2 pointer-events-none">
                    <div className="bg-[#10B981]/20 border border-[#10B981]/30 px-3 py-1.5 rounded text-[#10B981] font-mono text-xs font-bold flex items-center gap-2">
                       <Users className="w-3 h-3" /> 
-                      {isStressTest ? '10M+ Requests' : '500k Active'}
+                      {isStressTest ? 'Infinite Scaling' : 'Ready for Millions'}
                    </div>
                 </div>
               </div>
@@ -282,15 +282,15 @@ export function ScalabilityShowcase() {
               <ul className="space-y-3">
                 <li className="flex items-start gap-3 text-white/90 text-sm font-medium">
                   <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0 mt-0.5" />
-                  <span>১০ মিলিয়ন+ রিকোয়েস্ট হ্যান্ডেল করার ক্ষমতা</span>
+                  <span>১০ মিলিয়ন শপ, প্রত্যেকে ১০ মিলিয়ন ভিজিটর? <span className="text-[#10B981]">No Problem!</span></span>
                 </li>
                 <li className="flex items-start gap-3 text-white/90 text-sm font-medium">
                   <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0 mt-0.5" />
-                  <span>DDoS ভল্ট – হ্যাকার বা অ্যাটাক নিয়ে চিন্তা নেই</span>
+                  <span>গ্লোবাল এজ নেটওয়ার্ক - ট্রাফিক বাড়লে ইনফ্রাস্ট্রাকচার বড় হয়</span>
                 </li>
                 <li className="flex items-start gap-3 text-white/90 text-sm font-medium">
                   <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0 mt-0.5" />
-                  <span>অটোম্যাটিক স্কেলিং – ট্রাফিক বাড়লে সার্ভার বড় হয়</span>
+                  <span>অটোম্যাটিক স্কেলিং - সার্ভার ক্র্যাশ করার কোনো সুযোগ নেই</span>
                 </li>
               </ul>
             </div>
@@ -312,12 +312,12 @@ export function ScalabilityShowcase() {
             >
               <span className={`w-3 h-3 rounded-full ${isStressTest ? 'bg-red-500 animate-pulse' : 'bg-white/20'}`} />
               <span className="font-bold text-white tracking-wide">
-                {isStressTest ? 'STOP MEGA LOAD TEST' : 'SIMULATE 10 MILLION REQUESTS'}
+                {isStressTest ? 'STOP INFINITE LOAD' : 'TEST INFINITE SCALABILITY'}
               </span>
               <TrendingUp className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
             </button>
             <p className="mt-4 text-sm text-white/30">
-               Click to simulate extreme traffic load
+               Click to simulate unlimited traffic load
             </p>
         </motion.div>
 
