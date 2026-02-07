@@ -28,10 +28,7 @@ import { handleCustomerChat } from '~/services/ai-orchestrator.server';
 // ============================================================================
 type ChatContext = 'merchant' | 'customer';
 
-interface ChatRequest {
-  message: string;
-  storeId?: number;
-}
+
 
 // ============================================================================
 // SYSTEM PROMPTS
@@ -139,7 +136,6 @@ For simple questions or explanations, use plain text:
 }
 
 export async function handleChatAction({ request, context }: ActionFunctionArgs) {
-  console.log('[AI Chat] Action started');
   
   const { env } = context.cloudflare;
   const db = drizzle(env.DB);
@@ -147,7 +143,7 @@ export async function handleChatAction({ request, context }: ActionFunctionArgs)
   const resolved = await resolveStore(
     {
       storeId: (context as unknown as { storeId?: number }).storeId,
-      store: (context as unknown as { store?: any }).store,
+      store: (context as unknown as { store?: typeof stores.$inferSelect | null }).store,
       cloudflare: { env },
     },
     request
@@ -171,21 +167,17 @@ export async function handleChatAction({ request, context }: ActionFunctionArgs)
     customerPhone = formData.get('customerPhone')?.toString();
     const customerIdStr = formData.get('customerId')?.toString();
     customerId = customerIdStr ? parseInt(customerIdStr) : undefined;
-    
-    console.log('[AI Chat] Parsed message:', message, 'storeId:', clientStoreId, 'customer:', customerName);
-  } catch (err) {
-    console.error('[AI Chat] FormData parse error:', err);
+  } catch {
     return json({ error: 'Invalid request' }, { status: 400 });
   }
 
   if (!message) {
-    console.log('[AI Chat] No message provided');
     return json({ error: 'Message required' }, { status: 400 });
   }
 
   // Get API key
+  // Get API key
   const apiKey = env.OPENROUTER_API_KEY;
-  console.log('[AI Chat] API Key present:', !!apiKey);
   if (!apiKey) {
     console.error('[AI Chat] OPENROUTER_API_KEY not configured');
     return json({ error: 'AI service not configured' }, { status: 503 });
@@ -204,8 +196,8 @@ export async function handleChatAction({ request, context }: ActionFunctionArgs)
     : (resolvedStoreId || (isDev ? clientStoreId : undefined));
 
   // MARKETING PAGE MODE: storeId = 0 or undefined = SaaS landing page visitor
+  // MARKETING PAGE MODE: storeId = 0 or undefined = SaaS landing page visitor
   if (!storeId || storeId === 0) {
-    console.log('[AI Chat] Marketing mode - no storeId');
     
     const saasSystemPrompt = `You are a helpful AI assistant for Ozzyl - an e-commerce platform for Bangladeshi sellers.
 
@@ -449,7 +441,11 @@ Return JSON object:
 
       // Generate AI response
       const responseText = await handleCustomerChat({
-        env,
+        env: {
+          OPENROUTER_API_KEY: apiKey,
+          AI_MODEL: env.AI_MODEL ?? 'meta-llama/llama-3-70b-instruct',
+          AI_BASE_URL: env.AI_BASE_URL ?? 'https://openrouter.ai/api/v1',
+        },
         db,
         analyticsDb,
         message,

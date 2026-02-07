@@ -59,8 +59,8 @@ export function StarterStoreTemplate({
   const rawHeading = heroBehavior.slides[heroIndex]?.heading ?? config?.bannerText ?? '';
   const heroHeading = rawHeading || null;  // null if empty string
   const heroSubheading = heroBehavior.slides[heroIndex]?.subheading ?? config?.heroSubheading ?? null;
-  const heroButtonText = heroBehavior.slides[heroIndex]?.buttonText ?? config?.heroButtonText ?? null;
-  const heroButtonLink = heroBehavior.slides[heroIndex]?.buttonLink ?? '/products';
+  const heroButtonText = heroBehavior.slides[heroIndex]?.ctaText ?? config?.heroButtonText ?? null;
+  const heroButtonLink = heroBehavior.slides[heroIndex]?.ctaLink ?? '/products';
   
   // Show text content only if there's a heading
   const showHeroText = Boolean(heroHeading);

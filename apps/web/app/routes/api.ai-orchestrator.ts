@@ -65,6 +65,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'Method not allowed' }, { status: 405 });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let payload: any = {};
   try {
     payload = await request.json();
@@ -79,7 +80,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   switch (channel) {
     case 'visitor': {
-      const { channel: _c, ...body } = payload;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { channel: _, ...body } = payload;
       const nextRequest = buildJsonRequest(request, body);
       return handleVisitorChatAction({ request: nextRequest, context } as ActionFunctionArgs);
     }
@@ -101,13 +103,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     case 'super_admin': {
-      const { channel: _c, ...body } = payload;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { channel: _, ...body } = payload;
       const nextRequest = buildJsonRequest(request, body);
       return handleAiChatAction({ request: nextRequest, context } as ActionFunctionArgs);
     }
 
     case 'omnichannel': {
-      const { channel: _c, ...body } = payload;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { channel: _, ...body } = payload;
       const nextRequest = buildJsonRequest(request, body);
       return handleAgentChatAction({ request: nextRequest, context } as ActionFunctionArgs);
     }

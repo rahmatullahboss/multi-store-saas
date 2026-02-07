@@ -126,8 +126,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
     categories,
     // AI Chat props
-    isCustomerAiEnabled: (storeData as any)?.isCustomerAiEnabled ?? false,
-    aiCredits: (storeData as any)?.aiCredits ?? 0,
+    isCustomerAiEnabled: Boolean((storeData as { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled),
+    aiCredits: Number((storeData as { aiCredits?: number }).aiCredits) || 0,
   });
 }
 
