@@ -1,6 +1,6 @@
 # Launch Readiness - 2026-02-04 (MVP → Production Gate)
 
-> Updated: **February 6, 2026**  
+> Updated: **February 7, 2026**  
 > Scope: storefront reliability + transaction safety + “go-live” gates for real orders/payments.
 
 This doc is intentionally **truthful + verifiable**: every “Done” item includes at least one concrete file reference.
@@ -114,6 +114,25 @@ Behavior:
 Files:
 - `apps/web/app/lib/orderStatus.ts`
 - `apps/web/app/routes/app.orders.$id.tsx`
+
+### 9) AI billing model migration: remove `aiPlan`, use `aiCredits`
+Behavior:
+- All AI usage gates for merchants now use **credits** (`stores.ai_credits`) instead of subscription add-on `aiPlan`.
+- AI endpoints check credits up-front (`requireCredits`) and deduct after success (`chargeCredits`).
+- Super admin bypass remains.
+- A DB migration stub is added for removing legacy `stores.ai_plan`.
+  - It is intentionally a **safe no-op** in code, because `DROP COLUMN` and table rebuilds are not consistently safe across all D1/SQLite states.
+  - If your production DB still has `ai_plan`, remove it during a controlled maintenance window after verifying schema integrity.
+
+Files:
+- `apps/web/app/routes/api.ai.action.ts`
+- `apps/web/app/services/ai-chat.server.ts`
+- `apps/web/app/routes/app.billing.tsx`
+- `apps/web/app/routes/app.dashboard.tsx`
+- `apps/web/app/lib/rateLimit.server.ts` (KV usage kept as telemetry)
+- `apps/web/app/utils/plans.server.ts` (removed `ai_message` usage-limit path)
+- `packages/database/src/schema.ts` (adds `aiCredits`, removes `aiPlan`)
+- `packages/database/src/migrations/0076_remove_ai_plan.sql`
 
 ## 🚀 Deployment (Cloudflare Workers)
 

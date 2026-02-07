@@ -228,7 +228,7 @@ async function getStorePlans(
 export async function checkUsageLimit(
   dbBinding: D1Database | ReturnType<typeof drizzle>,
   storeId: number,
-  type: 'order' | 'product' | 'ai_message'
+  type: 'order' | 'product'
 ): Promise<LimitCheckResult> {
   // Handle both D1Database and drizzle instances
   const db = 'prepare' in dbBinding 
@@ -299,13 +299,6 @@ export async function checkUsageLimit(
         percentage: Math.round((currentCount / maxProducts) * 100),
       },
     };
-  }
-  
-  // ai_message case removed manually or just ignored if type is checked?
-  // Since we removed 'ai_message' from logic, we should probably remove it from type definition too?
-  // But strictly, let's just make it return allowed if passed.
-  if (type === 'ai_message') {
-     return { allowed: true };
   }
   
   // Default: allow (shouldn't reach here)
