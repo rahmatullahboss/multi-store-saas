@@ -1,11 +1,18 @@
 -- Migration: Make email optional in customers table
 -- Rationale: Most BD customers only provide phone number, not email
 
--- Create new table with email as nullable
+-- IMPORTANT:
+-- At this point in the migration chain, `customers` has 11 columns:
+--   id, store_id, email, name, phone, address, created_at, updated_at,
+--   risk_score, risk_checked_at, segment
+-- We must preserve the exact column set when rebuilding the table, otherwise
+-- `INSERT ... SELECT *` will fail on fresh databases.
+
+-- Create new table with email as nullable (same columns as the current table)
 CREATE TABLE IF NOT EXISTS customers_new (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     store_id INTEGER NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
-    email TEXT,  -- Now nullable
+    email TEXT,  -- Now nullable (was NOT NULL)
     name TEXT,
     phone TEXT,
     address TEXT,
@@ -13,18 +20,36 @@ CREATE TABLE IF NOT EXISTS customers_new (
     updated_at INTEGER DEFAULT (unixepoch()),
     risk_score INTEGER,
     risk_checked_at INTEGER,
-    total_orders INTEGER DEFAULT 0,
-    total_spent REAL DEFAULT 0,
-    last_order_at INTEGER,
-    segment TEXT DEFAULT 'new',
-    tags TEXT,
-    loyalty_points INTEGER DEFAULT 0,
-    loyalty_tier TEXT DEFAULT 'bronze',
-    referred_by INTEGER
+    segment TEXT DEFAULT 'new'
 );
 
--- Copy existing data
-INSERT INTO customers_new SELECT * FROM customers;
+-- Copy existing data (explicit column list; safe on fresh + existing DBs)
+INSERT INTO customers_new (
+  id,
+  store_id,
+  email,
+  name,
+  phone,
+  address,
+  created_at,
+  updated_at,
+  risk_score,
+  risk_checked_at,
+  segment
+)
+SELECT
+  id,
+  store_id,
+  email,
+  name,
+  phone,
+  address,
+  created_at,
+  updated_at,
+  risk_score,
+  risk_checked_at,
+  segment
+FROM customers;
 
 -- Drop old table and rename
 DROP TABLE customers;

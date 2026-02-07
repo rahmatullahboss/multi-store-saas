@@ -8,6 +8,90 @@ compatibility_flags = ["nodejs_compat"]
 main = "server/index.ts"
 
 # ============================================================================
+# STAGING ENVIRONMENT (recommended)
+# ============================================================================
+# This project should use a separate Worker + separate D1 database for staging
+# so we can test migrations/features safely before production.
+#
+# IMPORTANT:
+# - Do NOT add production routes under staging.
+# - Replace the staging D1 `database_id` after creating the DB.
+#
+# Deploy staging:
+#   wrangler deploy --env staging
+# ============================================================================
+[env.staging]
+name = "multi-store-saas-staging"
+
+# Staging bindings (same binding names in code, different resources)
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "multi-store-saas-db-staging"
+database_id = "d8781763-b3cf-481f-bf4d-01c88090ffe8"
+migrations_dir = "../../packages/database/src/migrations"
+
+[env.staging.vars]
+# Keep defaults same as production unless you deliberately want different behavior.
+SAAS_DOMAIN = "ozzyl.com"
+R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"
+SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"
+CLOUDFLARE_ZONE_ID = "41147efa7d197cfddda0af7fcbf6d641"
+AI_MODEL = "tngtech/deepseek-r1t2-chimera:free"
+AI_BASE_URL = "https://openrouter.ai/api/v1"
+PAGE_BUILDER_URL = "https://builder.ozzyl.com"
+VAPID_PUBLIC_KEY = "BDUvy4YEADMYrwmybG-tSOE7iEc_4ouSWUDhxlgszleXlFcJhqUi_be2T9WObp5S9bcuh-0pDQZTLyBNDQk41mY"
+SENTRY_DSN = "https://49f43a7c79f0476ad9a12671b579d42c@o4509758332141568.ingest.de.sentry.io/4510691126214736"
+MASTER_FACEBOOK_PIXEL_ID = ""
+GOOGLE_CLIENT_ID = "477759293578-24qqc1l4mg7dtm2f44vtqbrme6p9cqa3.apps.googleusercontent.com"
+
+[[env.staging.r2_buckets]]
+binding = "R2"
+bucket_name = "multi-store-saas-media"
+
+[[env.staging.kv_namespaces]]
+binding = "AI_RATE_LIMIT"
+id = "4697fe943f0a4e8b9535f739374c56cb"
+
+[[env.staging.kv_namespaces]]
+binding = "STORE_CACHE"
+id = "7aea490529e049bcb2ebf98964012f71"
+
+[[env.staging.vectorize]]
+binding = "VECTORIZE"
+index_name = "multi-store-saas-vectors"
+
+[env.staging.ai]
+binding = "AI"
+
+[[env.staging.services]]
+binding = "ORDER_PROCESSOR_SERVICE"
+service = "order-processor"
+
+[[env.staging.services]]
+binding = "CART_SERVICE"
+service = "cart-processor"
+
+[[env.staging.services]]
+binding = "CHECKOUT_SERVICE"
+service = "checkout-lock"
+
+[[env.staging.services]]
+binding = "RATE_LIMITER_SERVICE"
+service = "rate-limiter"
+
+[[env.staging.services]]
+binding = "STORE_CONFIG_SERVICE"
+service = "store-config"
+
+[[env.staging.services]]
+binding = "EDITOR_STATE_SERVICE"
+service = "editor-state"
+
+[[env.staging.services]]
+binding = "PDF_SERVICE"
+service = "pdf-generator"
+
+# ============================================================================
 # ROUTING & CUSTOM DOMAINS
 # ============================================================================
 # Routes for the worker - Replaces Pages custom domains

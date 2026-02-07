@@ -55,6 +55,7 @@
 
 **Deliverable (created):**
 - `docs/DB_BASELINE_ADOPTION_RUNBOOK.md` (স্টেপ-বাই-স্টেপ কমান্ড + রিস্ক নোট)
+- `docs/STAGING_WORKFLOW.md` (স্টেজিং-first রিলিজ প্রসেস)
 
 ### 1.2 Checkout → Order Correctness (COD-first) (P0)
 

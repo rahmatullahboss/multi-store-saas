@@ -438,6 +438,7 @@ export default function ProductDetail() {
     categories,
     planType,
     customer,
+    storeShippingInfo,
     storeRefundPolicy,
     isCustomerAiEnabled,
     aiCredits,

@@ -111,9 +111,11 @@ CREATE INDEX `customers_store_id_idx` ON `customers` (`store_id`);--> statement-
 CREATE INDEX `customers_email_idx` ON `customers` (`store_id`,`email`);--> statement-breakpoint
 CREATE INDEX `customers_segment_idx` ON `customers` (`store_id`,`segment`);--> statement-breakpoint
 CREATE INDEX `customers_google_id_idx` ON `customers` (`store_id`,`google_id`);--> statement-breakpoint
-ALTER TABLE `product_variants` ADD `available` integer DEFAULT 0;--> statement-breakpoint
-ALTER TABLE `product_variants` ADD `reserved` integer DEFAULT 0;--> statement-breakpoint
+-- NOTE:
+-- `available`/`reserved` are added by `0049_inventory_reserve_system.sql`.
+-- When applying the full migration chain from scratch, that migration runs before
+-- this one, so re-adding would fail with "duplicate column name".
 ALTER TABLE `products` ADD `bundle_pricing` text;--> statement-breakpoint
 ALTER TABLE `stores` ADD `custom_google_client_id` text;--> statement-breakpoint
 ALTER TABLE `stores` ADD `custom_google_client_secret` text;--> statement-breakpoint
-ALTER TABLE `stores` ADD `homepage_builder_page_id` text;
+ALTER TABLE `stores` ADD `homepage_builder_page_id` text; 

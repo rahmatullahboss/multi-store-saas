@@ -76,9 +76,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         .select({ count: sql<number>`count(*)` })
         .from(messages)
         .where(eq(messages.conversationId, conv.id));
-      
+
+      // D1/Drizzle may materialize timestamp columns as Date objects.
+      // Normalize to ISO strings for consistent JSON + UI typing.
+      const createdAt =
+        conv.createdAt instanceof Date ? conv.createdAt.toISOString() : conv.createdAt;
+      const lastMessageAt =
+        conv.lastMessageAt instanceof Date ? conv.lastMessageAt.toISOString() : conv.lastMessageAt;
+
       return {
         ...conv,
+        createdAt: createdAt ?? null,
+        lastMessageAt: lastMessageAt ?? null,
         messageCount: countResult[0]?.count || 0,
       };
     })
