@@ -3,7 +3,7 @@ import { and, count, eq, gte, lt, or, sql, like } from 'drizzle-orm';
 import { orders, products, stores } from '@db/schema';
 import { callAIWithSystemPrompt, createAIService } from '~/services/ai.server';
 import { buildInsightCardResponse, detectLanguage, isMetricsQuestion } from './ai-chat-guard.server';
-import { getStorePolicyBundle } from './store-policy.server';
+import { getStorePolicyBundle, type StorePolicyBundle } from './store-policy.server';
 import type { Database } from '~/lib/db.server';
 
 export async function getPlatformStats(db: ReturnType<typeof drizzle>) {
@@ -51,7 +51,7 @@ export async function findRelevantProducts(
   db: ReturnType<typeof drizzle>,
   query: string,
   storeId: number
-): Promise<Array<{ id: number; title: string; price: number; description: string | null; slug: string | null; imageUrl: string | null }>> {
+): Promise<Array<{ id: number; title: string; price: number; description: string | null; imageUrl: string | null }>> {
   const searchTerm = `%${query}%`;
 
   const matchingProducts = await db
@@ -60,7 +60,6 @@ export async function findRelevantProducts(
       title: products.title,
       price: products.price,
       description: products.description,
-      slug: products.slug,
       imageUrl: products.imageUrl,
     })
     .from(products)
@@ -84,7 +83,6 @@ export async function findRelevantProducts(
         title: products.title,
         price: products.price,
         description: products.description,
-        slug: products.slug,
         imageUrl: products.imageUrl,
       })
       .from(products)
@@ -97,7 +95,7 @@ export async function findRelevantProducts(
 
 export function buildCustomerSystemPrompt(
   storeName: string,
-  storeProducts: Array<{ id: number; title: string; price: number; description: string | null; slug: string | null; imageUrl: string | null }>,
+  storeProducts: Array<{ id: number; title: string; price: number; description: string | null; imageUrl: string | null }>,
   policy: {
     deliveryText?: string;
     paymentMethods?: string[];
@@ -109,7 +107,7 @@ export function buildCustomerSystemPrompt(
   persona?: string
 ): string {
   const productList = storeProducts
-    .map((p) => `- ID:${p.id} | ${p.title} | ৳${p.price} | Image:${p.imageUrl || 'none'} | Slug:${p.slug || p.id}`)
+    .map((p) => `- ID:${p.id} | ${p.title} | ৳${p.price} | Image:${p.imageUrl || 'none'}`)
     .join('\n');
 
   const defaultPersona = 'You are a helpful sales assistant.';
@@ -148,7 +146,7 @@ ${productList || 'No specific products found. Ask what they are looking for!'}
 Return JSON object. For product recommendations, use "product_cards":
 
 1. 'product_cards' (Products with image and link):
-   { "type": "product_cards", "data": [{ "id": 1, "title": "Product Name", "price": 500, "imageUrl": "https://...", "slug": "product-slug" }] }
+   { "type": "product_cards", "data": [{ "id": 1, "title": "Product Name", "price": 500, "imageUrl": "https://..." }] }
 2. 'text' (Simple Answer):
    { "type": "text", "content": "Sure, here are some items." }
 3. 'mixed' (Text + Products):
@@ -219,7 +217,7 @@ export async function handleCustomerChat(args: {
     console.log('[CustomerChat] Policy bundle:', policyBundle ? 'found' : 'null');
 
     // Provide default empty policy if store has no policies
-    const policies = policyBundle ?? {};
+    const policies: Partial<StorePolicyBundle> = policyBundle ?? {};
 
     console.log('[CustomerChat] Building system prompt');
     const systemPrompt = buildCustomerSystemPrompt(
