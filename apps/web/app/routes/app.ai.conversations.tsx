@@ -21,8 +21,8 @@ interface Conversation {
   customerName: string | null;
   customerPhone: string | null;
   status: 'active' | 'closed' | 'transferred' | null;
-  createdAt: Date | null;
-  lastMessageAt: Date | null;
+  createdAt: string | null;
+  lastMessageAt: string | null;
   messageCount: number;
 }
 
@@ -30,7 +30,7 @@ interface Message {
   id: number;
   role: 'user' | 'assistant' | 'system';
   content: string;
-  createdAt: Date | null;
+  createdAt: string | null;
 }
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -102,7 +102,7 @@ function ConversationCard({ conversation }: { conversation: Conversation }) {
     try {
       const response = await fetch(`/api/ai-conversations/${conversation.id}/messages`);
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as { messages?: Message[] };
         setConversationMessages(data.messages || []);
       }
     } catch {
@@ -113,7 +113,7 @@ function ConversationCard({ conversation }: { conversation: Conversation }) {
     }
   };
 
-  const formatDate = (date: Date | null) => {
+  const formatDate = (date: string | null) => {
     if (!date) return 'N/A';
     return new Date(date).toLocaleString('bn-BD', {
       day: 'numeric',
