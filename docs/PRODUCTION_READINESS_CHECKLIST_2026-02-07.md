@@ -30,13 +30,28 @@ Production-এ যাওয়ার আগে একই change staging-এ চা�
 ### 1.4 What’s Pending
 - [ ] staging custom domain/route (optional but recommended): `staging.app.ozzyl.com` বা `staging-<store>.ozzyl.com`
 - [ ] staging secrets set (if staging needs email/AI keys for tests)
-- [ ] “smoke test script” (one command that hits critical endpoints)
+- [x] “smoke test script” exists:
+  - `apps/web/workers/health-check.sh` (post-deploy health check)
+  - `apps/web/e2e/smoke.test.ts` (Playwright critical path)
+- [ ] “one command” wrapper documentation (staging + prod) so release is muscle-memory
 
 ### 1.5 Verify (commands)
 ```bash
 cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
 npx wrangler d1 migrations apply multi-store-saas-db-staging --remote --env staging
 npx wrangler deploy --env staging
+```
+
+### 1.6 Smoke (commands)
+```bash
+cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
+
+# Staging worker health (expects /api/health to return 200)
+npm run health:staging
+
+# Optional: local critical-path E2E (dev server)
+# E2E_TOKEN is required if /api/e2e/seed is protected (recommended)
+E2E_TOKEN=local-e2e-token npm run e2e:smoke
 ```
 
 ## 2) Database Safety (P0)
@@ -60,6 +75,12 @@ npm run db:export:prod
 npm run db:clone:prod-to-staging
 npx wrangler d1 migrations apply multi-store-saas-db-staging --remote --env staging
 ```
+
+### 2.5 Rehearsal Notes (must write down)
+- [ ] export/import runtime (minutes) for your prod DB size
+- [ ] number of migrations applied and any failures
+- [ ] rollback decision: “forward fix” vs “time-travel restore” when migration breaks prod
+- [ ] a single “DB integrity check query pack” that you can re-run after every migration
 
 ## 3) Checkout/Order Correctness (COD-first) (P0)
 
@@ -100,6 +121,18 @@ COD হলেও order correctness ভুল হলে real operations ভেঙ
 - [ ] Incident runbook: rollback worker + DB restore decision tree
 - [ ] Uptime monitoring for `app.ozzyl.com` + `*.ozzyl.com`
 
+### 5.2 Verify (minimum)
+```bash
+cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
+
+# Staging: deploy + verify /api/health
+npm run deploy:staging
+npm run health:staging
+
+# Prod (non-destructive): just verify /api/health
+npm run health:prod
+```
+
 ## 6) Performance Baseline (P1)
 
 ### 6.1 What’s Pending
@@ -121,3 +154,59 @@ COD হলেও order correctness ভুল হলে real operations ভেঙ
 - [ ] COD stable → bKash
 - [ ] SSLCommerz/Stripe last
 
+## 9) Release Execution (Staging → Prod) (P0)
+
+Reference:
+- `docs/RELEASE_PROCESS.md`
+- `docs/LAUNCH_PLAN_2026-02-07.md`
+
+### 9.1 One Release (minimum steps)
+- [ ] Local checks green (`apps/web`): lint + typecheck + unit tests
+- [ ] Staging DB migrate
+- [ ] Deploy staging
+- [ ] Run staging smoke (`npm run health:staging`)
+- [ ] (If migrations exist) Production DB export backup
+- [ ] Production DB migrate
+- [ ] Deploy production
+- [ ] Run production smoke (`npm run health:prod`)
+
+### 9.2 Commands (copy/paste)
+```bash
+# 1) Local gates
+cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
+npm run test:all
+
+# 2) Staging migrate + deploy + smoke
+npx wrangler d1 migrations apply multi-store-saas-db-staging --remote --env staging
+npm run deploy:staging
+npm run health:staging
+
+# 3) Prod backup + migrate + deploy + smoke
+npm run db:export:prod
+npx wrangler d1 migrations apply multi-store-saas-db --remote
+npm run deploy:prod
+npm run health:prod
+```
+
+## 10) Go‑Live Day‑0 Checklist (P0)
+
+### 10.1 Before flipping “real orders”
+- [ ] Staging is green (deploy + health + critical E2E if possible)
+- [ ] Production DB export taken (timestamped file exists in `apps/web/tmp/`)
+- [ ] Confirm production routes bound to `env.production` only (no staging route leakage)
+- [ ] Confirm secrets present in production env (email/AI optional; auth required)
+- [ ] Confirm a rollback target exists (last known good Worker version)
+
+### 10.2 First real order (scripted manual run)
+- [ ] Create 1 COD order from a real storefront domain (not `workers.dev`)
+- [ ] Verify in admin:
+  - [ ] order shows correct totals
+  - [ ] customer details persisted correctly
+  - [ ] inventory changed as expected (no negative)
+- [ ] Update order state once (e.g., confirmed) and verify audit trail/log visibility
+
+### 10.3 First 60 minutes monitoring
+- [ ] Watch 5xx rate + checkout failures
+- [ ] Watch D1 errors (timeouts / locked / migrations)
+- [ ] Watch latency spikes (p95/p99)
+- [ ] If anything looks off: stop taking orders and rollback deploy first

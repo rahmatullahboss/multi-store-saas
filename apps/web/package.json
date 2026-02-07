@@ -28,10 +28,13 @@
     "test:ui": "vitest --ui",
     "test:all": "npm run lint && npm run typecheck && npm run test",
     "e2e": "playwright test",
+    "e2e:smoke": "playwright test e2e/smoke.test.ts",
     "e2e:ui": "playwright test --ui",
     "e2e:headed": "playwright test --headed",
     "e2e:debug": "playwright test --debug",
     "e2e:report": "playwright show-report",
+    "health:prod": "bash ./workers/health-check.sh --main",
+    "health:staging": "MAIN_APP_URL=https://multi-store-saas-staging.ozzyl.workers.dev bash ./workers/health-check.sh --main",
     "ci:local": "npm run test:all && npm run e2e",
     "i18n:extract": "npx i18next-parser 'app/**/*.{ts,tsx}' --config i18next-parser.config.js",
     "i18n:scan": "npx i18next-parser 'app/**/*.{ts,tsx}' --config i18next-parser.config.js --fail-on-update"

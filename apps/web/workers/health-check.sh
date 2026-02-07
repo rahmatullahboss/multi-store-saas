@@ -28,9 +28,15 @@ HEALTHY=0
 UNHEALTHY=0
 WARNINGS=0
 
-# URLs
-MAIN_APP_URL="https://multi-store-saas.ozzyl.workers.dev"
-PAGE_BUILDER_URL="https://builder.ozzyl.com"
+# URLs (override via env for staging/prod/custom domains)
+# Examples:
+#   MAIN_APP_URL="https://multi-store-saas-staging.ozzyl.workers.dev" bash ./workers/health-check.sh --main
+#   MAIN_APP_URL="https://app.ozzyl.com" bash ./workers/health-check.sh --main
+DEFAULT_MAIN_APP_URL="https://multi-store-saas.ozzyl.workers.dev"
+DEFAULT_PAGE_BUILDER_URL="https://builder.ozzyl.com"
+
+MAIN_APP_URL="${MAIN_APP_URL:-$DEFAULT_MAIN_APP_URL}"
+PAGE_BUILDER_URL="${PAGE_BUILDER_URL:-$DEFAULT_PAGE_BUILDER_URL}"
 
 # Parse arguments
 CHECK_WORKERS=true

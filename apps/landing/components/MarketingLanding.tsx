@@ -341,6 +341,14 @@ const SecuritySpeedInfrastructure = dynamic(
     })),
   { loading: () => <SectionSkeleton />, ssr: false }
 );
+
+const ScalabilityShowcase = dynamic(
+  () =>
+    import('@/components/landing/ScalabilityShowcase').then((m) => ({
+      default: m.ScalabilityShowcase,
+    })),
+  { loading: () => <SectionSkeleton />, ssr: false }
+);
 const PricingSection = dynamic(
   () => import('@/components/PricingSection').then((m) => ({ default: m.PricingSection })),
   { loading: () => <SectionSkeleton />, ssr: false }
@@ -499,6 +507,11 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
 
       <LazySectionWrapper minHeight="250px">
         <SpeedComparison />
+      </LazySectionWrapper>
+
+      {/* Scalability Showcase - NEW */}
+      <LazySectionWrapper minHeight="500px">
+        <ScalabilityShowcase />
       </LazySectionWrapper>
 
       <LazySectionWrapper minHeight="250px">
