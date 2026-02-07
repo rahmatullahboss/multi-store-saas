@@ -6,7 +6,8 @@
   "license": "MIT",
   "scripts": {
     "generate": "drizzle-kit generate",
-    "migrate": "wrangler d1 execute multi-store-saas-db --local --file=./src/migrations/apply.sql",
+    "migrate": "wrangler --config ../../apps/web/wrangler.toml d1 migrations apply multi-store-saas-db --local",
+    "migrate:prod": "wrangler --config ../../apps/web/wrangler.toml d1 migrations apply multi-store-saas-db --remote",
     "studio": "drizzle-kit studio",
     "lint": "eslint ."
   },

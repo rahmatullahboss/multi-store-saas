@@ -50,7 +50,10 @@ run_worker_first = false
 binding = "DB"
 database_name = "multi-store-saas-db"
 database_id = "bf882d16-d67a-4007-b503-33646bd693af"
-migrations_dir = "../../packages/database/migrations"
+# Use a single monorepo-wide migrations directory.
+# This must include *all* production migrations (not just a small subset),
+# so we point to `packages/database/src/migrations`.
+migrations_dir = "../../packages/database/src/migrations"
 
 # R2 Storage binding
 # Create bucket first: wrangler r2 bucket create multi-store-saas-media

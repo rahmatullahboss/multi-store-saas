@@ -161,6 +161,17 @@ Recent deploy chain (newest last):
 
 ## 🟡 Remaining Work Before “Real Money” Go-Live (Production Grade)
 
+### P0) Migration workflow (single source of truth)
+Goal:
+- One migrations directory + one apply command path for all Workers/apps.
+
+Status:
+- `migrations_dir` now points to `packages/database/src/migrations` in:
+  - `apps/web/wrangler.toml`
+  - `apps/web/workers/webhook-dispatcher/wrangler.toml`
+- New documented workflow:
+  - `docs/DATABASE_MIGRATIONS.md`
+
 ### P0) Security gates (money + inventory)
 Remix default `SameSite=Lax` sessions reduce CSRF risk, but for a real-money admin we still want explicit mutation guards. (Ref: Remix sessions docs + CSRF note.)
 
