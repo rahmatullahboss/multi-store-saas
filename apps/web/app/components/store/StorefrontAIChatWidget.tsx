@@ -322,6 +322,8 @@ interface StorefrontAIChatWidgetProps {
   // Customization
   agentName?: string;
   welcomeMessage?: string;
+  // Logged in customer (from auth)
+  customer?: { id: number; name?: string | null; phone?: string | null } | null;
 }
 
 export function StorefrontAIChatWidget({
@@ -336,6 +338,7 @@ export function StorefrontAIChatWidget({
   callNumber,
   agentName = 'AI Assistant',
   welcomeMessage,
+  customer,
 }: StorefrontAIChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showGreeting, setShowGreeting] = useState(false);
@@ -344,9 +347,54 @@ export function StorefrontAIChatWidget({
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentCredits, setCurrentCredits] = useState(aiCredits);
   
+  // Pre-chat customer info state
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [isRegistered, setIsRegistered] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fetcher = useFetcher<{ success: boolean; response?: string; error?: string; creditsRemaining?: number }>();
+  
+  // Check if customer is logged in or has saved info
+  useEffect(() => {
+    // If customer is logged in, use their info
+    if (customer?.name || customer?.phone) {
+      setCustomerName(customer.name || '');
+      setCustomerPhone(customer.phone || '');
+      setIsRegistered(true);
+      return;
+    }
+    
+    // Check localStorage for returning visitors
+    const savedInfo = localStorage.getItem(`ai_chat_customer_${storeId}`);
+    if (savedInfo) {
+      try {
+        const parsed = JSON.parse(savedInfo);
+        if (parsed.name && parsed.phone) {
+          setCustomerName(parsed.name);
+          setCustomerPhone(parsed.phone);
+          setIsRegistered(true);
+        }
+      } catch {
+        // Ignore parsing errors
+      }
+    }
+  }, [customer, storeId]);
+  
+  // Handle pre-chat registration
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customerName.trim() || !customerPhone.trim()) return;
+    
+    // Save to localStorage
+    localStorage.setItem(`ai_chat_customer_${storeId}`, JSON.stringify({
+      name: customerName.trim(),
+      phone: customerPhone.trim(),
+    }));
+    
+    setIsRegistered(true);
+  };
   
   const isLoading = fetcher.state !== 'idle';
   const hasWhatsApp = Boolean(whatsappNumber) && whatsappEnabled !== false;
@@ -448,13 +496,19 @@ export function StorefrontAIChatWidget({
       content: m.content
     }));
 
+    // Build payload with customer info
+    const payload: Record<string, unknown> = {
+      channel: 'customer',
+      message: text.trim(),
+      storeId,
+      history,
+    };
+    if (customerName.trim()) payload.customerName = customerName.trim();
+    if (customerPhone.trim()) payload.customerPhone = customerPhone.trim();
+    if (customer?.id) payload.customerId = customer.id;
+
     fetcher.submit(
-      { 
-        channel: 'customer', 
-        message: text.trim(), 
-        storeId,
-        history 
-      },
+      payload as never,
       { method: 'post', action: '/api/ai-orchestrator', encType: 'application/json' }
     );
   };
@@ -597,20 +651,71 @@ export function StorefrontAIChatWidget({
 
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-            {/* Welcome message */}
-            {messages.length === 0 && (
-              <div className="flex gap-3">
-                <div 
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: accentColor }}
-                >
-                  <Bot className="w-4 h-4 text-white" />
+            {/* Pre-chat registration form - show if not registered */}
+            {!isRegistered ? (
+              <div className="bg-white rounded-2xl p-5 shadow-sm">
+                <div className="text-center mb-4">
+                  <div 
+                    className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3"
+                    style={{ backgroundColor: accentColor }}
+                  >
+                    <Bot className="w-7 h-7 text-white" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-gray-800">চ্যাট শুরু করতে আপনার তথ্য দিন</h3>
+                  <p className="text-xs text-gray-500 mt-1">আমরা আপনাকে আরও ভালোভাবে সাহায্য করতে পারব</p>
                 </div>
-                <div className="bg-white rounded-2xl rounded-tl-none px-4 py-3 shadow-sm max-w-[80%]">
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{defaultWelcome}</p>
-                </div>
+                <form onSubmit={handleRegister} className="space-y-3">
+                  <div>
+                    <label htmlFor="chat-name" className="block text-xs font-medium text-gray-600 mb-1">আপনার নাম</label>
+                    <input
+                      id="chat-name"
+                      type="text"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      placeholder="নাম লিখুন..."
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
+                      style={{ '--tw-ring-color': accentColor } as React.CSSProperties}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="chat-phone" className="block text-xs font-medium text-gray-600 mb-1">ফোন নম্বর</label>
+                    <input
+                      id="chat-phone"
+                      type="tel"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      placeholder="01XXXXXXXXX"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
+                      style={{ '--tw-ring-color': accentColor } as React.CSSProperties}
+                      required
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 text-sm font-medium text-white rounded-lg transition-opacity hover:opacity-90"
+                    style={{ backgroundColor: accentColor }}
+                  >
+                    চ্যাট শুরু করুন
+                  </button>
+                </form>
               </div>
-            )}
+            ) : (
+              <>
+                {/* Welcome message */}
+                {messages.length === 0 && (
+                  <div className="flex gap-3">
+                    <div 
+                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: accentColor }}
+                    >
+                      <Bot className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="bg-white rounded-2xl rounded-tl-none px-4 py-3 shadow-sm max-w-[80%]">
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{defaultWelcome}</p>
+                    </div>
+                  </div>
+                )}
 
             {/* Chat messages */}
             {messages.map(msg => (
@@ -664,6 +769,8 @@ export function StorefrontAIChatWidget({
             )}
 
             <div ref={messagesEndRef} />
+              </>
+            )}
           </div>
 
           {/* Input Area */}
