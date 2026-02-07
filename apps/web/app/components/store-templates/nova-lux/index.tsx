@@ -745,6 +745,8 @@ function LiveNovaLuxHomepage({
   footerConfig,
   businessInfo,
   isPreview,
+  aiCredits,
+  isCustomerAiEnabled,
 }: StoreTemplateProps) {
   useEffect(() => {
     // Scroll listener removed as isScrolled was unused
@@ -834,6 +836,10 @@ function LiveNovaLuxHomepage({
                   callEnabled={config?.floatingCallEnabled}
                   callNumber={config?.floatingCallNumber || businessInfo?.phone || undefined}
                   storeName={storeName}
+                  aiEnabled={isCustomerAiEnabled}
+                  aiCredits={aiCredits}
+                  storeId={storeId}
+                  accentColor={config?.primaryColor || NOVALUX_THEME.accent}
                 />
               )}
 

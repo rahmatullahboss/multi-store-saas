@@ -1,11 +1,14 @@
 /**
  * Floating Contact Buttons Component
  * 
- * Reusable component for WhatsApp and Call floating buttons
+ * Reusable component for WhatsApp, Call, and AI chat floating buttons
  * Used in store templates when enabled in settings
+ * 
+ * When AI is enabled, renders StorefrontAIChatWidget instead
  */
 import { Phone } from 'lucide-react';
 import { WhatsAppIcon } from '~/components/icons/WhatsAppIcon';
+import { StorefrontAIChatWidget } from '~/components/store/StorefrontAIChatWidget';
 
 interface FloatingContactButtonsProps {
   whatsappEnabled?: boolean;
@@ -15,6 +18,12 @@ interface FloatingContactButtonsProps {
   callNumber?: string;
   storeName?: string;
   bottomOffset?: string; // For mobile with sticky footer
+  // AI Chat props
+  aiEnabled?: boolean;
+  aiCredits?: number;
+  storeId?: number;
+  accentColor?: string;
+  agentName?: string;
 }
 
 export function FloatingContactButtons({
@@ -25,6 +34,12 @@ export function FloatingContactButtons({
   whatsappMessage,
   storeName = 'Store',
   bottomOffset = 'bottom-20 md:bottom-8',
+  // AI props
+  aiEnabled,
+  aiCredits = 0,
+  storeId,
+  accentColor,
+  agentName,
 }: FloatingContactButtonsProps) {
   // Format WhatsApp number (remove any spaces or dashes)
   const formatWhatsAppNumber = (num: string) => {
@@ -49,11 +64,30 @@ export function FloatingContactButtons({
   const hasWhatsApp = Boolean(whatsappNumber) && whatsappEnabled !== false;
   const hasCall = Boolean(callNumber) && callEnabled !== false;
 
+  // If AI is enabled, render the AI Chat Widget with contact buttons
+  if (aiEnabled && storeId) {
+    return (
+      <StorefrontAIChatWidget
+        storeId={storeId}
+        storeName={storeName}
+        aiCredits={aiCredits}
+        accentColor={accentColor}
+        whatsappEnabled={hasWhatsApp}
+        whatsappNumber={whatsappNumber}
+        whatsappMessage={whatsappMessage}
+        callEnabled={hasCall}
+        callNumber={callNumber}
+        agentName={agentName}
+      />
+    );
+  }
+
   // Don't render if no buttons are enabled
   if (!(hasWhatsApp || hasCall)) {
     return null;
   }
 
+  // Default: Just WhatsApp and Call buttons (AI disabled)
   return (
     <>
       {/* WhatsApp Floating Button */}
@@ -88,3 +122,4 @@ export function FloatingContactButtons({
     </>
   );
 }
+

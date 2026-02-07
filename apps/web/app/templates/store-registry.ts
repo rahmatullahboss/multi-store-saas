@@ -66,6 +66,9 @@ export interface StoreTemplateProps {
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
   planType?: string;
   isPreview?: boolean; // When true, disables API calls and shows preview mode UI
+  // AI Chat Widget Props
+  aiCredits?: number;
+  isCustomerAiEnabled?: boolean;
   // Extended demo data for preview mode
   collections?: Record<string, unknown>[];
   reviews?: Record<string, unknown>[];

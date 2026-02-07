@@ -36,6 +36,8 @@ export function StarterStoreTemplate({
   businessInfo,
   planType,
   isPreview = false,
+  aiCredits,
+  isCustomerAiEnabled,
 }: StoreTemplateProps) {
   // Logic for homepage sections
   const validCategories = categories.filter(Boolean) as string[];
@@ -343,6 +345,10 @@ export function StarterStoreTemplate({
           callEnabled={config?.floatingCallEnabled}
           callNumber={config?.floatingCallNumber || businessInfo?.phone || undefined}
           storeName={storeName}
+          aiEnabled={isCustomerAiEnabled}
+          aiCredits={aiCredits}
+          storeId={storeId}
+          accentColor={config?.primaryColor || undefined}
         />
       )}
     </div>

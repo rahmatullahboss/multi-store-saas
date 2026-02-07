@@ -206,6 +206,9 @@ interface StoreModeData {
   businessInfo: { phone?: string; email?: string; address?: string } | null;
   themeConfig: ThemeConfig | null;
   planType: string;
+  // AI Props
+  aiCredits: number;
+  isCustomerAiEnabled: boolean;
   // Explicitly null for this mode
   featuredProduct: null;
   landingConfig: null;
@@ -574,6 +577,9 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       businessInfo,
       themeConfig: ensureHomepageHasCatalogSection(storeThemeConfig, serializedProducts.length > 0),
       planType: validatedStore.planType || 'free',
+      // AI Props
+      aiCredits: (validatedStore as Store & { aiCredits?: number }).aiCredits ?? 0,
+      isCustomerAiEnabled: (validatedStore as Store & { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled ?? false,
       // Explicitly null for store mode
       featuredProduct: null,
       landingConfig: null,
@@ -983,6 +989,8 @@ export default function Index() {
                 businessInfo={data.businessInfo}
                 planType={data.planType}
                 isPreview={false}
+                aiCredits={data.aiCredits}
+                isCustomerAiEnabled={data.isCustomerAiEnabled}
               />
             </StorePageWrapper>
           </>

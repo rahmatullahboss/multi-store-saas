@@ -838,6 +838,8 @@ function LiveTechModernHomepage({
   businessInfo,
   planType = 'free',
   isPreview,
+  aiCredits,
+  isCustomerAiEnabled,
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1099,6 +1101,10 @@ function LiveTechModernHomepage({
                   callEnabled={config?.floatingCallEnabled}
                   callNumber={config?.floatingCallNumber || businessInfo?.phone || undefined}
                   storeName={storeName}
+                  aiEnabled={isCustomerAiEnabled}
+                  aiCredits={aiCredits}
+                  storeId={storeId}
+                  accentColor={config?.primaryColor || TECH_MODERN_THEME.accent}
                 />
               )}
             </div>

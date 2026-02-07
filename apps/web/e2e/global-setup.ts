@@ -32,6 +32,13 @@ function getTableColumns(table: string): Set<string> {
   return cols;
 }
 
+function tableExists(table: string): boolean {
+  const res = d1ExecuteJson(
+    `SELECT name FROM sqlite_master WHERE type='table' AND name='${table.replace(/'/g, "''")}';`
+  );
+  return (res?.[0]?.results ?? []).length > 0;
+}
+
 function ensureStoresColumns(cols: Set<string>) {
   // Keep this focused on columns that exist in current Drizzle schema but were missing
   // from older local D1 snapshots. Missing columns can cause INSERT/SELECT to error.
@@ -51,8 +58,55 @@ function ensureStoresColumns(cols: Set<string>) {
   }
 }
 
+function ensureMetafieldsTables() {
+  if (!tableExists('metafields')) {
+    d1ExecuteJson(`
+      CREATE TABLE metafields (
+        id TEXT PRIMARY KEY NOT NULL,
+        store_id INTEGER NOT NULL,
+        definition_id TEXT,
+        namespace TEXT NOT NULL,
+        key TEXT NOT NULL,
+        value TEXT NOT NULL,
+        type TEXT NOT NULL,
+        owner_id TEXT NOT NULL,
+        owner_type TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );
+    `.trim());
+
+    // Helpful indexes for common lookups.
+    d1ExecuteJson(`CREATE INDEX IF NOT EXISTS metafields_store_owner_idx ON metafields (store_id, owner_type, owner_id);`);
+    d1ExecuteJson(`CREATE INDEX IF NOT EXISTS metafields_namespace_key_idx ON metafields (store_id, namespace, key);`);
+  }
+
+  if (!tableExists('metafield_definitions')) {
+    d1ExecuteJson(`
+      CREATE TABLE metafield_definitions (
+        id TEXT PRIMARY KEY NOT NULL,
+        store_id INTEGER NOT NULL,
+        namespace TEXT NOT NULL,
+        key TEXT NOT NULL,
+        name TEXT NOT NULL,
+        description TEXT,
+        type TEXT NOT NULL,
+        owner_type TEXT NOT NULL,
+        validations TEXT,
+        pinned INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );
+    `.trim());
+
+    d1ExecuteJson(
+      `CREATE INDEX IF NOT EXISTS metafield_definitions_store_owner_idx ON metafield_definitions (store_id, owner_type);`
+    );
+  }
+}
+
 export default async function globalSetup() {
   const storeCols = getTableColumns('stores');
   ensureStoresColumns(storeCols);
+  ensureMetafieldsTables();
 }
-

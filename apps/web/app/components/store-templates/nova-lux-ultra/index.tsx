@@ -1225,6 +1225,10 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
             callEnabled={config?.floatingCallEnabled}
             callNumber={config?.floatingCallNumber || props.businessInfo?.phone || undefined}
             storeName={storeName}
+            aiEnabled={props.isCustomerAiEnabled}
+            aiCredits={props.aiCredits}
+            storeId={storeId}
+            accentColor={config?.primaryColor || NOVALUX_ULTRA_THEME.accent}
           />
         )}
       </div>

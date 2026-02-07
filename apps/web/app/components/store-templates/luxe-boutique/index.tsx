@@ -862,6 +862,8 @@ function LiveLuxeBoutiqueHomepage({
   businessInfo,
   planType = 'free',
   isPreview,
+  aiCredits,
+  isCustomerAiEnabled,
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -1074,6 +1076,10 @@ function LiveLuxeBoutiqueHomepage({
                   callEnabled={config?.floatingCallEnabled}
                   callNumber={config?.floatingCallNumber || businessInfo?.phone || undefined}
                   storeName={storeName}
+                  aiEnabled={isCustomerAiEnabled}
+                  aiCredits={aiCredits}
+                  storeId={storeId}
+                  accentColor={config?.primaryColor || LUXE_BOUTIQUE_THEME.accent}
                 />
               )}
             </div>

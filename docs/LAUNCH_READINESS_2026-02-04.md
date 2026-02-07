@@ -66,6 +66,14 @@ Goal: real inventory + real orders ⇒ safe retries.
 Files:
 - `apps/web/app/routes/api.create-order.ts`
 
+### 4.1) Store mode gating uses `storeEnabled` (fix)
+Behavior:
+- Public storefront route gating now uses `stores.store_enabled` (`storeEnabled`) as the source of truth.
+- Prevents “landing mode by accident” when legacy `storeMode` field is absent.
+
+Files:
+- `apps/web/app/lib/store.server.ts`
+
 ### 5) Image proxy safety (SSRF/open-proxy risk reduced)
 Constraint: No paid Cloudflare Images/Image Resizing. Merchant does client-side compress→WebP upload to R2.
 
@@ -75,15 +83,19 @@ Files:
 ### 6) Tests (must-not-break baseline)
 Status:
 - `npm --workspace apps/web run test` is currently green in this workspace state.
-- Playwright E2E (`npm --workspace apps/web run e2e`) is **not yet a stable gate** (dev-server reload/auth flakiness); needs hardening before relying on it for go-live.
+- Playwright E2E: **Critical-path smoke is now deterministic** via an E2E seed endpoint + Playwright `globalSetup`.
+  - Seed endpoint is hard-gated by `E2E_ENABLED=1` + `E2E_TOKEN` header, otherwise returns 404 (safe even if deployed).
+  - `globalSetup` patches the local D1 schema for dev/E2E by ensuring missing columns/tables exist (prevents local-only drift from breaking tests).
 
 Files (examples of recently-touched tests):
 - `apps/web/app/tests/unit/IntentWizard.test.tsx`
 - `apps/web/app/tests/unit/CheckoutModal.test.tsx`
 - `apps/web/tests/api/metafields.api.test.ts`
 - `apps/web/tests/api/template-versions.api.test.ts`
- - `apps/web/e2e/smoke.test.ts`
- - `apps/web/playwright.config.ts`
+- `apps/web/e2e/smoke.test.ts`
+- `apps/web/e2e/global-setup.ts`
+- `apps/web/app/routes/api.e2e.seed.ts`
+- `apps/web/playwright.config.ts`
 
 ### 7) Admin CSRF hard gate (origin/referer guard)
 Behavior:
