@@ -35,8 +35,11 @@ ON webhook_events(store_id, created_at);
 -- ===========================================================================
 -- Prevents duplicate order creation from retried checkout submissions
 
--- Column already exists in production, commenting out
--- ALTER TABLE orders ADD COLUMN idempotency_key TEXT;
+-- Add idempotency_key column (required for fresh databases).
+-- NOTE: If your production DB already has this column from historical/manual changes,
+-- you should *baseline/stamp* this migration as applied (see DB adoption runbook),
+-- instead of re-running it against production.
+ALTER TABLE orders ADD COLUMN idempotency_key TEXT;
 
 -- Unique index for idempotency
 CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_idempotency 

@@ -12,6 +12,7 @@
     "format:check": "prettier -c .",
     "format": "prettier -w .",
     "deploy": "npm run build && wrangler deploy",
+    "deploy:prod": "npm run build && wrangler deploy",
     "deploy:staging": "npm run build && wrangler deploy --env staging",
     "db:generate": "drizzle-kit generate",
     "db:bootstrap:local": "wrangler d1 execute multi-store-saas-db --local --file=../../packages/database/src/migrations/0001_initial_schema.sql && wrangler d1 execute multi-store-saas-db --local --file=../../packages/database/src/migrations/0002_seed_data.sql && wrangler d1 execute multi-store-saas-db --local --file=../../packages/database/src/migrations/0003_hybrid_mode.sql",

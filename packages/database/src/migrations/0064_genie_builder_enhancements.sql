@@ -9,19 +9,13 @@
 -- ============================================================================
 -- UPDATE builder_sections TABLE
 -- Add variant column for section variant tracking
--- Note: SQLite doesn't support IF NOT EXISTS for ALTER TABLE
--- These statements will be skipped if columns already exist (handled by migration system)
+-- Note: SQLite (and D1 migrations) will FAIL if we try to add a column that already exists.
+-- For existing production databases where `variant` was added manually or via a previous patch,
+-- use the "baseline/stamp" runbook instead of re-applying this migration.
 -- ============================================================================
 
--- Check if variant column exists, if not add it
--- Using a workaround: Create a temp table to check column existence
-SELECT CASE 
-  WHEN COUNT(*) = 0 THEN 'ALTER TABLE builder_sections ADD COLUMN variant TEXT'
-  ELSE 'SELECT 1'
-END FROM pragma_table_info('builder_sections') WHERE name = 'variant';
-
--- Actual migration - these may fail if columns exist, which is OK for production
--- The D1 migration system will mark this as complete regardless
+-- Fresh DB path (staging/local new env): add column then index.
+ALTER TABLE builder_sections ADD COLUMN variant TEXT;
 
 -- ============================================================================
 -- INDEXES for performance (IF NOT EXISTS makes these safe)

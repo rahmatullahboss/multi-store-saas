@@ -116,6 +116,6 @@ CREATE INDEX `customers_google_id_idx` ON `customers` (`store_id`,`google_id`);-
 -- When applying the full migration chain from scratch, that migration runs before
 -- this one, so re-adding would fail with "duplicate column name".
 ALTER TABLE `products` ADD `bundle_pricing` text;--> statement-breakpoint
-ALTER TABLE `stores` ADD `custom_google_client_id` text;--> statement-breakpoint
-ALTER TABLE `stores` ADD `custom_google_client_secret` text;--> statement-breakpoint
-ALTER TABLE `stores` ADD `homepage_builder_page_id` text; 
+-- NOTE:
+-- These are added by `0057_customer_auth.sql` in the canonical chain.
+ALTER TABLE `stores` ADD `homepage_builder_page_id` text;

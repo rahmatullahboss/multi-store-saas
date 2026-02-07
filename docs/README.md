@@ -8,6 +8,7 @@
 | [NEXT_STEPS.md](../NEXT_STEPS.md) | Current development roadmap & next tasks       |
 | [LAUNCH_READINESS_2026-02-04.md](LAUNCH_READINESS_2026-02-04.md) | Sprint delivery, pending work, and go-live checklist |
 | [LAUNCH_PLAN_2026-02-07.md](LAUNCH_PLAN_2026-02-07.md) | Production go-live plan (what’s left + how to do it) |
+| [PRODUCTION_READINESS_CHECKLIST_2026-02-07.md](PRODUCTION_READINESS_CHECKLIST_2026-02-07.md) | Actionable checklist of exactly what’s left before go-live |
 | [STAGING_WORKFLOW.md](STAGING_WORKFLOW.md) | Staging-first release workflow (safe releases) |
 | [RELEASE_PROCESS.md](RELEASE_PROCESS.md) | Step-by-step release checklist (staging → production) |
 | [DB_BASELINE_ADOPTION_RUNBOOK.md](DB_BASELINE_ADOPTION_RUNBOOK.md) | Adopt D1 migrations safely for existing DBs |

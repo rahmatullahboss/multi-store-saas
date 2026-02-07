@@ -27,7 +27,7 @@ name = "multi-store-saas-staging"
 [[env.staging.d1_databases]]
 binding = "DB"
 database_name = "multi-store-saas-db-staging"
-database_id = "d8781763-b3cf-481f-bf4d-01c88090ffe8"
+database_id = "510df28c-155e-45f2-8b1a-4e43d4e0f261"
 migrations_dir = "../../packages/database/src/migrations"
 
 [env.staging.vars]
@@ -36,7 +36,7 @@ SAAS_DOMAIN = "ozzyl.com"
 R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"
 SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"
 CLOUDFLARE_ZONE_ID = "41147efa7d197cfddda0af7fcbf6d641"
-AI_MODEL = "tngtech/deepseek-r1t2-chimera:free"
+AI_MODEL = "google/gemini-2.0-flash-001"
 AI_BASE_URL = "https://openrouter.ai/api/v1"
 PAGE_BUILDER_URL = "https://builder.ozzyl.com"
 VAPID_PUBLIC_KEY = "BDUvy4YEADMYrwmybG-tSOE7iEc_4ouSWUDhxlgszleXlFcJhqUi_be2T9WObp5S9bcuh-0pDQZTLyBNDQk41mY"
@@ -92,25 +92,28 @@ binding = "PDF_SERVICE"
 service = "pdf-generator"
 
 # ============================================================================
-# ROUTING & CUSTOM DOMAINS
+# PRODUCTION ROUTING
 # ============================================================================
-# Routes for the worker - Replaces Pages custom domains
-# ============================================================================
-# ROUTING & CUSTOM DOMAINS
-# ============================================================================
-# 1. Main App (Admin/Dashboard)
-[[routes]]
+# IMPORTANT:
+# - DO NOT keep routes at top-level, otherwise `wrangler deploy --env staging`
+#   can accidentally re-bind production domains to the staging script.
+# - Put production routes under `env.production` only.
+#
+# Note: "ozzyl.com" (Landing Page) is on Vercel, so we DO NOT route it here.
+
+[env.production]
+name = "multi-store-saas"
+
+# 1) Main App (Admin/Dashboard)
+[[env.production.routes]]
 pattern = "app.ozzyl.com"
 custom_domain = true
 
-# 2. Store Subdomains (Wildcard)
+# 2) Store Subdomains (Wildcard)
 # Wildcards must be standard Routes, not "Custom Domains" in Wrangler config
-[[routes]]
+[[env.production.routes]]
 pattern = "*.ozzyl.com/*"
 zone_name = "ozzyl.com"
-
-
-# Note: "ozzyl.com" (Landing Page) is on Vercel, so we DO NOT route it here.
 
 # ============================================================================
 # CLOUDFLARE WORKER ASSETS (Replaces Pages)
@@ -178,7 +181,7 @@ CLOUDFLARE_ZONE_ID = "41147efa7d197cfddda0af7fcbf6d641"  # Zone ID from Cloudfla
 # CLOUDFLARE_API_TOKEN = "your_cloudflare_api_token_here"  # Commented to use OAuth login
 
 # AI CONFIGURATION (Xiaomi Mimo or any OpenAI-compatible provider)
-AI_MODEL = "tngtech/deepseek-r1t2-chimera:free"  # OpenRouter Model ID
+AI_MODEL = "google/gemini-2.0-flash-001"  # Reliable model for production
 AI_BASE_URL = "https://openrouter.ai/api/v1"  # OpenRouter API Endpoint
 PAGE_BUILDER_URL = "https://builder.ozzyl.com"  # Separate worker for GrapesJS editor
 

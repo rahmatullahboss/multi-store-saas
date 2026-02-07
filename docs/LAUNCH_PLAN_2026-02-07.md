@@ -17,6 +17,14 @@
 - Order status state machine (admin transitions)
 - DB integrity: `store_users` shim migration
 - D1 migrations workflow unified (single migrations dir + `wrangler d1 migrations apply`)
+- Staging environment setup complete (separate Worker + separate D1 + separate KV)
+  - Staging Worker: `multi-store-saas-staging`
+  - Staging D1: `multi-store-saas-db-staging` (`510df28c-155e-45f2-8b1a-4e43d4e0f261`)
+  - Staging KV:
+    - `AI_RATE_LIMIT`: `4697fe943f0a4e8b9535f739374c56cb`
+    - `STORE_CACHE`: `7aea490529e049bcb2ebf98964012f71`
+  - Staging migrations “fresh apply” verified on **2026-02-07**
+  - Production routes are under `env.production` only (so staging deploy can’t hijack production domains)
 
 ## 1) Non‑Negotiable Production Gates (P0)
 

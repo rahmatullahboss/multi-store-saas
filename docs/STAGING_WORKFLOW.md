@@ -18,7 +18,10 @@ Staging-এ সব পরিবর্তন (feature/migration) আগে চা
 - `/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/wrangler.toml`
   - `[env.staging]`
   - `name = "multi-store-saas-staging"`
-  - `database_id = "REPLACE_ME_WITH_STAGING_DATABASE_ID"` (আপনাকে replace করতে হবে)
+  - `database_id = "510df28c-155e-45f2-8b1a-4e43d4e0f261"` (বর্তমানে সেট করা আছে)
+  - staging KV namespaces (production থেকে আলাদা):
+    - `AI_RATE_LIMIT_STAGING`: `4697fe943f0a4e8b9535f739374c56cb`
+    - `STORE_CACHE_STAGING`: `7aea490529e049bcb2ebf98964012f71`
 
 ### 2) Staging D1 database create
 
@@ -27,8 +30,7 @@ cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
 npx wrangler d1 create multi-store-saas-db-staging
 ```
 
-Wrangler output থেকে `database_id` নিয়ে `apps/web/wrangler.toml` এ:
-- `REPLACE_ME_WITH_STAGING_DATABASE_ID` → আসল staging DB id
+Wrangler output থেকে `database_id` নিয়ে `apps/web/wrangler.toml` এ update করবেন (যদি নতুন করে create করেন)।
 
 ### 3) Staging deploy
 
@@ -73,6 +75,9 @@ cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
 npx wrangler deploy --env staging
 ```
 
+Status (2026-02-07):
+- staging DB-তে সব migrations **from-scratch apply** সফল হয়েছে।
+
 ### Step E — Production release
 
 1. Production DB backup/export (recommended)
@@ -80,6 +85,11 @@ npx wrangler deploy --env staging
 3. Production deploy
 
 Details: `docs/LAUNCH_PLAN_2026-02-07.md`
+
+নোট (গুরুত্বপূর্ণ):
+- production routes এখন `apps/web/wrangler.toml` এর `env.production` এর ভেতরে রাখা হয়েছে।
+- কারণ: staging deploy করলে যেন ভুল করে production domain/route staging script-এ bind না হয়ে যায়।
+- তাই production deploy সবসময় `--env production` দিয়ে করবেন।
 
 ## Production → Staging DB Clone (Realistic Testing)
 
@@ -103,4 +113,3 @@ npx wrangler d1 execute multi-store-saas-db-staging --remote --file ./tmp/prod-e
 
 Runbook:
 - `/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/docs/DB_BASELINE_ADOPTION_RUNBOOK.md`
-
