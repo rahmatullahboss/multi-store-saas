@@ -14,7 +14,7 @@ import { json } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
-import { creditPurchases, stores, users } from '@db/schema';
+import { creditPurchases, stores } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { addCredits } from '~/utils/credit.server';
 import { 
@@ -32,9 +32,8 @@ import { toast } from 'sonner';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { env } = context.cloudflare;
-  await requireSuperAdmin(request, env);
-
   const db = drizzle(env.DB);
+  await requireSuperAdmin(request, env, env.DB);
   
   // Get all credit purchases with store info
   const purchases = await db
@@ -61,10 +60,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const { env } = context.cloudflare;
-  const session = await requireSuperAdmin(request, env);
-  const adminId = session.get('userId');
-
   const db = drizzle(env.DB);
+  const { userId: adminId } = await requireSuperAdmin(request, env, env.DB);
   const formData = await request.formData();
   const action = formData.get('action') as string;
   const purchaseId = parseInt(formData.get('purchaseId') as string);
