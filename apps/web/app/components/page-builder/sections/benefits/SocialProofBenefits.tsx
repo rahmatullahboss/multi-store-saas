@@ -5,7 +5,7 @@
 import { getSectionStyle, getHeadingStyle } from '~/lib/page-builder/sectionStyleUtils';
 import type { BenefitsVariantProps } from './types';
 
-export function SocialProofBenefits({ title, subtitle, benefits, theme, styleProps }: BenefitsVariantProps) {
+export function SocialProofBenefits({ title, subtitle, benefits, theme: _theme, styleProps }: BenefitsVariantProps) {
   const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps || {};
   
   const sectionStyle = getSectionStyle({ backgroundColor, backgroundGradient, textColor, fontFamily, paddingY });

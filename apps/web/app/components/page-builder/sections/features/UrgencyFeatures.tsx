@@ -5,7 +5,7 @@
 import { getSectionStyle, getHeadingStyle } from '~/lib/page-builder/sectionStyleUtils';
 import type { FeaturesVariantProps } from './types';
 
-export function UrgencyFeatures({ title, features, theme, styleProps }: FeaturesVariantProps) {
+export function UrgencyFeatures({ title, features, theme: _theme, styleProps }: FeaturesVariantProps) {
   const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps || {};
   
   const sectionStyle = getSectionStyle({ backgroundColor, backgroundGradient, textColor, fontFamily, paddingY });

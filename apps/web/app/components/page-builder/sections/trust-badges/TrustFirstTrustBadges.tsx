@@ -2,14 +2,13 @@
  * Trust First Trust Badges - Clean green trust style
  */
 
-import { getSectionStyle, getHeadingStyle } from '~/lib/page-builder/sectionStyleUtils';
+import { getSectionStyle } from '~/lib/page-builder/sectionStyleUtils';
 import type { TrustBadgesVariantProps } from './types';
 
-export function TrustFirstTrustBadges({ title, badges, theme, styleProps }: TrustBadgesVariantProps) {
-  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps || {};
+export function TrustFirstTrustBadges({ title, badges, theme: _theme, styleProps }: TrustBadgesVariantProps) {
+  const { backgroundColor, backgroundGradient, textColor, fontFamily, paddingY } = styleProps || {};
   
   const sectionStyle = getSectionStyle({ backgroundColor, backgroundGradient, textColor, fontFamily, paddingY });
-  const headingStyle = getHeadingStyle({ headingColor, textColor });
 
   return (
     <section 

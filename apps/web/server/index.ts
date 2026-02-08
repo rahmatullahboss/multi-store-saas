@@ -274,7 +274,9 @@ app.use('/cart', cartLimit()); // 50 req/min - Cart operations (separate limit)
 // This keeps /api/health usable on workers.dev even when hostname→store mapping doesn't exist.
 const tenantMw = tenantMiddleware<AppContext>();
 app.use('*', async (c, next) => {
+  // Keep health + staging-only Sentry debug page usable even when hostname→store mapping doesn't exist.
   if (c.req.path === '/api/health') return next();
+  if (c.env.ENVIRONMENT === 'staging' && c.req.path === '/sentry-test') return next();
   return tenantMw(c, next);
 });
 

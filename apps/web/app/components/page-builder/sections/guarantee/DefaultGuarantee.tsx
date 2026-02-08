@@ -37,7 +37,6 @@ export function DefaultGuarantee({ title, text, badgeLabel, theme, styleProps }:
   const badgeBg = isDark ? 'rgba(16,185,129,0.3)' : '#D1FAE5';
   const badgeText = isDark ? '#10B981' : '#065F46';
   
-  const finalTextColor = textColor || defaultTextColor;
   const finalHeadingColor = headingColor || textColor || defaultTextColor;
 
   return (

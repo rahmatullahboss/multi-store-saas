@@ -7,7 +7,7 @@ import { ChevronDown } from 'lucide-react';
 import { getSectionStyle, getHeadingStyle } from '~/lib/page-builder/sectionStyleUtils';
 import type { FAQVariantProps } from './types';
 
-export function GlassmorphismFAQ({ title, subtitle, items, theme, styleProps }: FAQVariantProps) {
+export function GlassmorphismFAQ({ title, subtitle, items, theme: _theme, styleProps }: FAQVariantProps) {
   const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps || {};
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   

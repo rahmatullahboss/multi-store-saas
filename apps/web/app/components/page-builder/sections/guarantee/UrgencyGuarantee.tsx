@@ -6,7 +6,7 @@ import { ShieldCheck } from 'lucide-react';
 import { getSectionStyle, getHeadingStyle } from '~/lib/page-builder/sectionStyleUtils';
 import type { GuaranteeVariantProps } from './types';
 
-export function UrgencyGuarantee({ title, text, badgeLabel, theme, styleProps }: GuaranteeVariantProps) {
+export function UrgencyGuarantee({ title, text, badgeLabel, theme: _theme, styleProps }: GuaranteeVariantProps) {
   const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps || {};
   
   const sectionStyle = getSectionStyle({ backgroundColor, backgroundGradient, textColor, fontFamily, paddingY });

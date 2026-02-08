@@ -5,7 +5,7 @@
 import { getSectionStyle, getHeadingStyle } from '~/lib/page-builder/sectionStyleUtils';
 import type { TrustBadgesVariantProps } from './types';
 
-export function NeubrutalistTrustBadges({ title, badges, theme, styleProps }: TrustBadgesVariantProps) {
+export function NeubrutalistTrustBadges({ title, badges, theme: _theme, styleProps }: TrustBadgesVariantProps) {
   const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps || {};
   
   const sectionStyle = getSectionStyle({ backgroundColor, backgroundGradient, textColor, fontFamily, paddingY });
