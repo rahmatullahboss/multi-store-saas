@@ -120,6 +120,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
   try {
+    // IMPORTANT: Clone request before reading body - Cloudflare Workers can only read body once
+    // The v3_singleFetch feature or middleware may have already consumed it
+    const clonedRequest = request.clone();
+    
     const env = (context as any).cloudflare.env;
     const db = env.DB as D1Database;
 
@@ -132,7 +136,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: 'Method not allowed' }, { status: 405 });
     }
 
-    const data = (await request.json()) as Record<string, unknown>;
+    const data = (await clonedRequest.json()) as Record<string, unknown>;
     const pageId = new URL(request.url).searchParams.get('id');
     const publish =
       new URL(request.url).searchParams.get('publish') === 'true' ||

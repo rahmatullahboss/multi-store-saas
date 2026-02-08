@@ -64,6 +64,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
   try {
+    // IMPORTANT: Clone request before reading body - Cloudflare Workers can only read body once
+    const clonedRequest = request.clone();
+    
     const env = (context as any).cloudflare.env;
     const db = env.DB as D1Database;
     
@@ -97,7 +100,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // ========== CREATE REVISION ==========
     if (request.method === 'POST') {
-      const data = await request.json() as CreateRevisionRequest;
+      const data = await clonedRequest.json() as CreateRevisionRequest;
 
       if (!data.pageId || !data.content) {
         return json({ error: 'pageId and content are required' }, { status: 400 });
