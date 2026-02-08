@@ -1,0 +1,172 @@
+/**
+ * Animation Utilities for GrapesJS Page Builder
+ * 
+ * These animations are triggered when elements enter the viewport.
+ * Uses IntersectionObserver for scroll-based triggering.
+ */
+
+/* ===== BASE ANIMATION SETUP ===== */
+[data-animation] {
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+[data-animation].animated {
+  animation-duration: 0.8s;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-out;
+}
+
+/* Delay utilities */
+[data-animation-delay="0"] { animation-delay: 0s; }
+[data-animation-delay="200"] { animation-delay: 0.2s; }
+[data-animation-delay="400"] { animation-delay: 0.4s; }
+[data-animation-delay="600"] { animation-delay: 0.6s; }
+[data-animation-delay="800"] { animation-delay: 0.8s; }
+[data-animation-delay="1000"] { animation-delay: 1s; }
+
+/* ===== FADE ANIMATIONS ===== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ===== ZOOM ANIMATIONS ===== */
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes zoomOut {
+  from {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ===== BOUNCE ANIMATION ===== */
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ===== SLIDE ANIMATIONS ===== */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== FLIP ANIMATION ===== */
+@keyframes flipInX {
+  from {
+    opacity: 0;
+    transform: perspective(400px) rotateX(90deg);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(400px) rotateX(0);
+  }
+}
+
+/* ===== ANIMATION CLASSES ===== */
+[data-animation="fadeIn"].animated { animation-name: fadeIn; }
+[data-animation="fadeInUp"].animated { animation-name: fadeInUp; }
+[data-animation="fadeInDown"].animated { animation-name: fadeInDown; }
+[data-animation="fadeInLeft"].animated { animation-name: fadeInLeft; }
+[data-animation="fadeInRight"].animated { animation-name: fadeInRight; }
+[data-animation="zoomIn"].animated { animation-name: zoomIn; }
+[data-animation="zoomOut"].animated { animation-name: zoomOut; }
+[data-animation="bounceIn"].animated { animation-name: bounceIn; }
+[data-animation="slideInUp"].animated { animation-name: slideInUp; }
+[data-animation="slideInDown"].animated { animation-name: slideInDown; }
+[data-animation="flipInX"].animated { animation-name: flipInX; }
+
+/* ===== EDITOR PREVIEW MODE ===== */
+/* In editor, show elements without waiting for scroll trigger */
+.gjs-frame [data-animation] {
+  opacity: 1 !important;
+}
