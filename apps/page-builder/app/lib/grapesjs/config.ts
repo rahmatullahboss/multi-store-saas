@@ -147,6 +147,21 @@ export const getGrapesConfig = (
     height: '100%',
     width: 'auto',
 
+    // CUSTOM PARSER - Handles corrupted/empty CSS to prevent CssComposer crash
+    // Fixes: "Cannot read properties of undefined (reading 'getFrames')"
+    // Context7 docs: https://github.com/grapesjs/grapesjs/blob/dev/docs/guides/Custom-CSS-parser.md
+    parser: {
+      parserCss: (css: string) => {
+        // Handle empty or invalid CSS input gracefully
+        if (!css || typeof css !== 'string' || css.trim() === '') {
+          console.warn('[GrapesJS] Empty or invalid CSS input, returning empty array');
+          return [];
+        }
+        // Return null to use default parser for valid CSS
+        return null;
+      },
+    },
+
     // ASSET MANAGER (Custom Upload Handler)
     assetManager: {
       upload: '/api/upload-image', // Fallback URL
