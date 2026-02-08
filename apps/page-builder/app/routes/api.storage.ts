@@ -45,37 +45,37 @@ function sanitizeSlug(input: string): string {
 // LOADER - Load project data
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const env = (context as any).cloudflare.env;
-  const db = env.DB as D1Database;
-
-  const user = await getAuthFromSession(request, env);
-  if (!user?.storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const url = new URL(request.url);
-  const pageId = url.searchParams.get('id');
-
-  if (!pageId) {
-    return json({ error: 'Page ID required' }, { status: 400 });
-  }
-
-  const page = await db
-    .prepare(
-      `SELECT id, store_id as storeId, name, slug, project_data as projectData, 
-     html_content as htmlContent, css_content as cssContent, page_config as pageConfig, 
-     is_published as isPublished
-     FROM landing_pages WHERE id = ? AND store_id = ? LIMIT 1`
-    )
-    .bind(parseInt(pageId), user.storeId)
-    .first<LandingPage>();
-
-  if (!page) {
-    return json({ error: 'Page not found' }, { status: 404 });
-  }
-
-  // GrapesJS expects the components and styles as a JSON object
   try {
+    const env = (context as any).cloudflare.env;
+    const db = env.DB as D1Database;
+
+    const user = await getAuthFromSession(request, env);
+    if (!user?.storeId) {
+      return json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const url = new URL(request.url);
+    const pageId = url.searchParams.get('id');
+
+    if (!pageId) {
+      return json({ error: 'Page ID required' }, { status: 400 });
+    }
+
+    const page = await db
+      .prepare(
+        `SELECT id, store_id as storeId, name, slug, project_data as projectData, 
+       html_content as htmlContent, css_content as cssContent, page_config as pageConfig, 
+       is_published as isPublished
+       FROM landing_pages WHERE id = ? AND store_id = ? LIMIT 1`
+      )
+      .bind(parseInt(pageId), user.storeId)
+      .first<LandingPage>();
+
+    if (!page) {
+      return json({ error: 'Page not found' }, { status: 404 });
+    }
+
+    // GrapesJS expects the components and styles as a JSON object
     const projectData = page.projectData ? JSON.parse(page.projectData) : {};
     
     // Sanitize styles to prevent CssComposer errors (getFrames undefined)
@@ -104,8 +104,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       ...projectData,
       pageConfig: page.pageConfig ? JSON.parse(page.pageConfig) : null,
     });
-  } catch {
-    return json({ error: 'Failed to parse project data' }, { status: 500 });
+  } catch (error) {
+    const err = error as Error;
+    console.error('[Loader Error]:', {
+      message: err.message,
+      name: err.name,
+      stack: err.stack,
+    });
+    return json({ error: 'Loader failed', details: err.message }, { status: 500 });
   }
 }
 
@@ -113,19 +119,19 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Save project data, HTML, and CSS
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const env = (context as any).cloudflare.env;
-  const db = env.DB as D1Database;
-
-  const user = await getAuthFromSession(request, env);
-  if (!user?.storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  if (request.method !== 'POST') {
-    return json({ error: 'Method not allowed' }, { status: 405 });
-  }
-
   try {
+    const env = (context as any).cloudflare.env;
+    const db = env.DB as D1Database;
+
+    const user = await getAuthFromSession(request, env);
+    if (!user?.storeId) {
+      return json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (request.method !== 'POST') {
+      return json({ error: 'Method not allowed' }, { status: 405 });
+    }
+
     const data = (await request.json()) as Record<string, unknown>;
     const pageId = new URL(request.url).searchParams.get('id');
     const publish =

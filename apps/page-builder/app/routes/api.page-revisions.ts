@@ -21,22 +21,22 @@ interface CreateRevisionRequest {
 // LOADER - List revisions
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const env = (context as any).cloudflare.env;
-  const db = env.DB as D1Database;
-  
-  const user = await getAuthFromSession(request, env);
-  if (!user?.storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const url = new URL(request.url);
-  const pageId = url.searchParams.get('pageId');
-
-  if (!pageId) {
-    return json({ error: 'pageId is required' }, { status: 400 });
-  }
-
   try {
+    const env = (context as any).cloudflare.env;
+    const db = env.DB as D1Database;
+    
+    const user = await getAuthFromSession(request, env);
+    if (!user?.storeId) {
+      return json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const url = new URL(request.url);
+    const pageId = url.searchParams.get('pageId');
+
+    if (!pageId) {
+      return json({ error: 'pageId is required' }, { status: 400 });
+    }
+
     const revisions = await db.prepare(`
       SELECT id, page_id as pageId, store_id as storeId, content,
              revision_type as revisionType, description, created_by as createdBy,
@@ -49,8 +49,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     return json({ revisions: revisions.results || [] });
   } catch (error) {
-    console.error('Failed to load revisions:', error);
-    return json({ error: 'Failed to load revisions' }, { status: 500 });
+    const err = error as Error;
+    console.error('[page-revisions loader error]:', {
+      message: err.message,
+      name: err.name,
+      stack: err.stack,
+    });
+    return json({ error: 'Failed to load revisions', details: err.message }, { status: 500 });
   }
 }
 
@@ -58,22 +63,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Create revision or restore
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const env = (context as any).cloudflare.env;
-  const db = env.DB as D1Database;
-  
-  const user = await getAuthFromSession(request, env);
-  if (!user?.storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  try {
+    const env = (context as any).cloudflare.env;
+    const db = env.DB as D1Database;
+    
+    const user = await getAuthFromSession(request, env);
+    if (!user?.storeId) {
+      return json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-  const url = new URL(request.url);
-  const action = url.searchParams.get('action');
-  const revisionId = url.searchParams.get('id');
+    const url = new URL(request.url);
+    const actionParam = url.searchParams.get('action');
+    const revisionId = url.searchParams.get('id');
 
-  // ========== RESTORE REVISION ==========
-  if (action === 'restore' && revisionId) {
-    try {
-      // Get revision
+    // ========== RESTORE REVISION ==========
+    if (actionParam === 'restore' && revisionId) {
       const revision = await db.prepare(`
         SELECT * FROM page_revisions WHERE id = ? AND store_id = ?
       `).bind(revisionId, user.storeId).first();
@@ -82,7 +86,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
         return json({ error: 'Revision not found' }, { status: 404 });
       }
 
-      // Update builder_pages content
       await db.prepare(`
         UPDATE builder_pages
         SET content = ?, updated_at = ?
@@ -90,15 +93,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
       `).bind(revision.content, Date.now(), revision.page_id, user.storeId).run();
 
       return json({ success: true, message: 'Revision restored' });
-    } catch (error) {
-      console.error('Failed to restore revision:', error);
-      return json({ error: 'Failed to restore revision' }, { status: 500 });
     }
-  }
 
-  // ========== CREATE REVISION ==========
-  if (request.method === 'POST') {
-    try {
+    // ========== CREATE REVISION ==========
+    if (request.method === 'POST') {
       const data = await request.json() as CreateRevisionRequest;
 
       if (!data.pageId || !data.content) {
@@ -135,16 +133,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
       `).bind(data.pageId, user.storeId, data.pageId, user.storeId).run();
 
       return json({ success: true, id });
-    } catch (error) {
-      const err = error as Error;
-      console.error('Failed to create revision:', {
-        message: err.message,
-        name: err.name,
-        stack: err.stack,
-      });
-      return json({ error: 'Failed to create revision', details: err.message }, { status: 500 });
     }
-  }
 
-  return json({ error: 'Method not allowed' }, { status: 405 });
+    return json({ error: 'Method not allowed' }, { status: 405 });
+  } catch (error) {
+    const err = error as Error;
+    console.error('[page-revisions action error]:', {
+      message: err.message,
+      name: err.name,
+      stack: err.stack,
+    });
+    return json({ error: 'Action failed', details: err.message }, { status: 500 });
+  }
 }
