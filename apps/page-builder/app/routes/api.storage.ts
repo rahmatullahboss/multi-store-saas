@@ -77,6 +77,29 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // GrapesJS expects the components and styles as a JSON object
   try {
     const projectData = page.projectData ? JSON.parse(page.projectData) : {};
+    
+    // Sanitize styles to prevent CssComposer errors (getFrames undefined)
+    if (projectData.styles) {
+      if (!Array.isArray(projectData.styles)) {
+        projectData.styles = [];
+      } else {
+        projectData.styles = projectData.styles.filter((style: any) => {
+          if (!style || typeof style !== 'object') return false;
+          if (!style.selectors || !Array.isArray(style.selectors) || style.selectors.length === 0) return false;
+          if (style.style !== undefined) {
+            if (typeof style.style === 'string' && style.style === '') return false;
+            if (typeof style.style === 'object' && style.style !== null && Object.keys(style.style).length === 0) return false;
+          }
+          return true;
+        });
+      }
+    }
+    
+    // Remove empty CSS string
+    if (typeof projectData.css === 'string' && projectData.css.trim() === '') {
+      delete projectData.css;
+    }
+    
     return json({
       ...projectData,
       pageConfig: page.pageConfig ? JSON.parse(page.pageConfig) : null,

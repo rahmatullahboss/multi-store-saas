@@ -86,20 +86,32 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       
       // Sanitize styles array to prevent CssComposer parsing errors
       // This fixes "Cannot read properties of undefined (reading 'getFrames')" error
+      // Error: "[CssComposer]: Data parsing failed {input: ''}" occurs when styles contain invalid data
       if (parsedData && parsedData.styles) {
         if (!Array.isArray(parsedData.styles)) {
           // If styles is not an array, reset to empty array
           console.warn('Invalid styles format in projectData, resetting to empty array');
           parsedData.styles = [];
         } else {
-          // Filter out invalid style entries (must have selectors property)
+          // Filter out invalid style entries
           parsedData.styles = parsedData.styles.filter((style: any) => {
+            // Must be a non-null object
             if (!style || typeof style !== 'object') return false;
-            // GrapesJS requires 'selectors' to be present
-            if (!style.selectors) return false;
+            // GrapesJS requires 'selectors' to be a non-empty array
+            if (!style.selectors || !Array.isArray(style.selectors) || style.selectors.length === 0) return false;
+            // If 'style' property exists, it must be a non-empty object (not empty string)
+            if (style.style !== undefined) {
+              if (typeof style.style === 'string' && style.style === '') return false;
+              if (typeof style.style === 'object' && style.style !== null && Object.keys(style.style).length === 0) return false;
+            }
             return true;
           });
         }
+      }
+      
+      // Also check for corrupted CSS string at root level
+      if (parsedData && typeof parsedData.css === 'string' && parsedData.css.trim() === '') {
+        delete parsedData.css;
       }
       
       // Sanitize components if present
