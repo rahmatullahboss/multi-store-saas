@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Outfit } from 'next/font/google';
+import { Inter, Outfit, Plus_Jakarta_Sans, Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { ASSETS } from '@/config/assets';
@@ -13,6 +13,18 @@ const inter = Inter({
 const outfit = Outfit({
   subsets: ['latin'],
   variable: '--font-outfit',
+  display: 'swap',
+});
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-jakarta',
+  display: 'swap',
+});
+
+const space = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-space',
   display: 'swap',
 });
 
@@ -67,7 +79,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="bn" className={cn(inter.variable, outfit.variable)}>
+    <html lang="bn" className={cn(inter.variable, outfit.variable, jakarta.variable, space.variable)}>
       <body className="antialiased bg-[#0A0A0F] text-white">
         <LanguageProvider>
           {children}

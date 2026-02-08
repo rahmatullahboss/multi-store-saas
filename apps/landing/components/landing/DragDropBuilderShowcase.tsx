@@ -76,25 +76,31 @@ export function DragDropBuilderShowcase() {
   ];
 
   useEffect(() => {
+    let mounted = true;
+
     const sequence = async () => {
       // Disable animation on mobile
       if (isMobile) return;
 
-      while (true) {
+      while (mounted) {
         // Reset
         setActiveDrop(null);
         setAnimationStep(0); // Idle
         await new Promise(r => setTimeout(r, 1000));
+        if (!mounted) break;
 
         // Start Drag (Pick "Review" widget)
         setAnimationStep(1); // Cursor moves to widget
         await new Promise(r => setTimeout(r, 1000));
+        if (!mounted) break;
 
         setAnimationStep(2); // Dragging starts
         await new Promise(r => setTimeout(r, 800)); // Moving to canvas
+        if (!mounted) break;
 
         setActiveDrop(2); // Highlight drop zone
         await new Promise(r => setTimeout(r, 400)); // Hovering
+        if (!mounted) break;
 
         setAnimationStep(3); // Drop
         const newId = Date.now(); // Unique ID for this animation cycle
@@ -102,12 +108,15 @@ export function DragDropBuilderShowcase() {
         setActiveDrop(null);
         
         await new Promise(r => setTimeout(r, 2000)); // Show result
+        if (!mounted) break;
 
         // Reset canvas for next loop - remove any review elements
         setCanvasElements(prev => prev.filter(el => el.type !== 'review'));
       }
     };
     sequence();
+    
+    return () => { mounted = false; };
   }, [isMobile]);
 
   return (

@@ -10,7 +10,7 @@ if (!R2_BASE_URL) {
 export const ASSETS = {
   // Brand Assets
   brand: {
-    logoWhite: `${R2_BASE_URL}/brand/logo-white.png`,
+    logoWhite: '/brand/ozzyl-logo-white-extracted.png',
     logoGreen: `${R2_BASE_URL}/brand/logo-green.png`,
     icon: `${R2_BASE_URL}/brand/icon.png`,
     iconWhite: `${R2_BASE_URL}/brand/icon-white.png`,
