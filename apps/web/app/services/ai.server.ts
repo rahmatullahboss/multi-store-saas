@@ -1674,6 +1674,7 @@ export async function chatWithVisitor(
 ### Starter Plan (৳${PLAN_PRICES.starter}/মাস) ⭐ সবচেয়ে জনপ্রিয়
 - ${PLAN_LIMITS.starter.max_products}টি প্রোডাক্ট
 - ${PLAN_LIMITS.starter.max_orders} অর্ডার/মাস
+- কাস্টম ডোমেইন
 - Full Store Mode
 - বিকাশ + নগদ + COD
 - Inventory Tracking
