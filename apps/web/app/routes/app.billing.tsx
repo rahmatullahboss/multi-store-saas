@@ -13,6 +13,7 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData, Link, useSearchParams } from '@remix-run/react';
+import { useState } from 'react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import { stores, payments } from '@db/schema';
@@ -53,7 +54,8 @@ const PLAN_DISPLAY = {
     nameBn: 'ফ্রি',
     description: 'Perfect for testing and getting started',
     descriptionBn: 'ট্রায়ালের জন্য পারফেক্ট',
-    price: '৳০',
+    priceMonthly: 0,
+    priceAnnual: 0,
     period: '/মাস',
     icon: Rocket,
     color: 'gray',
@@ -71,8 +73,9 @@ const PLAN_DISPLAY = {
     name: 'Starter',
     nameBn: 'স্টার্টার',
     description: 'For growing businesses',
-    descriptionBn: 'বাড়তে থাকা ব্যবসার জন্য',
-    price: '৳৭৯৯',
+    descriptionBn: 'বাড়তে থাকা ব্যবসার জন্য',
+    priceMonthly: 799,
+    priceAnnual: 639,
     period: '/মাস',
     icon: Zap,
     color: 'emerald',
@@ -93,7 +96,8 @@ const PLAN_DISPLAY = {
     nameBn: 'প্রিমিয়াম',
     description: 'For serious businesses',
     descriptionBn: 'সিরিয়াস ব্যবসার জন্য',
-    price: '৳১,৯৯৯',
+    priceMonthly: 1999,
+    priceAnnual: 1599,
     period: '/মাস',
     icon: Crown,
     color: 'purple',
@@ -293,6 +297,15 @@ export default function BillingPage() {
   
   const currentPlan = PLAN_DISPLAY[planType as keyof typeof PLAN_DISPLAY] || PLAN_DISPLAY.free;
   
+  // Billing period toggle state
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly');
+  
+  // Helper to get display price
+  const getDisplayPrice = (plan: { priceMonthly: number; priceAnnual: number }) => {
+    const price = billingPeriod === 'annual' ? plan.priceAnnual : plan.priceMonthly;
+    return `৳${price.toLocaleString('bn-BD')}`;
+  };
+  
 
 
   return (
@@ -353,7 +366,7 @@ export default function BillingPage() {
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold text-gray-900">
-              {currentPlan.price}
+              {getDisplayPrice(currentPlan)}
               <span className="text-sm font-normal text-gray-500">{currentPlan.period}</span>
             </p>
           </div>
@@ -524,7 +537,36 @@ export default function BillingPage() {
 
       {/* Pricing Table */}
       <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-6">{lang === 'bn' ? 'প্ল্যান তুলনা করুন' : 'Compare Plans'}</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <h2 className="text-xl font-bold text-gray-900">{lang === 'bn' ? 'প্ল্যান তুলনা করুন' : 'Compare Plans'}</h2>
+          
+          {/* Billing Period Toggle */}
+          <div className="flex items-center gap-2 p-1 bg-gray-100 rounded-lg">
+            <button
+              onClick={() => setBillingPeriod('monthly')}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition ${
+                billingPeriod === 'monthly'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {lang === 'bn' ? 'মাসিক' : 'Monthly'}
+            </button>
+            <button
+              onClick={() => setBillingPeriod('annual')}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition flex items-center gap-2 ${
+                billingPeriod === 'annual'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {lang === 'bn' ? 'বার্ষিক' : 'Annual'}
+              <span className="px-1.5 py-0.5 text-xs font-bold bg-emerald-100 text-emerald-700 rounded">
+                -20%
+              </span>
+            </button>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {(Object.entries(PLAN_DISPLAY) as [PlanType, typeof PLAN_DISPLAY['free']][]).map(([key, plan]) => {
             const isCurrentPlan = key === planType;
@@ -554,9 +596,14 @@ export default function BillingPage() {
                   <h3 className="text-lg font-bold text-gray-900">{lang === 'bn' ? plan.nameBn : plan.name}</h3>
                   <p className="text-sm text-gray-500 mt-1">{lang === 'bn' ? plan.descriptionBn : plan.description}</p>
                   <p className="text-3xl font-bold text-gray-900 mt-4">
-                    {plan.price}
+                    {getDisplayPrice(plan)}
                     <span className="text-sm font-normal text-gray-500">{plan.period}</span>
                   </p>
+                  {billingPeriod === 'annual' && plan.priceMonthly > 0 && (
+                    <p className="text-sm text-emerald-600 font-medium mt-1">
+                      {lang === 'bn' ? `বছরে ৳${((plan.priceMonthly - plan.priceAnnual) * 12).toLocaleString('bn-BD')} সেভ` : `Save ৳${((plan.priceMonthly - plan.priceAnnual) * 12).toLocaleString()} / year`}
+                    </p>
+                  )}
                 </div>
                 
                 <ul className="space-y-3 mb-6">
@@ -580,7 +627,7 @@ export default function BillingPage() {
                   </div>
                 ) : (
                   <Link 
-                    to={`/app/upgrade?plan=${key}`}
+                    to={`/app/upgrade?plan=${key}&billing=${billingPeriod}`}
                     className={`block w-full py-2.5 text-center text-white font-medium rounded-lg transition ${
                       key === 'starter' ? 'bg-emerald-600 hover:bg-emerald-700' :
                       key === 'premium' ? 'bg-purple-600 hover:bg-purple-700' :
