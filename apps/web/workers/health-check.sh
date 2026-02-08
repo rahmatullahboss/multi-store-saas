@@ -32,7 +32,7 @@ WARNINGS=0
 # Examples:
 #   MAIN_APP_URL="https://multi-store-saas-staging.ozzyl.workers.dev" bash ./workers/health-check.sh --main
 #   MAIN_APP_URL="https://app.ozzyl.com" bash ./workers/health-check.sh --main
-DEFAULT_MAIN_APP_URL="https://multi-store-saas.ozzyl.workers.dev"
+DEFAULT_MAIN_APP_URL="https://multi-store-saas.rahmatullahzisan.workers.dev"
 DEFAULT_PAGE_BUILDER_URL="https://builder.ozzyl.com"
 
 MAIN_APP_URL="${MAIN_APP_URL:-$DEFAULT_MAIN_APP_URL}"
@@ -175,13 +175,20 @@ if [[ "$CHECK_MAIN" == true ]]; then
     echo -e "${YELLOW}Testing static asset loading...${NC}"
     
     # Try to load a CSS or JS file
-    ASSET_URL="$MAIN_APP_URL/assets"
+    # NOTE: Use `/assets/` (with trailing slash) to avoid tenant resolution paths like `/assets`
+    # which can return JSON 404 in multi-tenant mode. We accept 404 here because assets are hashed
+    # and we don't know a specific filename without parsing HTML.
+    ASSET_URL="$MAIN_APP_URL/assets/"
     STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$ASSET_URL" 2>/dev/null || echo "000")
     
-    if [[ "$STATUS" != "000" ]]; then
-        check_pass "Asset endpoint accessible (HTTP $STATUS)"
+    if [[ "$STATUS" == "200" ]] || [[ "$STATUS" == "204" ]] || [[ "$STATUS" == "304" ]] || [[ "$STATUS" == "404" ]]; then
+        check_pass "Asset endpoint reachable (HTTP $STATUS)"
+    elif [[ "$STATUS" == "000" ]]; then
+        check_warn "Could not verify assets (network error)"
+    elif [[ "$STATUS" =~ ^5 ]]; then
+        check_fail "Asset endpoint error (HTTP $STATUS)"
     else
-        check_warn "Could not verify assets (may need build)"
+        check_warn "Unexpected asset status (HTTP $STATUS)"
     fi
     
     echo ""

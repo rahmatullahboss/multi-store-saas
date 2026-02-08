@@ -18,7 +18,7 @@ Staging-এ সব পরিবর্তন (feature/migration) আগে চা
 - `/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/wrangler.toml`
   - `[env.staging]`
   - `name = "multi-store-saas-staging"`
-  - `database_id = "510df28c-155e-45f2-8b1a-4e43d4e0f261"` (বর্তমানে সেট করা আছে)
+  - `database_id = "635f8125-8d10-4522-aad6-301a01027a37"` (বর্তমানে সেট করা আছে)
   - staging KV namespaces (production থেকে আলাদা):
     - `AI_RATE_LIMIT_STAGING`: `4697fe943f0a4e8b9535f739374c56cb`
     - `STORE_CACHE_STAGING`: `7aea490529e049bcb2ebf98964012f71`
@@ -56,7 +56,7 @@ npm run turbo:dev
 
 ```bash
 cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
-npm run test:all
+npm run test:release
 ```
 
 ### Step C — Apply migrations to staging first
@@ -95,17 +95,26 @@ Details: `docs/LAUNCH_PLAN_2026-02-07.md`
 
 Wrangler v4 CLI-তে আলাদা “fork/copy” কমান্ড নেই, তাই recommended approach:
 
-1. prod export (schema+data)
+1. prod export (schema only) — recommended
 ```bash
 cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
-npx wrangler d1 export multi-store-saas-db --remote --output ./tmp/prod-export.sql
+npm run db:export:prod:schema
 ```
 
-2. staging import
+2. staging import (schema)
 ```bash
 cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
-npx wrangler d1 execute multi-store-saas-db-staging --remote --file ./tmp/prod-export.sql
+wrangler d1 execute multi-store-saas-db-staging --remote --file ./tmp/prod-export.schema.sql
 ```
+
+3. stamp migrations (baseline adoption)
+```bash
+cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
+npm run db:stamp-migrations:staging
+```
+
+Notes:
+- Full schema+data import via a single SQL export can fail in D1 with `SQLITE_TOOBIG` (very large INSERT statements, long JSON blobs). If you need data realism, export/import per table using `wrangler d1 export --table <table> --no-schema` and run it in smaller chunks.
 
 ## Existing Production DB Migration Adoption (Baseline / Stamp)
 

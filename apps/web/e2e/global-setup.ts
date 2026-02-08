@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
 import path from 'node:path';
 
 type WranglerD1ExecuteJson = Array<{
@@ -13,12 +14,28 @@ function wranglerBin(): string {
 }
 
 function d1ExecuteJson(command: string): WranglerD1ExecuteJson {
-  const out = execFileSync(
-    wranglerBin(),
-    ['d1', 'execute', 'multi-store-saas-db', '--local', '--json', '--command', command],
-    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }
-  );
-  return JSON.parse(out) as WranglerD1ExecuteJson;
+  const args = ['d1', 'execute', 'multi-store-saas-db', '--local', '--json', '--command', command];
+
+  // Local D1 can be briefly locked while the dev server is starting/stopping.
+  // Retry a few times to avoid flaky E2E setup failures.
+  let lastErr: unknown = null;
+  for (let attempt = 1; attempt <= 8; attempt++) {
+    try {
+      const out = execFileSync(wranglerBin(), args, {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+      return JSON.parse(out) as WranglerD1ExecuteJson;
+    } catch (e) {
+      lastErr = e;
+      // Best-effort detection of SQLite busy/locked.
+      const msg = String((e as any)?.stderr ?? (e as any)?.message ?? e);
+      if (!msg.includes('SQLITE_BUSY') && !msg.toLowerCase().includes('database is locked')) throw e;
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 250);
+    }
+  }
+
+  throw lastErr;
 }
 
 function getTableColumns(table: string): Set<string> {
@@ -32,6 +49,37 @@ function getTableColumns(table: string): Set<string> {
   return cols;
 }
 
+function loadSqliteTableColumnsFromSchemaSource(
+  schemaPath: string,
+  tableName: string
+): Array<{ name: string; type: string }> {
+  // Parse the canonical schema source so E2E local D1 doesn't drift.
+  // NOTE: We only use primitive SQLite types; no constraints/defaults here.
+  const src = fs.readFileSync(schemaPath, 'utf8');
+
+  // Matches both:
+  // - sqliteTable('stores', { ... })
+  // - sqliteTable(\n  'products',\n  { ... })
+  const reTable = new RegExp(
+    String.raw`sqliteTable\(\s*\n?\s*['"]${tableName}['"][\s\S]*?\n?\s*\)\s*;`,
+    'm'
+  );
+  const mTable = src.match(reTable);
+  if (!mTable) throw new Error(`table schema not found: ${tableName} in ${schemaPath}`);
+
+  const block = mTable[0];
+  const cols: Array<{ name: string; type: string }> = [];
+  const reCol = /\b(text|integer|real)\(\s*'([^']+)'/g;
+  let m: RegExpExecArray | null;
+  while ((m = reCol.exec(block))) {
+    const kind = m[1];
+    const name = m[2];
+    const type = kind === 'text' ? 'TEXT' : kind === 'real' ? 'REAL' : 'INTEGER';
+    cols.push({ name, type });
+  }
+  return cols;
+}
+
 function tableExists(table: string): boolean {
   const res = d1ExecuteJson(
     `SELECT name FROM sqlite_master WHERE type='table' AND name='${table.replace(/'/g, "''")}';`
@@ -39,22 +87,16 @@ function tableExists(table: string): boolean {
   return (res?.[0]?.results ?? []).length > 0;
 }
 
-function ensureStoresColumns(cols: Set<string>) {
-  // Keep this focused on columns that exist in current Drizzle schema but were missing
-  // from older local D1 snapshots. Missing columns can cause INSERT/SELECT to error.
-  const required: Array<{ name: string; type: string }> = [
-    { name: 'tagline', type: 'TEXT' },
-    { name: 'description', type: 'TEXT' },
-    { name: 'banner_url', type: 'TEXT' },
-    { name: 'custom_shipping_policy', type: 'TEXT' },
-    { name: 'custom_subscription_policy', type: 'TEXT' },
-    { name: 'custom_legal_notice', type: 'TEXT' },
-  ];
+function ensureTableColumnsFromSchema(tableName: string) {
+  if (!tableExists(tableName)) return;
 
-  for (const col of required) {
-    if (cols.has(col.name)) continue;
-    // SQLite doesn't support ADD COLUMN IF NOT EXISTS, so we pre-check via PRAGMA.
-    d1ExecuteJson(`ALTER TABLE stores ADD COLUMN ${col.name} ${col.type};`);
+  const schemaPath = path.resolve(process.cwd(), '../../packages/database/src/schema.ts');
+  const desired = loadSqliteTableColumnsFromSchemaSource(schemaPath, tableName);
+  const existing = getTableColumns(tableName);
+
+  for (const col of desired) {
+    if (existing.has(col.name)) continue;
+    d1ExecuteJson(`ALTER TABLE ${tableName} ADD COLUMN ${col.name} ${col.type};`);
   }
 }
 
@@ -106,7 +148,15 @@ function ensureMetafieldsTables() {
 }
 
 export default async function globalSetup() {
-  const storeCols = getTableColumns('stores');
-  ensureStoresColumns(storeCols);
+  // Ensure local D1 schema is compatible with the current Drizzle schema.
+  // This avoids E2E failures when the local DB is from an older snapshot.
+  ensureTableColumnsFromSchema('stores');
+  ensureTableColumnsFromSchema('products');
+  ensureTableColumnsFromSchema('product_variants');
+  ensureTableColumnsFromSchema('customers');
+  ensureTableColumnsFromSchema('orders');
+  ensureTableColumnsFromSchema('order_items');
+  ensureTableColumnsFromSchema('checkout_sessions');
+
   ensureMetafieldsTables();
 }

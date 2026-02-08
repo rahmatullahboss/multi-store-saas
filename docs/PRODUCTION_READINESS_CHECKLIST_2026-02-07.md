@@ -23,7 +23,7 @@ Production-এ যাওয়ার আগে একই change staging-এ চা�
 
 ### 1.3 What’s Done
 - [x] Staging worker env configured (`apps/web/wrangler.toml`)
-- [x] Staging D1 created + bound (`multi-store-saas-db-staging`, id `510df28c-155e-45f2-8b1a-4e43d4e0f261`)
+- [x] Staging D1 created + bound (`multi-store-saas-db-staging`, id `635f8125-8d10-4522-aad6-301a01027a37`)
 - [x] Staging KV created + bound (separate from prod)
 - [x] Staging DB migrations “fresh apply” verified (2026-02-07)
 
@@ -64,9 +64,14 @@ Production DB-তে migration apply করা safe হতে হবে, এব�
 - [x] “baseline/stamp” runbook written for existing prod DB adoption
 
 ### 2.3 What’s Pending
-- [ ] Production DB baseline adoption rehearsal (prod export → staging import → apply → verify)
-- [ ] Production restore drill (D1 backup/time-travel) — staging-এ prove করা
-- [ ] Post-migration data integrity checks (orders totals, inventory non-negative, foreign keys)
+- [x] Production DB baseline adoption rehearsal (prod export → staging import → apply → verify) (2026-02-07)
+- [x] Production restore drill (D1 backup/time-travel) — staging-এ prove করা (2026-02-08)
+  - Runbook: `docs/D1_TIME_TRAVEL_RESTORE_DRILL_2026-02-08.md`
+- [x] Post-migration data integrity checks (orders totals, inventory non-negative, foreign keys)
+  - Script: `apps/web/scripts/db-integrity-checks.sql`
+  - Run:
+    - Staging: `cd apps/web && npm run db:integrity:staging`
+    - Prod: `cd apps/web && npm run db:integrity:prod`
 
 ### 2.4 Verify (commands)
 ```bash
@@ -88,14 +93,20 @@ npx wrangler d1 migrations apply multi-store-saas-db-staging --remote --env stag
 COD হলেও order correctness ভুল হলে real operations ভেঙে যাবে।
 
 ### 3.2 What’s Pending (minimum)
-- [ ] Order idempotency end-to-end enforced (same request retry → same order)
+- [x] Order idempotency end-to-end enforced (same request retry → same order) (E2E verified 2026-02-08)
 - [ ] Inventory decrement/reservation rules audited (no negative stock)
 - [ ] Price snapshot correctness (product price later change হলেও order amount stable)
 - [ ] Admin order state transitions rules + audit log
 
 ### 3.3 Verify
-- [ ] E2E: submit checkout twice (network retry simulation) → 1 order only
-- [ ] E2E: stock=0 product → checkout blocked
+- [x] E2E: submit checkout twice (network retry simulation) → 1 order only (`apps/web/e2e/smoke.test.ts`) (2026-02-08)
+- [x] E2E: stock=0 product → checkout blocked (`apps/web/e2e/smoke.test.ts`) (2026-02-08)
+
+Run:
+```bash
+cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas
+npm --workspace apps/web run e2e:smoke
+```
 
 ## 4) Multi-Tenant Security (P0)
 

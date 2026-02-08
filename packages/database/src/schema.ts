@@ -2832,3 +2832,56 @@ export const storeMvpSettingsRelations = relations(storeMvpSettings, ({ one }) =
 
 export type StoreMvpSettings = typeof storeMvpSettings.$inferSelect;
 export type NewStoreMvpSettings = typeof storeMvpSettings.$inferInsert;
+
+// ============================================================================
+// CREDIT PURCHASES TABLE - Manual bKash Payment for AI Credits
+// ============================================================================
+// Merchants submit bKash transaction IDs, Super Admin reviews and approves credits
+export const creditPurchases = sqliteTable(
+  'credit_purchases',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    
+    // Package info
+    packageId: text('package_id').notNull(), // 'starter', 'pro', 'business'
+    credits: integer('credits').notNull(),
+    amount: integer('amount').notNull(), // Amount in BDT (taka)
+    
+    // Payment info (bKash)
+    transactionId: text('transaction_id'), // bKash Transaction ID
+    phone: text('phone'), // bKash phone number
+    
+    // Approval status
+    status: text('status')
+      .$type<'pending' | 'approved' | 'rejected'>()
+      .default('pending'),
+    adminNotes: text('admin_notes'), // Reason for rejection or notes
+    reviewedBy: integer('reviewed_by').references(() => users.id, { onDelete: 'set null' }),
+    reviewedAt: integer('reviewed_at', { mode: 'timestamp' }),
+    
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_credit_purchases_store').on(table.storeId),
+    index('idx_credit_purchases_status').on(table.status),
+    index('idx_credit_purchases_created').on(table.createdAt),
+  ]
+);
+
+export const creditPurchasesRelations = relations(creditPurchases, ({ one }) => ({
+  store: one(stores, {
+    fields: [creditPurchases.storeId],
+    references: [stores.id],
+  }),
+  reviewer: one(users, {
+    fields: [creditPurchases.reviewedBy],
+    references: [users.id],
+  }),
+}));
+
+export type CreditPurchase = typeof creditPurchases.$inferSelect;
+export type NewCreditPurchase = typeof creditPurchases.$inferInsert;

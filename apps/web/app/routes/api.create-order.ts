@@ -123,10 +123,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const db = createDb(context.cloudflare.env.DB);
   const env = context.cloudflare.env;
 
+  // E2E/local dev can run without Durable Object service bindings available.
+  // When bindings exist in env but the backing Worker/DO isn't running, fetch() can return
+  // non-JSON errors and cause flaky checkout behavior. Disable DO-based rate limit/locks in E2E.
+  const isE2E =
+    (env as any)?.E2E === '1' ||
+    (env as any)?.E2E_ENABLED === '1' ||
+    process.env.E2E === '1' ||
+    process.env.E2E_ENABLED === '1';
+
   // Checkout lock variables (declared outside try for cleanup in catch)
   let checkoutLockId = '';
   let checkoutLockAcquired = false;
-  const hasCheckoutLock = 'CHECKOUT_SERVICE' in env;
+  const hasCheckoutLock = !isE2E && 'CHECKOUT_SERVICE' in env;
   // Used for lock release in finally even on early-return paths
   let orderNumberForLock = '';
   let checkoutSessionId: string | null = null;
@@ -187,7 +196,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // ========================================================================
     // RATE LIMITING (via Durable Object)
     // ========================================================================
-    const hasRateLimiter = 'RATE_LIMITER_SERVICE' in env;
+    const hasRateLimiter = !isE2E && 'RATE_LIMITER_SERVICE' in env;
     const storeIdForRateLimit = (body.store_id as number) || 0;
 
     if (hasRateLimiter && storeIdForRateLimit > 0) {

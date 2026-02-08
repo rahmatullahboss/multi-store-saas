@@ -27,7 +27,7 @@ name = "multi-store-saas-staging"
 [[env.staging.d1_databases]]
 binding = "DB"
 database_name = "multi-store-saas-db-staging"
-database_id = "510df28c-155e-45f2-8b1a-4e43d4e0f261"
+database_id = "635f8125-8d10-4522-aad6-301a01027a37"
 migrations_dir = "../../packages/database/src/migrations"
 
 [env.staging.vars]

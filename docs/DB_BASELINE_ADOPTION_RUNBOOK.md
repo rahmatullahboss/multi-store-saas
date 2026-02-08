@@ -33,6 +33,9 @@ Notes:
 - শুধু schema দরকার হলে `--no-data`
 - শুধু data দরকার হলে `--no-schema`
 
+Practical note (observed):
+- Full schema+data import into D1 via one big SQL file can fail with `SQLITE_TOOBIG` because some INSERT statements become extremely large (e.g. big JSON/text blobs). For adoption rehearsal, **schema-only clone** is usually sufficient.
+
 ### Step C — Import into staging DB
 
 ```bash
@@ -41,6 +44,15 @@ npx wrangler d1 execute multi-store-saas-db-staging --remote --file ./tmp/prod-e
 ```
 
 এখন staging DB = prod-এর “snapshot”।
+
+## Recommended (Safer) Variant — Schema-only clone + stamp
+
+```bash
+cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
+npm run db:export:prod:schema
+wrangler d1 execute multi-store-saas-db-staging --remote --file ./tmp/prod-export.schema.sql
+npm run db:stamp-migrations:staging
+```
 
 ## Migration Adoption Strategy (Staging First)
 

@@ -1,14 +1,14 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { formatPrice } from '~/lib/theme-engine';
-import { useLoaderData, useFetcher, useNavigation } from '@remix-run/react';
+import { useLoaderData, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq } from 'drizzle-orm';
-import { stores } from '@db/schema';
+import { eq, desc } from 'drizzle-orm';
+import { stores, creditPurchases } from '@db/schema';
 import { getSession } from '~/services/auth.server';
-import { addCredits, getCreditHistory } from '~/utils/credit.server';
-import { Crown, Sparkles, CreditCard, Check, Zap, Coins, History, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { getCreditHistory } from '~/utils/credit.server';
+import { Crown, Sparkles, CreditCard, Check, Zap, Coins, History, ArrowUpRight, ArrowDownLeft, Clock, CheckCircle2, XCircle, Phone, Hash } from 'lucide-react';
 import { toast } from 'sonner';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 // Pricing Packages for Credits
@@ -39,11 +39,20 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .get();
 
   const history = await getCreditHistory(db, storeId, 30);
+  
+  // Get pending credit purchases
+  const pendingPurchases = await db
+    .select()
+    .from(creditPurchases)
+    .where(eq(creditPurchases.storeId, storeId))
+    .orderBy(desc(creditPurchases.createdAt))
+    .limit(10);
 
   return json({ 
     credits: store?.aiCredits || 0,
     packages: CREDIT_PACKAGES,
-    history 
+    history,
+    pendingPurchases 
   });
 }
 
@@ -59,43 +68,52 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const db = drizzle(env.DB);
   const formData = await request.formData();
   const packageId = formData.get('packageId') as string;
+  const transactionId = formData.get('transactionId') as string;
+  const phone = formData.get('phone') as string;
 
   const selectedPackage = CREDIT_PACKAGES.find(p => p.id === packageId);
   if (!selectedPackage) {
     return json({ error: 'Invalid package' }, { status: 400 });
   }
 
-  // MOCK PAYMENT Gateway Logic Here
-  // In real app: Redirect to bKash/Stripe/SSLCommerz
-  // For now: Instantly add credits
-  
-  const result = await addCredits(
-    db, 
-    storeId, 
-    selectedPackage.credits, 
-    'purchase',
-    `Purchased ${selectedPackage.name} Package`
-  );
-
-  if (result.success) {
-    return json({ success: true, newBalance: result.newBalance, added: selectedPackage.credits });
-  } else {
-    return json({ error: 'Failed to add credits' }, { status: 500 });
+  if (!transactionId || transactionId.trim().length < 5) {
+    return json({ error: 'Valid transaction ID required' }, { status: 400 });
   }
+
+  if (!phone || phone.trim().length < 11) {
+    return json({ error: 'Valid phone number required' }, { status: 400 });
+  }
+
+  // Create pending credit purchase for admin approval
+  await db.insert(creditPurchases).values({
+    storeId,
+    packageId: selectedPackage.id,
+    credits: selectedPackage.credits,
+    amount: selectedPackage.price,
+    transactionId: transactionId.trim(),
+    phone: phone.trim(),
+    status: 'pending',
+  });
+
+  return json({ success: true, message: 'Purchase submitted for approval' });
 }
 
 export default function AICreditsPage() {
-  const { t } = useTranslation();
-  const { credits, packages, history } = useLoaderData<typeof loader>();
+  const { t, lang } = useTranslation();
+  const { credits, packages, history, pendingPurchases } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
-  const navigation = useNavigation();
+  const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
 
   useEffect(() => {
-    const data = fetcher.data as { success?: boolean; added?: number } | null | undefined;
+    const data = fetcher.data as { success?: boolean; message?: string; error?: string } | null | undefined;
     if (data?.success) {
-      toast.success(t('addedCreditsMsg', { added: data.added }));
+      toast.success(lang === 'bn' ? 'পেমেন্ট রিকুয়েস্ট জমা হয়েছে! অ্যাডমিন অনুমোদনের পর ক্রেডিট যোগ হবে।' : 'Payment request submitted! Credits will be added after admin approval.');
+      setSelectedPackage(null);
     }
-  }, [fetcher.data]);
+    if (data?.error) {
+      toast.error(data.error);
+    }
+  }, [fetcher.data, lang]);
 
   return (
     <div className="space-y-6">
@@ -123,6 +141,52 @@ export default function AICreditsPage() {
           <div className="text-violet-200 text-sm opacity-80">
             {t('creditsNeverExpire')}
           </div>
+        </div>
+      </div>
+
+      {/* Pending Purchases Section */}
+      {pendingPurchases && pendingPurchases.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
+          <h3 className="text-lg font-bold text-amber-800 mb-4 flex items-center gap-2">
+            <Clock className="w-5 h-5" />
+            {lang === 'bn' ? 'পেন্ডিং পেমেন্ট' : 'Pending Payments'}
+          </h3>
+          <div className="space-y-3">
+            {pendingPurchases.map((purchase) => (
+              <div key={purchase.id} className="bg-white rounded-lg p-4 border border-amber-100 flex items-center justify-between">
+                <div>
+                  <div className="font-medium text-gray-900">{purchase.credits} Credits</div>
+                  <div className="text-sm text-gray-500">TrxID: {purchase.transactionId}</div>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  purchase.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                  purchase.status === 'approved' ? 'bg-green-100 text-green-700' :
+                  'bg-red-100 text-red-700'
+                }`}>
+                  {purchase.status === 'pending' && <Clock className="w-3 h-3 inline mr-1" />}
+                  {purchase.status === 'approved' && <CheckCircle2 className="w-3 h-3 inline mr-1" />}
+                  {purchase.status === 'rejected' && <XCircle className="w-3 h-3 inline mr-1" />}
+                  {purchase.status === 'pending' ? (lang === 'bn' ? 'অপেক্ষারত' : 'Pending') :
+                   purchase.status === 'approved' ? (lang === 'bn' ? 'অনুমোদিত' : 'Approved') :
+                   (lang === 'bn' ? 'বাতিল' : 'Rejected')}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* bKash Payment Info Banner */}
+      <div className="bg-pink-50 border border-pink-200 rounded-xl p-6">
+        <h3 className="text-lg font-bold text-pink-700 mb-2">💳 bKash Payment</h3>
+        <p className="text-pink-600">
+          {lang === 'bn' 
+            ? 'নিচের নম্বরে bKash Send Money করুন এবং Transaction ID দিয়ে ফর্ম পূরণ করুন:'
+            : 'Send money to the number below via bKash and fill the form with Transaction ID:'}
+        </p>
+        <div className="mt-3 p-4 bg-white rounded-lg border border-pink-200">
+          <p className="text-2xl font-bold text-pink-700">01XXXXXXXXX</p>
+          <p className="text-sm text-gray-500">{lang === 'bn' ? 'Personal নম্বরে Send Money করুন' : 'Send Money to Personal'}</p>
         </div>
       </div>
 
@@ -184,11 +248,60 @@ export default function AICreditsPage() {
                 </li>
               </ul>
 
-              <fetcher.Form method="post">
-                <input type="hidden" name="packageId" value={pkg.id} />
+              {selectedPackage === pkg.id ? (
+                <fetcher.Form method="post" className="space-y-4">
+                  <input type="hidden" name="packageId" value={pkg.id} />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <Hash className="w-4 h-4 inline mr-1" />
+                      {lang === 'bn' ? 'Transaction ID' : 'Transaction ID'}
+                    </label>
+                    <input
+                      type="text"
+                      name="transactionId"
+                      placeholder="e.g., TRX123456789"
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <Phone className="w-4 h-4 inline mr-1" />
+                      {lang === 'bn' ? 'bKash নম্বর' : 'bKash Number'}
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      placeholder="01XXXXXXXXX"
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPackage(null)}
+                      className="flex-1 py-3 rounded-xl font-medium bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    >
+                      {lang === 'bn' ? 'বাতিল' : 'Cancel'}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={fetcher.state !== 'idle'}
+                      className="flex-1 py-3 rounded-xl font-bold bg-violet-600 hover:bg-violet-700 text-white"
+                    >
+                      {fetcher.state !== 'idle' ? (
+                        <span className="animate-pulse">{t('processing')}</span>
+                      ) : (
+                        lang === 'bn' ? 'জমা দিন' : 'Submit'
+                      )}
+                    </button>
+                  </div>
+                </fetcher.Form>
+              ) : (
                 <button
-                  type="submit"
-                  disabled={fetcher.state !== 'idle'}
+                  type="button"
+                  onClick={() => setSelectedPackage(pkg.id)}
                   className={`
                     w-full py-4 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-2
                     ${pkg.popular 
@@ -197,16 +310,10 @@ export default function AICreditsPage() {
                     }
                   `}
                 >
-                  {fetcher.state !== 'idle' ? (
-                     <span className="animate-pulse">{t('processing')}</span>
-                  ) : (
-                    <>
-                      <CreditCard className="w-5 h-5" />
-                      {t('buyNow')}
-                    </>
-                  )}
+                  <CreditCard className="w-5 h-5" />
+                  {t('buyNow')}
                 </button>
-              </fetcher.Form>
+              )}
             </div>
           </div>
         ))}

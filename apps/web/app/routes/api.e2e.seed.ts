@@ -24,6 +24,7 @@ const SeedRequestSchema = z
     templateId: z.string().min(1).optional(),
     storeName: z.string().min(1).optional(),
     productTitle: z.string().min(1).optional(),
+    inventory: z.number().int().min(0).max(100000).optional(),
   })
   .strict()
   .optional();
@@ -65,6 +66,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const subdomain = `e2e-${unique}`;
   const storeName = body.storeName ?? `E2E Store ${unique}`;
   const productTitle = body.productTitle ?? `E2E Product ${unique}`;
+  const inventory = body.inventory ?? 50;
 
   // Minimal store config: enable storefront + set WhatsApp/phone so floating buttons can render.
   const themeConfig = JSON.stringify({
@@ -104,7 +106,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       description: 'Seeded product for Playwright E2E.',
       price: 499,
       compareAtPrice: 599,
-      inventory: 50,
+      inventory,
       isPublished: true,
       imageUrl:
         'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/products/seeded-placeholder.webp',
@@ -130,4 +132,3 @@ export async function action({ request, context }: ActionFunctionArgs) {
     templateId,
   });
 }
-
