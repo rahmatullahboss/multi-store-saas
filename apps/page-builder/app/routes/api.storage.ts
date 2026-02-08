@@ -263,7 +263,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ success: true });
     }
   } catch (error) {
-    console.error('Storage API error:', error);
-    return json({ error: 'Failed to save' }, { status: 500 });
+    const err = error as Error;
+    console.error('Storage API error:', {
+      message: err.message,
+      name: err.name,
+      stack: err.stack,
+    });
+    return json({ error: 'Failed to save', details: err.message }, { status: 500 });
   }
 }

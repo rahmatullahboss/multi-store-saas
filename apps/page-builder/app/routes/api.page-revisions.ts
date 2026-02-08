@@ -136,8 +136,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       return json({ success: true, id });
     } catch (error) {
-      console.error('Failed to create revision:', error);
-      return json({ error: 'Failed to create revision' }, { status: 500 });
+      const err = error as Error;
+      console.error('Failed to create revision:', {
+        message: err.message,
+        name: err.name,
+        stack: err.stack,
+      });
+      return json({ error: 'Failed to create revision', details: err.message }, { status: 500 });
     }
   }
 
