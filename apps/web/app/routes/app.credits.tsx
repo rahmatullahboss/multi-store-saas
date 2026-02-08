@@ -185,7 +185,7 @@ export default function AICreditsPage() {
             : 'Send money to the number below via bKash and fill the form with Transaction ID:'}
         </p>
         <div className="mt-3 p-4 bg-white rounded-lg border border-pink-200">
-          <p className="text-2xl font-bold text-pink-700">01XXXXXXXXX</p>
+          <p className="text-2xl font-bold text-pink-700">01739416661</p>
           <p className="text-sm text-gray-500">{lang === 'bn' ? 'Personal নম্বরে Send Money করুন' : 'Send Money to Personal'}</p>
         </div>
       </div>
