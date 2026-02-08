@@ -82,7 +82,36 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   let initialProjectData = null;
   if (page.projectData) {
     try {
-      initialProjectData = JSON.parse(page.projectData);
+      const parsedData = JSON.parse(page.projectData);
+      
+      // Sanitize styles array to prevent CssComposer parsing errors
+      // This fixes "Cannot read properties of undefined (reading 'getFrames')" error
+      if (parsedData && parsedData.styles) {
+        if (!Array.isArray(parsedData.styles)) {
+          // If styles is not an array, reset to empty array
+          console.warn('Invalid styles format in projectData, resetting to empty array');
+          parsedData.styles = [];
+        } else {
+          // Filter out invalid style entries (must have selectors property)
+          parsedData.styles = parsedData.styles.filter((style: any) => {
+            if (!style || typeof style !== 'object') return false;
+            // GrapesJS requires 'selectors' to be present
+            if (!style.selectors) return false;
+            return true;
+          });
+        }
+      }
+      
+      // Sanitize components if present
+      if (parsedData && parsedData.pages) {
+        // Ensure pages is an array
+        if (!Array.isArray(parsedData.pages)) {
+          console.warn('Invalid pages format in projectData');
+          parsedData.pages = [];
+        }
+      }
+      
+      initialProjectData = parsedData;
     } catch (e) {
       console.warn('Failed to parse projectData');
     }
