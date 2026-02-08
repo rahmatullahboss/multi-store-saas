@@ -12,9 +12,11 @@ export function SokolLayout(props: SokolLayoutProps) {
 
   return (
     <div className="font-sans antialiased text-gray-900 bg-[#FAFAFA] selection:bg-rose-100 selection:text-rose-900">
+      <link 
+        rel="stylesheet" 
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
+      />
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
-        
         :root {
           --font-sans: 'Inter', sans-serif;
           --font-heading: 'Poppins', sans-serif;

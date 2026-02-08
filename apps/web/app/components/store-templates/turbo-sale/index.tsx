@@ -823,9 +823,10 @@ function PreviewTurboSaleStore(props: StoreTemplateProps) {
           fontFamily: TURBO_SALE_THEME.fontBody,
         }}
       >
-        <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap');
-        `}</style>
+        <link 
+          rel="stylesheet" 
+          href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap"
+        />
 
         <PreviewHeader
           storeName={storeName}
@@ -1043,9 +1044,11 @@ function LiveTurboSaleHomepage({
                 </a>
               </div>
 
+              <link 
+                rel="stylesheet" 
+                href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Tiro+Bangla&display=swap"
+              />
               <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Tiro+Bangla&display=swap');
-                
                 body {
                   font-family: 'Hind Siliguri', sans-serif;
                 }

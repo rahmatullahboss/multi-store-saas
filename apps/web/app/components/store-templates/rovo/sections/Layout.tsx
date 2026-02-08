@@ -12,9 +12,11 @@ export function RovoLayout({ children, ...props }: RovoLayoutProps) {
   
   return (
     <div className="font-sans antialiased text-gray-900 bg-white selection:bg-red-100 selection:text-red-900">
+      <link 
+        rel="stylesheet" 
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Oswald:wght@400;500;600;700&display=swap"
+      />
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Oswald:wght@400;500;600;700&display=swap');
-        
         :root {
           --font-sans: 'Inter', sans-serif;
           --font-heading: 'Oswald', sans-serif;

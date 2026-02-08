@@ -28,9 +28,11 @@ export function TemplateLayoutRenderer({ templateId, children }: TemplateLayoutR
     case 'luxe':
         return (
             <div className="luxe-layout min-h-screen bg-white text-slate-900 font-serif selection:bg-slate-200">
+                <link 
+                  rel="stylesheet" 
+                  href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+                />
                 <style>{`
-                    /* Elegant serif fonts for Luxe */
-                    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
                     .luxe-layout h1, .luxe-layout h2, .luxe-layout h3 {
                         font-family: 'Playfair Display', serif;
                     }
