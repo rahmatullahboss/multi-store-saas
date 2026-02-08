@@ -390,7 +390,7 @@ export default function AICreditsPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-400">
-                        {new Date(log.createdAt).toLocaleDateString()} {new Date(log.createdAt).toLocaleTimeString()}
+                        {log.createdAt ? new Date(log.createdAt).toLocaleDateString() : '-'} {log.createdAt ? new Date(log.createdAt).toLocaleTimeString() : ''}
                       </td>
                     </tr>
                   ))
