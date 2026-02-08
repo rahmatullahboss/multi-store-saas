@@ -159,7 +159,7 @@ function PreviewHeader({
   logo?: string | null;
   categories: (string | null)[];
   onNavigate: (page: PageType) => void;
-  businessInfo?: any;
+  businessInfo?: { phone?: string; email?: string; address?: string } | null;
 }) {
   const cart = usePreviewCart();
   const validCategories = categories.filter((c): c is string => Boolean(c));
