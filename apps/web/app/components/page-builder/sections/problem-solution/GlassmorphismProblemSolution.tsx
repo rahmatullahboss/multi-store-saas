@@ -8,7 +8,7 @@ import type { ProblemSolutionVariantProps } from './types';
 export function GlassmorphismProblemSolution({ 
   title, problemTitle, problems, solutionTitle, solutions, solution, theme, styleProps 
 }: ProblemSolutionVariantProps) {
-  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps;
+  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps || {};
   
   const sectionStyle = getSectionStyle({ backgroundColor, backgroundGradient, textColor, fontFamily, paddingY });
   const headingStyle = getHeadingStyle({ headingColor, textColor });

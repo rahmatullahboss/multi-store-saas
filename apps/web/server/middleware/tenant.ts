@@ -19,6 +19,8 @@ export interface TenantContext {
   storeId: number;
   store: Store;
   isCustomDomain: boolean;
+  // Set by request-id middleware in server entry (optional for backward compatibility).
+  requestId?: string;
 }
 
 export interface TenantEnv {

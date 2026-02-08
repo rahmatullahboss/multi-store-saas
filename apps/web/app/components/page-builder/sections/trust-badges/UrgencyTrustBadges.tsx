@@ -6,7 +6,7 @@ import { getSectionStyle, getHeadingStyle } from '~/lib/page-builder/sectionStyl
 import type { TrustBadgesVariantProps } from './types';
 
 export function UrgencyTrustBadges({ title, badges, theme, styleProps }: TrustBadgesVariantProps) {
-  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps;
+  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps || {};
   
   const sectionStyle = getSectionStyle({ backgroundColor, backgroundGradient, textColor, fontFamily, paddingY });
   const headingStyle = getHeadingStyle({ headingColor, textColor });

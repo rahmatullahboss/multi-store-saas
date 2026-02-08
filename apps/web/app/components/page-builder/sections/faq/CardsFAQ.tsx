@@ -6,7 +6,7 @@ import { getSectionStyle, getHeadingStyle } from '~/lib/page-builder/sectionStyl
 import type { FAQVariantProps } from './types';
 
 export function CardsFAQ({ title, subtitle, items, theme, styleProps }: FAQVariantProps) {
-  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps;
+  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps || {};
   
   const isDark = theme?.style === 'urgent' || theme?.style === 'premium' || theme?.style === 'dark';
   

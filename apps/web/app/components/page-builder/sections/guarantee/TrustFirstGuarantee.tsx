@@ -7,7 +7,7 @@ import { getSectionStyle, getHeadingStyle } from '~/lib/page-builder/sectionStyl
 import type { GuaranteeVariantProps } from './types';
 
 export function TrustFirstGuarantee({ title, text, badgeLabel, theme, styleProps }: GuaranteeVariantProps) {
-  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps;
+  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps || {};
   
   const sectionStyle = getSectionStyle({ backgroundColor, backgroundGradient, textColor, fontFamily, paddingY });
   const headingStyle = getHeadingStyle({ headingColor, textColor });

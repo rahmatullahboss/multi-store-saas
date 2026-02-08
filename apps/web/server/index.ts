@@ -85,10 +85,13 @@ const app = new Hono<AppContext>();
 
 // Error and Not Found Handlers
 app.onError((err, c) => {
-  console.error('[SERVER ERROR]', err);
+  const requestId = c.get('requestId') || c.req.header('x-request-id') || 'unknown';
+  const storeId = c.get('storeId') || 0;
+  console.error('[SERVER ERROR]', { requestId, storeId, err });
   return c.json(
     {
       error: err.message || 'Internal Server Error',
+      requestId,
       stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
     },
     500
@@ -102,6 +105,18 @@ app.notFound((c) => {
 // ============================================================================
 // GLOBAL MIDDLEWARE
 // ============================================================================
+
+// Request ID: propagate client-provided x-request-id or generate one.
+// Used for tracing across logs and to help support debug a single request.
+app.use('*', async (c, next) => {
+  const incoming = c.req.header('x-request-id');
+  const requestId =
+    incoming && incoming.length <= 128 ? incoming : crypto.randomUUID();
+
+  c.set('requestId', requestId);
+  await next();
+  c.header('x-request-id', requestId);
+});
 
 // Logger middleware is useful during development, but expensive/noisy in production.
 // Keep production logs focused on business/API paths via requestTracker + explicit errors.

@@ -6,7 +6,7 @@ import { getSectionStyle, getHeadingStyle } from '~/lib/page-builder/sectionStyl
 import type { BenefitsVariantProps } from './types';
 
 export function GridBenefits({ title, subtitle, benefits, theme, styleProps }: BenefitsVariantProps) {
-  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps;
+  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps || {};
   
   const isDark = theme?.style === 'urgent' || theme?.style === 'premium' || theme?.style === 'dark';
   

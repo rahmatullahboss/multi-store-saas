@@ -8,7 +8,7 @@ import type { ProblemSolutionVariantProps } from './types';
 export function DefaultProblemSolution({ 
   title, problemTitle, problems, solutionTitle, solutions, solution, theme, styleProps 
 }: ProblemSolutionVariantProps) {
-  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps;
+  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps || {};
   
   const isDark = theme?.style === 'urgent' || theme?.style === 'premium' || theme?.style === 'dark';
   const isLight = theme?.style === 'professional' || theme?.style === 'nature' || theme?.style === 'minimal';

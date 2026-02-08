@@ -134,9 +134,9 @@ export const dashboard = {
   // New World-class IA navs
   sidebarCustomers: 'কাস্টমার',
   sidebarOnlineStore: 'অনলাইন স্টোর',
-  navPages: 'পেজ',
+  navPages: 'ল্যান্ডিং পেজ',
   navDragDropBuilder: 'ড্র্যাগ অ্যান্ড ড্রপ বিল্ডার',
-  navTheme: 'থিম',
+  navTheme: 'স্টোর সেটআপ',
   navGeneral: 'সাধারণ',
   navStorefront: 'স্টোরফ্রন্ট',
   navPayments: 'পেমেন্ট',

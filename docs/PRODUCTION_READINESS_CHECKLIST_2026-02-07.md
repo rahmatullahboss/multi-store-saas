@@ -133,6 +133,7 @@ npm --workspace apps/web run e2e:smoke
 ### 5.1 What’s Pending (minimum)
 - [ ] Sentry (or equivalent) alerting verified on staging
 - [ ] Structured logs include `store_id`, `request_id`, `order_id`
+  - Note (done 2026-02-08): `x-request-id` response header added; server error logs include `{ requestId, storeId }`
 - [ ] Incident runbook: rollback worker + DB restore decision tree
 - [ ] Uptime monitoring for `app.ozzyl.com` + `*.ozzyl.com`
 

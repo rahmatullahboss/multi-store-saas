@@ -8,7 +8,7 @@ import { getSectionStyle, getHeadingStyle } from '~/lib/page-builder/sectionStyl
 import type { FAQVariantProps } from './types';
 
 export function AccordionFAQ({ title, subtitle, items, theme, styleProps }: FAQVariantProps) {
-  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps;
+  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps || {};
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   
   const isDark = theme?.style === 'urgent' || theme?.style === 'premium' || theme?.style === 'dark';

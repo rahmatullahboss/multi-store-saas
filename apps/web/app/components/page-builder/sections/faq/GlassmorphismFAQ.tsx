@@ -8,7 +8,7 @@ import { getSectionStyle, getHeadingStyle } from '~/lib/page-builder/sectionStyl
 import type { FAQVariantProps } from './types';
 
 export function GlassmorphismFAQ({ title, subtitle, items, theme, styleProps }: FAQVariantProps) {
-  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps;
+  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps || {};
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   
   const sectionStyle = getSectionStyle({ backgroundColor, backgroundGradient, textColor, fontFamily, paddingY });

@@ -6,7 +6,7 @@ import { getSectionStyle, getHeadingStyle } from '~/lib/page-builder/sectionStyl
 import type { FeaturesVariantProps } from './types';
 
 export function BentoFeatures({ title, features, theme, styleProps }: FeaturesVariantProps) {
-  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps;
+  const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps || {};
   
   const isDark = theme?.style === 'urgent' || theme?.style === 'premium' || theme?.style === 'dark';
   const defaultBgColor = isDark ? (theme?.bgColor || '#0A0A0A') : '#FAFAFA';
