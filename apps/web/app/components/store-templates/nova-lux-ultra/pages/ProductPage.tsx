@@ -11,9 +11,9 @@
  * - Size/variant selectors with premium styling
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { Link } from '@remix-run/react';
+
 import {
   ShoppingBag,
   Heart,
@@ -27,12 +27,9 @@ import {
   Minus,
   Plus,
   Check,
-  MessageCircle,
-  Sparkles,
   ZoomIn,
-  X,
 } from 'lucide-react';
-import { useTranslation } from '~/contexts/LanguageContext';
+
 import { NOVALUX_ULTRA_THEME } from '../theme';
 import { formatPrice } from '~/lib/theme-engine';
 import { AddToCartButton } from '~/components/AddToCartButton';
@@ -303,12 +300,11 @@ export function ProductPage({
   product,
   currency,
   relatedProducts,
-  theme,
+  theme: _theme,
   isPreview,
-  templateId,
+  templateId: _templateId,
   onNavigate,
 }: ProductPageProps) {
-  const { t } = useTranslation();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const [quantity, setQuantity] = useState(1);
   const [selectedTab, setSelectedTab] = useState<'description' | 'specifications' | 'reviews'>(
@@ -619,9 +615,9 @@ export function ProductPage({
               className="grid grid-cols-3 gap-4 pt-6 border-t"
               style={{ borderColor: NOVALUX_ULTRA_THEME.border }}
             >
-              <TrustBadge icon={Truck} text="Free Shipping" />
-              <TrustBadge icon={Shield} text="Secure Payment" />
-              <TrustBadge icon={RotateCcw} text="Easy Returns" />
+              <TrustBadge icon={Truck} text="ফ্রি শিপিং" />
+              <TrustBadge icon={Shield} text="নিরাপদ পেমেন্ট" />
+              <TrustBadge icon={RotateCcw} text="সহজ ফেরত" />
             </div>
           </motion.div>
         </div>

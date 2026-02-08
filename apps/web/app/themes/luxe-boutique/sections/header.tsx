@@ -204,16 +204,17 @@ export default function LuxeHeader({
               )}
             </button>
 
-            {/* Logo */}
+            {/* Logo - Always show both logo and name if configured/available */}
             <a href={getLink?.('/') || '/'} className="flex items-center gap-3">
               {store.logo ? (
                 <img src={store.logo} alt={store.name} className="h-10 lg:h-12 object-contain" />
               ) : null}
               <span
-                className="text-xl lg:text-2xl font-semibold tracking-wide"
+                className={`text-xl lg:text-2xl font-semibold tracking-wide ${store.logo ? 'hidden sm:block' : ''}`}
                 style={{
                   fontFamily: "'Playfair Display', serif",
                   color: THEME.primary,
+                  display: 'block' // Force display
                 }}
               >
                 {store.name}

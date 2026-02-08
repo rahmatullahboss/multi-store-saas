@@ -68,19 +68,17 @@ export function LuxeBoutiqueHeader({
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
 
-          {/* Logo */}
-          <PreviewSafeLink to="/" className="flex items-center" isPreview={isPreview}>
-            {logo ? (
-              <img src={logo} alt={storeName} className="h-10 lg:h-12 object-contain bg-white rounded px-2 py-1" />
-            ) : (
+            <PreviewSafeLink to="/" className="flex items-center gap-3" isPreview={isPreview}>
+              {logo ? (
+                <img src={logo} alt={storeName} className="h-10 lg:h-12 object-contain bg-white rounded px-2 py-1" />
+              ) : null}
               <span 
-                className="text-xl lg:text-2xl font-semibold tracking-wide"
+                className={`text-xl lg:text-2xl font-semibold tracking-wide ${logo ? 'hidden sm:block' : ''}`}
                 style={{ fontFamily: "'Playfair Display', serif", color: theme.primary }}
               >
                 {storeName}
               </span>
-            )}
-          </PreviewSafeLink>
+            </PreviewSafeLink>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8">

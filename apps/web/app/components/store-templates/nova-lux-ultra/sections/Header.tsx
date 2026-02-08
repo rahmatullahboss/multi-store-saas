@@ -9,9 +9,9 @@
  * - Magnetic button effects
  */
 
-import { ShoppingBag, Search, Menu, X, Sparkles, Crown } from 'lucide-react';
+import { ShoppingBag, Search, Menu, X, Sparkles } from 'lucide-react';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { useCartCount } from '~/hooks/useCartCount';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -226,7 +226,7 @@ export function NovaLuxUltraHeader({
                 className="flex items-center justify-center gap-2 group"
                 isPreview={isPreview}
               >
-                {logo ? (
+                {logo && (
                   <motion.img
                     src={logo}
                     alt={storeName}
@@ -234,27 +234,16 @@ export function NovaLuxUltraHeader({
                     whileHover={{ scale: 1.02 }}
                     transition={{ duration: 0.3 }}
                   />
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <motion.div
-                      className="p-2 rounded-full"
-                      style={{ background: NOVALUX_ULTRA_THEME.accentGradient }}
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Crown className="w-5 h-5" style={{ color: NOVALUX_ULTRA_THEME.primary }} />
-                    </motion.div>
-                    <span
-                      className="text-2xl lg:text-3xl font-semibold tracking-wider"
-                      style={{
-                        fontFamily: NOVALUX_ULTRA_THEME.fontHeading,
-                        color: NOVALUX_ULTRA_THEME.text,
-                      }}
-                    >
-                      {storeName}
-                    </span>
-                  </div>
                 )}
+                <span
+                  className="text-2xl lg:text-3xl font-semibold tracking-wider"
+                  style={{
+                    fontFamily: NOVALUX_ULTRA_THEME.fontHeading,
+                    color: NOVALUX_ULTRA_THEME.text,
+                  }}
+                >
+                  {storeName}
+                </span>
               </PreviewSafeLink>
             </motion.div>
 

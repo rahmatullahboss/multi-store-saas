@@ -15,7 +15,7 @@ import { SkeletonLoader } from '~/components/SkeletonLoader';
 import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
 import { WishlistProvider } from '~/contexts/WishlistContext';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
-import { SECTION_REGISTRY } from '~/components/store-sections/registry';
+import { SECTION_REGISTRY, type StoreSection } from '~/components/store-sections/registry';
 import { TURBO_SALE_THEME } from './theme';
 import { TurboSaleHeader } from './sections/Header';
 import { TurboSaleFooter } from './sections/Footer';
@@ -992,7 +992,7 @@ function LiveTurboSaleHomepage({
               />
 
               <main className="flex-1">
-                {sectionsToRender.map((section: any) => {
+                {sectionsToRender.map((section: StoreSection) => {
                   const SectionComponent = SECTION_REGISTRY[section.type]?.component;
                   if (!SectionComponent) return null;
 

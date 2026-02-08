@@ -242,7 +242,7 @@ export function NovaLuxUltraFooter({
             initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex items-center justify-center gap-3 mb-6"
+            className="flex items-center justify-center gap-3 mb-10"
           >
             <motion.div
               animate={{ rotate: [0, 15, -15, 0] }}
@@ -274,8 +274,8 @@ export function NovaLuxUltraFooter({
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-lg mb-10"
-            style={{ color: 'rgba(255,255,255,0.6)' }}
+            className="text-lg mb-12"
+            style={{ color: 'rgba(255,255,255,0.9)' }}
           >
             {t('subscribeText')}
           </motion.p>
@@ -357,7 +357,7 @@ export function NovaLuxUltraFooter({
               )}
             </div>
 
-            <p className="text-white/60 text-sm leading-relaxed mb-8 max-w-sm">
+            <p className="text-white/90 text-sm leading-relaxed mb-8 max-w-sm">
               {footerConfig?.description || t('luxeDescription')}
             </p>
 
@@ -401,7 +401,7 @@ export function NovaLuxUltraFooter({
               <div className="flex flex-wrap gap-2">
                 <PaymentIcon label="bKash" bg="#e2136e" />
                 <PaymentIcon label="Nagad" bg="#f26922" />
-                <PaymentIcon label="COD" bg="transparent" text="rgba(255,255,255,0.8)" />
+                <PaymentIcon label="COD" bg="transparent" text="rgba(255,255,255,1)" />
               </div>
             </div>
           </motion.div>
@@ -596,7 +596,7 @@ export function NovaLuxUltraFooter({
           className="mt-10 pt-10 border-t flex flex-col md:flex-row items-center justify-between gap-4"
           style={{ borderColor: 'rgba(255,255,255,0.08)' }}
         >
-          <p className="text-white/50 text-sm">
+          <p className="text-white/80 text-sm">
             © {new Date().getFullYear()} {storeName}. {t('allRightsReserved')}
           </p>
           <OzzylBranding planType={planType} showPoweredBy={showPoweredBy} />

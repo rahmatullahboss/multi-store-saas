@@ -52,7 +52,7 @@ id = "026696313f02475c846dc70197a3c98f"
 [vars]
 SAAS_DOMAIN = "ozzyl.com"
 R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"
-MAIN_APP_URL = "https://ozzyl.com"
+MAIN_APP_URL = "https://app.ozzyl.com"
 SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"
 # NOTE: SESSION_SECRET should be set via Cloudflare Dashboard > Settings > Variables
 # Must match the SESSION_SECRET from the main app for cross-subdomain auth
@@ -61,6 +61,10 @@ SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"
 # OBSERVABILITY - Permanent Logs Storage
 # ============================================================================
 [observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.logs]
 enabled = true
 
 # ============================================================================

@@ -1,15 +1,14 @@
 # Findings
 
+## Relevant Code
+
+- **Theme Directory**: `apps/web/app/themes/luxe-boutique`
+- **Sections**: Needs to be explored.
+
 ## Documentation
 
-- **Firecrawl**: Retrieved docs for /websites/firecrawl_dev.
-
-## OpenLovable Structure (Anticipated)
-
-- Likely uses `express` or `next.js` for backend. Needs porting to `hono`.
-- Likely uses `vite` for frontend. Compatible with Cloudflare Pages.
+- **Theme**: "Lux Boutique" matches `luxe-boutique`.
 
 ## Decisions
 
-- **New App Location**: `apps/landing-builder` (monorepo).
-- **Domain**: `landing.ozzyl.com`.
+- [ ] Decision 1: Use Tailwind classes for styling fixes if applicable, or edit the section code directly.

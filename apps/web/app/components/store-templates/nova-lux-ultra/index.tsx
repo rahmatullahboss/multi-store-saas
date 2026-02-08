@@ -60,7 +60,7 @@ import {
   type DemoProduct,
 } from '~/utils/store-preview-data';
 
-import SharedProductPage from '../shared/ProductPage';
+import { ProductPage } from './pages/ProductPage';
 import SharedCartPage from '../shared/CartPage';
 import SharedCheckoutPage from '../shared/CheckoutPage';
 import type { StoreTemplateTheme } from '~/templates/store-registry';
@@ -735,17 +735,17 @@ function PremiumFeatures() {
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 
   const features = [
-    { icon: Truck, title: 'Free Express Shipping', desc: 'On orders over ৳5,000' },
-    { icon: Shield, title: 'Authentic Guarantee', desc: '100% genuine products' },
-    { icon: RotateCcw, title: '30-Day Returns', desc: 'Hassle-free exchanges' },
-    { icon: Star, title: 'Premium Support', desc: '24/7 concierge service' },
+    { icon: Truck, title: 'ফ্রি শিপিং', desc: '৳1,000 এর বেশি অর্ডারে' },
+    { icon: RotateCcw, title: 'সহজ ফেরত', desc: '৭ দিনের রিটার্ন পলিসি' },
+    { icon: Shield, title: 'নিরাপদ পেমেন্ট', desc: '১০০% সুরক্ষিত' },
+    { icon: Star, title: 'ক্যাশ অন ডেলিভারি', desc: 'সারাদেশে লভ্য' },
   ];
 
   return (
     <section
       ref={ref}
       className="py-20"
-      style={{ backgroundColor: NOVALUX_ULTRA_THEME.backgroundAlt }}
+      style={{ backgroundColor: NOVALUX_ULTRA_THEME.primary }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -765,10 +765,10 @@ function PremiumFeatures() {
               >
                 <feature.icon className="w-8 h-8" style={{ color: NOVALUX_ULTRA_THEME.accent }} />
               </motion.div>
-              <h3 className="font-semibold mb-2" style={{ color: NOVALUX_ULTRA_THEME.text }}>
+              <h3 className="font-semibold mb-2" style={{ color: '#FFFFFF' }}>
                 {feature.title}
               </h3>
-              <p className="text-sm" style={{ color: NOVALUX_ULTRA_THEME.textMuted }}>
+              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.8)' }}>
                 {feature.desc}
               </p>
             </motion.div>
@@ -1059,25 +1059,30 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
         if (!product) return <div className="pt-32 text-center">Product not found</div>;
         return (
           <div className="pt-20">
-            <SharedProductPage
+            <ProductPage
               product={{
                 id: product.id,
-                title: product.title,
-                description: product.description,
+                title: product.title || 'Untitled Product',
+                description: product.description || '',
                 price: product.price,
                 compareAtPrice: product.compareAtPrice,
-                imageUrl: product.imageUrl,
-                category: product.category,
+                imageUrl: product.imageUrl || undefined,
+                images: (Array.isArray(product.images)
+                  ? product.images
+                  : product.images
+                    ? [product.images]
+                    : []) as string[],
+                category: product.category || undefined,
                 stock: 99,
               }}
               currency={currency}
               relatedProducts={relatedProducts.map((p) => ({
                 id: p.id,
-                title: p.title,
+                title: p.title || 'Untitled',
                 price: p.price,
                 compareAtPrice: p.compareAtPrice,
-                imageUrl: p.imageUrl,
-                category: p.category,
+                imageUrl: p.imageUrl || undefined,
+                category: p.category || undefined,
               }))}
               theme={NOVALUX_ULTRA_THEME_FOR_SHARED}
               isPreview={true}

@@ -42,8 +42,27 @@ export function getSessionStorage(sessionSecret: string) {
  * Get user session from request using signed cookie verification
  */
 export async function getSession(request: Request, sessionSecret: string) {
+  const cookieHeader = request.headers.get('Cookie');
+  console.log('[page-builder auth] getSession called. Cookie header present:', !!cookieHeader);
+  if (cookieHeader) {
+    console.log('[page-builder auth] Cookie header length:', cookieHeader.length);
+    if (cookieHeader.includes('__session')) {
+       console.log('[page-builder auth] __session cookie found in header');
+    } else {
+       console.log('[page-builder auth] __session cookie NOT found in header');
+    }
+  }
+
   const storage = getSessionStorage(sessionSecret);
-  return storage.getSession(request.headers.get('Cookie'));
+  try {
+    const session = await storage.getSession(cookieHeader);
+    console.log('[page-builder auth] Storage.getSession result - has data:', Object.keys(session.data).length > 0);
+    // console.log('[page-builder auth] Session data keys:', Object.keys(session.data));
+    return session;
+  } catch (e) {
+    console.error('[page-builder auth] Error in storage.getSession:', e);
+    throw e;
+  }
 }
 
 /**
@@ -63,7 +82,10 @@ export async function getAuthFromSession(request: Request, env: { SESSION_SECRET
     const userId = session.get('userId');
     const storeId = session.get('storeId');
     
+    console.log('[page-builder auth] getAuthFromSession - userId:', userId, 'storeId:', storeId);
+
     if (!userId || !storeId) {
+      console.log('[page-builder auth] Missing userId or storeId in session');
       return null;
     }
     

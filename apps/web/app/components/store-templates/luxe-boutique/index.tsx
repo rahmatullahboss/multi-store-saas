@@ -17,18 +17,13 @@ import {
   Menu,
   X,
   Heart,
-  ChevronRight,
-  Instagram,
-  Facebook,
-  Mail,
   Home as HomeIcon,
   Grid3X3,
   User,
   ShoppingCart,
 } from 'lucide-react';
-import { useWishlist } from '~/hooks/useWishlist';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
-import { AddToCartButton } from '~/components/AddToCartButton';
+// import { AddToCartButton } from '~/components/AddToCartButton';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { formatPrice } from '~/lib/theme-engine';
 import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
@@ -413,6 +408,7 @@ function PreviewProductDetailPage({
     isActive: true,
     createdAt: new Date(),
     updatedAt: new Date(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any;
 
   const serializedRelated = relatedProducts.map(
@@ -432,6 +428,7 @@ function PreviewProductDetailPage({
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       }) as any
   );
 
@@ -452,7 +449,7 @@ function PreviewProductDetailPage({
 
 // --- Cart Page Wrapper ---
 function PreviewCartPageComponent({
-  currency,
+  currency: _currency,
   onNavigate,
 }: {
   currency: string;
@@ -484,7 +481,7 @@ function PreviewCheckoutPage({
     onNavigate({ type: 'order-success' });
   };
 
-  const theme = LUXE_BOUTIQUE_THEME;
+  // const theme = LUXE_BOUTIQUE_THEME;
 
   return (
     <div className="min-h-screen bg-[#faf9f7] py-8 md:py-12">
@@ -539,7 +536,7 @@ function PreviewCheckoutPage({
 // --- Footer ---
 function PreviewFooter({
   storeName,
-  categories,
+  categories: _categories,
   onNavigate,
 }: {
   storeName: string;
@@ -547,7 +544,7 @@ function PreviewFooter({
   onNavigate: (page: PageType) => void;
 }) {
   const theme = LUXE_BOUTIQUE_THEME;
-  const validCategories = categories.filter((c): c is string => Boolean(c));
+  // const validCategories = categories.filter((c): c is string => Boolean(c));
 
   return (
     <footer style={{ backgroundColor: theme.footerBg, color: theme.footerText }}>
@@ -612,9 +609,9 @@ function PreviewFooter({
 
 // --- Home Page ---
 function PreviewHomePage({
-  storeName,
+  storeName: _storeName,
   products,
-  categories,
+  categories: _categories,
   currency,
   config,
   onNavigate,
@@ -623,6 +620,7 @@ function PreviewHomePage({
   products: DemoProduct[];
   categories: (string | null)[];
   currency: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   config: any;
   onNavigate: (page: PageType) => void;
 }) {
@@ -732,7 +730,7 @@ function PreviewHomePage({
 // MAIN PREVIEW STORE CONTAINER
 // ============================================================================
 function PreviewLuxeStore(props: StoreTemplateProps) {
-  const { storeName, logo, categories, config, currency } = props;
+  const { storeName, logo, config, currency } = props;
   const [currentPage, setCurrentPage] = useState<PageType>({ type: 'home' });
 
   const navigate = useCallback((page: PageType) => {
@@ -868,7 +866,7 @@ function LiveLuxeBoutiqueHomepage({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
   const count = useCartCount();
 
   // Filter valid categories
@@ -905,8 +903,11 @@ function LiveLuxeBoutiqueHomepage({
                 isPreview={isPreview}
               />
 
-              {/* ==================== DYNAMIC SECTIONS ==================== */}
-              {(config?.sections?.length ? config.sections : DEFAULT_SECTIONS).map((section: any) => {
+              {((config?.sections?.length ? config.sections : DEFAULT_SECTIONS) || [])
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .filter((section: any) => section.type !== 'header' && section.type !== 'footer')
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .map((section: any) => {
                 const SectionComponent = SECTION_REGISTRY[section.type]?.component;
                 if (!SectionComponent) return null;
 

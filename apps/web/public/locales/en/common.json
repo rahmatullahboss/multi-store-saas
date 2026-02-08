@@ -284,7 +284,7 @@
   "clearCanvas": "Clear Canvas",
   "clearChat": "Clear Chat",
   "clearDates": "Clear Dates",
-  "clearFilters": "Clear Filters",
+
   "clearSearch": "Clear Search",
   "clicks": "Clicks",
   "clickToUpload": "Click To Upload",
@@ -342,7 +342,7 @@
   "conversionMetrics": "Conversion Metrics",
   "conversions": "Conversions",
   "conversionTools": "Conversion Tools",
-  "copied": "Copied",
+
   "copiedMsg": "Copied Msg",
   "copy": "Copy",
   "copyBtn": "Copy Btn",
@@ -1861,7 +1861,7 @@
   "noProductsDesc": "No Products Desc",
   "noProductsFound": "No Products Found",
   "noProductsFoundAddFirst": "No Products Found Add First",
-  "noProductsMatchFilters": "No Products Match Filters",
+
   "noProductsTitle": "No Products Title",
   "noPublishedPages": "No Published Pages",
   "noResults": "No Results",
@@ -1926,7 +1926,7 @@
   "orSelectLandingPage": "Or Select Landing Page",
   "ourGuarantee": "Our Guarantee",
   "out_of_stock": "Out_of_stock",
-  "outOfStock": "Out Of Stock",
+
   "outOfStockLabel": "Out Of Stock Label",
   "outsideDhaka": "Outside Dhaka",
   "overview": "Overview",
@@ -2041,7 +2041,7 @@
   "proceed_to_checkout": "Proceed_to_checkout",
   "proceedToCheckout": "Proceed To Checkout",
   "proceedWithPayment": "Proceed With Payment",
-  "processing": "Processing",
+
   "processingOrders": "Processing Orders",
   "product": "Product",
   "productCreated": "Product Created",
@@ -2561,5 +2561,9 @@
   "yourStoreUrl": "Your Store Url",
   "yourStoreUrls": "Your Store Urls",
   "zoneName": "Zone Name",
-  "zoneNamePlaceholder": "Zone Name Placeholder"
+  "zoneNamePlaceholder": "Zone Name Placeholder",
+  "emailPlaceholder": "Enter your email address",
+  "joinFamily": "Join Our Exclusive Community",
+  "luxeDescription": "Experience the ultimate in luxury and style with our premium collection.",
+  "subscribeText": "Subscribe to receive news, access to exclusive deals, and more."
 }

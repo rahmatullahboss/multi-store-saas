@@ -6,7 +6,7 @@ interface RovoLayoutProps extends StoreTemplateProps {
   children: ReactNode;
 }
 
-export function RovoLayout({ children, ...props }: RovoLayoutProps) {
+export function RovoLayout({ children, ..._props }: RovoLayoutProps) {
   // We can add global styles or fonts here if needed
   // For Rovo, we want inter and oswald
   
