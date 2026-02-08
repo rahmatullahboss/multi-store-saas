@@ -171,6 +171,9 @@ export const users = sqliteTable(
     phone: text('phone'), // Merchant mobile number (BD format: 01XXXXXXXXX)
     storeId: integer('store_id').references(() => stores.id, { onDelete: 'cascade' }),
     role: text('role').$type<'admin' | 'merchant' | 'staff' | 'super_admin'>().default('merchant'),
+    // Granular permissions for team members
+    // JSON: { products: true, orders: true, customers: true, analytics: true, settings: false, team: false, billing: false, coupons: true }
+    permissions: text('permissions'),
     createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   },
   (table) => [

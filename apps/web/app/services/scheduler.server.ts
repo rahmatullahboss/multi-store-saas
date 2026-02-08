@@ -133,7 +133,7 @@ async function processWinbackCampaigns(db: Database, env: Env) {
         newTags.push('winback_sent');
         await db.update(customers)
             .set({ tags: JSON.stringify(newTags) })
-            .where(eq(customers.id, customer.id));
+            .where(and(eq(customers.id, customer.id), eq(customers.storeId, customer.storeId)));
         
         count++;
       } catch (e) {
@@ -166,7 +166,7 @@ async function processReviewRequests(db: Database, env: Env) {
            }); 
            await db.update(orders)
                .set({ reviewRequestSent: true, reviewRequestSentAt: new Date() })
-               .where(eq(orders.id, order.id));
+               .where(and(eq(orders.id, order.id), eq(orders.storeId, order.storeId)));
            count++;
        } catch (e) {
            console.error("[Scheduler] Review request error", e);

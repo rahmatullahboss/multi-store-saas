@@ -39,7 +39,7 @@ export async function recalculateCustomerSegment(
   const customer = await db
     .select()
     .from(customers)
-    .where(eq(customers.id, customerId))
+    .where(and(eq(customers.id, customerId), eq(customers.storeId, storeId)))
     .get();
 
   if (!customer) return 'regular';
@@ -84,7 +84,7 @@ export async function recalculateCustomerSegment(
       lastOrderAt: lastOrderDate || undefined,
       updatedAt: new Date()
     })
-    .where(eq(customers.id, customerId));
+    .where(and(eq(customers.id, customerId), eq(customers.storeId, storeId)));
 
   return newSegment;
 }

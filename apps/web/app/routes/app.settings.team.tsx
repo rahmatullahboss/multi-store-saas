@@ -12,8 +12,8 @@
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json, redirect } from '@remix-run/cloudflare';
-import { Form, useLoaderData, useActionData, useNavigation } from '@remix-run/react';
+import { json } from '@remix-run/cloudflare';
+import { Form, useLoaderData, useActionData, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, isNull, desc } from 'drizzle-orm';
 import { users, stores, staffInvites } from '@db/schema';
@@ -22,7 +22,7 @@ import { createEmailService } from '~/services/email.server';
 import { logActivity } from '~/lib/activity.server';
 import { 
   Users, UserPlus, Mail, Shield, Trash2, Clock, 
-  Loader2, CheckCircle, AlertCircle, X, Copy
+  Loader2, CheckCircle, AlertCircle, X, Copy, Settings
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -69,6 +69,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       name: users.name,
       email: users.email,
       role: users.role,
+      permissions: users.permissions,
       createdAt: users.createdAt,
     })
     .from(users)
@@ -300,8 +301,87 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ success: true, message: 'memberRemoved' });
     }
 
+    case 'updatePermissions': {
+      const memberId = parseInt(formData.get('memberId') as string, 10);
+      const permissionsJson = formData.get('permissions') as string;
+
+      if (!memberId) {
+        return json({ error: 'invalidMemberId' }, { status: 400 });
+      }
+
+      // Verify member belongs to this store
+      const member = await db
+        .select()
+        .from(users)
+        .where(and(eq(users.id, memberId), eq(users.storeId, storeId)))
+        .limit(1);
+
+      if (!member[0]) {
+        return json({ error: 'memberNotFound' }, { status: 404 });
+      }
+
+      // Can't change owner permissions
+      if (member[0].role === 'merchant') {
+        return json({ error: 'cannotEditOwner' }, { status: 400 });
+      }
+
+      // Update permissions
+      await db.update(users)
+        .set({ permissions: permissionsJson })
+        .where(eq(users.id, memberId));
+
+      // Log activity
+      await logActivity(db, {
+        storeId,
+        userId,
+        action: 'settings_updated',
+        entityType: 'staff',
+        entityId: memberId,
+        details: { email: member[0].email, type: 'permissions_changed' },
+      });
+
+      return json({ success: true, message: 'permissionsUpdated' });
+    }
+
     default:
       return json({ error: 'invalidAction' }, { status: 400 });
+  }
+}
+
+// ============================================================================
+// PERMISSION CATEGORIES
+// ============================================================================
+const PERMISSION_CATEGORIES = [
+  { key: 'products', labelBn: 'প্রোডাক্ট', labelEn: 'Products', icon: '📦' },
+  { key: 'orders', labelBn: 'অর্ডার', labelEn: 'Orders', icon: '📋' },
+  { key: 'customers', labelBn: 'কাস্টমার', labelEn: 'Customers', icon: '👥' },
+  { key: 'analytics', labelBn: 'রিপোর্ট', labelEn: 'Analytics', icon: '📊' },
+  { key: 'settings', labelBn: 'সেটিংস', labelEn: 'Settings', icon: '⚙️' },
+  { key: 'team', labelBn: 'টিম', labelEn: 'Team', icon: '👤' },
+  { key: 'billing', labelBn: 'বিলিং', labelEn: 'Billing', icon: '💳' },
+  { key: 'coupons', labelBn: 'কুপন', labelEn: 'Coupons', icon: '🎟️' },
+];
+
+type PermissionKey = 'products' | 'orders' | 'customers' | 'analytics' | 'settings' | 'team' | 'billing' | 'coupons';
+type Permissions = Record<PermissionKey, boolean>;
+
+const DEFAULT_PERMISSIONS: Permissions = {
+  products: true,
+  orders: true,
+  customers: true,
+  analytics: true,
+  settings: false,
+  team: false,
+  billing: false,
+  coupons: true,
+};
+
+function parsePermissions(permStr: string | null): Permissions {
+  if (!permStr) return DEFAULT_PERMISSIONS;
+  try {
+    return { ...DEFAULT_PERMISSIONS, ...JSON.parse(permStr) };
+  } catch {
+    return DEFAULT_PERMISSIONS;
   }
 }
 
@@ -333,9 +413,14 @@ export default function TeamManagementPage() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const { t, lang } = useTranslation();
+  const permFetcher = useFetcher();
   
   const [showSuccess, setShowSuccess] = useState(false);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  
+  // Permission editing state
+  const [editingMemberId, setEditingMemberId] = useState<number | null>(null);
+  const [editPerms, setEditPerms] = useState<Permissions>(DEFAULT_PERMISSIONS);
 
   // Show success message
   useEffect(() => {
@@ -530,8 +615,9 @@ export default function TeamManagementPage() {
           {teamMembers.map((member) => (
             <div
               key={member.id}
-              className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+              className="p-4 bg-gray-50 rounded-lg"
             >
+              <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
                   <span className="text-sm font-medium text-gray-600">
@@ -554,25 +640,108 @@ export default function TeamManagementPage() {
                 </div>
               </div>
 
-              {/* Remove button - only show for non-owners and non-self */}
+              {/* Action buttons - only show for non-owners and non-self */}
               {member.id !== currentUserId && member.role !== 'merchant' && (
-                <Form method="post" onSubmit={(e) => {
-                  if (!confirm(`${t('removeTeamMember')} ${member.name || member.email}?`)) {
-                    e.preventDefault();
-                  }
-                }}>
-                  <input type="hidden" name="intent" value="remove" />
-                  <input type="hidden" name="memberId" value={member.id} />
+                <div className="flex items-center gap-2">
+                  {/* Edit Permissions Button */}
                   <button
-                    type="submit"
-                    className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
-                    title={String(t('removeTeamMember'))}
+                    type="button"
+                    onClick={() => {
+                      if (editingMemberId === member.id) {
+                        setEditingMemberId(null);
+                      } else {
+                        setEditingMemberId(member.id);
+                        setEditPerms(parsePermissions(member.permissions));
+                      }
+                    }}
+                    className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition"
+                    title={lang === 'bn' ? 'পারমিশন এডিট' : 'Edit Permissions'}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Settings className="w-4 h-4" />
                   </button>
-                </Form>
+                  
+                  {/* Remove Button */}
+                  <Form method="post" onSubmit={(e) => {
+                    if (!confirm(`${t('removeTeamMember')} ${member.name || member.email}?`)) {
+                      e.preventDefault();
+                    }
+                  }}>
+                    <input type="hidden" name="intent" value="remove" />
+                    <input type="hidden" name="memberId" value={member.id} />
+                    <button
+                      type="submit"
+                      className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
+                      title={String(t('removeTeamMember'))}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </Form>
+                </div>
               )}
             </div>
+            
+            {/* Inline Permissions Editor */}
+            {editingMemberId === member.id && member.role !== 'merchant' && (
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h4 className="font-medium text-blue-900 mb-3 flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  {lang === 'bn' ? 'পারমিশন সেট করুন' : 'Set Permissions'}
+                </h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {PERMISSION_CATEGORIES.map((perm) => (
+                    <label 
+                      key={perm.key}
+                      className="flex items-center gap-2 p-2 bg-white rounded-lg border border-blue-100 cursor-pointer hover:bg-blue-50 transition"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={editPerms[perm.key as PermissionKey]}
+                        onChange={(e) => setEditPerms(prev => ({
+                          ...prev,
+                          [perm.key]: e.target.checked
+                        }))}
+                        className="w-4 h-4 text-blue-600 rounded"
+                      />
+                      <span className="text-sm">
+                        {perm.icon} {lang === 'bn' ? perm.labelBn : perm.labelEn}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <div className="flex justify-end gap-2 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setEditingMemberId(null)}
+                    className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                  >
+                    {lang === 'bn' ? 'বাতিল' : 'Cancel'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      permFetcher.submit(
+                        {
+                          intent: 'updatePermissions',
+                          memberId: String(member.id),
+                          permissions: JSON.stringify(editPerms),
+                        },
+                        { method: 'post' }
+                      );
+                      setEditingMemberId(null);
+                    }}
+                    disabled={permFetcher.state !== 'idle'}
+                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                  >
+                    {permFetcher.state !== 'idle' ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      lang === 'bn' ? 'সেভ করুন' : 'Save'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
           ))}
         </div>
       </div>

@@ -300,7 +300,8 @@ app.delete('/:id', async (c) => {
     throw new HTTPException(404, { message: 'Customer not found' });
   }
 
-  await db.delete(customers).where(eq(customers.id, id));
+  // Multi-tenant safety: always scope deletes by storeId.
+  await db.delete(customers).where(and(eq(customers.id, id), eq(customers.storeId, storeId)));
 
   return c.json({ success: true, message: 'Customer deleted' });
 });

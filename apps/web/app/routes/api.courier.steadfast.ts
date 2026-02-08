@@ -196,7 +196,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           status: 'processing',
           updatedAt: new Date(),
         })
-        .where(eq(orders.id, orderId));
+        .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
 
       // Create shipment record
       await db.insert(shipments).values({
@@ -283,7 +283,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
                 status: normalizedStatus as 'processing' | 'shipped' | 'delivered' | 'cancelled',
                 updatedAt: new Date(),
               })
-              .where(eq(orders.id, order.id));
+              .where(and(eq(orders.id, order.id), eq(orders.storeId, storeId)));
 
             // Update shipment record
             await db

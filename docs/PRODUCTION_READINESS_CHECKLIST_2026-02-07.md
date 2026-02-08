@@ -114,7 +114,11 @@ npm --workspace apps/web run e2e:smoke
 এক store-এর ডাটা অন্য store-এ leak করা যাবে না।
 
 ### 4.2 What’s Pending (minimum)
-- [ ] “store_id scope” audit for all DB access paths (admin + public + API)
+- [x] “store_id scope” audit + fixes for high-risk paths (admin + public + API) (2026-02-08)
+  - Customers delete/update scoped by `(id, store_id)`
+  - Loyalty/Predictive/Segmentation services scoped by `store_id`
+  - Public checkout success/failed pages now scope order lookup by resolved store context
+  - Courier + order status mutations scoped by `(order_id, store_id)`
 - [ ] Admin mutation protection coverage review (Origin/Referer guard)
 - [ ] Rate limiting: login/otp/checkout/order create
 - [ ] Upload hardening (R2) + SSRF-safe image proxy (if used)
@@ -172,7 +176,7 @@ Reference:
 - `docs/LAUNCH_PLAN_2026-02-07.md`
 
 ### 9.1 One Release (minimum steps)
-- [ ] Local checks green (`apps/web`): typecheck + unit tests
+- [x] Local checks green (`apps/web`): typecheck + unit tests (`npm --workspace apps/web run test:release`) (2026-02-08)
   - Note: lint baseline is currently not green; keep it as P1 gate until cleaned up.
 - [ ] Staging DB migrate
 - [ ] Deploy staging

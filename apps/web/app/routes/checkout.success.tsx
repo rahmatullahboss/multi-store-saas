@@ -12,10 +12,11 @@ import { json } from '@remix-run/cloudflare';
 
 import { useLoaderData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { orders, stores } from '@db/schema';
 import { CheckCircle, Package, ArrowRight } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { resolveStore } from '~/lib/store.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Payment Successful - Thank You!' }];
@@ -30,12 +31,17 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return json({ order: null, store: null, trxID: null });
   }
 
+  const storeContext = await resolveStore(context as any, request, { allowNull: true });
+  if (!storeContext) {
+    return json({ order: null, store: null, trxID });
+  }
+
   const db = drizzle(context.cloudflare.env.DB);
 
   const orderResult = await db
     .select()
     .from(orders)
-    .where(eq(orders.id, parseInt(orderId)))
+    .where(and(eq(orders.id, parseInt(orderId)), eq(orders.storeId, storeContext.storeId)))
     .limit(1);
 
   if (orderResult.length === 0) {
@@ -45,7 +51,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeResult = await db
     .select()
     .from(stores)
-    .where(eq(stores.id, orderResult[0].storeId))
+    .where(eq(stores.id, storeContext.storeId))
     .limit(1);
 
   return json({

@@ -722,9 +722,6 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
               <InfoItem label={t('subdomainLabel')} value={`${store.subdomain}.ozzyl.com`} />
               <InfoItem label={t('currentPlanLabel')} value={t(store.planType)} />
-              {store.customDomain && (
-                <InfoItem label={t('customDomainLabel')} value={store.customDomain} />
-              )}
             </div>
           </div>
         </GlassCard>

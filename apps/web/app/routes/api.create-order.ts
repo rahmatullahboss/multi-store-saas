@@ -358,7 +358,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           const existingOrder = await db
             .select({ orderNumber: orders.orderNumber, id: orders.id, total: orders.total })
             .from(orders)
-            .where(eq(orders.id, session.orderId))
+            .where(and(eq(orders.id, session.orderId), eq(orders.storeId, input.store_id)))
             .limit(1);
 
           if (existingOrder.length > 0) {
@@ -590,7 +590,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           const existingOrder = await db
             .select({ orderNumber: orders.orderNumber, id: orders.id, total: orders.total })
             .from(orders)
-            .where(eq(orders.id, session.orderId))
+            .where(and(eq(orders.id, session.orderId), eq(orders.storeId, input.store_id)))
             .limit(1);
           if (existingOrder.length > 0) {
             return json({
@@ -1067,7 +1067,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
     } catch (orderError) {
       console.error('Order creation failed, rolling back inventory:', orderError);
       // Rollback Order
-      if (orderId) await db.delete(orders).where(eq(orders.id, orderId));
+      if (orderId) {
+        await db
+          .delete(orders)
+          .where(and(eq(orders.id, orderId), eq(orders.storeId, input.store_id)));
+      }
 
       // Rollback Inventory
       for (const rb of inventoryRollbacks) {
@@ -1080,7 +1084,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           await db
             .update(products)
             .set({ inventory: sql`${products.inventory} + ${rb.qty}` })
-            .where(eq(products.id, rb.id));
+            .where(and(eq(products.id, rb.id), eq(products.storeId, input.store_id)));
         }
       }
       throw orderError;
@@ -1137,10 +1141,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
                 address: input.address,
                 updatedAt: now,
               })
-              .where(eq(customers.id, customer.id));
+              .where(and(eq(customers.id, customer.id), eq(customers.storeId, input.store_id)));
 
             // Link customer to order
-            await db.update(orders).set({ customerId: customer.id }).where(eq(orders.id, orderId!));
+            await db
+              .update(orders)
+              .set({ customerId: customer.id })
+              .where(and(eq(orders.id, orderId!), eq(orders.storeId, input.store_id)));
 
             // ========== LOYALTY POINTS INTEGRATION ==========
             await addLoyaltyPoints(db, customer.id, input.store_id, total, `Order ${orderNumber}`);
@@ -1167,7 +1174,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             await db
               .update(orders)
               .set({ customerId: newCustomer.id })
-              .where(eq(orders.id, orderId!));
+              .where(and(eq(orders.id, orderId!), eq(orders.storeId, input.store_id)));
 
             // ========== LOYALTY POINTS FOR NEW CUSTOMER ==========
             await addLoyaltyPoints(

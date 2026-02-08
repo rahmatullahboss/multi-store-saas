@@ -6,14 +6,19 @@ export class PredictiveService {
   /**
    * Calculate Customer Lifetime Value (Total Spent)
    */
-  static async calculateLTV(db: ReturnType<typeof drizzle>, customerId: number): Promise<number> {
+  static async calculateLTV(
+    db: ReturnType<typeof drizzle>,
+    storeId: number,
+    customerId: number
+  ): Promise<number> {
     const result = await db
       .select({ total: sql<number>`sum(${orders.total})` })
       .from(orders)
       .where(
         and(
-            eq(orders.customerId, customerId), 
-            sql`${orders.status} != 'cancelled'`
+          eq(orders.storeId, storeId),
+          eq(orders.customerId, customerId),
+          sql`${orders.status} != 'cancelled'`
         )
       )
       .get();
@@ -39,8 +44,16 @@ export class PredictiveService {
     return 10; // Active
   }
 
-  static async updateCustomerRiskScore(db: ReturnType<typeof drizzle>, customerId: number) {
-    const customer = await db.select().from(customers).where(eq(customers.id, customerId)).get();
+  static async updateCustomerRiskScore(
+    db: ReturnType<typeof drizzle>,
+    storeId: number,
+    customerId: number
+  ) {
+    const customer = await db
+      .select()
+      .from(customers)
+      .where(and(eq(customers.id, customerId), eq(customers.storeId, storeId)))
+      .get();
     if (!customer) return;
 
     const risk = this.calculateChurnRisk(customer.lastOrderAt || null);
@@ -48,6 +61,6 @@ export class PredictiveService {
     await db.update(customers).set({ 
         riskScore: risk,
         riskCheckedAt: new Date()
-    }).where(eq(customers.id, customerId));
+    }).where(and(eq(customers.id, customerId), eq(customers.storeId, storeId)));
   }
 }

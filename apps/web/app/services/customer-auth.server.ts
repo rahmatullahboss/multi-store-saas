@@ -239,6 +239,8 @@ export async function getCustomer(
 ): Promise<AuthenticatedCustomer | null> {
   const customerId = await getCustomerId(request, env);
   if (!customerId) return null;
+  const storeId = await getCustomerStoreId(request, env);
+  if (!storeId) return null;
 
   const drizzleDb = drizzle(db);
   const customerResult = await drizzleDb
@@ -250,7 +252,7 @@ export async function getCustomer(
       storeId: customers.storeId,
     })
     .from(customers)
-    .where(eq(customers.id, customerId))
+    .where(and(eq(customers.id, customerId), eq(customers.storeId, storeId)))
     .limit(1);
 
   return customerResult[0] ?? null;
@@ -318,7 +320,7 @@ export async function findOrCreateGoogleCustomer(
     await drizzleDb
       .update(customers)
       .set({ lastLoginAt: now, updatedAt: now })
-      .where(eq(customers.id, existingByGoogle[0].id));
+      .where(and(eq(customers.id, existingByGoogle[0].id), eq(customers.storeId, storeId)));
 
     return { customer: existingByGoogle[0], isNew: false };
   }
@@ -341,7 +343,7 @@ export async function findOrCreateGoogleCustomer(
         updatedAt: now,
         name: existingByEmail[0].name || name, // Keep existing name if set
       })
-      .where(eq(customers.id, existingByEmail[0].id));
+      .where(and(eq(customers.id, existingByEmail[0].id), eq(customers.storeId, storeId)));
 
     return { customer: { ...existingByEmail[0], googleId, authProvider: 'google' as const }, isNew: false };
   }
@@ -477,7 +479,7 @@ export async function loginCustomer({ storeId, email, password, db }: CustomerLo
     await drizzleDb
       .update(customers)
       .set({ lastLoginAt: new Date() })
-      .where(eq(customers.id, customer.id));
+      .where(and(eq(customers.id, customer.id), eq(customers.storeId, storeId)));
 
     return { customer };
   } catch (error) {

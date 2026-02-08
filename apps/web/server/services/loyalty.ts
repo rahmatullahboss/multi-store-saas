@@ -74,7 +74,7 @@ export async function awardPoints(
         loyaltyPoints: sql`COALESCE(${customers.loyaltyPoints}, 0) + ${points}`,
         updatedAt: new Date(),
       })
-      .where(eq(customers.id, customerId));
+      .where(and(eq(customers.id, customerId), eq(customers.storeId, storeId)));
 
     // 3. Check Tier Upgrade
     await checkAndUpgradeTier(tx, storeId, customerId);
@@ -90,7 +90,7 @@ export async function checkAndUpgradeTier(
   const customer = await db
     .select({ totalSpent: customers.totalSpent, loyaltyTier: customers.loyaltyTier })
     .from(customers)
-    .where(eq(customers.id, customerId))
+    .where(and(eq(customers.id, customerId), eq(customers.storeId, storeId)))
     .get();
 
   if (!customer) return;
@@ -107,7 +107,7 @@ export async function checkAndUpgradeTier(
     await db
       .update(customers)
       .set({ loyaltyTier: newTier as any, updatedAt: new Date() })
-      .where(eq(customers.id, customerId));
+      .where(and(eq(customers.id, customerId), eq(customers.storeId, storeId)));
     
     // TODO: Send tier upgrade notification via MessagingService
     console.warn(`[Loyalty] Customer ${customerId} upgraded to ${newTier}`);

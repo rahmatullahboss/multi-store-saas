@@ -140,7 +140,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const currentOrder = await db
       .select({ total: orders.total })
       .from(orders)
-      .where(eq(orders.id, upsellToken.orderId))
+      .where(and(eq(orders.id, upsellToken.orderId), eq(orders.storeId, upsellOffer.storeId)))
       .limit(1);
 
     if (currentOrder.length > 0) {
@@ -151,7 +151,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           total: newTotal,
           updatedAt: new Date(),
         })
-        .where(eq(orders.id, upsellToken.orderId));
+        .where(and(eq(orders.id, upsellToken.orderId), eq(orders.storeId, upsellOffer.storeId)));
     }
 
     // Mark token as used

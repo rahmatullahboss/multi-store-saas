@@ -15,7 +15,7 @@ import { json, redirect, type LoaderFunctionArgs, type MetaFunction } from '@rem
 import { useLoaderData, useFetcher, useNavigate } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { upsellTokens, upsellOffers, orders, products, stores } from '@db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { useState, useEffect, useCallback } from 'react';
 import { Clock, ShoppingBag, CheckCircle, X, ArrowRight, ShieldCheck, Zap, Gift } from 'lucide-react';
 
@@ -74,7 +74,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   const product = await db
     .select()
     .from(products)
-    .where(eq(products.id, upsellOffer.offerProductId))
+    .where(and(eq(products.id, upsellOffer.offerProductId), eq(products.storeId, upsellOffer.storeId)))
     .limit(1);
 
   if (product.length === 0) {
@@ -85,7 +85,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   const order = await db
     .select({ orderNumber: orders.orderNumber, total: orders.total })
     .from(orders)
-    .where(eq(orders.id, upsellToken.orderId))
+    .where(and(eq(orders.id, upsellToken.orderId), eq(orders.storeId, upsellOffer.storeId)))
     .limit(1);
 
   // Get store details

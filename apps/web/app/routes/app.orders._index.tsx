@@ -223,7 +223,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           status: 'processing',
           updatedAt: new Date(),
         })
-        .where(eq(orders.id, orderId));
+        .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
 
       return json({ success: true, consignmentId });
     } catch (error) {
@@ -275,7 +275,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             status: 'confirmed',
             updatedAt: new Date(),
           })
-          .where(eq(orders.id, orderId));
+          .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
         autoConfirmed = true;
       }
 
@@ -353,7 +353,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         | 'returned',
       updatedAt: new Date(),
     })
-    .where(eq(orders.id, orderId));
+    .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
 
   return json({ success: true, orderId, status });
 }

@@ -1,6 +1,6 @@
 import type { Database } from '../lib/db.server';
 import { customers, loyaltyTransactions } from '../../db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 export interface LoyaltyConfig {
   pointsPerUnitCurrency: number; 
@@ -35,7 +35,11 @@ export async function addLoyaltyPoints(
   description: string
 ) {
   // 1. Get Customer for Tier
-  const customer = await db.select().from(customers).where(eq(customers.id, customerId)).get();
+  const customer = await db
+    .select()
+    .from(customers)
+    .where(and(eq(customers.id, customerId), eq(customers.storeId, storeId)))
+    .get();
   if (!customer) return;
 
   // 2. Calculate Points with Multiplier
@@ -58,11 +62,14 @@ export async function addLoyaltyPoints(
 
       // 4. Add Points & Update Spend (Atomic Update)
       await db.run(
-        sql`UPDATE customers SET loyalty_points = coalesce(loyalty_points, 0) + ${pointsEarned}, total_spent = coalesce(total_spent, 0) + ${amountSpent} WHERE id = ${customerId}`
+        sql`UPDATE customers
+            SET loyalty_points = coalesce(loyalty_points, 0) + ${pointsEarned},
+                total_spent = coalesce(total_spent, 0) + ${amountSpent}
+            WHERE id = ${customerId} AND store_id = ${storeId}`
       );
 
       // 5. Check and Process Tier Upgrade
-      await checkAndProcessTierUpgrade(db, customerId, (customer.totalSpent || 0) + amountSpent);
+      await checkAndProcessTierUpgrade(db, customerId, storeId, (customer.totalSpent || 0) + amountSpent);
 
       // 6. Process Referral Bonus (if applicable)
       // Check if this is their FIRST order (totalOrders was 0 before this transaction, theoretically)
@@ -80,7 +87,12 @@ export async function addLoyaltyPoints(
 /**
  * Check if customer qualifies for a higher tier
  */
-async function checkAndProcessTierUpgrade(db: Database, customerId: number, newTotalSpent: number) {
+async function checkAndProcessTierUpgrade(
+  db: Database,
+  customerId: number,
+  storeId: number,
+  newTotalSpent: number
+) {
     let newTier = 'bronze';
     // Research Paper Thresholds:
     // Platinum: 10000+
@@ -92,10 +104,17 @@ async function checkAndProcessTierUpgrade(db: Database, customerId: number, newT
     else if (newTotalSpent >= 1000) newTier = 'silver';
 
     // We need to re-fetch to compare with current stored tier
-    const customer = await db.select({ loyaltyTier: customers.loyaltyTier }).from(customers).where(eq(customers.id, customerId)).get();
+    const customer = await db
+      .select({ loyaltyTier: customers.loyaltyTier })
+      .from(customers)
+      .where(and(eq(customers.id, customerId), eq(customers.storeId, storeId)))
+      .get();
     
     if (customer && customer.loyaltyTier !== newTier) {
-        await db.update(customers).set({ loyaltyTier: newTier as any }).where(eq(customers.id, customerId));
+        await db
+          .update(customers)
+          .set({ loyaltyTier: newTier as any })
+          .where(and(eq(customers.id, customerId), eq(customers.storeId, storeId)));
         // TODO: Trigger Notification: "You reached Gold Tier!"
         console.log(`[Loyalty] Customer ${customerId} upgraded to ${newTier}`);
     }
@@ -119,7 +138,9 @@ async function addReferralBonus(db: Database, referrerId: number, storeId: numbe
         });
 
         await db.run(
-             sql`UPDATE customers SET loyalty_points = coalesce(loyalty_points, 0) + ${bonusPoints} WHERE id = ${referrerId}`
+             sql`UPDATE customers
+                  SET loyalty_points = coalesce(loyalty_points, 0) + ${bonusPoints}
+                  WHERE id = ${referrerId} AND store_id = ${storeId}`
         );
     } catch (err) {
         console.error("[Loyalty] Failed to add referral bonus:", err);
@@ -136,7 +157,11 @@ export async function redeemPoints(
     storeId: number,
     pointsToRedeem: number
 ): Promise<{ success: boolean, discountAmount: number, error?: string }> {
-    const customer = await db.select().from(customers).where(eq(customers.id, customerId)).get();
+    const customer = await db
+      .select()
+      .from(customers)
+      .where(and(eq(customers.id, customerId), eq(customers.storeId, storeId)))
+      .get();
     
     if (!customer || (customer.loyaltyPoints || 0) < pointsToRedeem) {
         return { success: false, discountAmount: 0, error: "Insufficient points" };
@@ -155,7 +180,9 @@ export async function redeemPoints(
         });
 
         await db.run(
-            sql`UPDATE customers SET loyalty_points = loyalty_points - ${pointsToRedeem} WHERE id = ${customerId}`
+            sql`UPDATE customers
+                SET loyalty_points = loyalty_points - ${pointsToRedeem}
+                WHERE id = ${customerId} AND store_id = ${storeId}`
         );
         
         return { success: true, discountAmount };

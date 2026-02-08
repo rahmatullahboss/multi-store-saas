@@ -325,7 +325,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           status: 'processing',
           updatedAt: new Date(),
         })
-        .where(eq(orders.id, orderId));
+        .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
 
       return json({ success: true, consignmentId });
     } catch (error) {
