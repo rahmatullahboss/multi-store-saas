@@ -318,7 +318,7 @@ export function PricingSection() {
           : [
               '50 Products',
               '500 Orders Limit',
-              '3 Premium Themes',
+              'All Themes Access',
               'Custom Domain',
               'Standard Analytics',
             ],
