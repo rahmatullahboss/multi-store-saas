@@ -47,6 +47,52 @@ interface GrapesEditorProps {
   mainAppUrl?: string;
 }
 
+/**
+ * Sanitize project data to prevent GrapesJS CssComposer crash
+ * Fixes: "Cannot read properties of undefined (reading 'getFrames')"
+ * This happens when corrupted styles data causes CssComposer to fail during init
+ */
+function sanitizeProjectData(data: any): any {
+  if (!data || typeof data !== 'object') {
+    console.warn('[Editor] No valid project data, using empty project');
+    return { pages: [{ component: '<div></div>' }] };
+  }
+
+  const sanitized = { ...data };
+
+  // Sanitize styles array
+  if (sanitized.styles !== undefined) {
+    if (!Array.isArray(sanitized.styles)) {
+      console.warn('[Editor] Invalid styles format, resetting');
+      sanitized.styles = [];
+    } else {
+      sanitized.styles = sanitized.styles.filter((style: any) => {
+        if (!style || typeof style !== 'object') return false;
+        if (!style.selectors || !Array.isArray(style.selectors) || style.selectors.length === 0) return false;
+        // Filter out empty style values that cause CssComposer crash
+        if (style.style !== undefined) {
+          if (typeof style.style === 'string' && style.style === '') return false;
+          if (typeof style.style === 'object' && style.style !== null && Object.keys(style.style).length === 0) return false;
+        }
+        return true;
+      });
+    }
+  }
+
+  // Ensure pages array exists and is valid
+  if (!sanitized.pages || !Array.isArray(sanitized.pages) || sanitized.pages.length === 0) {
+    console.warn('[Editor] Invalid or empty pages, creating default page');
+    sanitized.pages = [{ component: '<div></div>' }];
+  }
+
+  // Remove empty CSS string that causes parsing issues
+  if (typeof sanitized.css === 'string' && sanitized.css.trim() === '') {
+    delete sanitized.css;
+  }
+
+  return sanitized;
+}
+
 interface PageConfig {
   featuredProductId?: number;
   featuredProductName?: string;
@@ -155,7 +201,8 @@ export default function GrapesEditor({
         height: '100%',
         width: 'auto',
         // Per GrapesJS docs: when projectData is defined, autoload is skipped
-        ...(initialProjectData ? { projectData: initialProjectData } : {}),
+        // Use sanitizeProjectData to clean corrupted data and prevent CssComposer crash
+        projectData: sanitizeProjectData(initialProjectData),
         plugins: [
           gjsBlocksBasic,
           gjsForms,
