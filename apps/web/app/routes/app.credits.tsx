@@ -367,7 +367,7 @@ export default function AICreditsPage() {
                     </td>
                   </tr>
                 ) : (
-                  history.map((log: any) => (
+                  history.map((log) => (
                     <tr key={log.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium capitalize ${

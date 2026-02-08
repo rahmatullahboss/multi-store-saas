@@ -17,7 +17,6 @@ export function BentoFeatures({ title, features, theme, styleProps }: FeaturesVa
   const headingStyle = getHeadingStyle({ headingColor, textColor });
   
   const finalBgColor = backgroundColor || defaultBgColor;
-  const finalTextColor = textColor || defaultTextColor;
   const finalHeadingColor = headingColor || textColor || defaultTextColor;
 
   // Bento grid colors

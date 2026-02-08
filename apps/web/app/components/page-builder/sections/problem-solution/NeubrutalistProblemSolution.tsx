@@ -6,7 +6,7 @@ import { getSectionStyle, getHeadingStyle } from '~/lib/page-builder/sectionStyl
 import type { ProblemSolutionVariantProps } from './types';
 
 export function NeubrutalistProblemSolution({ 
-  title, problemTitle, problems, solutionTitle, solutions, solution, theme, styleProps 
+  title, problemTitle, problems, solutionTitle, solutions, solution, theme: _theme, styleProps 
 }: ProblemSolutionVariantProps) {
   const { backgroundColor, backgroundGradient, textColor, headingColor, fontFamily, paddingY } = styleProps || {};
   
@@ -61,7 +61,7 @@ export function NeubrutalistProblemSolution({
               >
                 <span className="text-2xl">😤</span>
                 <p className="font-bold text-black">
-                  {typeof problem === 'string' ? problem : (problem as any).text}
+                  {typeof problem === 'string' ? problem : (problem as { text: string }).text}
                 </p>
               </div>
             ))}

@@ -73,7 +73,7 @@ export function DefaultProblemSolution({
             >
               <span className="text-xl">😞</span>
               <p style={{ color: isLight ? problemText : '#FCA5A5' }}>
-                {typeof problem === 'string' ? problem : (problem as any).text}
+                {typeof problem === 'string' ? problem : (problem as { text: string }).text}
               </p>
             </div>
           ))}
