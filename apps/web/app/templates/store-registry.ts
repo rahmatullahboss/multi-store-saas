@@ -1037,20 +1037,15 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
  * appear in the theme selection UI. To add more themes for customers,
  * simply add the theme ID to this array.
  *
- * Current MVP Themes:
- * 1. starter-store - স্টার্টার স্টোর (default, simple, modern)
- * 2. ghorer-bazar - ঘরের বাজার (Bangladeshi grocery marketplace)
- * 3. luxe-boutique - লাক্স বুটিক (luxury fashion)
- * 4. nova-lux - নোভা লাক্স (premium lifestyle)
- * 5. tech-modern - টেক মডার্ন (electronics & tech)
+ * Current MVP Themes (3 Core Themes):
+ * 1. starter-store - স্টার্টার স্টোর (default, general purpose, 14 sections)
+ * 2. luxe-boutique - লাক্স বুটিক (luxury fashion, 8 sections)
+ * 3. nova-lux - নোভা লাক্স (premium lifestyle, 6 sections)
  */
 export const MVP_THEME_IDS = [
   'starter-store',
-  'ghorer-bazar',
   'luxe-boutique',
   'nova-lux',
-  'nova-lux-ultra',
-  'tech-modern',
 ] as const;
 
 export type MVPThemeId = (typeof MVP_THEME_IDS)[number];
