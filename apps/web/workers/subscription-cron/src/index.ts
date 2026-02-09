@@ -123,19 +123,25 @@ function getDowngradedEmailHtml(storeName: string): string {
 }
 
 export default {
-  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
-    console.log('[SUBSCRIPTION-CRON] Starting scheduled task at', new Date().toISOString());
+  async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
+    const startTime = new Date().toISOString();
+    console.log('[SUBSCRIPTION-CRON] Starting scheduled task at', startTime);
 
     const now = Date.now();
+    const nowDate = new Date(now);
     const threeDaysFromNow = now + 3 * 24 * 60 * 60 * 1000;
     const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
 
     // Initialize email service
     const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 
+    if (!resend) {
+      console.warn('[SUBSCRIPTION-CRON] RESEND_API_KEY not set, emails will not be sent');
+    }
+
     try {
       // =======================================================================
-      // 1. EXPIRING IN 3 DAYS - Send warning email
+      // 1. EXPIRING IN 3 DAYS - Send warning email (only if not already sent)
       // =======================================================================
       const expiringStores = await env.DB.prepare(`
         SELECT 
@@ -211,7 +217,7 @@ export default {
           SET subscription_status = 'past_due', updated_at = ?
           WHERE id = ?
         `)
-          .bind(now, store.id)
+          .bind(nowDate.toISOString(), store.id)
           .run();
 
         console.log(`[SUBSCRIPTION-CRON] Marked store ${store.id} as past_due`);
@@ -266,7 +272,7 @@ export default {
               updated_at = ?
           WHERE id = ?
         `)
-          .bind(now, store.id)
+          .bind(nowDate.toISOString(), store.id)
           .run();
 
         console.log(`[SUBSCRIPTION-CRON] Downgraded store ${store.id} to Free plan`);
@@ -294,3 +300,4 @@ export default {
     }
   },
 };
+
