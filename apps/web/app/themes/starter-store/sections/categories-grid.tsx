@@ -156,40 +156,73 @@ const aspectRatioMap = {
 };
 
 // Default category data for demo
+const R2_PUBLIC_URL = 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev';
+
 const DEFAULT_CATEGORIES = [
   {
     id: 'electronics',
     nameBn: 'ইলেকট্রনিক্স',
-    image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&h=400&fit=crop',
+    image: `${R2_PUBLIC_URL}/assets/categories/category-electronics.webp`,
   },
   {
     id: 'fashion',
     nameBn: 'ফ্যাশন',
-    image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&h=400&fit=crop',
+    image: `${R2_PUBLIC_URL}/assets/categories/category-fashion.webp`,
   },
   {
-    id: 'home-living',
+    id: 'home',
     nameBn: 'হোম ডেকর',
-    image: 'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=400&h=400&fit=crop',
+    image: `${R2_PUBLIC_URL}/assets/categories/category-home.webp`,
   },
   {
     id: 'beauty',
     nameBn: 'বিউটি',
-    image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop',
+    image: `${R2_PUBLIC_URL}/assets/categories/category-beauty.webp`,
+  },
+  {
+    id: 'sports',
+    nameBn: 'খেলাধুলা',
+    image: `${R2_PUBLIC_URL}/assets/categories/category-sports.webp`,
+  },
+  {
+    id: 'toys',
+    nameBn: 'খেলনা',
+    image: `${R2_PUBLIC_URL}/assets/categories/category-toys.webp`,
+  },
+  {
+    id: 'books',
+    nameBn: 'বই',
+    image: `${R2_PUBLIC_URL}/assets/categories/category-books.webp`,
+  },
+  {
+    id: 'accessories',
+    nameBn: 'এক্সেসরিজ',
+    image: `${R2_PUBLIC_URL}/assets/categories/category-accessories.webp`,
   },
 ];
+
+const CATEGORY_IMAGES: Record<string, string> = {
+  electronics: DEFAULT_CATEGORIES[0].image,
+  fashion: DEFAULT_CATEGORIES[1].image,
+  home: DEFAULT_CATEGORIES[2].image,
+  beauty: DEFAULT_CATEGORIES[3].image,
+  sports: DEFAULT_CATEGORIES[4].image,
+  toys: DEFAULT_CATEGORIES[5].image,
+  books: DEFAULT_CATEGORIES[6].image,
+  accessories: DEFAULT_CATEGORIES[7].image,
+  'home-living': DEFAULT_CATEGORIES[2].image,
+};
 
 export default function CategoriesGrid({
   section,
   context,
   settings,
-  blocks,
 }: SectionComponentProps) {
   const {
     heading = 'ক্যাটাগরি',
     subheading,
     columns = '4',
-    items_count = 4,
+    items_count = 8,
     image_ratio = 'square',
     background_color = '#f9fafb',
     padding_top = 48,
@@ -198,12 +231,28 @@ export default function CategoriesGrid({
 
   // Use collections from context or default categories
   const collections = context.collections?.slice(0, items_count) || [];
+  
+  const getCategoryImage = (slug: string) => {
+    // Try to match partial slugs if exact match fails
+    const lowerSlug = slug.toLowerCase();
+    if (CATEGORY_IMAGES[lowerSlug]) return CATEGORY_IMAGES[lowerSlug];
+    if (lowerSlug.includes('electron')) return CATEGORY_IMAGES.electronics;
+    if (lowerSlug.includes('fashion') || lowerSlug.includes('cloth')) return CATEGORY_IMAGES.fashion;
+    if (lowerSlug.includes('home') || lowerSlug.includes('decor')) return CATEGORY_IMAGES.home;
+    if (lowerSlug.includes('beauty') || lowerSlug.includes('cosmetic')) return CATEGORY_IMAGES.beauty;
+    if (lowerSlug.includes('sport') || lowerSlug.includes('fit')) return CATEGORY_IMAGES.sports;
+    if (lowerSlug.includes('toy') || lowerSlug.includes('game') || lowerSlug.includes('kid')) return CATEGORY_IMAGES.toys;
+    if (lowerSlug.includes('book') || lowerSlug.includes('read')) return CATEGORY_IMAGES.books;
+    if (lowerSlug.includes('access') || lowerSlug.includes('watch') || lowerSlug.includes('jewel')) return CATEGORY_IMAGES.accessories;
+    return DEFAULT_CATEGORIES[0].image;
+  };
+
   const categories =
     collections.length > 0
       ? collections.map((c) => ({
           id: c.slug,
           nameBn: c.title,
-          image: c.imageUrl || DEFAULT_CATEGORIES[0].image,
+          image: c.imageUrl || getCategoryImage(c.slug),
         }))
       : DEFAULT_CATEGORIES.slice(0, items_count);
 
