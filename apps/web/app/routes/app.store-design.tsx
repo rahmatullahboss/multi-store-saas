@@ -195,15 +195,10 @@ export const loader = async ({
   // Get Shopify OS 2.0 themes from ThemeBridge
   const availableThemes = ThemeBridge.getAvailableThemes();
 
-  // MVP: Only show approved themes
-  const MVP_THEME_IDS = [
-    'starter-store',
-    'luxe-boutique',
-    'nova-lux',
-    'tech-modern',
-    'nova-lux-ultra', // Ultra premium theme
-  ];
-  const mvpThemes = availableThemes.filter((t) => MVP_THEME_IDS.includes(t.id));
+  // MVP: Only show approved themes from central registry
+  // Import from store-registry to keep in sync
+  const { MVP_THEME_IDS } = await import('~/templates/store-registry');
+  const mvpThemes = availableThemes.filter((t) => (MVP_THEME_IDS as readonly string[]).includes(t.id));
 
   return json({
     currentTemplateId,
