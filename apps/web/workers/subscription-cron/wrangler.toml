@@ -1,0 +1,36 @@
+#:schema node_modules/wrangler/config-schema.json
+
+name = "subscription-cron"
+main = "src/index.ts"
+compatibility_date = "2024-11-18"
+compatibility_flags = ["nodejs_compat"]
+
+# ==============================================================================
+# CRON TRIGGERS
+# ==============================================================================
+# Run daily at 9:00 AM Bangladesh Time (UTC+6) = 3:00 AM UTC
+# This checks for:
+# 1. Subscriptions expiring in 3 days -> Send warning email
+# 2. Subscriptions expired today -> Mark as past_due, send expired email
+# 3. Subscriptions expired 7+ days ago -> Downgrade to Free, disable store
+[triggers]
+crons = ["0 3 * * *"]
+
+# ==============================================================================
+# D1 DATABASE
+# ==============================================================================
+[[d1_databases]]
+binding = "DB"
+database_name = "multi-store-saas-db"
+database_id = "bf882d16-d67a-4007-b503-33646bd693af"
+
+# ==============================================================================
+# ENVIRONMENT VARIABLES
+# ==============================================================================
+[vars]
+SAAS_DOMAIN = "ozzyl.com"
+
+# ==============================================================================
+# SECRETS (Set via wrangler secret)
+# ==============================================================================
+# RESEND_API_KEY - Email service API key
