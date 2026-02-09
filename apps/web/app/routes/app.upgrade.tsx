@@ -31,7 +31,6 @@ import {
   Send,
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
-import { formatCurrency } from '~/utils/money';
 import { formatPrice } from '~/lib/theme-engine';
 
 export const meta: MetaFunction = () => {
@@ -45,7 +44,8 @@ const UPGRADE_PLANS = {
   starter: {
     name: 'Starter',
     nameBn: 'স্টার্টার',
-    price: 79900,
+    priceMonthly: 799,
+    priceAnnual: 639,
     description: 'For growing businesses',
     descriptionBn: 'বাড়তে থাকা ব্যবসার জন্য',
     icon: Zap,
@@ -72,7 +72,8 @@ const UPGRADE_PLANS = {
   premium: {
     name: 'Premium',
     nameBn: 'প্রিমিয়াম',
-    price: 199900,
+    priceMonthly: 1999,
+    priceAnnual: 1599,
     description: 'For serious businesses',
     descriptionBn: 'সিরিয়াস ব্যবসার জন্য',
     icon: Crown,
@@ -260,8 +261,13 @@ export default function UpgradePage() {
   const [couponCode, setCouponCode] = useState('');
   // Auto-select plan from URL parameter
   const planFromUrl = searchParams.get('plan') as 'starter' | 'premium' | null;
+  const billingFromUrl = searchParams.get('billing') as 'monthly' | 'annual' | null;
   const [selectedPlan, setSelectedPlan] = useState<'starter' | 'premium' | null>(
     planFromUrl && ['starter', 'premium'].includes(planFromUrl) ? planFromUrl : null
+  );
+  // Billing period from URL - default to monthly if not specified
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>(
+    billingFromUrl === 'annual' ? 'annual' : 'monthly'
   );
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string;
@@ -270,6 +276,11 @@ export default function UpgradePage() {
     discountAmount: number;
     finalPrice: number;
   } | null>(null);
+
+  // Helper to get display price based on billing period
+  const getPlanPrice = (plan: (typeof UPGRADE_PLANS)[keyof typeof UPGRADE_PLANS]) => {
+    return billingPeriod === 'annual' ? plan.priceAnnual : plan.priceMonthly;
+  };
 
   // Handle coupon validation response
   useEffect(() => {
@@ -288,7 +299,7 @@ export default function UpgradePage() {
   const handleApplyCoupon = () => {
     if (!selectedPlan || !couponCode) return;
 
-    const planPrice = UPGRADE_PLANS[selectedPlan].price;
+    const planPrice = getPlanPrice(UPGRADE_PLANS[selectedPlan]);
     couponFetcher.submit(
       { intent: 'validate_coupon', couponCode, planPrice: planPrice.toString() },
       { method: 'POST' }
@@ -356,7 +367,8 @@ export default function UpgradePage() {
           <PaymentSubmitForm
             selectedPlan={selectedPlan}
             appliedCoupon={appliedCoupon}
-            planPrice={UPGRADE_PLANS[selectedPlan].price}
+            planPrice={getPlanPrice(UPGRADE_PLANS[selectedPlan])}
+            billingPeriod={billingPeriod}
             t={t}
           />
         ) : (
@@ -364,6 +376,33 @@ export default function UpgradePage() {
             <p className="text-gray-500">{t('selectPlanFirst')}</p>
           </div>
         )}
+      </div>
+
+      {/* Billing Period Toggle */}
+      <div className="mb-6 flex items-center justify-center gap-2 p-1 bg-gray-100 rounded-lg w-fit mx-auto">
+        <button
+          onClick={() => setBillingPeriod('monthly')}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition ${
+            billingPeriod === 'monthly'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          {lang === 'bn' ? 'মাসিক' : 'Monthly'}
+        </button>
+        <button
+          onClick={() => setBillingPeriod('annual')}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition flex items-center gap-2 ${
+            billingPeriod === 'annual'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          {lang === 'bn' ? 'বার্ষিক' : 'Annual'}
+          <span className="px-1.5 py-0.5 text-xs font-bold bg-emerald-100 text-emerald-700 rounded">
+            -20%
+          </span>
+        </button>
       </div>
 
       {/* Coupon Code Section */}
@@ -439,9 +478,10 @@ export default function UpgradePage() {
           const isSelected = selectedPlan === key;
 
           // Calculate price with coupon
+          const basePlanPrice = getPlanPrice(plan);
           const showDiscount = appliedCoupon && selectedPlan === key;
-          const displayPrice = showDiscount ? appliedCoupon.finalPrice : plan.price;
-          const originalPrice = showDiscount ? appliedCoupon.originalPrice : null;
+          const displayPrice = showDiscount ? appliedCoupon.finalPrice : basePlanPrice;
+          const originalPrice = showDiscount ? appliedCoupon.originalPrice : (billingPeriod === 'annual' ? plan.priceMonthly : null);
 
           return (
             <div
@@ -502,15 +542,20 @@ export default function UpgradePage() {
                 <div className="mt-4">
                   {originalPrice && (
                     <p className="text-lg text-gray-400 line-through">
-                      {formatCurrency(originalPrice, 'BDT', { fromCents: true })}
+                      ৳{originalPrice.toLocaleString('bn-BD')}
                     </p>
                   )}
                   <p
                     className={`text-4xl font-bold ${showDiscount ? 'text-green-600' : 'text-gray-900'}`}
                   >
-                    {formatCurrency(displayPrice, 'BDT', { fromCents: true })}
+                    ৳{displayPrice.toLocaleString('bn-BD')}
                     <span className="text-base font-normal text-gray-500">{t('perMonth')}</span>
                   </p>
+                  {billingPeriod === 'annual' && !showDiscount && (
+                    <p className="text-sm text-emerald-600 font-medium mt-1">
+                      {lang === 'bn' ? `বছরে ৳${((plan.priceMonthly - plan.priceAnnual) * 12).toLocaleString('bn-BD')} সেভ` : `Save ৳${((plan.priceMonthly - plan.priceAnnual) * 12).toLocaleString()} / year`}
+                    </p>
+                  )}
                   {showDiscount && (
                     <p className="text-sm text-green-600 font-medium mt-1">
                       🎉 {appliedCoupon.discountLabel} - {t('saveAmount')} ৳
@@ -625,11 +670,13 @@ function PaymentSubmitForm({
   selectedPlan,
   appliedCoupon,
   planPrice,
+  billingPeriod,
   t,
 }: {
   selectedPlan: 'starter' | 'premium';
   appliedCoupon: { finalPrice: number } | null;
   planPrice: number;
+  billingPeriod: 'monthly' | 'annual';
   t: (key: string) => string;
 }) {
   const fetcher = useFetcher<{ success?: boolean; error?: string; message?: string }>();
