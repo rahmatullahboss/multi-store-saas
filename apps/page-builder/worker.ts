@@ -29,13 +29,22 @@ const requestHandler = createRequestHandler(build, 'production');
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     try {
-      // Try to serve static asset first
-      const asset = await env.ASSETS.fetch(request);
-      if (asset.ok) {
-        return asset;
+      const url = new URL(request.url);
+      
+      // CRITICAL: Only try ASSETS for GET/HEAD requests
+      // POST and other methods consume request body, so skip asset check
+      // See: https://developers.cloudflare.com/workers/static-assets/binding/
+      const isAssetCheckable = request.method === 'GET' || request.method === 'HEAD';
+      
+      if (isAssetCheckable) {
+        // Try to serve static asset first
+        const asset = await env.ASSETS.fetch(request);
+        if (asset.ok) {
+          return asset;
+        }
       }
 
-      // If asset not found, run Remix SSR
+      // If asset not found or non-GET request, run Remix SSR
       const loadContext = {
         cloudflare: {
           env,
