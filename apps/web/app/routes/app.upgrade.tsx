@@ -277,9 +277,14 @@ export default function UpgradePage() {
     finalPrice: number;
   } | null>(null);
 
-  // Helper to get display price based on billing period
-  const getPlanPrice = (plan: (typeof UPGRADE_PLANS)[keyof typeof UPGRADE_PLANS]) => {
+  // Helper to get display price based on billing period (Monthly Rate)
+  const getMonthlyRate = (plan: (typeof UPGRADE_PLANS)[keyof typeof UPGRADE_PLANS]) => {
     return billingPeriod === 'annual' ? plan.priceAnnual : plan.priceMonthly;
+  };
+
+  // Helper to get total payment amount
+  const getTotalPaymentAmount = (plan: (typeof UPGRADE_PLANS)[keyof typeof UPGRADE_PLANS]) => {
+    return billingPeriod === 'annual' ? plan.priceAnnual * 12 : plan.priceMonthly;
   };
 
   // Handle coupon validation response
@@ -299,7 +304,7 @@ export default function UpgradePage() {
   const handleApplyCoupon = () => {
     if (!selectedPlan || !couponCode) return;
 
-    const planPrice = getPlanPrice(UPGRADE_PLANS[selectedPlan]);
+    const planPrice = getTotalPaymentAmount(UPGRADE_PLANS[selectedPlan]);
     couponFetcher.submit(
       { intent: 'validate_coupon', couponCode, planPrice: planPrice.toString() },
       { method: 'POST' }
@@ -367,7 +372,7 @@ export default function UpgradePage() {
           <PaymentSubmitForm
             selectedPlan={selectedPlan}
             appliedCoupon={appliedCoupon}
-            planPrice={getPlanPrice(UPGRADE_PLANS[selectedPlan])}
+            planPrice={getTotalPaymentAmount(UPGRADE_PLANS[selectedPlan])}
             billingPeriod={billingPeriod}
             t={t}
           />
@@ -478,10 +483,38 @@ export default function UpgradePage() {
           const isSelected = selectedPlan === key;
 
           // Calculate price with coupon
-          const basePlanPrice = getPlanPrice(plan);
+          const monthlyRate = getMonthlyRate(plan);
+          const totalPaymentAmount = getTotalPaymentAmount(plan);
+          
+          // For display in the CARD, we typically show the monthly rate
+          // But if coupon is applied, it's calculated on the TOTAL amount (e.g. 20% off yearly total)
+          // So we need to be careful what we display.
+          
+          // Let's stick to showing the "rate per month" in the card header, as is standard SaaS practice
+          // But we can show a "Billed yearly" subtitle
+          
+          // Discount calculation for the CARD display:
+          // If we have a coupon, it reduces the TOTAL amount.
+          // To show the discounted "per month" rate, we divide the final discount price by 12 (if annual) or 1 (if monthly).
+          
           const showDiscount = appliedCoupon && selectedPlan === key;
-          const displayPrice = showDiscount ? appliedCoupon.finalPrice : basePlanPrice;
-          const originalPrice = showDiscount ? appliedCoupon.originalPrice : (billingPeriod === 'annual' ? plan.priceMonthly : null);
+          
+          // Display logic
+          let displayRate = monthlyRate;
+          let originalRate = null;
+          
+          if (showDiscount) {
+             const months = billingPeriod === 'annual' ? 12 : 1;
+             displayRate = appliedCoupon.finalPrice / months;
+             originalRate = appliedCoupon.originalPrice / months; 
+          } else if (billingPeriod === 'annual') {
+             // If manual annual selection (20% off built-in), show the original monthly rate as strikethrough if we want?
+             // Actually currently `monthlyRate` IS the discounted rate (639 is 20% off 799).
+             // Let's show the standard monthly price (799) as crossed out if annual is selected.
+             if (plan.priceMonthly > plan.priceAnnual) {
+                originalRate = plan.priceMonthly;
+             }
+          }
 
           return (
             <div
@@ -540,22 +573,31 @@ export default function UpgradePage() {
 
                 {/* Price with discount */}
                 <div className="mt-4">
-                  {originalPrice && (
+                  {originalRate && (
                     <p className="text-lg text-gray-400 line-through">
-                      ৳{originalPrice.toLocaleString('bn-BD')}
+                      ৳{originalRate.toLocaleString('bn-BD', { maximumFractionDigits: 0 })}
                     </p>
                   )}
                   <p
                     className={`text-4xl font-bold ${showDiscount ? 'text-green-600' : 'text-gray-900'}`}
                   >
-                    ৳{displayPrice.toLocaleString('bn-BD')}
+                    ৳{displayRate.toLocaleString('bn-BD', { maximumFractionDigits: 0 })}
                     <span className="text-base font-normal text-gray-500">{t('perMonth')}</span>
                   </p>
-                  {billingPeriod === 'annual' && !showDiscount && (
-                    <p className="text-sm text-emerald-600 font-medium mt-1">
-                      {lang === 'bn' ? `বছরে ৳${((plan.priceMonthly - plan.priceAnnual) * 12).toLocaleString('bn-BD')} সেভ` : `Save ৳${((plan.priceMonthly - plan.priceAnnual) * 12).toLocaleString()} / year`}
-                    </p>
+                  
+                  {billingPeriod === 'annual' && (
+                    <div className="mt-2 text-sm">
+                        <p className="text-gray-600">
+                            {lang === 'bn' ? 'বছরে বিল করা হবে:' : 'Billed yearly:'} <span className="font-bold">৳{showDiscount ? appliedCoupon.finalPrice.toLocaleString('bn-BD') : totalPaymentAmount.toLocaleString('bn-BD')}</span>
+                        </p>
+                        {!showDiscount && (
+                            <p className="text-emerald-600 font-medium">
+                                {lang === 'bn' ? `(সেভ ৳${((plan.priceMonthly - plan.priceAnnual) * 12).toLocaleString('bn-BD')})` : `(Save ৳${((plan.priceMonthly - plan.priceAnnual) * 12).toLocaleString()})`}
+                            </p>
+                        )}
+                    </div>
                   )}
+                  
                   {showDiscount && (
                     <p className="text-sm text-green-600 font-medium mt-1">
                       🎉 {appliedCoupon.discountLabel} - {t('saveAmount')} ৳
