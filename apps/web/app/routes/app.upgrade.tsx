@@ -670,7 +670,7 @@ function PaymentSubmitForm({
   selectedPlan,
   appliedCoupon,
   planPrice,
-  billingPeriod,
+  billingPeriod: _billingPeriod,
   t,
 }: {
   selectedPlan: 'starter' | 'premium';
