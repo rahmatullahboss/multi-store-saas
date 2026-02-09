@@ -29,14 +29,52 @@ const space = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: 'Ozzyl - Launch Your Online Store in 5 Minutes',
+  metadataBase: new URL('https://ozzyl.com'),
+  title: {
+    default: 'Ozzyl - Launch Your Online Store in 5 Minutes',
+    template: '%s | Ozzyl',
+  },
   description:
     'Create your professional e-commerce store with custom subdomain, payment integration, and powerful dashboard. No coding required.',
+  applicationName: 'Ozzyl',
+  authors: [{ name: 'Ozzyl Team', url: 'https://ozzyl.com' }],
+  generator: 'Next.js',
+  keywords: [
+    'ecommerce builder',
+    'online store builder',
+    'bangladesh ecommerce',
+    'create online store',
+    'no code website builder',
+    'small business website',
+    'digital store',
+    'ozzyl',
+  ],
+  referrer: 'origin-when-cross-origin',
+  creator: 'Ozzyl Team',
+  publisher: 'Ozzyl',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   openGraph: {
     title: 'Ozzyl - Launch Your Online Store in 5 Minutes',
     description:
       'Create your professional e-commerce store with custom subdomain, payment integration, and powerful dashboard. No coding required.',
-    images: ['/og-image.jpg'],
+    url: 'https://ozzyl.com',
+    siteName: 'Ozzyl',
+    locale: 'en_US',
     type: 'website',
   },
   twitter: {
@@ -44,6 +82,10 @@ export const metadata: Metadata = {
     title: 'Ozzyl - Launch Your Online Store in 5 Minutes',
     description:
       'Create your professional e-commerce store with custom subdomain, payment integration, and powerful dashboard. No coding required.',
+    creator: '@ozzyl',
+  },
+  alternates: {
+    canonical: '/',
   },
   icons: {
     icon: ASSETS.brand.icon,
@@ -59,6 +101,36 @@ export const metadata: Metadata = {
     'link[rel="preconnect"][href="https://assets.ozzyl.com"][crossorigin]': '',
     'link[rel="preconnect"][href="https://images.unsplash.com"][crossorigin]': '',
   },
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      name: 'Ozzyl',
+      url: 'https://ozzyl.com',
+      logo: 'https://ozzyl.com/logo.png',
+      sameAs: [
+        'https://facebook.com/ozzyl',
+        'https://twitter.com/ozzyl',
+        'https://linkedin.com/company/ozzyl',
+      ],
+    },
+    {
+      '@type': 'SoftwareApplication',
+      name: 'Ozzyl',
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web',
+      description:
+        'All-in-one e-commerce platform to build and manage online stores.',
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'BDT',
+      },
+    },
+  ],
 };
 
 export const viewport: Viewport = {
@@ -83,6 +155,10 @@ export default function RootLayout({
       <body className="antialiased bg-[#0A0A0F] text-white">
         <LanguageProvider>
           {children}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
           <Analytics />
           <SpeedInsights />
         </LanguageProvider>
