@@ -81,6 +81,26 @@ wrangler secret put SECRET_NAME --name=multi-store-saas
 # Or via Cloudflare Dashboard (recommended)
 ```
 
+### 🛡️ Preserving Bindings & Secrets
+
+**Critical:** When deploying, always use `--keep-vars` to prevent overwriting existing encrypted secrets in Cloudflare.
+
+```bash
+# Production (default)
+npm run deploy
+# Run: navigate to project root && wrangler deploy --keep-vars
+
+# Staging
+npm run deploy:staging
+# Run: wrangler deploy --env staging --keep-vars
+```
+
+**Binding Best Practices:**
+
+- **Production mappings** go in `wrangler.toml` under `[env.production]`.
+- **Staging mappings** go in `wrangler.toml` under `[env.staging]`.
+- **Do not commit** `.dev.vars` or `.env` files containing secrets.
+
 ## Phase 3: Build & Deploy
 
 ### Main App (Cloudflare Pages)

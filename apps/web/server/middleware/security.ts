@@ -62,8 +62,9 @@ function generateCSP(options: SecurityHeadersOptions): string {
   // For page rendering
   return [
     `default-src 'self'`,
-    `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com https://static.cloudflareinsights.com blob:`,
+    `script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://accounts.google.com https://apis.google.com https://static.cloudflareinsights.com https://cdnjs.cloudflare.com blob:`,
     `worker-src 'self' blob:`,
+    `child-src 'self' blob:`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     `img-src 'self' data: blob: https: http:`,
     `font-src 'self' https://fonts.gstatic.com data:`,
