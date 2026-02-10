@@ -1,0 +1,39 @@
+#:schema node_modules/wrangler/config-schema.json
+
+name = "courier-cron"
+main = "src/index.ts"
+compatibility_date = "2024-11-18"
+compatibility_flags = ["nodejs_compat"]
+
+# ==============================================================================
+# CRON TRIGGERS
+# ==============================================================================
+# Run every 30 minutes to sync courier statuses
+# Checks orders with active courier bookings and updates their status
+[triggers]
+crons = ["*/30 * * * *"]
+
+# ==============================================================================
+# D1 DATABASE
+# ==============================================================================
+[[d1_databases]]
+binding = "DB"
+database_name = "multi-store-saas-db"
+database_id = "bf882d16-d67a-4007-b503-33646bd693af"
+
+# ==============================================================================
+# ENVIRONMENT VARIABLES
+# ==============================================================================
+[vars]
+SAAS_DOMAIN = "ozzyl.com"
+
+# ==============================================================================
+# SECRETS (Set via wrangler secret)
+# ==============================================================================
+# No secrets needed - courier credentials come from store settings in DB
+
+# ==============================================================================
+# OBSERVABILITY - Logs
+# ==============================================================================
+[observability]
+enabled = true
