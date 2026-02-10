@@ -26,6 +26,7 @@ let isSentryInitialized = false;
 interface SentryEnv {
   SENTRY_DSN?: string;
   NODE_ENV?: string;
+  ENVIRONMENT?: 'development' | 'production' | 'staging';
   CF_VERSION_METADATA?: { id?: string };
 }
 
@@ -37,14 +38,11 @@ function initSentry(env: SentryEnv) {
   // Skip if already initialized or not production
   if (isSentryInitialized) return;
 
-  // Detect environment - production deployments have workers.dev domain or custom domain
-  const isProduction =
-    env.NODE_ENV === 'production' ||
-    !env.NODE_ENV || // Cloudflare defaults to production
-    (env.SENTRY_DSN && !env.SENTRY_DSN.includes('localhost'));
+  const environment = env.ENVIRONMENT || env.NODE_ENV || 'production';
+  const isEnabled = environment !== 'development' && environment !== 'test';
 
-  if (!isProduction) {
-    console.log('[Sentry] Skipped initialization - not production environment');
+  if (!isEnabled) {
+    console.log('[Sentry] Skipped initialization - disabled environment:', environment);
     return;
   }
 
@@ -56,7 +54,7 @@ function initSentry(env: SentryEnv) {
   try {
     Sentry.init({
       dsn: env.SENTRY_DSN,
-      environment: env.NODE_ENV || 'production',
+      environment,
 
       // Performance monitoring - 10% of transactions for production
       tracesSampleRate: 0.1,
@@ -68,7 +66,7 @@ function initSentry(env: SentryEnv) {
       release: env.CF_VERSION_METADATA?.id || 'unknown',
 
       // Disable in local wrangler dev mode
-      enabled: isProduction,
+      enabled: isEnabled,
 
       // BeforeSend to filter sensitive data
       beforeSend(event) {
@@ -91,7 +89,7 @@ function initSentry(env: SentryEnv) {
     });
 
     isSentryInitialized = true;
-    console.log('[Sentry] Successfully initialized for production');
+    console.log('[Sentry] Successfully initialized:', { environment });
   } catch (error) {
     console.error('[Sentry] Failed to initialize:', error);
   }

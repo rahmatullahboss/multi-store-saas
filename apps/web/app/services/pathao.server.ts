@@ -225,6 +225,27 @@ export function createPathaoClient(credentials: PathaoCredentials) {
     },
 
     /**
+     * Create a new store
+     */
+    async createStore(data: {
+      name: string;
+      contact_name: string;
+      contact_number: string;
+      secondary_contact?: string;
+      otp_number?: string;
+      address: string;
+      city_id: number;
+      zone_id: number;
+      area_id: number;
+    }): Promise<{ store_id?: number; store_name: string }> {
+      const result = await apiRequest<{ data: { store_id?: number; store_name: string } }>('/stores', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+      return result.data;
+    },
+
+    /**
      * Create a new order/parcel
      */
     async createOrder(order: PathaoCreateOrderRequest): Promise<PathaoOrder> {

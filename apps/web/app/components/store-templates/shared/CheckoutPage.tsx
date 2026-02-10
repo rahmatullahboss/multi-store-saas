@@ -184,7 +184,7 @@ export default function SharedCheckoutPage({
     footerText: '#ffffff',
   };
 
-  const currencySymbol = '৳';
+
 
   // Form State
   const [email, setEmail] = useState('');

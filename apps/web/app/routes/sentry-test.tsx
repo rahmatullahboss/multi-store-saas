@@ -2,7 +2,13 @@ import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/cloudfl
 import { Form, useLoaderData } from "@remix-run/react";
 import * as Sentry from "@sentry/remix";
 
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  // Safety: this route exists only to validate Sentry wiring. Never expose it in production.
+  const envName = context.cloudflare.env.ENVIRONMENT || 'production';
+  if (envName !== 'staging') {
+    throw new Response('Not Found', { status: 404 });
+  }
+
   const url = new URL(request.url);
   
   if (url.searchParams.get("throw") === "loader") {
@@ -12,7 +18,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ message: "Sentry Debug Page (Renamed to sentry-test)" });
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request, context }: ActionFunctionArgs) {
+  const envName = context.cloudflare.env.ENVIRONMENT || 'production';
+  if (envName !== 'staging') {
+    throw new Response('Not Found', { status: 404 });
+  }
+
   throw new Error("Sentry Test Error from Action");
 }
 

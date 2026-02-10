@@ -210,7 +210,17 @@ export default function ThankYouPage() {
                   <span className="text-gray-500">ফোন:</span> {order.customerPhone}
                 </p>
                 <p>
-                  <span className="text-gray-500">ঠিকানা:</span> {order.shippingAddress}
+                  <span className="text-gray-500">ঠিকানা:</span> {(() => {
+                    try {
+                      if (order.shippingAddress && order.shippingAddress.startsWith('{')) {
+                        const parsed = JSON.parse(order.shippingAddress);
+                        return parsed.address || order.shippingAddress;
+                      }
+                      return order.shippingAddress;
+                    } catch {
+                      return order.shippingAddress;
+                    }
+                  })()}
                 </p>
               </div>
             </div>

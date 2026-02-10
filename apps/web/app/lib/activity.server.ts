@@ -28,7 +28,8 @@ export type ActivityAction =
   | 'settings_updated'
   | 'discount_created'
   | 'discount_updated'
-  | 'discount_deleted';
+  | 'discount_deleted'
+  | 'api_key_update';
 
 export type EntityType =
   | 'staff'

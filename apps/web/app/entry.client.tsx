@@ -2,7 +2,7 @@
  * Entry Client
  *
  * Client-side hydration and initialization.
- * Includes Sentry error tracking for production environments only.
+ * Includes Sentry error tracking for production + staging (disabled in dev/test).
  */
 import { RemixBrowser, useLocation, useMatches } from '@remix-run/react';
 import { startTransition, useEffect } from 'react';
@@ -21,33 +21,34 @@ let Sentry: typeof import('@sentry/remix') | null = null;
  * Check if we're in a production environment
  * Based on hostname and window.ENV configuration
  */
-function isProductionEnvironment(): boolean {
-  // Check if window.ENV exists and has production indicators
+function getSentryEnvironment(): string | null {
   const env = (window as any).ENV;
+  if (!env?.SENTRY_DSN) return null;
 
-  // If SENTRY_DSN is not configured, skip Sentry
-  if (!env?.SENTRY_DSN) {
-    return false;
-  }
+  const environment = env?.ENVIRONMENT || env?.NODE_ENV || 'production';
+  if (environment === 'development' || environment === 'test') return null;
 
-  // Check hostname - production deployments don't have localhost or dev domains
+  // Extra safety: skip obvious local/dev hosts even if env is misconfigured.
   const hostname = window.location.hostname;
   const isLocal =
     hostname === 'localhost' ||
     hostname === '127.0.0.1' ||
+    hostname.endsWith('.localhost') ||
     hostname.includes('.local') ||
     hostname.includes('wrangler') ||
     hostname.includes('dev');
+  if (isLocal) return null;
 
-  return !isLocal;
+  return environment;
 }
 
 /**
- * Initialize Sentry for production environments only
+ * Initialize Sentry for production + staging (disabled for local dev/test)
  */
 async function initSentry() {
-  if (!isProductionEnvironment()) {
-    console.log('[Sentry Client] Skipped - not production environment');
+  const environment = getSentryEnvironment();
+  if (!environment) {
+    console.log('[Sentry Client] Skipped - disabled environment');
     return;
   }
 
@@ -59,7 +60,7 @@ async function initSentry() {
 
     Sentry.init({
       dsn,
-      environment: 'production',
+      environment,
 
       // Performance monitoring - 10% of transactions for cost efficiency
       tracesSampleRate: 0.1,

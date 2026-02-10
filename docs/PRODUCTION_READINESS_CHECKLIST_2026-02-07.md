@@ -132,6 +132,10 @@ npm --workspace apps/web run e2e:smoke
 
 ### 5.1 What’s Pending (minimum)
 - [ ] Sentry (or equivalent) alerting verified on staging
+  - Staging env tag fixed: `ENVIRONMENT=staging` (so staging events won't mix with prod)
+  - Staging test route (only on staging): `/sentry-test`
+    - Trigger server error: `/sentry-test?throw=loader` (expects HTTP 500)
+    - Then confirm in Sentry UI (environment=staging) that issue/event arrived + alert rule fired
 - [ ] Structured logs include `store_id`, `request_id`, `order_id`
   - Note (done 2026-02-08): `x-request-id` response header added; server error logs include `{ requestId, storeId }`
 - [ ] Incident runbook: rollback worker + DB restore decision tree
