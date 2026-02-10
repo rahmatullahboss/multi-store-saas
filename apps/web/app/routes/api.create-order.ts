@@ -20,7 +20,6 @@ import {
   products,
   productVariants,
   stores,
-  users,
   abandonedCarts,
   orderBumps,
   upsellOffers,
@@ -127,8 +126,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // When bindings exist in env but the backing Worker/DO isn't running, fetch() can return
   // non-JSON errors and cause flaky checkout behavior. Disable DO-based rate limit/locks in E2E.
   const isE2E =
-    (env as any)?.E2E === '1' ||
-    (env as any)?.E2E_ENABLED === '1' ||
+    (env as unknown as Record<string, string>)?.E2E === '1' ||
+    (env as unknown as Record<string, string>)?.E2E_ENABLED === '1' ||
     process.env.E2E === '1' ||
     process.env.E2E_ENABLED === '1';
 
@@ -202,6 +201,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (hasRateLimiter && storeIdForRateLimit > 0) {
       const clientIP = getClientIP(request);
       const rateLimitResult = await checkRateLimit(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         env as any,
         storeIdForRateLimit,
         clientIP,
@@ -502,6 +502,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     orderNumberForLock = generateOrderNumber();
 
     if (hasCheckoutLock) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const lockResult = await acquireCheckoutLock(env as any, checkoutLockId, {
         orderId: orderNumberForLock, // lock identifier (not DB id)
         lockedBy: input.phone,
@@ -628,7 +629,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
           .update(checkoutSessions)
           .set({ status: 'abandoned', updatedAt: new Date() })
           .where(eq(checkoutSessions.id, checkoutSessionId));
-      } catch {}
+      } catch {
+        // Ignore errors during abandon cleanup
+      }
     };
 
     // ========================================================================
@@ -957,13 +960,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       );
     }
 
-    // Check if this is the first order (for celebration email)
-    const existingOrderCheck = await db
-      .select({ id: orders.id })
-      .from(orders)
-      .where(eq(orders.storeId, input.store_id))
-      .limit(1);
-    const isFirstOrder = existingOrderCheck.length === 0;
+    // Check if this is the first order (logic removed/commented out)
+    // const existingOrderCheck = ...
 
     // 2. CREATE ORDER
     let orderId: number | undefined;
@@ -1323,9 +1321,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             if (!result.success) {
               console.error('[OrderProcessor] Failed to enqueue tasks:', result.error);
             } else {
-              console.log(
-                `[OrderProcessor] Enqueued ${orderTasks.length} tasks for order ${orderNumber}`
-              );
+              // Task enqueue success
             }
           })
           .catch((error) => {
@@ -1589,7 +1585,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
           .update(checkoutSessions)
           .set({ status: 'abandoned', updatedAt: new Date() })
           .where(eq(checkoutSessions.id, checkoutSessionId));
-      } catch {}
+      } catch {
+        // Ignore errors
+      }
     }
 
     return json(
@@ -1604,6 +1602,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Always release checkout lock (covers early-return paths after acquiring)
     if (checkoutLockAcquired && hasCheckoutLock && checkoutLockId) {
       context.cloudflare.ctx.waitUntil(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         releaseCheckoutLock(env as any, checkoutLockId, orderNumberForLock || undefined).catch(
           (err) => {
             console.error('[CHECKOUT_LOCK] Failed to release lock (finally):', err);
