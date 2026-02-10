@@ -82,10 +82,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
           ? JSON.parse(o.shippingAddress)
           : null;
         if (parsed && typeof parsed === 'object') {
-          // JSON object: extract address, city, district etc.
-          displayAddress = [parsed.address, parsed.city, parsed.district, parsed.upazila]
-            .filter(Boolean)
-            .join(', ');
+          // JSON object: extract address, upazila, district/city
+          // Prioritize: Address, Upazila, District
+          const parts = [
+            parsed.address, 
+            parsed.upazila, 
+            parsed.district || parsed.city
+          ].filter(Boolean);
+          // Deduplicate components
+          displayAddress = [...new Set(parts)].join(', ');
         } else {
           // Plain string address
           displayAddress = o.shippingAddress;

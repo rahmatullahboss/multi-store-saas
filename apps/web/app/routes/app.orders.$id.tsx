@@ -695,7 +695,13 @@ export default function OrderDetailPage() {
   };
 
   // Parse shipping address if it's a JSON string or use as is
-  let shippingAddress: { address?: string; city?: string; postalCode?: string } = {};
+  let shippingAddress: { 
+    address?: string; 
+    city?: string; 
+    postalCode?: string;
+    district?: string;
+    upazila?: string;
+  } = {};
   if (order.shippingAddress) {
     try {
       const isJson = typeof order.shippingAddress === 'string' && order.shippingAddress.trim().startsWith('{');
@@ -846,11 +852,14 @@ export default function OrderDetailPage() {
               {shippingAddress.address && (
                 <p className="text-gray-600">{shippingAddress.address}</p>
               )}
-              {shippingAddress.city && <p className="text-gray-600">{shippingAddress.city}</p>}
+              {shippingAddress.upazila && <p className="text-gray-600">{shippingAddress.upazila}</p>}
+              {shippingAddress.district && <p className="text-gray-600">{shippingAddress.district}</p>}
+              {/* Fallback for city if district is missing */}
+              {shippingAddress.city && !shippingAddress.district && <p className="text-gray-600">{shippingAddress.city}</p>}
               {shippingAddress.postalCode && (
                 <p className="text-gray-600">Postal: {shippingAddress.postalCode}</p>
               )}
-              {!shippingAddress.address && !shippingAddress.city && (
+              {!shippingAddress.address && !shippingAddress.city && !shippingAddress.district && (
                 <p className="text-gray-400">N/A</p>
               )}
             </div>
@@ -1049,9 +1058,12 @@ export default function OrderDetailPage() {
             </h2>
             <div className="space-y-1 text-gray-700">
               {shippingAddress.address && <p>{shippingAddress.address}</p>}
-              {shippingAddress.city && <p>{shippingAddress.city}</p>}
+              {shippingAddress.upazila && <p>{shippingAddress.upazila}</p>}
+              {shippingAddress.district && <p>{shippingAddress.district}</p>}
+              {/* Fallback for city if district is missing */}
+              {shippingAddress.city && !shippingAddress.district && <p>{shippingAddress.city}</p>}
               {shippingAddress.postalCode && <p>Postal: {shippingAddress.postalCode}</p>}
-              {!shippingAddress.address && !shippingAddress.city && (
+              {!shippingAddress.address && !shippingAddress.city && !shippingAddress.district && (
                 <p className="text-gray-400">No address provided</p>
               )}
             </div>

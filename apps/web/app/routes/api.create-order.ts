@@ -983,7 +983,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
           customerName: input.customer_name,
           customerPhone: input.phone,
           customerEmail: input.customer_email || '',
-          shippingAddress: input.address,
+          shippingAddress: JSON.stringify({
+            address: input.address,
+            city: input.district || '',
+            district: input.district || '',
+            upazila: input.upazila || '',
+          }),
           billingAddress: null,
           subtotal: finalSubtotal, // After combo AND coupon
           tax,
