@@ -262,19 +262,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
       // Pass undefined for storeId to check across all Ozzyl platform orders
       const riskResult = await checkCustomerRisk(order.customerPhone || '', db);
 
-      // Auto-confirm if success rate >= 80% and order is pending
-      let autoConfirmed = false;
-      if (riskResult.successRate >= 80 && order.status === 'pending') {
-        await db
-          .update(orders)
-          .set({
-            status: 'confirmed',
-            updatedAt: new Date(),
-          })
-          .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
-        autoConfirmed = true;
-      }
-
       return json({
         success: true,
         intent: 'FRAUD_CHECK',
@@ -287,8 +274,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
           isHighRisk: riskResult.isHighRisk,
           riskScore: riskResult.riskScore,
         },
-        autoConfirmed,
-        newStatus: autoConfirmed ? 'confirmed' : order.status,
       });
     } catch (error) {
       console.error('Fraud check error:', error);
@@ -800,7 +785,6 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
   const fetcher = useFetcher<{
     success?: boolean;
     riskResult?: FraudCheckResult;
-    autoConfirmed?: boolean;
     error?: string;
   }>();
   const [showResult, setShowResult] = useState(false);
@@ -829,9 +813,6 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
         <span className={`text-xs px-2 py-1 rounded-full border ${successColor} font-medium`}>
           {result.successRate}% ({result.deliveredOrders}/{result.totalOrders})
         </span>
-        {fetcher.data.autoConfirmed && (
-          <span className="text-xs text-green-600 font-medium">✓ Auto</span>
-        )}
       </div>
     );
   }
