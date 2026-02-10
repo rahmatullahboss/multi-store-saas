@@ -694,17 +694,20 @@ export default function OrderDetailPage() {
     });
   };
 
-  // Parse shipping address if it's a JSON string
+  // Parse shipping address if it's a JSON string or use as is
   let shippingAddress: { address?: string; city?: string; postalCode?: string } = {};
-  try {
-    if (order.shippingAddress) {
-      shippingAddress =
-        typeof order.shippingAddress === 'string'
-          ? JSON.parse(order.shippingAddress)
-          : order.shippingAddress;
+  if (order.shippingAddress) {
+    try {
+      const isJson = typeof order.shippingAddress === 'string' && order.shippingAddress.trim().startsWith('{');
+      if (isJson) {
+        shippingAddress = JSON.parse(order.shippingAddress);
+      } else {
+        shippingAddress = { address: order.shippingAddress };
+      }
+    } catch {
+      // Fallback if JSON parse fails
+      shippingAddress = { address: typeof order.shippingAddress === 'string' ? order.shippingAddress : '' };
     }
-  } catch {
-    shippingAddress = {};
   }
 
   const handlePrint = () => {
