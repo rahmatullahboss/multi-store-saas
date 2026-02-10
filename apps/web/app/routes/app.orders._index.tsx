@@ -36,6 +36,7 @@ import {
   ChevronDown,
   Shield,
   PackageX,
+  MapPin,
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
@@ -71,6 +72,31 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .orderBy(desc(orders.createdAt))
     .limit(200);
 
+  // Parse shippingAddress for each order to get display-friendly address
+  const ordersWithAddress = storeOrders.map((o) => {
+    let displayAddress = '';
+    if (o.shippingAddress) {
+      try {
+        // Could be a JSON string or a plain address string
+        const parsed = typeof o.shippingAddress === 'string' && o.shippingAddress.startsWith('{')
+          ? JSON.parse(o.shippingAddress)
+          : null;
+        if (parsed && typeof parsed === 'object') {
+          // JSON object: extract address, city, district etc.
+          displayAddress = [parsed.address, parsed.city, parsed.district, parsed.upazila]
+            .filter(Boolean)
+            .join(', ');
+        } else {
+          // Plain string address
+          displayAddress = o.shippingAddress;
+        }
+      } catch {
+        displayAddress = o.shippingAddress;
+      }
+    }
+    return { ...o, displayAddress };
+  });
+
   // Calculate stats
   const stats = {
     total: storeOrders.length,
@@ -91,7 +117,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const courierProvider = themeConfig.courier?.provider || null;
 
   return json({
-    orders: storeOrders,
+    orders: ordersWithAddress,
     storeName: store.name,
     currency: store.currency || 'BDT',
     stats,
@@ -577,6 +603,12 @@ export default function DashboardOrdersPage() {
                             <Phone className="w-3 h-3" />
                             {order.customerPhone}
                           </a>
+                          {order.displayAddress && (
+                            <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5 max-w-[200px] truncate" title={order.displayAddress}>
+                              <MapPin className="w-3 h-3 flex-shrink-0" />
+                              {order.displayAddress}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -659,6 +691,12 @@ export default function DashboardOrdersPage() {
                         {order.customerName || 'Customer'}
                       </p>
                       <p className="text-xs text-gray-500">{order.customerPhone}</p>
+                      {order.displayAddress && (
+                        <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5 truncate max-w-[180px]" title={order.displayAddress}>
+                          <MapPin className="w-3 h-3 flex-shrink-0" />
+                          {order.displayAddress}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <p className="font-bold text-gray-900">{formatPrice(order.total)}</p>

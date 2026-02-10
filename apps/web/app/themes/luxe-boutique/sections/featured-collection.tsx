@@ -170,23 +170,34 @@ export default function LuxeFeaturedCollection({
             const discount = isSale
               ? Math.round((1 - product.price / product.compareAtPrice!) * 100)
               : 0;
+            const isOutOfStock = (product.inventory ?? 0) <= 0;
+
+            const Wrapper = isOutOfStock ? 'div' : 'a';
+            const wrapperProps = isOutOfStock
+              ? { key: product.id, className: 'group cursor-not-allowed' }
+              : {
+                  key: product.id,
+                  href: getLink?.(`/products/${product.id}`) || '#',
+                  className: 'group',
+                };
 
             return (
-              <a
-                key={product.id}
-                href={getLink?.(`/products/${product.id}`) || '#'}
-                className="group"
-              >
+              <Wrapper {...(wrapperProps as any)}>
                 {/* Image */}
                 <div
                   className="aspect-[3/4] overflow-hidden mb-4 relative"
-                  style={{ backgroundColor: THEME.cardBg }}
+                  style={{
+                    backgroundColor: THEME.cardBg,
+                    opacity: isOutOfStock ? 0.55 : 1,
+                  }}
                 >
                   {product.imageUrl ? (
                     <img
                       src={product.imageUrl}
                       alt={product.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      className={`w-full h-full object-cover transition-transform duration-700 ${
+                        isOutOfStock ? '' : 'group-hover:scale-105'
+                      }`}
                     />
                   ) : (
                     <div
@@ -197,8 +208,21 @@ export default function LuxeFeaturedCollection({
                     </div>
                   )}
 
+                  {/* Stock Out Badge */}
+                  {isOutOfStock && (
+                    <div
+                      className="absolute inset-x-0 bottom-0 py-2 text-center text-xs font-semibold uppercase tracking-wider"
+                      style={{
+                        backgroundColor: 'rgba(220, 38, 38, 0.9)',
+                        color: '#ffffff',
+                      }}
+                    >
+                      Stock Out
+                    </div>
+                  )}
+
                   {/* Sale Badge */}
-                  {isSale && (
+                  {isSale && !isOutOfStock && (
                     <div
                       className="absolute top-3 left-3 px-2 py-1 text-xs font-medium"
                       style={{
@@ -211,15 +235,17 @@ export default function LuxeFeaturedCollection({
                   )}
 
                   {/* Wishlist */}
-                  <button
-                    className="absolute top-3 right-3 p-2 bg-white/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                  >
-                    <Heart className="w-4 h-4" style={{ color: THEME.primary }} />
-                  </button>
+                  {!isOutOfStock && (
+                    <button
+                      className="absolute top-3 right-3 p-2 bg-white/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                    >
+                      <Heart className="w-4 h-4" style={{ color: THEME.primary }} />
+                    </button>
+                  )}
                 </div>
 
                 {/* Info */}
@@ -234,22 +260,30 @@ export default function LuxeFeaturedCollection({
                   )}
                   <h3
                     className="text-sm font-medium mb-2 line-clamp-1"
-                    style={{ color: THEME.text }}
+                    style={{ color: isOutOfStock ? THEME.muted : THEME.text }}
                   >
                     {product.title}
                   </h3>
                   <div className="flex items-center justify-center gap-2">
-                    <span className="font-semibold" style={{ color: THEME.primary }}>
-                      {formatPrice(product.price, store?.currency)}
-                    </span>
-                    {isSale && (
-                      <span className="text-sm line-through" style={{ color: THEME.muted }}>
-                        {formatPrice(product.compareAtPrice, store?.currency)}
+                    {isOutOfStock ? (
+                      <span className="text-sm font-medium text-red-600">
+                        Stock Out
                       </span>
+                    ) : (
+                      <>
+                        <span className="font-semibold" style={{ color: THEME.primary }}>
+                          {formatPrice(product.price, store?.currency)}
+                        </span>
+                        {isSale && (
+                          <span className="text-sm line-through" style={{ color: THEME.muted }}>
+                            {formatPrice(product.compareAtPrice, store?.currency)}
+                          </span>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
-              </a>
+              </Wrapper>
             );
           })}
         </div>
