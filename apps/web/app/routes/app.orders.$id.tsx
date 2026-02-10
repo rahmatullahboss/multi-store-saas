@@ -251,17 +251,28 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     let consignmentId = '';
 
     try {
-      // Parse shipping address
+      // Parse shipping address with robust fallback
       let address = '';
       let city = '';
       if (order.shippingAddress) {
-        const parsed =
-          typeof order.shippingAddress === 'string'
-            ? JSON.parse(order.shippingAddress)
-            : order.shippingAddress;
-        address = parsed.address || '';
-        city = parsed.city || '';
+        try {
+          const parsed =
+            typeof order.shippingAddress === 'string'
+              ? JSON.parse(order.shippingAddress)
+              : order.shippingAddress;
+          address = parsed.address || '';
+          city = parsed.city || parsed.district || '';
+          // Build full address from components if we have them
+          if (!address && (parsed.district || parsed.upazila)) {
+            address = [parsed.upazila, parsed.district, parsed.division].filter(Boolean).join(', ');
+          }
+        } catch {
+          // If JSON parse fails, use raw string as address
+          address = typeof order.shippingAddress === 'string' ? order.shippingAddress : '';
+        }
       }
+      // Final fallback
+      if (!address) address = 'N/A';
 
       if (provider === 'pathao' && courierSettings.pathao) {
         const { createPathaoClient } = await import('~/services/pathao.server');
@@ -277,7 +288,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           item_type: 2,
           item_quantity: 1,
           item_weight: 0.5,
-          amount_to_collect: order.total,
+          amount_to_collect: Math.round(order.total),
         });
         consignmentId = result.consignment_id;
       } else if (provider === 'redx' && courierSettings.redx) {
@@ -291,7 +302,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           delivery_area_id: 1,
           customer_address: address,
           merchant_invoice_id: order.orderNumber,
-          cash_collection_amount: order.total,
+          cash_collection_amount: Math.round(order.total),
           parcel_weight: 500,
         });
         consignmentId = result.tracking_id;
@@ -304,7 +315,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           recipient_name: order.customerName || 'Customer',
           recipient_phone: order.customerPhone || '',
           recipient_address: address,
-          cod_amount: order.total,
+          cod_amount: Math.round(order.total),
         });
         consignmentId = result.consignment_id;
       } else {
@@ -326,8 +337,9 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       return json({ success: true, consignmentId });
     } catch (error) {
       console.error('Courier booking error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Booking failed';
       return json(
-        { error: error instanceof Error ? error.message : 'Booking failed' },
+        { error: errorMessage },
         { status: 500 }
       );
     }

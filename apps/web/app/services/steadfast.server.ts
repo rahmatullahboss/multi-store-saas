@@ -12,7 +12,7 @@
  */
 
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
-import { eq, and, or, sql } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 // Types
 export interface SteadfastCredentials {
@@ -103,7 +103,7 @@ export async function checkCustomerRisk(
   const { orders } = await import('@db/schema');
   
   // Normalize phone number (remove spaces, dashes)
-  const normalizedPhone = phone.replace(/[\s\-]/g, '');
+  const normalizedPhone = phone.replace(/[\s-]/g, '');
   
   // Build query conditions
   const conditions = storeId 
@@ -224,8 +224,22 @@ export function createSteadfastClient(credentials: SteadfastCredentials) {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Steadfast API error (${response.status}): ${error}`);
+        let errorDetail = '';
+        try {
+          const errorBody = await response.json() as Record<string, unknown>;
+          // Steadfast returns field-level validation errors like: { errors: { recipient_phone: ["..."] } }
+          if (errorBody.errors && typeof errorBody.errors === 'object') {
+            const fieldErrors = Object.entries(errorBody.errors as Record<string, string[]>)
+              .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
+              .join('; ');
+            errorDetail = fieldErrors || errorBody.message as string || '';
+          } else {
+            errorDetail = (errorBody.message as string) || JSON.stringify(errorBody);
+          }
+        } catch {
+          errorDetail = await response.text().catch(() => '');
+        }
+        throw new Error(`Steadfast API error (${response.status}): ${errorDetail}`);
       }
 
       const data: T & { status?: number; message?: string } = await response.json();
