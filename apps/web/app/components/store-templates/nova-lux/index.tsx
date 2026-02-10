@@ -72,6 +72,11 @@ const NOVALUX_THEME_FOR_SHARED: StoreTemplateTheme = {
   footerText: NOVALUX_THEME.footerText,
 };
 
+// Custom Default Sections for Nova Lux (Removed Banner, Rich Text, Newsletter)
+const NOVA_LUX_DEFAULT_SECTIONS = DEFAULT_SECTIONS.filter(
+  (section) => !['banner', 'rich-text', 'newsletter'].includes(section.type)
+);
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -794,11 +799,14 @@ function LiveNovaLuxHomepage({
                 config={config}
               />
 
-              <div
-                className={`${announcement?.text ? 'h-[104px] lg:h-[120px]' : 'h-[66px] lg:h-[82px]'}`}
-              />
+              {/* Only show spacer if first section is NOT a hero */}
+              {!(config?.sections?.[0]?.type && ['hero', 'modern-hero', 'zenith-hero', 'turbo-hero', 'video', 'banner'].includes(config.sections[0].type)) && (
+                <div
+                  className={`${announcement?.text ? 'h-[104px] lg:h-[120px]' : 'h-[66px] lg:h-[82px]'}`}
+                />
+              )}
 
-              {(config?.sections?.length ? config.sections : DEFAULT_SECTIONS).map((section: SectionInstance) => {
+              {(config?.sections?.length ? config.sections : NOVA_LUX_DEFAULT_SECTIONS).map((section: SectionInstance) => {
                 const SectionComponent = SECTION_REGISTRY[section.type]?.component;
                 if (!SectionComponent) return null;
 

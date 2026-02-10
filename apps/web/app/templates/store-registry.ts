@@ -491,6 +491,11 @@ const NovaLuxUltraFooter = React.lazy(() =>
     default: m.NovaLuxUltraFooter,
   }))
 );
+const NovaLuxProductPage = React.lazy(() =>
+  import('~/components/store-templates/nova-lux/pages/ProductPage').then((m) => ({
+    default: m.NovaLuxProductPage,
+  }))
+);
 const NovaLuxUltraProductPage = React.lazy(() =>
   import('~/components/store-templates/nova-lux-ultra/pages/ProductPage').then((m) => ({
     default: m.ProductPage,
@@ -842,7 +847,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     component: NovaLuxTemplate,
     Header: NovaLuxHeader,
     Footer: NovaLuxFooter,
-    ProductPage: SharedProductPage,
+    ProductPage: NovaLuxProductPage,
     CartPage: SharedCartPage,
     CollectionPage: SharedCollectionPage,
     CheckoutPage: SharedCheckoutPage,
