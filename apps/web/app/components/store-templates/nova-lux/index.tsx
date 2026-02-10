@@ -472,7 +472,6 @@ function PreviewHomePage({
   config: ThemeConfig | null;
   onNavigate: (page: PageType) => void;
 }) {
-  const { t: _t } = useTranslation();
   const heroBehavior = getHeroBehavior(config);
   const [heroIndex, setHeroIndex] = useState(0);
   const heroSlide = heroBehavior.slides[heroIndex];

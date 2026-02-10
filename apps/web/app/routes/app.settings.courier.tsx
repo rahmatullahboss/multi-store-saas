@@ -90,7 +90,7 @@ const PathaoInputSchema = z.object({
 });
 
 type ActionResponse = 
-  | { success: true; message: string; stores?: any[]; autoSet?: boolean; createdStore?: any }
+  | { success: true; message: string; stores?: PathaoStore[]; autoSet?: boolean; createdStore?: PathaoStore }
   | { error: string };
 
 // ============================================================================
@@ -120,9 +120,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     throw new Response('Store not found', { status: 404 });
   }
 
-  const config = typeof storeResult[0].themeConfig === 'string' 
+  const config = (typeof storeResult[0].themeConfig === 'string' 
     ? JSON.parse(storeResult[0].themeConfig) 
-    : storeResult[0].themeConfig || {};
+    : storeResult[0].themeConfig || {}) as Record<string, any>;
 
   const courierSettings: CourierSettings = {
     provider: config.courier?.provider || null,
@@ -335,7 +335,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
       const selectedProvider = providerResult.data;
-      let newSettings: any = {};
+      let newSettings: Partial<CourierSettings> = {};
 
       if (selectedProvider === 'pathao') {
         const pathaoData = {
@@ -460,7 +460,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
           await logActivity(db, {
         storeId,
-        userId: await getUserId(request, context.cloudflare.env) ?? null,
+        userId: (await getUserId(request, context.cloudflare.env as Record<string, any>)) ?? null,
         action: 'settings_updated',
         entityType: 'settings',
         details: {
@@ -615,10 +615,15 @@ export default function CourierSettingsPage() {
                 <button
                   type="button"
                   onClick={() => (document.getElementById('create-store-modal') as HTMLDialogElement)?.showModal()}
-                  className="mt-2 text-xs font-medium text-white bg-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
+                  disabled={!settings.pathao?.clientId}
+                  className="mt-2 text-xs font-medium text-white bg-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={!settings.pathao?.clientId ? "Please save Pathao credentials first" : "Create a new store"}
                 >
                   Create New Store
                 </button>
+                {!settings.pathao?.clientId && (
+                     <p className="text-[10px] text-red-500 mt-1">Save credentials first to enable.</p>
+                )}
               </div>
             </div>
           </div>
@@ -911,7 +916,8 @@ function CreateStoreModal({ cities }: { cities: { city_id: number; city_name: st
 
     // Close modal on success
     useEffect(() => {
-        if (fetcher.data && (fetcher.data as any).success) {
+        const data = fetcher.data as ActionResponse | undefined;
+        if (data && 'success' in data && data.success) {
             modalRef.current?.close();
             // Reset form
             setSelectedCity(null);
@@ -939,6 +945,16 @@ function CreateStoreModal({ cities }: { cities: { city_id: number; city_name: st
                     <fetcher.Form method="post" id="create-store-form" className="space-y-4">
                         <input type="hidden" name="intent" value="create-store" />
                         
+                        {cities.length === 0 && (
+                            <div className="p-3 bg-red-50 text-red-700 text-xs rounded-lg border border-red-100 flex items-start gap-2">
+                                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-bold">Cannot load cities!</p>
+                                    <p>Please make sure you have saved valid Pathao credentials in the settings first.</p>
+                                </div>
+                            </div>
+                        )}
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Store Name</label>
                             <input type="text" name="name" required placeholder="My Awesome Store" className="w-full px-3 py-2 border rounded-lg focus:ring-emerald-500" />
