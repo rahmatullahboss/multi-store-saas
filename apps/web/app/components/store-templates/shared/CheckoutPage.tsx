@@ -499,8 +499,8 @@ export default function SharedCheckoutPage({
     formData.append('phone', phone);
     formData.append('customer_email', email);
     formData.append('address', fullAddress); // Legacy full string
-    formData.append('district', selectedDistrictId); // Structured
-    formData.append('upazila', selectedUpazilaId); // Structured
+    formData.append('district', districtName); // Human-readable name for display & courier
+    formData.append('upazila', upazilaName); // Human-readable name for display & courier
     formData.append('payment_method', paymentMethod);
     formData.append(
       'cart_items',

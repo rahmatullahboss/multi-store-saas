@@ -254,6 +254,8 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       // Parse shipping address with robust fallback
       let address = '';
       let city = '';
+      let district = '';
+      let upazila = '';
       if (order.shippingAddress) {
         try {
           const parsed =
@@ -262,6 +264,8 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
               : order.shippingAddress;
           address = parsed.address || '';
           city = parsed.city || parsed.district || '';
+          district = parsed.district || '';
+          upazila = parsed.upazila || '';
           // Build full address from components if we have them
           if (!address && (parsed.district || parsed.upazila)) {
             address = [parsed.upazila, parsed.district, parsed.division].filter(Boolean).join(', ');
@@ -289,6 +293,8 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           item_quantity: 1,
           item_weight: 0.5,
           amount_to_collect: Math.round(order.total),
+          special_instruction: [district, upazila].filter(Boolean).join(', ') || undefined,
+          item_description: `Order ${order.orderNumber}`,
         });
         consignmentId = result.consignment_id;
       } else if (provider === 'redx' && courierSettings.redx) {
