@@ -40,25 +40,25 @@ export interface PathaoZone {
 export interface PathaoArea {
   area_id: number;
   area_name: string;
+  home_delivery_available: boolean;
+  pickup_available: boolean;
 }
 
 export interface PathaoCreateOrderRequest {
   store_id: number; // Pathao store ID
   merchant_order_id: string;
-  sender_name: string;
-  sender_phone: string;
   recipient_name: string;
   recipient_phone: string;
   recipient_address: string;
-  recipient_city: number;
-  recipient_zone: number;
-  recipient_area?: number;
-  delivery_type: 48; // 48 = Normal delivery
-  item_type: 2; // 2 = Parcel
+  recipient_city?: number; // Optional — Pathao auto-resolves from address
+  recipient_zone?: number; // Optional — Pathao auto-resolves from address
+  recipient_area?: number; // Optional — Pathao auto-resolves from address
+  delivery_type: 48 | 12; // 48 = Normal, 12 = On Demand
+  item_type: 1 | 2; // 1 = Document, 2 = Parcel
   special_instruction?: string;
   item_quantity: number;
-  item_weight: number; // in kg
-  amount_to_collect: number; // COD amount
+  item_weight: number; // in kg, 0.5 to 10
+  amount_to_collect: number; // COD amount, 0 if non-COD
   item_description?: string;
 }
 
@@ -204,7 +204,7 @@ export function createPathaoClient(credentials: PathaoCredentials) {
      * Get zones for a city
      */
     async getZones(cityId: number): Promise<PathaoZone[]> {
-      const result = await apiRequest<{ data: { data: PathaoZone[] } }>(`/zone-list/${cityId}`);
+      const result = await apiRequest<{ data: { data: PathaoZone[] } }>(`/cities/${cityId}/zone-list`);
       return result.data.data;
     },
 
@@ -212,7 +212,7 @@ export function createPathaoClient(credentials: PathaoCredentials) {
      * Get areas for a zone
      */
     async getAreas(zoneId: number): Promise<PathaoArea[]> {
-      const result = await apiRequest<{ data: { data: PathaoArea[] } }>(`/area-list/${zoneId}`);
+      const result = await apiRequest<{ data: { data: PathaoArea[] } }>(`/zones/${zoneId}/area-list`);
       return result.data.data;
     },
 
@@ -239,7 +239,7 @@ export function createPathaoClient(credentials: PathaoCredentials) {
      * Get order status
      */
     async getOrderStatus(consignmentId: string): Promise<PathaoOrderStatus> {
-      const result = await apiRequest<{ data: PathaoOrderStatus }>(`/orders/${consignmentId}`);
+      const result = await apiRequest<{ data: PathaoOrderStatus }>(`/orders/${consignmentId}/info`);
       return result.data;
     },
 

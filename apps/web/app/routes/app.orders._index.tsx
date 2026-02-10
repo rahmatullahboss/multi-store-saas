@@ -168,13 +168,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         const result = await client.createOrder({
           store_id: courierSettings.pathao.defaultStoreId || 1,
           merchant_order_id: order.orderNumber,
-          sender_name: storeResultCourier[0].name || 'Merchant',
-          sender_phone: courierSettings.pathao.senderPhone || '',
           recipient_name: order.customerName || 'Customer',
           recipient_phone: order.customerPhone || '',
           recipient_address: address,
-          recipient_city: 1,
-          recipient_zone: 1,
           delivery_type: 48,
           item_type: 2,
           item_quantity: 1,
