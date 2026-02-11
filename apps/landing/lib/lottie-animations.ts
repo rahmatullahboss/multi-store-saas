@@ -45,6 +45,9 @@ export const LOTTIE_ANIMATIONS = {
   mail: '/lottie/icon-mail.json',
   phone: '/lottie/icon-phone.json',
   messageCircle: '/lottie/icon-message.json',
+  
+  // Infrastructure
+
 } as const;
 
 export type LottieAnimationKey = keyof typeof LOTTIE_ANIMATIONS;

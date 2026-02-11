@@ -1679,6 +1679,10 @@ console.error('Payment failed:', {
 ### Deployment Commands
 
 ```bash
+# Landing Site (Vercel CLI - Recommended)
+# Run from monorepo root (deploys only apps/landing)
+npm run deploy:landing
+
 # Main App (Cloudflare Pages)
 cd apps/web
 npm run build
@@ -1690,8 +1694,10 @@ wrangler deploy
 
 # Landing Site (Vercel)
 cd apps/landing
-vercel --prod
+vercel --prod --yes
 ```
+
+> **Note**: For landing deployments, always use `npm run deploy:landing` (or `vercel --cwd apps/landing --prod --yes`) to avoid deploying the monorepo root by mistake.
 
 ### Environment Variables
 

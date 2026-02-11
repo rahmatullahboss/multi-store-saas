@@ -11,7 +11,8 @@
     "turbo:lint": "turbo lint",
     "turbo:test": "turbo test",
     "turbo:typecheck": "turbo typecheck",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "deploy:landing": "vercel --cwd \"apps/landing\" --prod --yes"
   },
   "dependencies": {
     "react-is": "^18.3.1"

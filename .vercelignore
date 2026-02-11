@@ -1,0 +1,26 @@
+# Dependencies
+**/node_modules
+
+# Git and caches
+.git
+.turbo
+**/.turbo
+
+# Build outputs
+**/.next
+**/dist
+**/build
+
+# Logs and temp
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.DS_Store
+
+# Local env files
+.env
+.env.*
+!.env.example
+**/.env.local

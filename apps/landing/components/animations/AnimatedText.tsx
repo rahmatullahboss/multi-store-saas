@@ -26,7 +26,7 @@ export function AnimatedText({
 
   // If reduced motion, just show the text
   if (shouldReduceMotion) {
-    const Tag = tag as keyof JSX.IntrinsicElements;
+    const Tag = tag as keyof React.JSX.IntrinsicElements;
     return <Tag className={className}>{text}</Tag>;
   }
 

@@ -59,6 +59,8 @@ export default async function Image() {
                         color: 'transparent',
                         maxWidth: 1000,
                         lineHeight: 1.1,
+                        display: 'flex',
+                        flexDirection: 'column',
                     }}
                 >
                     Launch Your Online Store
@@ -71,6 +73,7 @@ export default async function Image() {
                         textAlign: 'center',
                         maxWidth: 900,
                         marginTop: 10,
+                        display: 'flex',
                     }}
                 >
                     Professional E-commerce Platform | No Coding Required

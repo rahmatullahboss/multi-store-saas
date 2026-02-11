@@ -13,7 +13,7 @@
 
 import { motion, useInView } from 'framer-motion';
 import { useRef, useState } from 'react';
-import type { LucideIcon } from 'lucide-react';
+import { type LucideIcon, Shield } from 'lucide-react';
 import { LottieIcon } from '@/components/ui/LottieIcon';
 import { LOTTIE_ANIMATIONS } from '@/lib/lottie-animations';
 
@@ -141,7 +141,7 @@ const BenefitCardComponent = ({ benefit, index }: BenefitCardComponentProps) => 
     lock: LOTTIE_ANIMATIONS.lock,
   };
   
-  const lottieIconSrc = iconMap[benefit.icon as string] || LOTTIE_ANIMATIONS.zap;
+  const lottieIconSrc = iconMap[benefit.icon as unknown as string] || LOTTIE_ANIMATIONS.zap;
 
   return (
     <motion.div
