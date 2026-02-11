@@ -149,13 +149,17 @@ export function getCustomerSessionStorage(env: Env) {
     console.warn('[customer-auth] SESSION_SECRET missing; using ephemeral fallback (non-production)');
   }
 
+  // Use crypto.randomUUID() for ephemeral fallback — unpredictable per-worker-instance,
+  // unlike a hardcoded string which would be visible in source code.
+  const ephemeralFallback = crypto.randomUUID();
+
   return createCookieSessionStorage<CustomerSessionData, CustomerSessionFlashData>({
     cookie: {
       name: '__customer_session',
       httpOnly: true,
       path: '/',
       sameSite: 'lax', // Lax is better for top-level redirects
-      secrets: [sessionSecret || 'dev-unsafe-session-secret'],
+      secrets: [sessionSecret || ephemeralFallback],
       secure: envName === 'production', // Only secure in production
       maxAge: 60 * 60 * 24 * 30, // 30 days for customer sessions
     },

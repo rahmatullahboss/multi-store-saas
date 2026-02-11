@@ -6,7 +6,7 @@
  */
 
 import { Context, MiddlewareHandler } from 'hono';
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, and, isNull, asc } from 'drizzle-orm';
 import { stores, type Store } from '@db/schema';
 import { D1Cache } from '../../app/services/cache-layer.server';
 import { createDb } from '../../app/lib/db.server';
@@ -214,6 +214,7 @@ export const tenantMiddleware = <
         .select()
         .from(stores)
         .where(and(eq(stores.isActive, true), isNull(stores.deletedAt)))
+        .orderBy(asc(stores.id))
         .limit(1);
 
       const store = defaultStore[0];

@@ -397,7 +397,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
               },
               {
                 headers: {
-                  'x-order-id': String(existingOrder[0].id),
+                  'x-order-number': existingOrder[0].orderNumber,
                 },
               }
             );
@@ -635,7 +635,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
               },
               {
                 headers: {
-                  'x-order-id': String(existingOrder[0].id),
+                  'x-order-number': existingOrder[0].orderNumber,
                 },
               }
             );
@@ -1713,7 +1713,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       },
       {
         headers: {
-          'x-order-id': String(orderId),
+          'x-order-number': orderNumber,
         },
       }
     );

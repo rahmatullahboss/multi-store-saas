@@ -28,6 +28,9 @@ npm-debug.log*
 # Test coverage
 coverage/
 
+# Test output
+test_output.txt
+
 # Playwright
 playwright-report/
 test-results/

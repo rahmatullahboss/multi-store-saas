@@ -83,6 +83,7 @@ import { DISTRICTS, UPAZILAS, getShippingZone } from '~/data/bd-locations';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Loader2, ArrowLeft, ShoppingBag, ShieldCheck, Truck, CheckCircle } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
+import type { CustomerAddress } from '~/services/customer-account.server';
 import { resolveTemplate } from '~/lib/template-resolver.server';
 import { toast } from 'sonner';
 import { validateDiscount } from '~/../server/services/discount.service';
@@ -202,7 +203,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const customer = await getCustomer(request, cloudflare.env, cloudflare.env.DB);
 
   // Fetch customer addresses if logged in
-  let customerAddresses = [];
+  let customerAddresses: CustomerAddress[] = [];
   if (customer) {
     const { getCustomerAddresses } = await import('~/services/customer-account.server');
     customerAddresses = await getCustomerAddresses(customer.id, db);
@@ -339,7 +340,7 @@ export default function Checkout() {
       // If customer has saved addresses, use the default one
       if (customer.addresses && customer.addresses.length > 0) {
         const defaultAddress =
-          customer.addresses.find((addr: any) => addr.isDefault) || customer.addresses[0];
+          customer.addresses.find((addr: CustomerAddress) => addr.isDefault) || customer.addresses[0];
         if (defaultAddress) {
           if (defaultAddress.address1) setAddress(defaultAddress.address1);
           if (defaultAddress.phone && !customer.phone) setPhone(defaultAddress.phone);

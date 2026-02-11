@@ -109,6 +109,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'সঠিক নাম দিন (কমপক্ষে ২ অক্ষর)' }, { status: 400 });
   }
 
+  // Validate normalized phone length (BD numbers should be 11 digits: 01XXXXXXXXX)
+  if (!/^0\d{10}$/.test(normalizedPhone)) {
+    return json({ error: 'সঠিক ১১ সংখ্যার মোবাইল নম্বর দিন (01XXXXXXXXX)' }, { status: 400 });
+  }
+
   const db = drizzle(env.DB);
 
   // Get customer's store ID first
@@ -144,7 +149,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         phone: normalizedPhone,
         updatedAt: new Date(),
       })
-      .where(eq(customers.id, customerId));
+      .where(and(eq(customers.id, customerId), eq(customers.storeId, storeId)));
 
     return redirect('/account');
   } catch (error) {

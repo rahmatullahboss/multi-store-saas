@@ -317,13 +317,16 @@ app.use('*', async (c, next) => {
   const cfRay = c.req.header('cf-ray') || undefined;
 
   // Prefer explicit header from app code; fall back to path/query parsing.
+  // Public API uses x-order-number (safe), admin routes still use x-order-id (internal).
+  const orderNumberHeader = c.res.headers.get('x-order-number') || undefined;
   const orderIdHeader = c.res.headers.get('x-order-id') || undefined;
   const orderIdQuery = url.searchParams.get('orderId') || undefined;
   const orderIdPathMatch = url.pathname.match(/\/orders\/(\d+)(?:\/|$)/);
   const orderIdPath = orderIdPathMatch?.[1];
-  const orderId = orderIdHeader || orderIdQuery || orderIdPath || undefined;
+  const orderId = orderNumberHeader || orderIdHeader || orderIdQuery || orderIdPath || undefined;
 
   // Keep logs machine-readable and low-PII (no cookies, no query strings).
+  // Use waitUntil to defer log emission so it doesn't block the response.
   const log = {
     ts: new Date().toISOString(),
     level: 'info',
@@ -339,7 +342,9 @@ app.use('*', async (c, next) => {
     cf_ray: cfRay,
   };
 
-  console.log(JSON.stringify(log));
+  c.executionCtx.waitUntil(
+    Promise.resolve().then(() => console.log(JSON.stringify(log)))
+  );
 });
 
 // ============================================================================
