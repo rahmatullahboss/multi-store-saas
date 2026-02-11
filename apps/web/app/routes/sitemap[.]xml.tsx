@@ -126,3 +126,6 @@ ${urls.join('\n')}
     },
   });
 }
+
+
+export default function() {}

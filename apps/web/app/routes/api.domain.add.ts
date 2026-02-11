@@ -170,3 +170,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export async function loader() {
   return json({ error: 'Use POST to add a domain' }, { status: 405 });
 }
+
+
+export default function() {}

@@ -32,3 +32,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'Failed to subscribe. Please try again.' }, { status: 500 });
   }
 }
+
+
+export default function() {}

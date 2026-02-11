@@ -33,3 +33,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     data: results,
   });
 }
+
+
+export default function() {}

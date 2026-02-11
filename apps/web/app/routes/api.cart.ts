@@ -766,3 +766,6 @@ function getVisitorId(request: Request): string {
   // Generate new visitor ID
   return crypto.randomUUID();
 }
+
+
+export default function() {}

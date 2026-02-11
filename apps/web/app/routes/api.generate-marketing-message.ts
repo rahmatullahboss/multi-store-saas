@@ -153,3 +153,5 @@ Write only the message, no explanations.`;
     );
   }
 }
+
+export default function () {}

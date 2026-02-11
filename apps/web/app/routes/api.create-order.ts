@@ -1793,3 +1793,6 @@ export async function loader() {
     note: 'Either product_id (single item) OR cart_items (multi-item) must be provided, not both.',
   });
 }
+
+
+export default function() {}

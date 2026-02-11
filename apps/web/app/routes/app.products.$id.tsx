@@ -129,6 +129,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   // Handle UPDATE
   const title = formData.get('title') as string;
   const price = formData.get('price') as string;
+  const compareAtPrice = formData.get('compareAtPrice') as string;
   const stock = formData.get('stock') as string;
   const category = formData.get('category') as string;
   const description = formData.get('description') as string;
@@ -156,6 +157,15 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   }
   if (!price || isNaN(parseFloat(price)) || parseFloat(price) < 0) {
     errors.price = 'Valid price is required';
+  }
+  if (compareAtPrice && compareAtPrice.trim()) {
+    const comparePrice = parseFloat(compareAtPrice);
+    const sellingPrice = parseFloat(price);
+    if (isNaN(comparePrice) || comparePrice < 0) {
+      errors.compareAtPrice = 'Valid compare-at price is required';
+    } else if (comparePrice < sellingPrice) {
+      errors.compareAtPrice = 'Original price must be greater than or equal to selling price';
+    }
   }
   if (!stock || isNaN(parseInt(stock)) || parseInt(stock) < 0) {
     errors.stock = 'Valid stock quantity is required';
@@ -209,6 +219,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     .set({
       title: title.trim(),
       price: toCents(parseFloat(price)),
+      compareAtPrice: compareAtPrice && compareAtPrice.trim() ? toCents(parseFloat(compareAtPrice)) : null,
       inventory: newInventory,
       category: category?.trim() || null,
       description: description?.trim() || null,
@@ -370,6 +381,9 @@ export default function EditProductPage() {
   // Track form values for change detection
   const [formTitle, setFormTitle] = useState<string>(product.title || '');
   const [formPrice, setFormPrice] = useState<string>(String(fromCents(product.price || 0)));
+  const [formCompareAtPrice, setFormCompareAtPrice] = useState<string>(
+    product.compareAtPrice ? String(fromCents(product.compareAtPrice)) : ''
+  );
   const [formDescription, setFormDescription] = useState<string>(product.description || '');
   const [formStock, setFormStock] = useState<string>(String(product.inventory ?? 0));
 
@@ -650,11 +664,11 @@ export default function EditProductPage() {
               )}
           </div>
 
-          {/* Price & Stock Row */}
+          {/* Price Row - Selling Price & Original Price */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-                Price <span className="text-red-500">*</span>
+                {t('sellingPrice', 'Selling Price')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
@@ -675,26 +689,56 @@ export default function EditProductPage() {
                 )}
             </div>
             <div>
-              <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
-                Stock <span className="text-red-500">*</span>
+              <label htmlFor="compareAtPrice" className="block text-sm font-medium text-gray-700 mb-1">
+                {t('originalPrice', 'Original Price')} <span className="text-gray-400 text-xs">({t('optional', 'Optional')})</span>
               </label>
               <input
                 type="number"
-                id="stock"
-                name="stock"
+                id="compareAtPrice"
+                name="compareAtPrice"
+                step="0.01"
                 min="0"
-                value={formStock}
-                onChange={(e) => setFormStock(e.target.value)}
+                value={formCompareAtPrice}
+                onChange={(e) => setFormCompareAtPrice(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                placeholder="0.00"
               />
               {actionData &&
                 'errors' in actionData &&
-                (actionData.errors as Record<string, string>)?.stock && (
+                (actionData.errors as Record<string, string>)?.compareAtPrice && (
                   <p className="text-red-500 text-sm mt-1">
-                    {(actionData.errors as Record<string, string>).stock}
+                    {(actionData.errors as Record<string, string>).compareAtPrice}
                   </p>
                 )}
+              {formPrice && formCompareAtPrice && parseFloat(formCompareAtPrice) > parseFloat(formPrice) && (
+                <p className="text-emerald-600 text-xs mt-1">
+                  💰 {Math.round(((parseFloat(formCompareAtPrice) - parseFloat(formPrice)) / parseFloat(formCompareAtPrice)) * 100)}% {t('off', 'OFF')}
+                </p>
+              )}
             </div>
+          </div>
+
+          {/* Stock */}
+          <div>
+            <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
+              Stock <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              id="stock"
+              name="stock"
+              min="0"
+              value={formStock}
+              onChange={(e) => setFormStock(e.target.value)}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+            />
+            {actionData &&
+              'errors' in actionData &&
+              (actionData.errors as Record<string, string>)?.stock && (
+                <p className="text-red-500 text-sm mt-1">
+                  {(actionData.errors as Record<string, string>).stock}
+                </p>
+              )}
           </div>
 
           {/* Category */}

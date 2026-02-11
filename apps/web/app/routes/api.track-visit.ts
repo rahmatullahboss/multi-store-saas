@@ -160,3 +160,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export function loader() {
   return json({ error: 'Method not allowed' }, { status: 405 });
 }
+
+
+export default function() {}

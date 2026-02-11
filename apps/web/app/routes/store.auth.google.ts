@@ -112,3 +112,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Redirect to Google
   return redirect(googleAuthUrl.toString());
 }
+
+
+export default function() {}

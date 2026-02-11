@@ -54,3 +54,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'Failed to publish theme' }, { status: 500 });
   }
 }
+
+
+export default function() {}

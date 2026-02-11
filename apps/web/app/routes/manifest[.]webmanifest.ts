@@ -46,3 +46,6 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
     }
   );
 };
+
+
+export default function() {}

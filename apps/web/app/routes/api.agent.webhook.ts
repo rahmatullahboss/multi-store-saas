@@ -243,3 +243,6 @@ async function sendMessengerMessage(recipientId: string, text: string, token: st
         console.error('Messenger Send Failed', await response.text());
     }
 }
+
+
+export default function() {}

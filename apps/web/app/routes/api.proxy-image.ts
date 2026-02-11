@@ -62,3 +62,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return new Response('Failed to proxy image', { status: 500 });
   }
 }
+
+
+export default function() {}

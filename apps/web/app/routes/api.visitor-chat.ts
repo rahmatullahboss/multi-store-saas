@@ -33,3 +33,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
   Object.entries(corsHeaders).forEach(([key, value]) => headers.set(key, value));
   return new Response(response.body, { status: response.status, headers });
 }
+
+
+export default function() {}

@@ -131,7 +131,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return handleAgentChatAction({ request: nextRequest, context } as ActionFunctionArgs);
     }
 
-    default:
       return json({ error: 'Unsupported channel' }, { status: 400 });
   }
 }
+
+export default function () {}

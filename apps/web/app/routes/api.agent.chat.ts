@@ -20,3 +20,6 @@ export async function action({ request }: ActionFunctionArgs) {
 
   return upstream;
 }
+
+
+export default function() {}

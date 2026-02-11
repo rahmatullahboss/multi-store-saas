@@ -5,7 +5,7 @@
  * Includes stats, profile updates, address management, and order history.
  */
 
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, count } from 'drizzle-orm';
 import { type DrizzleD1Database } from 'drizzle-orm/d1';
 import * as schema from '@db/schema';
 import { customers, orders, customerAddresses, wishlists, wishlistItems, products, discounts, shipments, orderItems } from '@db/schema';
@@ -112,6 +112,119 @@ export async function getCustomerOrders(
 
   return customerOrders;
 }
+
+export async function getCustomerOrdersWithItems(
+  customerId: number,
+  storeId: number,
+  db: StoreDB,
+  page: number = 1,
+  limit: number = 10,
+  status?: string
+) {
+  const offset = (page - 1) * limit;
+
+  // Filter conditions
+  const whereClause = and(
+    eq(orders.customerId, customerId),
+    eq(orders.storeId, storeId),
+    status && status !== 'all' ? eq(orders.status, status as 'pending') : undefined
+  );
+
+  // Get total count for pagination
+  const [totalResult] = await db
+    .select({ count: count() })
+    .from(orders)
+    .where(whereClause);
+  
+  const total = totalResult?.count || 0;
+  const totalPages = Math.ceil(total / limit);
+
+  // Get orders
+  const customerOrders = await db
+    .select()
+    .from(orders)
+    .where(whereClause)
+    .orderBy(desc(orders.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  // Attach items to orders
+  const ordersWithItems = await Promise.all(
+    customerOrders.map(async (order) => {
+      const items = await db
+        .select({
+          id: orderItems.id,
+          title: orderItems.title,
+          quantity: orderItems.quantity,
+          variantTitle: orderItems.variantTitle,
+          price: orderItems.price,
+          productId: orderItems.productId,
+          image: products.imageUrl,
+        })
+        .from(orderItems)
+        .leftJoin(products, eq(orderItems.productId, products.id))
+        .where(eq(orderItems.orderId, order.id));
+
+      return {
+        ...order,
+        items,
+      };
+    })
+  );
+
+  return {
+    orders: ordersWithItems,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+    }
+  };
+}
+
+export type OrderWithItems = Awaited<ReturnType<typeof getCustomerOrdersWithItems>>['orders'][number];
+
+export async function getCustomerRecentOrdersWithImages(
+  customerId: number,
+  storeId: number,
+  db: StoreDB,
+  limit: number = 5
+) {
+  // Get orders first
+  const recentOrders = await db
+    .select()
+    .from(orders)
+    .where(and(eq(orders.customerId, customerId), eq(orders.storeId, storeId)))
+    .orderBy(desc(orders.createdAt))
+    .limit(limit);
+
+  if (recentOrders.length === 0) return [];
+
+  // For each order, get the first item's product image
+  const ordersWithImages = await Promise.all(
+    recentOrders.map(async (order) => {
+      const firstItem = await db
+        .select({
+          imageUrl: products.imageUrl,
+          title: products.title
+        })
+        .from(orderItems)
+        .leftJoin(products, eq(orderItems.productId, products.id))
+        .where(eq(orderItems.orderId, order.id))
+        .limit(1);
+
+      return {
+        ...order,
+        firstItem: firstItem[0] || null,
+      };
+    })
+  );
+
+  return ordersWithImages;
+}
+
+export type OrderWithImage = Awaited<ReturnType<typeof getCustomerRecentOrdersWithImages>>[number];
 
 export async function getCustomerOrderById(
   orderId: number,

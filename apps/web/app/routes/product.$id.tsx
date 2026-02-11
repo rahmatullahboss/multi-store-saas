@@ -9,3 +9,6 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   const productId = params.id;
   return redirect(`/products/${productId}`, 301);
 };
+
+
+export default function() {}

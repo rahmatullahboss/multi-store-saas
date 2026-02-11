@@ -124,3 +124,6 @@ export async function action({ context, request }: ActionFunctionArgs) {
     );
   }
 }
+
+
+export default function() {}

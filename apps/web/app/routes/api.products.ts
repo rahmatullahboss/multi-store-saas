@@ -37,3 +37,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   return json({ products: storeProducts });
 }
+
+
+export default function() {}

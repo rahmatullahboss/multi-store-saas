@@ -236,3 +236,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return redirect(`${originUrl}?error=oauth_failed`);
   }
 }
+
+
+export default function() {}

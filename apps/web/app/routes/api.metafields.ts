@@ -249,3 +249,6 @@ export const action: ActionFunction = async ({ request, context }) => {
 
   return json({ success: true, id, message: 'Metafield created' });
 };
+
+
+export default function() {}

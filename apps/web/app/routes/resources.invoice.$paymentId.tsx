@@ -80,3 +80,6 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     },
   });
 }
+
+
+export default function() {}

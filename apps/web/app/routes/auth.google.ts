@@ -33,3 +33,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // This will redirect the user to Google
   return await authenticator.authenticate('google', request);
 }
+
+
+export default function() {}

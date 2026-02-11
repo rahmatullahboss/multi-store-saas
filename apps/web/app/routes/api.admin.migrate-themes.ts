@@ -293,3 +293,6 @@ export const action: ActionFunction = async ({ request, context }) => {
     }, { status: 500 });
   }
 };
+
+
+export default function() {}

@@ -49,3 +49,5 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
   return json({ messages: conversationMessages });
 }
+
+export default function () {}

@@ -34,3 +34,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     results
   });
 }
+
+
+export default function() {}

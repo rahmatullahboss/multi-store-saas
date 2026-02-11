@@ -85,3 +85,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return json({ success: false, error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+
+export default function() {}

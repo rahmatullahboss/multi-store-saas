@@ -27,3 +27,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export async function loader() {
   return redirect('/admin');
 }
+
+
+export default function() {}

@@ -212,3 +212,6 @@ export async function loader() {
     required_fields: ['token'],
   });
 }
+
+
+export default function() {}

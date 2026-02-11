@@ -66,3 +66,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   return json({ success: true, context: storeContext, products: storeProducts });
 }
+
+
+export default function() {}

@@ -182,3 +182,6 @@ export const action: ActionFunction = async ({ request, context }) => {
     throw error;
   }
 };
+
+
+export default function() {}

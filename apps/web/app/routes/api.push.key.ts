@@ -7,3 +7,6 @@ export const loader = async ({ context }: LoaderFunctionArgs) => {
   }
   return json({ publicKey });
 };
+
+
+export default function() {}

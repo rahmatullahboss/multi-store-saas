@@ -190,3 +190,6 @@ export async function loader() {
     optional_fields: ['customer_name', 'customer_email', 'customer_phone', 'quantity', 'variant_id'],
   });
 }
+
+
+export default function() {}

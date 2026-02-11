@@ -778,25 +778,34 @@ const SectionComponent = registry['hero-banner'].component;
 />
 ```
 
-### Registered Themes
+### Active Themes (Production)
 
-| Theme ID         | Description           | Sections      |
-| ---------------- | --------------------- | ------------- |
-| `starter-store`  | Default minimal store | 8 sections    |
-| `daraz`          | Marketplace style     | 6 sections    |
-| `bdshop`         | BDShop variant        | Extends daraz |
-| `ghorer-bazar`   | Grocery store         | Extends daraz |
-| `luxe-boutique`  | Luxury boutique       | 5 sections    |
-| `tech-modern`    | Tech/gadget store     | 5 sections    |
-| `aurora-minimal` | Minimal aesthetic     | 4 sections    |
-| `nova-lux`       | High-end fashion      | 6 sections    |
-| `eclipse`        | Dark mode theme       | 5 sections    |
-| `artisan-market` | Handmade/crafts       | 5 sections    |
-| `freshness`      | Grocery/organic       | 6 sections    |
-| `rovo`           | High-fashion          | 5 sections    |
-| `sokol`          | Dark/contrast         | 5 sections    |
-| `turbo-sale`     | Dropshipping          | 6 sections    |
-| `zenith-rise`    | SaaS/Digital          | 6 sections    |
+> **⚠️ IMPORTANT**: Only these 3 themes are currently active and tested for production use.
+
+| Theme ID         | Description           | Sections      | Status        |
+| ---------------- | --------------------- | ------------- | ------------- |
+| `starter-store`  | Default minimal store | 8 sections    | ✅ Active     |
+| `luxe-boutique`  | Luxury boutique       | 5 sections    | ✅ Active     |
+| `nova-lux`       | High-end fashion      | 6 sections    | ✅ Active     |
+
+### Available Themes (Development/Future)
+
+> **Note**: These themes exist in the codebase but are not currently active in production. They may require updates and testing.
+
+| Theme ID         | Description           | Sections      | Status        |
+| ---------------- | --------------------- | ------------- | ------------- |
+| `daraz`          | Marketplace style     | 6 sections    | 🔵 Inactive   |
+| `bdshop`         | BDShop variant        | Extends daraz | 🔵 Inactive   |
+| `ghorer-bazar`   | Grocery store         | Extends daraz | 🔵 Inactive   |
+| `tech-modern`    | Tech/gadget store     | 5 sections    | 🔵 Inactive   |
+| `aurora-minimal` | Minimal aesthetic     | 4 sections    | 🔵 Inactive   |
+| `eclipse`        | Dark mode theme       | 5 sections    | 🔵 Inactive   |
+| `artisan-market` | Handmade/crafts       | 5 sections    | 🔵 Inactive   |
+| `freshness`      | Grocery/organic       | 6 sections    | 🔵 Inactive   |
+| `rovo`           | High-fashion          | 5 sections    | 🔵 Inactive   |
+| `sokol`          | Dark/contrast         | 5 sections    | 🔵 Inactive   |
+| `turbo-sale`     | Dropshipping          | 6 sections    | 🔵 Inactive   |
+| `zenith-rise`    | SaaS/Digital          | 6 sections    | 🔵 Inactive   |
 
 ### Agent Rules for Theme System
 
@@ -1185,15 +1194,15 @@ await saveTemplateToShopifySystem(db, storeId, defaultTemplate);
 - [ ] Test all 5 MVP themes with custom colors
 - [ ] Document merchant-facing settings page
 
-### Active MVP Themes
+### Active Production Themes
 
-| Theme           | Primary              | Accent              | Best For          |
-| --------------- | -------------------- | ------------------- | ----------------- |
-| `starter-store` | #4F46E5 (Indigo)     | #F59E0B (Amber)     | General purpose   |
-| `ghorer-bazar`  | #fc8934 (Orange)     | #e53935 (Red)       | Grocery/Food      |
-| `luxe-boutique` | #1a1a1a (Black)      | #c9a961 (Gold)      | Fashion/Luxury    |
-| `nova-lux`      | #1C1C1E (Charcoal)   | #C4A35A (Rose Gold) | Premium lifestyle |
-| `tech-modern`   | #0f172a (Dark Slate) | #3b82f6 (Blue)      | Electronics       |
+> **Current Active Themes**: Only these 3 themes are live and tested for production.
+
+| Theme           | Primary              | Accent              | Best For          | Features                    |
+| --------------- | -------------------- | ------------------- | ----------------- | --------------------------- |
+| `starter-store` | #4F46E5 (Indigo)     | #F59E0B (Amber)     | General purpose   | ✅ Discount pricing, 8 sections |
+| `luxe-boutique` | #1a1a1a (Black)      | #c9a961 (Gold)      | Fashion/Luxury    | ✅ Discount pricing, 5 sections |
+| `nova-lux`      | #1C1C1E (Charcoal)   | #C4A35A (Rose Gold) | Premium lifestyle | ✅ Discount pricing, 6 sections |
 
 ---
 

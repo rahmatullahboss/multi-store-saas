@@ -27,5 +27,11 @@
   "transactionId": "Transaction ID",
   "unsubscribe": "Unsubscribe",
   "unsubscribed": "Unsubscribed",
-  "youAreOffline": "You are offline"
+  "youAreOffline": "You are offline",
+  "compareAtPrice": "Compare at Price",
+  "originalPrice": "Original Price",
+  "sellingPrice": "Selling Price",
+  "discountPercentage": "Discount",
+  "saveAmount": "Save",
+  "off": "OFF"
 }

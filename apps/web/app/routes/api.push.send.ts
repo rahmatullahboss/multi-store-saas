@@ -57,3 +57,6 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     return json({ error: 'Failed to send push notification' }, { status: 500 });
   }
 };
+
+
+export default function() {}

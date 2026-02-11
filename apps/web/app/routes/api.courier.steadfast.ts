@@ -365,3 +365,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   return json({ error: 'Invalid intent' }, { status: 400 });
 }
+
+
+export default function() {}

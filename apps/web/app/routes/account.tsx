@@ -1,5 +1,5 @@
 import { json, redirect, type LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { Outlet, useLoaderData, useLocation, Link } from '@remix-run/react';
+import { Outlet, useLoaderData, useLocation } from '@remix-run/react';
 import { resolveStore } from '~/lib/store.server';
 import { getCustomerId } from '~/services/customer-auth.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
@@ -8,13 +8,13 @@ import { AccountSidebar } from '~/components/account/AccountSidebar';
 import { parseThemeConfig, parseSocialLinks } from '@db/types';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
-import { getWishlistCount, getAvailableCouponsCount } from '~/services/customer-account.server';
+import { getWishlistCount, getAvailableCouponsCount, getCustomerProfile } from '~/services/customer-account.server';
 import { products as productsTable } from '@db/schema';
 import { desc, eq, and } from 'drizzle-orm';
-import { Menu, Home, ChevronRight } from 'lucide-react';
+import { Menu, Search, Bell, User } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Button } from '~/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '~/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger } from '~/components/ui/sheet';
 
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -73,9 +73,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   // 6. Get Counts for Sidebar (lightweight — only selects IDs)
-  const [wishlistCount, couponsCount] = await Promise.all([
+  // Also get Customer Profile for Sidebar
+  const [wishlistCount, couponsCount, customerProfile] = await Promise.all([
     getWishlistCount(customerId, store.id, db),
-    getAvailableCouponsCount(store.id, db)
+    getAvailableCouponsCount(store.id, db),
+    getCustomerProfile(customerId, store.id, db)
   ]);
 
   return json({
@@ -86,7 +88,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     socialLinks,
     businessInfo,
     categories,
-    user: { name: 'Customer' }, // Placeholder
+    user: customerProfile || { name: 'Guest' }, // Use real profile
     counts: {
       wishlist: wishlistCount,
       coupons: couponsCount
@@ -95,7 +97,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export default function AccountLayout() {
-  const { store, theme, templateId, socialLinks, businessInfo, categories, themeConfig } =
+  const { store, theme, templateId, socialLinks, businessInfo, categories, themeConfig, user } =
     useLoaderData<typeof loader>();
   const location = useLocation();
   const { t } = useTranslation();
@@ -105,35 +107,6 @@ export default function AccountLayout() {
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
-
-  // Breadcrumbs generator
-  const getBreadcrumbs = () => {
-    const paths = location.pathname.split('/').filter(Boolean);
-    // paths[0] is 'account'
-    const currentSection = paths[1];
-    
-    let sectionName = t('accountOverview') || 'Overview';
-    if (currentSection === 'orders') sectionName = t('orders') || 'Orders';
-    if (currentSection === 'addresses') sectionName = t('addresses') || 'Addresses';
-    if (currentSection === 'profile') sectionName = t('profile') || 'Profile';
-    
-    return (
-      <nav className="flex items-center text-sm text-muted-foreground mb-6 overflow-x-auto whitespace-nowrap pb-2">
-        <Link to="/" className="hover:text-primary transition-colors flex items-center gap-1">
-          <Home className="w-3.5 h-3.5" />
-          <span>{t('home') || 'Home'}</span>
-        </Link>
-        <ChevronRight className="w-4 h-4 mx-2 opacity-50 flex-shrink-0" />
-        <span className="font-medium text-foreground">{t('myAccount') || 'My Account'}</span>
-        {currentSection && (
-          <>
-            <ChevronRight className="w-4 h-4 mx-2 opacity-50 flex-shrink-0" />
-            <span className="font-medium text-foreground capitalize">{sectionName}</span>
-          </>
-        )}
-      </nav>
-    );
-  };
 
   return (
     <StorePageWrapper
@@ -147,62 +120,67 @@ export default function AccountLayout() {
       businessInfo={businessInfo}
       categories={categories}
       config={themeConfig}
+      hideHeaderFooter={true} // We are building a custom dashboard layout
     >
-      <div className="min-h-screen bg-gray-50/50 dark:bg-gray-950/50">
-        {/* Account Header Background acting as a subtle hero */}
-        <div className="h-48 md:h-64 bg-gradient-to-r from-[--color-primary] to-[--color-accent] opacity-10 absolute top-0 left-0 right-0 z-0" />
+      <div className="flex min-h-screen bg-slate-50 text-slate-800 transition-colors duration-200 font-display">
+        
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block fixed h-full z-20">
+          <AccountSidebar user={user} />
+        </div>
 
-        <div className="container-store relative z-10 py-8 md:py-12">
-          {getBreadcrumbs()}
-
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Mobile Navigation Trigger */}
-            <div className="lg:hidden flex justify-between items-center bg-card border rounded-xl p-4 shadow-sm mb-4">
-              <span className="font-semibold">{t('accountMenu') || 'Account Menu'}</span>
+        {/* Main Content */}
+        <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
+          
+          {/* Top Header */}
+          <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-10 transition-colors">
+            {/* Mobile Menu Trigger */}
+            <div className="lg:hidden">
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Menu className="h-4 w-4" />
-                    {t('menu') || 'Menu'}
+                  <Button variant="ghost" size="icon" className="text-slate-600 dark:text-slate-300">
+                    <Menu className="h-6 w-6" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-[80vw] sm:w-[350px] p-0">
-                  <SheetHeader className="p-6 border-b text-left">
-                    <SheetTitle>{t('myAccount') || 'My Account'}</SheetTitle>
-                  </SheetHeader>
-                  <div className="p-4">
-                    <AccountSidebar />
-                  </div>
+                <SheetContent side="left" className="p-0 w-64 border-r border-slate-200 dark:border-slate-700">
+                  <AccountSidebar user={user} />
                 </SheetContent>
               </Sheet>
             </div>
 
-            {/* Desktop Sidebar */}
-            <aside className="hidden lg:block w-72 flex-shrink-0">
-              <div className="sticky top-24 space-y-6">
-                {/* User Snapshot Card */}
-                <div className="rounded-2xl border bg-card/50 backdrop-blur-xl shadow-sm p-6 text-center">
-                   <div className="w-20 h-20 mx-auto rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-2xl mb-4">
-                     {/* Initials could ideally come from user data */}
-                     {(t('customer') || 'C').charAt(0)}
-                   </div>
-                   <h3 className="font-bold text-lg">{t('welcomeBack') || 'Welcome Back'}</h3>
-                   <p className="text-sm text-muted-foreground mt-1">{t('manageYourAccount') || 'Manage your account'}</p>
-                </div>
+            {/* Search Bar */}
+            <div className="hidden md:flex items-center bg-slate-50 dark:bg-slate-700 rounded-lg px-4 py-2 w-96 border border-slate-200 dark:border-slate-600 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
+              <Search className="h-5 w-5 text-slate-400" />
+              <input 
+                className="bg-transparent border-none outline-none text-sm w-full ml-3 text-slate-700 dark:text-slate-200 placeholder-slate-400" 
+                placeholder={t('searchProducts') || "Search products..."} 
+                type="text" 
+              />
+            </div>
 
-                <div className="rounded-2xl border bg-card/50 backdrop-blur-xl shadow-sm overflow-hidden">
-                  <AccountSidebar />
+            {/* Right Actions */}
+            <div className="flex items-center gap-4 ml-auto">
+              <button className="relative p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
+                <Bell className="h-6 w-6" />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-slate-800"></span>
+              </button>
+              
+              <div className="flex items-center gap-3 border-l border-slate-200 dark:border-slate-600 pl-4">
+                <div className="text-right hidden md:block">
+                  <p className="text-sm font-semibold text-slate-800 dark:text-white capitalize">{user.name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{user.loyaltyTier || 'Member'}</p>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center overflow-hidden border-2 border-white dark:border-slate-700 shadow-sm text-slate-500 dark:text-slate-300">
+                  <User className="h-6 w-6" />
                 </div>
               </div>
-            </aside>
+            </div>
+          </header>
 
-            {/* Main Content Area */}
-            <main className="flex-1 min-w-0">
-              <div className="bg-card/80 backdrop-blur-xl rounded-2xl border shadow-sm p-5 md:p-8 min-h-[500px] animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <Outlet />
-              </div>
-            </main>
-          </div>
+          {/* Page Content */}
+          <main className="p-6 md:p-8 max-w-7xl mx-auto w-full">
+            <Outlet />
+          </main>
         </div>
       </div>
     </StorePageWrapper>

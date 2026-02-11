@@ -10,3 +10,6 @@ import { redirect } from '@remix-run/cloudflare';
 export async function loader({ request }: LoaderFunctionArgs) {
   return redirect('/app/dashboard');
 }
+
+
+export default function() {}

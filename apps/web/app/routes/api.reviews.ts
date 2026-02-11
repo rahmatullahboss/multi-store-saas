@@ -151,3 +151,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
   
   return json({ error: 'Method not allowed' }, { status: 405 });
 }
+
+
+export default function() {}

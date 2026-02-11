@@ -481,3 +481,6 @@ Verify: "Am I ONLY touching targetId ${selectedComponent.id}?"`;
     );
   }
 }
+
+
+export default function() {}

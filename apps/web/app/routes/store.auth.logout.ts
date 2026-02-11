@@ -38,3 +38,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   return logoutCustomer(request, redirectUrl, env);
 }
+
+
+export default function() {}

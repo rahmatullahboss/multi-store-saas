@@ -194,3 +194,5 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     }, { status: 500 });
   }
 }
+
+export default function () {}

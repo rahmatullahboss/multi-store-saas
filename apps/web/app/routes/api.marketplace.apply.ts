@@ -59,3 +59,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'Failed to apply theme' }, { status: 500 });
   }
 }
+
+
+export default function() {}

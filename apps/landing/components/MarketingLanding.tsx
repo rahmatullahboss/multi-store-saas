@@ -195,6 +195,13 @@ const CustomerExperienceSection = dynamic(
     })),
   { loading: () => <SectionSkeleton />, ssr: false }
 );
+const CustomerBenefitsSection = dynamic(
+  () =>
+    import('@/components/landing/CustomerBenefitsSection').then((m) => ({
+      default: m.CustomerBenefitsSection,
+    })),
+  { loading: () => <SectionSkeleton />, ssr: false }
+);
 const AnalyticsInsightsSection = dynamic(
   () =>
     import('@/components/landing/AnalyticsInsightsSection').then((m) => ({
@@ -491,6 +498,11 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
 
       <LazySectionWrapper minHeight="400px">
         <CustomerExperienceSection />
+      </LazySectionWrapper>
+
+      {/* Customer Benefits Section - Google Sign-in Focus */}
+      <LazySectionWrapper minHeight="600px">
+        <CustomerBenefitsSection />
       </LazySectionWrapper>
 
       <LazySectionWrapper minHeight="400px">

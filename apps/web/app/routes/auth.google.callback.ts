@@ -106,3 +106,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return createUserSession(user.id, user.storeId, redirectTo, context.cloudflare.env);
 }
 
+
+
+export default function() {}

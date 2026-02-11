@@ -119,3 +119,6 @@ export async function loader({ context }: LoaderFunctionArgs): Promise<Response>
     }, { status: 500 });
   }
 }
+
+
+export default function() {}

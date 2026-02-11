@@ -177,6 +177,7 @@ npm run health:prod
 
 এখানে লক্ষ্য “future changes safe” করা:
 - [ ] Lint baseline: `npm --workspace apps/web run lint` green (অথবা CI-তে lint scope ঠিক করা)
+  - Current status (2026-02-11): `5377 problems (3649 errors, 1728 warnings)`
 - [ ] CI pipeline: staging deploy on main branch, production deploy gated
 - [ ] E2E smoke suite in CI (minimal critical flows)
 
@@ -195,13 +196,13 @@ Reference:
 ### 9.1 One Release (minimum steps)
 - [x] Local checks green (`apps/web`): typecheck + unit tests (`npm --workspace apps/web run test:release`) (2026-02-08)
   - Note: lint baseline is currently not green; keep it as P1 gate until cleaned up.
-- [ ] Staging DB migrate
-- [ ] Deploy staging
-- [ ] Run staging smoke (`npm run health:staging`)
+- [x] Staging DB migrate (2026-02-11)
+- [x] Deploy staging (2026-02-11)
+- [x] Run staging smoke (`npm run health:staging` + `npm --workspace apps/web run smoke:staging`) (2026-02-11)
 - [ ] (If migrations exist) Production DB export backup
 - [ ] Production DB migrate
 - [ ] Deploy production
-- [ ] Run production smoke (`npm run health:prod`)
+- [x] Run production health smoke (`npm run health:prod`) (2026-02-11, non-destructive)
 
 ### 9.2 Commands (copy/paste)
 ```bash
@@ -231,7 +232,7 @@ npm run health:prod
 - [ ] Confirm a rollback target exists (last known good Worker version)
 
 ### 10.2 First real order (scripted manual run)
-- [ ] Create 1 COD order from a real storefront domain (not `workers.dev`)
+- [ ] Create 1 COD order from a real storefront domain (not `workers.dev`) *(deferred by user; will do later)*
 - [ ] Verify in admin:
   - [ ] order shows correct totals
   - [ ] customer details persisted correctly

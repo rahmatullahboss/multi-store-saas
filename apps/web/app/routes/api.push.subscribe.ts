@@ -64,3 +64,6 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     return json({ error: 'Failed to save subscription' }, { status: 500 });
   }
 };
+
+
+export default function() {}

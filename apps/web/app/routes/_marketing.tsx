@@ -19,3 +19,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // All other traffic - redirect to main landing
   return redirect('https://ozzyl.com', 301);
 }
+
+
+export default function() {}

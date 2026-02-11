@@ -1,167 +1,158 @@
 import { Link, useLocation, useRouteLoaderData } from '@remix-run/react';
 import {
-  User,
   ShoppingBag,
-  MapPin,
-  LogOut,
-  LayoutDashboard,
-  ChevronRight,
-  HelpCircle,
   Heart,
-  Ticket
+  MapPin,
+  CreditCard,
+  LogOut,
+  User,
+  LayoutDashboard
 } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { useTranslation } from '~/contexts/LanguageContext';
 
-interface SidebarItemProps {
+export interface SidebarItemProps {
   href: string;
   icon: React.ElementType;
   label: string;
   isActive?: boolean;
   badge?: number;
+  isLogout?: boolean;
 }
 
-function SidebarItem({ href, icon: Icon, label, isActive, badge }: SidebarItemProps) {
+function SidebarItem({ href, icon: Icon, label, isActive, badge, isLogout }: SidebarItemProps) {
+  if (isLogout) {
+    return (
+      <form action="/store/auth/logout" method="post" className="mt-auto pt-4 border-t border-slate-100">
+        <button
+          type="submit"
+          className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors rounded-lg group"
+        >
+          <Icon className="text-xl h-5 w-5" />
+          <span>{label}</span>
+        </button>
+      </form>
+    );
+  }
+
   return (
     <Link
       to={href}
       className={cn(
-        'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group',
+        'flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors rounded-lg group',
         isActive
-          ? 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary shadow-sm border border-primary/20'
-          : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+          ? 'bg-primary text-white shadow-md shadow-primary/30'
+          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
       )}
     >
-      <div
-        className={cn(
-          'p-2 rounded-lg transition-colors',
-          isActive ? 'bg-primary/10' : 'bg-muted group-hover:bg-background'
-        )}
-      >
-        <Icon className="h-4 w-4" />
-      </div>
+      <Icon className={cn("text-xl h-5 w-5 transition-colors", isActive ? "text-white" : "text-slate-400 group-hover:text-primary")} />
       <span className="flex-1">{label}</span>
       {badge && badge > 0 && (
         <span className={cn(
-          "px-2 py-0.5 rounded-full text-xs font-medium",
-          isActive ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
+          "ml-auto text-xs font-bold px-2 py-0.5 rounded-full",
+          isActive ? "bg-white/20 text-white" : "bg-primary/10 text-primary"
         )}>
           {badge}
         </span>
       )}
-      <ChevronRight
-        className={cn(
-          'h-4 w-4 transition-transform',
-          isActive ? 'text-primary rotate-90' : 'opacity-0 group-hover:opacity-50'
-        )}
-      />
     </Link>
   );
 }
 
-export function AccountSidebar() {
+interface AccountSidebarProps {
+    user?: any;
+}
+
+export function AccountSidebar({ user }: AccountSidebarProps) {
   const location = useLocation();
   const pathname = location.pathname;
   const { t } = useTranslation();
-  const loaderData = useRouteLoaderData('routes/account') as { counts?: { wishlist: number; coupons: number } } | undefined;
+  const loaderData = useRouteLoaderData('routes/account') as { 
+    counts?: { wishlist: number; coupons: number },
+    store?: { name: string; logo?: string }
+  } | undefined;
+  
   const counts = loaderData?.counts;
 
+  // Items matching HTML "Variant 2" Sidebar
   const items = [
     {
       href: '/account',
       icon: LayoutDashboard,
-      label: t('navDashboard'),
-      exact: true,
-    },
-    {
-      href: '/account/orders',
-      icon: ShoppingBag,
-      label: t('navOrders'),
+      label: t('navDashboard') || 'Dashboard',
     },
     {
       href: '/account/profile',
       icon: User,
-      label: t('navProfile'),
+      label: t('navProfile') || 'Personal Profile',
     },
     {
       href: '/account/addresses',
       icon: MapPin,
-      label: t('navAddresses'),
+      label: t('navAddresses') || 'Address Book',
+    },
+    {
+      href: '/account/orders',
+      icon: ShoppingBag,
+      label: t('navOrders') || 'My Orders',
+      badge: 0, 
     },
     {
       href: '/account/wishlist',
       icon: Heart,
-      label: t('wishlist') || 'Wishlist',
+      label: t('wishlist') || 'My Wishlist',
       badge: counts?.wishlist,
     },
     {
-      href: '/account/coupons',
-      icon: Ticket,
-      label: t('couponsAndOffers') || 'Coupons',
-      badge: counts?.coupons,
+      href: '/account/payment-methods', // Placeholder route 
+      icon: CreditCard,
+      label: t('paymentMethods') || 'Payment Options',
     },
   ];
 
+  // Helper to check active state
+  const isItemActive = (item: typeof items[0]) => {
+    if (pathname === item.href) return true;
+    return pathname.startsWith(item.href) && item.href !== '/account'; // Basic logic
+  };
+
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="px-4 py-6 border-b border-border/50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20">
-            <User className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold tracking-tight">{t('myAccount')}</h2>
-            <p className="text-xs text-muted-foreground">{t('accountWelcomeDesc')}</p>
-          </div>
+    <aside className="w-64 bg-white rounded-xl p-6 border border-slate-100 shadow-sm flex flex-col h-full sticky top-6">
+      {/* Profile Area */}
+      <div className="flex items-center gap-4 mb-8">
+        <div className="h-12 w-12 rounded-full bg-slate-200 overflow-hidden relative flex items-center justify-center text-slate-500">
+           {/* Fallback Avatar logic */}
+           <span className="text-lg font-bold">{user?.name?.charAt(0) || 'U'}</span>
+        </div>
+        <div>
+          <p className="text-sm text-slate-500">Hello,</p>
+          <h3 className="font-bold text-lg text-slate-900 line-clamp-1">{user?.name || 'Customer'}</h3>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-1">
-        {items.map((item) => {
-          const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
-
-          return (
-            <SidebarItem
-              key={item.href}
-              href={item.href}
-              icon={item.icon}
-              label={item.label}
-              isActive={isActive}
-              badge={item.badge}
-            />
-          );
-        })}
+      <nav className="flex-1 space-y-1">
+        {items.map((item) => (
+          <SidebarItem
+            key={item.label}
+            href={item.href}
+            icon={item.icon}
+            label={item.label}
+            isActive={isItemActive(item)}
+            badge={item.badge}
+          />
+        ))}
       </nav>
 
-      {/* Help Section */}
-      <div className="p-4 border-t border-border/50">
-        <div className="rounded-xl bg-muted/50 p-4 space-y-3">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <HelpCircle className="h-4 w-4" />
-            <span>{t('needHelpAccount')}</span>
-          </div>
-          <Link to="/contact" className="block text-xs text-primary hover:underline">
-            {t('contactSupport')}
-          </Link>
-        </div>
+      {/* Logout - Not in HTML list but standard to have. HTML had "Sign Out" at bottom */}
+      <div className="mt-auto pt-4 border-t border-slate-100">
+         <form action="/store/auth/logout" method="post">
+            <button type="submit" className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors rounded-lg group">
+                <LogOut className="text-xl h-5 w-5" />
+                <span>Sign Out</span>
+            </button>
+         </form>
       </div>
-
-      {/* Logout */}
-      <div className="p-3 border-t border-border/50">
-        <form action="/store/auth/logout" method="post">
-          <button
-            type="submit"
-            className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-red-600 hover:bg-red-50 transition-all duration-200 group"
-          >
-            <div className="p-2 rounded-lg bg-red-100 group-hover:bg-red-200 transition-colors">
-              <LogOut className="h-4 w-4" />
-            </div>
-            <span className="flex-1">{t('navLogout')}</span>
-          </button>
-        </form>
-      </div>
-    </div>
+    </aside>
   );
 }

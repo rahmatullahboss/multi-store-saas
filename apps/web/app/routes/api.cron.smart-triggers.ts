@@ -116,3 +116,6 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 
   return json({ success: true, results });
 };
+
+
+export default function() {}

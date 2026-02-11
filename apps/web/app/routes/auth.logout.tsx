@@ -26,3 +26,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     },
   });
 }
+
+
+export default function() {}

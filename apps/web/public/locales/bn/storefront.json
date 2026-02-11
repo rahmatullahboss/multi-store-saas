@@ -27,5 +27,11 @@
   "transactionId": "ট্রানজেকশন আইডি",
   "unsubscribe": "আনসাবস্ক্রাইব",
   "unsubscribed": "আনসাবস্ক্রাইব করা হয়েছে",
-  "youAreOffline": "আপনি অফলাইনে আছেন"
+  "youAreOffline": "আপনি অফলাইনে আছেন",
+  "compareAtPrice": "আসল দাম",
+  "originalPrice": "আসল দাম",
+  "sellingPrice": "বিক্রয় মূল্য",
+  "discountPercentage": "ছাড়",
+  "saveAmount": "সাশ্রয়",
+  "off": "ছাড়"
 }

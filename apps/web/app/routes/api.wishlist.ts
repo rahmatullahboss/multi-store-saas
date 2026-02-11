@@ -364,3 +364,6 @@ async function executeWishlistOperation(
     }
   }
 }
+
+
+export default function() {}

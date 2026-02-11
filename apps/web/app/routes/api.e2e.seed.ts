@@ -132,3 +132,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     templateId,
   });
 }
+
+
+export default function() {}

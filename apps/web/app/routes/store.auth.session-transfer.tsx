@@ -37,3 +37,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Create session on THIS domain (the custom domain)
   return createCustomerSession(customerId, storeId, redirectTo, env);
 }
+
+
+export default function() {}

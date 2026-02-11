@@ -42,3 +42,6 @@ Sitemap: https://${saasDomain}/sitemap.xml
     },
   });
 }
+
+
+export default function() {}
