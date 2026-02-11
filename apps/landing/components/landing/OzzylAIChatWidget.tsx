@@ -28,6 +28,22 @@ interface Message {
   content: string;
 }
 
+function extractAssistantResponse(payload: any): string {
+  const direct = payload?.response;
+  if (typeof direct === 'string' && direct.trim().length > 0) return direct;
+
+  const nested = payload?.data?.response;
+  if (typeof nested === 'string' && nested.trim().length > 0) return nested;
+
+  const content = payload?.content;
+  if (typeof content === 'string' && content.trim().length > 0) return content;
+
+  const textContent = payload?.text?.content;
+  if (typeof textContent === 'string' && textContent.trim().length > 0) return textContent;
+
+  return '';
+}
+
 export function OzzylAIChatWidget() {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -132,13 +148,8 @@ export function OzzylAIChatWidget() {
     return bdPhoneRegex.test(cleaned);
   };
 
-  const getVisitorChatEndpoint = () => {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_OZZYL_APP_API_BASE ||
-      process.env.NEXT_PUBLIC_OZZYL_APP_BASE ||
-      'https://app.ozzyl.com';
-    return `${baseUrl.replace(/\/$/, '')}/api/visitor-chat`;
-  };
+  // Use same-origin Next.js API proxy to avoid CORS issues
+  const getVisitorChatEndpoint = () => '/api/visitor-chat';
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,7 +173,7 @@ export function OzzylAIChatWidget() {
       const res = await fetch(getVisitorChatEndpoint(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'register', name: regName, phone: regPhone }),
+        body: JSON.stringify({ channel: 'visitor', action: 'register', name: regName, phone: regPhone }),
       });
 
       const raw = await res.text();
@@ -209,6 +220,7 @@ export function OzzylAIChatWidget() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          channel: 'visitor',
           action: 'chat',
           message: text,
           visitorId,
@@ -226,20 +238,25 @@ export function OzzylAIChatWidget() {
 
       if (!res.ok) throw new Error(data.error || 'Failed to send message');
 
+      const assistantText = extractAssistantResponse(data);
       const assistantMessage: Message = {
         id: Date.now().toString(),
         role: 'assistant',
-        content: data.response,
+        content: assistantText || (t('landingOzzylChat_errorMsg') || 'Something went wrong.'),
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (err) {
       console.error(err);
+      const errorText =
+        err instanceof Error && err.message
+          ? err.message
+          : t('landingOzzylChat_errorMsg') || 'Something went wrong.';
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now().toString(),
           role: 'assistant',
-          content: t('landingOzzylChat_errorMsg') || 'Something went wrong.',
+          content: errorText,
         },
       ]);
     } finally {
