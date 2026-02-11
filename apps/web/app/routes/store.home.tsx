@@ -140,7 +140,7 @@ function normalizeLegacySections(sections: Array<{ id?: string; type?: string; s
   });
 }
 
-function normalizeThemeConfigForMvp(themeConfig: any) {
+function normalizeThemeConfigForMvp(themeConfig: Record<string, unknown> | null) {
   if (!themeConfig || typeof themeConfig !== 'object') return themeConfig;
 
   // If an editor saved empty arrays, treat them as unset so templates can fall back.
@@ -180,9 +180,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const themeConfig = (themeConfigRaw
     ? {
         ...themeConfigRaw,
-        sections: normalizeLegacySections((themeConfigRaw as any).sections || []),
+        sections: normalizeLegacySections((themeConfigRaw as Record<string, unknown>).sections as Array<{ id?: string; type?: string; settings?: SectionSettings }> || []),
       }
-    : themeConfigRaw) as any;
+    : themeConfigRaw) as Record<string, unknown> | null;
   const socialLinks = parseSocialLinks(store.socialLinks as string | null);
   const storeTemplateId =
     themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;

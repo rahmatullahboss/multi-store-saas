@@ -140,7 +140,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Used for lock release in finally even on early-return paths
   let orderNumberForLock = '';
   let checkoutSessionId: string | null = null;
-  let orderCustomerId: number | null = null;
+  const orderCustomerId: number | null = null;
   let loggedInCustomer: typeof customers.$inferSelect | null = null;
 
   try {
@@ -199,7 +199,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         .limit(1);
       loggedInCustomer = customerResult[0] || null;
       if (loggedInCustomer) {
-        console.log(`[Order Creation] Customer ${loggedInCustomerId} is logged in`);
+        console.warn(`[Order Creation] Customer ${loggedInCustomerId} is logged in`);
       }
     }
 
@@ -1165,7 +1165,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     context.cloudflare.ctx.waitUntil(
       (async () => {
         try {
-          let finalCustomerId: number | null = orderCustomerId;
+          let _finalCustomerId: number | null = orderCustomerId;
 
           // If customer is logged in, update their info
           if (loggedInCustomer) {
@@ -1194,7 +1194,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
                 and(eq(customers.id, loggedInCustomer.id), eq(customers.storeId, input.store_id))
               );
 
-            finalCustomerId = loggedInCustomer.id;
+            _finalCustomerId = loggedInCustomer.id;
 
             // Save address to customer address book
             try {
@@ -1212,7 +1212,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
                 },
                 db
               );
-              console.log(`[Order Creation] Address saved for customer ${loggedInCustomer.id}`);
+              console.warn(`[Order Creation] Address saved for customer ${loggedInCustomer.id}`);
             } catch (addrError) {
               console.error('[Order Creation] Failed to save address:', addrError);
               // Non-blocking - order already created
@@ -1249,7 +1249,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             if (existingCustomer.length > 0) {
               // UPDATE existing customer stats
               const customer = existingCustomer[0];
-              finalCustomerId = customer.id;
+              _finalCustomerId = customer.id;
               const newTotalOrders = (customer.totalOrders || 0) + 1;
               const newTotalSpent = (customer.totalSpent || 0) + total;
 
@@ -1305,7 +1305,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
                 })
                 .returning({ id: customers.id });
 
-              finalCustomerId = newCustomer.id;
+              _finalCustomerId = newCustomer.id;
 
               // Ensure order is linked to customer
               if (!orderCustomerId) {
