@@ -12,16 +12,11 @@ import {
   ArrowRight,
   Heart,
   Ticket,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  Truck,
-  RotateCcw
 } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { Button } from '~/components/ui/button';
-import { Badge } from '~/components/ui/Badge';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { OrderStatusBadge } from '~/components/account/OrderStatusBadge';
 import { format } from 'date-fns';
 
 import { drizzle } from 'drizzle-orm/d1';
@@ -104,29 +99,7 @@ function StatCard({
   return Content;
 }
 
-function OrderStatusBadge({ status }: { status: string }) {
-  const { t } = useTranslation();
-  
-  const config: Record<string, { label: string; icon: React.ElementType; className: string }> = {
-    pending: { label: t('statusPending'), icon: Clock, className: 'text-amber-700 border-amber-200 bg-amber-50' },
-    confirmed: { label: t('statusConfirmed'), icon: CheckCircle2, className: 'text-blue-700 border-blue-200 bg-blue-50' },
-    processing: { label: t('statusProcessing'), icon: Package, className: 'text-indigo-700 border-indigo-200 bg-indigo-50' },
-    shipped: { label: t('statusShipped'), icon: Truck, className: 'text-purple-700 border-purple-200 bg-purple-50' },
-    delivered: { label: t('statusDelivered'), icon: CheckCircle2, className: 'text-emerald-700 border-emerald-200 bg-emerald-50' },
-    cancelled: { label: t('statusCancelled'), icon: XCircle, className: 'text-red-700 border-red-200 bg-red-50' },
-    returned: { label: t('statusReturned'), icon: RotateCcw, className: 'text-gray-700 border-gray-200 bg-gray-50' },
-  };
 
-  const statusInfo = config[status] || config.pending;
-  const Icon = statusInfo.icon;
-
-  return (
-    <Badge variant="outline" className={cn("gap-1.5 font-normal", statusInfo.className)}>
-      <Icon className="h-3.5 w-3.5" />
-      {statusInfo.label}
-    </Badge>
-  );
-}
 
 export default function AccountDashboard() {
   const { stats, recentOrders, wishlistCount, storeCurrency } = useLoaderData<typeof loader>();

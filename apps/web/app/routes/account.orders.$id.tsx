@@ -3,15 +3,12 @@ import { useLoaderData, Link } from '@remix-run/react';
 import { resolveStore } from '~/lib/store.server';
 import { getCustomerId } from '~/services/customer-auth.server';
 import { getCustomerOrderWithDetails } from '~/services/customer-account.server';
-import { Badge } from '~/components/ui/Badge';
 import { Button } from '~/components/ui/button';
+import { OrderStatusBadge } from '~/components/account/OrderStatusBadge';
 import { Separator } from '~/components/ui/separator';
 import { format } from 'date-fns';
 import {
   ShoppingBag,
-  Package,
-  Clock,
-  CheckCircle2,
   XCircle,
   Truck,
   ArrowLeft,
@@ -19,7 +16,6 @@ import {
   CreditCard,
   MapPin,
   Receipt,
-  AlertCircle
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { cn } from '~/lib/utils';
@@ -50,29 +46,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   });
 }
 
-function OrderStatusBadge({ status }: { status: string }) {
-  const { t } = useTranslation();
 
-  const statusConfig: Record<string, any> = {
-    pending: { label: t('statusPending'), icon: Clock, className: 'text-amber-700 border-amber-200', bgClass: 'bg-amber-50' },
-    confirmed: { label: t('statusConfirmed'), icon: CheckCircle2, className: 'text-blue-700 border-blue-200', bgClass: 'bg-blue-50' },
-    processing: { label: t('statusProcessing'), icon: Package, className: 'text-indigo-700 border-indigo-200', bgClass: 'bg-indigo-50' },
-    shipped: { label: t('statusShipped'), icon: Truck, className: 'text-purple-700 border-purple-200', bgClass: 'bg-purple-50' },
-    delivered: { label: t('statusDelivered'), icon: CheckCircle2, className: 'text-emerald-700 border-emerald-200', bgClass: 'bg-emerald-50' },
-    cancelled: { label: t('statusCancelled'), icon: XCircle, className: 'text-red-700 border-red-200', bgClass: 'bg-red-50' },
-    returned: { label: t('statusReturned'), icon: AlertCircle, className: 'text-gray-700 border-gray-200', bgClass: 'bg-gray-50' },
-  };
-
-  const config = statusConfig[status] || statusConfig.pending;
-  const Icon = config.icon;
-
-  return (
-    <div className={cn('inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border', config.bgClass, config.className)}>
-      <Icon className="h-3.5 w-3.5" />
-      {config.label}
-    </div>
-  );
-}
 
 export default function OrderDetails() {
   const { order, items, shipment, storeCurrency } = useLoaderData<typeof loader>();
@@ -198,8 +172,8 @@ export default function OrderDetails() {
                         {/* Show extra info for current step */}
                         {isCurrent && step.key === 'shipped' && shipment && (
                           <div className="mt-2 text-xs bg-muted/50 p-2 rounded border">
-                            <span className="font-semibold">Courier:</span> {shipment.courierProvider}<br/>
-                            <span className="font-semibold">Tracking ID:</span> {shipment.trackingCode || 'N/A'}
+                            <span className="font-semibold">Courier:</span> {shipment.courier}<br/>
+                            <span className="font-semibold">Tracking ID:</span> {shipment.trackingNumber || 'N/A'}
                           </div>
                         )}
                       </div>
