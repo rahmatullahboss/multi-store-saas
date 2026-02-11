@@ -309,6 +309,44 @@ export async function getAvailableCoupons(storeId: number, db: StoreDB) {
     .orderBy(desc(discounts.createdAt));
 }
 
+/**
+ * Lightweight count query for sidebar badges.
+ * Avoids fetching full product details just for a count.
+ */
+export async function getWishlistCount(customerId: number, storeId: number, db: StoreDB): Promise<number> {
+  const wishlist = await db
+    .select({ id: wishlists.id })
+    .from(wishlists)
+    .where(and(eq(wishlists.customerId, customerId), eq(wishlists.storeId, storeId)))
+    .limit(1);
+
+  if (wishlist.length === 0) return 0;
+
+  const result = await db
+    .select({ id: wishlistItems.id })
+    .from(wishlistItems)
+    .where(eq(wishlistItems.wishlistId, wishlist[0].id));
+
+  return result.length;
+}
+
+/**
+ * Lightweight count query for available coupons badge.
+ */
+export async function getAvailableCouponsCount(storeId: number, db: StoreDB): Promise<number> {
+  const result = await db
+    .select({ id: discounts.id })
+    .from(discounts)
+    .where(
+      and(
+        eq(discounts.storeId, storeId),
+        eq(discounts.isActive, true),
+      )
+    );
+
+  return result.length;
+}
+
 // ============================================================================
 // PROFILE MANAGEMENT
 // ============================================================================
