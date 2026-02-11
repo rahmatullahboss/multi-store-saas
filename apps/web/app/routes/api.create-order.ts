@@ -1586,6 +1586,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // FB CAPI
     if (storeData.facebookPixelId && storeData.facebookAccessToken) {
+      // Extract Facebook cookies for improved match rate
+      const cookieHeader = request.headers.get('Cookie') || '';
+      const fbpMatch = cookieHeader.match(/_fbp=([^;]+)/);
+      const fbcMatch = cookieHeader.match(/_fbc=([^;]+)/);
+      const fbp = fbpMatch ? fbpMatch[1] : undefined;
+      const fbc = fbcMatch ? fbcMatch[1] : undefined;
+
+      // Build event_source_url from Referer (required for action_source: 'website')
+      const referer = request.headers.get('Referer') || undefined;
+
+      // Use stable eventId matching client-side Pixel for deduplication
+      const eventId = `purchase_${orderNumber}`;
+
       context.cloudflare.ctx.waitUntil(
         sendPurchaseEvent({
           pixelId: storeData.facebookPixelId,
@@ -1603,6 +1616,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
             quantity: i.quantity,
             price: i.unitPrice,
           })),
+          eventId,
+          fbp,
+          fbc,
+          eventSourceUrl: referer,
+          clientIpAddress: clientIP,
+          clientUserAgent: request.headers.get('User-Agent') || undefined,
         }).catch((e) => console.error('[FB CAPI] Purchase event failed:', e))
       );
     }

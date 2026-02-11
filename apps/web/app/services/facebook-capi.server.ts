@@ -60,6 +60,12 @@ interface PurchaseEventParams {
   eventSourceUrl?: string;
   clientIpAddress?: string;
   clientUserAgent?: string;
+  /** Shared eventId for deduplication with browser Pixel */
+  eventId?: string;
+  /** Facebook browser ID from _fbp cookie (improves match rate) */
+  fbp?: string;
+  /** Facebook click ID from _fbc cookie (improves match rate) */
+  fbc?: string;
 }
 
 interface ViewContentEventParams {
@@ -262,7 +268,7 @@ export async function sendPurchaseEvent(params: PurchaseEventParams): Promise<{ 
     pixelId: params.pixelId,
     accessToken: params.accessToken,
     eventName: 'Purchase',
-    eventId: `purchase_${params.orderId}_${Date.now()}`,
+    eventId: params.eventId || `purchase_${params.orderId}_${Date.now()}`,
     eventSourceUrl: params.eventSourceUrl,
     userData: {
       email: params.customerEmail,
@@ -271,6 +277,8 @@ export async function sendPurchaseEvent(params: PurchaseEventParams): Promise<{ 
       lastName,
       clientIpAddress: params.clientIpAddress,
       clientUserAgent: params.clientUserAgent,
+      fbp: params.fbp,
+      fbc: params.fbc,
     },
     customData: {
       value: params.total,

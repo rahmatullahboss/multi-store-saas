@@ -513,11 +513,15 @@ export default function Checkout() {
           };
         });
 
+        // Generate stable eventId for deduplication between Pixel and CAPI
+        const eventId = `purchase_${data.orderNumber || data.orderId}`;
+
         trackingEvents.purchase({
           orderId: data.orderId || '',
           value: data.total || 0,
           currency: currency,
           items: trackingItems,
+          eventId,
         });
 
         // Clear cart

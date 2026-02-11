@@ -35,6 +35,8 @@ export interface OrderTrackingData {
   items: ProductTrackingData[];
   shipping?: number;
   tax?: number;
+  /** Shared eventId for deduplication between browser Pixel and server CAPI */
+  eventId?: string;
 }
 
 // ============================================================================
@@ -197,15 +199,21 @@ export const trackingEvents = {
   purchase: (order: OrderTrackingData) => {
     const currency = order.currency || 'BDT';
     
-    // Facebook Pixel
+    // Facebook Pixel (with eventID for CAPI deduplication)
     if (typeof window !== 'undefined' && (window as any).fbq) {
-      (window as any).fbq('track', 'Purchase', {
+      const fbData = {
         value: order.value,
         currency,
         content_ids: order.items.map(i => i.id),
         content_type: 'product',
         num_items: order.items.reduce((sum, i) => sum + (i.quantity || 1), 0),
-      });
+      };
+      if (order.eventId) {
+        // Pass eventID as 4th arg for deduplication with server CAPI
+        (window as any).fbq('track', 'Purchase', fbData, { eventID: order.eventId });
+      } else {
+        (window as any).fbq('track', 'Purchase', fbData);
+      }
     }
     
     // Google Analytics 4
