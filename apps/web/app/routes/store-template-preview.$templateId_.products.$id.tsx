@@ -201,7 +201,7 @@ function PreviewIndicator({
 // ============================================================================
 function FallbackProductPage({
   product,
-  currency,
+  currency: _currency,
   theme,
 }: {
   product: {
@@ -269,26 +269,39 @@ function FallbackProductPage({
 // MAIN COMPONENT
 // ============================================================================
 export default function PreviewProductPage() {
-  const data = useLoaderData<typeof loader>();
+  const {
+    product,
+    templateId,
+    templateName,
+    storeName,
+    socialLinks,
+    businessInfo,
+    categories,
+    themeConfig,
+    footerConfig,
+    theme,
+    relatedProducts,
+    currency,
+  } = useLoaderData<typeof loader>();
 
   // Get the actual template component
-  const template = getStoreTemplate(data.templateId);
+  const template = getStoreTemplate(templateId);
   const ProductPageComponent = template.ProductPage;
 
   return (
     <>
       <StorePageWrapper
-        storeName={data.storeName}
+        storeName={storeName}
         storeId={0}
         logo={null}
-        templateId={data.templateId}
-        theme={data.theme}
-        currency={data.currency}
-        socialLinks={data.socialLinks}
-        businessInfo={data.businessInfo}
-        categories={data.categories}
-        config={data.themeConfig}
-        footerConfig={data.footerConfig}
+        templateId={templateId}
+        theme={theme}
+        currency={currency}
+        socialLinks={socialLinks}
+        businessInfo={businessInfo}
+        categories={categories}
+        config={themeConfig}
+        footerConfig={footerConfig}
         planType="pro"
         customer={null}
         isPreview={true}
@@ -297,20 +310,21 @@ export default function PreviewProductPage() {
         {ProductPageComponent ? (
           <Suspense fallback={<LoadingFallback />}>
             <ProductPageComponent
-              product={data.product}
-              currency={data.currency}
-              relatedProducts={data.relatedProducts}
-              theme={data.theme}
+              product={product}
+              currency={currency}
+              relatedProducts={relatedProducts}
+              theme={theme}
+              config={themeConfig}
               isPreview={true}
             />
           </Suspense>
         ) : (
-          <FallbackProductPage product={data.product} currency={data.currency} theme={data.theme} />
+          <FallbackProductPage product={product} currency={currency} theme={theme} />
         )}
       </StorePageWrapper>
 
       {/* Preview Indicator */}
-      <PreviewIndicator templateName={data.templateName} templateId={data.templateId} />
+      <PreviewIndicator templateName={templateName} templateId={templateId} />
     </>
   );
 }

@@ -11,7 +11,7 @@
  * - Better type safety
  */
 
-import React, { type ReactNode, Suspense, useMemo, useCallback } from 'react';
+import React, { type ReactNode, Suspense, useMemo } from 'react';
 import { StoreHeader } from './StoreHeader';
 import { StoreFooter } from './StoreFooter';
 // import { StorePushPrompt } from '~/components/store/StorePushPrompt';
@@ -127,7 +127,7 @@ function StorePageWrapperComponent({
   logo,
   templateId,
   theme,
-  currency = 'BDT',
+  // currency = 'BDT',
   socialLinks,
   businessInfo,
   cartCount = 0,
@@ -358,9 +358,7 @@ function StorePageWrapperComponent({
 
         {/* Main Content */}
         <main className="relative z-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
             {/* <StorePushPrompt storeName={storeName} /> */}
-          </div>
           {children}
         </main>
 

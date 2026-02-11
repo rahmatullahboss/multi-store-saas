@@ -33,7 +33,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const themeConfig = parseThemeConfig(store.themeConfig);
   const socialLinks = parseSocialLinks(store.socialLinks);
   const templateId = themeConfig?.storeTemplateId || 'tech-modern';
-  
+
   // Use store theme color if set, otherwise fallback to template theme
   const theme = getStoreTemplateTheme(templateId);
 
@@ -60,7 +60,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .where(and(eq(productsTable.storeId, store.id), eq(productsTable.isPublished, true)))
       .orderBy(desc(productsTable.createdAt))
       .limit(50);
-      
+
     categories = [...new Set(dbProducts.map((p) => p.category).filter(Boolean))] as string[];
     await cache.set(categoriesCacheKey, categories, 3600);
   }
@@ -77,13 +77,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export default function AccountLayout() {
-  const { store, theme, templateId, socialLinks, businessInfo, categories, themeConfig } = useLoaderData<typeof loader>();
+  const { store, theme, templateId, socialLinks, businessInfo, categories, themeConfig } =
+    useLoaderData<typeof loader>();
 
   return (
-    <StorePageWrapper 
+    <StorePageWrapper
       storeId={store.id}
       storeName={store.name}
-      templateId={templateId} 
+      templateId={templateId}
       theme={theme}
       logo={store.logo}
       currency={store.currency || 'USD'}
@@ -92,19 +93,23 @@ export default function AccountLayout() {
       categories={categories}
       config={themeConfig}
     >
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-          {/* Sidebar */}
-          <aside className="md:col-span-3 lg:col-span-2">
-            <AccountSidebar />
-          </aside>
+      <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-muted/20">
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Sidebar - Sticky on desktop */}
+            <aside className="lg:col-span-3 xl:col-span-3">
+              <div className="lg:sticky lg:top-24 bg-card/80 backdrop-blur-xl rounded-2xl border shadow-lg shadow-black/5 overflow-hidden">
+                <AccountSidebar />
+              </div>
+            </aside>
 
-          {/* Main Content Area */}
-          <main className="md:col-span-9 lg:col-span-10 min-h-[500px]">
-            <div className="bg-card rounded-lg border shadow-sm p-6 h-full">
-              <Outlet />
-            </div>
-          </main>
+            {/* Main Content Area */}
+            <main className="lg:col-span-9 xl:col-span-9 min-h-[600px]">
+              <div className="bg-card/80 backdrop-blur-xl rounded-2xl border shadow-lg shadow-black/5 p-6 lg:p-8 h-full">
+                <Outlet />
+              </div>
+            </main>
+          </div>
         </div>
       </div>
     </StorePageWrapper>

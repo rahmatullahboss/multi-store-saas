@@ -46,6 +46,8 @@ import { triggerAutomation } from '~/services/automation.server';
 import { parseLandingConfig } from '@db/types';
 import { generateCheckoutIdempotencyKey } from '~/services/webhook-utils.server';
 import { validateDiscount, incrementDiscountUsage } from '~/../server/services/discount.service';
+import { getCustomerId } from '~/services/customer-auth.server';
+import { createCustomerAddress } from '~/services/customer-account.server';
 // DO Services for checkout lock and rate limiting
 import { acquireCheckoutLock, releaseCheckoutLock } from '~/services/checkout-do.server';
 import { checkRateLimit, getClientIP } from '~/services/rate-limiter-do.server';
@@ -138,6 +140,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Used for lock release in finally even on early-return paths
   let orderNumberForLock = '';
   let checkoutSessionId: string | null = null;
+  let orderCustomerId: number | null = null;
+  let loggedInCustomer: typeof customers.$inferSelect | null = null;
 
   try {
     // Parse request body - handle both JSON and FormData
@@ -177,6 +181,25 @@ export async function action({ request, context }: ActionFunctionArgs) {
         } else {
           body[key] = value;
         }
+      }
+    }
+
+    // ========================================================================
+    // CHECK IF CUSTOMER IS LOGGED IN
+    // ========================================================================
+    const loggedInCustomerId = await getCustomerId(request, env);
+
+    if (loggedInCustomerId) {
+      const customerResult = await db
+        .select()
+        .from(customers)
+        .where(
+          and(eq(customers.id, loggedInCustomerId), eq(customers.storeId, body.store_id as number))
+        )
+        .limit(1);
+      loggedInCustomer = customerResult[0] || null;
+      if (loggedInCustomer) {
+        console.log(`[Order Creation] Customer ${loggedInCustomerId} is logged in`);
       }
     }
 
@@ -363,14 +386,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
           if (existingOrder.length > 0) {
             console.warn('[IDEMPOTENT] Returning existing order:', existingOrder[0].orderNumber);
-            return json({
-              success: true,
-              orderId: existingOrder[0].id,
-              orderNumber: existingOrder[0].orderNumber,
-              total: existingOrder[0].total,
-              message: 'Order already exists',
-              isIdempotent: true,
-            });
+            return json(
+              {
+                success: true,
+                orderId: existingOrder[0].id,
+                orderNumber: existingOrder[0].orderNumber,
+                total: existingOrder[0].total,
+                message: 'Order already exists',
+                isIdempotent: true,
+              },
+              {
+                headers: {
+                  'x-order-id': String(existingOrder[0].id),
+                },
+              }
+            );
           }
         }
         // If pending/processing, wait or return busy
@@ -594,14 +624,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
             .where(and(eq(orders.id, session.orderId), eq(orders.storeId, input.store_id)))
             .limit(1);
           if (existingOrder.length > 0) {
-            return json({
-              success: true,
-              orderId: existingOrder[0].id,
-              orderNumber: existingOrder[0].orderNumber,
-              total: existingOrder[0].total,
-              message: 'Order already exists',
-              isIdempotent: true,
-            });
+            return json(
+              {
+                success: true,
+                orderId: existingOrder[0].id,
+                orderNumber: existingOrder[0].orderNumber,
+                total: existingOrder[0].total,
+                message: 'Order already exists',
+                isIdempotent: true,
+              },
+              {
+                headers: {
+                  'x-order-id': String(existingOrder[0].id),
+                },
+              }
+            );
           }
         }
         // In-flight checkout: tell client to wait.
@@ -617,7 +654,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       // If we can't create a session and none exists, fail safe to avoid duplicates.
       return json(
-        { success: false, error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।' },
+        {
+          success: false,
+          error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।',
+        },
         { status: 500 }
       );
     }
@@ -966,10 +1006,35 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // 2. CREATE ORDER
     let orderId: number | undefined;
     try {
+      // Determine customerId for the order
+      let orderCustomerId: number | null = loggedInCustomer?.id || null;
+
+      // If not logged in, try to find existing customer by phone or email
+      if (!orderCustomerId) {
+        const existingCustomer = await db
+          .select({ id: customers.id })
+          .from(customers)
+          .where(
+            and(
+              eq(customers.storeId, input.store_id),
+              or(
+                eq(customers.phone, input.phone),
+                input.customer_email ? eq(customers.email, input.customer_email) : undefined
+              )
+            )
+          )
+          .limit(1);
+
+        if (existingCustomer.length > 0) {
+          orderCustomerId = existingCustomer[0].id;
+        }
+      }
+
       const orderResult = await db
         .insert(orders)
         .values({
           storeId: input.store_id,
+          customerId: orderCustomerId,
           orderNumber,
           status: 'pending',
           paymentStatus: 'pending',
@@ -1094,38 +1159,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     // ============================================================================
-    // CUSTOMER CREATION/UPDATE (For Segmentation & Marketing)
+    // CUSTOMER CREATION/UPDATE & ADDRESS SAVING
     // ============================================================================
-    // let finalCustomerId: number | undefined;
 
     context.cloudflare.ctx.waitUntil(
       (async () => {
         try {
-          // Check if customer exists (by phone or email)
-          const existingCustomer = await db
-            .select({
-              id: customers.id,
-              totalOrders: customers.totalOrders,
-              totalSpent: customers.totalSpent,
-            })
-            .from(customers)
-            .where(
-              and(
-                eq(customers.storeId, input.store_id),
-                or(
-                  eq(customers.phone, input.phone),
-                  input.customer_email ? eq(customers.email, input.customer_email) : undefined
-                )
-              )
-            )
-            .limit(1);
+          let finalCustomerId: number | null = orderCustomerId;
 
-          if (existingCustomer.length > 0) {
-            // UPDATE existing customer stats
-            const customer = existingCustomer[0];
-            // finalCustomerId = customer.id;
-            const newTotalOrders = (customer.totalOrders || 0) + 1;
-            const newTotalSpent = (customer.totalSpent || 0) + total;
+          // If customer is logged in, update their info
+          if (loggedInCustomer) {
+            const newTotalOrders = (loggedInCustomer.totalOrders || 0) + 1;
+            const newTotalSpent = (loggedInCustomer.totalSpent || 0) + total;
 
             // Determine new segment
             let newSegment: 'vip' | 'regular' = 'regular';
@@ -1133,6 +1178,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
               newSegment = 'vip';
             }
 
+            // Update customer info - also set phone if not already set
             await db
               .update(customers)
               .set({
@@ -1141,61 +1187,152 @@ export async function action({ request, context }: ActionFunctionArgs) {
                 lastOrderAt: now,
                 segment: newSegment,
                 name: input.customer_name,
-                address: input.address,
+                phone: loggedInCustomer.phone || input.phone, // Set phone if not already set
                 updatedAt: now,
               })
-              .where(and(eq(customers.id, customer.id), eq(customers.storeId, input.store_id)));
+              .where(
+                and(eq(customers.id, loggedInCustomer.id), eq(customers.storeId, input.store_id))
+              );
 
-            // Link customer to order
-            await db
-              .update(orders)
-              .set({ customerId: customer.id })
-              .where(and(eq(orders.id, orderId!), eq(orders.storeId, input.store_id)));
+            finalCustomerId = loggedInCustomer.id;
+
+            // Save address to customer address book
+            try {
+              await createCustomerAddress(
+                loggedInCustomer.id,
+                {
+                  type: 'shipping',
+                  firstName: input.customer_name.split(' ')[0] || input.customer_name,
+                  lastName: input.customer_name.split(' ').slice(1).join(' ') || '',
+                  address1: input.address,
+                  city: input.district || '',
+                  province: input.division || '',
+                  phone: input.phone,
+                  isDefault: true,
+                },
+                db
+              );
+              console.log(`[Order Creation] Address saved for customer ${loggedInCustomer.id}`);
+            } catch (addrError) {
+              console.error('[Order Creation] Failed to save address:', addrError);
+              // Non-blocking - order already created
+            }
 
             // ========== LOYALTY POINTS INTEGRATION ==========
-            await addLoyaltyPoints(db, customer.id, input.store_id, total, `Order ${orderNumber}`);
-          } else {
-            // CREATE new customer
-            const [newCustomer] = await db
-              .insert(customers)
-              .values({
-                storeId: input.store_id,
-                email: input.customer_email || null, // Email is optional for BD market
-                name: input.customer_name,
-                phone: input.phone,
-                address: input.address,
-                totalOrders: 1,
-                totalSpent: total,
-                lastOrderAt: now,
-                segment: 'regular', // First order = regular
-              })
-              .returning({ id: customers.id });
-
-            // finalCustomerId = newCustomer.id;
-
-            // Link customer to order
-            await db
-              .update(orders)
-              .set({ customerId: newCustomer.id })
-              .where(and(eq(orders.id, orderId!), eq(orders.storeId, input.store_id)));
-
-            // ========== LOYALTY POINTS FOR NEW CUSTOMER ==========
             await addLoyaltyPoints(
               db,
-              newCustomer.id,
+              loggedInCustomer.id,
               input.store_id,
               total,
-              `First Order ${orderNumber}`
+              `Order ${orderNumber}`
             );
+          } else {
+            // Check if customer exists (by phone or email) for non-logged-in users
+            const existingCustomer = await db
+              .select({
+                id: customers.id,
+                totalOrders: customers.totalOrders,
+                totalSpent: customers.totalSpent,
+              })
+              .from(customers)
+              .where(
+                and(
+                  eq(customers.storeId, input.store_id),
+                  or(
+                    eq(customers.phone, input.phone),
+                    input.customer_email ? eq(customers.email, input.customer_email) : undefined
+                  )
+                )
+              )
+              .limit(1);
 
-            // ========== WEBHOOK: NEW CUSTOMER CREATED ==========
-            dispatchWebhook(context.cloudflare.env, input.store_id, 'customer.created', {
-              customerId: newCustomer.id,
-              email: input.customer_email || null,
-              phone: input.phone,
-              name: input.customer_name,
-              firstOrderNumber: orderNumber,
-            }).catch((e) => console.error('[Webhook] customer.created failed:', e));
+            if (existingCustomer.length > 0) {
+              // UPDATE existing customer stats
+              const customer = existingCustomer[0];
+              finalCustomerId = customer.id;
+              const newTotalOrders = (customer.totalOrders || 0) + 1;
+              const newTotalSpent = (customer.totalSpent || 0) + total;
+
+              // Determine new segment
+              let newSegment: 'vip' | 'regular' = 'regular';
+              if (newTotalOrders >= 3 || newTotalSpent >= 10000) {
+                newSegment = 'vip';
+              }
+
+              await db
+                .update(customers)
+                .set({
+                  totalOrders: newTotalOrders,
+                  totalSpent: newTotalSpent,
+                  lastOrderAt: now,
+                  segment: newSegment,
+                  name: input.customer_name,
+                  address: input.address,
+                  updatedAt: now,
+                })
+                .where(and(eq(customers.id, customer.id), eq(customers.storeId, input.store_id)));
+
+              // Ensure order is linked to customer
+              if (!orderCustomerId) {
+                await db
+                  .update(orders)
+                  .set({ customerId: customer.id })
+                  .where(and(eq(orders.id, orderId!), eq(orders.storeId, input.store_id)));
+              }
+
+              // ========== LOYALTY POINTS INTEGRATION ==========
+              await addLoyaltyPoints(
+                db,
+                customer.id,
+                input.store_id,
+                total,
+                `Order ${orderNumber}`
+              );
+            } else {
+              // CREATE new customer
+              const [newCustomer] = await db
+                .insert(customers)
+                .values({
+                  storeId: input.store_id,
+                  email: input.customer_email || null,
+                  name: input.customer_name,
+                  phone: input.phone,
+                  address: input.address,
+                  totalOrders: 1,
+                  totalSpent: total,
+                  lastOrderAt: now,
+                  segment: 'regular',
+                })
+                .returning({ id: customers.id });
+
+              finalCustomerId = newCustomer.id;
+
+              // Ensure order is linked to customer
+              if (!orderCustomerId) {
+                await db
+                  .update(orders)
+                  .set({ customerId: newCustomer.id })
+                  .where(and(eq(orders.id, orderId!), eq(orders.storeId, input.store_id)));
+              }
+
+              // ========== LOYALTY POINTS FOR NEW CUSTOMER ==========
+              await addLoyaltyPoints(
+                db,
+                newCustomer.id,
+                input.store_id,
+                total,
+                `First Order ${orderNumber}`
+              );
+
+              // ========== WEBHOOK: NEW CUSTOMER CREATED ==========
+              dispatchWebhook(context.cloudflare.env, input.store_id, 'customer.created', {
+                customerId: newCustomer.id,
+                email: input.customer_email || null,
+                phone: input.phone,
+                name: input.customer_name,
+                firstOrderNumber: orderNumber,
+              }).catch((e) => console.error('[Webhook] customer.created failed:', e));
+            }
           }
 
           // ========== FIRE AUTOMATION TRIGGERS ==========
@@ -1239,7 +1376,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const emailHtml = getOrderConfirmationHtml({
         customerName: input.customer_name,
         orderNumber,
-        paymentMethod: input.payment_method === 'cod' ? 'Cash on Delivery' : input.payment_method.toUpperCase(),
+        paymentMethod:
+          input.payment_method === 'cod' ? 'Cash on Delivery' : input.payment_method.toUpperCase(),
         items: finalOrderItems.map((i) => ({
           title: i.title,
           quantity: i.quantity,
@@ -1250,9 +1388,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
         shippingAddress: input.address,
         storeName: storeData.name,
         storeLogo: storeData.logo || undefined,
-        primaryColor: (storeData.themeConfig && JSON.parse(storeData.themeConfig as string)?.primaryColor),
+        primaryColor:
+          storeData.themeConfig && JSON.parse(storeData.themeConfig as string)?.primaryColor,
       });
-      
+
       orderTasks.push({
         type: 'email',
         payload: {
@@ -1272,7 +1411,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       currency: storeData.currency || 'BDT',
       total,
     });
-    
+
     orderTasks.push({
       type: 'email',
       payload: {
@@ -1563,14 +1702,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     // ========================================================================
-    return json({
-      success: true,
-      orderId,
-      orderNumber,
-      total,
-      upsellUrl,
-      message: 'অর্ডার সফলভাবে সম্পন্ন হয়েছে!',
-    });
+    return json(
+      {
+        success: true,
+        orderId,
+        orderNumber,
+        total,
+        upsellUrl,
+        message: 'অর্ডার সফলভাবে সম্পন্ন হয়েছে!',
+      },
+      {
+        headers: {
+          'x-order-id': String(orderId),
+        },
+      }
+    );
   } catch (error) {
     const errorDetails = {
       message: error instanceof Error ? error.message : 'Unknown error',

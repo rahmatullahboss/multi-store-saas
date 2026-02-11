@@ -315,6 +315,10 @@ export const action = async ({
     const heroDelayMs = Number.isFinite(heroDelayMsRaw)
       ? Math.min(15000, Math.max(1500, heroDelayMsRaw))
       : 4000;
+    const heroOverlayOpacityRaw = Number(formData.get('heroOverlayOpacity') as string);
+    const heroOverlayOpacity = Number.isFinite(heroOverlayOpacityRaw)
+      ? Math.min(1, Math.max(0, heroOverlayOpacityRaw))
+      : 0.4;
     const heroSlidesRaw = (formData.get('heroSlides') as string) || '[]';
     const announcementText = (formData.get('announcementText') as string) || '';
     const announcementLink = (formData.get('announcementLink') as string) || '';
@@ -356,6 +360,7 @@ export const action = async ({
       heroSlides: normalizedSlides,
       heroAutoplay,
       heroDelayMs,
+      heroOverlayOpacity,
       announcement: announcementText
         ? { text: announcementText, link: announcementLink || undefined }
         : undefined,
@@ -436,6 +441,42 @@ export const action = async ({
     return json({ success: true, message: 'advancedSaved' });
   }
 
+  if (intent === 'save-content') {
+    const trustBadge1Title = (formData.get('trustBadge1Title') as string) || '';
+    const trustBadge1Desc = (formData.get('trustBadge1Desc') as string) || '';
+    const trustBadge2Title = (formData.get('trustBadge2Title') as string) || '';
+    const trustBadge2Desc = (formData.get('trustBadge2Desc') as string) || '';
+    const trustBadge3Title = (formData.get('trustBadge3Title') as string) || '';
+    const trustBadge3Desc = (formData.get('trustBadge3Desc') as string) || '';
+
+    const updatedConfig: ThemeConfig = {
+      ...currentConfig,
+      trustBadge1Title,
+      trustBadge1Desc,
+      trustBadge2Title,
+      trustBadge2Desc,
+      trustBadge3Title,
+      trustBadge3Desc,
+    };
+
+    await db
+      .update(stores)
+      .set({
+        themeConfig: JSON.stringify(updatedConfig),
+        updatedAt: new Date(),
+      })
+      .where(eq(stores.id, storeId));
+
+    await invalidateStoreTemplateCaches(
+      context.cloudflare.env,
+      storeId,
+      store[0].subdomain,
+      store[0].customDomain
+    );
+
+    return json({ success: true, message: 'contentSaved' });
+  }
+
   return json({ error: 'Unknown action' }, { status: 400 });
 };
 
@@ -463,7 +504,7 @@ export default function StoreDesignPage() {
   const storeUrl = `https://${storeSubdomain}.ozzyl.com`;
 
   const [activeTab, setActiveTab] = useState<
-    'templates' | 'theme' | 'banner' | 'info' | 'advanced'
+    'templates' | 'theme' | 'banner' | 'info' | 'advanced' | 'content'
   >('templates'); // Default to templates tab
   const [selectedTemplateId, setSelectedTemplateId] = useState(currentTemplateId);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -481,6 +522,9 @@ export default function StoreDesignPage() {
   );
   const [heroAutoplay, setHeroAutoplay] = useState(themeConfig.heroAutoplay !== false);
   const [heroDelayMs, setHeroDelayMs] = useState(themeConfig.heroDelayMs || 4000);
+  const [heroOverlayOpacity, setHeroOverlayOpacity] = useState(
+    themeConfig.heroOverlayOpacity ?? 0.4
+  );
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(() => {
     if (Array.isArray(themeConfig.heroSlides) && themeConfig.heroSlides.length > 0) {
       return themeConfig.heroSlides
@@ -524,6 +568,14 @@ export default function StoreDesignPage() {
   const [facebook, setFacebook] = useState(socialLinks.facebook || '');
   const [instagram, setInstagram] = useState(socialLinks.instagram || '');
   const [whatsapp, setWhatsapp] = useState(socialLinks.whatsapp || '');
+
+  // Content state
+  const [trustBadge1Title, setTrustBadge1Title] = useState(themeConfig.trustBadge1Title || '');
+  const [trustBadge1Desc, setTrustBadge1Desc] = useState(themeConfig.trustBadge1Desc || '');
+  const [trustBadge2Title, setTrustBadge2Title] = useState(themeConfig.trustBadge2Title || '');
+  const [trustBadge2Desc, setTrustBadge2Desc] = useState(themeConfig.trustBadge2Desc || '');
+  const [trustBadge3Title, setTrustBadge3Title] = useState(themeConfig.trustBadge3Title || '');
+  const [trustBadge3Desc, setTrustBadge3Desc] = useState(themeConfig.trustBadge3Desc || '');
 
   const isSubmitting = navigation.state === 'submitting';
   const pendingIntent = navigation.formData?.get('intent')?.toString();
@@ -687,6 +739,7 @@ export default function StoreDesignPage() {
           { id: 'templates', label: t('templates'), icon: Layout }, // MVP: Shows only 5 filtered themes
           { id: 'theme', label: t('theme'), icon: Palette },
           { id: 'banner', label: t('banner'), icon: Image },
+          { id: 'content', label: 'Content', icon: Type },
           { id: 'info', label: t('info'), icon: User },
           // { id: 'advanced', label: t('advanced'), icon: Settings }, // Hidden for MVP
         ].map((tab) => (
@@ -707,6 +760,122 @@ export default function StoreDesignPage() {
 
       {/* Tab Content */}
       <div className="space-y-6">
+        {/* Content Tab */}
+        {activeTab === 'content' && (
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+            <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+              <Type className="w-5 h-5 text-purple-600" />
+              Store Content
+            </h2>
+
+            <Form method="post" className="space-y-6">
+              <input type="hidden" name="intent" value="save-content" />
+
+              {/* Trust Badges Section */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-gray-900">Trust Badges (Fast Delivery, Secure Payment, etc.)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Badge 1 */}
+                  <div className="p-4 border border-gray-100 rounded-xl bg-gray-50 space-y-3">
+                    <div className="font-medium text-sm text-gray-500">Badge 1 (Truck Icon)</div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                      <input
+                        type="text"
+                        name="trustBadge1Title"
+                        value={trustBadge1Title}
+                        onChange={(e) => setTrustBadge1Title(e.target.value)}
+                        placeholder="দ্রুত ডেলিভারি"
+                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                      <input
+                        type="text"
+                        name="trustBadge1Desc"
+                        value={trustBadge1Desc}
+                        onChange={(e) => setTrustBadge1Desc(e.target.value)}
+                        placeholder="ঢাকায় ১-২ দিনে"
+                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Badge 2 */}
+                  <div className="p-4 border border-gray-100 rounded-xl bg-gray-50 space-y-3">
+                    <div className="font-medium text-sm text-gray-500">Badge 2 (Shield Icon)</div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                      <input
+                        type="text"
+                        name="trustBadge2Title"
+                        value={trustBadge2Title}
+                        onChange={(e) => setTrustBadge2Title(e.target.value)}
+                        placeholder="নিরাপদ পেমেন্ট"
+                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                      <input
+                        type="text"
+                        name="trustBadge2Desc"
+                        value={trustBadge2Desc}
+                        onChange={(e) => setTrustBadge2Desc(e.target.value)}
+                        placeholder="১০০% সিকিউর"
+                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Badge 3 */}
+                  <div className="p-4 border border-gray-100 rounded-xl bg-gray-50 space-y-3">
+                    <div className="font-medium text-sm text-gray-500">Badge 3 (Return Icon)</div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                      <input
+                        type="text"
+                        name="trustBadge3Title"
+                        value={trustBadge3Title}
+                        onChange={(e) => setTrustBadge3Title(e.target.value)}
+                        placeholder="ইজি রিটার্ন"
+                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                      <input
+                        type="text"
+                        name="trustBadge3Desc"
+                        value={trustBadge3Desc}
+                        onChange={(e) => setTrustBadge3Desc(e.target.value)}
+                        placeholder="৭ দিনের মধ্যে"
+                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4 border-t border-gray-100">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Save className="w-5 h-5" />
+                  )}
+                  {t('saveChanges')}
+                </button>
+              </div>
+            </Form>
+          </div>
+        )}
+
         {/* Templates Tab */}
         {activeTab === 'templates' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1057,6 +1226,7 @@ export default function StoreDesignPage() {
             <input type="hidden" name="heroMode" value={heroMode} />
             <input type="hidden" name="heroAutoplay" value={heroAutoplay ? 'true' : 'false'} />
             <input type="hidden" name="heroDelayMs" value={String(heroDelayMs)} />
+            <input type="hidden" name="heroOverlayOpacity" value={String(heroOverlayOpacity)} />
             <input type="hidden" name="heroSlides" value={JSON.stringify(heroSlides)} />
 
             <div className="space-y-6">
@@ -1091,6 +1261,29 @@ export default function StoreDesignPage() {
                     >
                       Carousel ({heroSlides.length}/{HERO_SLIDES_MAX})
                     </button>
+                  </div>
+
+                  {/* Opacity Slider */}
+                  <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex justify-between">
+                      <span>Hero Overlay Opacity</span>
+                      <span className="text-purple-600 font-bold">
+                        {Math.round(heroOverlayOpacity * 100)}%
+                      </span>
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={heroOverlayOpacity}
+                      onChange={(e) => setHeroOverlayOpacity(parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      Adjust the darkness of the overlay on your banner images. 0% is fully
+                      transparent (brightest image), 100% is fully black.
+                    </p>
                   </div>
 
                   {heroMode === 'carousel' && (

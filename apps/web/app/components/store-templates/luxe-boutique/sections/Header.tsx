@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Menu, X, Search, Heart, ShoppingBag } from 'lucide-react';
+import { Menu, X, Search, Heart, ShoppingBag, User } from 'lucide-react';
+import { Link } from '@remix-run/react';
 import { LUXE_BOUTIQUE_THEME } from '../theme';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useCartCount } from '~/hooks/useCartCount';
@@ -20,6 +21,7 @@ interface LuxeBoutiqueHeaderProps {
   searchOpen?: boolean;
   setSearchOpen?: (open: boolean) => void;
   isPreview?: boolean;
+  customer?: { id: number; name: string | null; email: string | null } | null;
 }
 
 export function LuxeBoutiqueHeader({
@@ -33,10 +35,11 @@ export function LuxeBoutiqueHeader({
   searchOpen: searchOpenProp,
   setSearchOpen: setSearchOpenProp,
   isPreview,
+  customer,
 }: LuxeBoutiqueHeaderProps) {
   const { t } = useTranslation();
   const theme = LUXE_BOUTIQUE_THEME;
-  
+
   // Local state for when props aren't provided (e.g. in StorePageWrapper)
   const [localMobileMenuOpen, setLocalMobileMenuOpen] = useState(false);
   const [localSearchOpen, setLocalSearchOpen] = useState(false);
@@ -51,7 +54,7 @@ export function LuxeBoutiqueHeader({
   const validCategories = categories.filter((c): c is string => Boolean(c));
 
   return (
-    <header 
+    <header
       className="sticky top-0 z-50 border-b"
       style={{ backgroundColor: theme.headerBg, borderColor: '#e5e5e5' }}
     >
@@ -61,34 +64,38 @@ export function LuxeBoutiqueHeader({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Mobile Menu Button */}
-          <button 
+          <button
             className="lg:hidden p-2 -ml-2"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
 
-            <PreviewSafeLink to="/" className="flex items-center gap-3" isPreview={isPreview}>
-              {logo ? (
-                <img src={logo} alt={storeName} className="h-10 lg:h-12 object-contain bg-white rounded px-2 py-1" />
-              ) : null}
-              <span 
-                className={`text-xl lg:text-2xl font-semibold tracking-wide ${logo ? 'hidden sm:block' : ''}`}
-                style={{ fontFamily: "'Playfair Display', serif", color: theme.primary }}
-              >
-                {storeName}
-              </span>
-            </PreviewSafeLink>
+          <PreviewSafeLink to="/" className="flex items-center gap-3" isPreview={isPreview}>
+            {logo ? (
+              <img
+                src={logo}
+                alt={storeName}
+                className="h-10 lg:h-12 object-contain bg-white rounded px-2 py-1"
+              />
+            ) : null}
+            <span
+              className={`text-xl lg:text-2xl font-semibold tracking-wide ${logo ? 'hidden sm:block' : ''}`}
+              style={{ fontFamily: "'Playfair Display', serif", color: theme.primary }}
+            >
+              {storeName}
+            </span>
+          </PreviewSafeLink>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8">
-            <PreviewSafeLink 
+            <PreviewSafeLink
               to="/"
               className="text-sm font-medium tracking-wide uppercase transition-colors hover:opacity-70"
-              style={{ 
+              style={{
                 color: !currentCategory ? theme.accent : theme.text,
                 borderBottom: !currentCategory ? `2px solid ${theme.accent}` : 'none',
-                paddingBottom: '4px'
+                paddingBottom: '4px',
               }}
               isPreview={isPreview}
             >
@@ -99,10 +106,10 @@ export function LuxeBoutiqueHeader({
                 key={category}
                 to={`/?category=${encodeURIComponent(category)}`}
                 className="text-sm font-medium tracking-wide uppercase transition-colors hover:opacity-70"
-                style={{ 
+                style={{
                   color: currentCategory === category ? theme.accent : theme.text,
                   borderBottom: currentCategory === category ? `2px solid ${theme.accent}` : 'none',
-                  paddingBottom: '4px'
+                  paddingBottom: '4px',
                 }}
                 isPreview={isPreview}
               >
@@ -114,7 +121,7 @@ export function LuxeBoutiqueHeader({
           {/* Right Icons */}
           <div className="flex items-center gap-3">
             <LanguageSelector className="mr-1" />
-            <button 
+            <button
               className="p-2 rounded-full transition-colors hover:bg-gray-100"
               onClick={() => setSearchOpen(!searchOpen)}
             >
@@ -123,19 +130,45 @@ export function LuxeBoutiqueHeader({
             <button className="hidden sm:block p-2 rounded-full transition-colors hover:bg-gray-100">
               <Heart className="w-5 h-5" style={{ color: theme.text }} />
             </button>
-            <PreviewSafeLink 
-              to="/cart" 
+            <PreviewSafeLink
+              to="/cart"
               className="p-2 rounded-full transition-colors hover:bg-gray-100 relative"
               isPreview={isPreview}
             >
               <ShoppingBag className="w-5 h-5" style={{ color: theme.text }} />
-              <span 
+              <span
                 className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center"
                 style={{ backgroundColor: theme.accent, color: theme.primary }}
               >
                 {count}
               </span>
             </PreviewSafeLink>
+            {!isPreview && (
+              <Link
+                to="/account"
+                className="hidden sm:flex items-center gap-2 px-2 py-1 rounded-full transition-colors hover:bg-gray-100"
+                title={customer ? customer.name || customer.email || 'My Account' : 'Login'}
+              >
+                {customer ? (
+                  <>
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium"
+                      style={{ backgroundColor: theme.accent, color: theme.primary }}
+                    >
+                      {(customer.name?.[0] || customer.email?.[0] || 'U').toUpperCase()}
+                    </div>
+                    <span
+                      className="text-sm font-medium hidden md:block"
+                      style={{ color: theme.text }}
+                    >
+                      {customer.name || customer.email?.split('@')[0] || 'Account'}
+                    </span>
+                  </>
+                ) : (
+                  <User className="w-5 h-5" style={{ color: theme.text }} />
+                )}
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -158,7 +191,7 @@ export function LuxeBoutiqueHeader({
       {mobileMenuOpen && (
         <div className="lg:hidden absolute inset-x-0 top-full bg-white border-b border-gray-200 shadow-lg">
           <nav className="py-4">
-            <PreviewSafeLink 
+            <PreviewSafeLink
               to="/"
               className="block px-6 py-3 text-sm font-medium uppercase tracking-wide"
               style={{ color: !currentCategory ? theme.accent : theme.text }}
@@ -179,6 +212,36 @@ export function LuxeBoutiqueHeader({
                 {category}
               </PreviewSafeLink>
             ))}
+            {!isPreview && (
+              <>
+                <div className="border-t my-2 mx-6" style={{ borderColor: '#e5e5e5' }} />
+                <Link
+                  to="/account"
+                  className="block px-6 py-3 text-sm font-medium uppercase tracking-wide"
+                  style={{ color: theme.text }}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span className="flex items-center gap-3">
+                    {customer ? (
+                      <>
+                        <div
+                          className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium"
+                          style={{ backgroundColor: theme.accent, color: theme.primary }}
+                        >
+                          {(customer.name?.[0] || customer.email?.[0] || 'U').toUpperCase()}
+                        </div>
+                        <span>{customer.name || customer.email?.split('@')[0] || 'Account'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <User className="w-5 h-5" />
+                        <span>Account</span>
+                      </>
+                    )}
+                  </span>
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       )}

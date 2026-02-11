@@ -293,19 +293,26 @@ export async function action({ request, context }: ActionFunctionArgs) {
       // Pass undefined for storeId to check across all Ozzyl platform orders
       const riskResult = await checkCustomerRisk(order.customerPhone || '', db);
 
-      return json({
-        success: true,
-        intent: 'FRAUD_CHECK',
-        orderId,
-        riskResult: {
-          successRate: riskResult.successRate,
-          totalOrders: riskResult.totalOrders,
-          deliveredOrders: riskResult.deliveredOrders,
-          returnedOrders: riskResult.returnedOrders,
-          isHighRisk: riskResult.isHighRisk,
-          riskScore: riskResult.riskScore,
+      return json(
+        {
+          success: true,
+          intent: 'FRAUD_CHECK',
+          orderId,
+          riskResult: {
+            successRate: riskResult.successRate,
+            totalOrders: riskResult.totalOrders,
+            deliveredOrders: riskResult.deliveredOrders,
+            returnedOrders: riskResult.returnedOrders,
+            isHighRisk: riskResult.isHighRisk,
+            riskScore: riskResult.riskScore,
+          },
         },
-      });
+        {
+          headers: {
+            'x-order-id': String(orderId),
+          },
+        }
+      );
     } catch (error) {
       console.error('Fraud check error:', error);
       return json(
@@ -367,7 +374,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
     })
     .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
 
-  return json({ success: true, orderId, status });
+  return json(
+    { success: true, orderId, status },
+    {
+      headers: {
+        'x-order-id': String(orderId),
+      },
+    }
+  );
 }
 
 // ============================================================================

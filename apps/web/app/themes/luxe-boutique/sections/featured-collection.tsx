@@ -182,7 +182,7 @@ export default function LuxeFeaturedCollection({
                 };
 
             return (
-              <Wrapper {...(wrapperProps as any)}>
+              <Wrapper {...(wrapperProps as React.HTMLAttributes<HTMLElement>)}>
                 {/* Image */}
                 <div
                   className="aspect-[3/4] overflow-hidden mb-4 relative"

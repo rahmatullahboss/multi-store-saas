@@ -1,12 +1,15 @@
-import { Link, useLocation } from "@remix-run/react";
-import { 
-  User, 
-  ShoppingBag, 
-  MapPin, 
-  LogOut, 
-  LayoutDashboard 
-} from "lucide-react";
-import { cn } from "~/lib/utils";
+import { Link, useLocation } from '@remix-run/react';
+import {
+  User,
+  ShoppingBag,
+  MapPin,
+  LogOut,
+  LayoutDashboard,
+  ChevronRight,
+  HelpCircle,
+} from 'lucide-react';
+import { cn } from '~/lib/utils';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 interface SidebarItemProps {
   href: string;
@@ -20,14 +23,27 @@ function SidebarItem({ href, icon: Icon, label, isActive }: SidebarItemProps) {
     <Link
       to={href}
       className={cn(
-        "flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-md transition-colors",
+        'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group',
         isActive
-          ? "bg-primary text-primary-foreground"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          ? 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary shadow-sm border border-primary/20'
+          : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground'
       )}
     >
-      <Icon className="h-4 w-4" />
-      {label}
+      <div
+        className={cn(
+          'p-2 rounded-lg transition-colors',
+          isActive ? 'bg-primary/10' : 'bg-muted group-hover:bg-background'
+        )}
+      >
+        <Icon className="h-4 w-4" />
+      </div>
+      <span className="flex-1">{label}</span>
+      <ChevronRight
+        className={cn(
+          'h-4 w-4 transition-transform',
+          isActive ? 'text-primary rotate-90' : 'opacity-0 group-hover:opacity-50'
+        )}
+      />
     </Link>
   );
 }
@@ -35,43 +51,51 @@ function SidebarItem({ href, icon: Icon, label, isActive }: SidebarItemProps) {
 export function AccountSidebar() {
   const location = useLocation();
   const pathname = location.pathname;
+  const { t } = useTranslation();
 
   const items = [
     {
-      href: "/account",
+      href: '/account',
       icon: LayoutDashboard,
-      label: "Dashboard",
+      label: t('navDashboard'),
       exact: true,
     },
     {
-      href: "/account/orders",
+      href: '/account/orders',
       icon: ShoppingBag,
-      label: "Orders",
+      label: t('navOrders'),
     },
     {
-      href: "/account/profile",
+      href: '/account/profile',
       icon: User,
-      label: "Profile",
+      label: t('navProfile'),
     },
     {
-      href: "/account/addresses",
+      href: '/account/addresses',
       icon: MapPin,
-      label: "Addresses",
+      label: t('navAddresses'),
     },
   ];
 
   return (
-    <div className="flex flex-col gap-1">
-      <div className="px-4 py-2 mb-2">
-        <h2 className="text-lg font-semibold tracking-tight">My Account</h2>
-        <p className="text-sm text-muted-foreground">Manage your account and orders</p>
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="px-4 py-6 border-b border-border/50">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20">
+            <User className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold tracking-tight">{t('myAccount')}</h2>
+            <p className="text-xs text-muted-foreground">{t('accountWelcomeDesc')}</p>
+          </div>
+        </div>
       </div>
-      
-      <nav className="space-y-1">
+
+      {/* Navigation */}
+      <nav className="flex-1 p-3 space-y-1">
         {items.map((item) => {
-          const isActive = item.exact 
-            ? pathname === item.href
-            : pathname.startsWith(item.href);
+          const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
           return (
             <SidebarItem
@@ -83,19 +107,35 @@ export function AccountSidebar() {
             />
           );
         })}
-
-        <div className="pt-4 mt-4 border-t">
-          <form action="/store/auth/logout" method="post">
-            <button
-              type="submit"
-              className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium rounded-md text-red-600 hover:bg-red-50 transition-colors"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </button>
-          </form>
-        </div>
       </nav>
+
+      {/* Help Section */}
+      <div className="p-4 border-t border-border/50">
+        <div className="rounded-xl bg-muted/50 p-4 space-y-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <HelpCircle className="h-4 w-4" />
+            <span>{t('needHelpAccount')}</span>
+          </div>
+          <Link to="/contact" className="block text-xs text-primary hover:underline">
+            {t('contactSupport')}
+          </Link>
+        </div>
+      </div>
+
+      {/* Logout */}
+      <div className="p-3 border-t border-border/50">
+        <form action="/store/auth/logout" method="post">
+          <button
+            type="submit"
+            className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-red-600 hover:bg-red-50 transition-all duration-200 group"
+          >
+            <div className="p-2 rounded-lg bg-red-100 group-hover:bg-red-200 transition-colors">
+              <LogOut className="h-4 w-4" />
+            </div>
+            <span className="flex-1">{t('navLogout')}</span>
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

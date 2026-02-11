@@ -27,6 +27,8 @@ export interface TenantEnv {
   DB: D1Database;
   R2: R2Bucket;
   SAAS_DOMAIN: string;
+  // Optional environment tag (production|staging|development). Used for safe staging fallbacks.
+  ENVIRONMENT?: string;
   STORE_CACHE?: KVNamespace; // KV for fast caching
   STORE_CONFIG_SERVICE?: Fetcher; // DO-backed store config cache (fastest)
   WEBHOOK_QUEUE: Queue;
@@ -95,12 +97,16 @@ export const tenantMiddleware = <
     // Check X-Forwarded-Host first (set by wildcard proxy worker)
     // This preserves the original subdomain when proxied through Pages
     const hostname = c.req.header('x-forwarded-host') || c.req.header('host') || '';
+    const cleanHostname = hostname.split(':')[0];
     const saasDomain = c.env.SAAS_DOMAIN || 'mysaas.com';
+    const envName = (c.env as TenantEnv).ENVIRONMENT || 'production';
 
     console.warn(`[TENANT] ============================================`);
     console.warn(`[TENANT] Request: ${c.req.method} ${requestPath}`);
     console.warn(`[TENANT] Hostname: ${hostname}`);
+    console.warn(`[TENANT] Clean Hostname: ${cleanHostname}`);
     console.warn(`[TENANT] SAAS_DOMAIN: ${saasDomain}`);
+    console.warn(`[TENANT] ENVIRONMENT: ${envName}`);
 
     // Handle localhost development
     if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) {
@@ -190,8 +196,42 @@ export const tenantMiddleware = <
       return next();
     }
 
+    // STAGING SAFETY FALLBACK:
+    // When deployed to workers.dev (no custom domain), the hostname will be:
+    //   <script>.<account>.workers.dev
+    // which tenant parsing treats as a custom domain. Unless we seed `stores.custom_domain`,
+    // tenant resolution will 404 with "Store not found".
+    //
+    // To keep staging usable out-of-the-box (smoke tests, Sentry wiring, etc.),
+    // default to the first active store for workers.dev hostnames.
+    //
+    // NOTE: Prefer configuring a staging custom domain (e.g. staging.<store>.ozzyl.com)
+    // or setting `stores.custom_domain` in the staging DB for deterministic routing.
+    if (envName === 'staging' && cleanHostname.endsWith('.workers.dev')) {
+      console.warn(`[TENANT] Staging workers.dev fallback: selecting first active store`);
+      const db = createDb(c.env.DB);
+      const defaultStore = await db
+        .select()
+        .from(stores)
+        .where(and(eq(stores.isActive, true), isNull(stores.deletedAt)))
+        .limit(1);
+
+      const store = defaultStore[0];
+      if (store) {
+        console.warn(
+          `[TENANT] Staging fallback resolved store: ID=${store.id}, Name=${store.name}`
+        );
+        c.set('storeId', store.id);
+        c.set('store', store);
+        c.set('isCustomDomain', true);
+        return next();
+      }
+      console.warn(`[TENANT] Staging fallback failed: no active stores in DB`);
+      // Continue normal tenant resolution to return a helpful "Store not found" error.
+    }
+
     // Production: Parse hostname
-    const { type, value } = parseHostname(hostname, saasDomain);
+    const { type, value } = parseHostname(cleanHostname, saasDomain);
     console.warn(`[TENANT] Mode: Production`);
     console.warn(`[TENANT] Parsed: type=${type}, value=${value}`);
 
@@ -354,10 +394,13 @@ export const tenantMiddleware = <
           error: 'Store not found',
           message: `No store found for ${type === 'subdomain' ? 'subdomain' : 'domain'}: ${value}`,
           debug: {
+            envName,
             hostname,
+            cleanHostname,
             saasDomain,
             type,
             value,
+            workersDevFallbackEligible: envName === 'staging' && cleanHostname.endsWith('.workers.dev'),
           },
         },
         404

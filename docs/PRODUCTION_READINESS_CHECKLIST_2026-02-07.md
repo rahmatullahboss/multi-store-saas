@@ -26,6 +26,7 @@ Production-এ যাওয়ার আগে একই change staging-এ চা�
 - [x] Staging D1 created + bound (`multi-store-saas-db-staging`, id `635f8125-8d10-4522-aad6-301a01027a37`)
 - [x] Staging KV created + bound (separate from prod)
 - [x] Staging DB migrations “fresh apply” verified (2026-02-07)
+- [x] Staging on `workers.dev` no longer hard-fails with “Store not found” (fallback to first active store) (2026-02-10)
 
 ### 1.4 What’s Pending
 - [ ] staging custom domain/route (optional but recommended): `staging.app.ozzyl.com` বা `staging-<store>.ozzyl.com`
@@ -33,7 +34,10 @@ Production-এ যাওয়ার আগে একই change staging-এ চা�
 - [x] “smoke test script” exists:
   - `apps/web/workers/health-check.sh` (post-deploy health check)
   - `apps/web/e2e/smoke.test.ts` (Playwright critical path)
+- [x] Staging smoke test (curl ছাড়া): `npm --workspace apps/web run smoke:staging` (2026-02-11)
+- [x] Staging demo store seed script: `npm --workspace apps/web run db:seed:staging-demo` (2026-02-11)
 - [ ] “one command” wrapper documentation (staging + prod) so release is muscle-memory
+- [x] Staging tenant routing can be deterministic via seed: `stores.custom_domain=multi-store-saas-staging.rahmatullahzisan.workers.dev` (2026-02-11)
 
 ### 1.5 Verify (commands)
 ```bash
@@ -46,8 +50,14 @@ npx wrangler deploy --env staging
 ```bash
 cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
 
+# Ensure staging has at least one store mapped to the staging hostname
+npm --workspace apps/web run db:seed:staging-demo
+
 # Staging worker health (expects /api/health to return 200)
 npm run health:staging
+
+# Staging critical route smoke (no curl required)
+npm --workspace apps/web run smoke:staging
 
 # Optional: local critical-path E2E (dev server)
 # E2E_TOKEN is required if /api/e2e/seed is protected (recommended)
@@ -72,6 +82,7 @@ Production DB-তে migration apply করা safe হতে হবে, এব�
   - Run:
     - Staging: `cd apps/web && npm run db:integrity:staging`
     - Prod: `cd apps/web && npm run db:integrity:prod`
+  - Latest staging run: 2026-02-11 (pass)
 
 ### 2.4 Verify (commands)
 ```bash
@@ -136,8 +147,9 @@ npm --workspace apps/web run e2e:smoke
   - Staging test route (only on staging): `/sentry-test`
     - Trigger server error: `/sentry-test?throw=loader` (expects HTTP 500)
     - Then confirm in Sentry UI (environment=staging) that issue/event arrived + alert rule fired
-- [ ] Structured logs include `store_id`, `request_id`, `order_id`
-  - Note (done 2026-02-08): `x-request-id` response header added; server error logs include `{ requestId, storeId }`
+- [x] Structured logs include `store_id`, `request_id`, `order_id` (best-effort) (2026-02-10)
+  - `x-request-id` response header added; server error logs include `{ requestId, storeId }`
+  - `x-order-id` response header added on order create + key admin order mutations so request logs can tag `order_id`
 - [ ] Incident runbook: rollback worker + DB restore decision tree
 - [ ] Uptime monitoring for `app.ozzyl.com` + `*.ozzyl.com`
 

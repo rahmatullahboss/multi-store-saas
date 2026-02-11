@@ -37,6 +37,13 @@ cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
 npm run deploy:staging
 ```
 
+If you see an error like "Missing file or directory: .../apps/web/build/client", run:
+```bash
+cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
+npm run build
+npx wrangler deploy --env staging
+```
+
 ### 4) Staging smoke checklist (minimum)
 
 - Admin login works
@@ -80,4 +87,3 @@ npm run deploy
 - staging কনফিগ: `apps/web/wrangler.toml` → `[env.staging]`
 - staging workflow: `docs/STAGING_WORKFLOW.md`
 - migration adoption runbook: `docs/DB_BASELINE_ADOPTION_RUNBOOK.md`
-

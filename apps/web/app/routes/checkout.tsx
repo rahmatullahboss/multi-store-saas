@@ -79,11 +79,7 @@ import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { PaymentMethodSelector } from '~/components/checkout/PaymentMethodSelector';
 import { SearchableSelect } from '~/components/SearchableSelect';
-import {
-  DISTRICTS,
-  UPAZILAS,
-  getShippingZone,
-} from '~/data/bd-locations';
+import { DISTRICTS, UPAZILAS, getShippingZone } from '~/data/bd-locations';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Loader2, ArrowLeft, ShoppingBag, ShieldCheck, Truck, CheckCircle } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
@@ -205,6 +201,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Load customer session for Google Sign-In header
   const customer = await getCustomer(request, cloudflare.env, cloudflare.env.DB);
 
+  // Fetch customer addresses if logged in
+  let customerAddresses = [];
+  if (customer) {
+    const { getCustomerAddresses } = await import('~/services/customer-account.server');
+    customerAddresses = await getCustomerAddresses(customer.id, db);
+  }
+
   // Fetch unique categories for footer
   const categoriesResult = await db
     .select({ category: products.category })
@@ -233,7 +236,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     facebookPixelId: storeData.facebookPixelId,
     themeConfig,
     planType: storeData.planType || 'free',
-    customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
+    customer: customer
+      ? {
+          id: customer.id,
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+          addresses: customerAddresses,
+        }
+      : null,
     checkoutTemplate,
     categories,
   });
@@ -319,6 +330,25 @@ export default function Checkout() {
   const [selectedUpazila, setSelectedUpazila] = useState('');
   const [notes, setNotes] = useState('');
 
+  // Auto-fill customer details from account
+  useEffect(() => {
+    if (customer) {
+      if (customer.name) setName(customer.name);
+      if (customer.phone) setPhone(customer.phone);
+
+      // If customer has saved addresses, use the default one
+      if (customer.addresses && customer.addresses.length > 0) {
+        const defaultAddress =
+          customer.addresses.find((addr: any) => addr.isDefault) || customer.addresses[0];
+        if (defaultAddress) {
+          if (defaultAddress.address1) setAddress(defaultAddress.address1);
+          if (defaultAddress.phone && !customer.phone) setPhone(defaultAddress.phone);
+          // Note: District/Upazila mapping would require additional logic
+        }
+      }
+    }
+  }, [customer]);
+
   // Payment State
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [senderNumber, setSenderNumber] = useState('');
@@ -397,11 +427,14 @@ export default function Checkout() {
     // Only run if we haven't attempted yet, have a code, and have a subtotal
     if (urlCode && subtotal > 0 && !attemptedUrlCoupon.current) {
       attemptedUrlCoupon.current = true; // LOCK immediately to prevent loop
-      
+
       if (!appliedCoupon && !isApplyingCoupon) {
         setCouponCode(urlCode);
         setIsApplyingCoupon(true);
-        fetcher.submit({ intent: 'apply-coupon', code: urlCode, subtotal: String(subtotal) }, { method: 'post' });
+        fetcher.submit(
+          { intent: 'apply-coupon', code: urlCode, subtotal: String(subtotal) },
+          { method: 'post' }
+        );
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -519,7 +552,7 @@ export default function Checkout() {
     // But I cannot do two things at once.
     // I will construct the payload assuming I will fix API in next step.
 
-    const selectedDistrictObj = DISTRICTS.find(d => d.id === selectedDistrict);
+    const selectedDistrictObj = DISTRICTS.find((d) => d.id === selectedDistrict);
 
     const payload = {
       store_id: storeId,

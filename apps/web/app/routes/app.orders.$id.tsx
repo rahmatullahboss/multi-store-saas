@@ -340,7 +340,14 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         })
         .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
 
-      return json({ success: true, consignmentId });
+      return json(
+        { success: true, consignmentId },
+        {
+          headers: {
+            'x-order-id': String(orderId),
+          },
+        }
+      );
     } catch (error) {
       console.error('Courier booking error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Booking failed';
@@ -371,7 +378,14 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       details: { note: note.trim() },
     });
 
-    return json({ success: true });
+    return json(
+      { success: true },
+      {
+        headers: {
+          'x-order-id': String(orderId),
+        },
+      }
+    );
   }
 
   // Handle status update (default)
@@ -625,7 +639,14 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     }
   }
 
-  return json({ success: true });
+  return json(
+    { success: true },
+    {
+      headers: {
+        'x-order-id': String(orderId),
+      },
+    }
+  );
 }
 
 // ============================================================================

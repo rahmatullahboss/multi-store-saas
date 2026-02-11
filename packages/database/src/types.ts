@@ -443,6 +443,13 @@ export interface ThemeConfig {
     metaDescription?: string;
     ogImage?: string;
   };
+  // Trust Badges (Starter Store & others)
+  trustBadge1Title?: string;
+  trustBadge1Desc?: string;
+  trustBadge2Title?: string;
+  trustBadge2Desc?: string;
+  trustBadge3Title?: string;
+  trustBadge3Desc?: string;
 }
 
 // Social media links configuration

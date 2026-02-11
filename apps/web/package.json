@@ -13,7 +13,7 @@
     "format": "prettier -w .",
     "deploy": "npm run build && wrangler deploy",
     "deploy:prod": "npm run build && wrangler deploy --keep-vars",
-    "deploy:staging": "npm run build && wrangler deploy --env staging --keep-vars",
+    "deploy:staging": "npm run build && wrangler deploy --env staging",
     "db:generate": "drizzle-kit generate",
     "db:bootstrap:local": "wrangler d1 execute multi-store-saas-db --local --file=../../packages/database/src/migrations/0001_initial_schema.sql && wrangler d1 execute multi-store-saas-db --local --file=../../packages/database/src/migrations/0002_seed_data.sql && wrangler d1 execute multi-store-saas-db --local --file=../../packages/database/src/migrations/0003_hybrid_mode.sql",
     "db:bootstrap:prod": "wrangler d1 execute multi-store-saas-db --file=../../packages/database/src/migrations/0001_initial_schema.sql && wrangler d1 execute multi-store-saas-db --file=../../packages/database/src/migrations/0002_seed_data.sql && wrangler d1 execute multi-store-saas-db --file=../../packages/database/src/migrations/0003_hybrid_mode.sql",
@@ -41,6 +41,8 @@
     "e2e:report": "playwright show-report",
     "health:prod": "bash ./workers/health-check.sh --main",
     "health:staging": "MAIN_APP_URL=https://multi-store-saas-staging.rahmatullahzisan.workers.dev bash ./workers/health-check.sh --main",
+    "smoke:staging": "node ./scripts/smoke-staging.mjs",
+    "db:seed:staging-demo": "wrangler d1 execute multi-store-saas-db-staging --remote --env staging --file ./scripts/seed-staging-demo.sql",
     "ci:local": "npm run test:all && npm run e2e",
     "i18n:extract": "npx i18next-parser 'app/**/*.{ts,tsx}' --config i18next-parser.config.js",
     "i18n:scan": "npx i18next-parser 'app/**/*.{ts,tsx}' --config i18next-parser.config.js --fail-on-update"

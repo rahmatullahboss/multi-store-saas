@@ -62,6 +62,11 @@ interface CourierSettings {
   isConnected: boolean;
 }
 
+interface ThemeConfig {
+  courier?: CourierSettings;
+  [key: string]: unknown;
+}
+
 interface PathaoStore {
   store_id: number;
   store_name: string;
@@ -97,7 +102,7 @@ type ActionResponse =
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env as unknown as Env);
   if (!storeId) {
     return redirect('/auth/login');
   }
@@ -122,14 +127,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const config = (typeof storeResult[0].themeConfig === 'string' 
     ? JSON.parse(storeResult[0].themeConfig) 
-    : storeResult[0].themeConfig || {}) as Record<string, any>;
+    : storeResult[0].themeConfig || {}) as ThemeConfig;
+  
+  const courierConfig = (config.courier || {}) as CourierSettings;
 
   const courierSettings: CourierSettings = {
-    provider: config.courier?.provider || null,
-    pathao: config.courier?.pathao,
-    redx: config.courier?.redx,
-    steadfast: config.courier?.steadfast,
-    isConnected: !!config.courier?.provider,
+    provider: courierConfig.provider || null,
+    pathao: courierConfig.pathao,
+    redx: courierConfig.redx,
+    steadfast: courierConfig.steadfast,
+    isConnected: !!courierConfig.provider,
   };
 
   // Handle Geo Data Requests for Pathao Store Creation
@@ -208,7 +215,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env as unknown as Env);
   if (!storeId) {
     return redirect('/auth/login');
   }
@@ -230,11 +237,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: 'Store not found' }, { status: 404 });
     }
 
-    const themeConfig = typeof store.themeConfig === 'string' 
+    const themeConfig = (typeof store.themeConfig === 'string' 
       ? JSON.parse(store.themeConfig) 
-      : store.themeConfig || {};
+      : store.themeConfig || {}) as ThemeConfig;
 
-    const currentCourier = themeConfig.courier || {};
+    const currentCourier = (themeConfig.courier || {}) as CourierSettings;
 
     // ------------------------------------------------------------------------
     // CASE 4: Create Store (Pathao)
@@ -356,7 +363,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
         
         newSettings = {
           provider: 'pathao',
-          pathao: { ...currentCourier.pathao, ...parseResult.data }, 
+          pathao: { 
+            clientId: parseResult.data.clientId,
+            username: parseResult.data.username,
+            clientSecret: parseResult.data.clientSecret || currentCourier.pathao?.clientSecret || '',
+            password: parseResult.data.password || currentCourier.pathao?.password || '',
+            baseUrl: parseResult.data.baseUrl,
+            defaultStoreId: parseResult.data.defaultStoreId
+          }, 
           redx: currentCourier.redx,
           steadfast: currentCourier.steadfast,
         };
@@ -367,8 +381,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
       else if (selectedProvider === 'steadfast') {
          const steadfastData = {
-           apiKey: formData.get('apiKey'),
-           secretKey: formData.get('secretKey'),
+           apiKey: String(formData.get('apiKey')),
+           secretKey: String(formData.get('secretKey')),
          };
          newSettings = {
            provider: 'steadfast',
@@ -390,7 +404,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       await logActivity(db, {
         storeId,
-        userId: await getUserId(request, context.cloudflare.env) ?? null,
+        userId: (await getUserId(request, context.cloudflare.env as unknown as Env)) ?? null,
         action: 'api_key_update',
         details: { action: `Updated ${selectedProvider} credentials` },
       });
@@ -460,7 +474,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
           await logActivity(db, {
         storeId,
-        userId: (await getUserId(request, context.cloudflare.env as Record<string, any>)) ?? null,
+        userId: (await getUserId(request, context.cloudflare.env as unknown as Env)) ?? null,
         action: 'settings_updated',
         entityType: 'settings',
         details: {

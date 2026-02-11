@@ -288,6 +288,60 @@ app.use('*', async (c, next) => {
   return telemetryMw(c, next);
 });
 
+// Structured request logs (JSON) for ops/debugging.
+// Goal: include store_id, request_id, and (when available) order_id.
+app.use('*', async (c, next) => {
+  const start = Date.now();
+  const url = new URL(c.req.url);
+
+  // Avoid logging static assets / framework internals (high volume, low value).
+  const isFrameworkInternal =
+    url.pathname === '/__manifest' || url.pathname.startsWith('/__manifest?');
+  const isStaticAsset =
+    url.pathname.startsWith('/assets/') ||
+    /\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|eot|map)$/.test(url.pathname);
+  if (isFrameworkInternal || isStaticAsset) {
+    return next();
+  }
+
+  // Avoid noisy health checks.
+  if (url.pathname === '/api/health') {
+    return next();
+  }
+
+  await next();
+
+  const durationMs = Date.now() - start;
+  const requestId = c.get('requestId') || c.req.header('x-request-id') || 'unknown';
+  const storeId = (c.get('storeId') as number | undefined) || 0;
+  const cfRay = c.req.header('cf-ray') || undefined;
+
+  // Prefer explicit header from app code; fall back to path/query parsing.
+  const orderIdHeader = c.res.headers.get('x-order-id') || undefined;
+  const orderIdQuery = url.searchParams.get('orderId') || undefined;
+  const orderIdPathMatch = url.pathname.match(/\/orders\/(\d+)(?:\/|$)/);
+  const orderIdPath = orderIdPathMatch?.[1];
+  const orderId = orderIdHeader || orderIdQuery || orderIdPath || undefined;
+
+  // Keep logs machine-readable and low-PII (no cookies, no query strings).
+  const log = {
+    ts: new Date().toISOString(),
+    level: 'info',
+    msg: 'request',
+    environment: c.env.ENVIRONMENT || 'unknown',
+    request_id: requestId,
+    store_id: storeId,
+    order_id: orderId,
+    method: c.req.method,
+    path: url.pathname,
+    status: c.res.status,
+    duration_ms: durationMs,
+    cf_ray: cfRay,
+  };
+
+  console.log(JSON.stringify(log));
+});
+
 // ============================================================================
 // API ROUTES - Hono handles these directly
 // ============================================================================

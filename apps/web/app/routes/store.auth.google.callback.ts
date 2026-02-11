@@ -12,10 +12,7 @@ import { LoaderFunctionArgs, redirect } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
-import {
-  createCustomerSession,
-  findOrCreateGoogleCustomer,
-} from '~/services/customer-auth.server';
+import { createCustomerSession, findOrCreateGoogleCustomer } from '~/services/customer-auth.server';
 
 interface GoogleTokenResponse {
   access_token: string;
@@ -46,13 +43,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   if (error) {
     console.warn('[store.auth.google.callback] OAuth error from Google:', error);
     return redirect('/?error=oauth_denied');
-
   }
 
   if (!code || !stateParam) {
     console.warn('[store.auth.google.callback] Missing code or state');
     return redirect('/?error=oauth_invalid');
-
   }
 
   // Decode state parameter (contains storeId and origin URL)
@@ -94,9 +89,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const isPremium = ['premium', 'business', 'custom'].includes(store.planType || '');
   const hasCustomOAuth = isPremium && store.customGoogleClientId && store.customGoogleClientSecret;
 
-  const googleClientId = hasCustomOAuth
-    ? store.customGoogleClientId!
-    : env.GOOGLE_CLIENT_ID;
+  const googleClientId = hasCustomOAuth ? store.customGoogleClientId! : env.GOOGLE_CLIENT_ID;
 
   const googleClientSecret = hasCustomOAuth
     ? store.customGoogleClientSecret!
@@ -162,18 +155,52 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       storeIdNum
     );
 
+    // ========================================================================
+    // CHECK IF PHONE NUMBER IS REQUIRED
+    // ========================================================================
+    // For Bangladesh market, phone number is essential for delivery
+    // Redirect to profile completion if phone is missing
+    if (!customer.phone || customer.phone.trim().length === 0) {
+      console.warn(`[store.auth.google.callback] Customer ${customer.id} needs phone number`);
+
+      // Check if we need cross-domain transfer
+      const currentHost = new URL(request.url).hostname;
+      let targetHost = currentHost;
+
+      try {
+        if (originUrl.startsWith('http')) {
+          targetHost = new URL(originUrl).hostname;
+        }
+      } catch {
+        // ignore invalid origin
+      }
+
+      const needsTransfer = currentHost !== targetHost;
+
+      if (needsTransfer) {
+        // Create transfer token and redirect to target domain's profile completion
+        const { createTransferToken } = await import('~/services/customer-auth.server');
+        const token = await createTransferToken(customer.id, storeIdNum, env);
+        const cleanOrigin = originUrl.endsWith('/') ? originUrl.slice(0, -1) : originUrl;
+        const transferUrl = `${cleanOrigin}/store/auth/session-transfer?token=${token}&redirectTo=/account/complete-profile`;
+        return redirect(transferUrl);
+      }
+
+      // Same domain - create session and redirect to profile completion
+      return createCustomerSession(customer.id, storeIdNum, '/account/complete-profile', env);
+    }
 
     // ========================================================================
     // CROSS-DOMAIN SESSION HANDLING
     // ========================================================================
-    
+
     // Check if we need to transfer session to a different domain
     // originUrl is where the user came from (e.g. https://mystore.com)
     // current request.url is the callback (e.g. https://ozzyl.com/store/auth/...)
-    
+
     const currentHost = new URL(request.url).hostname;
     let targetHost = currentHost; // fallback
-    
+
     try {
       if (originUrl.startsWith('http')) {
         targetHost = new URL(originUrl).hostname;
@@ -182,21 +209,20 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       // ignore invalid origin
     }
 
-
     const needsTransfer = currentHost !== targetHost;
 
     if (needsTransfer) {
       console.warn(`[GoogleCallback] Transferring session from ${currentHost} to ${targetHost}`);
-      
+
       const { createTransferToken } = await import('~/services/customer-auth.server');
 
       const token = await createTransferToken(customer.id, storeIdNum, env);
-      
+
       // Redirect to the target domain's transfer endpoint
       // This will set the cookie on the target domain
       const cleanOrigin = originUrl.endsWith('/') ? originUrl.slice(0, -1) : originUrl;
       const transferUrl = `${cleanOrigin}/store/auth/session-transfer?token=${token}`;
-      
+
       return redirect(transferUrl);
     }
 
@@ -210,4 +236,3 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return redirect(`${originUrl}?error=oauth_failed`);
   }
 }
-

@@ -15,7 +15,12 @@ import { StarterProductCard } from './sections/ProductCard';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
 import { LazySection } from '~/components/LazySection';
-import { buildProxyImageUrl, generateProxySrcset, generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
+import {
+  buildProxyImageUrl,
+  generateProxySrcset,
+  generateSrcset,
+  optimizeUnsplashUrl,
+} from '~/utils/imageOptimization';
 import { getHeroBehavior } from '~/lib/hero-slides';
 
 const theme = STARTER_STORE_THEME;
@@ -38,6 +43,7 @@ export function StarterStoreTemplate({
   isPreview = false,
   aiCredits,
   isCustomerAiEnabled,
+  customer,
 }: StoreTemplateProps) {
   // Logic for homepage sections
   const validCategories = categories.filter(Boolean) as string[];
@@ -57,19 +63,20 @@ export function StarterStoreTemplate({
     fallbackHero;
   // Heading from slide or config - if empty string, no text overlay
   const rawHeading = heroBehavior.slides[heroIndex]?.heading ?? config?.bannerText ?? '';
-  const heroHeading = rawHeading || null;  // null if empty string
-  const heroSubheading = heroBehavior.slides[heroIndex]?.subheading ?? config?.heroSubheading ?? null;
+  const heroHeading = rawHeading || null; // null if empty string
+  const heroSubheading =
+    heroBehavior.slides[heroIndex]?.subheading ?? config?.heroSubheading ?? null;
   const heroButtonText = heroBehavior.slides[heroIndex]?.ctaText ?? config?.heroButtonText ?? null;
   const heroButtonLink = heroBehavior.slides[heroIndex]?.ctaLink ?? '/products';
-  
+
   // Show text content only if there's a heading
   const showHeroText = Boolean(heroHeading);
-  
+
   // Overlay opacity: 0 = no overlay (full image), 0.4 = default dark overlay
   // Users can set heroOverlayOpacity in config (0 to 1)
-  const heroOverlayOpacity = showHeroText 
-    ? (config?.heroOverlayOpacity ?? 0.4)  // Default to 40% if showing text for readability
-    : (config?.heroOverlayOpacity ?? 0);   // Default to 0% (no overlay) if no text
+  const heroOverlayOpacity = showHeroText
+    ? (config?.heroOverlayOpacity ?? 0.4) // Default to 40% if showing text for readability
+    : (config?.heroOverlayOpacity ?? 0); // Default to 0% (no overlay) if no text
 
   useEffect(() => {
     if (!heroBehavior.isCarousel || !heroBehavior.autoplay) return;
@@ -77,7 +84,12 @@ export function StarterStoreTemplate({
       setHeroIndex((prev) => (prev + 1) % heroBehavior.slides.length);
     }, heroBehavior.delayMs);
     return () => clearInterval(timer);
-  }, [heroBehavior.autoplay, heroBehavior.delayMs, heroBehavior.isCarousel, heroBehavior.slides.length]);
+  }, [
+    heroBehavior.autoplay,
+    heroBehavior.delayMs,
+    heroBehavior.isCarousel,
+    heroBehavior.slides.length,
+  ]);
 
   useEffect(() => {
     if (heroIndex >= heroBehavior.slides.length) {
@@ -107,6 +119,7 @@ export function StarterStoreTemplate({
         currentCategory={currentCategory}
         socialLinks={socialLinks}
         variant={!currentCategory ? 'overlay' : 'default'}
+        customer={customer}
       />
 
       <main>
@@ -123,18 +136,17 @@ export function StarterStoreTemplate({
             decoding="async"
           />
           {/* Overlay - opacity is configurable, defaults to 0 (no overlay) if no text */}
-          <div 
+          <div
             className="absolute inset-0 flex items-center justify-center"
-            style={{ backgroundColor: heroOverlayOpacity > 0 ? `rgba(0, 0, 0, ${heroOverlayOpacity})` : 'transparent' }}
+            style={{
+              backgroundColor:
+                heroOverlayOpacity > 0 ? `rgba(0, 0, 0, ${heroOverlayOpacity})` : 'transparent',
+            }}
           >
             {showHeroText && (
               <div className="text-center text-white px-4">
-                <h1 className="text-3xl md:text-5xl font-bold mb-4">
-                  {heroHeading}
-                </h1>
-                {heroSubheading && (
-                  <p className="text-lg mb-6 opacity-90">{heroSubheading}</p>
-                )}
+                <h1 className="text-3xl md:text-5xl font-bold mb-4">{heroHeading}</h1>
+                {heroSubheading && <p className="text-lg mb-6 opacity-90">{heroSubheading}</p>}
                 {heroButtonText && (
                   <PreviewSafeLink
                     to={heroButtonLink}
@@ -211,25 +223,7 @@ export function StarterStoreTemplate({
           </LazySection>
         )}
 
-        {/* Sale Banner */}
-        {!currentCategory && (
-          <LazySection minHeight="320px">
-            <section className="py-16 px-4" style={{ backgroundColor: theme.accent }}>
-              <div className="max-w-4xl mx-auto text-center text-white">
-                <h2 className="text-3xl md:text-4xl font-bold mb-4">🎉 বিশেষ ছাড় চলছে!</h2>
-                <p className="text-lg mb-6 opacity-90">সীমিত সময়ের জন্য ৫০% পর্যন্ত ছাড়</p>
-                <PreviewSafeLink
-                  to="/products"
-                  isPreview={isPreview}
-                  className="inline-block px-8 py-3 rounded-lg font-medium bg-white transition hover:opacity-90"
-                  style={{ color: theme.accent }}
-                >
-                  সেল দেখুন
-                </PreviewSafeLink>
-              </div>
-            </section>
-          </LazySection>
-        )}
+        {/* Sale Banner - Removed as per user request */}
 
         {/* New Arrivals */}
         {!currentCategory && newArrivals.length > 0 && (
@@ -296,15 +290,18 @@ export function StarterStoreTemplate({
                   className="flex items-center gap-4 p-6 rounded-xl"
                   style={{ backgroundColor: theme.cardBg }}
                 >
-                  <div className="p-3 rounded-full" style={{ backgroundColor: theme.primary + '15' }}>
+                  <div
+                    className="p-3 rounded-full"
+                    style={{ backgroundColor: theme.primary + '15' }}
+                  >
                     <Truck className="w-6 h-6" style={{ color: theme.primary }} />
                   </div>
                   <div>
                     <h3 className="font-semibold" style={{ color: theme.text }}>
-                      দ্রুত ডেলিভারি
+                      {config?.trustBadge1Title || 'দ্রুত ডেলিভারি'}
                     </h3>
                     <p className="text-sm" style={{ color: theme.muted }}>
-                      ঢাকায় ১-২ দিনে
+                      {config?.trustBadge1Desc || 'ঢাকায় ১-২ দিনে'}
                     </p>
                   </div>
                 </div>
@@ -312,15 +309,18 @@ export function StarterStoreTemplate({
                   className="flex items-center gap-4 p-6 rounded-xl"
                   style={{ backgroundColor: theme.cardBg }}
                 >
-                  <div className="p-3 rounded-full" style={{ backgroundColor: theme.primary + '15' }}>
+                  <div
+                    className="p-3 rounded-full"
+                    style={{ backgroundColor: theme.primary + '15' }}
+                  >
                     <Shield className="w-6 h-6" style={{ color: theme.primary }} />
                   </div>
                   <div>
                     <h3 className="font-semibold" style={{ color: theme.text }}>
-                      নিরাপদ পেমেন্ট
+                      {config?.trustBadge2Title || 'নিরাপদ পেমেন্ট'}
                     </h3>
                     <p className="text-sm" style={{ color: theme.muted }}>
-                      ১০০% সিকিউর
+                      {config?.trustBadge2Desc || '১০০% সিকিউর'}
                     </p>
                   </div>
                 </div>
@@ -328,15 +328,18 @@ export function StarterStoreTemplate({
                   className="flex items-center gap-4 p-6 rounded-xl"
                   style={{ backgroundColor: theme.cardBg }}
                 >
-                  <div className="p-3 rounded-full" style={{ backgroundColor: theme.primary + '15' }}>
+                  <div
+                    className="p-3 rounded-full"
+                    style={{ backgroundColor: theme.primary + '15' }}
+                  >
                     <RotateCcw className="w-6 h-6" style={{ color: theme.primary }} />
                   </div>
                   <div>
                     <h3 className="font-semibold" style={{ color: theme.text }}>
-                      ইজি রিটার্ন
+                      {config?.trustBadge3Title || 'ইজি রিটার্ন'}
                     </h3>
                     <p className="text-sm" style={{ color: theme.muted }}>
-                      ৭ দিনের মধ্যে
+                      {config?.trustBadge3Desc || '৭ দিনের মধ্যে'}
                     </p>
                   </div>
                 </div>
@@ -362,7 +365,10 @@ export function StarterStoreTemplate({
         <FloatingContactButtons
           whatsappEnabled={config?.floatingWhatsappEnabled}
           whatsappNumber={
-            config?.floatingWhatsappNumber || socialLinks?.whatsapp || businessInfo?.phone || undefined
+            config?.floatingWhatsappNumber ||
+            socialLinks?.whatsapp ||
+            businessInfo?.phone ||
+            undefined
           }
           whatsappMessage={config?.floatingWhatsappMessage || undefined}
           callEnabled={config?.floatingCallEnabled}

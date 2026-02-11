@@ -669,7 +669,12 @@ function PreviewHomePage({
             backgroundImage: `url(${heroBgUrl})`,
           }}
         >
-          <div className="absolute inset-0 bg-black/30" />
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundColor: `rgba(0, 0, 0, ${config?.heroOverlayOpacity ?? 0.4})`,
+            }}
+          />
         </div>
 
         <div className="relative z-10 text-center text-white px-4 max-w-4xl">
@@ -862,6 +867,7 @@ function LiveLuxeBoutiqueHomepage({
   isPreview,
   aiCredits,
   isCustomerAiEnabled,
+  customer,
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -901,6 +907,7 @@ function LiveLuxeBoutiqueHomepage({
                 searchOpen={searchOpen}
                 setSearchOpen={setSearchOpen}
                 isPreview={isPreview}
+                customer={customer}
               />
 
               {((config?.sections?.length ? config.sections : DEFAULT_SECTIONS) || [])
@@ -908,29 +915,29 @@ function LiveLuxeBoutiqueHomepage({
                 .filter((section: any) => section.type !== 'header' && section.type !== 'footer')
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 .map((section: any) => {
-                const SectionComponent = SECTION_REGISTRY[section.type]?.component;
-                if (!SectionComponent) return null;
+                  const SectionComponent = SECTION_REGISTRY[section.type]?.component;
+                  if (!SectionComponent) return null;
 
-                return (
-                  <SectionComponent
-                    key={section.id}
-                    settings={section.settings}
-                    theme={LUXE_BOUTIQUE_THEME}
-                    products={products}
-                    categories={categories}
-                    storeId={storeId}
-                    currency={currency}
-                    isPreview={isPreview}
-                    store={{
-                      name: storeName,
-                      email: businessInfo?.email,
-                      phone: businessInfo?.phone,
-                      address: businessInfo?.address,
-                      currency: currency,
-                    }}
-                  />
-                );
-              })}
+                  return (
+                    <SectionComponent
+                      key={section.id}
+                      settings={section.settings}
+                      theme={LUXE_BOUTIQUE_THEME}
+                      products={products}
+                      categories={categories}
+                      storeId={storeId}
+                      currency={currency}
+                      isPreview={isPreview}
+                      store={{
+                        name: storeName,
+                        email: businessInfo?.email,
+                        phone: businessInfo?.phone,
+                        address: businessInfo?.address,
+                        currency: currency,
+                      }}
+                    />
+                  );
+                })}
 
               {/* ==================== CATEGORY PILLS (Mobile) ==================== */}
               {validCategories.length > 0 && (

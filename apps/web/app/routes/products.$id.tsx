@@ -442,6 +442,7 @@ export default function ProductDetail() {
     storeRefundPolicy,
     isCustomerAiEnabled,
     aiCredits,
+    themeConfig,
   } = useLoaderData<typeof loader>();
 
   const hasTracked = useRef(false);
@@ -512,6 +513,7 @@ export default function ProductDetail() {
       customer={customer}
       isCustomerAiEnabled={isCustomerAiEnabled}
       aiCredits={aiCredits}
+      config={themeConfig}
     >
       {template.ProductPage ? (
         <template.ProductPage
@@ -535,6 +537,7 @@ export default function ProductDetail() {
           reviewCount={reviewCount}
           currency={currency}
           theme={theme}
+          config={themeConfig}
           storeName={storeName}
         />
       ) : (

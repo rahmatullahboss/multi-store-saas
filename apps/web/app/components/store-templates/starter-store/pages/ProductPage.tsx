@@ -18,13 +18,15 @@ import type {
   SerializedProduct,
   SerializedVariant,
   StoreTemplateTheme,
-} from '~/templates/store-registry';
+} from '../../../../templates/store-registry';
+import type { ThemeConfig } from '@db/types';
 
 interface StarterProductPageProps {
   product: SerializedProduct;
   currency: string;
   relatedProducts: SerializedProduct[];
   theme?: StoreTemplateTheme;
+  config?: ThemeConfig;
   isPreview?: boolean;
 }
 
@@ -33,6 +35,7 @@ export function StarterProductPage({
   currency,
   relatedProducts,
   theme,
+  config,
   isPreview = false,
 }: StarterProductPageProps) {
   const { t } = useTranslation();
@@ -340,9 +343,21 @@ export function StarterProductPage({
             {/* Trust Badges */}
             <div className="grid grid-cols-3 gap-4 mt-8 pt-8 border-t border-gray-100">
               {[
-                { icon: Truck, label: 'Fast Delivery', desc: '2-4 business days' },
-                { icon: ShieldCheck, label: 'Secure Payment', desc: '100% protected' },
-                { icon: RotateCcw, label: 'Easy Returns', desc: '7 days policy' },
+                { 
+                  icon: Truck, 
+                  label: config?.trustBadge1Title || 'Fast Delivery', 
+                  desc: config?.trustBadge1Desc || '2-4 business days' 
+                },
+                { 
+                  icon: ShieldCheck, 
+                  label: config?.trustBadge2Title || 'Secure Payment', 
+                  desc: config?.trustBadge2Desc || '100% protected' 
+                },
+                { 
+                  icon: RotateCcw, 
+                  label: config?.trustBadge3Title || 'Easy Returns', 
+                  desc: config?.trustBadge3Desc || '7 days policy' 
+                },
               ].map((badge, idx) => (
                 <div key={idx} className="flex flex-col items-center text-center gap-2">
                   <div className="p-2 bg-gray-50 rounded-full text-gray-400">

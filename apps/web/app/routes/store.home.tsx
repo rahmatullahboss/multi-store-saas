@@ -37,7 +37,32 @@ import { D1Cache } from '~/services/cache-layer.server';
 import { eq, desc, and } from 'drizzle-orm';
 import { products as productsTable } from '@db/schema';
 
-function normalizeLegacySections(sections: Array<{ id?: string; type?: string; settings?: any }>) {
+interface Badge {
+  icon?: string;
+  title?: string;
+  description?: string;
+}
+
+interface SectionSettings {
+  heading?: string;
+  headline?: string;
+  subheading?: string;
+  subheadline?: string;
+  image?: string;
+  backgroundImage?: string;
+  primaryAction?: { label: string; url: string };
+  buttonText?: string;
+  buttonLink?: string;
+  title?: string;
+  subtitle?: string;
+  layout?: string;
+  limit?: number;
+  columns?: number;
+  badges?: Badge[];
+  [key: string]: unknown;
+}
+
+function normalizeLegacySections(sections: Array<{ id?: string; type?: string; settings?: SectionSettings }>) {
   const badgeIconMap: Record<string, string> = {
     truck: 'Truck',
     shield: 'Shield',
@@ -89,9 +114,7 @@ function normalizeLegacySections(sections: Array<{ id?: string; type?: string; s
           ...settings,
           heading: settings.heading ?? settings.title,
           layout: settings.layout || 'grid',
-          limit:
-            settings.limit ??
-            (settings.columns ? settings.columns * 2 : undefined),
+          limit: settings.limit ?? (settings.columns ? settings.columns * 2 : undefined),
         },
       };
     }
@@ -104,7 +127,7 @@ function normalizeLegacySections(sections: Array<{ id?: string; type?: string; s
         settings: {
           heading: settings.heading ?? settings.title ?? 'Why Shop With Us',
           subheading: settings.subheading ?? settings.subtitle,
-          features: badges.map((badge: any) => ({
+          features: badges.map((badge: Badge) => ({
             icon: badgeIconMap[(badge.icon || '').toLowerCase()] || 'Truck',
             title: badge.title,
             description: badge.description,
@@ -117,7 +140,7 @@ function normalizeLegacySections(sections: Array<{ id?: string; type?: string; s
   });
 }
 
-function normalizeThemeConfigForMvp(themeConfig: any | null) {
+function normalizeThemeConfigForMvp(themeConfig: any) {
   if (!themeConfig || typeof themeConfig !== 'object') return themeConfig;
 
   // If an editor saved empty arrays, treat them as unset so templates can fall back.
@@ -150,10 +173,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const cache = new D1Cache(db);
 
   // Get theme config from store (fallback to legacy 'theme' field for backward compatibility)
-  const themeConfigRaw = normalizeThemeConfigForMvp(parseThemeConfig(store.themeConfig as string | null));
-  const themeConfig = themeConfigRaw
-    ? { ...themeConfigRaw, sections: normalizeLegacySections(themeConfigRaw.sections || []) }
-    : themeConfigRaw;
+  const themeConfigRaw = normalizeThemeConfigForMvp(
+    parseThemeConfig(store.themeConfig as string | null)
+  );
+  // Cast to any to avoid strict type checks on intermediate transformations of legacy config
+  const themeConfig = (themeConfigRaw
+    ? {
+        ...themeConfigRaw,
+        sections: normalizeLegacySections((themeConfigRaw as any).sections || []),
+      }
+    : themeConfigRaw) as any;
   const socialLinks = parseSocialLinks(store.socialLinks as string | null);
   const storeTemplateId =
     themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
@@ -183,49 +212,50 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const productsCacheKey = `store:${storeId}:home:products:v1`;
   const categoriesCacheKey = `store:${storeId}:home:categories:v1`;
 
-  let featuredProducts: SerializedProduct[] | null = await cache.get<SerializedProduct[]>(productsCacheKey);
+  let featuredProducts: SerializedProduct[] | null =
+    await cache.get<SerializedProduct[]>(productsCacheKey);
   let categories: string[] | null = await cache.get<string[]>(categoriesCacheKey);
 
   // If cache miss, fetch from DB
   if (!featuredProducts) {
-      const dbProducts = await db
-        .select({
-          id: productsTable.id,
-          title: productsTable.title,
-          price: productsTable.price,
-          compareAtPrice: productsTable.compareAtPrice,
-          imageUrl: productsTable.imageUrl,
-          category: productsTable.category,
-          inventory: productsTable.inventory,
-        })
-        .from(productsTable)
-        .where(and(eq(productsTable.storeId, storeId), eq(productsTable.isPublished, true)))
-        .orderBy(desc(productsTable.createdAt))
-        .limit(12);
-      
-      featuredProducts = dbProducts.map((p) => ({
-          ...p,
-          handle: String(p.id),
-          storeId,
-          description: null,
-      })) as unknown as SerializedProduct[];
+    const dbProducts = await db
+      .select({
+        id: productsTable.id,
+        title: productsTable.title,
+        price: productsTable.price,
+        compareAtPrice: productsTable.compareAtPrice,
+        imageUrl: productsTable.imageUrl,
+        category: productsTable.category,
+        inventory: productsTable.inventory,
+      })
+      .from(productsTable)
+      .where(and(eq(productsTable.storeId, storeId), eq(productsTable.isPublished, true)))
+      .orderBy(desc(productsTable.createdAt))
+      .limit(12);
 
-      // Cache for 1 hour (3600 seconds) - Best practice for Storefront Home
-      await cache.set(productsCacheKey, featuredProducts, 3600);
+    featuredProducts = dbProducts.map((p) => ({
+      ...p,
+      handle: String(p.id),
+      storeId,
+      description: null,
+    })) as unknown as SerializedProduct[];
+
+    // Cache for 1 hour (3600 seconds) - Best practice for Storefront Home
+    await cache.set(productsCacheKey, featuredProducts, 3600);
   }
 
   if (!categories) {
-      // Derive categories from products or fetch distinct if needed
-      // Ideally we should query distinct categories, but unique from products is a good startup approximation
-      // If we want all categories, we should query them. For now, sticking to logic derived from featured.
-      // However, to be robust, let's just derive from the (possibly cached) featured products to save a query
-      // unless we want *all* categories. The original code derived from featuredProducts.
-      
-      // Let's stick to original logic: derive from featuredProducts
-      categories = [...new Set(featuredProducts.map((p) => p.category).filter(Boolean))] as string[];
-      
-      // Cache categories too
-      await cache.set(categoriesCacheKey, categories, 3600);
+    // Derive categories from products or fetch distinct if needed
+    // Ideally we should query distinct categories, but unique from products is a good startup approximation
+    // If we want all categories, we should query them. For now, sticking to logic derived from featured.
+    // However, to be robust, let's just derive from the (possibly cached) featured products to save a query
+    // unless we want *all* categories. The original code derived from featuredProducts.
+
+    // Let's stick to original logic: derive from featuredProducts
+    categories = [...new Set(featuredProducts.map((p) => p.category).filter(Boolean))] as string[];
+
+    // Cache categories too
+    await cache.set(categoriesCacheKey, categories, 3600);
   }
 
   // EDGE CACHING STRATEGY
@@ -239,27 +269,30 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   } else {
     // Logged In: Private cache only (Browser), potentially for a short time or 0
     // We MUST NOT cache shared (CDN) because it contains user-specific data (Name)
-    headers.set('Cache-Control', 'private, max-age=60'); 
+    headers.set('Cache-Control', 'private, max-age=60');
   }
 
-  return json({
-    storeId,
-    storeName: store.name,
-    logo: store.logo,
-    favicon: store.favicon,
-    currency: store.currency || 'BDT',
-    storeTemplateId,
-    theme,
-    themeConfig,
-    socialLinks,
-    businessInfo,
-    planType: store.planType || 'free',
-    storeTagline: store.tagline || '',
-    storeDescription: store.description || '',
-    customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
-    featuredProducts,
-    categories,
-  }, { headers });
+  return json(
+    {
+      storeId,
+      storeName: store.name,
+      logo: store.logo,
+      favicon: store.favicon,
+      currency: store.currency || 'BDT',
+      storeTemplateId,
+      theme,
+      themeConfig,
+      socialLinks,
+      businessInfo,
+      planType: store.planType || 'free',
+      storeTagline: store.tagline || '',
+      storeDescription: store.description || '',
+      customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
+      featuredProducts,
+      categories,
+    },
+    { headers }
+  );
 }
 
 export const links: LinksFunction = () => {
@@ -292,6 +325,7 @@ export default function StoreHomePage() {
     planType,
     featuredProducts,
     categories,
+    customer,
   } = useLoaderData<typeof loader>();
 
   // Get the template from registry (OLD SYSTEM - 1000+ line components)
@@ -391,7 +425,9 @@ export default function StoreHomePage() {
   const safeThemeConfig = themeConfig || {};
 
   return (
-    <div className={`min-h-screen w-full flex flex-col m-0 p-0 ${bgClass} transition-colors duration-300`}>
+    <div
+      className={`min-h-screen w-full flex flex-col m-0 p-0 ${bgClass} transition-colors duration-300`}
+    >
       {favicon && (
         <>
           <link rel="icon" href={favicon} />
@@ -439,6 +475,7 @@ export default function StoreHomePage() {
         collections={[]}
         reviews={[]}
         banners={[]}
+        customer={customer}
       />
     </div>
   );

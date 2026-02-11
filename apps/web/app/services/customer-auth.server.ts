@@ -131,8 +131,22 @@ export type AuthenticatedCustomer = {
  * Uses separate cookie from merchant session
  */
 export function getCustomerSessionStorage(env: Env) {
-  if (!env.SESSION_SECRET) {
-    throw new Error('SESSION_SECRET must be set in your environment variables.');
+  const envName = env.ENVIRONMENT || 'production';
+  const sessionSecret = env.SESSION_SECRET;
+
+  // Staging/dev safety:
+  // Public storefront routes may call `getCustomer()` (session read) even when you haven't
+  // configured secrets yet. Don't take down the whole storefront for that.
+  //
+  // In production, this must be configured; otherwise cookies are not protected.
+  if (!sessionSecret) {
+    if (envName === 'production') {
+      throw new Error('SESSION_SECRET must be set in your environment variables.');
+    }
+
+    // Ephemeral fallback secret: allows read/write session APIs without crashing.
+    // Sessions will be invalidated when the worker restarts or when you set a real secret.
+    console.warn('[customer-auth] SESSION_SECRET missing; using ephemeral fallback (non-production)');
   }
 
   return createCookieSessionStorage<CustomerSessionData, CustomerSessionFlashData>({
@@ -141,8 +155,8 @@ export function getCustomerSessionStorage(env: Env) {
       httpOnly: true,
       path: '/',
       sameSite: 'lax', // Lax is better for top-level redirects
-      secrets: [env.SESSION_SECRET],
-      secure: process.env.NODE_ENV === 'production', // Only secure in production
+      secrets: [sessionSecret || 'dev-unsafe-session-secret'],
+      secure: envName === 'production', // Only secure in production
       maxAge: 60 * 60 * 24 * 30, // 30 days for customer sessions
     },
   });

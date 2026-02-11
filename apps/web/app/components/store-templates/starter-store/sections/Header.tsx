@@ -1,6 +1,6 @@
 /**
  * Starter Store Header Component
- * 
+ *
  * A clean, modern header for the Starter Store template.
  * Works in both preview and live modes:
  * - Preview: Links are disabled, demo cart count
@@ -29,6 +29,7 @@ interface StarterStoreHeaderProps {
   currentCategory?: string | null;
   socialLinks?: SocialLinks | null;
   variant?: 'default' | 'overlay';
+  customer?: { id: number; name: string | null; email: string | null } | null;
 }
 
 export function StarterStoreHeader({
@@ -39,18 +40,19 @@ export function StarterStoreHeader({
   currentCategory,
   config,
   variant = 'default',
+  customer,
 }: StarterStoreHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Use real cart count in live mode, demo count in preview
   const realCartCount = useCartCount();
   const cartCount = isPreview ? 3 : realCartCount;
   const { t } = useTranslation();
-  
+
   const { count: wishlistCount } = useWishlist();
-  
+
   const validCategories = categories.filter(Boolean).slice(0, 8) as string[];
 
   const getPreviewUrl = usePreviewUrl(isPreview);
@@ -83,18 +85,19 @@ export function StarterStoreHeader({
   const textColor = theme.text; // Always use theme text color
   const iconColor = theme.text; // Always use theme icon color
   const logoBg = 'bg-transparent'; // No special bg needed for logo since header is white
-  
-  const headerClass = variant === 'overlay' 
-    ? 'fixed top-0 left-0 right-0 z-50 transition-all duration-300'
-    : 'sticky top-0 z-50 shadow-sm transition-all duration-300';
-    
+
+  const headerClass =
+    variant === 'overlay'
+      ? 'fixed top-0 left-0 right-0 z-50 transition-all duration-300'
+      : 'sticky top-0 z-50 shadow-sm transition-all duration-300';
+
   const containerClass = 'shadow-sm'; // Always show shadow since it is white
 
   return (
     <>
       {/* Announcement Bar - Always show since background is solid */}
       {config?.announcement?.text?.trim() && (
-        <div 
+        <div
           className="text-center py-2 text-sm font-medium text-white relative z-50"
           style={{ backgroundColor: theme.accent }}
         >
@@ -103,10 +106,7 @@ export function StarterStoreHeader({
       )}
 
       {/* Main Header */}
-      <header 
-        className={`${headerClass} ${containerClass}`}
-        style={{ backgroundColor: headerBg }}
-      >
+      <header className={`${headerClass} ${containerClass}`} style={{ backgroundColor: headerBg }}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Mobile Menu Button */}
@@ -123,38 +123,31 @@ export function StarterStoreHeader({
             </button>
 
             {/* Logo */}
-            <PreviewSafeLink 
-              to="/" 
-              isPreview={isPreview}
-              className="flex items-center gap-2"
-            >
+            <PreviewSafeLink to="/" isPreview={isPreview} className="flex items-center gap-2">
               {logo && (
-                <img 
-                  src={logo} 
-                  alt={storeName} 
-                  className={`h-10 w-auto object-contain rounded px-2 py-1 ${logoBg}`} 
+                <img
+                  src={logo}
+                  alt={storeName}
+                  className={`h-10 w-auto object-contain rounded px-2 py-1 ${logoBg}`}
                 />
               )}
-              <span 
-                className="text-xl font-bold"
-                style={{ color: theme.primary }}
-              >
+              <span className="text-xl font-bold" style={{ color: theme.primary }}>
                 {storeName}
               </span>
             </PreviewSafeLink>
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-6">
-              <PreviewSafeLink 
-                to="/" 
+              <PreviewSafeLink
+                to="/"
                 isPreview={isPreview}
                 className="text-sm font-medium hover:opacity-70 transition-opacity"
                 style={{ color: textColor }}
               >
                 {t('home')}
               </PreviewSafeLink>
-              <PreviewSafeLink 
-                to="/products" 
+              <PreviewSafeLink
+                to="/products"
                 isPreview={isPreview}
                 className="text-sm font-medium hover:opacity-70 transition-opacity"
                 style={{ color: textColor }}
@@ -162,12 +155,14 @@ export function StarterStoreHeader({
                 {t('allProducts')}
               </PreviewSafeLink>
               {validCategories.slice(0, 4).map((cat) => (
-                <PreviewSafeLink 
+                <PreviewSafeLink
                   key={cat}
                   to={`/?category=${encodeURIComponent(cat)}`}
                   isPreview={isPreview}
                   className="text-sm font-medium hover:opacity-70 transition-opacity"
-                  style={{ color: currentCategory === cat && !isTransparent ? theme.primary : textColor }}
+                  style={{
+                    color: currentCategory === cat && !isTransparent ? theme.primary : textColor,
+                  }}
                 >
                   {cat}
                 </PreviewSafeLink>
@@ -179,7 +174,7 @@ export function StarterStoreHeader({
               <div className={isTransparent ? 'text-white' : ''}>
                 <LanguageSelector className="mr-1" />
               </div>
-              
+
               {/* Search Toggle */}
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
@@ -191,14 +186,14 @@ export function StarterStoreHeader({
 
               {/* Wishlist */}
               {!isPreview && (
-                <PreviewSafeLink 
-                  to="/wishlist" 
+                <PreviewSafeLink
+                  to="/wishlist"
                   isPreview={isPreview}
                   className={`p-2 rounded-lg transition-colors relative ${isTransparent ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
                 >
                   <Heart className="h-5 w-5" style={{ color: iconColor }} />
                   {wishlistCount > 0 && (
-                    <span 
+                    <span
                       className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-white text-xs flex items-center justify-center font-medium"
                       style={{ backgroundColor: theme.accent }}
                     >
@@ -209,14 +204,14 @@ export function StarterStoreHeader({
               )}
 
               {/* Cart */}
-              <PreviewSafeLink 
-                to="/cart" 
+              <PreviewSafeLink
+                to="/cart"
                 isPreview={isPreview}
                 className={`p-2 rounded-lg transition-colors relative ${isTransparent ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
               >
                 <ShoppingCart className="h-5 w-5" style={{ color: iconColor }} />
                 {cartCount > 0 && (
-                  <span 
+                  <span
                     className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-white text-xs flex items-center justify-center font-medium"
                     style={{ backgroundColor: theme.primary }}
                   >
@@ -227,11 +222,29 @@ export function StarterStoreHeader({
 
               {/* Account */}
               {!isPreview && (
-                <Link 
+                <Link
                   to="/account"
-                  className={`hidden sm:flex p-2 rounded-lg transition-colors ${isTransparent ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+                  className={`hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${isTransparent ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+                  title={customer ? customer.name || customer.email || 'My Account' : 'Login'}
                 >
-                  <User className="h-5 w-5" style={{ color: iconColor }} />
+                  {customer ? (
+                    <>
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium text-white"
+                        style={{ backgroundColor: theme.primary }}
+                      >
+                        {(customer.name?.[0] || customer.email?.[0] || 'U').toUpperCase()}
+                      </div>
+                      <span
+                        className="text-sm font-medium hidden md:block"
+                        style={{ color: iconColor }}
+                      >
+                        {customer.name || customer.email?.split('@')[0] || 'Account'}
+                      </span>
+                    </>
+                  ) : (
+                    <User className="h-5 w-5" style={{ color: iconColor }} />
+                  )}
                 </Link>
               )}
             </div>
@@ -247,14 +260,14 @@ export function StarterStoreHeader({
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t('searchProducts')}
                   className="w-full px-4 py-3 pr-12 rounded-lg border focus:outline-none focus:ring-2"
-                  style={{ 
+                  style={{
                     borderColor: theme.muted + '40',
                     backgroundColor: theme.background,
-                    color: theme.text
+                    color: theme.text,
                   }}
                   autoFocus
                 />
-                <button 
+                <button
                   type="submit"
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-colors"
                   style={{ backgroundColor: theme.primary, color: 'white' }}
@@ -268,15 +281,15 @@ export function StarterStoreHeader({
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div 
+          <div
             className="lg:hidden border-t shadow-lg"
-            style={{ 
+            style={{
               backgroundColor: theme.headerBg,
-              borderColor: theme.muted + '30'
+              borderColor: theme.muted + '30',
             }}
           >
             <nav className="p-4 space-y-2">
-              <PreviewSafeLink 
+              <PreviewSafeLink
                 to="/"
                 isPreview={isPreview}
                 className="block px-4 py-3 rounded-lg font-medium transition-colors hover:bg-gray-100"
@@ -284,7 +297,7 @@ export function StarterStoreHeader({
               >
                 {t('home')}
               </PreviewSafeLink>
-              <PreviewSafeLink 
+              <PreviewSafeLink
                 to="/products"
                 isPreview={isPreview}
                 className="block px-4 py-3 rounded-lg font-medium transition-colors hover:bg-gray-100"
@@ -293,7 +306,7 @@ export function StarterStoreHeader({
                 {t('allProducts')}
               </PreviewSafeLink>
               {validCategories.map((cat) => (
-                <PreviewSafeLink 
+                <PreviewSafeLink
                   key={cat}
                   to={`/?category=${encodeURIComponent(cat)}`}
                   isPreview={isPreview}
@@ -303,18 +316,34 @@ export function StarterStoreHeader({
                   {cat}
                 </PreviewSafeLink>
               ))}
-              
+
               {!isPreview && (
                 <>
                   <div className="border-t my-2" style={{ borderColor: theme.muted + '30' }} />
-                  <Link 
+                  <Link
                     to="/account"
                     className="block px-4 py-3 rounded-lg font-medium transition-colors hover:bg-gray-100"
                     style={{ color: theme.text }}
                   >
                     <span className="flex items-center gap-3">
-                      <User className="h-5 w-5" />
-                      {t('myAccount')}
+                      {customer ? (
+                        <>
+                          <div
+                            className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium text-white"
+                            style={{ backgroundColor: theme.primary }}
+                          >
+                            {(customer.name?.[0] || customer.email?.[0] || 'U').toUpperCase()}
+                          </div>
+                          <span>
+                            {customer.name || customer.email?.split('@')[0] || t('myAccount')}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <User className="h-5 w-5" />
+                          {t('myAccount')}
+                        </>
+                      )}
                     </span>
                   </Link>
                 </>

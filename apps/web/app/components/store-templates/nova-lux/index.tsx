@@ -11,15 +11,7 @@
 
 import { useState, useCallback, createContext, useContext, useMemo, useEffect } from 'react';
 import { Link } from '@remix-run/react';
-import {
-  ShoppingBag,
-  Search,
-  Menu,
-  X,
-  Star,
-  Check,
-  Heart,
-} from 'lucide-react';
+import { ShoppingBag, Search, Menu, X, Star, Check, Heart } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useWishlist } from '~/hooks/useWishlist';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
@@ -494,7 +486,12 @@ function PreviewHomePage({
       setHeroIndex((prev) => (prev + 1) % heroBehavior.slides.length);
     }, heroBehavior.delayMs);
     return () => clearInterval(timer);
-  }, [heroBehavior.autoplay, heroBehavior.delayMs, heroBehavior.isCarousel, heroBehavior.slides.length]);
+  }, [
+    heroBehavior.autoplay,
+    heroBehavior.delayMs,
+    heroBehavior.isCarousel,
+    heroBehavior.slides.length,
+  ]);
 
   useEffect(() => {
     if (heroIndex >= heroBehavior.slides.length) {
@@ -505,7 +502,12 @@ function PreviewHomePage({
   return (
     <div className="min-h-screen">
       <section className="relative h-[80vh] flex items-center justify-center bg-gray-900 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black/40 z-10" />
+        <div
+          className="absolute inset-0 z-10"
+          style={{
+            backgroundColor: `rgba(0, 0, 0, ${config?.heroOverlayOpacity ?? 0.5})`,
+          }}
+        />
         {heroImage && (
           <img
             src={heroSrc}
@@ -519,9 +521,7 @@ function PreviewHomePage({
           />
         )}
         <div className="relative z-20 text-center max-w-4xl px-4">
-          <h1 className="text-5xl md:text-7xl font-serif mb-6">
-            {heroHeading}
-          </h1>
+          <h1 className="text-5xl md:text-7xl font-serif mb-6">{heroHeading}</h1>
           <p className="text-xl mb-8 opacity-90">{heroSubheading}</p>
           <button
             onClick={() => onNavigate({ type: 'home' })}
@@ -751,6 +751,7 @@ function LiveNovaLuxHomepage({
   isPreview,
   aiCredits,
   isCustomerAiEnabled,
+  customer,
 }: StoreTemplateProps) {
   useEffect(() => {
     // Scroll listener removed as isScrolled was unused
@@ -796,39 +797,47 @@ function LiveNovaLuxHomepage({
                 categories={categories}
                 currentCategory={currentCategory}
                 config={config}
+                customer={customer}
               />
 
               {/* Only show spacer if first section is NOT a hero */}
-              {!(config?.sections?.[0]?.type && ['hero', 'modern-hero', 'zenith-hero', 'turbo-hero', 'video', 'banner'].includes(config.sections[0].type)) && (
+              {!(
+                config?.sections?.[0]?.type &&
+                ['hero', 'modern-hero', 'zenith-hero', 'turbo-hero', 'video', 'banner'].includes(
+                  config.sections[0].type
+                )
+              ) && (
                 <div
                   className={`${announcement?.text ? 'h-[104px] lg:h-[120px]' : 'h-[66px] lg:h-[82px]'}`}
                 />
               )}
 
-              {(config?.sections?.length ? config.sections : NOVA_LUX_DEFAULT_SECTIONS).map((section: SectionInstance) => {
-                const SectionComponent = SECTION_REGISTRY[section.type]?.component;
-                if (!SectionComponent) return null;
+              {(config?.sections?.length ? config.sections : NOVA_LUX_DEFAULT_SECTIONS).map(
+                (section: SectionInstance) => {
+                  const SectionComponent = SECTION_REGISTRY[section.type]?.component;
+                  if (!SectionComponent) return null;
 
-                return (
-                  <SectionComponent
-                    key={section.id}
-                    settings={section.settings}
-                    theme={THEME}
-                    products={products}
-                    categories={categories}
-                    storeId={storeId}
-                    currency={currency}
-                    store={{
-                      name: storeName,
-                      email: businessInfo?.email,
-                      phone: businessInfo?.phone,
-                      address: businessInfo?.address,
-                      currency: currency,
-                    }}
-                    ProductCardComponent={NovaLuxProductCard}
-                  />
-                );
-              })}
+                  return (
+                    <SectionComponent
+                      key={section.id}
+                      settings={section.settings}
+                      theme={THEME}
+                      products={products}
+                      categories={categories}
+                      storeId={storeId}
+                      currency={currency}
+                      store={{
+                        name: storeName,
+                        email: businessInfo?.email,
+                        phone: businessInfo?.phone,
+                        address: businessInfo?.address,
+                        currency: currency,
+                      }}
+                      ProductCardComponent={NovaLuxProductCard}
+                    />
+                  );
+                }
+              )}
 
               {!isPreview && (
                 <FloatingContactButtons

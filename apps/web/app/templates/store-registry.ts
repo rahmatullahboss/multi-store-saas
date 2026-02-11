@@ -78,6 +78,8 @@ export interface StoreTemplateProps {
   promotions?: Record<string, unknown>[];
   announcement?: Record<string, unknown>;
   testimonials?: Record<string, unknown>[];
+  // Customer session info
+  customer?: { id: number; name: string | null; email: string | null } | null;
 }
 
 // ============================================================================
@@ -102,6 +104,8 @@ export interface StoreHeaderProps {
   isScrolled?: boolean;
   announcement?: Record<string, unknown>;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
+  // Customer session info
+  customer?: { id: number; name: string | null; email: string | null } | null;
 }
 
 export interface StoreFooterProps {
@@ -1047,11 +1051,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
  * 2. luxe-boutique - লাক্স বুটিক (luxury fashion, 8 sections)
  * 3. nova-lux - নোভা লাক্স (premium lifestyle, 6 sections)
  */
-export const MVP_THEME_IDS = [
-  'starter-store',
-  'luxe-boutique',
-  'nova-lux',
-] as const;
+export const MVP_THEME_IDS = ['starter-store', 'luxe-boutique', 'nova-lux'] as const;
 
 export type MVPThemeId = (typeof MVP_THEME_IDS)[number];
 
