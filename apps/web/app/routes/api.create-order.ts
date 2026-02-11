@@ -1198,6 +1198,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
             // Save address to customer address book
             try {
+              // Get district and upazila names from IDs
+              const { DISTRICTS, UPAZILAS } = await import('~/data/bd-locations');
+              const districtObj = DISTRICTS.find((d) => d.id === input.district);
+              const upazilaObj = UPAZILAS.find((u) => u.id === input.upazila);
+
               await createCustomerAddress(
                 loggedInCustomer.id,
                 {
@@ -1205,8 +1210,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
                   firstName: input.customer_name.split(' ')[0] || input.customer_name,
                   lastName: input.customer_name.split(' ').slice(1).join(' ') || '',
                   address1: input.address,
-                  city: input.district || '',
-                  province: input.division || '',
+                  city: districtObj?.nameEn || input.district || '',
+                  province: upazilaObj?.nameEn || input.upazila || '',
                   phone: input.phone,
                   isDefault: true,
                 },

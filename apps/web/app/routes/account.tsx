@@ -8,6 +8,7 @@ import { AccountSidebar } from '~/components/account/AccountSidebar';
 import { parseThemeConfig, parseSocialLinks } from '@db/types';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
+import { getCustomerWishlist, getAvailableCoupons } from '~/services/customer-account.server';
 import { products as productsTable } from '@db/schema';
 import { desc, eq, and } from 'drizzle-orm';
 import { Menu, Home, ChevronRight } from 'lucide-react';
@@ -71,6 +72,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     await cache.set(categoriesCacheKey, categories, 3600);
   }
 
+  // 6. Get Counts for Sidebar
+  const [wishlist, coupons] = await Promise.all([
+    getCustomerWishlist(customerId, store.id, db),
+    getAvailableCoupons(store.id, db)
+  ]);
+
   return json({
     store,
     theme,
@@ -79,7 +86,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     socialLinks,
     businessInfo,
     categories,
-    user: { name: 'Customer' }, // Placeholder, should get real user info if available in session/context
+    user: { name: 'Customer' }, // Placeholder
+    counts: {
+      wishlist: wishlist.length,
+      coupons: coupons.length
+    }
   });
 }
 

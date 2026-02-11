@@ -1,6 +1,6 @@
 /**
  * Customer Account Service
- * 
+ *
  * Handles data fetching and updates for the customer dashboard.
  * Includes stats, profile updates, address management, and order history.
  */
@@ -8,13 +8,11 @@
 import { eq, desc, and } from 'drizzle-orm';
 import { type DrizzleD1Database } from 'drizzle-orm/d1';
 import * as schema from '@db/schema';
-import { customers, orders, customerAddresses } from '@db/schema';
-
+import { customers, orders, customerAddresses, wishlists, wishlistItems, products, discounts, shipments, orderItems } from '@db/schema';
 
 // ============================================================================
 // TYPES
 // ============================================================================
-
 
 export interface CustomerStats {
   totalOrders: number;
@@ -83,17 +81,13 @@ export async function getCustomerStats(
   };
 }
 
-export async function getCustomerProfile(
-  customerId: number,
-  storeId: number,
-  db: StoreDB
-) {
+export async function getCustomerProfile(customerId: number, storeId: number, db: StoreDB) {
   const result = await db
     .select()
     .from(customers)
     .where(and(eq(customers.id, customerId), eq(customers.storeId, storeId)))
     .limit(1);
-    
+
   return result[0] || null;
 }
 
@@ -129,15 +123,190 @@ export async function getCustomerOrderById(
     .select()
     .from(orders)
     .where(
-      and(
-        eq(orders.id, orderId), 
-        eq(orders.customerId, customerId),
-        eq(orders.storeId, storeId)
-      )
+      and(eq(orders.id, orderId), eq(orders.customerId, customerId), eq(orders.storeId, storeId))
     )
     .limit(1);
 
   return order[0] || null;
+}
+
+export async function getCustomerOrderWithDetails(
+  orderId: number,
+  customerId: number,
+  storeId: number,
+  db: StoreDB
+) {
+  // 1. Get the order
+  const order = await getCustomerOrderById(orderId, customerId, storeId, db);
+  if (!order) return null;
+
+  // 2. Get order items with product details
+  const items = await db
+    .select({
+      id: orderItems.id,
+      quantity: orderItems.quantity,
+      price: orderItems.price,
+      total: orderItems.total,
+      title: orderItems.title,
+      variantTitle: orderItems.variantTitle,
+      productTitle: products.title,
+      productImage: products.imageUrl,
+      productId: products.id,
+      variantId: orderItems.variantId,
+    })
+    .from(orderItems)
+    .leftJoin(products, eq(orderItems.productId, products.id))
+    .where(eq(orderItems.orderId, orderId));
+
+  // 3. Get shipment/tracking info
+  const shipment = await db
+    .select()
+    .from(shipments)
+    .where(eq(shipments.orderId, orderId))
+    .limit(1);
+
+  return {
+    order,
+    items,
+    shipment: shipment[0] || null,
+  };
+}
+
+// ============================================================================
+// WISHLIST
+// ============================================================================
+
+export async function getCustomerWishlist(customerId: number, storeId: number, db: StoreDB) {
+  // Check if wishlist exists, if not create one
+  let wishlist = await db
+    .select()
+    .from(wishlists)
+    .where(and(eq(wishlists.customerId, customerId), eq(wishlists.storeId, storeId)))
+    .limit(1);
+
+  if (wishlist.length === 0) {
+    wishlist = await db
+      .insert(wishlists)
+      .values({
+        customerId,
+        storeId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+  }
+
+  const wishlistId = wishlist[0].id;
+
+  // Get items with product details
+  const items = await db
+    .select({
+      id: wishlistItems.id,
+      addedAt: wishlistItems.addedAt,
+      productId: products.id,
+      title: products.title,
+      price: products.price,
+      compareAtPrice: products.compareAtPrice,
+      imageUrl: products.imageUrl,
+      inventory: products.inventory,
+      isPublished: products.isPublished,
+    })
+    .from(wishlistItems)
+    .innerJoin(products, eq(wishlistItems.productId, products.id))
+    .where(eq(wishlistItems.wishlistId, wishlistId))
+    .orderBy(desc(wishlistItems.addedAt));
+
+  return items;
+}
+
+export async function addToWishlist(
+  customerId: number,
+  storeId: number,
+  productId: number,
+  db: StoreDB
+) {
+  // Check/Create wishlist
+  const wishlistArr = await db
+    .select()
+    .from(wishlists)
+    .where(and(eq(wishlists.customerId, customerId), eq(wishlists.storeId, storeId)))
+    .limit(1);
+
+  let wishlistId: number;
+
+  if (wishlistArr.length === 0) {
+    const newWishlist = await db
+      .insert(wishlists)
+      .values({
+        customerId,
+        storeId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    wishlistId = newWishlist[0].id;
+  } else {
+    wishlistId = wishlistArr[0].id;
+  }
+
+  // Check if item exists
+  const existing = await db
+    .select()
+    .from(wishlistItems)
+    .where(and(eq(wishlistItems.wishlistId, wishlistId), eq(wishlistItems.productId, productId)))
+    .limit(1);
+
+  if (existing.length > 0) {
+    return { success: true, message: 'Already in wishlist' };
+  }
+
+  await db.insert(wishlistItems).values({
+    wishlistId,
+    productId,
+    addedAt: new Date(),
+  });
+
+  return { success: true };
+}
+
+export async function removeFromWishlist(
+  customerId: number,
+  storeId: number,
+  itemId: number,
+  db: StoreDB
+) {
+  // Verify ownership via join
+  // But easier: get wishlist id first
+  const wishlist = await db
+    .select()
+    .from(wishlists)
+    .where(and(eq(wishlists.customerId, customerId), eq(wishlists.storeId, storeId)))
+    .limit(1);
+
+  if (wishlist.length === 0) return { success: false, error: 'Wishlist not found' };
+
+  await db
+    .delete(wishlistItems)
+    .where(and(eq(wishlistItems.id, itemId), eq(wishlistItems.wishlistId, wishlist[0].id)));
+
+  return { success: true };
+}
+
+// ============================================================================
+// COUPONS
+// ============================================================================
+
+export async function getAvailableCoupons(storeId: number, db: StoreDB) {
+  return db
+    .select()
+    .from(discounts)
+    .where(
+      and(
+        eq(discounts.storeId, storeId),
+        eq(discounts.isActive, true),
+      )
+    )
+    .orderBy(desc(discounts.createdAt));
 }
 
 // ============================================================================
@@ -171,10 +340,7 @@ export async function updateCustomerProfile(
 // ADDRESS MANAGEMENT
 // ============================================================================
 
-export async function getCustomerAddresses(
-  customerId: number,
-  db: StoreDB
-) {
+export async function getCustomerAddresses(customerId: number, db: StoreDB) {
   return db
     .select()
     .from(customerAddresses)
@@ -187,6 +353,48 @@ export async function createCustomerAddress(
   data: Omit<CustomerAddress, 'id' | 'isDefault' | 'customerId'> & { isDefault?: boolean },
   db: StoreDB
 ) {
+  // Check if address already exists with same details
+  const existingAddresses = await db
+    .select()
+    .from(customerAddresses)
+    .where(
+      and(
+        eq(customerAddresses.customerId, customerId),
+        eq(customerAddresses.address1, data.address1 || ''),
+        eq(customerAddresses.city, data.city || ''),
+        eq(customerAddresses.province, data.province || '')
+      )
+    )
+    .limit(1);
+
+  // If address already exists, update it instead of creating new
+  if (existingAddresses.length > 0) {
+    const existingAddress = existingAddresses[0];
+
+    // If setting as default, unset others first
+    if (data.isDefault) {
+      await db
+        .update(customerAddresses)
+        .set({ isDefault: false })
+        .where(eq(customerAddresses.customerId, customerId));
+    }
+
+    // Update the existing address
+    const updated = await db
+      .update(customerAddresses)
+      .set({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone,
+        isDefault: data.isDefault ?? existingAddress.isDefault,
+        updatedAt: new Date(),
+      })
+      .where(eq(customerAddresses.id, existingAddress.id))
+      .returning();
+
+    return updated[0];
+  }
+
   // If setting as default, unset others first
   if (data.isDefault) {
     await db
@@ -235,14 +443,10 @@ export async function updateCustomerAddress(
   return updated[0];
 }
 
-export async function deleteCustomerAddress(
-  addressId: number,
-  customerId: number,
-  db: StoreDB
-) {
+export async function deleteCustomerAddress(addressId: number, customerId: number, db: StoreDB) {
   await db
     .delete(customerAddresses)
     .where(and(eq(customerAddresses.id, addressId), eq(customerAddresses.customerId, customerId)));
-    
+
   return { success: true };
 }

@@ -8,7 +8,7 @@ import {
   deleteCustomerAddress,
 } from '~/services/customer-account.server';
 import { Button } from '~/components/ui/button';
-import { Plus, Trash2, MapPin, Home, Building2, Check, ArrowRight } from 'lucide-react';
+import { Plus, Trash2, MapPin, Check } from 'lucide-react';
 import { Badge } from '~/components/ui/Badge';
 import {
   Dialog,
@@ -24,7 +24,7 @@ import { useState } from 'react';
 import { drizzle } from 'drizzle-orm/d1';
 import * as schema from '@db/schema';
 import { useTranslation } from '~/contexts/LanguageContext';
-import { cn } from '~/lib/utils';
+
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeContext = await resolveStore(context, request);
@@ -107,14 +107,14 @@ interface AddressCardProps {
     address1: string | null;
     address2?: string | null;
     city: string | null;
+    province?: string | null;
     zip?: string | null;
     country: string | null;
     isDefault?: boolean | null;
   };
-  onDelete: () => void;
 }
 
-function AddressCard({ address, onDelete }: AddressCardProps) {
+function AddressCard({ address }: AddressCardProps) {
   const { t } = useTranslation();
   const fetcher = useFetcher();
 
@@ -146,6 +146,7 @@ function AddressCard({ address, onDelete }: AddressCardProps) {
               <p className="text-foreground">{address.address1}</p>
               {address.address2 && <p className="text-muted-foreground">{address.address2}</p>}
               <p className="text-muted-foreground">
+                {address.province && <span className="font-medium">{address.province}, </span>}
                 {address.city}
                 {address.zip ? `, ${address.zip}` : ''}
               </p>
@@ -316,7 +317,7 @@ export default function AccountAddresses() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {addresses.map((address) => (
-            <AddressCard key={address.id} address={address} onDelete={() => {}} />
+            <AddressCard key={address.id} address={address} />
           ))}
         </div>
       )}

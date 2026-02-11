@@ -1,4 +1,4 @@
-import { Link, useLocation } from '@remix-run/react';
+import { Link, useLocation, useRouteLoaderData } from '@remix-run/react';
 import {
   User,
   ShoppingBag,
@@ -7,6 +7,8 @@ import {
   LayoutDashboard,
   ChevronRight,
   HelpCircle,
+  Heart,
+  Ticket
 } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -16,9 +18,10 @@ interface SidebarItemProps {
   icon: React.ElementType;
   label: string;
   isActive?: boolean;
+  badge?: number;
 }
 
-function SidebarItem({ href, icon: Icon, label, isActive }: SidebarItemProps) {
+function SidebarItem({ href, icon: Icon, label, isActive, badge }: SidebarItemProps) {
   return (
     <Link
       to={href}
@@ -38,6 +41,14 @@ function SidebarItem({ href, icon: Icon, label, isActive }: SidebarItemProps) {
         <Icon className="h-4 w-4" />
       </div>
       <span className="flex-1">{label}</span>
+      {badge && badge > 0 && (
+        <span className={cn(
+          "px-2 py-0.5 rounded-full text-xs font-medium",
+          isActive ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
+        )}>
+          {badge}
+        </span>
+      )}
       <ChevronRight
         className={cn(
           'h-4 w-4 transition-transform',
@@ -52,6 +63,8 @@ export function AccountSidebar() {
   const location = useLocation();
   const pathname = location.pathname;
   const { t } = useTranslation();
+  const loaderData = useRouteLoaderData('routes/account') as { counts?: { wishlist: number; coupons: number } } | undefined;
+  const counts = loaderData?.counts;
 
   const items = [
     {
@@ -74,6 +87,18 @@ export function AccountSidebar() {
       href: '/account/addresses',
       icon: MapPin,
       label: t('navAddresses'),
+    },
+    {
+      href: '/account/wishlist',
+      icon: Heart,
+      label: t('wishlist') || 'Wishlist',
+      badge: counts?.wishlist,
+    },
+    {
+      href: '/account/coupons',
+      icon: Ticket,
+      label: t('couponsAndOffers') || 'Coupons',
+      badge: counts?.coupons,
     },
   ];
 
@@ -104,6 +129,7 @@ export function AccountSidebar() {
               icon={item.icon}
               label={item.label}
               isActive={isActive}
+              badge={item.badge}
             />
           );
         })}

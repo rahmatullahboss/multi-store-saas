@@ -341,11 +341,38 @@ export default function Checkout() {
       // If customer has saved addresses, use the default one
       if (customer.addresses && customer.addresses.length > 0) {
         const defaultAddress =
-          customer.addresses.find((addr: CustomerAddress) => addr.isDefault) || customer.addresses[0];
+          customer.addresses.find((addr: CustomerAddress) => addr.isDefault) ||
+          customer.addresses[0];
         if (defaultAddress) {
           if (defaultAddress.address1) setAddress(defaultAddress.address1);
           if (defaultAddress.phone && !customer.phone) setPhone(defaultAddress.phone);
-          // Note: District/Upazila mapping would require additional logic
+
+          // Try to match city to district
+          if (defaultAddress.city) {
+            const cityName = defaultAddress.city.toLowerCase().trim();
+            const matchedDistrict = DISTRICTS.find(
+              (d) => d.nameEn.toLowerCase() === cityName || d.name.toLowerCase() === cityName
+            );
+            if (matchedDistrict) {
+              setSelectedDistrict(matchedDistrict.id);
+
+              // Try to match upazila if province exists
+              if (defaultAddress.province) {
+                const upazilaName = defaultAddress.province.toLowerCase().trim();
+                setTimeout(() => {
+                  const matchedUpazila = UPAZILAS.find(
+                    (u) =>
+                      u.districtId === matchedDistrict.id &&
+                      (u.nameEn.toLowerCase() === upazilaName ||
+                        u.name.toLowerCase() === upazilaName)
+                  );
+                  if (matchedUpazila) {
+                    setSelectedUpazila(matchedUpazila.id);
+                  }
+                }, 100);
+              }
+            }
+          }
         }
       }
     }
@@ -524,6 +551,32 @@ export default function Checkout() {
 
     if (cartItems.length === 0) {
       toast.error('Cart is empty');
+      return;
+    }
+
+    // Validate required fields
+    if (!name.trim()) {
+      toast.error(lang === 'bn' ? 'আপনার নাম দিন' : 'Please enter your name');
+      return;
+    }
+
+    if (!phone.trim()) {
+      toast.error(lang === 'bn' ? 'ফোন নম্বর দিন' : 'Please enter your phone number');
+      return;
+    }
+
+    if (!selectedDistrict) {
+      toast.error(lang === 'bn' ? 'জেলা নির্বাচন করুন' : 'Please select district');
+      return;
+    }
+
+    if (!selectedUpazila) {
+      toast.error(lang === 'bn' ? 'উপজেলা/থানা নির্বাচন করুন' : 'Please select upazila/thana');
+      return;
+    }
+
+    if (!address.trim()) {
+      toast.error(lang === 'bn' ? 'বিস্তারিত ঠিকানা দিন' : 'Please enter detailed address');
       return;
     }
 
