@@ -13,14 +13,14 @@ export async function handleVisitorChatAction({ request, context }: ActionFuncti
     return json({ error: 'Method not allowed' }, { status: 405 });
   }
 
-  const { env } = context.cloudflare;
-  const apiKey = env.OPENROUTER_API_KEY;
-
-  if (!apiKey) {
-    return json({ error: 'AI service not configured' }, { status: 503 });
-  }
-
   try {
+    const { env } = context.cloudflare;
+    const apiKey = env.OPENROUTER_API_KEY;
+
+    if (!apiKey) {
+      return json({ error: 'AI service not configured' }, { status: 503 });
+    }
+
     const db = drizzle(env.DB);
     const payload = (await request.json()) as any;
     const { action = 'chat' } = payload;
