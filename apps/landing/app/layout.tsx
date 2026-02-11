@@ -78,7 +78,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/brand/og-image.png',
+        url: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/brand/og-image.jpg',
         width: 1200,
         height: 630,
         alt: 'Ozzyl - Multi-Store SaaS Platform',
@@ -91,7 +91,7 @@ export const metadata: Metadata = {
     description:
       'Create your professional e-commerce store with custom subdomain, payment integration, and powerful dashboard. No coding required.',
     creator: '@ozzyl',
-    images: ['/brand/og-image.png'],
+    images: ['https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/brand/og-image.jpg'],
   },
   alternates: {
     canonical: '/',
@@ -122,7 +122,7 @@ const jsonLd = {
       url: 'https://ozzyl.com',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://ozzyl.com/brand/og-image.png',
+        url: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/brand/og-image.jpg',
         width: 1200,
         height: 630
       },

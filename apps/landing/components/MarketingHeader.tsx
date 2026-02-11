@@ -68,15 +68,15 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                   </Link>
                 )}
                 
-                {/* Language Toggle - Refined */}
-                <button
+                {/* Language Toggle - Hidden */}
+                {/* <button
                   onClick={toggleLang}
                   className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-medium transition-all group border border-white/5 hover:border-white/10"
                   title={lang === 'en' ? 'Switch to Bengali' : 'ইংরেজিতে পরিবর্তন করুন'}
                 >
                   <Globe className="w-3.5 h-3.5 opacity-70 group-hover:opacity-100 transition-opacity" />
                   <span className="relative top-[1px]">{lang === 'en' ? 'EN' : 'BN'}</span>
-                </button>
+                </button> */}
 
                 <Link
                   href="https://app.ozzyl.com/auth/login"
@@ -104,9 +104,9 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                   <ArrowLeft className="w-4 h-4" />
                   {t('backToHome')}
                 </Link>
-                <div className="h-6 w-[1px] bg-white/10 hidden sm:block mx-1" />
+                {/* Divider and Language Toggle - Hidden */}
+                {/* <div className="h-6 w-[1px] bg-white/10 hidden sm:block mx-1" />
                 
-                {/* Language Toggle */}
                 <button
                   onClick={toggleLang}
                   className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-xs font-medium transition-all group border border-white/5 hover:border-white/10"
@@ -114,7 +114,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                 >
                   <Globe className="w-3.5 h-3.5 opacity-70 group-hover:opacity-100 transition-opacity" />
                   <span className="relative top-[1px]">{lang === 'en' ? 'EN' : 'BN'}</span>
-                </button>
+                </button> */}
 
                 <MagneticButton>
                   <Link

@@ -51,13 +51,21 @@ export interface StructuredResponse {
 export function parseAIResponse(response: string): StructuredResponse {
   // Try to parse as JSON first
   try {
-    // Check for JSON in response
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
-      
+    // Parse only if the whole payload is JSON-like, avoid substring extraction.
+    let cleaned = response.trim();
+    if (cleaned.startsWith('```json')) cleaned = cleaned.slice(7);
+    if (cleaned.startsWith('```')) cleaned = cleaned.slice(3);
+    if (cleaned.endsWith('```')) cleaned = cleaned.slice(0, -3);
+    cleaned = cleaned.trim();
+
+    if (cleaned.startsWith('{') && cleaned.endsWith('}')) {
+      const parsed = JSON.parse(cleaned);
+
       // Validate it has expected structure
-      if (parsed.type && (parsed.data || parsed.content || parsed.items)) {
+      if (parsed.type && (parsed.data || parsed.content || parsed.items || parsed.text?.content)) {
+        if (!parsed.content && parsed.text?.content) {
+          return { type: 'text', content: parsed.text.content };
+        }
         return parsed as StructuredResponse;
       }
     }
@@ -298,6 +306,7 @@ export function AIResponseRenderer({ response, className = '' }: AIResponseRende
 // ============================================================================
 export function AIResponseRendererDark({ response, className = '' }: AIResponseRendererProps) {
   const parsed = parseAIResponse(response);
+  const supportedTypes = new Set(['text', 'insight_card', 'insight_cards', 'alert', 'mixed']);
   
   const DarkInsightCard = ({ data }: { data: InsightCardData }) => (
     <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm p-4">
@@ -379,6 +388,12 @@ export function AIResponseRendererDark({ response, className = '' }: AIResponseR
             </div>
           ))}
         </>
+      )}
+
+      {!supportedTypes.has(parsed.type) && (
+        <p className="text-sm text-white/90 whitespace-pre-wrap leading-relaxed">
+          {response}
+        </p>
       )}
     </div>
   );

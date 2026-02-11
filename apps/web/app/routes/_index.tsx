@@ -81,6 +81,15 @@ export const meta: MetaFunction = ({ data }) => {
         content:
           'Create your professional e-commerce store with custom subdomain, payment integration, and powerful dashboard. No coding required.',
       },
+      {
+        property: 'og:image',
+        content: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/brand/og-image.jpg',
+      },
+      {
+        name: 'twitter:image',
+        content: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/brand/og-image.jpg',
+      },
+      { name: 'twitter:card', content: 'summary_large_image' },
     ];
   }
 

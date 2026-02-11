@@ -665,13 +665,13 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
       {/* Footer - Shared Component */}
       <Footer />
 
-      {/* Sticky Mobile CTA Button - FAB Style */}
-      <div className="sm:hidden fixed bottom-4 left-4 z-40">
+      {/* Sticky CTA Button - FAB Style (All Screens) */}
+      <div className="fixed bottom-4 left-4 z-40">
         <Link
           href="https://app.ozzyl.com/auth/register"
-          className="flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold rounded-full text-sm shadow-xl shadow-[#006A4E]/40 active:scale-[0.95] transition-transform"
+          className="flex items-center justify-center gap-2 px-5 py-3 sm:px-6 sm:py-4 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold rounded-full text-sm sm:text-base shadow-xl shadow-[#006A4E]/40 hover:shadow-2xl hover:shadow-[#006A4E]/50 active:scale-[0.95] hover:scale-[1.05] transition-all duration-200"
         >
-          <Rocket className="w-4 h-4" />
+          <Rocket className="w-4 h-4 sm:w-5 sm:h-5" />
           {t('getStarted')}
         </Link>
       </div>

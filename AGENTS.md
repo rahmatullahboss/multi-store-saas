@@ -1697,7 +1697,7 @@ cd apps/landing
 vercel --prod --yes
 ```
 
-> **Note**: For landing deployments, always use `npm run deploy:landing` (or `vercel --cwd apps/landing --prod --yes`) to avoid deploying the monorepo root by mistake.
+> **Note**: This project uses Vercel project `Root Directory = apps/landing`, so run deployment from monorepo root via `npm run deploy:landing` (or `vercel --prod --yes` after linking to `multi-store-saas-landing-rlej`).
 
 ### Environment Variables
 

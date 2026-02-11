@@ -72,10 +72,20 @@ export function LottieIcon({
   // Load animation data if src is a string (URL)
   useEffect(() => {
     if (typeof src === 'string') {
+      console.log('[Lottie] Loading animation from:', src);
       fetch(src)
-        .then((res) => res.json())
-        .then((data) => setAnimationData(data))
-        .catch((err) => console.error('Failed to load Lottie animation:', err));
+        .then((res) => {
+          console.log('[Lottie] Fetch response:', res.status, res.ok);
+          return res.json();
+        })
+        .then((data) => {
+          console.log('[Lottie] Animation data loaded:', Object.keys(data));
+          setAnimationData(data);
+        })
+        .catch((err) => console.error('[Lottie] Failed to load animation:', src, err));
+    } else if (typeof src === 'object') {
+      console.log('[Lottie] Using inline animation data');
+      setAnimationData(src);
     }
   }, [src]);
 
@@ -120,15 +130,19 @@ export function LottieIcon({
 
   if (!animationData) {
     // Skeleton placeholder while loading
+    console.log('[Lottie] Showing skeleton, no animation data yet for:', src);
     return (
       <div
         ref={containerRef}
         style={{ width: finalWidth, height: finalHeight }}
         className={`bg-white/5 rounded animate-pulse ${className}`}
         aria-label={ariaLabel}
+        title="Loading animation..."
       />
     );
   }
+
+  console.log('[Lottie] Rendering animation:', typeof src === 'string' ? src : 'inline');
 
   return (
     <div
