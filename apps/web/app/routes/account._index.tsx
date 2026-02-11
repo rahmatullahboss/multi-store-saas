@@ -228,7 +228,7 @@ export default function AccountDashboard() {
                             <Heart className="h-4 w-4 mr-3 text-pink-500" />
                             <div className="text-left">
                                 <span className="font-semibold block text-sm">{t('wishlist')}</span>
-                                <span className="text-xs text-muted-foreground">{wishlistCount} items saved</span>
+                                <span className="text-xs text-muted-foreground">{wishlistCount} {t('itemsSaved') || 'items saved'}</span>
                             </div>
                         </Link>
                     </Button>
@@ -237,7 +237,7 @@ export default function AccountDashboard() {
                             <Ticket className="h-4 w-4 mr-3 text-orange-500" />
                             <div className="text-left">
                                 <span className="font-semibold block text-sm">{t('couponsAndOffers')}</span>
-                                <span className="text-xs text-muted-foreground">View available discounts</span>
+                                <span className="text-xs text-muted-foreground">{t('viewAvailableDiscounts') || 'View available discounts'}</span>
                             </div>
                         </Link>
                     </Button>

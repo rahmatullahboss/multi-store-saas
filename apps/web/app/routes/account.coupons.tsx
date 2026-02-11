@@ -114,7 +114,7 @@ function CouponCard({ coupon, currency, isExpired }: CouponCardProps) {
             {coupon.maxDiscountAmount && (
                 <div className="flex items-center gap-1.5">
                     <span className="w-1 h-1 rounded-full bg-muted-foreground" />
-                    <span>Max discount: {currency}{coupon.maxDiscountAmount}</span>
+                    <span>{t('maxDiscount') || 'Max discount'}: {currency}{coupon.maxDiscountAmount}</span>
                 </div>
             )}
           </div>
@@ -122,7 +122,7 @@ function CouponCard({ coupon, currency, isExpired }: CouponCardProps) {
 
         <div className="mt-5 pt-4 border-t border-border/30 flex items-center justify-between gap-4">
           <div className="text-xs text-muted-foreground">
-             {coupon.maxUses ? `${coupon.usedCount}/${coupon.maxUses} used` : 'Unlimited usage'}
+             {coupon.maxUses ? `${coupon.usedCount}/${coupon.maxUses} ${t('used') || 'used'}` : (t('unlimitedUsage') || 'Unlimited usage')}
           </div>
           <Button 
             size="sm" 
@@ -217,7 +217,7 @@ export default function AccountCoupons() {
             availableCoupons.length > 0 ? (
                 <div className="grid gap-6 lg:grid-cols-2">
                     {availableCoupons.map(coupon => (
-                        <CouponCard key={coupon.id} coupon={coupon} currency={storeCurrency} />
+                        <CouponCard key={coupon.id} coupon={coupon} currency={storeCurrency || 'USD'} />
                     ))}
                 </div>
             ) : (
@@ -233,7 +233,7 @@ export default function AccountCoupons() {
             expiredCoupons.length > 0 ? (
                 <div className="grid gap-6 lg:grid-cols-2 opacity-80">
                     {expiredCoupons.map(coupon => (
-                        <CouponCard key={coupon.id} coupon={coupon} currency={storeCurrency} isExpired />
+                        <CouponCard key={coupon.id} coupon={coupon} currency={storeCurrency || 'USD'} isExpired />
                     ))}
                 </div>
             ) : (

@@ -3,7 +3,6 @@ import { useLoaderData, Link } from '@remix-run/react';
 import { resolveStore } from '~/lib/store.server';
 import { getCustomerId } from '~/services/customer-auth.server';
 import { getCustomerOrderWithDetails } from '~/services/customer-account.server';
-import { Button } from '~/components/ui/button';
 import { OrderStatusBadge } from '~/components/account/OrderStatusBadge';
 import { Separator } from '~/components/ui/separator';
 import { format } from 'date-fns';
@@ -57,11 +56,11 @@ export default function OrderDetails() {
 
   // Timeline Steps
   const steps = [
-    { key: 'pending', label: 'Order Placed', date: order.createdAt },
-    { key: 'confirmed', label: 'Confirmed', date: null },
-    { key: 'processing', label: 'Processing', date: null },
-    { key: 'shipped', label: 'Shipped', date: shipment?.shippedAt },
-    { key: 'delivered', label: 'Delivered', date: shipment?.deliveredAt },
+    { key: 'pending', label: t('orderPlaced') || 'Order Placed', date: order.createdAt },
+    { key: 'confirmed', label: t('statusConfirmed') || 'Confirmed', date: null },
+    { key: 'processing', label: t('statusProcessing') || 'Processing', date: null },
+    { key: 'shipped', label: t('statusShipped') || 'Shipped', date: shipment?.shippedAt },
+    { key: 'delivered', label: t('statusDelivered') || 'Delivered', date: shipment?.deliveredAt },
   ];
 
   // Determine current step index
@@ -85,19 +84,16 @@ export default function OrderDetails() {
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight">Order #{order.orderNumber}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{t('orderHash') || 'Order'} #{order.orderNumber}</h1>
             <OrderStatusBadge status={order.status || 'pending'} />
           </div>
           <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
             <Calendar className="h-3.5 w-3.5" />
-            Placed on {format(new Date(order.createdAt || new Date()), 'PPpp')}
+            {t('placedOn') || 'Placed on'} {format(new Date(order.createdAt || new Date()), 'PPpp')}
           </p>
         </div>
         
-        {/* Actions - e.g. Cancel allowed only if pending */}
-        {order.status === 'pending' && (
-           <Button variant="destructive" size="sm" className="hidden">Cancel Order</Button> 
-        )}
+
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
@@ -109,7 +105,7 @@ export default function OrderDetails() {
             <div className="p-4 border-b bg-muted/30">
               <h3 className="font-semibold flex items-center gap-2">
                 <ShoppingBag className="h-4 w-4 text-primary" />
-                Items ({items.length})
+                {t('items') || 'Items'} ({items.length})
               </h3>
             </div>
             <div className="divide-y">
@@ -129,7 +125,7 @@ export default function OrderDetails() {
                     <p className="text-sm text-muted-foreground">{item.variantTitle}</p>
                     <div className="mt-2 flex items-center justify-between">
                       <div className="text-sm border rounded px-2 py-0.5 bg-background">
-                        Qty: {item.quantity}
+                        {t('qty') || 'Qty'}: {item.quantity}
                       </div>
                       <div className="font-medium">
                         {storeCurrency} {item.price}
@@ -146,7 +142,7 @@ export default function OrderDetails() {
             <div className="bg-card/50 backdrop-blur-sm border rounded-xl p-6 shadow-sm">
               <h3 className="font-semibold mb-6 flex items-center gap-2">
                 <Truck className="h-4 w-4 text-primary" />
-                Order Timeline
+                {t('orderTimeline') || 'Order Timeline'}
               </h3>
               <div className="relative pl-4 space-y-8 before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-0.5 before:bg-muted">
                 {steps.map((step, index) => {
@@ -172,8 +168,8 @@ export default function OrderDetails() {
                         {/* Show extra info for current step */}
                         {isCurrent && step.key === 'shipped' && shipment && (
                           <div className="mt-2 text-xs bg-muted/50 p-2 rounded border">
-                            <span className="font-semibold">Courier:</span> {shipment.courier}<br/>
-                            <span className="font-semibold">Tracking ID:</span> {shipment.trackingNumber || 'N/A'}
+                            <span className="font-semibold">{t('courier') || 'Courier'}:</span> {shipment.courier}<br/>
+                            <span className="font-semibold">{t('trackingId') || 'Tracking ID'}:</span> {shipment.trackingNumber || 'N/A'}
                           </div>
                         )}
                       </div>
@@ -188,9 +184,9 @@ export default function OrderDetails() {
             <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-xl p-6 text-red-700 dark:text-red-400">
                <div className="flex items-center gap-3 mb-2">
                  <XCircle className="h-5 w-5" />
-                 <h3 className="font-semibold">Order Cancelled</h3>
+                 <h3 className="font-semibold">{t('orderCancelled') || 'Order Cancelled'}</h3>
                </div>
-               <p className="text-sm opacity-90">This order has been cancelled. If you have any questions, please contact support.</p>
+               <p className="text-sm opacity-90">{t('orderCancelledDesc') || 'This order has been cancelled. If you have any questions, please contact support.'}</p>
             </div>
           )}
 
@@ -203,27 +199,27 @@ export default function OrderDetails() {
           <div className="bg-card/50 backdrop-blur-sm border rounded-xl p-6 shadow-sm">
              <h3 className="font-semibold mb-4 flex items-center gap-2">
                 <Receipt className="h-4 w-4 text-primary" />
-                Order Summary
+                {t('orderSummary') || 'Order Summary'}
               </h3>
               
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="text-muted-foreground">{t('subtotal') || 'Subtotal'}</span>
                   <span>{storeCurrency} {pricing?.subtotal || order.total}</span>
                 </div>
                 {pricing?.discount > 0 && (
                   <div className="flex justify-between text-green-600">
-                    <span>Discount</span>
+                    <span>{t('discount') || 'Discount'}</span>
                     <span>- {storeCurrency} {pricing.discount}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Shipping</span>
+                  <span className="text-muted-foreground">{t('shipping') || 'Shipping'}</span>
                   <span>{storeCurrency} {pricing?.shipping || 0}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold text-lg pt-1">
-                  <span>Total</span>
+                  <span>{t('total') || 'Total'}</span>
                   <span>{storeCurrency} {order.total}</span>
                 </div>
               </div>
@@ -233,7 +229,7 @@ export default function OrderDetails() {
           <div className="bg-card/50 backdrop-blur-sm border rounded-xl p-6 shadow-sm">
              <h3 className="font-semibold mb-4 flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-primary" />
-                Delivery Address
+                {t('deliveryAddress') || 'Delivery Address'}
               </h3>
               {shippingAddress ? (
                 <div className="text-sm space-y-1 text-muted-foreground">
@@ -248,7 +244,7 @@ export default function OrderDetails() {
                    </p>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No address information</p>
+                <p className="text-sm text-muted-foreground">{t('noAddressInfo') || 'No address information'}</p>
               )}
           </div>
           
@@ -256,14 +252,14 @@ export default function OrderDetails() {
            <div className="bg-card/50 backdrop-blur-sm border rounded-xl p-6 shadow-sm">
              <h3 className="font-semibold mb-4 flex items-center gap-2">
                 <CreditCard className="h-4 w-4 text-primary" />
-                Payment Method
+                {t('paymentMethod') || 'Payment Method'}
               </h3>
               <div className="flex items-center gap-2 text-sm">
                 <div className="bg-muted px-2 py-1 rounded border font-medium uppercase">
                   {order.paymentMethod || 'COD'}
                 </div>
                 <span className="text-muted-foreground">
-                  {order.paymentStatus === 'paid' ? 'Paid' : 'Payment Pending'}
+                  {order.paymentStatus === 'paid' ? (t('paid') || 'Paid') : (t('paymentPending') || 'Payment Pending')}
                 </span>
               </div>
           </div>
