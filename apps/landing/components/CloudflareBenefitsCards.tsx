@@ -13,7 +13,9 @@
 
 import { motion, useInView } from 'framer-motion';
 import { useRef, useState } from 'react';
-import { Zap, Shield, Globe, Clock, Database, Lock, type LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { LottieIcon } from '@/components/ui/LottieIcon';
+import { LOTTIE_ANIMATIONS } from '@/lib/lottie-animations';
 
 // ============================================================================
 // DESIGN TOKENS - Matching Infrastructure Section theme
@@ -52,7 +54,7 @@ interface BenefitCard {
 const BENEFITS: BenefitCard[] = [
   {
     id: 'speed',
-    icon: Zap,
+    icon: 'zap' as any,
     title: 'SPEED',
     titleEn: 'বিদ্যুৎ গতি',
     bengaliQuote: '"বিশ্বের সবচেয়ে দ্রুত CDN"',
@@ -63,7 +65,7 @@ const BENEFITS: BenefitCard[] = [
   },
   {
     id: 'security',
-    icon: Shield,
+    icon: 'shield' as any,
     title: 'SECURITY',
     titleEn: 'সুরক্ষা',
     bengaliQuote: '"হ্যাকার থেকে সুরক্ষিত"',
@@ -74,7 +76,7 @@ const BENEFITS: BenefitCard[] = [
   },
   {
     id: 'global',
-    icon: Globe,
+    icon: 'globe' as any,
     title: 'GLOBAL',
     titleEn: 'বিশ্বব্যাপী',
     bengaliQuote: '"পৃথিবীর যেকোনো প্রান্তে Fast"',
@@ -85,7 +87,7 @@ const BENEFITS: BenefitCard[] = [
   },
   {
     id: 'uptime',
-    icon: Clock,
+    icon: 'clock' as any,
     title: 'UPTIME',
     titleEn: 'নিরবচ্ছিন্ন',
     bengaliQuote: '"কখনো Down হয় না"',
@@ -96,7 +98,7 @@ const BENEFITS: BenefitCard[] = [
   },
   {
     id: 'cache',
-    icon: Database,
+    icon: 'database' as any,
     title: 'CACHE',
     titleEn: 'স্মার্ট ক্যাশ',
     bengaliQuote: '"Smart Caching = দ্রুত"',
@@ -107,7 +109,7 @@ const BENEFITS: BenefitCard[] = [
   },
   {
     id: 'ssl',
-    icon: Lock,
+    icon: 'lock' as any,
     title: 'SSL',
     titleEn: 'ফ্রি HTTPS',
     bengaliQuote: '"Free HTTPS সবার জন্য"',
@@ -128,7 +130,18 @@ interface BenefitCardComponentProps {
 
 const BenefitCardComponent = ({ benefit, index }: BenefitCardComponentProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const Icon = benefit.icon;
+  
+  // Map icon names to Lottie animations
+  const iconMap: Record<string, string> = {
+    zap: LOTTIE_ANIMATIONS.zap,
+    shield: LOTTIE_ANIMATIONS.shield,
+    globe: LOTTIE_ANIMATIONS.globe,
+    clock: LOTTIE_ANIMATIONS.clock,
+    database: LOTTIE_ANIMATIONS.database,
+    lock: LOTTIE_ANIMATIONS.lock,
+  };
+  
+  const lottieIconSrc = iconMap[benefit.icon as string] || LOTTIE_ANIMATIONS.zap;
 
   return (
     <motion.div
@@ -193,14 +206,13 @@ const BenefitCardComponent = ({ benefit, index }: BenefitCardComponentProps) => 
               repeatDelay: 0.5,
             }}
           >
-            <motion.div
-              animate={{
-                scale: isHovered ? [1, 1.2, 1] : 1,
-              }}
-              transition={{ duration: 0.5 }}
-            >
-              <Icon className="w-7 h-7" style={{ color: benefit.color }} />
-            </motion.div>
+            <LottieIcon 
+              src={lottieIconSrc} 
+              size={28} 
+              loop={isHovered}
+              autoplay={isHovered}
+              className="transition-transform"
+            />
           </motion.div>
 
           {/* Title */}

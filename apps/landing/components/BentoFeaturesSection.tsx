@@ -10,12 +10,12 @@
 import { motion } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
 import { 
-  Palette, Eye, Languages, Smartphone, GripVertical, 
-  ShoppingCart, FileText, Sparkles, Bell, ArrowRight,
-  Check, Layout, Type, Image as LucideImage, Star
+  GripVertical, ArrowRight, Layout, Type, Image as LucideImage, Star, Bell, Check
 } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { ASSETS } from '@/config/assets';
+import { LottieIcon } from '@/components/ui/LottieIcon';
+import { LOTTIE_ANIMATIONS } from '@/lib/lottie-animations';
 
 // ============================================================================
 // DESIGN TOKENS
@@ -66,7 +66,12 @@ const TemplateLibraryCard = () => {
       {/* Header */}
       <div className="relative z-10 flex items-center gap-4 mb-8">
         <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-500/20 flex items-center justify-center">
-          <Palette className="w-6 h-6 text-emerald-400" />
+          <LottieIcon 
+            src={LOTTIE_ANIMATIONS.palette} 
+            size={24} 
+            loop={true}
+            className="text-emerald-400"
+          />
         </div>
         <div>
           <h3 className="text-xl font-bold text-white font-bengali">{t('bentoTemplateLibrary_title')}</h3>
@@ -178,7 +183,11 @@ const LivePreviewCard = () => {
     >
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
-          <Eye className="w-5 h-5 text-blue-400" />
+          <LottieIcon 
+            src={LOTTIE_ANIMATIONS.eye} 
+            size={20} 
+            loop={true}
+          />
         </div>
         <div>
           <h3 className="text-base font-bold text-white">{t('bentoLivePreview_title')}</h3>
@@ -297,7 +306,11 @@ const BanglaSupportCard = () => {
       
       <div className="flex items-center gap-3 mb-6 relative z-10">
         <div className="w-10 h-10 rounded-xl bg-green-600/10 flex items-center justify-center border border-green-600/20">
-          <Languages className="w-5 h-5 text-green-500" />
+          <LottieIcon 
+            src={LOTTIE_ANIMATIONS.languages} 
+            size={20} 
+            loop={true}
+          />
         </div>
         <h3 className="text-base font-bold text-white">{t('bentoBanglaSupport_title')}</h3>
       </div>
@@ -328,7 +341,11 @@ const MobileResponsiveCard = () => {
     >
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
-          <Smartphone className="w-5 h-5 text-orange-400" />
+          <LottieIcon 
+            src={LOTTIE_ANIMATIONS.smartphone} 
+            size={20} 
+            loop={true}
+          />
         </div>
         <h3 className="text-base font-bold text-white">{t('bentoMobileReady_title')}</h3>
       </div>
@@ -413,7 +430,11 @@ const ComingSoonTeaser = () => {
       <div className="flex flex-col md:flex-row items-center justify-between gap-6">
         <div>
           <div className="flex items-center gap-2 mb-2 text-amber-400">
-            <Sparkles className="w-4 h-4" />
+            <LottieIcon 
+              src={LOTTIE_ANIMATIONS.sparkles} 
+              size={16} 
+              loop={true}
+            />
             <span className="text-sm font-bold uppercase tracking-wider">{t('bentoComingSoon_badge')}</span>
           </div>
           <p className="text-white/60 text-sm font-bengali max-w-md">
@@ -465,7 +486,11 @@ export function BentoFeaturesSection() {
           viewport={{ once: true }}
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6 backdrop-blur-sm">
-            <Sparkles className="w-4 h-4 text-emerald-400" />
+            <LottieIcon 
+              src={LOTTIE_ANIMATIONS.sparkles} 
+              size={16} 
+              loop={true}
+            />
             <span className="text-sm font-medium text-emerald-300">{t('bentoBadge')}</span>
           </div>
           

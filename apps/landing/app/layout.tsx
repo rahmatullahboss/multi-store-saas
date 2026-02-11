@@ -76,6 +76,14 @@ export const metadata: Metadata = {
     siteName: 'Ozzyl',
     locale: 'en_US',
     type: 'website',
+    images: [
+      {
+        url: '/brand/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Ozzyl - Multi-Store SaaS Platform',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
@@ -83,6 +91,7 @@ export const metadata: Metadata = {
     description:
       'Create your professional e-commerce store with custom subdomain, payment integration, and powerful dashboard. No coding required.',
     creator: '@ozzyl',
+    images: ['/brand/og-image.png'],
   },
   alternates: {
     canonical: '/',
@@ -108,22 +117,40 @@ const jsonLd = {
   '@graph': [
     {
       '@type': 'Organization',
+      '@id': 'https://ozzyl.com/#organization',
       name: 'Ozzyl',
       url: 'https://ozzyl.com',
-      logo: 'https://ozzyl.com/logo.png',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://ozzyl.com/brand/og-image.png',
+        width: 1200,
+        height: 630
+      },
+      description: 'The next-gen multi-store SaaS platform for scaling businesses.',
       sameAs: [
         'https://facebook.com/ozzyl',
         'https://twitter.com/ozzyl',
-        'https://linkedin.com/company/ozzyl',
+        'https://linkedin.com/company/ozzyl'
       ],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://ozzyl.com/#website',
+      url: 'https://ozzyl.com',
+      name: 'Ozzyl',
+      publisher: { '@id': 'https://ozzyl.com/#organization' },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: 'https://ozzyl.com/search?q={search_term_string}',
+        'query-input': 'required name=search_term_string'
+      }
     },
     {
       '@type': 'SoftwareApplication',
       name: 'Ozzyl',
       applicationCategory: 'BusinessApplication',
       operatingSystem: 'Web',
-      description:
-        'All-in-one e-commerce platform to build and manage online stores.',
+      description: 'All-in-one e-commerce platform to build and manage online stores.',
       offers: {
         '@type': 'Offer',
         price: '0',
