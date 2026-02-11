@@ -21,7 +21,7 @@ import { getCustomerId, requireCustomer } from '~/services/customer-auth.server'
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/Input';
 import { Phone, User, ArrowRight, AlertCircle } from 'lucide-react';
-import { useTranslation } from '~/contexts/LanguageContext';
+// import { useTranslation } from '~/contexts/LanguageContext';
 
 const bdPhoneRegex = /^(\+880|880|0)?1[3-9]\d{8}$/;
 
@@ -165,7 +165,7 @@ export default function CompleteProfilePage() {
   const { customer } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const { t } = useTranslation();
+  // const { t } = useTranslation(); // Unused
   const isSubmitting = navigation.state === 'submitting';
 
   return (

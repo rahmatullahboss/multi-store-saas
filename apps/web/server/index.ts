@@ -37,10 +37,10 @@ import { oauthApi } from './api/oauth';
 import customersApi from './api/routes/customers';
 
 // Forward all other requests to Remix (via Vite build output)
-import { createRequestHandler } from '@remix-run/cloudflare';
+import { ServerBuild, createRequestHandler } from '@remix-run/cloudflare';
 // IMPORTANT: Lazy-load the Remix build so unit tests can import this module
 // without executing the compiled server bundle (which can be heavy/fragile in Vitest).
-const getRemixBuild = () => import('../build/server/index.js') as any;
+const getRemixBuild = () => import('../build/server/index.js') as Promise<ServerBuild>;
 
 // Type definitions for Cloudflare bindings
 interface Env extends TenantEnv {
@@ -343,7 +343,7 @@ app.use('*', async (c, next) => {
   };
 
   c.executionCtx.waitUntil(
-    Promise.resolve().then(() => console.log(JSON.stringify(log)))
+    Promise.resolve().then(() => console.warn(JSON.stringify(log)))
   );
 });
 
@@ -416,7 +416,8 @@ app.all('*', async (c) => {
   // When run_worker_first = true, we must forward requests to ASSETS binding
   // Avoid consuming request bodies for API/non-GET requests (ReadableStream can only be read once)
   if (url.pathname.startsWith('/api/') || (c.req.method !== 'GET' && c.req.method !== 'HEAD')) {
-    const handler = createRequestHandler(getRemixBuild as any, c.env.ENVIRONMENT);
+    const build = await getRemixBuild();
+    const handler = createRequestHandler(build, c.env.ENVIRONMENT);
 
     return handler(c.req.raw, {
       cloudflare: {
@@ -464,7 +465,8 @@ app.all('*', async (c) => {
   
   // 5. Not an asset - run Remix SSR for application routes
   // This handles all page routes (/auth/login, /dashboard, /store.home, etc.)
-  const handler = createRequestHandler(getRemixBuild as any, c.env.ENVIRONMENT);
+  const build = await getRemixBuild();
+  const handler = createRequestHandler(build, c.env.ENVIRONMENT);
 
   const isCacheablePath =
     url.pathname === '/' ||
@@ -480,7 +482,7 @@ app.all('*', async (c) => {
   const hasAuthHeaders = Boolean(c.req.header('authorization') || c.req.header('cookie'));
 
   if (c.req.method === 'GET' && isCacheablePath && !isSensitivePath && !hasAuthHeaders) {
-    const cache = (caches as any).default as Cache;
+    const cache = (caches as unknown as { default: Cache }).default;
     const cacheKey = new Request(c.req.raw.url, c.req.raw);
     const cachedResponse = await cache.match(cacheKey);
 

@@ -1165,7 +1165,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     context.cloudflare.ctx.waitUntil(
       (async () => {
         try {
-          let _finalCustomerId: number | null = orderCustomerId;
+          // let _finalCustomerId: number | null = orderCustomerId;
 
           // If customer is logged in, update their info
           if (loggedInCustomer) {
@@ -1194,7 +1194,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
                 and(eq(customers.id, loggedInCustomer.id), eq(customers.storeId, input.store_id))
               );
 
-            _finalCustomerId = loggedInCustomer.id;
+            // finalCustomerId tracked via orderCustomerId
 
             // Save address to customer address book
             try {
@@ -1249,7 +1249,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             if (existingCustomer.length > 0) {
               // UPDATE existing customer stats
               const customer = existingCustomer[0];
-              _finalCustomerId = customer.id;
+              // finalCustomerId tracked via orderCustomerId
               const newTotalOrders = (customer.totalOrders || 0) + 1;
               const newTotalSpent = (customer.totalSpent || 0) + total;
 
@@ -1305,7 +1305,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
                 })
                 .returning({ id: customers.id });
 
-              _finalCustomerId = newCustomer.id;
+              // _finalCustomerId = newCustomer.id;
 
               // Ensure order is linked to customer
               if (!orderCustomerId) {

@@ -20,6 +20,7 @@ import { useLoaderData, useFetcher, useNavigate, Link, useSearchParams } from '@
 import { eq, and, inArray, desc } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { products, stores, orderBumps, type Store } from '@db/schema';
+import * as schema from '@db/schema';
 import { parseThemeConfig, parseSocialLinks } from '@db/types';
 
 interface CartItem {
@@ -122,7 +123,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     throw new Response('Store not found', { status: 404 });
   }
 
-  const db = drizzle(cloudflare.env.DB);
+  const db = drizzle(cloudflare.env.DB, { schema });
 
   // Fetch store details
   const storeResult = await db

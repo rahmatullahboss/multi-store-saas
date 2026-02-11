@@ -27,7 +27,7 @@ export interface CustomerStats {
 export interface CustomerAddress {
   id: number;
   customerId: number;
-  type?: 'shipping' | 'billing';
+  type?: 'shipping' | 'billing' | null;
   firstName?: string | null;
   lastName?: string | null;
   company?: string | null;
@@ -38,7 +38,7 @@ export interface CustomerAddress {
   zip?: string | null;
   country?: string | null;
   phone?: string | null;
-  isDefault: boolean;
+  isDefault: boolean | null;
 }
 
 type StoreDB = DrizzleD1Database<typeof schema>;
