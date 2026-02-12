@@ -7,12 +7,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
-import { STARTER_STORE_THEME, STARTER_STORE_FONTS } from '../theme';
+import { STARTER_STORE_FONTS, resolveStarterStoreTheme } from '../theme';
 import { formatPrice } from '~/lib/theme-engine';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
-
-const theme = STARTER_STORE_THEME;
+import type { StoreTemplateTheme } from '~/templates/store-registry';
+import type { ThemeConfig } from '@db/types';
 
 interface CartItem {
   productId: number;
@@ -35,6 +35,8 @@ interface StarterStoreCartPageProps {
   isLoading?: boolean;
   storeName?: string;
   isPreview?: boolean;
+  theme?: StoreTemplateTheme;
+  config?: ThemeConfig | null;
 }
 
 export function StarterStoreCartPage({
@@ -45,7 +47,10 @@ export function StarterStoreCartPage({
   onCheckout,
   isLoading = false,
   isPreview = false,
+  theme,
+  config,
 }: StarterStoreCartPageProps) {
+  const resolvedTheme = resolveStarterStoreTheme(config, theme);
   const [cartItems, setCartItems] = useState<CartItem[]>(propItems || []);
   const [hydrated, setHydrated] = useState(false);
 
@@ -136,14 +141,14 @@ export function StarterStoreCartPage({
   return (
     <div
       className="min-h-[70vh] px-4 py-10"
-      style={{ backgroundColor: theme.background, fontFamily: STARTER_STORE_FONTS.body }}
+      style={{ backgroundColor: resolvedTheme.background, fontFamily: STARTER_STORE_FONTS.body }}
     >
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold" style={{ color: theme.text }}>
+          <h1 className="text-2xl md:text-3xl font-bold" style={{ color: resolvedTheme.text }}>
             আপনার কার্ট
           </h1>
-          <span className="text-sm" style={{ color: theme.muted }}>
+          <span className="text-sm" style={{ color: resolvedTheme.muted }}>
             {totalItems} টি পণ্য
           </span>
         </div>
@@ -153,25 +158,25 @@ export function StarterStoreCartPage({
         ) : cartItems.length === 0 ? (
           <div
             className="bg-white rounded-2xl p-12 text-center shadow-sm"
-            style={{ border: `1px solid ${theme.borderLight}` }}
+            style={{ border: `1px solid ${resolvedTheme.borderLight}` }}
           >
             <div
               className="mx-auto mb-4 flex items-center justify-center w-16 h-16 rounded-full"
-              style={{ backgroundColor: theme.primaryLight }}
+              style={{ backgroundColor: resolvedTheme.primaryLight }}
             >
-              <ShoppingBag className="h-7 w-7" style={{ color: theme.primary }} />
+              <ShoppingBag className="h-7 w-7" style={{ color: resolvedTheme.primary }} />
             </div>
-            <h2 className="text-xl font-semibold mb-2" style={{ color: theme.text }}>
+            <h2 className="text-xl font-semibold mb-2" style={{ color: resolvedTheme.text }}>
               কার্ট খালি
             </h2>
-            <p className="text-sm mb-6" style={{ color: theme.muted }}>
+            <p className="text-sm mb-6" style={{ color: resolvedTheme.muted }}>
               আপনার কার্টে এখনো কোনো পণ্য যোগ করা হয়নি।
             </p>
             <PreviewSafeLink
               to="/products"
               isPreview={isPreview}
               className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-medium text-white transition hover:opacity-90"
-              style={{ backgroundColor: theme.primary }}
+              style={{ backgroundColor: resolvedTheme.primary }}
             >
               পণ্য দেখুন
             </PreviewSafeLink>
@@ -186,7 +191,7 @@ export function StarterStoreCartPage({
                   <div
                     key={id}
                     className="bg-white rounded-xl p-4 md:p-5 shadow-sm flex gap-4"
-                    style={{ border: `1px solid ${theme.borderLight}` }}
+                    style={{ border: `1px solid ${resolvedTheme.borderLight}` }}
                   >
                     <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                       {item.imageUrl ? (
@@ -205,10 +210,10 @@ export function StarterStoreCartPage({
                     <div className="flex-1">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <h3 className="font-medium" style={{ color: theme.text }}>
+                          <h3 className="font-medium" style={{ color: resolvedTheme.text }}>
                             {item.title}
                           </h3>
-                          <p className="text-sm mt-1" style={{ color: theme.muted }}>
+                          <p className="text-sm mt-1" style={{ color: resolvedTheme.muted }}>
                             {formatPrice(item.price, currency)}
                           </p>
                         </div>
@@ -217,7 +222,7 @@ export function StarterStoreCartPage({
                           className="p-2 rounded-lg hover:bg-gray-100"
                           aria-label="Remove item"
                         >
-                          <Trash2 className="h-4 w-4" style={{ color: theme.muted }} />
+                          <Trash2 className="h-4 w-4" style={{ color: resolvedTheme.muted }} />
                         </button>
                       </div>
 
@@ -226,7 +231,7 @@ export function StarterStoreCartPage({
                           <button
                             onClick={() => updateQty(id, -1)}
                             className="w-8 h-8 rounded-lg border flex items-center justify-center hover:bg-gray-50"
-                            style={{ borderColor: theme.border }}
+                            style={{ borderColor: resolvedTheme.border }}
                           >
                             <Minus className="h-4 w-4" />
                           </button>
@@ -234,12 +239,12 @@ export function StarterStoreCartPage({
                           <button
                             onClick={() => updateQty(id, 1)}
                             className="w-8 h-8 rounded-lg border flex items-center justify-center hover:bg-gray-50"
-                            style={{ borderColor: theme.border }}
+                            style={{ borderColor: resolvedTheme.border }}
                           >
                             <Plus className="h-4 w-4" />
                           </button>
                         </div>
-                        <div className="font-semibold" style={{ color: theme.text }}>
+                        <div className="font-semibold" style={{ color: resolvedTheme.text }}>
                           {formatPrice(item.price * item.quantity, currency)}
                         </div>
                       </div>
@@ -250,20 +255,20 @@ export function StarterStoreCartPage({
             </div>
 
             {/* Summary */}
-            <div className="bg-white rounded-xl p-5 shadow-sm h-fit" style={{ border: `1px solid ${theme.borderLight}` }}>
-              <h3 className="text-lg font-semibold mb-4" style={{ color: theme.text }}>
+            <div className="bg-white rounded-xl p-5 shadow-sm h-fit" style={{ border: `1px solid ${resolvedTheme.borderLight}` }}>
+              <h3 className="text-lg font-semibold mb-4" style={{ color: resolvedTheme.text }}>
                 অর্ডার সারাংশ
               </h3>
               <div className="space-y-3 text-sm">
-                <div className="flex items-center justify-between" style={{ color: theme.muted }}>
+                <div className="flex items-center justify-between" style={{ color: resolvedTheme.muted }}>
                   <span>সাবটোটাল</span>
                   <span>{formatPrice(subtotal, currency)}</span>
                 </div>
-                <div className="flex items-center justify-between" style={{ color: theme.muted }}>
+                <div className="flex items-center justify-between" style={{ color: resolvedTheme.muted }}>
                   <span>ডেলিভারি</span>
                   <span>{shipping === 0 ? 'ফ্রি' : formatPrice(shipping, currency)}</span>
                 </div>
-                <div className="border-t pt-3 flex items-center justify-between text-base font-semibold" style={{ color: theme.text }}>
+                <div className="border-t pt-3 flex items-center justify-between text-base font-semibold" style={{ color: resolvedTheme.text }}>
                   <span>মোট</span>
                   <span>{formatPrice(total, currency)}</span>
                 </div>
@@ -273,7 +278,7 @@ export function StarterStoreCartPage({
                 <button
                   onClick={() => onCheckout()}
                   className="w-full mt-5 py-3 rounded-lg text-white font-medium transition hover:opacity-90"
-                  style={{ backgroundColor: theme.primary }}
+                  style={{ backgroundColor: resolvedTheme.primary }}
                 >
                   চেকআউট করুন
                 </button>
@@ -282,7 +287,7 @@ export function StarterStoreCartPage({
                   to="/checkout"
                   isPreview={isPreview}
                   className="w-full mt-5 inline-flex items-center justify-center py-3 rounded-lg text-white font-medium transition hover:opacity-90"
-                  style={{ backgroundColor: theme.primary }}
+                  style={{ backgroundColor: resolvedTheme.primary }}
                 >
                   চেকআউট করুন
                 </PreviewSafeLink>
@@ -292,7 +297,7 @@ export function StarterStoreCartPage({
                 to="/products"
                 isPreview={isPreview}
                 className="mt-3 w-full inline-flex items-center justify-center py-3 rounded-lg border text-sm font-medium hover:bg-gray-50"
-                style={{ borderColor: theme.border, color: theme.text }}
+                style={{ borderColor: resolvedTheme.border, color: resolvedTheme.text }}
               >
                 আরো শপিং করুন
               </PreviewSafeLink>

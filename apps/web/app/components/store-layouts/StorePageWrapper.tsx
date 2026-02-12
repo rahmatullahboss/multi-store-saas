@@ -231,11 +231,12 @@ function StorePageWrapperComponent({
       logo,
       isPreview,
       config,
+      themeColors: resolvedTheme,
       categories,
       currentCategory,
       socialLinks,
     }),
-    [storeName, logo, isPreview, config, categories, currentCategory, socialLinks]
+    [storeName, logo, isPreview, config, resolvedTheme, categories, currentCategory, socialLinks]
   );
 
   // Memoize fallback header props
@@ -260,12 +261,13 @@ function StorePageWrapperComponent({
       logo,
       socialLinks,
       footerConfig,
+      themeColors: resolvedTheme,
       businessInfo,
       categories,
       planType,
       isPreview,
     }),
-    [storeName, logo, socialLinks, footerConfig, businessInfo, categories, planType, isPreview]
+    [storeName, logo, socialLinks, footerConfig, resolvedTheme, businessInfo, categories, planType, isPreview]
   );
 
   // Memoize fallback footer props

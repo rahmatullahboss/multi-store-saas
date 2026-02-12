@@ -7,6 +7,7 @@ interface ModernFeaturesSectionProps {
 
 export default function ModernFeaturesSection({ settings, theme }: ModernFeaturesSectionProps) {
   const primaryColor = theme.primary;
+  const useLightTheme = settings.lightTheme === true;
   
   // Use settings or defaults
   const features = settings.features || [
@@ -16,19 +17,27 @@ export default function ModernFeaturesSection({ settings, theme }: ModernFeature
   ];
 
   return (
-    <section className="relative z-10 py-16 bg-white dark:bg-gray-900" style={{ backgroundColor: settings.backgroundColor }}>
+    <section
+      className={`relative z-10 py-16 ${useLightTheme ? 'bg-white' : 'bg-white dark:bg-gray-900'}`}
+      style={{ backgroundColor: settings.backgroundColor }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-12">
           {settings.heading && (
             <h2 className="text-3xl md:text-4xl font-bold mb-4">{settings.heading}</h2>
           )}
           {settings.subheading && (
-            <p className="text-gray-600 dark:text-gray-400 text-lg">{settings.subheading}</p>
+            <p className={`text-lg ${useLightTheme ? 'text-gray-600' : 'text-gray-600 dark:text-gray-400'}`}>
+              {settings.subheading}
+            </p>
           )}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {features.map((feature: any, index: number) => (
-            <div key={index} className="text-center p-8 bg-gray-50 dark:bg-gray-800 rounded-2xl">
+            <div
+              key={index}
+              className={`text-center p-8 rounded-2xl ${useLightTheme ? 'bg-gray-50' : 'bg-gray-50 dark:bg-gray-800'}`}
+            >
               <div 
                 className="w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center text-3xl"
                 style={{ backgroundColor: `${primaryColor}20` }}
@@ -36,7 +45,9 @@ export default function ModernFeaturesSection({ settings, theme }: ModernFeature
                 {feature.icon}
               </div>
               <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-              <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
+              <p className={useLightTheme ? 'text-gray-600' : 'text-gray-600 dark:text-gray-400'}>
+                {feature.description}
+              </p>
             </div>
           ))}
         </div>

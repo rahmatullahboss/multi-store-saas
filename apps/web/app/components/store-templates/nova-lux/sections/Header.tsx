@@ -8,12 +8,14 @@ import { NOVALUX_THEME } from '../theme';
 import { LanguageSelector } from '../../shared/LanguageSelector';
 import type { ThemeConfig } from '@db/types';
 
+import type { StoreCategory } from '~/templates/store-registry';
+
 interface NovaLuxHeaderProps {
   storeName: string;
   logo?: string | null;
   config?: ThemeConfig | null;
   currentCategory?: string | null;
-  categories: (string | null)[];
+  categories: (string | StoreCategory | null)[];
   isPreview?: boolean;
   customer?: { id: number; name: string | null; email: string | null } | null;
 }
@@ -38,7 +40,7 @@ export function NovaLuxHeader({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const validCategories = categories.filter((c): c is string => Boolean(c));
+  const validCategories = categories.filter(Boolean);
   const announcement = config?.announcement;
 
   const THEME = {
@@ -106,17 +108,20 @@ export function NovaLuxHeader({
             >
               {t('allProducts')}
             </PreviewSafeLink>
-            {validCategories.slice(0, 3).map((category) => (
-              <PreviewSafeLink
-                key={category}
-                to={`/?category=${encodeURIComponent(category)}`}
-                className="px-4 py-2 text-sm font-medium tracking-wide uppercase transition-all duration-300 hover:opacity-70"
-                style={{ color: currentCategory === category ? THEME.accent : THEME.text }}
-                isPreview={isPreview}
-              >
-                {category}
-              </PreviewSafeLink>
-            ))}
+            {validCategories.slice(0, 3).map((cat) => {
+              const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+              return (
+                <PreviewSafeLink
+                  key={title}
+                  to={`/?category=${encodeURIComponent(title)}`}
+                  className="px-4 py-2 text-sm font-medium tracking-wide uppercase transition-all duration-300 hover:opacity-70"
+                  style={{ color: currentCategory === title ? THEME.accent : THEME.text }}
+                  isPreview={isPreview}
+                >
+                  {title}
+                </PreviewSafeLink>
+              );
+            })}
           </nav>
 
           {/* Logo */}

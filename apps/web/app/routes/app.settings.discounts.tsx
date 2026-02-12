@@ -10,7 +10,7 @@ import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remi
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData, Form, useNavigation, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { discounts, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { Tag, Plus, Edit2, Trash2, ArrowLeft, Loader2, Percent, DollarSign } from 'lucide-react';
@@ -88,7 +88,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           expiresAt,
           updatedAt: new Date(),
         })
-        .where(eq(discounts.id, id));
+        .where(and(eq(discounts.id, id), eq(discounts.storeId, storeId)));
     } else {
       await db.insert(discounts).values({
         storeId,
@@ -107,14 +107,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   if (intent === 'delete') {
     const id = parseInt(formData.get('id') as string);
-    await db.delete(discounts).where(eq(discounts.id, id));
+    await db.delete(discounts).where(and(eq(discounts.id, id), eq(discounts.storeId, storeId)));
     return json({ success: true });
   }
 
   if (intent === 'toggle') {
     const id = parseInt(formData.get('id') as string);
     const isActive = formData.get('isActive') === 'true';
-    await db.update(discounts).set({ isActive: !isActive }).where(eq(discounts.id, id));
+    await db
+      .update(discounts)
+      .set({ isActive: !isActive, updatedAt: new Date() })
+      .where(and(eq(discounts.id, id), eq(discounts.storeId, storeId)));
     return json({ success: true });
   }
 

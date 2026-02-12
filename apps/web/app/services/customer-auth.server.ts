@@ -13,12 +13,17 @@ import { hashPassword, verifyPassword } from './auth.server';
 
 
 interface TokenPayload {
-  customerId: number;
-  storeId: number;
+  customerId?: number;
+  storeId?: number;
+  origin?: string;
+  jti?: string;
   type: string;
   exp: number;
   iat: number;
 }
+
+const oneTimeTokenMemory = new Map<string, number>();
+const pkceVerifierMemory = new Map<string, { verifier: string; expiresAt: number }>();
 
 // Simple signed token implementation using web crypto
 async function signToken(data: Record<string, unknown>, secret: string, expiresInSeconds: number): Promise<string> {
@@ -95,6 +100,159 @@ async function verifyToken(token: string, secret: string): Promise<TokenPayload 
   } catch {
     return null;
   }
+}
+
+function normalizeOrigin(origin: string): string | null {
+  try {
+    const parsed = new URL(origin);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return null;
+    return parsed.origin;
+  } catch {
+    return null;
+  }
+}
+
+function parseSaasBaseDomain(rawDomain?: string): string {
+  const fallback = 'localhost';
+  if (!rawDomain) return fallback;
+
+  let saasDomain = rawDomain.trim();
+  if (saasDomain.includes('://')) {
+    saasDomain = saasDomain.split('://')[1];
+  }
+  if (saasDomain.includes('/')) {
+    saasDomain = saasDomain.split('/')[0];
+  }
+  if (saasDomain.startsWith('www.')) {
+    saasDomain = saasDomain.slice(4);
+  }
+  // Drop port from base domain for subdomain composition.
+  if (saasDomain.includes(':')) {
+    saasDomain = saasDomain.split(':')[0];
+  }
+  return saasDomain || fallback;
+}
+
+export function getStoreAllowedOrigins(
+  store: { subdomain?: string | null; customDomain?: string | null },
+  env: Env
+): string[] {
+  const allowed = new Set<string>();
+
+  if (store.customDomain) {
+    const customOrigin = normalizeOrigin(`https://${store.customDomain}`);
+    if (customOrigin) allowed.add(customOrigin);
+  }
+
+  if (store.subdomain) {
+    const baseDomain = parseSaasBaseDomain(env.SAAS_DOMAIN);
+    const platformOrigin = normalizeOrigin(`https://${store.subdomain}.${baseDomain}`);
+    if (platformOrigin) allowed.add(platformOrigin);
+  }
+
+  // Local development convenience.
+  if ((env.ENVIRONMENT || 'production') !== 'production') {
+    const localOrigin = normalizeOrigin('http://localhost:5173');
+    if (localOrigin) allowed.add(localOrigin);
+  }
+
+  return Array.from(allowed);
+}
+
+export function resolveSafeStoreOrigin(
+  requestedOrigin: string | null,
+  allowedOrigins: string[],
+  fallbackOrigin: string
+): string {
+  const normalizedFallback = normalizeOrigin(fallbackOrigin) || fallbackOrigin;
+  const requested = requestedOrigin ? normalizeOrigin(requestedOrigin) : null;
+  if (!requested) return normalizedFallback;
+  return allowedOrigins.includes(requested) ? requested : normalizedFallback;
+}
+
+async function consumeOneTimeTokenId(tokenId: string, env: Env, ttlSeconds: number): Promise<boolean> {
+  const key = `auth:once:${tokenId}`;
+
+  // Prefer KV for cross-worker replay protection.
+  if (env.STORE_CACHE) {
+    const existing = await env.STORE_CACHE.get(key);
+    if (existing) return false;
+    await env.STORE_CACHE.put(key, '1', { expirationTtl: ttlSeconds });
+    return true;
+  }
+
+  // Dev/staging fallback when KV binding is unavailable.
+  // This protects against simple replay on the same worker process.
+  const now = Date.now();
+  const existingExpiry = oneTimeTokenMemory.get(key);
+  if (existingExpiry && existingExpiry > now) return false;
+
+  oneTimeTokenMemory.set(key, now + ttlSeconds * 1000);
+
+  // Opportunistic cleanup to avoid unbounded memory growth.
+  if (oneTimeTokenMemory.size > 1000) {
+    for (const [k, expiresAt] of oneTimeTokenMemory.entries()) {
+      if (expiresAt <= now) {
+        oneTimeTokenMemory.delete(k);
+      }
+    }
+  }
+
+  return true;
+}
+
+function toBase64Url(bytes: Uint8Array): string {
+  const binary = String.fromCharCode(...bytes);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+function generateCodeVerifier(): string {
+  // RFC 7636: code_verifier length MUST be between 43 and 128 characters.
+  const random = crypto.getRandomValues(new Uint8Array(48));
+  const verifier = toBase64Url(random);
+  return verifier.length >= 43 ? verifier : `${verifier}${'A'.repeat(43 - verifier.length)}`;
+}
+
+async function createCodeChallengeS256(codeVerifier: string): Promise<string> {
+  const encoded = new TextEncoder().encode(codeVerifier);
+  const digest = await crypto.subtle.digest('SHA-256', encoded);
+  return toBase64Url(new Uint8Array(digest));
+}
+
+async function storePkceVerifier(
+  transactionId: string,
+  codeVerifier: string,
+  env: Env,
+  ttlSeconds: number
+): Promise<void> {
+  const key = `auth:pkce:${transactionId}`;
+  if (env.STORE_CACHE) {
+    await env.STORE_CACHE.put(key, codeVerifier, { expirationTtl: ttlSeconds });
+    return;
+  }
+  pkceVerifierMemory.set(key, {
+    verifier: codeVerifier,
+    expiresAt: Date.now() + ttlSeconds * 1000,
+  });
+}
+
+async function consumePkceVerifier(
+  transactionId: string,
+  env: Env
+): Promise<string | null> {
+  const key = `auth:pkce:${transactionId}`;
+  if (env.STORE_CACHE) {
+    const value = await env.STORE_CACHE.get(key);
+    if (!value) return null;
+    await env.STORE_CACHE.delete(key);
+    return value;
+  }
+
+  const entry = pkceVerifierMemory.get(key);
+  if (!entry) return null;
+  pkceVerifierMemory.delete(key);
+  if (entry.expiresAt <= Date.now()) return null;
+  return entry.verifier;
 }
 
 
@@ -479,10 +637,6 @@ export async function loginCustomer({ storeId, email, password, db }: CustomerLo
 
   // Check password (only if they have a password hash)
   if (!customer.passwordHash) {
-    // If they signed up via Google but trying to login with password
-    if (customer.authProvider === 'google') {
-      return { error: 'Please sign in with Google' };
-    }
     return { error: 'Invalid email or password' };
   }
 
@@ -523,8 +677,9 @@ export async function createTransferToken(
   }
   
   // Create a signed token valid for 5 minutes
+  const jti = crypto.randomUUID();
   return signToken(
-    { customerId, storeId, type: 'session_transfer' },
+    { customerId, storeId, type: 'session_transfer', jti },
     env.SESSION_SECRET,
     5 * 60 // 5 minutes
   );
@@ -541,7 +696,18 @@ export async function validateTransferToken(
   
   const payload = await verifyToken(token, env.SESSION_SECRET);
   
-  if (!payload || payload.type !== 'session_transfer') {
+  if (
+    !payload ||
+    payload.type !== 'session_transfer' ||
+    typeof payload.customerId !== 'number' ||
+    typeof payload.storeId !== 'number' ||
+    typeof payload.jti !== 'string'
+  ) {
+    return null;
+  }
+
+  const isFresh = await consumeOneTimeTokenId(payload.jti, env, 5 * 60);
+  if (!isFresh) {
     return null;
   }
   
@@ -549,4 +715,89 @@ export async function validateTransferToken(
     customerId: payload.customerId,
     storeId: payload.storeId
   };
+}
+
+export async function createOAuthStateToken(
+  storeId: number,
+  origin: string,
+  env: Env,
+  transactionId?: string
+): Promise<string> {
+  if (!env.SESSION_SECRET) {
+    throw new Error('SESSION_SECRET required for OAuth state token');
+  }
+
+  const normalizedOrigin = normalizeOrigin(origin);
+  if (!normalizedOrigin) {
+    throw new Error('Invalid origin for OAuth state token');
+  }
+
+  const jti = transactionId || crypto.randomUUID();
+
+  return signToken(
+    {
+      storeId,
+      origin: normalizedOrigin,
+      type: 'oauth_state',
+      jti,
+    },
+    env.SESSION_SECRET,
+    10 * 60 // 10 minutes
+  );
+}
+
+export async function validateOAuthStateToken(
+  token: string,
+  env: Env
+): Promise<{ storeId: number; origin: string; transactionId: string } | null> {
+  if (!env.SESSION_SECRET) return null;
+
+  const payload = await verifyToken(token, env.SESSION_SECRET);
+  if (
+    !payload ||
+    payload.type !== 'oauth_state' ||
+    typeof payload.storeId !== 'number' ||
+    typeof payload.origin !== 'string' ||
+    typeof payload.jti !== 'string'
+  ) {
+    return null;
+  }
+
+  const isFresh = await consumeOneTimeTokenId(payload.jti, env, 10 * 60);
+  if (!isFresh) return null;
+
+  const origin = normalizeOrigin(payload.origin);
+  if (!origin) return null;
+
+  return {
+    storeId: payload.storeId,
+    origin,
+    transactionId: payload.jti,
+  };
+}
+
+export async function createOAuthAuthorizationRequest(
+  storeId: number,
+  origin: string,
+  env: Env
+): Promise<{ state: string; codeChallenge: string; codeChallengeMethod: 'S256' }> {
+  const transactionId = crypto.randomUUID();
+  const codeVerifier = generateCodeVerifier();
+  const codeChallenge = await createCodeChallengeS256(codeVerifier);
+
+  await storePkceVerifier(transactionId, codeVerifier, env, 10 * 60);
+  const state = await createOAuthStateToken(storeId, origin, env, transactionId);
+
+  return {
+    state,
+    codeChallenge,
+    codeChallengeMethod: 'S256',
+  };
+}
+
+export async function consumePkceVerifierForOAuth(
+  transactionId: string,
+  env: Env
+): Promise<string | null> {
+  return consumePkceVerifier(transactionId, env);
 }

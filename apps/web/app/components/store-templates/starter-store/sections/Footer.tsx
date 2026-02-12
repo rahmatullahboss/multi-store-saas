@@ -8,12 +8,11 @@
 
 import { Facebook, Instagram, Twitter, Phone, Mail, MapPin } from 'lucide-react';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
-import { STARTER_STORE_THEME } from '../theme';
+import { resolveStarterStoreTheme } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';
 import type { SocialLinks, FooterConfig } from '@db/types';
+import type { StoreCategory, StoreTemplateTheme } from '~/templates/store-registry';
 import { useTranslation } from '~/contexts/LanguageContext';
-
-const theme = STARTER_STORE_THEME;
 
 interface StarterStoreFooterProps {
   storeName: string;
@@ -21,9 +20,10 @@ interface StarterStoreFooterProps {
   socialLinks?: SocialLinks | null;
   footerConfig?: FooterConfig | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
-  categories?: (string | null)[];
+  categories?: (string | StoreCategory | null)[];
   planType?: string;
   isPreview?: boolean;
+  themeColors?: StoreTemplateTheme;
 }
 
 export function StarterStoreFooter({
@@ -35,7 +35,9 @@ export function StarterStoreFooter({
   categories = [],
   planType = 'free',
   isPreview = false,
+  themeColors,
 }: StarterStoreFooterProps) {
+  const theme = resolveStarterStoreTheme(undefined, themeColors);
   const { t } = useTranslation();
   const validCategories = categories.filter(Boolean).slice(0, 6) as string[];
   // Free plan: always show branding. Paid plans: merchant can toggle (MVP).
@@ -165,18 +167,21 @@ export function StarterStoreFooter({
                 {t('categories')}
               </h4>
               <ul className="space-y-2">
-                {validCategories.map((cat) => (
-                  <li key={cat}>
-                    <PreviewSafeLink
-                      to={`/?category=${encodeURIComponent(cat)}`}
-                      isPreview={isPreview}
-                      className="text-sm hover:underline transition-colors"
-                      style={{ color: theme.footerText + 'CC' }}
-                    >
-                      {cat}
-                    </PreviewSafeLink>
-                  </li>
-                ))}
+                {validCategories.map((cat) => {
+                  const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+                  return (
+                    <li key={title}>
+                      <PreviewSafeLink
+                        to={`/?category=${encodeURIComponent(title)}`}
+                        isPreview={isPreview}
+                        className="text-sm hover:underline transition-colors"
+                        style={{ color: theme.footerText + 'CC' }}
+                      >
+                        {title}
+                      </PreviewSafeLink>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}

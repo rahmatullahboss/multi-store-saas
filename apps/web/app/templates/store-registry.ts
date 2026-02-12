@@ -33,6 +33,13 @@ export interface SerializedVariant {
   isAvailable: boolean | null;
 }
 
+export interface StoreCategory {
+  id?: number | string;
+  title: string;
+  slug?: string;
+  imageUrl?: string | null;
+}
+
 export interface SerializedProduct {
   id: number;
   storeId: number;
@@ -57,7 +64,7 @@ export interface StoreTemplateProps {
   theme?: string | null;
   fontFamily?: string | null;
   products: SerializedProduct[];
-  categories: (string | null)[];
+  categories: (string | StoreCategory | null)[];
   currentCategory?: string | null;
   config: ThemeConfig | null;
   currency: string;
@@ -90,6 +97,7 @@ export interface StoreHeaderProps {
   logo?: string | null;
   isPreview?: boolean;
   config?: ThemeConfig | null;
+  themeColors?: StoreTemplateTheme;
   categories: (string | null)[];
   currentCategory?: string | null;
   socialLinks?: SocialLinks | null;

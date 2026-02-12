@@ -284,6 +284,12 @@ interface RegisterParams {
   db: D1Database;
 }
 
+export function isAllowedSuperAdminLogin(email: string, env?: Pick<Env, 'SUPER_ADMIN_EMAIL'>): boolean {
+  const configured = env?.SUPER_ADMIN_EMAIL?.toLowerCase().trim();
+  if (!configured) return false;
+  return email.toLowerCase().trim() === configured;
+}
+
 /**
  * Login a user
  * Returns detailed error information for debugging
@@ -301,7 +307,6 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
   errorDetails?: string;
 }> {
   const normalizedEmail = email.toLowerCase().trim();
-  // console.log('[login] Attempting login for email:', normalizedEmail);
   const { logSystemEvent } = await import('./logger.server');
   const { checkLoginAnomalies } = await import('./security.server');
 
@@ -309,7 +314,6 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
     const drizzleDb = drizzle(db);
 
     // Step 1: Find user by email
-    // console.log('[login] Step 1: Querying database for user...');
     let userResult;
     try {
       userResult = await drizzleDb
@@ -317,7 +321,6 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
         .from(users)
         .where(eq(users.email, normalizedEmail))
         .limit(1);
-      // console.log('[login] User query completed. Found:', userResult.length, 'user(s)');
     } catch (dbError) {
       console.error('[login] Database error during user lookup:', dbError);
       const errorMessage = dbError instanceof Error ? dbError.message : String(dbError);
@@ -330,7 +333,7 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
 
     // Step 2: Check if user exists
     if (!userResult || userResult.length === 0) {
-      console.warn('[login] User not found for email:', normalizedEmail);
+      console.warn('[login] User not found for attempted login');
 
       // Log security event
       await logSystemEvent(db, 'warn', 'Login failed: User not found', {
@@ -349,12 +352,11 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
       return {
         error: 'Invalid email or password',
         errorCode: 'USER_NOT_FOUND',
-        errorDetails: `No user found with email: ${normalizedEmail}`,
+        errorDetails: 'No user found for provided email',
       };
     }
 
     const user = userResult[0];
-    // console.log('[login] User found - ID:', user.id, ', Role:', user.role, ', StoreID:', user.storeId);
 
     // Step 3: Check if user has a store (for merchants)
     if (user.role === 'merchant' && !user.storeId) {
@@ -369,15 +371,7 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
     // Step 4: Verify password
     let isValid;
     try {
-      // Debug logging
-      console.warn('[login] Verifying password for user:', user.id);
-      console.warn('[login] Stored hash length:', user.passwordHash.length);
-      console.warn('[login] Stored hash preview:', user.passwordHash.substring(0, 20) + '...');
-      console.warn('[login] Input password length:', password.length);
-
       isValid = await verifyPassword(password, user.passwordHash);
-
-      console.warn('[login] Password verification result:', isValid);
     } catch (cryptoError) {
       console.error('[login] Crypto error during password verification:', cryptoError);
       const errorMessage = cryptoError instanceof Error ? cryptoError.message : String(cryptoError);
@@ -409,16 +403,37 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
       return {
         error: 'Invalid email or password',
         errorCode: 'INVALID_PASSWORD',
-        errorDetails: `Password mismatch for user ${user.id}`,
+        errorDetails: 'Password verification failed',
       };
+    }
+
+    // Step 5: Super admin login guard (enterprise hardening)
+    if (user.role === 'super_admin') {
+      const isAllowedSuperAdmin = isAllowedSuperAdminLogin(normalizedEmail, env);
+
+      if (!isAllowedSuperAdmin) {
+        console.error(
+          '[login] Super admin login blocked due to SUPER_ADMIN_EMAIL mismatch',
+          { userId: user.id }
+        );
+        return {
+          error: 'Invalid email or password',
+          errorCode: 'ACCOUNT_DISABLED',
+          errorDetails: 'Super admin email policy mismatch',
+        };
+      }
     }
 
     // Step 5: Check if user's store exists (for merchants)
     if (user.role === 'merchant' && user.storeId) {
-      // console.log('[login] Step 5: Verifying store exists...');
       try {
         const storeResult = await drizzleDb
-          .select({ id: stores.id, name: stores.name, subdomain: stores.subdomain })
+          .select({
+            id: stores.id,
+            name: stores.name,
+            subdomain: stores.subdomain,
+            isActive: stores.isActive,
+          })
           .from(stores)
           .where(eq(stores.id, user.storeId))
           .limit(1);
@@ -433,10 +448,20 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
           return {
             error: 'Your store could not be found. Please contact support.',
             errorCode: 'STORE_NOT_FOUND',
-            errorDetails: `Store ${user.storeId} not found for user ${user.id}`,
+            errorDetails: 'Store record not found',
           };
         }
-        // console.log('[login] Store verified:', storeResult[0].name, '(', storeResult[0].subdomain, ')');
+        if (storeResult[0].isActive === false) {
+          console.warn('[login] Login blocked for inactive store', {
+            userId: user.id,
+            storeId: user.storeId,
+          });
+          return {
+            error: 'Your account is temporarily disabled. Please contact support.',
+            errorCode: 'ACCOUNT_DISABLED',
+            errorDetails: 'Store is inactive',
+          };
+        }
       } catch (storeError) {
         console.error('[login] Database error during store lookup:', storeError);
         // Don't block login for store lookup errors, just log it
@@ -1043,6 +1068,23 @@ export async function requireSuperAdmin(
   const user = userResult[0];
   if (!user || user.role !== 'super_admin') {
     console.warn('[requireSuperAdmin] Unauthorized access attempt by user:', userId);
+    throw redirect('/auth/login');
+  }
+
+  // Enterprise-grade hardening:
+  // Must be explicitly trusted either by configured SUPER_ADMIN_EMAIL
+  // OR by admin_roles.super_admin entry.
+  const roleEntry = await drizzleDb
+    .select({ role: adminRoles.role })
+    .from(adminRoles)
+    .where(eq(adminRoles.userId, user.id))
+    .limit(1);
+
+  const hasSuperAdminRoleEntry = roleEntry[0]?.role === 'super_admin';
+  const isConfiguredRoot = isAllowedSuperAdminLogin(user.email, env);
+
+  if (!isConfiguredRoot && !hasSuperAdminRoleEntry) {
+    console.warn('[requireSuperAdmin] User lacks trusted super admin binding:', user.id);
     throw redirect('/auth/login');
   }
 

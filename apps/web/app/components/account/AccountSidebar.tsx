@@ -35,23 +35,36 @@ function SidebarItem({ href, icon: Icon, label, isActive, badge, isLogout }: Sid
     );
   }
 
+  const activeTheme = (SidebarItem as any).theme || { primary: '#6366f1' };
+  
   return (
     <Link
       to={href}
       className={cn(
         'flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors rounded-lg group',
         isActive
-          ? 'bg-primary text-white shadow-md shadow-primary/30'
+          ? 'text-white shadow-md'
           : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
       )}
+      style={isActive ? {
+        backgroundColor: activeTheme.primary,
+        boxShadow: `0 4px 6px -1px ${activeTheme.primary}30`
+      } : undefined}
     >
-      <Icon className={cn("text-xl h-5 w-5 transition-colors", isActive ? "text-white" : "text-slate-400 group-hover:text-primary")} />
+      <Icon className={cn("text-xl h-5 w-5 transition-colors", isActive ? "text-white" : "text-slate-400")} 
+        style={!isActive ? { color: 'currentColor' } : undefined}
+      />
       <span className="flex-1">{label}</span>
       {badge && badge > 0 && (
         <span className={cn(
           "ml-auto text-xs font-bold px-2 py-0.5 rounded-full",
-          isActive ? "bg-white/20 text-white" : "bg-primary/10 text-primary"
-        )}>
+          isActive ? "bg-white/20 text-white" : ""
+        )}
+        style={!isActive ? {
+          backgroundColor: `${activeTheme.primary}15`,
+          color: activeTheme.primary
+        } : undefined}
+        >
           {badge}
         </span>
       )}
@@ -61,18 +74,24 @@ function SidebarItem({ href, icon: Icon, label, isActive, badge, isLogout }: Sid
 
 interface AccountSidebarProps {
     user?: any;
+    theme?: {
+      primary?: string;
+      accent?: string;
+    };
 }
 
-export function AccountSidebar({ user }: AccountSidebarProps) {
+export function AccountSidebar({ user, theme }: AccountSidebarProps) {
   const location = useLocation();
   const pathname = location.pathname;
   const { t } = useTranslation();
   const loaderData = useRouteLoaderData('routes/account') as { 
     counts?: { wishlist: number; coupons: number },
-    store?: { name: string; logo?: string }
+    store?: { name: string; logo?: string },
+    theme?: { primary: string; accent: string }
   } | undefined;
   
   const counts = loaderData?.counts;
+  const activeTheme = theme || loaderData?.theme || { primary: '#6366f1', accent: '#f59e0b' };
 
   // Items matching HTML "Variant 2" Sidebar
   const items = [
@@ -116,13 +135,23 @@ export function AccountSidebar({ user }: AccountSidebarProps) {
     return pathname.startsWith(item.href) && item.href !== '/account'; // Basic logic
   };
 
+  // Set theme for SidebarItem components
+  (SidebarItem as any).theme = activeTheme;
+
   return (
-    <aside className="w-64 bg-white rounded-xl p-6 border border-slate-100 shadow-sm flex flex-col h-full sticky top-6">
+    <aside className="w-64 bg-white rounded-xl p-6 border shadow-sm flex flex-col h-full sticky top-6"
+      style={{ borderColor: `${activeTheme.primary}20` }}
+    >
       {/* Profile Area */}
       <div className="flex items-center gap-4 mb-8">
-        <div className="h-12 w-12 rounded-full bg-slate-200 overflow-hidden relative flex items-center justify-center text-slate-500">
-           {/* Fallback Avatar logic */}
-           <span className="text-lg font-bold">{user?.name?.charAt(0) || 'U'}</span>
+        <div 
+          className="h-12 w-12 rounded-full overflow-hidden relative flex items-center justify-center font-bold text-lg"
+          style={{ 
+            backgroundColor: `${activeTheme.primary}15`,
+            color: activeTheme.primary
+          }}
+        >
+           {user?.name?.charAt(0)?.toUpperCase() || 'U'}
         </div>
         <div>
           <p className="text-sm text-slate-500">Hello,</p>
@@ -144,7 +173,7 @@ export function AccountSidebar({ user }: AccountSidebarProps) {
         ))}
       </nav>
 
-      {/* Logout - Not in HTML list but standard to have. HTML had "Sign Out" at bottom */}
+      {/* Logout */}
       <div className="mt-auto pt-4 border-t border-slate-100">
          <form action="/store/auth/logout" method="post">
             <button type="submit" className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors rounded-lg group">

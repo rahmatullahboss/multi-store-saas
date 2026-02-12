@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and, gt, lt, desc } from 'drizzle-orm';
-import { discounts } from '@db/schema';
+import { eq, and, gt, lt, desc, or, sql } from 'drizzle-orm';
+import { discounts, orders } from '@db/schema';
 
 export type DiscountResult = {
   isValid: boolean;
@@ -42,15 +42,17 @@ export async function validateDiscount(
   storeId: number,
   code: string,
   cartTotal: number,
-  _customerEmail?: string
+  customerContact?: string
 ): Promise<DiscountResult> {
+  const normalizedCode = code.trim().toUpperCase();
+
   const discount = await db
     .select()
     .from(discounts)
     .where(
       and(
         eq(discounts.storeId, storeId),
-        eq(discounts.code, code),
+        eq(discounts.code, normalizedCode),
         eq(discounts.isActive, true)
       )
     )
@@ -78,6 +80,25 @@ export async function validateDiscount(
   // 3. Check Minimum Order Amount
   if (discount.minOrderAmount && cartTotal < discount.minOrderAmount) {
     return { isValid: false, error: `Minimum order amount ${discount.minOrderAmount} required` };
+  }
+
+  // 4. Check Per-Customer Limit
+  if (discount.perCustomerLimit && discount.perCustomerLimit > 0 && customerContact) {
+    const usage = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(orders)
+      .where(
+        and(
+          eq(orders.storeId, storeId),
+          or(eq(orders.customerPhone, customerContact), eq(orders.customerEmail, customerContact)),
+          sql`json_extract(${orders.pricingJson}, '$.couponCode') = ${discount.code}`
+        )
+      )
+      .get();
+
+    if ((usage?.count ?? 0) >= discount.perCustomerLimit) {
+      return { isValid: false, error: 'Per-customer usage limit reached' };
+    }
   }
 
   // 4. Calculate Amount
@@ -110,13 +131,38 @@ export async function validateDiscount(
 
 export async function incrementDiscountUsage(
   db: ReturnType<typeof drizzle>,
+  storeId: number,
   discountId: number
 ) {
-  // Simple increment, concurrency might be an issue but acceptable for this scale
-  const discount = await db.select().from(discounts).where(eq(discounts.id, discountId)).get();
-  if (discount) {
-    await db.update(discounts)
-      .set({ usedCount: (discount.usedCount || 0) + 1 })
-      .where(eq(discounts.id, discountId));
-  }
+  const result = await db
+    .update(discounts)
+    .set({
+      usedCount: sql`coalesce(${discounts.usedCount}, 0) + 1`,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(discounts.id, discountId),
+        eq(discounts.storeId, storeId),
+        eq(discounts.isActive, true),
+        sql`(${discounts.maxUses} is null or coalesce(${discounts.usedCount}, 0) < ${discounts.maxUses})`
+      )
+    )
+    .returning({ id: discounts.id });
+
+  return result.length > 0;
+}
+
+export async function decrementDiscountUsage(
+  db: ReturnType<typeof drizzle>,
+  storeId: number,
+  discountId: number
+) {
+  await db
+    .update(discounts)
+    .set({
+      usedCount: sql`max(coalesce(${discounts.usedCount}, 0) - 1, 0)`,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(discounts.id, discountId), eq(discounts.storeId, storeId)));
 }

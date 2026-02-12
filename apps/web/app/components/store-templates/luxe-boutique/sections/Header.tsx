@@ -7,11 +7,12 @@ import { useCartCount } from '~/hooks/useCartCount';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { LanguageSelector } from '../../shared/LanguageSelector';
 import type { ThemeConfig, SocialLinks } from '@db/types';
+import type { StoreCategory } from '~/templates/store-registry';
 
 interface LuxeBoutiqueHeaderProps {
   storeName: string;
   logo?: string | null;
-  categories: (string | null)[];
+  categories: (string | StoreCategory | null)[];
   currentCategory?: string | null;
   socialLinks?: SocialLinks | null;
   config?: ThemeConfig | null;
@@ -51,7 +52,7 @@ export function LuxeBoutiqueHeader({
   const setSearchOpen = setSearchOpenProp ?? setLocalSearchOpen;
   const count = countProp ?? cartCount;
 
-  const validCategories = categories.filter((c): c is string => Boolean(c));
+  const validCategories = categories.filter(Boolean);
 
   return (
     <header
@@ -101,21 +102,24 @@ export function LuxeBoutiqueHeader({
             >
               {t('allProducts')}
             </PreviewSafeLink>
-            {validCategories.slice(0, 5).map((category) => (
-              <PreviewSafeLink
-                key={category}
-                to={`/?category=${encodeURIComponent(category)}`}
-                className="text-sm font-medium tracking-wide uppercase transition-colors hover:opacity-70"
-                style={{
-                  color: currentCategory === category ? theme.accent : theme.text,
-                  borderBottom: currentCategory === category ? `2px solid ${theme.accent}` : 'none',
-                  paddingBottom: '4px',
-                }}
-                isPreview={isPreview}
-              >
-                {category}
-              </PreviewSafeLink>
-            ))}
+            {validCategories.slice(0, 5).map((cat) => {
+              const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+              return (
+                <PreviewSafeLink
+                  key={title}
+                  to={`/?category=${encodeURIComponent(title)}`}
+                  className="text-sm font-medium tracking-wide uppercase transition-colors hover:opacity-70"
+                  style={{
+                    color: currentCategory === title ? theme.accent : theme.text,
+                    borderBottom: currentCategory === title ? `2px solid ${theme.accent}` : 'none',
+                    paddingBottom: '4px',
+                  }}
+                  isPreview={isPreview}
+                >
+                  {title}
+                </PreviewSafeLink>
+              );
+            })}
           </nav>
 
           {/* Right Icons */}
@@ -200,18 +204,21 @@ export function LuxeBoutiqueHeader({
             >
               {t('allProducts')}
             </PreviewSafeLink>
-            {validCategories.map((category) => (
-              <PreviewSafeLink
-                key={category}
-                to={`/?category=${encodeURIComponent(category)}`}
-                className="block px-6 py-3 text-sm font-medium uppercase tracking-wide"
-                style={{ color: currentCategory === category ? theme.accent : theme.text }}
-                onClick={() => setMobileMenuOpen(false)}
-                isPreview={isPreview}
-              >
-                {category}
-              </PreviewSafeLink>
-            ))}
+            {validCategories.map((cat) => {
+              const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+              return (
+                <PreviewSafeLink
+                  key={title}
+                  to={`/?category=${encodeURIComponent(title)}`}
+                  className="block px-6 py-3 text-sm font-medium uppercase tracking-wide"
+                  style={{ color: currentCategory === title ? theme.accent : theme.text }}
+                  onClick={() => setMobileMenuOpen(false)}
+                  isPreview={isPreview}
+                >
+                  {title}
+                </PreviewSafeLink>
+              );
+            })}
             {!isPreview && (
               <>
                 <div className="border-t my-2 mx-6" style={{ borderColor: '#e5e5e5' }} />

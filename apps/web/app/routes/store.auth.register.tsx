@@ -103,6 +103,57 @@ const registerSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters long"),
 });
 
+function getClientIp(request: Request): string {
+  const cf = request.headers.get('cf-connecting-ip');
+  if (cf) return cf;
+  const xff = request.headers.get('x-forwarded-for');
+  if (xff) return xff.split(',')[0].trim();
+  return 'unknown';
+}
+
+async function sha256Hex(input: string): Promise<string> {
+  const data = new TextEncoder().encode(input);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+async function bumpAndCheckLimit(
+  env: Env,
+  key: string,
+  limit: number,
+  windowSeconds: number
+): Promise<boolean> {
+  if (!env.STORE_CACHE) return true;
+  const currentRaw = await env.STORE_CACHE.get(key);
+  const current = currentRaw ? Number(currentRaw) : 0;
+  if (current >= limit) return false;
+  await env.STORE_CACHE.put(key, String(current + 1), {
+    expirationTtl: windowSeconds,
+  });
+  return true;
+}
+
+async function enforceRegisterRateLimit(
+  env: Env,
+  storeId: number,
+  ip: string,
+  email: string
+): Promise<boolean> {
+  // 8 registrations / 15 minutes per store+IP, and 10 registrations / 15 minutes per store+email.
+  const ipLimit = 8;
+  const accountLimit = 10;
+  const windowSeconds = 15 * 60;
+  const emailHash = await sha256Hex(email.toLowerCase().trim());
+  const ipKey = `auth:store-register-ip:${storeId}:${ip}`;
+  const accountKey = `auth:store-register-account:${storeId}:${emailHash}`;
+
+  const ipAllowed = await bumpAndCheckLimit(env, ipKey, ipLimit, windowSeconds);
+  const accountAllowed = await bumpAndCheckLimit(env, accountKey, accountLimit, windowSeconds);
+  return ipAllowed && accountAllowed;
+}
+
 export async function action({ request, context }: ActionFunctionArgs) {
   const storeContext = await resolveStore(context, request);
   if (!storeContext) {
@@ -113,6 +164,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const env = context.cloudflare.env;
   const formData = await request.formData();
   const payload = Object.fromEntries(formData);
+  const ip = getClientIp(request);
 
   const result = registerSchema.safeParse(payload);
 
@@ -121,6 +173,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   const { name, email, password } = result.data;
+  const isAllowed = await enforceRegisterRateLimit(env, storeId, ip, email);
+  if (!isAllowed) {
+    return json(
+      { error: 'Too many signup attempts. Please try again later.' },
+      { status: 429 }
+    );
+  }
 
   const registerResult = await registerCustomer({
     storeId,

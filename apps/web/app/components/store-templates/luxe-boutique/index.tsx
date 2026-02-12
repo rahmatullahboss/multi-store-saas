@@ -912,7 +912,51 @@ function LiveLuxeBoutiqueHomepage({
 
               {((config?.sections?.length ? config.sections : DEFAULT_SECTIONS) || [])
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .filter((section: any) => section.type !== 'header' && section.type !== 'footer')
+                .reduce((acc: any[], section: any) => {
+                  if (section.type === 'header' || section.type === 'footer') {
+                    return acc;
+                  }
+
+                  const sectionId = String(section.id || '').toLowerCase();
+                  const heading = String(section?.settings?.heading || '').toLowerCase();
+                  const isStorySection =
+                    section.type === 'rich-text' &&
+                    (sectionId.includes('story') ||
+                      sectionId.includes('power-story') ||
+                      heading.includes('our story') ||
+                      heading.includes('power story'));
+
+                  // Remove "Power Story / Our Story" block for Luxe Boutique.
+                  if (isStorySection) {
+                    return acc;
+                  }
+
+                  const hasHero = acc.some((item) => item.type === 'hero' || item.type === 'modern-hero');
+                  const isHero = section.type === 'hero' || section.type === 'modern-hero';
+                  if (isHero && hasHero) {
+                    return acc;
+                  }
+
+                  // Force Why Choose Us section to use a light visual treatment.
+                  const isWhyChooseSection =
+                    (section.type === 'features' || section.type === 'modern-features') &&
+                    heading.includes('why choose');
+
+                  if (isWhyChooseSection) {
+                    acc.push({
+                      ...section,
+                      settings: {
+                        ...section.settings,
+                        backgroundColor: '#faf9f7',
+                        lightTheme: true,
+                      },
+                    });
+                    return acc;
+                  }
+
+                  acc.push(section);
+                  return acc;
+                }, [])
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 .map((section: any) => {
                   const SectionComponent = SECTION_REGISTRY[section.type]?.component;

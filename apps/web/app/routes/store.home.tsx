@@ -29,13 +29,14 @@ import {
   getStoreTemplateTheme,
   DEFAULT_STORE_TEMPLATE_ID,
   type SerializedProduct,
+  type StoreCategory,
 } from '~/templates/store-registry';
 import { parseThemeConfig, parseSocialLinks, type ThemeConfig } from '@db/types';
 import { getCustomer } from '~/services/customer-auth.server';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { eq, desc, and } from 'drizzle-orm';
-import { products as productsTable } from '@db/schema';
+import { products as productsTable, collections as collectionsTable } from '@db/schema';
 
 interface Badge {
   icon?: string;
@@ -217,7 +218,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   let featuredProducts: SerializedProduct[] | null =
     await cache.get<SerializedProduct[]>(productsCacheKey);
-  let categories: string[] | null = await cache.get<string[]>(categoriesCacheKey);
+  let categories: (string | StoreCategory)[] | null = await cache.get<(string | StoreCategory)[]>(categoriesCacheKey);
 
   // If cache miss, fetch from DB
   if (!featuredProducts) {
@@ -247,19 +248,44 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     await cache.set(productsCacheKey, featuredProducts, 3600);
   }
 
-  if (!categories) {
-    // Derive categories from products or fetch distinct if needed
-    // Ideally we should query distinct categories, but unique from products is a good startup approximation
-    // If we want all categories, we should query them. For now, sticking to logic derived from featured.
-    // However, to be robust, let's just derive from the (possibly cached) featured products to save a query
-    // unless we want *all* categories. The original code derived from featuredProducts.
+    // If no featured products in cache, we still want categories
+    if (!categories) {
+      // Try to fetch from collections table first (Rich Categories with images)
+      const dbCollections = await db
+        .select({
+          id: collectionsTable.id,
+          title: collectionsTable.title,
+          slug: collectionsTable.slug,
+          imageUrl: collectionsTable.imageUrl,
+        })
+        .from(collectionsTable)
+        .where(
+          and(eq(collectionsTable.storeId, storeId), eq(collectionsTable.isActive, true))
+        )
+        .orderBy(collectionsTable.sortOrder);
 
-    // Let's stick to original logic: derive from featuredProducts
-    categories = [...new Set(featuredProducts.map((p) => p.category).filter(Boolean))] as string[];
+      if (dbCollections.length > 0) {
+        categories = dbCollections.map((c) => ({
+          id: c.id,
+          title: c.title,
+          slug: c.slug,
+          imageUrl: c.imageUrl,
+        }));
+      } else {
+        // Fallback: derive from products (legacy behavior)
+        const uniqueCategories = [
+          ...new Set(featuredProducts.map((p) => p.category).filter(Boolean)),
+        ] as string[];
+        
+        // Map strings to objects for consistency, or keep as strings? 
+        // StoreTemplateProps now accepts (string | StoreCategory | null)[]
+        // Let's keep as strings for backward compat with other templates if needed, 
+        // but prefer objects for new templates.
+        categories = uniqueCategories;
+      }
 
-    // Cache categories too
-    await cache.set(categoriesCacheKey, categories, 3600);
-  }
+      await cache.set(categoriesCacheKey, categories, 3600);
+    }
 
   // EDGE CACHING STRATEGY
   // If no customer is logged in, we can cache the HTML at the edge (Cloudflare CDN)

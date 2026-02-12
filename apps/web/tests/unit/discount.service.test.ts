@@ -54,6 +54,20 @@ describe('Discount Service', () => {
       expect(result.discount?.amount).toBe(100); // 10% of 1000
     });
 
+    it('should normalize code input before validating', async () => {
+      db.mockGet.mockResolvedValue({
+        id: 7,
+        code: 'SAVE10',
+        type: 'percentage',
+        value: 10,
+        isActive: true,
+      });
+
+      const result = await validateDiscount(db, 1, ' save10 ', 1000);
+      expect(result.isValid).toBe(true);
+      expect(result.discount?.code).toBe('SAVE10');
+    });
+
     it('should cap percentage discount at maxDiscountAmount', async () => {
       db.mockGet.mockResolvedValue({
         id: 2,
@@ -125,6 +139,23 @@ describe('Discount Service', () => {
         expect(result.isValid).toBe(false);
         expect(result.error).toBe('Discount expired');
       });
+
+    it('should enforce per-customer usage limit', async () => {
+      db.mockGet
+        .mockResolvedValueOnce({
+          id: 8,
+          code: 'ONCEONLY',
+          type: 'percentage',
+          value: 10,
+          perCustomerLimit: 1,
+          isActive: true,
+        })
+        .mockResolvedValueOnce({ count: 1 });
+
+      const result = await validateDiscount(db, 1, 'ONCEONLY', 1000, '01700000000');
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Per-customer usage limit reached');
+    });
   });
 
   describe('getActiveFlashSale', () => {

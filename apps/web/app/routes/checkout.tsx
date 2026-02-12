@@ -458,10 +458,11 @@ export default function Checkout() {
       attemptedUrlCoupon.current = true; // LOCK immediately to prevent loop
 
       if (!appliedCoupon && !isApplyingCoupon) {
-        setCouponCode(urlCode);
+        const normalizedUrlCode = urlCode.trim().toUpperCase();
+        setCouponCode(normalizedUrlCode);
         setIsApplyingCoupon(true);
         fetcher.submit(
-          { intent: 'apply-coupon', code: urlCode, subtotal: String(subtotal) },
+          { intent: 'apply-coupon', code: normalizedUrlCode, subtotal: String(subtotal) },
           { method: 'post' }
         );
       }
@@ -542,10 +543,12 @@ export default function Checkout() {
   // Calculations already defined above
 
   const handleApplyCoupon = () => {
-    if (!couponCode) return;
+    const normalizedCode = couponCode.trim().toUpperCase();
+    if (!normalizedCode) return;
     setIsApplyingCoupon(true);
+    setCouponCode(normalizedCode);
     fetcher.submit(
-      { intent: 'apply-coupon', code: couponCode, subtotal: String(subtotal) },
+      { intent: 'apply-coupon', code: normalizedCode, subtotal: String(subtotal) },
       { method: 'post' }
     );
   };

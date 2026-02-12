@@ -12,12 +12,19 @@ import { LoaderFunctionArgs, redirect } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
-import { canStoreUseGoogleAuth } from '~/services/customer-auth.server';
+import { resolveStore } from '~/lib/store.server';
+import {
+  canStoreUseGoogleAuth,
+  createOAuthAuthorizationRequest,
+  getStoreAllowedOrigins,
+  resolveSafeStoreOrigin,
+} from '~/services/customer-auth.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const env = context.cloudflare.env;
   const db = env.DB;
   const url = new URL(request.url);
+  const tenantStoreContext = await resolveStore(context, request);
 
   // Get storeId from query param
   const storeId = url.searchParams.get('storeId');
@@ -26,17 +33,29 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return redirect('/?error=missing_store');
   }
 
-  const storeIdNum = parseInt(storeId);
+  if (!/^\d+$/.test(storeId)) {
+    console.error('[store.auth.google] Invalid storeId');
+    return redirect('/?error=invalid_store');
+  }
+  const storeIdNum = Number(storeId);
 
-  // Get the origin domain for redirect after OAuth (supports custom domains)
-  // Passed from frontend: /store/auth/google?storeId=123&origin=https://custom-domain.com
-  const originUrl = url.searchParams.get('origin') || url.origin;
+  // Multi-tenant guard: when request host already resolves to a store, it must match storeId param.
+  if (tenantStoreContext?.storeId && tenantStoreContext.storeId !== storeIdNum) {
+    console.error('[store.auth.google] storeId mismatch with tenant context', {
+      tenantStoreId: tenantStoreContext.storeId,
+      requestedStoreId: storeIdNum,
+    });
+    return redirect('/?error=invalid_store_context');
+  }
+
+  // Caller may suggest an origin (for custom domain flows), but we only allow trusted store origins.
+  const requestedOrigin = url.searchParams.get('origin');
 
   // Check if store can use Google Auth
   const canUse = await canStoreUseGoogleAuth(storeIdNum, db);
   if (!canUse) {
     console.error('[store.auth.google] Store cannot use Google Auth:', storeIdNum);
-    return redirect(`${originUrl}?error=oauth_not_available`);
+    return redirect('/?error=oauth_not_available');
   }
 
   // Get store details to check for custom OAuth
@@ -55,10 +74,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .limit(1);
 
   if (!storeResult || storeResult.length === 0) {
-    return redirect(`${originUrl}?error=store_not_found`);
+    return redirect('/?error=store_not_found');
   }
 
   const store = storeResult[0];
+  const allowedOrigins = getStoreAllowedOrigins(store, env);
+  const fallbackOrigin = allowedOrigins[0] || url.origin;
+  const safeOrigin = resolveSafeStoreOrigin(requestedOrigin, allowedOrigins, fallbackOrigin);
 
   // Determine OAuth credentials
   // Premium/Business with custom OAuth configured → use their credentials
@@ -76,7 +98,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   if (!googleClientId || !googleClientSecret) {
     console.error('[store.auth.google] Google OAuth not configured');
-    return redirect(`${originUrl}?error=oauth_not_configured`);
+    return redirect(`${safeOrigin}?error=oauth_not_configured`);
   }
 
   // IMPORTANT: Callback URL must be on the main SAAS domain (registered in Google Console)
@@ -88,8 +110,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // Build state parameter with storeId and origin (for redirect after OAuth)
   // This is passed through OAuth and returned in callback
-  const stateData = { storeId: storeIdNum, origin: originUrl };
-  const state = btoa(JSON.stringify(stateData));
+  const oauthRequest = await createOAuthAuthorizationRequest(storeIdNum, safeOrigin, env);
 
   // Build Google OAuth authorization URL with state
   const scopes = [
@@ -103,7 +124,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   googleAuthUrl.searchParams.set('redirect_uri', callbackUrl);
   googleAuthUrl.searchParams.set('response_type', 'code');
   googleAuthUrl.searchParams.set('scope', scopes.join(' '));
-  googleAuthUrl.searchParams.set('state', state);
+  googleAuthUrl.searchParams.set('state', oauthRequest.state);
+  googleAuthUrl.searchParams.set('code_challenge', oauthRequest.codeChallenge);
+  googleAuthUrl.searchParams.set('code_challenge_method', oauthRequest.codeChallengeMethod);
   googleAuthUrl.searchParams.set('access_type', 'online');
   googleAuthUrl.searchParams.set('prompt', 'select_account');
 

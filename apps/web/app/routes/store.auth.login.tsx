@@ -105,6 +105,64 @@ const loginSchema = z.object({
   redirectTo: z.string().optional().default('/account'),
 });
 
+function getClientIp(request: Request): string {
+  const cf = request.headers.get('cf-connecting-ip');
+  if (cf) return cf;
+  const xff = request.headers.get('x-forwarded-for');
+  if (xff) return xff.split(',')[0].trim();
+  return 'unknown';
+}
+
+function sanitizeRedirectPath(path: string, fallback = '/account'): string {
+  if (!path.startsWith('/')) return fallback;
+  if (path.startsWith('//')) return fallback;
+  if (path.includes('\n') || path.includes('\r')) return fallback;
+  return path;
+}
+
+async function sha256Hex(input: string): Promise<string> {
+  const data = new TextEncoder().encode(input);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+async function bumpAndCheckLimit(
+  env: Env,
+  key: string,
+  limit: number,
+  windowSeconds: number
+): Promise<boolean> {
+  if (!env.STORE_CACHE) return true;
+  const currentRaw = await env.STORE_CACHE.get(key);
+  const current = currentRaw ? Number(currentRaw) : 0;
+  if (current >= limit) return false;
+  await env.STORE_CACHE.put(key, String(current + 1), {
+    expirationTtl: windowSeconds,
+  });
+  return true;
+}
+
+async function enforceLoginRateLimit(
+  env: Env,
+  storeId: number,
+  ip: string,
+  email: string
+): Promise<boolean> {
+  // 10 attempts / 15 minutes per store+IP, and 15 attempts / 15 minutes per store+account.
+  const ipLimit = 10;
+  const accountLimit = 15;
+  const windowSeconds = 15 * 60;
+  const emailHash = await sha256Hex(email.toLowerCase().trim());
+  const ipKey = `auth:store-login-ip:${storeId}:${ip}`;
+  const accountKey = `auth:store-login-account:${storeId}:${emailHash}`;
+
+  const ipAllowed = await bumpAndCheckLimit(env, ipKey, ipLimit, windowSeconds);
+  const accountAllowed = await bumpAndCheckLimit(env, accountKey, accountLimit, windowSeconds);
+  return ipAllowed && accountAllowed;
+}
+
 export async function action({ request, context }: ActionFunctionArgs) {
   const storeContext = await resolveStore(context, request);
   if (!storeContext) {
@@ -115,6 +173,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const env = context.cloudflare.env;
   const formData = await request.formData();
   const payload = Object.fromEntries(formData);
+  const ip = getClientIp(request);
 
   const result = loginSchema.safeParse(payload);
 
@@ -123,9 +182,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   const { email, password, redirectTo } = result.data;
+  const isAllowed = await enforceLoginRateLimit(env, storeId, ip, email);
+  if (!isAllowed) {
+    return json(
+      { error: 'Too many login attempts. Please try again later.' },
+      { status: 429 }
+    );
+  }
 
   // Validate redirectTo to prevent Open Redirects
-  const safeRedirectTo = redirectTo.startsWith('/') ? redirectTo : '/account';
+  const safeRedirectTo = sanitizeRedirectPath(redirectTo, '/account');
 
   const loginResult = await loginCustomer({
     storeId,

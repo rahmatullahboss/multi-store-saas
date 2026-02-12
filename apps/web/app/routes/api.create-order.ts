@@ -45,7 +45,11 @@ import { addLoyaltyPoints } from '~/services/loyalty.server';
 import { triggerAutomation } from '~/services/automation.server';
 import { parseLandingConfig } from '@db/types';
 import { generateCheckoutIdempotencyKey } from '~/services/webhook-utils.server';
-import { validateDiscount, incrementDiscountUsage } from '~/../server/services/discount.service';
+import {
+  validateDiscount,
+  incrementDiscountUsage,
+  decrementDiscountUsage,
+} from '~/../server/services/discount.service';
 import { getCustomerId } from '~/services/customer-auth.server';
 import { createCustomerAddress } from '~/services/customer-account.server';
 // DO Services for checkout lock and rate limiting
@@ -136,6 +140,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Checkout lock variables (declared outside try for cleanup in catch)
   let checkoutLockId = '';
   let checkoutLockAcquired = false;
+  let reservedCouponUsage = false;
+  let reservedCouponStoreId: number | undefined;
+  let reservedCouponId: number | undefined;
   const hasCheckoutLock = !isE2E && 'CHECKOUT_SERVICE' in env;
   // Used for lock release in finally even on early-return paths
   let orderNumberForLock = '';
@@ -307,6 +314,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     const input = parseResult.data;
+    if (input.discount_code) {
+      input.discount_code = input.discount_code.trim().toUpperCase();
+    }
 
     // ========================================================================
     // ANTI-SPAM: RATE LIMITING (IP-based)
@@ -714,13 +724,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       if (item.variantId) {
         const variant = dbVariants.find((v) => v.id === item.variantId);
-        if (variant) {
-          unitPrice = variant.price || unitPrice;
-          currentStock = variant.inventory || 0;
-          variantInfo = [variant.option1Value, variant.option2Value].filter(Boolean).join(' - ');
-          variantIdToUpdate = variant.id;
-          isVariantStock = true;
+        if (!variant || variant.productId !== item.productId) {
+          await abandonCheckoutSession();
+          return json(
+            { success: false, error: `Invalid variant for product ID ${item.productId}` },
+            { status: 400 }
+          );
         }
+
+        unitPrice = variant.price || unitPrice;
+        currentStock = variant.inventory || 0;
+        variantInfo = [variant.option1Value, variant.option2Value].filter(Boolean).join(' - ');
+        variantIdToUpdate = variant.id;
+        isVariantStock = true;
       }
 
       // Check Stock
@@ -900,19 +916,29 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // COUPON DISCOUNT - Apply manual discount code
     // ============================================================================
     let couponDiscountAmount = 0;
-    let appliedCouponId: number | undefined;
-
     if (input.discount_code) {
       const discountResult = await validateDiscount(
         db,
         input.store_id,
         input.discount_code,
-        discountedSubtotalBeforeCoupon
+        discountedSubtotalBeforeCoupon,
+        input.customer_email || input.phone
       );
 
       if (discountResult.isValid && discountResult.discount) {
         couponDiscountAmount = discountResult.discount.amount;
-        appliedCouponId = discountResult.discount.id;
+        reservedCouponId = discountResult.discount.id;
+        reservedCouponStoreId = input.store_id;
+
+        const reserved = await incrementDiscountUsage(db, input.store_id, discountResult.discount.id);
+        if (!reserved) {
+          await abandonCheckoutSession();
+          return json(
+            { success: false, error: 'Discount usage limit reached' },
+            { status: 400 }
+          );
+        }
+        reservedCouponUsage = true;
       } else {
         // Return 400 if code provided but invalid (Strict mode)
         await abandonCheckoutSession();
@@ -991,6 +1017,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
       }
       await abandonCheckoutSession();
+      if (reservedCouponUsage && reservedCouponId) {
+        await decrementDiscountUsage(db, input.store_id, reservedCouponId);
+        reservedCouponUsage = false;
+      }
       return json(
         {
           success: false,
@@ -1124,14 +1154,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
           .where(eq(checkoutSessions.id, checkoutSessionId));
       }
 
-      // ========== DISCOUNT USAGE INCREMENT ==========
-      if (appliedCouponId) {
-        context.cloudflare.ctx.waitUntil(
-          incrementDiscountUsage(db, appliedCouponId).catch((e) =>
-            console.error('Failed to increment discount usage:', e)
-          )
-        );
-      }
+      // Coupon usage already reserved atomically before inventory mutation.
+      reservedCouponUsage = false;
     } catch (orderError) {
       console.error('Order creation failed, rolling back inventory:', orderError);
       // Rollback Order
@@ -1747,6 +1771,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
       timestamp: new Date().toISOString(),
     };
     console.error('Order creation error:', JSON.stringify(errorDetails, null, 2));
+
+    if (reservedCouponUsage && reservedCouponId && reservedCouponStoreId) {
+      try {
+        await decrementDiscountUsage(db, reservedCouponStoreId, reservedCouponId);
+      } catch (couponRollbackError) {
+        console.error('Failed to rollback reserved discount usage:', couponRollbackError);
+      }
+    }
 
     // Best-effort: mark checkout session abandoned on failure to avoid "stuck processing"
     if (checkoutSessionId) {

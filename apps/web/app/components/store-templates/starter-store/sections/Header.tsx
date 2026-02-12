@@ -13,23 +13,24 @@ import { ShoppingCart, Search, Menu, X, User, Heart } from 'lucide-react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { useWishlist } from '~/hooks/useWishlist';
 import { PreviewSafeLink, usePreviewUrl } from '~/components/PreviewSafeLink';
-import { STARTER_STORE_THEME } from '../theme';
+import { resolveStarterStoreTheme } from '../theme';
 import type { ThemeConfig, SocialLinks } from '@db/types';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { LanguageSelector } from '../../shared/LanguageSelector';
 
-const theme = STARTER_STORE_THEME;
+import type { StoreCategory, StoreTemplateTheme } from '~/templates/store-registry';
 
 interface StarterStoreHeaderProps {
   storeName: string;
   logo?: string | null;
   isPreview?: boolean;
   config?: ThemeConfig | null;
-  categories: (string | null)[];
+  categories: (string | StoreCategory | null)[];
   currentCategory?: string | null;
   socialLinks?: SocialLinks | null;
   variant?: 'default' | 'overlay';
   customer?: { id: number; name: string | null; email: string | null } | null;
+  themeColors?: StoreTemplateTheme;
 }
 
 export function StarterStoreHeader({
@@ -41,7 +42,9 @@ export function StarterStoreHeader({
   config,
   variant = 'default',
   customer,
+  themeColors,
 }: StarterStoreHeaderProps) {
+  const theme = resolveStarterStoreTheme(config, themeColors);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,7 +56,7 @@ export function StarterStoreHeader({
 
   const { count: wishlistCount } = useWishlist();
 
-  const validCategories = categories.filter(Boolean).slice(0, 8) as string[];
+  const validCategories = categories.filter(Boolean).slice(0, 8);
 
   const getPreviewUrl = usePreviewUrl(isPreview);
   const navigate = useNavigate();
@@ -154,19 +157,23 @@ export function StarterStoreHeader({
               >
                 {t('allProducts')}
               </PreviewSafeLink>
-              {validCategories.slice(0, 4).map((cat) => (
-                <PreviewSafeLink
-                  key={cat}
-                  to={`/?category=${encodeURIComponent(cat)}`}
-                  isPreview={isPreview}
-                  className="text-sm font-medium hover:opacity-70 transition-opacity"
-                  style={{
-                    color: currentCategory === cat && !isTransparent ? theme.primary : textColor,
-                  }}
-                >
-                  {cat}
-                </PreviewSafeLink>
-              ))}
+              {validCategories.slice(0, 4).map((cat) => {
+                const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+                
+                return (
+                  <PreviewSafeLink
+                    key={title}
+                    to={`/?category=${encodeURIComponent(title)}`}
+                    isPreview={isPreview}
+                    className="text-sm font-medium hover:opacity-70 transition-opacity"
+                    style={{
+                      color: currentCategory === title && !isTransparent ? theme.primary : textColor,
+                    }}
+                  >
+                    {title}
+                  </PreviewSafeLink>
+                );
+              })}
             </nav>
 
             {/* Search, Wishlist, Cart, Account */}
@@ -305,17 +312,21 @@ export function StarterStoreHeader({
               >
                 {t('allProducts')}
               </PreviewSafeLink>
-              {validCategories.map((cat) => (
-                <PreviewSafeLink
-                  key={cat}
-                  to={`/?category=${encodeURIComponent(cat)}`}
-                  isPreview={isPreview}
-                  className="block px-4 py-3 rounded-lg font-medium transition-colors hover:bg-gray-100"
-                  style={{ color: currentCategory === cat ? theme.primary : theme.text }}
-                >
-                  {cat}
-                </PreviewSafeLink>
-              ))}
+              {validCategories.map((cat) => {
+                const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+                
+                return (
+                  <PreviewSafeLink
+                    key={title}
+                    to={`/?category=${encodeURIComponent(title)}`}
+                    isPreview={isPreview}
+                    className="block px-4 py-3 rounded-lg font-medium transition-colors hover:bg-gray-100"
+                    style={{ color: currentCategory === title ? theme.primary : theme.text }}
+                  >
+                    {title}
+                  </PreviewSafeLink>
+                );
+              })}
 
               {!isPreview && (
                 <>

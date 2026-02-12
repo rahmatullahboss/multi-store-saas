@@ -13,6 +13,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { StarterProductCard } from '../sections/ProductCard';
+import { resolveStarterStoreTheme } from '../theme';
 
 import type {
   SerializedProduct,
@@ -150,12 +151,7 @@ export function StarterProductPage({
     }).format(price);
   };
 
-  const colors = {
-    primary: theme?.primary || '#2563EB',
-    text: theme?.text || '#1F2937',
-    background: theme?.background || '#FFFFFF',
-    accent: theme?.accent || '#F59E0B',
-  };
+  const colors = resolveStarterStoreTheme(config, theme);
 
   return (
     <div className="bg-white min-h-screen pb-12">
@@ -189,7 +185,10 @@ export function StarterProductPage({
                 </div>
               )}
               {currentComparePrice > currentPrice && (
-                <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-sm">
+                <div
+                  className="absolute top-4 left-4 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-sm"
+                  style={{ backgroundColor: colors.accent }}
+                >
                   -{Math.round(((currentComparePrice - currentPrice) / currentComparePrice) * 100)}%
                 </div>
               )}
@@ -328,8 +327,8 @@ export function StarterProductPage({
                   mode="buy_now"
                   className="w-full py-4 rounded-xl flex items-center justify-center gap-2 font-bold transition-all hover:scale-[1.02] active:scale-[0.98] border-2"
                   style={{
-                    borderColor: colors.primary,
-                    color: colors.primary,
+                    borderColor: colors.secondary,
+                    color: colors.secondary,
                     backgroundColor: 'transparent',
                   }}
                   disabled={!isAvailable}

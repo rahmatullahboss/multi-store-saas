@@ -105,6 +105,74 @@ service = "pdf-generator"
 [env.production]
 name = "multi-store-saas"
 
+# Production vars/bindings must be explicit (top-level values are not inherited by env blocks).
+[env.production.vars]
+ENVIRONMENT = "production"
+SAAS_DOMAIN = "ozzyl.com"
+R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"
+SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"
+CLOUDFLARE_ZONE_ID = "41147efa7d197cfddda0af7fcbf6d641"
+AI_MODEL = "arcee-ai/trinity-large-preview:free"
+AI_BASE_URL = "https://openrouter.ai/api/v1"
+PAGE_BUILDER_URL = "https://builder.ozzyl.com"
+VAPID_PUBLIC_KEY = "BDUvy4YEADMYrwmybG-tSOE7iEc_4ouSWUDhxlgszleXlFcJhqUi_be2T9WObp5S9bcuh-0pDQZTLyBNDQk41mY"
+SENTRY_DSN = "https://49f43a7c79f0476ad9a12671b579d42c@o4509758332141568.ingest.de.sentry.io/4510691126214736"
+MASTER_FACEBOOK_PIXEL_ID = ""
+GOOGLE_CLIENT_ID = "477759293578-24qqc1l4mg7dtm2f44vtqbrme6p9cqa3.apps.googleusercontent.com"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "multi-store-saas-db"
+database_id = "bf882d16-d67a-4007-b503-33646bd693af"
+migrations_dir = "../../packages/database/src/migrations"
+
+[[env.production.r2_buckets]]
+binding = "R2"
+bucket_name = "multi-store-saas-media"
+
+[[env.production.kv_namespaces]]
+binding = "AI_RATE_LIMIT"
+id = "65513509a7a146d1b348548fb98a93cf"
+
+[[env.production.kv_namespaces]]
+binding = "STORE_CACHE"
+id = "026696313f02475c846dc70197a3c98f"
+
+[[env.production.vectorize]]
+binding = "VECTORIZE"
+index_name = "multi-store-saas-vectors"
+
+[env.production.ai]
+binding = "AI"
+
+[[env.production.services]]
+binding = "ORDER_PROCESSOR_SERVICE"
+service = "order-processor"
+
+[[env.production.services]]
+binding = "CART_SERVICE"
+service = "cart-processor"
+
+[[env.production.services]]
+binding = "CHECKOUT_SERVICE"
+service = "checkout-lock"
+
+[[env.production.services]]
+binding = "RATE_LIMITER_SERVICE"
+service = "rate-limiter"
+
+[[env.production.services]]
+binding = "STORE_CONFIG_SERVICE"
+service = "store-config"
+
+[[env.production.services]]
+binding = "EDITOR_STATE_SERVICE"
+service = "editor-state"
+
+[[env.production.services]]
+binding = "PDF_SERVICE"
+service = "pdf-generator"
+
 # 1) Main App (Admin/Dashboard)
 [[env.production.routes]]
 pattern = "app.ozzyl.com"

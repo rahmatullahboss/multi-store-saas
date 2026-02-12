@@ -1,7 +1,7 @@
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { ShoppingCart } from 'lucide-react';
-import { STARTER_STORE_THEME } from '../theme';
+import { resolveStarterStoreTheme } from '../theme';
 import type { SerializedProduct, StoreTemplateTheme } from '~/templates/store-registry';
 import { useTranslation } from 'react-i18next';
 import { buildProxyImageUrl, generateProxySrcset } from '~/utils/imageOptimization';
@@ -11,7 +11,7 @@ export function StarterProductCard({
   product, 
   currency = 'BDT',
   storeId = 0,
-  theme = STARTER_STORE_THEME,
+  theme,
   isPreview = false
 }: { 
   product: SerializedProduct; 
@@ -20,6 +20,7 @@ export function StarterProductCard({
   theme?: StoreTemplateTheme;
   isPreview?: boolean;
 }) {
+  const resolvedTheme = resolveStarterStoreTheme(undefined, theme);
   const { t } = useTranslation();
   const discount = product.compareAtPrice 
     ? Math.round((1 - product.price / product.compareAtPrice) * 100) 
@@ -43,7 +44,7 @@ export function StarterProductCard({
         isPreview={isPreview}
         className="block"
       >
-        <div className="relative aspect-square rounded-xl overflow-hidden mb-3" style={{ backgroundColor: theme.cardBg }}>
+        <div className="relative aspect-square rounded-xl overflow-hidden mb-3" style={{ backgroundColor: resolvedTheme.cardBg }}>
           <img 
             src={isRemoteImage ? buildProxyImageUrl(imageUrl, { width: 640, quality: 75 }) : imageUrl}
             alt={product.title} 
@@ -56,22 +57,22 @@ export function StarterProductCard({
           {discount > 0 && (
             <span 
               className="absolute top-2 left-2 px-2 py-1 text-xs font-medium rounded-full text-white" 
-              style={{ backgroundColor: theme.accent }}
+              style={{ backgroundColor: resolvedTheme.accent }}
             >
               -{discount}%
             </span>
           )}
         </div>
         <div className="space-y-1">
-          <h3 className="font-medium line-clamp-2 group-hover:underline" style={{ color: theme.text }}>
+          <h3 className="font-medium line-clamp-2 group-hover:underline" style={{ color: resolvedTheme.text }}>
             {product.title}
           </h3>
           <div className="flex items-center gap-2">
-            <span className="font-bold" style={{ color: theme.primary }}>
+            <span className="font-bold" style={{ color: resolvedTheme.primary }}>
               {formatPrice(product.price)}
             </span>
             {product.compareAtPrice && (
-              <span className="text-sm line-through" style={{ color: theme.muted }}>
+              <span className="text-sm line-through" style={{ color: resolvedTheme.muted }}>
                 {formatPrice(product.compareAtPrice)}
               </span>
             )}
@@ -89,7 +90,7 @@ export function StarterProductCard({
           currency={currency}
           isPreview={isPreview}
           className="w-full py-2 rounded-lg text-sm font-medium text-white transition hover:opacity-90 flex items-center justify-center gap-2"
-          style={{ backgroundColor: theme.primary }}
+          style={{ backgroundColor: resolvedTheme.primary }}
         >
           <ShoppingCart className="w-4 h-4" />
           {t('store.addToCart', 'Add to Cart')}

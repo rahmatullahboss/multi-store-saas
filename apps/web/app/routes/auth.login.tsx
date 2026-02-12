@@ -30,25 +30,49 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  console.log('[auth.login] Login action started');
   const t = await i18next.getFixedT(request);
+  const env = context.cloudflare.env;
 
-  // Rate Limiting
-  const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
-  const { checkAuthRateLimit } = await import('~/lib/rateLimit.server');
+  const getClientIp = () => request.headers.get('CF-Connecting-IP') || 'unknown';
+  const clientIp = getClientIp();
 
-  const kv = (context.cloudflare.env as any).KV;
-  if (kv) {
-    const rateLimit = await checkAuthRateLimit(kv, clientIp, 'login');
-    if (!rateLimit.allowed) {
-      return json(
-        {
-          errors: { form: 'Too many login attempts. Please try again in an hour.' },
-          errorCode: 'RATE_LIMITED',
-        },
-        { status: 429 }
-      );
-    }
+  const sha256Hex = async (input: string): Promise<string> => {
+    const data = new TextEncoder().encode(input);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hash))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+  };
+
+  const bumpAndCheckLimit = async (
+    key: string,
+    limit: number,
+    windowSeconds: number
+  ): Promise<boolean> => {
+    if (!env.STORE_CACHE) return true;
+    const currentRaw = await env.STORE_CACHE.get(key);
+    const current = currentRaw ? Number(currentRaw) : 0;
+    if (current >= limit) return false;
+    await env.STORE_CACHE.put(key, String(current + 1), {
+      expirationTtl: windowSeconds,
+    });
+    return true;
+  };
+
+  // Enterprise-grade rate limiting: by IP and by account hash.
+  const ipAllowed = await bumpAndCheckLimit(
+    `auth:merchant-login-ip:${clientIp}`,
+    10,
+    15 * 60
+  );
+  if (!ipAllowed) {
+    return json(
+      {
+        errors: { form: 'Too many login attempts. Please try again in a few minutes.' },
+        errorCode: 'RATE_LIMITED',
+      },
+      { status: 429 }
+    );
   }
 
   try {
@@ -74,6 +98,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ errors, errorCode: 'VALIDATION_ERROR' }, { status: 400 });
     }
 
+    const emailHash = await sha256Hex(email.toLowerCase().trim());
+    const accountAllowed = await bumpAndCheckLimit(
+      `auth:merchant-login-account:${emailHash}`,
+      15,
+      15 * 60
+    );
+    if (!accountAllowed) {
+      return json(
+        {
+          errors: { form: 'Too many login attempts. Please try again in a few minutes.' },
+          errorCode: 'RATE_LIMITED',
+        },
+        { status: 429 }
+      );
+    }
+
     // Attempt login
     const result = await login({
       email,
@@ -87,7 +127,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (result.error) {
       // Use translated generic error if it's a credentials issue
       const formError =
-        result.errorCode === 'USER_NOT_FOUND' || result.errorCode === 'INVALID_PASSWORD'
+      result.errorCode === 'USER_NOT_FOUND' || result.errorCode === 'INVALID_PASSWORD'
           ? t('invalidCredentials')
           : result.error;
 
@@ -95,7 +135,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
         {
           errors: { form: formError },
           errorCode: result.errorCode || 'LOGIN_FAILED',
-          errorDetails: result.errorDetails,
+          errorDetails:
+            env.ENVIRONMENT === 'development' || env.ENVIRONMENT === 'staging'
+              ? result.errorDetails
+              : undefined,
         },
         { status: 400 }
       );
@@ -143,12 +186,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
       result.user.storeId
     );
     try {
-      return await createUserSession(
-        result.user.id,
-        result.user.storeId,
-        '/app/orders',
-        context.cloudflare.env
-      );
+      const role = result.user.role;
+      const redirectTo = role === 'super_admin' || role === 'admin' ? '/admin' : '/app/orders';
+      return await createUserSession(result.user.id, result.user.storeId, redirectTo, env);
     } catch (sessionError) {
       console.error('[auth.login] Failed to create session:', sessionError);
       const errorMessage =

@@ -10,12 +10,22 @@
 
 import { LoaderFunctionArgs, redirect } from '@remix-run/cloudflare';
 import { createCustomerSession, validateTransferToken } from '~/services/customer-auth.server';
+import { resolveStore } from '~/lib/store.server';
+
+function sanitizeRedirectPath(path: string | null, fallback = '/account'): string {
+  if (!path) return fallback;
+  if (!path.startsWith('/')) return fallback;
+  if (path.startsWith('//')) return fallback;
+  if (path.includes('\n') || path.includes('\r')) return fallback;
+  return path;
+}
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const token = url.searchParams.get('token');
-  const redirectTo = url.searchParams.get('redirectTo') || '/account';
+  const redirectTo = sanitizeRedirectPath(url.searchParams.get('redirectTo'), '/account');
   const env = context.cloudflare.env;
+  const tenantStoreContext = await resolveStore(context, request);
 
   if (!token) {
     console.error('[SessionTransfer] Missing token');
@@ -31,6 +41,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   const { customerId, storeId } = result;
+
+  // Multi-tenant guard: transfer token storeId must match the current domain's store context.
+  if (!tenantStoreContext || tenantStoreContext.storeId !== storeId) {
+    console.error('[SessionTransfer] Tenant mismatch', {
+      tokenStoreId: storeId,
+      tenantStoreId: tenantStoreContext?.storeId,
+    });
+    return redirect('/store/auth/login?error=invalid_transfer_store');
+  }
 
   console.warn(`[SessionTransfer] Successfully verified token for customer ${customerId}, store ${storeId}`);
 

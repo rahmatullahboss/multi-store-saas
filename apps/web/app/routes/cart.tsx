@@ -423,6 +423,7 @@ interface CartActionData {
               isLoading={isLoading}
               storeName={storeName}
               theme={theme}
+              config={themeConfig}
             />
           ) : (
             <SimpleCartPage

@@ -12,7 +12,14 @@ import { LoaderFunctionArgs, redirect } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
-import { createCustomerSession, findOrCreateGoogleCustomer } from '~/services/customer-auth.server';
+import {
+  createCustomerSession,
+  consumePkceVerifierForOAuth,
+  findOrCreateGoogleCustomer,
+  getStoreAllowedOrigins,
+  resolveSafeStoreOrigin,
+  validateOAuthStateToken,
+} from '~/services/customer-auth.server';
 
 interface GoogleTokenResponse {
   access_token: string;
@@ -50,17 +57,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return redirect('/?error=oauth_invalid');
   }
 
-  // Decode state parameter (contains storeId and origin URL)
-  let storeIdNum: number;
-  let originUrl: string;
-
-  try {
-    const stateData = JSON.parse(atob(stateParam));
-    storeIdNum = stateData.storeId;
-    originUrl = stateData.origin || '/';
-  } catch {
-    console.warn('[store.auth.google.callback] Invalid state parameter');
-
+  // Validate signed state parameter (contains storeId and target origin URL)
+  const stateData = await validateOAuthStateToken(stateParam, env);
+  if (!stateData) {
+    console.warn('[store.auth.google.callback] Invalid or replayed state parameter');
+    return redirect('/?error=oauth_invalid');
+  }
+  const storeIdNum = stateData.storeId;
+  const codeVerifier = await consumePkceVerifierForOAuth(stateData.transactionId, env);
+  if (!codeVerifier) {
+    console.warn('[store.auth.google.callback] Missing or expired PKCE verifier');
     return redirect('/?error=oauth_invalid');
   }
 
@@ -80,10 +86,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .limit(1);
 
   if (!storeResult || storeResult.length === 0) {
-    return redirect(`${originUrl}?error=store_not_found`);
+    return redirect('/?error=store_not_found');
   }
 
   const store = storeResult[0];
+  const allowedOrigins = getStoreAllowedOrigins(store, env);
+  const safeOrigin = resolveSafeStoreOrigin(stateData.origin, allowedOrigins, allowedOrigins[0] || url.origin);
 
   // Determine OAuth credentials
   const isPremium = ['premium', 'business', 'custom'].includes(store.planType || '');
@@ -96,7 +104,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     : env.GOOGLE_CLIENT_SECRET;
 
   if (!googleClientId || !googleClientSecret) {
-    return redirect(`${originUrl}?error=oauth_not_configured`);
+    return redirect(`${safeOrigin}?error=oauth_not_configured`);
   }
 
   // Callback URL (must match what was registered)
@@ -116,13 +124,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         client_secret: googleClientSecret,
         redirect_uri: callbackUrl,
         grant_type: 'authorization_code',
+        code_verifier: codeVerifier,
       }),
     });
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text();
       console.error('[store.auth.google.callback] Token exchange failed:', errorData);
-      return redirect(`${originUrl}?error=oauth_token_failed`);
+      return redirect(`${safeOrigin}?error=oauth_token_failed`);
     }
 
     const tokens: GoogleTokenResponse = await tokenResponse.json();
@@ -134,7 +143,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     if (!userInfoResponse.ok) {
       console.error('[store.auth.google.callback] Failed to get user info');
-      return redirect(`${originUrl}?error=oauth_userinfo_failed`);
+      return redirect(`${safeOrigin}?error=oauth_userinfo_failed`);
     }
 
     const userInfo: GoogleUserInfo = await userInfoResponse.json();
@@ -165,15 +174,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
       // Check if we need cross-domain transfer
       const currentHost = new URL(request.url).hostname;
-      let targetHost = currentHost;
-
-      try {
-        if (originUrl.startsWith('http')) {
-          targetHost = new URL(originUrl).hostname;
-        }
-      } catch {
-        // ignore invalid origin
-      }
+      const targetHost = new URL(safeOrigin).hostname;
 
       const needsTransfer = currentHost !== targetHost;
 
@@ -181,7 +182,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         // Create transfer token and redirect to target domain's profile completion
         const { createTransferToken } = await import('~/services/customer-auth.server');
         const token = await createTransferToken(customer.id, storeIdNum, env);
-        const cleanOrigin = originUrl.endsWith('/') ? originUrl.slice(0, -1) : originUrl;
+        const cleanOrigin = safeOrigin.endsWith('/') ? safeOrigin.slice(0, -1) : safeOrigin;
         const transferUrl = `${cleanOrigin}/store/auth/session-transfer?token=${token}&redirectTo=/account/complete-profile`;
         return redirect(transferUrl);
       }
@@ -199,15 +200,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     // current request.url is the callback (e.g. https://ozzyl.com/store/auth/...)
 
     const currentHost = new URL(request.url).hostname;
-    let targetHost = currentHost; // fallback
-
-    try {
-      if (originUrl.startsWith('http')) {
-        targetHost = new URL(originUrl).hostname;
-      }
-    } catch {
-      // ignore invalid origin
-    }
+    const targetHost = new URL(safeOrigin).hostname;
 
     const needsTransfer = currentHost !== targetHost;
 
@@ -220,20 +213,20 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
       // Redirect to the target domain's transfer endpoint
       // This will set the cookie on the target domain
-      const cleanOrigin = originUrl.endsWith('/') ? originUrl.slice(0, -1) : originUrl;
+      const cleanOrigin = safeOrigin.endsWith('/') ? safeOrigin.slice(0, -1) : safeOrigin;
       const transferUrl = `${cleanOrigin}/store/auth/session-transfer?token=${token}`;
 
       return redirect(transferUrl);
     }
 
-    // Same domain handling (Subdomains)
-    const redirectUrl = originUrl.startsWith('http') ? originUrl : '/account';
+    // Same-domain handling.
+    const redirectUrl = `${safeOrigin}/account`;
 
     // Create customer session and redirect
     return createCustomerSession(customer.id, storeIdNum, redirectUrl, env);
   } catch (error) {
     console.error('[store.auth.google.callback] OAuth error:', error);
-    return redirect(`${originUrl}?error=oauth_failed`);
+    return redirect(`${safeOrigin}?error=oauth_failed`);
   }
 }
 

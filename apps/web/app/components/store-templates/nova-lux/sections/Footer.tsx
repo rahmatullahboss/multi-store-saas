@@ -37,13 +37,15 @@ import { NOVALUX_THEME } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';
 import type { SocialLinks, FooterConfig } from '@db/types';
 
+import type { StoreCategory } from '~/templates/store-registry';
+
 interface NovaLuxFooterProps {
   storeName: string;
   logo?: string | null;
   socialLinks?: SocialLinks | null;
   footerConfig?: FooterConfig | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
-  categories: (string | null)[];
+  categories: (string | StoreCategory | null)[];
   planType?: string;
   isPreview?: boolean;
 }
@@ -101,7 +103,7 @@ export function NovaLuxFooter({
     footerText: NOVALUX_THEME.footerText,
   };
 
-  const validCategories = categories.filter(Boolean).slice(0, 6) as string[];
+  const validCategories = categories.filter(Boolean).slice(0, 6);
   const showPoweredBy = true; // Enforce Ozzyl branding globally
 
   // Default business info for preview
@@ -359,18 +361,21 @@ export function NovaLuxFooter({
                 {t('collections')}
               </h5>
               <ul className="space-y-3 text-sm">
-                {validCategories.map((cat) => (
-                  <li key={cat}>
-                    <PreviewSafeLink
-                      to={`/?category=${encodeURIComponent(cat)}`}
-                      className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"
-                      isPreview={isPreview}
-                    >
-                      <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-                      {cat}
-                    </PreviewSafeLink>
-                  </li>
-                ))}
+                {validCategories.map((cat) => {
+                  const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+                  return (
+                    <li key={title}>
+                      <PreviewSafeLink
+                        to={`/?category=${encodeURIComponent(title)}`}
+                        className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"
+                        isPreview={isPreview}
+                      >
+                        <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+                        {title}
+                      </PreviewSafeLink>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}

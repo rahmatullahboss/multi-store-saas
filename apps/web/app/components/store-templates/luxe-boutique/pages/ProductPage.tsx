@@ -19,7 +19,6 @@ import {
   Check,
   Truck,
   Shield,
-  Star,
   ChevronLeft,
   ChevronRight,
   ArrowRight,
@@ -291,22 +290,6 @@ export function LuxeBoutiqueProductPage({
                   {formatPrice(product.compareAtPrice)}
                 </span>
               )}
-            </div>
-
-            {/* Rating */}
-            <div className="flex items-center gap-3">
-              <div className="flex">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star
-                    key={star}
-                    className="w-4 h-4"
-                    style={{ color: theme.accent, fill: star <= 4 ? theme.accent : 'transparent' }}
-                  />
-                ))}
-              </div>
-              <span className="text-sm" style={{ color: theme.muted }}>
-                (12 Reviews)
-              </span>
             </div>
 
             {/* Divider */}
