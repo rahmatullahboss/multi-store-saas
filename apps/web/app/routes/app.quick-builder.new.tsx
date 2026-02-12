@@ -21,7 +21,7 @@ import { IntentWizard } from '~/components/landing-builder/IntentWizard';
 import { createLandingConfigFromIntent, type Intent, type QuickProduct } from '~/utils/landing-builder/intentEngine';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Link } from '@remix-run/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
@@ -305,14 +305,17 @@ export default function QuickBuilderNew() {
     fetcher.submit(formData, { method: 'POST' });
   };
 
-  // Handle response
-  if (fetcher.data?.success && fetcher.data.data?.redirectTo) {
-    toast.success('ল্যান্ডিং পেইজ তৈরি হয়েছে!');
-    navigate(fetcher.data.data.redirectTo);
-  } else if (fetcher.data?.error) {
-    toast.error(fetcher.data.error);
-    setIsSubmitting(false);
-  }
+  useEffect(() => {
+    if (fetcher.data?.success && fetcher.data.data?.redirectTo) {
+      toast.success('ল্যান্ডিং পেইজ তৈরি হয়েছে!');
+      navigate(fetcher.data.data.redirectTo);
+      return;
+    }
+    if (fetcher.data?.error) {
+      toast.error(fetcher.data.error);
+      setIsSubmitting(false);
+    }
+  }, [fetcher.data, navigate]);
 
   const handleImageUpload = async (file: File): Promise<string> => {
     const format = getOptimalFormat();

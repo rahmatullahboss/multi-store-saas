@@ -33,7 +33,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       return json({ success: false, error: 'Invalid file type' }, { status: 400 });
     }

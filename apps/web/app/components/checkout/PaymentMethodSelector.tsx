@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { CreditCard, Banknote, ShieldCheck, Copy } from 'lucide-react';
 import { ManualPaymentConfig } from '@db/types';
 
@@ -9,6 +9,7 @@ interface PaymentMethodSelectorProps {
   onTransactionIdChange: (id: string) => void;
   onSenderNumberChange: (number: string) => void;
   lang?: 'bn' | 'en';
+  allowedMethods?: string[];
 }
 
 export function PaymentMethodSelector({
@@ -17,7 +18,8 @@ export function PaymentMethodSelector({
   onMethodChange,
   onTransactionIdChange,
   onSenderNumberChange,
-  lang = 'bn'
+  lang = 'bn',
+  allowedMethods = ['cod', 'bkash', 'nagad', 'rocket', 'stripe', 'sslcommerz']
 }: PaymentMethodSelectorProps) {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -58,8 +60,18 @@ export function PaymentMethodSelector({
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
       enabled: !!(config?.rocketPersonal || config?.rocketMerchant)
+    },
+    {
+      id: 'sslcommerz',
+      title: lang === 'bn' ? 'অনলাইন পেমেন্ট (SSLCommerz)' : 'Online Payment (SSLCommerz)',
+      icon: ShieldCheck,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      enabled: true
     }
-  ].filter(m => m.id === 'cod' || m.enabled);
+  ]
+    .filter((m) => allowedMethods.includes(m.id))
+    .filter((m) => m.id === 'cod' || m.enabled);
 
   const renderPaymentDetails = () => {
     if (selectedMethod === 'cod') return null;

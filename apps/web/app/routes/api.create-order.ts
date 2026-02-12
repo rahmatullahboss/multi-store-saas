@@ -35,7 +35,7 @@ import { createEmailService } from '~/services/email.server';
 import { getOrderConfirmationHtml, getNewOrderAlertHtml } from '~/services/email-templates.server';
 import { sendPushNotification } from '~/services/push.server';
 import { dispatchWebhook } from '~/services/webhook.server';
-import { checkUsageLimit } from '~/utils/plans.server';
+import { checkUsageLimit, getPlanLimitsSafe } from '~/utils/plans.server';
 import { calculateShipping, BD_DIVISIONS } from '~/utils/shipping';
 import { resolveShippingConfig } from '~/services/shipping.server';
 import { sendPurchaseEvent } from '~/services/facebook-capi.server';
@@ -57,6 +57,8 @@ import { acquireCheckoutLock, releaseCheckoutLock } from '~/services/checkout-do
 import { checkRateLimit, getClientIP } from '~/services/rate-limiter-do.server';
 // Order Processor DO for background tasks (email, webhooks)
 import { enqueueOrderTasks } from '~/services/order-processor.server';
+import { calculatePlatformFee, isPaymentMethodAllowedForPlan } from '~/lib/payment-policy';
+import { createSslCommerzService } from '~/services/sslcommerz.server';
 
 // ============================================================================
 // VALIDATION SCHEMA with BD Phone validation
@@ -89,13 +91,15 @@ export const OrderSchema = z.object({
   quantity: z.number().int().min(1).max(99).default(1),
   notes: z.string().max(500).optional(),
   customer_email: z.string().email().optional(), // Optional email for confirmation
-  payment_method: z.enum(['cod', 'bkash', 'nagad', 'rocket', 'stripe']).default('cod'),
+  payment_method: z
+    .enum(['cod', 'bkash', 'nagad', 'rocket', 'stripe', 'sslcommerz'])
+    .default('cod'),
   transaction_id: z.string().trim().min(6).max(100).optional(),
   variant_id: z.number().int().optional(), // Product variant ID
   manual_payment_details: z
     .object({
       senderNumber: z.string().trim().optional(),
-      method: z.enum(['cod', 'bkash', 'nagad', 'rocket', 'stripe']).optional(),
+      method: z.enum(['cod', 'bkash', 'nagad', 'rocket', 'stripe', 'sslcommerz']).optional(),
     })
     .optional(),
   bump_ids: z.array(z.number().int().positive()).optional(), // Order bump product IDs
@@ -531,10 +535,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     const storeData = storeResult[0];
+    const planLimits = getPlanLimitsSafe(storeData.planType || 'free');
+    const platformFeeRate = planLimits.fee_rate ?? 0;
 
     // ============================================================================
     // PAYMENT METHOD GUARDRAILS
     // ============================================================================
+    if (!isPaymentMethodAllowedForPlan(storeData.planType || 'free', input.payment_method)) {
+      return json(
+        {
+          success: false,
+          error:
+            'This payment method is not available on your current plan. Upgrade to unlock more gateways.',
+          code: 'PAYMENT_METHOD_BLOCKED_BY_PLAN',
+        },
+        { status: 403 }
+      );
+    }
+
     if (input.payment_method === 'stripe') {
       return json(
         {
@@ -546,7 +564,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       );
     }
 
-    if (input.payment_method !== 'cod') {
+    if (!['cod', 'sslcommerz'].includes(input.payment_method)) {
       const senderNumber = input.manual_payment_details?.senderNumber?.replace(/[\s-]/g, '') || '';
       const methodInDetails = input.manual_payment_details?.method;
 
@@ -604,7 +622,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     };
 
     if (
-      input.payment_method !== 'cod' &&
+      ['bkash', 'nagad', 'rocket'].includes(input.payment_method) &&
       !enabledManualMethods[input.payment_method as 'bkash' | 'nagad' | 'rocket']
     ) {
       return json(
@@ -705,7 +723,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
         billingAddressJson: null,
         pricingJson: null,
         discountCode: input.discount_code || null,
-        paymentMethod: input.payment_method as 'cod' | 'bkash' | 'nagad' | 'rocket' | 'stripe',
+        paymentMethod: input.payment_method as
+          | 'cod'
+          | 'bkash'
+          | 'nagad'
+          | 'rocket'
+          | 'stripe'
+          | 'sslcommerz',
         status: 'processing',
         idempotencyKey,
         orderId: null,
@@ -1056,6 +1080,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     const finalSubtotal = Math.max(0, discountedSubtotalBeforeCoupon - couponDiscountAmount);
     const total = finalSubtotal + tax + shipping;
+    const { platformFeeAmount, merchantNetAmount } = calculatePlatformFee(total, platformFeeRate);
 
     // Use the pre-generated number if we have it (for lock metadata consistency)
     const orderNumber = orderNumberForLock || generateOrderNumber();
@@ -1173,9 +1198,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
           orderNumber,
           status: 'pending',
           paymentStatus: 'pending',
-          paymentMethod: input.payment_method as 'cod' | 'bkash' | 'nagad' | 'rocket',
-          transactionId: input.transaction_id || null,
-          manualPaymentDetails: input.manual_payment_details
+          paymentMethod: input.payment_method as 'cod' | 'bkash' | 'nagad' | 'rocket' | 'sslcommerz',
+          transactionId: input.payment_method === 'sslcommerz' ? orderNumber : input.transaction_id || null,
+          manualPaymentDetails:
+            input.payment_method === 'sslcommerz'
+              ? null
+              : input.manual_payment_details
             ? JSON.stringify(input.manual_payment_details)
             : null,
           customerName: input.customer_name,
@@ -1202,6 +1230,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
             shipping,
             tax,
             total,
+            platformFeeRate,
+            platformFeeAmount,
+            merchantNetAmount,
             isFreeShipping: shippingResult.isFree || false,
             clientIP,
             couponCode: input.discount_code,
@@ -1251,7 +1282,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
           .update(checkoutSessions)
           .set({
             cartJson: JSON.stringify(orderItemsData),
-            pricingJson: JSON.stringify({ subtotal, shipping, tax, total }),
+            pricingJson: JSON.stringify({
+              originalSubtotal: subtotal,
+              discountedSubtotal: finalSubtotal,
+              shipping,
+              tax,
+              total,
+              platformFeeRate,
+              platformFeeAmount,
+              merchantNetAmount,
+            }),
             status: 'completed',
             orderId,
             updatedAt: now,
@@ -1819,6 +1859,66 @@ export async function action({ request, context }: ActionFunctionArgs) {
       })()
     );
 
+    if (input.payment_method === 'sslcommerz') {
+      try {
+        const origin = new URL(request.url).origin;
+        const ssl = createSslCommerzService(
+          context.cloudflare.env as unknown as Record<string, string | undefined>
+        );
+
+        const session = await ssl.createSession({
+          totalAmount: total,
+          currency: (storeData.currency || 'BDT').toUpperCase(),
+          tranId: orderNumber,
+          successUrl: `${origin}/checkout/success?orderId=${orderId}`,
+          failUrl: `${origin}/checkout/failed?orderId=${orderId}&error=payment_failed`,
+          cancelUrl: `${origin}/checkout/cancelled?orderId=${orderId}`,
+          ipnUrl: `${origin}/api/webhook/sslcommerz`,
+          productName:
+            finalOrderItems.length === 1 ? finalOrderItems[0].title : `${finalOrderItems.length} items`,
+          customerName: input.customer_name,
+          customerEmail: input.customer_email || `${input.phone.replace(/\D/g, '')}@noemail.local`,
+          customerAddress: input.address,
+          customerPhone: input.phone,
+        });
+
+        return json(
+          {
+            success: true,
+            orderId,
+            orderNumber,
+            total,
+            paymentRedirectUrl: session.GatewayPageURL,
+            message: 'Redirecting to secure payment gateway...',
+          },
+          {
+            headers: {
+              'x-order-number': orderNumber,
+            },
+          }
+        );
+      } catch (gatewayError) {
+        await db
+          .update(orders)
+          .set({
+            paymentStatus: 'failed',
+            updatedAt: new Date(),
+          })
+          .where(and(eq(orders.id, orderId!), eq(orders.storeId, input.store_id)));
+
+        return json(
+          {
+            success: false,
+            error:
+              gatewayError instanceof Error
+                ? gatewayError.message
+                : 'Could not initialize secure payment gateway.',
+          },
+          { status: 502 }
+        );
+      }
+    }
+
     // Check Upsell
     let upsellUrl;
     // ... Upsell logic can be complicated for multi-item (which product triggers it?).
@@ -1921,33 +2021,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 // ============================================================================
-// LOADER (GET requests return method info)
+// LOADER (GET requests are not allowed on write-only endpoint)
 // ============================================================================
 export async function loader() {
-  return json({
-    method: 'POST',
-    description: 'Create a new order (single or multi-item)',
-    payload_options: {
-      single_item: {
-        required_fields: ['store_id', 'product_id', 'customer_name', 'phone', 'address'],
-        optional_fields: [
-          'quantity (default: 1)',
-          'variant_id',
-          'notes',
-          'customer_email',
-          'payment_method',
-          'division',
-          'bump_ids',
-        ],
-      },
-      multi_item: {
-        required_fields: ['store_id', 'cart_items', 'customer_name', 'phone', 'address'],
-        cart_item_structure: '{ product_id: number, quantity: number, variant_id?: number }[]',
-        optional_fields: ['notes', 'customer_email', 'payment_method', 'division', 'bump_ids'],
-      },
-    },
-    note: 'Either product_id (single item) OR cart_items (multi-item) must be provided, not both.',
-  });
+  return json(
+    { success: false, error: 'Method not allowed' },
+    { status: 405, headers: { Allow: 'POST' } }
+  );
 }
 
 

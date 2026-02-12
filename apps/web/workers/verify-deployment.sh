@@ -13,7 +13,7 @@
 #
 # =============================================================================
 
-set -e
+set -euo pipefail
 
 # Colors for output
 RED='\033[0;31m'
@@ -30,10 +30,12 @@ PASSED=0
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+WEB_APP_PATH="${PROJECT_ROOT}/apps/web"
+WRANGLER_CMD=(npx --prefix "${WEB_APP_PATH}" wrangler)
 
 # Parse arguments
 QUICK_MODE=false
-if [[ "$1" == "--quick" ]]; then
+if [[ "${1:-}" == "--quick" ]]; then
     QUICK_MODE=true
     echo -e "${YELLOW}⚡ QUICK MODE - Workers only${NC}\n"
 fi
@@ -41,17 +43,17 @@ fi
 # Helper functions
 check_pass() {
     echo -e "${GREEN}✅${NC} $1"
-    ((PASSED++))
+    ((PASSED+=1))
 }
 
 check_fail() {
     echo -e "${RED}❌${NC} $1"
-    ((ERRORS++))
+    ((ERRORS+=1))
 }
 
 check_warn() {
     echo -e "${YELLOW}⚠️${NC} $1"
-    ((WARNINGS++))
+    ((WARNINGS+=1))
 }
 
 check_header() {
@@ -71,17 +73,18 @@ echo ""
 # ============================================================================
 check_header "1. Wrangler CLI Installation"
 
-if command -v wrangler &> /dev/null; then
-    WRANGLER_VERSION=$(wrangler --version 2>/dev/null | head -1)
-    if [[ "$WRANGLER_VERSION" =~ ^4\. ]]; then
-        check_pass "Wrangler v4.x installed: $WRANGLER_VERSION"
+if "${WRANGLER_CMD[@]}" --version &> /dev/null; then
+    WRANGLER_VERSION_RAW=$("${WRANGLER_CMD[@]}" --version 2>/dev/null | head -1)
+    WRANGLER_VERSION=$(echo "$WRANGLER_VERSION_RAW" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    if [[ -n "${WRANGLER_VERSION}" && "${WRANGLER_VERSION%%.*}" -ge 4 ]]; then
+        check_pass "Wrangler v4+ installed: $WRANGLER_VERSION_RAW"
     else
-        check_fail "Wrangler is not v4.x (found: $WRANGLER_VERSION)"
-        echo -e "   ${YELLOW}Run: npm install -g wrangler${NC}"
+        check_fail "Wrangler major version must be >= 4 (found: ${WRANGLER_VERSION_RAW:-unknown})"
+        echo -e "   ${YELLOW}Run: cd ${WEB_APP_PATH} && npm install${NC}"
     fi
 else
-    check_fail "Wrangler CLI not found"
-    echo -e "   ${YELLOW}Install with: npm install -g wrangler${NC}"
+    check_fail "Wrangler CLI not available via local workspace dependency"
+    echo -e "   ${YELLOW}Run: cd ${WEB_APP_PATH} && npm install${NC}"
 fi
 
 echo ""
@@ -91,9 +94,9 @@ echo ""
 # ============================================================================
 check_header "2. Wrangler Authentication"
 
-if wrangler whoami &> /dev/null; then
+if "${WRANGLER_CMD[@]}" whoami &> /dev/null; then
     check_pass "Authenticated with Cloudflare"
-    ACCOUNT_INFO=$(wrangler whoami 2>/dev/null | grep -E "Account|Email" | head -2)
+    ACCOUNT_INFO=$("${WRANGLER_CMD[@]}" whoami 2>/dev/null | grep -E "Account|Email" | head -2)
     echo -e "   ${GREEN}$ACCOUNT_INFO${NC}"
 else
     check_fail "Not authenticated with Cloudflare"
@@ -173,13 +176,15 @@ else
     # ============================================================================
     check_header "4. Main App (apps/web) Configuration"
     
-    web_path="${PROJECT_ROOT}/apps/web"
+    web_path="${WEB_APP_PATH}"
     
     # Check wrangler.toml
     if [[ -f "${web_path}/wrangler.toml" ]]; then
-        # Check run_worker_first
-        if grep -q "run_worker_first" "${web_path}/wrangler.toml" 2>/dev/null; then
-            check_pass "run_worker_first configured"
+        # Check run_worker_first value
+        if grep -q "run_worker_first = true" "${web_path}/wrangler.toml" 2>/dev/null; then
+            check_pass "run_worker_first enabled"
+        elif grep -q "run_worker_first" "${web_path}/wrangler.toml" 2>/dev/null; then
+            check_warn "run_worker_first configured but not enabled"
         else
             check_fail "run_worker_first missing - CRITICAL!"
         fi
@@ -297,7 +302,7 @@ if [[ $ERRORS -eq 0 ]]; then
     echo -e "   1. Deploy workers: ${YELLOW}cd apps/web/workers && ./deploy-all.sh${NC}"
     if [[ "$QUICK_MODE" == false ]]; then
         echo -e "   2. Build main app: ${YELLOW}cd apps/web && npm run build${NC}"
-        echo -e "   3. Deploy main app: ${YELLOW}wrangler deploy${NC}"
+        echo -e "   3. Deploy main app: ${YELLOW}cd apps/web && npm run deploy:prod${NC}"
     fi
     exit 0
 else
@@ -305,7 +310,7 @@ else
     echo ""
     echo -e "${YELLOW}Common fixes:${NC}"
     echo -e "   • Install dependencies: ${YELLOW}npm install${NC}"
-    echo -e "   • Update wrangler: ${YELLOW}npm install -g wrangler${NC}"
+    echo -e "   • Install/update local wrangler: ${YELLOW}cd ${WEB_APP_PATH} && npm install${NC}"
     echo -e "   • Login to Cloudflare: ${YELLOW}wrangler login${NC}"
     exit 1
 fi

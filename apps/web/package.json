@@ -11,7 +11,7 @@
     "lint:fix": "eslint . --fix",
     "format:check": "prettier -c .",
     "format": "prettier -w .",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "npm run deploy:prod",
     "deploy:prod": "npm run build && wrangler deploy --env production --keep-vars",
     "deploy:staging": "npm run build && wrangler deploy --env staging",
     "db:generate": "drizzle-kit generate",
@@ -27,6 +27,7 @@
     "db:clone:prod-to-staging": "npm run db:export:prod:schema && printf 'PRAGMA foreign_keys=OFF;\\n' > ./tmp/prod-export.schema.wrapped.sql && cat ./tmp/prod-export.schema.sql >> ./tmp/prod-export.schema.wrapped.sql && printf '\\nPRAGMA foreign_keys=ON;\\n' >> ./tmp/prod-export.schema.wrapped.sql && wrangler d1 execute multi-store-saas-db-staging --remote --file ./tmp/prod-export.schema.wrapped.sql && npm run db:stamp-migrations:staging",
     "db:studio": "drizzle-kit studio",
     "test": "vitest run",
+    "test:contract": "vitest run tests/unit/api-contract.test.ts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
@@ -132,6 +133,7 @@
     "vite": "^6.0.0",
     "vite-tsconfig-paths": "5.1.4",
     "vitest": "^4.0.16",
-    "wrangler": "^4.64.0"
+    "wrangler": "^4.64.0",
+    "yaml": "^2.8.1"
   }
 }

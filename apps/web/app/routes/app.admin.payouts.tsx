@@ -54,6 +54,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
       storeName: stores.name,
       subdomain: stores.subdomain,
       totalSales: sql<number>`COALESCE(SUM(${orders.total}), 0)`,
+      totalPlatformFee: sql<number>`COALESCE(SUM(CAST(json_extract(${orders.pricingJson}, '$.platformFeeAmount') AS REAL)), 0)`,
       orderCount: sql<number>`COUNT(DISTINCT ${orders.id})`,
     })
     .from(stores)
@@ -84,11 +85,11 @@ export async function loader({ context }: LoaderFunctionArgs) {
 
   // Calculate totals
   const totalGross = storesWithSales.reduce((sum, s) => sum + (s.totalSales || 0), 0);
-  const platformFeePercent = 10; // 10% platform fee
+  const totalFee = storesWithSales.reduce((sum, s) => sum + (s.totalPlatformFee || 0), 0);
   
   const merchantData = storesWithSales.map(store => {
     const gross = store.totalSales || 0;
-    const fee = gross * (platformFeePercent / 100);
+    const fee = store.totalPlatformFee || 0;
     const net = gross - fee;
     const existingPayout = payoutMap.get(store.storeId);
     
@@ -111,10 +112,10 @@ export async function loader({ context }: LoaderFunctionArgs) {
     weekEnd: weekEnd.toISOString(),
     summary: {
       totalGross,
-      totalFee: totalGross * (platformFeePercent / 100),
-      totalNet: totalGross * (1 - platformFeePercent / 100),
+      totalFee,
+      totalNet: totalGross - totalFee,
       merchantCount: storesWithSales.length,
-      platformFeePercent,
+      platformFeePercent: null,
     },
   });
 }
@@ -258,7 +259,7 @@ export default function AdminPayoutsPage() {
               <DollarSign className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">{t('platformFee')} ({summary.platformFeePercent}%)</p>
+              <p className="text-sm text-gray-600">{t('platformFee')}</p>
               <p className="text-xl font-bold text-purple-600">{formatPrice(summary.totalFee)}</p>
             </div>
           </div>

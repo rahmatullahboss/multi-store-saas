@@ -531,3 +531,190 @@ Post-MVP (পরের রিলিজে রাখো)
 - ✅ Passed: Playwright `e2e/smoke.test.ts` (3/3, Chromium)
 - ✅ Monitoring accuracy fixes applied (`monthly order usage`, `fatal-aware health filtering`, `typed 24h metrics query`) without smoke regression।
 - ⚠️ `typecheck` এখনও pre-existing unrelated files-এ fail করছে; #12 touched files থেকে নতুন type error পাওয়া যায়নি।
+
+### #13 সিকিউরিটি & কমপ্লায়েন্স (Deep Hardening Pass) - Findings (2026-02-12)
+1. CSRF origin guard শুধু `/app/*`-এ apply ছিল; `/admin/*` mutation routes guard-এর বাইরে ছিল।  
+   Risk: authenticated super-admin session target করে cross-site form submission সম্ভব (admin action CSRF surface)।
+2. `verifyPassword()`-এ verbose debug logs (hash length/flow) ছিল এবং hash compare early-break pattern follow করছিল।  
+   Risk: sensitive auth internals অতিরিক্ত log exposure + avoidable timing side-channel risk।
+3. `checkLoginAnomalies()`-এ raw SQL timestamp compare path fragile ছিল (`created_at` unit mismatch risk) এবং query pattern typed guard ছাড়া ছিল।  
+   Risk: brute-force anomaly detection false negative/unstable হতে পারে।
+
+### #13 সিকিউরিটি & কমপ্লায়েন্স - Fixes Applied
+1. `apps/web/server/index.ts`
+   - `csrfOriginGuard()` `/admin/*` path-এও apply করা হয়েছে (admin mutations এখন same-origin verify enforced)।
+2. `apps/web/app/services/auth.server.ts`
+   - `verifyPassword()` থেকে debug-heavy logs remove করা হয়েছে।
+   - hash comparison constant-time style (`xor accumulate`) করা হয়েছে; early-break compare বাদ।
+3. `apps/web/app/services/security.server.ts`
+   - login anomaly counters typed Drizzle query-তে migrate করা হয়েছে।
+   - `gte(systemLogs.createdAt, tenMinutesAgo)` ব্যবহার করা হয়েছে (timestamp-mode safe comparison)।
+   - nullable `context` safe matching (`COALESCE`) যোগ করা হয়েছে।
+
+### #13 ডক্স ভেরিফিকেশন
+- OWASP CSRF Prevention Cheat Sheet (Origin/Referer validation + defense-in-depth guidance):  
+  https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html
+- OWASP HTTP Headers Cheat Sheet (security headers/CORS hardening context):  
+  https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html
+- NIST SP 800-63B (latest, verifier-side secret handling and online attack throttling principles):  
+  https://pages.nist.gov/800-63-4/sp800-63b.html
+
+### #1-#13 Functional Validation Snapshot (2026-02-12)
+- ✅ Passed: Playwright `e2e/smoke.test.ts` (3/3, Chromium)
+- ✅ CSRF coverage expanded to admin mutation surface without smoke regression।
+- ✅ Auth verification hardening applied (log minimization + constant-time style compare)।
+- ⚠️ `typecheck` এখনও pre-existing unrelated files-এ fail করছে; #13 touched files থেকে নতুন type error পাওয়া যায়নি।
+
+### #14 AI/ML Integration - Findings (2026-02-12)
+1. `api.ai.action`-এ featured product context lookup `products.id` দিয়ে হচ্ছিল, কিন্তু `storeId` ownership filter ছিল না।  
+   Risk: crafted product ID দিয়ে অন্য store-এর product context AI prompt-এ টেনে আনা সম্ভব (cross-tenant data exposure)।
+2. Omnichannel `agent-chat` endpoint-এ incoming `agentId`/`conversationId` ownership strictভাবে verify হচ্ছিল না।  
+   Risk: cross-tenant/cross-agent conversation probing বা message injection attempt।
+3. `api.ai-orchestrator` switch-এ unsupported channel path explicit default branch ছাড়া ছিল।  
+   Risk: undefined control flow (defensive API behavior দুর্বল)।
+4. `api.ai.action` error response-এ internal `details` সব environment-এ return হচ্ছিল।  
+   Risk: backend internals leak (AI provider/schema/runtime errors)।
+
+### #14 AI/ML Integration - Fixes Applied
+1. `apps/web/app/routes/api.ai.action.ts`
+   - featured product query store-scoped করা হয়েছে: `products.id + products.storeId`।
+   - production error response-এ internal `details` suppress করা হয়েছে।
+2. `apps/web/app/services/agent-chat.server.ts`
+   - strict payload validation (`message`, `agentId`, `conversationId`) যোগ করা হয়েছে।
+   - agent ownership check: `agentId` must belong to current `storeId`।
+   - conversation ownership check: `conversationId` must belong to the same `agentId`।
+3. `apps/web/app/services/agent.server.ts`
+   - `processMessage()` শুরুতেই conversation-agent binding validate করা হয়েছে।
+4. `apps/web/app/routes/api.ai-orchestrator.ts`
+   - explicit `default` branch যোগ করা হয়েছে (`Unsupported channel` -> `400`)।
+
+### #14 ডক্স ভেরিফিকেশন
+- OWASP API1:2023 Broken Object Level Authorization (ID-based object access must enforce ownership):  
+  https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/
+- OWASP API3:2023 Broken Object Property Level Authorization (sensitive object properties/data exposure):  
+  https://owasp.org/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization/
+- Cloudflare Vectorize metadata filtering (tenant-scoped vector retrieval patterns via metadata filters):  
+  https://developers.cloudflare.com/vectorize/reference/metadata-filtering/
+
+### #1-#14 Functional Validation Snapshot (2026-02-12)
+- ✅ Passed: Playwright `e2e/smoke.test.ts` (3/3, Chromium)
+- ✅ AI path hardening applied without smoke regression।
+- ⚠️ `typecheck` এখনও pre-existing unrelated files-এ fail করছে; #14 touched files থেকে নতুন type error পাওয়া যায়নি।
+
+### #15 Troubleshooting & Debugging Readiness - Findings (2026-02-12)
+1. `debug-env` route production-safe ছিল না এবং environment key inventory expose করছিল।  
+   Risk: deployment/config reconnaissance সহজ হয়ে যাওয়া; troubleshooting endpoint abuse surface।
+2. suspicious request tracker logs-এ full client IP লেখা হচ্ছিল।  
+   Risk: unnecessary PII logging for debug telemetry।
+
+### #15 Troubleshooting & Debugging Readiness - Fixes Applied
+1. `apps/web/app/routes/debug-env.tsx`
+   - production-এ route hard-disabled করা হয়েছে (`404`)।
+   - staging-এ super-admin auth mandatory করা হয়েছে (`requireSuperAdmin`)।
+   - output sanitize করা হয়েছে: raw key তালিকা/length expose বাদ, শুধু safe boolean diagnostics রাখা হয়েছে।
+2. `apps/web/server/lib/debug/request-tracker.ts`
+   - suspicious event log-এ IP masking যোগ করা হয়েছে (`a.b.x.x` / partial IPv6)।
+   - troubleshooting signal রেখে PII exposure কমানো হয়েছে।
+
+### #15 ডক্স ভেরিফিকেশন
+- OWASP Logging Cheat Sheet (PII minimization + avoid sensitive data in logs):  
+  https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html
+- Cloudflare Workers secrets/env bindings best practices (do not expose bindings/secrets to clients):  
+  https://developers.cloudflare.com/workers/configuration/secrets/
+- Sentry environments best practices (staging-only diagnostics flow):  
+  https://docs.sentry.io/platforms/javascript/guides/remix/configuration/environments/
+
+### #1-#15 Functional Validation Snapshot (2026-02-12)
+- ✅ Passed: Playwright `e2e/smoke.test.ts` (3/3, Chromium)
+- ✅ Troubleshooting endpoints are now environment-gated and safer for production operation।
+- ⚠️ `typecheck` এখনও pre-existing unrelated files-এ fail করছে; #15 touched files থেকে নতুন type error পাওয়া যায়নি।
+
+### #16 Deployment & Ops - Findings (2026-02-12)
+1. `apps/web/workers/deploy-all.sh` এ `set -e` থাকা অবস্থায় loop-এর ভেতর non-zero return হলে script early-exit করছিল; ফলে full deployment summary deterministic না।  
+   Risk: partial deployment হয়ে গেলেও remaining workers-এর status এক run-এ পাওয়া যায় না (incident triage slow)।
+2. `apps/web/workers/verify-deployment.sh` এ counter increment pattern (`((PASSED++))`) `set -e` context-এ brittle ছিল, এবং global `wrangler` dependency assume করছিল।  
+   Risk: verification script environment-dependent behaviour (CI/dev machine drift), false failure বা premature stop।
+3. Main app deployment defaults (`apps/web/package.json` + `apps/web/wrangler.toml`) explicit production path enforce করছিল না, এবং runtime compatibility date project standard-এর সাথে drift ছিল।  
+   Risk: release flow inconsistency + runtime baseline mismatch।
+4. `run_worker_first` config value implementation intent-এর সাথে inconsistent ছিল।  
+   Risk: asset/API routing behavior documentation vs runtime configuration mismatch (ops debugging complexity)।
+
+### #16 Deployment & Ops - Fixes Applied
+1. `apps/web/workers/deploy-all.sh`
+   - `set -euo pipefail` করা হয়েছে।
+   - worker loop-এ failure handle করে run continue করা হয়েছে, যাতে full summary (`DEPLOYED/FAILED/SKIPPED`) always produce হয়।
+2. `apps/web/workers/verify-deployment.sh`
+   - `set -euo pipefail` + `${1:-}` argument guard যোগ করা হয়েছে।
+   - counter increments safe pattern (`+=1`) এ fix করা হয়েছে।
+   - global CLI dependency বাদ দিয়ে workspace-pinned `wrangler` (`npx --prefix apps/web wrangler`) ব্যবহার করা হয়েছে।
+   - `run_worker_first = true` explicit verification যোগ করা হয়েছে।
+   - deployment next-step output production-safe command এ align করা হয়েছে।
+3. `apps/web/wrangler.toml`
+   - `compatibility_date` → `2025-04-14` (project runtime standard alignment)।
+   - `run_worker_first = true` করা হয়েছে এবং behavior comment আপডেট করা হয়েছে।
+4. `apps/web/package.json`
+   - `deploy` script এখন explicit production deploy path (`deploy:prod`) follow করে।
+
+### #16 ডক্স ভেরিফিকেশন
+- Cloudflare Workers static assets `run_worker_first` semantics (worker-first vs asset-first routing):  
+  https://developers.cloudflare.com/workers/static-assets/routing/run-worker-first/
+- Cloudflare Workers compatibility dates (runtime behavior pinning and upgrade model):  
+  https://developers.cloudflare.com/workers/configuration/compatibility-dates/
+- Cloudflare Workers versions + rollback guidance (deployment safety/rollback operation):  
+  https://developers.cloudflare.com/workers/configuration/versions-and-deployments/rollbacks/
+- Wrangler environments (`--env`) for explicit environment-targeted deployments:  
+  https://developers.cloudflare.com/workers/wrangler/environments/
+
+### #16 Functional Validation Snapshot (2026-02-12)
+- ✅ Passed: `bash apps/web/workers/verify-deployment.sh --quick`
+- ✅ Passed: `bash apps/web/workers/verify-deployment.sh` (22 passed, 0 warnings, 0 errors)
+- ✅ Passed: `bash -n apps/web/workers/deploy-all.sh`
+- ✅ Passed: `bash -n apps/web/workers/verify-deployment.sh`
+
+### #17 API Reference - Findings (2026-02-12)
+1. `docs/API_REFERENCE.md` বাস্তব implementation থেকে drift করেছিল (deprecated/absent endpoints listed, old tenant domain examples, request schema mismatch)।  
+   Risk: API consumers wrong contract follow করলে integration break/ops confusion তৈরি হয়।
+2. API key auth flow-তে `401/403` responses এ `WWW-Authenticate` challenge header consistent ছিল না।  
+   Risk: standards-compliant API clients/token middleware proper auth fallback করতে পারে না।
+3. কিছু API route query parsing weak ছিল (`page/limit` negative/invalid values, free-form status), এবং product JSON fields parse-এ unsafe `JSON.parse` ছিল।  
+   Risk: runtime errors + unpredictable API behavior under malformed input।
+4. write-only endpoint method contract explicit ছিল না (`api.create-order` GET info response দিত)।  
+   Risk: API contract ambiguity (read vs write surface)।
+
+### #17 API Reference - Fixes Applied
+1. `docs/API_REFERENCE.md`
+   - সম্পূর্ণ current-code aligned করা হয়েছে:
+   - active endpoints, request/response behavior, auth modes (session vs API key), tenant domain examples (`*.ozzyl.com`)।
+   - unavailable legacy gateway endpoint paths (`/api/bkash/*`, `/api/nagad/*`, `/api/stripe/*`) explicit note করা হয়েছে।
+2. `apps/web/app/services/api.server.ts`
+   - API key auth errors now include standards-aligned `WWW-Authenticate: Bearer ...` headers for `401`/`403` cases।
+3. `apps/web/app/routes/api.v1.orders.ts`
+   - `limit` strict validation (`1..100`)।
+   - `status` allow-list validation যোগ করা হয়েছে।
+4. `apps/web/app/routes/api.v1.products.ts`
+   - `page`/`limit` strict validation যোগ করা হয়েছে।
+   - `images`/`tags` safe JSON array parse করা হয়েছে (malformed DB payload crash এড়াতে)।
+5. `apps/web/app/routes/api.upload-image.ts`
+   - non-POST responses এ `405` + `Allow: POST` যোগ করা হয়েছে।
+6. `apps/web/app/routes/api.create-order.ts`
+   - `GET` loader এখন `405` + `Allow: POST` return করে (write-only contract hardening)।
+
+### #17 ডক্স ভেরিফিকেশন
+- RFC 9110 (HTTP Semantics): `405` হলে `Allow` header required  
+  https://datatracker.ietf.org/doc/html/rfc9110
+- RFC 6750 (Bearer token usage): protected resource responses and `WWW-Authenticate` challenge behavior  
+  https://datatracker.ietf.org/doc/html/rfc6750
+- MDN `405 Method Not Allowed` (practical semantics aligned with RFC 9110)  
+  https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/405
+- MDN `Allow` header reference  
+  https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Allow
+- OpenAPI specification (current version line for machine-readable API contracts)  
+  https://spec.openapis.org/oas/latest.html
+
+### #17 Functional Validation Snapshot (2026-02-12)
+- ✅ Passed: `npx eslint app/services/api.server.ts app/routes/api.v1.orders.ts app/routes/api.v1.products.ts app/routes/api.upload-image.ts app/routes/api.create-order.ts`
+- ✅ Passed: Playwright `e2e/smoke.test.ts` (3/3, Chromium)
+- ⚠️ E2E run-এ পূর্ববর্তী environment/migration-related warnings ছিল, but #17 touched files-এ regression পাওয়া যায়নি।
+- ✅ Added machine-readable API contract: `docs/openapi.yaml`
+- ✅ Added contract test: `apps/web/tests/unit/api-contract.test.ts` (OpenAPI path/security/operationId checks + `405 Allow: POST` behavior checks)
+- ✅ Passed: `npx vitest run tests/unit/api-contract.test.ts` (4/4)

@@ -110,11 +110,20 @@ export async function updateKeyUsage(db: D1Database, keyId: number) {
  * Returns { storeId, scopes } or throws 401
  */
 export async function authenticateApiKey(request: Request, env: { DB: D1Database }, requiredScope?: string) {
+  const jsonHeaders = {
+    'Content-Type': 'application/json',
+  };
+  const bearer = (extra?: string) =>
+    extra ? `Bearer realm="api", ${extra}` : 'Bearer realm="api"';
+
   const authHeader = request.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer sk_live_')) {
-    throw new Response(JSON.stringify({ error: 'Unauthorized: Missing or invalid API Key' }), { 
+    throw new Response(JSON.stringify({ error: 'Unauthorized: Missing or invalid API Key' }), {
       status: 401,
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        ...jsonHeaders,
+        'WWW-Authenticate': bearer(),
+      },
     });
   }
 
@@ -122,17 +131,25 @@ export async function authenticateApiKey(request: Request, env: { DB: D1Database
   const apiKey = await validateApiKey(env.DB, key);
 
   if (!apiKey) {
-    throw new Response(JSON.stringify({ error: 'Unauthorized: Invalid API Key' }), { 
+    throw new Response(JSON.stringify({ error: 'Unauthorized: Invalid API Key' }), {
       status: 401,
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        ...jsonHeaders,
+        'WWW-Authenticate': bearer(
+          'error="invalid_token", error_description="The API key is invalid or revoked"'
+        ),
+      },
     });
   }
 
   const scopes = JSON.parse(apiKey.scopes as string) as string[];
   if (requiredScope && !scopes.includes(requiredScope)) {
-    throw new Response(JSON.stringify({ error: `Forbidden: Missing scope '${requiredScope}'` }), { 
+    throw new Response(JSON.stringify({ error: `Forbidden: Missing scope '${requiredScope}'` }), {
       status: 403,
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        ...jsonHeaders,
+        'WWW-Authenticate': bearer(`error="insufficient_scope", scope="${requiredScope}"`),
+      },
     });
   }
 

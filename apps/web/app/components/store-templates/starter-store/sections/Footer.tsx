@@ -43,14 +43,16 @@ export function StarterStoreFooter({
   // Free plan: always show branding. Paid plans: merchant can toggle (MVP).
   const showPoweredBy = planType === 'free' ? true : (_footerConfig?.showPoweredBy ?? true);
 
-  // Default business info for preview
+  // Default business info for preview only
   const defaultBusinessInfo = {
     phone: '+880 1XXX-XXXXXX',
     email: 'info@store.com',
     address: 'ঢাকা, বাংলাদেশ',
   };
 
-  const displayBusinessInfo = isPreview ? defaultBusinessInfo : businessInfo || defaultBusinessInfo;
+  const displayBusinessInfo: { phone?: string; email?: string; address?: string } = isPreview
+    ? defaultBusinessInfo
+    : (businessInfo ?? {});
 
   return (
     <footer style={{ backgroundColor: theme.footerBg }}>
@@ -149,7 +151,7 @@ export function StarterStoreFooter({
               </li>
               <li>
                 <PreviewSafeLink
-                  to="/contact"
+                  to="/pages/contact"
                   isPreview={isPreview}
                   className="text-sm hover:underline transition-colors"
                   style={{ color: theme.footerText + 'CC' }}

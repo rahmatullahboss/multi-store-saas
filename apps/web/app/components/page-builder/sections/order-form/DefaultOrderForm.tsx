@@ -77,7 +77,7 @@ export function DefaultOrderForm({
   } = useOrderForm(props, effectiveProduct);
 
   const cartItems = isMultiProduct
-    ? selectedProductsData.map((p) => ({ productId: p.id, quantity: state.quantity }))
+    ? selectedProductsData.map((p) => ({ product_id: p.id, quantity: state.quantity }))
     : undefined;
 
   const comboSummary =

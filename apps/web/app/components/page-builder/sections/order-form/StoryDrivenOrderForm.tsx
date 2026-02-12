@@ -79,7 +79,7 @@ export function StoryDrivenOrderForm({ props, theme, storeId, productId, product
   const { fetcher, state, actions, calculations, props: typedProps } = useOrderForm(props, effectiveProduct);
 
   const cartItems = isMultiProduct
-    ? multiProduct.selectedProductsData.map((p) => ({ productId: p.id, quantity: state.quantity }))
+    ? multiProduct.selectedProductsData.map((p) => ({ product_id: p.id, quantity: state.quantity }))
     : undefined;
 
   const comboSummary = multiProduct.comboSavings > 0

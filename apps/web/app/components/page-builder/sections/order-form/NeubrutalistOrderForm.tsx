@@ -40,7 +40,7 @@ export function NeubrutalistOrderForm({ props, theme, storeId, productId, produc
   const { fetcher, state, actions, calculations, props: typedProps } = useOrderForm(props, effectiveProduct);
 
   const cartItems = isMultiProduct
-    ? selectedProductsData.map((p) => ({ productId: p.id, quantity: state.quantity }))
+    ? selectedProductsData.map((p) => ({ product_id: p.id, quantity: state.quantity }))
     : undefined;
 
   const comboSummary = comboSavings > 0

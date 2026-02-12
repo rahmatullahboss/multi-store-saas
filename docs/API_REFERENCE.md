@@ -1,343 +1,221 @@
 # API Reference
 
-> Multi-Store SaaS E-commerce Platform
+> Multi-Store SaaS platform API (updated: 2026-02-12)
 
 ---
 
-## Authentication APIs
+## Authentication Routes
 
-### POST `/auth/login`
+### `POST /auth/login`
 
-Login a merchant with email and password.
+Merchant login via form-data.
 
-**Request (form-data)**:
+Request fields:
+- `email` (required)
+- `password` (required)
 
-```
-email: string (required)
-password: string (required, min 6 chars)
-```
+Behavior:
+- Success: session cookie + redirect (`/admin` or `/app/orders`)
+- Validation/auth failure: `400`
+- Rate limit: `429`
 
-**Response**: Redirect to `/app/dashboard/orders` with session cookie
+### `POST /auth/register`
 
----
+Merchant + store registration via form-data.
 
-### POST `/auth/register`
+### `POST /auth/logout`
 
-Register a new merchant with their store.
+Session logout.
 
-**Request (form-data)**:
+### `GET /auth/logout`
 
-```
-name: string (required, min 2 chars)
-email: string (required, valid email)
-password: string (required, min 6 chars)
-storeName: string (required, min 2 chars)
-```
-
-**Response**: Redirect to `/app/dashboard/orders` with session cookie
+Direct navigation-safe logout; clears session and redirects (default `/auth/login`).
 
 ---
 
-### POST `/auth/logout`
+## Storefront Order API
 
-Destroy the current session.
+### `POST /api/create-order`
 
-**Response**: Redirect to `/auth/login`
+Create order from storefront checkout.
 
----
+Allowed content types:
+- `application/json`
+- `multipart/form-data`
 
-## Image Upload API
+Important fields (snake_case):
+- `store_id` (required)
+- `product_id` (required for single-item checkout)
+- `cart_items` (required for multi-item checkout)
+- `customer_name` (required)
+- `phone` (required, BD validation)
+- `address` (required)
+- `payment_method` (`cod` বা `sslcommerz`)
 
-### POST `/api/upload-image`
+Notes:
+- write-only endpoint: `GET /api/create-order` returns `405` with `Allow: POST`
+- plan limit checks, anti-spam, rate-limit, stock checks, idempotency are enforced server-side
 
-Upload an image to Cloudflare R2 (client-side compression recommended).
-
-**Request (multipart/form-data)**:
-
-```
-file: File (required, max 5MB after compression)
-folder: string (optional, default: "uploads")
-```
-
-**Allowed Types**: JPEG, PNG, WebP, GIF
-
-**Response**:
+Success response (example):
 
 ```json
 {
   "success": true,
-  "url": "https://pub-xxx.r2.dev/products/123-abc.webp",
-  "key": "products/123-abc.webp",
+  "orderId": 123,
+  "orderNumber": "ORD-ABC123",
+  "total": 1499
+}
+```
+
+If `payment_method = "sslcommerz"`, response contains `paymentRedirectUrl`.
+
+---
+
+## SSLCommerz Webhook
+
+### `POST /api/webhook/sslcommerz`
+
+Gateway callback endpoint for payment validation/finalization.
+
+Behavior:
+- idempotent webhook dedupe
+- validates `tran_id` and `val_id`
+- updates order payment status (`paid`/`failed`)
+
+---
+
+## Media Upload API
+
+### `POST /api/upload-image`
+
+Upload image to R2 (authenticated merchant session required).
+
+Request (`multipart/form-data`):
+- `file` (required, max 5MB)
+- `folder` (optional: `products | logos | banners | temp`, default `temp`)
+
+Allowed MIME types:
+- `image/jpeg`
+- `image/png`
+- `image/webp`
+- `image/gif`
+
+Success response:
+
+```json
+{
+  "success": true,
+  "url": "https://.../stores/1/products/1739-abc.webp",
+  "key": "stores/1/products/1739-abc.webp",
   "size": 45678,
   "type": "image/webp"
 }
 ```
 
-**Errors**:
-
-```json
-{ "error": "No file provided" }           // 400
-{ "error": "Invalid file type" }          // 400
-{ "error": "File too large. Maximum 5MB" } // 400
-{ "error": "Storage not configured" }     // 500
-```
+Method behavior:
+- `GET /api/upload-image` => `405` + `Allow: POST`
 
 ---
 
-## Order API
+## Public API (API Key, v1)
 
-### POST `/api/create-order`
+Authentication:
+- Header: `Authorization: Bearer sk_live_...`
+- Invalid/missing token returns `401` with `WWW-Authenticate: Bearer ...`
+- Missing scope returns `403`
 
-Create a new order (COD - Cash on Delivery).
+### `GET /api/v1/products`
 
-**Request (JSON)**:
+Required scope:
+- `read_products`
 
-```json
-{
-  "customerName": "John Doe",
-  "customerPhone": "01712345678",
-  "customerEmail": "john@example.com",
-  "shippingAddress": {
-    "address": "123 Main St",
-    "city": "Dhaka",
-    "postalCode": "1000"
-  },
-  "items": [
-    {
-      "productId": 1,
-      "quantity": 2
-    }
-  ]
-}
-```
+Query params:
+- `page` (integer, `>= 1`, default `1`)
+- `limit` (integer, `1..100`, default `20`)
+- `search` (optional)
+- `published` (`true|false`, optional)
 
-**Response**:
+### `GET /api/v1/orders`
 
-```json
-{
-  "success": true,
-  "orderId": 123,
-  "orderNumber": "ORD-20260105-001"
-}
-```
+Required scope:
+- `read_orders`
 
----
+Query params:
+- `limit` (integer, `1..100`, default `20`)
+- `status` (optional):
+  - `pending`
+  - `confirmed`
+  - `processing`
+  - `shipped`
+  - `delivered`
+  - `cancelled`
 
-## bKash Payment APIs
+### `GET /api/v1/orders/:id`
 
-### POST `/api/bkash/initiate`
+Required scope:
+- `read_orders`
 
-Initiate a bKash payment for an order.
-
-**Request (JSON)**:
-
-```json
-{
-  "orderId": 123,
-  "storeId": 1,
-  "amount": 1500,
-  "customerPhone": "01712345678"
-}
-```
-
-**Response**:
-
-```json
-{
-  "success": true,
-  "paymentID": "TR00...",
-  "bkashURL": "https://sandbox.bka.sh/...",
-  "amount": "1500.00"
-}
-```
-
-### GET `/api/bkash/callback`
-
-bKash callback after payment completion. Executes payment and redirects to:
-
-| Status    | Redirect                                  |
-| --------- | ----------------------------------------- |
-| Success   | `/checkout/success?orderId=123&trxID=...` |
-| Failed    | `/checkout/failed?orderId=123&error=...`  |
-| Cancelled | `/checkout/cancelled?orderId=123`         |
-
-**Environment Variables Required**:
-
-```
-BKASH_BASE_URL=https://tokenized.sandbox.bka.sh/v1.2.0-beta
-BKASH_APP_KEY=your_app_key
-BKASH_APP_SECRET=your_app_secret
-BKASH_USERNAME=your_sandbox_username
-BKASH_PASSWORD=your_sandbox_password
-```
+Returns single store-scoped order with items.
 
 ---
 
-## Nagad Payment APIs
+## Session-Protected Builder API
 
-### POST `/api/nagad/initiate`
+### `GET /api/products`
 
-Initiate a Nagad payment for an order.
-
-**Request (JSON)**:
-
-```json
-{
-  "orderId": 123,
-  "storeId": 1,
-  "amount": 1500
-}
-```
-
-**Response**:
-
-```json
-{
-  "success": true,
-  "callbackUrl": "https://nagad.com.bd/...",
-  "paymentRefId": "REF..."
-}
-```
-
-### GET `/api/nagad/callback`
-
-Nagad callback after payment. Verifies and redirects similar to bKash.
-
-**Environment Variables Required**:
-
-```
-NAGAD_BASE_URL=https://sandbox-ssl.nagad.com.bd/api/dfs/check-out
-NAGAD_MERCHANT_ID=your_merchant_id
-NAGAD_MERCHANT_NUMBER=your_merchant_number
-NAGAD_PUBLIC_KEY=your_nagad_public_key
-NAGAD_PRIVATE_KEY=your_private_key
-```
+Returns current store products for builder/editor flows (session-based auth).
 
 ---
 
-## Stripe Payment APIs
+## Availability Notes
 
-### POST `/api/stripe/initiate`
+Currently active payment API flow:
+- `sslcommerz` via `/api/create-order` + `/api/webhook/sslcommerz`
 
-Create a Stripe Checkout Session for an order.
-
-**Request (JSON)**:
-
-```json
-{
-  "orderId": 123
-}
-```
-
-**Response**:
-
-```json
-{
-  "success": true,
-  "sessionId": "cs_test_...",
-  "checkoutUrl": "https://checkout.stripe.com/..."
-}
-```
-
-### POST `/api/stripe/webhook`
-
-Stripe webhook endpoint for payment events. Configure in Stripe Dashboard.
-
-**Environment Variables Required**:
-
-```
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-```
-
----
-
-## Protected Dashboard APIs
-
-> All `/app/*` routes require authentication via session cookie.
-
-### GET `/app/products`
-
-List all products for the logged-in store.
-
-### GET `/app/products/new`
-
-Render product creation form.
-
-### POST `/app/products/new`
-
-Create a new product.
-
-**Request (form-data)**:
-
-```
-title: string (required)
-price: number (required)
-stock: number (required)
-category: string (optional)
-description: string (optional)
-imageUrl: string (optional, from upload API)
-```
-
-### GET `/app/dashboard`
-
-Dashboard overview with store stats.
-
-### GET `/app/dashboard/orders`
-
-List all orders for the logged-in store.
-
-### GET `/app/settings`
-
-Store settings (read-only).
+Not active as standalone endpoints in current codebase:
+- `/api/bkash/*`
+- `/api/nagad/*`
+- `/api/stripe/*`
 
 ---
 
 ## Store Resolution
 
-The platform uses subdomain-based multi-tenancy:
+Tenant resolution follows `*.ozzyl.com` and mapped custom domains.
 
-```
-store1.stores.digitalcare.site → storeId = 1
-store2.stores.digitalcare.site → storeId = 2
-custom-domain.com → resolved by custom_domain field
-```
-
-For local development, use query parameter:
-
-```
-http://localhost:5173?store=demo
-```
+Examples:
+- `store1.ozzyl.com`
+- `app.ozzyl.com` (admin/main app)
+- `custom-domain.com` (mapped store domain)
 
 ---
 
-## Error Responses
+## Error Shape
 
-| Status | Description                               |
-| ------ | ----------------------------------------- |
-| 400    | Validation error (missing/invalid fields) |
-| 401    | Unauthorized (not logged in)              |
-| 404    | Resource not found                        |
-| 405    | Method not allowed                        |
-| 500    | Server error                              |
-
-All errors return:
+Primary error patterns:
 
 ```json
-{
-  "error": "Error message here"
-}
+{ "success": false, "error": "..." }
 ```
+
+or
+
+```json
+{ "error": "..." }
+```
+
+Common status codes:
+- `400` validation/request error
+- `401` unauthorized
+- `403` forbidden (scope/policy)
+- `404` not found
+- `405` method not allowed
+- `429` rate limited
+- `500` internal server error
 
 ---
 
-## Session Cookie
+## Machine-Readable Contract
 
-| Property | Value                 |
-| -------- | --------------------- |
-| Name     | `__session`           |
-| HttpOnly | Yes                   |
-| Secure   | Yes                   |
-| SameSite | Lax                   |
-| Max-Age  | 7 days                |
-| Content  | `{ userId, storeId }` |
+OpenAPI source of truth:
+- `/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/docs/openapi.yaml`

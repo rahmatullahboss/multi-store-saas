@@ -85,6 +85,40 @@ function parseStyleTokens(styleTokensJson: string | null): StyleTokens | null {
   }
 }
 
+async function pageBelongsToStore(
+  drizzleDb: ReturnType<typeof drizzle>,
+  pageId: string,
+  storeId: number
+) {
+  const [page] = await drizzleDb
+    .select({ id: builderPages.id })
+    .from(builderPages)
+    .where(and(eq(builderPages.id, pageId), eq(builderPages.storeId, storeId)));
+  return Boolean(page);
+}
+
+async function getOwnedSection(
+  drizzleDb: ReturnType<typeof drizzle>,
+  sectionId: string,
+  storeId: number
+) {
+  const [row] = await drizzleDb
+    .select({
+      id: builderSections.id,
+      pageId: builderSections.pageId,
+      type: builderSections.type,
+      enabled: builderSections.enabled,
+      sortOrder: builderSections.sortOrder,
+      propsJson: builderSections.propsJson,
+      version: builderSections.version,
+      storeId: builderPages.storeId,
+    })
+    .from(builderSections)
+    .innerJoin(builderPages, eq(builderSections.pageId, builderPages.id))
+    .where(and(eq(builderSections.id, sectionId), eq(builderPages.storeId, storeId)));
+  return row;
+}
+
 // ============================================================================
 // PAGE OPERATIONS
 // ============================================================================
@@ -450,6 +484,7 @@ export async function listSections(db: D1Database, pageId: string): Promise<Buil
 export async function addSection(
   db: D1Database,
   pageId: string,
+  storeId: number,
   type: string
 ): Promise<BuilderSection | { error: string }> {
   if (!isValidSectionType(type)) {
@@ -457,6 +492,11 @@ export async function addSection(
   }
   
   const drizzleDb = drizzle(db);
+
+  const isOwned = await pageBelongsToStore(drizzleDb, pageId, storeId);
+  if (!isOwned) {
+    return { error: 'Page not found' };
+  }
   
   // Get max sort_order
   const existing = await drizzleDb
@@ -494,10 +534,15 @@ export async function addSection(
  */
 export async function toggleSection(
   db: D1Database,
+  storeId: number,
   sectionId: string,
   enabled: boolean
 ) {
   const drizzleDb = drizzle(db);
+  const section = await getOwnedSection(drizzleDb, sectionId, storeId);
+  if (!section) {
+    return { success: false, error: 'Section not found' };
+  }
   
   await drizzleDb
     .update(builderSections)
@@ -506,7 +551,7 @@ export async function toggleSection(
       version: sql`${builderSections.version} + 1`,
       updatedAt: new Date(),
     })
-    .where(eq(builderSections.id, sectionId));
+    .where(and(eq(builderSections.id, sectionId), eq(builderSections.pageId, section.pageId)));
   
   return { success: true };
 }
@@ -516,6 +561,7 @@ export async function toggleSection(
  */
 export async function updateSectionProps(
   db: D1Database,
+  storeId: number,
   sectionId: string,
   type: string,
   props: unknown,
@@ -528,6 +574,10 @@ export async function updateSectionProps(
   }
   
   const drizzleDb = drizzle(db);
+  const section = await getOwnedSection(drizzleDb, sectionId, storeId);
+  if (!section) {
+    return { success: false, error: 'Section not found' };
+  }
   
   // Build update query
   const updateData = {
@@ -543,6 +593,7 @@ export async function updateSectionProps(
       .set(updateData)
       .where(and(
         eq(builderSections.id, sectionId),
+        eq(builderSections.pageId, section.pageId),
         eq(builderSections.version, expectedVersion)
       ));
     
@@ -550,7 +601,7 @@ export async function updateSectionProps(
     const [updated] = await drizzleDb
       .select({ version: builderSections.version })
       .from(builderSections)
-      .where(eq(builderSections.id, sectionId));
+      .where(and(eq(builderSections.id, sectionId), eq(builderSections.pageId, section.pageId)));
     
     if (updated?.version === expectedVersion) {
       return { 
@@ -566,7 +617,7 @@ export async function updateSectionProps(
   await drizzleDb
     .update(builderSections)
     .set(updateData)
-    .where(eq(builderSections.id, sectionId));
+    .where(and(eq(builderSections.id, sectionId), eq(builderSections.pageId, section.pageId)));
   
   return { success: true };
 }
@@ -574,12 +625,16 @@ export async function updateSectionProps(
 /**
  * Delete a section.
  */
-export async function deleteSection(db: D1Database, sectionId: string) {
+export async function deleteSection(db: D1Database, storeId: number, sectionId: string) {
   const drizzleDb = drizzle(db);
+  const section = await getOwnedSection(drizzleDb, sectionId, storeId);
+  if (!section) {
+    return { success: false, error: 'Section not found' };
+  }
   
   await drizzleDb
     .delete(builderSections)
-    .where(eq(builderSections.id, sectionId));
+    .where(and(eq(builderSections.id, sectionId), eq(builderSections.pageId, section.pageId)));
   
   return { success: true };
 }
@@ -594,6 +649,7 @@ export async function deleteSection(db: D1Database, sectionId: string) {
 export async function reorderSections(
   db: D1Database,
   pageId: string,
+  storeId: number,
   orderedIds: string[]
 ): Promise<{ success: boolean; error?: string }> {
   if (orderedIds.length === 0) {
@@ -602,6 +658,11 @@ export async function reorderSections(
   
   // Verify all IDs belong to this page
   const drizzleDb = drizzle(db);
+  const isOwned = await pageBelongsToStore(drizzleDb, pageId, storeId);
+  if (!isOwned) {
+    return { success: false, error: 'Page not found' };
+  }
+
   const existing = await drizzleDb
     .select({ id: builderSections.id })
     .from(builderSections)
@@ -656,15 +717,12 @@ export async function reorderSections(
  */
 export async function duplicateSection(
   db: D1Database,
+  storeId: number,
   sectionId: string
 ): Promise<BuilderSection | { error: string }> {
   const drizzleDb = drizzle(db);
   
-  // Get original section
-  const [original] = await drizzleDb
-    .select()
-    .from(builderSections)
-    .where(eq(builderSections.id, sectionId));
+  const original = await getOwnedSection(drizzleDb, sectionId, storeId);
   
   if (!original) {
     return { error: 'Section not found' };
@@ -715,12 +773,13 @@ export async function duplicateSection(
 export async function initializePageWithDefaults(
   db: D1Database,
   pageId: string,
+  storeId: number,
   sectionTypes: SectionType[] = ['hero', 'trust-badges', 'features', 'cta']
 ): Promise<BuilderSection[]> {
   const sections: BuilderSection[] = [];
   
   for (let i = 0; i < sectionTypes.length; i++) {
-    const result = await addSection(db, pageId, sectionTypes[i]);
+    const result = await addSection(db, pageId, storeId, sectionTypes[i]);
     if ('id' in result) {
       sections.push(result);
     }
@@ -926,4 +985,3 @@ export async function createPageFromTemplate(
   
   return { pageId, sections };
 }
-

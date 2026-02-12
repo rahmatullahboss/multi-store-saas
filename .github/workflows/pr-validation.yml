@@ -12,6 +12,31 @@ env:
 
 jobs:
   # ============================================================================
+  # API CONTRACT GATE (MANDATORY)
+  # ============================================================================
+  api-contract-gate:
+    name: 🛡️ API Contract Gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🧪 Run API contract tests
+        run: npm --workspace=@ozzyl/web run test:contract
+
+  # ============================================================================
   # QUICK VALIDATION
   # ============================================================================
   validate:

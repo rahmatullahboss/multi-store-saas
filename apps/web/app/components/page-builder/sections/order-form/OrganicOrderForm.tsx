@@ -51,7 +51,7 @@ export function OrganicOrderForm({
   const { fetcher, state, actions, calculations, props: orderProps } = useOrderForm(props, effectiveProduct);
 
   const cartItems = isMultiProduct
-    ? selectedProductsData.map((p) => ({ productId: p.id, quantity: state.quantity }))
+    ? selectedProductsData.map((p) => ({ product_id: p.id, quantity: state.quantity }))
     : undefined;
 
   const comboSummary = comboSavings > 0

@@ -19,7 +19,7 @@ import {
   DEFAULT_STORE_TEMPLATE_ID,
   type StoreTemplateTheme,
 } from '~/templates/store-registry';
-import { parseSocialLinks, parseThemeConfig, defaultThemeConfig } from '@db/types';
+import { parseSocialLinks, parseThemeConfig, parseBusinessInfo, defaultThemeConfig } from '@db/types';
 import { getMVPSettings } from '~/services/mvp-settings.server';
 import { createDb } from '~/lib/db.server';
 
@@ -52,12 +52,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
   const theme = getStoreTemplateTheme(storeTemplateId);
 
-  const storeAny = store as Record<string, unknown>;
-  const businessInfo = {
-    phone: (storeAny.phone as string) || undefined,
-    email: (storeAny.email as string) || undefined,
-    address: (storeAny.address as string) || undefined,
-  };
+  const businessInfo = parseBusinessInfo(store.businessInfo as string | null);
 
   // Get MVP settings for theme colors
   const mvpSettings = await getMVPSettings(db as any, storeId, storeTemplateId);
@@ -90,7 +85,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
   return json({
     storeId,
-    storeName: mvpSettings.storeName || store.name,
+    storeName: store.name || mvpSettings.storeName,
     logo: mvpSettings.logo || store.logo,
     currency: store.currency || 'BDT',
     storeTemplateId,

@@ -67,6 +67,7 @@ interface OrderFetcherData {
   orderId?: string;
   total?: number;
   upsellUrl?: string;
+  paymentRedirectUrl?: string;
   orderNumber?: string;
   error?: string;
 }
@@ -91,6 +92,11 @@ import { validateDiscount } from '~/../server/services/discount.service';
 import { TicketPercent } from 'lucide-react';
 import { formatPrice } from '~/lib/theme-engine';
 import { resolveShippingConfig } from '~/services/shipping.server';
+import {
+  getAllowedCheckoutPaymentMethods,
+  getDefaultPaymentMethodForPlan,
+  type CheckoutPaymentMethod,
+} from '~/lib/payment-policy';
 
 // Helper: Convert English numbers to Bangla
 const toBanglaNumber = (num: number | string): string => {
@@ -392,6 +398,10 @@ export default function Checkout() {
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   const primaryColor = theme.primary;
+  const allowedPaymentMethods = useMemo(
+    () => getAllowedCheckoutPaymentMethods(planType),
+    [planType]
+  );
 
   // Calculations
   const subtotal = useMemo(() => {
@@ -496,11 +506,22 @@ export default function Checkout() {
     setSelectedUpazila('');
   }, [selectedDistrict]);
 
+  useEffect(() => {
+    if (!allowedPaymentMethods.includes(paymentMethod as CheckoutPaymentMethod)) {
+      setPaymentMethod(getDefaultPaymentMethodForPlan(planType));
+    }
+  }, [allowedPaymentMethods, paymentMethod, planType]);
+
   // Handle Order Submission Response
   useEffect(() => {
     if (orderFetcher.data) {
       const data = orderFetcher.data as OrderFetcherData;
       if (data.success) {
+        if (data.paymentRedirectUrl) {
+          window.location.href = data.paymentRedirectUrl;
+          return;
+        }
+
         // Fire Purchase Event
         // Construct items for tracking
         const trackingItems = cartItems.map((item) => {
@@ -587,7 +608,7 @@ export default function Checkout() {
       return;
     }
 
-    if (paymentMethod !== 'cod' && (!senderNumber || !trxId)) {
+    if (!['cod', 'sslcommerz'].includes(paymentMethod) && (!senderNumber || !trxId)) {
       toast.error('Please enter payment details');
       return;
     }
@@ -639,7 +660,8 @@ export default function Checkout() {
       notes: notes,
       payment_method: paymentMethod,
       transaction_id: trxId,
-      manual_payment_details: { senderNumber, method: paymentMethod },
+      manual_payment_details:
+        paymentMethod === 'sslcommerz' ? undefined : { senderNumber, method: paymentMethod },
       bump_ids: selectedBumps,
       discount_code: appliedCoupon?.code,
     };
@@ -826,6 +848,7 @@ export default function Checkout() {
             onTransactionIdChange={setTrxId}
             onSenderNumberChange={setSenderNumber}
             lang={lang}
+            allowedMethods={allowedPaymentMethods}
           />
         </div>
       </div>
@@ -1164,6 +1187,7 @@ export default function Checkout() {
                   onTransactionIdChange={setTrxId}
                   onSenderNumberChange={setSenderNumber}
                   lang={lang}
+                  allowedMethods={allowedPaymentMethods}
                 />
               </div>
             </div>
@@ -1426,6 +1450,7 @@ export default function Checkout() {
                 onTransactionIdChange={setTrxId}
                 onSenderNumberChange={setSenderNumber}
                 lang={lang}
+                allowedMethods={allowedPaymentMethods}
               />
               <button
                 onClick={handleSubmit}

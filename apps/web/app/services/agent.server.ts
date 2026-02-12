@@ -61,6 +61,17 @@ export async function processMessage(
   });
   
   if (!agent) throw new Error('Agent not found');
+
+  // Enforce conversation ownership for this agent to prevent cross-agent data access.
+  const conversation = await db.query.conversations.findFirst({
+    where: and(
+      eq(schema.conversations.id, conversationId),
+      eq(schema.conversations.agentId, agentId)
+    ),
+  });
+  if (!conversation) {
+    throw new Error('Conversation not found');
+  }
   
   // 2. Fetch Chat History from messages table
   const history = await db.query.messages.findMany({

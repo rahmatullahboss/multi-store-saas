@@ -1,14 +1,28 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
+import { requireSuperAdmin } from '~/services/auth.server';
 
-export async function loader({ context }: LoaderFunctionArgs) {
+export async function loader({ request, context }: LoaderFunctionArgs) {
   const { env } = context.cloudflare;
-  
+  const envName = env.ENVIRONMENT || 'production';
+
+  // Never expose debug env route in production.
+  if (envName === 'production') {
+    throw new Response('Not Found', { status: 404 });
+  }
+
+  // In staging, require super admin authentication.
+  if (envName === 'staging') {
+    await requireSuperAdmin(request, env, env.DB);
+  }
+
   return json({
+    environment: envName,
     hasOpenRouterKey: !!env.OPENROUTER_API_KEY,
-    keyLength: env.OPENROUTER_API_KEY?.length || 0,
-    nodeEnv: process.env.NODE_ENV,
-    allKeys: Object.keys(env)
+    hasAiBinding: !!env.AI,
+    hasVectorizeBinding: !!env.VECTORIZE,
+    hasSentryDsn: !!env.SENTRY_DSN,
+    nodeEnv: process.env.NODE_ENV
   });
 }
 

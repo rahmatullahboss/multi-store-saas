@@ -101,13 +101,14 @@ export function resolveStarterStoreTheme(
   theme?: StarterThemeWithSecondary | null
 ): StarterStoreResolvedTheme {
   const configWithSecondary = config as ThemeConfig & { secondaryColor?: string };
-  const primary = theme?.primary || config?.primaryColor || STARTER_STORE_THEME.primary;
+  // Merchant custom config must win over template defaults for cross-page color consistency.
+  const primary = config?.primaryColor || theme?.primary || STARTER_STORE_THEME.primary;
   const secondary =
-    theme?.secondary || configWithSecondary?.secondaryColor || darken(primary, 0.12);
-  const accent = theme?.accent || config?.accentColor || STARTER_STORE_THEME.accent;
-  const background = theme?.background || config?.backgroundColor || STARTER_STORE_THEME.background;
-  const text = theme?.text || config?.textColor || STARTER_STORE_THEME.text;
-  const border = theme?.cardBorder || config?.borderColor || STARTER_STORE_THEME.border;
+    configWithSecondary?.secondaryColor || theme?.secondary || darken(primary, 0.12);
+  const accent = config?.accentColor || theme?.accent || STARTER_STORE_THEME.accent;
+  const background = config?.backgroundColor || theme?.background || STARTER_STORE_THEME.background;
+  const text = config?.textColor || theme?.text || STARTER_STORE_THEME.text;
+  const border = config?.borderColor || theme?.cardBorder || STARTER_STORE_THEME.border;
 
   return {
     ...STARTER_STORE_THEME,

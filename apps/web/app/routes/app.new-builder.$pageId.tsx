@@ -13,7 +13,7 @@ import { useLoaderData, useFetcher, useNavigate } from '@remix-run/react';
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { requireAuth } from '~/lib/auth.server';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { products, productVariants } from '@db/schema';
 import {
   getPageWithSections,
@@ -150,7 +150,12 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     const [productRow] = await odb
       .select()
       .from(products)
-      .where(eq(products.id, page.productId))
+      .where(
+        and(
+          eq(products.id, page.productId),
+          eq(products.storeId, store.id)
+        )
+      )
       .limit(1);
     if (productRow) {
       // Fetch variants
@@ -268,7 +273,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         });
 
         // Initialize with default sections
-        await initializePageWithDefaults(db, result.id);
+        await initializePageWithDefaults(db, result.id, store.id);
 
         return json({ success: true, pageId: result.id });
       }
@@ -282,7 +287,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           return json({ success: false, error: 'Invalid section type' }, { status: 400 });
         }
 
-        const result = await addSection(db, pageId, type);
+        const result = await addSection(db, pageId, store.id, type);
 
         if ('error' in result) {
           return json({ success: false, error: result.error }, { status: 400 });
@@ -296,7 +301,10 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         const sectionId = formData.get('sectionId') as string;
         const enabled = formData.get('enabled') === 'true';
 
-        await toggleSection(db, sectionId, enabled);
+        const result = await toggleSection(db, store.id, sectionId, enabled);
+        if (!result.success) {
+          return json({ success: false, error: result.error }, { status: 400 });
+        }
         return json({ success: true });
       }
 
@@ -316,6 +324,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
         const result = await updateSectionProps(
           db,
+          store.id,
           sectionId,
           type,
           props,
@@ -332,7 +341,10 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       // Delete section
       case 'delete-section': {
         const sectionId = formData.get('sectionId') as string;
-        await deleteSection(db, sectionId);
+        const result = await deleteSection(db, store.id, sectionId);
+        if (!result.success) {
+          return json({ success: false, error: result.error }, { status: 400 });
+        }
         return json({ success: true });
       }
 
@@ -348,7 +360,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           return json({ success: false, error: 'Invalid orderedIds' }, { status: 400 });
         }
 
-        const result = await reorderSections(db, pageId, orderedIds);
+        const result = await reorderSections(db, pageId, store.id, orderedIds);
 
         if (!result.success) {
           return json({ success: false, error: result.error }, { status: 400 });
@@ -360,7 +372,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       // Duplicate section
       case 'duplicate-section': {
         const sectionId = formData.get('sectionId') as string;
-        const result = await duplicateSection(db, sectionId);
+        const result = await duplicateSection(db, store.id, sectionId);
 
         if ('error' in result) {
           return json({ success: false, error: result.error }, { status: 400 });
@@ -396,6 +408,21 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
         // Log productId for troubleshooting
         console.log('[update-settings] productId:', productId, '->', productIdParsed);
+
+        if (productId !== null && productIdParsed !== null && Number.isNaN(productIdParsed)) {
+          return json({ success: false, error: 'Invalid product ID' }, { status: 400 });
+        }
+
+        if (productId !== null && productIdParsed !== null) {
+          const [ownedProduct] = await drizzle(db)
+            .select({ id: products.id })
+            .from(products)
+            .where(and(eq(products.id, productIdParsed), eq(products.storeId, store.id)))
+            .limit(1);
+          if (!ownedProduct) {
+            return json({ success: false, error: 'Product not found' }, { status: 404 });
+          }
+        }
 
         await updatePageSettings(db, pageId, store.id, {
           title: title || undefined,
@@ -718,18 +745,18 @@ export default function NewBuilderPage() {
     enabled: !isNew,
   });
 
-  // Redirect after page creation
-  if (fetcher.data?.success && fetcher.data?.pageId && isNew) {
-    navigate(`/app/new-builder/${fetcher.data.pageId}`, { replace: true });
-  }
-
-  // Update sections when fetcher returns new data
-  if (fetcher.data?.success && fetcher.data?.section) {
-    const newSection = fetcher.data.section as BuilderSection;
-    if (!sections.find((s) => s.id === newSection.id)) {
-      setSections((prev) => [...prev, newSection]);
+  useEffect(() => {
+    if (fetcher.data?.success && fetcher.data?.pageId && isNew) {
+      navigate(`/app/new-builder/${fetcher.data.pageId}`, { replace: true });
     }
-  }
+  }, [fetcher.data, isNew, navigate]);
+
+  useEffect(() => {
+    if (fetcher.data?.success && fetcher.data?.section) {
+      const newSection = fetcher.data.section as BuilderSection;
+      setSections((prev) => (prev.find((s) => s.id === newSection.id) ? prev : [...prev, newSection]));
+    }
+  }, [fetcher.data, setSections]);
 
   return (
     <BuilderLayout

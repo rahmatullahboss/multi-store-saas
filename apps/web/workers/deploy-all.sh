@@ -13,7 +13,7 @@
 #
 # =============================================================================
 
-set -e  # Exit on error
+set -euo pipefail  # Exit on error + undefined vars + pipe failures
 
 # Colors for output
 RED='\033[0;31m'
@@ -112,7 +112,10 @@ deploy_worker() {
 echo -e "${GREEN}🚀 Starting deployment of ${#WORKERS[@]} workers...${NC}\n"
 
 for worker in "${WORKERS[@]}"; do
-    deploy_worker "$worker"
+    if ! deploy_worker "$worker"; then
+        # Continue so we can summarize all failures/skips in one run.
+        continue
+    fi
     echo ""
 done
 

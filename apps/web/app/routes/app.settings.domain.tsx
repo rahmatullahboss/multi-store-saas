@@ -51,6 +51,8 @@ import { useTranslation } from '~/contexts/LanguageContext';
 import { GlassCard } from '~/components/ui/GlassCard';
 import { z } from 'zod';
 import { logActivity } from '~/lib/activity.server';
+import { KVCache, CACHE_KEYS } from '~/services/kv-cache.server';
+import { invalidateStoreConfig } from '~/services/store-config-do.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Domain Settings' }];
@@ -62,7 +64,11 @@ interface ActionData {
   message?: string;
 }
 
-const DomainActionSchema = z.enum(['add', 'refresh', 'remove', 'cancel']);
+const DomainActionSchema = z.enum(['update-subdomain', 'add', 'refresh', 'remove', 'cancel']);
+const SUBDOMAIN_REGEX = /^[a-z0-9-]+$/;
+const SUBDOMAIN_MIN_LENGTH = 2;
+const SUBDOMAIN_MAX_LENGTH = 30;
+const RESERVED_SUBDOMAINS = new Set(['app', 'www']);
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -143,6 +149,95 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   const planType = (store[0].planType as PlanType) || 'free';
+
+  // ========================================================================
+  // ACTION: Update Subdomain
+  // ========================================================================
+  if (actionType === 'update-subdomain') {
+    const requestedSubdomain = (formData.get('subdomain') as string)?.trim().toLowerCase();
+
+    if (!requestedSubdomain) {
+      return json<ActionData>({ error: 'subdomainRequired' }, { status: 400 });
+    }
+
+    if (
+      requestedSubdomain.length < SUBDOMAIN_MIN_LENGTH ||
+      requestedSubdomain.length > SUBDOMAIN_MAX_LENGTH
+    ) {
+      return json<ActionData>({ error: 'subdomainLengthInvalid' }, { status: 400 });
+    }
+
+    if (!SUBDOMAIN_REGEX.test(requestedSubdomain)) {
+      return json<ActionData>({ error: 'subdomainFormatInvalid' }, { status: 400 });
+    }
+
+    if (requestedSubdomain.startsWith('-') || requestedSubdomain.endsWith('-')) {
+      return json<ActionData>({ error: 'subdomainFormatInvalid' }, { status: 400 });
+    }
+
+    if (RESERVED_SUBDOMAINS.has(requestedSubdomain)) {
+      return json<ActionData>({ error: 'subdomainReserved' }, { status: 400 });
+    }
+
+    const currentSubdomain = (store[0].subdomain || '').toLowerCase();
+    if (requestedSubdomain === currentSubdomain) {
+      return json<ActionData>({ success: true, message: 'subdomainUnchanged' });
+    }
+
+    const existingStore = await db
+      .select({ id: stores.id })
+      .from(stores)
+      .where(eq(stores.subdomain, requestedSubdomain))
+      .limit(1);
+
+    if (existingStore[0]) {
+      return json<ActionData>({ error: 'subdomainAlreadyTaken' }, { status: 409 });
+    }
+
+    try {
+      await db
+        .update(stores)
+        .set({
+          subdomain: requestedSubdomain,
+          updatedAt: new Date(),
+        })
+        .where(eq(stores.id, storeId));
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
+        return json<ActionData>({ error: 'subdomainAlreadyTaken' }, { status: 409 });
+      }
+      throw error;
+    }
+
+    const kvNamespace = context.cloudflare.env.STORE_CACHE;
+    if (kvNamespace) {
+      const kvCache = new KVCache(kvNamespace);
+      await Promise.all([
+        kvCache.delete(`${CACHE_KEYS.TENANT_SUBDOMAIN}${currentSubdomain}`),
+        kvCache.delete(`${CACHE_KEYS.TENANT_SUBDOMAIN}${requestedSubdomain}`),
+        kvCache.delete(`${CACHE_KEYS.STORE_CONFIG}${storeId}`),
+      ]);
+    }
+
+    if ('STORE_CONFIG_SERVICE' in env && env.STORE_CONFIG_SERVICE) {
+      await invalidateStoreConfig({ STORE_CONFIG_SERVICE: env.STORE_CONFIG_SERVICE }, storeId);
+    }
+
+    await logActivity(db, {
+      storeId,
+      userId,
+      action: 'settings_updated',
+      entityType: 'settings',
+      details: {
+        section: 'domain',
+        intent: 'update-subdomain',
+        from: currentSubdomain,
+        to: requestedSubdomain,
+      },
+    });
+
+    return json<ActionData>({ success: true, message: 'subdomainUpdatedSuccess' });
+  }
 
   // ========================================================================
   // ACTION: Add Domain (Direct Cloudflare Provisioning)
@@ -511,6 +606,52 @@ export default function DomainSettings() {
             </div>
           </div>
         )}
+      </GlassCard>
+
+      {/* Subdomain Settings */}
+      <GlassCard className="p-6 mb-6">
+        <h2 className="font-semibold text-gray-900 mb-2">{t('subdomainSettings')}</h2>
+        <p className="text-gray-600 text-sm mb-4">{t('subdomainSettingsDesc')}</p>
+
+        <Form method="post" className="space-y-4">
+          <input type="hidden" name="actionType" value="update-subdomain" />
+
+          <div>
+            <label htmlFor="subdomain" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('subdomainLabel')}
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                id="subdomain"
+                name="subdomain"
+                defaultValue={subdomain}
+                minLength={SUBDOMAIN_MIN_LENGTH}
+                maxLength={SUBDOMAIN_MAX_LENGTH}
+                pattern="[a-z0-9-]+"
+                required
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/50 backdrop-blur-sm"
+              />
+              <span className="text-sm text-gray-600 font-mono">.ozzyl.com</span>
+            </div>
+            <p className="text-sm text-gray-500 mt-2">{t('subdomainHint')}</p>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2 shadow-sm"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                {t('saving')}
+              </>
+            ) : (
+              t('saveSubdomain')
+            )}
+          </button>
+        </Form>
       </GlassCard>
 
       {/* Pending DNS Setup Instructions */}

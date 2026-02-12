@@ -1,0 +1,387 @@
+openapi: 3.1.0
+info:
+  title: Multi-Store SaaS API
+  version: 2026-02-12
+  description: |
+    Source-of-truth API contract for active storefront/admin integration endpoints.
+servers:
+  - url: https://app.ozzyl.com
+    description: Production admin domain
+  - url: https://{store}.ozzyl.com
+    description: Storefront domain
+    variables:
+      store:
+        default: demo
+tags:
+  - name: Auth
+  - name: Orders
+  - name: Media
+  - name: Public API
+  - name: Webhooks
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: merchantLogin
+      summary: Merchant login
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '302':
+          description: Login successful (redirect with session cookie)
+        '400':
+          description: Invalid credentials/validation error
+        '429':
+          description: Rate limited
+  /auth/register:
+    post:
+      tags: [Auth]
+      operationId: merchantRegister
+      summary: Merchant and store registration
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [name, email, password, storeName]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                storeName:
+                  type: string
+      responses:
+        '302':
+          description: Registration successful
+        '400':
+          description: Validation error
+  /auth/logout:
+    post:
+      tags: [Auth]
+      operationId: merchantLogoutPost
+      summary: Session logout
+      responses:
+        '302':
+          description: Redirect after logout
+    get:
+      tags: [Auth]
+      operationId: merchantLogoutGet
+      summary: Direct navigation logout
+      responses:
+        '302':
+          description: Redirect after session destroy
+  /api/create-order:
+    post:
+      tags: [Orders]
+      operationId: createStorefrontOrder
+      summary: Create checkout order
+      description: Supports JSON and multipart/form-data payloads.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '200':
+          description: Order created
+          headers:
+            x-order-number:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateOrderSuccess'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Plan/usage limit reached
+        '403':
+          description: Payment method not allowed for plan
+        '405':
+          description: Method not allowed
+        '429':
+          description: Rate limited
+        '500':
+          description: Internal server error
+  /api/webhook/sslcommerz:
+    post:
+      tags: [Webhooks]
+      operationId: sslcommerzWebhook
+      summary: SSLCommerz payment webhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Processed or duplicate webhook
+        '400':
+          description: Invalid payload / failed validation
+        '404':
+          description: Order not found
+        '500':
+          description: Internal server error
+  /api/upload-image:
+    post:
+      tags: [Media]
+      operationId: uploadImage
+      summary: Upload image to R2
+      security:
+        - cookieSession: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                folder:
+                  type: string
+                  enum: [products, logos, banners, temp]
+                  default: temp
+      responses:
+        '200':
+          description: Upload successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadImageSuccess'
+        '401':
+          description: Unauthorized
+        '405':
+          description: Method not allowed
+          headers:
+            Allow:
+              schema:
+                type: string
+                example: POST
+  /api/products:
+    get:
+      tags: [Media]
+      operationId: listStoreProductsForBuilder
+      summary: Session-authenticated store product list for editors
+      security:
+        - cookieSession: []
+      responses:
+        '200':
+          description: Product list
+        '401':
+          description: Unauthorized
+  /api/v1/products:
+    get:
+      tags: [Public API]
+      operationId: listProductsViaApiKey
+      summary: API key product list
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: published
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Product list
+        '400':
+          description: Invalid query params
+        '401':
+          description: Missing/invalid API key
+        '403':
+          description: Missing scope
+  /api/v1/orders:
+    get:
+      tags: [Public API]
+      operationId: listOrdersViaApiKey
+      summary: API key order list
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, confirmed, processing, shipped, delivered, cancelled]
+      responses:
+        '200':
+          description: Order list
+        '400':
+          description: Invalid query params
+        '401':
+          description: Missing/invalid API key
+        '403':
+          description: Missing scope
+  /api/v1/orders/{id}:
+    get:
+      tags: [Public API]
+      operationId: getOrderViaApiKey
+      summary: API key single order detail
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Order detail
+        '400':
+          description: Invalid order id
+        '401':
+          description: Missing/invalid API key
+        '403':
+          description: Missing scope
+        '404':
+          description: Order not found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key
+    cookieSession:
+      type: apiKey
+      in: cookie
+      name: __session
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: false
+        error:
+          type: string
+      required: [error]
+    CreateOrderRequest:
+      type: object
+      required: [store_id, customer_name, phone, address]
+      properties:
+        store_id:
+          type: integer
+          minimum: 1
+        product_id:
+          type: integer
+          minimum: 1
+        cart_items:
+          type: array
+          items:
+            type: object
+            required: [productId, quantity]
+            properties:
+              productId:
+                type: integer
+              quantity:
+                type: integer
+                minimum: 1
+              variantId:
+                type: integer
+        customer_name:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        customer_email:
+          type: string
+          format: email
+        payment_method:
+          type: string
+          enum: [cod, sslcommerz]
+          default: cod
+    CreateOrderSuccess:
+      type: object
+      required: [success, orderId, orderNumber]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        orderId:
+          type: integer
+        orderNumber:
+          type: string
+        total:
+          type: number
+        paymentRedirectUrl:
+          type: string
+          format: uri
+        message:
+          type: string
+    UploadImageSuccess:
+      type: object
+      required: [success, url, key, size, type]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        url:
+          type: string
+          format: uri
+        key:
+          type: string
+        size:
+          type: integer
+        type:
+          type: string

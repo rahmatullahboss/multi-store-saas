@@ -19,7 +19,7 @@ interface FormFieldsProps {
   storeId?: number;
   productId?: number;
   // Multi-product cart items
-  cartItems?: Array<{ productId: number; quantity: number; variantId?: number }>;
+  cartItems?: Array<{ product_id: number; quantity: number; variant_id?: number }>;
   // Combo discount summary for order preview
   comboSummary?: {
     savings: number;

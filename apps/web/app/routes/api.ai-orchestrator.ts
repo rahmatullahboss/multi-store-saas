@@ -130,7 +130,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const nextRequest = buildJsonRequest(request, body);
       return handleAgentChatAction({ request: nextRequest, context } as ActionFunctionArgs);
     }
-
+    default:
       return json({ error: 'Unsupported channel' }, { status: 400 });
   }
 }

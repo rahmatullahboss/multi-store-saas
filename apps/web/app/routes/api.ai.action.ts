@@ -12,7 +12,7 @@
  */
 
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { stores, users, products } from '@db/schema';
 import { getSession } from '~/services/auth.server';
 import { type PlanType } from '~/utils/plans.server';
@@ -149,7 +149,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     if (productId) {
       const product = await db.select().from(products)
-        .where(eq(products.id, productId))
+        .where(and(eq(products.id, productId), eq(products.storeId, storeId)))
         .get();
       if (product) {
          resolvedProductInfo = {
@@ -463,6 +463,7 @@ Verify: "Am I ONLY touching targetId ${selectedComponent.id}?"`;
 
   } catch (error: any) {
     const errorMessage = error instanceof Error ? error.message : String(error);
+    const isProd = (env.ENVIRONMENT || 'production') === 'production';
     console.error('[AI Action] Error Message:', errorMessage);
     
     if (errorMessage.includes('JSON') || errorMessage.includes('Schema')) {
@@ -475,7 +476,7 @@ Verify: "Am I ONLY touching targetId ${selectedComponent.id}?"`;
     return json(
       { 
         error: 'AI generation failed. Please try again.',
-        details: errorMessage
+        details: isProd ? undefined : errorMessage
       },
       { status: 500 }
     );

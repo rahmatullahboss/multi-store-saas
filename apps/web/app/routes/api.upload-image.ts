@@ -13,7 +13,10 @@ import { getStoreId } from '~/services/auth.server';
 
 export async function action({ request, context }: ActionFunctionArgs) {
   if (request.method !== 'POST') {
-    return json({ error: 'Method not allowed' }, { status: 405 });
+    return json(
+      { error: 'Method not allowed' },
+      { status: 405, headers: { Allow: 'POST' } }
+    );
   }
 
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -96,7 +99,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
 // Block GET requests
 export async function loader() {
-  return json({ error: 'Method not allowed' }, { status: 405 });
+  return json(
+    { error: 'Method not allowed' },
+    { status: 405, headers: { Allow: 'POST' } }
+  );
 }
 
 

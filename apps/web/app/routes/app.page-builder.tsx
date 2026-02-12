@@ -93,7 +93,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   if (intent === 'create') {
     const name = formData.get('name') as string || 'New Page';
-    const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const baseSlug = (name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'page').replace(/-+/g, '-');
+    let slug = baseSlug;
+
+    let suffix = 1;
+    // Ensure slug uniqueness per store to avoid DB unique constraint errors.
+    while (true) {
+      const existing = await db
+        .select({ id: landingPages.id })
+        .from(landingPages)
+        .where(and(eq(landingPages.storeId, storeId), eq(landingPages.slug, slug)))
+        .limit(1);
+      if (existing.length === 0) break;
+      suffix += 1;
+      slug = `${baseSlug}-${suffix}`;
+    }
     
     const newPage = await db.insert(landingPages).values({
       storeId,

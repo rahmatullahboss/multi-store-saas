@@ -72,7 +72,7 @@ export function ChatInterface({ onCodeGenerated, storeId = 1, productId = 1 }: C
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: finalPrompt,
+          prompt: currentPrompt,
           images: images.length > 0 ? images : undefined,
           storeId,
           productId,

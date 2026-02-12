@@ -73,7 +73,11 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   
   if (effectiveProductId) {
     const odb = drizzle(db);
-    const [productRow] = await odb.select().from(products).where(eq(products.id, effectiveProductId)).limit(1);
+    const [productRow] = await odb
+      .select()
+      .from(products)
+      .where(and(eq(products.id, effectiveProductId), eq(products.storeId, auth.store.id)))
+      .limit(1);
     
     if (productRow) {
       const variantRows = await odb.select().from(productVariants).where(eq(productVariants.productId, effectiveProductId));

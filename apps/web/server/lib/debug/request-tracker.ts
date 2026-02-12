@@ -24,8 +24,9 @@ export const requestTracker = (): MiddlewareHandler => {
       const duration = Date.now() - start;
       const status = c.res.status;
       const ip = c.req.header('cf-connecting-ip') || 'unknown';
+      const maskedIp = maskIp(ip);
       
-      console.warn(`[TRACKER] SUSPICIOUS: ${c.req.method} ${path} - Status: ${status} - IP: ${ip} - Duration: ${duration}ms`);
+      console.warn(`[TRACKER] SUSPICIOUS: ${c.req.method} ${path} - Status: ${status} - IP: ${maskedIp} - Duration: ${duration}ms`);
       
       // Optional: Store in KV for dashboard (fire and forget)
       /*
@@ -47,3 +48,15 @@ export const requestTracker = (): MiddlewareHandler => {
     }
   };
 };
+
+function maskIp(ip: string): string {
+  if (!ip || ip === 'unknown') return 'unknown';
+  if (ip.includes(':')) {
+    // IPv6 masked representation
+    const parts = ip.split(':');
+    return `${parts[0] || ''}:${parts[1] || ''}:****`;
+  }
+  const parts = ip.split('.');
+  if (parts.length !== 4) return 'masked';
+  return `${parts[0]}.${parts[1]}.x.x`;
+}

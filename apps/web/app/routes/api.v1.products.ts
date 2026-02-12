@@ -10,8 +10,20 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, and, like } from 'drizzle-orm';
-import { products, productVariants } from '@db/schema';
+import { products } from '@db/schema';
 import { authenticateApiKey } from '~/services/api.server';
+
+function safeJsonArrayParse(value: unknown): unknown[] {
+  if (typeof value !== 'string' || value.trim() === '') {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
 
 // ============================================================================
 // GET /api/v1/products - List products
@@ -23,8 +35,17 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const url = new URL(request.url);
 
     // Pagination
-    const page = parseInt(url.searchParams.get('page') || '1');
-    const limit = Math.min(parseInt(url.searchParams.get('limit') || '20'), 100);
+    const page = Number.parseInt(url.searchParams.get('page') || '1', 10);
+    const limit = Number.parseInt(url.searchParams.get('limit') || '20', 10);
+    if (!Number.isInteger(page) || page < 1) {
+      return json({ success: false, error: 'Invalid page. Use an integer >= 1.' }, { status: 400 });
+    }
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+      return json(
+        { success: false, error: 'Invalid limit. Use an integer between 1 and 100.' },
+        { status: 400 }
+      );
+    }
     const offset = (page - 1) * limit;
 
     // Filters
@@ -68,10 +89,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     return json({
       success: true,
-      data: productList.map(p => ({
+      data: productList.map((p) => ({
         ...p,
-        images: p.images ? JSON.parse(p.images as string) : [],
-        tags: p.tags ? JSON.parse(p.tags as string) : [],
+        images: safeJsonArrayParse(p.images),
+        tags: safeJsonArrayParse(p.tags),
       })),
       pagination: {
         page,

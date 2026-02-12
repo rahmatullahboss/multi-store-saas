@@ -33,15 +33,40 @@ export async function handleAgentChatAction({ request, context }: ActionFunction
     agentId: number;
   };
 
-  if (!body.message || !body.agentId) {
+  const conversationId = Number(body.conversationId);
+  const agentId = Number(body.agentId);
+  const message = typeof body.message === 'string' ? body.message.trim() : '';
+
+  if (!message || !Number.isInteger(agentId) || agentId <= 0 || !Number.isInteger(conversationId) || conversationId <= 0) {
     return json({ error: 'Missing required fields' }, { status: 400 });
+  }
+
+  // Enforce tenant ownership: agent must belong to current store
+  const agent = await db.query.agents.findFirst({
+    where: (agents, { and, eq }) => and(eq(agents.id, agentId), eq(agents.storeId, storeId)),
+    columns: { id: true },
+  });
+
+  if (!agent) {
+    return json({ error: 'Agent not found' }, { status: 404 });
+  }
+
+  // Enforce conversation ownership under this agent
+  const conversation = await db.query.conversations.findFirst({
+    where: (conversations, { and, eq }) =>
+      and(eq(conversations.id, conversationId), eq(conversations.agentId, agentId)),
+    columns: { id: true },
+  });
+
+  if (!conversation) {
+    return json({ error: 'Conversation not found' }, { status: 404 });
   }
 
   try {
     const response = await processMessage(
-      body.agentId,
-      body.message,
-      body.conversationId,
+      agentId,
+      message,
+      conversationId,
       env
     );
 
