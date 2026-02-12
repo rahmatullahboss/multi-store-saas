@@ -19,6 +19,9 @@ import { isValidMVPTheme, validateMVPSettings } from '~/config/mvp-theme-setting
 import { MVP_STORE_TEMPLATES } from '~/templates/store-registry';
 import { requireUserId } from '~/services/auth.server';
 import { stores } from '@db/schema';
+import { createDb } from '~/lib/db.server';
+import { D1Cache } from '~/services/cache-layer.server';
+import { invalidateStoreConfig as invalidateStoreConfigD1 } from '~/services/store-config.server';
 
 const MAX_STORE_NAME_LENGTH = 100;
 const MAX_ANNOUNCEMENT_LENGTH = 160;
@@ -181,6 +184,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       themeConfig: JSON.stringify(nextThemeConfig),
     })
     .where(eq(stores.id, store.id));
+
+  await invalidateStoreConfigD1(new D1Cache(createDb(context.cloudflare.env.DB)), store.id);
 
   return json({ success: true, settings: updatedSettings });
 }

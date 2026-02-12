@@ -157,6 +157,7 @@ async function invalidateStoreTemplateCaches(
 
   // Invalidate tenant cache keys used by middleware (D1 cache table)
   const d1Cache = new D1Cache(createDb(env.DB));
+  tasks.push(d1Cache.delete(`store:${storeId}:config`));
   tasks.push(d1Cache.delete(`tenant:subdomain:${subdomain}`));
   if (customDomain) {
     tasks.push(d1Cache.delete(`tenant:custom:${customDomain}`));

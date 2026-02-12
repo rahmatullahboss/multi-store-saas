@@ -56,7 +56,10 @@ import { useState, useEffect, useRef } from 'react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { GlassCard } from '~/components/ui/GlassCard';
-import { invalidateStoreConfig } from '~/services/store-config-do.server';
+import { invalidateStoreConfig as invalidateStoreConfigDO } from '~/services/store-config-do.server';
+import { invalidateStoreConfig as invalidateStoreConfigD1 } from '~/services/store-config.server';
+import { createDb } from '~/lib/db.server';
+import { D1Cache } from '~/services/cache-layer.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Settings' }];
@@ -378,11 +381,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   if ('STORE_CONFIG_SERVICE' in context.cloudflare.env && context.cloudflare.env.STORE_CONFIG_SERVICE) {
-    await invalidateStoreConfig(
+    await invalidateStoreConfigDO(
       { STORE_CONFIG_SERVICE: context.cloudflare.env.STORE_CONFIG_SERVICE },
       storeId
     );
   }
+  await invalidateStoreConfigD1(new D1Cache(createDb(context.cloudflare.env.DB)), storeId);
 
   // ========================================================================
   // AI AUTO-SYNC: Update Vector Database
