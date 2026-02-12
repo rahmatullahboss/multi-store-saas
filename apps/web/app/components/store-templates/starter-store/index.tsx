@@ -8,7 +8,7 @@
 import { Truck, Shield, RotateCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { StoreTemplateProps } from '~/templates/store-registry';
-import { STARTER_STORE_THEME, STARTER_STORE_FONTS } from './theme';
+import { STARTER_STORE_FONTS, resolveStarterStoreTheme } from './theme';
 import { StarterStoreHeader } from './sections/Header';
 import { StarterStoreFooter } from './sections/Footer';
 import { StarterProductCard } from './sections/ProductCard';
@@ -22,8 +22,6 @@ import {
   optimizeUnsplashUrl,
 } from '~/utils/imageOptimization';
 import { getHeroBehavior } from '~/lib/hero-slides';
-
-const theme = STARTER_STORE_THEME;
 
 // ============================================================================
 // MAIN TEMPLATE COMPONENT
@@ -45,8 +43,10 @@ export function StarterStoreTemplate({
   isCustomerAiEnabled,
   customer,
 }: StoreTemplateProps) {
+  const theme = resolveStarterStoreTheme(config);
+
   // Logic for homepage sections
-  const validCategories = categories.filter(Boolean) as string[];
+  const validCategories = categories.filter(Boolean);
 
   // Filter products based on homepage logic
   const featuredProducts = products.slice(0, 4);
@@ -115,11 +115,13 @@ export function StarterStoreTemplate({
         storeName={storeName}
         logo={logo}
         isPreview={isPreview}
+        config={config}
         categories={categories}
         currentCategory={currentCategory}
         socialLinks={socialLinks}
         variant={!currentCategory ? 'overlay' : 'default'}
         customer={customer}
+        themeColors={theme}
       />
 
       <main>
@@ -152,7 +154,7 @@ export function StarterStoreTemplate({
                     to={heroButtonLink}
                     isPreview={isPreview}
                     className="inline-block px-8 py-3 rounded-lg font-medium transition hover:opacity-90"
-                    style={{ backgroundColor: theme.accent, color: '#fff' }}
+                    style={{ backgroundColor: theme.primary, color: '#fff' }}
                   >
                     {heroButtonText}
                   </PreviewSafeLink>
@@ -171,19 +173,43 @@ export function StarterStoreTemplate({
                   ক্যাটাগরি
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {validCategories.slice(0, 4).map((cat) => (
-                    <PreviewSafeLink
-                      key={cat}
-                      to={`/?category=${encodeURIComponent(cat)}`}
-                      isPreview={isPreview}
-                      className="relative aspect-square rounded-xl overflow-hidden group"
-                      style={{ backgroundColor: theme.cardBg }}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 flex items-end justify-center p-4">
-                        <span className="text-white font-semibold text-lg">{cat}</span>
-                      </div>
-                    </PreviewSafeLink>
-                  ))}
+                  {validCategories.slice(0, 4).map((cat) => {
+                    const isObject = typeof cat === 'object' && cat !== null;
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const title = isObject ? (cat as any).title : cat;
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const imageUrl =
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (isObject ? (cat as any).imageUrl : null) ||
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      ((config as any)?.categoryImageMap?.[String(title)] as string | undefined) ||
+                      null;
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const id = isObject ? (cat as any).id : cat;
+                    
+                    if (!title) return null;
+
+                    return (
+                      <PreviewSafeLink
+                        key={id}
+                        to={`/?category=${encodeURIComponent(title)}`}
+                        isPreview={isPreview}
+                        className="relative aspect-square rounded-xl overflow-hidden group"
+                        style={{ backgroundColor: theme.cardBg }}
+                      >
+                        {imageUrl ? (
+                          <img 
+                            src={buildProxyImageUrl(imageUrl, { width: 400, height: 400 })} 
+                            alt={title}
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          />
+                        ) : null}
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 flex items-end justify-center p-4">
+                          <span className="text-white font-semibold text-lg">{title}</span>
+                        </div>
+                      </PreviewSafeLink>
+                    );
+                  })}
                 </div>
               </div>
             </section>
@@ -215,6 +241,7 @@ export function StarterStoreTemplate({
                       product={product}
                       storeId={storeId}
                       isPreview={isPreview}
+                      theme={theme}
                     />
                   ))}
                 </div>
@@ -250,6 +277,7 @@ export function StarterStoreTemplate({
                       product={product}
                       storeId={storeId}
                       isPreview={isPreview}
+                      theme={theme}
                     />
                   ))}
                 </div>
@@ -273,6 +301,7 @@ export function StarterStoreTemplate({
                       product={product}
                       storeId={storeId}
                       isPreview={isPreview}
+                      theme={theme}
                     />
                   ))}
                 </div>
@@ -359,6 +388,7 @@ export function StarterStoreTemplate({
         categories={categories}
         planType={planType}
         isPreview={isPreview}
+        themeColors={theme}
       />
 
       {!isPreview && (
@@ -377,7 +407,7 @@ export function StarterStoreTemplate({
           aiEnabled={isCustomerAiEnabled}
           aiCredits={aiCredits}
           storeId={storeId}
-          accentColor={config?.primaryColor || undefined}
+          accentColor={theme.primary}
         />
       )}
     </div>

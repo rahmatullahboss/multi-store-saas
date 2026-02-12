@@ -10,13 +10,15 @@
 
 import { Link } from '@remix-run/react';
 import { DARAZ_THEME } from '../theme';
+import type { StoreCategory } from '~/templates/store-registry';
 import { 
   Shirt, Home, Smartphone, Tv, Gift, Heart, Car, Utensils,
   Baby, Dumbbell, BookOpen, Gamepad2, Laptop, Watch, ShoppingBag, Package
 } from 'lucide-react';
 
 interface CategoryGridProps {
-  categories?: (string | null)[];
+  categories?: (string | StoreCategory | null)[];
+  categoryImages?: Record<string, string>;
   maxCategories?: number;
 }
 
@@ -96,9 +98,26 @@ function getCategoryImage(category: string, index: number): string {
 
 export function DarazCategoryGrid({
   categories = [],
+  categoryImages = {},
   maxCategories = 16
 }: CategoryGridProps) {
-  const validCategories = categories.filter(Boolean).slice(0, maxCategories) as string[];
+  const validCategories = categories
+    .filter((category): category is string | StoreCategory => Boolean(category))
+    .slice(0, maxCategories)
+    .map((category) => {
+      if (typeof category === 'string') {
+        return {
+          id: category,
+          title: category,
+          imageUrl: categoryImages[category] || null,
+        };
+      }
+      return {
+        id: category.id ?? category.slug ?? category.title,
+        title: category.title,
+        imageUrl: category.imageUrl ?? null,
+      };
+    });
 
   if (validCategories.length === 0) return null;
 
@@ -112,22 +131,29 @@ export function DarazCategoryGrid({
       </h2>
 
       <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3 md:gap-4">
-        {validCategories.map((category, index) => {
-          const IconComponent = getCategoryIcon(category);
+        {validCategories.map((category) => {
+          const IconComponent = getCategoryIcon(category.title);
           
           return (
             <Link
-              key={category}
-              to={`/?category=${encodeURIComponent(category)}`}
+              key={String(category.id)}
+              to={`/?category=${encodeURIComponent(category.title)}`}
               className="flex flex-col items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer"
             >
               {/* Category Image/Icon Container */}
               <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center group-hover:shadow-md transition-shadow">
-                {/* Use icon instead of image for cleaner look */}
-                <IconComponent 
-                  className="w-7 h-7 md:w-8 md:h-8 transition-transform group-hover:scale-110"
-                  style={{ color: DARAZ_THEME.primary }}
-                />
+                {category.imageUrl ? (
+                  <img
+                    src={category.imageUrl}
+                    alt={category.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  />
+                ) : (
+                  <IconComponent 
+                    className="w-7 h-7 md:w-8 md:h-8 transition-transform group-hover:scale-110"
+                    style={{ color: DARAZ_THEME.primary }}
+                  />
+                )}
               </div>
               
               {/* Category Name */}
@@ -135,7 +161,7 @@ export function DarazCategoryGrid({
                 className="text-[10px] md:text-xs text-center line-clamp-2 transition-colors group-hover:text-orange-500"
                 style={{ color: DARAZ_THEME.text }}
               >
-                {category}
+                {category.title}
               </span>
             </Link>
           );

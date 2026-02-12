@@ -1380,7 +1380,12 @@ function LiveDarazHomepage(props: StoreTemplateProps) {
 
                 {/* Category Grid - Only on homepage */}
                 {!currentCategory && (
-                  <DarazCategoryGrid categories={categories} maxCategories={16} />
+                  <DarazCategoryGrid
+                    categories={categories}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    categoryImages={((config as any)?.categoryImageMap || {}) as Record<string, string>}
+                    maxCategories={16}
+                  />
                 )}
 
                 {/* Product Grid */}

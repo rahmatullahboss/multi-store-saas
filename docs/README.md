@@ -11,6 +11,7 @@
 | [PRODUCTION_READINESS_CHECKLIST_2026-02-07.md](PRODUCTION_READINESS_CHECKLIST_2026-02-07.md) | Actionable checklist of exactly what’s left before go-live |
 | [STAGING_WORKFLOW.md](STAGING_WORKFLOW.md) | Staging-first release workflow (safe releases) |
 | [RELEASE_PROCESS.md](RELEASE_PROCESS.md) | Step-by-step release checklist (staging → production) |
+| [CATEGORY_IMAGE_SUPPORT_RUNBOOK_2026-02-12.md](CATEGORY_IMAGE_SUPPORT_RUNBOOK_2026-02-12.md) | Theme-wise category image support matrix + debug checklist |
 | [DB_BASELINE_ADOPTION_RUNBOOK.md](DB_BASELINE_ADOPTION_RUNBOOK.md) | Adopt D1 migrations safely for existing DBs |
 | [DATABASE_MIGRATIONS.md](DATABASE_MIGRATIONS.md) | Canonical D1 migrations workflow (wrangler migrations apply) |
 

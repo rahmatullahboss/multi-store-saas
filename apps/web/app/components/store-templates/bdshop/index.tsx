@@ -1491,10 +1491,22 @@ function LiveBDShopHomepage(props: StoreTemplateProps) {
                   const SectionComponent = SECTION_REGISTRY[section.type]?.component;
                   if (!SectionComponent) return null;
 
+                  const resolvedSettings =
+                    section.type === 'category-list' || section.type === 'shop-by-category'
+                      ? {
+                          ...section.settings,
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          categoryImageMap: ((config as any)?.categoryImageMap || {}) as Record<
+                            string,
+                            string
+                          >,
+                        }
+                      : section.settings;
+
                   return (
                     <SectionComponent
                       key={section.id}
-                      settings={section.settings}
+                      settings={resolvedSettings}
                       theme={BDSHOP_THEME}
                       products={products}
                       categories={categories}

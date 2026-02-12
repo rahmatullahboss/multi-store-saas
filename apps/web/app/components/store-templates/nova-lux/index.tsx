@@ -14,7 +14,7 @@ import { Link } from '@remix-run/react';
 import { ShoppingBag, Search, Menu, X, Star, Check, Heart } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useWishlist } from '~/hooks/useWishlist';
-import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
+import type { StoreTemplateProps, SerializedProduct, StoreCategory } from '~/templates/store-registry';
 import type { ThemeConfig } from '@db/types';
 import type { SectionInstance } from '~/lib/theme-engine/types';
 import { AddToCartButton } from '~/components/AddToCartButton';
@@ -178,6 +178,7 @@ function CartProvider({ children }: { children: React.ReactNode }) {
 // ============================================================================
 
 // --- Header ---
+// --- Header ---
 function PreviewHeader({
   storeName,
   logo,
@@ -186,7 +187,7 @@ function PreviewHeader({
 }: {
   storeName: string;
   logo?: string | null;
-  categories: (string | null)[];
+  categories: (string | StoreCategory | null)[];
   onNavigate: (page: PageType) => void;
 }) {
   const cart = usePreviewCart();
@@ -215,7 +216,7 @@ function PreviewHeader({
     }
   };
 
-  const validCategories = categories.filter((c): c is string => Boolean(c));
+  const validCategories = categories.filter(Boolean);
 
   return (
     <header
@@ -248,16 +249,19 @@ function PreviewHeader({
             >
               {t('allProducts')}
             </button>
-            {validCategories.slice(0, 3).map((category) => (
-              <button
-                key={category}
-                onClick={() => onNavigate({ type: 'category', category })}
-                className="px-4 py-2 text-sm font-medium tracking-wide uppercase transition-all duration-300 hover:opacity-70"
-                style={{ color: theme.text }}
-              >
-                {category}
-              </button>
-            ))}
+            {validCategories.slice(0, 3).map((cat) => {
+              const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+              return (
+                <button
+                  key={title}
+                  onClick={() => onNavigate({ type: 'category', category: title })}
+                  className="px-4 py-2 text-sm font-medium tracking-wide uppercase transition-all duration-300 hover:opacity-70"
+                  style={{ color: theme.text }}
+                >
+                  {title}
+                </button>
+              );
+            })}
           </nav>
 
           <button
@@ -326,18 +330,21 @@ function PreviewHeader({
             >
               All Products
             </button>
-            {validCategories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => {
-                  onNavigate({ type: 'category', category: cat });
-                  setMobileMenuOpen(false);
-                }}
-                className="text-left py-2"
-              >
-                {cat}
-              </button>
-            ))}
+            {validCategories.map((cat) => {
+              const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+              return (
+                <button
+                  key={title}
+                  onClick={() => {
+                    onNavigate({ type: 'category', category: title });
+                    setMobileMenuOpen(false);
+                  }}
+                  className="text-left py-2"
+                >
+                  {title}
+                </button>
+              );
+            })}
           </nav>
         </div>
       )}
@@ -757,7 +764,7 @@ function LiveNovaLuxHomepage({
     // Scroll listener removed as isScrolled was unused
   }, []);
 
-  const validCategories = categories.filter((c): c is string => Boolean(c));
+  const validCategories = categories.filter(Boolean);
   const announcement = config?.announcement;
 
   const THEME = {
@@ -817,10 +824,22 @@ function LiveNovaLuxHomepage({
                   const SectionComponent = SECTION_REGISTRY[section.type]?.component;
                   if (!SectionComponent) return null;
 
+                  const resolvedSettings =
+                    section.type === 'category-list' || section.type === 'shop-by-category'
+                      ? {
+                          ...section.settings,
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          categoryImageMap: ((config as any)?.categoryImageMap || {}) as Record<
+                            string,
+                            string
+                          >,
+                        }
+                      : section.settings;
+
                   return (
                     <SectionComponent
                       key={section.id}
-                      settings={section.settings}
+                      settings={resolvedSettings}
                       theme={THEME}
                       products={products}
                       categories={categories}

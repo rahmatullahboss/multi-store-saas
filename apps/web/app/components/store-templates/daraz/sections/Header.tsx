@@ -27,13 +27,14 @@ import {
 import { DARAZ_THEME } from '../theme';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import type { SocialLinks, ThemeConfig } from '@db/types';
+import type { StoreCategory } from '~/templates/store-registry';
 
 interface DarazHeaderProps {
   storeName: string;
   logo?: string | null;
   isPreview?: boolean;
   config?: ThemeConfig | null;
-  categories: (string | null)[];
+  categories: (string | StoreCategory | null)[];
   currentCategory?: string | null;
   socialLinks?: SocialLinks | null;
 }
@@ -50,7 +51,10 @@ export function DarazHeader({
   const count = useCartCount();
   const { count: wishlistCount } = useWishlist();
 
-  const featuredCategories = categories.filter(Boolean).slice(0, 12);
+  const featuredCategories = categories
+    .map((category) => (typeof category === 'string' ? category : category?.title || null))
+    .filter(Boolean)
+    .slice(0, 12);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

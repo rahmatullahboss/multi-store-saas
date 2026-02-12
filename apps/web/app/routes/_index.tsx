@@ -32,7 +32,7 @@ import {
 import { useState, useEffect, Suspense, type ComponentType } from 'react';
 import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { stores, products, type Product, type Store } from '@db/schema';
+import { stores, products, collections, type Product, type Store } from '@db/schema';
 import { type LandingConfig, type ThemeConfig } from '@db/types';
 // NOTE: Avoid static import of landing template registry to keep storefront bundle lean.
 const DEFAULT_LANDING_TEMPLATE_ID = 'premium-bd';
@@ -513,7 +513,43 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       'Database query timed out while fetching products'
     );
 
-    // Get unique categories
+    // ========== MVP TEMPLATE RESOLUTION ==========
+    // Get theme ID from store themeConfig
+    const storeThemeConfig = parseJsonSafe<ThemeConfig>(validatedStore.themeConfig);
+    const storeTemplateId = storeThemeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
+
+    // Fetch category data from collections first (includes image_url).
+    const collectionsQuery = db
+      .select({
+        id: collections.id,
+        title: collections.title,
+        slug: collections.slug,
+        imageUrl: collections.imageUrl,
+        sortOrder: collections.sortOrder,
+      })
+      .from(collections)
+      .where(and(eq(collections.storeId, validatedStoreId), eq(collections.isActive, true)));
+
+    const storeCollections = await withTimeout(
+      collectionsQuery,
+      DB_TIMEOUT_MS,
+      'Database query timed out while fetching collections'
+    );
+
+    const sortedCollections = [...storeCollections]
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+
+    const collectionCategories = sortedCollections
+      .map((c) => c.title)
+      .filter((title): title is string => Boolean(title));
+
+    const categoryImageMap = Object.fromEntries(
+      sortedCollections
+        .filter((c) => Boolean(c.imageUrl))
+        .map((c) => [c.title, c.imageUrl as string])
+    );
+
+    // Fallback: derive categories from products when collections are not configured.
     const categoriesQuery = db
       .select({ category: products.category })
       .from(products)
@@ -525,14 +561,11 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       'Database query timed out while fetching categories'
     );
 
-    const categories = [
+    const productCategories = [
       ...new Set(allProducts.map((p) => p.category).filter((c): c is string => Boolean(c))),
     ];
 
-    // ========== MVP TEMPLATE RESOLUTION ==========
-    // Get theme ID from store themeConfig
-    const storeThemeConfig = parseJsonSafe<ThemeConfig>(validatedStore.themeConfig);
-    const storeTemplateId = storeThemeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
+    const categories = collectionCategories.length > 0 ? collectionCategories : productCategories;
 
     // Get base theme colors from registry
     const baseTheme = getStoreTemplateTheme(storeTemplateId);
@@ -584,7 +617,10 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       socialLinks,
       footerConfig,
       businessInfo,
-      themeConfig: ensureHomepageHasCatalogSection(storeThemeConfig, serializedProducts.length > 0),
+      themeConfig: {
+        ...(ensureHomepageHasCatalogSection(storeThemeConfig, serializedProducts.length > 0) || {}),
+        categoryImageMap,
+      } as ThemeConfig,
       planType: validatedStore.planType || 'free',
       // AI Props
       aiCredits: (validatedStore as Store & { aiCredits?: number }).aiCredits ?? 0,

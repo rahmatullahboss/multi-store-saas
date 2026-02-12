@@ -3,6 +3,7 @@ import { ShoppingBag, Phone, Mail, MapPin, Facebook, Twitter, Sparkles } from 'l
 import { BDSHOP_THEME } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';
 import type { SocialLinks, FooterConfig } from '@db/types';
+import type { StoreCategory } from '~/templates/store-registry';
 
 interface BDShopFooterProps {
   storeName: string;
@@ -10,7 +11,7 @@ interface BDShopFooterProps {
   socialLinks?: SocialLinks | null;
   footerConfig?: FooterConfig | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
-  categories: (string | null)[];
+  categories: (string | StoreCategory | null)[];
   planType?: string;
 }
 

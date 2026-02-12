@@ -13,13 +13,14 @@ import { Phone, Mail, MapPin, Facebook, Twitter, Instagram } from 'lucide-react'
 import { DARAZ_THEME } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';
 import type { SocialLinks, FooterConfig } from '@db/types';
+import type { StoreCategory } from '~/templates/store-registry';
 
 interface DarazFooterProps {
   storeName: string;
   logo?: string | null;
   socialLinks?: SocialLinks | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
-  categories: (string | null)[];
+  categories: (string | StoreCategory | null)[];
   planType?: string;
   footerConfig?: FooterConfig | null;
 }
@@ -33,7 +34,10 @@ export function DarazFooter({
   categories,
   planType = 'free',
 }: DarazFooterProps) {
-  const featuredCategories = categories.filter(Boolean).slice(0, 8);
+  const featuredCategories = categories
+    .map((category) => (typeof category === 'string' ? category : category?.title || null))
+    .filter(Boolean)
+    .slice(0, 8);
 
   return (
     <footer className="bg-white border-t mt-8">
