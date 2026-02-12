@@ -27,6 +27,11 @@ function safeJsonParse<T>(value: string | null): T | null {
 function normalizeThemeConfig(themeConfig: any | null): any | null {
   if (!themeConfig || typeof themeConfig !== 'object') return themeConfig;
 
+  // Backward compatibility: older payloads used `templateId`.
+  if (!themeConfig.storeTemplateId && typeof themeConfig.templateId === 'string') {
+    themeConfig.storeTemplateId = themeConfig.templateId;
+  }
+
   // If the editor saved empty arrays, treat them as unset so storefront doesn't go blank.
   if (Array.isArray(themeConfig.sections) && themeConfig.sections.length === 0) {
     delete themeConfig.sections;

@@ -80,7 +80,12 @@ function ProductCard({ product, storeId, currency, formatPrice, theme }: any) {
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Image Container */}
-      <Link to={`/products/${product.id}`} className="block relative aspect-[3/4] overflow-hidden bg-gray-100 rounded-lg">
+      <Link
+        to={`/products/${product.id}`}
+        className="block relative aspect-[3/4] overflow-hidden bg-gray-100 rounded-lg"
+        reloadDocument
+        prefetch="none"
+      >
         {product.imageUrl ? (
           <img
             src={product.imageUrl}
@@ -150,7 +155,7 @@ function ProductCard({ product, storeId, currency, formatPrice, theme }: any) {
 
       {/* Product Info */}
       <div className="mt-3">
-        <Link to={`/products/${product.id}`}>
+        <Link to={`/products/${product.id}`} reloadDocument prefetch="none">
           <h3 
             className="text-sm font-medium mb-1 hover:underline truncate"
             style={{ color: theme.text }}

@@ -56,8 +56,8 @@ import { parseSocialLinks, parseFooterConfig } from '@db/types';
 // AGGRESSIVE CDN CACHING HEADERS
 // ============================================================================
 export const headers: HeadersFunction = () => ({
-  // Browser: 1 minute, CDN: 1 hour, Stale: 24 hours
-  'Cache-Control': 'public, max-age=60, s-maxage=3600, stale-while-revalidate=86400',
+  // Keep storefront HTML fresh to avoid stale chunk references after deploys.
+  'Cache-Control': 'public, max-age=30, s-maxage=30, stale-while-revalidate=60',
   // Vary by host for multi-tenant caching
   Vary: 'Host',
 });

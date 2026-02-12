@@ -292,9 +292,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // This prevents the Worker from running on every visit, significantly reducing costs/invocations.
   const headers = new Headers();
   if (!customer) {
-    // Guest: Cache for 1 hour at Edge (s-maxage) and Browser (max-age)
+    // Keep HTML TTL short so new deploy chunk hashes propagate quickly.
     // "public" allows the CDN to store it.
-    headers.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+    headers.set('Cache-Control', 'public, max-age=30, s-maxage=30, stale-while-revalidate=60');
   } else {
     // Logged In: Private cache only (Browser), potentially for a short time or 0
     // We MUST NOT cache shared (CDN) because it contains user-specific data (Name)

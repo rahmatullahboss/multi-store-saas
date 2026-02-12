@@ -135,6 +135,8 @@ function ProductScrollCard({ product, theme, formatPrice }: { product: any, them
     <Link
       to={`/products/${product.id}`}
       className="group min-w-[160px] max-w-[160px] md:min-w-[200px] md:max-w-[200px] bg-white border border-gray-100 rounded-lg overflow-hidden hover:shadow-md transition snap-center relative"
+      reloadDocument
+      prefetch="none"
     >
       <div className="aspect-square bg-gray-50 relative overflow-hidden">
         {product.imageUrl ? (

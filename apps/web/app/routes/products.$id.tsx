@@ -26,7 +26,7 @@ import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import {
   getStoreTemplate,
   getStoreTemplateTheme,
-  DEFAULT_STORE_TEMPLATE_ID,
+  resolveStoreTemplateId,
   type SerializedProduct,
 } from '~/templates/store-registry';
 import { getCustomer } from '~/services/customer-auth.server';
@@ -168,8 +168,10 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       }
     }
 
-    const storeTemplateId =
-      themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
+    const storeTemplateId = resolveStoreTemplateId(
+      (themeConfig as Record<string, unknown> | null | undefined) ?? null,
+      (store.theme as string) || null
+    );
 
     // Get theme colors
     const baseTheme = getStoreTemplateTheme(storeTemplateId);

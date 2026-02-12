@@ -1108,6 +1108,31 @@ export function isValidStoreTemplateId(id: string): boolean {
 }
 
 /**
+ * Resolve active template ID from mixed legacy/new theme config shapes.
+ * Supports both `storeTemplateId` and older `templateId`/`themeId` keys.
+ */
+export function resolveStoreTemplateId(
+  themeConfig: Record<string, unknown> | null | undefined,
+  legacyThemeId?: string | null
+): string {
+  const candidates = [
+    themeConfig?.storeTemplateId,
+    themeConfig?.templateId,
+    themeConfig?.themeId,
+    themeConfig?.presetId,
+    legacyThemeId,
+  ];
+
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string' && isValidStoreTemplateId(candidate)) {
+      return candidate;
+    }
+  }
+
+  return DEFAULT_STORE_TEMPLATE_ID;
+}
+
+/**
  * Get theme colors for a specific template
  */
 export function getStoreTemplateTheme(id: string | undefined): StoreTemplateTheme {

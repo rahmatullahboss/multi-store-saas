@@ -166,6 +166,8 @@ function ProductCard({
         to={`/products/${product.id}`}
         className="block relative aspect-[3/4] overflow-hidden bg-gray-100"
         isPreview={isPreview}
+        reloadDocument={!isPreview}
+        prefetch="none"
       >
         {product.imageUrl ? (
           <img
@@ -230,7 +232,12 @@ function ProductCard({
 
       {/* Product Info */}
       <div className="mt-4 text-center">
-        <PreviewSafeLink to={`/products/${product.id}`} isPreview={isPreview}>
+        <PreviewSafeLink
+          to={`/products/${product.id}`}
+          isPreview={isPreview}
+          reloadDocument={!isPreview}
+          prefetch="none"
+        >
           <h3 className="text-sm font-medium mb-1 hover:underline" style={{ color: theme.text }}>
             {product.title}
           </h3>
