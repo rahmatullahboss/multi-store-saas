@@ -434,12 +434,12 @@ app.all('*', async (c) => {
 
   const assetResponse = await c.env.ASSETS.fetch(c.req.raw);
   
-  // 3. If asset found (200), return it with optimized cache headers
-  if (assetResponse.status === 200) {
+  // 3. If asset fetch succeeds (2xx/3xx), return it with optimized cache headers
+  if (assetResponse.status >= 200 && assetResponse.status < 400) {
     const response = new Response(assetResponse.body, assetResponse);
     
     // Immutable assets (hashed filenames) - aggressive caching
-    if (url.pathname.match(/\.[a-f0-9]{8,}\.(js|css|woff2?|ttf|eot)$/)) {
+    if (url.pathname.match(/-[A-Za-z0-9_-]{8,}\.(js|css|woff2?|ttf|eot)$/)) {
       response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
     }
     // Images and fonts - moderate caching

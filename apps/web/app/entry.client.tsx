@@ -16,6 +16,30 @@ import i18n from './i18n';
 
 // Import Sentry only if needed
 let Sentry: typeof import('@sentry/remix') | null = null;
+const CHUNK_RECOVERY_KEY = 'ozzyl:chunk-recovery-attempted';
+
+function isDynamicImportFetchError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error || '');
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes('failed to fetch dynamically imported module') ||
+    normalized.includes('importing a module script failed')
+  );
+}
+
+function recoverFromChunkLoadFailure(): boolean {
+  // Prevent infinite reload loops: only one forced recovery per tab session.
+  if (sessionStorage.getItem(CHUNK_RECOVERY_KEY) === '1') {
+    sessionStorage.removeItem(CHUNK_RECOVERY_KEY);
+    return false;
+  }
+
+  sessionStorage.setItem(CHUNK_RECOVERY_KEY, '1');
+  const url = new URL(window.location.href);
+  url.searchParams.set('__chunk_reload', String(Date.now()));
+  window.location.replace(url.toString());
+  return true;
+}
 
 /**
  * Check if we're in a production environment
@@ -103,6 +127,9 @@ async function initSentry() {
 }
 
 async function hydrate() {
+  // Clear any previous recovery marker once app bootstrap starts successfully.
+  sessionStorage.removeItem(CHUNK_RECOVERY_KEY);
+
   // Initialize Sentry after first paint to reduce blocking JS on initial load
   const runWhenIdle = (fn: () => void) => {
     if ('requestIdleCallback' in window) {
@@ -138,6 +165,24 @@ async function hydrate() {
     );
   });
 }
+
+window.addEventListener('error', (event) => {
+  if (isDynamicImportFetchError(event.error || event.message)) {
+    const recovered = recoverFromChunkLoadFailure();
+    if (recovered) {
+      event.preventDefault();
+    }
+  }
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  if (isDynamicImportFetchError(event.reason)) {
+    const recovered = recoverFromChunkLoadFailure();
+    if (recovered) {
+      event.preventDefault();
+    }
+  }
+});
 
 // Service Worker Registration
 if ('serviceWorker' in navigator) {

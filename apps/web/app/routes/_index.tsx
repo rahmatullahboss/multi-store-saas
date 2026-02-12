@@ -29,7 +29,7 @@ import {
   isRouteErrorResponse,
   useSearchParams,
 } from '@remix-run/react';
-import { useState, useEffect, Suspense, type ComponentType } from 'react';
+import { useState, useEffect, Suspense, lazy, type ComponentType } from 'react';
 import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, collections, type Product, type Store } from '@db/schema';
@@ -409,8 +409,45 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   // ========================================================================
   const homeEntry = (validatedStore as Store & { homeEntry?: string }).homeEntry || 'store_home';
 
+  // Check if this is a lead generation site (NEW)
+  const isLeadGenSite = homeEntry === 'lead_gen' || (validatedStore.leadGenConfig && JSON.parse(validatedStore.leadGenConfig as string || '{}').enabled);
+
   // Check if homepage should show a page (builder or grapes)
   const isPageHome = homeEntry.startsWith('page:');
+
+  // ========== LEAD GEN SITE (NEW) ==========
+  if (isLeadGenSite) {
+    try {
+      // Import lead gen modules
+      const { getLeadGenSettings } = await import('~/services/lead-gen-settings.server');
+      
+      // Get theme ID from config
+      let themeId = 'professional-services';
+      if (validatedStore.leadGenConfig) {
+        try {
+          const config = JSON.parse(validatedStore.leadGenConfig as string);
+          themeId = config.themeId || 'professional-services';
+        } catch (e) {
+          console.error('Failed to parse leadGenConfig:', e);
+        }
+      }
+
+      // Get lead gen settings
+      const leadGenSettings = await getLeadGenSettings(db, validatedStoreId, themeId);
+
+      // Return lead gen mode data
+      return json({
+        mode: 'lead_gen',
+        storeId: validatedStoreId,
+        storeName: validatedStore.name,
+        themeId,
+        settings: leadGenSettings,
+      });
+    } catch (error) {
+      console.error('[LOADER] Lead gen mode error:', error);
+      // Fall through to store mode on error
+    }
+  }
 
   // ========== PAGE AS HOMEPAGE (Builder v2 or GrapesJS) ==========
   if (isPageHome) {
@@ -715,6 +752,24 @@ export default function Index() {
   // ============================================================================
   // RENDERING LOGIC - EARLY RETURNS BELOW HERE
   // ============================================================================
+
+  // ========== LEAD GEN MODE (NEW) ==========
+  if (data.mode === 'lead_gen') {
+    const LeadGenRenderer = lazy(() => import('~/components/lead-gen/LeadGenRenderer'));
+    
+    return (
+      <Suspense fallback={<div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>}>
+        <LeadGenRenderer
+          themeId={data.themeId}
+          settings={data.settings}
+          storeId={data.storeId}
+          storeName={data.storeName}
+        />
+      </Suspense>
+    );
+  }
 
   // ========== MARKETING MODE (REDIRECT TO LANDING) ==========
   if (data.mode === 'marketing') {

@@ -15,7 +15,7 @@ import { Form, Link, Outlet, useLoaderData, useLocation } from '@remix-run/react
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, users, systemNotifications } from '@db/schema';
-import { requireUserId, getStoreId, getSession } from '~/services/auth.server';
+import { requireUserId, getStoreId, getSession, commitSession } from '~/services/auth.server';
 import {
   LayoutDashboard,
   Package,
@@ -100,12 +100,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       throw new Response('Session error. Please login again.', { status: 401 });
     }
 
-    if (!storeId) {
-      console.error('[app.loader] No storeId in session for user:', userId);
-      // User is logged in but has no store - redirect to onboarding to create one
-      return redirect('/onboarding');
-    }
-
     // Check database connection
     if (!context.cloudflare?.env?.DB) {
       console.error('[app.loader] Database not available in context');
@@ -113,6 +107,38 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
 
     const db = drizzle(context.cloudflare.env.DB);
+
+    if (!storeId) {
+      console.error('[app.loader] No storeId in session for user:', userId);
+
+      // Self-heal: recover storeId from DB when session is partially stale.
+      const userWithStore = await db
+        .select({ storeId: users.storeId })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      const recoveredStoreId = userWithStore[0]?.storeId;
+      if (typeof recoveredStoreId === 'number' && recoveredStoreId > 0) {
+        const session = await getSession(request, context.cloudflare.env);
+        session.set('storeId', recoveredStoreId);
+
+        const currentUrl = new URL(request.url);
+        console.warn(
+          '[app.loader] Recovered missing storeId from DB and re-committing session:',
+          recoveredStoreId
+        );
+
+        return redirect(`${currentUrl.pathname}${currentUrl.search}`, {
+          headers: {
+            'Set-Cookie': await commitSession(session, context.cloudflare.env),
+          },
+        });
+      }
+
+      // User is logged in but has no store in DB - send to onboarding.
+      return redirect('/onboarding');
+    }
 
     // Fetch store info with error handling
 

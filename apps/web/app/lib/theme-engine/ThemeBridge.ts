@@ -35,6 +35,7 @@ import SokolTheme, { SECTIONS as SokolSections } from '~/themes/sokol';
 import TurboSaleTheme, { SECTIONS as TurboSaleSections } from '~/themes/turbo-sale';
 import ZenithRiseTheme, { SECTIONS as ZenithRiseSections } from '~/themes/zenith-rise';
 import NovaLuxUltraTheme, { theme as NovaLuxUltraThemeExport } from '~/themes/nova-lux-ultra';
+import ProfessionalServicesTheme, { SECTION_REGISTRY as ProfessionalServicesSections } from '~/themes/professional-services';
 
 // Static template imports (Bug #5 fix - dynamic imports don't work in bundled environments)
 import starterStoreIndexTemplate from '~/themes/starter-store/templates/index.json';
@@ -88,6 +89,7 @@ import rovoIndexTemplate from '~/themes/rovo/templates/index.json';
 import sokolIndexTemplate from '~/themes/sokol/templates/index.json';
 import turboSaleIndexTemplate from '~/themes/turbo-sale/templates/index.json';
 import zenithRiseIndexTemplate from '~/themes/zenith-rise/templates/index.json';
+import professionalServicesIndexTemplate from '~/themes/professional-services/templates/index.json';
 
 // ============================================================================
 // TYPES
@@ -276,8 +278,13 @@ const THEME_REGISTRY: Record<string, LoadedTheme> = {
       categories: ['luxury', 'fashion', 'premium'],
       author: 'Ozzyl Team',
     },
-    config: NovaLuxUltraThemeExport.config as unknown as ThemeConfig,
+    config: NovaLuxUltraThemeExport.config,
     sections: NovaLuxUltraThemeExport.sections,
+  },
+  'professional-services': {
+    metadata: ProfessionalServicesTheme.metadata,
+    config: ProfessionalServicesTheme.config,
+    sections: ProfessionalServicesSections,
   },
 };
 
@@ -384,6 +391,9 @@ const TEMPLATE_REGISTRY: Record<string, Record<string, TemplateJSON>> = {
   },
   'zenith-rise': {
     index: zenithRiseIndexTemplate as unknown as TemplateJSON,
+  },
+  'professional-services': {
+    index: professionalServicesIndexTemplate as unknown as TemplateJSON,
   },
   'tech-modern': {
     index: techModernIndexTemplate as unknown as TemplateJSON,

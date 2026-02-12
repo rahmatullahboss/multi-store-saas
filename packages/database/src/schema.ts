@@ -2888,3 +2888,83 @@ export const creditPurchasesRelations = relations(creditPurchases, ({ one }) => 
 
 export type CreditPurchase = typeof creditPurchases.$inferSelect;
 export type NewCreditPurchase = typeof creditPurchases.$inferInsert;
+
+// ============================================================================
+// LEAD SUBMISSIONS TABLE - Lead Generation System
+// ============================================================================
+export const leadSubmissions = sqliteTable(
+  'lead_submissions',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+
+    // Contact Information
+    name: text('name').notNull(),
+    email: text('email'),
+    phone: text('phone'),
+    company: text('company'),
+
+    // Form Data (flexible JSON for custom fields)
+    formData: text('form_data'), // JSON: { message, budget, service_interest, etc. }
+
+    // Metadata
+    source: text('source').default('contact_form'), // 'contact_form', 'popup', 'footer', 'chat'
+    formId: text('form_id').notNull(), // Which form was submitted
+    pageUrl: text('page_url'), // URL where form was submitted
+
+    // Status Tracking
+    status: text('status')
+      .$type<'new' | 'contacted' | 'qualified' | 'converted' | 'lost'>()
+      .default('new'),
+    assignedTo: integer('assigned_to').references(() => users.id, { onDelete: 'set null' }),
+    notes: text('notes'), // Merchant's private notes
+
+    // Marketing Attribution
+    utmSource: text('utm_source'),
+    utmMedium: text('utm_medium'),
+    utmCampaign: text('utm_campaign'),
+    referrer: text('referrer'),
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+
+    // AI Enrichment (optional)
+    aiScore: real('ai_score'), // Lead quality score (0-1)
+    aiInsights: text('ai_insights'), // JSON: { intent, budget_estimate, urgency }
+
+    // Timestamps
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    contactedAt: integer('contacted_at', { mode: 'timestamp' }),
+  },
+  (table) => [
+    index('idx_lead_submissions_store').on(table.storeId),
+    index('idx_lead_submissions_status').on(table.storeId, table.status),
+    index('idx_lead_submissions_created').on(table.storeId, table.createdAt),
+    index('idx_lead_submissions_email').on(table.email),
+    index('idx_lead_submissions_phone').on(table.phone),
+    index('idx_lead_submissions_source').on(table.storeId, table.source),
+  ]
+);
+
+// Relations
+export const leadSubmissionsRelations = relations(leadSubmissions, ({ one }) => ({
+  store: one(stores, {
+    fields: [leadSubmissions.storeId],
+    references: [stores.id],
+  }),
+  assignedUser: one(users, {
+    fields: [leadSubmissions.assignedTo],
+    references: [users.id],
+  }),
+}));
+
+// Type Exports
+export type LeadSubmission = typeof leadSubmissions.$inferSelect;
+export type NewLeadSubmission = typeof leadSubmissions.$inferInsert;
+

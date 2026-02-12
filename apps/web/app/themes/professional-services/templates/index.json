@@ -1,0 +1,167 @@
+{
+  "name": "Homepage",
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "cta_text": "Get Started",
+        "cta_link": "#contact"
+      },
+      "blocks": [
+        {
+          "type": "nav_link",
+          "settings": {
+            "text": "Services",
+            "url": "#services"
+          }
+        },
+        {
+          "type": "nav_link",
+          "settings": {
+            "text": "Testimonials",
+            "url": "#testimonials"
+          }
+        },
+        {
+          "type": "nav_link",
+          "settings": {
+            "text": "Contact",
+            "url": "#contact"
+          }
+        }
+      ]
+    },
+    "hero": {
+      "type": "hero-with-form",
+      "settings": {
+        "heading": "Grow Your Business with Expert Consulting",
+        "description": "We help businesses scale with proven strategies and personalized solutions",
+        "features": "Free consultation, Expert team, Proven results",
+        "form_heading": "Get a Free Consultation",
+        "form_description": "Fill out the form and we'll contact you within 24 hours",
+        "submit_text": "Get Started",
+        "bg_color": "#F9FAFB"
+      }
+    },
+    "services": {
+      "type": "services-grid",
+      "settings": {
+        "heading": "Our Services",
+        "description": "Comprehensive solutions to help your business thrive",
+        "show_cta": true,
+        "cta_text": "Learn More",
+        "cta_link": "#contact"
+      },
+      "blocks": [
+        {
+          "type": "service",
+          "settings": {
+            "title": "Business Consulting",
+            "description": "Strategic advice to optimize your operations and increase profitability",
+            "features": "Strategy planning, Process optimization, Performance analysis"
+          }
+        },
+        {
+          "type": "service",
+          "settings": {
+            "title": "Digital Marketing",
+            "description": "Grow your online presence with data-driven marketing campaigns",
+            "features": "SEO optimization, Social media, Content marketing"
+          }
+        },
+        {
+          "type": "service",
+          "settings": {
+            "title": "Technology Solutions",
+            "description": "Custom software and systems to streamline your business",
+            "features": "Web development, Mobile apps, Cloud solutions"
+          }
+        }
+      ]
+    },
+    "testimonials": {
+      "type": "testimonials",
+      "settings": {
+        "heading": "What Our Clients Say",
+        "description": "Don't just take our word for it - hear from our satisfied clients",
+        "bg_color": "#F9FAFB"
+      },
+      "blocks": [
+        {
+          "type": "testimonial",
+          "settings": {
+            "text": "Working with this team transformed our business. Revenue increased by 150% in just 6 months!",
+            "rating": 5,
+            "name": "Sarah Ahmed",
+            "position": "CEO",
+            "company": "Tech Solutions Ltd"
+          }
+        },
+        {
+          "type": "testimonial",
+          "settings": {
+            "text": "Professional, knowledgeable, and results-driven. Highly recommend their services!",
+            "rating": 5,
+            "name": "Kamal Rahman",
+            "position": "Founder",
+            "company": "Digital Ventures"
+          }
+        },
+        {
+          "type": "testimonial",
+          "settings": {
+            "text": "The best investment we made for our company. Their expertise is unmatched.",
+            "rating": 5,
+            "name": "Nadia Khan",
+            "position": "Managing Director",
+            "company": "Global Traders"
+          }
+        }
+      ]
+    },
+    "contact_cta": {
+      "type": "contact-cta",
+      "settings": {
+        "heading": "Ready to Transform Your Business?",
+        "description": "Let's discuss how we can help you achieve your goals",
+        "gradient_from": "#2563EB",
+        "gradient_to": "#7C3AED",
+        "primary_text": "Get Free Consultation",
+        "primary_link": "#hero",
+        "show_secondary": true,
+        "secondary_text": "Call Us Now",
+        "secondary_link": "tel:+8801234567890",
+        "show_contact_info": true,
+        "phone": "+880 1234-567890",
+        "email": "hello@yourbusiness.com",
+        "address": "Dhaka, Bangladesh"
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "description": "Your trusted partner for business growth and digital transformation",
+        "show_social": true,
+        "facebook_url": "https://facebook.com",
+        "linkedin_url": "https://linkedin.com"
+      },
+      "blocks": [
+        {
+          "type": "link_column",
+          "settings": {
+            "heading": "Company",
+            "links": "About Us | /about\nServices | #services\nTestimonials | #testimonials\nContact | #contact"
+          }
+        },
+        {
+          "type": "link_column",
+          "settings": {
+            "heading": "Legal",
+            "links": "Privacy Policy | /privacy\nTerms of Service | /terms"
+          }
+        }
+      ]
+    }
+  },
+  "order": ["header", "hero", "services", "testimonials", "contact_cta", "footer"]
+}

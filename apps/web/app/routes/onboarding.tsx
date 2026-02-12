@@ -230,6 +230,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
         const onboardingStatus = storeResult[0]?.onboardingStatus || 'pending';
         if (onboardingStatus === 'completed') {
+          const session = await getSession(request, env);
+          if (!session.get('storeId')) {
+            session.set('storeId', userResult[0].storeId);
+            return redirect('/app/orders', {
+              headers: {
+                'Set-Cookie': await commitSession(session, env),
+              },
+            });
+          }
+
           return redirect('/app/orders');
         }
       }

@@ -56,10 +56,17 @@ import { useState, useEffect, useRef } from 'react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { GlassCard } from '~/components/ui/GlassCard';
+import { invalidateStoreConfig } from '~/services/store-config-do.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Settings' }];
 };
+
+const SUBDOMAIN_REGEX = /^[a-z0-9-]+$/;
+const SUBDOMAIN_MIN_LENGTH = 2;
+const SUBDOMAIN_MAX_LENGTH = 30;
+const RESERVED_SUBDOMAINS = new Set(['app', 'www']);
+const ALLOWED_PLAN_TYPES = new Set(['free', 'starter', 'premium', 'business', 'custom']);
 
 // ============================================================================
 // LOADER - Fetch store data
@@ -219,7 +226,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const businessAddress = formData.get('businessAddress') as string;
   const customDomain = formData.get('customDomain') as string;
   const currentStore = await db
-    .select({ customDomain: stores.customDomain, planType: stores.planType })
+    .select({ customDomain: stores.customDomain, planType: stores.planType, subdomain: stores.subdomain })
     .from(stores)
     .where(eq(stores.id, storeId))
     .limit(1);
@@ -229,6 +236,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const existingCustomDomain = (currentStore[0].customDomain || '').trim().toLowerCase();
   const requestedCustomDomain = (customDomain || '').trim().toLowerCase();
+  const existingSubdomain = (currentStore[0].subdomain || '').trim().toLowerCase();
+  const requestedSubdomain = ((formData.get('subdomain') as string) || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-');
+  const requestedPlanType = ((formData.get('planType') as string) || '').trim().toLowerCase();
 
   // Security hardening:
   // Prevent direct custom-domain mutation from generic settings endpoint.
@@ -240,6 +253,45 @@ export async function action({ request, context }: ActionFunctionArgs) {
       },
       { status: 403 }
     );
+  }
+
+  if (!requestedSubdomain) {
+    return json({ error: 'subdomainRequired' }, { status: 400 });
+  }
+
+  if (
+    requestedSubdomain.length < SUBDOMAIN_MIN_LENGTH ||
+    requestedSubdomain.length > SUBDOMAIN_MAX_LENGTH
+  ) {
+    return json({ error: 'subdomainLengthInvalid' }, { status: 400 });
+  }
+
+  if (!SUBDOMAIN_REGEX.test(requestedSubdomain)) {
+    return json({ error: 'subdomainFormatInvalid' }, { status: 400 });
+  }
+
+  if (requestedSubdomain.startsWith('-') || requestedSubdomain.endsWith('-')) {
+    return json({ error: 'subdomainFormatInvalid' }, { status: 400 });
+  }
+
+  if (RESERVED_SUBDOMAINS.has(requestedSubdomain)) {
+    return json({ error: 'subdomainReserved' }, { status: 400 });
+  }
+
+  if (!ALLOWED_PLAN_TYPES.has(requestedPlanType)) {
+    return json({ error: 'planTypeInvalid' }, { status: 400 });
+  }
+
+  if (requestedSubdomain !== existingSubdomain) {
+    const existingSubdomainOwner = await db
+      .select({ id: stores.id })
+      .from(stores)
+      .where(eq(stores.subdomain, requestedSubdomain))
+      .limit(1);
+
+    if (existingSubdomainOwner[0]) {
+      return json({ error: 'subdomainAlreadyTaken' }, { status: 409 });
+    }
   }
 
   // Note: storeMode handling removed - use Homepage Settings (storeEnabled) instead
@@ -281,6 +333,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const updateData: Record<string, unknown> = {
     name: name.trim(),
     currency: currency || 'BDT',
+    subdomain: requestedSubdomain,
+    planType: requestedPlanType,
     theme: themeValue, // Legacy field for backward compatibility
     logo: logo || null,
     favicon: favicon || null,
@@ -310,7 +364,32 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Note: mode field update removed - use Homepage Settings (storeEnabled) instead
 
-  await db.update(stores).set(updateData).where(eq(stores.id, storeId));
+  try {
+    await db.update(stores).set(updateData).where(eq(stores.id, storeId));
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
+      return json({ error: 'subdomainAlreadyTaken' }, { status: 409 });
+    }
+    throw error;
+  }
+
+  // Keep tenant/store cache aligned after subdomain or settings updates.
+  const kvNamespace = context.cloudflare.env.STORE_CACHE;
+  if (kvNamespace) {
+    const kvCache = new KVCache(kvNamespace);
+    await Promise.all([
+      kvCache.delete(`${CACHE_KEYS.STORE_CONFIG}${storeId}`),
+      kvCache.delete(`${CACHE_KEYS.TENANT_SUBDOMAIN}${existingSubdomain}`),
+      kvCache.delete(`${CACHE_KEYS.TENANT_SUBDOMAIN}${requestedSubdomain}`),
+    ]);
+  }
+
+  if ('STORE_CONFIG_SERVICE' in context.cloudflare.env && context.cloudflare.env.STORE_CONFIG_SERVICE) {
+    await invalidateStoreConfig(
+      { STORE_CONFIG_SERVICE: context.cloudflare.env.STORE_CONFIG_SERVICE },
+      storeId
+    );
+  }
 
   // ========================================================================
   // AI AUTO-SYNC: Update Vector Database
@@ -742,10 +821,47 @@ export default function SettingsPage() {
               <p className="text-xs text-gray-500 mt-1">{t('storeLanguageDesc')}</p>
             </div>
 
-            {/* Read-only info */}
+            {/* Subdomain + Plan */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-              <InfoItem label={t('subdomainLabel')} value={`${store.subdomain}.ozzyl.com`} />
-              <InfoItem label={t('currentPlanLabel')} value={t(store.planType)} />
+              <div>
+                <label htmlFor="subdomain" className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('subdomainLabel')}
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    id="subdomain"
+                    name="subdomain"
+                    defaultValue={store.subdomain}
+                    minLength={SUBDOMAIN_MIN_LENGTH}
+                    maxLength={SUBDOMAIN_MAX_LENGTH}
+                    pattern="[a-z0-9-]+"
+                    required
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                  />
+                  <span className="text-sm text-gray-600 font-mono">.ozzyl.com</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">{t('subdomainHint')}</p>
+              </div>
+
+              <div>
+                <label htmlFor="planType" className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('currentPlanLabel')}
+                </label>
+                <select
+                  id="planType"
+                  name="planType"
+                  defaultValue={store.planType || 'free'}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
+                >
+                  <option value="free">{t('free')}</option>
+                  <option value="starter">{t('starter')}</option>
+                  <option value="premium">{t('premium')}</option>
+                  <option value="business">{t('business')}</option>
+                  <option value="custom">{t('custom')}</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">{t('planChangeHint')}</p>
+              </div>
             </div>
           </div>
         </GlassCard>
@@ -1030,15 +1146,6 @@ export default function SettingsPage() {
         storeName={store.name}
         dataCounts={dataCounts}
       />
-    </div>
-  );
-}
-
-function InfoItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className="font-medium text-gray-900">{value}</p>
     </div>
   );
 }
