@@ -5,18 +5,22 @@
 
 import type { SectionComponentProps, SectionSchema } from '~/lib/theme-engine/types';
 
-export default function Testimonials({ section, context }: SectionComponentProps) {
+export default function Testimonials({ section, context: _context }: SectionComponentProps) {
   const { settings, blocks = [] } = section;
 
   return (
     <section 
-      className="py-20"
+      className="py-20 relative overflow-hidden"
       style={{ backgroundColor: settings.bg_color as string || '#F9FAFB' }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Background decoration */}
+      <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-[var(--color-secondary)] opacity-5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-[var(--color-primary)] opacity-5 rounded-full blur-3xl"></div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl lg:text-4xl font-bold text-[var(--color-primary)] mb-4 font-heading">
             {settings.heading as string || 'What Our Clients Say'}
           </h2>
           {typeof settings.description === 'string' && settings.description && (
@@ -31,16 +35,16 @@ export default function Testimonials({ section, context }: SectionComponentProps
           {blocks.map((block, index) => (
             <div
               key={block.id || index}
-              className="bg-white rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow"
+              className="bg-white rounded-xl p-8 shadow-md hover:shadow-xl transition-all duration-300 border-b-4 border-transparent hover:border-[var(--color-secondary)] group"
             >
               {/* Rating Stars */}
-              <div className="flex items-center mb-4">
+              <div className="flex items-center mb-6">
                 {[...Array(5)].map((_, i) => (
                   <svg
                     key={i}
                     className={`w-5 h-5 ${
                       i < (block.settings.rating as number || 5)
-                        ? 'text-yellow-400'
+                        ? 'text-[var(--color-accent)]'
                         : 'text-gray-300'
                     }`}
                     fill="currentColor"
@@ -51,34 +55,40 @@ export default function Testimonials({ section, context }: SectionComponentProps
                 ))}
               </div>
 
+              {/* Quote Icon */}
+              <div className="mb-4 text-gray-200">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                   <path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H15.017C14.4647 8 14.017 8.44772 14.017 9V11C14.017 11.5523 13.5693 12 13.017 12H12.017V5H22.017V15C22.017 18.3137 19.3307 21 16.017 21H14.017ZM5.0166 21L5.0166 18C5.0166 16.8954 5.91203 16 7.0166 16H10.0166C10.5689 16 11.0166 15.5523 11.0166 15V9C11.0166 8.44772 10.5689 8 10.0166 8H6.0166C5.46432 8 5.0166 8.44772 5.0166 9V11C5.0166 11.5523 4.56889 12 4.0166 12H3.0166V5H13.0166V15C13.0166 18.3137 10.3303 21 7.0166 21H5.0166Z" />
+                </svg>
+              </div>
+
               {/* Testimonial Text */}
-              <blockquote className="text-gray-700 mb-6">
+              <blockquote className="text-gray-600 mb-6 italic text-lg leading-relaxed">
                 "{block.settings.text as string}"
               </blockquote>
 
               {/* Author */}
-              <div className="flex items-center">
-                  {typeof block.settings.avatar === 'string' && block.settings.avatar && (
+              <div className="flex items-center mt-auto pt-4 border-t border-gray-100">
+                  {typeof block.settings.avatar === 'string' && block.settings.avatar ? (
                     <img
                       src={block.settings.avatar}
                       alt={block.settings.name as string}
-                      className="w-12 h-12 rounded-full mr-4"
+                      className="w-12 h-12 rounded-full mr-4 border-2 border-white shadow-sm"
                     />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full mr-4 bg-[var(--color-primary)] text-white flex items-center justify-center font-bold text-lg">
+                      {(block.settings.name as string).charAt(0)}
+                    </div>
                   )}
                 <div>
-                  <div className="font-semibold text-gray-900">
+                  <div className="font-bold text-gray-900 group-hover:text-[var(--color-primary)] transition-colors">
                     {block.settings.name as string}
                   </div>
-                  {typeof block.settings.position === 'string' && block.settings.position && (
-                    <div className="text-sm text-gray-600">
-                      {block.settings.position}
+                  {(typeof block.settings.position === 'string' && block.settings.position) || (typeof block.settings.company === 'string' && block.settings.company) ? (
+                    <div className="text-sm text-[var(--color-secondary)] font-medium">
+                       {[block.settings.position, block.settings.company].filter(Boolean).join(', ')}
                     </div>
-                  )}
-                  {typeof block.settings.company === 'string' && block.settings.company && (
-                    <div className="text-sm text-gray-500">
-                      {block.settings.company}
-                    </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -141,13 +151,13 @@ export const schema: SectionSchema = {
           type: 'text',
           id: 'position',
           label: 'Position/Role',
-          default: 'CEO',
+          default: 'Student',
         },
         {
           type: 'text',
           id: 'company',
-          label: 'Company Name',
-          default: 'ABC Company',
+          label: 'University/Institution',
+          default: 'University of Sydney',
         },
         {
           type: 'image_picker',

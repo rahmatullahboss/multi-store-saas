@@ -2,12 +2,12 @@
   "name": "Professional Services",
   "version": "1.0.0",
   "colors": {
-    "primary": "#2563EB",
-    "secondary": "#7C3AED",
-    "accent": "#F59E0B",
+    "primary": "#002D72", 
+    "secondary": "#F15A29",
+    "accent": "#FDB913",
     "background": "#FFFFFF",
-    "foreground": "#1F2937",
-    "muted": "#6B7280",
+    "foreground": "#333333",
+    "muted": "#666666",
     "border": "#E5E7EB",
     "success": "#10B981",
     "error": "#EF4444"

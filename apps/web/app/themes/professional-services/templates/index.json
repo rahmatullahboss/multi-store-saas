@@ -1,13 +1,29 @@
 {
   "name": "Homepage",
+  "name_bn": "হোমপেজ",
   "sections": {
     "header": {
       "type": "header",
       "settings": {
-        "cta_text": "Get Started",
-        "cta_link": "#contact"
+        "cta_text": "Book Appointment",
+        "cta_link": "#contact",
+        "sticky_header": true
       },
       "blocks": [
+        {
+          "type": "nav_link",
+          "settings": {
+            "text": "Home",
+            "url": "/"
+          }
+        },
+        {
+          "type": "nav_link",
+          "settings": {
+            "text": "Study Destinations",
+            "url": "#destinations"
+          }
+        },
         {
           "type": "nav_link",
           "settings": {
@@ -18,8 +34,8 @@
         {
           "type": "nav_link",
           "settings": {
-            "text": "Testimonials",
-            "url": "#testimonials"
+            "text": "About Us",
+            "url": "#about"
           }
         },
         {
@@ -34,47 +50,123 @@
     "hero": {
       "type": "hero-with-form",
       "settings": {
-        "heading": "Grow Your Business with Expert Consulting",
-        "description": "We help businesses scale with proven strategies and personalized solutions",
-        "features": "Free consultation, Expert team, Proven results",
+        "heading": "Rely on Experts for Your Study Abroad Journey",
+        "badge_text": "Trusted by 150,000+ Students",
+        "description": "We help you discover your perfect study destination and guide you through every step of the process - from university selection to visa approval.",
+        "bg_image": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80",
+        "features": "Expert Counsellors, Visa Assistance, IELTS Preparation, Accommodation Support",
         "form_heading": "Get a Free Consultation",
-        "form_description": "Fill out the form and we'll contact you within 24 hours",
-        "submit_text": "Get Started",
-        "bg_color": "#F9FAFB"
+        "form_description": "Fill out the form below and our experts will contact you soon",
+        "submit_text": "Get Free Consultation"
       }
     },
-    "services": {
+    "stats": {
+      "type": "stats-counter",
+      "settings": {},
+      "blocks": [
+        {
+          "type": "stat",
+          "settings": {
+            "number": "150,000+",
+            "label": "Students Counselled"
+          }
+        },
+        {
+          "type": "stat",
+          "settings": {
+            "number": "22,000+",
+            "label": "Visa Success Stories"
+          }
+        },
+        {
+          "type": "stat",
+          "settings": {
+            "number": "50+",
+            "label": "Partner Universities"
+          }
+        },
+        {
+          "type": "stat",
+          "settings": {
+            "number": "15+",
+            "label": "Years Experience"
+          }
+        }
+      ]
+    },
+    "destinations": {
       "type": "services-grid",
       "settings": {
-        "heading": "Our Services",
-        "description": "Comprehensive solutions to help your business thrive",
+        "heading": "Discover Your Perfect Study Destination",
+        "description": "Choose from top global destinations for your higher education",
         "show_cta": true,
-        "cta_text": "Learn More",
-        "cta_link": "#contact"
+        "cta_text": "View All Destinations",
+        "cta_link": "#destinations"
       },
       "blocks": [
         {
           "type": "service",
           "settings": {
-            "title": "Business Consulting",
-            "description": "Strategic advice to optimize your operations and increase profitability",
-            "features": "Strategy planning, Process optimization, Performance analysis"
+            "title": "Study in Australia",
+            "description": "World-class education and lifestyle opportunities in Australia.",
+            "image": "https://images.unsplash.com/photo-1523482580672-01e6f283a04d?auto=format&fit=crop&w=800&q=80",
+            "features": "Post-study work rights, High quality of life, Top universities"
           }
         },
         {
           "type": "service",
           "settings": {
-            "title": "Digital Marketing",
-            "description": "Grow your online presence with data-driven marketing campaigns",
-            "features": "SEO optimization, Social media, Content marketing"
+            "title": "Study in Canada",
+            "description": "Excellent education system with welcoming immigration policies.",
+            "image": "https://images.unsplash.com/photo-1517935706615-2717063c2225?auto=format&fit=crop&w=800&q=80",
+            "features": "PR opportunities, Affordable capability, Multicultural society"
           }
         },
         {
           "type": "service",
           "settings": {
-            "title": "Technology Solutions",
-            "description": "Custom software and systems to streamline your business",
-            "features": "Web development, Mobile apps, Cloud solutions"
+            "title": "Study in UK",
+            "description": "Home to some of the world's oldest and most prestigious universities.",
+            "image": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80",
+            "features": "Short master's degrees, cultural heritage, global recognition"
+          }
+        },
+        {
+          "type": "service",
+          "settings": {
+            "title": "Study in USA",
+            "description": "The world's most popular study destination with diverse opportunities.",
+            "image": "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=800&q=80",
+            "features": "Academic flexibility, STEM opportunities, Campus life"
+          }
+        }
+      ]
+    },
+    "accreditations": {
+      "type": "accreditations",
+      "settings": {
+        "heading": "Membership, Certification & Accreditation"
+      },
+      "blocks": [
+        {
+          "type": "logo",
+          "settings": {
+             "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/British_Council_Logo.svg/1200px-British_Council_Logo.svg.png",
+             "alt": "British Council"
+          }
+        },
+         {
+          "type": "logo",
+          "settings": {
+             "image": "https://www.idp.com/medias/idp-logo-new.svg?context=bWFzdGVyfGltYWdlc3w0NjI2fGltYWdlL3N2Zyt4bWx8aW1hZ2VzL2hjZS9oMzgvMTAwNjYzMDQ0NzEwNzAuc3ZnfDU2MDQ3YjQ2YjE5YjQ4YjE4YjE4YjE4YjE4YjE4YjE4YjE4YjE4YjE4YjE4YjE4YjE4YjE4YjE4YjE4YjE4",
+             "alt": "IDP"
+          }
+        },
+        {
+          "type": "logo",
+          "settings": {
+             "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Pearson_logo.svg/2560px-Pearson_logo.svg.png",
+             "alt": "Pearson"
           }
         }
       ]
@@ -82,39 +174,39 @@
     "testimonials": {
       "type": "testimonials",
       "settings": {
-        "heading": "What Our Clients Say",
-        "description": "Don't just take our word for it - hear from our satisfied clients",
+        "heading": "Student Success Stories",
+        "description": "Hear from students who have successfully reached their dream destinations",
         "bg_color": "#F9FAFB"
       },
       "blocks": [
         {
           "type": "testimonial",
           "settings": {
-            "text": "Working with this team transformed our business. Revenue increased by 150% in just 6 months!",
+            "text": "Expert Education guided me through the entire visa process. I couldn't have done it without them!",
             "rating": 5,
-            "name": "Sarah Ahmed",
-            "position": "CEO",
-            "company": "Tech Solutions Ltd"
+            "name": "Tanvir Ahmed",
+            "position": "Student",
+            "company": "University of Sydney"
           }
         },
         {
           "type": "testimonial",
           "settings": {
-            "text": "Professional, knowledgeable, and results-driven. Highly recommend their services!",
+            "text": "The counselors are very knowledgeable and supportive. Highly recommended for Canada aspirants.",
             "rating": 5,
-            "name": "Kamal Rahman",
-            "position": "Founder",
-            "company": "Digital Ventures"
+            "name": "Nusrat Jahan",
+            "position": "Student",
+            "company": "Seneca College"
           }
         },
         {
           "type": "testimonial",
           "settings": {
-            "text": "The best investment we made for our company. Their expertise is unmatched.",
+            "text": "They helped me choose the right course and university. Support was excellent throughout.",
             "rating": 5,
-            "name": "Nadia Khan",
-            "position": "Managing Director",
-            "company": "Global Traders"
+            "name": "Rahim Uddin",
+            "position": "Student",
+            "company": "Coventry University"
           }
         }
       ]
@@ -122,25 +214,25 @@
     "contact_cta": {
       "type": "contact-cta",
       "settings": {
-        "heading": "Ready to Transform Your Business?",
-        "description": "Let's discuss how we can help you achieve your goals",
-        "gradient_from": "#2563EB",
-        "gradient_to": "#7C3AED",
-        "primary_text": "Get Free Consultation",
+        "heading": "Ready to Start Your Journey?",
+        "description": "Book a free consultation with our expert counsellors today.",
+        "gradient_from": "#002D72",
+        "gradient_to": "#002D72",
+        "primary_text": "Book Appointment",
         "primary_link": "#hero",
         "show_secondary": true,
         "secondary_text": "Call Us Now",
         "secondary_link": "tel:+8801234567890",
         "show_contact_info": true,
         "phone": "+880 1234-567890",
-        "email": "hello@yourbusiness.com",
-        "address": "Dhaka, Bangladesh"
+        "email": "info@experteducation.com.bd",
+        "address": "Gulshan 1, Dhaka, Bangladesh"
       }
     },
     "footer": {
       "type": "footer",
       "settings": {
-        "description": "Your trusted partner for business growth and digital transformation",
+        "description": "Expert Education is a trusted study abroad consultant in Bangladesh offering university admission, student visa help, IELTS & PTE prep and accommodation support.",
         "show_social": true,
         "facebook_url": "https://facebook.com",
         "linkedin_url": "https://linkedin.com"
@@ -149,19 +241,26 @@
         {
           "type": "link_column",
           "settings": {
-            "heading": "Company",
-            "links": "About Us | /about\nServices | #services\nTestimonials | #testimonials\nContact | #contact"
+            "heading": "Study Destinations",
+            "links": "Study in Australia | #\nStudy in Canada | #\nStudy in UK | #\nStudy in USA | #"
           }
         },
         {
           "type": "link_column",
           "settings": {
-            "heading": "Legal",
-            "links": "Privacy Policy | /privacy\nTerms of Service | /terms"
+            "heading": "Student Services",
+            "links": "Coaching | #\nVisa Application | #\nHealth Cover | #\nAccommodation | #"
+          }
+        },
+         {
+          "type": "link_column",
+          "settings": {
+            "heading": "Quick Links",
+            "links": "About Us | #\nContact Us | #\nEvents | #\nSuccess Stories | #"
           }
         }
       ]
     }
   },
-  "order": ["header", "hero", "services", "testimonials", "contact_cta", "footer"]
+  "order": ["header", "hero", "stats", "destinations", "testimonials", "accreditations", "contact_cta", "footer"]
 }

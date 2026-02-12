@@ -29,7 +29,7 @@ import {
   type LeadGenSettingsWithTheme,
 } from '~/services/lead-gen-settings.server';
 import { getAvailableLeadGenThemes } from '~/config/lead-gen-theme-settings';
-import { Palette, Type, Image as ImageIcon, Settings, CheckCircle, Loader2, Eye, Save } from 'lucide-react';
+import { Palette, Type, Image as ImageIcon, Settings, CheckCircle, Loader2, Eye, Save, ArrowLeft, Megaphone, Globe } from 'lucide-react';
 
 // ============================================================================
 // LOADER - Fetch current settings
@@ -158,49 +158,69 @@ export default function LeadGenSettingsPage() {
   const isSubmitting = navigation.state === 'submitting';
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Lead Generation Settings</h1>
-            <p className="text-gray-600 mt-1">Customize your lead capture website</p>
-          </div>
-          <div className="flex gap-3">
-            <Link
-              to={`https://${previewUrl}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              <Eye className="w-4 h-4" />
-              Preview
-            </Link>
-          </div>
+      <div className="flex items-center gap-3">
+        <Link 
+          to="/app/settings" 
+          className="p-2 hover:bg-gray-100 rounded-lg transition"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Megaphone className="w-6 h-6 text-violet-600" />
+            Lead Generation Settings
+          </h1>
+          <p className="text-gray-500 mt-1">Customize your lead capture website</p>
         </div>
       </div>
 
       {/* Success Message */}
       {actionData?.success && 'message' in actionData && (
-        <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-          <CheckCircle className="w-5 h-5 text-green-600" />
-          <span className="text-green-800 font-medium">{actionData.message}</span>
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
+          <CheckCircle className="w-5 h-5" />
+          {actionData.message}
         </div>
       )}
 
       {/* Error Message */}
       {actionData?.success === false && 'error' in actionData && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-          <span className="text-red-800">{actionData.error}</span>
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+          {actionData.error}
         </div>
       )}
+
+      {/* Preview Link */}
+      <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-xl border border-violet-200 p-5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
+              <Globe className="w-5 h-5 text-violet-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-violet-900">Your Lead Gen Website</h3>
+              <p className="text-sm text-violet-700">https://{previewUrl}</p>
+            </div>
+          </div>
+          <Link
+            to={`https://${previewUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition font-medium"
+          >
+            <Eye className="w-4 h-4" />
+            Preview Live
+          </Link>
+        </div>
+      </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Sidebar - Theme Selector */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white rounded-lg border shadow-sm p-6">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-              <Palette className="w-5 h-5" />
+              <Palette className="w-5 h-5 text-violet-600" />
               Select Theme
             </h2>
             <Form method="post">
@@ -223,7 +243,7 @@ export default function LeadGenSettingsPage() {
                       }}
                       className="sr-only peer"
                     />
-                    <div className="p-4 border-2 rounded-lg peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:border-gray-400">
+                    <div className="p-4 border-2 rounded-xl transition peer-checked:border-violet-500 peer-checked:bg-violet-50 hover:border-gray-300">
                       <div className="font-medium text-gray-900">{theme.name}</div>
                       <div className="text-sm text-gray-600 mt-1">{theme.description}</div>
                     </div>
@@ -240,13 +260,17 @@ export default function LeadGenSettingsPage() {
             <input type="hidden" name="_action" value="save_settings" />
 
             {/* Identity Section */}
-            <div className="bg-white rounded-lg border shadow-sm p-6">
-              <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                <Settings className="w-5 h-5" />
-                Business Identity
-              </h2>
-              
-              <div className="space-y-4">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                <div className="bg-blue-100 p-2 rounded-lg text-blue-600">
+                  <Settings className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Business Identity</h3>
+                  <p className="text-sm text-gray-500">Your business name and branding</p>
+                </div>
+              </div>
+              <div className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Business Name
@@ -255,7 +279,7 @@ export default function LeadGenSettingsPage() {
                     type="text"
                     name="storeName"
                     defaultValue={currentSettings.storeName}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
                   />
                 </div>
 
@@ -268,7 +292,7 @@ export default function LeadGenSettingsPage() {
                     name="logo"
                     defaultValue={currentSettings.logo || ''}
                     placeholder="https://example.com/logo.png"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
                   />
                   <p className="text-xs text-gray-500 mt-1">Upload to R2 and paste URL here</p>
                 </div>
@@ -276,13 +300,17 @@ export default function LeadGenSettingsPage() {
             </div>
 
             {/* Colors Section */}
-            <div className="bg-white rounded-lg border shadow-sm p-6">
-              <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                <Palette className="w-5 h-5" />
-                Brand Colors
-              </h2>
-              
-              <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-purple-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                <div className="bg-purple-100 p-2 rounded-lg text-purple-600">
+                  <Palette className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Brand Colors</h3>
+                  <p className="text-sm text-gray-500">Customize your color scheme</p>
+                </div>
+              </div>
+              <div className="p-6 grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Primary Color
@@ -326,13 +354,17 @@ export default function LeadGenSettingsPage() {
             </div>
 
             {/* Content Section */}
-            <div className="bg-white rounded-lg border shadow-sm p-6">
-              <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                <Type className="w-5 h-5" />
-                Hero Content
-              </h2>
-              
-              <div className="space-y-4">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-indigo-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                <div className="bg-indigo-100 p-2 rounded-lg text-indigo-600">
+                  <Type className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Hero Content</h3>
+                  <p className="text-sm text-gray-500">Main headline and description</p>
+                </div>
+              </div>
+              <div className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Main Heading
@@ -341,7 +373,7 @@ export default function LeadGenSettingsPage() {
                     type="text"
                     name="heroHeading"
                     defaultValue={currentSettings.heroHeading}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
                   />
                 </div>
 
@@ -353,7 +385,7 @@ export default function LeadGenSettingsPage() {
                     name="heroDescription"
                     rows={3}
                     defaultValue={currentSettings.heroDescription}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
                   />
                 </div>
 
@@ -365,37 +397,39 @@ export default function LeadGenSettingsPage() {
                     type="text"
                     name="ctaButtonText"
                     defaultValue={currentSettings.ctaButtonText}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
                   />
                 </div>
               </div>
             </div>
 
             {/* Announcement Banner */}
-            <div className="bg-white rounded-lg border shadow-sm p-6">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
               <label className="flex items-center gap-2 mb-3">
                 <input
                   type="checkbox"
                   name="showAnnouncement"
                   defaultChecked={currentSettings.showAnnouncement}
-                  className="w-4 h-4 text-blue-600 rounded"
+                  className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
                 />
-                <span className="font-semibold">Show Announcement Banner</span>
+                <span className="font-semibold text-gray-900">Show Announcement Banner</span>
               </label>
               <input
                 type="text"
                 name="announcementText"
                 defaultValue={currentSettings.announcementText || ''}
                 placeholder="e.g., Free consultation for new clients - Limited time offer"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
               />
             </div>
 
             {/* Contact Information */}
-            <div className="bg-white rounded-lg border shadow-sm p-6">
-              <h2 className="font-semibold text-lg mb-4">Contact Information</h2>
-              
-              <div className="space-y-4">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-green-50/50 px-6 py-4 border-b border-gray-100">
+                <h3 className="font-bold text-gray-900">Contact Information</h3>
+                <p className="text-sm text-gray-500">How customers can reach you</p>
+              </div>
+              <div className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Phone Number
@@ -405,7 +439,7 @@ export default function LeadGenSettingsPage() {
                     name="phone"
                     defaultValue={currentSettings.phone || ''}
                     placeholder="+880 1234-567890"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
                   />
                 </div>
 
@@ -418,7 +452,7 @@ export default function LeadGenSettingsPage() {
                     name="email"
                     defaultValue={currentSettings.email || ''}
                     placeholder="hello@example.com"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
                   />
                 </div>
 
@@ -431,15 +465,15 @@ export default function LeadGenSettingsPage() {
                     name="address"
                     defaultValue={currentSettings.address || ''}
                     placeholder="Dhaka, Bangladesh"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
                   />
                 </div>
               </div>
             </div>
 
             {/* Section Toggles */}
-            <div className="bg-white rounded-lg border shadow-sm p-6">
-              <h2 className="font-semibold text-lg mb-4">Sections</h2>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <h2 className="font-semibold text-lg mb-4 text-gray-900">Page Sections</h2>
               
               <div className="space-y-3">
                 <label className="flex items-center gap-2">
@@ -447,9 +481,9 @@ export default function LeadGenSettingsPage() {
                     type="checkbox"
                     name="showServices"
                     defaultChecked={currentSettings.showServices}
-                    className="w-4 h-4 text-blue-600 rounded"
+                    className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
                   />
-                  <span>Show Services Section</span>
+                  <span className="text-gray-700">Show Services Section</span>
                 </label>
 
                 <label className="flex items-center gap-2">
@@ -457,9 +491,9 @@ export default function LeadGenSettingsPage() {
                     type="checkbox"
                     name="showTestimonials"
                     defaultChecked={currentSettings.showTestimonials}
-                    className="w-4 h-4 text-blue-600 rounded"
+                    className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
                   />
-                  <span>Show Testimonials Section</span>
+                  <span className="text-gray-700">Show Testimonials Section</span>
                 </label>
               </div>
             </div>
@@ -468,7 +502,7 @@ export default function LeadGenSettingsPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold rounded-lg hover:from-violet-700 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
             >
               {isSubmitting ? (
                 <>
@@ -478,7 +512,7 @@ export default function LeadGenSettingsPage() {
               ) : (
                 <>
                   <Save className="w-5 h-5" />
-                  Save Changes
+                  Save Settings
                 </>
               )}
             </button>
