@@ -46,6 +46,7 @@ import {
   getStoreTemplate,
   getStoreTemplateTheme,
   DEFAULT_STORE_TEMPLATE_ID,
+  resolveStoreTemplateId,
   type SerializedProduct,
 } from '~/templates/store-registry';
 import { getMVPSettings } from '~/services/mvp-settings.server';
@@ -573,7 +574,10 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
     // ========== MVP TEMPLATE RESOLUTION ==========
     // Get theme ID from store themeConfig
     const storeThemeConfig = parseJsonSafe<ThemeConfig>(validatedStore.themeConfig);
-    const storeTemplateId = storeThemeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
+    const storeTemplateId = resolveStoreTemplateId(
+      (storeThemeConfig as unknown as Record<string, unknown> | null | undefined) ?? null,
+      (validatedStore.theme as string) || null
+    );
 
     // Fetch category data from collections first (includes image_url).
     const collectionsQuery = db

@@ -22,6 +22,10 @@ import { STORE_TEMPLATES, MVP_STORE_TEMPLATES } from '~/templates/store-registry
 import { type ThemeConfig } from '@db/types';
 import { installThemePreset, installCustomThemePreset, convertPresetToConfig } from '~/lib/theme-seeding.server';
 import { getThemePreset, createPresetFromStoreTemplate } from '~/lib/theme-presets';
+import { D1Cache } from '~/services/cache-layer.server';
+import { createDb } from '~/lib/db.server';
+import { KVCache, CACHE_KEYS } from '~/services/kv-cache.server';
+import { invalidateStoreConfig } from '~/services/store-config-do.server';
 
 export const meta: MetaFunction = () => [{ title: 'Theme Store - Ozzyl' }];
 
@@ -125,6 +129,44 @@ export async function action({ request, context }: ActionFunctionArgs) {
   } catch (err) {
     console.error('Theme seeding failed:', err);
     // Non-blocking error, allow redirection to proceed
+  }
+
+  // Keep storefront pages in sync (home/product/category) after theme switch.
+  try {
+    const storeResult = await db
+      .select({ subdomain: stores.subdomain, customDomain: stores.customDomain })
+      .from(stores)
+      .where(eq(stores.id, storeId))
+      .limit(1);
+    const currentStore = storeResult[0];
+
+    const tasks: Array<Promise<unknown>> = [];
+    const d1Cache = new D1Cache(createDb(context.cloudflare.env.DB));
+    tasks.push(d1Cache.delete(`store:${storeId}:config`));
+    tasks.push(d1Cache.invalidatePattern(`store:${storeId}:`));
+
+    if (context.cloudflare.env.STORE_CACHE && currentStore?.subdomain) {
+      const kvCache = new KVCache(context.cloudflare.env.STORE_CACHE);
+      tasks.push(kvCache.delete(`${CACHE_KEYS.TENANT_SUBDOMAIN}${currentStore.subdomain}`));
+      tasks.push(kvCache.delete(`${CACHE_KEYS.STORE_CONFIG}${storeId}`));
+      if (currentStore.customDomain) {
+        tasks.push(kvCache.delete(`${CACHE_KEYS.TENANT_DOMAIN}${currentStore.customDomain}`));
+      }
+    }
+
+    if (context.cloudflare.env.STORE_CONFIG_SERVICE) {
+      tasks.push(
+        invalidateStoreConfig(
+          { STORE_CONFIG_SERVICE: context.cloudflare.env.STORE_CONFIG_SERVICE },
+          storeId
+        )
+      );
+    }
+
+    await Promise.allSettled(tasks);
+  } catch (cacheError) {
+    console.warn('Theme switch cache invalidation failed:', cacheError);
+    // Non-blocking; do not fail merchant action
   }
 
   return redirect('/app/store-design');
