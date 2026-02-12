@@ -9,11 +9,14 @@ import { useLoaderData, Link, Form } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { leadSubmissions } from '@db/schema';
 import { eq, desc, and, sql, gte } from 'drizzle-orm';
-import { requireStoreAccess } from '~/services/auth.server';
+import { getStoreId } from '~/services/auth.server';
 import { Download, Mail, Phone, Calendar, Filter, TrendingUp, Users, CheckCircle, XCircle } from 'lucide-react';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const { storeId } = await requireStoreAccess(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env);
+  if (!storeId) {
+    throw new Response('Unauthorized', { status: 401 });
+  }
   const db = drizzle(context.cloudflare.env.DB);
   const url = new URL(request.url);
 
