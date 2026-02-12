@@ -639,6 +639,22 @@ function PreviewHomePage({
   const heroSubheading =
     heroSlide?.subheading || 'Discover a world of timeless style and uncompromising quality.';
   const heroCta = heroSlide?.ctaText || 'Shop Collection';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const whyChooseSection = (Array.isArray(config?.sections) ? config.sections : []).find((s: any) =>
+    s?.type === 'features' || s?.type === 'modern-features'
+  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const whyChooseFeatures = (Array.isArray(whyChooseSection?.settings?.features)
+    ? whyChooseSection.settings.features
+    : [
+        { icon: '✨', title: 'Premium Quality', description: 'Carefully curated luxury selection.' },
+        { icon: '⚡', title: 'Fast Delivery', description: 'Quick and reliable nationwide shipping.' },
+        { icon: '💬', title: '24/7 Support', description: 'Dedicated support whenever you need us.' },
+      ]) as any[];
+  const whyChooseHeading = String(whyChooseSection?.settings?.heading || 'Why Choose Us');
+  const whyChooseSubheading = String(
+    whyChooseSection?.settings?.subheading || 'A premium experience from order to delivery.'
+  );
 
   useEffect(() => {
     if (!heroBehavior.isCarousel || !heroBehavior.autoplay) return;
@@ -724,6 +740,31 @@ function PreviewHomePage({
             >
               View All Products
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us */}
+      <section className="py-16 md:py-24 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-serif mb-3" style={{ color: theme.text }}>
+              {whyChooseHeading}
+            </h2>
+            <p className="text-sm md:text-base text-[#6b6b6b]">{whyChooseSubheading}</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {whyChooseFeatures.slice(0, 3).map((feature, index) => (
+              <div key={`${feature?.title || 'feature'}-${index}`} className="p-8 border border-[#ece7de] bg-[#faf9f7] text-center">
+                <div className="text-2xl mb-3">{feature?.icon || '✨'}</div>
+                <h3 className="text-lg font-medium mb-2" style={{ color: theme.text }}>
+                  {feature?.title || 'Premium Experience'}
+                </h3>
+                <p className="text-sm text-[#6b6b6b]">
+                  {feature?.description || 'Built for quality, speed, and trust.'}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -871,12 +912,33 @@ function LiveLuxeBoutiqueHomepage({
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const heroBehavior = getHeroBehavior(config);
+  const [heroIndex, setHeroIndex] = useState(0);
 
   // const { t } = useTranslation();
   const count = useCartCount();
 
   // Filter valid categories
   const validCategories = categories.filter((c): c is string => Boolean(c));
+
+  useEffect(() => {
+    if (!heroBehavior.isCarousel || !heroBehavior.autoplay) return;
+    const timer = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % heroBehavior.slides.length);
+    }, heroBehavior.delayMs);
+    return () => clearInterval(timer);
+  }, [
+    heroBehavior.autoplay,
+    heroBehavior.delayMs,
+    heroBehavior.isCarousel,
+    heroBehavior.slides.length,
+  ]);
+
+  useEffect(() => {
+    if (heroIndex >= heroBehavior.slides.length) {
+      setHeroIndex(0);
+    }
+  }, [heroBehavior.slides.length, heroIndex]);
 
   return (
     <StoreConfigProvider config={config}>
@@ -937,9 +999,18 @@ function LiveLuxeBoutiqueHomepage({
                     return acc;
                   }
 
+                  const hasWhyChoose = acc.some(
+                    (item) => item.type === 'features' || item.type === 'modern-features'
+                  );
+                  const isWhyChooseType =
+                    section.type === 'features' || section.type === 'modern-features';
+                  if (isWhyChooseType && hasWhyChoose) {
+                    return acc;
+                  }
+
                   // Force Why Choose Us section to use a light visual treatment.
                   const isWhyChooseSection =
-                    (section.type === 'features' || section.type === 'modern-features') &&
+                    isWhyChooseType &&
                     heading.includes('why choose');
 
                   if (isWhyChooseSection) {
@@ -961,11 +1032,32 @@ function LiveLuxeBoutiqueHomepage({
                 .map((section: any) => {
                   const SectionComponent = SECTION_REGISTRY[section.type]?.component;
                   if (!SectionComponent) return null;
+                  const isHeroSection = section.type === 'hero' || section.type === 'modern-hero';
+                  const heroSlide = heroBehavior.slides[heroIndex];
+                  const shouldApplyHeroSlide = isHeroSection && Boolean(heroSlide?.imageUrl);
+                  const sectionSettings = shouldApplyHeroSlide
+                    ? {
+                        ...section.settings,
+                        image: heroSlide.imageUrl,
+                        heading: heroSlide.heading || section.settings?.heading || config?.bannerText,
+                        subheading: heroSlide.subheading || section.settings?.subheading,
+                        primaryAction: heroSlide.ctaText
+                          ? {
+                              ...(section.settings?.primaryAction || {}),
+                              label: heroSlide.ctaText,
+                              url:
+                                heroSlide.ctaLink ||
+                                section.settings?.primaryAction?.url ||
+                                '/products',
+                            }
+                          : section.settings?.primaryAction,
+                      }
+                    : section.settings;
 
                   return (
                     <SectionComponent
                       key={section.id}
-                      settings={section.settings}
+                      settings={sectionSettings}
                       theme={LUXE_BOUTIQUE_THEME}
                       products={products}
                       categories={categories}

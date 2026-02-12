@@ -58,6 +58,11 @@ interface LiveConfig {
   fontFamily?: string;
   bannerUrl?: string;
   bannerText?: string;
+  heroMode?: ThemeConfig['heroMode'];
+  heroSlides?: ThemeConfig['heroSlides'];
+  heroAutoplay?: boolean;
+  heroDelayMs?: number;
+  heroOverlayOpacity?: number;
   announcement?: { text: string; link?: string };
   customCSS?: string;
   storeTemplateId?: string;
@@ -756,6 +761,11 @@ function StorePreviewContent({ data }: { data: StorePreviewData }) {
     fontFamily: data.fontFamily,
     bannerUrl: data.themeConfig.bannerUrl,
     bannerText: data.themeConfig.bannerText,
+    heroMode: data.themeConfig.heroMode,
+    heroSlides: data.themeConfig.heroSlides,
+    heroAutoplay: data.themeConfig.heroAutoplay,
+    heroDelayMs: data.themeConfig.heroDelayMs,
+    heroOverlayOpacity: data.themeConfig.heroOverlayOpacity,
     announcement: data.themeConfig.announcement,
     customCSS: data.themeConfig.customCSS,
     storeTemplateId: data.themeConfig.storeTemplateId,
@@ -829,6 +839,11 @@ function StorePreviewContent({ data }: { data: StorePreviewData }) {
     typography: liveConfig.typography || data.themeConfig.typography,
     bannerUrl: liveConfig.bannerUrl ?? data.themeConfig.bannerUrl,
     bannerText: liveConfig.bannerText ?? data.themeConfig.bannerText,
+    heroMode: liveConfig.heroMode ?? data.themeConfig.heroMode,
+    heroSlides: liveConfig.heroSlides ?? data.themeConfig.heroSlides,
+    heroAutoplay: liveConfig.heroAutoplay ?? data.themeConfig.heroAutoplay,
+    heroDelayMs: liveConfig.heroDelayMs ?? data.themeConfig.heroDelayMs,
+    heroOverlayOpacity: liveConfig.heroOverlayOpacity ?? data.themeConfig.heroOverlayOpacity,
     announcement:
       liveConfig.announcement ||
       (data.themeConfig.announcement

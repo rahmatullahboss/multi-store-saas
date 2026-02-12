@@ -5,6 +5,12 @@
   - collection-list  -> category-list
   - trust-badges     -> features
   - hero field mapping (headline/subheadline/backgroundImage -> heading/subheading/image)
+  - luxe-boutique dedupe for duplicate hero / Why Choose Us sections
+
+  Usage:
+    node scripts/migrate-legacy-themeconfig.js              # dry-run (default)
+    node scripts/migrate-legacy-themeconfig.js --apply      # apply updates
+    node scripts/migrate-legacy-themeconfig.js --apply --db your-d1-name
 */
 
 const { execSync } = require('child_process');
@@ -13,6 +19,11 @@ const path = require('path');
 
 const ROOT = '/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas';
 const WRANGLER_CWD = `${ROOT}/apps/web`;
+const argv = process.argv.slice(2);
+const isApply = argv.includes('--apply');
+const dbFlagIndex = argv.indexOf('--db');
+const DB_NAME =
+  (dbFlagIndex >= 0 && argv[dbFlagIndex + 1]) || process.env.D1_DB_NAME || 'multi-store-saas-db';
 
 function run(cmd) {
   const env = {
@@ -104,6 +115,37 @@ function normalizeLegacySections(sections) {
   });
 }
 
+function dedupeLuxeSections(themeConfig) {
+  const templateId = String(themeConfig?.storeTemplateId || '').toLowerCase();
+  if (templateId !== 'luxe-boutique') return themeConfig;
+  if (!Array.isArray(themeConfig.sections)) return themeConfig;
+
+  const seen = new Set();
+  const nextSections = [];
+
+  for (const section of themeConfig.sections) {
+    if (!section || typeof section !== 'object') continue;
+    const type = String(section.type || '').toLowerCase();
+    const heading = String(section?.settings?.heading || '').toLowerCase().trim();
+
+    let dedupeKey = '';
+    if (type === 'hero' || type === 'modern-hero') dedupeKey = 'hero';
+
+    const isWhyChooseType = type === 'features' || type === 'modern-features';
+    const isWhyChooseHeading = heading.includes('why choose') || heading.includes('why shop');
+    if (isWhyChooseType && isWhyChooseHeading) dedupeKey = 'why-choose';
+
+    if (dedupeKey) {
+      if (seen.has(dedupeKey)) continue;
+      seen.add(dedupeKey);
+    }
+
+    nextSections.push(section);
+  }
+
+  return { ...themeConfig, sections: nextSections };
+}
+
 function escapeSqlString(value) {
   return value.replace(/'/g, "''");
 }
@@ -134,7 +176,7 @@ function parseThemeConfig(raw) {
 }
 
 function main() {
-  const selectCmd = `npx wrangler d1 execute multi-store-saas-db --remote --json --command "SELECT id, name, theme_config FROM stores WHERE theme_config IS NOT NULL;"`;
+  const selectCmd = `npx wrangler d1 execute ${DB_NAME} --remote --json --command "SELECT id, name, theme_config FROM stores WHERE theme_config IS NOT NULL;"`;
   const raw = run(selectCmd);
   const data = JSON.parse(raw);
   const rows = (data && data[0] && data[0].results) || [];
@@ -165,7 +207,8 @@ function main() {
     const { value: themeConfig, wasInvalid } = parsed;
 
     const sections = normalizeLegacySections(themeConfig.sections || []);
-    const next = { ...themeConfig, sections };
+    const normalized = { ...themeConfig, sections };
+    const next = dedupeLuxeSections(normalized);
     const before = JSON.stringify(themeConfig);
     const after = JSON.stringify(next);
 
@@ -176,11 +219,17 @@ function main() {
     }
 
     try {
+      if (!isApply) {
+        changed++;
+        report.push({ storeId, storeName, status: 'would_update' });
+        continue;
+      }
+
       const escaped = escapeSqlString(after);
       const sql = `UPDATE stores SET theme_config='${escaped}' WHERE id=${storeId};`;
       const tmpFile = path.join('/tmp', `themeconfig_update_${storeId}.sql`);
       fs.writeFileSync(tmpFile, sql);
-      const updateCmd = `npx wrangler d1 execute multi-store-saas-db --remote --file "${tmpFile}"`;
+      const updateCmd = `npx wrangler d1 execute ${DB_NAME} --remote --file "${tmpFile}"`;
       run(updateCmd);
       changed++;
       report.push({ storeId, storeName, status: 'updated' });
@@ -191,7 +240,7 @@ function main() {
   }
 
   const summary = { total: rows.length, changed, skipped, errors };
-  console.log(JSON.stringify({ summary, report }, null, 2));
+  console.log(JSON.stringify({ mode: isApply ? 'apply' : 'dry-run', db: DB_NAME, summary, report }, null, 2));
 }
 
 main();
