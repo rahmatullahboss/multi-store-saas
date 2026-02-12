@@ -47,10 +47,10 @@ export default function ProfessionalHeader({ section, context }: SectionComponen
             {(section.blocks || []).map((block, index) => (
               <a
                 key={index}
-                href={block.settings.url}
+                href={String(block.settings.url || '#')}
                 className="text-[var(--color-foreground)] hover:text-[var(--color-secondary)] font-medium text-sm transition-colors uppercase tracking-wide"
               >
-                {block.settings.text}
+                {String(block.settings.text || 'Link')}
               </a>
             ))}
           </nav>

@@ -372,10 +372,10 @@ function ConsultingFirmRenderer({
   storeId: number;
 }) {
   const metrics = [
-    { value: '150,000+', label: 'Students Assisted' },
-    { value: '22,000+', label: 'Scholarships Approved' },
-    { value: '40,000+', label: 'IELTS/PTE Enrolled' },
-    { value: '95%', label: 'Visa Success Rate' },
+    { value: '150,000+', label: 'Students Counselled' },
+    { value: '22,000+', label: 'Visa Success Stories' },
+    { value: '50+', label: 'Partner Universities' },
+    { value: '15+', label: 'Years Experience' },
   ];
 
   const destinationCards = [
@@ -384,57 +384,57 @@ function ConsultingFirmRenderer({
       description: 'High visa success, work opportunities, and globally ranked universities.',
     },
     {
+      title: 'Canada',
+      description: 'Excellent education system with welcoming immigration policies.',
+    },
+    {
       title: 'United Kingdom',
-      description: 'Shorter degree duration and strong academic pathways for Bangladeshi students.',
+      description: 'Home to some of the world\'s oldest and most prestigious universities.',
     },
     {
-      title: 'Malaysia',
-      description: 'Affordable tuition, smooth visa process, and quality education outcomes.',
-    },
-    {
-      title: 'New Zealand',
-      description: 'Safe student environment with practical post-study work options.',
+      title: 'USA',
+      description: 'The world\'s most popular study destination with diverse opportunities.',
     },
   ];
 
   const serviceCards = [
     {
-      title: 'Visa Consultation',
-      description: 'Country-specific visa guidance with compliant documentation strategy.',
+      title: 'Coaching',
+      description: 'IELTS and PTE preparation with experienced trainers and structured modules.',
     },
     {
-      title: 'Admission Support',
-      description: 'Application building, SOP review, and university shortlisting support.',
+      title: 'Visa Application',
+      description: 'End-to-end support for application, documents, SOP, and interview preparation.',
     },
     {
-      title: 'Travel & Stay',
-      description: 'Accommodation and pre-departure checklist for a safer arrival.',
+      title: 'Accommodation Support',
+      description: 'Pre-departure planning and accommodation support for safer student transition.',
     },
   ];
 
   const testimonials = [
     {
       name: 'Farhan Ahmed',
-      role: 'A-Level Student',
-      text: 'I received honest guidance on university selection based on my grades and budget.',
-    },
-    {
-      name: 'Mahmud Hasan',
-      role: 'Chittagong',
-      text: 'From SOP to visa filing, every step was handled professionally and clearly.',
+      role: 'University of Sydney',
+      text: 'Expert Education guided me through the entire visa process. I could not have done it without them.',
     },
     {
       name: 'Nusrat Jahan',
-      role: 'Dhaka',
-      text: 'They explained the full process to my family and helped us feel confident.',
+      role: 'Seneca College',
+      text: 'The counsellors are knowledgeable and supportive. Highly recommended for Canada aspirants.',
+    },
+    {
+      name: 'Rahim Uddin',
+      role: 'Coventry University',
+      text: 'They helped me choose the right course and university. Support was excellent throughout.',
     },
   ];
 
   const accreditations = [
-    'National ELT Accreditation',
-    'International Student Education Agents Association',
-    "Australian Education Consultants' Alliance",
-    'Global Education Compliance Network',
+    'British Council',
+    'IDP',
+    'Pearson',
+    'Global Education Partners',
   ];
 
   const primaryRgb = hexToRgb(settings.primaryColor);
@@ -500,10 +500,10 @@ function ConsultingFirmRenderer({
               Study Abroad Consultancy
             </p>
             <h1 className="mb-6 text-4xl font-bold leading-tight text-slate-900 sm:text-5xl lg:text-6xl">
-              The Best Study Abroad Consultant in Bangladesh You Can Trust
+              Rely on Experts for Your Study Abroad Journey
             </h1>
             <p className="max-w-2xl text-lg text-slate-600">
-              Turn your dream of studying abroad into a realistic, step-by-step plan with local expert support.
+              We help you discover your perfect study destination and guide you through every step from university selection to visa approval.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-4">
@@ -512,10 +512,10 @@ function ConsultingFirmRenderer({
                 className="rounded-xl px-6 py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
                 style={{ backgroundColor: settings.primaryColor }}
               >
-                Book Free Consultation
+                {settings.ctaButtonText || 'Get Free Consultation'}
               </a>
               <a
-                href="#results"
+                href="#destinations"
                 className="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
               >
                 Explore Destinations
@@ -537,9 +537,9 @@ function ConsultingFirmRenderer({
             className="rounded-3xl border border-slate-200 bg-white p-6 text-gray-900 shadow-xl sm:p-8"
           >
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Get Consultation</p>
-            <h2 className="mt-2 text-2xl font-bold text-gray-900">Talk to our strategy team</h2>
+            <h2 className="mt-2 text-2xl font-bold text-gray-900">Get a Free Consultation</h2>
             <p className="mt-2 text-sm text-gray-600">
-              Share your challenge and we will send a tailored action plan.
+              Fill out the form below and our experts will contact you soon.
             </p>
             <div className="mt-6">
               <LeadCaptureForm
@@ -565,7 +565,7 @@ function ConsultingFirmRenderer({
               </p>
             </div>
 
-            <div id="results" className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+            <div id="destinations" className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
               {destinationCards.map((item) => (
                 <div
                   key={item.title}
@@ -589,8 +589,8 @@ function ConsultingFirmRenderer({
       <section id="process" className="py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-10">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">How We Help</p>
-            <h2 className="mt-2 text-3xl font-bold text-slate-900 sm:text-4xl">Start your journey with expert support</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Student Services</p>
+            <h2 className="mt-2 text-3xl font-bold text-slate-900 sm:text-4xl">Complete support for your application journey</h2>
           </div>
           <div className="grid gap-5 md:grid-cols-3">
             {serviceCards.map((item, idx) => (
@@ -605,7 +605,7 @@ function ConsultingFirmRenderer({
       </section>
 
       {settings.showTestimonials && (
-        <section id="results" className="py-16 sm:py-20">
+        <section id="testimonials" className="py-16 sm:py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-10">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Testimonials</p>

@@ -44,10 +44,4 @@ export const schema: SectionSchema = {
     },
   ],
   max_blocks: 4,
-  default_blocks: [
-    { type: 'stat', settings: { number: '150k+', label: 'Students' } },
-    { type: 'stat', settings: { number: '22k+', label: 'Visa Success' } },
-    { type: 'stat', settings: { number: '50+', label: 'Universities' } },
-    { type: 'stat', settings: { number: '15+', label: 'Years Experience' } },
-  ],
 };
