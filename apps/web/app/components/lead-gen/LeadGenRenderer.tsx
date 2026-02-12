@@ -177,7 +177,6 @@ function ProfessionalServicesRenderer({
             {/* Right: Contact Form */}
             <div className="bg-white p-8 rounded-2xl shadow-xl">
               <LeadCaptureForm
-                storeId={storeId}
                 formId="hero-form"
                 submitButtonText={settings.ctaButtonText}
                 primaryColor={settings.primaryColor}
@@ -386,22 +385,20 @@ function AgencyRenderer(props: any) {
 // REUSABLE COMPONENTS (Simple, no theme engine)
 // ============================================================================
 
-import { Form, useActionData, useNavigation } from '@remix-run/react';
+import { useFetcher } from '@remix-run/react';
 
 function LeadCaptureForm({ 
-  storeId, 
   formId, 
   submitButtonText,
   primaryColor 
 }: { 
-  storeId: number; 
   formId: string;
   submitButtonText: string;
   primaryColor: string;
 }) {
-  const actionData = useActionData<any>();
-  const navigation = useNavigation();
-  const isSubmitting = navigation.state === 'submitting';
+  const fetcher = useFetcher<{ success?: boolean; error?: string }>();
+  const isSubmitting = fetcher.state === 'submitting';
+  const actionData = fetcher.data;
 
   if (actionData?.success) {
     return (
@@ -418,7 +415,7 @@ function LeadCaptureForm({
   }
 
   return (
-    <Form method="post" action="/api/submit-lead" className="space-y-4">
+    <fetcher.Form method="post" action="/api/submit-lead" className="space-y-4">
       <input type="hidden" name="form_id" value={formId} />
 
       <div>
@@ -499,7 +496,10 @@ function LeadCaptureForm({
       >
         {isSubmitting ? 'Submitting...' : submitButtonText}
       </button>
-    </Form>
+      {actionData?.success === false && actionData.error ? (
+        <p className="text-sm text-red-600">{actionData.error}</p>
+      ) : null}
+    </fetcher.Form>
   );
 }
 

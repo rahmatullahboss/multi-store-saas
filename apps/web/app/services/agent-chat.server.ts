@@ -33,11 +33,11 @@ export async function handleAgentChatAction({ request, context }: ActionFunction
     agentId: number;
   };
 
-  const conversationId = Number(body.conversationId);
+  const requestedConversationId = Number(body.conversationId);
   const agentId = Number(body.agentId);
   const message = typeof body.message === 'string' ? body.message.trim() : '';
 
-  if (!message || !Number.isInteger(agentId) || agentId <= 0 || !Number.isInteger(conversationId) || conversationId <= 0) {
+  if (!message || !Number.isInteger(agentId) || agentId <= 0) {
     return json({ error: 'Missing required fields' }, { status: 400 });
   }
 
@@ -52,14 +52,28 @@ export async function handleAgentChatAction({ request, context }: ActionFunction
   }
 
   // Enforce conversation ownership under this agent
-  const conversation = await db.query.conversations.findFirst({
-    where: (conversations, { and, eq }) =>
-      and(eq(conversations.id, conversationId), eq(conversations.agentId, agentId)),
-    columns: { id: true },
-  });
+  let conversationId = requestedConversationId;
+  const conversation = Number.isInteger(requestedConversationId) && requestedConversationId > 0
+    ? await db.query.conversations.findFirst({
+        where: (conversations, { and, eq }) =>
+          and(eq(conversations.id, requestedConversationId), eq(conversations.agentId, agentId)),
+        columns: { id: true },
+      })
+    : null;
 
   if (!conversation) {
-    return json({ error: 'Conversation not found' }, { status: 404 });
+    const created = await db
+      .insert(schema.conversations)
+      .values({
+        agentId,
+        status: 'active',
+        sessionId: `sim-${agentId}-${Date.now()}`,
+        lastMessageAt: new Date(),
+      })
+      .returning({ id: schema.conversations.id });
+    conversationId = created[0].id;
+  } else {
+    conversationId = conversation.id;
   }
 
   try {
@@ -70,7 +84,7 @@ export async function handleAgentChatAction({ request, context }: ActionFunction
       env
     );
 
-    return json(response);
+    return json({ ...response, conversationId });
   } catch (error) {
     console.error('Chat API Error:', error);
     return json({ error: 'Internal Server Error' }, { status: 500 });

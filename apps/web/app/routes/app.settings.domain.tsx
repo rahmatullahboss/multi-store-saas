@@ -220,7 +220,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     if ('STORE_CONFIG_SERVICE' in env && env.STORE_CONFIG_SERVICE) {
-      await invalidateStoreConfig({ STORE_CONFIG_SERVICE: env.STORE_CONFIG_SERVICE }, storeId);
+      await invalidateStoreConfig({ STORE_CONFIG_SERVICE: env.STORE_CONFIG_SERVICE as Fetcher }, storeId);
     }
 
     await logActivity(db, {

@@ -845,7 +845,7 @@ function PreviewTurboSaleStore(props: StoreTemplateProps) {
           footerConfig={footerConfig}
           businessInfo={businessInfo}
           planType={planType}
-          categories={categories}
+          categories={validCategories}
         />
 
         {/* Mobile Sticky Footer */}
@@ -960,6 +960,9 @@ function LiveTurboSaleHomepage({
 
   const sectionsToRender =
     config?.sections && config.sections.length > 0 ? config.sections : defaultSections;
+  const normalizedCategories = categories.map((category: any) =>
+    typeof category === 'string' || category === null ? category : (category.title ?? null)
+  );
 
   return (
     <StoreConfigProvider config={config}>
@@ -983,7 +986,7 @@ function LiveTurboSaleHomepage({
               <TurboSaleHeader
                 storeName={storeName}
                 logo={logo}
-                categories={categories}
+                categories={normalizedCategories}
                 currentCategory={currentCategory}
                 isPreview={isPreview}
                 config={config}
@@ -1002,7 +1005,7 @@ function LiveTurboSaleHomepage({
                       settings={section.settings}
                       theme={TURBO_SALE_THEME}
                       products={products}
-                      categories={categories}
+                      categories={normalizedCategories}
                       storeId={storeId}
                       currency={currency}
                       store={{
@@ -1023,7 +1026,7 @@ function LiveTurboSaleHomepage({
                 socialLinks={socialLinks}
                 footerConfig={footerConfig}
                 businessInfo={businessInfo}
-                categories={categories}
+                categories={normalizedCategories}
                 planType={planType}
               />
 

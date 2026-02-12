@@ -1028,6 +1028,21 @@ function LiveLuxeBoutiqueHomepage({
                   acc.push(section);
                   return acc;
                 }, [])
+                .sort((a: any, b: any) => {
+                  const aHeading = String(a?.settings?.heading || '').toLowerCase();
+                  const bHeading = String(b?.settings?.heading || '').toLowerCase();
+                  const aIsWhyChoose =
+                    (a?.type === 'features' || a?.type === 'modern-features') &&
+                    (aHeading.includes('why choose') || aHeading.includes('why shop'));
+                  const bIsWhyChoose =
+                    (b?.type === 'features' || b?.type === 'modern-features') &&
+                    (bHeading.includes('why choose') || bHeading.includes('why shop'));
+
+                  // Keep "Why Choose Us" near the bottom of homepage content.
+                  if (aIsWhyChoose && !bIsWhyChoose) return 1;
+                  if (!aIsWhyChoose && bIsWhyChoose) return -1;
+                  return 0;
+                })
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 .map((section: any) => {
                   const SectionComponent = SECTION_REGISTRY[section.type]?.component;

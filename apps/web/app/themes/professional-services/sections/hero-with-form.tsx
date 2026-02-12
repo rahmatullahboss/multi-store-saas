@@ -11,6 +11,10 @@ export default function HeroWithForm({ section, context }: SectionComponentProps
   const actionData = useActionData<any>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const features =
+    typeof settings.features === 'string'
+      ? settings.features.split(',').map((f) => f.trim()).filter(Boolean)
+      : [];
 
   return (
     <section 
@@ -31,9 +35,9 @@ export default function HeroWithForm({ section, context }: SectionComponentProps
             </p>
             
             {/* Features List */}
-            {settings.features && (
+            {features.length > 0 && (
               <ul className="space-y-4 mb-8">
-                {(settings.features as string).split(',').map((feature, i) => (
+                {features.map((feature, i) => (
                   <li key={i} className="flex items-start">
                     <svg className="w-6 h-6 text-blue-600 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

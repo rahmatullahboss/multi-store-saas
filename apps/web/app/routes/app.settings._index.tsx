@@ -66,7 +66,6 @@ const SUBDOMAIN_REGEX = /^[a-z0-9-]+$/;
 const SUBDOMAIN_MIN_LENGTH = 2;
 const SUBDOMAIN_MAX_LENGTH = 30;
 const RESERVED_SUBDOMAINS = new Set(['app', 'www']);
-const ALLOWED_PLAN_TYPES = new Set(['free', 'starter', 'premium', 'business', 'custom']);
 
 // ============================================================================
 // LOADER - Fetch store data
@@ -241,7 +240,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     .trim()
     .toLowerCase()
     .replace(/\s+/g, '-');
-  const requestedPlanType = ((formData.get('planType') as string) || '').trim().toLowerCase();
 
   // Security hardening:
   // Prevent direct custom-domain mutation from generic settings endpoint.
@@ -276,10 +274,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   if (RESERVED_SUBDOMAINS.has(requestedSubdomain)) {
     return json({ error: 'subdomainReserved' }, { status: 400 });
-  }
-
-  if (!ALLOWED_PLAN_TYPES.has(requestedPlanType)) {
-    return json({ error: 'planTypeInvalid' }, { status: 400 });
   }
 
   if (requestedSubdomain !== existingSubdomain) {
@@ -334,7 +328,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     name: name.trim(),
     currency: currency || 'BDT',
     subdomain: requestedSubdomain,
-    planType: requestedPlanType,
     theme: themeValue, // Legacy field for backward compatibility
     logo: logo || null,
     favicon: favicon || null,
@@ -848,19 +841,22 @@ export default function SettingsPage() {
                 <label htmlFor="planType" className="block text-sm font-medium text-gray-700 mb-1">
                   {t('currentPlanLabel')}
                 </label>
-                <select
+                <input
                   id="planType"
-                  name="planType"
-                  defaultValue={store.planType || 'free'}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
+                  type="text"
+                  value={store.planType || 'free'}
+                  readOnly
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Plan changes are available only from Plan &amp; Billing.
+                </p>
+                <a
+                  href="/app/billing"
+                  className="inline-flex mt-2 text-sm font-medium text-emerald-700 hover:text-emerald-800"
                 >
-                  <option value="free">{t('free')}</option>
-                  <option value="starter">{t('starter')}</option>
-                  <option value="premium">{t('premium')}</option>
-                  <option value="business">{t('business')}</option>
-                  <option value="custom">{t('custom')}</option>
-                </select>
-                <p className="text-xs text-gray-500 mt-1">{t('planChangeHint')}</p>
+                  Go to Plan &amp; Billing
+                </a>
               </div>
             </div>
           </div>
@@ -1058,6 +1054,28 @@ export default function SettingsPage() {
                 <Palette className="w-4 h-4 text-rose-600" />
               </div>
               <span className="font-medium text-gray-700">{t('landingModeLink')}</span>
+            </a>
+            <a
+              href="/app/settings/business-mode"
+              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+            >
+              <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                <Store className="w-4 h-4 text-indigo-600" />
+              </div>
+              <span className="font-medium text-gray-700">
+                {t('navBusinessMode') || 'Business Mode'}
+              </span>
+            </a>
+            <a
+              href="/app/settings/lead-gen"
+              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+            >
+              <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center">
+                <Palette className="w-4 h-4 text-violet-600" />
+              </div>
+              <span className="font-medium text-gray-700">
+                {t('navLeadGenSettings') || 'Lead Gen Settings'}
+              </span>
             </a>
             <a
               href="/app/settings/navigation"

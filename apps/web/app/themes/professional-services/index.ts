@@ -71,26 +71,32 @@ export const THEME_METADATA = {
 
 export const SECTION_REGISTRY: SectionRegistry = {
   header: {
+    type: 'header',
     component: ProfessionalHeader,
     schema: headerSchema,
   },
   'hero-with-form': {
+    type: 'hero-with-form',
     component: HeroWithForm,
     schema: heroWithFormSchema,
   },
   'services-grid': {
+    type: 'services-grid',
     component: ServicesGrid,
     schema: servicesGridSchema,
   },
   testimonials: {
+    type: 'testimonials',
     component: Testimonials,
     schema: testimonialsSchema,
   },
   'contact-cta': {
+    type: 'contact-cta',
     component: ContactCTA,
     schema: contactCTASchema,
   },
   footer: {
+    type: 'footer',
     component: ProfessionalFooter,
     schema: footerSchema,
   },
@@ -101,39 +107,62 @@ export const SECTION_REGISTRY: SectionRegistry = {
 // ============================================================================
 
 export const THEME_CONFIG: ThemeConfig = {
+  name: 'Professional Services',
+  version: '1.0.0',
   colors: {
     primary: '#2563EB', // Professional blue
     secondary: '#7C3AED', // Purple accent
     accent: '#F59E0B', // Orange for CTAs
     background: '#FFFFFF',
-    foreground: '#1F2937',
-    muted: '#6B7280',
+    surface: '#FFFFFF',
+    text: '#1F2937',
+    textMuted: '#6B7280',
     border: '#E5E7EB',
     success: '#10B981',
     error: '#EF4444',
   },
 
   typography: {
-    fontFamily: {
-      heading: 'Inter, system-ui, sans-serif',
-      body: 'Inter, system-ui, sans-serif',
-    },
-    fontSize: {
-      xs: '0.75rem',
-      sm: '0.875rem',
-      base: '1rem',
-      lg: '1.125rem',
-      xl: '1.25rem',
-      '2xl': '1.5rem',
-      '3xl': '1.875rem',
-      '4xl': '2.25rem',
-      '5xl': '3rem',
-    },
+    fontFamily: 'Inter, system-ui, sans-serif',
+    fontFamilyHeading: 'Inter, system-ui, sans-serif',
+    baseFontSize: 16,
+    lineHeight: 1.5,
+    headingLineHeight: 1.2,
   },
 
   spacing: {
-    section: '5rem',
-    container: '1280px',
+    unit: 4,
+    containerMaxWidth: '1280px',
+    containerPadding: '1rem',
+  },
+
+  borders: {
+    radius: '0.5rem',
+    radiusLarge: '1rem',
+    width: '1px',
+  },
+
+  shadows: {
+    sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+    md: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+    lg: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+  },
+
+  buttons: {
+    borderRadius: '0.5rem',
+    fontWeight: '600',
+    textTransform: 'none',
+  },
+
+  cards: {
+    borderRadius: '0.75rem',
+    shadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+    padding: '1.5rem',
+  },
+
+  animation: {
+    duration: '200ms',
+    easing: 'ease-in-out',
   },
 };
 

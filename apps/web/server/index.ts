@@ -40,6 +40,7 @@ import customersApi from './api/routes/customers';
 import { ServerBuild, createRequestHandler } from '@remix-run/cloudflare';
 // IMPORTANT: Lazy-load the Remix build so unit tests can import this module
 // without executing the compiled server bundle (which can be heavy/fragile in Vitest).
+// @ts-expect-error - build artifact is generated at build time and not present during typecheck.
 const getRemixBuild = () => import('../build/server/index.js') as Promise<ServerBuild>;
 
 // Type definitions for Cloudflare bindings

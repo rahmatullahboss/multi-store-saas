@@ -4,6 +4,8 @@ import { eq, desc, and } from 'drizzle-orm';
 import { orders } from '@db/schema';
 import { authenticateApiKey } from '~/services/api.server';
 
+type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const env = context.cloudflare.env;
   const url = new URL(request.url);
@@ -22,8 +24,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   const status = url.searchParams.get('status');
-  const allowedStatuses = new Set(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled']);
-  if (status && !allowedStatuses.has(status)) {
+  const allowedStatuses = new Set<OrderStatus>([
+    'pending',
+    'confirmed',
+    'processing',
+    'shipped',
+    'delivered',
+    'cancelled',
+  ]);
+  if (status && !allowedStatuses.has(status as OrderStatus)) {
     return json(
       {
         success: false,
@@ -40,10 +49,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   let query = db.select().from(orders).where(eq(orders.storeId, storeId));
 
   if (status) {
+    const statusValue = status as OrderStatus;
     query = db
       .select()
       .from(orders)
-      .where(and(eq(orders.storeId, storeId), eq(orders.status, status)));
+      .where(and(eq(orders.storeId, storeId), eq(orders.status, statusValue)));
   }
 
   const results = await query.orderBy(desc(orders.createdAt)).limit(limit);

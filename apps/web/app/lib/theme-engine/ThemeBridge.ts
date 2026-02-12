@@ -278,7 +278,7 @@ const THEME_REGISTRY: Record<string, LoadedTheme> = {
       categories: ['luxury', 'fashion', 'premium'],
       author: 'Ozzyl Team',
     },
-    config: NovaLuxUltraThemeExport.config,
+    config: NovaLuxUltraThemeExport.config as ThemeConfig,
     sections: NovaLuxUltraThemeExport.sections,
   },
   'professional-services': {

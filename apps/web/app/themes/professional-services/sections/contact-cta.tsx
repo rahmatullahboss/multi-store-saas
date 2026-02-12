@@ -7,6 +7,11 @@ import type { SectionComponentProps, SectionSchema } from '~/lib/theme-engine/ty
 
 export default function ContactCTA({ section, context }: SectionComponentProps) {
   const { settings } = section;
+  const showSecondary = Boolean(settings.show_secondary);
+  const showContactInfo = Boolean(settings.show_contact_info);
+  const phone = typeof settings.phone === 'string' ? settings.phone : '';
+  const email = typeof settings.email === 'string' ? settings.email : '';
+  const address = typeof settings.address === 'string' ? settings.address : '';
 
   return (
     <section 
@@ -32,7 +37,7 @@ export default function ContactCTA({ section, context }: SectionComponentProps) 
             {settings.primary_text as string || 'Get Free Consultation'}
           </a>
           
-          {settings.show_secondary && (
+          {showSecondary && (
             <a
               href={settings.secondary_link as string || 'tel:+8801234567890'}
               className="inline-flex items-center justify-center px-8 py-4 bg-transparent border-2 border-white text-white font-semibold rounded-lg hover:bg-white/10 transition-colors"
@@ -43,29 +48,29 @@ export default function ContactCTA({ section, context }: SectionComponentProps) 
         </div>
 
         {/* Contact Info */}
-        {settings.show_contact_info && (
+        {showContactInfo && (
           <div className="mt-12 grid sm:grid-cols-3 gap-6 text-white">
-            {settings.phone && (
+            {phone && (
               <div>
                 <div className="text-sm text-white/70 mb-1">Phone</div>
-                <a href={`tel:${settings.phone}`} className="text-lg font-medium hover:underline">
-                  {settings.phone as string}
+                <a href={`tel:${phone}`} className="text-lg font-medium hover:underline">
+                  {phone}
                 </a>
               </div>
             )}
-            {settings.email && (
+            {email && (
               <div>
                 <div className="text-sm text-white/70 mb-1">Email</div>
-                <a href={`mailto:${settings.email}`} className="text-lg font-medium hover:underline">
-                  {settings.email as string}
+                <a href={`mailto:${email}`} className="text-lg font-medium hover:underline">
+                  {email}
                 </a>
               </div>
             )}
-            {settings.address && (
+            {address && (
               <div>
                 <div className="text-sm text-white/70 mb-1">Location</div>
                 <div className="text-lg font-medium">
-                  {settings.address as string}
+                  {address}
                 </div>
               </div>
             )}

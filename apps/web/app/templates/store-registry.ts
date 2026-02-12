@@ -64,7 +64,7 @@ export interface StoreTemplateProps {
   theme?: string | null;
   fontFamily?: string | null;
   products: SerializedProduct[];
-  categories: (string | StoreCategory | null)[];
+  categories: (string | null)[];
   currentCategory?: string | null;
   config: ThemeConfig | null;
   currency: string;

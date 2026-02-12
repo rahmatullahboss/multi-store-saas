@@ -314,6 +314,7 @@ const navSections: NavSection[] = [
     titleKey: 'sidebarMarketing',
     items: [
       { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail },
+      { to: '/app/leads', labelKey: 'navLeadInbox', icon: Users },
       { to: '/app/agent', labelKey: 'landingFinalCTA_aiAssistantName', icon: OzzylIcon },
       { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail },
       { to: '/app/push', labelKey: 'navPushNotifications', icon: Bell },
@@ -328,6 +329,8 @@ const navSections: NavSection[] = [
     items: [
       { to: '/app/settings', labelKey: 'navGeneral', icon: Settings },
       { to: '/app/settings/homepage', labelKey: 'navStorefront', icon: Home },
+      { to: '/app/settings/business-mode', labelKey: 'navBusinessMode', icon: Layers },
+      { to: '/app/settings/lead-gen', labelKey: 'navLeadGenSettings', icon: Palette },
       { to: '/app/settings/domain', labelKey: 'navDomain', icon: Globe },
       { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck },
       { to: '/app/settings/payment', labelKey: 'navPayments', icon: CreditCard },

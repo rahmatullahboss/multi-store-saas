@@ -1036,6 +1036,9 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
   // Use real products from props in production, demo only in preview mode
   const products = props.products || DEMO_PRODUCTS;
   const validCategories = props.categories || DEMO_CATEGORIES;
+  const normalizedCategories = validCategories.map((category: any) =>
+    typeof category === 'string' || category === null ? category : (category.title ?? null)
+  );
 
   const renderPage = () => {
     switch (currentPage.type) {
@@ -1044,7 +1047,7 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
           <PreviewHomePage
             storeName={storeName}
             products={products}
-            categories={validCategories}
+            categories={normalizedCategories}
             currency={currency}
             config={config}
             onNavigate={navigate}
@@ -1203,7 +1206,7 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
         <NovaLuxUltraHeader
           storeName={storeName}
           logo={logo}
-          categories={validCategories}
+          categories={normalizedCategories}
           config={config}
           isPreview={isPreview}
         />
@@ -1211,7 +1214,7 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
         <NovaLuxUltraFooter
           storeName={storeName}
           logo={logo}
-          categories={validCategories}
+          categories={normalizedCategories}
           socialLinks={props.socialLinks}
           footerConfig={props.footerConfig}
           businessInfo={props.businessInfo}

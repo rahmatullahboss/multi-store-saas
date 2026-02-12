@@ -5,7 +5,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import * as schema from '../../db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { Send, User, Bot, Trash2 } from 'lucide-react';
+import { Send, Bot, Trash2 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
@@ -28,15 +28,8 @@ export default function AgentChatSimulator() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Generate a temporary conversation ID for testing - client-only to prevent hydration mismatch
+  // Server will create conversation on first message and return a stable id.
   const [conversationId, setConversationId] = useState(0);
-  
-  useEffect(() => {
-    // Generate random ID only on client side
-    if (conversationId === 0) {
-      setConversationId(Math.floor(Math.random() * 100000));
-    }
-  }, [conversationId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -64,17 +57,33 @@ export default function AgentChatSimulator() {
         }),
       });
 
-      if (res.ok) {
-        const data = await res.json() as { text?: string, error?: string };
-        
-        if (data.text) {
-          setMessages(prev => [...prev, { role: 'assistant', content: data.text! }]);
-        } else if (data.error) {
-           setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${data.error}` }]);
-        }
+      const data = await res.json().catch(() => ({})) as {
+        text?: string;
+        error?: string;
+        conversationId?: number;
+      };
+
+      if (typeof data.conversationId === 'number' && data.conversationId > 0) {
+        setConversationId(data.conversationId);
       }
 
-    } catch (err) {
+      if (res.ok) {
+        if (data.text) {
+          const assistantText = String(data.text);
+          setMessages(prev => [...prev, { role: 'assistant', content: assistantText }]);
+        } else if (data.error) {
+          setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${data.error}` }]);
+        } else {
+          setMessages(prev => [...prev, { role: 'assistant', content: 'Error: Empty response' }]);
+        }
+      } else {
+        setMessages(prev => [
+          ...prev,
+          { role: 'assistant', content: `Error: ${data.error || `Request failed (${res.status})`}` }
+        ]);
+      }
+
+    } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: t('connectionError') }]);
     } finally {
       setIsLoading(false);

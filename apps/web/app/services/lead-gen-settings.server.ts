@@ -42,9 +42,7 @@ export async function getLeadGenSettings(
   storeId: number,
   themeId: string = 'professional-services'
 ): Promise<LeadGenSettingsWithTheme> {
-  const store = await db.query.stores.findFirst({
-    where: eq(stores.id, storeId),
-  });
+  const [store] = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
 
   if (!store) {
     // Store not found, return defaults
@@ -80,9 +78,7 @@ async function getRawLeadGenSettings(
   db: DrizzleD1Database<any>,
   storeId: number
 ): Promise<LeadGenSettingsWithTheme | null> {
-  const store = await db.query.stores.findFirst({
-    where: eq(stores.id, storeId),
-  });
+  const [store] = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
 
   if (!store || !store.leadGenConfig) {
     return null;
@@ -247,9 +243,7 @@ export async function isLeadGenEnabled(
   db: DrizzleD1Database<any>,
   storeId: number
 ): Promise<boolean> {
-  const store = await db.query.stores.findFirst({
-    where: eq(stores.id, storeId),
-  });
+  const [store] = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
 
   if (!store || !store.leadGenConfig) {
     return false;

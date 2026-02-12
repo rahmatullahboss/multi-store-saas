@@ -19,9 +19,9 @@ export default function Testimonials({ section, context }: SectionComponentProps
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
             {settings.heading as string || 'What Our Clients Say'}
           </h2>
-          {settings.description && (
+          {typeof settings.description === 'string' && settings.description && (
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              {settings.description as string}
+              {settings.description}
             </p>
           )}
         </div>
@@ -58,25 +58,25 @@ export default function Testimonials({ section, context }: SectionComponentProps
 
               {/* Author */}
               <div className="flex items-center">
-                {block.settings.avatar && (
-                  <img
-                    src={block.settings.avatar as string}
-                    alt={block.settings.name as string}
-                    className="w-12 h-12 rounded-full mr-4"
-                  />
-                )}
+                  {typeof block.settings.avatar === 'string' && block.settings.avatar && (
+                    <img
+                      src={block.settings.avatar}
+                      alt={block.settings.name as string}
+                      className="w-12 h-12 rounded-full mr-4"
+                    />
+                  )}
                 <div>
                   <div className="font-semibold text-gray-900">
                     {block.settings.name as string}
                   </div>
-                  {block.settings.position && (
+                  {typeof block.settings.position === 'string' && block.settings.position && (
                     <div className="text-sm text-gray-600">
-                      {block.settings.position as string}
+                      {block.settings.position}
                     </div>
                   )}
-                  {block.settings.company && (
+                  {typeof block.settings.company === 'string' && block.settings.company && (
                     <div className="text-sm text-gray-500">
-                      {block.settings.company as string}
+                      {block.settings.company}
                     </div>
                   )}
                 </div>
@@ -150,7 +150,7 @@ export const schema: SectionSchema = {
           default: 'ABC Company',
         },
         {
-          type: 'image',
+          type: 'image_picker',
           id: 'avatar',
           label: 'Profile Photo',
         },

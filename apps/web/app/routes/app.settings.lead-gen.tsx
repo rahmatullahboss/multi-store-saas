@@ -44,9 +44,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = drizzle(context.cloudflare.env.DB);
 
   // Get store
-  const store = await db.query.stores.findFirst({
-    where: eq(stores.id, storeId),
-  });
+  const [store] = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
 
   if (!store) {
     throw new Response('Store not found', { status: 404 });
@@ -154,7 +152,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // ============================================================================
 
 export default function LeadGenSettingsPage() {
-  const { store, currentSettings, availableThemes, previewUrl } = useLoaderData<typeof loader>();
+  const { currentSettings, availableThemes, previewUrl } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
@@ -183,7 +181,7 @@ export default function LeadGenSettingsPage() {
       </div>
 
       {/* Success Message */}
-      {actionData?.success && (
+      {actionData?.success && 'message' in actionData && (
         <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
           <CheckCircle className="w-5 h-5 text-green-600" />
           <span className="text-green-800 font-medium">{actionData.message}</span>
@@ -191,7 +189,7 @@ export default function LeadGenSettingsPage() {
       )}
 
       {/* Error Message */}
-      {actionData?.success === false && (
+      {actionData?.success === false && 'error' in actionData && (
         <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
           <span className="text-red-800">{actionData.error}</span>
         </div>

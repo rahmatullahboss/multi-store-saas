@@ -12,10 +12,10 @@
 
 import type { ActionFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { drizzle } from 'drizzle-orm/d1';
-import { leadSubmissions, stores } from '@db/schema';
-import { eq } from 'drizzle-orm';
+import { leadSubmissions, stores, users } from '@db/schema';
+import { eq, or, and } from 'drizzle-orm';
 import { z } from 'zod';
+import { createDb } from '~/lib/db.server';
 
 // ============================================================================
 // VALIDATION SCHEMA
@@ -58,20 +58,32 @@ const LeadSubmissionSchema = z.object({
 
 export async function action({ request, context }: ActionFunctionArgs) {
   try {
-    const { DB, KV, AI, RESEND_API_KEY } = context.cloudflare.env;
-    const db = drizzle(DB);
+    const env = context.cloudflare.env as {
+      DB: D1Database;
+      STORE_CACHE?: KVNamespace;
+      RESEND_API_KEY?: string;
+      AI?: Ai;
+      KV?: KVNamespace;
+    };
+    const db = createDb(env.DB);
+    const KV = env.STORE_CACHE ?? env.KV;
+    const AI = env.AI;
+    const RESEND_API_KEY = env.RESEND_API_KEY || '';
 
     // Get store from hostname
     const url = new URL(request.url);
     const hostname = url.hostname;
     
-    const store = await db.query.stores.findFirst({
-      where: (stores, { or, eq }) =>
+    const [store] = await db
+      .select()
+      .from(stores)
+      .where(
         or(
           eq(stores.customDomain, hostname),
           eq(stores.subdomain, hostname.split('.')[0])
-        ),
-    });
+        )
+      )
+      .limit(1);
 
     if (!store) {
       return json(
@@ -111,19 +123,20 @@ export async function action({ request, context }: ActionFunctionArgs) {
                      'unknown';
     
     const rateLimitKey = `rate_limit:lead_form:${ipAddress}`;
-    const rateLimitCount = await KV.get(rateLimitKey);
-    
-    if (rateLimitCount && parseInt(rateLimitCount) >= 5) {
-      return json(
-        { success: false, error: 'Too many submissions. Please try again later.' },
-        { status: 429 }
-      );
-    }
+    if (KV) {
+      const rateLimitCount = await KV.get(rateLimitKey);
+      if (rateLimitCount && parseInt(rateLimitCount, 10) >= 5) {
+        return json(
+          { success: false, error: 'Too many submissions. Please try again later.' },
+          { status: 429 }
+        );
+      }
 
-    // Increment rate limit counter
-    await KV.put(rateLimitKey, String((parseInt(rateLimitCount || '0') + 1)), {
-      expirationTtl: 3600, // 1 hour
-    });
+      // Increment rate limit counter
+      await KV.put(rateLimitKey, String((parseInt(rateLimitCount || '0', 10) + 1)), {
+        expirationTtl: 3600, // 1 hour
+      });
+    }
 
     // Get additional metadata
     const userAgent = request.headers.get('User-Agent') || '';
@@ -159,15 +172,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
     console.log(`✅ Lead created: ID=${lead.id}, Store=${store.id}, Name=${data.name}`);
 
     // Send email notification to merchant (async)
-    context.waitUntil(
-      sendMerchantNotification(store, lead.id, data, RESEND_API_KEY)
-    );
+    if (RESEND_API_KEY) {
+      context.cloudflare.ctx.waitUntil(sendMerchantNotification(db, store, lead.id, data, RESEND_API_KEY));
+    }
 
     // AI enrichment (async, optional)
     if (AI && data.message) {
-      context.waitUntil(
-        enrichLeadWithAI(db, lead.id, data, AI)
-      );
+      context.cloudflare.ctx.waitUntil(enrichLeadWithAI(db, lead.id, data, AI));
     }
 
     return json({ success: true, leadId: lead.id });
@@ -189,9 +200,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // ============================================================================
 
 async function sendMerchantNotification(
-  store: any,
+  db: ReturnType<typeof createDb>,
+  store: typeof stores.$inferSelect,
   leadId: number,
-  data: any,
+  data: z.infer<typeof LeadSubmissionSchema>,
   resendApiKey: string
 ) {
   try {
@@ -204,9 +216,14 @@ async function sendMerchantNotification(
       return; // Notifications disabled
     }
 
-    const notificationEmail = leadGenConfig.notificationEmail || 
-                             store.email || 
-                             'admin@ozzyl.com';
+    const storeUsers = await db
+      .select({ email: users.email })
+      .from(users)
+      .where(and(eq(users.storeId, store.id), eq(users.role, 'merchant')))
+      .limit(1);
+
+    const notificationEmail =
+      leadGenConfig.notificationEmail || storeUsers[0]?.email || 'admin@ozzyl.com';
 
     // Send email using Resend
     const response = await fetch('https://api.resend.com/emails', {

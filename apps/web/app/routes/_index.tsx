@@ -34,6 +34,7 @@ import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, collections, type Product, type Store } from '@db/schema';
 import { type LandingConfig, type ThemeConfig } from '@db/types';
+import type { LeadGenSettingsWithTheme } from '~/config/lead-gen-theme-settings';
 // NOTE: Avoid static import of landing template registry to keep storefront bundle lean.
 const DEFAULT_LANDING_TEMPLATE_ID = 'premium-bd';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -125,18 +126,24 @@ export const meta: MetaFunction = ({ data }) => {
   }
 
   // Store mode - basic SEO
-  const seo = (loaderData.themeConfig as ThemeConfig | null | undefined)?.seo as
-    | { metaTitle?: string; seoTitle?: string; metaDescription?: string; seoDescription?: string }
-    | undefined;
-  const title = seo?.metaTitle || seo?.seoTitle || loaderData.storeName || 'Store';
-  const description =
-    seo?.metaDescription ||
-    seo?.seoDescription ||
-    `Shop the best products at ${loaderData.storeName}`;
+  if (loaderData.mode === 'store') {
+    const seo = loaderData.themeConfig?.seo as
+      | { metaTitle?: string; seoTitle?: string; metaDescription?: string; seoDescription?: string }
+      | undefined;
+    const title = seo?.metaTitle || seo?.seoTitle || loaderData.storeName || 'Store';
+    const description =
+      seo?.metaDescription ||
+      seo?.seoDescription ||
+      `Shop the best products at ${loaderData.storeName}`;
+
+    return [
+      { title },
+      { name: 'description', content: description },
+    ];
+  }
 
   return [
-    { title },
-    { name: 'description', content: description },
+    { title: loaderData.storeName || 'Store' },
   ];
 };
 
@@ -227,7 +234,15 @@ interface MarketingModeData {
   mode: 'marketing';
 }
 
-export type LoaderData = LandingModeData | StoreModeData | MarketingModeData;
+interface LeadGenModeData {
+  mode: 'lead_gen';
+  storeId: number;
+  storeName: string;
+  themeId: string;
+  settings: LeadGenSettingsWithTheme;
+}
+
+export type LoaderData = LandingModeData | StoreModeData | MarketingModeData | LeadGenModeData;
 
 // ============================================================================
 // HELPER: Database query with timeout
@@ -410,7 +425,10 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   const homeEntry = (validatedStore as Store & { homeEntry?: string }).homeEntry || 'store_home';
 
   // Check if this is a lead generation site (NEW)
-  const isLeadGenSite = homeEntry === 'lead_gen' || (validatedStore.leadGenConfig && JSON.parse(validatedStore.leadGenConfig as string || '{}').enabled);
+  const leadGenConfig = parseJsonSafe<{ enabled?: boolean; themeId?: string }>(
+    (validatedStore as Store & { leadGenConfig?: string | null }).leadGenConfig || null
+  );
+  const isLeadGenSite = homeEntry === 'lead_gen' || leadGenConfig.enabled === true;
 
   // Check if homepage should show a page (builder or grapes)
   const isPageHome = homeEntry.startsWith('page:');
@@ -423,9 +441,11 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       
       // Get theme ID from config
       let themeId = 'professional-services';
-      if (validatedStore.leadGenConfig) {
+      if ((validatedStore as Store & { leadGenConfig?: string | null }).leadGenConfig) {
         try {
-          const config = JSON.parse(validatedStore.leadGenConfig as string);
+          const config = JSON.parse(
+            (validatedStore as Store & { leadGenConfig?: string | null }).leadGenConfig || '{}'
+          );
           themeId = config.themeId || 'professional-services';
         } catch (e) {
           console.error('Failed to parse leadGenConfig:', e);

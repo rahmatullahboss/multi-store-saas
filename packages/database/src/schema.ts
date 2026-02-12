@@ -57,6 +57,8 @@ export const stores = sqliteTable('stores', {
   landingConfig: text('landing_config'),
   // Draft landing config (auto-saved, not visible to public until published)
   landingConfigDraft: text('landing_config_draft'),
+  // Lead generation config JSON: { enabled, themeId, ...settings }
+  leadGenConfig: text('lead_gen_config'),
   // Full store theme: { primaryColor, accentColor, bannerUrl, collections[] }
   themeConfig: text('theme_config'),
   // Business info: { phone, email, address, city, country }
@@ -2967,4 +2969,3 @@ export const leadSubmissionsRelations = relations(leadSubmissions, ({ one }) => 
 // Type Exports
 export type LeadSubmission = typeof leadSubmissions.$inferSelect;
 export type NewLeadSubmission = typeof leadSubmissions.$inferInsert;
-

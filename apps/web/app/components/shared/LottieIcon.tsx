@@ -69,7 +69,7 @@ export function LottieIcon({
     if (typeof src === 'string') {
       fetch(src)
         .then((res) => res.json())
-        .then((data) => setAnimationData(data))
+        .then((data) => setAnimationData(data as object))
         .catch((err) => console.error('Failed to load Lottie animation:', err));
     }
   }, [src]);

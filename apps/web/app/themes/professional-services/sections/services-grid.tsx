@@ -7,6 +7,7 @@ import type { SectionComponentProps, SectionSchema } from '~/lib/theme-engine/ty
 
 export default function ServicesGrid({ section, context }: SectionComponentProps) {
   const { settings, blocks = [] } = section;
+  const showCta = Boolean(settings.show_cta);
 
   return (
     <section className="py-20 bg-white">
@@ -16,9 +17,9 @@ export default function ServicesGrid({ section, context }: SectionComponentProps
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
             {settings.heading as string || 'Our Services'}
           </h2>
-          {settings.description && (
+          {typeof settings.description === 'string' && settings.description && (
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              {settings.description as string}
+              {settings.description}
             </p>
           )}
         </div>
@@ -31,10 +32,10 @@ export default function ServicesGrid({ section, context }: SectionComponentProps
               className="bg-gray-50 rounded-xl p-8 hover:shadow-lg transition-shadow"
             >
               {/* Icon */}
-              {block.settings.icon && (
+              {typeof block.settings.icon === 'string' && block.settings.icon && (
                 <div className="w-14 h-14 bg-blue-100 rounded-lg flex items-center justify-center mb-6">
                   <img
-                    src={block.settings.icon as string}
+                    src={block.settings.icon}
                     alt={block.settings.title as string}
                     className="w-8 h-8"
                   />
@@ -52,9 +53,9 @@ export default function ServicesGrid({ section, context }: SectionComponentProps
               </p>
 
               {/* Features List */}
-              {block.settings.features && (
+              {typeof block.settings.features === 'string' && block.settings.features && (
                 <ul className="space-y-2">
-                  {(block.settings.features as string).split(',').map((feature, i) => (
+                  {block.settings.features.split(',').map((feature, i) => (
                     <li key={i} className="flex items-start text-sm text-gray-700">
                       <svg className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -69,7 +70,7 @@ export default function ServicesGrid({ section, context }: SectionComponentProps
         </div>
 
         {/* CTA */}
-        {settings.show_cta && (
+        {showCta && (
           <div className="text-center mt-12">
             <a
               href={settings.cta_link as string || '#contact'}
@@ -125,7 +126,7 @@ export const schema: SectionSchema = {
       name: 'Service',
       settings: [
         {
-          type: 'image',
+          type: 'image_picker',
           id: 'icon',
           label: 'Icon',
         },

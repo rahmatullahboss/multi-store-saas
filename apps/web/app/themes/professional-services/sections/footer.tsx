@@ -8,6 +8,7 @@ import type { SectionComponentProps, SectionSchema } from '~/lib/theme-engine/ty
 export default function ProfessionalFooter({ section, context }: SectionComponentProps) {
   const { settings, blocks = [] } = section;
   const { store } = context;
+  const showSocial = Boolean(settings.show_social);
 
   return (
     <footer className="bg-gray-900 text-white py-12">
@@ -29,11 +30,11 @@ export default function ProfessionalFooter({ section, context }: SectionComponen
             </p>
             
             {/* Social Links */}
-            {settings.show_social && (
+            {showSocial && (
               <div className="flex space-x-4">
-                {settings.facebook_url && (
+                {typeof settings.facebook_url === 'string' && settings.facebook_url && (
                   <a
-                    href={settings.facebook_url as string}
+                    href={settings.facebook_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-400 hover:text-white transition-colors"
@@ -44,9 +45,9 @@ export default function ProfessionalFooter({ section, context }: SectionComponen
                     </svg>
                   </a>
                 )}
-                {settings.linkedin_url && (
+                {typeof settings.linkedin_url === 'string' && settings.linkedin_url && (
                   <a
-                    href={settings.linkedin_url as string}
+                    href={settings.linkedin_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-400 hover:text-white transition-colors"

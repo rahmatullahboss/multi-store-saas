@@ -9,20 +9,23 @@ import { useLoaderData, Form, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { leadSubmissions } from '@db/schema';
 import { eq, and } from 'drizzle-orm';
-import { requireStoreAccess } from '~/services/auth.server';
+import { getStoreId, requireUserId } from '~/services/auth.server';
 import { ArrowLeft, Mail, Phone, Building2, Calendar, Globe, Tag, Brain } from 'lucide-react';
 import { Link } from '@remix-run/react';
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  const { storeId } = await requireStoreAccess(request, context.cloudflare.env);
+  await requireUserId(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env);
+  if (!storeId) throw new Response('Unauthorized', { status: 401 });
   const db = drizzle(context.cloudflare.env.DB);
+  const id = Number(params.id);
+  if (Number.isNaN(id)) throw new Response('Invalid lead id', { status: 400 });
 
-  const lead = await db.query.leadSubmissions.findFirst({
-    where: and(
-      eq(leadSubmissions.id, parseInt(params.id!)),
-      eq(leadSubmissions.storeId, storeId)
-    ),
-  });
+  const [lead] = await db
+    .select()
+    .from(leadSubmissions)
+    .where(and(eq(leadSubmissions.id, id), eq(leadSubmissions.storeId, storeId)))
+    .limit(1);
 
   if (!lead) {
     throw new Response('Lead not found', { status: 404 });
@@ -32,8 +35,12 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params, context }: ActionFunctionArgs) {
-  const { storeId } = await requireStoreAccess(request, context.cloudflare.env);
+  await requireUserId(request, context.cloudflare.env);
+  const storeId = await getStoreId(request, context.cloudflare.env);
+  if (!storeId) throw new Response('Unauthorized', { status: 401 });
   const db = drizzle(context.cloudflare.env.DB);
+  const id = Number(params.id);
+  if (Number.isNaN(id)) throw new Response('Invalid lead id', { status: 400 });
 
   const formData = await request.formData();
   const action = formData.get('_action');
@@ -52,7 +59,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       })
       .where(
         and(
-          eq(leadSubmissions.id, parseInt(params.id!)),
+          eq(leadSubmissions.id, id),
           eq(leadSubmissions.storeId, storeId)
         )
       );
@@ -67,9 +74,21 @@ export default function LeadDetailPage() {
   const { lead } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const leadStatus = lead.status ?? 'new';
+  const leadNotes = lead.notes ?? '';
 
-  const formData = lead.formData ? JSON.parse(lead.formData) : {};
-  const aiInsights = lead.aiInsights ? JSON.parse(lead.aiInsights) : null;
+  let formData: { message?: string } = {};
+  let aiInsights: Record<string, unknown> | null = null;
+  try {
+    formData = lead.formData ? (JSON.parse(lead.formData) as { message?: string }) : {};
+  } catch {
+    formData = {};
+  }
+  try {
+    aiInsights = lead.aiInsights ? (JSON.parse(lead.aiInsights) as Record<string, unknown>) : null;
+  } catch {
+    aiInsights = null;
+  }
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -181,11 +200,11 @@ export default function LeadDetailPage() {
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Notes</h2>
             <Form method="post">
               <input type="hidden" name="_action" value="update_status" />
-              <input type="hidden" name="status" value={lead.status} />
+              <input type="hidden" name="status" value={leadStatus} />
               <textarea
                 name="notes"
                 rows={4}
-                defaultValue={lead.notes || ''}
+                defaultValue={leadNotes}
                 placeholder="Add private notes about this lead..."
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
@@ -207,10 +226,10 @@ export default function LeadDetailPage() {
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Status</h2>
             <Form method="post">
               <input type="hidden" name="_action" value="update_status" />
-              <input type="hidden" name="notes" value={lead.notes || ''} />
+              <input type="hidden" name="notes" value={leadNotes} />
               <select
                 name="status"
-                defaultValue={lead.status}
+                defaultValue={leadStatus}
                 onChange={(e) => e.currentTarget.form?.requestSubmit()}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
               >

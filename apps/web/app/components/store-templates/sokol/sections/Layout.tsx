@@ -9,6 +9,13 @@ interface SokolLayoutProps extends StoreTemplateProps {
 
 export function SokolLayout(props: SokolLayoutProps) {
   const { children, ...restProps } = props;
+  const normalizedCategories = (restProps.categories || []).map((category: any) =>
+    typeof category === 'string' || category === null ? category : (category.title ?? null)
+  );
+  const headerFooterProps = {
+    ...restProps,
+    categories: normalizedCategories,
+  };
 
   return (
     <div className="font-sans antialiased text-gray-900 bg-[#FAFAFA] selection:bg-rose-100 selection:text-rose-900">
@@ -29,11 +36,11 @@ export function SokolLayout(props: SokolLayoutProps) {
         .font-heading { font-family: var(--font-heading); }
       `}</style>
       
-      <SokolHeader {...restProps} />
+      <SokolHeader {...headerFooterProps} />
       
       {children}
       
-      <SokolFooter {...restProps} />
+      <SokolFooter {...headerFooterProps} />
       <SokolCartDrawer />
     </div>
   );

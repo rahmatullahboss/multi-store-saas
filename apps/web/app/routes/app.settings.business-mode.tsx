@@ -8,8 +8,9 @@
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { json, redirect } from '@remix-run/cloudflare';
+import { json } from '@remix-run/cloudflare';
 import { Form, useLoaderData, useActionData, useNavigation } from '@remix-run/react';
+import { useEffect } from 'react';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores } from '@db/schema';
 import { eq } from 'drizzle-orm';
@@ -24,9 +25,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
   
-  const store = await db.query.stores.findFirst({
-    where: eq(stores.id, storeId),
-  });
+  const [store] = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
 
   if (!store) {
     throw new Response('Store not found', { status: 404 });
@@ -35,12 +34,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Determine current mode
   const homeEntry = (store as any).homeEntry || 'store_home';
   const storeEnabled = store.storeEnabled ?? true;
+  let leadGenEnabled = false;
+  if (store.leadGenConfig) {
+    try {
+      const parsed = JSON.parse(store.leadGenConfig as string) as { enabled?: boolean };
+      leadGenEnabled = parsed.enabled === true;
+    } catch {
+      leadGenEnabled = false;
+    }
+  }
   
   let currentMode = 'ecommerce';
   if (homeEntry === 'lead_gen' || homeEntry.startsWith('page:')) {
     currentMode = 'lead-gen';
   }
-  if (storeEnabled && (store.leadGenConfig && JSON.parse(store.leadGenConfig as string || '{}').enabled)) {
+  if (storeEnabled && leadGenEnabled) {
     currentMode = 'hybrid';
   }
 
@@ -119,17 +127,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function BusinessModePage() {
-  const { store, currentMode, storeEnabled } = useLoaderData<typeof loader>();
+  const { currentMode, storeEnabled } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
 
   // Handle redirect after successful update
-  if (actionData?.success && actionData.redirect) {
-    setTimeout(() => {
-      window.location.href = actionData.redirect;
+  useEffect(() => {
+    if (!(actionData?.success && 'redirect' in actionData && actionData.redirect)) return;
+    const timer = window.setTimeout(() => {
+      window.location.href = actionData.redirect as string;
     }, 1500);
-  }
+    return () => window.clearTimeout(timer);
+  }, [actionData]);
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -142,7 +152,7 @@ export default function BusinessModePage() {
       </div>
 
       {/* Success Message */}
-      {actionData?.success && (
+      {actionData?.success && 'message' in actionData && (
         <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
           <CheckCircle className="w-5 h-5 text-green-600" />
           <div>
@@ -153,7 +163,7 @@ export default function BusinessModePage() {
       )}
 
       {/* Error Message */}
-      {actionData?.success === false && (
+      {actionData?.success === false && 'error' in actionData && (
         <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
           <AlertCircle className="w-5 h-5 text-red-600" />
           <span className="text-red-800">{actionData.error}</span>

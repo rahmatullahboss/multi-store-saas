@@ -937,6 +937,9 @@ function LiveZenithRiseHomepage({
 
   const sectionsToRender =
     config?.sections && config.sections.length > 0 ? config.sections : defaultSections;
+  const normalizedCategories = categories.map((category: any) =>
+    typeof category === 'string' || category === null ? category : (category.title ?? null)
+  );
 
   return (
     <StoreConfigProvider config={config}>
@@ -960,7 +963,7 @@ function LiveZenithRiseHomepage({
               <ZenithRiseHeader
                 storeName={storeName}
                 logo={logo}
-                categories={categories}
+                categories={normalizedCategories}
                 currentCategory={currentCategory}
                 isPreview={isPreview}
                 config={config}
@@ -981,7 +984,7 @@ function LiveZenithRiseHomepage({
                       settings={section.settings}
                       theme={ZENITH_RISE_THEME}
                       products={products}
-                      categories={categories}
+                      categories={normalizedCategories}
                       storeId={storeId}
                       currency={currency}
                       store={{
@@ -1002,7 +1005,7 @@ function LiveZenithRiseHomepage({
                 socialLinks={socialLinks}
                 footerConfig={footerConfig}
                 businessInfo={businessInfo}
-                categories={categories}
+                categories={normalizedCategories}
                 planType={planType}
               />
 
