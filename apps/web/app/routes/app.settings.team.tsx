@@ -27,6 +27,9 @@ import {
 import { useState, useEffect } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
+const INVITE_ROLES = ['admin', 'staff', 'viewer'] as const;
+type InviteRole = (typeof INVITE_ROLES)[number];
+
 export const meta: MetaFunction = () => {
   return [{ title: 'Team Management - Ozzyl' }];
 };
@@ -144,12 +147,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
     .limit(1);
 
   const store = storeResult[0];
+  if (!store) {
+    return json({ error: 'Store not found' }, { status: 404 });
+  }
 
   // Handle different actions
   switch (intent) {
     case 'invite': {
       const email = formData.get('email') as string;
-      const role = formData.get('role') as 'admin' | 'staff' | 'viewer';
+      const roleInput = formData.get('role') as string;
+      const role: InviteRole = INVITE_ROLES.includes(roleInput as InviteRole)
+        ? (roleInput as InviteRole)
+        : 'staff';
 
       if (!email || !email.includes('@')) {
         return json({ error: 'invalidEmail' }, { status: 400 });
@@ -164,6 +173,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       if (existingUser[0] && existingUser[0].storeId === storeId) {
         return json({ error: 'userAlreadyMember' }, { status: 400 });
+      }
+      if (existingUser[0] && existingUser[0].storeId && existingUser[0].storeId !== storeId) {
+        return json({ error: 'userBelongsToAnotherStore' }, { status: 409 });
+      }
+
+      // Only merchant/owner can invite another admin.
+      if (role === 'admin' && currentUser[0].role !== 'merchant') {
+        return json({ error: 'onlyOwnerCanInviteAdmin' }, { status: 403 });
       }
 
       // Check if invite already pending
@@ -191,7 +208,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       await db.insert(staffInvites).values({
         storeId,
         email: email.toLowerCase(),
-        role: role || 'staff',
+        role,
         token,
         invitedBy: userId,
         expiresAt,
@@ -328,7 +345,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       // Update permissions
       await db.update(users)
         .set({ permissions: permissionsJson })
-        .where(eq(users.id, memberId));
+        .where(and(eq(users.id, memberId), eq(users.storeId, storeId)));
 
       // Log activity
       await logActivity(db, {

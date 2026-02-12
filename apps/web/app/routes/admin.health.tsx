@@ -51,23 +51,29 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   
   const drizzleDb = drizzle(db);
   const url = new URL(request.url);
-  const search = url.searchParams.get('q') || '';
-  const level = url.searchParams.get('level') || 'all';
+  const search = (url.searchParams.get('q') || '').trim().slice(0, 200);
+  const requestedLevel = url.searchParams.get('level') || 'all';
+  const validLevels = new Set(['all', 'info', 'warn', 'error', 'fatal']);
+  const level = validLevels.has(requestedLevel) ? requestedLevel : 'all';
   
   // Metrics (Last 24h)
   const oneDayAgo = new Date();
   oneDayAgo.setDate(oneDayAgo.getDate() - 1);
   
-  const metricsRaw = await drizzleDb.all(sql`
-    SELECT 
-      count(*) as total,
-      sum(case when level = 'error' or level = 'fatal' then 1 else 0 end) as errors,
-      sum(case when level = 'warn' then 1 else 0 end) as warnings
-    FROM system_logs
-    WHERE created_at >= ${oneDayAgo.getTime()}
-  `);
-  
-  const metrics = metricsRaw[0] as { total: number, errors: number, warnings: number };
+  const metricsResult = await drizzleDb
+    .select({
+      total: count(),
+      errors: sql<number>`SUM(CASE WHEN ${systemLogs.level} = 'error' OR ${systemLogs.level} = 'fatal' THEN 1 ELSE 0 END)`,
+      warnings: sql<number>`SUM(CASE WHEN ${systemLogs.level} = 'warn' THEN 1 ELSE 0 END)`,
+    })
+    .from(systemLogs)
+    .where(gte(systemLogs.createdAt, oneDayAgo));
+
+  const metrics = {
+    total: Number(metricsResult[0]?.total || 0),
+    errors: Number(metricsResult[0]?.errors || 0),
+    warnings: Number(metricsResult[0]?.warnings || 0),
+  };
 
   // Cost Estimation
   const activeStoresCount = (await drizzleDb.select({ count: count() }).from(stores).where(eq(stores.isActive, true)))[0].count;
@@ -98,11 +104,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     filters.push(like(systemLogs.message, `%${search}%`));
   }
   if (level !== 'all') {
-    filters.push(eq(systemLogs.level, level as 'info' | 'warn' | 'error'));
+    filters.push(eq(systemLogs.level, level as 'info' | 'warn' | 'error' | 'fatal'));
   }
-  
+
   const logs = await query
-    .where(and(...filters))
+    .where(filters.length > 0 ? and(...filters) : undefined)
     .orderBy(desc(systemLogs.createdAt))
     .limit(100);
     
@@ -252,7 +258,7 @@ export default function AdminHealth() {
           </form>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
-          {['all', 'info', 'warn', 'error'].map((l) => (
+          {['all', 'info', 'warn', 'error', 'fatal'].map((l) => (
             <button
               key={l}
               onClick={() => handleLevelChange(l)}

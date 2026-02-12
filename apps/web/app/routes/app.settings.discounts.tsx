@@ -10,7 +10,7 @@ import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remi
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData, Form, useNavigation, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, ne } from 'drizzle-orm';
 import { discounts, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { Tag, Plus, Edit2, Trash2, ArrowLeft, Loader2, Percent, DollarSign } from 'lucide-react';
@@ -22,6 +22,8 @@ import { GlassCard } from '~/components/ui/GlassCard';
 export const meta: MetaFunction = () => {
   return [{ title: 'Discount Codes - Settings' }];
 };
+
+const DISCOUNT_CODE_REGEX = /^[A-Z0-9_-]{3,32}$/;
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -56,23 +58,78 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const db = drizzle(context.cloudflare.env.DB);
 
   if (intent === 'create' || intent === 'update') {
-    const id = formData.get('id') ? parseInt(formData.get('id') as string) : null;
-    const code = (formData.get('code') as string).toUpperCase().trim();
-    const type = formData.get('type') as 'percentage' | 'fixed';
-    const value = parseFloat(formData.get('value') as string);
-    const minOrderAmount = formData.get('minOrderAmount')
-      ? parseFloat(formData.get('minOrderAmount') as string)
-      : null;
-    const maxDiscountAmount = formData.get('maxDiscountAmount')
-      ? parseFloat(formData.get('maxDiscountAmount') as string)
-      : null;
-    const maxUses = formData.get('maxUses') ? parseInt(formData.get('maxUses') as string) : null;
-    const expiresAt = formData.get('expiresAt')
-      ? new Date(formData.get('expiresAt') as string)
-      : null;
+    const idRaw = formData.get('id');
+    const id = idRaw ? Number.parseInt(String(idRaw), 10) : null;
+    const code = String(formData.get('code') || '')
+      .toUpperCase()
+      .trim();
+    const typeRaw = String(formData.get('type') || '');
+    const type = typeRaw === 'fixed' ? 'fixed' : typeRaw === 'percentage' ? 'percentage' : null;
+    const valueRaw = String(formData.get('value') || '').trim();
+    const value = Number.parseFloat(valueRaw);
+    const minOrderAmountRaw = String(formData.get('minOrderAmount') || '').trim();
+    const minOrderAmount = minOrderAmountRaw ? Number.parseFloat(minOrderAmountRaw) : null;
+    const maxDiscountAmountRaw = String(formData.get('maxDiscountAmount') || '').trim();
+    const maxDiscountAmount = maxDiscountAmountRaw ? Number.parseFloat(maxDiscountAmountRaw) : null;
+    const maxUsesRaw = String(formData.get('maxUses') || '').trim();
+    const maxUses = maxUsesRaw ? Number.parseInt(maxUsesRaw, 10) : null;
+    const expiresAtRaw = String(formData.get('expiresAt') || '').trim();
+    const expiresAt = expiresAtRaw ? new Date(expiresAtRaw) : null;
 
-    if (!code || !value) {
-      return json({ error: 'Code and value are required' }, { status: 400 });
+    if (intent === 'update' && (!id || Number.isNaN(id) || id <= 0)) {
+      return json({ error: 'Invalid discount id' }, { status: 400 });
+    }
+
+    if (!code || !DISCOUNT_CODE_REGEX.test(code)) {
+      return json(
+        { error: 'Discount code must be 3-32 chars (A-Z, 0-9, _ or -)' },
+        { status: 400 }
+      );
+    }
+
+    if (!type) {
+      return json({ error: 'Invalid discount type' }, { status: 400 });
+    }
+
+    if (!Number.isFinite(value) || value <= 0) {
+      return json({ error: 'Discount value must be greater than 0' }, { status: 400 });
+    }
+
+    if (type === 'percentage' && value > 100) {
+      return json({ error: 'Percentage discount cannot exceed 100' }, { status: 400 });
+    }
+
+    if (minOrderAmount !== null && (!Number.isFinite(minOrderAmount) || minOrderAmount < 0)) {
+      return json({ error: 'Minimum order amount must be 0 or higher' }, { status: 400 });
+    }
+
+    if (
+      maxDiscountAmount !== null &&
+      (!Number.isFinite(maxDiscountAmount) || maxDiscountAmount <= 0)
+    ) {
+      return json({ error: 'Max discount amount must be greater than 0' }, { status: 400 });
+    }
+
+    if (maxUses !== null && (!Number.isInteger(maxUses) || maxUses <= 0)) {
+      return json({ error: 'Max uses must be a positive integer' }, { status: 400 });
+    }
+
+    if (expiresAt && Number.isNaN(expiresAt.getTime())) {
+      return json({ error: 'Invalid expiry date' }, { status: 400 });
+    }
+
+    const existingCode = await db
+      .select({ id: discounts.id })
+      .from(discounts)
+      .where(
+        intent === 'update' && id
+          ? and(eq(discounts.storeId, storeId), eq(discounts.code, code), ne(discounts.id, id))
+          : and(eq(discounts.storeId, storeId), eq(discounts.code, code))
+      )
+      .limit(1);
+
+    if (existingCode.length > 0) {
+      return json({ error: 'Discount code already exists' }, { status: 409 });
     }
 
     if (id) {
@@ -106,13 +163,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   if (intent === 'delete') {
-    const id = parseInt(formData.get('id') as string);
+    const id = Number.parseInt(String(formData.get('id') || ''), 10);
+    if (!Number.isInteger(id) || id <= 0) {
+      return json({ error: 'Invalid discount id' }, { status: 400 });
+    }
     await db.delete(discounts).where(and(eq(discounts.id, id), eq(discounts.storeId, storeId)));
     return json({ success: true });
   }
 
   if (intent === 'toggle') {
-    const id = parseInt(formData.get('id') as string);
+    const id = Number.parseInt(String(formData.get('id') || ''), 10);
+    if (!Number.isInteger(id) || id <= 0) {
+      return json({ error: 'Invalid discount id' }, { status: 400 });
+    }
     const isActive = formData.get('isActive') === 'true';
     await db
       .update(discounts)
@@ -128,7 +191,7 @@ export default function DiscountCodesPage() {
   const { codes, currency } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
 
   const [showForm, setShowForm] = useState(false);
   const [editingCode, setEditingCode] = useState<(typeof codes)[0] | null>(null);

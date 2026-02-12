@@ -31,7 +31,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   if (!customerId) {
     const url = new URL(request.url);
-    const redirectTo = url.pathname;
+    const redirectTo = `${url.pathname}${url.search}`;
     return redirect(`/store/auth/login?redirectTo=${redirectTo}`);
   }
 
@@ -135,7 +135,7 @@ export default function AccountLayout() {
           <AccountHeader
             storeName={store.name}
             logo={store.logo}
-            userName={user.name}
+            userName={user.name || 'Customer'}
             loyaltyTier={user.loyaltyTier || 'Member'}
             theme={theme}
             onMobileMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

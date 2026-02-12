@@ -5,7 +5,7 @@
  * Includes stats, profile updates, address management, and order history.
  */
 
-import { eq, desc, and, count } from 'drizzle-orm';
+import { eq, desc, and, count, like } from 'drizzle-orm';
 import { type DrizzleD1Database } from 'drizzle-orm/d1';
 import * as schema from '@db/schema';
 import { customers, orders, customerAddresses, wishlists, wishlistItems, products, discounts, shipments, orderItems } from '@db/schema';
@@ -119,15 +119,18 @@ export async function getCustomerOrdersWithItems(
   db: StoreDB,
   page: number = 1,
   limit: number = 10,
-  status?: string
+  status?: string,
+  search?: string
 ) {
   const offset = (page - 1) * limit;
+  const normalizedSearch = search?.trim();
 
   // Filter conditions
   const whereClause = and(
     eq(orders.customerId, customerId),
     eq(orders.storeId, storeId),
-    status && status !== 'all' ? eq(orders.status, status as 'pending') : undefined
+    status && status !== 'all' ? eq(orders.status, status as 'pending') : undefined,
+    normalizedSearch ? like(orders.orderNumber, `%${normalizedSearch}%`) : undefined
   );
 
   // Get total count for pagination

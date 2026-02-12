@@ -11,9 +11,10 @@ import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/clo
 import { useLoaderData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { orders, orderItems, stores } from '@db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { useEffect, useRef } from 'react';
 import { trackingEvents } from '~/utils/tracking';
+import { resolveStore } from '~/lib/store.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -22,7 +23,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ];
 };
 
-export async function loader({ params, context }: LoaderFunctionArgs) {
+export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const orderParam = params.orderId;
   
   if (!orderParam) {
@@ -30,6 +31,11 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   }
 
   const db = drizzle(context.cloudflare.env.DB);
+  const storeContext = await resolveStore(context, request);
+  if (!storeContext) {
+    throw new Response('Store not found', { status: 404 });
+  }
+  const { storeId } = storeContext;
 
   // Support both numeric orderId AND string orderNumber (e.g., ORD-XXXX-XXX)
   const isNumeric = !isNaN(Number(orderParam));
@@ -38,7 +44,11 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   const order = await db
     .select()
     .from(orders)
-    .where(isNumeric ? eq(orders.id, Number(orderParam)) : eq(orders.orderNumber, orderParam))
+    .where(
+      isNumeric
+        ? and(eq(orders.id, Number(orderParam)), eq(orders.storeId, storeId))
+        : and(eq(orders.orderNumber, orderParam), eq(orders.storeId, storeId))
+    )
     .limit(1);
 
   if (order.length === 0) {

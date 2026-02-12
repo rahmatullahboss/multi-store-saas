@@ -17,8 +17,10 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) throw new Response('Unauthorized', { status: 401 });
 
-  const orderId = params.orderId;
-  if (!orderId) throw new Response('Order ID required', { status: 400 });
+  const orderId = Number(params.orderId);
+  if (!Number.isInteger(orderId) || orderId <= 0) {
+    throw new Response('Order ID required', { status: 400 });
+  }
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -30,7 +32,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     })
     .from(orders)
     .innerJoin(stores, eq(orders.storeId, stores.id))
-    .where(and(eq(orders.id, Number(orderId)), eq(orders.storeId, storeId)))
+    .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)))
     .get();
 
   if (!result) throw new Response('Order not found', { status: 404 });
@@ -41,7 +43,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const items = await db
     .select()
     .from(orderItems)
-    .where(eq(orderItems.orderId, Number(orderId)));
+    .where(eq(orderItems.orderId, order.id));
 
   // Call PDF_SERVICE via Service Binding
   const pdfService = context.cloudflare.env.PDF_SERVICE;

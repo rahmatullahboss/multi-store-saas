@@ -1,12 +1,15 @@
 import { test, expect } from './fixtures';
 
 test.describe('Critical Path: Seeded Storefront', () => {
+  const seedEndpoint = '/api/e2e/seed?_data=routes/api.e2e.seed';
+  const createOrderEndpoint = '/api/create-order?_data=routes/api.create-order';
+
   test('seed store + product, then render product + cart', async ({ page, request }, testInfo) => {
     const baseURL = String(testInfo.project.use.baseURL || 'http://localhost:5173');
     const port = new URL(baseURL).port || '5173';
     const token = process.env.E2E_TOKEN || 'local-e2e-token';
 
-    const seedRes = await request.post('/api/e2e/seed', {
+    const seedRes = await request.post(seedEndpoint, {
       headers: { 'x-e2e-token': token },
       data: { templateId: 'starter-store' },
     });
@@ -42,7 +45,7 @@ test.describe('Critical Path: Seeded Storefront', () => {
   }) => {
     const token = process.env.E2E_TOKEN || 'local-e2e-token';
 
-    const seedRes = await request.post('/api/e2e/seed', {
+    const seedRes = await request.post(seedEndpoint, {
       headers: { 'x-e2e-token': token },
       data: { templateId: 'starter-store' },
     });
@@ -67,14 +70,14 @@ test.describe('Critical Path: Seeded Storefront', () => {
       payment_method: 'cod',
     };
 
-    const first = await request.post('/api/create-order', { data: payload });
+    const first = await request.post(createOrderEndpoint, { data: payload });
     expect(first.status()).toBe(200);
     const firstJson = (await first.json()) as { success: boolean; orderId?: number; orderNumber?: string };
     expect(firstJson.success).toBe(true);
     expect(typeof firstJson.orderId).toBe('number');
 
     // Second submit: can be an idempotent success OR "processing" (409) depending on timing.
-    const second = await request.post('/api/create-order', { data: payload });
+    const second = await request.post(createOrderEndpoint, { data: payload });
 
     if (second.status() === 200) {
       const secondJson = (await second.json()) as { success: boolean; orderId?: number; isIdempotent?: boolean };
@@ -90,7 +93,7 @@ test.describe('Critical Path: Seeded Storefront', () => {
     let finalJson: any | null = null;
     for (let i = 0; i < 12; i++) {
       await new Promise((r) => setTimeout(r, 500));
-      const res = await request.post('/api/create-order', { data: payload });
+      const res = await request.post(createOrderEndpoint, { data: payload });
       if (res.status() === 200) {
         finalJson = await res.json();
         break;
@@ -104,7 +107,7 @@ test.describe('Critical Path: Seeded Storefront', () => {
   test('checkout should be blocked when stock is 0', async ({ request }) => {
     const token = process.env.E2E_TOKEN || 'local-e2e-token';
 
-    const seedRes = await request.post('/api/e2e/seed', {
+    const seedRes = await request.post(seedEndpoint, {
       headers: { 'x-e2e-token': token },
       data: { templateId: 'starter-store', inventory: 0 },
     });
@@ -117,7 +120,7 @@ test.describe('Critical Path: Seeded Storefront', () => {
     };
     expect(seeded.ok).toBe(true);
 
-    const orderRes = await request.post('/api/create-order', {
+    const orderRes = await request.post(createOrderEndpoint, {
       data: {
         store_id: seeded.storeId,
         product_id: seeded.productId,

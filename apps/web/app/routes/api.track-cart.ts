@@ -59,6 +59,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     const input: TrackCartInput = parseResult.data;
 
+    const requestStoreId =
+      (context as { storeId?: number; store?: { id?: number } }).storeId ??
+      (context as { store?: { id?: number } }).store?.id;
+    if (requestStoreId && requestStoreId !== input.store_id) {
+      return json({ success: false, error: 'Invalid store context for this domain' }, { status: 403 });
+    }
+
     // Skip if no contact info provided (can't recover without it)
     if (!input.customer_phone && !input.customer_email) {
       return json({ success: true, tracked: false, reason: 'No contact info' });
@@ -102,7 +109,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const totalAmount = unitPrice * input.quantity;
 
     // Build cart items JSON - extract first image from images JSON array
-    const productImages = product.images ? JSON.parse(product.images) : [];
+    let productImages: unknown[] = [];
+    try {
+      productImages = product.images ? JSON.parse(product.images) : [];
+    } catch {
+      productImages = [];
+    }
     const firstImage = Array.isArray(productImages) && productImages.length > 0 ? productImages[0] : null;
     
     const cartItems = JSON.stringify([{

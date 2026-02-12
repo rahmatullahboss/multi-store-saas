@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS page_revisions_new (
     description TEXT, -- User-provided description for manual saves
     
     -- Who created this revision
-    created_by INTEGER REFERENCES store_users(id) ON DELETE SET NULL,
+    created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
     
     -- Timestamps
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000)

@@ -131,6 +131,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   const db = drizzle(context.cloudflare.env.DB);
+  const ownedProducts = await db
+    .select({ id: products.id })
+    .from(products)
+    .where(and(eq(products.storeId, storeId), inArray(products.id, productIds)));
+  const ownedProductIds = ownedProducts.map((p) => p.id);
+
+  if (ownedProductIds.length === 0) {
+    return json({ error: 'No valid products selected for this store' }, { status: 403 });
+  }
 
   switch (intent) {
     case 'delete':
@@ -139,41 +148,41 @@ export async function action({ request, context }: ActionFunctionArgs) {
         await db
           .update(orderItems)
           .set({ productId: null })
-          .where(inArray(orderItems.productId, productIds));
+          .where(inArray(orderItems.productId, ownedProductIds));
 
         // Set null on savedLandingConfigs productId references
         await db
           .update(savedLandingConfigs)
           .set({ productId: null })
-          .where(inArray(savedLandingConfigs.productId, productIds));
+          .where(inArray(savedLandingConfigs.productId, ownedProductIds));
 
         // Set null on publishedPages productId references
         await db
           .update(publishedPages)
           .set({ productId: null })
-          .where(inArray(publishedPages.productId, productIds));
+          .where(inArray(publishedPages.productId, ownedProductIds));
 
         // Set null on builderPages productId references (new page builder)
         await db
           .update(builderPages)
           .set({ productId: null })
-          .where(inArray(builderPages.productId, productIds));
+          .where(inArray(builderPages.productId, ownedProductIds));
 
         // Delete related records that have onDelete: 'cascade' defined
         // (These should cascade but we delete explicitly to be safe)
-        await db.delete(productVariants).where(inArray(productVariants.productId, productIds));
+        await db.delete(productVariants).where(inArray(productVariants.productId, ownedProductIds));
         await db
           .delete(productCollections)
-          .where(inArray(productCollections.productId, productIds));
-        await db.delete(reviews).where(inArray(reviews.productId, productIds));
+          .where(inArray(productCollections.productId, ownedProductIds));
+        await db.delete(reviews).where(inArray(reviews.productId, ownedProductIds));
 
         // Delete orderBumps where productId OR bumpProductId matches
         await db
           .delete(orderBumps)
           .where(
             or(
-              inArray(orderBumps.productId, productIds),
-              inArray(orderBumps.bumpProductId, productIds)
+              inArray(orderBumps.productId, ownedProductIds),
+              inArray(orderBumps.bumpProductId, ownedProductIds)
             )
           );
 
@@ -182,8 +191,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
           .delete(upsellOffers)
           .where(
             or(
-              inArray(upsellOffers.productId, productIds),
-              inArray(upsellOffers.offerProductId, productIds)
+              inArray(upsellOffers.productId, ownedProductIds),
+              inArray(upsellOffers.offerProductId, ownedProductIds)
             )
           );
 
@@ -192,14 +201,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
           .delete(productRecommendations)
           .where(
             or(
-              inArray(productRecommendations.sourceProductId, productIds),
-              inArray(productRecommendations.recommendedProductId, productIds)
+              inArray(productRecommendations.sourceProductId, ownedProductIds),
+              inArray(productRecommendations.recommendedProductId, ownedProductIds)
             )
           );
 
         // Now delete the products
-        await db.delete(products).where(inArray(products.id, productIds));
-        return json({ success: true, message: `${productIds.length} product(s) deleted` });
+        await db
+          .delete(products)
+          .where(and(eq(products.storeId, storeId), inArray(products.id, ownedProductIds)));
+        return json({ success: true, message: `${ownedProductIds.length} product(s) deleted` });
       } catch (error) {
         console.error('Delete error:', error);
         return json(
@@ -211,12 +222,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
     case 'publish':
-      await db.update(products).set({ isPublished: true }).where(inArray(products.id, productIds));
-      return json({ success: true, message: `${productIds.length} product(s) published` });
+      await db
+        .update(products)
+        .set({ isPublished: true })
+        .where(and(eq(products.storeId, storeId), inArray(products.id, ownedProductIds)));
+      return json({ success: true, message: `${ownedProductIds.length} product(s) published` });
 
     case 'unpublish':
-      await db.update(products).set({ isPublished: false }).where(inArray(products.id, productIds));
-      return json({ success: true, message: `${productIds.length} product(s) unpublished` });
+      await db
+        .update(products)
+        .set({ isPublished: false })
+        .where(and(eq(products.storeId, storeId), inArray(products.id, ownedProductIds)));
+      return json({ success: true, message: `${ownedProductIds.length} product(s) unpublished` });
 
     default:
       return json({ error: 'Invalid action' }, { status: 400 });

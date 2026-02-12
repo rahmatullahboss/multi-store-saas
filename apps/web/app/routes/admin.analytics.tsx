@@ -178,6 +178,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .from(orders)
     .where(sql`${orders.status} != 'cancelled'`)
     .groupBy(orders.storeId);
+
+  // Monthly order usage must be measured against monthly plan limits.
+  const storeMonthlyOrderStats = await drizzleDb
+    .select({
+      storeId: orders.storeId,
+      monthlyOrders: count(),
+    })
+    .from(orders)
+    .where(
+      and(
+        sql`${orders.status} != 'cancelled'`,
+        gte(orders.createdAt, monthStart)
+      )
+    )
+    .groupBy(orders.storeId);
   
   // Get product counts per store
   const storeProductCounts = await drizzleDb
@@ -202,6 +217,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   
   // Build lookup maps
   const orderStatsMap = new Map(storeOrderStats.map(s => [s.storeId, s]));
+  const monthlyOrderStatsMap = new Map(storeMonthlyOrderStats.map(s => [s.storeId, s.monthlyOrders]));
   const productCountMap = new Map(storeProductCounts.map(s => [s.storeId, s.productCount]));
   const visitorCountMap = new Map(storeVisitorCounts.map(s => [s.storeId, s]));
   
@@ -214,6 +230,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const limits = PLAN_LIMITS[planType] || PLAN_LIMITS['free'];
     
     const totalOrders = orderStats?.totalOrders || 0;
+    const monthlyOrders = monthlyOrderStatsMap.get(store.id) || 0;
     const totalRevenue = Number(orderStats?.totalRevenue) || 0;
     const visitors = visitorStats?.visitorCount || 0;
     const pageViews = visitorStats?.pageViewCount || 0;
@@ -221,7 +238,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     // Calculate usage percentages
     const orderUsage = limits.max_orders === Infinity 
       ? 0 
-      : Math.round((totalOrders / limits.max_orders) * 100);
+      : Math.round((monthlyOrders / limits.max_orders) * 100);
     const productUsage = limits.max_products === Infinity 
       ? 0 
       : Math.round((productCount / limits.max_products) * 100);
@@ -235,6 +252,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       ownerEmail: store.ownerEmail,
       createdAt: store.createdAt,
       totalOrders,
+      monthlyOrders,
       totalRevenue,
       productCount,
       visitors,

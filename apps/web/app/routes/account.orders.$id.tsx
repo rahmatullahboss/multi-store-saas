@@ -32,7 +32,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
   if (!customerId) throw new Response('Unauthorized', { status: 401 });
 
   const orderId = Number(params.id);
-  if (isNaN(orderId)) throw new Response('Invalid Order ID', { status: 400 });
+  if (!Number.isInteger(orderId) || orderId <= 0) throw new Response('Invalid Order ID', { status: 400 });
 
   const db = drizzle(env.DB, { schema });
   const orderData = await getCustomerOrderWithDetails(orderId, customerId, storeId, db);
@@ -51,8 +51,39 @@ export default function OrderDetails() {
   const { order, items, shipment, storeCurrency } = useLoaderData<typeof loader>();
   const { t } = useTranslation();
 
-  const shippingAddress = order.shippingAddress ? JSON.parse(order.shippingAddress as string) : null;
-  const pricing = order.pricingJson ? JSON.parse(order.pricingJson as string) : null;
+  const shippingAddress = (() => {
+    if (!order.shippingAddress) return null;
+    try {
+      return JSON.parse(order.shippingAddress as string) as {
+        firstName?: string;
+        lastName?: string;
+        phone?: string;
+        address1?: string;
+        address2?: string;
+        city?: string;
+        state?: string;
+        zip?: string;
+      };
+    } catch {
+      return null;
+    }
+  })();
+
+  const pricing = (() => {
+    if (!order.pricingJson) return null;
+    try {
+      return JSON.parse(order.pricingJson as string) as {
+        subtotal?: number;
+        discount?: number;
+        shipping?: number;
+      };
+    } catch {
+      return null;
+    }
+  })();
+  const pricingSubtotal = pricing?.subtotal ?? order.total;
+  const pricingDiscount = pricing?.discount ?? 0;
+  const pricingShipping = pricing?.shipping ?? 0;
 
   // Timeline Steps
   const steps = [
@@ -205,17 +236,17 @@ export default function OrderDetails() {
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t('subtotal') || 'Subtotal'}</span>
-                  <span>{storeCurrency} {pricing?.subtotal || order.total}</span>
+                  <span>{storeCurrency} {pricingSubtotal}</span>
                 </div>
-                {pricing?.discount > 0 && (
+                {pricingDiscount > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span>{t('discount') || 'Discount'}</span>
-                    <span>- {storeCurrency} {pricing.discount}</span>
+                    <span>- {storeCurrency} {pricingDiscount}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t('shipping') || 'Shipping'}</span>
-                  <span>{storeCurrency} {pricing?.shipping || 0}</span>
+                  <span>{storeCurrency} {pricingShipping}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold text-lg pt-1">

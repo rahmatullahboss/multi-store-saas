@@ -178,39 +178,23 @@ export async function verifyPassword(password: string, storedHash: string): Prom
   try {
     const encoder = new TextEncoder();
 
-    console.warn('[verifyPassword] Starting verification, hash length:', storedHash.length);
-
     // Try to decode the hash - supports both base64 and base64url formats
     let combined: Uint8Array;
-    let decodeMethod: string;
     try {
       // First try the new base64url format (no padding, URL-safe chars)
       combined = base64UrlToBytes(storedHash);
-      decodeMethod = 'base64url';
     } catch {
-      console.warn('[verifyPassword] base64url decode failed, trying legacy base64');
       try {
         // Fall back to legacy base64 format
         combined = Uint8Array.from(atob(storedHash), (c) => c.charCodeAt(0));
-        decodeMethod = 'base64';
       } catch (base64Error) {
-        console.error('[verifyPassword] Both decode methods failed:', base64Error);
         throw base64Error;
       }
     }
 
-    console.warn(
-      '[verifyPassword] Decoded using:',
-      decodeMethod,
-      'combined length:',
-      combined.length
-    );
-
     // Extract salt (first 16 bytes)
     const salt = combined.slice(0, 16);
     const originalHash = combined.slice(16);
-
-    console.warn('[verifyPassword] Salt length:', salt.length, 'Hash length:', originalHash.length);
 
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
@@ -233,28 +217,16 @@ export async function verifyPassword(password: string, storedHash: string): Prom
 
     // Compare hashes
     const newHashArray = new Uint8Array(newHash);
-    console.warn(
-      '[verifyPassword] New hash length:',
-      newHashArray.length,
-      'Original hash length:',
-      originalHash.length
-    );
-
     if (originalHash.length !== newHashArray.length) {
-      console.warn('[verifyPassword] Hash length mismatch!');
       return false;
     }
 
-    let match = true;
+    // Constant-time style comparison to reduce timing side-channels.
+    let diff = 0;
     for (let i = 0; i < originalHash.length; i++) {
-      if (originalHash[i] !== newHashArray[i]) {
-        match = false;
-        break;
-      }
+      diff |= originalHash[i] ^ newHashArray[i];
     }
-
-    console.warn('[verifyPassword] Hash match result:', match);
-    return match;
+    return diff === 0;
   } catch (error) {
     console.error('[verifyPassword] Error during verification:', error);
     return false;
@@ -694,7 +666,11 @@ export async function register({
           .toLowerCase()
           .replace(/[^a-z0-9-]/g, '')
           .slice(0, 30)
-      : storeName.toLowerCase().replace(/^-|-$/g, '').replace(/^-|-$/g, '').slice(0, 30);
+      : storeName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
+          .slice(0, 30);
 
     console.warn('[register] Generated subdomain:', subdomain);
 

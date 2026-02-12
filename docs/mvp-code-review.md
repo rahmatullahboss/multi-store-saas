@@ -83,3 +83,451 @@ Post-MVP (পরের রিলিজে রাখো)
 • POS, inventory multi-warehouse
 • App marketplace / integrations
 • Full customer accounts + wishlist
+
+---
+
+## কোড-লেভেল MVP রিভিউ (Updated: 2026-02-12)
+
+### রিভিউ স্কোপ
+- `apps/web/app/routes/api.create-order.ts`
+- `apps/web/app/routes/api.track-cart.ts`
+- `apps/web/app/routes/api.track-visit.ts`
+- `apps/web/app/routes/o.$slug.tsx`
+- `apps/web/app/routes/p.$slug.tsx`
+- `apps/web/server/middleware/tenant.ts`
+- `apps/web/app/routes/checkout.tsx`
+- `apps/web/app/utils/plans.server.ts`
+- `apps/web/server/middleware/rate-limit.ts`
+- `apps/web/app/routes/app.settings.domain.tsx`
+
+### ফিচার-ভিত্তিক স্ট্যাটাস (১-১২)
+1. টেন্যান্ট/স্টোর সেটআপ: ✅ Implemented  
+   Evidence: tenant middleware + subdomain/custom-domain resolution + onboarding/auth routes.
+2. স্টোরফ্রন্ট: ✅ Implemented  
+   Evidence: `store.home`, `products.$id`, `checkout`, `thank-you.$orderId`, category/search routes.
+3. প্রোডাক্ট/ক্যাটালগ: ✅ Implemented  
+   Evidence: product CRUD routes, variants, inventory, image upload flow.
+4. অর্ডার ম্যানেজমেন্ট: ✅ Implemented  
+   Evidence: `api.create-order`, admin order list/details routes, status pipeline.
+5. পেমেন্ট: ✅ Implemented (MVP-level)  
+   Evidence: COD + manual/online method fields + webhook dispatch pipeline.
+6. শিপিং/ডেলিভারি: ✅ Implemented  
+   Evidence: shipping settings, shipping resolver, courier API integration.
+7. থিম/ডিজাইন: ✅ Implemented (MVP simple theme system)  
+   Evidence: MVP template routes/settings and active theme docs/system.
+8. অ্যাডমিন প্যানেল: ✅ Implemented  
+   Evidence: dashboard + product/order/customer/settings + team management.
+9. কাস্টমার ফিচার: ✅ Implemented (MVP scope)  
+   Evidence: guest checkout, account routes, order visibility flows.
+10. সাবস্ক্রিপশন/প্ল্যান: ✅ Implemented  
+    Evidence: `checkUsageLimit` and billing/plan routes.
+11. সিকিউরিটি/কমপ্লায়েন্স: ⚠️ Improved in this review  
+    Notes: tenant context mismatch hardening + stricter payment input validation added.
+12. অপারেশন/মনিটরিং: ✅ Implemented  
+    Evidence: analytics tracking routes, admin operational views, Sentry integration points.
+
+### এই রিভিউতে ফিক্স করা ইস্যু
+1. **Cross-tenant order submission risk**  
+   Fix: `api.create-order` এ request tenant context (`context.storeId`) আর payload `store_id` mismatch হলে `403` return করা হয়েছে.
+2. **Weak payment method validation**  
+   Fix: `payment_method` free-form string থেকে enum (`cod|bkash|nagad|stripe`) করা হয়েছে এবং normalization যুক্ত করা হয়েছে.
+3. **Cross-tenant analytics/cart poisoning risk**  
+   Fix: `api.track-cart` ও `api.track-visit` এ tenant context validation যুক্ত করা হয়েছে.
+4. **Cross-tenant product data leak risk in public page routes**  
+   Fix: `o.$slug` এবং `p.$slug` এ product query-তে `products.storeId` filter বাধ্যতামূলক করা হয়েছে.
+5. **Resilience hardening (cart tracking)**  
+   Fix: product images JSON parsing safe করা হয়েছে (invalid JSON এ fail-open without crash).
+
+### ভেরিফিকেশন
+- ✅ `vitest`: `tests/api/create-order.test.ts` (21/21 pass)
+- ⚠️ `typecheck` currently fails for pre-existing unrelated issues in other files (unchanged by this review)
+- ✅ Edited files pass eslint with no errors
+
+### অফিসিয়াল বেস্ট-প্র্যাকটিস রেফারেন্স (Reviewed)
+- OWASP API Security Top 10 (API1: Broken Object Level Authorization):  
+  https://owasp.org/API-Security/editions/2023/en/0x11-t10/
+- React Router / Remix-style route actions and server-side handling:  
+  https://reactrouter.com/home
+- Cloudflare Workers KV docs (consistency + cache behavior):  
+  https://developers.cloudflare.com/kv/
+- Cloudflare D1 docs (parameterized queries / prepared statements):  
+  https://developers.cloudflare.com/d1/worker-api/prepared-statements/
+
+## রিভিউ লগ (Sequential)
+
+### #1 টেন্যান্ট/স্টোর সেটআপ - Findings (2026-02-12)
+1. `app.settings._index` action থেকে `customDomain` সরাসরি update করা যাচ্ছিল।  
+   Risk: paid-plan/domain-verification flow bypass হয়ে যেতে পারত।
+2. `register()` সার্ভিসে auto-generated subdomain normalization fallback যথেষ্ট strict ছিল না।
+
+### #1 টেন্যান্ট/স্টোর সেটআপ - Fixes Applied
+1. `apps/web/app/routes/app.settings._index.tsx`
+   - Generic settings route থেকে custom domain mutation block করা হয়েছে।
+   - এখন domain পরিবর্তন করতে হলে `app/settings/domain` flow ব্যবহার বাধ্যতামূলক।
+2. `apps/web/app/services/auth.server.ts`
+   - `register()` এ fallback subdomain generation hardened (invalid chars -> hyphen normalize).
+
+### #2 স্টোরফ্রন্ট - Findings (2026-02-12)
+1. `thank-you` route-এ order lookup tenant-scoped ছিল না।  
+   Risk: cross-store order details exposure (customer phone/address leak).
+2. Category slug generation ASCII-only ছিল, ফলে বাংলা/Unicode category link broken হচ্ছিল।
+
+### #2 স্টোরফ্রন্ট - Fixes Applied
+1. `apps/web/app/routes/thank-you.$orderId.tsx`
+   - `resolveStore()` যুক্ত করা হয়েছে।
+   - order fetch-এ `orders.storeId` filter বাধ্যতামূলক করা হয়েছে।
+2. `apps/web/app/routes/categories.tsx`
+   - Unicode-safe category slug generation (`encodeURIComponent`) যুক্ত করা হয়েছে।
+3. `apps/web/app/routes/category.$slug.tsx`
+   - slug decode + normalization যুক্ত করা হয়েছে।
+   - category navigation slug একই Unicode-safe strategy-তে unified করা হয়েছে।
+
+### #2 ডক্স ভেরিফিকেশন
+- OWASP API1:2023 (Object-level auth বাধ্যতামূলক):  
+  https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/
+- MDN `encodeURIComponent` (URI component safe encoding):  
+  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
+
+### #3 প্রোডাক্ট & ক্যাটালগ ম্যানেজমেন্ট - Findings (2026-02-12)
+1. `app.products._index` bulk actions-এ incoming `productIds` store-ownership verify করা হচ্ছিল না।  
+   Risk: crafted request দিয়ে cross-tenant product publish/unpublish/delete attempt সম্ভব ছিল।
+2. `api.upload-image` route-এ authentication check ছিল না, এবং folder user-controlled ছিল।  
+   Risk: unauthorized uploads + unscoped object key creation.
+3. `api.delete-image` route-এ authenticated হলেও store-owned key scope enforce ছিল না।  
+   Risk: অন্য store-এর object key delete attempt.
+
+### #3 প্রোডাক্ট & ক্যাটালগ ম্যানেজমেন্ট - Fixes Applied
+1. `apps/web/app/routes/app.products._index.tsx`
+   - প্রথমে selected product list থেকে `ownedProductIds` resolve করা হয়েছে (`storeId` scoped)।
+   - delete/publish/unpublish এবং related cleanup queries এখন `ownedProductIds`-এ সীমাবদ্ধ।
+2. `apps/web/app/routes/api.upload-image.ts`
+   - authenticated store check (`getStoreId`) যোগ করা হয়েছে।
+   - folder whitelist (`products|logos|banners|temp`) enforced।
+   - R2 key store-scoped করা হয়েছে: `stores/{storeId}/{folder}/...`.
+3. `apps/web/app/routes/api.delete-image.ts`
+   - delete key must start with `stores/{storeId}/` enforced।
+   - cross-store key delete request হলে `403`.
+
+### #3 ডক্স ভেরিফিকেশন
+- OWASP API1:2023 (Object-level authorization):  
+  https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/
+- OWASP File Upload Cheat Sheet:  
+  https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html
+
+### #4 অর্ডার ম্যানেজমেন্ট - Findings (2026-02-12)
+1. `app.orders._index` route-এ status update allow-list ছিল, কিন্তু lifecycle transition guard ছিল না।  
+   Risk: invalid transitions (e.g., `pending -> delivered`) থেকে inventory/operations inconsistency।
+2. `app.orders.$id` route-এ inventory restore/re-deduct এ product/variant update store ownership guard ছাড়া হচ্ছিল।  
+   Risk: compromised `order_items` reference থাকলে cross-tenant inventory mutation সম্ভব।
+3. `app.orders.$id` loader-এ order item product image fetch-এ `storeId` filter ছিল না।  
+   Risk: cross-tenant product metadata read leakage (edge-case data integrity breach)।
+4. `resources.order-invoice.$orderId` route-এ orderId validation weak ছিল (`Number(...)` implicit), এবং items fetch param-id direct use করছিল।  
+   Risk: defensive validation gap; enterprise-grade strictness কম।
+5. `app.settings.discounts` route-এ server-side coupon validation/uniqueness hardening ছিল না।  
+   Risk: duplicate coupon ambiguity + invalid discount config (`percentage > 100`, invalid `maxUses`)।
+
+### #4 অর্ডার ম্যানেজমেন্ট - Fixes Applied
+1. `apps/web/app/routes/app.orders._index.tsx`
+   - `isOrderStatus` + `assertOrderStatusTransition` enforced করা হয়েছে।
+   - update-এর আগে current status fetch করে transition validate করা হচ্ছে।
+2. `apps/web/app/routes/app.orders.$id.tsx`
+   - inventory re-deduct/update-এ `products.storeId = currentStoreId` guard যোগ করা হয়েছে।
+   - variant inventory update-এ `exists (...) join products` scoped check যোগ করা হয়েছে।
+   - order item image fetch-এ product query store-scoped করা হয়েছে।
+3. `apps/web/app/routes/resources.order-invoice.$orderId.tsx`
+   - strict numeric `orderId` validation (`Number.isInteger && > 0`) যোগ হয়েছে।
+   - items query scoped by resolved order id (`order.id`) করা হয়েছে।
+4. `apps/web/app/routes/app.settings.discounts.tsx`
+   - strict input validation: code pattern, type enum, numeric bounds, date validity।
+   - duplicate code prevention (same store) for create/update।
+   - invalid ID guard added for update/delete/toggle intents।
+
+### #4 ডক্স ভেরিফিকেশন
+- OWASP API Security Top 10 2023 (BOLA / object-level authorization):  
+  https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/
+- OWASP Input Validation Cheat Sheet:  
+  https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
+- Cloudflare D1 docs (SQL API + transactions note / batch guidance):  
+  https://developers.cloudflare.com/d1/worker-api/d1-database/
+- Cloudflare D1 prepared statements:  
+  https://developers.cloudflare.com/d1/worker-api/prepared-statements/
+
+### #5 পেমেন্ট (বাংলাদেশ ফোকাস) - Findings (2026-02-12)
+1. `checkout` UI-তে `rocket` payment option ছিল, কিন্তু `api.create-order` schema-তে `rocket` allowed ছিল না।  
+   Risk: valid merchant-configured payment flow backend validation-এ fail (false negative order rejection)।
+2. `api.create-order`-এ non-COD payment এর জন্য server-side mandatory validation ছিল না (`transaction_id`, sender number)।  
+   Risk: incomplete/fake payment metadata সহ order creation, reconciliation দুর্বল।
+3. `api.create-order` `stripe` method accept করছিল, কিন্তু প্রকৃত Stripe checkout + webhook completion flow wired ছিল না।  
+   Risk: unpaid order pending state-এ create হয়ে business ও reporting inconsistency।
+4. `resources.invoice.$paymentId` route-এ strict numeric ID validation ছিল না।  
+   Risk: defensive validation gap (enterprise hardening expectation mismatch)।
+
+### #5 পেমেন্ট (বাংলাদেশ ফোকাস) - Fixes Applied
+1. `apps/web/app/routes/api.create-order.ts`
+   - payment method enum align করা হয়েছে: `cod|bkash|nagad|rocket|stripe`.
+   - non-COD payment এ `transaction_id` + `manual_payment_details.senderNumber` mandatory করা হয়েছে।
+   - sender phone format server-side BD regex দিয়ে validate করা হয়েছে।
+   - `manual_payment_details.method` mismatch হলে request reject করা হয়।
+   - store-level `manualPaymentConfig` অনুযায়ী method enabled না থাকলে request reject করা হয়।
+   - `stripe` path বর্তমানে explicit block করা হয়েছে (`PAYMENT_METHOD_UNAVAILABLE`) যতক্ষণ পর্যন্ত full checkout+webhook flow enable না হয়।
+   - order insert payment union-এ `rocket` include করা হয়েছে।
+2. `packages/database/src/schema.ts`
+   - `checkout_sessions.payment_method` type union-এ `rocket` যোগ করা হয়েছে (app-level type consistency)।
+3. `apps/web/app/routes/resources.invoice.$paymentId.tsx`
+   - `paymentId` strict numeric validation (`Number.isInteger && > 0`) যোগ করা হয়েছে।
+   - query-তে validated `paymentId` variable use করা হয়েছে।
+
+### #5 ডক্স ভেরিফিকেশন
+- Stripe official docs: fulfill Checkout with webhooks (client redirect alone is insufficient):  
+  https://docs.stripe.com/payments/checkout/custom-success-page
+- Stripe official docs: webhook signature verification (`Stripe-Signature` required):  
+  https://docs.stripe.com/webhooks/signature
+- OWASP Input Validation Cheat Sheet:  
+  https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
+- OWASP API Security Top 10 (authz/data integrity context):  
+  https://owasp.org/API-Security/editions/2023/en/0x11-t10/
+
+### #6 Functional Stability (Storefront Theme Rendering) - Findings (2026-02-12)
+1. `resolveStarterStoreTheme()` এ `configWithSecondary.secondaryColor` direct access ছিল।  
+   Risk: `config` undefined হলে storefront render crash (`Cannot read properties of undefined (reading 'secondaryColor')`), product/cart page E2E fail।
+
+### #6 Functional Stability - Fixes Applied
+1. `apps/web/app/components/store-templates/starter-store/theme.ts`
+   - `configWithSecondary?.secondaryColor` optional chaining যোগ করা হয়েছে।
+   - `config` missing হলেও resolver এখন safe fallback color resolve করে।
+2. `apps/web/app/components/store-templates/starter-store/theme.test.ts`
+   - regression test যোগ করা হয়েছে:
+   - `resolveStarterStoreTheme(undefined, undefined)` should not throw।
+   - secondary color fallback expected behavior verify।
+
+### #6 ডক্স ভেরিফিকেশন
+- TypeScript 3.7 optional chaining (`?.`) official release notes:  
+  https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-7.html
+- MDN optional chaining operator reference:  
+  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
+
+### #1-#6 Functional Validation Snapshot (2026-02-12)
+- ✅ Passed: `tests/api/auth.test.ts` (16), `tests/api/auth-hardening.test.ts` (4), `tests/api/create-order.test.ts` (21), `tests/unit/discount.service.test.ts` (10)
+- ✅ Passed: `app/components/store-templates/starter-store/theme.test.ts` (2)
+- ✅ Passed: Playwright `e2e/smoke.test.ts` (3/3, Chromium)
+- Notes:
+  - Local migration blockers resolved in this review stream:
+  - `packages/database/src/migrations/0056_customer_email_optional.sql` customers table rebuild columns completed
+  - `packages/database/src/migrations/0085_fix_page_revisions_fk.sql` FK target corrected (`users.id`)
+  - E2E smoke test currently uses Remix `?_data` style calls for seed/order helper endpoints and emits single-fetch warning in dev logs; functionality passes, but endpoint call style should be modernized in a follow-up.
+
+### #7 থিম/ডিজাইন (MVP Simple Theme System) - Findings (2026-02-12)
+1. MVP theme allow-list দুই জায়গায় inconsistent ছিল।  
+   Risk: UI-তে hidden theme IDs (`ghorer-bazar`, `tech-modern`) POST করে activate করা যাচ্ছিল।
+2. `app.store.settings` action-এ server-side input normalization incomplete ছিল (store name length, logo/favicon URL scheme, color fallback path)।  
+   Risk: invalid style/config values persist হয়ে storefront rendering consistency নষ্ট হতে পারত।
+3. `saveMVPSettings()` update path-এ `themeId` column sync হচ্ছিল না (শুধু `settingsJson` update)।  
+   Risk: database state drift (row-level `themeId` vs JSON `themeId` mismatch), future query/migration inconsistency।
+
+### #7 থিম/ডিজাইন - Fixes Applied
+1. `apps/web/app/config/mvp-theme-settings.ts`
+   - `MVP_THEME_IDS` কে বর্তমান MVP active set-এ align করা হয়েছে: `starter-store`, `luxe-boutique`, `nova-lux`।
+2. `apps/web/app/routes/app.store.settings.tsx`
+   - server-side normalization যোগ করা হয়েছে:
+   - `storeName` trim + max length guard
+   - `announcementText` max length guard
+   - `logo`/`favicon` এর জন্য http/https URL allow করা হয়েছে; invalid URL persist করা হচ্ছে না
+   - visual settings `validateMVPSettings()` দিয়ে normalize/fallback করা হয়েছে।
+3. `apps/web/app/services/mvp-settings.server.ts`
+   - existing settings update-এর সময় `themeId` column-ও update করা হচ্ছে (state consistency)।
+4. `apps/web/tests/unit/mvp-theme-settings.test.ts`
+   - regression assertion যোগ: hidden themes invalid (`ghorer-bazar`, `tech-modern`)।
+
+### #7 ডক্স ভেরিফিকেশন
+- Shopify theme architecture & settings metadata (theme settings patterns / controlled options):  
+  https://shopify.dev/docs/storefronts/themes/architecture/config/settings-schema-json
+- MDN URL API (`URL()` parsing and protocol checks for input normalization):  
+  https://developer.mozilla.org/en-US/docs/Web/API/URL
+- OWASP Input Validation Cheat Sheet (server-side allow-list validation):  
+  https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html
+
+### #1-#7 Functional Validation Snapshot (2026-02-12)
+- ✅ Passed: `tests/api/auth.test.ts` (16), `tests/api/auth-hardening.test.ts` (4), `tests/api/create-order.test.ts` (21), `tests/unit/discount.service.test.ts` (10)
+- ✅ Passed: `tests/unit/mvp-theme-settings.test.ts` (3), `tests/unit/store-registry-active-themes.test.ts` (2)
+- ✅ Passed: `app/components/store-templates/starter-store/theme.test.ts` (2)
+- ✅ Passed: Playwright `e2e/smoke.test.ts` (3/3, Chromium)
+
+### #8 অ্যাডমিন প্যানেল (Team/Admin Module) - Findings (2026-02-12)
+1. `app.settings.team` invite action-এ role runtime allow-list enforce করা ছিল না।  
+   Risk: crafted request দিয়ে unsupported/privileged role injection attempt।
+2. Existing user invite flow-এ cross-store membership conflict block করা ছিল না।  
+   Risk: অন্য store-এর existing accountকে নতুন store-এ attach করার state corruption।
+3. `invite.$token` accept flow invite role সরাসরি `users.role`-এ set করছিল (viewer/admin mapping boundary ছাড়া)।  
+   Risk: role/data integrity mismatch; privilege model drift।
+4. `app.settings.team` permissions update query `users.id` only condition use করছিল।  
+   Risk: defensive tenant-scope strictness কম (TOCTOU hardening gap)।
+
+### #8 অ্যাডমিন প্যানেল - Fixes Applied
+1. `apps/web/app/routes/app.settings.team.tsx`
+   - invite role allow-list enforce করা হয়েছে: `admin|staff|viewer`.
+   - existing user যদি অন্য store-এর member হয়, invite reject (`409 userBelongsToAnotherStore`)।
+   - `admin` invite শুধুমাত্র owner (`merchant`) করতে পারবে।
+   - `updatePermissions` query-তে `users.storeId = storeId` guard যোগ করা হয়েছে।
+   - store lookup fail হলে explicit `404` return।
+2. `apps/web/app/routes/invite.$token.tsx`
+   - invite role normalization যোগ করা হয়েছে।
+   - invite role → user role safe mapping:
+   - `admin -> admin`
+   - `staff/viewer -> staff` (users table role compatibility)
+   - `viewer` invite-এর জন্য restricted permissions JSON set করা হয়েছে (least-privilege)।
+   - existing `super_admin` account invite-link দিয়ে relink/role override block করা হয়েছে।
+
+### #8 ডক্স ভেরিফিকেশন
+- OWASP Authorization Cheat Sheet (least privilege, deny-by-default):  
+  https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html
+- OWASP Access Control Cheat Sheet (server-side enforcement):  
+  https://cheatsheetseries.owasp.org/cheatsheets/Access_Control_Cheat_Sheet.html
+- NIST RBAC standard reference (role assignment/constraints principles):  
+  https://csrc.nist.gov/projects/role-based-access-control
+
+### #1-#8 Functional Validation Snapshot (2026-02-12)
+- ✅ Passed: `tests/api/auth.test.ts` (16), `tests/api/auth-hardening.test.ts` (4), `tests/api/create-order.test.ts` (21), `tests/unit/discount.service.test.ts` (10)
+- ✅ Passed: `tests/unit/mvp-theme-settings.test.ts` (3), `tests/unit/store-registry-active-themes.test.ts` (2)
+- ✅ Passed: `app/components/store-templates/starter-store/theme.test.ts` (2)
+- ✅ Passed: Playwright `e2e/smoke.test.ts` (3/3, Chromium)
+
+### #9 কাস্টমার ফিচার (Guest Checkout + Account + Order Tracking) - Findings (2026-02-12)
+1. `account.orders` search UI (`q`) ছিল, কিন্তু loader/query-তে apply হচ্ছিল না।  
+   Risk: functional mismatch (user search input ineffective)।
+2. `account.orders` pagination links status preserve করলেও search query preserve করছিল না।  
+   Risk: poor UX + incorrect filtered navigation।
+3. `account.orders.$id`-এ `shippingAddress`/`pricingJson` unsafe `JSON.parse` ছিল।  
+   Risk: malformed JSON হলে route crash (500), customer order details unavailable।
+4. `account` layout login redirect requested pathname-এর search অংশ preserve করছিল না।  
+   Risk: post-login return path drift (query-dependent UX break)।
+5. `account` route-এ `AccountHeader`-এ nullable `user.name` সরাসরি pass হচ্ছিল (type safety issue)।  
+   Risk: type/runtime inconsistency in customer account header rendering।
+
+### #9 কাস্টমার ফিচার - Fixes Applied
+1. `apps/web/app/services/customer-account.server.ts`
+   - `getCustomerOrdersWithItems(...)`-এ optional `search` parameter যোগ।
+   - order query-তে `orderNumber LIKE %q%` filter যুক্ত করা হয়েছে।
+2. `apps/web/app/routes/account.orders.tsx`
+   - page param strict sanitize (`integer && > 0`)।
+   - loader-এ `q` read করে service query-তে pass করা হয়েছে।
+   - pagination links এখন `q` + `status` preserve করে।
+   - search form-এ `page=1` reset maintained।
+3. `apps/web/app/routes/account.orders.$id.tsx`
+   - strict positive integer `orderId` validation।
+   - `shippingAddress` ও `pricingJson` safe-parse fallback যোগ করা হয়েছে।
+4. `apps/web/app/routes/account.tsx`
+   - login redirect-এ `pathname + search` preserve।
+   - `AccountHeader`-এ `userName` fallback (`Customer`) যোগ।
+
+### #9 ডক্স ভেরিফিকেশন
+- React Router `<Form method=\"get\">` query-string behavior:  
+  https://reactrouter.com/docs/en/v6/components/form
+- React Router `useSearchParams` navigation behavior:  
+  https://reactrouter.com/api/hooks/useSearchParams
+- MDN `JSON.parse()` (`SyntaxError` handling expectation):  
+  https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
+- MDN `URLSearchParams` API (query param handling rules):  
+  https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/URLSearchParams
+
+### #1-#9 Functional Validation Snapshot (2026-02-12)
+- ✅ Passed: Playwright `e2e/smoke.test.ts` (3/3, Chromium)
+- ✅ `typecheck`: no new errors from reviewed #9 files; remaining errors are pre-existing in unrelated template/shared files.
+
+### #10 সাবস্ক্রিপশন/প্ল্যান এনফোর্সমেন্ট - Findings (2026-02-12)
+1. `checkUsageLimit()` app routes-এ ছিল, কিন্তু কিছু Hono API create endpoint-এ enforce হচ্ছিল না।  
+   Risk: UI guard bypass করে direct API call দিয়ে plan limit (order/product) exceed করা যেত।
+2. একই business flow-এর multiple endpoint-এ inconsistent enforcement ছিল।  
+   Risk: plan system predictable/defensible না হয়ে endpoint-dependent behaviour তৈরি হচ্ছিল (enterprise policy drift)।
+
+### #10 সাবস্ক্রিপশন/প্ল্যান এনফোর্সমেন্ট - Fixes Applied
+1. `apps/web/server/api/routes/orders.ts`
+   - `POST /api/orders` এ `checkUsageLimit(..., 'order')` বাধ্যতামূলক করা হয়েছে।
+   - limit exceeded হলে `402` + structured payload (`code`, `limit`, `current`) return।
+2. `apps/web/server/api/orders.ts`
+   - duplicate order-create API path-এও একই `checkUsageLimit(..., 'order')` enforcement যোগ করা হয়েছে।
+3. `apps/web/server/api/products.ts`
+   - `POST /api/products` এ `checkUsageLimit(..., 'product')` যোগ করা হয়েছে।
+   - limit exceeded হলে `402` + structured payload return।
+
+### #10 ডক্স ভেরিফিকেশন
+- OWASP API5:2023 Broken Function Level Authorization (all business functions need consistent authorization/enforcement):  
+  https://owasp.org/API-Security/editions/2023/en/0xa5-broken-function-level-authorization/
+- OWASP Authorization Cheat Sheet (`Validate the Permissions on Every Request`, `Deny by Default`):  
+  https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html
+- Stripe Subscriptions overview (server-side entitlement/provisioning checks, webhook-driven truth for paid access):  
+  https://docs.stripe.com/billing/subscriptions/overview
+
+### #1-#10 Functional Validation Snapshot (2026-02-12)
+- ✅ Passed: Playwright `e2e/smoke.test.ts` (3/3, Chromium)
+- ✅ Hono/API create paths now enforce plan checks at code-level (`order`, `product`) before write.
+- ⚠️ `typecheck` এখনও pre-existing unrelated files-এ fail করছে; #10 touched files থেকে নতুন type error পাওয়া যায়নি।
+
+### #11 সিকিউরিটি & কমপ্লায়েন্স - Findings (2026-02-12)
+1. Global error handler production-এ raw `err.message` return করছিল।  
+   Risk: internal implementation/database errors client-এ leak হতে পারে (information disclosure)।
+2. Rate-limit key defaultভাবে effectively IP-centric ছিল (tenant scope ছাড়া)।  
+   Risk: একই NAT/IP শেয়ার করা multi-tenant traffic-এ এক store-এর spike অন্য store-কে collateral throttle করতে পারে।
+
+### #11 সিকিউরিটি & কমপ্লায়েন্স - Fixes Applied
+1. `apps/web/server/index.ts`
+   - `app.onError` production response sanitize করা হয়েছে:
+   - production: generic `Internal Server Error`
+   - non-production: detailed message + stack allowed
+2. `apps/web/server/middleware/rate-limit.ts`
+   - tenant-aware keying যোগ করা হয়েছে (`host + ip`)।
+   - default key এখন: `${tenantHost}:${clientIp}`।
+   - ফলে rate-limit isolation multi-tenant context-এ আরও predictable/defensible।
+
+### #11 ডক্স ভেরিফিকেশন
+- OWASP Error Handling Cheat Sheet (generic external errors, detailed internal logs):  
+  https://cheatsheetseries.owasp.org/cheatsheets/Error_Handling_Cheat_Sheet.html
+- Cloudflare Rate Limiting best practices (`counting characteristics` include tenant/account identifiers, not only IP):  
+  https://developers.cloudflare.com/waf/rate-limiting-rules/best-practices/
+- OWASP Authorization Cheat Sheet (deny-by-default + per-request enforcement consistency):  
+  https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html
+
+### #11 Backup Strategy Verification (Codebase/Runbook)
+- Daily backup/restore runbook already documented and versioned:
+  - `docs/MAINTENANCE_SECURITY.md`
+  - `docs/D1_TIME_TRAVEL_RESTORE_DRILL_2026-02-08.md`
+  - `docs/PRODUCTION_READINESS_CHECKLIST_2026-02-07.md`
+- Production export commands exist:
+  - `apps/web/package.json` (`db:export:prod`, `db:export:prod:schema`)
+
+### #1-#11 Functional Validation Snapshot (2026-02-12)
+- ✅ Passed: Playwright `e2e/smoke.test.ts` (3/3, Chromium)
+- ✅ New hardening changes applied without smoke regression.
+- ⚠️ `typecheck` এখনও pre-existing unrelated files-এ fail করছে; #11 touched files থেকে নতুন type error পাওয়া যায়নি।
+
+### #12 অপারেশন/মনিটরিং - Findings (2026-02-12)
+1. `admin.analytics`-এ plan usage (`max_orders`) হিসাব total lifetime orders দিয়ে হচ্ছিল।  
+   Risk: monthly limit monitoring false-positive/over-reported (ops সিদ্ধান্তে ভুল)।
+2. `admin.health`-এ 24h metrics raw SQL timestamp comparison fragile ছিল, এবং `fatal` level filter UI/query path-এ consistent ছিল না।  
+   Risk: health dashboard accuracy কমে যাওয়া + critical logs filter mismatch।
+3. `admin.health` logs query-তে empty filter array হলেও unconditional `and(...filters)` path ছিল।  
+   Risk: query composition edge-case fragility (defensive robustness কম)।
+
+### #12 অপারেশন/মনিটরিং - Fixes Applied
+1. `apps/web/app/routes/admin.analytics.tsx`
+   - monthly order stats আলাদা query করা হয়েছে (`createdAt >= monthStart`)।
+   - `orderUsage` এখন monthly orders vs plan monthly limit দিয়ে calculate হচ্ছে।
+   - analytics payload-এ `monthlyOrders` যোগ করা হয়েছে (ops observability clarity)।
+2. `apps/web/app/routes/admin.health.tsx`
+   - 24h metrics query Drizzle টাইপড query-তে convert করা হয়েছে (`gte(systemLogs.createdAt, oneDayAgo)`)।
+   - search input trim + length cap করা হয়েছে।
+   - log level allow-list যোগ হয়েছে (`all|info|warn|error|fatal`)।
+   - UI filter buttons-এ `fatal` include করা হয়েছে।
+   - logs query-তে `filters.length > 0 ? and(...filters) : undefined` guard যোগ হয়েছে।
+
+### #12 ডক্স ভেরিফিকেশন
+- Cloudflare health checks / uptime monitoring patterns (Worker health endpoint monitoring):  
+  https://developers.cloudflare.com/health-checks/
+- Sentry alerting & issue monitoring (error monitoring workflow):  
+  https://docs.sentry.io/product/alerts/
+- Drizzle ORM query operators (`and`, conditional filter composition best practices):  
+  https://orm.drizzle.team/docs/operators
+
+### #1-#12 Functional Validation Snapshot (2026-02-12)
+- ✅ Passed: Playwright `e2e/smoke.test.ts` (3/3, Chromium)
+- ✅ Monitoring accuracy fixes applied (`monthly order usage`, `fatal-aware health filtering`, `typed 24h metrics query`) without smoke regression।
+- ⚠️ `typecheck` এখনও pre-existing unrelated files-এ fail করছে; #12 touched files থেকে নতুন type error পাওয়া যায়নি।

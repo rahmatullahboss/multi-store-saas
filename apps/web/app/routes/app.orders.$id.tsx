@@ -121,7 +121,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
         const product = await db
           .select({ imageUrl: products.imageUrl })
           .from(products)
-          .where(eq(products.id, item.productId))
+          .where(and(eq(products.id, item.productId), eq(products.storeId, storeId)))
           .limit(1);
         return { ...item, imageUrl: product[0]?.imageUrl };
       }
@@ -451,6 +451,12 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
             .where(
               and(
                 eq(productVariants.id, item.variantId),
+                sql`exists (
+                  select 1
+                  from ${products}
+                  where ${products.id} = ${productVariants.productId}
+                    and ${products.storeId} = ${storeId}
+                )`,
                 sql`${productVariants.inventory} >= ${item.quantity}`
               )
             )
@@ -463,7 +469,11 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
             .update(products)
             .set({ inventory: sql`${products.inventory} - ${item.quantity}` })
             .where(
-              and(eq(products.id, item.productId), sql`${products.inventory} >= ${item.quantity}`)
+              and(
+                eq(products.id, item.productId),
+                eq(products.storeId, storeId),
+                sql`${products.inventory} >= ${item.quantity}`
+              )
             )
             .returning({ id: products.id });
 
@@ -482,12 +492,22 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
             await db
               .update(productVariants)
               .set({ inventory: sql`${productVariants.inventory} + ${deduction.qty}` })
-              .where(eq(productVariants.id, deduction.id));
+              .where(
+                and(
+                  eq(productVariants.id, deduction.id),
+                  sql`exists (
+                    select 1
+                    from ${products}
+                    where ${products.id} = ${productVariants.productId}
+                      and ${products.storeId} = ${storeId}
+                  )`
+                )
+              );
           } else {
             await db
               .update(products)
               .set({ inventory: sql`${products.inventory} + ${deduction.qty}` })
-              .where(eq(products.id, deduction.id));
+              .where(and(eq(products.id, deduction.id), eq(products.storeId, storeId)));
           }
         }
 
@@ -571,13 +591,23 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         await db
           .update(productVariants)
           .set({ inventory: sql`${productVariants.inventory} + ${item.quantity}` })
-          .where(eq(productVariants.id, item.variantId));
+          .where(
+            and(
+              eq(productVariants.id, item.variantId),
+              sql`exists (
+                select 1
+                from ${products}
+                where ${products.id} = ${productVariants.productId}
+                  and ${products.storeId} = ${storeId}
+              )`
+            )
+          );
       } else if (item.productId) {
         // Restore product stock
         await db
           .update(products)
           .set({ inventory: sql`${products.inventory} + ${item.quantity}` })
-          .where(eq(products.id, item.productId));
+          .where(and(eq(products.id, item.productId), eq(products.storeId, storeId)));
       }
     }
   }

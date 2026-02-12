@@ -9,7 +9,7 @@ import { json } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { products, productVariants } from '@db/schema';
 
 import { getPageFromCache, cachePageData } from '~/lib/page-builder/cache.server';
@@ -142,7 +142,11 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     let cachedProductData: LoaderData['product'] = null;
     if (cachedEffectiveProductId) {
       const drizzleDb = drizzle(db);
-      const [productRow] = await drizzleDb.select().from(products).where(eq(products.id, cachedEffectiveProductId)).limit(1);
+      const [productRow] = await drizzleDb
+        .select()
+        .from(products)
+        .where(and(eq(products.id, cachedEffectiveProductId), eq(products.storeId, storeId)))
+        .limit(1);
       if (productRow) {
         const variantRows = await drizzleDb.select().from(productVariants).where(eq(productVariants.productId, cachedEffectiveProductId));
         let parsedImages: string[] = [];
@@ -220,7 +224,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     const [productRow] = await drizzleDb
       .select()
       .from(products)
-      .where(eq(products.id, effectiveProductId))
+      .where(and(eq(products.id, effectiveProductId), eq(products.storeId, storeId)))
       .limit(1);
     
     if (productRow) {

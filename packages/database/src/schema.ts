@@ -2603,7 +2603,7 @@ export const checkoutSessions = sqliteTable(
 
     // Payment method selection
     paymentMethod: text('payment_method')
-      .$type<'cod' | 'bkash' | 'nagad' | 'stripe'>()
+      .$type<'cod' | 'bkash' | 'nagad' | 'rocket' | 'stripe'>()
       .default('cod'),
 
     // Status tracking

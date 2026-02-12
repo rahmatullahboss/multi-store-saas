@@ -15,6 +15,11 @@ import { D1Cache } from '~/services/cache-layer.server';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import { parseSocialLinks } from '@db/types';
 
+function createCategorySlug(category: string): string {
+  const normalized = category.trim().toLowerCase().replace(/\s+/g, ' ');
+  return encodeURIComponent(normalized).replace(/%20/g, '-');
+}
+
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: 'Categories' }];
   
@@ -64,7 +69,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   
   const categories = categoriesResult.map(c => ({
     name: c.category as string,
-    slug: (c.category as string).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+    slug: createCategorySlug(c.category as string),
     productCount: Number(c.count),
     image: c.image,
   }));
@@ -82,7 +87,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export default function CategoriesPage() {
-  const { categories, storeName, store, theme, socialLinks, businessInfo, footerConfig, storeConfig } = useLoaderData<typeof loader>();
+  const { categories, store, theme, socialLinks, businessInfo, footerConfig, storeConfig } =
+    useLoaderData<typeof loader>();
   
   return (
     <StorePageWrapper

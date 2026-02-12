@@ -222,6 +222,8 @@ export function serializeMVPSettings(settings: MVPSettingsWithTheme): string {
     primaryColor: settings.primaryColor,
     accentColor: settings.accentColor,
     themeId: settings.themeId,
+    showAnnouncement: settings.showAnnouncement ?? false,
+    announcementText: settings.announcementText ?? null,
   });
 }
 
@@ -310,11 +312,8 @@ export const MVP_SETTINGS_FORM_FIELDS = [
  */
 export const MVP_THEME_IDS = [
   'starter-store',
-  'ghorer-bazar',
   'luxe-boutique',
   'nova-lux',
-  'nova-lux-ultra',
-  'tech-modern',
 ] as const;
 
 export type MVPThemeId = (typeof MVP_THEME_IDS)[number];

@@ -181,7 +181,7 @@ export async function loader({ params, context, request: _request }: LoaderFunct
       const [productRow] = await db
         .select()
         .from(products)
-        .where(eq(products.id, effectiveProductId))
+        .where(and(eq(products.id, effectiveProductId), eq(products.storeId, storeId as number)))
         .limit(1);
 
       if (productRow) {

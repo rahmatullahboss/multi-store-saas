@@ -9,10 +9,16 @@
 
 import type { ActionFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
+import { getStoreId } from '~/services/auth.server';
 
 export async function action({ request, context }: ActionFunctionArgs) {
   if (request.method !== 'POST') {
     return json({ error: 'Method not allowed' }, { status: 405 });
+  }
+
+  const storeId = await getStoreId(request, context.cloudflare.env);
+  if (!storeId) {
+    return json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const r2 = context.cloudflare.env.R2;
@@ -31,7 +37,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
-    const folder = formData.get('folder') as string || 'temp';
+    const requestedFolder = ((formData.get('folder') as string) || 'temp').trim().toLowerCase();
+    const allowedFolders = new Set(['products', 'logos', 'banners', 'temp']);
+    const folder = allowedFolders.has(requestedFolder) ? requestedFolder : 'temp';
 
     if (!file) {
       return json({ error: 'No file provided' }, { status: 400 });
@@ -55,7 +63,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 8);
     const extension = file.type.split('/')[1] || 'webp';
-    const key = `${folder}/${timestamp}-${random}.${extension}`;
+    const key = `stores/${storeId}/${folder}/${timestamp}-${random}.${extension}`;
 
     // Get file content as ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();

@@ -121,6 +121,7 @@ export async function saveMVPSettings(
       await db
         .update(storeMvpSettingsTable)
         .set({
+          themeId: settings.themeId,
           settingsJson: serialized,
           updatedAt: new Date(),
         })

@@ -36,17 +36,33 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   if (!customerId) throw new Response('Unauthorized', { status: 401 });
 
   const url = new URL(request.url);
-  const page = parseInt(url.searchParams.get('page') || '1');
+  const pageParam = Number(url.searchParams.get('page') || '1');
+  const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
   const status = url.searchParams.get('status') || 'all';
+  const search = (url.searchParams.get('q') || '').trim();
 
   const db = createDb(env.DB);
-  const { orders, pagination } = await getCustomerOrdersWithItems(customerId, storeId, db, page, 10, status);
+  const { orders, pagination } = await getCustomerOrdersWithItems(
+    customerId,
+    storeId,
+    db,
+    page,
+    10,
+    status,
+    search
+  );
 
-  return json({ orders, pagination, storeCurrency: store.currency, status });
+  return json({ orders, pagination, storeCurrency: store.currency, status, search });
 }
 
 export default function AccountOrders() {
-  const { orders, pagination, storeCurrency, status: currentStatus } = useLoaderData<typeof loader>();
+  const {
+    orders,
+    pagination,
+    storeCurrency,
+    status: currentStatus,
+    search: currentSearch,
+  } = useLoaderData<typeof loader>();
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const submit = useSubmit();
@@ -88,12 +104,13 @@ export default function AccountOrders() {
           </span>
           <Form method="get" className="w-full">
             {currentStatus !== 'all' && <input type="hidden" name="status" value={currentStatus} />}
+            <input type="hidden" name="page" value="1" />
             <input
               name="q"
               className="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all placeholder:text-slate-400 text-slate-900"
               placeholder={t('searchOrders') || "Search orders..."}
               type="text"
-              defaultValue={searchParams.get('q') ?? ''}
+              defaultValue={currentSearch}
             />
           </Form>
         </div>
@@ -144,7 +161,7 @@ export default function AccountOrders() {
         <div className="mt-10 flex justify-center">
           <nav className="flex items-center gap-2">
             <Link
-              to={`?page=${Math.max(1, pagination.page - 1)}${currentStatus !== 'all' ? `&status=${currentStatus}` : ''}`}
+              to={`?page=${Math.max(1, pagination.page - 1)}${currentStatus !== 'all' ? `&status=${currentStatus}` : ''}${currentSearch ? `&q=${encodeURIComponent(currentSearch)}` : ''}`}
               className={cn(
                 "h-10 w-10 flex items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors",
                 pagination.page <= 1 && "pointer-events-none opacity-50"
@@ -159,7 +176,7 @@ export default function AccountOrders() {
                 return (
                     <Link
                         key={p}
-                        to={`?page=${p}${currentStatus !== 'all' ? `&status=${currentStatus}` : ''}`}
+                        to={`?page=${p}${currentStatus !== 'all' ? `&status=${currentStatus}` : ''}${currentSearch ? `&q=${encodeURIComponent(currentSearch)}` : ''}`}
                         className={cn(
                             "h-10 w-10 flex items-center justify-center rounded-full transition-colors",
                             isActive 
@@ -173,7 +190,7 @@ export default function AccountOrders() {
             })}
             
             <Link
-              to={`?page=${Math.min(pagination.totalPages, pagination.page + 1)}${currentStatus !== 'all' ? `&status=${currentStatus}` : ''}`}
+              to={`?page=${Math.min(pagination.totalPages, pagination.page + 1)}${currentStatus !== 'all' ? `&status=${currentStatus}` : ''}${currentSearch ? `&q=${encodeURIComponent(currentSearch)}` : ''}`}
               className={cn(
                 "h-10 w-10 flex items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors",
                 pagination.page >= pagination.totalPages && "pointer-events-none opacity-50"

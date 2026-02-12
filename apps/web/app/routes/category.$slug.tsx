@@ -17,6 +17,11 @@ import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/st
 import { parseSocialLinks } from '@db/types';
 import { formatPrice } from '~/lib/theme-engine';
 
+function createCategorySlug(category: string): string {
+  const normalized = category.trim().toLowerCase().replace(/\s+/g, ' ');
+  return encodeURIComponent(normalized).replace(/%20/g, '-');
+}
+
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data || !data.categoryName) {
     return [{ title: 'Category Not Found' }];
@@ -58,12 +63,19 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const socialLinks =
     storeConfig.socialLinks || parseSocialLinks(store.socialLinks as string | null);
 
+  let decodedSlug = slug;
+  try {
+    decodedSlug = decodeURIComponent(slug);
+  } catch {
+    decodedSlug = slug;
+  }
+  const normalizedSlugText = decodedSlug.replace(/-/g, ' ').trim().toLowerCase();
+
   // Convert slug back to potential category names
   // e.g., "t-shirts" could be "T-Shirts", "t shirts", "T shirts", etc.
   const slugVariants = [
-    slug,
-    slug.replace(/-/g, ' '),
-    slug.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()), // Title Case
+    normalizedSlugText,
+    normalizedSlugText.replace(/\b\w/g, (l) => l.toUpperCase()), // Title Case
   ];
 
   // Find products matching the category (case-insensitive)
@@ -72,14 +84,14 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     .from(products)
     .where(
       and(
-        eq(products.storeId, storeId),
-        eq(products.isPublished, true),
-        or(
-          ...slugVariants.map((v) => like(products.category, v)),
-          sql`LOWER(${products.category}) = LOWER(${slug.replace(/-/g, ' ')})`
-        )
+            eq(products.storeId, storeId),
+            eq(products.isPublished, true),
+            or(
+              ...slugVariants.map((v) => like(products.category, v)),
+              sql`LOWER(${products.category}) = LOWER(${normalizedSlugText})`
+            )
+          )
       )
-    )
     .limit(100);
 
   if (categoryProducts.length === 0) {
@@ -107,10 +119,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
   const categories = allCategories.map((c) => ({
     name: c.category as string,
-    slug: (c.category as string)
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9-]/g, ''),
+    slug: createCategorySlug(c.category as string),
     productCount: Number(c.count),
   }));
 
@@ -135,7 +144,6 @@ export default function CategoryPage() {
     categorySlug,
     products: categoryProducts,
     categories,
-    storeName,
     store,
     theme,
     socialLinks,
@@ -227,11 +235,6 @@ export default function CategoryPage() {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {categoryProducts.map((product) => {
-                  const productSlug = product.title
-                    .toLowerCase()
-                    .replace(/\s+/g, '-')
-                    .replace(/[^a-z0-9-]/g, '');
-                  const currencySymbol = store.currency === 'BDT' ? '৳' : '$';
                   const hasDiscount =
                     product.compareAtPrice && product.compareAtPrice > product.price;
 

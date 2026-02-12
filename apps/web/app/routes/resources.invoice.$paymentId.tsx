@@ -17,8 +17,10 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) throw new Response('Unauthorized', { status: 401 });
 
-  const paymentId = params.paymentId;
-  if (!paymentId) throw new Response('Payment ID required', { status: 400 });
+  const paymentId = Number(params.paymentId);
+  if (!Number.isInteger(paymentId) || paymentId <= 0) {
+    throw new Response('Payment ID required', { status: 400 });
+  }
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -30,7 +32,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     })
     .from(payments)
     .innerJoin(stores, eq(payments.storeId, stores.id))
-    .where(and(eq(payments.id, Number(paymentId)), eq(payments.storeId, storeId)))
+    .where(and(eq(payments.id, paymentId), eq(payments.storeId, storeId)))
     .get();
 
   if (!result) throw new Response('Invoice not found', { status: 404 });

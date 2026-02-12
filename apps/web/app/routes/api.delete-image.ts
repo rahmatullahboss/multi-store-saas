@@ -57,10 +57,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: 'Invalid image key' }, { status: 400 });
     }
 
+    const requiredPrefix = `stores/${storeId}/`;
+    if (!keyToDelete.startsWith(requiredPrefix)) {
+      console.warn(`[SECURITY] Cross-store delete blocked for store ${storeId}: ${keyToDelete}`);
+      return json({ error: 'Forbidden image key scope' }, { status: 403 });
+    }
+
     // Delete from R2
     await r2.delete(keyToDelete);
     
-    console.log(`[R2] Deleted image: ${keyToDelete}`);
+    console.warn(`[R2] Deleted image: ${keyToDelete}`);
 
     return json({
       success: true,

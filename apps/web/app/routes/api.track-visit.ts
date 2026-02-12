@@ -73,6 +73,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
       : [{ storeId: body.storeId, path: body.path, visitorId: body.visitorId }];
 
     const db = drizzle(context.cloudflare.env.DB);
+    const requestStoreId =
+      (context as { storeId?: number; store?: { id?: number } }).storeId ??
+      (context as { store?: { id?: number } }).store?.id;
     const userAgent = request.headers.get('User-Agent') || '';
     const referrer = request.headers.get('Referer') || '';
     const ipAddress = getClientIP(request);
@@ -87,6 +90,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       // Validate required fields
       if (!storeId || !path || !visitorId) {
+        continue;
+      }
+
+      if (requestStoreId && storeId !== requestStoreId) {
         continue;
       }
 

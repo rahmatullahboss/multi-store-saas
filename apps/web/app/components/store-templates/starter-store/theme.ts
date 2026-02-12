@@ -103,7 +103,7 @@ export function resolveStarterStoreTheme(
   const configWithSecondary = config as ThemeConfig & { secondaryColor?: string };
   const primary = theme?.primary || config?.primaryColor || STARTER_STORE_THEME.primary;
   const secondary =
-    theme?.secondary || configWithSecondary.secondaryColor || darken(primary, 0.12);
+    theme?.secondary || configWithSecondary?.secondaryColor || darken(primary, 0.12);
   const accent = theme?.accent || config?.accentColor || STARTER_STORE_THEME.accent;
   const background = theme?.background || config?.backgroundColor || STARTER_STORE_THEME.background;
   const text = theme?.text || config?.textColor || STARTER_STORE_THEME.text;

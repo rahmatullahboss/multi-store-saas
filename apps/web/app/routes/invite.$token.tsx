@@ -17,6 +17,33 @@ import { hashPassword } from '~/services/auth.server';
 import { logActivity } from '~/lib/activity.server';
 import { Store, Loader2, CheckCircle, AlertCircle, Lock, User } from 'lucide-react';
 
+type InviteRole = 'admin' | 'staff' | 'viewer';
+type UserRole = 'admin' | 'merchant' | 'staff' | 'super_admin';
+
+function normalizeInviteRole(role: string | null): InviteRole {
+  if (role === 'admin' || role === 'staff' || role === 'viewer') return role;
+  return 'staff';
+}
+
+function mapInviteRoleToUserRole(role: InviteRole): UserRole {
+  // users.role currently doesn't support "viewer"; keep least privilege on "staff".
+  return role === 'admin' ? 'admin' : 'staff';
+}
+
+function permissionsForInviteRole(role: InviteRole): string | null {
+  if (role !== 'viewer') return null;
+  return JSON.stringify({
+    products: false,
+    orders: false,
+    customers: true,
+    analytics: true,
+    settings: false,
+    team: false,
+    billing: false,
+    coupons: false,
+  });
+}
+
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const storeName = data && 'storeName' in data ? data.storeName : null;
   return [{ 
@@ -156,10 +183,15 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
   if (existingUser[0]) {
     // User exists - just update their store association
+    const inviteRole = normalizeInviteRole(invite[0].role as string | null);
+    if (existingUser[0].role === 'super_admin') {
+      return json({ error: 'Super admin accounts cannot be linked via staff invite' }, { status: 400 });
+    }
     await db.update(users)
       .set({
         storeId: invite[0].storeId,
-        role: invite[0].role as 'admin' | 'merchant' | 'staff',
+        role: mapInviteRoleToUserRole(inviteRole),
+        permissions: permissionsForInviteRole(inviteRole),
       })
       .where(eq(users.id, existingUser[0].id));
 
@@ -198,12 +230,14 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   const passwordHash = await hashPassword(password);
 
   // Create user
+  const inviteRole = normalizeInviteRole(invite[0].role as string | null);
   const newUser = await db.insert(users).values({
     email: invite[0].email,
     passwordHash,
     name: name.trim(),
     storeId: invite[0].storeId,
-    role: invite[0].role as 'admin' | 'merchant' | 'staff',
+    role: mapInviteRoleToUserRole(inviteRole),
+    permissions: permissionsForInviteRole(inviteRole),
   }).returning({ id: users.id });
 
   // Mark invite as accepted

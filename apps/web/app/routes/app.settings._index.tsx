@@ -218,6 +218,30 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const businessEmail = formData.get('businessEmail') as string;
   const businessAddress = formData.get('businessAddress') as string;
   const customDomain = formData.get('customDomain') as string;
+  const currentStore = await db
+    .select({ customDomain: stores.customDomain, planType: stores.planType })
+    .from(stores)
+    .where(eq(stores.id, storeId))
+    .limit(1);
+  if (!currentStore[0]) {
+    return json({ error: 'Store not found' }, { status: 404 });
+  }
+
+  const existingCustomDomain = (currentStore[0].customDomain || '').trim().toLowerCase();
+  const requestedCustomDomain = (customDomain || '').trim().toLowerCase();
+
+  // Security hardening:
+  // Prevent direct custom-domain mutation from generic settings endpoint.
+  // Custom domains must go through /app/settings/domain flow for plan checks + hostname validation.
+  if (requestedCustomDomain !== existingCustomDomain) {
+    return json(
+      {
+        error: 'Please use Domain Settings to update your custom domain',
+      },
+      { status: 403 }
+    );
+  }
+
   // Note: storeMode handling removed - use Homepage Settings (storeEnabled) instead
   const defaultLanguage = formData.get('defaultLanguage') as 'en' | 'bn' | null;
 
@@ -261,7 +285,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     logo: logo || null,
     favicon: favicon || null,
     fontFamily: fontFamily || 'inter',
-    customDomain: customDomain?.trim() || null,
+    customDomain: currentStore[0].customDomain || null,
     socialLinks: JSON.stringify({
       facebook: facebook || '',
       instagram: instagram || '',

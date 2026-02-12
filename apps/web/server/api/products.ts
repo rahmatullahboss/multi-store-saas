@@ -10,6 +10,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { products, type NewProduct, type Product } from '@db/schema';
 import type { TenantEnv, TenantContext } from '../middleware/tenant';
 import { KVCache, CACHE_TTL } from '../../app/services/kv-cache.server';
+import { checkUsageLimit } from '../../app/utils/plans.server';
 
 type ProductsContext = {
   Bindings: TenantEnv;
@@ -117,6 +118,19 @@ productsApi.post('/', async (c) => {
   const storeId = c.get('storeId');
   const db = drizzle(c.env.DB);
   const body = await c.req.json<Omit<NewProduct, 'storeId'>>();
+
+  const limitCheck = await checkUsageLimit(c.env.DB, storeId, 'product');
+  if (!limitCheck.allowed) {
+    return c.json(
+      {
+        error: limitCheck.error?.message ?? 'Product limit reached. Upgrade to add more products.',
+        code: 'LIMIT_REACHED_PRODUCT',
+        limit: limitCheck.error?.limit,
+        current: limitCheck.error?.current,
+      },
+      402
+    );
+  }
   
   const result = await db
     .insert(products)

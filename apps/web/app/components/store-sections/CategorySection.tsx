@@ -1,17 +1,17 @@
 import { Link, useSearchParams } from '@remix-run/react';
 import type { SectionSettings } from './registry';
-import { Smartphone, Shirt, Watch, Laptop, Home as HomeIcon, Car, Baby, Dumbbell, Sparkles, ShoppingBag, Grid3X3, Zap, Truck, Shield, RotateCcw, Headphones, User, Heart, ChevronRight } from 'lucide-react';
+import { Smartphone, Shirt, Watch, Laptop, Home as HomeIcon, Car, Baby, Dumbbell, Sparkles, ShoppingBag, Grid3X3, type LucideIcon } from 'lucide-react';
 import { buildProxyImageUrl } from '~/utils/imageOptimization';
 import type { StoreCategory } from '~/templates/store-registry';
 
 interface CategorySectionProps {
   settings: SectionSettings;
-  theme: any;
+  theme: Record<string, string>;
   categories: (string | StoreCategory)[];
 }
 
 // Map strings to Lucide icons
-const CATEGORY_ICONS: Record<string, any> = {
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
   'Electronics': Smartphone,
   'Fashion': Shirt,
   'Watches': Watch,

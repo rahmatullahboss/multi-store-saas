@@ -43,6 +43,11 @@ import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/com
 import { GlassCard } from '~/components/ui/GlassCard';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { formatPrice } from '~/utils/formatPrice';
+import {
+  type OrderStatus,
+  assertOrderStatusTransition,
+  isOrderStatus,
+} from '~/lib/orderStatus';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Orders - Merchant Dashboard' }];
@@ -327,49 +332,43 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // ========================================================================
   // Default: Update order status
   // ========================================================================
-  const status = formData.get('status') as string;
-
   if (!orderId) {
     return json({ error: 'Order ID required' }, { status: 400 });
   }
 
-  if (
-    ![
-      'pending',
-      'confirmed',
-      'processing',
-      'shipped',
-      'delivered',
-      'cancelled',
-      'returned',
-    ].includes(status)
-  ) {
+  const statusRaw = formData.get('status');
+  if (!isOrderStatus(statusRaw)) {
     return json({ error: 'Invalid status' }, { status: 400 });
   }
+  const status: OrderStatus = statusRaw;
 
   // Verify order belongs to this store
   const orderResult = await db
-    .select({ id: orders.id })
+    .select({ id: orders.id, status: orders.status })
     .from(orders)
     .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)))
     .limit(1);
 
-  if (!orderResult[0]) {
+  const order = orderResult[0];
+  if (!order) {
     return json({ error: 'Order not found' }, { status: 404 });
+  }
+
+  const previousStatus = (order.status || 'pending') as OrderStatus;
+  try {
+    assertOrderStatusTransition(previousStatus, status);
+  } catch (err) {
+    return json(
+      { error: err instanceof Error ? err.message : 'Invalid status transition' },
+      { status: 400 }
+    );
   }
 
   // Update the order status
   await db
     .update(orders)
     .set({
-      status: status as
-        | 'pending'
-        | 'confirmed'
-        | 'processing'
-        | 'shipped'
-        | 'delivered'
-        | 'cancelled'
-        | 'returned',
+      status,
       updatedAt: new Date(),
     })
     .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));

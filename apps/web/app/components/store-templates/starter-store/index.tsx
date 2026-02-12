@@ -7,7 +7,7 @@
 
 import { Truck, Shield, RotateCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import type { StoreTemplateProps } from '~/templates/store-registry';
+import type { StoreTemplateProps, StoreCategory } from '~/templates/store-registry';
 import { STARTER_STORE_FONTS, resolveStarterStoreTheme } from './theme';
 import { StarterStoreHeader } from './sections/Header';
 import { StarterStoreFooter } from './sections/Footer';
@@ -175,17 +175,15 @@ export function StarterStoreTemplate({
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {validCategories.slice(0, 4).map((cat) => {
                     const isObject = typeof cat === 'object' && cat !== null;
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const title = isObject ? (cat as any).title : cat;
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const category = isObject ? (cat as StoreCategory) : null;
+
+                    const title = category ? category.title : (cat as string);
                     const imageUrl =
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      (isObject ? (cat as any).imageUrl : null) ||
+                      category?.imageUrl ||
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       ((config as any)?.categoryImageMap?.[String(title)] as string | undefined) ||
                       null;
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const id = isObject ? (cat as any).id : cat;
+                    const id = category ? category.id : (cat as string);
                     
                     if (!title) return null;
 

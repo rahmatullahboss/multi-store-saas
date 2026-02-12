@@ -87,12 +87,13 @@ const app = new Hono<AppContext>();
 app.onError((err, c) => {
   const requestId = c.get('requestId') || c.req.header('x-request-id') || 'unknown';
   const storeId = c.get('storeId') || 0;
+  const isProd = c.env?.ENVIRONMENT === 'production' || !c.env?.ENVIRONMENT;
   console.error('[SERVER ERROR]', { requestId, storeId, err });
   return c.json(
     {
-      error: err.message || 'Internal Server Error',
+      error: isProd ? 'Internal Server Error' : err.message || 'Internal Server Error',
       requestId,
-      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+      stack: !isProd ? err.stack : undefined,
     },
     500
   );
@@ -154,6 +155,7 @@ app.use('/api/*', apiSecurityHeaders());
 // Admin mutation guard (CSRF hard gate)
 // Applies only to authenticated/admin routes to avoid breaking public checkout flows.
 app.use('/app/*', csrfOriginGuard());
+app.use('/admin/*', csrfOriginGuard());
 
 
 // ============================================================================

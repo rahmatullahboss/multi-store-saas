@@ -15,10 +15,24 @@ import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { getMVPSettings, saveMVPSettings } from '~/services/mvp-settings.server';
 import type { MVPSettingsWithTheme } from '~/config/mvp-theme-settings';
-import { MVP_THEME_IDS, isValidMVPTheme } from '~/config/mvp-theme-settings';
+import { isValidMVPTheme, validateMVPSettings } from '~/config/mvp-theme-settings';
 import { MVP_STORE_TEMPLATES } from '~/templates/store-registry';
-import { requireUserId, getUser } from '~/services/auth.server';
+import { requireUserId } from '~/services/auth.server';
 import { stores } from '@db/schema';
+
+const MAX_STORE_NAME_LENGTH = 100;
+const MAX_ANNOUNCEMENT_LENGTH = 160;
+
+function normalizeOptionalHttpUrl(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const userId = await requireUserId(request, context.cloudflare.env);
@@ -101,26 +115,42 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Parse form data
   const themeId = formData.get('themeId') as string;
-  const storeName = formData.get('storeName') as string;
-  const logo = formData.get('logo') as string;
-  const favicon = formData.get('favicon') as string;
-  const primaryColor = formData.get('primaryColor') as string;
-  const accentColor = formData.get('accentColor') as string;
+  const storeNameInput = ((formData.get('storeName') as string) || '').trim();
+  const logoInput = (formData.get('logo') as string) || '';
+  const faviconInput = (formData.get('favicon') as string) || '';
+  const primaryColor =
+    ((formData.get('primaryColorText') as string) || (formData.get('primaryColor') as string) || '')
+      .trim();
+  const accentColor =
+    ((formData.get('accentColorText') as string) || (formData.get('accentColor') as string) || '')
+      .trim();
   const showAnnouncement = formData.get('showAnnouncement') === 'on';
-  const announcementText = formData.get('announcementText') as string;
+  const announcementText = ((formData.get('announcementText') as string) || '')
+    .trim()
+    .slice(0, MAX_ANNOUNCEMENT_LENGTH);
 
   // Validate theme ID
   const newThemeId = isValidMVPTheme(themeId) ? themeId : currentThemeId;
 
+  const normalizedStoreName = storeNameInput.slice(0, MAX_STORE_NAME_LENGTH) || currentSettings.storeName;
+  const validatedVisualSettings = validateMVPSettings(
+    {
+      storeName: normalizedStoreName,
+      logo: normalizeOptionalHttpUrl(logoInput),
+      favicon: normalizeOptionalHttpUrl(faviconInput),
+      primaryColor: primaryColor || currentSettings.primaryColor,
+      accentColor: accentColor || currentSettings.accentColor,
+      showAnnouncement,
+      announcementText: announcementText || null,
+    },
+    newThemeId
+  );
+
   // Build updated settings
   const updatedSettings: MVPSettingsWithTheme = {
     ...currentSettings,
+    ...validatedVisualSettings,
     themeId: newThemeId,
-    storeName: storeName || currentSettings.storeName,
-    logo: logo || null,
-    favicon: favicon || null,
-    primaryColor: primaryColor || currentSettings.primaryColor,
-    accentColor: accentColor || currentSettings.accentColor,
     showAnnouncement,
     announcementText: announcementText || null,
   };
@@ -128,17 +158,29 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Save settings
   await saveMVPSettings(db, store.id, updatedSettings);
 
-  // Update store theme config if theme changed
-  if (newThemeId !== currentThemeId) {
-    const newThemeConfig = {
-      ...themeConfig,
-      storeTemplateId: newThemeId,
-    };
-    await db
-      .update(stores)
-      .set({ themeConfig: JSON.stringify(newThemeConfig) })
-      .where(eq(stores.id, store.id));
+  const nextThemeConfig = {
+    ...themeConfig,
+    storeTemplateId: newThemeId,
+    primaryColor: updatedSettings.primaryColor,
+    accentColor: updatedSettings.accentColor,
+  } as Record<string, unknown>;
+
+  if (showAnnouncement && announcementText) {
+    nextThemeConfig.announcement = { text: announcementText };
+  } else {
+    delete nextThemeConfig.announcement;
   }
+
+  // Keep legacy store fields in sync so all storefront routes reflect settings.
+  await db
+    .update(stores)
+    .set({
+      name: updatedSettings.storeName,
+      logo: updatedSettings.logo,
+      favicon: updatedSettings.favicon,
+      themeConfig: JSON.stringify(nextThemeConfig),
+    })
+    .where(eq(stores.id, store.id));
 
   return json({ success: true, settings: updatedSettings });
 }

@@ -1,6 +1,6 @@
 
 import { drizzle } from 'drizzle-orm/d1';
-import { sql, desc, gte, eq, and } from 'drizzle-orm';
+import { sql, gte, like, count, and, eq } from 'drizzle-orm';
 import { systemLogs } from '@db/schema';
 import { createEmailService } from './email.server';
 
@@ -23,30 +23,36 @@ export async function checkLoginAnomalies(
   let ipFailures = 0;
   if (params.ip) {
     const contextLike = `%${params.ip}%`; // Basic match in context JSON
-    const result = await drizzleDb.all<{ count: number }>(sql`
-      SELECT count(*) as count 
-      FROM system_logs 
-      WHERE level = 'warn' 
-      AND message LIKE 'Login failed%'
-      AND context LIKE ${contextLike}
-      AND created_at >= ${tenMinutesAgo.getTime()}
-    `);
-    ipFailures = Number((result[0] as unknown as { count: number }).count);
+    const result = await drizzleDb
+      .select({ count: count() })
+      .from(systemLogs)
+      .where(
+        and(
+          eq(systemLogs.level, 'warn'),
+          like(systemLogs.message, 'Login failed%'),
+          like(sql`COALESCE(${systemLogs.context}, '')`, contextLike),
+          gte(systemLogs.createdAt, tenMinutesAgo)
+        )
+      );
+    ipFailures = Number(result[0]?.count || 0);
   }
 
   // 2. Count failures for this Email in last 10 minutes (optional, Brute Force on user)
   let emailFailures = 0;
   if (params.email) {
      const contextLike = `%${params.email}%`;
-     const result = await drizzleDb.all<{ count: number }>(sql`
-      SELECT count(*) as count 
-      FROM system_logs 
-      WHERE level = 'warn' 
-      AND message LIKE 'Login failed%'
-      AND context LIKE ${contextLike}
-      AND created_at >= ${tenMinutesAgo.getTime()}
-    `);
-    emailFailures = Number((result[0] as unknown as { count: number }).count);
+     const result = await drizzleDb
+      .select({ count: count() })
+      .from(systemLogs)
+      .where(
+        and(
+          eq(systemLogs.level, 'warn'),
+          like(systemLogs.message, 'Login failed%'),
+          like(sql`COALESCE(${systemLogs.context}, '')`, contextLike),
+          gte(systemLogs.createdAt, tenMinutesAgo)
+        )
+      );
+    emailFailures = Number(result[0]?.count || 0);
   }
 
   // 3. Trigger Alert if Threshold Exceeded

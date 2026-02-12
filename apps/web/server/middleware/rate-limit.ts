@@ -71,6 +71,15 @@ function getClientIP(c: Context): string {
 }
 
 /**
+ * Derive a tenant-aware scope for rate limiting.
+ * This prevents one tenant's traffic from throttling another tenant sharing NAT IPs.
+ */
+function getTenantScope(c: Context): string {
+  const host = c.req.header('x-forwarded-host') || c.req.header('host') || 'unknown-host';
+  return host.split(':')[0].toLowerCase();
+}
+
+/**
  * Retry with exponential backoff for KV operations
  * Based on Context7 best practices for handling KV rate limits
  */
@@ -172,7 +181,7 @@ export const rateLimit = (config: RateLimitConfig): MiddlewareHandler => {
     limit,
     windowMs,
     keyPrefix = 'rl',
-    keyGenerator = (c) => getClientIP(c),
+    keyGenerator = (c) => `${getTenantScope(c)}:${getClientIP(c)}`,
     skip,
     onLimitReached,
     useMemoryFirst = true, // Default to true for better performance

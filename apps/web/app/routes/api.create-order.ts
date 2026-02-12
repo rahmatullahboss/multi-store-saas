@@ -89,13 +89,13 @@ export const OrderSchema = z.object({
   quantity: z.number().int().min(1).max(99).default(1),
   notes: z.string().max(500).optional(),
   customer_email: z.string().email().optional(), // Optional email for confirmation
-  payment_method: z.string().default('cod'), // 'cod', 'bkash', 'nagad'
-  transaction_id: z.string().optional(),
+  payment_method: z.enum(['cod', 'bkash', 'nagad', 'rocket', 'stripe']).default('cod'),
+  transaction_id: z.string().trim().min(6).max(100).optional(),
   variant_id: z.number().int().optional(), // Product variant ID
   manual_payment_details: z
     .object({
-      senderNumber: z.string().optional(),
-      method: z.string().optional(),
+      senderNumber: z.string().trim().optional(),
+      method: z.enum(['cod', 'bkash', 'nagad', 'rocket', 'stripe']).optional(),
     })
     .optional(),
   bump_ids: z.array(z.number().int().positive()).optional(), // Order bump product IDs
@@ -273,6 +273,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
       body.phone = phone;
     }
 
+    if (body.payment_method && typeof body.payment_method === 'string') {
+      body.payment_method = body.payment_method.trim().toLowerCase();
+    }
+    if (body.transaction_id && typeof body.transaction_id === 'string') {
+      body.transaction_id = body.transaction_id.trim().toUpperCase();
+    }
+
     // Extend Schema for Cart Items
     const CartItemSchema = z.object({
       product_id: z.number().int().positive(),
@@ -316,6 +323,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const input = parseResult.data;
     if (input.discount_code) {
       input.discount_code = input.discount_code.trim().toUpperCase();
+    }
+
+    const requestStoreId =
+      (context as { storeId?: number; store?: { id?: number } }).storeId ??
+      (context as { store?: { id?: number } }).store?.id;
+    if (requestStoreId && requestStoreId !== input.store_id) {
+      return json(
+        {
+          success: false,
+          error: 'Invalid store context for this domain',
+        },
+        { status: 403 }
+      );
     }
 
     // ========================================================================
@@ -512,6 +532,91 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     const storeData = storeResult[0];
 
+    // ============================================================================
+    // PAYMENT METHOD GUARDRAILS
+    // ============================================================================
+    if (input.payment_method === 'stripe') {
+      return json(
+        {
+          success: false,
+          error: 'Stripe checkout is not enabled for this store yet.',
+          code: 'PAYMENT_METHOD_UNAVAILABLE',
+        },
+        { status: 400 }
+      );
+    }
+
+    if (input.payment_method !== 'cod') {
+      const senderNumber = input.manual_payment_details?.senderNumber?.replace(/[\s-]/g, '') || '';
+      const methodInDetails = input.manual_payment_details?.method;
+
+      if (!input.transaction_id || !senderNumber) {
+        return json(
+          {
+            success: false,
+            error: 'Transaction ID and sender number are required for online payment.',
+            code: 'PAYMENT_DETAILS_REQUIRED',
+          },
+          { status: 400 }
+        );
+      }
+
+      if (!bdPhoneRegex.test(senderNumber)) {
+        return json(
+          {
+            success: false,
+            error: 'Invalid sender phone number format.',
+            code: 'INVALID_SENDER_NUMBER',
+          },
+          { status: 400 }
+        );
+      }
+
+      if (methodInDetails && methodInDetails !== input.payment_method) {
+        return json(
+          {
+            success: false,
+            error: 'Payment method mismatch in request.',
+            code: 'PAYMENT_METHOD_MISMATCH',
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Enforce that selected manual payment method is configured at store level
+    let manualPaymentConfig: Record<string, string | null | undefined> = {};
+    if (storeData.manualPaymentConfig) {
+      try {
+        manualPaymentConfig = JSON.parse(storeData.manualPaymentConfig as string) as Record<
+          string,
+          string | null | undefined
+        >;
+      } catch {
+        manualPaymentConfig = {};
+      }
+    }
+
+    const enabledManualMethods = {
+      bkash: Boolean(manualPaymentConfig.bkashPersonal || manualPaymentConfig.bkashMerchant),
+      nagad: Boolean(manualPaymentConfig.nagadPersonal || manualPaymentConfig.nagadMerchant),
+      rocket: Boolean(manualPaymentConfig.rocketPersonal || manualPaymentConfig.rocketMerchant),
+    };
+
+    if (
+      input.payment_method !== 'cod' &&
+      !enabledManualMethods[input.payment_method as 'bkash' | 'nagad' | 'rocket']
+    ) {
+      return json(
+        {
+          success: false,
+          error: 'Selected payment method is not available for this store.',
+          code: 'PAYMENT_METHOD_NOT_CONFIGURED',
+        },
+        { status: 400 }
+      );
+    }
+
     // ========================================================================
     // PLAN LIMIT CHECK - Block orders if monthly limit reached
     // ========================================================================
@@ -600,7 +705,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         billingAddressJson: null,
         pricingJson: null,
         discountCode: input.discount_code || null,
-        paymentMethod: input.payment_method as 'cod' | 'bkash' | 'nagad' | 'stripe',
+        paymentMethod: input.payment_method as 'cod' | 'bkash' | 'nagad' | 'rocket' | 'stripe',
         status: 'processing',
         idempotencyKey,
         orderId: null,
@@ -1068,7 +1173,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           orderNumber,
           status: 'pending',
           paymentStatus: 'pending',
-          paymentMethod: input.payment_method as 'cod' | 'bkash' | 'nagad',
+          paymentMethod: input.payment_method as 'cod' | 'bkash' | 'nagad' | 'rocket',
           transactionId: input.transaction_id || null,
           manualPaymentDetails: input.manual_payment_details
             ? JSON.stringify(input.manual_payment_details)

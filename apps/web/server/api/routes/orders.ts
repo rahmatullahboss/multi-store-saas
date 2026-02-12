@@ -10,6 +10,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { customers, orders, orderItems, products, type NewOrderItem } from '@db/schema';
 import type { TenantEnv, TenantContext } from '../../middleware/tenant';
 import { recalculateCustomerSegment } from '../../services/customer-segmentation';
+import { checkUsageLimit } from '../../../app/utils/plans.server';
 
 type OrdersContext = {
   Bindings: TenantEnv;
@@ -115,6 +116,19 @@ ordersApi.post('/', async (c) => {
   }
   
   const body = await c.req.json<OrderBody>();
+
+  const limitCheck = await checkUsageLimit(c.env.DB, storeId, 'order');
+  if (!limitCheck.allowed) {
+    return c.json(
+      {
+        error: limitCheck.error?.message ?? 'Monthly order limit reached. Upgrade to accept more orders.',
+        code: 'LIMIT_REACHED_ORDER',
+        limit: limitCheck.error?.limit,
+        current: limitCheck.error?.current,
+      },
+      402
+    );
+  }
   
   // Validate items exist and belong to this store
   const productIds = body.items.map(item => item.productId);
