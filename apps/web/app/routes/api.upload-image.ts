@@ -71,6 +71,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
       'image/x-icon',
       'image/vnd.microsoft.icon',
       'image/ico',
+      'image/svg+xml',
+      'image/avif',
+      'image/bmp',
+      'image/tiff',
     ];
     if (!allowedTypes.includes(file.type)) {
       return json({ 
@@ -96,8 +100,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
       'image/x-icon': 'ico',
       'image/vnd.microsoft.icon': 'ico',
       'image/ico': 'ico',
+      'image/svg+xml': 'svg',
+      'image/avif': 'avif',
+      'image/bmp': 'bmp',
+      'image/tiff': 'tiff',
     };
-    const extension = extensionByType[file.type] || file.type.split('/')[1] || 'webp';
+    const extension = extensionByType[file.type] || file.type.split('/')[1] || 'bin';
     const key = `stores/${storeId}/${folder}/${timestamp}-${random}.${extension}`;
 
     // Get file content as ArrayBuffer

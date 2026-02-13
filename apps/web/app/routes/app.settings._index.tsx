@@ -686,6 +686,9 @@ export default function SettingsPage() {
                     {isUploadingLogo ? t('uploading') : t('uploadBtn')}
                   </button>
                   <p className="text-xs text-gray-500 mt-1">{t('logoHint')}</p>
+                  {logoFetcher.data?.error && (
+                    <p className="text-xs text-red-600 mt-1">{logoFetcher.data.error}</p>
+                  )}
                 </div>
                 <input
                   ref={fileInputRef}
@@ -739,11 +742,14 @@ export default function SettingsPage() {
                     {isUploadingFavicon ? t('uploading') : t('uploadBtn')}
                   </button>
                   <p className="text-xs text-gray-500 mt-1">{t('faviconHint')}</p>
+                  {faviconFetcher.data?.error && (
+                    <p className="text-xs text-red-600 mt-1">{faviconFetcher.data.error}</p>
+                  )}
                 </div>
                 <input
                   ref={faviconInputRef}
                   type="file"
-                  accept="image/png,image/x-icon,image/ico"
+                  accept="image/png,image/x-icon,image/ico,image/jpeg,image/webp,image/gif"
                   onChange={handleFaviconChange}
                   className="hidden"
                 />
@@ -832,7 +838,7 @@ export default function SettingsPage() {
                     defaultValue={store.subdomain}
                     minLength={SUBDOMAIN_MIN_LENGTH}
                     maxLength={SUBDOMAIN_MAX_LENGTH}
-                    pattern="[a-z0-9-]+"
+                    pattern="[-a-z0-9]+"
                     required
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                   />
