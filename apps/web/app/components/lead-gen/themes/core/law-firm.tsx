@@ -3,7 +3,7 @@
  * Dark, authoritative design with serif typography and gold accents
  */
 
-import { LeadCaptureForm, hexToRgb, type LeadGenThemeProps } from './shared';
+import { LeadCaptureForm, hexToRgb, type LeadGenThemeProps } from '../shared';
 
 export default function LawFirmRenderer({ settings }: LeadGenThemeProps) {
   const primaryRgb = hexToRgb(settings.primaryColor);

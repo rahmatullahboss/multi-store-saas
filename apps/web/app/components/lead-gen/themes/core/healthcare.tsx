@@ -3,7 +3,7 @@
  * Clean, trustworthy medical design with rounded elements
  */
 
-import { LeadCaptureForm, type LeadGenThemeProps } from './shared';
+import { LeadCaptureForm, type LeadGenThemeProps } from '../shared';
 
 export default function HealthcareRenderer({ settings }: LeadGenThemeProps) {
   const departments = [

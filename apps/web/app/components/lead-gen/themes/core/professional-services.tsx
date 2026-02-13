@@ -3,7 +3,7 @@
  * Clean, corporate design with blue tones
  */
 
-import { LeadCaptureForm, ServiceCard, TestimonialCard, type LeadGenThemeProps } from './shared';
+import { LeadCaptureForm, ServiceCard, TestimonialCard, type LeadGenThemeProps } from '../shared';
 
 export default function ProfessionalServicesRenderer({ settings }: LeadGenThemeProps) {
   return (

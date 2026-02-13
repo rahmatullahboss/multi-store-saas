@@ -3,7 +3,7 @@
  * Modern SaaS-style with clean cards and gradient accents
  */
 
-import { LeadCaptureForm, hexToRgb, type LeadGenThemeProps } from './shared';
+import { LeadCaptureForm, hexToRgb, type LeadGenThemeProps } from '../shared';
 
 export default function ConsultingFirmRenderer({ settings }: LeadGenThemeProps) {
   const primaryRgb = hexToRgb(settings.primaryColor);

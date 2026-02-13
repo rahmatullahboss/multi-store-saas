@@ -69,7 +69,20 @@ const NOVA_LUX_DEFAULT_SECTIONS = DEFAULT_SECTIONS.filter(
   (section) => !['banner', 'rich-text', 'newsletter'].includes(section.type)
 );
 
-const DEDUPE_SECTION_TYPES = new Set(['hero', 'features']);
+const DEDUPE_SECTION_GROUPS: Record<string, string> = {
+  hero: 'hero',
+  'modern-hero': 'hero',
+  'zenith-hero': 'hero',
+  'turbo-hero': 'hero',
+  video: 'hero',
+  banner: 'hero',
+  features: 'features',
+  'modern-features': 'features',
+};
+
+function getSectionGroup(type: string) {
+  return DEDUPE_SECTION_GROUPS[type] || type;
+}
 
 function dedupeSectionsByType(sections: SectionInstance[]) {
   const seen = new Set<string>();
@@ -77,11 +90,12 @@ function dedupeSectionsByType(sections: SectionInstance[]) {
 
   for (let index = sections.length - 1; index >= 0; index -= 1) {
     const section = sections[index];
-    if (DEDUPE_SECTION_TYPES.has(section.type)) {
-      if (seen.has(section.type)) {
+    const group = getSectionGroup(section.type);
+    if (DEDUPE_SECTION_GROUPS[section.type]) {
+      if (seen.has(group)) {
         continue;
       }
-      seen.add(section.type);
+      seen.add(group);
     }
     deduped.push(section);
   }

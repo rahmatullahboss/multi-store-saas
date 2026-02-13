@@ -32,6 +32,7 @@ import {
   type StoreCategory,
 } from '~/templates/store-registry';
 import { parseThemeConfig, parseSocialLinks, type ThemeConfig } from '@db/types';
+import type { SectionInstance } from '~/lib/theme-engine/types';
 import { getCustomer } from '~/services/customer-auth.server';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
@@ -187,6 +188,26 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     : themeConfigRaw) as any;
+
+  if (themeConfig?.bannerUrl && Array.isArray(themeConfig.sections)) {
+    const heroIndex = themeConfig.sections.findIndex((section: SectionInstance) =>
+      ['hero', 'modern-hero', 'zenith-hero', 'turbo-hero', 'video', 'banner'].includes(section.type)
+    );
+
+    if (heroIndex >= 0) {
+      const heroSection = themeConfig.sections[heroIndex];
+      const heroSettings = heroSection.settings || {};
+      if (!heroSettings.image) {
+        themeConfig.sections[heroIndex] = {
+          ...heroSection,
+          settings: {
+            ...heroSettings,
+            image: themeConfig.bannerUrl,
+          },
+        };
+      }
+    }
+  }
   const socialLinks = parseSocialLinks(store.socialLinks as string | null);
   const storeTemplateId =
     themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;

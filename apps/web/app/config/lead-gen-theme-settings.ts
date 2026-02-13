@@ -173,6 +173,38 @@ export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
 };
 
 // ============================================================================
+// CUSTOM THEME SETTINGS (Paid clients)
+// ============================================================================
+
+export const CUSTOM_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
+  // ─── Add custom client theme settings here ───
+  // Example:
+  // 'client-fashion-house': {
+  //   storeName: 'Fashion House',
+  //   logo: null,
+  //   favicon: null,
+  //   primaryColor: '#1a1a1a',
+  //   accentColor: '#c9a961',
+  //   heroHeading: 'Luxury Fashion Collection',
+  //   heroDescription: 'Discover our exclusive collection',
+  //   ctaButtonText: 'Shop Now',
+  //   showAnnouncement: false,
+  //   announcementText: null,
+  //   showTestimonials: true,
+  //   showServices: true,
+  //   phone: null,
+  //   email: null,
+  //   address: null,
+  // },
+};
+
+// Combined lookup (core + custom)
+export const ALL_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
+  ...DEFAULT_LEAD_GEN_SETTINGS,
+  ...CUSTOM_LEAD_GEN_SETTINGS,
+};
+
+// ============================================================================
 // HELPER FUNCTIONS (Matching MVP pattern)
 // ============================================================================
 
@@ -184,7 +216,7 @@ export function validateLeadGenSettings(
   settings: Partial<LeadGenThemeSettings>,
   themeId: string = 'professional-services'
 ): LeadGenThemeSettings {
-  const defaults = DEFAULT_LEAD_GEN_SETTINGS[themeId] || DEFAULT_LEAD_GEN_SETTINGS['professional-services'];
+  const defaults = ALL_LEAD_GEN_SETTINGS[themeId] || DEFAULT_LEAD_GEN_SETTINGS['professional-services'];
 
   return {
     storeName: settings.storeName || defaults.storeName,
@@ -213,7 +245,7 @@ export function mergeLeadGenSettings(
   userSettings: Partial<LeadGenThemeSettings>,
   themeId: string
 ): LeadGenThemeSettings {
-  const defaults = DEFAULT_LEAD_GEN_SETTINGS[themeId] || DEFAULT_LEAD_GEN_SETTINGS['professional-services'];
+  const defaults = ALL_LEAD_GEN_SETTINGS[themeId] || DEFAULT_LEAD_GEN_SETTINGS['professional-services'];
 
   return {
     ...defaults,
@@ -262,7 +294,7 @@ export function deserializeLeadGenSettings(
     };
   } catch (error) {
     console.error('Failed to parse lead gen settings:', error);
-    const defaults = DEFAULT_LEAD_GEN_SETTINGS[themeId] || DEFAULT_LEAD_GEN_SETTINGS['professional-services'];
+    const defaults = ALL_LEAD_GEN_SETTINGS[themeId] || DEFAULT_LEAD_GEN_SETTINGS['professional-services'];
     return {
       ...defaults,
       themeId,
@@ -284,6 +316,7 @@ export function getAvailableLeadGenThemes() {
       descriptionBn: 'সার্ভিস ব্যবসার জন্য পরিষ্কার, পেশাদার ডিজাইন',
       preview: '/themes/professional-services/preview.png',
       category: 'business',
+      isPaid: false,
     },
     {
       id: 'consulting-firm',
@@ -293,6 +326,7 @@ export function getAvailableLeadGenThemes() {
       descriptionBn: 'কনসালটিং ব্যবসার জন্য কৌশলগত লেআউট',
       preview: '/themes/consulting-firm/preview.png',
       category: 'business',
+      isPaid: false,
     },
     {
       id: 'law-firm',
@@ -302,6 +336,7 @@ export function getAvailableLeadGenThemes() {
       descriptionBn: 'আইনি সেবার জন্য পেশাদার থিম',
       preview: '/themes/law-firm/preview.png',
       category: 'legal',
+      isPaid: false,
     },
     {
       id: 'healthcare',
@@ -311,6 +346,7 @@ export function getAvailableLeadGenThemes() {
       descriptionBn: 'চিকিৎসা সেবার জন্য পরিষ্কার ডিজাইন',
       preview: '/themes/healthcare/preview.png',
       category: 'medical',
+      isPaid: false,
     },
     {
       id: 'agency',
@@ -320,6 +356,7 @@ export function getAvailableLeadGenThemes() {
       descriptionBn: 'ক্রিয়েটিভ এজেন্সির জন্য আধুনিক ডিজাইন',
       preview: '/themes/agency/preview.png',
       category: 'creative',
+      isPaid: false,
     },
     {
       id: 'study-abroad',
@@ -327,8 +364,10 @@ export function getAvailableLeadGenThemes() {
       nameBn: 'এক্সপার্ট এডুকেশন',
       description: 'Education consultancy theme with country guides',
       descriptionBn: 'দেশভিত্তিক গাইড সহ শিক্ষা পরামর্শ থিম',
-      preview: '/themes/study-abroad/preview.png', // Placeholder
+      preview: '/themes/study-abroad/preview.png',
       category: 'education',
+      isPaid: false,
     },
+    // ─── Custom (paid) themes will be added here ───
   ];
 }

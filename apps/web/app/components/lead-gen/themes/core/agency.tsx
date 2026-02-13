@@ -3,7 +3,7 @@
  * Bold, creative design with dynamic gradients and portfolio sections
  */
 
-import { LeadCaptureForm, hexToRgb, type LeadGenThemeProps } from './shared';
+import { LeadCaptureForm, hexToRgb, type LeadGenThemeProps } from '../shared';
 
 export default function AgencyRenderer({ settings }: LeadGenThemeProps) {
   const primaryRgb = hexToRgb(settings.primaryColor);

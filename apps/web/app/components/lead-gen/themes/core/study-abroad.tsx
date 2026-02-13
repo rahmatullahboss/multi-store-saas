@@ -3,7 +3,7 @@
  * Education consultancy with destination cards and accreditations
  */
 
-import { LeadCaptureForm, type LeadGenThemeProps } from './shared';
+import { LeadCaptureForm, type LeadGenThemeProps } from '../shared';
 
 export default function StudyAbroadRenderer({ settings }: LeadGenThemeProps) {
   const metrics = [
