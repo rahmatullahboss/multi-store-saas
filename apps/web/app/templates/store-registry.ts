@@ -377,6 +377,24 @@ import { ROVO_THEME } from '~/components/store-templates/rovo/theme';
 import { SOKOL_THEME } from '~/components/store-templates/sokol/theme';
 import { STARTER_STORE_THEME } from '~/components/store-templates/starter-store/theme';
 
+const ProfessionalServicesTemplate = React.lazy(() =>
+  import('~/themes/professional-services/template').then((m) => ({
+    default: m.default,
+  }))
+);
+
+const ProfessionalServicesHeader = React.lazy(() =>
+  import('~/themes/professional-services/adapters').then((m) => ({
+    default: m.HeaderAdapter,
+  }))
+);
+
+const ProfessionalServicesFooter = React.lazy(() =>
+  import('~/themes/professional-services/adapters').then((m) => ({
+    default: m.FooterAdapter,
+  }))
+);
+
 // Shared Product Page for templates without their own ProductPage
 const SharedProductPage = React.lazy(
   () => import('~/components/store-templates/shared/ProductPage')
@@ -1022,6 +1040,26 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     CartPage: SharedCartPage,
     CollectionPage: SharedCollectionPage,
     CheckoutPage: SharedCheckoutPage,
+  },
+  {
+    id: 'professional-services',
+    name: 'Professional Services',
+    description:
+      'Modern lead generation theme for consultants, agencies, and B2B services with inline contact forms.',
+    thumbnail: '/themes/professional-services/preview.png',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['starter-store'], // Fallback theme or define custom one
+    fonts: {
+      heading: 'Inter',
+      body: 'Inter',
+    },
+    component: ProfessionalServicesTemplate,
+    Header: ProfessionalServicesHeader,
+    Footer: ProfessionalServicesFooter,
+    ProductPage: SharedProductPage, // Fallback
+    CartPage: SharedCartPage,       // Fallback
+    CollectionPage: SharedCollectionPage, // Fallback
+    CheckoutPage: SharedCheckoutPage,     // Fallback
   },
   {
     id: 'starter-store',

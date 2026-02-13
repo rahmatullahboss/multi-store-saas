@@ -152,6 +152,24 @@ export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
     email: null,
     address: null,
   },
+
+  'study-abroad': {
+    storeName: 'Expert Education',
+    logo: null,
+    favicon: null,
+    primaryColor: '#ED1C24', // Expert Education Red
+    accentColor: '#002C5F', // Navy Blue
+    heroHeading: 'Rely on Experts for Your Study Abroad Journey',
+    heroDescription: 'We help you discover your perfect study destination and guide you through every step from university selection to visa approval.',
+    ctaButtonText: 'Get Free Consultation',
+    showAnnouncement: true,
+    announcementText: 'Turn your global study dream into Reality',
+    showTestimonials: true,
+    showServices: true,
+    phone: null,
+    email: null,
+    address: null,
+  },
 };
 
 // ============================================================================
@@ -302,6 +320,15 @@ export function getAvailableLeadGenThemes() {
       descriptionBn: 'ক্রিয়েটিভ এজেন্সির জন্য আধুনিক ডিজাইন',
       preview: '/themes/agency/preview.png',
       category: 'creative',
+    },
+    {
+      id: 'study-abroad',
+      name: 'Expert Education',
+      nameBn: 'এক্সপার্ট এডুকেশন',
+      description: 'Education consultancy theme with country guides',
+      descriptionBn: 'দেশভিত্তিক গাইড সহ শিক্ষা পরামর্শ থিম',
+      preview: '/themes/study-abroad/preview.png', // Placeholder
+      category: 'education',
     },
   ];
 }

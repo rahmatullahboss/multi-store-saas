@@ -18,7 +18,7 @@ import type { StoreTemplateProps, SerializedProduct, StoreCategory } from '~/tem
 import type { ThemeConfig } from '@db/types';
 import type { SectionInstance } from '~/lib/theme-engine/types';
 import { AddToCartButton } from '~/components/AddToCartButton';
-import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
+import { SECTION_REGISTRY, DEFAULT_SECTIONS, type StoreSection } from '~/components/store-sections/registry';
 import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
 import { useProductPrice } from '~/hooks/useProductPrice';
 import { WishlistProvider } from '~/contexts/WishlistContext';
@@ -266,18 +266,17 @@ function PreviewHeader({
 
           <button
             onClick={() => onNavigate({ type: 'home' })}
-            className="flex items-center justify-center"
+            className="flex items-center justify-center gap-3"
           >
-            {logo ? (
+            {logo && (
               <img src={logo} alt={storeName} className="h-10 lg:h-12 object-contain" />
-            ) : (
-              <span
-                className="text-2xl lg:text-3xl font-semibold tracking-wider"
-                style={{ fontFamily: NOVALUX_THEME.fontHeading, color: theme.primary }}
-              >
-                {storeName}
-              </span>
             )}
+            <span
+              className="text-2xl lg:text-3xl font-semibold tracking-wider"
+              style={{ fontFamily: NOVALUX_THEME.fontHeading, color: theme.primary }}
+            >
+              {storeName}
+            </span>
           </button>
 
           <div className="flex items-center gap-2">
@@ -506,52 +505,39 @@ function PreviewHomePage({
     }
   }, [heroBehavior.slides.length, heroIndex]);
 
+  const THEME = {
+    primary: NOVALUX_THEME.primary,
+    accent: NOVALUX_THEME.accent,
+    background: NOVALUX_THEME.background,
+    text: NOVALUX_THEME.text,
+    muted: NOVALUX_THEME.muted,
+    cardBg: NOVALUX_THEME.cardBg,
+  };
+
   return (
     <div className="min-h-screen">
-      <section className="relative h-[80vh] flex items-center justify-center bg-gray-900 text-white overflow-hidden">
-        <div
-          className="absolute inset-0 z-10"
-          style={{
-            backgroundColor: `rgba(0, 0, 0, ${config?.heroOverlayOpacity ?? 0.5})`,
-          }}
-        />
-        {heroImage && (
-          <img
-            src={heroSrc}
-            alt="Banner"
-            className="absolute inset-0 w-full h-full object-cover"
-            srcSet={heroSrcSet}
-            sizes="100vw"
-            loading="eager"
-            {...({ fetchpriority: 'high' } as Record<string, unknown>)}
-            decoding="async"
-          />
-        )}
-        <div className="relative z-20 text-center max-w-4xl px-4">
-          <h1 className="text-5xl md:text-7xl font-serif mb-6">{heroHeading}</h1>
-          <p className="text-xl mb-8 opacity-90">{heroSubheading}</p>
-          <button
-            onClick={() => onNavigate({ type: 'home' })}
-            className="px-8 py-3 bg-white text-black font-semibold rounded-full hover:bg-gray-100 transition"
-          >
-            {heroCta}
-          </button>
-        </div>
-      </section>
+      {/* Render sections from NOVA_LUX_DEFAULT_SECTIONS */}
+      {NOVA_LUX_DEFAULT_SECTIONS.map((section: StoreSection) => {
+        const SectionComponent = SECTION_REGISTRY[section.type]?.component;
+        if (!SectionComponent) return null;
 
-      <section className="py-20 px-4 max-w-7xl mx-auto">
-        <h2 className="text-3xl font-serif text-center mb-12">Featured Collection</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {products.slice(0, 8).map((p) => (
-            <PreviewProductCard
-              key={p.id}
-              product={p}
-              currency={currency}
-              onNavigate={onNavigate}
-            />
-          ))}
-        </div>
-      </section>
+        return (
+          <SectionComponent
+            key={section.id}
+            settings={section.settings}
+            theme={THEME}
+            products={products}
+            categories={_categories}
+            storeId={0}
+            currency={currency}
+            store={{
+              name: _storeName,
+              currency: currency,
+            }}
+            ProductCardComponent={PreviewProductCard}
+          />
+        );
+      })}
     </div>
   );
 }
