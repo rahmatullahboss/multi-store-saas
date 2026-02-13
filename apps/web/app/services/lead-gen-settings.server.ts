@@ -15,6 +15,14 @@ import { stores } from '@db/schema';
 import {
   type LeadGenThemeSettings,
   type LeadGenSettingsWithTheme,
+  type DestinationConfig,
+  type ServiceConfig,
+  type WhyChoosePoint,
+  type ProcessStepConfig,
+  type SuccessStoryConfig,
+  type TeamMemberConfig,
+  type WhyStudyPoint,
+  type QuickLinkConfig,
   validateLeadGenSettings,
   serializeLeadGenSettings,
   deserializeLeadGenSettings,
@@ -22,7 +30,18 @@ import {
 } from '~/config/lead-gen-theme-settings';
 
 // Re-export types for consumers
-export type { LeadGenThemeSettings, LeadGenSettingsWithTheme };
+export type {
+  LeadGenThemeSettings,
+  LeadGenSettingsWithTheme,
+  DestinationConfig,
+  ServiceConfig,
+  WhyChoosePoint,
+  ProcessStepConfig,
+  SuccessStoryConfig,
+  TeamMemberConfig,
+  WhyStudyPoint,
+  QuickLinkConfig,
+};
 
 // ============================================================================
 // READ OPERATIONS
@@ -46,7 +65,8 @@ export async function getLeadGenSettings(
 
   if (!store) {
     // Store not found, return defaults
-    const defaults = DEFAULT_LEAD_GEN_SETTINGS[themeId] || DEFAULT_LEAD_GEN_SETTINGS['professional-services'];
+    const defaults =
+      DEFAULT_LEAD_GEN_SETTINGS[themeId] || DEFAULT_LEAD_GEN_SETTINGS['professional-services'];
     return {
       ...defaults,
       themeId,
@@ -63,7 +83,8 @@ export async function getLeadGenSettings(
   }
 
   // No settings saved, return defaults
-  const defaults = DEFAULT_LEAD_GEN_SETTINGS[themeId] || DEFAULT_LEAD_GEN_SETTINGS['professional-services'];
+  const defaults =
+    DEFAULT_LEAD_GEN_SETTINGS[themeId] || DEFAULT_LEAD_GEN_SETTINGS['professional-services'];
   return {
     ...defaults,
     themeId,
@@ -188,7 +209,8 @@ export async function updateLeadGenTheme(
   const current = await getRawLeadGenSettings(db, storeId);
 
   // Get new theme defaults
-  const newDefaults = DEFAULT_LEAD_GEN_SETTINGS[newThemeId] || DEFAULT_LEAD_GEN_SETTINGS['professional-services'];
+  const newDefaults =
+    DEFAULT_LEAD_GEN_SETTINGS[newThemeId] || DEFAULT_LEAD_GEN_SETTINGS['professional-services'];
 
   if (current) {
     // Preserve user customizations, but update theme-specific defaults
@@ -273,7 +295,8 @@ export async function initializeLeadGenSettings(
   themeId: string = 'professional-services',
   storeName?: string
 ): Promise<LeadGenSettingsWithTheme> {
-  const defaults = DEFAULT_LEAD_GEN_SETTINGS[themeId] || DEFAULT_LEAD_GEN_SETTINGS['professional-services'];
+  const defaults =
+    DEFAULT_LEAD_GEN_SETTINGS[themeId] || DEFAULT_LEAD_GEN_SETTINGS['professional-services'];
 
   const settings: LeadGenSettingsWithTheme = {
     ...defaults,

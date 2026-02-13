@@ -18,10 +18,6 @@
 
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import {
-  Truck,
-  RotateCcw,
-  Shield,
-  CreditCard,
   Instagram,
   Facebook,
   Twitter,
@@ -31,6 +27,7 @@ import {
   Mail,
   Phone,
   MapPin,
+  CreditCard,
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { NOVALUX_THEME } from '../theme';
@@ -48,6 +45,7 @@ interface NovaLuxFooterProps {
   categories: (string | StoreCategory | null)[];
   planType?: string;
   isPreview?: boolean;
+  showNewsletter?: boolean;
 }
 
 // Payment Icon Components
@@ -94,6 +92,7 @@ export function NovaLuxFooter({
   categories = [],
   planType = 'free',
   isPreview = false,
+  showNewsletter = false,
 }: NovaLuxFooterProps) {
   const { t } = useTranslation();
   const THEME = {
@@ -117,105 +116,49 @@ export function NovaLuxFooter({
 
   return (
     <footer style={{ backgroundColor: THEME.footerBg, color: THEME.footerText }}>
-      {/* Trust Badges Bar */}
-      <div className="border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex items-center gap-3">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: THEME.accent + '20' }}
-              >
-                <Truck className="w-5 h-5" style={{ color: THEME.accent }} />
-              </div>
-              <div>
-                <p className="font-medium text-sm">{t('freeShipping')}</p>
-                <p className="text-xs text-white/60">
-                  {t('freeShippingDesc', { amount: '৳1,000' })}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: THEME.accent + '20' }}
-              >
-                <RotateCcw className="w-5 h-5" style={{ color: THEME.accent }} />
-              </div>
-              <div>
-                <p className="font-medium text-sm">{t('easyReturns')}</p>
-                <p className="text-xs text-white/60">{t('easyReturnsDesc')}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: THEME.accent + '20' }}
-              >
-                <Shield className="w-5 h-5" style={{ color: THEME.accent }} />
-              </div>
-              <div>
-                <p className="font-medium text-sm">{t('securePaymentTitle')}</p>
-                <p className="text-xs text-white/60">{t('securePaymentDesc')}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: THEME.accent + '20' }}
-              >
-                <CreditCard className="w-5 h-5" style={{ color: THEME.accent }} />
-              </div>
-              <div>
-                <p className="font-medium text-sm">{t('codTitle')}</p>
-                <p className="text-xs text-white/60">{t('codDesc')}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Trust Badges Bar - Removed from footer for NovaLux */}
+      {/* Users can add Why Choose Us section from theme editor settings */}
 
-      {/* Newsletter Section */}
-      <div className="py-16 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h3
-            className="text-3xl lg:text-4xl font-semibold mb-4"
-            style={{ fontFamily: NOVALUX_THEME.fontHeading }}
-          >
-            {t('joinFamily', { name: storeName })}
-          </h3>
-          <p className="text-white/60 mb-8 max-w-lg mx-auto">{t('subscribeText')}</p>
-          <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Email..."
-              className="flex-1 px-5 py-4 rounded-full bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-white/40 transition-colors"
-            />
-            <button
-              className="px-8 py-4 rounded-full font-semibold transition-all duration-300 hover:scale-105"
-              style={{ background: NOVALUX_THEME.accentGradient, color: THEME.primary }}
+      {/* Newsletter Section - Hidden by default for NovaLux */}
+      {showNewsletter && (
+        <div className="py-16 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h3
+              className="text-3xl lg:text-4xl font-semibold mb-4"
+              style={{ fontFamily: NOVALUX_THEME.fontHeading }}
             >
-              {t('subscribe')}
-            </button>
+              {t('joinFamily', { name: storeName })}
+            </h3>
+            <p className="text-white/60 mb-8 max-w-lg mx-auto">{t('subscribeText')}</p>
+            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder="Email..."
+                className="flex-1 px-5 py-4 rounded-full bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-white/40 transition-colors"
+              />
+              <button
+                className="px-8 py-4 rounded-full font-semibold transition-all duration-300 hover:scale-105"
+                style={{ background: NOVALUX_THEME.accentGradient, color: THEME.primary }}
+              >
+                {t('subscribe')}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
           {/* Brand */}
           <div className="lg:col-span-2">
-            {logo ? (
-              <img src={logo} alt={storeName} className="h-10 w-auto object-contain mb-4" />
-            ) : (
-              <h4
-                className="text-2xl font-semibold mb-4"
-                style={{ fontFamily: NOVALUX_THEME.fontHeading }}
-              >
-                {storeName}
-              </h4>
-            )}
+            {logo && <img src={logo} alt={storeName} className="h-10 w-auto object-contain mb-2" />}
+            <h4
+              className="text-2xl font-semibold mb-4"
+              style={{ fontFamily: NOVALUX_THEME.fontHeading }}
+            >
+              {storeName}
+            </h4>
             <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-sm">
               {footerConfig?.description || t('luxeDescription')}
             </p>
@@ -362,7 +305,10 @@ export function NovaLuxFooter({
               </h5>
               <ul className="space-y-3 text-sm">
                 {validCategories.map((cat) => {
-                  const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+                  const title =
+                    typeof cat === 'object' && cat !== null
+                      ? (cat as StoreCategory).title
+                      : (cat as string);
                   return (
                     <li key={title}>
                       <PreviewSafeLink

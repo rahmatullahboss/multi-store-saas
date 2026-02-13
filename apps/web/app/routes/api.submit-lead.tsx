@@ -1,7 +1,7 @@
 /**
  * Lead Submission API Route
  * Handles form submissions from lead gen forms across all themes
- * 
+ *
  * Features:
  * - Zod validation
  * - Spam prevention (honeypot, rate limiting)
@@ -21,36 +21,36 @@ import { createDb } from '~/lib/db.server';
 // VALIDATION SCHEMA
 // ============================================================================
 
-const LeadSubmissionSchema = z.object({
-  // Required fields
-  form_id: z.string().min(1, 'Form ID is required'),
-  name: z.string().min(1, 'Name is required').max(255),
-  
-  // Contact (at least one required)
-  email: z.string().email('Invalid email address').optional(),
-  phone: z.string().optional(),
-  
-  // Optional fields
-  company: z.string().max(255).optional(),
-  message: z.string().max(5000).optional(),
-  
-  // Metadata
-  page_url: z.string().url().optional(),
-  
-  // UTM parameters
-  utm_source: z.string().optional(),
-  utm_medium: z.string().optional(),
-  utm_campaign: z.string().optional(),
-  
-  // Honeypot (should be empty)
-  website: z.string().optional(),
-}).refine(
-  (data) => data.email || data.phone,
-  {
+const LeadSubmissionSchema = z
+  .object({
+    // Required fields
+    form_id: z.string().min(1, 'Form ID is required'),
+    name: z.string().min(1, 'Name is required').max(255),
+
+    // Contact (at least one required)
+    email: z.string().email('Invalid email address').optional(),
+    phone: z.string().optional(),
+
+    // Optional fields
+    company: z.string().max(255).optional(),
+    message: z.string().max(5000).optional(),
+    document: z.string().url().optional(), // File upload URL from R2
+
+    // Metadata
+    page_url: z.string().url().optional(),
+
+    // UTM parameters
+    utm_source: z.string().optional(),
+    utm_medium: z.string().optional(),
+    utm_campaign: z.string().optional(),
+
+    // Honeypot (should be empty)
+    website: z.string().optional(),
+  })
+  .refine((data) => data.email || data.phone, {
     message: 'Either email or phone is required',
     path: ['email'],
-  }
-);
+  });
 
 // ============================================================================
 // ACTION HANDLER
@@ -73,23 +73,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Get store from hostname
     const url = new URL(request.url);
     const hostname = url.hostname;
-    
+
     const [store] = await db
       .select()
       .from(stores)
-      .where(
-        or(
-          eq(stores.customDomain, hostname),
-          eq(stores.subdomain, hostname.split('.')[0])
-        )
-      )
+      .where(or(eq(stores.customDomain, hostname), eq(stores.subdomain, hostname.split('.')[0])))
       .limit(1);
 
     if (!store) {
-      return json(
-        { success: false, error: 'Store not found' },
-        { status: 404 }
-      );
+      return json({ success: false, error: 'Store not found' }, { status: 404 });
     }
 
     // Parse form data
@@ -118,10 +110,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const data = validated.data;
 
     // Spam Check 2: Rate limiting by IP
-    const ipAddress = request.headers.get('CF-Connecting-IP') || 
-                     request.headers.get('X-Forwarded-For') || 
-                     'unknown';
-    
+    const ipAddress =
+      request.headers.get('CF-Connecting-IP') ||
+      request.headers.get('X-Forwarded-For') ||
+      'unknown';
+
     const rateLimitKey = `rate_limit:lead_form:${ipAddress}`;
     if (KV) {
       const rateLimitCount = await KV.get(rateLimitKey);
@@ -133,7 +126,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
       // Increment rate limit counter
-      await KV.put(rateLimitKey, String((parseInt(rateLimitCount || '0', 10) + 1)), {
+      await KV.put(rateLimitKey, String(parseInt(rateLimitCount || '0', 10) + 1), {
         expirationTtl: 3600, // 1 hour
       });
     }
@@ -153,6 +146,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         company: data.company || null,
         formData: JSON.stringify({
           message: data.message,
+          document: data.document,
         }),
         source: 'contact_form',
         formId: data.form_id,
@@ -173,7 +167,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // Send email notification to merchant (async)
     if (RESEND_API_KEY) {
-      context.cloudflare.ctx.waitUntil(sendMerchantNotification(db, store, lead.id, data, RESEND_API_KEY));
+      context.cloudflare.ctx.waitUntil(
+        sendMerchantNotification(db, store, lead.id, data, RESEND_API_KEY)
+      );
     }
 
     // AI enrichment (async, optional)
@@ -182,7 +178,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     return json({ success: true, leadId: lead.id });
-
   } catch (error) {
     console.error('❌ Lead submission error:', error);
     return json(
@@ -229,7 +224,7 @@ async function sendMerchantNotification(
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${resendApiKey}`,
+        Authorization: `Bearer ${resendApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -262,30 +257,46 @@ async function sendMerchantNotification(
                   <div class="label">Name</div>
                   <div class="value">${data.name}</div>
                 </div>
-                ${data.email ? `
+                ${
+                  data.email
+                    ? `
                 <div class="field">
                   <div class="label">Email</div>
                   <div class="value"><a href="mailto:${data.email}" style="color: #2563EB;">${data.email}</a></div>
                 </div>
-                ` : ''}
-                ${data.phone ? `
+                `
+                    : ''
+                }
+                ${
+                  data.phone
+                    ? `
                 <div class="field">
                   <div class="label">Phone</div>
                   <div class="value"><a href="tel:${data.phone}" style="color: #2563EB;">${data.phone}</a></div>
                 </div>
-                ` : ''}
-                ${data.company ? `
+                `
+                    : ''
+                }
+                ${
+                  data.company
+                    ? `
                 <div class="field">
                   <div class="label">Company</div>
                   <div class="value">${data.company}</div>
                 </div>
-                ` : ''}
-                ${data.message ? `
+                `
+                    : ''
+                }
+                ${
+                  data.message
+                    ? `
                 <div class="field">
                   <div class="label">Message</div>
                   <div class="value">${data.message}</div>
                 </div>
-                ` : ''}
+                `
+                    : ''
+                }
                 <div style="text-align: center; margin-top: 30px;">
                   <a href="https://${store.customDomain || store.subdomain + '.ozzyl.com'}/app/leads/${leadId}" class="cta-button">
                     View Lead Details →
@@ -314,12 +325,7 @@ async function sendMerchantNotification(
   }
 }
 
-async function enrichLeadWithAI(
-  db: any,
-  leadId: number,
-  data: any,
-  AI: any
-) {
+async function enrichLeadWithAI(db: any, leadId: number, data: any, AI: any) {
   try {
     // Calculate basic lead score
     let score = 0.5; // Base score
@@ -333,7 +339,8 @@ async function enrichLeadWithAI(
         messages: [
           {
             role: 'system',
-            content: 'Analyze this lead inquiry and extract: intent (information/demo/purchase), urgency (low/medium/high), estimated budget if mentioned. Respond in JSON format only.',
+            content:
+              'Analyze this lead inquiry and extract: intent (information/demo/purchase), urgency (low/medium/high), estimated budget if mentioned. Respond in JSON format only.',
           },
           {
             role: 'user',

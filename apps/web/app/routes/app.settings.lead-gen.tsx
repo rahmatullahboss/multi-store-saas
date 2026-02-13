@@ -2,17 +2,7 @@
  * Lead Gen Settings Page
  *
  * Allows merchants to customize their lead generation website.
- * Follows EXACT same pattern as app.store.settings.tsx for e-commerce.
- *
- * Features:
- * - Theme selector
- * - Color picker
- * - Text editors (heading, description, CTA)
- * - Logo upload
- * - Toggle sections on/off
- * - Contact information
- *
- * @see apps/web/app/routes/app.store.settings.tsx - E-commerce equivalent
+ * Now includes full study-abroad theme customization options.
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudflare';
@@ -22,14 +12,41 @@ import { drizzle } from 'drizzle-orm/d1';
 import { stores } from '@db/schema';
 import { eq } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
-import { 
+import {
   getLeadGenSettings,
   saveLeadGenSettings,
   updateLeadGenTheme,
   type LeadGenSettingsWithTheme,
+  type DestinationConfig,
+  type ServiceConfig,
+  type WhyChoosePoint,
+  type ProcessStepConfig,
+  type SuccessStoryConfig,
+  type TeamMemberConfig,
+  type WhyStudyPoint,
+  type QuickLinkConfig,
 } from '~/services/lead-gen-settings.server';
 import { getAvailableLeadGenThemes } from '~/config/lead-gen-theme-settings';
-import { Palette, Type, Image as ImageIcon, Settings, CheckCircle, Loader2, Eye, Save, ArrowLeft, Megaphone, Globe } from 'lucide-react';
+import {
+  Palette,
+  Type,
+  Image as ImageIcon,
+  Settings,
+  CheckCircle,
+  Loader2,
+  Eye,
+  Save,
+  ArrowLeft,
+  Megaphone,
+  Globe,
+  Plus,
+  Trash2,
+  GripVertical,
+  User,
+  Award,
+  MapPin,
+  Building,
+} from 'lucide-react';
 
 // ============================================================================
 // LOADER - Fetch current settings
@@ -50,7 +67,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     throw new Response('Store not found', { status: 404 });
   }
 
-  // Get current theme ID (from store config or default)
+  // Get current theme ID
   let currentThemeId = 'professional-services';
   if (store.leadGenConfig) {
     try {
@@ -91,59 +108,98 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   try {
     if (action === 'change_theme') {
-      // Change theme
       const newThemeId = formData.get('themeId') as string;
       const updated = await updateLeadGenTheme(db, storeId, newThemeId);
-      
-      return json({ 
-        success: true, 
-        message: 'Theme updated successfully',
-        settings: updated,
-      });
+      return json({ success: true, message: 'Theme updated successfully', settings: updated });
     }
 
     if (action === 'save_settings') {
-      // Get current settings
       const current = await getLeadGenSettings(db, storeId);
 
-      // Build updated settings
+      // Parse array fields from formData
+      const parseJsonField = (key: string, defaultValue: any[]): any[] => {
+        const value = formData.get(key);
+        if (!value) return defaultValue;
+        try {
+          return JSON.parse(value as string);
+        } catch {
+          return defaultValue;
+        }
+      };
+
       const updated: LeadGenSettingsWithTheme = {
         ...current,
         storeName: (formData.get('storeName') as string) || current.storeName,
-        logo: (formData.get('logo') as string) || current.logo,
-        favicon: (formData.get('favicon') as string) || current.favicon,
+        logo: (formData.get('logo') as string) || null,
+        favicon: (formData.get('favicon') as string) || null,
         primaryColor: (formData.get('primaryColor') as string) || current.primaryColor,
         accentColor: (formData.get('accentColor') as string) || current.accentColor,
         heroHeading: (formData.get('heroHeading') as string) || current.heroHeading,
         heroDescription: (formData.get('heroDescription') as string) || current.heroDescription,
         ctaButtonText: (formData.get('ctaButtonText') as string) || current.ctaButtonText,
+        heroSubheading: (formData.get('heroSubheading') as string) || null,
         showAnnouncement: formData.get('showAnnouncement') === 'on',
         announcementText: (formData.get('announcementText') as string) || null,
         showTestimonials: formData.get('showTestimonials') === 'on',
         showServices: formData.get('showServices') === 'on',
+        showStats: formData.get('showStats') === 'on',
+        showCompanyProfile: formData.get('showCompanyProfile') === 'on',
+        showMDProfile: formData.get('showMDProfile') === 'on',
+        showOtherCountries: formData.get('showOtherCountries') === 'on',
+        showStudentPortal: formData.get('showStudentPortal') === 'on',
+        showUniversityPartners: formData.get('showUniversityPartners') === 'on',
+        showWhatsApp: formData.get('showWhatsApp') === 'on',
+
+        // Stats
+        statsStudentsCount: (formData.get('statsStudentsCount') as string) || '20,000+',
+        statsRecruitmentAwards: (formData.get('statsRecruitmentAwards') as string) || '35+',
+        statsUniversityPartners: (formData.get('statsUniversityPartners') as string) || '140+',
+
+        // Contact
         phone: (formData.get('phone') as string) || null,
         email: (formData.get('email') as string) || null,
         address: (formData.get('address') as string) || null,
+        whatsappNumber: (formData.get('whatsappNumber') as string) || null,
+
+        // Company Profile
+        companyDescription: (formData.get('companyDescription') as string) || null,
+        visaSuccessRatio: (formData.get('visaSuccessRatio') as string) || null,
+        visaSuccessLabel: (formData.get('visaSuccessLabel') as string) || null,
+        yearsExperience: (formData.get('yearsExperience') as string) || null,
+        yearsLabel: (formData.get('yearsLabel') as string) || null,
+
+        // MD Profile
+        mdName: (formData.get('mdName') as string) || null,
+        mdRole: (formData.get('mdRole') as string) || null,
+        mdDescription: (formData.get('mdDescription') as string) || null,
+
+        // Footer
+        footerDescription: (formData.get('footerDescription') as string) || null,
+
+        // Array fields
+        destinations: parseJsonField('destinations', current.destinations || []),
+        services: parseJsonField('services', current.services || []),
+        whyChoosePoints: parseJsonField('whyChoosePoints', current.whyChoosePoints || []),
+        processSteps: parseJsonField('processSteps', current.processSteps || []),
+        successStories: parseJsonField('successStories', current.successStories || []),
+        teamMembers: parseJsonField('teamMembers', current.teamMembers || []),
+        universityLogos: parseJsonField('universityLogos', current.universityLogos || []),
+        whyStudyPoints: parseJsonField('whyStudyPoints', current.whyStudyPoints || []),
+        otherCountries: parseJsonField('otherCountries', current.otherCountries || []),
+        quickLinks: parseJsonField('quickLinks', current.quickLinks || []),
       };
 
-      // Save to database
       const saved = await saveLeadGenSettings(db, storeId, updated);
-
-      return json({ 
-        success: true, 
-        message: 'Settings saved successfully',
-        settings: saved,
-      });
+      return json({ success: true, message: 'Settings saved successfully', settings: saved });
     }
 
     return json({ success: false, error: 'Invalid action' }, { status: 400 });
-
   } catch (error) {
     console.error('Lead gen settings error:', error);
-    return json({ 
-      success: false, 
-      error: 'Failed to save settings. Please try again.' 
-    }, { status: 500 });
+    return json(
+      { success: false, error: 'Failed to save settings. Please try again.' },
+      { status: 500 }
+    );
   }
 }
 
@@ -161,10 +217,7 @@ export default function LeadGenSettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Link 
-          to="/app/settings" 
-          className="p-2 hover:bg-gray-100 rounded-lg transition"
-        >
+        <Link to="/app/settings" className="p-2 hover:bg-gray-100 rounded-lg transition">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
@@ -176,15 +229,13 @@ export default function LeadGenSettingsPage() {
         </div>
       </div>
 
-      {/* Success Message */}
+      {/* Messages */}
       {actionData?.success && 'message' in actionData && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
           <CheckCircle className="w-5 h-5" />
           {actionData.message}
         </div>
       )}
-
-      {/* Error Message */}
       {actionData?.success === false && 'error' in actionData && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
           {actionData.error}
@@ -227,19 +278,14 @@ export default function LeadGenSettingsPage() {
               <input type="hidden" name="_action" value="change_theme" />
               <div className="space-y-3">
                 {availableThemes.map((theme) => (
-                  <label
-                    key={theme.id}
-                    className="block cursor-pointer"
-                  >
+                  <label key={theme.id} className="block cursor-pointer">
                     <input
                       type="radio"
                       name="themeId"
                       value={theme.id}
                       defaultChecked={currentSettings.themeId === theme.id}
                       onChange={(e) => {
-                        if (e.target.checked) {
-                          e.target.form?.requestSubmit();
-                        }
+                        if (e.target.checked) e.target.form?.requestSubmit();
                       }}
                       className="sr-only peer"
                     />
@@ -259,7 +305,7 @@ export default function LeadGenSettingsPage() {
           <Form method="post" className="space-y-6">
             <input type="hidden" name="_action" value="save_settings" />
 
-            {/* Identity Section */}
+            {/* Basic Identity */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
                 <div className="bg-blue-100 p-2 rounded-lg text-blue-600">
@@ -279,27 +325,23 @@ export default function LeadGenSettingsPage() {
                     type="text"
                     name="storeName"
                     defaultValue={currentSettings.storeName}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Logo URL
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
                   <input
                     type="url"
                     name="logo"
                     defaultValue={currentSettings.logo || ''}
-                    placeholder="https://example.com/logo.png"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                    placeholder="https://..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Upload to R2 and paste URL here</p>
                 </div>
               </div>
             </div>
 
-            {/* Colors Section */}
+            {/* Colors */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="bg-purple-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
                 <div className="bg-purple-100 p-2 rounded-lg text-purple-600">
@@ -307,7 +349,6 @@ export default function LeadGenSettingsPage() {
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-900">Brand Colors</h3>
-                  <p className="text-sm text-gray-500">Customize your color scheme</p>
                 </div>
               </div>
               <div className="p-6 grid grid-cols-2 gap-4">
@@ -325,12 +366,11 @@ export default function LeadGenSettingsPage() {
                     <input
                       type="text"
                       defaultValue={currentSettings.primaryColor}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="flex-1 px-3 py-2 border rounded-lg text-sm"
                       readOnly
                     />
                   </div>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Accent Color
@@ -345,7 +385,7 @@ export default function LeadGenSettingsPage() {
                     <input
                       type="text"
                       defaultValue={currentSettings.accentColor}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="flex-1 px-3 py-2 border rounded-lg text-sm"
                       readOnly
                     />
                   </div>
@@ -353,15 +393,14 @@ export default function LeadGenSettingsPage() {
               </div>
             </div>
 
-            {/* Content Section */}
+            {/* Hero Content */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="bg-indigo-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
                 <div className="bg-indigo-100 p-2 rounded-lg text-indigo-600">
                   <Type className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900">Hero Content</h3>
-                  <p className="text-sm text-gray-500">Main headline and description</p>
+                  <h3 className="font-bold text-gray-900">Hero Section</h3>
                 </div>
               </div>
               <div className="p-6 space-y-4">
@@ -373,10 +412,9 @@ export default function LeadGenSettingsPage() {
                     type="text"
                     name="heroHeading"
                     defaultValue={currentSettings.heroHeading}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Description
@@ -385,10 +423,9 @@ export default function LeadGenSettingsPage() {
                     name="heroDescription"
                     rows={3}
                     defaultValue={currentSettings.heroDescription}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     CTA Button Text
@@ -397,7 +434,63 @@ export default function LeadGenSettingsPage() {
                     type="text"
                     name="ctaButtonText"
                     defaultValue={currentSettings.ctaButtonText}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Subheading (Badge)
+                  </label>
+                  <input
+                    type="text"
+                    name="heroSubheading"
+                    defaultValue={currentSettings.heroSubheading || ''}
+                    placeholder="e.g., Specializing in Malaysian education"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Stats Section */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <label className="flex items-center gap-2 mb-4">
+                <input
+                  type="checkbox"
+                  name="showStats"
+                  defaultChecked={currentSettings.showStats}
+                  className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
+                />
+                <span className="font-semibold text-gray-900">Show Stats Section</span>
+              </label>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                    Students Count
+                  </label>
+                  <input
+                    type="text"
+                    name="statsStudentsCount"
+                    defaultValue={currentSettings.statsStudentsCount || '20,000+'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Awards</label>
+                  <input
+                    type="text"
+                    name="statsRecruitmentAwards"
+                    defaultValue={currentSettings.statsRecruitmentAwards || '35+'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Partners</label>
+                  <input
+                    type="text"
+                    name="statsUniversityPartners"
+                    defaultValue={currentSettings.statsUniversityPartners || '140+'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                   />
                 </div>
               </div>
@@ -418,107 +511,445 @@ export default function LeadGenSettingsPage() {
                 type="text"
                 name="announcementText"
                 defaultValue={currentSettings.announcementText || ''}
-                placeholder="e.g., Free consultation for new clients - Limited time offer"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                placeholder="Banner text"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500"
               />
+            </div>
+
+            {/* Destinations (Study Abroad) */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-green-50/50 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-100 p-2 rounded-lg text-green-600">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">Study Destinations</h3>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 space-y-3">
+                <DestinationEditor
+                  name="destinations"
+                  defaultValue={currentSettings.destinations || []}
+                />
+              </div>
+            </div>
+
+            {/* Services (Study Abroad) */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-orange-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                <div className="bg-orange-100 p-2 rounded-lg text-orange-600">
+                  <Settings className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Services</h3>
+                </div>
+              </div>
+              <div className="p-6 space-y-3">
+                <ServiceEditor name="services" defaultValue={currentSettings.services || []} />
+              </div>
+            </div>
+
+            {/* Why Choose Points */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Award className="w-5 h-5 text-amber-600" />
+                <h3 className="font-semibold text-gray-900">Why Choose Us Points</h3>
+              </div>
+              <WhyChooseEditor
+                name="whyChoosePoints"
+                defaultValue={currentSettings.whyChoosePoints || []}
+              />
+            </div>
+
+            {/* Company Profile */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <label className="flex items-center gap-2 mb-4">
+                <input
+                  type="checkbox"
+                  name="showCompanyProfile"
+                  defaultChecked={currentSettings.showCompanyProfile}
+                  className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
+                />
+                <span className="font-semibold text-gray-900">Show Company Profile Section</span>
+              </label>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Company Tagline
+                  </label>
+                  <input
+                    type="text"
+                    name="companyDescription"
+                    defaultValue={currentSettings.companyDescription || ''}
+                    placeholder="Your trusted partner for global education..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Visa Success %
+                    </label>
+                    <input
+                      type="text"
+                      name="visaSuccessRatio"
+                      defaultValue={currentSettings.visaSuccessRatio || '98%'}
+                      className="w-full px-3 py-2 border rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
+                    <input
+                      type="text"
+                      name="visaSuccessLabel"
+                      defaultValue={currentSettings.visaSuccessLabel || 'Visa Success Rate'}
+                      className="w-full px-3 py-2 border rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Years Experience
+                    </label>
+                    <input
+                      type="text"
+                      name="yearsExperience"
+                      defaultValue={currentSettings.yearsExperience || '15+'}
+                      className="w-full px-3 py-2 border rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
+                    <input
+                      type="text"
+                      name="yearsLabel"
+                      defaultValue={currentSettings.yearsLabel || 'Years Experience'}
+                      className="w-full px-3 py-2 border rounded-lg"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* MD Profile */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <label className="flex items-center gap-2 mb-4">
+                <input
+                  type="checkbox"
+                  name="showMDProfile"
+                  defaultChecked={currentSettings.showMDProfile}
+                  className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
+                />
+                <span className="font-semibold text-gray-900">Show MD/CEO Profile</span>
+              </label>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input
+                      type="text"
+                      name="mdName"
+                      defaultValue={currentSettings.mdName || ''}
+                      className="w-full px-3 py-2 border rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                    <input
+                      type="text"
+                      name="mdRole"
+                      defaultValue={currentSettings.mdRole || ''}
+                      placeholder="Managing Director"
+                      className="w-full px-3 py-2 border rounded-lg"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    name="mdDescription"
+                    rows={2}
+                    defaultValue={currentSettings.mdDescription || ''}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Other Countries */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <label className="flex items-center gap-2 mb-4">
+                <input
+                  type="checkbox"
+                  name="showOtherCountries"
+                  defaultChecked={currentSettings.showOtherCountries}
+                  className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
+                />
+                <span className="font-semibold text-gray-900">Show Other Countries Section</span>
+              </label>
+              <DestinationEditor
+                name="otherCountries"
+                defaultValue={currentSettings.otherCountries || []}
+              />
+            </div>
+
+            {/* Student Portal */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <label className="flex items-center gap-2 mb-4">
+                <input
+                  type="checkbox"
+                  name="showStudentPortal"
+                  defaultChecked={currentSettings.showStudentPortal}
+                  className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
+                />
+                <span className="font-semibold text-gray-900">
+                  Enable Student Portal (Login Required)
+                </span>
+              </label>
+              <p className="text-sm text-gray-500">
+                Students can register and upload their documents after logging in.
+              </p>
+            </div>
+
+            {/* Section Toggles */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+              <h2 className="font-semibold text-lg mb-4 text-gray-900">Page Sections</h2>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { name: 'showServices', label: 'Services Section' },
+                  { name: 'showTestimonials', label: 'Testimonials' },
+                  { name: 'showUniversityPartners', label: 'University Partners' },
+                  { name: 'showWhatsApp', label: 'WhatsApp Floating Button' },
+                ].map((item) => (
+                  <label key={item.name} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      name={item.name}
+                      defaultChecked={(currentSettings as any)[item.name]}
+                      className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
+                    />
+                    <span className="text-gray-700">{item.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             {/* Contact Information */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="bg-green-50/50 px-6 py-4 border-b border-gray-100">
                 <h3 className="font-bold text-gray-900">Contact Information</h3>
-                <p className="text-sm text-gray-500">How customers can reach you</p>
               </div>
               <div className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    defaultValue={currentSettings.phone || ''}
-                    placeholder="+880 1234-567890"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      defaultValue={currentSettings.phone || ''}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp</label>
+                    <input
+                      type="tel"
+                      name="whatsappNumber"
+                      defaultValue={currentSettings.whatsappNumber || ''}
+                      placeholder="8801234567890"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email Address
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                   <input
                     type="email"
                     name="email"
                     defaultValue={currentSettings.email || ''}
-                    placeholder="hello@example.com"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Business Address
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
                   <input
                     type="text"
                     name="address"
                     defaultValue={currentSettings.address || ''}
-                    placeholder="Dhaka, Bangladesh"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Section Toggles */}
+            {/* Footer */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-              <h2 className="font-semibold text-lg mb-4 text-gray-900">Page Sections</h2>
-              
-              <div className="space-y-3">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    name="showServices"
-                    defaultChecked={currentSettings.showServices}
-                    className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
-                  />
-                  <span className="text-gray-700">Show Services Section</span>
+              <h3 className="font-semibold text-gray-900 mb-4">Footer Settings</h3>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Footer Description
                 </label>
-
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    name="showTestimonials"
-                    defaultChecked={currentSettings.showTestimonials}
-                    className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
-                  />
-                  <span className="text-gray-700">Show Testimonials Section</span>
-                </label>
+                <textarea
+                  name="footerDescription"
+                  rows={2}
+                  defaultValue={currentSettings.footerDescription || ''}
+                  placeholder="Your trusted partner for..."
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                />
               </div>
             </div>
 
-            {/* Submit Button */}
+            {/* Submit */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold rounded-lg hover:from-violet-700 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
+              className="w-full py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold rounded-lg hover:from-violet-700 hover:to-purple-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Saving...
+                  <Loader2 className="w-5 h-5 animate-spin" /> Saving...
                 </>
               ) : (
                 <>
-                  <Save className="w-5 h-5" />
-                  Save Settings
+                  <Save className="w-5 h-5" /> Save Settings
                 </>
               )}
             </button>
           </Form>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// SUB-COMPONENTS FOR ARRAY EDITORS
+// ============================================================================
+
+function DestinationEditor({
+  name,
+  defaultValue,
+}: {
+  name: string;
+  defaultValue: DestinationConfig[];
+}) {
+  const items =
+    defaultValue.length > 0 ? defaultValue : [{ title: '', description: '', enabled: true }];
+
+  return (
+    <div className="space-y-2">
+      {items.map((item, idx) => (
+        <div key={idx} className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
+          <div className="flex-1 grid gap-2">
+            <input
+              type="text"
+              name={`${name}[${idx}][title]`}
+              defaultValue={item.title}
+              placeholder="Study in Malaysia"
+              className="px-3 py-2 border rounded-lg text-sm"
+            />
+            <input
+              type="text"
+              name={`${name}[${idx}][description]`}
+              defaultValue={item.description}
+              placeholder="Description..."
+              className="px-3 py-2 border rounded-lg text-sm"
+            />
+          </div>
+          <label className="flex items-center gap-1 pt-2">
+            <input
+              type="checkbox"
+              name={`${name}[${idx}][enabled]`}
+              defaultChecked={item.enabled}
+              className="w-4 h-4"
+            />
+            <span className="text-xs text-gray-500">Show</span>
+          </label>
+        </div>
+      ))}
+      <input type="hidden" name={name} value={JSON.stringify(items)} />
+    </div>
+  );
+}
+
+function ServiceEditor({ name, defaultValue }: { name: string; defaultValue: ServiceConfig[] }) {
+  const items =
+    defaultValue.length > 0
+      ? defaultValue
+      : [{ icon: '💬', title: '', description: '', enabled: true }];
+
+  return (
+    <div className="space-y-2">
+      {items.map((item, idx) => (
+        <div key={idx} className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
+          <input
+            type="text"
+            name={`${name}[${idx}][icon]`}
+            defaultValue={item.icon}
+            className="w-12 px-2 py-2 border rounded-lg text-center"
+            placeholder="🎓"
+          />
+          <div className="flex-1 grid gap-2">
+            <input
+              type="text"
+              name={`${name}[${idx}][title]`}
+              defaultValue={item.title}
+              placeholder="Service Title"
+              className="px-3 py-2 border rounded-lg text-sm"
+            />
+            <input
+              type="text"
+              name={`${name}[${idx}][description]`}
+              defaultValue={item.description}
+              placeholder="Description..."
+              className="px-3 py-2 border rounded-lg text-sm"
+            />
+          </div>
+          <label className="flex items-center gap-1 pt-2">
+            <input
+              type="checkbox"
+              name={`${name}[${idx}][enabled]`}
+              defaultChecked={item.enabled}
+              className="w-4 h-4"
+            />
+            <span className="text-xs text-gray-500">Show</span>
+          </label>
+        </div>
+      ))}
+      <input type="hidden" name={name} value={JSON.stringify(items)} />
+    </div>
+  );
+}
+
+function WhyChooseEditor({ name, defaultValue }: { name: string; defaultValue: WhyChoosePoint[] }) {
+  const items = defaultValue.length > 0 ? defaultValue : [{ text: '', enabled: true }];
+
+  return (
+    <div className="space-y-2">
+      {items.map((item, idx) => (
+        <div key={idx} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+          <input
+            type="text"
+            name={`${name}[${idx}][text]`}
+            defaultValue={item.text}
+            placeholder="Why choose us point..."
+            className="flex-1 px-3 py-2 border rounded-lg text-sm"
+          />
+          <label className="flex items-center gap-1">
+            <input
+              type="checkbox"
+              name={`${name}[${idx}][enabled]`}
+              defaultChecked={item.enabled}
+              className="w-4 h-4"
+            />
+            <span className="text-xs text-gray-500">Show</span>
+          </label>
+        </div>
+      ))}
+      <input type="hidden" name={name} value={JSON.stringify(items)} />
     </div>
   );
 }

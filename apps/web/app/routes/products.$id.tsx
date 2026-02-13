@@ -25,8 +25,7 @@ import { trackingEvents } from '~/utils/tracking';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import {
   getStoreTemplate,
-  getStoreTemplateTheme,
-  resolveStoreTemplateId,
+  resolveStoreTheme,
   type SerializedProduct,
 } from '~/templates/store-registry';
 import { getCustomer } from '~/services/customer-auth.server';
@@ -168,18 +167,10 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       }
     }
 
-    const storeTemplateId = resolveStoreTemplateId(
+    const { storeTemplateId, theme } = resolveStoreTheme(
       (themeConfig as Record<string, unknown> | null | undefined) ?? null,
       (store.theme as string) || null
     );
-
-    // Get theme colors
-    const baseTheme = getStoreTemplateTheme(storeTemplateId);
-    const theme = {
-      ...baseTheme,
-      primary: themeConfig?.primaryColor || baseTheme.primary,
-      accent: themeConfig?.accentColor || baseTheme.accent,
-    };
 
     const socialLinks =
       storeConfig.socialLinks || parseSocialLinks(store.socialLinks as string | null);

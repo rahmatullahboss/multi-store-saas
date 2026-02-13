@@ -25,7 +25,7 @@ import {
   type FooterConfig,
 } from '@db/types';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
+import { resolveStoreTheme } from '~/templates/store-registry';
 import { ShoppingBag, Filter, ChevronRight, Grid, List } from 'lucide-react';
 import { useState } from 'react';
 import { getCustomer } from '~/services/customer-auth.server';
@@ -81,8 +81,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   const { themeConfig, businessInfo, footerConfig } = storeConfig;
-  const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
-  const theme = getStoreTemplateTheme(storeTemplateId);
+  const { storeTemplateId, theme } = resolveStoreTheme(
+    (themeConfig as Record<string, unknown> | null | undefined) ?? null,
+    (store.theme as string) || null
+  );
   const socialLinks = storeConfig.socialLinks
     ? storeConfig.socialLinks
     : parseSocialLinks(store.socialLinks as string | null);
@@ -275,7 +277,7 @@ export default function ProductsIndex() {
             <div className="flex items-center gap-2 text-sm">
               <Link
                 to="/"
-                className={`${textMuted} hover:${theme.primary ? `text-[${theme.primary}]` : 'text-emerald-500'} transition`}
+                className={`${textMuted} hover:text-[var(--color-primary)] transition`}
               >
                 {t('home')}
               </Link>
@@ -325,7 +327,7 @@ export default function ProductsIndex() {
               <select
                 value={sortBy}
                 onChange={(e) => handleSortChange(e.target.value)}
-                className={`px-3 py-2 rounded-lg border ${borderColor} ${cardBg} ${textPrimary} text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500`}
+                className={`px-3 py-2 rounded-lg border ${borderColor} ${cardBg} ${textPrimary} text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]`}
               >
                 <option value="newest">{t('newest_first')}</option>
                 <option value="price-low">{t('price_low_high')}</option>
@@ -361,14 +363,14 @@ export default function ProductsIndex() {
                   value={minPrice ?? ''}
                   onChange={(e) => handlePriceChange('min', e.target.value)}
                   placeholder={t('min')}
-                  className={`w-24 px-2 py-2 rounded-lg border ${borderColor} ${cardBg} ${textPrimary} text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500`}
+                  className={`w-24 px-2 py-2 rounded-lg border ${borderColor} ${cardBg} ${textPrimary} text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]`}
                 />
                 <input
                   type="number"
                   value={maxPrice ?? ''}
                   onChange={(e) => handlePriceChange('max', e.target.value)}
                   placeholder={t('max')}
-                  className={`w-24 px-2 py-2 rounded-lg border ${borderColor} ${cardBg} ${textPrimary} text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500`}
+                  className={`w-24 px-2 py-2 rounded-lg border ${borderColor} ${cardBg} ${textPrimary} text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]`}
                 />
               </div>
             </div>
@@ -389,8 +391,8 @@ export default function ProductsIndex() {
                         onClick={() => handleCategoryChange(null)}
                         className={`w-full text-left px-3 py-2 rounded-lg transition ${
                           !currentCategory
-                            ? 'bg-emerald-500 text-white'
-                            : `${textMuted} hover:${cardBg}`
+                            ? 'bg-[var(--color-primary)] text-white'
+                            : `${textMuted} hover:opacity-80`
                         }`}
                       >
                         {t('all_products')}
@@ -402,8 +404,8 @@ export default function ProductsIndex() {
                           onClick={() => handleCategoryChange(cat)}
                           className={`w-full text-left px-3 py-2 rounded-lg transition ${
                             currentCategory === cat
-                              ? 'bg-emerald-500 text-white'
-                              : `${textMuted} hover:${cardBg}`
+                              ? 'bg-[var(--color-primary)] text-white'
+                              : `${textMuted} hover:opacity-80`
                           }`}
                         >
                           {cat}
@@ -425,7 +427,7 @@ export default function ProductsIndex() {
                       onClick={() => handleCategoryChange(null)}
                       className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition ${
                         !currentCategory
-                          ? 'bg-emerald-500 text-white'
+                          ? 'bg-[var(--color-primary)] text-white'
                           : `${cardBg} ${textMuted} border ${borderColor}`
                       }`}
                     >
@@ -437,7 +439,7 @@ export default function ProductsIndex() {
                         onClick={() => handleCategoryChange(cat)}
                         className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition ${
                           currentCategory === cat
-                            ? 'bg-emerald-500 text-white'
+                            ? 'bg-[var(--color-primary)] text-white'
                             : `${cardBg} ${textMuted} border ${borderColor}`
                         }`}
                       >
@@ -462,7 +464,7 @@ export default function ProductsIndex() {
                   {currentCategory && (
                     <button
                       onClick={() => handleCategoryChange(null)}
-                      className="mt-4 px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition"
+                      className="mt-4 px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition"
                     >
                       {t('view_all_products')}
                     </button>
@@ -573,7 +575,7 @@ function ProductCard({
           <span className={`text-xs ${textMuted} uppercase tracking-wide`}>{product.category}</span>
         )}
         <h3
-          className={`font-medium ${textPrimary} mt-1 line-clamp-2 group-hover:text-emerald-500 transition`}
+          className={`font-medium ${textPrimary} mt-1 line-clamp-2 group-hover:text-[var(--color-primary)] transition`}
         >
           {product.title}
         </h3>
@@ -654,7 +656,7 @@ function ProductListItem({
           <span className={`text-xs ${textMuted} uppercase tracking-wide`}>{product.category}</span>
         )}
         <h3
-          className={`font-medium ${textPrimary} mt-1 group-hover:text-emerald-500 transition line-clamp-1`}
+          className={`font-medium ${textPrimary} mt-1 group-hover:text-[var(--color-primary)] transition line-clamp-1`}
         >
           {product.title}
         </h3>

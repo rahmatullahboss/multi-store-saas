@@ -1,6 +1,6 @@
 /**
  * Custom Lead Gen Theme Scaffold
- * 
+ *
  * ─────────────────────────────────────────────────────────────
  * HOW TO USE:
  * 1. Copy this file → rename to `client-name.tsx`
@@ -10,7 +10,14 @@
  * ─────────────────────────────────────────────────────────────
  */
 
-import { LeadCaptureForm, ServiceCard, TestimonialCard, hexToRgb, type LeadGenThemeProps } from '../shared';
+import {
+  LeadCaptureForm,
+  ServiceCard,
+  TestimonialCard,
+  hexToRgb,
+  WhatsAppFloatingButton,
+  type LeadGenThemeProps,
+} from '../shared';
 
 // TODO: Rename this function to match the client name
 //       e.g., ClientFashionHouseRenderer
@@ -23,7 +30,10 @@ export default function ScaffoldRenderer({ settings, storeId }: LeadGenThemeProp
           ANNOUNCEMENT BAR (optional)
           ══════════════════════════════════════════════════════════════════ */}
       {settings.showAnnouncement && settings.announcementText && (
-        <div className="text-white text-center py-2 text-sm" style={{ backgroundColor: primaryColor }}>
+        <div
+          className="text-white text-center py-2 text-sm"
+          style={{ backgroundColor: primaryColor }}
+        >
           {settings.announcementText}
         </div>
       )}
@@ -40,14 +50,22 @@ export default function ScaffoldRenderer({ settings, storeId }: LeadGenThemeProp
               {settings.storeName}
             </h1>
           )}
-          {/* TODO: Add navigation links if needed */}
-          <a
-            href="#contact"
-            className="text-white px-6 py-2 rounded-lg font-semibold hover:opacity-90 transition"
-            style={{ backgroundColor: primaryColor }}
-          >
-            {settings.ctaButtonText}
-          </a>
+          {/* Login/Sign Up Buttons */}
+          <div className="hidden md:flex items-center gap-3">
+            <a
+              href="/lead-gen/auth/login"
+              className="px-4 py-2 text-gray-700 font-medium hover:text-primary"
+            >
+              Login
+            </a>
+            <a
+              href="/lead-gen/auth/register"
+              className="px-4 py-2 text-white rounded-lg font-semibold hover:opacity-90 transition"
+              style={{ backgroundColor: primaryColor }}
+            >
+              Sign Up
+            </a>
+          </div>
         </div>
       </header>
 
@@ -62,9 +80,7 @@ export default function ScaffoldRenderer({ settings, storeId }: LeadGenThemeProp
         }}
       >
         <div className="max-w-7xl mx-auto px-4 text-center text-white">
-          <h1 className="text-4xl lg:text-6xl font-bold mb-6">
-            {settings.heroHeading}
-          </h1>
+          <h1 className="text-4xl lg:text-6xl font-bold mb-6">{settings.heroHeading}</h1>
           <p className="text-xl lg:text-2xl opacity-90 max-w-3xl mx-auto mb-8">
             {settings.heroDescription}
           </p>
@@ -115,11 +131,12 @@ export default function ScaffoldRenderer({ settings, storeId }: LeadGenThemeProp
           TODO: Replace with real client testimonials
           ══════════════════════════════════════════════════════════════════ */}
       {settings.showTestimonials && (
-        <section className="py-20" style={{ backgroundColor: `rgba(${hexToRgb(primaryColor)}, 0.05)` }}>
+        <section
+          className="py-20"
+          style={{ backgroundColor: `rgba(${hexToRgb(primaryColor)}, 0.05)` }}
+        >
           <div className="max-w-7xl mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">
-              What Our Clients Say
-            </h2>
+            <h2 className="text-3xl font-bold text-center mb-12">What Our Clients Say</h2>
             <div className="grid md:grid-cols-3 gap-8">
               {/* TODO: Replace with real testimonials */}
               <TestimonialCard
@@ -175,14 +192,16 @@ export default function ScaffoldRenderer({ settings, storeId }: LeadGenThemeProp
             {settings.phone && <span>📞 {settings.phone}</span>}
             {settings.email && <span>✉️ {settings.email}</span>}
           </div>
-          {settings.address && (
-            <p className="text-sm opacity-60">{settings.address}</p>
-          )}
+          {settings.address && <p className="text-sm opacity-60">{settings.address}</p>}
           <p className="text-sm opacity-40 mt-4">
             © {new Date().getFullYear()} {settings.storeName}. All rights reserved.
           </p>
         </div>
       </footer>
+
+      {settings.showWhatsApp && settings.whatsappNumber && (
+        <WhatsAppFloatingButton phoneNumber={settings.whatsappNumber} />
+      )}
     </div>
   );
 }

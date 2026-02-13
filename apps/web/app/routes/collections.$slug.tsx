@@ -25,9 +25,8 @@ import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import {
-  getStoreTemplateTheme,
+  resolveStoreTheme,
   getStoreTemplate,
-  DEFAULT_STORE_TEMPLATE_ID,
 } from '~/templates/store-registry';
 import { getCustomer } from '~/services/customer-auth.server';
 import { parsePriceRange } from '~/utils/price';
@@ -79,9 +78,10 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
   const themeConfig = parseThemeConfig(storeData?.themeConfig as string | null);
   const socialLinks = parseSocialLinks(storeData?.socialLinks as string | null);
-  const storeTemplateId =
-    themeConfig?.storeTemplateId || (storeData.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
-  const theme = getStoreTemplateTheme(storeTemplateId);
+  const { storeTemplateId, theme } = resolveStoreTheme(
+    themeConfig as Record<string, unknown> | null | undefined,
+    (storeData.theme as string) || null
+  );
 
   // Parse businessInfo
   let businessInfo: { phone?: string; email?: string; address?: string } | null = null;
@@ -95,13 +95,6 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
   // Load customer session
   const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
-
-  // Merge themeConfig colors with template theme
-  const mergedTheme = {
-    ...theme,
-    primary: themeConfig?.primaryColor || theme.primary,
-    accent: themeConfig?.accentColor || theme.accent,
-  };
 
   const url = new URL(request.url);
   const sortBy = url.searchParams.get('sort') || 'newest';
@@ -255,7 +248,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     collectionName: collection?.title || slug,
     currency: storeData?.currency || 'BDT',
     storeTemplateId,
-    theme: mergedTheme,
+    theme,
     socialLinks,
     businessInfo,
     themeConfig,

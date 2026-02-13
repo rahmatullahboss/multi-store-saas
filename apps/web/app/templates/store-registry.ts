@@ -1179,3 +1179,39 @@ export function getStoreTemplateTheme(id: string | undefined): StoreTemplateThem
     STORE_TEMPLATE_THEMES[DEFAULT_STORE_TEMPLATE_ID]
   );
 }
+
+/**
+ * Resolve template id + effective theme colors from theme config.
+ * Ensures all storefront routes apply merchant-selected colors consistently.
+ */
+export function resolveStoreTheme(
+  themeConfig: Partial<ThemeConfig> | Record<string, unknown> | null | undefined,
+  legacyThemeId?: string | null
+): { storeTemplateId: string; theme: StoreTemplateTheme } {
+  const configRecord =
+    themeConfig && typeof themeConfig === 'object'
+      ? (themeConfig as Record<string, unknown>)
+      : {};
+
+  const readColor = (key: string): string | undefined => {
+    const value = configRecord[key];
+    if (typeof value !== 'string') return undefined;
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  };
+
+  const storeTemplateId = resolveStoreTemplateId(configRecord, legacyThemeId);
+  const baseTheme = getStoreTemplateTheme(storeTemplateId);
+
+  return {
+    storeTemplateId,
+    theme: {
+      ...baseTheme,
+      primary: readColor('primaryColor') || baseTheme.primary,
+      accent: readColor('accentColor') || baseTheme.accent,
+      background: readColor('backgroundColor') || baseTheme.background,
+      text: readColor('textColor') || baseTheme.text,
+      cardBorder: readColor('borderColor') || baseTheme.cardBorder,
+    },
+  };
+}

@@ -26,8 +26,7 @@ import { resolveStore } from '~/lib/store.server';
 
 import {
   getStoreTemplate,
-  getStoreTemplateTheme,
-  DEFAULT_STORE_TEMPLATE_ID,
+  resolveStoreTheme,
   type SerializedProduct,
   type StoreCategory,
 } from '~/templates/store-registry';
@@ -209,16 +208,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
   }
   const socialLinks = parseSocialLinks(store.socialLinks as string | null);
-  const storeTemplateId =
-    themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
-
-  // Get theme colors from themeConfig
-  const baseTheme = getStoreTemplateTheme(storeTemplateId);
-  const theme = {
-    ...baseTheme,
-    primary: themeConfig?.primaryColor || baseTheme.primary,
-    accent: themeConfig?.accentColor || baseTheme.accent,
-  };
+  const { storeTemplateId, theme } = resolveStoreTheme(themeConfig, (store.theme as string) || null);
 
   // Parse businessInfo
   let businessInfo = null;

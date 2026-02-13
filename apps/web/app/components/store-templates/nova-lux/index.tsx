@@ -14,11 +14,19 @@ import { Link } from '@remix-run/react';
 import { ShoppingBag, Search, Menu, X, Star, Check, Heart } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useWishlist } from '~/hooks/useWishlist';
-import type { StoreTemplateProps, SerializedProduct, StoreCategory } from '~/templates/store-registry';
+import type {
+  StoreTemplateProps,
+  SerializedProduct,
+  StoreCategory,
+} from '~/templates/store-registry';
 import type { ThemeConfig } from '@db/types';
 import type { SectionInstance } from '~/lib/theme-engine/types';
 import { AddToCartButton } from '~/components/AddToCartButton';
-import { SECTION_REGISTRY, DEFAULT_SECTIONS, type StoreSection } from '~/components/store-sections/registry';
+import {
+  SECTION_REGISTRY,
+  DEFAULT_SECTIONS,
+  type StoreSection,
+} from '~/components/store-sections/registry';
 import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
 import { useProductPrice } from '~/hooks/useProductPrice';
 import { WishlistProvider } from '~/contexts/WishlistContext';
@@ -64,9 +72,11 @@ const NOVALUX_THEME_FOR_SHARED: StoreTemplateTheme = {
   footerText: NOVALUX_THEME.footerText,
 };
 
-// Custom Default Sections for Nova Lux (Removed Banner, Rich Text, Newsletter)
+// Custom Default Sections for Nova Lux (Removed Banner, Rich Text, Newsletter, Features, Rich-Text/Our Story)
+// Removed: banner, rich-text (Our Story), newsletter, features (Why Choose Us - footer has trust badges)
 const NOVA_LUX_DEFAULT_SECTIONS = DEFAULT_SECTIONS.filter(
-  (section) => !['banner', 'rich-text', 'newsletter'].includes(section.type)
+  (section) =>
+    !['banner', 'rich-text', 'newsletter', 'features', 'modern-features'].includes(section.type)
 );
 
 const DEDUPE_SECTION_GROUPS: Record<string, string> = {
@@ -284,7 +294,10 @@ function PreviewHeader({
               {t('allProducts')}
             </button>
             {validCategories.slice(0, 3).map((cat) => {
-              const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+              const title =
+                typeof cat === 'object' && cat !== null
+                  ? (cat as StoreCategory).title
+                  : (cat as string);
               return (
                 <button
                   key={title}
@@ -302,9 +315,7 @@ function PreviewHeader({
             onClick={() => onNavigate({ type: 'home' })}
             className="flex items-center justify-center gap-3"
           >
-            {logo && (
-              <img src={logo} alt={storeName} className="h-10 lg:h-12 object-contain" />
-            )}
+            {logo && <img src={logo} alt={storeName} className="h-10 lg:h-12 object-contain" />}
             <span
               className="text-2xl lg:text-3xl font-semibold tracking-wider"
               style={{ fontFamily: NOVALUX_THEME.fontHeading, color: theme.primary }}
@@ -364,7 +375,10 @@ function PreviewHeader({
               All Products
             </button>
             {validCategories.map((cat) => {
-              const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+              const title =
+                typeof cat === 'object' && cat !== null
+                  ? (cat as StoreCategory).title
+                  : (cat as string);
               return (
                 <button
                   key={title}
@@ -754,6 +768,7 @@ function PreviewNovaLuxStore(props: StoreTemplateProps) {
           logo={logo}
           categories={validCategories}
           isPreview={true}
+          showNewsletter={false}
         />
       </div>
     </CartProvider>
@@ -842,25 +857,38 @@ function LiveNovaLuxHomepage({
               {(config?.sections?.length
                 ? dedupeSectionsByType(config.sections)
                 : NOVA_LUX_DEFAULT_SECTIONS
-              ).map((section: SectionInstance) => {
-                  const SectionComponent = SECTION_REGISTRY[section.type]?.component;
-                  if (!SectionComponent) return null;
+              ).map((section: SectionInstance, index: number) => {
+                const SectionComponent = SECTION_REGISTRY[section.type]?.component;
+                if (!SectionComponent) return null;
 
-                  const resolvedSettings =
-                    section.type === 'category-list' || section.type === 'shop-by-category'
-                      ? {
-                          ...section.settings,
-                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                          categoryImageMap: ((config as any)?.categoryImageMap || {}) as Record<
-                            string,
-                            string
-                          >,
-                        }
-                      : section.settings;
+                const resolvedSettings =
+                  section.type === 'category-list' || section.type === 'shop-by-category'
+                    ? {
+                        ...section.settings,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        categoryImageMap: ((config as any)?.categoryImageMap || {}) as Record<
+                          string,
+                          string
+                        >,
+                      }
+                    : section.settings;
 
-                  return (
+                const isFirstSection = index === 0;
+                const isHeroSection = [
+                  'hero',
+                  'modern-hero',
+                  'zenith-hero',
+                  'turbo-hero',
+                  'video',
+                  'banner',
+                ].includes(section.type);
+
+                return (
+                  <div
+                    key={section.id}
+                    className={isFirstSection && isHeroSection ? 'mt-4 md:mt-6' : ''}
+                  >
                     <SectionComponent
-                      key={section.id}
                       settings={resolvedSettings}
                       theme={THEME}
                       products={products}
@@ -876,9 +904,49 @@ function LiveNovaLuxHomepage({
                       }}
                       ProductCardComponent={NovaLuxProductCard}
                     />
-                  );
-                }
-              )}
+                  </div>
+                );
+              })}
+
+              {(config?.sections?.length
+                ? dedupeSectionsByType(config.sections)
+                : NOVA_LUX_DEFAULT_SECTIONS
+              ).map((section: SectionInstance) => {
+                const SectionComponent = SECTION_REGISTRY[section.type]?.component;
+                if (!SectionComponent) return null;
+
+                const resolvedSettings =
+                  section.type === 'category-list' || section.type === 'shop-by-category'
+                    ? {
+                        ...section.settings,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        categoryImageMap: ((config as any)?.categoryImageMap || {}) as Record<
+                          string,
+                          string
+                        >,
+                      }
+                    : section.settings;
+
+                return (
+                  <SectionComponent
+                    key={section.id}
+                    settings={resolvedSettings}
+                    theme={THEME}
+                    products={products}
+                    categories={categories}
+                    storeId={storeId}
+                    currency={currency}
+                    store={{
+                      name: storeName,
+                      email: businessInfo?.email,
+                      phone: businessInfo?.phone,
+                      address: businessInfo?.address,
+                      currency: currency,
+                    }}
+                    ProductCardComponent={NovaLuxProductCard}
+                  />
+                );
+              })}
 
               {!isPreview && (
                 <FloatingContactButtons
@@ -917,6 +985,7 @@ function LiveNovaLuxHomepage({
                 footerConfig={footerConfig}
                 businessInfo={businessInfo}
                 categories={validCategories}
+                showNewsletter={false}
               />
             </div>
           )}
