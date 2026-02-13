@@ -318,18 +318,26 @@ export default function NewBuilderIndex() {
     });
     const formData = new FormData();
     formData.append('file', compressedBlob, `hero-${Date.now()}.${format}`);
-    formData.append('storeId', String(storeId));
+    formData.append('folder', 'banners');
 
     const response = await fetch('/api/upload-image', {
       method: 'POST',
       body: formData,
     });
 
-    const result = await response.json() as { success?: boolean; url?: string };
-    if (result.success && result.url) {
+    const contentType = response.headers.get('content-type') || '';
+    let result: { success?: boolean; url?: string; error?: string } = {};
+    if (contentType.includes('application/json')) {
+      result = (await response.json()) as { success?: boolean; url?: string; error?: string };
+    } else {
+      const text = await response.text();
+      throw new Error(`Upload failed (HTTP ${response.status}): ${text.slice(0, 120)}`);
+    }
+
+    if (response.ok && result.success && result.url) {
       return result.url;
     }
-    throw new Error('Upload failed');
+    throw new Error(result.error || `Upload failed (HTTP ${response.status})`);
   };
 
   const handleDeletePage = (pageId: string) => {

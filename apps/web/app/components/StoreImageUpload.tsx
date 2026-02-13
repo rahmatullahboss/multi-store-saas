@@ -76,12 +76,20 @@ export function StoreImageUpload({
         body: formData,
       });
 
-      const data = await response.json() as { success?: boolean; url?: string; error?: string };
+      const contentType = response.headers.get('content-type') || '';
+      let data: { success?: boolean; url?: string; error?: string } = {};
+      if (contentType.includes('application/json')) {
+        data = (await response.json()) as { success?: boolean; url?: string; error?: string };
+      } else {
+        const text = await response.text();
+        const statusText = response.status ? `HTTP ${response.status}` : 'Upload failed';
+        data = { error: `${statusText}: ${text.slice(0, 120)}` };
+      }
 
-      if (data.success && data.url) {
+      if (response.ok && data.success && data.url) {
         onChange(data.url);
       } else {
-        setError(data.error || 'Upload failed');
+        setError(data.error || `Upload failed (HTTP ${response.status})`);
       }
     } catch (err) {
       console.error('Upload error:', err);

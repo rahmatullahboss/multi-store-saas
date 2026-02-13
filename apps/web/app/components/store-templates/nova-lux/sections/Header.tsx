@@ -124,29 +124,28 @@ export function NovaLuxHeader({
             })}
           </nav>
 
-          {/* Logo */}
+          {/* Logo + Store Name */}
           <PreviewSafeLink
             to="/"
-            className="flex items-center justify-center"
+            className="flex items-center justify-center gap-3"
             isPreview={isPreview}
           >
-            {logo ? (
+            {logo && (
               <img
                 src={logo}
                 alt={storeName}
                 className="h-10 lg:h-12 object-contain bg-white rounded px-2 py-1"
               />
-            ) : (
-              <span
-                className="text-2xl lg:text-3xl font-semibold tracking-wider"
-                style={{
-                  fontFamily: NOVALUX_THEME.fontHeading,
-                  color: THEME.primary,
-                }}
-              >
-                {storeName}
-              </span>
             )}
+            <span
+              className="text-2xl lg:text-3xl font-semibold tracking-wider"
+              style={{
+                fontFamily: NOVALUX_THEME.fontHeading,
+                color: THEME.primary,
+              }}
+            >
+              {storeName}
+            </span>
           </PreviewSafeLink>
 
           {/* Right Navigation */}

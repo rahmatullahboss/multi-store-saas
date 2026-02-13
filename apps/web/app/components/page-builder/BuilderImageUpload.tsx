@@ -75,13 +75,20 @@ export function BuilderImageUpload({
 
       setProgress(90);
 
-      const data = await response.json() as { success?: boolean; url?: string; error?: string };
+      const contentType = response.headers.get('content-type') || '';
+      let data: { success?: boolean; url?: string; error?: string } = {};
+      if (contentType.includes('application/json')) {
+        data = (await response.json()) as { success?: boolean; url?: string; error?: string };
+      } else {
+        const text = await response.text();
+        data = { error: `Upload failed (HTTP ${response.status}): ${text.slice(0, 120)}` };
+      }
 
-      if (data.success && data.url) {
+      if (response.ok && data.success && data.url) {
         onChange(data.url);
         setProgress(100);
       } else {
-        setError(data.error || 'Upload failed');
+        setError(data.error || `Upload failed (HTTP ${response.status})`);
       }
     } catch (err) {
       console.error('Upload error:', err);

@@ -69,6 +69,26 @@ const NOVA_LUX_DEFAULT_SECTIONS = DEFAULT_SECTIONS.filter(
   (section) => !['banner', 'rich-text', 'newsletter'].includes(section.type)
 );
 
+const DEDUPE_SECTION_TYPES = new Set(['hero', 'features']);
+
+function dedupeSectionsByType(sections: SectionInstance[]) {
+  const seen = new Set<string>();
+  const deduped: SectionInstance[] = [];
+
+  for (let index = sections.length - 1; index >= 0; index -= 1) {
+    const section = sections[index];
+    if (DEDUPE_SECTION_TYPES.has(section.type)) {
+      if (seen.has(section.type)) {
+        continue;
+      }
+      seen.add(section.type);
+    }
+    deduped.push(section);
+  }
+
+  return deduped.reverse();
+}
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -805,8 +825,10 @@ function LiveNovaLuxHomepage({
                 />
               )}
 
-              {(config?.sections?.length ? config.sections : NOVA_LUX_DEFAULT_SECTIONS).map(
-                (section: SectionInstance) => {
+              {(config?.sections?.length
+                ? dedupeSectionsByType(config.sections)
+                : NOVA_LUX_DEFAULT_SECTIONS
+              ).map((section: SectionInstance) => {
                   const SectionComponent = SECTION_REGISTRY[section.type]?.component;
                   if (!SectionComponent) return null;
 
