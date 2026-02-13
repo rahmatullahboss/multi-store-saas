@@ -9,7 +9,7 @@
 
 import type { ActionFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { getStoreId } from '~/services/auth.server';
+import { getStoreIdWithRecovery } from '~/services/auth.server';
 
 export async function action({ request, context }: ActionFunctionArgs) {
   if (request.method !== 'POST') {
@@ -19,7 +19,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
     );
   }
 
-  const storeId = await getStoreId(request, context.cloudflare.env);
+  const { storeId, headers: recoveryHeaders } = await getStoreIdWithRecovery(
+    request,
+    context.cloudflare.env,
+    context.cloudflare.env.DB
+  );
   if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -41,7 +45,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
     const requestedFolder = ((formData.get('folder') as string) || 'temp').trim().toLowerCase();
-    const allowedFolders = new Set(['products', 'logos', 'banners', 'temp']);
+    const allowedFolders = new Set([
+      'products',
+      'logos',
+      'favicons',
+      'banners',
+      'collections',
+      'builder',
+      'og-images',
+      'temp',
+    ]);
     const folder = allowedFolders.has(requestedFolder) ? requestedFolder : 'temp';
 
     if (!file) {
@@ -49,7 +62,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const allowedTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+      'image/x-icon',
+      'image/vnd.microsoft.icon',
+      'image/ico',
+    ];
     if (!allowedTypes.includes(file.type)) {
       return json({ 
         error: 'Invalid file type. Allowed: JPEG, PNG, WebP, GIF' 
@@ -65,7 +87,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Generate unique key
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 8);
-    const extension = file.type.split('/')[1] || 'webp';
+    const extensionByType: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/jpg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp',
+      'image/gif': 'gif',
+      'image/x-icon': 'ico',
+      'image/vnd.microsoft.icon': 'ico',
+      'image/ico': 'ico',
+    };
+    const extension = extensionByType[file.type] || file.type.split('/')[1] || 'webp';
     const key = `stores/${storeId}/${folder}/${timestamp}-${random}.${extension}`;
 
     // Get file content as ArrayBuffer
@@ -89,7 +121,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       key: key,
       size: file.size,
       type: file.type,
-    });
+    }, recoveryHeaders ? { headers: recoveryHeaders } : undefined);
 
   } catch (error) {
     console.error('Upload error:', error);
@@ -104,6 +136,3 @@ export async function loader() {
     { status: 405, headers: { Allow: 'POST' } }
   );
 }
-
-
-export default function() {}

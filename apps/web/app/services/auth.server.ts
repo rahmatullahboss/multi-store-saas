@@ -984,6 +984,57 @@ export async function getStoreId(request: Request, env: Env): Promise<number | n
 }
 
 /**
+ * Get storeId with self-healing fallback.
+ *
+ * When the session cookie loses its storeId (e.g. cookie expiry, domain
+ * mismatch) but the user is still authenticated, this helper recovers the
+ * storeId by querying the users table and silently re-commits the session.
+ *
+ * Returns { storeId, headers } where headers contains a Set-Cookie header
+ * when recovery occurred, so API routes can include it in their response.
+ */
+export async function getStoreIdWithRecovery(
+  request: Request,
+  env: Env,
+  db: D1Database
+): Promise<{ storeId: number | null; headers?: HeadersInit }> {
+  const session = await getSession(request, env);
+  const storeId = session.get('storeId');
+
+  if (typeof storeId === 'number' && storeId > 0) {
+    return { storeId };
+  }
+
+  // Attempt recovery from DB
+  const userId = session.get('userId');
+  if (!userId) {
+    return { storeId: null };
+  }
+
+  try {
+    const drizzleDb = drizzle(db);
+    const result = await drizzleDb
+      .select({ storeId: users.storeId })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    const recovered = result[0]?.storeId;
+    if (typeof recovered === 'number' && recovered > 0) {
+      // Re-commit the session so subsequent requests don't need recovery
+      session.set('storeId', recovered);
+      const cookie = await commitSession(session, env);
+      console.warn('[getStoreIdWithRecovery] Recovered storeId from DB for user:', userId, 'storeId:', recovered);
+      return { storeId: recovered, headers: { 'Set-Cookie': cookie } };
+    }
+  } catch (err) {
+    console.error('[getStoreIdWithRecovery] DB recovery failed for user:', userId, err);
+  }
+
+  return { storeId: null };
+}
+
+/**
  * Logout a user
  */
 export async function logout(request: Request, env: Env) {
