@@ -71,6 +71,7 @@ export function PaymentMethodSelector({
     }
   ]
     .filter((m) => allowedMethods.includes(m.id))
+    .filter((m) => m.id !== 'sslcommerz') // Hiding SSLCommerz temporarily as requested
     .filter((m) => m.id === 'cod' || m.enabled);
 
   const renderPaymentDetails = () => {
