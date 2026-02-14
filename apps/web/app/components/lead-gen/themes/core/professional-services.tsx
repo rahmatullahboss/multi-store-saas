@@ -125,7 +125,7 @@ export default function ProfessionalServicesRenderer({ settings }: LeadGenThemeP
                 { icon: '💼', title: 'Consulting', description: 'Strategic advice to help your business grow', enabled: true },
                 { icon: '📚', title: 'Training', description: 'Expert training programs for your team', enabled: true },
                 { icon: '🛟', title: 'Support', description: '24/7 support when you need it', enabled: true },
-              ]).map((service: any, idx: number) => (
+              ]).map((service, idx) => (
                 <ServiceCard
                   key={idx}
                   icon={service.icon}
@@ -148,22 +148,31 @@ export default function ProfessionalServicesRenderer({ settings }: LeadGenThemeP
             </h2>
             <div className="grid md:grid-cols-3 gap-8">
               {(settings.successStories && settings.successStories.length > 0
-                ? settings.successStories.slice(0, 3)
+                ? settings.successStories.slice(0, 3).map((story, idx) => (
+                    <TestimonialCard
+                      key={idx}
+                      text={story.text}
+                      author={story.name}
+                      position={story.university || story.program}
+                      rating={5}
+                      avatar={story.image || undefined}
+                    />
+                  ))
                 : [
                     { text: 'Working with this team transformed our business.', author: 'Sarah Ahmed', position: 'CEO, Tech Solutions', rating: 5, photo: '' },
                     { text: 'Professional and results-driven. Best investment.', author: 'Kamal Rahman', position: 'Founder, Digital Ventures', rating: 5, photo: '' },
                     { text: 'Their expertise is unmatched. Results in weeks.', author: 'Nadia Khan', position: 'MD, Global Traders', rating: 5, photo: '' },
-                  ]
-              ).map((testimonial: any, idx: number) => (
-                <TestimonialCard
-                  key={idx}
-                  text={testimonial.text}
-                  author={testimonial.author}
-                  position={testimonial.position}
-                  rating={testimonial.rating || 5}
-                  avatar={testimonial.photo}
-                />
-              ))}
+                  ].map((testimonial, idx) => (
+                    <TestimonialCard
+                      key={idx}
+                      text={testimonial.text}
+                      author={testimonial.author}
+                      position={testimonial.position}
+                      rating={testimonial.rating}
+                      avatar={testimonial.photo}
+                    />
+                  ))
+              )}
             </div>
           </div>
         </section>

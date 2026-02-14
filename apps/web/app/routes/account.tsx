@@ -3,7 +3,7 @@ import { Outlet, useLoaderData, useLocation } from '@remix-run/react';
 import { resolveStore } from '~/lib/store.server';
 import { getCustomerId } from '~/services/customer-auth.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { getStoreTemplateTheme } from '~/templates/store-registry';
+import { resolveStoreTheme } from '~/templates/store-registry';
 import { AccountSidebar } from '~/components/account/AccountSidebar';
 import { AccountHeader } from '~/components/account/AccountHeader';
 import { parseThemeConfig, parseSocialLinks } from '@db/types';
@@ -15,7 +15,6 @@ import { desc, eq, and } from 'drizzle-orm';
 import { useState, useEffect } from 'react';
 import { Sheet, SheetContent } from '~/components/ui/sheet';
 
-import { useTranslation } from '~/contexts/LanguageContext';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   // 1. Resolve store
@@ -38,10 +37,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // 3. Get Theme & Config
   const themeConfig = parseThemeConfig(store.themeConfig);
   const socialLinks = parseSocialLinks(store.socialLinks);
-  const templateId = themeConfig?.storeTemplateId || 'tech-modern';
-
-  // Use store theme color if set, otherwise fallback to template theme
-  const theme = getStoreTemplateTheme(templateId);
+  const { storeTemplateId: templateId, theme } = resolveStoreTheme(
+    themeConfig as Record<string, unknown> | null,
+    store.theme
+  );
 
   // 4. Parse Business Info
   let businessInfo = null;
@@ -99,7 +98,7 @@ export default function AccountLayout() {
   const { store, theme, templateId, socialLinks, businessInfo, categories, themeConfig, user } =
     useLoaderData<typeof loader>();
   const location = useLocation();
-  const { t } = useTranslation();
+  
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Close mobile menu on route change

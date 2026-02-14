@@ -6,13 +6,13 @@
  */
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData, Link } from '@remix-run/react';
+import { useLoaderData } from '@remix-run/react';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
 import { stores, type Store } from '@db/schema';
 import { parseThemeConfig } from '@db/types';
 import { eq } from 'drizzle-orm';
-import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
+import { resolveStoreTheme } from '~/templates/store-registry';
 import type { ThemeConfig as EngineThemeConfig } from '~/lib/theme-engine/types';
 import { Home, Search } from 'lucide-react';
 
@@ -80,8 +80,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   const themeConfig = parseThemeConfig(storeData?.themeConfig as string | null);
-  const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
-  const theme = getStoreTemplateTheme(storeTemplateId) as unknown as NotFoundData['theme'];
+  const { theme } = resolveStoreTheme(
+    themeConfig as Record<string, unknown> | null,
+    storeData?.theme
+  );
 
   return json<NotFoundData>({
     store: {

@@ -14,7 +14,7 @@ import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { products as productsTable } from '@db/schema';
 import { desc, eq, and } from 'drizzle-orm';
-import { DEFAULT_STORE_TEMPLATE_ID, getStoreTemplateTheme } from '~/templates/store-registry';
+import { resolveStoreTheme } from '~/templates/store-registry';
 import { resolveStore } from '~/lib/store.server';
 import {
   getCustomerId,
@@ -46,10 +46,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const canUseGoogle = await canStoreUseGoogleAuth(storeId, env.DB);
   
   // 4. Get template theme
-  // 4. Get template theme
   const themeConfig = parseThemeConfig(store.themeConfig as string | null);
   const socialLinks = parseSocialLinks(store.socialLinks as string | null);
-  const templateId = themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
+  const { storeTemplateId: templateId, theme } = resolveStoreTheme(
+    themeConfig as Record<string, unknown> | null,
+    store.theme
+  );
 
   // 5. Parse Business Info
   let businessInfo = null;
@@ -94,6 +96,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     businessInfo,
     categories,
     themeConfig,
+    theme,
   });
 }
 
@@ -208,12 +211,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function StoreLogin() {
-  const { store, canUseGoogle, socialLinks, businessInfo, categories, themeConfig } = useLoaderData<typeof loader>();
+  const { store, canUseGoogle, socialLinks, businessInfo, categories, themeConfig, theme } = useLoaderData<typeof loader>();
   const actionData = useActionData<{ error?: string }>(); // Typed action data
   const navigation = useNavigation();
   const [searchParams] = useSearchParams();
   
-  const theme = getStoreTemplateTheme(store.templateId);
   const isSubmitting = navigation.state === 'submitting';
   
   // Get dynamic redirect URL

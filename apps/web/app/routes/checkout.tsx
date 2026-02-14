@@ -78,7 +78,7 @@ interface ManualPaymentConfig {
 import { useTranslation } from '~/contexts/LanguageContext';
 import { trackingEvents } from '~/utils/tracking';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
+import { resolveStoreTheme } from '~/templates/store-registry';
 import { PaymentMethodSelector } from '~/components/checkout/PaymentMethodSelector';
 import { SearchableSelect } from '~/components/SearchableSelect';
 import { DISTRICTS, UPAZILAS, getShippingZone } from '~/data/bd-locations';
@@ -148,8 +148,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   const socialLinks = parseSocialLinks(storeData.socialLinks as string | null);
-  const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
-  const theme = getStoreTemplateTheme(storeTemplateId);
+  const { storeTemplateId, theme } = resolveStoreTheme(
+    themeConfig as Record<string, unknown> | null,
+    storeData.theme
+  );
 
   let businessInfo = {};
   let shippingConfig = {
