@@ -174,7 +174,7 @@ export function StarterStoreFooter({
                   return (
                     <li key={title}>
                       <PreviewSafeLink
-                        to={`/?category=${encodeURIComponent(title)}`}
+                        to={`/category/${encodeURIComponent(title.trim().toLowerCase().replace(/\s+/g, ' ')).replace(/%20/g, '-')}`}
                         isPreview={isPreview}
                         className="text-sm hover:underline transition-colors"
                         style={{ color: theme.footerText + 'CC' }}
