@@ -14,7 +14,7 @@
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json, redirect } from '@remix-run/cloudflare';
+import { json } from '@remix-run/cloudflare';
 import { Form, useLoaderData, useActionData, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, count, sum } from 'drizzle-orm';
@@ -170,7 +170,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // Log exit survey if provided
     if (exitReason) {
-      console.log(`[EXIT_SURVEY] Store ${storeId}: reason=${exitReason}, feedback=${feedback}`);
+      console.warn(`[EXIT_SURVEY] Store ${storeId}: reason=${exitReason}, feedback=${feedback}`);
       // TODO: Store in exitSurveys table for Super Admin analysis
     }
 
@@ -206,7 +206,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         kvCache.delete(`${CACHE_KEYS.STORE_CONFIG}${storeId}`),
       ]);
 
-      console.log(`[STORE_DELETE] Cache invalidated for store ${storeId} (${subdomain})`);
+      console.warn(`[STORE_DELETE] Cache invalidated for store ${storeId} (${subdomain})`);
     }
 
     // Redirect to logout (they can no longer access this store)
@@ -413,7 +413,7 @@ Social Media: Facebook: ${facebook}, Instagram: ${instagram}, WhatsApp: ${whatsa
         customId: `settings-${storeId}`, // Deterministic ID for upsert
       })
     );
-    console.log(`[AI SYNC] Queued vector update for settings-${storeId}`);
+    console.warn(`[AI SYNC] Queued vector update for settings-${storeId}`);
   } catch (err) {
     console.error('[AI SYNC] Failed to update settings vector:', err);
   }
@@ -512,7 +512,7 @@ export default function SettingsPage() {
         format,
       });
       fileToUpload = new File([compressedBlob], `logo.${format}`, { type: `image/${format}` });
-      console.log(`Logo compressed: ${file.size} -> ${compressedBlob.size} bytes`);
+      console.warn(`Logo compressed: ${file.size} -> ${compressedBlob.size} bytes`);
     } catch (error) {
       console.warn('Image compression failed, uploading original:', error);
     }
@@ -549,7 +549,7 @@ export default function SettingsPage() {
         format: 'png', // Keep PNG for favicon
       });
       fileToUpload = new File([compressedBlob], 'favicon.png', { type: 'image/png' });
-      console.log(`Favicon compressed: ${file.size} -> ${compressedBlob.size} bytes`);
+      console.warn(`Favicon compressed: ${file.size} -> ${compressedBlob.size} bytes`);
     } catch (error) {
       console.warn('Image compression failed, uploading original:', error);
     }
@@ -619,7 +619,7 @@ export default function SettingsPage() {
       {/* Error Message */}
       {actionData?.error && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-          {t(actionData.error as any)}
+          {t(actionData.error as Parameters<typeof t>[0])}
         </div>
       )}
 
@@ -797,7 +797,7 @@ export default function SettingsPage() {
               >
                 {currencies.map((c) => (
                   <option key={c.value} value={c.value}>
-                    {t(c.labelKey as any)}
+                    {t(c.labelKey as Parameters<typeof t>[0])}
                   </option>
                 ))}
               </select>

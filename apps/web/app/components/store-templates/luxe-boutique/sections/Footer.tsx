@@ -2,14 +2,14 @@ import { Link } from '@remix-run/react';
 import { Mail, Phone, MapPin, Instagram, Facebook } from 'lucide-react';
 import { LUXE_BOUTIQUE_THEME } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';
-import type { SocialLinks, FooterConfig } from '@db/types';
+// Types inlined below to avoid unused import warnings
 import { useTranslation } from '~/contexts/LanguageContext';
 
 interface LuxeBoutiqueFooterProps {
   storeName: string;
-  footerConfig?: any | null;
-  businessInfo?: any;
-  socialLinks?: any;
+  footerConfig?: { description?: string; showPoweredBy?: boolean } | null;
+  businessInfo?: { phone?: string; email?: string; address?: string };
+  socialLinks?: { facebook?: string; instagram?: string; whatsapp?: string; twitter?: string };
   planType?: string;
   categories: (string | null)[];
 }
@@ -20,11 +20,10 @@ export function LuxeBoutiqueFooter({
   businessInfo,
   socialLinks,
   planType = 'free',
-  categories = [],
+  categories: _categories = [],
 }: LuxeBoutiqueFooterProps) {
   const { t } = useTranslation();
   const theme = LUXE_BOUTIQUE_THEME;
-  const validCategories = categories.filter((c): c is string => Boolean(c));
 
   return (
     <footer style={{ backgroundColor: theme.footerBg, color: theme.footerText }}>

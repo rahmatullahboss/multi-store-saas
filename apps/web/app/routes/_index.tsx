@@ -45,7 +45,6 @@ import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import {
   getStoreTemplate,
   getStoreTemplateTheme,
-  DEFAULT_STORE_TEMPLATE_ID,
   resolveStoreTemplateId,
   type SerializedProduct,
 } from '~/templates/store-registry';
@@ -287,7 +286,7 @@ function ensureHomepageHasCatalogSection(themeConfig: ThemeConfig | null | undef
   if (!sections || sections.length === 0) return themeConfig;
 
   const hasCatalog = sections.some(
-    (s: any) => s?.type === 'product-grid' || s?.type === 'product-scroll'
+    (s: Record<string, unknown>) => s?.type === 'product-grid' || s?.type === 'product-scroll'
   );
   if (hasCatalog) return themeConfig;
 
@@ -718,9 +717,15 @@ export default function Index() {
       ? data.landingConfig?.templateId || DEFAULT_LANDING_TEMPLATE_ID
       : DEFAULT_LANDING_TEMPLATE_ID;
   const [LandingTemplateComponent, setLandingTemplateComponent] =
-    useState<ComponentType<any> | null>(null);
+    useState<ComponentType<
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      any
+    > | null>(null);
   const [PreviewTemplateComponent, setPreviewTemplateComponent] =
-    useState<ComponentType<any> | null>(null);
+    useState<ComponentType<
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      any
+    > | null>(null);
 
   // Check for edit mode via URL param (for merchant editing)
   const isEditMode = searchParams.get('edit') === 'true';

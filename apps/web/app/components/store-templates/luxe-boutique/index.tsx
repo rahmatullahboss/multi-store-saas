@@ -643,14 +643,13 @@ function PreviewHomePage({
   const whyChooseSection = (Array.isArray(config?.sections) ? config.sections : []).find((s: any) =>
     s?.type === 'features' || s?.type === 'modern-features'
   );
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const whyChooseFeatures = (Array.isArray(whyChooseSection?.settings?.features)
     ? whyChooseSection.settings.features
     : [
         { icon: '✨', title: 'Premium Quality', description: 'Carefully curated luxury selection.' },
         { icon: '⚡', title: 'Fast Delivery', description: 'Quick and reliable nationwide shipping.' },
         { icon: '💬', title: '24/7 Support', description: 'Dedicated support whenever you need us.' },
-      ]) as any[];
+      ]) as Array<{ icon?: string; title?: string; description?: string }>;
   const whyChooseHeading = String(whyChooseSection?.settings?.heading || 'Why Choose Us');
   const whyChooseSubheading = String(
     whyChooseSection?.settings?.subheading || 'A premium experience from order to delivery.'
@@ -1028,7 +1027,8 @@ function LiveLuxeBoutiqueHomepage({
                   acc.push(section);
                   return acc;
                 }, [])
-                .sort((a: any, b: any) => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .sort((a: Record<string, any>, b: Record<string, any>) => {
                   const aHeading = String(a?.settings?.heading || '').toLowerCase();
                   const bHeading = String(b?.settings?.heading || '').toLowerCase();
                   const aIsWhyChoose =

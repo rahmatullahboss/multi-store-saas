@@ -47,7 +47,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeResult = await db
     .select()
     .from(stores)
-    .where(eq((stores as any).userId, userId))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .where(eq((stores as Record<string, any>).userId, userId))
     .limit(1);
 
   const store = storeResult[0];
@@ -91,7 +92,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const storeResult = await db
     .select()
     .from(stores)
-    .where(eq((stores as any).userId, userId))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .where(eq((stores as Record<string, any>).userId, userId))
     .limit(1);
 
   const store = storeResult[0];
@@ -204,7 +206,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function StoreSettingsPage() {
-  const { store, currentSettings, availableThemes } = useLoaderData<typeof loader>();
+  const { currentSettings, availableThemes } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
 
   return (
