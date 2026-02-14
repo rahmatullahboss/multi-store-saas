@@ -186,10 +186,12 @@ export function ServiceCard({
   title,
   description,
   primaryColor,
+  icon,
 }: {
   title: string;
   description: string;
   primaryColor: string;
+  icon?: string;
 }) {
   return (
     <div className="bg-gray-50 rounded-xl p-8 hover:shadow-lg transition-shadow">
@@ -197,15 +199,19 @@ export function ServiceCard({
         className="w-14 h-14 rounded-lg flex items-center justify-center mb-6"
         style={{ backgroundColor: `${primaryColor}20` }}
       >
-        <svg
-          className="w-8 h-8"
-          style={{ color: primaryColor }}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
+        {icon ? (
+          <span className="text-3xl">{icon}</span>
+        ) : (
+          <svg
+            className="w-8 h-8"
+            style={{ color: primaryColor }}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        )}
       </div>
       <h3 className="text-xl font-bold text-gray-900 mb-3">{title}</h3>
       <p className="text-gray-600">{description}</p>
@@ -218,11 +224,13 @@ export function TestimonialCard({
   author,
   position,
   rating,
+  avatar,
 }: {
   text: string;
   author: string;
   position: string;
   rating: number;
+  avatar?: string;
 }) {
   return (
     <div className="bg-white rounded-xl p-8 shadow-sm">
@@ -234,9 +242,14 @@ export function TestimonialCard({
         ))}
       </div>
       <blockquote className="text-gray-700 mb-6">"{text}"</blockquote>
-      <div>
-        <div className="font-semibold text-gray-900">{author}</div>
-        <div className="text-sm text-gray-600">{position}</div>
+      <div className="flex items-center gap-3">
+        {avatar && (
+          <img src={avatar} alt={author} className="w-12 h-12 rounded-full object-cover" />
+        )}
+        <div>
+          <div className="font-semibold text-gray-900">{author}</div>
+          <div className="text-sm text-gray-600">{position}</div>
+        </div>
       </div>
     </div>
   );

@@ -118,6 +118,12 @@ export default function StudyAbroadRenderer({ settings }: LeadGenThemeProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
+              {/* Hero Badge */}
+              {settings.heroBadge && (
+                <span className="inline-block px-4 py-2 rounded-full text-sm font-bold mb-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md">
+                  {settings.heroBadge}
+                </span>
+              )}
               {settings.heroSubheading && (
                 <span className="inline-block px-4 py-1 rounded-full text-sm font-semibold mb-6 bg-white border border-gray-200 text-gray-600 shadow-sm">
                   {settings.heroSubheading}
@@ -227,76 +233,53 @@ export default function StudyAbroadRenderer({ settings }: LeadGenThemeProps) {
         </section>
       )}
 
-      {/* Why Choose Us Section */}
-      {whyChoosePoints.length > 0 && (
-        <section
-          id="why-us"
-          className="py-20 text-white relative overflow-hidden"
-          style={{ backgroundColor: settings.accentColor }}
-        >
-          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full opacity-10 bg-white" />
-          <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full opacity-10 bg-white" />
+      {/* Why Choose Us Section - Improved with Cards */}
+      {settings.showWhyChoose && whyChoosePoints.length > 0 && (
+        <section id="why-us" className="py-20 bg-gradient-to-br from-blue-600 to-blue-800 relative overflow-hidden">
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+          <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-blue-400/10 rounded-full -translate-x-1/2 -translate-y-1/2" />
+          
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              <div>
-                <h2 className="text-3xl lg:text-4xl font-bold mb-6">Why Students Choose Us?</h2>
-                <p className="text-lg text-blue-100 mb-8 leading-relaxed">
-                  Choosing the right consultancy can shape your entire study abroad journey.
-                </p>
-                <ul className="space-y-4">
-                  {whyChoosePoints
-                    .filter((p) => p.enabled)
-                    .map((item, i) => (
-                      <li key={i} className="flex items-center text-lg">
-                        <span className="h-6 w-6 rounded-full bg-white text-blue-900 flex items-center justify-center mr-3 flex-shrink-0">
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={3}
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </span>
-                        {item.text}
-                      </li>
-                    ))}
-                </ul>
-                <div className="mt-10">
-                  <a
-                    href="#contact"
-                    className="inline-block px-8 py-3 bg-white text-blue-900 font-bold rounded-lg shadow hover:bg-gray-100 transition"
+            {/* Section Header */}
+            <div className="text-center mb-16">
+              <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">Why Students Choose Us?</h2>
+              <p className="text-lg text-blue-100 max-w-2xl mx-auto">
+                Choosing the right consultancy can shape your entire study abroad journey. We're here to make it seamless.
+              </p>
+            </div>
+            
+            {/* Cards Grid */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {whyChoosePoints
+                .filter((p) => p.enabled)
+                .map((item, i) => (
+                  <div 
+                    key={i} 
+                    className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/20 hover:scale-105 hover:shadow-xl transition-all duration-300 group"
                   >
-                    Get Free Advice
-                  </a>
-                </div>
-              </div>
-
-              {/* Company Stats - Only show if enabled */}
-              {settings.showCompanyProfile && (
-                <div className="hidden lg:block">
-                  <div className="aspect-square bg-white/10 rounded-3xl backdrop-blur-sm border border-white/20 p-8 flex items-center justify-center">
-                    <div className="text-center">
-                      {settings.visaSuccessRatio && (
-                        <>
-                          <div className="text-5xl font-bold mb-2">{settings.visaSuccessRatio}</div>
-                          <div className="text-xl">
-                            {settings.visaSuccessLabel || 'Visa Success Rate'}
-                          </div>
-                        </>
-                      )}
-                      {settings.yearsExperience && (
-                        <>
-                          <div className="my-8 h-px bg-white/20 w-32 mx-auto" />
-                          <div className="text-5xl font-bold mb-2">{settings.yearsExperience}</div>
-                          <div className="text-xl">{settings.yearsLabel || 'Years Experience'}</div>
-                        </>
-                      )}
+                    <div className="text-4xl mb-4 bg-white/20 w-16 h-16 rounded-xl flex items-center justify-center">
+                      {item.icon || '✓'}
                     </div>
+                    <h3 className="text-lg font-bold text-white mb-2 group-hover:text-yellow-300 transition-colors">
+                      {item.text}
+                    </h3>
                   </div>
-                </div>
-              )}
+                ))}
+            </div>
+            
+            {/* CTA */}
+            <div className="text-center mt-12">
+              <a
+                href="#contact"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-white text-blue-700 font-bold rounded-xl shadow-lg hover:bg-gray-100 hover:scale-105 transition-all duration-300"
+              >
+                Get Free Advice
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
             </div>
           </div>
         </section>
@@ -396,8 +379,8 @@ export default function StudyAbroadRenderer({ settings }: LeadGenThemeProps) {
         </section>
       )}
 
-      {/* Team / Counselors */}
-      {teamMembers.length > 0 && (
+      {/* Team / Counselors - Toggle enabled */}
+      {settings.showTeam && teamMembers.length > 0 && (
         <section id="team" className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
@@ -429,24 +412,54 @@ export default function StudyAbroadRenderer({ settings }: LeadGenThemeProps) {
         </section>
       )}
 
-      {/* University Partners - Toggle enabled */}
+      {/* University Partners - Horizontal Scrolling Marquee */}
       {settings.showUniversityPartners && universityLogos.length > 0 && (
-        <section className="py-12 border-t border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <p className="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-8">
+        <section className="py-12 border-t border-b border-gray-100 bg-gray-50 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-8">
+            <p className="text-sm font-semibold text-gray-400 uppercase tracking-widest">
               Partner Universities
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-              {universityLogos.map((logo, i) => (
+          </div>
+          <div className="relative">
+            {/* Gradient overlays for smooth edges */}
+            <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-gray-50 to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-gray-50 to-transparent z-10 pointer-events-none" />
+            
+            {/* Scrolling container */}
+            <div className="flex gap-8 animate-scroll">
+              {/* Double the logos for seamless loop */}
+              {[...universityLogos, ...universityLogos].map((logo, i) => (
                 <div
                   key={i}
-                  className="h-16 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 font-semibold text-sm"
+                  className="flex-shrink-0 h-20 w-40 bg-white rounded-lg shadow-sm flex items-center justify-center px-4"
                 >
-                  {logo}
+                  {typeof logo === 'string' && logo.startsWith('http') ? (
+                    <img 
+                      src={logo} 
+                      alt="University Logo" 
+                      className="max-h-16 max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300" 
+                    />
+                  ) : (
+                    <span className="text-gray-600 font-semibold text-sm text-center">
+                      {logo}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
           </div>
+          <style>{`
+            @keyframes scroll {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+            .animate-scroll {
+              animation: scroll 30s linear infinite;
+            }
+            .animate-scroll:hover {
+              animation-play-state: paused;
+            }
+          `}</style>
         </section>
       )}
 

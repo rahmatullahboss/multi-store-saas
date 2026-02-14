@@ -83,8 +83,8 @@ export default function ProfessionalServicesRenderer({ settings }: LeadGenThemeP
               </h1>
               <p className="text-xl text-gray-600 mb-8">{settings.heroDescription}</p>
               <ul className="space-y-4">
-                {['Free consultation', 'Expert advice', 'Fast turnaround'].map((item) => (
-                  <li key={item} className="flex items-start">
+                {['Free consultation', 'Expert advice', 'Fast turnaround'].map((item, idx) => (
+                  <li key={idx} className="flex items-start">
                     <svg
                       className="w-6 h-6 mr-3 flex-shrink-0"
                       style={{ color: settings.primaryColor }}
@@ -121,21 +121,19 @@ export default function ProfessionalServicesRenderer({ settings }: LeadGenThemeP
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl lg:text-4xl font-bold text-center mb-12">Our Services</h2>
             <div className="grid md:grid-cols-3 gap-8">
-              <ServiceCard
-                title="Consulting"
-                description="Strategic advice to help your business grow"
-                primaryColor={settings.primaryColor}
-              />
-              <ServiceCard
-                title="Training"
-                description="Expert training programs for your team"
-                primaryColor={settings.primaryColor}
-              />
-              <ServiceCard
-                title="Support"
-                description="24/7 support when you need it"
-                primaryColor={settings.primaryColor}
-              />
+              {(settings.services && settings.services.length > 0 ? settings.services : [
+                { icon: '💼', title: 'Consulting', description: 'Strategic advice to help your business grow', enabled: true },
+                { icon: '📚', title: 'Training', description: 'Expert training programs for your team', enabled: true },
+                { icon: '🛟', title: 'Support', description: '24/7 support when you need it', enabled: true },
+              ]).map((service: any, idx: number) => (
+                <ServiceCard
+                  key={idx}
+                  icon={service.icon}
+                  title={service.title}
+                  description={service.description}
+                  primaryColor={settings.primaryColor}
+                />
+              ))}
             </div>
           </div>
         </section>
@@ -149,24 +147,23 @@ export default function ProfessionalServicesRenderer({ settings }: LeadGenThemeP
               What Our Clients Say
             </h2>
             <div className="grid md:grid-cols-3 gap-8">
-              <TestimonialCard
-                text="Working with this team transformed our business."
-                author="Sarah Ahmed"
-                position="CEO, Tech Solutions"
-                rating={5}
-              />
-              <TestimonialCard
-                text="Professional and results-driven. Best investment."
-                author="Kamal Rahman"
-                position="Founder, Digital Ventures"
-                rating={5}
-              />
-              <TestimonialCard
-                text="Their expertise is unmatched. Results in weeks."
-                author="Nadia Khan"
-                position="MD, Global Traders"
-                rating={5}
-              />
+              {(settings.successStories && settings.successStories.length > 0
+                ? settings.successStories.slice(0, 3)
+                : [
+                    { text: 'Working with this team transformed our business.', author: 'Sarah Ahmed', position: 'CEO, Tech Solutions', rating: 5, photo: '' },
+                    { text: 'Professional and results-driven. Best investment.', author: 'Kamal Rahman', position: 'Founder, Digital Ventures', rating: 5, photo: '' },
+                    { text: 'Their expertise is unmatched. Results in weeks.', author: 'Nadia Khan', position: 'MD, Global Traders', rating: 5, photo: '' },
+                  ]
+              ).map((testimonial: any, idx: number) => (
+                <TestimonialCard
+                  key={idx}
+                  text={testimonial.text}
+                  author={testimonial.author}
+                  position={testimonial.position}
+                  rating={testimonial.rating || 5}
+                  avatar={testimonial.photo}
+                />
+              ))}
             </div>
           </div>
         </section>

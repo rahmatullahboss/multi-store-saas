@@ -37,6 +37,8 @@ export interface LeadGenThemeSettings {
   heroHeading: string; // Main hero heading
   heroDescription: string; // Hero subtext
   ctaButtonText: string; // Primary CTA button text
+  heroBadge?: string | null; // Badge text above heading (e.g. "100% Free")
+  heroSubheading?: string | null; // Subheading below badge
 
   // ========== SECTION TOGGLES ==========
 
@@ -66,9 +68,6 @@ export interface LeadGenThemeSettings {
   showWhatsApp: boolean; // Show floating WhatsApp button
 
   // ========== STUDY ABROAD SPECIFIC FIELDS ==========
-
-  // Hero Section
-  heroSubheading: string | null; // Hero badge text
 
   // Stats Section
   statsStudentsCount: string; // e.g., "20,000+"
@@ -140,6 +139,7 @@ export interface ServiceConfig {
 }
 
 export interface WhyChoosePoint {
+  icon?: string; // Emoji icon (e.g., "🎓", "✅")
   text: string; // Point text
   enabled: boolean;
 }
@@ -262,10 +262,10 @@ const defaultServices: ServiceConfig[] = [
 
 // Helper to create default why choose points
 const defaultWhyChoosePoints: WhyChoosePoint[] = [
-  { text: '95% Student Visa Success Rate', enabled: true },
-  { text: 'HSC, A-Level & National University Experts', enabled: true },
-  { text: 'Dedicated Scholarship Guidance', enabled: true },
-  { text: 'In-person Document Verification', enabled: true },
+  { icon: '✅', text: '95% Student Visa Success Rate', enabled: true },
+  { icon: '🎓', text: 'HSC, A-Level & National University Experts', enabled: true },
+  { icon: '💰', text: 'Dedicated Scholarship Guidance', enabled: true },
+  { icon: '📋', text: 'In-person Document Verification', enabled: true },
 ];
 
 // Helper to create default process steps
@@ -345,10 +345,20 @@ const defaultTeamMembers: TeamMemberConfig[] = [
 ];
 
 // Helper to create default university logos
-const defaultUniversityLogos: string[] = Array.from(
-  { length: 12 },
-  (_, i) => `University ${i + 1}`
-);
+const defaultUniversityLogos: string[] = [
+  'University of Malaya',
+  'USM Malaysia',
+  'UPM Malaysia',
+  'UKM Malaysia',
+  'Monash University',
+  'University of Queensland',
+  'University of Melbourne',
+  'University of Sydney',
+  'Imperial College London',
+  'University of Oxford',
+  'Trinity College Dublin',
+  'University of Cambridge',
+];
 
 // Helper to create default why study points
 const defaultWhyStudyPoints: WhyStudyPoint[] = [
@@ -463,10 +473,11 @@ const sAndAStudyAbroadSettings: LeadGenThemeSettings = {
   accentColor: '#002C5F',
 
   // Hero
-  heroHeading: '100% Free Counselling & Application Processing',
-  heroDescription: 'Your Gateway to Quality Education in Malaysia, UK, Australia, Ireland & Cyprus',
+  heroHeading: 'Your Gateway to Quality Education in Malaysia, UK, Australia, Ireland & Cyprus',
+  heroDescription: 'Start your journey to world-class education with expert guidance and personalized support.',
   ctaButtonText: 'Apply Now',
-  heroSubheading: 'Specializing in Malaysian education with global opportunities',
+  heroSubheading: '🇲🇾 Specializing in Malaysian education with global opportunities',
+  heroBadge: '🎓 100% Free Counselling & Application Processing',
 
   // ========== SECTION TOGGLES ==========
   showHero: true,
@@ -578,10 +589,10 @@ const sAndAStudyAbroadSettings: LeadGenThemeSettings = {
 
   // Why Choose Points
   whyChoosePoints: [
-    { text: '500+ British Council Trained Counsellors', enabled: true },
-    { text: '140+ Partner Institutions', enabled: true },
-    { text: '15+ Countries Served', enabled: true },
-    { text: 'End to End Services', enabled: true },
+    { icon: '🎓', text: '500+ British Council Trained Counsellors', enabled: true },
+    { icon: '🏫', text: '140+ Partner Institutions', enabled: true },
+    { icon: '🌍', text: '15+ Countries Served', enabled: true },
+    { icon: '🤝', text: 'End to End Services', enabled: true },
   ],
 
   // Process Steps
@@ -643,6 +654,8 @@ export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
     heroHeading: 'Grow Your Business with Expert Consulting',
     heroDescription: 'We help businesses scale with proven strategies and personalized solutions',
     ctaButtonText: 'Get Free Consultation',
+    heroBadge: null,
+    heroSubheading: null,
     showHero: true,
     showAnnouncement: false,
     announcementText: null,
@@ -662,7 +675,6 @@ export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
     email: null,
     address: null,
     whatsappNumber: null,
-    heroSubheading: null,
     statsStudentsCount: '150,000+',
     statsRecruitmentAwards: '22,000+',
     statsUniversityPartners: '98%',
@@ -700,6 +712,8 @@ export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
     heroHeading: 'Strategic Consulting for Business Growth',
     heroDescription: 'Transform your business with data-driven strategies',
     ctaButtonText: 'Schedule Consultation',
+    heroBadge: null,
+    heroSubheading: null,
     showHero: true,
     showAnnouncement: false,
     announcementText: null,
@@ -719,7 +733,6 @@ export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
     email: null,
     address: null,
     whatsappNumber: null,
-    heroSubheading: null,
     statsStudentsCount: '150,000+',
     statsRecruitmentAwards: '22,000+',
     statsUniversityPartners: '98%',
@@ -757,6 +770,8 @@ export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
     heroHeading: 'Quality Healthcare Services',
     heroDescription: 'Compassionate care when you need it most',
     ctaButtonText: 'Book Appointment',
+    heroBadge: null,
+    heroSubheading: null,
     showHero: true,
     showAnnouncement: false,
     announcementText: null,
@@ -776,7 +791,6 @@ export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
     email: null,
     address: null,
     whatsappNumber: null,
-    heroSubheading: null,
     statsStudentsCount: '150,000+',
     statsRecruitmentAwards: '22,000+',
     statsUniversityPartners: '98%',
@@ -804,7 +818,7 @@ export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
     footerDescription: null,
     quickLinks: defaultQuickLinks,
   },
-
+  
   agency: {
     storeName: 'Digital Agency',
     logo: null,
@@ -814,6 +828,8 @@ export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
     heroHeading: 'Digital Marketing That Drives Results',
     heroDescription: 'Grow your brand with proven digital strategies',
     ctaButtonText: 'Get Started',
+    heroBadge: null,
+    heroSubheading: null,
     showHero: true,
     showAnnouncement: false,
     announcementText: null,
@@ -833,7 +849,6 @@ export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
     email: null,
     address: null,
     whatsappNumber: null,
-    heroSubheading: null,
     statsStudentsCount: '150,000+',
     statsRecruitmentAwards: '22,000+',
     statsUniversityPartners: '98%',
@@ -905,6 +920,7 @@ export function validateLeadGenSettings(
     heroHeading: settings.heroHeading || defaults.heroHeading,
     heroDescription: settings.heroDescription || defaults.heroDescription,
     ctaButtonText: settings.ctaButtonText || defaults.ctaButtonText,
+    heroBadge: settings.heroBadge ?? defaults.heroBadge,
     showHero: settings.showHero ?? defaults.showHero,
     showAnnouncement: settings.showAnnouncement ?? defaults.showAnnouncement,
     announcementText: settings.announcementText || defaults.announcementText,

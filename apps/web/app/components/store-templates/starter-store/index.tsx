@@ -23,6 +23,15 @@ import {
 } from '~/utils/imageOptimization';
 import { getHeroBehavior } from '~/lib/hero-slides';
 
+const FALLBACK_CATEGORY_IMAGES: Record<string, string> = {
+  Electronics: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/categories/electronics.png',
+  Other: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/categories/other.png',
+  Fashion: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/categories/fashion.png',
+  Home: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/categories/home.png',
+  Beauty: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/categories/beauty.png',
+  Food: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/categories/food.png',
+};
+
 // ============================================================================
 // MAIN TEMPLATE COMPONENT
 // ============================================================================
@@ -182,6 +191,7 @@ export function StarterStoreTemplate({
                       category?.imageUrl ||
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       ((config as any)?.categoryImageMap?.[String(title)] as string | undefined) ||
+                      FALLBACK_CATEGORY_IMAGES[String(title)] ||
                       null;
                     const id = category ? category.id : (cat as string);
                     

@@ -46,6 +46,7 @@ import {
   BookOpen,
   Users,
   Bell,
+  Ticket,
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -315,6 +316,7 @@ const navSections: NavSection[] = [
     items: [
       { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail },
       { to: '/app/leads', labelKey: 'navLeadInbox', icon: Users },
+      { to: '/app/support', labelKey: 'navSupport', icon: Ticket },
       { to: '/app/agent', labelKey: 'landingFinalCTA_aiAssistantName', icon: OzzylIcon },
       { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail },
       { to: '/app/push', labelKey: 'navPushNotifications', icon: Bell },

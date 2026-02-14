@@ -142,6 +142,7 @@ export const common = {
   navPageBuilderV2: 'নতুন ল্যান্ডিং বিল্ডার',
   navHomepage: 'হোমপেজ সেটিংস',
   navShipping: 'শিপিং',
+  navSupport: 'সাপোর্ট',
   navDomain: 'ডোমেইন',
   navBilling: 'বিলিং',
   navCredits: 'AI ক্রেডিট',

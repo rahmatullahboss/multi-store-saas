@@ -103,6 +103,7 @@ const navItems = [
   { to: '/admin/marketplace-themes', label: 'Theme Marketplace', icon: Palette },
   { to: '/admin/team', label: 'Team & Access', icon: Users },
   { to: '/admin/visitor-chats', label: 'Visitor Chats', icon: MessageCircle },
+  { to: '/admin/tickets', label: 'Support Tickets', icon: Ticket },
   { to: '/admin/audit-logs', label: 'Audit Logs', icon: History },
   { to: '/admin/health', label: 'System Health', icon: Activity },
   { to: '/admin/tutorials', label: 'Tutorials', icon: BookOpen },

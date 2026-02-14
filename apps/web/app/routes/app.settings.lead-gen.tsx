@@ -27,6 +27,7 @@ import {
   type QuickLinkConfig,
 } from '~/services/lead-gen-settings.server';
 import { getAvailableLeadGenThemes } from '~/config/lead-gen-theme-settings';
+import { LeadGenFileUpload } from '~/components/lead-gen/LeadGenFileUpload';
 import {
   Palette,
   Type,
@@ -137,6 +138,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         heroHeading: (formData.get('heroHeading') as string) || current.heroHeading,
         heroDescription: (formData.get('heroDescription') as string) || current.heroDescription,
         ctaButtonText: (formData.get('ctaButtonText') as string) || current.ctaButtonText,
+        heroBadge: formData.get('showHeroBadge') === 'on' 
+          ? ((formData.get('heroBadge') as string) || null)
+          : null,
         heroSubheading: (formData.get('heroSubheading') as string) || null,
         showAnnouncement: formData.get('showAnnouncement') === 'on',
         announcementText: (formData.get('announcementText') as string) || null,
@@ -329,13 +333,23 @@ export default function LeadGenSettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
-                  <input
-                    type="url"
+                  <LeadGenFileUpload
                     name="logo"
-                    defaultValue={currentSettings.logo || ''}
-                    placeholder="https://..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500"
+                    label="Logo"
+                    accept="image"
+                    maxSize={2 * 1024 * 1024}
+                    primaryColor={currentSettings.primaryColor || '#4F46E5'}
+                    value={currentSettings.logo || undefined}
+                  />
+                </div>
+                <div>
+                  <LeadGenFileUpload
+                    name="favicon"
+                    label="Favicon (32x32)"
+                    accept="image"
+                    maxSize={1 * 1024 * 1024}
+                    primaryColor={currentSettings.primaryColor || '#4F46E5'}
+                    value={currentSettings.favicon || undefined}
                   />
                 </div>
               </div>
@@ -439,7 +453,28 @@ export default function LeadGenSettingsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Subheading (Badge)
+                    Hero Badge
+                  </label>
+                  <div className="flex items-center gap-2 mb-2">
+                    <input
+                      type="checkbox"
+                      name="showHeroBadge"
+                      defaultChecked={currentSettings.heroBadge ? true : false}
+                      className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
+                    />
+                    <span className="text-sm text-gray-600">Show badge on hero</span>
+                  </div>
+                  <input
+                    type="text"
+                    name="heroBadge"
+                    defaultValue={currentSettings.heroBadge || ''}
+                    placeholder="e.g., 🎓 100% Free Counselling"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Subheading (Below Badge)
                   </label>
                   <input
                     type="text"
@@ -722,6 +757,7 @@ export default function LeadGenSettingsPage() {
                   { name: 'showServices', label: 'Services Section' },
                   { name: 'showTestimonials', label: 'Testimonials' },
                   { name: 'showUniversityPartners', label: 'University Partners' },
+                  { name: 'showTeam', label: 'Meet Counselors' },
                   { name: 'showWhatsApp', label: 'WhatsApp Floating Button' },
                 ].map((item) => (
                   <label key={item.name} className="flex items-center gap-2">
