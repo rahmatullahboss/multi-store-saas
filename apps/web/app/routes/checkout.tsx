@@ -707,7 +707,7 @@ export default function Checkout() {
         <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-6">
           <ShoppingBag className="w-16 h-16 text-gray-300 mb-4" />
           <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('cartEmpty')}</h2>
-          <Link to="/" className="text-blue-600 hover:underline">
+          <Link to="/" className="hover:underline" style={{ color: primaryColor }}>
             {t('continueShopping')}
           </Link>
         </div>
@@ -721,7 +721,7 @@ export default function Checkout() {
       <div className="md:col-span-7 lg:col-span-8 space-y-6">
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <Truck className="w-5 h-5 text-blue-600" />
+            <Truck className="w-5 h-5" style={{ color: primaryColor }} />
             {lang === 'bn' ? 'শিপিং তথ্য' : 'Shipping Information'}
           </h2>
 
@@ -735,7 +735,7 @@ export default function Checkout() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition-all"
                 placeholder={lang === 'bn' ? 'আপনার নাম লিখুন' : 'Enter your name'}
               />
             </div>
@@ -748,7 +748,7 @@ export default function Checkout() {
                 required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition-all"
                 placeholder="01XXXXXXXXX"
               />
             </div>
@@ -812,7 +812,7 @@ export default function Checkout() {
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition-all"
                 placeholder={
                   lang === 'bn'
                     ? 'বাসা/ফ্ল্যাট নং, রোড নং, এলাকার নাম লিখুন'
@@ -827,7 +827,7 @@ export default function Checkout() {
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-gray-300 transition-all"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-gray-300 transition-all"
                 placeholder={
                   lang === 'bn'
                     ? 'অর্ডার সম্পর্কে কোনো মন্তব্য থাকলে লিখুন'
@@ -840,7 +840,7 @@ export default function Checkout() {
 
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
           <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-blue-600" />
+            <ShieldCheck className="w-5 h-5" style={{ color: primaryColor }} />
             {lang === 'bn' ? 'পেমেন্ট মেথড' : 'Payment Method'}
           </h2>
           <PaymentMethodSelector
@@ -900,10 +900,11 @@ export default function Checkout() {
                       type="checkbox"
                       checked={selectedBumps.includes(bump.id)}
                       onChange={() => toggleBump(bump.id)}
-                      className="mt-1 w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                      className="mt-1 w-4 h-4 rounded border-gray-300"
+                      style={{ accentColor: primaryColor }}
                     />
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-800 group-hover:text-blue-700 transition-colors">
+                      <p className="text-sm font-medium text-gray-800 transition-colors" style={{ '--hover-color': primaryColor } as React.CSSProperties}>
                         {bump.title || bump.productTitle}
                       </p>
                       <div className="flex items-center gap-2 mt-0.5">
@@ -970,7 +971,7 @@ export default function Checkout() {
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                     placeholder={t('discountCode') || 'Promo Code'}
-                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                   />
                   <button
                     type="button"
@@ -1051,7 +1052,7 @@ export default function Checkout() {
               {/* ... Form Components ... */}
               <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                 <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <Truck className="w-5 h-5 text-blue-600" />
+                  <Truck className="w-5 h-5" style={{ color: primaryColor }} />
                   {lang === 'bn' ? 'শিপিং তথ্য' : 'Shipping Information'}
                 </h2>
                 {/* Re-using same form inputs - ideally extracted to component but inline for now to avoid massive refactor */}
@@ -1065,7 +1066,7 @@ export default function Checkout() {
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                       placeholder={lang === 'bn' ? 'আপনার নাম লিখুন' : 'Enter your name'}
                     />
                   </div>
@@ -1078,7 +1079,7 @@ export default function Checkout() {
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                       placeholder="01XXXXXXXXX"
                     />
                   </div>
@@ -1091,7 +1092,7 @@ export default function Checkout() {
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                       placeholder={lang === 'bn' ? 'সম্পূর্ণ ঠিকানা লিখুন' : 'Full address'}
                     />
                   </div>
@@ -1155,7 +1156,7 @@ export default function Checkout() {
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                       placeholder={
                         lang === 'bn'
                           ? 'বাড়ি/রোড নম্বর, এলাকা, থানা ইত্যাদি'
@@ -1170,7 +1171,7 @@ export default function Checkout() {
                     <textarea
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                       placeholder={lang === 'bn' ? 'অর্ডার সম্পর্কে মন্তব্য' : 'Special notes'}
                     />
                   </div>
@@ -1179,7 +1180,7 @@ export default function Checkout() {
 
               <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                 <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-blue-600" />
+                  <ShieldCheck className="w-5 h-5" style={{ color: primaryColor }} />
                   {lang === 'bn' ? 'পেমেন্ট মেথড' : 'Payment Method'}
                 </h2>
                 <PaymentMethodSelector
@@ -1243,7 +1244,8 @@ export default function Checkout() {
                             type="checkbox"
                             checked={selectedBumps.includes(bump.id)}
                             onChange={() => toggleBump(bump.id)}
-                            className="mt-1 w-4 h-4 text-blue-600 rounded border-gray-300"
+                            className="mt-1 w-4 h-4 rounded border-gray-300"
+                            style={{ accentColor: primaryColor }}
                           />
                           <div className="flex-1">
                             <p className="text-sm font-medium text-gray-800">
@@ -1340,7 +1342,7 @@ export default function Checkout() {
             <div className="p-6 bg-gray-50 border-b border-gray-200">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-bold text-gray-800">{t('orderSummary')}</h2>
-                <span className="text-lg font-bold text-purple-600">
+                <span className="text-lg font-bold" style={{ color: primaryColor }}>
                   {formatPrice(total, currency)}
                 </span>
               </div>
@@ -1366,7 +1368,7 @@ export default function Checkout() {
             {/* 2. Customer Info */}
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Truck className="w-5 h-5 text-blue-600" />{' '}
+                <Truck className="w-5 h-5" style={{ color: primaryColor }} />{' '}
                 {lang === 'bn' ? 'শিপিং তথ্য' : 'Shipping Information'}
               </h2>
               <div className="space-y-4">
@@ -1375,7 +1377,7 @@ export default function Checkout() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                   placeholder={lang === 'bn' ? 'আপনার নাম' : 'Name'}
                 />
                 <input
@@ -1383,7 +1385,7 @@ export default function Checkout() {
                   required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                   placeholder={lang === 'bn' ? 'ফোন নম্বর' : 'Phone'}
                 />
                 <SearchableSelect
@@ -1433,7 +1435,7 @@ export default function Checkout() {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   rows={2}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                   placeholder={lang === 'bn' ? 'ঠিকানা' : 'Address'}
                 />
               </div>
@@ -1442,7 +1444,7 @@ export default function Checkout() {
             {/* 3. Payment */}
             <div className="p-6">
               <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-blue-600" />{' '}
+                <ShieldCheck className="w-5 h-5" style={{ color: primaryColor }} />{' '}
                 {lang === 'bn' ? 'পেমেন্ট' : 'Payment'}
               </h2>
               <PaymentMethodSelector

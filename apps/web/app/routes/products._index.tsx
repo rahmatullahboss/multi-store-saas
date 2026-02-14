@@ -25,9 +25,9 @@ import {
   type FooterConfig,
 } from '@db/types';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { resolveStoreTheme } from '~/templates/store-registry';
+import { resolveStoreTheme, getStoreTemplate } from '~/templates/store-registry';
 import { ShoppingBag, Filter, ChevronRight, Grid, List } from 'lucide-react';
-import { useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { getCustomer } from '~/services/customer-auth.server';
 import { parsePriceRange } from '~/utils/price';
 
@@ -196,6 +196,10 @@ export default function ProductsIndex() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
+  // Resolve the active store template
+  const template = useMemo(() => getStoreTemplate(storeTemplateId), [storeTemplateId]);
+  const TemplateCollectionPage = template.CollectionPage;
+
   const isDarkTheme = storeTemplateId === 'modern-premium' || storeTemplateId === 'tech-modern';
 
   // Theme-aware styles
@@ -251,6 +255,48 @@ export default function ProductsIndex() {
     setSearchParams(params);
   };
 
+  // If the active template provides a CollectionPage, delegate rendering to it
+  // (e.g., LuxeCollectionPage for luxe-boutique). Otherwise fall back to generic UI.
+  if (TemplateCollectionPage) {
+    return (
+      <StorePageWrapper
+        storeName={storeName}
+        storeId={storeId}
+        logo={logo}
+        templateId={storeTemplateId}
+        theme={theme}
+        currency={currency}
+        socialLinks={socialLinks}
+        businessInfo={businessInfo}
+        cartCount={0}
+        categories={categories}
+        config={themeConfig}
+        footerConfig={footerConfig}
+        planType={planType}
+        customer={customer}
+        isCustomerAiEnabled={isCustomerAiEnabled}
+        aiCredits={aiCredits}
+      >
+        <Suspense
+          fallback={
+            <div className="min-h-[60vh] flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+            </div>
+          }
+        >
+          <TemplateCollectionPage
+            products={products}
+            category={currentCategory || 'all-products'}
+            categories={categories}
+            currency={currency}
+            theme={theme}
+          />
+        </Suspense>
+      </StorePageWrapper>
+    );
+  }
+
+  // Fallback: generic grid/list UI for templates without a CollectionPage
   return (
     <StorePageWrapper
       storeName={storeName}
