@@ -635,10 +635,12 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
     const mvpSettings = await getMVPSettings(db, validatedStoreId, storeTemplateId);
 
     // Merge MVP colors with template theme
+    // Priority: mvpSettings > storeThemeConfig > baseTheme defaults
+    // This ensures cross-page consistency with other routes that use resolveStoreTheme()
     const mergedTheme = {
       ...baseTheme,
-      primary: mvpSettings.primaryColor || baseTheme.primary,
-      accent: mvpSettings.accentColor || baseTheme.accent,
+      primary: mvpSettings.primaryColor || storeThemeConfig?.primaryColor || baseTheme.primary,
+      accent: mvpSettings.accentColor || storeThemeConfig?.accentColor || baseTheme.accent,
     };
 
     // Parse social links, footer config, business info

@@ -13,8 +13,8 @@ import { products } from '@db/schema';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreConfig } from '~/services/store-config.server';
 import { D1Cache } from '~/services/cache-layer.server';
-import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
-import { parseSocialLinks } from '@db/types';
+import { resolveStoreTheme } from '~/templates/store-registry';
+import { parseSocialLinks, type ThemeConfig } from '@db/types';
 import { formatPrice } from '~/lib/theme-engine';
 
 function createCategorySlug(category: string): string {
@@ -58,8 +58,10 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   }
 
   const { themeConfig, businessInfo, footerConfig } = storeConfig;
-  const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
-  const theme = getStoreTemplateTheme(storeTemplateId);
+  const { storeTemplateId, theme } = resolveStoreTheme(
+    themeConfig as Record<string, unknown> | null,
+    store.theme
+  );
   const socialLinks =
     storeConfig.socialLinks || parseSocialLinks(store.socialLinks as string | null);
 
@@ -131,6 +133,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     storeName: store.name,
     store,
     theme,
+    storeTemplateId,
+    themeConfig: themeConfig as ThemeConfig | null,
     socialLinks,
     businessInfo,
     footerConfig,
@@ -146,19 +150,28 @@ export default function CategoryPage() {
     categories,
     store,
     theme,
+    storeTemplateId,
+    themeConfig,
     socialLinks,
     businessInfo,
     footerConfig,
-    storeConfig,
   } = useLoaderData<typeof loader>();
   const { t } = useTranslation();
+
+  // Build merged config with theme colors (same pattern as _index.tsx)
+  const mergedConfig = {
+    ...(themeConfig || {}),
+    primaryColor: theme?.primary,
+    accentColor: theme?.accent,
+    storeTemplateId,
+  } as ThemeConfig;
 
   return (
     <StorePageWrapper
       storeName={store.name}
       storeId={store.id}
       logo={store.logo}
-      templateId={storeConfig.themeConfig?.storeTemplateId || 'starter'}
+      templateId={storeTemplateId}
       theme={theme}
       currency={store.currency || 'BDT'}
       socialLinks={socialLinks}
@@ -167,6 +180,7 @@ export default function CategoryPage() {
       categories={categories.map((c) => c.name)}
       currentCategory={categoryName}
       planType={store.planType || 'free'}
+      config={mergedConfig}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
@@ -201,9 +215,13 @@ export default function CategoryPage() {
                     to={`/category/${cat.slug}`}
                     className={`block px-3 py-2 rounded-md text-sm transition-colors ${
                       cat.slug === categorySlug
-                        ? 'bg-indigo-50 text-indigo-700 font-medium'
+                        ? 'font-medium'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
+                    style={cat.slug === categorySlug ? {
+                      backgroundColor: `${theme?.primary || '#6366f1'}15`,
+                      color: theme?.primary || '#6366f1',
+                    } : undefined}
                   >
                     {cat.name}
                     <span className="ml-2 text-gray-400">({cat.productCount})</span>
@@ -270,7 +288,7 @@ export default function CategoryPage() {
                         </div>
                       )}
                       <div className="p-3">
-                        <h3 className="font-medium text-gray-900 text-sm line-clamp-2 group-hover:text-indigo-600 transition-colors">
+                        <h3 className="font-medium text-gray-900 text-sm line-clamp-2 transition-colors" style={{ '--hover-color': theme?.primary || '#6366f1' } as React.CSSProperties}>
                           {product.title}
                         </h3>
                         <div className="mt-1 flex items-center gap-2">

@@ -12,8 +12,8 @@ import { products } from '@db/schema';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreConfig } from '~/services/store-config.server';
 import { D1Cache } from '~/services/cache-layer.server';
-import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
-import { parseSocialLinks } from '@db/types';
+import { resolveStoreTheme } from '~/templates/store-registry';
+import { parseSocialLinks, type ThemeConfig } from '@db/types';
 
 function createCategorySlug(category: string): string {
   const normalized = category.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -48,8 +48,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
   
   const { themeConfig, businessInfo, footerConfig } = storeConfig;
-  const storeTemplateId = themeConfig?.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
-  const theme = getStoreTemplateTheme(storeTemplateId);
+  const { storeTemplateId, theme } = resolveStoreTheme(
+    themeConfig as Record<string, unknown> | null,
+    store.theme
+  );
   const socialLinks = storeConfig.socialLinks || parseSocialLinks(store.socialLinks as string | null);
   
   // Get all categories with product count
@@ -79,29 +81,39 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     storeName: store.name,
     store,
     theme,
+    storeTemplateId,
+    themeConfig: themeConfig as ThemeConfig | null,
     socialLinks,
     businessInfo,
     footerConfig,
-    storeConfig,
   });
 }
 
 export default function CategoriesPage() {
-  const { categories, store, theme, socialLinks, businessInfo, footerConfig, storeConfig } =
+  const { categories, store, theme, storeTemplateId, themeConfig, socialLinks, businessInfo, footerConfig } =
     useLoaderData<typeof loader>();
-  
+
+  // Build merged config with theme colors (same pattern as _index.tsx)
+  const mergedConfig = {
+    ...(themeConfig || {}),
+    primaryColor: theme?.primary,
+    accentColor: theme?.accent,
+    storeTemplateId,
+  } as ThemeConfig;
+
   return (
     <StorePageWrapper
       storeName={store.name}
       storeId={store.id}
       logo={store.logo}
-      templateId={storeConfig.themeConfig?.storeTemplateId || 'starter'}
+      templateId={storeTemplateId}
       theme={theme}
       currency={store.currency || 'BDT'}
       socialLinks={socialLinks}
       businessInfo={businessInfo}
       footerConfig={footerConfig}
       planType={store.planType || 'free'}
+      config={mergedConfig}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Categories</h1>
