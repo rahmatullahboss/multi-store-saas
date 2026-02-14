@@ -109,11 +109,11 @@ export const onboarding = {
   passwordRequired: 'পাসওয়ার্ড আবশ্যক',
   
   // Plan Features
-  feature1Product: '৫টি প্রোডাক্ট',
+  feature1Product: '২০টি প্রোডাক্ট',
   feature50Orders: '৫০টি অর্ডার/মাস',
   featureLandingPageMode: 'ল্যান্ডিং পেজ মোড',
   featureBasicSupport: 'বেসিক সাপোর্ট',
-  feature50Products: '৫০টি প্রোডাক্ট',
+  feature50Products: '১০০টি প্রোডাক্ট',
   feature500Orders: '৫০০টি অর্ডার/মাস',
   featureFullStoreMode: 'ফুল স্টোর মোড',
   featureCustomDomain: 'কাস্টম ডোমেইন',

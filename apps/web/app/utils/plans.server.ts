@@ -5,7 +5,7 @@
  * 
  * BUSINESS CRITICAL: This ensures Free tier users cannot exceed limits.
  * - Free: 5 products, 50 orders/month, unlimited visitors, store + landing page
- * - Starter: 50 products, 500 orders/month
+ * - Starter: 100 products, 500 orders/month
  * - Premium: 500 products, 5000 orders/month
  * - Custom: Unlimited
  */
@@ -64,7 +64,7 @@ export interface PlanLimits {
 
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   free: {
-    max_products: 5,
+    max_products: 20,
     max_orders: 50,
     max_visitors: Infinity, // No limit - tracking for analytics only
     max_storage_mb: 100,
@@ -76,7 +76,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     fee_rate: 0.02, // 2% platform fee
   },
   starter: {
-    max_products: 50,
+    max_products: 100,
     max_orders: 500,
     max_visitors: Infinity, // No limit - tracking for analytics only
     max_storage_mb: 500,

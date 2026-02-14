@@ -649,7 +649,7 @@
   "freeAbovePlaceholder": "ফ্রি শিপিং এর জন্য টাকার পরিমাণ",
   "freeDelivery": "ফ্রি ডেলিভারি",
   "freeDeliveryInDhaka": "ঢাকায় ফ্রি ডেলিভারি",
-  "freePlanLimit5Products": "ফ্রি প্ল্যানে সর্বোচ্চ ৫টি পণ্য",
+  "freePlanLimit20Products": "ফ্রি প্ল্যানে সর্বোচ্চ ২০টি পণ্য",
   "freePlansSubdomainOnly": "ফ্রি প্ল্যানে শুধু সাবডোমেইন ব্যবহার করা যায়। কাস্টম ডোমেইনের জন্য পেইড সাবস্ক্রিপশন প্রয়োজন।",
   "freePlanSubdomainOnly": "শুধুমাত্র সাবডোমেইন",
   "freeShippingAbove": "এর বেশি অর্ডার করলে ফ্রি শিপিং",

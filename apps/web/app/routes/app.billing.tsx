@@ -60,7 +60,7 @@ const PLAN_DISPLAY = {
     icon: Rocket,
     color: 'gray',
     features: [
-      { text: '৫টি Product', textEn: '5 products', included: true },
+      { text: '২০টি Product', textEn: '20 products', included: true },
       { text: '৫০ Orders/মাস', textEn: '50 orders/month', included: true },
       { text: 'সীমাহীন Visitors*', textEn: 'Unlimited visitors*', included: true },
       { text: 'Store + Landing Page', textEn: 'Store + Landing Page', included: true },
@@ -81,7 +81,7 @@ const PLAN_DISPLAY = {
     color: 'emerald',
     popular: true,
     features: [
-      { text: '৫০টি Product', textEn: '50 products', included: true },
+      { text: '১০০টি Product', textEn: '100 products', included: true },
       { text: '৫০০ Orders/মাস', textEn: '500 orders/month', included: true },
       { text: 'সীমাহীন Visitors*', textEn: 'Unlimited visitors*', included: true },
       { text: 'Full E-commerce Store', textEn: 'Full store mode', included: true },
@@ -439,9 +439,9 @@ export default function BillingPage() {
                 style={{ width: `${Math.min(usage.products.percentage, 100)}%` }}
               />
             </div>
-            {planType === 'free' && usage.products.current >= 5 && (
+            {planType === 'free' && usage.products.current >= 20 && (
               <p className="text-xs text-yellow-600 mt-2">
-                ⚠️ {t('freePlanLimit5Products')}
+                ⚠️ {t('freePlanLimit20Products')}
               </p>
             )}
           </div>

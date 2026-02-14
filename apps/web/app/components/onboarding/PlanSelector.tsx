@@ -28,7 +28,7 @@ const PLANS: PlanOption[] = [
     period: 'forever',
     icon: <Zap className="w-6 h-6" />,
     features: [
-      '5 Products',
+      '20 Products',
       '50 Orders/month',
       'Store + Landing Page',
       'Subdomain only',
@@ -43,7 +43,7 @@ const PLANS: PlanOption[] = [
     icon: <Sparkles className="w-6 h-6" />,
     popular: true,
     features: [
-      '50 Products',
+      '100 Products',
       '500 Orders/month',
       'Unlimited AI',
       'Custom Domain',

@@ -107,7 +107,7 @@ function getDowngradedEmailHtml(storeName: string): string {
         <p style="color: #6b7280;">On the Free plan, you have access to:</p>
         
         <ul style="color: #6b7280; padding-left: 20px;">
-          <li>Up to 5 products</li>
+          <li>Up to 20 products</li>
           <li>50 orders per month</li>
           <li>Basic store features</li>
         </ul>

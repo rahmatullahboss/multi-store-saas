@@ -97,8 +97,8 @@ export default function FairUsagePolicy() {
                     <tbody>
                       <tr className="border-b border-white/5">
                         <td className="py-3">প্রোডাক্ট</td>
-                        <td className="text-center py-3">১০</td>
-                        <td className="text-center py-3">৫০</td>
+                        <td className="text-center py-3">২০</td>
+                        <td className="text-center py-3">১০০</td>
                         <td className="text-center py-3">২০০</td>
                       </tr>
                       <tr className="border-b border-white/5">

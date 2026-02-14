@@ -20,8 +20,8 @@ export const admin = {
   searchStores: 'Search stores by name or subdomain...',
   planUpdatedSuccess: 'Plan updated successfully!',
   planNotes: 'Plan Management Notes',
-  planFreeNote: 'Free: 10 products, landing page only, basic features',
-  planStarterNote: 'Starter (৳999/mo): 50 products, full store mode, custom domain',
+  planFreeNote: 'Free: 20 products, landing page only, basic features',
+  planStarterNote: 'Starter (৳999/mo): 100 products, full store mode, custom domain',
   planPremiumNote: 'Premium (৳2999/mo): 500 products, priority support, all features',
   plansEffectImmediate: 'Plans take effect immediately after update',
 

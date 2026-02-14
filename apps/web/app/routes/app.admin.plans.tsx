@@ -71,7 +71,7 @@ const PLAN_OPTIONS = [
     icon: Gift,
     price: '৳০',
     description: 'ট্রায়ালের জন্য পারফেক্ট',
-    features: ['৫টি Product', 'Store + Landing Page', '৫০ Sales/মাস'],
+    features: ['২০টি Product', 'Store + Landing Page', '৫০ Sales/মাস'],
   },
   {
     value: 'starter',
@@ -81,7 +81,7 @@ const PLAN_OPTIONS = [
     icon: Zap,
     price: '৳৪৯৯',
     description: 'বাড়তে থাকা ব্যবসার জন্য',
-    features: ['৫০টি Product', 'Multiple Landing Pages', '৫০০ Sales/মাস'],
+    features: ['১০০টি Product', 'Multiple Landing Pages', '৫০০ Sales/মাস'],
     isPopular: true,
   },
   {

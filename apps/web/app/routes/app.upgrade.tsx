@@ -51,7 +51,7 @@ const UPGRADE_PLANS = {
     icon: Zap,
     color: 'emerald',
     features: [
-      '৫০টি Product',
+      '১০০টি Product',
       '৫০০ Orders/মাস',
       'সীমাহীন Visitors*',
       'Full E-commerce Store',
@@ -60,7 +60,7 @@ const UPGRADE_PLANS = {
       '২ জন Team Member',
     ],
     featuresEn: [
-      '50 products',
+      '100 products',
       '500 orders/month',
       'Unlimited visitors*',
       'Full E-commerce Store',
