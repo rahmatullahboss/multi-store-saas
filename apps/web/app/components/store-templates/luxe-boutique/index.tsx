@@ -1114,7 +1114,7 @@ function LiveLuxeBoutiqueHomepage({
                     {validCategories.map((category) => (
                       <PreviewSafeLink
                         key={category}
-                        to={`/?category=${encodeURIComponent(category)}`}
+                        to={`/category/${encodeURIComponent(category.trim().toLowerCase().replace(/\s+/g, ' ')).replace(/%20/g, '-')}`}
                         className="flex-shrink-0 px-4 py-2 text-sm font-medium rounded-full border transition-all"
                         style={{
                           backgroundColor:

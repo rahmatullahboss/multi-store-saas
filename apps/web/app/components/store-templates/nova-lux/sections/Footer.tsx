@@ -312,7 +312,7 @@ export function NovaLuxFooter({
                   return (
                     <li key={title}>
                       <PreviewSafeLink
-                        to={`/?category=${encodeURIComponent(title)}`}
+                        to={`/category/${encodeURIComponent(title.trim().toLowerCase().replace(/\\s+/g, ' ')).replace(/%20/g, '-')}`}
                         className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"
                         isPreview={isPreview}
                       >

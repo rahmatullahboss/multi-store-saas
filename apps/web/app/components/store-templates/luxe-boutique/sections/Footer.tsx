@@ -60,7 +60,7 @@ export function LuxeBoutiqueFooter({
               </li>
               <li>
                 <Link
-                  to="/?category=all"
+                  to="/products"
                   className="text-white/70 hover:text-white transition-colors"
                 >
                   {t('shopAll')}

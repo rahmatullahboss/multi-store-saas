@@ -107,7 +107,7 @@ export function LuxeBoutiqueHeader({
               return (
                 <PreviewSafeLink
                   key={title}
-                  to={`/?category=${encodeURIComponent(title)}`}
+                  to={`/category/${encodeURIComponent(title.trim().toLowerCase().replace(/\s+/g, ' ')).replace(/%20/g, '-')}`}
                   className="text-sm font-medium tracking-wide uppercase transition-colors hover:opacity-70"
                   style={{
                     color: currentCategory === title ? theme.accent : theme.text,
@@ -209,7 +209,7 @@ export function LuxeBoutiqueHeader({
               return (
                 <PreviewSafeLink
                   key={title}
-                  to={`/?category=${encodeURIComponent(title)}`}
+                  to={`/category/${encodeURIComponent(title.trim().toLowerCase().replace(/\s+/g, ' ')).replace(/%20/g, '-')}`}
                   className="block px-6 py-3 text-sm font-medium uppercase tracking-wide"
                   style={{ color: currentCategory === title ? theme.accent : theme.text }}
                   onClick={() => setMobileMenuOpen(false)}
