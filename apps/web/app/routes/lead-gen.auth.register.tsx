@@ -32,6 +32,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   let primaryColor = '#4F46E5';
   let logo: string | undefined;
   
+  // Business settings for footer
+  let footerDescription = '';
+  let businessPhone = '';
+  let businessEmail = '';
+  let businessAddress = '';
+  
   // For destinations, services, etc - to match homepage header
   let showDestinations = false;
   let showServices = false;
@@ -43,6 +49,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       const config = JSON.parse(storeContext.store.leadGenConfig as string);
       if (config.primaryColor) primaryColor = config.primaryColor;
       if (config.logo) logo = config.logo;
+      // Business settings
+      if (config.footerDescription) footerDescription = config.footerDescription;
+      if (config.phone) businessPhone = config.phone;
+      if (config.email) businessEmail = config.email;
+      if (config.address) businessAddress = config.address;
       // Get section visibility
       showDestinations = config.destinations?.length > 0;
       showServices = config.showServices && config.services?.length > 0;
@@ -51,7 +62,19 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     } catch { /* ignore parse errors */ }
   }
 
-  return json({ storeName, primaryColor, logo, showDestinations, showServices, showProcess, showTeam });
+  return json({ 
+    storeName, 
+    primaryColor, 
+    logo, 
+    footerDescription,
+    businessPhone,
+    businessEmail,
+    businessAddress,
+    showDestinations, 
+    showServices, 
+    showProcess, 
+    showTeam 
+  });
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -146,7 +169,19 @@ async function hashPassword(
 type ActionData = { error?: string };
 
 export default function LeadGenRegister() {
-  const { storeName, primaryColor, logo, showDestinations, showServices, showProcess, showTeam } = useLoaderData<typeof loader>();
+  const { 
+    storeName, 
+    primaryColor, 
+    logo, 
+    footerDescription,
+    businessPhone,
+    businessEmail,
+    businessAddress,
+    showDestinations, 
+    showServices, 
+    showProcess, 
+    showTeam 
+  } = useLoaderData<typeof loader>();
   const actionData = useActionData<ActionData>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
@@ -167,26 +202,26 @@ export default function LeadGenRegister() {
           </div>
           <nav className="hidden md:flex space-x-8">
             {showDestinations && (
-              <a href="#destinations" className="text-gray-700 hover:opacity-80 font-medium transition">
+              <a href="/destinations" className="text-gray-700 hover:opacity-80 font-medium transition">
                 Destinations
               </a>
             )}
             {showServices && (
-              <a href="#services" className="text-gray-700 hover:opacity-80 font-medium transition">
+              <a href="/services" className="text-gray-700 hover:opacity-80 font-medium transition">
                 Services
               </a>
             )}
             {showProcess && (
-              <a href="#process" className="text-gray-700 hover:opacity-80 font-medium transition">
+              <a href="/process" className="text-gray-700 hover:opacity-80 font-medium transition">
                 Process
               </a>
             )}
             {showTeam && (
-              <a href="#team" className="text-gray-700 hover:opacity-80 font-medium transition">
+              <a href="/team" className="text-gray-700 hover:opacity-80 font-medium transition">
                 Team
               </a>
             )}
-            <a href="#contact" className="text-gray-700 hover:opacity-80 font-medium transition">
+            <a href="/contact" className="text-gray-700 hover:opacity-80 font-medium transition">
               Contact
             </a>
           </nav>
@@ -388,33 +423,51 @@ export default function LeadGenRegister() {
       </div>
 
       {/* Footer - SAME AS HOMEPAGE */}
-      <footer className="bg-gray-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <footer className="bg-gray-900 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-12">
             <div>
-              <h3 className="text-lg font-bold mb-4" style={{ color: primaryColor }}>
-                {storeName}
-              </h3>
-              <p className="text-gray-400 text-sm">
-                Your trusted partner for quality education abroad.
+              <h2 className="text-2xl font-bold mb-4">{storeName}</h2>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                {footerDescription || 'Your trusted partner for quality education abroad.'}
               </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li><Link to="/" className="hover:text-white transition">Home</Link></li>
-                {showDestinations && <li><a href="#destinations" className="hover:text-white transition">Destinations</a></li>}
-                {showServices && <li><a href="#services" className="hover:text-white transition">Services</a></li>}
-                {showProcess && <li><a href="#process" className="hover:text-white transition">Process</a></li>}
+              <h3 className="font-bold mb-4 text-lg">Quick Links</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link to="/" className="hover:text-white">Home</Link></li>
+                {showDestinations && <li><a href="/destinations" className="hover:text-white">Destinations</a></li>}
+                {showServices && <li><a href="/services" className="hover:text-white">Services</a></li>}
+                {showProcess && <li><a href="/process" className="hover:text-white">Process</a></li>}
+                <li><a href="/contact" className="hover:text-white">Contact</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Contact</h4>
-              <p className="text-gray-400 text-sm">Get in touch for free consultation</p>
+              <h3 className="font-bold mb-4 text-lg">Destinations</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="/destinations?country=usa" className="hover:text-white">USA</a></li>
+                <li><a href="/destinations?country=uk" className="hover:text-white">UK</a></li>
+                <li><a href="/destinations?country=canada" className="hover:text-white">Canada</a></li>
+                <li><a href="/destinations?country=australia" className="hover:text-white">Australia</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold mb-4 text-lg">Contact</h3>
+              <div className="text-gray-400 space-y-2">
+                {businessPhone && <p>📞 {businessPhone}</p>}
+                {businessEmail && <p>✉️ {businessEmail}</p>}
+                {businessAddress && <p>📍 {businessAddress}</p>}
+              </div>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500 text-sm">
-            © 2026 {storeName}. All rights reserved.
+          <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+            <p>
+              © {new Date().getFullYear()} {storeName}. All rights reserved.
+            </p>
+            <div className="flex gap-4 mt-4 md:mt-0">
+              <a href="/privacy" className="hover:text-white">Privacy Policy</a>
+              <a href="/terms" className="hover:text-white">Terms</a>
+            </div>
           </div>
         </div>
       </footer>

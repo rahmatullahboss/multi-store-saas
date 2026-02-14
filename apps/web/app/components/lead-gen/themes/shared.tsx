@@ -93,6 +93,7 @@ export function LeadCaptureForm({
           name="name"
           required
           disabled={isSubmitting}
+          autoComplete="name"
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent disabled:bg-gray-100"
           style={{ '--tw-ring-color': primaryColor } as React.CSSProperties}
         />
@@ -107,6 +108,8 @@ export function LeadCaptureForm({
           name="email"
           required
           disabled={isSubmitting}
+          autoComplete="email"
+          spellCheck={false}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent disabled:bg-gray-100"
           style={{ '--tw-ring-color': primaryColor } as React.CSSProperties}
         />
@@ -118,6 +121,8 @@ export function LeadCaptureForm({
           type="tel"
           name="phone"
           disabled={isSubmitting}
+          autoComplete="tel"
+          inputMode="tel"
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent disabled:bg-gray-100"
           style={{ '--tw-ring-color': primaryColor } as React.CSSProperties}
         />
@@ -129,6 +134,7 @@ export function LeadCaptureForm({
           type="text"
           name="company"
           disabled={isSubmitting}
+          autoComplete="organization"
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent disabled:bg-gray-100"
           style={{ '--tw-ring-color': primaryColor } as React.CSSProperties}
         />
@@ -169,7 +175,7 @@ export function LeadCaptureForm({
         className="w-full text-white font-semibold py-4 rounded-lg hover:opacity-90 disabled:opacity-50"
         style={{ backgroundColor: primaryColor }}
       >
-        {isSubmitting ? 'Submitting...' : submitButtonText}
+        {isSubmitting ? 'Submitting…' : submitButtonText}
       </button>
       {actionData?.success === false && actionData.error ? (
         <p className="text-sm text-red-600">{actionData.error}</p>

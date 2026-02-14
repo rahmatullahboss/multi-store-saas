@@ -22,6 +22,7 @@ import { stores } from '@db/schema';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { invalidateStoreConfig as invalidateStoreConfigD1 } from '~/services/store-config.server';
+import { KVCache, CACHE_KEYS } from '~/services/kv-cache.server';
 
 const MAX_STORE_NAME_LENGTH = 100;
 const MAX_ANNOUNCEMENT_LENGTH = 160;
@@ -185,6 +186,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
     })
     .where(eq(stores.id, store.id));
 
+  // Invalidate all caches so storefront routes pick up new colors immediately
+  const kvNamespace = context.cloudflare.env.STORE_CACHE;
+  if (kvNamespace) {
+    const kvCache = new KVCache(kvNamespace);
+    const subdomain = (store.subdomain as string) || '';
+    const customDomain = (store.customDomain as string | null) || null;
+    await Promise.all([
+      kvCache.delete(`${CACHE_KEYS.STORE_CONFIG}${store.id}`),
+      subdomain ? kvCache.delete(`${CACHE_KEYS.TENANT_SUBDOMAIN}${subdomain}`) : Promise.resolve(),
+      customDomain ? kvCache.delete(`${CACHE_KEYS.TENANT_DOMAIN}${customDomain}`) : Promise.resolve(),
+    ]);
+  }
   await invalidateStoreConfigD1(new D1Cache(createDb(context.cloudflare.env.DB)), store.id);
 
   return json({ success: true, settings: updatedSettings });

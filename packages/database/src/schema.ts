@@ -2969,3 +2969,54 @@ export const leadSubmissionsRelations = relations(leadSubmissions, ({ one }) => 
 // Type Exports
 export type LeadSubmission = typeof leadSubmissions.$inferSelect;
 export type NewLeadSubmission = typeof leadSubmissions.$inferInsert;
+
+// ============================================================================
+// SUPPORT TICKETS TABLE
+// ============================================================================
+export const supportTickets = sqliteTable(
+  'support_tickets',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id').notNull(),
+    userId: integer('user_id').notNull(),
+    
+    // Ticket details
+    subject: text('subject').notNull(),
+    description: text('description').notNull(),
+    category: text('category').$type<'billing' | 'technical' | 'account' | 'feature' | 'other'>().default('other'),
+    priority: text('priority').$type<'low' | 'medium' | 'high' | 'urgent'>().default('medium'),
+    
+    // Status tracking
+    status: text('status').$type<'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed'>().default('open'),
+    
+    // Admin response
+    assignedTo: integer('assigned_to'),
+    adminResponse: text('admin_response'),
+    resolvedAt: integer('resolved_at', { mode: 'timestamp' }),
+    
+    // Metadata
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_support_tickets_store').on(table.storeId),
+    index('idx_support_tickets_status').on(table.status),
+    index('idx_support_tickets_priority').on(table.priority),
+  ]
+);
+
+// Support Tickets Relations
+export const supportTicketsRelations = relations(supportTickets, ({ one }) => ({
+  store: one(stores, {
+    fields: [supportTickets.storeId],
+    references: [stores.id],
+  }),
+  assignedUser: one(users, {
+    fields: [supportTickets.assignedTo],
+    references: [users.id],
+  }),
+}));
+
+// Type Exports
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export type NewSupportTicket = typeof supportTickets.$inferInsert;

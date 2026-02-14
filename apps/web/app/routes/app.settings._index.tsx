@@ -348,13 +348,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }),
     defaultLanguage: defaultLanguage || 'en',
     updatedAt: new Date(),
-    // Preserve existing themeConfig fields (e.g. floating buttons, hero slides) and only update
-    // general settings values controlled by this page.
+    // Preserve existing themeConfig fields (e.g. floating buttons, hero slides, colors) and only
+    // update general settings values controlled by this page. Colors are managed exclusively by
+    // the Store Appearance page (app.store.settings.tsx) — do NOT touch them here.
     themeConfig: JSON.stringify({
       ...existingThemeConfig,
       storeTemplateId: themeValue,
-      primaryColor: existingThemeConfig.primaryColor ?? null,
-      accentColor: existingThemeConfig.accentColor ?? null,
     }),
   };
 

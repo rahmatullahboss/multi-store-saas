@@ -58,6 +58,8 @@ export interface LeadGenThemeSettings {
   showUniversityPartners: boolean; // University partners section
   showOtherCountries: boolean; // Other countries section
   showWhyStudy: boolean; // Why study abroad section
+  showFAQ: boolean; // FAQ section
+  faqs: FAQConfig[]; // FAQ items
   showFooter: boolean; // Footer section
 
   // Contact & WhatsApp
@@ -183,6 +185,12 @@ export interface StudentFormFieldConfig {
   required: boolean; // Is required
   options?: string[]; // Options for select type
   placeholder?: string; // Placeholder text
+}
+
+export interface FAQConfig {
+  question: string; // FAQ question
+  answer: string; // FAQ answer
+  enabled: boolean; // Show/hide this FAQ
 }
 
 /**
@@ -474,7 +482,8 @@ const sAndAStudyAbroadSettings: LeadGenThemeSettings = {
 
   // Hero
   heroHeading: 'Your Gateway to Quality Education in Malaysia, UK, Australia, Ireland & Cyprus',
-  heroDescription: 'Start your journey to world-class education with expert guidance and personalized support.',
+  heroDescription:
+    'Start your journey to world-class education with expert guidance and personalized support.',
   ctaButtonText: 'Apply Now',
   heroSubheading: '🇲🇾 Specializing in Malaysian education with global opportunities',
   heroBadge: '🎓 100% Free Counselling & Application Processing',
@@ -493,6 +502,33 @@ const sAndAStudyAbroadSettings: LeadGenThemeSettings = {
   showUniversityPartners: true,
   showOtherCountries: true,
   showWhyStudy: true,
+  showFAQ: true,
+  faqs: [
+    {
+      question: 'How much does study abroad consultancy cost?',
+      answer:
+        'Our consultation services are free! We charge no fees for initial counseling. Our revenue comes from university commissions, so you get expert guidance at no cost to you.',
+      enabled: true,
+    },
+    {
+      question: 'Which countries offer the best ROI for international students?',
+      answer:
+        'Countries like Germany, Malaysia, and Ireland offer excellent ROI with affordable tuition and strong post-study work opportunities. We help you find the best fit based on your budget and career goals.',
+      enabled: true,
+    },
+    {
+      question: 'How long does the application process take?',
+      answer:
+        'The entire process typically takes 3-6 months from application to visa approval. This includes university application, offer letter, document verification, and visa processing.',
+      enabled: true,
+    },
+    {
+      question: 'Do you help with visa applications?',
+      answer:
+        'Yes! We provide complete visa guidance including document preparation, interview coaching, and application review to maximize your approval chances.',
+      enabled: true,
+    },
+  ],
   showFooter: true,
 
   // Stats
@@ -669,6 +705,8 @@ export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
     showUniversityPartners: true,
     showOtherCountries: false,
     showWhyStudy: true,
+    showFAQ: false,
+    faqs: [],
     showFooter: true,
     showWhatsApp: false,
     phone: null,
@@ -818,7 +856,7 @@ export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
     footerDescription: null,
     quickLinks: defaultQuickLinks,
   },
-  
+
   agency: {
     storeName: 'Digital Agency',
     logo: null,
