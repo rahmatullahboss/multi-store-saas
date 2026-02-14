@@ -196,7 +196,7 @@ export function StarterStoreHeader({
               {/* Wishlist */}
               {!isPreview && (
                 <PreviewSafeLink
-                  to="/wishlist"
+                  to="/account/wishlist"
                   isPreview={isPreview}
                   className={`p-2 rounded-lg transition-colors relative ${isTransparent ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
                 >

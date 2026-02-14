@@ -131,9 +131,12 @@ export function LuxeBoutiqueHeader({
             >
               <Search className="w-5 h-5" style={{ color: theme.text }} />
             </button>
-            <button className="hidden sm:block p-2 rounded-full transition-colors hover:bg-gray-100">
+            <Link
+              to="/account/wishlist"
+              className="hidden sm:block p-2 rounded-full transition-colors hover:bg-gray-100"
+            >
               <Heart className="w-5 h-5" style={{ color: theme.text }} />
-            </button>
+            </Link>
             <PreviewSafeLink
               to="/cart"
               className="p-2 rounded-full transition-colors hover:bg-gray-100 relative"
