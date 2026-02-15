@@ -4,102 +4,223 @@
  * Route: /lead-gen/auth/phone-verify
  * 
  * Required for Google OAuth users to provide phone number.
+ * Uses the same header/footer as Login/Home for consistency (Education Abroad Theme).
  */
 
 import { ActionFunctionArgs, LoaderFunctionArgs, json, redirect } from '@remix-run/cloudflare';
-import { Form, useActionData, useLoaderData, useNavigation } from '@remix-run/react';
+import { Form, useActionData, useLoaderData, useNavigation, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { customers } from '@db/schema';
-import { eq } from 'drizzle-orm';
-import { Loader2 } from 'lucide-react';
+import { eq, and } from 'drizzle-orm';
+import { Loader2, ArrowRight } from 'lucide-react';
+import { resolveStore } from '~/lib/store.server';
+import { getCustomerId, getCustomerStoreId } from '~/services/customer-auth.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const url = new URL(request.url);
-  const email = url.searchParams.get('email');
-  
-  if (!email) {
+  const env = context.cloudflare.env;
+  const customerId = await getCustomerId(request, env);
+  const sessionStoreId = await getCustomerStoreId(request, env);
+  if (!customerId || !sessionStoreId) {
     return redirect('/lead-gen/auth/login');
   }
+
+  const storeContext = await resolveStore(context, request);
+  if (!storeContext || storeContext.storeId !== sessionStoreId) {
+    return redirect('/lead-gen/auth/login?error=invalid_store_session');
+  }
+
+  const db = drizzle(env.DB);
+  const [customer] = await db
+    .select({ email: customers.email })
+    .from(customers)
+    .where(and(eq(customers.id, customerId), eq(customers.storeId, sessionStoreId)))
+    .limit(1);
+
+  if (!customer) {
+    return redirect('/lead-gen/auth/login');
+  }
+
+  const storeName = storeContext?.store.name || 'Our Service';
   
-  // Get theme colors
-  const storeContext = (context as any).storeContext;
+  // Get theme colors from lead gen settings for consistent branding
   let primaryColor = '#4F46E5';
+  let logo: string | undefined;
   
-  if (storeContext?.store?.leadGenConfig) {
+  // Business settings for footer
+  let footerDescription = '';
+  let businessPhone = '';
+  let businessEmail = '';
+  let businessAddress = '';
+  
+  // For destinations, services, etc - to match homepage header
+  let showDestinations = false;
+  let showServices = false;
+  let showProcess = false;
+  let showTeam = false;
+
+  if (storeContext?.store.leadGenConfig) {
     try {
       const config = JSON.parse(storeContext.store.leadGenConfig as string);
       if (config.primaryColor) primaryColor = config.primaryColor;
-    } catch {}
+      if (config.logo) logo = config.logo;
+      // Business settings
+      if (config.footerDescription) footerDescription = config.footerDescription;
+      if (config.phone) businessPhone = config.phone;
+      if (config.email) businessEmail = config.email;
+      if (config.address) businessAddress = config.address;
+      // Get section visibility
+      showDestinations = config.destinations?.length > 0;
+      showServices = config.showServices && config.services?.length > 0;
+      showProcess = config.processSteps?.length > 0;
+      showTeam = config.showTeam && config.teamMembers?.length > 0;
+    } catch { /* ignore parse errors */ }
   }
   
-  return json({ email, primaryColor });
+  return json({ 
+    email: customer.email || '', 
+    storeName,
+    primaryColor, 
+    logo, 
+    footerDescription, 
+    businessPhone, 
+    businessEmail, 
+    businessAddress, 
+    showDestinations, 
+    showServices, 
+    showProcess, 
+    showTeam 
+  });
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const formData = await request.formData();
-  const email = formData.get('email') as string;
   const phone = formData.get('phone') as string;
   
-  if (!email || !phone) {
+  if (!phone) {
     return json({ error: 'Phone number is required' }, { status: 400 });
   }
   
-  // Validate phone format (Bangladesh format)
-  const phoneRegex = /^(\+88)?01[3-9]\d{9}$/;
-  const cleanPhone = phone.replace(/[\s-]/g, '');
+  // Clean phone number: remove spaces, dashes, parentheses
+  const cleanPhone = phone.replace(/[\s-()]/g, '');
   
-  if (!phoneRegex.test(cleanPhone)) {
-    return json({ error: 'Please enter a valid Bangladeshi phone number (e.g., 01712345678)' }, { status: 400 });
+  // Validate format (Flexible check + specific BD format check)
+  // Ensure it has at least 10 digits
+  if (cleanPhone.length < 10) {
+     return json({ error: 'Please enter a valid phone number (at least 10 digits)' }, { status: 400 });
+  }
+
+  // 01712345678 (11 digits).
+  // 01[3-9] (3 digits) + \d{8} (8 digits) = 11 digits
+  const bdRegex = /^(?:\+88|88)?(01[3-9]\d{8})$/;
+  
+  if (!bdRegex.test(cleanPhone)) {
+       return json({ error: 'Please enter a valid phone number (e.g., 01712345678)' }, { status: 400 });
   }
   
   const env = context.cloudflare.env;
+  const customerId = await getCustomerId(request, env);
+  const sessionStoreId = await getCustomerStoreId(request, env);
+  if (!customerId || !sessionStoreId) {
+    return redirect('/lead-gen/auth/login');
+  }
+
+  const storeContext = await resolveStore(context, request);
+  if (!storeContext || storeContext.storeId !== sessionStoreId) {
+    return redirect('/lead-gen/auth/login?error=invalid_store_session');
+  }
+
   const db = drizzle(env.DB);
-  
-  // Update customer phone
-  await db
+
+  const result = await db
     .update(customers)
     .set({ 
       phone: cleanPhone,
       lastLoginAt: new Date()
     })
-    .where(eq(customers.email, email));
-  
-  // Get customer and create session
-  const customer = await db
-    .select()
-    .from(customers)
-    .where(eq(customers.email, email))
-    .limit(1);
-  
-  if (customer[0]) {
-    const { getCustomerSession, commitCustomerSession } = await import('~/services/customer-auth.server');
-    const session = await getCustomerSession(new Request('http://localhost'), env);
-    session.set('customerId', customer[0].id);
-    session.set('storeId', customer[0].storeId);
-    
-    return redirect('/lead-dashboard', {
-      headers: {
-        'Set-Cookie': await commitCustomerSession(session, env),
-      },
-    });
+    .where(and(eq(customers.id, customerId), eq(customers.storeId, sessionStoreId)))
+    .returning({ id: customers.id });
+
+  if (result[0]) {
+    return redirect('/lead-dashboard');
   }
   
   return json({ error: 'User not found' }, { status: 404 });
 }
 
 export default function PhoneVerify() {
-  const { email, primaryColor } = useLoaderData<typeof loader>();
+  const { 
+    email, 
+    storeName,
+    primaryColor, 
+    logo, 
+    footerDescription, 
+    businessPhone, 
+    businessEmail, 
+    businessAddress, 
+    showDestinations, 
+    showServices, 
+    showProcess, 
+    showTeam 
+  } = useLoaderData<typeof loader>();
+  
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Theme Header */}
-      <header className="shadow-md" style={{ backgroundColor: primaryColor }}>
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="text-xl font-bold text-white">
-            Complete Your Profile
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Header - SAME AS HOMEPAGE */}
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-20">
+          <div className="flex-shrink-0 flex items-center">
+            {logo ? (
+              <img className="h-10 w-auto" src={logo} alt={storeName} />
+            ) : (
+              <span className="text-2xl font-bold" style={{ color: primaryColor }}>
+                {storeName}
+              </span>
+            )}
+          </div>
+          <nav className="hidden md:flex space-x-8">
+            {showDestinations && (
+              <a href="/destinations" className="text-gray-700 hover:opacity-80 font-medium transition">
+                Destinations
+              </a>
+            )}
+            {showServices && (
+              <a href="/services" className="text-gray-700 hover:opacity-80 font-medium transition">
+                Services
+              </a>
+            )}
+            {showProcess && (
+              <a href="/process" className="text-gray-700 hover:opacity-80 font-medium transition">
+                Process
+              </a>
+            )}
+            {showTeam && (
+              <a href="/team" className="text-gray-700 hover:opacity-80 font-medium transition">
+                Team
+              </a>
+            )}
+            <a href="/contact" className="text-gray-700 hover:opacity-80 font-medium transition">
+              Contact
+            </a>
+          </nav>
+          <div className="hidden md:flex items-center gap-3">
+             <Link
+              to="/lead-gen/auth/login"
+              className="px-4 py-2 font-medium hover:opacity-80 transition"
+              style={{ color: primaryColor }}
+            >
+              Login
+            </Link>
+            <Link
+              to="/lead-gen/auth/register"
+              className="px-5 py-2.5 rounded-full text-white font-semibold shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5"
+              style={{ backgroundColor: primaryColor }}
+            >
+              Sign Up
+            </Link>
           </div>
         </div>
       </header>
@@ -107,29 +228,17 @@ export default function PhoneVerify() {
       <div className="flex-1 flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
-            <div 
-              className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4"
-              style={{ backgroundColor: primaryColor }}
-            >
-              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-bold" style={{ color: primaryColor }}>
-              Phone Number Required
+            <h2 className="text-3xl font-bold" style={{ color: primaryColor }}>
+              Complete Profile
             </h2>
-            <p className="mt-2 text-gray-600">
-              Please provide your phone number to continue
-            </p>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="mt-2 text-gray-600">Please provide your phone number</p>
+             <p className="text-sm text-gray-500 mt-1">
               Signed in as: <span className="font-medium">{email}</span>
             </p>
           </div>
 
           <div className="bg-white py-8 px-6 shadow-xl rounded-2xl">
-            <Form method="post" className="space-y-5">
-              <input type="hidden" name="email" value={email} />
-              
+            <Form method="post" className="space-y-6">
               {actionData?.error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                   {actionData.error}
@@ -142,7 +251,7 @@ export default function PhoneVerify() {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-500">+88</span>
+                    <span className="text-gray-500 font-medium">+88</span>
                   </div>
                   <input
                     id="phone"
@@ -155,7 +264,7 @@ export default function PhoneVerify() {
                   />
                 </div>
                 <p className="mt-1 text-xs text-gray-500">
-                  Enter your Bangladesh mobile number (11 digits starting with 01)
+                  Enter your 11-digit mobile number
                 </p>
               </div>
 
@@ -171,7 +280,10 @@ export default function PhoneVerify() {
                     Saving...
                   </>
                 ) : (
-                  'Continue'
+                  <>
+                    Continue
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </>
                 )}
               </button>
             </Form>
@@ -179,9 +291,54 @@ export default function PhoneVerify() {
         </div>
       </div>
 
-      {/* Theme Footer */}
-      <footer className="py-6 text-center text-white/80 text-sm" style={{ backgroundColor: primaryColor }}>
-        <p>© 2026. All rights reserved.</p>
+      {/* Footer - SAME AS HOMEPAGE */}
+      <footer className="bg-gray-900 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-12">
+            <div>
+              <h2 className="text-2xl font-bold mb-4">{storeName}</h2>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                {footerDescription || 'Your trusted partner for quality education abroad.'}
+              </p>
+            </div>
+            <div>
+              <h3 className="font-bold mb-4 text-lg">Quick Links</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link to="/" className="hover:text-white">Home</Link></li>
+                {showDestinations && <li><a href="/destinations" className="hover:text-white">Destinations</a></li>}
+                {showServices && <li><a href="/services" className="hover:text-white">Services</a></li>}
+                {showProcess && <li><a href="/process" className="hover:text-white">Process</a></li>}
+                <li><a href="/contact" className="hover:text-white">Contact</a></li>
+              </ul>
+            </div>
+            <div>
+               <h3 className="font-bold mb-4 text-lg">Destinations</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="/destinations?country=usa" className="hover:text-white">USA</a></li>
+                <li><a href="/destinations?country=uk" className="hover:text-white">UK</a></li>
+                <li><a href="/destinations?country=canada" className="hover:text-white">Canada</a></li>
+                <li><a href="/destinations?country=australia" className="hover:text-white">Australia</a></li>
+              </ul>
+            </div>
+             <div>
+              <h3 className="font-bold mb-4 text-lg">Contact</h3>
+              <div className="text-gray-400 space-y-2">
+                {businessPhone && <p>📞 {businessPhone}</p>}
+                {businessEmail && <p>✉️ {businessEmail}</p>}
+                {businessAddress && <p>📍 {businessAddress}</p>}
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+            <p>
+              © {new Date().getFullYear()} {storeName}. All rights reserved.
+            </p>
+            <div className="flex gap-4 mt-4 md:mt-0">
+               <a href="/privacy" className="hover:text-white">Privacy Policy</a>
+               <a href="/terms" className="hover:text-white">Terms</a>
+            </div>
+          </div>
+        </div>
       </footer>
     </div>
   );

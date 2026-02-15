@@ -9,6 +9,7 @@
  */
 
 import type { SectionSchema, SectionComponentProps } from '~/lib/theme-engine/types';
+import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 
 // ============================================================================
 // SCHEMA
@@ -202,6 +203,14 @@ export default function LuxeHeroBanner({ section, context, settings }: SectionCo
   };
 
   const defaultImage = 'https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?w=1920&q=80';
+  const bannerUrl = config.image || defaultImage;
+  const isUnsplash = bannerUrl.includes('unsplash.com');
+  
+  const imageSrc = isUnsplash 
+    ? optimizeUnsplashUrl(bannerUrl, { width: 1920, quality: 80, format: 'webp' })
+    : bannerUrl;
+    
+  const imageSrcSet = isUnsplash ? generateSrcset(bannerUrl, [640, 1024, 1500, 1920]) : undefined;
 
   return (
     <section
@@ -211,7 +220,15 @@ export default function LuxeHeroBanner({ section, context, settings }: SectionCo
     >
       {/* Background Image */}
       <div className="absolute inset-0">
-        <img src={config.image || defaultImage} alt="" className="w-full h-full object-cover" />
+        <img 
+          src={imageSrc} 
+          srcSet={imageSrcSet}
+          sizes="100vw"
+          alt={config.heading || 'Hero Banner'} 
+          className="w-full h-full object-cover" 
+          loading="eager"
+          decoding="async"
+        />
         {/* Overlay */}
         <div
           className="absolute inset-0"

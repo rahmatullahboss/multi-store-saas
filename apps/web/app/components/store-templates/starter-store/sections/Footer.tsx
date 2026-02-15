@@ -10,7 +10,7 @@ import { Facebook, Instagram, Twitter, Phone, Mail, MapPin } from 'lucide-react'
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { resolveStarterStoreTheme } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';
-import type { SocialLinks, FooterConfig } from '@db/types';
+import type { SocialLinks, FooterConfig, ThemeConfig } from '@db/types';
 import type { StoreCategory, StoreTemplateTheme } from '~/templates/store-registry';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -173,6 +173,9 @@ export function StarterStoreFooter({
               <ul className="space-y-2">
                 {validCategories.map((cat) => {
                   const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+                  
+                  if (!title) return null;
+                  
                   return (
                     <li key={title}>
                       <PreviewSafeLink

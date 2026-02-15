@@ -20,6 +20,12 @@ interface LeadGenRendererProps {
   storeId: number;
   storeName: string;
   storeLogo?: string | null;
+  customer?: {
+    id: number;
+    name: string;
+    email: string;
+    imageUrl?: string | null;
+  } | null;
 }
 
 // ============================================================================
@@ -30,10 +36,11 @@ export default function LeadGenRenderer({
   themeId,
   settings,
   storeId,
+  customer,
 }: LeadGenRendererProps) {
   // Look up the template from the registry
   const template = getLeadGenTemplate(themeId);
   const ThemeComponent = template.component;
 
-  return <ThemeComponent settings={settings} storeId={storeId} />;
+  return <ThemeComponent settings={settings} storeId={storeId} customer={customer} />;
 }

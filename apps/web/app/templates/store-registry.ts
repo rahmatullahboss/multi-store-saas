@@ -1112,7 +1112,7 @@ export const MVP_STORE_TEMPLATES = STORE_TEMPLATES.filter((t) =>
 // ============================================================================
 // DEFAULT STORE TEMPLATE - Fallback when no template is specified
 // ============================================================================
-export const DEFAULT_STORE_TEMPLATE_ID = 'luxe-boutique';
+export const DEFAULT_STORE_TEMPLATE_ID = 'starter-store';
 
 // ============================================================================
 // HELPER FUNCTIONS

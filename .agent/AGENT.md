@@ -45,6 +45,7 @@ Files Used: task_plan.md, findings.md, progress.md
 | Deploy         | `workflows/deploy.md`       | Production deployment       |
 | D1 Migration   | `workflows/d1-migration.md` | Database migrations         |
 | Context7       | `workflows/cotext7.md`      | 🧠 Doc & Skill Management   |
+| Consult        | `workflows/consult.md`      | 🙋 Ask Expert Subagents     |
 
 ### Key Skills (115 Installed via Context7)
 
@@ -340,6 +341,9 @@ npm run e2e  # For UI changes
 | Spec Compliance | `subagents/spec-compliance-reviewer.md` | Requirements match             |
 | Test            | `subagents/test-reviewer.md`            | Test coverage & quality        |
 | E-commerce      | `subagents/ecommerce-reviewer.md`       | Domain-specific review         |
+| **Database**    | `subagents/database-architect.md`       | D1, Schemas, Migrations        |
+| **Frontend**    | `subagents/frontend-specialist.md`      | Remix, React, UI/UX            |
+| **QA**          | `subagents/qa-engineer.md`              | Vitest, Playwright, Strategies |
 
 ---
 

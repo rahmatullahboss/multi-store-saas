@@ -51,13 +51,13 @@ export default function LuxeFooter({ context, settings }: SectionComponentProps)
     <StandardFooter
       storeName={store.name}
       logo={store.logo}
-      // @ts-ignore - ThemeConfig type compatibility is handled in StandardFooter
       config={context.theme}
       socialLinks={socialLinks}
       footerConfig={footerConfig}
       businessInfo={store.businessInfo || null}
       categories={categories}
       planType={store.planType || 'free'}
+      showNewsletter={settings.show_newsletter !== false}
     />
   );
 }

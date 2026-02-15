@@ -10,10 +10,10 @@
 
 import type { ActionFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { getCustomerId } from '~/services/customer-auth.server';
+import { getCustomerId, getCustomerStoreId } from '~/services/customer-auth.server';
 import { createDb } from '~/lib/db.server';
 import { customers } from '@db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 export async function action({ request, context }: ActionFunctionArgs) {
   if (request.method !== 'POST') {
@@ -22,13 +22,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Get authenticated customer
   const customerId = await getCustomerId(request, context.cloudflare.env);
-  if (!customerId) {
+  const sessionStoreId = await getCustomerStoreId(request, context.cloudflare.env);
+  if (!customerId || !sessionStoreId) {
     return json({ error: 'Unauthorized - Please login first' }, { status: 401 });
   }
 
   // Verify customer exists
   const db = createDb(context.cloudflare.env.DB);
-  const [customer] = await db.select().from(customers).where(eq(customers.id, customerId)).limit(1);
+  const [customer] = await db
+    .select()
+    .from(customers)
+    .where(and(eq(customers.id, customerId), eq(customers.storeId, sessionStoreId)))
+    .limit(1);
 
   if (!customer) {
     return json({ error: 'Customer not found' }, { status: 404 });

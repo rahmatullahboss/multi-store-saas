@@ -1,0 +1,40 @@
+# Build output
+dist/
+build/
+.turbo/
+.cache/
+coverage/
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment
+.env*
+.dev.vars
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor/IDE
+.vscode/
+.idea/
+.opencode/
+.qoder/
+.rovodev/
+.gemini/
+
+# Misc
+*.tsbuildinfo
+.vercel/
+.wrangler/
+test-results/
+tsc_log.txt
+typecheck_output.txt
+verify-phase14-instructions.txt
+used_keys.txt
+missing_keys.txt

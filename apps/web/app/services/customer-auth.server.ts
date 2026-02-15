@@ -236,7 +236,7 @@ async function storePkceVerifier(
   });
 }
 
-async function consumePkceVerifier(
+export async function consumePkceVerifier(
   transactionId: string,
   env: Env
 ): Promise<string | null> {
@@ -801,3 +801,5 @@ export async function consumePkceVerifierForOAuth(
 ): Promise<string | null> {
   return consumePkceVerifier(transactionId, env);
 }
+
+

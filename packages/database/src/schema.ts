@@ -2237,8 +2237,9 @@ export const messages = sqliteTable(
     functionName: text('function_name'),
     functionArgs: text('function_args'), // JSON
     functionResult: text('function_result'),
-
+    
     // Metadata
+    metadata: text('metadata'),
     tokensUsed: integer('tokens_used'),
     creditsUsed: integer('credits_used').default(1), // Each message costs 1 credit
 
@@ -3020,3 +3021,68 @@ export const supportTicketsRelations = relations(supportTickets, ({ one }) => ({
 // Type Exports
 export type SupportTicket = typeof supportTickets.$inferSelect;
 export type NewSupportTicket = typeof supportTickets.$inferInsert;
+
+// ============================================================================
+// LEAD GEN TABLES - Forms and Submissions
+// ============================================================================
+export const leadGenForms = sqliteTable(
+  'lead_gen_forms',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    slug: text('slug').notNull(),
+    fields: text('fields').default('[]'), // JSON array of field definitions
+    isActive: integer('is_active', { mode: 'boolean' }).default(true),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('lead_gen_forms_store_id_idx').on(table.storeId),
+    index('lead_gen_forms_slug_idx').on(table.storeId, table.slug),
+  ]
+);
+
+export const leadGenSubmissions = sqliteTable(
+  'lead_gen_submissions',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    formId: integer('form_id')
+      .notNull()
+      .references(() => leadGenForms.id, { onDelete: 'cascade' }),
+    customerId: integer('customer_id').references(() => customers.id, { onDelete: 'set null' }),
+    data: text('data').notNull(), // JSON submission data
+    status: text('status')
+      .$type<'pending' | 'in_review' | 'approved' | 'rejected' | 'completed'>()
+      .default('pending'),
+    notes: text('notes'),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('lead_gen_submissions_form_id_idx').on(table.formId),
+    index('lead_gen_submissions_customer_id_idx').on(table.customerId),
+  ]
+);
+
+export const leadGenFormsRelations = relations(leadGenForms, ({ one, many }) => ({
+  store: one(stores, {
+    fields: [leadGenForms.storeId],
+    references: [stores.id],
+  }),
+  submissions: many(leadGenSubmissions),
+}));
+
+export const leadGenSubmissionsRelations = relations(leadGenSubmissions, ({ one }) => ({
+  form: one(leadGenForms, {
+    fields: [leadGenSubmissions.formId],
+    references: [leadGenForms.id],
+  }),
+  customer: one(customers, {
+    fields: [leadGenSubmissions.customerId],
+    references: [customers.id],
+  }),
+}));
+

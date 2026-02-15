@@ -124,6 +124,12 @@ export interface LeadGenThemeSettings {
   // Footer
   footerDescription: string | null; // Footer company description
   quickLinks: QuickLinkConfig[]; // Footer quick links
+
+  // Legal Pages
+  privacyPolicy: string | null; // Privacy policy content (HTML/Markdown)
+  termsOfService: string | null; // Terms of service content (HTML/Markdown)
+  showPrivacyPolicy: boolean; // Show privacy policy link in footer
+  showTermsOfService: boolean; // Show terms of service link in footer
 }
 
 // Sub-types for Study Abroad
@@ -678,6 +684,12 @@ const sAndAStudyAbroadSettings: LeadGenThemeSettings = {
     { label: 'Scholarships', url: '#' },
     { label: 'Visa Assistance', url: '#' },
   ],
+
+  // Legal Pages
+  privacyPolicy: null,
+  termsOfService: null,
+  showPrivacyPolicy: true,
+  showTermsOfService: true,
 };
 
 export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
@@ -739,6 +751,12 @@ export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
     studentFormFields: defaultStudentFormFields,
     footerDescription: null,
     quickLinks: defaultQuickLinks,
+
+    // Legal Pages
+    privacyPolicy: null,
+    termsOfService: null,
+    showPrivacyPolicy: true,
+    showTermsOfService: true,
   },
 
   'consulting-firm': {
@@ -799,6 +817,12 @@ export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
     studentFormFields: defaultStudentFormFields,
     footerDescription: null,
     quickLinks: defaultQuickLinks,
+
+    // Legal Pages
+    privacyPolicy: null,
+    termsOfService: null,
+    showPrivacyPolicy: true,
+    showTermsOfService: true,
   },
 
   healthcare: {
@@ -859,6 +883,12 @@ export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
     studentFormFields: defaultStudentFormFields,
     footerDescription: null,
     quickLinks: defaultQuickLinks,
+
+    // Legal Pages
+    privacyPolicy: null,
+    termsOfService: null,
+    showPrivacyPolicy: true,
+    showTermsOfService: true,
   },
 
   agency: {
@@ -919,6 +949,12 @@ export const DEFAULT_LEAD_GEN_SETTINGS: Record<string, LeadGenThemeSettings> = {
     studentFormFields: defaultStudentFormFields,
     footerDescription: null,
     quickLinks: defaultQuickLinks,
+
+    // Legal Pages
+    privacyPolicy: null,
+    termsOfService: null,
+    showPrivacyPolicy: true,
+    showTermsOfService: true,
   },
 
   'study-abroad': sAndAStudyAbroadSettings,
@@ -1013,6 +1049,12 @@ export function validateLeadGenSettings(
     studentFormFields: settings.studentFormFields ?? defaults.studentFormFields,
     footerDescription: settings.footerDescription ?? defaults.footerDescription,
     quickLinks: settings.quickLinks ?? defaults.quickLinks,
+
+    // Legal Pages
+    privacyPolicy: settings.privacyPolicy ?? defaults.privacyPolicy,
+    termsOfService: settings.termsOfService ?? defaults.termsOfService,
+    showPrivacyPolicy: settings.showPrivacyPolicy ?? defaults.showPrivacyPolicy,
+    showTermsOfService: settings.showTermsOfService ?? defaults.showTermsOfService,
   };
 }
 

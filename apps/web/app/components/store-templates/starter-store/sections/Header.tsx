@@ -156,6 +156,9 @@ export function StarterStoreHeader({
               </PreviewSafeLink>
               {validCategories.slice(0, 4).map((cat) => {
                 const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+                
+                if (!title) return null;
+
                 const slug = title.trim().toLowerCase().replace(/\s+/g, ' ');
                 const encodedSlug = encodeURIComponent(slug).replace(/%20/g, '-');
 
@@ -313,6 +316,9 @@ export function StarterStoreHeader({
               </PreviewSafeLink>
               {validCategories.map((cat) => {
                 const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+                
+                if (!title) return null;
+
                 const slug = title.trim().toLowerCase().replace(/\s+/g, ' ');
                 const encodedSlug = encodeURIComponent(slug).replace(/%20/g, '-');
 

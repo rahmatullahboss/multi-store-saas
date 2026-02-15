@@ -32,8 +32,9 @@ import RovoTheme, { SECTIONS as RovoSections } from '~/themes/rovo';
 import SokolTheme, { SECTIONS as SokolSections } from '~/themes/sokol';
 import TurboSaleTheme, { SECTIONS as TurboSaleSections } from '~/themes/turbo-sale';
 import ZenithRiseTheme, { SECTIONS as ZenithRiseSections } from '~/themes/zenith-rise';
-import NovaLuxUltraTheme, { theme as NovaLuxUltraThemeExport } from '~/themes/nova-lux-ultra';
+
 import ProfessionalServicesTheme, { SECTION_REGISTRY as ProfessionalServicesSections } from '~/themes/professional-services';
+import StarterStoreTheme, { SECTIONS as StarterStoreSections } from '~/themes/starter-store';
 
 // Static template imports (Bug #5 fix - dynamic imports don't work in bundled environments)
 import darazIndexTemplate from '~/themes/daraz/templates/index.json';
@@ -47,6 +48,12 @@ import bdshopProductTemplate from '~/themes/bdshop/templates/product.json';
 import bdshopCollectionTemplate from '~/themes/bdshop/templates/collection.json';
 import bdshopCartTemplate from '~/themes/bdshop/templates/cart.json';
 import bdshopPageTemplate from '~/themes/bdshop/templates/page.json';
+
+import starterStoreIndexTemplate from '~/themes/starter-store/templates/index.json';
+import starterStoreProductTemplate from '~/themes/starter-store/templates/product.json';
+import starterStoreCollectionTemplate from '~/themes/starter-store/templates/collection.json';
+import starterStoreCartTemplate from '~/themes/starter-store/templates/cart.json';
+import starterStorePageTemplate from '~/themes/starter-store/templates/page.json';
 
 import ghorerBazarIndexTemplate from '~/themes/ghorer-bazar/templates/index.json';
 import ghorerBazarProductTemplate from '~/themes/ghorer-bazar/templates/product.json';
@@ -273,11 +280,16 @@ const THEME_REGISTRY: Record<string, LoadedTheme> = {
     config: ProfessionalServicesTheme.config,
     sections: ProfessionalServicesSections,
   },
+  'starter-store': {
+    metadata: StarterStoreTheme.metadata,
+    config: StarterStoreTheme.config,
+    sections: StarterStoreSections,
+  },
 };
 
 // Aliases for legacy theme IDs - map to valid themes
 const THEME_ALIASES: Record<string, string> = {
-  default: 'luxe-boutique',
+  default: 'starter-store',
   'modern-standard': 'luxe-boutique',
   'classic-minimal': 'luxe-boutique',
   'bold-marketplace': 'daraz',
@@ -375,6 +387,13 @@ const TEMPLATE_REGISTRY: Record<string, Record<string, TemplateJSON>> = {
   'professional-services': {
     index: professionalServicesIndexTemplate as unknown as TemplateJSON,
   },
+  'starter-store': {
+    index: starterStoreIndexTemplate as unknown as TemplateJSON,
+    product: starterStoreProductTemplate as unknown as TemplateJSON,
+    collection: starterStoreCollectionTemplate as unknown as TemplateJSON,
+    cart: starterStoreCartTemplate as unknown as TemplateJSON,
+    page: starterStorePageTemplate as unknown as TemplateJSON,
+  },
   'tech-modern': {
     index: techModernIndexTemplate as unknown as TemplateJSON,
     product: techModernProductTemplate as unknown as TemplateJSON,
@@ -392,7 +411,7 @@ export class ThemeBridge {
   private currentThemeId: string;
   private theme: LoadedTheme;
 
-  constructor(themeId: string = 'luxe-boutique') {
+  constructor(themeId: string = 'starter-store') {
     // Resolve the theme ID (handles aliases and invalid IDs)
     this.currentThemeId = resolveThemeId(themeId);
     const theme = THEME_REGISTRY[this.currentThemeId];
@@ -700,7 +719,7 @@ let bridgeInstance: ThemeBridge | null = null;
  * Get or create the theme bridge instance.
  * Always requires a themeId to ensure correct theme is used.
  */
-export function getThemeBridge(themeId: string = 'luxe-boutique'): ThemeBridge {
+export function getThemeBridge(themeId: string = 'starter-store'): ThemeBridge {
   // Resolve the theme ID first
   const resolvedId = resolveThemeId(themeId);
 
@@ -715,7 +734,7 @@ export function getThemeBridge(themeId: string = 'luxe-boutique'): ThemeBridge {
  * Create a fresh ThemeBridge instance (doesn't use singleton)
  * Use this when you need a separate instance for a specific theme
  */
-export function createThemeBridge(themeId: string = 'luxe-boutique'): ThemeBridge {
+export function createThemeBridge(themeId: string = 'starter-store'): ThemeBridge {
   return new ThemeBridge(themeId);
 }
 

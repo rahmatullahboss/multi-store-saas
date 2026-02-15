@@ -8,8 +8,8 @@ import { useTranslation } from '~/contexts/LanguageContext';
 interface LuxeBoutiqueFooterProps {
   storeName: string;
   footerConfig?: { description?: string; showPoweredBy?: boolean } | null;
-  businessInfo?: { phone?: string; email?: string; address?: string };
-  socialLinks?: { facebook?: string; instagram?: string; whatsapp?: string; twitter?: string };
+  businessInfo?: { phone?: string; email?: string; address?: string } | null;
+  socialLinks?: { facebook?: string; instagram?: string; whatsapp?: string; twitter?: string } | null;
   planType?: string;
   categories: (string | null)[];
 }
@@ -134,6 +134,8 @@ export function LuxeBoutiqueFooter({
         </div>
       </div>
 
+      {/* Newsletter Section - Not present in legacy component */}
+      
       {/* Copyright & Branding - Side by Side */}
       <div className="border-t border-white/10 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">

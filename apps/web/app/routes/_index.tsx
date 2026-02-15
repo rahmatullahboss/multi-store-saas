@@ -51,6 +51,7 @@ import {
 import { getMVPSettings } from '~/services/mvp-settings.server';
 import { parseSocialLinks, parseFooterConfig } from '@db/types';
 // import { createDb } from '~/lib/db.server';
+import { getCustomer } from '~/services/customer-auth.server';
 
 // ============================================================================
 // AGGRESSIVE CDN CACHING HEADERS
@@ -233,13 +234,18 @@ interface StoreModeData {
 interface MarketingModeData {
   mode: 'marketing';
 }
-
 interface LeadGenModeData {
   mode: 'lead_gen';
   storeId: number;
   storeName: string;
   themeId: string;
   settings: LeadGenSettingsWithTheme;
+  customer: {
+    id: number;
+    name: string;
+    email: string;
+    imageUrl?: string | null;
+  } | null;
 }
 
 export type LoaderData = LandingModeData | StoreModeData | MarketingModeData | LeadGenModeData;
@@ -455,6 +461,9 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       // Get lead gen settings
       const leadGenSettings = await getLeadGenSettings(db, validatedStoreId, themeId);
 
+      // Get customer if logged in (for header state)
+      const customer = await getCustomer(request, cloudflare.env, cloudflare.env.DB);
+      
       // Return lead gen mode data
       return json({
         mode: 'lead_gen',
@@ -462,6 +471,12 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
         storeName: validatedStore.name,
         themeId,
         settings: leadGenSettings,
+        customer: customer ? {
+          id: customer.id,
+          name: customer.name ?? '',
+          email: customer.email ?? '',
+          imageUrl: undefined
+        } : null,
       });
     } catch (error) {
       console.error('[LOADER] Lead gen mode error:', error);
@@ -797,6 +812,7 @@ export default function Index() {
           settings={data.settings}
           storeId={data.storeId}
           storeName={data.storeName}
+          customer={data.customer}
         />
       </Suspense>
     );

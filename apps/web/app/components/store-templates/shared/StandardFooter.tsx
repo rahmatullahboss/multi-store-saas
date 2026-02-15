@@ -36,6 +36,7 @@ interface StandardFooterProps {
   categories?: (string | null)[];
   planType?: string;
   isPreview?: boolean;
+  showNewsletter?: boolean;
 }
 
 // ============================================================================
@@ -98,6 +99,7 @@ export function StandardFooter({
   categories = [],
   planType = 'free',
   isPreview = false,
+  showNewsletter = true,
 }: StandardFooterProps) {
   const { lang, setLang } = useLanguage();
 
@@ -188,32 +190,34 @@ export function StandardFooter({
       )}
 
       {/* Newsletter Section */}
-      <div className="py-16 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h3
-            className="text-3xl lg:text-4xl font-semibold mb-4"
-            style={{ fontFamily: THEME.fontHeading }}
-          >
-            Join the {storeName} Family
-          </h3>
-          <p className="opacity-60 mb-8 max-w-lg mx-auto">
-            Subscribe for exclusive offers, early access to new arrivals, and curated content.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-5 py-4 rounded-full bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-white/40 transition-colors"
-            />
-            <button
-              className="px-8 py-4 rounded-full font-semibold transition-all duration-300 hover:scale-105"
-              style={{ background: THEME.accentGradient, color: THEME.primary }}
+      {showNewsletter && (
+        <div className="py-16 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h3
+              className="text-3xl lg:text-4xl font-semibold mb-4"
+              style={{ fontFamily: THEME.fontHeading }}
             >
-              Subscribe
-            </button>
+              Join the {storeName} Family
+            </h3>
+            <p className="opacity-60 mb-8 max-w-lg mx-auto">
+              Subscribe for exclusive offers, early access to new arrivals, and curated content.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="flex-1 px-5 py-4 rounded-full bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-white/40 transition-colors"
+              />
+              <button
+                className="px-8 py-4 rounded-full font-semibold transition-all duration-300 hover:scale-105"
+                style={{ background: THEME.accentGradient, color: THEME.primary }}
+              >
+                Subscribe
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

@@ -8,6 +8,7 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { Form, useLoaderData, useActionData, useNavigation, Link } from '@remix-run/react';
+import { useState } from 'react';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores } from '@db/schema';
 import { eq } from 'drizzle-orm';
@@ -180,6 +181,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
         // Footer
         footerDescription: (formData.get('footerDescription') as string) || null,
+
+        // Legal Pages
+        privacyPolicy: (formData.get('privacyPolicy') as string) || null,
+        termsOfService: (formData.get('termsOfService') as string) || null,
+        showPrivacyPolicy: formData.get('showPrivacyPolicy') === 'on',
+        showTermsOfService: formData.get('showTermsOfService') === 'on',
 
         // Array fields
         destinations: parseJsonField('destinations', current.destinations || []),
@@ -598,6 +605,99 @@ export default function LeadGenSettingsPage() {
               />
             </div>
 
+            {/* Success Stories Section */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-amber-50/50 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-amber-100 p-2 rounded-lg text-amber-600">
+                    <Award className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">Success Stories</h3>
+                    <p className="text-sm text-gray-500">Student testimonials and achievements</p>
+                  </div>
+                </div>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="showTestimonials"
+                    defaultChecked={currentSettings.showTestimonials}
+                    className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
+                  />
+                  <span className="text-sm text-gray-600">Show</span>
+                </label>
+              </div>
+              <div className="p-6 space-y-4">
+                <SuccessStoryEditor
+                  name="successStories"
+                  defaultValue={currentSettings.successStories || []}
+                  primaryColor={currentSettings.primaryColor || '#4F46E5'}
+                />
+              </div>
+            </div>
+
+            {/* University Partners Section */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-blue-50/50 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-100 p-2 rounded-lg text-blue-600">
+                    <Building className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">University Partners</h3>
+                    <p className="text-sm text-gray-500">Partner university logos</p>
+                  </div>
+                </div>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="showUniversityPartners"
+                    defaultChecked={currentSettings.showUniversityPartners}
+                    className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
+                  />
+                  <span className="text-sm text-gray-600">Show</span>
+                </label>
+              </div>
+              <div className="p-6 space-y-4">
+                <UniversityLogoEditor
+                  name="universityLogos"
+                  defaultValue={currentSettings.universityLogos || []}
+                  primaryColor={currentSettings.primaryColor || '#4F46E5'}
+                />
+              </div>
+            </div>
+
+            {/* Team Members / Experts Section */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-teal-50/50 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-teal-100 p-2 rounded-lg text-teal-600">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">Meet Our Experts</h3>
+                    <p className="text-sm text-gray-500">Team members and counselors</p>
+                  </div>
+                </div>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="showTeam"
+                    defaultChecked={currentSettings.showTeam}
+                    className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
+                  />
+                  <span className="text-sm text-gray-600">Show</span>
+                </label>
+              </div>
+              <div className="p-6 space-y-4">
+                <TeamMemberEditor
+                  name="teamMembers"
+                  defaultValue={currentSettings.teamMembers || []}
+                  primaryColor={currentSettings.primaryColor || '#4F46E5'}
+                />
+              </div>
+            </div>
+
             {/* FAQ Section */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="bg-violet-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
@@ -844,6 +944,79 @@ export default function LeadGenSettingsPage() {
               </div>
             </div>
 
+            {/* Legal Pages */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-red-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                <div className="bg-red-100 p-2 rounded-lg text-red-600">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Legal Pages</h3>
+                  <p className="text-sm text-gray-500">Privacy Policy and Terms of Service</p>
+                </div>
+              </div>
+              <div className="p-6 space-y-6">
+                {/* Privacy Policy */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="font-semibold text-gray-900">Privacy Policy</label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        name="showPrivacyPolicy"
+                        defaultChecked={currentSettings.showPrivacyPolicy}
+                        className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
+                      />
+                      <span className="text-sm text-gray-600">Show in footer</span>
+                    </label>
+                  </div>
+                  <textarea
+                    name="privacyPolicy"
+                    rows={6}
+                    defaultValue={currentSettings.privacyPolicy || ''}
+                    placeholder="Enter your privacy policy content (HTML supported)..."
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm font-mono"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Leave empty to use default privacy policy. HTML tags are supported.
+                  </p>
+                </div>
+
+                {/* Terms of Service */}
+                <div className="pt-4 border-t border-gray-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="font-semibold text-gray-900">Terms of Service</label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        name="showTermsOfService"
+                        defaultChecked={currentSettings.showTermsOfService}
+                        className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
+                      />
+                      <span className="text-sm text-gray-600">Show in footer</span>
+                    </label>
+                  </div>
+                  <textarea
+                    name="termsOfService"
+                    rows={6}
+                    defaultValue={currentSettings.termsOfService || ''}
+                    placeholder="Enter your terms of service content (HTML supported)..."
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm font-mono"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Leave empty to use default terms of service. HTML tags are supported.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Footer */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
               <h3 className="font-semibold text-gray-900 mb-4">Footer Settings</h3>
@@ -1052,6 +1225,262 @@ function FAQEditor({
           </label>
         </div>
       ))}
+      <input type="hidden" name={name} value={JSON.stringify(items)} />
+    </div>
+  );
+}
+
+// Success Stories Editor
+function SuccessStoryEditor({
+  name,
+  defaultValue,
+  primaryColor,
+}: {
+  name: string;
+  defaultValue: SuccessStoryConfig[];
+  primaryColor: string;
+}) {
+  const [items, setItems] = useState<SuccessStoryConfig[]>(
+    defaultValue.length > 0
+      ? defaultValue
+      : [{ name: '', program: '', university: '', text: '', image: null }]
+  );
+
+  const addItem = () => {
+    setItems([...items, { name: '', program: '', university: '', text: '', image: null }]);
+  };
+
+  const removeItem = (idx: number) => {
+    setItems(items.filter((_item: SuccessStoryConfig, i: number) => i !== idx));
+  };
+
+  const updateItem = (idx: number, field: keyof SuccessStoryConfig, value: string | null) => {
+    const newItems = [...items];
+    newItems[idx] = { ...newItems[idx], [field]: value };
+    setItems(newItems);
+  };
+
+  return (
+    <div className="space-y-4">
+      {items.map((item, idx) => (
+        <div key={idx} className="p-4 bg-gray-50 rounded-lg space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-gray-700">Story #{idx + 1}</span>
+            {items.length > 1 && (
+              <button
+                type="button"
+                onClick={() => removeItem(idx)}
+                className="text-red-500 hover:text-red-700 text-sm flex items-center gap-1"
+              >
+                <Trash2 className="w-4 h-4" /> Remove
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <input
+              type="text"
+              value={item.name}
+              onChange={(e) => updateItem(idx, 'name', e.target.value)}
+              placeholder="Student Name"
+              className="px-3 py-2 border rounded-lg text-sm"
+            />
+            <input
+              type="text"
+              value={item.program}
+              onChange={(e) => updateItem(idx, 'program', e.target.value)}
+              placeholder="Program (e.g., MSc in CS)"
+              className="px-3 py-2 border rounded-lg text-sm"
+            />
+          </div>
+          <input
+            type="text"
+            value={item.university}
+            onChange={(e) => updateItem(idx, 'university', e.target.value)}
+            placeholder="University Name"
+            className="w-full px-3 py-2 border rounded-lg text-sm"
+          />
+          <textarea
+            value={item.text}
+            onChange={(e) => updateItem(idx, 'text', e.target.value)}
+            placeholder="Testimonial text..."
+            rows={3}
+            className="w-full px-3 py-2 border rounded-lg text-sm"
+          />
+          <LeadGenFileUpload
+            name={`${name}_image_${idx}`}
+            label="Student Photo"
+            accept="image"
+            maxSize={2 * 1024 * 1024}
+            primaryColor={primaryColor}
+            value={item.image || undefined}
+            onChange={(url) => updateItem(idx, 'image', url)}
+          />
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={addItem}
+        className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-violet-500 hover:text-violet-600 transition flex items-center justify-center gap-2"
+      >
+        <Plus className="w-4 h-4" /> Add Success Story
+      </button>
+      <input type="hidden" name={name} value={JSON.stringify(items)} />
+    </div>
+  );
+}
+
+// University Logos Editor
+function UniversityLogoEditor({
+  name,
+  defaultValue,
+  primaryColor,
+}: {
+  name: string;
+  defaultValue: string[];
+  primaryColor: string;
+}) {
+  const [items, setItems] = useState<string[]>(defaultValue.length > 0 ? defaultValue : ['']);
+
+  const addItem = () => {
+    setItems([...items, '']);
+  };
+
+  const removeItem = (idx: number) => {
+    setItems(items.filter((_item: string, i: number) => i !== idx));
+  };
+
+  const updateItem = (idx: number, value: string) => {
+    const newItems = [...items];
+    newItems[idx] = value;
+    setItems(newItems);
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-gray-500">
+        Upload university partner logos. These will be displayed in a scrolling marquee.
+      </p>
+      {items.map((item, idx) => (
+        <div key={idx} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+          <div className="flex-1">
+            <LeadGenFileUpload
+              name={`${name}_${idx}`}
+              label={`Logo #${idx + 1}`}
+              accept="image"
+              maxSize={2 * 1024 * 1024}
+              primaryColor={primaryColor}
+              value={item || undefined}
+              onChange={(url) => updateItem(idx, url || '')}
+            />
+          </div>
+          {items.length > 1 && (
+            <button
+              type="button"
+              onClick={() => removeItem(idx)}
+              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={addItem}
+        className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-violet-500 hover:text-violet-600 transition flex items-center justify-center gap-2"
+      >
+        <Plus className="w-4 h-4" /> Add University Logo
+      </button>
+      <input type="hidden" name={name} value={JSON.stringify(items.filter(Boolean))} />
+    </div>
+  );
+}
+
+// Team Members Editor
+function TeamMemberEditor({
+  name,
+  defaultValue,
+  primaryColor,
+}: {
+  name: string;
+  defaultValue: TeamMemberConfig[];
+  primaryColor: string;
+}) {
+  const [items, setItems] = useState<TeamMemberConfig[]>(
+    defaultValue.length > 0 ? defaultValue : [{ name: '', role: '', description: '', image: null }]
+  );
+
+  const addItem = () => {
+    setItems([...items, { name: '', role: '', description: '', image: null }]);
+  };
+
+  const removeItem = (idx: number) => {
+    setItems(items.filter((_item: TeamMemberConfig, i: number) => i !== idx));
+  };
+
+  const updateItem = (idx: number, field: keyof TeamMemberConfig, value: string | null) => {
+    const newItems = [...items];
+    newItems[idx] = { ...newItems[idx], [field]: value };
+    setItems(newItems);
+  };
+
+  return (
+    <div className="space-y-4">
+      {items.map((item, idx) => (
+        <div key={idx} className="p-4 bg-gray-50 rounded-lg space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-gray-700">Team Member #{idx + 1}</span>
+            {items.length > 1 && (
+              <button
+                type="button"
+                onClick={() => removeItem(idx)}
+                className="text-red-500 hover:text-red-700 text-sm flex items-center gap-1"
+              >
+                <Trash2 className="w-4 h-4" /> Remove
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <input
+              type="text"
+              value={item.name}
+              onChange={(e) => updateItem(idx, 'name', e.target.value)}
+              placeholder="Full Name"
+              className="px-3 py-2 border rounded-lg text-sm"
+            />
+            <input
+              type="text"
+              value={item.role}
+              onChange={(e) => updateItem(idx, 'role', e.target.value)}
+              placeholder="Role (e.g., Senior Counselor)"
+              className="px-3 py-2 border rounded-lg text-sm"
+            />
+          </div>
+          <textarea
+            value={item.description}
+            onChange={(e) => updateItem(idx, 'description', e.target.value)}
+            placeholder="Brief bio/description..."
+            rows={2}
+            className="w-full px-3 py-2 border rounded-lg text-sm"
+          />
+          <LeadGenFileUpload
+            name={`${name}_image_${idx}`}
+            label="Profile Photo"
+            accept="image"
+            maxSize={2 * 1024 * 1024}
+            primaryColor={primaryColor}
+            value={item.image || undefined}
+            onChange={(url) => updateItem(idx, 'image', url)}
+          />
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={addItem}
+        className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-violet-500 hover:text-violet-600 transition flex items-center justify-center gap-2"
+      >
+        <Plus className="w-4 h-4" /> Add Team Member
+      </button>
       <input type="hidden" name={name} value={JSON.stringify(items)} />
     </div>
   );

@@ -514,8 +514,9 @@ export interface ManualPaymentConfig {
   instructions?: string; // Markdown supported
 }
 
-export function parseThemeConfig(json: string | null): ThemeConfig | null {
+export function parseThemeConfig(json: string | object | null): ThemeConfig | null {
   if (!json) return null;
+  if (typeof json === 'object') return json as ThemeConfig;
   try {
     return JSON.parse(json) as ThemeConfig;
   } catch {

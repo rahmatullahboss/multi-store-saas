@@ -14,6 +14,12 @@ import { LeadGenFileUpload } from '../LeadGenFileUpload';
 export interface LeadGenThemeProps {
   settings: LeadGenSettingsWithTheme;
   storeId: number;
+  customer?: {
+    id: number;
+    name: string;
+    email: string;
+    imageUrl?: string | null;
+  } | null;
 }
 
 // ============================================================================
