@@ -67,7 +67,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     // Ignore parse errors
   }
 
-  const currentThemeId = themeConfig.storeTemplateId || 'starter-store';
+  const currentThemeId = themeConfig.storeTemplateId || 'luxe-boutique';
 
   // Get MVP settings
   const mvpSettings = await getMVPSettings(db, store.id, currentThemeId);
@@ -114,7 +114,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Ignore parse errors
   }
 
-  const currentThemeId = themeConfig.storeTemplateId || 'starter-store';
+  const currentThemeId = themeConfig.storeTemplateId || 'luxe-boutique';
 
   // Get current settings
   const currentSettings = await getMVPSettings(db, store.id, currentThemeId);

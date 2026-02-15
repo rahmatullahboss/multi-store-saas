@@ -751,7 +751,7 @@ function StorePreviewContent({ data }: { data: StorePreviewData }) {
 
   // Live config state (updated via postMessage)
   const [liveConfig, setLiveConfig] = useState<LiveConfig>({
-    themeId: data.themeConfig.storeTemplateId || 'starter-store',
+    themeId: data.themeConfig.storeTemplateId || 'luxe-boutique',
     primaryColor: data.themeConfig.primaryColor,
     accentColor: data.themeConfig.accentColor,
     backgroundColor: data.themeConfig.backgroundColor,
@@ -881,7 +881,7 @@ function StorePreviewContent({ data }: { data: StorePreviewData }) {
     liveConfig.themeId ||
     liveConfig.storeTemplateId ||
     mergedConfig.storeTemplateId ||
-    'starter-store';
+    'luxe-boutique';
   const templateId = mergedConfig.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
   const { component: StoreTemplateComponent } = getStoreTemplate(templateId);
 

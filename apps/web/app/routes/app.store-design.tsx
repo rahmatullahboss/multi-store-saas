@@ -60,7 +60,7 @@ import { StoreImageUpload } from '~/components/StoreImageUpload';
 import { HERO_SLIDES_MAX, type HeroSlide } from '~/lib/hero-slides';
 
 // Default theme ID for fallback
-const DEFAULT_THEME_ID = 'starter-store';
+const DEFAULT_THEME_ID = 'luxe-boutique';
 
 // Helper to get theme colors from ThemeBridge
 const getThemeColors = (themeId: string) => {

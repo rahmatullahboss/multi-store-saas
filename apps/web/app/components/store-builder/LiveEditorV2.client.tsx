@@ -398,7 +398,7 @@ export function LiveEditorV2({
   themeConfig,
   templates: _templates,
   saasDomain: _saasDomain,
-  themeId = 'starter-store',
+  themeId = 'luxe-boutique',
   demoProductId: _demoProductId,
   availableThemes = [],
 }: LiveEditorV2Props) {

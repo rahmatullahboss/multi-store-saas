@@ -28,7 +28,6 @@ interface ThemeSwitcherProps {
 
 // Theme color mappings for visual preview
 const THEME_COLORS: Record<string, { primary: string; accent: string; bg: string }> = {
-  'starter-store': { primary: '#6366f1', accent: '#f59e0b', bg: '#f9fafb' },
   daraz: { primary: '#F85606', accent: '#FFB400', bg: '#FAFAFA' },
   bdshop: { primary: '#1E3A8A', accent: '#F97316', bg: '#F8FAFC' },
   'ghorer-bazar': { primary: '#FC8934', accent: '#059669', bg: '#FFFBF5' },
@@ -58,7 +57,7 @@ export function ThemeSwitcher({
   }, []);
 
   const currentTheme = availableThemes.find((t) => t.id === currentThemeId);
-  const currentColors = THEME_COLORS[currentThemeId] || THEME_COLORS['starter-store'];
+  const currentColors = THEME_COLORS[currentThemeId] || THEME_COLORS['luxe-boutique'];
 
   const handleThemeSelect = (themeId: string) => {
     if (themeId === currentThemeId) {
@@ -125,7 +124,7 @@ export function ThemeSwitcher({
 
             <div className="p-2 max-h-80 overflow-y-auto">
               {availableThemes.map((theme) => {
-                const colors = THEME_COLORS[theme.id] || THEME_COLORS['starter-store'];
+                const colors = THEME_COLORS[theme.id] || THEME_COLORS['luxe-boutique'];
                 const isActive = theme.id === currentThemeId;
 
                 return (
@@ -206,14 +205,14 @@ export function ThemeSwitcher({
                   <div
                     style={{
                       background:
-                        THEME_COLORS[showConfirm]?.primary || THEME_COLORS['starter-store'].primary,
+                        THEME_COLORS[showConfirm]?.primary || THEME_COLORS['luxe-boutique'].primary,
                     }}
                     className="w-1/2"
                   />
                   <div
                     style={{
                       background:
-                        THEME_COLORS[showConfirm]?.accent || THEME_COLORS['starter-store'].accent,
+                        THEME_COLORS[showConfirm]?.accent || THEME_COLORS['luxe-boutique'].accent,
                     }}
                     className="w-1/2"
                   />

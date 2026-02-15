@@ -18,8 +18,6 @@ import type {
 
 import type { ComponentType } from 'react';
 
-// Import the starter-store theme
-import StarterStoreTheme, { SECTIONS as StarterStoreSections } from '~/themes/starter-store';
 import DarazTheme, { SECTIONS as DarazSections } from '~/themes/daraz';
 import BDShopTheme, { SECTIONS as BDShopSections } from '~/themes/bdshop';
 import GhorerBazarTheme, { SECTIONS as GhorerBazarSections } from '~/themes/ghorer-bazar';
@@ -38,12 +36,6 @@ import NovaLuxUltraTheme, { theme as NovaLuxUltraThemeExport } from '~/themes/no
 import ProfessionalServicesTheme, { SECTION_REGISTRY as ProfessionalServicesSections } from '~/themes/professional-services';
 
 // Static template imports (Bug #5 fix - dynamic imports don't work in bundled environments)
-import starterStoreIndexTemplate from '~/themes/starter-store/templates/index.json';
-import starterStoreProductTemplate from '~/themes/starter-store/templates/product.json';
-import starterStoreCollectionTemplate from '~/themes/starter-store/templates/collection.json';
-import starterStoreCartTemplate from '~/themes/starter-store/templates/cart.json';
-import starterStorePageTemplate from '~/themes/starter-store/templates/page.json';
-
 import darazIndexTemplate from '~/themes/daraz/templates/index.json';
 import darazProductTemplate from '~/themes/daraz/templates/product.json';
 import darazCollectionTemplate from '~/themes/daraz/templates/collection.json';
@@ -131,11 +123,6 @@ export interface EditorSection {
  * Add new themes here as they are created.
  */
 const THEME_REGISTRY: Record<string, LoadedTheme> = {
-  'starter-store': {
-    metadata: StarterStoreTheme.metadata,
-    config: StarterStoreTheme.config,
-    sections: StarterStoreSections,
-  },
   daraz: {
     metadata: DarazTheme.metadata,
     config: DarazTheme.config,
@@ -290,14 +277,14 @@ const THEME_REGISTRY: Record<string, LoadedTheme> = {
 
 // Aliases for legacy theme IDs - map to valid themes
 const THEME_ALIASES: Record<string, string> = {
-  default: 'starter-store',
-  'modern-standard': 'starter-store',
-  'classic-minimal': 'starter-store',
+  default: 'luxe-boutique',
+  'modern-standard': 'luxe-boutique',
+  'classic-minimal': 'luxe-boutique',
   'bold-marketplace': 'daraz',
 };
 
 // Default theme to use when an invalid theme ID is provided
-const DEFAULT_THEME_ID = 'starter-store';
+const DEFAULT_THEME_ID = 'luxe-boutique';
 
 /**
  * Resolve a theme ID, handling aliases and invalid IDs
@@ -326,13 +313,6 @@ function resolveThemeId(themeId: string): string {
  * so we pre-import all templates statically.
  */
 const TEMPLATE_REGISTRY: Record<string, Record<string, TemplateJSON>> = {
-  'starter-store': {
-    index: starterStoreIndexTemplate as unknown as TemplateJSON,
-    product: starterStoreProductTemplate as unknown as TemplateJSON,
-    collection: starterStoreCollectionTemplate as unknown as TemplateJSON,
-    cart: starterStoreCartTemplate as unknown as TemplateJSON,
-    page: starterStorePageTemplate as unknown as TemplateJSON,
-  },
   daraz: {
     index: darazIndexTemplate as unknown as TemplateJSON,
     product: darazProductTemplate as unknown as TemplateJSON,
@@ -412,7 +392,7 @@ export class ThemeBridge {
   private currentThemeId: string;
   private theme: LoadedTheme;
 
-  constructor(themeId: string = 'starter-store') {
+  constructor(themeId: string = 'luxe-boutique') {
     // Resolve the theme ID (handles aliases and invalid IDs)
     this.currentThemeId = resolveThemeId(themeId);
     const theme = THEME_REGISTRY[this.currentThemeId];
@@ -487,15 +467,6 @@ export class ThemeBridge {
       return themeTemplates[templateType];
     }
 
-    // Fallback to starter-store templates if theme doesn't have this template
-    const fallbackTemplates = TEMPLATE_REGISTRY['starter-store'];
-    if (fallbackTemplates && fallbackTemplates[templateType]) {
-      console.warn(
-        `Template "${templateType}" not found for theme "${this.currentThemeId}", using starter-store fallback`
-      );
-      return fallbackTemplates[templateType];
-    }
-
     console.warn(`Template "${templateType}" not found for theme "${this.currentThemeId}"`);
     return null;
   }
@@ -508,9 +479,7 @@ export class ThemeBridge {
     if (themeTemplates && themeTemplates[templateType]) {
       return themeTemplates[templateType];
     }
-    // Fallback to starter-store
-    const fallbackTemplates = TEMPLATE_REGISTRY['starter-store'];
-    return fallbackTemplates?.[templateType] || null;
+    return null;
   }
 
   /**
@@ -731,7 +700,7 @@ let bridgeInstance: ThemeBridge | null = null;
  * Get or create the theme bridge instance.
  * Always requires a themeId to ensure correct theme is used.
  */
-export function getThemeBridge(themeId: string = 'starter-store'): ThemeBridge {
+export function getThemeBridge(themeId: string = 'luxe-boutique'): ThemeBridge {
   // Resolve the theme ID first
   const resolvedId = resolveThemeId(themeId);
 
@@ -746,7 +715,7 @@ export function getThemeBridge(themeId: string = 'starter-store'): ThemeBridge {
  * Create a fresh ThemeBridge instance (doesn't use singleton)
  * Use this when you need a separate instance for a specific theme
  */
-export function createThemeBridge(themeId: string = 'starter-store'): ThemeBridge {
+export function createThemeBridge(themeId: string = 'luxe-boutique'): ThemeBridge {
   return new ThemeBridge(themeId);
 }
 

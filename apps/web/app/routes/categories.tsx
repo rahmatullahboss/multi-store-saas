@@ -130,7 +130,7 @@ export default function CategoriesPage() {
             {categories.map((category) => (
               <Link
                 key={category.slug}
-                to={`/category/${category.slug}`}
+                to={`/products?category=${category.slug}`}
                 className="group relative bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow"
               >
                 {category.image ? (

@@ -625,6 +625,7 @@ function PreviewHomePage({
   onNavigate: (page: PageType) => void;
 }) {
   const theme = LUXE_BOUTIQUE_THEME;
+  const { t } = useTranslation();
   const heroBehavior = getHeroBehavior(config);
   const [heroIndex, setHeroIndex] = useState(0);
   const heroSlide = heroBehavior.slides[heroIndex];
@@ -714,10 +715,10 @@ function PreviewHomePage({
               className="text-xs uppercase tracking-[0.2em] block mb-4"
               style={{ color: theme.accent }}
             >
-              Curated Selection
+              {t('curatedSelection')}
             </span>
             <h2 className="text-4xl md:text-5xl font-serif" style={{ color: theme.text }}>
-              Featured Arrivals
+              {t('featuredArrivals')}
             </h2>
           </div>
 
@@ -737,13 +738,14 @@ function PreviewHomePage({
               onClick={() => onNavigate({ type: 'home' })}
               className="inline-block border-b border-black pb-1 uppercase tracking-[0.15em] text-sm hover:opacity-60 transition-opacity"
             >
-              View All Products
+              {t('viewAllProducts')}
             </button>
           </div>
         </div>
       </section>
 
-      {/* Why Choose Us */}
+      {/* Why Choose Us - Only show if custom features are configured */}
+      {whyChooseSection && whyChooseFeatures.length > 0 && (
       <section className="py-16 md:py-24 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -767,6 +769,7 @@ function PreviewHomePage({
           </div>
         </div>
       </section>
+      )}
     </div>
   );
 }
@@ -1138,7 +1141,7 @@ function LiveLuxeBoutiqueHomepage({
                 storeName={storeName}
                 socialLinks={socialLinks || undefined}
                 footerConfig={footerConfig || undefined}
-                businessInfo={businessInfo}
+                businessInfo={businessInfo || undefined}
                 planType={planType}
                 categories={validCategories}
               />

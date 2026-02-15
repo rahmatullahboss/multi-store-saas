@@ -218,7 +218,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const saasDomain = context.cloudflare?.env?.SAAS_DOMAIN || 'ozzyl.com';
 
   // Get active theme's preset ID from themes table, fallback to themeConfig, then default
-  let activeThemeId = 'starter-store';
+  let activeThemeId = 'luxe-boutique';
 
   const activeTheme = await db
     .select({ presetId: themes.presetId })

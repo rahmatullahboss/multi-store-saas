@@ -83,12 +83,14 @@ export function StarterStoreTemplate({
 
   // Overlay opacity: 0 = no overlay (full image), 0.4 = default dark overlay
   // Users can set heroOverlayOpacity in config (0 to 1)
+  const clampOpacity = (value: number) => Math.min(1, Math.max(0, value));
   const heroOverlayOpacity = showHeroText
-    ? (config?.heroOverlayOpacity ?? 0.4) // Default to 40% if showing text for readability
-    : (config?.heroOverlayOpacity ?? 0); // Default to 0% (no overlay) if no text
+    ? clampOpacity(config?.heroOverlayOpacity ?? 0.4) // Default to 40% if showing text for readability
+    : clampOpacity(config?.heroOverlayOpacity ?? 0); // Default to 0% (no overlay) if no text
 
   useEffect(() => {
     if (!heroBehavior.isCarousel || !heroBehavior.autoplay) return;
+    if (heroBehavior.slides.length === 0) return;
     const timer = setInterval(() => {
       setHeroIndex((prev) => (prev + 1) % heroBehavior.slides.length);
     }, heroBehavior.delayMs);
@@ -397,6 +399,7 @@ export function StarterStoreTemplate({
         planType={planType}
         isPreview={isPreview}
         themeColors={theme}
+        config={config}
       />
 
       {!isPreview && (

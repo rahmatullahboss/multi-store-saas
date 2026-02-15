@@ -400,6 +400,35 @@ export default function Checkout() {
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   const primaryColor = theme.primary;
+  const isLuxeBoutique = storeTemplateId === 'luxe-boutique';
+  
+  // Button styles based on template
+  const getButtonClass = (variant: 'primary' | 'secondary' | 'outline' = 'primary') => {
+    if (isLuxeBoutique) {
+      switch (variant) {
+        case 'primary':
+          return 'bg-[#1a1a1a] text-white px-8 py-3 uppercase tracking-widest text-xs font-bold hover:bg-[#c9a961] hover:text-white transition-colors shadow-lg';
+        case 'secondary':
+          return 'border border-[#1a1a1a] px-8 py-3 uppercase text-xs tracking-widest hover:bg-[#1a1a1a] hover:text-white transition-colors';
+        case 'outline':
+          return 'border border-gray-300 px-4 py-2 text-sm hover:border-[#1a1a1a] transition-colors';
+        default:
+          return 'bg-[#1a1a1a] text-white px-8 py-3 uppercase tracking-widest text-xs font-bold hover:bg-[#c9a961] hover:text-white transition-colors';
+      }
+    }
+    // Default styles
+    switch (variant) {
+      case 'primary':
+        return 'w-full mt-6 py-3.5 px-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:bg-gray-800 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2';
+      case 'secondary':
+        return 'px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-700 disabled:opacity-50';
+      case 'outline':
+        return 'flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]';
+      default:
+        return 'w-full mt-6 py-3.5 px-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:bg-gray-800 transition-all';
+    }
+  };
+
   const allowedPaymentMethods = useMemo(
     () => getAllowedCheckoutPaymentMethods(planType),
     [planType]
@@ -707,7 +736,7 @@ export default function Checkout() {
         <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-6">
           <ShoppingBag className="w-16 h-16 text-gray-300 mb-4" />
           <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('cartEmpty')}</h2>
-          <Link to="/" className="hover:underline" style={{ color: primaryColor }}>
+          <Link to="/" className={isLuxeBoutique ? 'uppercase tracking-widest text-xs font-bold hover:opacity-70' : 'hover:underline'} style={{ color: primaryColor }}>
             {t('continueShopping')}
           </Link>
         </div>
@@ -971,13 +1000,16 @@ export default function Checkout() {
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                     placeholder={t('discountCode') || 'Promo Code'}
-                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
+                    className={isLuxeBoutique 
+                      ? 'flex-1 px-4 py-3 border border-gray-300 focus:outline-none focus:border-black' 
+                      : 'flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]'
+                    }
                   />
                   <button
                     type="button"
                     onClick={handleApplyCoupon}
                     disabled={!couponCode || isApplyingCoupon}
-                    className="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-700 disabled:opacity-50"
+                    className={isLuxeBoutique ? getButtonClass('secondary') : getButtonClass('secondary')}
                   >
                     {isApplyingCoupon ? '...' : t('apply') || 'Apply'}
                   </button>
@@ -994,8 +1026,8 @@ export default function Checkout() {
           <button
             onClick={handleSubmit}
             disabled={orderFetcher.state === 'submitting'}
-            className="w-full mt-6 py-3.5 px-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:bg-gray-800 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            style={{ backgroundColor: primaryColor }}
+            className={`mt-6 ${getButtonClass('primary')}`}
+            style={!isLuxeBoutique ? { backgroundColor: primaryColor } : {}}
           >
             {orderFetcher.state === 'submitting' ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -1041,7 +1073,7 @@ export default function Checkout() {
         <div className="flex-1 w-full max-w-6xl mx-auto px-4 py-8">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors"
+            className={`inline-flex items-center gap-2 mb-6 transition-colors ${isLuxeBoutique ? 'text-sm uppercase tracking-widest text-gray-500 hover:text-[#1a1a1a]' : 'text-sm text-gray-500 hover:text-gray-900'}`}
           >
             <ArrowLeft className="w-4 h-4" /> {t('backToStore')}
           </Link>

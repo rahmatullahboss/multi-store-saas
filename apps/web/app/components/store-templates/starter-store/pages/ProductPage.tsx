@@ -58,13 +58,27 @@ export function StarterProductPage({
   }, [product.id, product.imageUrl]);
 
   // Parse images
-  const images = product.images
-    ? typeof product.images === 'string'
-      ? JSON.parse(product.images)
-      : product.images
-    : product.imageUrl
-      ? [product.imageUrl]
-      : [];
+  const parseImages = (value: unknown): string[] => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.filter((item) => typeof item === 'string');
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((item) => typeof item === 'string');
+        }
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  };
+
+  const images = (() => {
+    const parsedImages = parseImages(product.images);
+    if (parsedImages.length > 0) return parsedImages;
+    return product.imageUrl ? [product.imageUrl] : [];
+  })();
 
   const mainImage = selectedImage || images[0];
 

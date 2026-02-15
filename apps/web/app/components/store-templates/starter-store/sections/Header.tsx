@@ -72,13 +72,10 @@ export function StarterStoreHeader({
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      if (isPreview) {
-        navigate(getPreviewUrl(`/?search=${encodeURIComponent(searchQuery.trim())}`));
-      } else {
-        window.location.href = `/?search=${encodeURIComponent(searchQuery.trim())}`;
-      }
-    }
+    const trimmedQuery = searchQuery.trim();
+    if (!trimmedQuery) return;
+    const target = getPreviewUrl(`/?search=${encodeURIComponent(trimmedQuery)}`);
+    navigate(target);
   };
 
   // Determine styles based on variant and scroll state

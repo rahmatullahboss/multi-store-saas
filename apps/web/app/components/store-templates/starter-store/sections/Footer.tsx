@@ -24,6 +24,7 @@ interface StarterStoreFooterProps {
   planType?: string;
   isPreview?: boolean;
   themeColors?: StoreTemplateTheme;
+  config?: ThemeConfig | null;
 }
 
 export function StarterStoreFooter({
@@ -36,8 +37,9 @@ export function StarterStoreFooter({
   planType = 'free',
   isPreview = false,
   themeColors,
+  config,
 }: StarterStoreFooterProps) {
-  const theme = resolveStarterStoreTheme(undefined, themeColors);
+  const theme = resolveStarterStoreTheme(config, themeColors);
   const { t } = useTranslation();
   const validCategories = categories.filter(Boolean).slice(0, 6) as string[];
   // Free plan: always show branding. Paid plans: merchant can toggle (MVP).

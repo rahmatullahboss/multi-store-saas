@@ -195,9 +195,6 @@ const TEMPLATE_ENHANCEMENTS: Record<string, TemplateEnhancements> = {
     borders: { radius: '0.75rem' },
     buttons: { borderRadius: '9999px' },
   },
-  'starter-store': {
-    borders: { radius: '0.5rem' },
-  },
 };
 
 // ============================================================================

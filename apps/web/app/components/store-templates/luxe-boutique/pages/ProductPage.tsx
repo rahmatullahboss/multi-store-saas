@@ -17,7 +17,6 @@ import {
   Minus,
   Plus,
   Check,
-  Truck,
   Shield,
   ChevronLeft,
   ChevronRight,
@@ -92,8 +91,6 @@ export function LuxeBoutiqueProductPage({
     product.compareAtPrice && product.compareAtPrice > (product.price ?? 0)
       ? Math.round((1 - (product.price ?? 0) / product.compareAtPrice) * 100)
       : 0;
-
-  const currencySymbol = currency === 'BDT' ? '৳' : '$';
 
   const getLink = (path: string) => {
     if (isPreview && templateId) {
@@ -364,12 +361,8 @@ export function LuxeBoutiqueProductPage({
               </button>
             </div>
 
-            {/* Trust Badges */}
-            <div className="pt-6 space-y-4" style={{ borderTop: `1px solid ${theme.muted}30` }}>
-              <div className="flex items-center gap-3 text-xs" style={{ color: theme.muted }}>
-                <Truck className="w-4 h-4" />
-                <span>Complimentary Shipping Over {currencySymbol}2,000</span>
-              </div>
+            {/* Secure Payment Trust Badge */}
+            <div className="pt-6" style={{ borderTop: `1px solid ${theme.muted}30` }}>
               <div className="flex items-center gap-3 text-xs" style={{ color: theme.muted }}>
                 <Shield className="w-4 h-4" />
                 <span>Secure Payment & Authenticity Guaranteed</span>

@@ -8,14 +8,19 @@
 
 import { LoaderFunctionArgs, redirect } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
-import { customers } from '@db/schema';
+import { customers, stores } from '@db/schema';
 import { eq, and } from 'drizzle-orm';
-import { createCustomerSession, getCustomerSession, commitCustomerSession } from '~/services/customer-auth.server';
+import {
+  getCustomerSession,
+  commitCustomerSession,
+  createTransferToken,
+  validateOAuthStateToken,
+} from '~/services/customer-auth.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const code = url.searchParams.get('code');
-  const state = url.searchParams.get('state'); // storeId
+  const state = url.searchParams.get('state');
   const error = url.searchParams.get('error');
   
   if (error) {
@@ -26,20 +31,36 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   if (!code || !state) {
     return redirect('/lead-gen/auth/login?error=missing_params');
   }
-  
-  const storeId = parseInt(state, 10);
-  if (isNaN(storeId)) {
-    return redirect('/lead-gen/auth/login?error=invalid_store');
+
+  const stateData = await validateOAuthStateToken(state, context.cloudflare.env);
+  if (!stateData) {
+    return redirect('/lead-gen/auth/login?error=invalid_state');
   }
+
+  const { storeId, origin: safeOrigin } = stateData;
   
   const env = context.cloudflare.env;
+  const db = drizzle(env.DB);
+  
+  // Get store to reconstruct the redirect URI that was used in auth initiation
+  const [store] = await db
+    .select()
+    .from(stores)
+    .where(eq(stores.id, storeId))
+    .limit(1);
+  
+  if (!store) {
+    return redirect('/lead-gen/auth/login?error=store_not_found');
+  }
+  
+  // Use the SAME redirect URI that was used in auth initiation
+  // Must match what is in lead-gen.auth.google.ts and Google Console
+  const authDomain = 'https://app.ozzyl.com';
+  const redirectUri = `${authDomain}/lead-gen/auth/google/callback`;
   
   const googleClientId = env.GOOGLE_CLIENT_ID;
   const googleClientSecret = env.GOOGLE_CLIENT_SECRET;
-  const db = drizzle(env.DB);
-  const baseUrl = url.origin;
-  const redirectUri = `${baseUrl}/lead-gen/auth/google/callback`;
-  
+
   if (!googleClientId || !googleClientSecret) {
     return redirect('/lead-gen/auth/login?error=oauth_not_configured');
   }
@@ -123,11 +144,22 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .set({ lastLoginAt: new Date() })
       .where(eq(customers.id, customer.id));
     
+    const currentHost = url.hostname;
+    const targetHost = new URL(safeOrigin).hostname;
+    const needsTransfer = currentHost !== targetHost;
+
+    if (needsTransfer) {
+      const token = await createTransferToken(customer.id, storeId, env);
+      const cleanOrigin = safeOrigin.endsWith('/') ? safeOrigin.slice(0, -1) : safeOrigin;
+      const transferUrl = `${cleanOrigin}/lead-gen/auth/session-transfer?token=${token}`;
+      return redirect(transferUrl);
+    }
+
     // Create session and redirect to dashboard
     const session = await getCustomerSession(new Request('http://localhost'), env);
     session.set('customerId', customer.id);
     session.set('storeId', storeId);
-    
+
     return redirect('/lead-dashboard', {
       headers: {
         'Set-Cookie': await commitCustomerSession(session, env),

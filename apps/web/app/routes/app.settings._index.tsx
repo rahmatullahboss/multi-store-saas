@@ -307,7 +307,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Note: Store mode validation removed - handled in Homepage Settings (storeEnabled)
 
   // Build update object
-  const themeValue = theme || 'starter-store';
+  const themeValue = theme || 'luxe-boutique';
   const existingStore = await db
     .select({ themeConfig: stores.themeConfig })
     .from(stores)
