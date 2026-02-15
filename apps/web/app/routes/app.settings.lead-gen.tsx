@@ -138,9 +138,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
         heroHeading: (formData.get('heroHeading') as string) || current.heroHeading,
         heroDescription: (formData.get('heroDescription') as string) || current.heroDescription,
         ctaButtonText: (formData.get('ctaButtonText') as string) || current.ctaButtonText,
-        heroBadge: formData.get('showHeroBadge') === 'on' 
-          ? ((formData.get('heroBadge') as string) || null)
-          : null,
+        heroBadge:
+          formData.get('showHeroBadge') === 'on'
+            ? (formData.get('heroBadge') as string) || null
+            : null,
         heroSubheading: (formData.get('heroSubheading') as string) || null,
         showAnnouncement: formData.get('showAnnouncement') === 'on',
         announcementText: (formData.get('announcementText') as string) || null,
@@ -191,6 +192,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         whyStudyPoints: parseJsonField('whyStudyPoints', current.whyStudyPoints || []),
         otherCountries: parseJsonField('otherCountries', current.otherCountries || []),
         quickLinks: parseJsonField('quickLinks', current.quickLinks || []),
+        faqs: parseJsonField('faqs', current.faqs || []),
       };
 
       const saved = await saveLeadGenSettings(db, storeId, updated);
@@ -452,9 +454,7 @@ export default function LeadGenSettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Hero Badge
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Hero Badge</label>
                   <div className="flex items-center gap-2 mb-2">
                     <input
                       type="checkbox"
@@ -596,6 +596,28 @@ export default function LeadGenSettingsPage() {
                 name="whyChoosePoints"
                 defaultValue={currentSettings.whyChoosePoints || []}
               />
+            </div>
+
+            {/* FAQ Section */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-violet-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                <div className="bg-violet-100 p-2 rounded-lg text-violet-600">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Frequently Asked Questions</h3>
+                </div>
+              </div>
+              <div className="p-6 space-y-3">
+                <FAQEditor name="faqs" defaultValue={currentSettings.faqs || []} />
+              </div>
             </div>
 
             {/* Company Profile */}
@@ -759,6 +781,7 @@ export default function LeadGenSettingsPage() {
                   { name: 'showUniversityPartners', label: 'University Partners' },
                   { name: 'showTeam', label: 'Meet Counselors' },
                   { name: 'showWhatsApp', label: 'WhatsApp Floating Button' },
+                  { name: 'showFAQ', label: 'FAQ Section' },
                 ].map((item) => (
                   <label key={item.name} className="flex items-center gap-2">
                     <input
@@ -973,6 +996,50 @@ function WhyChooseEditor({ name, defaultValue }: { name: string; defaultValue: W
             defaultValue={item.text}
             placeholder="Why choose us point..."
             className="flex-1 px-3 py-2 border rounded-lg text-sm"
+          />
+          <label className="flex items-center gap-1">
+            <input
+              type="checkbox"
+              name={`${name}[${idx}][enabled]`}
+              defaultChecked={item.enabled}
+              className="w-4 h-4"
+            />
+            <span className="text-xs text-gray-500">Show</span>
+          </label>
+        </div>
+      ))}
+      <input type="hidden" name={name} value={JSON.stringify(items)} />
+    </div>
+  );
+}
+
+function FAQEditor({
+  name,
+  defaultValue,
+}: {
+  name: string;
+  defaultValue: { question: string; answer: string; enabled: boolean }[];
+}) {
+  const items =
+    defaultValue.length > 0 ? defaultValue : [{ question: '', answer: '', enabled: true }];
+
+  return (
+    <div className="space-y-2">
+      {items.map((item, idx) => (
+        <div key={idx} className="p-3 bg-gray-50 rounded-lg space-y-2">
+          <input
+            type="text"
+            name={`${name}[${idx}][question]`}
+            defaultValue={item.question}
+            placeholder="Question..."
+            className="w-full px-3 py-2 border rounded-lg text-sm font-medium"
+          />
+          <textarea
+            name={`${name}[${idx}][answer]`}
+            defaultValue={item.answer}
+            placeholder="Answer..."
+            rows={2}
+            className="w-full px-3 py-2 border rounded-lg text-sm"
           />
           <label className="flex items-center gap-1">
             <input
