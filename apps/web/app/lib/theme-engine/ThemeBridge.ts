@@ -32,6 +32,7 @@ import RovoTheme, { SECTIONS as RovoSections } from '~/themes/rovo';
 import SokolTheme, { SECTIONS as SokolSections } from '~/themes/sokol';
 import TurboSaleTheme, { SECTIONS as TurboSaleSections } from '~/themes/turbo-sale';
 import ZenithRiseTheme, { SECTIONS as ZenithRiseSections } from '~/themes/zenith-rise';
+import NovaLuxUltraTheme from '~/themes/nova-lux-ultra';
 
 import ProfessionalServicesTheme, { SECTION_REGISTRY as ProfessionalServicesSections } from '~/themes/professional-services';
 import StarterStoreTheme, { SECTIONS as StarterStoreSections } from '~/themes/starter-store';
@@ -272,8 +273,8 @@ const THEME_REGISTRY: Record<string, LoadedTheme> = {
       categories: ['luxury', 'fashion', 'premium'],
       author: 'Ozzyl Team',
     },
-    config: NovaLuxUltraThemeExport.config as ThemeConfig,
-    sections: NovaLuxUltraThemeExport.sections,
+    config: NovaLuxUltraTheme.config as ThemeConfig,
+    sections: NovaLuxUltraTheme.sections as SectionRegistry,
   },
   'professional-services': {
     metadata: ProfessionalServicesTheme.metadata,

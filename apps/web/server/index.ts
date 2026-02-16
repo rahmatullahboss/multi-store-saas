@@ -84,12 +84,45 @@ type AppContext = {
 // Create Hono app with typed context
 const app = new Hono<AppContext>();
 
+function serializeError(err: unknown): Record<string, unknown> {
+  if (err instanceof Error) {
+    return {
+      name: err.name,
+      message: err.message,
+      stack: err.stack,
+    };
+  }
+
+  // Some framework paths may throw a Response object.
+  if (err instanceof Response) {
+    return {
+      name: 'Response',
+      status: err.status,
+      statusText: err.statusText,
+    };
+  }
+
+  if (typeof err === 'object' && err !== null) {
+    return { ...(err as Record<string, unknown>) };
+  }
+
+  return { value: String(err) };
+}
+
 // Error and Not Found Handlers
 app.onError((err, c) => {
   const requestId = c.get('requestId') || c.req.header('x-request-id') || 'unknown';
   const storeId = c.get('storeId') || 0;
   const isProd = c.env?.ENVIRONMENT === 'production' || !c.env?.ENVIRONMENT;
-  console.error('[SERVER ERROR]', { requestId, storeId, err });
+  const errorDetails = serializeError(err);
+  console.error('[SERVER ERROR]', {
+    requestId,
+    storeId,
+    method: c.req.method,
+    path: c.req.path,
+    host: c.req.header('host') || null,
+    ...errorDetails,
+  });
   return c.json(
     {
       error: isProd ? 'Internal Server Error' : err.message || 'Internal Server Error',

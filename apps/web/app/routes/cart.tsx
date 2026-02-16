@@ -27,6 +27,7 @@ import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
 import { formatPrice } from '~/lib/theme-engine';
 import { createDb } from '~/lib/db.server';
+import { getMVPSettings } from '~/services/mvp-settings.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) {
@@ -90,15 +91,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     themeConfig?.storeTemplateId || (storeData.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
   const theme = getStoreTemplateTheme(storeTemplateId);
   const socialLinks = parseSocialLinks(storeData.socialLinks as string | null);
+  const mvpSettings = await getMVPSettings(db, storeId as number, storeTemplateId);
 
   // Load customer session
   const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
 
-  // Merge themeConfig colors with template theme
+  // Merge MVP settings + themeConfig colors with template theme
   const mergedTheme = {
     ...theme,
-    primary: themeConfig?.primaryColor || theme.primary,
-    accent: themeConfig?.accentColor || theme.accent,
+    primary: mvpSettings.primaryColor || themeConfig?.primaryColor || theme.primary,
+    accent: mvpSettings.accentColor || themeConfig?.accentColor || theme.accent,
   };
 
   // Fetch unique categories for footer
@@ -113,18 +115,30 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   return json({
     storeId: storeId as number,
-    storeName: storeData?.name || 'Store',
-    logo: storeData?.logo || null,
-    favicon: storeData?.favicon || null,
+    storeName: mvpSettings.storeName || storeData?.name || 'Store',
+    logo: mvpSettings.logo || storeData?.logo || null,
+    favicon: mvpSettings.favicon || storeData?.favicon || null,
     currency: storeData?.currency || 'BDT',
     storeTemplateId,
     theme: mergedTheme,
     socialLinks,
     businessInfo,
-    themeConfig,
+    themeConfig: {
+      ...themeConfig,
+      storeName: mvpSettings.storeName,
+      logo: mvpSettings.logo,
+      favicon: mvpSettings.favicon,
+      primaryColor: mvpSettings.primaryColor,
+      accentColor: mvpSettings.accentColor,
+      announcement:
+        mvpSettings.showAnnouncement && mvpSettings.announcementText
+          ? { text: mvpSettings.announcementText }
+          : themeConfig?.announcement,
+    },
     planType: storeData?.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
     categories,
+    mvpSettings,
     // AI Chat props
     isCustomerAiEnabled: Boolean((storeData as { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled),
     aiCredits: Number((storeData as { aiCredits?: number }).aiCredits) || 0,
@@ -263,6 +277,7 @@ export default function CartPage() {
     categories,
     isCustomerAiEnabled,
     aiCredits,
+    mvpSettings,
   } = useLoaderData<typeof loader>();
 
   const fetcher = useFetcher<typeof action>();
@@ -404,6 +419,7 @@ interface CartActionData {
         categories={categories}
         isCustomerAiEnabled={isCustomerAiEnabled}
         aiCredits={aiCredits}
+        mvpSettings={mvpSettings}
       >
         <Suspense
           fallback={

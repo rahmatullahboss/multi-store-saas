@@ -31,8 +31,8 @@ export type { MVPThemeSettings, MVPSettingsWithTheme };
  * Get MVP settings for a store
  * Returns validated settings with theme defaults as fallback
  */
-export async function getMVPSettings(
-  db: DrizzleD1Database,
+export async function getMVPSettings<TSchema extends Record<string, unknown>>(
+  db: DrizzleD1Database<TSchema>,
   storeId: number,
   themeId: string = 'starter-store'
 ): Promise<MVPSettingsWithTheme> {
@@ -72,8 +72,8 @@ export async function getMVPSettings(
  * Get raw settings from database (without validation)
  * Useful for admin editing
  */
-export async function getRawMVPSettings(
-  db: DrizzleD1Database,
+export async function getRawMVPSettings<TSchema extends Record<string, unknown>>(
+  db: DrizzleD1Database<TSchema>,
   storeId: number
 ): Promise<MVPSettingsWithTheme | null> {
   try {
@@ -100,8 +100,8 @@ export async function getRawMVPSettings(
 /**
  * Save or update MVP settings for a store
  */
-export async function saveMVPSettings(
-  db: DrizzleD1Database,
+export async function saveMVPSettings<TSchema extends Record<string, unknown>>(
+  db: DrizzleD1Database<TSchema>,
   storeId: number,
   settings: MVPSettingsWithTheme
 ): Promise<void> {
@@ -144,8 +144,8 @@ export async function saveMVPSettings(
 /**
  * Update partial settings (for single field updates)
  */
-export async function updatePartialMVPSettings(
-  db: DrizzleD1Database,
+export async function updatePartialMVPSettings<TSchema extends Record<string, unknown>>(
+  db: DrizzleD1Database<TSchema>,
   storeId: number,
   themeId: string,
   updates: Partial<MVPThemeSettings>
@@ -174,7 +174,10 @@ export async function updatePartialMVPSettings(
  * Delete MVP settings for a store
  * Falls back to defaults on next load
  */
-export async function deleteMVPSettings(db: DrizzleD1Database, storeId: number): Promise<void> {
+export async function deleteMVPSettings<TSchema extends Record<string, unknown>>(
+  db: DrizzleD1Database<TSchema>,
+  storeId: number
+): Promise<void> {
   try {
     const storeMvpSettingsTable = storeMvpSettings;
     await db.delete(storeMvpSettingsTable).where(eq(storeMvpSettingsTable.storeId, storeId));
@@ -192,8 +195,8 @@ export async function deleteMVPSettings(db: DrizzleD1Database, storeId: number):
  * Initialize default settings for a new store
  * Call this when a store is created
  */
-export async function initializeMVPSettings(
-  db: DrizzleD1Database,
+export async function initializeMVPSettings<TSchema extends Record<string, unknown>>(
+  db: DrizzleD1Database<TSchema>,
   storeId: number,
   themeId: string = 'starter-store'
 ): Promise<MVPSettingsWithTheme> {
@@ -217,8 +220,8 @@ export async function initializeMVPSettings(
  * Migrate from old themeConfig JSON to new MVP settings
  * Call this once during system upgrade
  */
-export async function migrateFromOldThemeConfig(
-  db: DrizzleD1Database,
+export async function migrateFromOldThemeConfig<TSchema extends Record<string, unknown>>(
+  db: DrizzleD1Database<TSchema>,
   storeId: number,
   oldThemeConfig: string | null
 ): Promise<MVPSettingsWithTheme> {

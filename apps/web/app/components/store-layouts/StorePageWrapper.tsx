@@ -20,6 +20,7 @@ import { getStoreTemplate, type StoreTemplateTheme } from '~/templates/store-reg
 import { MobileBottomNav } from '~/components/store/MobileBottomNav';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
 import type { SocialLinks, ThemeConfig, FooterConfig } from '@db/types';
+import type { MVPSettingsWithTheme } from '~/services/mvp-settings.server';
 
 interface StorePageWrapperProps {
   children: ReactNode;
@@ -52,6 +53,7 @@ interface StorePageWrapperProps {
   aiCredits?: number;
   accentColor?: string;
   agentName?: string;
+  mvpSettings?: MVPSettingsWithTheme;
 }
 
 // ============================================================================
@@ -145,6 +147,7 @@ function StorePageWrapperComponent({
   aiCredits = 0,
   accentColor,
   agentName,
+  mvpSettings,
 }: StorePageWrapperProps) {
   // Memoize template lookup (expensive operation)
   const template = useMemo(() => getStoreTemplate(templateId), [templateId]);
@@ -235,8 +238,9 @@ function StorePageWrapperComponent({
       categories,
       currentCategory,
       socialLinks,
+      mvpSettings,
     }),
-    [storeName, logo, isPreview, config, resolvedTheme, categories, currentCategory, socialLinks]
+    [storeName, logo, isPreview, config, resolvedTheme, categories, currentCategory, socialLinks, mvpSettings]
   );
 
   // Memoize fallback header props
@@ -266,8 +270,9 @@ function StorePageWrapperComponent({
       categories,
       planType,
       isPreview,
+      mvpSettings,
     }),
-    [storeName, logo, socialLinks, footerConfig, resolvedTheme, businessInfo, categories, planType, isPreview]
+    [storeName, logo, socialLinks, footerConfig, resolvedTheme, businessInfo, categories, planType, isPreview, mvpSettings]
   );
 
   // Memoize fallback footer props
@@ -285,6 +290,7 @@ function StorePageWrapperComponent({
       showPoweredBy: footerConfig?.showPoweredBy ?? true,
       config,
       isPreview,
+      mvpSettings,
     }),
     [
       storeName,
@@ -299,6 +305,7 @@ function StorePageWrapperComponent({
       footerConfig?.showPoweredBy,
       config,
       isPreview,
+      mvpSettings,
     ]
   );
 

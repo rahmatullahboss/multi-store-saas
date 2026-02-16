@@ -20,17 +20,19 @@ import {
 import { useTranslation } from 'react-i18next';
 import { eq, and, desc, like, asc, gte, lte } from 'drizzle-orm';
 import { products, productCollections } from '@db/schema';
-import { parseThemeConfig, parseSocialLinks } from '@db/types';
+import { parseThemeConfig, parseSocialLinks, type ThemeConfig } from '@db/types';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import {
   resolveStoreTheme,
   getStoreTemplate,
+  type StoreTemplateTheme,
 } from '~/templates/store-registry';
 import { getCustomer } from '~/services/customer-auth.server';
 import { parsePriceRange } from '~/utils/price';
 import { formatPrice } from '~/lib/theme-engine';
+import { getMVPSettings } from '~/services/mvp-settings.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) {
@@ -82,6 +84,14 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     themeConfig as Record<string, unknown> | null | undefined,
     (storeData.theme as string) || null
   );
+
+  const mvpSettings = await getMVPSettings(db as any, storeId, storeTemplateId);
+
+  const mergedTheme = {
+    ...theme,
+    primary: mvpSettings.primaryColor || (themeConfig as any)?.primaryColor || theme.primary,
+    accent: mvpSettings.accentColor || (themeConfig as any)?.accentColor || theme.accent,
+  };
 
   // Parse businessInfo
   let businessInfo: { phone?: string; email?: string; address?: string } | null = null;
@@ -242,16 +252,28 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
   return json({
     storeId,
-    storeName: storeData?.name || 'Store',
-    logo: storeData?.logo || null,
-    favicon: storeData?.favicon || null,
+    storeName: mvpSettings.storeName || storeData?.name || 'Store',
+    logo: mvpSettings.logo || storeData?.logo || null,
+    favicon: mvpSettings.favicon || storeData?.favicon || null,
     collectionName: collection?.title || slug,
     currency: storeData?.currency || 'BDT',
     storeTemplateId,
-    theme,
+    theme: mergedTheme,
     socialLinks,
     businessInfo,
-    themeConfig,
+    themeConfig: {
+      ...themeConfig,
+      storeName: mvpSettings.storeName,
+      logo: mvpSettings.logo,
+      favicon: mvpSettings.favicon,
+      primaryColor: mvpSettings.primaryColor,
+      accentColor: mvpSettings.accentColor,
+      announcement:
+        mvpSettings.showAnnouncement && mvpSettings.announcementText
+          ? { text: mvpSettings.announcementText }
+          : (themeConfig as any)?.announcement,
+    },
+    mvpSettings,
     collection,
     products: collectionProducts,
     categories,
@@ -275,10 +297,10 @@ export default function CollectionPage() {
     logo,
     currency,
     storeTemplateId,
-    theme,
+    theme: themeData,
     socialLinks,
     businessInfo,
-    themeConfig,
+    themeConfig: themeConfigData,
     collection,
     products,
     categories,
@@ -289,7 +311,11 @@ export default function CollectionPage() {
     maxPrice,
     planType,
     customer,
+    mvpSettings,
   } = useLoaderData<typeof loader>();
+
+  const theme = themeData as unknown as StoreTemplateTheme;
+  const themeConfig = themeConfigData as unknown as ThemeConfig | null;
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -350,9 +376,10 @@ export default function CollectionPage() {
     storeName,
     storeId,
     logo,
-    theme,
+    theme: theme as StoreTemplateTheme,
     currency,
     collection,
+    mvpSettings,
     products,
     categories,
     sortBy,

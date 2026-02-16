@@ -8,6 +8,7 @@
 
 import type { ComponentType } from 'react';
 import type { ThemeConfig, SocialLinks, FooterConfig } from '@db/types';
+import type { MVPSettingsWithTheme } from '~/services/mvp-settings.server';
 
 // ============================================================================
 // SERIALIZED PRODUCT TYPE - Matches what loader provides
@@ -87,6 +88,8 @@ export interface StoreTemplateProps {
   testimonials?: Record<string, unknown>[];
   // Customer session info
   customer?: { id: number; name: string | null; email: string | null } | null;
+  // MVP theme settings
+  mvpSettings?: MVPSettingsWithTheme;
 }
 
 // ============================================================================
@@ -103,6 +106,7 @@ export interface StoreHeaderProps {
   socialLinks?: SocialLinks | null;
   // Common state props for template headers
   count?: number;
+  mvpSettings?: MVPSettingsWithTheme;
   mobileMenuOpen?: boolean;
   setMobileMenuOpen?: (open: boolean) => void;
   searchOpen?: boolean;
@@ -126,6 +130,7 @@ export interface StoreFooterProps {
   planType?: string;
   themeColors?: StoreTemplateTheme;
   isPreview?: boolean;
+  mvpSettings?: MVPSettingsWithTheme;
 }
 
 // ============================================================================

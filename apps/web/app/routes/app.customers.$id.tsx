@@ -17,39 +17,25 @@ import {
   type ActionFunctionArgs,
   type MetaFunction,
 } from '@remix-run/cloudflare';
-import { useLoaderData, Link, useFetcher, Form } from '@remix-run/react';
+import { useLoaderData, Link, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { customers, orders, stores, customerAddresses, customerNotes } from '@db/schema';
+import { customers, orders, stores, customerAddresses, customerNotes, studentDocuments } from '@db/schema';
+import { AdminLeadDocuments } from '~/components/lead-gen/AdminLeadDocuments';
 import { eq, desc, and } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
 import {
-  User,
-  MapPin,
-  Mail,
-  Phone,
-  Calendar,
-  ShoppingBag,
-  DollarSign,
   ArrowLeft,
-  ExternalLink,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Truck,
-  Package,
-  Plus,
   StickyNote,
   Send,
-  MoreVertical,
   Edit,
-  Trash,
+  Plus,
 } from 'lucide-react';
-import { PageHeader } from '~/components/ui';
+
 import { GlassCard } from '~/components/ui/GlassCard';
 import { Button } from '~/components/ui/button';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { formatPrice } from '~/utils/formatPrice';
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Customer Details - Merchant Dashboard' }];
@@ -103,6 +89,19 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     .where(eq(customerNotes.customerId, customerId))
     .orderBy(desc(customerNotes.createdAt));
 
+  // Get Customer Documents
+  const documents = await db
+    .select({
+       id: studentDocuments.id,
+       fileUrl: studentDocuments.fileUrl,
+       fileName: studentDocuments.fileName,
+       documentType: studentDocuments.documentType,
+       createdAt: studentDocuments.createdAt,
+    })
+    .from(studentDocuments)
+    .where(and(eq(studentDocuments.customerId, customerId), eq(studentDocuments.storeId, storeId)))
+    .orderBy(desc(studentDocuments.createdAt));
+
   // Get Customer Orders
   const customerOrders = await db
     .select()
@@ -125,6 +124,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     orders: customerOrders,
     addresses,
     notes,
+    documents,
     stats: {
       totalOrders,
       totalSpent,
@@ -170,8 +170,8 @@ export default function CustomerDetailsPage() {
     orders: customerOrders,
     addresses,
     notes,
+    documents,
     stats,
-    currency,
   } = useLoaderData<typeof loader>();
   const { t, lang } = useTranslation();
   const noteFetcher = useFetcher();
@@ -332,6 +332,12 @@ export default function CustomerDetailsPage() {
 
         {/* Right Column: Order History & Timeline */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Documents Manager */}
+          <AdminLeadDocuments 
+             documents={documents.map(d => ({ ...d, createdAt: d.createdAt ? new Date(d.createdAt) : null }))}
+             customerId={customer.id}
+          />
+          
           {/* Order History */}
           <GlassCard className="p-0 overflow-hidden">
             <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
@@ -408,7 +414,7 @@ export default function CustomerDetailsPage() {
               {notes.length === 0 ? (
                 <div className="text-center text-gray-400 text-sm py-8">No notes yet.</div>
               ) : (
-                notes.map((note) => (
+                notes.map((note: typeof notes[0]) => (
                   <div key={note.id} className="flex gap-3">
                     <div className="mt-1">
                       <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">

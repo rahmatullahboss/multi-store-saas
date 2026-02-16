@@ -30,6 +30,7 @@ import {
 } from '~/templates/store-registry';
 import { getCustomer } from '~/services/customer-auth.server';
 import { getProductDetailsMetafields } from '~/lib/product-details.server';
+import { getMVPSettings } from '~/services/mvp-settings.server';
 
 // ============================================================================
 // CACHE CONFIGURATION
@@ -171,6 +172,14 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       (themeConfig as Record<string, unknown> | null | undefined) ?? null,
       (store.theme as string) || null
     );
+
+    const mvpSettings = await getMVPSettings(db as any, storeId, storeTemplateId);
+
+    const mergedTheme = {
+      ...theme,
+      primary: mvpSettings.primaryColor || (themeConfig as any)?.primaryColor || theme.primary,
+      accent: mvpSettings.accentColor || (themeConfig as any)?.accentColor || theme.accent,
+    };
 
     const socialLinks =
       storeConfig.socialLinks || parseSocialLinks(store.socialLinks as string | null);
@@ -327,9 +336,9 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
         returnPolicy: productDetails.returnPolicy || store?.customRefundPolicy || null,
         variants: variantsResult || [],
       },
-      storeName: store?.name || 'Store',
-      logo: store?.logo || null,
-      favicon: store?.favicon || null,
+      storeName: mvpSettings.storeName || store?.name || 'Store',
+      logo: mvpSettings.logo || store?.logo || null,
+      favicon: mvpSettings.favicon || store?.favicon || null,
       currency: store?.currency || 'BDT',
       showReviews,
       reviews: productReviews,
@@ -337,7 +346,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       reviewCount,
       storeId,
       storeTemplateId,
-      theme,
+      theme: mergedTheme,
       socialLinks,
       businessInfo,
       footerConfig,
@@ -356,7 +365,18 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       planType: store?.planType || 'free',
       customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
       productUrl,
-      themeConfig,
+      themeConfig: {
+        ...themeConfig,
+        storeName: mvpSettings.storeName,
+        logo: mvpSettings.logo,
+        favicon: mvpSettings.favicon,
+        primaryColor: mvpSettings.primaryColor,
+        accentColor: mvpSettings.accentColor,
+        announcement:
+          mvpSettings.showAnnouncement && mvpSettings.announcementText
+            ? { text: mvpSettings.announcementText }
+            : (themeConfig as any)?.announcement,
+      },
       storeShippingInfo: shippingInfo,
       storeRefundPolicy: productDetails.returnPolicy || store?.customRefundPolicy || null,
       // AI Chat props

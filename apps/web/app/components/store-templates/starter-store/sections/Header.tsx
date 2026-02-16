@@ -165,7 +165,7 @@ export function StarterStoreHeader({
                 return (
                   <PreviewSafeLink
                     key={title}
-                    to={`/category/${encodedSlug}`}
+                    to={`/collections/${encodedSlug}`}
                     isPreview={isPreview}
                     className="text-sm font-medium hover:opacity-70 transition-opacity"
                     style={{
@@ -325,7 +325,7 @@ export function StarterStoreHeader({
                 return (
                   <PreviewSafeLink
                     key={title}
-                    to={`/category/${encodedSlug}`}
+                    to={`/collections/${encodedSlug}`}
                     isPreview={isPreview}
                     className="block px-4 py-3 rounded-lg font-medium transition-colors hover:bg-gray-100"
                     style={{ color: currentCategory === title ? theme.primary : theme.text }}

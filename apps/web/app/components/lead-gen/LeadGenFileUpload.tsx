@@ -21,6 +21,10 @@ interface LeadGenFileUploadProps {
   primaryColor?: string;
   value?: string;
   onChange?: (url: string) => void;
+  uploadEndpoint?: string;
+  extraFormData?: Record<string, string>;
+  onUploadSuccess?: () => void;
+  resetAfterUpload?: boolean;
 }
 
 export function LeadGenFileUpload({
@@ -32,8 +36,14 @@ export function LeadGenFileUpload({
   primaryColor = '#4F46E5',
   value,
   onChange,
+  uploadEndpoint = '/api/lead-gen-upload',
+  extraFormData,
+  onUploadSuccess,
+  resetAfterUpload = false,
 }: LeadGenFileUploadProps) {
+  const inputId = `${name}-file-input`;
   const [uploading, setUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(value || null);
   const [fileName, setFileName] = useState<string>('');
@@ -42,6 +52,9 @@ export function LeadGenFileUpload({
   const acceptTypes = accept.split(',').map((t) => t.trim());
   const allowImages = acceptTypes.includes('image');
   const allowPdf = acceptTypes.includes('pdf');
+  const maxImageSizeMb = Math.round(maxSize / 1024 / 1024);
+  const maxPdfSize = Math.max(maxSize, 10 * 1024 * 1024);
+  const maxPdfSizeMb = Math.round(maxPdfSize / 1024 / 1024);
 
   const getAcceptString = () => {
     const types: string[] = [];
@@ -55,13 +68,8 @@ export function LeadGenFileUpload({
     if (!file) return;
 
     setError(null);
+    setUploadSuccess(false);
     setFileName(file.name);
-
-    // Validate file size
-    if (file.size > maxSize) {
-      setError(`File too large. Maximum ${Math.round(maxSize / 1024 / 1024)}MB`);
-      return;
-    }
 
     // Validate file type
     const isPdf = file.type === 'application/pdf';
@@ -79,6 +87,13 @@ export function LeadGenFileUpload({
 
     if (!isPdf && !isImage) {
       setError('Invalid file type');
+      return;
+    }
+
+    // Validate file size (allow larger PDFs by default)
+    const effectiveMaxSize = isPdf ? maxPdfSize : maxSize;
+    if (file.size > effectiveMaxSize) {
+      setError(`File too large. Maximum ${Math.round(effectiveMaxSize / 1024 / 1024)}MB`);
       return;
     }
 
@@ -110,9 +125,16 @@ export function LeadGenFileUpload({
       // Upload to R2
       const formData = new FormData();
       formData.append('file', fileToUpload);
-      formData.append('folder', 'leads');
+      if (uploadEndpoint === '/api/lead-gen-upload' && !extraFormData?.folder) {
+        formData.append('folder', 'leads');
+      }
+      if (extraFormData) {
+        Object.entries(extraFormData).forEach(([key, fieldValue]) => {
+          formData.append(key, fieldValue);
+        });
+      }
 
-      const response = await fetch('/api/lead-gen-upload', {
+      const response = await fetch(uploadEndpoint, {
         method: 'POST',
         body: formData,
       });
@@ -125,6 +147,20 @@ export function LeadGenFileUpload({
 
       setPreview(data.url);
       onChange?.(data.url);
+      setUploadSuccess(true);
+      
+      onUploadSuccess?.();
+
+      if (resetAfterUpload) {
+        setTimeout(() => {
+          setPreview(null);
+          setFileName('');
+          setUploadSuccess(false);
+          if (inputRef.current) {
+            inputRef.current.value = '';
+          }
+        }, 1500);
+      }
     } catch (err) {
       console.error('Upload error:', err);
       setError(err instanceof Error ? err.message : 'Upload failed');
@@ -152,28 +188,38 @@ export function LeadGenFileUpload({
       </label>
 
       {!preview ? (
-        <div
-          className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+        <label
+          htmlFor={inputId}
+          className={`relative block border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
             error ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
           }`}
-          onClick={() => inputRef.current?.click()}
         >
           <input
+            id={inputId}
             ref={inputRef}
             type="file"
             accept={getAcceptString()}
             onChange={handleFileChange}
-            className="hidden"
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
             disabled={uploading}
           />
 
           {uploading ? (
-            <div className="py-4">
+            <div className="pointer-events-none py-4">
               <div className="animate-spin w-8 h-8 border-4 border-gray-300 border-t-gray-600 rounded-full mx-auto mb-2" />
               <p className="text-sm text-gray-500">Uploading...</p>
             </div>
+          ) : uploadSuccess && resetAfterUpload ? (
+            <div className="pointer-events-none py-4">
+              <div className="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p className="text-sm text-green-600 font-medium">Upload Complete!</p>
+            </div>
           ) : (
-            <div className="py-4">
+            <div className="pointer-events-none py-4">
               <svg
                 className="w-10 h-10 text-gray-400 mx-auto mb-2"
                 fill="none"
@@ -195,14 +241,14 @@ export function LeadGenFileUpload({
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 {allowImages && allowPdf
-                  ? 'Images (JPEG, PNG, WebP) or PDF up to 10MB'
+                  ? `Images (JPEG, PNG, WebP) up to ${maxImageSizeMb}MB or PDF up to ${maxPdfSizeMb}MB`
                   : allowImages
-                    ? 'Images (JPEG, PNG, WebP) up to 5MB'
-                    : 'PDF up to 10MB'}
+                    ? `Images (JPEG, PNG, WebP) up to ${maxImageSizeMb}MB`
+                    : `PDF up to ${maxPdfSizeMb}MB`}
               </p>
             </div>
           )}
-        </div>
+        </label>
       ) : (
         <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
           <div className="flex items-center gap-3">

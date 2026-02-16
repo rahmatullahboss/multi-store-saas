@@ -146,8 +146,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
         heroSubheading: (formData.get('heroSubheading') as string) || null,
         showAnnouncement: formData.get('showAnnouncement') === 'on',
         announcementText: (formData.get('announcementText') as string) || null,
+        showDestinations: formData.get('showDestinations') === 'on',
+        showWhyChoose: formData.get('showWhyChoose') === 'on',
         showTestimonials: formData.get('showTestimonials') === 'on',
         showServices: formData.get('showServices') === 'on',
+        showProcess: formData.get('showProcess') === 'on',
+        showTeam: formData.get('showTeam') === 'on',
+        showFAQ: formData.get('showFAQ') === 'on',
+        showWhyStudy: formData.get('showWhyStudy') === 'on',
         showStats: formData.get('showStats') === 'on',
         showCompanyProfile: formData.get('showCompanyProfile') === 'on',
         showMDProfile: formData.get('showMDProfile') === 'on',
@@ -876,7 +882,11 @@ export default function LeadGenSettingsPage() {
               <h2 className="font-semibold text-lg mb-4 text-gray-900">Page Sections</h2>
               <div className="grid grid-cols-2 gap-3">
                 {[
+                  { name: 'showDestinations', label: 'Destinations Section' },
+                  { name: 'showWhyChoose', label: 'Why Choose Us' },
                   { name: 'showServices', label: 'Services Section' },
+                  { name: 'showProcess', label: 'Process Section' },
+                  { name: 'showWhyStudy', label: 'Why Study Abroad' },
                   { name: 'showTestimonials', label: 'Testimonials' },
                   { name: 'showUniversityPartners', label: 'University Partners' },
                   { name: 'showTeam', label: 'Meet Counselors' },

@@ -756,6 +756,7 @@ export default function StudyAbroadRenderer({ settings, customer }: LeadGenTheme
         )}
 
         {/* Study Destinations - Country Flags */}
+        {settings.showDestinations && (
         <section className="py-20 bg-white overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
@@ -804,6 +805,7 @@ export default function StudyAbroadRenderer({ settings, customer }: LeadGenTheme
             </div>
           </div>
         </section>
+        )}
 
         {/* Why Choose Us Section - Modern Grid */}
         {settings.showWhyChoose && whyChoosePoints.length > 0 && (
@@ -916,7 +918,7 @@ export default function StudyAbroadRenderer({ settings, customer }: LeadGenTheme
         )}
 
         {/* Process Section - Visual Timeline */}
-        {processSteps.length > 0 && (
+        {settings.showProcess && processSteps.length > 0 && (
           <section id="process" className="py-24 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-20">
@@ -1087,7 +1089,7 @@ export default function StudyAbroadRenderer({ settings, customer }: LeadGenTheme
         )}
 
         {/* Why Study Abroad */}
-        {whyStudyPoints.length > 0 && (
+        {settings.showWhyStudy && whyStudyPoints.length > 0 && (
           <section
             id="why-study"
             className="py-20"
@@ -1287,12 +1289,12 @@ export default function StudyAbroadRenderer({ settings, customer }: LeadGenTheme
             </p>
             <div className="flex gap-6 mt-4 md:mt-0">
               {settings.showPrivacyPolicy !== false && (
-                <a href="/privacy-policy" className="hover:text-white transition-colors">
+                <a href="/lead-gen/privacy-policy" className="hover:text-white transition-colors">
                   Privacy Policy
                 </a>
               )}
               {settings.showTermsOfService !== false && (
-                <a href="/terms-of-service" className="hover:text-white transition-colors">
+                <a href="/lead-gen/terms-of-service" className="hover:text-white transition-colors">
                   Terms of Service
                 </a>
               )}

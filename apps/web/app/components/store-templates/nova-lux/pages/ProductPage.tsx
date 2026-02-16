@@ -159,8 +159,8 @@ export function NovaLuxProductPage({
         const id = path.replace('/products/', '');
         return `/store-template-preview/${templateId}/products/${id}`;
       }
-      if (path.startsWith('/category/')) {
-        const cat = path.replace('/category/', '');
+      if (path.startsWith('/collections/')) {
+        const cat = path.replace('/collections/', '');
         return `/store-template-preview/${templateId}/collections/${cat}`;
       }
       return `/store-template-preview/${templateId}${path}`;
@@ -220,8 +220,8 @@ export function NovaLuxProductPage({
             <>
               <ChevronRight className="w-4 h-4 mx-2" />
               <Link
-                to={getLink(`/category/${product.category}`)}
-                onClick={(e) => handleNavigation(e, `/category/${product.category}`)}
+                to={getLink(`/collections/${product.category}`)}
+                onClick={(e) => handleNavigation(e, `/collections/${product.category}`)}
                 className="hover:opacity-70"
               >
                 {product.category}

@@ -1023,8 +1023,8 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
         navigate({ type: 'cart' });
       } else if (path === '/checkout') {
         navigate({ type: 'checkout' });
-      } else if (path.startsWith('/category/') || path.startsWith('/collections/')) {
-        const category = path.replace(/^\/(category|collections)\//, '');
+      } else if (path.startsWith('/collections/')) {
+        const category = path.replace(/^\/collections\//, '');
         navigate({ type: 'category', category });
       } else {
         navigate({ type: 'home' });

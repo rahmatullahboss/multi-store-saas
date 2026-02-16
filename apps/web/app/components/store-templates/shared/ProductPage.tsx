@@ -530,8 +530,8 @@ export default function SharedProductPage({
         const id = path.replace('/products/', '');
         return `/store-template-preview/${templateId}/products/${id}`;
       }
-      if (path.startsWith('/category/')) {
-        const cat = path.replace('/category/', '');
+      if (path.startsWith('/collections/')) {
+        const cat = path.replace('/collections/', '');
         return `/store-template-preview/${templateId}/collections/${cat}`;
       }
       return `/store-template-preview/${templateId}${path}`;
@@ -704,11 +704,11 @@ export default function SharedProductPage({
               <>
                 <ChevronRight className="w-4 h-4 mx-2 opacity-50" />
                 <Link
-                  to={getLink(`/category/${product.category.toLowerCase().replace(/\s+/g, '-')}`)}
+                  to={getLink(`/collections/${product.category.toLowerCase().replace(/\s+/g, '-')}`)}
                   onClick={(e) =>
                     handleNavigation(
                       e,
-                      `/category/${product.category!.toLowerCase().replace(/\s+/g, '-')}`
+                      `/collections/${product.category!.toLowerCase().replace(/\s+/g, '-')}`
                     )
                   }
                   className="hover:opacity-70 transition-opacity"

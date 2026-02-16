@@ -10,7 +10,7 @@ import {
   type ActionFunctionArgs,
   type SerializeFrom,
 } from '@remix-run/cloudflare';
-import { useLoaderData, Form, Link, useActionData, useSearchParams } from '@remix-run/react';
+import { useLoaderData, Form, Link, useActionData, useSearchParams, useRevalidator, useFetcher } from '@remix-run/react';
 import { createDb } from '~/lib/db.server';
 import { customers, leadGenForms, leadGenSubmissions, leadSubmissions, studentDocuments } from '@db/schema';
 import { eq, desc, and, SQL, or } from 'drizzle-orm';
@@ -28,7 +28,9 @@ import {
   Settings,
   Shield,
   Activity,
-  ChevronRight
+  ChevronRight,
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { LeadGenFileUpload } from '~/components/lead-gen/LeadGenFileUpload';
@@ -365,6 +367,8 @@ export default function LeadDashboard() {
   const [searchParams] = useSearchParams();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const actionData = useActionData<{ success?: boolean; message?: string; error?: string }>();
+  const revalidator = useRevalidator();
+  
   const tabFromUrl = searchParams.get('tab');
   const activeTab = (tabFromUrl === 'applications' || tabFromUrl === 'documents' || tabFromUrl === 'profile' || tabFromUrl === 'dashboard'
     ? tabFromUrl
@@ -396,23 +400,7 @@ export default function LeadDashboard() {
     }
   };
 
-  // Handle document deletion
-  const handleDeleteDocument = async (docId: number) => {
-    if (!confirm('Are you sure you want to delete this document?')) return;
-    try {
-      const response = await fetch('/api/student-document', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentId: docId }),
-      });
-      if (response.ok) {
-        // Refresh the page to get updated documents
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error('Delete error:', error);
-    }
-  };
+
 
   // Get document icon based on file type
   const getDocumentIcon = (fileType: string) => {
@@ -430,6 +418,69 @@ export default function LeadDashboard() {
         <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
+      </div>
+    );
+  };
+
+  // Document Item Component for managing deletion state
+  const DocumentItem = ({ doc }: { doc: SerializeFrom<StudentDocumentData> }) => {
+    const fetcher = useFetcher();
+    const isDeleting = fetcher.state === 'submitting';
+
+    const handleDelete = () => {
+      if (!confirm('Are you sure you want to delete this document?')) return;
+      
+      fetcher.submit(
+        { documentId: doc.id.toString() },
+        { method: 'DELETE', action: '/api/student-document' }
+      );
+    };
+
+    // If successfully deleted (and revalidated), this component will be unmounted by list re-render
+    // But we can also show a "deleted" state if we want, though simpler to just let revalidator update the list
+
+    return (
+      <div
+        className={`flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 hover:bg-gray-50 transition-colors ${
+           isDeleting ? 'opacity-50 bg-gray-50' : ''
+        }`}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          {getDocumentIcon(doc.fileType)}
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate">{doc.fileName}</p>
+            <p className="text-xs text-gray-500">
+              {doc.documentType || 'Document'} • {formatFileSize(doc.fileSize)} • {formatDate(doc.createdAt)}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <a
+            href={doc.fileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-medium px-3 py-1.5 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+          >
+            View
+          </a>
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="text-xs font-medium px-3 py-1.5 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors flex items-center gap-1.5"
+          >
+            {isDeleting ? (
+              <>
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              <>
+                <Trash2 className="w-3 h-3" />
+                Delete
+              </>
+            )}
+          </button>
+        </div>
       </div>
     );
   };
@@ -718,11 +769,13 @@ export default function LeadDashboard() {
                               primaryColor={primaryColor}
                               uploadEndpoint="/api/student-document"
                               extraFormData={{ documentType: 'general' }}
+                              onUploadSuccess={() => revalidator.revalidate()}
+                              resetAfterUpload={true}
                             />
                           )}
                         </ClientOnly>
 
-                        {/* Uploaded files list with proper management */}
+                       {/* Uploaded files list with proper management */}
                         <div className="space-y-3">
                            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Uploaded Files</h3>
                            {documents.length === 0 ? (
@@ -732,36 +785,7 @@ export default function LeadDashboard() {
                            ) : (
                              <div className="space-y-2">
                                {documents.map((doc: SerializeFrom<StudentDocumentData>) => (
-                                 <div
-                                   key={doc.id}
-                                   className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 hover:bg-gray-50 transition-colors"
-                                 >
-                                   <div className="flex items-center gap-3 min-w-0">
-                                     {getDocumentIcon(doc.fileType)}
-                                     <div className="min-w-0">
-                                       <p className="text-sm font-medium text-gray-900 truncate">{doc.fileName}</p>
-                                       <p className="text-xs text-gray-500">
-                                         {doc.documentType || 'Document'} • {formatFileSize(doc.fileSize)} • {formatDate(doc.createdAt)}
-                                       </p>
-                                     </div>
-                                   </div>
-                                   <div className="flex items-center gap-2 flex-shrink-0">
-                                     <a
-                                       href={doc.fileUrl}
-                                       target="_blank"
-                                       rel="noopener noreferrer"
-                                       className="text-xs font-medium px-3 py-1.5 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
-                                     >
-                                       View
-                                     </a>
-                                     <button
-                                       onClick={() => handleDeleteDocument(doc.id)}
-                                       className="text-xs font-medium px-3 py-1.5 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                                     >
-                                       Delete
-                                     </button>
-                                   </div>
-                                 </div>
+                                 <DocumentItem key={doc.id} doc={doc} />
                                ))}
                              </div>
                            )}

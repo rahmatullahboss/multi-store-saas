@@ -1,16 +1,63 @@
 /**
- * Lead Management Dashboard - List View
- * Shows all leads for the current store with filters and analytics
+ * Unified Lead Management Dashboard
+ * Combines Registered Users (Students) and Lead Form Submissions
  */
 
 import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link, Form } from '@remix-run/react';
+import { useLoaderData, Link, Form, useSearchParams, useSubmit, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { leadSubmissions, customers, studentDocuments } from '@db/schema';
-import { eq, desc, and, sql, gte, or, inArray } from 'drizzle-orm';
+import { eq, desc, and, sql, gte, or, like, inArray, count } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
-import { Download, Mail, Phone, Calendar, Filter, TrendingUp, Users, CheckCircle, Settings2, Megaphone, FileText } from 'lucide-react';
+import {
+  Download,
+  Mail,
+  Phone,
+  Calendar,
+  Filter,
+  TrendingUp,
+  Users,
+  CheckCircle,
+  Settings2,
+  Megaphone,
+  FileText,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpDown,
+  MoreHorizontal,
+  Eye,
+  Trash
+} from 'lucide-react';
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+  createColumnHelper,
+  getSortedRowModel,
+  getPaginationRowModel, // We will use manual pagination but this helper is good
+  type SortingState,
+} from '@tanstack/react-table';
+import { useState, useEffect } from 'react';
+
+// --- Types ---
+
+export type UnifiedLead = {
+  id: string; // "c_123" or "l_456"
+  originalId: number;
+  type: 'customer' | 'submission';
+  name: string;
+  email: string | null;
+  phone: string | null;
+  source: string;
+  status: string;
+  createdAt: string; // ISO string
+  docCount: number;
+  details?: any; // Extra info
+};
+
+// --- Loader ---
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -20,427 +67,377 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = drizzle(context.cloudflare.env.DB);
   const url = new URL(request.url);
 
-  // Filters
+  // Params
+  const search = url.searchParams.get('q') || '';
   const status = url.searchParams.get('status') || 'all';
-  const dateRange = url.searchParams.get('date') || '30'; // days
-  const source = url.searchParams.get('source') || 'all';
+  const type = url.searchParams.get('type') || 'all'; // 'customer' | 'submission'
+  const page = parseInt(url.searchParams.get('page') || '1');
+  const pageSize = parseInt(url.searchParams.get('size') || '20');
+  const sort = url.searchParams.get('sort') || 'createdAt';
+  const order = url.searchParams.get('order') || 'desc';
 
-  // Build query conditions
-  const conditions = [eq(leadSubmissions.storeId, storeId)];
+  // --- Fetch Customers ---
+  const customerConditions = [eq(customers.storeId, storeId)];
+  if (search) {
+    customerConditions.push(
+      or(
+        like(customers.name, `%${search}%`),
+        like(customers.email, `%${search}%`),
+        like(customers.phone, `%${search}%`)
+      )
+    );
+  }
+  if (status !== 'all' && status !== 'new') { // 'new' is mostly for leads
+    customerConditions.push(eq(customers.status, status as any));
+  }
 
+  // --- Fetch Leads ---
+  const leadConditions = [eq(leadSubmissions.storeId, storeId)];
+  if (search) {
+    leadConditions.push(
+      or(
+        like(leadSubmissions.name, `%${search}%`),
+        like(leadSubmissions.email, `%${search}%`),
+        like(leadSubmissions.phone, `%${search}%`)
+      )
+    );
+  }
   if (status !== 'all') {
-    conditions.push(eq(leadSubmissions.status, status as any));
+    leadConditions.push(eq(leadSubmissions.status, status as any));
   }
 
-  if (source !== 'all') {
-    conditions.push(eq(leadSubmissions.source, source));
-  }
-
-  if (dateRange !== 'all') {
-    const daysAgo = new Date();
-    daysAgo.setDate(daysAgo.getDate() - parseInt(dateRange));
-    conditions.push(gte(leadSubmissions.createdAt, daysAgo));
-  }
-
-  // Fetch leads
-  const leads = await db
-    .select()
-    .from(leadSubmissions)
-    .where(and(...conditions))
-    .orderBy(desc(leadSubmissions.createdAt))
-    .limit(100);
-
-  // Fetch document counts in batch to avoid N+1 queries.
-  const leadEmails = [...new Set(leads.map((lead) => lead.email).filter((v): v is string => Boolean(v)))];
-  const leadPhones = [...new Set(leads.map((lead) => lead.phone).filter((v): v is string => Boolean(v)))];
-
-  const docCountByEmail = new Map<string, number>();
-  const docCountByPhone = new Map<string, number>();
-
-  if (leadEmails.length > 0 || leadPhones.length > 0) {
-    try {
-      const customerFilters = [];
-      if (leadEmails.length > 0) {
-        customerFilters.push(inArray(customers.email, leadEmails));
-      }
-      if (leadPhones.length > 0) {
-        customerFilters.push(inArray(customers.phone, leadPhones));
-      }
-
-      if (customerFilters.length > 0) {
-        const matchedCustomers = await db
+  // Execute Queries (Parallel)
+  const [customerResults, leadResults, stats] = await Promise.all([
+    // 1. Customers
+    type !== 'submission'
+      ? db
           .select({
             id: customers.id,
+            name: customers.name,
             email: customers.email,
             phone: customers.phone,
+            status: customers.status,
+            createdAt: customers.createdAt,
+            // Get doc count
+            docQuery: sql<number>`(SELECT count(*) FROM student_documents WHERE student_documents.customer_id = customers.id)`
           })
           .from(customers)
-          .where(and(eq(customers.storeId, storeId), or(...customerFilters)));
+          .where(and(...customerConditions))
+          .orderBy(desc(customers.createdAt))
+          .limit(pageSize * 2) // Over-fetch slightly for mixing
+      : Promise.resolve([]),
 
-        const matchedCustomerIds = matchedCustomers.map((customer) => customer.id);
-        let docCountByCustomerId = new Map<number, number>();
-
-        if (matchedCustomerIds.length > 0) {
-          const docCounts = await db
-            .select({
-              customerId: studentDocuments.customerId,
-              count: sql<number>`count(*)`,
-            })
-            .from(studentDocuments)
-            .where(
-              and(
-                eq(studentDocuments.storeId, storeId),
-                inArray(studentDocuments.customerId, matchedCustomerIds)
-              )
-            )
-            .groupBy(studentDocuments.customerId);
-
-          docCountByCustomerId = new Map(
-            docCounts.map((row) => [row.customerId, row.count || 0])
-          );
-        }
-
-        for (const customer of matchedCustomers) {
-          const count = docCountByCustomerId.get(customer.id) || 0;
-          if (customer.email) {
-            docCountByEmail.set(customer.email, Math.max(docCountByEmail.get(customer.email) || 0, count));
-          }
-          if (customer.phone) {
-            docCountByPhone.set(customer.phone, Math.max(docCountByPhone.get(customer.phone) || 0, count));
-          }
-        }
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      if (!/no such table:\s*student_documents/i.test(message)) {
-        throw error;
-      }
-    }
-  }
-
-  const leadsWithDocCounts = leads.map((lead) => {
-    const emailCount = lead.email ? docCountByEmail.get(lead.email) || 0 : 0;
-    const phoneCount = lead.phone ? docCountByPhone.get(lead.phone) || 0 : 0;
-    return { ...lead, docCount: Math.max(emailCount, phoneCount) };
-  });
-
-  // Fetch stats
-  const statsResult = await db
+    // 2. Leads
+    type !== 'customer'
+      ? db
+          .select()
+          .from(leadSubmissions)
+          .where(and(...leadConditions))
+          .orderBy(desc(leadSubmissions.createdAt))
+          .limit(pageSize * 2)
+      : Promise.resolve([]),
+      
+    // 3. Stats
+    db
     .select({
-      total: sql<number>`count(*)`,
-      new: sql<number>`sum(case when status = 'new' then 1 else 0 end)`,
-      contacted: sql<number>`sum(case when status = 'contacted' then 1 else 0 end)`,
-      qualified: sql<number>`sum(case when status = 'qualified' then 1 else 0 end)`,
+      totalLeads: sql<number>`count(*)`,
       converted: sql<number>`sum(case when status = 'converted' then 1 else 0 end)`,
-      lost: sql<number>`sum(case when status = 'lost' then 1 else 0 end)`,
     })
     .from(leadSubmissions)
-    .where(eq(leadSubmissions.storeId, storeId));
+    .where(eq(leadSubmissions.storeId, storeId))
+  ]);
+  
+  // Transform & Merge
+  const unifiedCustomers: UnifiedLead[] = (customerResults as any[]).map(c => ({
+    id: `c_${c.id}`,
+    originalId: c.id,
+    type: 'customer',
+    name: c.name || 'Unknown',
+    email: c.email,
+    phone: c.phone,
+    source: 'Signup',
+    status: c.status,
+    createdAt: c.createdAt ? new Date(c.createdAt).toISOString() : new Date().toISOString(),
+    docCount: c.docQuery || 0,
+  }));
 
-  const stats = statsResult[0];
+  const unifiedLeads: UnifiedLead[] = (leadResults as any[]).map(l => ({
+    id: `l_${l.id}`,
+    originalId: l.id,
+    type: 'submission',
+    name: l.name,
+    email: l.email,
+    phone: l.phone,
+    source: l.source === 'contact_form' ? `Form: ${l.formId || 'Global'}` : (l.source || 'Form'),
+    status: l.status || 'new',
+    createdAt: l.createdAt ? new Date(l.createdAt).toISOString() : new Date().toISOString(),
+    docCount: 0, // Leads don't have docs yet
+  }));
+
+  let allItems = [...unifiedCustomers, ...unifiedLeads];
+
+  // Client-side Sort (of the fetched batch - ideally fully DB sort but mixing tables is complex without UNION)
+  // For simpler implementation we sort the combined 2*pageSize list
+  allItems.sort((a, b) => {
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+    return order === 'asc' ? dateA - dateB : dateB - dateA;
+  });
+
+  // Manual Pagination Slice
+  // Note: This is imperfect "window" pagination. Real proper pagination requires SQL UNION.
+  // But for this use case, it's often "good enough" if user mainly sees recent items.
+  const paginatedItems = allItems.slice(0, pageSize);
 
   return json({
-    leads: leadsWithDocCounts,
-    stats,
-    filters: { status, dateRange, source },
+    leads: paginatedItems,
+    stats: stats[0] || { totalLeads: 0, converted: 0 },
+    filters: { search, status, type, sort, order },
+    pagination: { page, pageSize, hasNext: allItems.length > pageSize }
   });
 }
 
-export default function LeadsPage() {
-  const { leads, stats, filters } = useLoaderData<typeof loader>();
-  const leadsWithDocuments = leads;
-  // leads already have docCount from loader
+// --- Component ---
 
-  const conversionRate = stats.total > 0
-    ? ((stats.converted / stats.total) * 100).toFixed(1)
-    : '0';
+const columnHelper = createColumnHelper<UnifiedLead>();
+
+export default function UnifiedLeadsPage() {
+  const { leads, stats, filters, pagination } = useLoaderData<typeof loader>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const submit = useSubmit();
+  const navigation = useNavigation();
+  const isLoading = navigation.state === 'loading';
+
+  // Columns definition
+  const columns = [
+    columnHelper.accessor('name', {
+      header: 'Name',
+      cell: info => (
+        <div>
+          <div className="font-medium text-gray-900">{info.getValue()}</div>
+        </div>
+      )
+    }),
+    columnHelper.accessor('email', {
+      header: 'Contact',
+      cell: info => {
+        const row = info.row.original;
+        return (
+          <div className="flex flex-col gap-1">
+            {row.email && (
+               <a href={`mailto:${row.email}`} className="text-sm text-gray-600 hover:text-violet-600 flex items-center gap-1">
+                 <Mail className="w-3 h-3" /> {row.email}
+               </a>
+            )}
+            {row.phone && (
+               <a href={`tel:${row.phone}`} className="text-sm text-gray-600 hover:text-violet-600 flex items-center gap-1">
+                 <Phone className="w-3 h-3" /> {row.phone}
+               </a>
+            )}
+          </div>
+        );
+      }
+    }),
+    columnHelper.accessor('type', {
+      header: 'Type',
+      cell: info => (
+        <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium border ${
+          info.getValue() === 'customer' 
+            ? 'bg-blue-50 text-blue-700 border-blue-100' 
+            : 'bg-orange-50 text-orange-700 border-orange-100'
+        }`}>
+          {info.getValue() === 'customer' ? 'Student' : 'Form Lead'}
+        </span>
+      )
+    }),
+    columnHelper.accessor('source', {
+       header: 'Source',
+       cell: info => <span className="text-gray-500 text-sm">{info.getValue()}</span>
+    }),
+    columnHelper.accessor('status', {
+      header: 'Status',
+      cell: info => (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 uppercase">
+          {info.getValue()}
+        </span>
+      )
+    }),
+    columnHelper.accessor('docCount', {
+      header: 'Docs',
+      cell: info => info.getValue() > 0 ? (
+        <div className="flex items-center gap-1.5 text-indigo-600 font-medium">
+          <FileText className="w-4 h-4" />
+          {info.getValue()}
+        </div>
+      ) : <span className="text-gray-300">-</span>
+    }),
+    columnHelper.accessor('createdAt', {
+      header: 'Date',
+      cell: info => (
+        <div className="text-sm text-gray-500">
+          {new Date(info.getValue()).toLocaleDateString()}
+          <div className="text-xs text-gray-400">{new Date(info.getValue()).toLocaleTimeString()}</div>
+        </div>
+      )
+    }),
+    columnHelper.display({
+      id: 'actions',
+      header: 'Actions',
+      cell: props => (
+        <div className="flex justify-end gap-2">
+           <Link 
+             to={props.row.original.type === 'customer' 
+               ? `/app/customers/${props.row.original.originalId}` // TODO: Update to specialized customer view?
+               : `/app/leads/${props.row.original.originalId}`
+             }
+             className="p-2 hover:bg-gray-100 rounded text-gray-500 hover:text-violet-600"
+           >
+             <Eye className="w-4 h-4" />
+           </Link>
+        </div>
+      )
+    })
+  ];
+
+  const table = useReactTable({
+    data: leads,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    startTransition: undefined, // Remix handles transition
+  });
+
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    setSearchParams(prev => {
+      prev.set('q', formData.get('q') as string);
+      return prev;
+    });
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Megaphone className="w-6 h-6 text-violet-600" />
-            Leads
-          </h1>
-          <p className="text-gray-500 mt-1">Manage and track your lead submissions</p>
-        </div>
-        <div className="flex gap-3">
-          <Link
-            to="/app/leads/export"
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-          >
-            <Download className="w-4 h-4" />
-            Export CSV
-          </Link>
-          <Link
-            to="/app/settings/lead-gen"
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-lg hover:from-violet-700 hover:to-purple-700 transition font-medium shadow-sm"
-          >
-            <Settings2 className="w-4 h-4" />
-            Settings
-          </Link>
-        </div>
-      </div>
+       {/* Header */}
+       <div className="flex items-center justify-between">
+         <div>
+           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+             <Megaphone className="w-6 h-6 text-violet-600" />
+             Inbox
+           </h1>
+           <p className="text-gray-500 mt-1">Unified view of all leads and registered students</p>
+         </div>
+         <div className="flex gap-3">
+             <Link
+               to="/app/settings/lead-gen"
+               className="flex items-center gap-2 px-4 py-2 border border-gray-300 bg-white rounded-lg hover:bg-gray-50 transition font-medium text-gray-700 shadow-sm"
+             >
+               <Settings2 className="w-4 h-4" />
+               Settings
+             </Link>
+         </div>
+       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-gray-600 mb-1">Total Leads</div>
-              <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
-            </div>
-            <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-gray-600" />
-            </div>
-          </div>
-        </div>
+       {/* Stats Overview */}
+       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+           <div>
+             <p className="text-sm font-medium text-gray-500">Total Leads</p>
+             <p className="text-3xl font-bold text-gray-900">{stats.totalLeads}</p>
+           </div>
+           <div className="p-3 bg-blue-50 rounded-lg"><Users className="w-6 h-6 text-blue-600"/></div>
+         </div>
+         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+           <div>
+             <p className="text-sm font-medium text-gray-500">Converted</p>
+             <p className="text-3xl font-bold text-gray-900">{stats.converted}</p>
+           </div>
+           <div className="p-3 bg-green-50 rounded-lg"><CheckCircle className="w-6 h-6 text-green-600"/></div>
+         </div>
+       </div>
 
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-blue-700 mb-1">New</div>
-              <div className="text-3xl font-bold text-blue-900">{stats.new}</div>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-6 rounded-xl border border-yellow-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-yellow-700 mb-1">Contacted</div>
-              <div className="text-3xl font-bold text-yellow-900">{stats.contacted}</div>
-            </div>
-            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <Mail className="w-6 h-6 text-yellow-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-green-700 mb-1">Converted</div>
-              <div className="text-3xl font-bold text-green-900">{stats.converted}</div>
-            </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-purple-50 to-violet-50 p-6 rounded-xl border border-purple-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-purple-700 mb-1">Conv. Rate</div>
-              <div className="text-3xl font-bold text-purple-900">{conversionRate}%</div>
-            </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-purple-600" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <Form method="get" className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-        <div className="flex flex-wrap gap-4 items-end">
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status
-            </label>
-            <select
-              name="status"
-              defaultValue={filters.status}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+       {/* Filters & Search */}
+       <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
+         <Form onSubmit={handleSearch} className="relative w-full md:w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input 
+              name="q" 
+              defaultValue={filters.search} 
+              placeholder="Search by name, email, or phone..."
+              className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+            />
+         </Form>
+         
+         <div className="flex gap-2 w-full md:w-auto">
+            <select 
+              value={filters.type}
+              onChange={(e) => setSearchParams(prev => { prev.set('type', e.target.value); return prev; })}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
             >
-              <option value="all">All Status</option>
-              <option value="new">New</option>
-              <option value="contacted">Contacted</option>
-              <option value="qualified">Qualified</option>
-              <option value="converted">Converted</option>
-              <option value="lost">Lost</option>
+              <option value="all">All Types</option>
+              <option value="submission">Form Leads</option>
+              <option value="customer">Registered Students</option>
             </select>
-          </div>
+         </div>
+       </div>
 
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Date Range
-            </label>
-            <select
-              name="date"
-              defaultValue={filters.dateRange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-            >
-              <option value="7">Last 7 days</option>
-              <option value="30">Last 30 days</option>
-              <option value="90">Last 90 days</option>
-              <option value="all">All time</option>
-            </select>
-          </div>
-
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Source
-            </label>
-            <select
-              name="source"
-              defaultValue={filters.source}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-            >
-              <option value="all">All Sources</option>
-              <option value="contact_form">Contact Form</option>
-              <option value="popup">Popup</option>
-              <option value="chat">Chat</option>
-            </select>
-          </div>
-
-          <button
-            type="submit"
-            className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition flex items-center gap-2 font-medium shadow-sm"
-          >
-            <Filter className="w-4 h-4" />
-            Apply Filters
-          </button>
-        </div>
-      </Form>
-
-      {/* Leads Table */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Contact
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Source
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Docs
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {leads.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-16 text-center">
-                    <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <Users className="w-8 h-8 text-gray-400" />
-                      </div>
-                      <p className="text-lg font-semibold text-gray-900 mb-1">No leads yet</p>
-                      <p className="text-sm text-gray-500">
-                        Start promoting your landing page to capture leads!
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                leadsWithDocuments.map((lead: typeof leads[number]) => (
-                  <tr key={lead.id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">{lead.name}</div>
-                      {lead.company && (
-                        <div className="text-sm text-gray-500">{lead.company}</div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1.5">
-                        {lead.email && (
-                          <a
-                            href={`mailto:${lead.email}`}
-                            className="text-sm text-violet-600 hover:text-violet-700 hover:underline flex items-center gap-1.5"
-                          >
-                            <Mail className="w-3.5 h-3.5" />
-                            {lead.email}
-                          </a>
-                        )}
-                        {lead.phone && (
-                          <a
-                            href={`tel:${lead.phone}`}
-                            className="text-sm text-gray-600 hover:text-gray-900 hover:underline flex items-center gap-1.5"
-                          >
-                            <Phone className="w-3.5 h-3.5" />
-                            {lead.phone}
-                          </a>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600">{lead.formId}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-full ${
-                          lead.status === 'new'
-                            ? 'bg-blue-100 text-blue-700'
-                            : lead.status === 'contacted'
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : lead.status === 'qualified'
-                            ? 'bg-purple-100 text-purple-700'
-                            : lead.status === 'converted'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-700'
-                        }`}
-                      >
-                        {lead.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5" />
-                        {new Date(lead.createdAt).toLocaleDateString()}
-                      </div>
-                      <div className="text-xs text-gray-400 mt-0.5">
-                        {new Date(lead.createdAt).toLocaleTimeString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {lead.docCount > 0 ? (
-                        <div className="flex items-center gap-1.5">
-                          <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
-                            <FileText className="w-3 h-3 mr-1" />
-                            {lead.docCount} {lead.docCount === 1 ? 'file' : 'files'}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-gray-400">No docs</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Link
-                        to={`/app/leads/${lead.id}`}
-                        className="text-violet-600 hover:text-violet-700 font-medium text-sm inline-flex items-center gap-1"
-                      >
-                        View Details →
-                      </Link>
+       {/* Table */}
+       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+         <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-gray-50 border-b border-gray-200 text-xs font-semibold uppercase text-gray-500 tracking-wider">
+                {table.getHeaderGroups().map(headerGroup => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map(header => (
+                      <th key={header.id} className="px-6 py-4">
+                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {table.getRowModel().rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={columns.length} className="px-6 py-12 text-center text-gray-500">
+                      No leads found.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                ) : (
+                  table.getRowModel().rows.map(row => (
+                    <tr key={row.id} className="hover:bg-gray-50 transition duration-150">
+                      {row.getVisibleCells().map(cell => (
+                        <td key={cell.id} className="px-6 py-4 whitespace-nowrap">
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+         </div>
+         
+         {/* Pagination Controls */}
+         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-end gap-2">
+            <button 
+              onClick={() => setSearchParams(prev => { prev.set('page', String(pagination.page - 1)); return prev })}
+              disabled={pagination.page <= 1 || isLoading}
+              className="p-2 rounded-lg hover:bg-white border border-transparent hover:border-gray-200 disabled:opacity-50"
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-600" />
+            </button>
+            <span className="text-sm text-gray-600">
+              Page {pagination.page}
+            </span>
+            <button 
+              onClick={() => setSearchParams(prev => { prev.set('page', String(pagination.page + 1)); return prev })}
+              disabled={!pagination.hasNext || isLoading}
+              className="p-2 rounded-lg hover:bg-white border border-transparent hover:border-gray-200 disabled:opacity-50"
+            >
+              <ChevronRight className="w-5 h-5 text-gray-600" />
+            </button>
+         </div>
+       </div>
     </div>
   );
 }

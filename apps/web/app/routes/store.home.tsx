@@ -31,6 +31,7 @@ import {
   type StoreCategory,
 } from '~/templates/store-registry';
 import { parseThemeConfig, parseSocialLinks, type ThemeConfig } from '@db/types';
+import { getMVPSettings } from '~/services/mvp-settings.server';
 import type { SectionInstance } from '~/lib/theme-engine/types';
 import { getCustomer } from '~/services/customer-auth.server';
 import { createDb } from '~/lib/db.server';
@@ -209,6 +210,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
   const socialLinks = parseSocialLinks(store.socialLinks as string | null);
   const { storeTemplateId, theme } = resolveStoreTheme(themeConfig, (store.theme as string) || null);
+  const mvpSettings = await getMVPSettings(db, storeId, storeTemplateId);
+  const mergedTheme = {
+    ...theme,
+    primary: mvpSettings.primaryColor || (themeConfig as any)?.primaryColor || theme.primary,
+    accent: mvpSettings.accentColor || (themeConfig as any)?.accentColor || theme.accent,
+  };
 
   // Parse businessInfo
   let businessInfo = null;
@@ -315,13 +322,25 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json(
     {
       storeId,
-      storeName: store.name,
-      logo: store.logo,
-      favicon: store.favicon,
+      storeName: mvpSettings.storeName || store.name,
+      logo: mvpSettings.logo || store.logo,
+      favicon: mvpSettings.favicon || store.favicon,
       currency: store.currency || 'BDT',
       storeTemplateId,
-      theme,
-      themeConfig,
+      theme: mergedTheme,
+      themeConfig: {
+        ...themeConfig,
+        storeName: mvpSettings.storeName,
+        logo: mvpSettings.logo,
+        favicon: mvpSettings.favicon,
+        primaryColor: mvpSettings.primaryColor,
+        accentColor: mvpSettings.accentColor,
+        announcement:
+          mvpSettings.showAnnouncement && mvpSettings.announcementText
+            ? { text: mvpSettings.announcementText }
+            : (themeConfig as any)?.announcement,
+      },
+      mvpSettings,
       socialLinks,
       businessInfo,
       planType: store.planType || 'free',
@@ -366,6 +385,7 @@ export default function StoreHomePage() {
     featuredProducts,
     categories,
     customer,
+    mvpSettings,
   } = useLoaderData<typeof loader>();
 
   // Get the template from registry (OLD SYSTEM - 1000+ line components)
@@ -506,6 +526,7 @@ export default function StoreHomePage() {
             ...safeThemeConfig,
           } as unknown as ThemeConfig
         }
+        mvpSettings={mvpSettings}
         currency={currency}
         socialLinks={socialLinks}
         footerConfig={null}

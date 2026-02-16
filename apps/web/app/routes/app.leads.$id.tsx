@@ -10,8 +10,9 @@ import { drizzle } from 'drizzle-orm/d1';
 import { leadSubmissions, customers, studentDocuments } from '@db/schema';
 import { eq, and, desc, SQL, or } from 'drizzle-orm';
 import { getStoreId, requireUserId } from '~/services/auth.server';
-import { ArrowLeft, Mail, Phone, Building2, Calendar, Globe, Tag, Brain, Save, Loader2, Paperclip } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Building2, Calendar, Globe, Tag, Brain, Save, Loader2 } from 'lucide-react';
 import { Link } from '@remix-run/react';
+import { AdminLeadDocuments } from '~/components/lead-gen/AdminLeadDocuments';
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   await requireUserId(request, context.cloudflare.env);
@@ -37,6 +38,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     fileName: string;
     documentType: string | null;
     createdAt: Date | null;
+    customerId: number | null;
   }> = [];
 
   if (lead.email || lead.phone) {
@@ -65,6 +67,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
               fileName: studentDocuments.fileName,
               documentType: studentDocuments.documentType,
               createdAt: studentDocuments.createdAt,
+              customerId: studentDocuments.customerId,
             })
             .from(studentDocuments)
             .where(
@@ -87,7 +90,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     }
   }
 
-  return json({ lead, relatedDocuments });
+  return json({ lead, relatedDocuments, matchedCustomerId: relatedDocuments.length > 0 ? relatedDocuments[0].customerId : null }); // Hacky: We need to pass matchedCustomer.id properly. Let's do it better.
 }
 
 export async function action({ request, params, context }: ActionFunctionArgs) {
@@ -108,7 +111,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     await db
       .update(leadSubmissions)
       .set({
-        status: status as any,
+        status: status as any, // TODO: Fix type definition for leadSubmissions.status enum
         notes: notes || null,
         updatedAt: new Date(),
         contactedAt: status === 'contacted' ? new Date() : undefined,
@@ -127,7 +130,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 }
 
 export default function LeadDetailPage() {
-  const { lead, relatedDocuments } = useLoaderData<typeof loader>();
+  const { lead, relatedDocuments, matchedCustomerId } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const leadStatus = lead.status ?? 'new';
@@ -230,34 +233,10 @@ export default function LeadDetailPage() {
           )}
 
           {/* Documents */}
-          {allDocuments.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="bg-indigo-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-                <Paperclip className="w-5 h-5 text-indigo-600" />
-                <h2 className="text-lg font-bold text-gray-900">Uploaded Documents</h2>
-              </div>
-              <div className="p-6 space-y-3">
-                {allDocuments.map((doc) => (
-                  <a
-                    key={`${doc.id}-${doc.fileUrl}`}
-                    href={doc.fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 hover:bg-gray-50 transition"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{doc.fileName || 'Document'}</p>
-                      <p className="text-xs text-gray-500">
-                        {doc.documentType || 'general'}
-                        {doc.createdAt ? ` • ${new Date(doc.createdAt).toLocaleDateString()}` : ''}
-                      </p>
-                    </div>
-                    <span className="text-xs font-semibold text-indigo-600">Open</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
+          <AdminLeadDocuments 
+            documents={allDocuments.map(d => ({ ...d, createdAt: d.createdAt ? new Date(d.createdAt) : null }))} 
+            customerId={matchedCustomerId ?? undefined}
+          />
 
           {/* AI Insights */}
           {aiInsights && (
