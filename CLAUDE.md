@@ -112,6 +112,7 @@ ozzyl-monorepo/
 - `/help` - See available commands.
 - `/clear` - clear context (do this often to save tokens).
 - `git status` / `git diff` - Check your changes before asking for more.
+- **Guide**: See `.agent/skills/Claude Code Guide/SKILL.md` for advanced config.
 
 ## 👥 Subagents
 

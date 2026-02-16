@@ -1,68 +1,88 @@
 ---
 name: Claude Code Guide
-description: Master guide for using Claude Code effectively. Includes configuration templates, prompting strategies "Thinking" keywords, debugging techniques, and best practices for interacting with the agent.
+description: Master guide for using Claude Code effectively. Includes configuration, permissions, and subagents.
 ---
 
 # Claude Code Guide
 
-## Purpose
+This guide covers advanced configuration, permission management, and best practices for using Claude Code in this project.
 
-To provide a comprehensive reference for configuring and using Claude Code (the agentic coding tool) to its full potential. This skill synthesizes best practices, configuration templates, and advanced usage patterns.
+## 🛡️ Permissions & Security
 
-## Configuration (`CLAUDE.md`)
+Claude Code is secure by default, interacting with your system only through approved tools.
 
-When starting a new project, create a `CLAUDE.md` file in the root directory to guide the agent.
+### Dangerously Skip Permissions
 
-### Template (General)
+To bypass permission prompts for a session (useful for autonomous tasks or trusted environments), use the `--dangerously-skip-permissions` flag when starting Claude.
 
-```markdown
-# Project Guidelines
-
-## Commands
-
-- Run app: `npm run dev`
-- Test: `npm test`
-- Build: `npm run build`
-
-## Code Style
-
-- Use TypeScript for all new code.
-- Functional components with Hooks for React.
-- Tailwind CSS for styling.
-- Early returns for error handling.
-
-## Workflow
-
-- Read `README.md` first to understand project context.
-- Before editing, read the file content.
-- After editing, run tests to verify.
+```bash
+claude --dangerously-skip-permissions
 ```
 
-## Advanced Features
+**⚠️ Warning**: This allows Claude to execute ANY command (file edits, shell commands) without your approval. Use with caution.
 
-### Thinking Keywords
+### Persistent Permissions (`config.toml`)
 
-Use these keywords in your prompts to trigger deeper reasoning from the agent:
+To permanently skip permissions for tools (like the `--dangerously-skip-permissions` flag but saved), edit `~/.claude/config.toml`:
 
-- "Think step-by-step"
-- "Analyze the root cause"
-- "Plan before executing"
-- "Verify your assumptions"
+```toml
+[permissions]
+# Automatically allow specific tools without asking
+allow = ["Bash", "FileEdit", "Notebook"]
 
-### Debugging
+# Tools that always require approval
+ask = ["WebSearch"]
+```
 
-If the agent is stuck or behaving unexpectedly:
+This runs Claude in "Yellow Mode" (Auto-Approve) for the specified tools.
 
-1. **Clear Context**: Start a new session or ask the agent to "forget previous instructions" if confused.
-2. **Explicit Instructions**: Be extremely specific about paths, filenames, and desired outcomes.
-3. **Logs**: Ask the agent to "check the logs" or "run the command with verbose output".
+## ⚙️ Configuration
 
-## Best Practices
+### Project-Specific Settings
 
-1. **Small Contexts**: Don't dump the entire codebase into the context. Use `grep` or `find` to locate relevant files first.
-2. **Iterative Development**: Ask for small changes, verify, then proceed.
-3. **Feedback Loop**: If the agent makes a mistake, correct it immediately and ask it to "add a lesson" to its memory (if supported) or `CLAUDE.md`.
+Claude Code looks for a `CLAUDE.md` file in the project root for project-specific instructions.
 
-## Reference
+### User Settings (`config.toml`)
 
-Based on [Claude Code Guide by zebbern](https://github.com/zebbern/claude-code-guide).
+Global settings are stored in `~/.claude/config.toml`.
+
+```toml
+[preferred_editor]
+command = "code"
+
+[theme]
+mode = "dark"
+```
+
+## 🤖 Subagents
+
+This project has specialized subagents configured. Invoke them using `@mention` in the CLI.
+
+| Subagent                | Handle                 | Expertise              |
+| :---------------------- | :--------------------- | :--------------------- |
+| **Database Architect**  | `@database-architect`  | D1, SQL, Schema Design |
+| **Frontend Specialist** | `@frontend-specialist` | Remix, React, Tailwind |
+| **QA Engineer**         | `@qa-engineer`         | Tests, Debugging       |
+
+**Example Usage**:
+
+> `@database-architect How do I add a 'loyalty_points' column to the customers table?`
+
+## 🧠 "Thinking" Keywords
+
+Use these keywords in your prompts to trigger specific reasoning modes:
+
+- **"Think step-by-step"**: Forces a detailed plan before execution. Good for complex refactors.
+- **"Analyze root cause"**: Useful for debugging.
+- **"Verify assumptions"**: When you're unsure if the info is correct.
+
+## 🧩 Common Issues
+
+### "Command not found: claude"
+
+Ensure Claude Code is installed and in your PATH.
+`npm install -g @anthropic-ai/claude-code`
+
+### "Permission denied"
+
+Check your file permissions or use `sudo` if absolutely necessary (not recommended for Claude).

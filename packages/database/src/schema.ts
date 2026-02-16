@@ -2972,6 +2972,59 @@ export type LeadSubmission = typeof leadSubmissions.$inferSelect;
 export type NewLeadSubmission = typeof leadSubmissions.$inferInsert;
 
 // ============================================================================
+// STUDENT DOCUMENTS TABLE - Student portal uploads
+// ============================================================================
+export const studentDocuments = sqliteTable(
+  'student_documents',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    customerId: integer('customer_id')
+      .notNull()
+      .references(() => customers.id, { onDelete: 'cascade' }),
+    fileUrl: text('file_url').notNull(),
+    fileKey: text('file_key').notNull(),
+    fileName: text('file_name').notNull(),
+    fileType: text('file_type').notNull(),
+    fileSize: integer('file_size').notNull(),
+    documentType: text('document_type').default('other'),
+    status: text('status').$type<'uploaded' | 'reviewed' | 'approved' | 'rejected'>().default('uploaded'),
+    notes: text('notes'),
+    reviewedBy: integer('reviewed_by').references(() => users.id, { onDelete: 'set null' }),
+    reviewedAt: integer('reviewed_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_student_documents_store').on(table.storeId),
+    index('idx_student_documents_customer').on(table.customerId),
+    index('idx_student_documents_type').on(table.storeId, table.documentType),
+    index('idx_student_documents_status').on(table.storeId, table.status),
+    index('idx_student_documents_created').on(table.storeId, table.createdAt),
+  ]
+);
+
+export const studentDocumentsRelations = relations(studentDocuments, ({ one }) => ({
+  store: one(stores, {
+    fields: [studentDocuments.storeId],
+    references: [stores.id],
+  }),
+  customer: one(customers, {
+    fields: [studentDocuments.customerId],
+    references: [customers.id],
+  }),
+  reviewer: one(users, {
+    fields: [studentDocuments.reviewedBy],
+    references: [users.id],
+  }),
+}));
+
+export type StudentDocument = typeof studentDocuments.$inferSelect;
+export type NewStudentDocument = typeof studentDocuments.$inferInsert;
+
+// ============================================================================
 // SUPPORT TICKETS TABLE
 // ============================================================================
 export const supportTickets = sqliteTable(
@@ -3085,4 +3138,3 @@ export const leadGenSubmissionsRelations = relations(leadGenSubmissions, ({ one 
     references: [customers.id],
   }),
 }));
-
