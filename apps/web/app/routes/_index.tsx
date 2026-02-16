@@ -48,7 +48,7 @@ import {
   resolveStoreTemplateId,
   type SerializedProduct,
 } from '~/templates/store-registry';
-import { getMVPSettings } from '~/services/mvp-settings.server';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 import { parseSocialLinks, parseFooterConfig } from '@db/types';
 // import { createDb } from '~/lib/db.server';
 import { getCustomer } from '~/services/customer-auth.server';
@@ -137,15 +137,10 @@ export const meta: MetaFunction = ({ data }) => {
       seo?.seoDescription ||
       `Shop the best products at ${loaderData.storeName}`;
 
-    return [
-      { title },
-      { name: 'description', content: description },
-    ];
+    return [{ title }, { name: 'description', content: description }];
   }
 
-  return [
-    { title: loaderData.storeName || 'Store' },
-  ];
+  return [{ title: loaderData.storeName || 'Store' }];
 };
 
 // ============================================================================
@@ -285,7 +280,10 @@ function parseJsonSafe<T = Record<string, unknown>>(json: string | null | undefi
  *
  * This does NOT persist to DB; it only affects rendering.
  */
-function ensureHomepageHasCatalogSection(themeConfig: ThemeConfig | null | undefined, hasProducts: boolean) {
+function ensureHomepageHasCatalogSection(
+  themeConfig: ThemeConfig | null | undefined,
+  hasProducts: boolean
+) {
   if (!themeConfig || !hasProducts) return themeConfig || null;
 
   const sections = Array.isArray(themeConfig.sections) ? themeConfig.sections : null;
@@ -444,7 +442,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
     try {
       // Import lead gen modules
       const { getLeadGenSettings } = await import('~/services/lead-gen-settings.server');
-      
+
       // Get theme ID from config
       let themeId = 'professional-services';
       if ((validatedStore as Store & { leadGenConfig?: string | null }).leadGenConfig) {
@@ -463,7 +461,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
 
       // Get customer if logged in (for header state)
       const customer = await getCustomer(request, cloudflare.env, cloudflare.env.DB);
-      
+
       // Return lead gen mode data
       return json({
         mode: 'lead_gen',
@@ -471,12 +469,14 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
         storeName: validatedStore.name,
         themeId,
         settings: leadGenSettings,
-        customer: customer ? {
-          id: customer.id,
-          name: customer.name ?? '',
-          email: customer.email ?? '',
-          imageUrl: undefined
-        } : null,
+        customer: customer
+          ? {
+              id: customer.id,
+              name: customer.name ?? '',
+              email: customer.email ?? '',
+              imageUrl: undefined,
+            }
+          : null,
       });
     } catch (error) {
       console.error('[LOADER] Lead gen mode error:', error);
@@ -593,6 +593,9 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       (validatedStore.theme as string) || null
     );
 
+    // Get base theme colors from registry
+    const baseTheme = getStoreTemplateTheme(storeTemplateId);
+
     // Fetch category data from collections first (includes image_url).
     const collectionsQuery = db
       .select({
@@ -611,8 +614,9 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       'Database query timed out while fetching collections'
     );
 
-    const sortedCollections = [...storeCollections]
-      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    const sortedCollections = [...storeCollections].sort(
+      (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
+    );
 
     const collectionCategories = sortedCollections
       .map((c) => c.title)
@@ -642,20 +646,21 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
 
     const categories = collectionCategories.length > 0 ? collectionCategories : productCategories;
 
-    // Get base theme colors from registry
-    const baseTheme = getStoreTemplateTheme(storeTemplateId);
+    // Get unified storefront settings (single source of truth)
+    const unifiedSettings = await getUnifiedStorefrontSettings(db, validatedStoreId, {
+      enableFallback: true,
+    });
 
-    // Get MVP settings for theme colors
-    const mvpSettings = await getMVPSettings(db, validatedStoreId, storeTemplateId);
-
-    // Merge MVP colors with template theme
-    // Priority: mvpSettings > storeThemeConfig > baseTheme defaults
-    // This ensures cross-page consistency with other routes that use resolveStoreTheme()
+    // Use unified settings for theme colors
     const mergedTheme = {
       ...baseTheme,
-      primary: mvpSettings.primaryColor || storeThemeConfig?.primaryColor || baseTheme.primary,
-      accent: mvpSettings.accentColor || storeThemeConfig?.accentColor || baseTheme.accent,
+      primary: unifiedSettings.theme.primary,
+      accent: unifiedSettings.theme.accent,
     };
+
+    // Use unified settings for branding
+    const storeName = unifiedSettings.branding.storeName;
+    const logo = unifiedSettings.branding.logo;
 
     // Parse social links, footer config, business info
     const socialLinks = parseSocialLinks(validatedStore.socialLinks as string | null);
@@ -681,9 +686,9 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
     const storeData: StoreModeData = {
       mode: 'store',
       storeId: validatedStoreId,
-      storeName: validatedStore.name || mvpSettings.storeName || 'Store',
-      logo: mvpSettings.logo || validatedStore.logo || null,
-      favicon: validatedStore.favicon || null,
+      storeName: storeName || validatedStore.name || 'Store',
+      logo: logo || validatedStore.logo || null,
+      favicon: unifiedSettings.branding.favicon || validatedStore.favicon || null,
       fontFamily: validatedStore.fontFamily || 'inter',
       currency: validatedStore.currency || 'BDT',
       storeTemplateId,
@@ -691,9 +696,18 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       products: serializedProducts,
       categories,
       currentCategory: category,
-      socialLinks,
+      socialLinks: {
+        facebook: unifiedSettings.social.facebook ?? undefined,
+        instagram: unifiedSettings.social.instagram ?? undefined,
+        whatsapp: unifiedSettings.social.whatsapp ?? undefined,
+        twitter: unifiedSettings.social.twitter ?? undefined,
+      },
       footerConfig,
-      businessInfo,
+      businessInfo: {
+        phone: unifiedSettings.business.phone ?? undefined,
+        email: unifiedSettings.business.email ?? undefined,
+        address: unifiedSettings.business.address ?? undefined,
+      },
       themeConfig: {
         ...(ensureHomepageHasCatalogSection(storeThemeConfig, serializedProducts.length > 0) || {}),
         categoryImageMap,
@@ -701,7 +715,8 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       planType: validatedStore.planType || 'free',
       // AI Props
       aiCredits: (validatedStore as Store & { aiCredits?: number }).aiCredits ?? 0,
-      isCustomerAiEnabled: (validatedStore as Store & { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled ?? false,
+      isCustomerAiEnabled:
+        (validatedStore as Store & { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled ?? false,
       // Explicitly null for store mode
       featuredProduct: null,
       landingConfig: null,
@@ -732,15 +747,11 @@ export default function Index() {
       ? data.landingConfig?.templateId || DEFAULT_LANDING_TEMPLATE_ID
       : DEFAULT_LANDING_TEMPLATE_ID;
   const [LandingTemplateComponent, setLandingTemplateComponent] =
-    useState<ComponentType<
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      any
-    > | null>(null);
+    useState<ComponentType<// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    any> | null>(null);
   const [PreviewTemplateComponent, setPreviewTemplateComponent] =
-    useState<ComponentType<
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      any
-    > | null>(null);
+    useState<ComponentType<// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    any> | null>(null);
 
   // Check for edit mode via URL param (for merchant editing)
   const isEditMode = searchParams.get('edit') === 'true';
@@ -802,11 +813,15 @@ export default function Index() {
   // ========== LEAD GEN MODE (NEW) ==========
   if (data.mode === 'lead_gen') {
     const LeadGenRenderer = lazy(() => import('~/components/lead-gen/LeadGenRenderer'));
-    
+
     return (
-      <Suspense fallback={<div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>}>
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        }
+      >
         <LeadGenRenderer
           themeId={data.themeId}
           settings={data.settings}
