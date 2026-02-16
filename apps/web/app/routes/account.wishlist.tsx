@@ -1,15 +1,14 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
-import { useLoaderData, Link, useFetcher } from '@remix-run/react';
+import { useLoaderData, Link, useFetcher, useNavigate } from '@remix-run/react';
 import { resolveStore } from '~/lib/store.server';
 import { getCustomerId } from '~/services/customer-auth.server';
 import { getCustomerWishlist, removeFromWishlist } from '~/services/customer-account.server';
 import {
   Heart,
   ShoppingBag,
-  X
+  Trash2
 } from 'lucide-react';
 import { Button } from '~/components/ui/button';
-import { Badge } from '~/components/ui/Badge';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { drizzle } from 'drizzle-orm/d1';
 import * as schema from '@db/schema';
@@ -62,6 +61,7 @@ export default function AccountWishlist() {
   const { wishlistItems, storeCurrency } = useLoaderData<typeof loader>();
   const { t } = useTranslation();
   const fetcher = useFetcher();
+  const navigate = useNavigate();
 
   // Optimistic UI could be added here, but for now relying on revalidation
 
@@ -97,77 +97,93 @@ export default function AccountWishlist() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {wishlistItems.map((item) => (
-            <div 
-                key={item.id} 
-                className="group relative bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300"
-            >
-                {/* Remove Button */}
-                <fetcher.Form method="post" className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <input type="hidden" name="intent" value="delete" />
-                    <input type="hidden" name="itemId" value={item.id} />
-                    <button 
-                        type="submit"
-                        className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors shadow-sm"
-                        title={t('removeFromWishlist')}
-                    >
-                        <X className="h-4 w-4" />
-                    </button>
-                </fetcher.Form>
+          {wishlistItems.map((item) => {
+            const isAvailable = (item.inventory || 0) > 0;
+            return (
+              <div 
+                  key={item.id} 
+                  className="group relative bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300"
+              >
+                {/* Image Area */}
+                <div 
+                  className="aspect-[4/3] bg-slate-100 relative overflow-hidden cursor-pointer"
+                  onClick={() => navigate(`/products/${item.productId}`)}
+                >
+                   {item.imageUrl ? (
+                      <img 
+                        src={item.imageUrl} 
+                        alt={item.title} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                   ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-300">
+                         <ShoppingBag className="w-12 h-12 opacity-30" />
+                      </div>
+                   )}
+                   
+                   {/* Remove Button (Hover visible) */}
+                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <fetcher.Form method="post">
+                         <input type="hidden" name="itemId" value={item.id} />
+                         <button 
+                           type="submit" 
+                           name="intent" 
+                           value="delete"
+                           className="p-2 bg-white/90 backdrop-blur-sm rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 shadow-sm transition-colors"
+                           title={t('removeFromWishlist') || "Remove"}
+                         >
+                            <Trash2 className="w-4 h-4" />
+                         </button>
+                      </fetcher.Form>
+                   </div>
 
-                {/* Image */}
-                <div className="aspect-square bg-muted/30 relative overflow-hidden">
-                    {item.imageUrl ? (
-                        <img 
-                            src={item.imageUrl} 
-                            alt={item.title || 'Product'} 
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                        />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                            <ShoppingBag className="h-10 w-10 opacity-20" />
-                        </div>
-                    )}
-                    
-                    {/* Stock Badge */}
-                    <div className="absolute bottom-3 left-3">
-                        {item.inventory && item.inventory > 0 ? (
-                            <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800">
-                                {t('inStock')}
-                            </Badge>
-                        ) : (
-                            <Badge variant="destructive" className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800">
-                                {t('outOfStock')}
-                            </Badge>
-                        )}
-                    </div>
+                   {/* Stock Status Badge */}
+                   {!isAvailable && (
+                      <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center">
+                         <span className="bg-slate-900 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                           {t('outOfStock') || 'Out of Stock'}
+                         </span>
+                      </div>
+                   )}
                 </div>
 
-                {/* Content */}
-                <div className="p-4 space-y-3">
-                    <div>
-                        <Link to={`/products/${item.productId}`} className="font-semibold hover:text-primary transition-colors line-clamp-1 block">
-                            {item.title}
-                        </Link>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="font-bold text-lg">{storeCurrency} {item.price}</span>
-                            {item.compareAtPrice && item.compareAtPrice > item.price && (
-                                <span className="text-sm text-muted-foreground line-through decoration-destructive/50">
-                                    {storeCurrency} {item.compareAtPrice}
-                                </span>
-                            )}
-                        </div>
-                    </div>
+                {/* Content Area */}
+                <div className="p-4 flex flex-col flex-1">
+                   <div className="mb-auto">
+                      <h3 
+                        className="font-bold text-slate-900 line-clamp-2 mb-1 group-hover:text-primary transition-colors cursor-pointer"
+                        onClick={() => navigate(`/products/${item.productId}`)}
+                      >
+                        {item.title}
+                      </h3>
+                      <p className="text-slate-500 text-xs mb-3">
+                         Added on {item.addedAt ? new Date(item.addedAt).toLocaleDateString() : 'N/A'}
+                      </p>
+                   </div>
 
-                    <Button asChild className="w-full rounded-full gap-2" size="sm">
-                        <Link to={`/products/${item.productId}`}>
-                            <ShoppingBag className="h-3.5 w-3.5" />
-                            {t('viewProduct')}
-                        </Link>
-                    </Button>
+                   <div className="flex items-end justify-between gap-4 pt-4 border-t border-slate-50 mt-4">
+                      <div className="flex flex-col">
+                          <span className="text-lg font-bold text-slate-900">
+                            {storeCurrency === 'BDT' ? '৳' : '$'}{item.price}
+                          </span>
+                          {item.compareAtPrice && item.compareAtPrice > item.price && (
+                              <span className="text-sm text-muted-foreground line-through decoration-destructive/50">
+                                  {storeCurrency === 'BDT' ? '৳' : '$'}{item.compareAtPrice}
+                              </span>
+                          )}
+                      </div>
+                      
+                      <Button asChild className="rounded-full gap-2" size="sm">
+                          <Link to={`/products/${item.productId}`}>
+                              <ShoppingBag className="h-3.5 w-3.5" />
+                              {t('viewProduct')}
+                          </Link>
+                      </Button>
+                   </div>
                 </div>
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

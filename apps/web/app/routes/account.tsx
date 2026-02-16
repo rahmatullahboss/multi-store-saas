@@ -120,10 +120,10 @@ export default function AccountLayout() {
       config={themeConfig}
       hideHeaderFooter={true} // Using custom account header/footer for consistency
     >
-      <div className="flex min-h-screen bg-slate-50 text-slate-800 transition-colors duration-200 font-display">
+      <div className="flex min-h-screen bg-slate-50/50 text-slate-800 transition-colors duration-200 font-sans antialiased selection:bg-primary/10 selection:text-primary">
         
         {/* Desktop Sidebar */}
-        <div className="hidden lg:block fixed h-full z-20">
+        <div className="hidden lg:block fixed h-full z-20 w-64 p-4">
           <AccountSidebar user={user} theme={theme} />
         </div>
 
@@ -143,13 +143,15 @@ export default function AccountLayout() {
 
           {/* Mobile Sidebar Sheet */}
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-            <SheetContent side="left" className="p-0 w-64 border-r border-slate-200">
-              <AccountSidebar user={user} theme={theme} />
+            <SheetContent side="left" className="p-0 w-72 border-r border-slate-200">
+               <div className="p-4 h-full"> 
+                 <AccountSidebar user={user} theme={theme} />
+               </div>
             </SheetContent>
           </Sheet>
 
           {/* Page Content */}
-          <main className="p-6 md:p-8 max-w-7xl mx-auto w-full">
+          <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full animate-in fade-in duration-500 slide-in-from-bottom-2">
             <Outlet />
           </main>
         </div>

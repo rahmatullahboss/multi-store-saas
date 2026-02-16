@@ -13,6 +13,7 @@ import { getStoreId, requireUserId } from '~/services/auth.server';
 import { ArrowLeft, Mail, Phone, Building2, Calendar, Globe, Tag, Brain, Save, Loader2 } from 'lucide-react';
 import { Link } from '@remix-run/react';
 import { AdminLeadDocuments } from '~/components/lead-gen/AdminLeadDocuments';
+import { UserPlus } from 'lucide-react';
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   await requireUserId(request, context.cloudflare.env);
@@ -111,6 +112,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     await db
       .update(leadSubmissions)
       .set({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         status: status as any, // TODO: Fix type definition for leadSubmissions.status enum
         notes: notes || null,
         updatedAt: new Date(),
@@ -124,6 +126,23 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       );
 
     return json({ success: true });
+  }
+
+  if (action === 'convert_customer') {
+     // TODO: Implement actual customer creation logic (mocked for now)
+     // 1. Create customer record
+     // 2. Link documents
+     // 3. Update lead status
+     
+     await db
+      .update(leadSubmissions)
+      .set({ 
+        status: 'converted',
+        updatedAt: new Date()
+      })
+      .where(and(eq(leadSubmissions.id, id), eq(leadSubmissions.storeId, storeId)));
+      
+     return json({ success: true });
   }
 
   return redirect(`/app/leads/${params.id}`);
@@ -165,9 +184,25 @@ export default function LeadDetailPage() {
           <ArrowLeft className="w-4 h-4" />
           Back to Leads
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Lead Details</h1>
-      </div>
+        <div className="flex items-center justify-between">
+           <h1 className="text-2xl font-bold text-gray-900">Lead Details</h1>
+           {lead.status !== 'converted' && (
+             <Form method="post">
+                <input type="hidden" name="_action" value="convert_customer" />
+                <button 
+                  type="submit"
+                  className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 font-medium transition shadow-sm"
+                  onClick={e => !confirm('Convert this lead to a registered customer?') && e.preventDefault()}
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Convert to Customer
+                </button>
+             </Form>
+           )}
+        </div>
 
+        </div>
+      
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">

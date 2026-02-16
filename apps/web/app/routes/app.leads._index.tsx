@@ -5,48 +5,37 @@
 
 import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link, Form, useSearchParams, useSubmit, useNavigation } from '@remix-run/react';
+import { useLoaderData, Link, Form, useSearchParams, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { leadSubmissions, customers, studentDocuments } from '@db/schema';
-import { eq, desc, and, sql, gte, or, like, inArray, count } from 'drizzle-orm';
+import { leadSubmissions } from '@db/schema';
+import { eq, desc, and, sql, or, like } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
 import {
-  Download,
-  Mail,
-  Phone,
-  Calendar,
-  Filter,
-  TrendingUp,
-  Users,
   CheckCircle,
-  Settings2,
-  Megaphone,
-  FileText,
-  Search,
   ChevronLeft,
   ChevronRight,
-  ArrowUpDown,
-  MoreHorizontal,
   Eye,
-  Trash
+  FileText,
+  Mail,
+  Megaphone,
+  Phone,
+  Search,
+  Settings2,
+  Users,
 } from 'lucide-react';
 import {
-  useReactTable,
-  getCoreRowModel,
-  flexRender,
   createColumnHelper,
-  getSortedRowModel,
-  getPaginationRowModel, // We will use manual pagination but this helper is good
-  type SortingState,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
 } from '@tanstack/react-table';
-import { useState, useEffect } from 'react';
 
 // --- Types ---
 
 export type UnifiedLead = {
-  id: string; // "c_123" or "l_456"
+  id: string; // "l_456"
   originalId: number;
-  type: 'customer' | 'submission';
+  type: 'submission';
   name: string;
   email: string | null;
   phone: string | null;
@@ -54,7 +43,7 @@ export type UnifiedLead = {
   status: string;
   createdAt: string; // ISO string
   docCount: number;
-  details?: any; // Extra info
+  details?: unknown; // Extra info
 };
 
 // --- Loader ---
@@ -70,74 +59,42 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Params
   const search = url.searchParams.get('q') || '';
   const status = url.searchParams.get('status') || 'all';
-  const type = url.searchParams.get('type') || 'all'; // 'customer' | 'submission'
   const page = parseInt(url.searchParams.get('page') || '1');
   const pageSize = parseInt(url.searchParams.get('size') || '20');
   const sort = url.searchParams.get('sort') || 'createdAt';
   const order = url.searchParams.get('order') || 'desc';
 
-  // --- Fetch Customers ---
-  const customerConditions = [eq(customers.storeId, storeId)];
-  if (search) {
-    customerConditions.push(
-      or(
-        like(customers.name, `%${search}%`),
-        like(customers.email, `%${search}%`),
-        like(customers.phone, `%${search}%`)
-      )
-    );
-  }
-  if (status !== 'all' && status !== 'new') { // 'new' is mostly for leads
-    customerConditions.push(eq(customers.status, status as any));
-  }
-
   // --- Fetch Leads ---
   const leadConditions = [eq(leadSubmissions.storeId, storeId)];
   if (search) {
-    leadConditions.push(
-      or(
-        like(leadSubmissions.name, `%${search}%`),
-        like(leadSubmissions.email, `%${search}%`),
-        like(leadSubmissions.phone, `%${search}%`)
-      )
+    const searchCondition = or(
+      like(leadSubmissions.name, `%${search}%`),
+      like(leadSubmissions.email, `%${search}%`),
+      like(leadSubmissions.phone, `%${search}%`)
     );
+    if (searchCondition) {
+      leadConditions.push(searchCondition);
+    }
   }
+
+// ... imports
+
   if (status !== 'all') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     leadConditions.push(eq(leadSubmissions.status, status as any));
   }
 
   // Execute Queries (Parallel)
-  const [customerResults, leadResults, stats] = await Promise.all([
-    // 1. Customers
-    type !== 'submission'
-      ? db
-          .select({
-            id: customers.id,
-            name: customers.name,
-            email: customers.email,
-            phone: customers.phone,
-            status: customers.status,
-            createdAt: customers.createdAt,
-            // Get doc count
-            docQuery: sql<number>`(SELECT count(*) FROM student_documents WHERE student_documents.customer_id = customers.id)`
-          })
-          .from(customers)
-          .where(and(...customerConditions))
-          .orderBy(desc(customers.createdAt))
-          .limit(pageSize * 2) // Over-fetch slightly for mixing
-      : Promise.resolve([]),
-
-    // 2. Leads
-    type !== 'customer'
-      ? db
-          .select()
-          .from(leadSubmissions)
-          .where(and(...leadConditions))
-          .orderBy(desc(leadSubmissions.createdAt))
-          .limit(pageSize * 2)
-      : Promise.resolve([]),
+  const [leadResults, stats] = await Promise.all([
+    // 1. Leads
+    db
+      .select()
+      .from(leadSubmissions)
+      .where(and(...leadConditions))
+      .orderBy(desc(leadSubmissions.createdAt))
+      .limit(pageSize * 2),
       
-    // 3. Stats
+    // 2. Stats
     db
     .select({
       totalLeads: sql<number>`count(*)`,
@@ -147,21 +104,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .where(eq(leadSubmissions.storeId, storeId))
   ]);
   
-  // Transform & Merge
-  const unifiedCustomers: UnifiedLead[] = (customerResults as any[]).map(c => ({
-    id: `c_${c.id}`,
-    originalId: c.id,
-    type: 'customer',
-    name: c.name || 'Unknown',
-    email: c.email,
-    phone: c.phone,
-    source: 'Signup',
-    status: c.status,
-    createdAt: c.createdAt ? new Date(c.createdAt).toISOString() : new Date().toISOString(),
-    docCount: c.docQuery || 0,
-  }));
-
-  const unifiedLeads: UnifiedLead[] = (leadResults as any[]).map(l => ({
+  // Transform
+  const unifiedLeads: UnifiedLead[] = leadResults.map(l => ({
     id: `l_${l.id}`,
     originalId: l.id,
     type: 'submission',
@@ -174,10 +118,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     docCount: 0, // Leads don't have docs yet
   }));
 
-  let allItems = [...unifiedCustomers, ...unifiedLeads];
+  const allItems = unifiedLeads;
 
-  // Client-side Sort (of the fetched batch - ideally fully DB sort but mixing tables is complex without UNION)
-  // For simpler implementation we sort the combined 2*pageSize list
+  // Client-side Sort
   allItems.sort((a, b) => {
     const dateA = new Date(a.createdAt).getTime();
     const dateB = new Date(b.createdAt).getTime();
@@ -185,14 +128,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   });
 
   // Manual Pagination Slice
-  // Note: This is imperfect "window" pagination. Real proper pagination requires SQL UNION.
-  // But for this use case, it's often "good enough" if user mainly sees recent items.
   const paginatedItems = allItems.slice(0, pageSize);
 
   return json({
     leads: paginatedItems,
     stats: stats[0] || { totalLeads: 0, converted: 0 },
-    filters: { search, status, type, sort, order },
+    filters: { search, status, sort, order },
     pagination: { page, pageSize, hasNext: allItems.length > pageSize }
   });
 }
@@ -203,8 +144,7 @@ const columnHelper = createColumnHelper<UnifiedLead>();
 
 export default function UnifiedLeadsPage() {
   const { leads, stats, filters, pagination } = useLoaderData<typeof loader>();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const submit = useSubmit();
+  const [, setSearchParams] = useSearchParams();
   const navigation = useNavigation();
   const isLoading = navigation.state === 'loading';
 
@@ -240,13 +180,9 @@ export default function UnifiedLeadsPage() {
     }),
     columnHelper.accessor('type', {
       header: 'Type',
-      cell: info => (
-        <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium border ${
-          info.getValue() === 'customer' 
-            ? 'bg-blue-50 text-blue-700 border-blue-100' 
-            : 'bg-orange-50 text-orange-700 border-orange-100'
-        }`}>
-          {info.getValue() === 'customer' ? 'Student' : 'Form Lead'}
+      cell: () => (
+        <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium border bg-white border-gray-200 text-gray-500">
+          Lead
         </span>
       )
     }),
@@ -285,13 +221,10 @@ export default function UnifiedLeadsPage() {
       header: 'Actions',
       cell: props => (
         <div className="flex justify-end gap-2">
-           <Link 
-             to={props.row.original.type === 'customer' 
-               ? `/app/customers/${props.row.original.originalId}` // TODO: Update to specialized customer view?
-               : `/app/leads/${props.row.original.originalId}`
-             }
-             className="p-2 hover:bg-gray-100 rounded text-gray-500 hover:text-violet-600"
-           >
+            <Link 
+              to={`/app/leads/${props.row.original.originalId}`}
+              className="p-2 hover:bg-gray-100 rounded text-gray-500 hover:text-violet-600"
+            >
              <Eye className="w-4 h-4" />
            </Link>
         </div>
@@ -303,7 +236,6 @@ export default function UnifiedLeadsPage() {
     data: leads,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    startTransition: undefined, // Remix handles transition
   });
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -367,17 +299,7 @@ export default function UnifiedLeadsPage() {
             />
          </Form>
          
-         <div className="flex gap-2 w-full md:w-auto">
-            <select 
-              value={filters.type}
-              onChange={(e) => setSearchParams(prev => { prev.set('type', e.target.value); return prev; })}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
-            >
-              <option value="all">All Types</option>
-              <option value="submission">Form Leads</option>
-              <option value="customer">Registered Students</option>
-            </select>
-         </div>
+
        </div>
 
        {/* Table */}

@@ -10,7 +10,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Package,
-  Truck,
   CheckCircle2,
   Clock,
   Hourglass,
@@ -55,184 +54,54 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json({ orders, pagination, storeCurrency: store.currency, status, search });
 }
 
-export default function AccountOrders() {
-  const {
-    orders,
-    pagination,
-    storeCurrency,
-    status: currentStatus,
-    search: currentSearch,
-  } = useLoaderData<typeof loader>();
-  const { t } = useTranslation();
-  const [searchParams] = useSearchParams();
-  const submit = useSubmit();
-  const navigation = useNavigation();
-  const isLoading = navigation.state === 'loading';
-
-  // Status Tabs Configuration
-  const tabs = [
-    { id: 'all', label: 'All Orders' },
-    { id: 'pending', label: 'To Pay' }, // Mapping 'pending' to 'To Pay' based on design context, or maybe 'To Pay' is a specific status? Assuming pending for now.
-    { id: 'processing', label: 'To Ship' },
-    { id: 'shipped', label: 'To Receive' },
-    { id: 'delivered', label: 'Completed' },
-    { id: 'cancelled', label: 'Cancelled' },
-  ];
-
-  // Function to handle tab change
-  const handleTabChange = (statusId: string) => {
-    // preserve other params? usually just status reset page
-    const params = new URLSearchParams(searchParams);
-    if (statusId === 'all') {
-      params.delete('status');
-    } else {
-      params.set('status', statusId);
-    }
-    params.set('page', '1'); // Reset to page 1
-    submit(params); // Using GET default
-  };
-
-  return (
-    <div className="flex-1 min-w-0 font-display">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">{t('orderHistory') || 'Order History'}</h1>
-        
-        {/* Search within orders */}
-        <div className="relative w-full sm:w-auto">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-            <Search className="h-5 w-5" />
-          </span>
-          <Form method="get" className="w-full">
-            {currentStatus !== 'all' && <input type="hidden" name="status" value={currentStatus} />}
-            <input type="hidden" name="page" value="1" />
-            <input
-              name="q"
-              className="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all placeholder:text-slate-400 text-slate-900"
-              placeholder={t('searchOrders') || "Search orders..."}
-              type="text"
-              defaultValue={currentSearch}
-            />
-          </Form>
-        </div>
-      </div>
-
-      {/* Filter Tabs */}
-      <div className="flex overflow-x-auto pb-4 mb-6 gap-2 no-scrollbar">
-        {tabs.map((tab) => {
-          const isActive = (currentStatus === 'all' && tab.id === 'all') || currentStatus === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => handleTabChange(tab.id)}
-              className={cn(
-                "px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all",
-                isActive 
-                  ? "bg-primary text-white shadow-lg shadow-primary/25 hover:scale-105" 
-                  : "bg-white text-slate-600 border border-slate-200 hover:border-primary hover:text-primary"
-              )}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Orders List */}
-      <div className={cn("space-y-6", isLoading && "opacity-50 pointer-events-none")}>
-        {orders.length === 0 ? (
-           <div className="text-center py-20 bg-white rounded-xl border border-dashed border-slate-200">
-             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-                <ShoppingBag className="h-8 w-8" />
-             </div>
-             <p className="text-slate-500">{t('noOrdersFound') || "No orders found"}</p>
-             <Button asChild variant="link" className="mt-2 text-primary">
-                <Link to="/products">Start Shopping</Link>
-             </Button>
-           </div>
-        ) : (
-          orders.map((order) => (
-            <OrderCard key={order.id} order={order} currency={storeCurrency || 'BDT'} />
-          ))
-        )}
-      </div>
-
-      {/* Pagination */}
-      {pagination.totalPages > 1 && (
-        <div className="mt-10 flex justify-center">
-          <nav className="flex items-center gap-2">
-            <Link
-              to={`?page=${Math.max(1, pagination.page - 1)}${currentStatus !== 'all' ? `&status=${currentStatus}` : ''}${currentSearch ? `&q=${encodeURIComponent(currentSearch)}` : ''}`}
-              className={cn(
-                "h-10 w-10 flex items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors",
-                pagination.page <= 1 && "pointer-events-none opacity-50"
-              )}
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Link>
-            
-            {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                const p = i + 1; 
-                const isActive = p === pagination.page;
-                return (
-                    <Link
-                        key={p}
-                        to={`?page=${p}${currentStatus !== 'all' ? `&status=${currentStatus}` : ''}${currentSearch ? `&q=${encodeURIComponent(currentSearch)}` : ''}`}
-                        className={cn(
-                            "h-10 w-10 flex items-center justify-center rounded-full transition-colors",
-                            isActive 
-                                ? "bg-primary text-white font-medium shadow-md shadow-primary/30" 
-                                : "text-slate-600 hover:bg-slate-100"
-                        )}
-                    >
-                        {p}
-                    </Link>
-                )
-            })}
-            
-            <Link
-              to={`?page=${Math.min(pagination.totalPages, pagination.page + 1)}${currentStatus !== 'all' ? `&status=${currentStatus}` : ''}${currentSearch ? `&q=${encodeURIComponent(currentSearch)}` : ''}`}
-              className={cn(
-                "h-10 w-10 flex items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors",
-                pagination.page >= pagination.totalPages && "pointer-events-none opacity-50"
-              )}
-            >
-              <ChevronRight className="h-5 w-5" />
-            </Link>
-          </nav>
-        </div>
-      )}
-    </div>
-  );
-}
-
 function OrderCard({ order, currency }: { order: SerializeFrom<typeof loader>['orders'][number], currency: string }) {
     const date = order.createdAt ? new Date(order.createdAt) : new Date();
     
-    const getStatusInfo = (status: string) => {
+    // Helper to determine display status
+    const getStatusInfo = (paymentStatus: string | null, orderStatus: string | null) => {
+        // Check order status first for cancellation
+        if (orderStatus === 'cancelled') {
+             return {
+                label: 'Cancelled',
+                colorClass: 'bg-red-100 text-red-700',
+                icon: RefreshCcw,
+                progress: 0,
+                progressColor: 'bg-red-500',
+                message: 'Order has been cancelled.',
+                messageIcon: RefreshCcw,
+                messageIconColor: 'text-red-500'
+            };
+        }
+
+        // Check fulfillment status
+        if (orderStatus === 'delivered') {
+             return {
+                label: 'Delivered',
+                colorClass: 'bg-green-100 text-green-700',
+                icon: CheckCircle2,
+                progress: 100,
+                progressColor: 'bg-green-500',
+                message: `Package was delivered on ${order.updatedAt ? format(new Date(order.updatedAt), 'MMM d, yyyy') : ''}`,
+                messageIcon: Home,
+                messageIconColor: 'text-green-600'
+            };
+        }
+
+        const status = paymentStatus || 'pending';
+
         switch (status) {
-            case 'delivered':
-                return {
-                    label: 'Delivered',
-                    colorClass: 'bg-green-100 text-green-700',
+            case 'paid':
+                 return {
+                    label: 'Paid', // or Processing if we want to show it's moving
+                    colorClass: 'bg-emerald-100 text-emerald-700',
                     icon: CheckCircle2,
-                    progress: 100,
-                    progressColor: 'bg-green-500',
-                    message: `Package was delivered on ${order.updatedAt ? format(new Date(order.updatedAt), 'MMM d, yyyy') : ''}`,
-                    messageIcon: Home,
-                    messageIconColor: 'text-green-600'
+                    progress: 25,
+                    progressColor: 'bg-emerald-500',
+                    message: 'Payment received. Order is being processed.',
+                    messageIcon: CheckCircle2,
+                    messageIconColor: 'text-emerald-600'
                 };
-            case 'shipped':
-                return {
-                    label: 'In Transit',
-                    colorClass: 'bg-primary/10 text-primary',
-                    icon: Truck,
-                    progress: 75,
-                    progressColor: 'bg-primary',
-                    message: 'Your order is on the way.',
-                    messageIcon: Truck,
-                    messageIconColor: 'text-primary'
-                };
-            case 'processing': // or confirmed
+            case 'processing': 
                 return {
                     label: 'Processing',
                     colorClass: 'bg-amber-100 text-amber-700',
@@ -242,17 +111,6 @@ function OrderCard({ order, currency }: { order: SerializeFrom<typeof loader>['o
                     message: 'Seller is preparing your package.',
                     messageIcon: Hourglass,
                     messageIconColor: 'text-amber-500'
-                };
-             case 'cancelled':
-                return {
-                    label: 'Cancelled',
-                    colorClass: 'bg-red-100 text-red-700',
-                    icon: RefreshCcw,
-                    progress: 0,
-                    progressColor: 'bg-red-500',
-                    message: 'Order has been cancelled.',
-                    messageIcon: RefreshCcw,
-                    messageIconColor: 'text-red-500'
                 };
             default: // pending
                 return {
@@ -268,7 +126,7 @@ function OrderCard({ order, currency }: { order: SerializeFrom<typeof loader>['o
         }
     };
 
-    const statusInfo = getStatusInfo(order.status || 'pending');
+    const statusInfo = getStatusInfo(order.paymentStatus, order.status);
     const StatusIcon = statusInfo.icon;
     const MessageIcon = statusInfo.messageIcon;
 
@@ -343,9 +201,6 @@ function OrderCard({ order, currency }: { order: SerializeFrom<typeof loader>['o
                                 </div>
                                 <div>
                                     <h4 className="font-semibold text-slate-900 mb-1 line-clamp-1">{order.items[0].title}</h4>
-                                    <p className="text-sm text-slate-500 mb-2">
-                                        {order.items[0].variantTitle !== 'Default Title' ? order.items[0].variantTitle : ''}
-                                    </p>
                                     <div className="flex items-center gap-2">
                                         <span className="bg-slate-100 px-2 py-0.5 rounded text-xs text-slate-600">x{order.items[0].quantity}</span>
                                     </div>
@@ -388,15 +243,15 @@ function OrderCard({ order, currency }: { order: SerializeFrom<typeof loader>['o
                     <div className="text-right">
                         <p className="text-xs text-slate-400 mb-1">Total Amount</p>
                         <p className="text-xl font-bold text-slate-900">
-                            {currency} {order.total}
+                            {currency === 'BDT' ? '৳' : '$'} {order.total}
                         </p>
                     </div>
                     <div className="flex gap-3 w-full sm:w-auto">
                         <Button asChild variant="outline" className="flex-1 sm:flex-none rounded-full border-slate-200">
                             <Link to={`/account/orders/${order.id}`}>Details</Link>
                         </Button>
-                        <Button asChild className="flex-1 sm:flex-none rounded-full shadow-lg shadow-primary/20">
-                            <Link to={`/account/orders/${order.id}/track`}>
+                        <Button asChild className="flex-1 sm:flex-none rounded-full shadow-lg shadow-primary/20 bg-primary text-white hover:bg-primary/90">
+                            <Link to={`/account/orders/${order.id}`}>
                                 Track Order <ArrowRight className="h-4 w-4 ml-2" />
                             </Link>
                         </Button>
@@ -405,4 +260,160 @@ function OrderCard({ order, currency }: { order: SerializeFrom<typeof loader>['o
             </div>
         </div>
     );
+}
+
+export default function AccountOrders() {
+  const {
+    orders,
+    pagination,
+    storeCurrency,
+    status: currentStatus,
+    search: currentSearch,
+  } = useLoaderData<typeof loader>();
+  const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
+  const submit = useSubmit();
+  const navigation = useNavigation();
+  const isLoading = navigation.state === 'loading';
+
+  // Status Tabs Configuration
+  const tabs = [
+    { id: 'all', label: 'All Orders' },
+    { id: 'pending', label: 'To Pay' },
+    { id: 'processing', label: 'To Ship' },
+    { id: 'shipped', label: 'To Receive' },
+    { id: 'delivered', label: 'Completed' },
+    { id: 'cancelled', label: 'Cancelled' },
+  ];
+
+  // Function to handle tab change
+  const handleTabChange = (statusId: string) => {
+    // preserve other params? usually just status reset page
+    const params = new URLSearchParams(searchParams);
+    if (statusId === 'all') {
+      params.delete('status');
+    } else {
+      params.set('status', statusId);
+    }
+    params.set('page', '1'); // Reset to page 1
+    submit(params); // Using GET default
+  };
+
+  return (
+    <div className="flex-1 min-w-0 font-display animate-in fade-in duration-500 max-w-5xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+           <h1 className="text-3xl font-bold text-slate-900">{t('orderHistory') || 'Order History'}</h1>
+           <p className="text-slate-500 mt-2 text-lg">
+             {t('ordersSubtitle') || 'View and manage your past orders.'}
+           </p>
+        </div>
+        
+        {/* Search within orders */}
+        <div className="relative w-full sm:w-auto">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+            <Search className="h-5 w-5" />
+          </span>
+          <Form method="get" className="w-full">
+            {currentStatus !== 'all' && <input type="hidden" name="status" value={currentStatus} />}
+            <input type="hidden" name="page" value="1" />
+            <input
+              name="q"
+              className="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all placeholder:text-slate-400 text-slate-900 shadow-sm"
+              placeholder={t('searchOrders') || "Search orders..."}
+              type="text"
+              defaultValue={currentSearch}
+            />
+          </Form>
+        </div>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="flex overflow-x-auto pb-4 mb-6 gap-2 no-scrollbar">
+        {tabs.map((tab) => {
+          const isActive = (currentStatus || 'all') === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => handleTabChange(tab.id)}
+              className={cn(
+                "px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all",
+                isActive 
+                  ? "bg-primary text-white shadow-lg shadow-primary/25 hover:scale-105" 
+                  : "bg-white text-slate-600 border border-slate-200 hover:border-primary hover:text-primary"
+              )}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Orders List */}
+      <div className={cn("space-y-6", isLoading && "opacity-50 pointer-events-none")}>
+        {orders.length === 0 ? (
+           <div className="text-center py-20 bg-white rounded-xl border border-dashed border-slate-200">
+             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                <ShoppingBag className="h-8 w-8" />
+             </div>
+             <p className="text-slate-500 text-lg font-medium">{t('noOrdersFound') || "No orders found"}</p>
+             <p className="text-slate-400 max-w-sm mx-auto mt-2 mb-6">We couldn't find any orders matching your criteria.</p>
+             <Button asChild variant="default" className="mt-2 text-white bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 rounded-full px-8">
+                <Link to="/collections/all">Start Shopping</Link>
+             </Button>
+           </div>
+        ) : (
+          orders.map((order) => (
+            <OrderCard key={order.id} order={order} currency={storeCurrency || 'BDT'} />
+          ))
+        )}
+      </div>
+
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="mt-10 flex justify-center">
+          <nav className="flex items-center gap-2 bg-white p-1.5 rounded-full border border-slate-100 shadow-sm">
+            <Link
+              to={`?page=${Math.max(1, pagination.page - 1)}${currentStatus !== 'all' ? `&status=${currentStatus}` : ''}${currentSearch ? `&q=${encodeURIComponent(currentSearch)}` : ''}`}
+              className={cn(
+                "h-10 w-10 flex items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors",
+                pagination.page <= 1 && "pointer-events-none opacity-50"
+              )}
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Link>
+            
+            {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                const p = i + 1; 
+                const isActive = p === pagination.page;
+                return (
+                    <Link
+                        key={p}
+                        to={`?page=${p}${currentStatus !== 'all' ? `&status=${currentStatus}` : ''}${currentSearch ? `&q=${encodeURIComponent(currentSearch)}` : ''}`}
+                        className={cn(
+                            "h-10 w-10 flex items-center justify-center rounded-full transition-colors",
+                            isActive 
+                                ? "bg-primary text-white font-medium shadow-md shadow-primary/30" 
+                                : "text-slate-600 hover:bg-slate-100"
+                        )}
+                    >
+                        {p}
+                    </Link>
+                )
+            })}
+            
+            <Link
+              to={`?page=${Math.min(pagination.totalPages, pagination.page + 1)}${currentStatus !== 'all' ? `&status=${currentStatus}` : ''}${currentSearch ? `&q=${encodeURIComponent(currentSearch)}` : ''}`}
+              className={cn(
+                "h-10 w-10 flex items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors",
+                pagination.page >= pagination.totalPages && "pointer-events-none opacity-50"
+              )}
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Link>
+          </nav>
+        </div>
+      )}
+    </div>
+  );
 }

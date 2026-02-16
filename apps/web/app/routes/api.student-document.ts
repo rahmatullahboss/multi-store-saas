@@ -136,7 +136,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         customerId,
         fileUrl: publicUrl,
         fileKey: key,
-        fileName: file.name || `document.${extension}`,
+        fileName: file.name, // Use original filename
         fileType: contentType,
         fileSize: file.size,
         documentType: sanitizedDocType || 'other',
@@ -192,7 +192,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 /**
  * Handle DELETE request - Delete a document by ID
  */
-async function handleDelete(request: Request, context: any) {
+async function handleDelete(request: Request, context: ActionFunctionArgs['context']) {
   // Get authenticated customer
   const customerId = await getCustomerId(request, context.cloudflare.env);
   const sessionStoreId = await getCustomerStoreId(request, context.cloudflare.env);

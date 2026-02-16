@@ -115,11 +115,8 @@ export function LeadGenFileUpload({
         fileToUpload = new File([compressedBlob], `upload.${extension}`, {
           type: `image/${format}`,
         });
-        console.log(
-          `🖼️ Image compressed: ${file.size} → ${fileToUpload.size} bytes (${Math.round((fileToUpload.size / file.size) * 100)}%)`
-        );
       } else {
-        console.log(`📄 PDF uploaded directly (no compression): ${file.size} bytes`);
+        // PDF uploaded directly
       }
 
       // Upload to R2
