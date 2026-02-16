@@ -139,6 +139,7 @@ export default function AccountLayout() {
             theme={theme}
             onMobileMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             showMobileMenu={isMobileMenuOpen}
+            categories={categories || []}
           />
 
           {/* Mobile Sidebar Sheet */}

@@ -202,7 +202,7 @@ export function StarterStoreTemplate({
                     return (
                       <PreviewSafeLink
                         key={id}
-                        to={`/collections/${encodeURIComponent(title.trim().toLowerCase().replace(/\s+/g, ' ')).replace(/%20/g, '-')}`}
+                        to={`/products/${encodeURIComponent(title.trim().toLowerCase().replace(/\s+/g, ' ')).replace(/%20/g, '-')}`}
                         isPreview={isPreview}
                         className="relative aspect-square rounded-xl overflow-hidden group"
                         style={{ backgroundColor: theme.cardBg }}

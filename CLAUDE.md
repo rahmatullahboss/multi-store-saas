@@ -114,6 +114,24 @@ ozzyl-monorepo/
 - `git status` / `git diff` - Check your changes before asking for more.
 - **Guide**: See `.agent/skills/Claude Code Guide/SKILL.md` for advanced config.
 
+## 🔌 MCP Servers (Recommended)
+
+Add these MCP servers to enhance Claude Code's capabilities:
+
+```bash
+# Context7 - Up-to-date library documentation
+claude mcp add --transport stdio context7 -- npx -y @upstash/context7-mcp
+
+# Sequential Thinking - Structured problem solving
+claude mcp add --transport stdio sequential-thinking -- npx -y @gotza02/seq-thinking
+
+# Filesystem - Enhanced file operations
+claude mcp add --transport stdio filesystem -- npx -y @modelcontextprotocol/server-filesystem ~/
+
+# Verify setup
+claude mcp list
+```
+
 ## 👥 Subagents
 
 Invoking specialized agents:

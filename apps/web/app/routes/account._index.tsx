@@ -22,7 +22,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { createDb } from '~/lib/db.server';
-import { products, orders } from '@db/schema';
+import { products } from '@db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { cn } from '~/lib/utils';
 import { Button } from '~/components/ui/button';
@@ -76,6 +76,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   
   // We need rough active count - fetching 100 latest orders to check status 
   const allOrders = await getCustomerOrders(customerId, storeId, db, 100, 0);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const activeOrdersCount = allOrders.filter((o: any) => 
     o.paymentStatus !== 'paid' && 
     o.paymentStatus !== 'refunded' && 
@@ -235,6 +236,7 @@ function MobileDashboard() {
           {recentOrders.length === 0 ? (
             <div className="text-center py-8 text-slate-500">{t('noOrdersYet') || 'No orders yet'}</div>
           ) : (
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             recentOrders.map((order: any) => (
               <div key={order.id} className="bg-white p-4 rounded-xl shadow-soft border border-slate-100 flex items-center gap-4" onClick={() => navigate(`/account/orders/${order.id}`)}>
                 <div className="w-16 h-16 shrink-0 bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center">
@@ -475,6 +477,7 @@ export default function AccountDashboard() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {recentOrders.length > 0 ? (
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     recentOrders.map((order: any) => (
                       <tr key={order.id} className="hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate(`/account/orders/${order.id}`)}>
                         <td className="px-6 py-4 font-medium text-slate-900">

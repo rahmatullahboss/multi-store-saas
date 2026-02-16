@@ -359,11 +359,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const transactionId = (formData.get('transactionId') as string) || '';
     const paymentPhone = (formData.get('paymentPhone') as string) || '';
     const deliveryCharge = Number(formData.get('deliveryCharge') || 60);
+    const deliveryChargeOutside = Number(formData.get('deliveryChargeOutside') || 120);
     const enableFreeDelivery = String(formData.get('enableFreeDelivery')) === 'true';
     const freeDeliveryAbove = Number(formData.get('freeDeliveryAbove') || 0);
     const shippingConfig = {
       insideDhaka: deliveryCharge,
-      outsideDhaka: Math.max(deliveryCharge * 2, deliveryCharge),
+      outsideDhaka: deliveryChargeOutside,
       freeShippingAbove: enableFreeDelivery ? freeDeliveryAbove : 0,
       enabled: true,
     };
@@ -512,6 +513,7 @@ export default function OnboardingPage() {
     transactionId: '',
     paymentPhone: '',
     deliveryCharge: 60,
+    deliveryChargeOutside: 120,
     enableFreeDelivery: false,
     freeDeliveryAbove: 1000,
   });
@@ -699,6 +701,7 @@ export default function OnboardingPage() {
       submitData.append('transactionId', formData.transactionId);
       submitData.append('paymentPhone', formData.paymentPhone);
       submitData.append('deliveryCharge', String(formData.deliveryCharge));
+      submitData.append('deliveryChargeOutside', String(formData.deliveryChargeOutside));
       submitData.append('enableFreeDelivery', String(formData.enableFreeDelivery));
       submitData.append('freeDeliveryAbove', String(formData.freeDeliveryAbove));
 
@@ -727,6 +730,7 @@ export default function OnboardingPage() {
     submitData.append('transactionId', '');
     submitData.append('paymentPhone', '');
     submitData.append('deliveryCharge', String(formData.deliveryCharge));
+    submitData.append('deliveryChargeOutside', String(formData.deliveryChargeOutside));
     submitData.append('enableFreeDelivery', String(formData.enableFreeDelivery));
     submitData.append('freeDeliveryAbove', String(formData.freeDeliveryAbove));
 
@@ -952,7 +956,28 @@ export default function OnboardingPage() {
                     min="0"
                     step="10"
                   />
-                  <p className="text-gray-500 text-sm mt-1">Standard delivery charge per order</p>
+                  <p className="text-gray-500 text-sm mt-1">Standard delivery charge per order (Inside Dhaka)</p>
+                </div>
+
+                {/* Delivery Charge (Outside Dhaka) */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Delivery Charge Outside Dhaka (৳) *
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.deliveryChargeOutside}
+                    onChange={(e) =>
+                      updateField('deliveryChargeOutside', parseInt(e.target.value) || 120)
+                    }
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="120"
+                    min="0"
+                    step="10"
+                  />
+                  <p className="text-gray-500 text-sm mt-1">
+                    Standard delivery charge per order (Outside Dhaka)
+                  </p>
                 </div>
 
                 {/* Free Delivery Toggle */}

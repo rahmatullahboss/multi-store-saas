@@ -40,7 +40,7 @@ export function TechCollectionPage({
                   Categories
                 </h4>
                 <PreviewSafeLink
-                  to="/collections/all-products"
+                  to="/products/all-products"
                   isPreview={isPreview}
                   className={`block text-sm py-1 ${category === 'all-products' ? 'text-blue-600 font-bold' : 'text-gray-600 hover:text-blue-600'}`}
                 >
@@ -49,7 +49,7 @@ export function TechCollectionPage({
                 {categories.filter(Boolean).map((cat) => (
                   <PreviewSafeLink
                     key={cat}
-                    to={`/collections/${cat!.toLowerCase().replace(/\s+/g, '-')}`}
+                    to={`/products/${cat!.toLowerCase().replace(/\s+/g, '-')}`}
                     isPreview={isPreview}
                     className={`block text-sm py-1 ${category.toLowerCase() === cat!.toLowerCase().replace(/\s+/g, '-') ? 'text-blue-600 font-bold' : 'text-gray-600 hover:text-blue-600'}`}
                   >

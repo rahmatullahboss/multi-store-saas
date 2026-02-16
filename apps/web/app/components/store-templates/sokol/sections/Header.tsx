@@ -175,7 +175,7 @@ export function SokolHeader({
                 {categories?.filter(Boolean).map((cat) => (
                   <LinkComponent 
                     key={cat} 
-                    to={`/collections/${cat}`} 
+                    to={`/products/${cat}`} 
                     className="p-3 hover:bg-gray-50 rounded-xl font-medium text-gray-700"
                     onClick={() => setMobileMenuOpen(false)}
                   >

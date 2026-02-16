@@ -92,7 +92,6 @@ export function NovaLuxFooter({
   categories = [],
   planType = 'free',
   isPreview = false,
-  showNewsletter = false,
 }: NovaLuxFooterProps) {
   const { t } = useTranslation();
   const THEME = {
@@ -119,33 +118,7 @@ export function NovaLuxFooter({
       {/* Trust Badges Bar - Removed from footer for NovaLux */}
       {/* Users can add Why Choose Us section from theme editor settings */}
 
-      {/* Newsletter Section - Hidden by default for NovaLux */}
-      {showNewsletter && (
-        <div className="py-16 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h3
-              className="text-3xl lg:text-4xl font-semibold mb-4"
-              style={{ fontFamily: NOVALUX_THEME.fontHeading }}
-            >
-              {t('joinFamily', { name: storeName })}
-            </h3>
-            <p className="text-white/60 mb-8 max-w-lg mx-auto">{t('subscribeText')}</p>
-            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Email..."
-                className="flex-1 px-5 py-4 rounded-full bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-white/40 transition-colors"
-              />
-              <button
-                className="px-8 py-4 rounded-full font-semibold transition-all duration-300 hover:scale-105"
-                style={{ background: NOVALUX_THEME.accentGradient, color: THEME.primary }}
-              >
-                {t('subscribe')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -312,7 +285,7 @@ export function NovaLuxFooter({
                   return (
                     <li key={title}>
                       <PreviewSafeLink
-                        to={`/collections/${encodeURIComponent(title.trim().toLowerCase().replace(/\s+/g, ' ')).replace(/%20/g, '-')}`}
+                        to={`/products/${encodeURIComponent(title.trim().toLowerCase().replace(/\s+/g, ' ')).replace(/%20/g, '-')}`}
                         className="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"
                         isPreview={isPreview}
                       >

@@ -69,6 +69,7 @@ export async function getStoreConfig(db: Database, cache: D1Cache, storeId: numb
     where: (s, { eq }) => eq(s.id, storeId),
     columns: {
       themeConfig: true,
+      socialLinks: true,
       businessInfo: true,
       shippingConfig: true,
       landingConfig: true,
@@ -82,6 +83,7 @@ export async function getStoreConfig(db: Database, cache: D1Cache, storeId: numb
   const config = {
     ...store,
     themeConfig: normalizeThemeConfig(safeJsonParse<any>(store.themeConfig)),
+    socialLinks: safeJsonParse<any>(store.socialLinks),
     businessInfo: safeJsonParse<any>(store.businessInfo),
     shippingConfig: safeJsonParse<any>(store.shippingConfig),
     landingConfig: safeJsonParse<any>(store.landingConfig),

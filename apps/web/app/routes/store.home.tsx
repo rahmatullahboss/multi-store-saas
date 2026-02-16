@@ -1,14 +1,9 @@
 /**
- * Store Homepage Route - MVP Simple Theme System
+ * Store Homepage Route - MVP Simple Theme System (Refactored)
  *
- * Uses the old React Component System (1000+ line templates)
- * instead of Shopify OS 2.0 section-based system.
- *
- * Each template provides:
- * - Main component (homepage)
- * - Header component
- * - Footer component
- * - Custom ProductPage, CartPage, CollectionPage (optional)
+ * This version exclusively supports the 'starter-store' MVP theme.
+ * Dynamic section rendering and legacy theme configuration normalization
+ * have been removed to simplify the codebase and ensure stability.
  *
  * @see AGENTS.md - MVP Simple Theme System section
  */
@@ -26,140 +21,24 @@ import { resolveStore } from '~/lib/store.server';
 
 import {
   getStoreTemplate,
-  resolveStoreTheme,
   type SerializedProduct,
   type StoreCategory,
 } from '~/templates/store-registry';
 import { parseThemeConfig, parseSocialLinks, type ThemeConfig } from '@db/types';
-import { getMVPSettings } from '~/services/mvp-settings.server';
-import type { SectionInstance } from '~/lib/theme-engine/types';
 import { getCustomer } from '~/services/customer-auth.server';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { eq, desc, and } from 'drizzle-orm';
 import { products as productsTable, collections as collectionsTable } from '@db/schema';
-
-interface Badge {
-  icon?: string;
-  title?: string;
-  description?: string;
-}
-
-interface SectionSettings {
-  heading?: string;
-  headline?: string;
-  subheading?: string;
-  subheadline?: string;
-  image?: string;
-  backgroundImage?: string;
-  primaryAction?: { label: string; url: string };
-  buttonText?: string;
-  buttonLink?: string;
-  title?: string;
-  subtitle?: string;
-  layout?: string;
-  limit?: number;
-  columns?: number;
-  badges?: Badge[];
-  [key: string]: unknown;
-}
-
-function normalizeLegacySections(sections: Array<{ id?: string; type?: string; settings?: SectionSettings }>) {
-  const badgeIconMap: Record<string, string> = {
-    truck: 'Truck',
-    shield: 'Shield',
-    refresh: 'RotateCcw',
-    phone: 'Headphones',
-    delivery: 'Truck',
-    secure: 'Shield',
-    support: 'Headphones',
-  };
-
-  return (sections || []).map((section) => {
-    if (!section?.type) return section;
-    const settings = section.settings || {};
-
-    if (section.type === 'hero') {
-      return {
-        ...section,
-        settings: {
-          ...settings,
-          heading: settings.heading ?? settings.headline,
-          subheading: settings.subheading ?? settings.subheadline,
-          image: settings.image ?? settings.backgroundImage,
-          primaryAction:
-            settings.primaryAction ??
-            (settings.buttonText
-              ? { label: settings.buttonText, url: settings.buttonLink || '/products' }
-              : undefined),
-        },
-      };
-    }
-
-    if (section.type === 'featured-products') {
-      return {
-        ...section,
-        type: 'product-grid',
-        settings: {
-          ...settings,
-          heading: settings.heading ?? settings.title,
-          subheading: settings.subheading ?? settings.subtitle,
-        },
-      };
-    }
-
-    if (section.type === 'collection-list') {
-      return {
-        ...section,
-        type: 'category-list',
-        settings: {
-          ...settings,
-          heading: settings.heading ?? settings.title,
-          layout: settings.layout || 'grid',
-          limit: settings.limit ?? (settings.columns ? settings.columns * 2 : undefined),
-        },
-      };
-    }
-
-    if (section.type === 'trust-badges') {
-      const badges = Array.isArray(settings.badges) ? settings.badges : [];
-      return {
-        ...section,
-        type: 'features',
-        settings: {
-          heading: settings.heading ?? settings.title ?? 'Why Shop With Us',
-          subheading: settings.subheading ?? settings.subtitle,
-          features: badges.map((badge: Badge) => ({
-            icon: badgeIconMap[(badge.icon || '').toLowerCase()] || 'Truck',
-            title: badge.title,
-            description: badge.description,
-          })),
-        },
-      };
-    }
-
-    return section;
-  });
-}
+import { getStoreConfig } from '~/services/store-config.server';
+import {
+  resolveUnifiedStorefrontSettings,
+  resolveStoreSocialLinks,
+} from '~/services/storefront-settings.server';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeThemeConfigForMvp(themeConfig: any) {
   if (!themeConfig || typeof themeConfig !== 'object') return themeConfig;
-
-  // If an editor saved empty arrays, treat them as unset so templates can fall back.
-  if (Array.isArray(themeConfig.sections) && themeConfig.sections.length === 0) {
-    delete themeConfig.sections;
-  }
-
-  // Backward-compat: old configs defaulted enabled flags to false even when merchant
-  // only set socialLinks/businessInfo. If no explicit floating number is set, treat false as unset.
-  if (themeConfig.floatingWhatsappEnabled === false && !themeConfig.floatingWhatsappNumber) {
-    delete themeConfig.floatingWhatsappEnabled;
-  }
-  if (themeConfig.floatingCallEnabled === false && !themeConfig.floatingCallNumber) {
-    delete themeConfig.floatingCallEnabled;
-  }
-
   return themeConfig;
 }
 
@@ -175,47 +54,29 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = createDb(context.cloudflare.env.DB);
   const cache = new D1Cache(db);
 
-  // Get theme config from store (fallback to legacy 'theme' field for backward compatibility)
-  const themeConfigRaw = normalizeThemeConfigForMvp(
+  const storeConfig = await getStoreConfig(db, cache, storeId);
+  const fallbackThemeConfig = normalizeThemeConfigForMvp(
     parseThemeConfig(store.themeConfig as string | null)
-  );
-  // Cast to any to avoid strict type checks on intermediate transformations of legacy config
-  const themeConfig = (themeConfigRaw
-    ? {
-        ...themeConfigRaw,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        sections: normalizeLegacySections((themeConfigRaw as any).sections || []),
-      }
+  ) as Record<string, unknown> | null;
+  const unified = await resolveUnifiedStorefrontSettings({
+    db,
+    storeId,
+    store: {
+      id: store.id,
+      name: store.name,
+      logo: store.logo,
+      favicon: store.favicon,
+      currency: store.currency,
+      theme: store.theme,
+    },
+    themeConfig:
+      (storeConfig?.themeConfig as Record<string, unknown> | null | undefined) ?? fallbackThemeConfig,
+  });
+  const socialLinks = resolveStoreSocialLinks(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    : themeConfigRaw) as any;
-
-  if (themeConfig?.bannerUrl && Array.isArray(themeConfig.sections)) {
-    const heroIndex = themeConfig.sections.findIndex((section: SectionInstance) =>
-      ['hero', 'modern-hero', 'zenith-hero', 'turbo-hero', 'video', 'banner'].includes(section.type)
-    );
-
-    if (heroIndex >= 0) {
-      const heroSection = themeConfig.sections[heroIndex];
-      const heroSettings = heroSection.settings || {};
-      if (!heroSettings.image) {
-        themeConfig.sections[heroIndex] = {
-          ...heroSection,
-          settings: {
-            ...heroSettings,
-            image: themeConfig.bannerUrl,
-          },
-        };
-      }
-    }
-  }
-  const socialLinks = parseSocialLinks(store.socialLinks as string | null);
-  const { storeTemplateId, theme } = resolveStoreTheme(themeConfig, (store.theme as string) || null);
-  const mvpSettings = await getMVPSettings(db, storeId, storeTemplateId);
-  const mergedTheme = {
-    ...theme,
-    primary: mvpSettings.primaryColor || (themeConfig as any)?.primaryColor || theme.primary,
-    accent: mvpSettings.accentColor || (themeConfig as any)?.accentColor || theme.accent,
-  };
+    (storeConfig as any)?.socialLinks,
+    parseSocialLinks(store.socialLinks as string | null)
+  );
 
   // Parse businessInfo
   let businessInfo = null;
@@ -295,10 +156,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
           ...new Set(featuredProducts.map((p) => p.category).filter(Boolean)),
         ] as string[];
         
-        // Map strings to objects for consistency, or keep as strings? 
-        // StoreTemplateProps now accepts (string | StoreCategory | null)[]
-        // Let's keep as strings for backward compat with other templates if needed, 
-        // but prefer objects for new templates.
         categories = uniqueCategories;
       }
 
@@ -306,41 +163,24 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
 
   // EDGE CACHING STRATEGY
-  // If no customer is logged in, we can cache the HTML at the edge (Cloudflare CDN)
-  // This prevents the Worker from running on every visit, significantly reducing costs/invocations.
   const headers = new Headers();
   if (!customer) {
-    // Keep HTML TTL short so new deploy chunk hashes propagate quickly.
-    // "public" allows the CDN to store it.
     headers.set('Cache-Control', 'public, max-age=30, s-maxage=30, stale-while-revalidate=60');
   } else {
-    // Logged In: Private cache only (Browser), potentially for a short time or 0
-    // We MUST NOT cache shared (CDN) because it contains user-specific data (Name)
     headers.set('Cache-Control', 'private, max-age=60');
   }
 
   return json(
     {
       storeId,
-      storeName: mvpSettings.storeName || store.name,
-      logo: mvpSettings.logo || store.logo,
-      favicon: mvpSettings.favicon || store.favicon,
+      storeName: unified.storeName,
+      logo: unified.logo,
+      favicon: unified.favicon,
       currency: store.currency || 'BDT',
-      storeTemplateId,
-      theme: mergedTheme,
-      themeConfig: {
-        ...themeConfig,
-        storeName: mvpSettings.storeName,
-        logo: mvpSettings.logo,
-        favicon: mvpSettings.favicon,
-        primaryColor: mvpSettings.primaryColor,
-        accentColor: mvpSettings.accentColor,
-        announcement:
-          mvpSettings.showAnnouncement && mvpSettings.announcementText
-            ? { text: mvpSettings.announcementText }
-            : (themeConfig as any)?.announcement,
-      },
-      mvpSettings,
+      storeTemplateId: unified.storeTemplateId,
+      theme: unified.theme,
+      themeConfig: unified.themeConfig,
+      mvpSettings: unified.mvpSettings,
       socialLinks,
       businessInfo,
       planType: store.planType || 'free',
@@ -355,8 +195,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export const links: LinksFunction = () => {
-  // Route-level `links` does not receive loader `data` in this Remix setup,
-  // so we keep this minimal and safe.
   return [
     { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
     { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' as const },
@@ -521,9 +359,9 @@ export default function StoreHomePage() {
         currentCategory={null}
         config={
           {
+            ...safeThemeConfig,
             primaryColor: safeTheme.primary,
             accentColor: safeTheme.accent,
-            ...safeThemeConfig,
           } as unknown as ThemeConfig
         }
         mvpSettings={mvpSettings}

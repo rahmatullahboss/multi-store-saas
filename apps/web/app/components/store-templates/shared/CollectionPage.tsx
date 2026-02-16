@@ -140,9 +140,9 @@ export default function SharedCollectionPage({
         const id = path.replace('/products/', '');
         return `/store-template-preview/${templateId}/products/${id}`;
       }
-      if (path.startsWith('/collections/')) {
-        const cat = path.replace('/collections/', '');
-        return `/store-template-preview/${templateId}/collections/${cat}`;
+      if (path.startsWith('/products/')) {
+        const cat = path.replace('/products/', '');
+        return `/store-template-preview/${templateId}/products/${cat}`;
       }
       return `/store-template-preview/${templateId}${path}`;
     }
@@ -318,7 +318,7 @@ export default function SharedCollectionPage({
           <ul className="space-y-2 mt-3">
             <li>
               <Link
-                to={getLink('/collections/all-products')}
+                to={getLink('/products/all-products')}
                 className={`block py-1 transition-colors ${
                   category === 'all-products' ? 'font-medium' : ''
                 }`}
@@ -335,7 +335,7 @@ export default function SharedCollectionPage({
               return (
                 <li key={cat}>
                   <Link
-                    to={getLink(`/collections/${catSlug}`)}
+                    to={getLink(`/products/${catSlug}`)}
                     className={`block py-1 transition-colors ${isActive ? 'font-medium' : ''}`}
                     style={{ color: isActive ? colors.accent : colors.muted }}
                   >

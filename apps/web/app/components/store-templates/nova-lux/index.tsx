@@ -38,8 +38,7 @@ import { FloatingContactButtons } from '~/components/FloatingContactButtons';
 import {
   buildProxyImageUrl,
   generateProxySrcset,
-  generateSrcset,
-  optimizeUnsplashUrl,
+
 } from '~/utils/imageOptimization';
 
 import { NOVALUX_THEME } from './theme';
@@ -509,7 +508,7 @@ function PreviewHomePage({
   categories: _categories,
   currency,
   config,
-  onNavigate,
+  onNavigate: _onNavigate,
 }: {
   storeName: string;
   products: DemoProduct[];
@@ -521,18 +520,14 @@ function PreviewHomePage({
   const heroBehavior = getHeroBehavior(config);
   const [heroIndex, setHeroIndex] = useState(0);
   const heroSlide = heroBehavior.slides[heroIndex];
-  const heroImage = heroSlide?.imageUrl || config?.bannerUrl || '';
+  const heroImage =
+    heroSlide?.imageUrl ||
+    config?.bannerUrl ||
+    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&h=900&fit=crop';
   const heroHeading = heroSlide?.heading || config?.bannerText || 'Redefining Luxury';
   const heroSubheading = heroSlide?.subheading || 'Discover our exclusive collection.';
   const heroCta = heroSlide?.ctaText || 'Shop Now';
-  const isUnsplashHero = heroImage.includes('unsplash.com');
-  const heroSrc = isUnsplashHero
-    ? optimizeUnsplashUrl(heroImage, { width: 1800, height: 1000, quality: 80, format: 'webp' })
-    : buildProxyImageUrl(heroImage, { width: 1800, height: 1000, quality: 78 });
-  const heroSrcSet =
-    heroImage && isUnsplashHero
-      ? generateSrcset(heroImage, [640, 960, 1280, 1600, 1800])
-      : generateProxySrcset(heroImage, [640, 960, 1280, 1600, 1800], 78);
+
 
   useEffect(() => {
     if (!heroBehavior.isCarousel || !heroBehavior.autoplay) return;
@@ -572,7 +567,20 @@ function PreviewHomePage({
         return (
           <SectionComponent
             key={section.id}
-            settings={section.settings}
+            settings={
+              section.type === 'hero'
+                ? {
+                    ...section.settings,
+                    heading: heroHeading,
+                    subheading: heroSubheading,
+                    image: heroImage,
+                    primaryAction: {
+                      ...section.settings.primaryAction,
+                      label: heroCta,
+                    },
+                  }
+                : section.settings
+            }
             theme={THEME}
             products={products}
             categories={_categories}
@@ -861,7 +869,8 @@ function LiveNovaLuxHomepage({
                 const SectionComponent = SECTION_REGISTRY[section.type]?.component;
                 if (!SectionComponent) return null;
 
-                const resolvedSettings =
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const resolvedSettings: any =
                   section.type === 'category-list' || section.type === 'shop-by-category'
                     ? {
                         ...section.settings,
@@ -871,7 +880,18 @@ function LiveNovaLuxHomepage({
                           string
                         >,
                       }
-                    : section.settings;
+                    : { ...section.settings };
+
+                // Inject Default Hero Image
+                if (
+                  ['hero', 'modern-hero', 'zenith-hero', 'turbo-hero'].includes(section.type) &&
+                  !resolvedSettings.image
+                ) {
+                  resolvedSettings.image =
+                    resolvedSettings.image ||
+                    config?.bannerUrl ||
+                    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&h=900&fit=crop';
+                }
 
                 const isFirstSection = index === 0;
                 const isHeroSection = [
@@ -915,7 +935,8 @@ function LiveNovaLuxHomepage({
                 const SectionComponent = SECTION_REGISTRY[section.type]?.component;
                 if (!SectionComponent) return null;
 
-                const resolvedSettings =
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const resolvedSettings: any =
                   section.type === 'category-list' || section.type === 'shop-by-category'
                     ? {
                         ...section.settings,
@@ -925,7 +946,18 @@ function LiveNovaLuxHomepage({
                           string
                         >,
                       }
-                    : section.settings;
+                    : { ...section.settings };
+
+                // Inject Default Hero Image
+                if (
+                  ['hero', 'modern-hero', 'zenith-hero', 'turbo-hero'].includes(section.type) &&
+                  !resolvedSettings.image
+                ) {
+                  resolvedSettings.image =
+                    resolvedSettings.image ||
+                    config?.bannerUrl ||
+                    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&h=900&fit=crop';
+                }
 
                 return (
                   <SectionComponent
@@ -1103,7 +1135,7 @@ function NovaLuxProductCard({ product, storeId, formatPrice, isPreview }: NovaLu
             }}
             isPreview={isPreview}
           >
-            Quick Add
+            Add to Cart
           </AddToCartButton>
         </div>
       </Link>

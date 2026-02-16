@@ -1,0 +1,534 @@
+/**
+ * Unified Product & Collection Route
+ * 
+ * Handles both /products/:id (Product Detail) AND /products/:category-slug (Collection Page)
+ * 
+ * Logic:
+ * 1. Try to parse param as ID (number)
+ * 2. If valid ID -> Render Product Page
+ * 3. If NaN -> Treat as Slug -> Render Collection Page
+ */
+
+import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
+import { useLoaderData, useRouteError, isRouteErrorResponse, useSearchParams } from '@remix-run/react';
+import { eq, and, desc, ne, sql, like, asc, gte, lte } from 'drizzle-orm';
+import { resolveStore } from '~/lib/store.server';
+import { createDb } from '~/lib/db.server';
+import { D1Cache } from '~/services/cache-layer.server';
+import { getStoreConfig } from '~/services/store-config.server';
+import { products, reviews, productVariants, productCollections } from '@db/schema';
+import { parseSocialLinks } from '@db/types';
+import { useEffect, useRef, useMemo, Suspense } from 'react';
+import { trackingEvents } from '~/utils/tracking';
+import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
+import {
+  getStoreTemplate,
+  type SerializedProduct,
+} from '~/templates/store-registry';
+import { getCustomer } from '~/services/customer-auth.server';
+import { getProductDetailsMetafields } from '~/lib/product-details.server';
+import { parsePriceRange } from '~/utils/price';
+import {
+  resolveUnifiedStorefrontSettings,
+  resolveStoreSocialLinks,
+} from '~/services/storefront-settings.server';
+
+// ===================================
+// CACHE CONFIGURATION
+// ===================================
+const CACHE_TTL = {
+  product: 180,
+  relatedProducts: 300,
+  categories: 3600,
+  storeConfig: 3600,
+};
+
+// ===================================
+// TYPES
+// ===================================
+
+
+interface ProductPageData {
+  pageType: 'product';
+  product: SerializedProduct & { 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    specifications: any; 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    returnPolicy: any; 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    variants: any[]; 
+    seoTitle?: string | null;
+    seoDescription?: string | null;
+  };
+  storeName: string;
+  logo: string | null;
+  favicon: string | null;
+  currency: string;
+  showReviews: boolean;
+  reviews: any[];
+  avgRating: number;
+  reviewCount: number;
+  storeId: number;
+  storeTemplateId: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  theme: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  socialLinks: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  businessInfo: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  footerConfig: any;
+  categories: string[];
+  relatedProducts: SerializedProduct[];
+  planType: string;
+  customer: any;
+  productUrl: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  themeConfig: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  storeShippingInfo: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  storeRefundPolicy: any;
+  isCustomerAiEnabled: boolean;
+  aiCredits: number;
+}
+
+interface CollectionPageData {
+  pageType: 'collection';
+  storeId: number;
+  storeName: string;
+  logo: string | null;
+  favicon: string | null;
+  collectionName: string;
+  currency: string;
+  storeTemplateId: string;
+  theme: any;
+  socialLinks: any;
+  businessInfo: any;
+  themeConfig: any;
+  mvpSettings: any;
+  collection: { title: string; description: string; slug: string };
+  products: any[];
+  categories: string[];
+  sortBy: string;
+  inStock: boolean;
+  onSale: boolean;
+  minPrice: number | null;
+  maxPrice: number | null;
+  planType: string;
+  customer: any;
+}
+
+
+
+// ===================================
+// META FUNCTION
+// ===================================
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  if (!data) return [{ title: 'Not Found' }];
+
+    if (data.pageType === 'product') {
+    const d = data as ProductPageData;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const p = d.product as any;
+    const title = p.seoTitle || `${d.product.title} | ${d.storeName}`;
+    const description = p.seoDescription || (d.product.description || `Shop ${d.product.title}`).slice(0, 160);
+    const url = d.productUrl || '';
+
+    const metaTags = [
+      { title },
+      { name: 'description', content: description },
+      { property: 'og:title', content: title },
+      { property: 'og:description', content: description },
+      { property: 'og:type', content: 'product' },
+      { property: 'og:url', content: url },
+      { name: 'twitter:card', content: 'summary_large_image' },
+    ];
+
+    if (d.product.imageUrl) {
+      metaTags.push({ property: 'og:image', content: d.product.imageUrl });
+      metaTags.push({ name: 'twitter:image', content: d.product.imageUrl });
+    }
+    if (d.favicon) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      metaTags.push({ tagName: 'link', rel: 'icon', href: d.favicon } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      metaTags.push({ tagName: 'link', rel: 'shortcut icon', href: d.favicon } as any);
+    }
+    return metaTags;
+  } else {
+    // Collection Meta
+    const d = data as CollectionPageData;
+    const metaTags = [
+      { title: `${d.collectionName} | ${d.storeName}` },
+      { name: 'description', content: `Browse ${d.collectionName} collection at ${d.storeName}` },
+    ];
+    if (d.favicon) {
+      metaTags.push({ tagName: 'link', rel: 'icon', href: d.favicon } as any);
+      metaTags.push({ tagName: 'link', rel: 'shortcut icon', href: d.favicon } as any);
+    }
+    return metaTags;
+  }
+};
+
+// ===================================
+// LOADER
+// ===================================
+export async function loader({ params, request, context }: LoaderFunctionArgs) {
+  const handle = params.handle;
+  if (!handle) throw new Response('Handle required', { status: 404 });
+
+  const isNumericHandle = /^\d+$/.test(handle);
+  const productId = isNumericHandle ? parseInt(handle, 10) : NaN;
+
+  // const startTime = Date.now();
+  const db = createDb(context.cloudflare.env.DB);
+  const cache = new D1Cache(db);
+  
+  // Resolve store
+  const storeContext = await resolveStore(context, request);
+  if (!storeContext) throw new Response('Store not found', { status: 404 });
+  const { storeId, store } = storeContext;
+
+  // Common Store Config
+  const storeConfig = await getStoreConfig(db, cache, storeId);
+  if (!storeConfig) throw new Response('Store configuration not found', { status: 404 });
+
+  if (store.storeEnabled === false) throw new Response('Store is disabled', { status: 404 });
+
+  // Get common data
+  const { themeConfig, footerConfig, businessInfo: cachedBusinessInfo, shippingConfig } = storeConfig;
+  let businessInfo = cachedBusinessInfo;
+  if (!businessInfo && store.businessInfo) {
+    try { businessInfo = JSON.parse(store.businessInfo as string); } catch { /* ignore */ }
+  }
+
+  const unified = await resolveUnifiedStorefrontSettings({
+    db,
+    storeId,
+    store: {
+      id: store.id,
+      name: store.name,
+      logo: store.logo,
+      favicon: store.favicon,
+      currency: store.currency,
+      theme: store.theme,
+    },
+    themeConfig: (themeConfig as Record<string, unknown> | null | undefined) ?? null,
+  });
+
+  const socialLinks = resolveStoreSocialLinks(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (storeConfig as any).socialLinks,
+    parseSocialLinks(store.socialLinks as string | null)
+  );
+  const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
+
+  // Guard: numeric slugs can be valid collection handles (e.g. /products/2025).
+  // In that case, prefer collection view instead of forcing product lookup.
+  const numericSlugCollection = isNumericHandle
+    ? await db.query.collections.findFirst({
+        where: (c, { eq, and }) => and(eq(c.slug, handle), eq(c.storeId, storeId)),
+        columns: { id: true },
+      })
+    : null;
+  const isProduct = isNumericHandle && !numericSlugCollection;
+
+  // ==========================================
+  // PRODUCT LOGIC
+  // ==========================================
+  if (isProduct) {
+    // KV Cache Check
+    const kv = context.cloudflare.env.PRODUCT_CACHE;
+    const settingsFingerprint = [
+      unified.storeTemplateId,
+      unified.storeName,
+      unified.theme.primary,
+      unified.theme.accent,
+      unified.logo ?? '',
+      unified.favicon ?? '',
+    ].join('|');
+    const cacheKey = `product:${storeId}:${productId}:${settingsFingerprint}`;
+    
+    if (kv && !customer) { // Only check cache if no customer logged in (auth state varies)
+        try {
+            const cached = await kv.get(cacheKey);
+            if (cached) {
+                const data = JSON.parse(cached);
+                data.pageType = 'product'; // Ensure pageType is set
+                return json(data, {
+                    headers: { 'X-Cache': 'HIT', 'Cache-Control': 'public, max-age=60, stale-while-revalidate=300' }
+                });
+            }
+        } catch (e) { console.warn('KV Error', e); }
+    }
+
+    // Determine shipping info (logic from original loader)
+    const productDetails = await getProductDetailsMetafields(db, storeId, productId);
+    const shippingInfo =
+      (productDetails.shippingInfo && productDetails.shippingInfo.trim().length > 0
+        ? productDetails.shippingInfo
+        : store?.customShippingPolicy && store.customShippingPolicy.trim().length > 0
+          ? store.customShippingPolicy
+          : shippingConfig && shippingConfig.enabled !== false
+            ? `Shipping inside Dhaka: ${store?.currency || 'BDT'} ${shippingConfig.insideDhaka ?? 60}. Outside Dhaka: ${store?.currency || 'BDT'} ${shippingConfig.outsideDhaka ?? 120}.${shippingConfig.freeShippingAbove ? ` Free shipping above ${store?.currency || 'BDT'} ${shippingConfig.freeShippingAbove}.` : ''}`
+            : null) ?? null;
+
+    const showReviews = store?.planType !== 'free';
+    
+    // Parallel Queries
+    const [productResult, reviewsResult, categoriesResult, variantsResult, relatedProductsResult] = await Promise.all([
+        db.select().from(products).where(and(eq(products.id, productId), eq(products.storeId, storeId), eq(products.isPublished, true))).limit(1),
+        showReviews ? db.select({ id: reviews.id, customerName: reviews.customerName, rating: reviews.rating, comment: reviews.comment, createdAt: reviews.createdAt }).from(reviews).where(and(eq(reviews.productId, productId), eq(reviews.storeId, storeId), eq(reviews.status, 'approved'))).orderBy(desc(reviews.createdAt)).limit(20) : Promise.resolve([]),
+        db.selectDistinct({ category: products.category }).from(products).where(and(eq(products.storeId, storeId), eq(products.isPublished, true), sql`${products.category} IS NOT NULL`)),
+        db.select().from(productVariants).where(and(eq(productVariants.productId, productId), eq(productVariants.isAvailable, true))).orderBy(productVariants.id),
+        // Related products query
+        db.select({
+            id: products.id, title: products.title, price: products.price, compareAtPrice: products.compareAtPrice, imageUrl: products.imageUrl, inventory: products.inventory, category: products.category, isPublished: products.isPublished, createdAt: products.createdAt,
+            priority: sql<number>`CASE WHEN ${products.category} = (SELECT ${products.category} FROM ${products} WHERE ${products.id} = ${productId}) THEN 1 ELSE 0 END`.as('priority')
+        }).from(products).where(and(eq(products.storeId, storeId), ne(products.id, productId), eq(products.isPublished, true))).orderBy(sql`priority DESC, ${products.createdAt} DESC`).limit(8)
+    ]);
+
+    const product = productResult[0];
+    if (!product) {
+       // If product not found by ID, weird edge case if ID is numeric but invalid. 
+       // We'll throw 404 here for now, or could check if it is a category slug that happens to be a number? (Unlikely)
+       throw new Response('Product not found', { status: 404 });
+    }
+
+    const categories = categoriesResult.map(c => c.category).filter((c): c is string => Boolean(c));
+    const productReviews = reviewsResult || [];
+    const avgRating = productReviews.length > 0 ? productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length : 0;
+    
+    const responseData: ProductPageData = {
+        pageType: 'product',
+        product: { ...product, specifications: productDetails.specifications, returnPolicy: productDetails.returnPolicy || store?.customRefundPolicy || null, variants: variantsResult || [] },
+        storeName: unified.storeName,
+        logo: unified.logo,
+        favicon: unified.favicon,
+        currency: store?.currency || 'BDT',
+        showReviews,
+        reviews: productReviews,
+        avgRating: Math.round(avgRating * 10) / 10,
+        reviewCount: productReviews.length,
+        storeId,
+        storeTemplateId: unified.storeTemplateId,
+        theme: unified.theme,
+        socialLinks,
+        businessInfo,
+        footerConfig,
+        categories,
+        relatedProducts: relatedProductsResult.map(p => ({ ...p, storeId, description: null, images: null, sku: null, updatedAt: null } as SerializedProduct)),
+        planType: store?.planType || 'free',
+        customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
+        productUrl: `${new URL(request.url).protocol}//${new URL(request.url).host}/products/${product.id}`,
+        themeConfig: unified.themeConfig,
+        storeShippingInfo: shippingInfo,
+        storeRefundPolicy: productDetails.returnPolicy || store?.customRefundPolicy || null,
+        isCustomerAiEnabled: Boolean(store?.isCustomerAiEnabled),
+        aiCredits: Number(store?.aiCredits) || 0,
+    };
+
+    // Cache logic for product (KV)
+    if (kv && !customer) {
+        context.cloudflare.ctx.waitUntil?.(kv.put(cacheKey, JSON.stringify(responseData), { expirationTtl: CACHE_TTL.product }).catch(console.warn));
+    }
+
+    return json(responseData, { headers: { 'Cache-Control': 'public, max-age=60, stale-while-revalidate=300' } });
+  }
+
+  // ==========================================
+  // COLLECTION LOGIC (Slug)
+  // ==========================================
+  else {
+    const slug = handle;
+    const url = new URL(request.url);
+    const sortBy = url.searchParams.get('sort') || 'newest';
+    const onSale = url.searchParams.get('onSale') === 'true';
+    const inStock = url.searchParams.get('inStock') === 'true';
+    const { minPrice, maxPrice } = parsePriceRange(url.searchParams.get('minPrice'), url.searchParams.get('maxPrice'));
+
+    const orderByClause = sortBy === 'price-low' ? asc(products.price) : sortBy === 'price-high' ? desc(products.price) : desc(products.createdAt);
+
+    const baseFilters = [
+        eq(products.storeId, storeId),
+        eq(products.isPublished, true),
+        inStock ? gte(products.inventory, 1) : undefined,
+        minPrice !== null ? gte(products.price, minPrice) : undefined,
+        maxPrice !== null ? lte(products.price, maxPrice) : undefined,
+        onSale ? gte(products.compareAtPrice, products.price) : undefined,
+    ].filter(Boolean);
+
+    let collectionProducts = [];
+
+    if (slug === 'all' || slug === 'all-products') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        collectionProducts = await db.select().from(products).where(and(...(baseFilters as any))).limit(50).orderBy(orderByClause);
+    } else {
+        const collectionData = await db.query.collections.findFirst({
+            where: (c, { eq, and }) => and(eq(c.slug, slug), eq(c.storeId, storeId)),
+        });
+
+        if (collectionData) {
+            collectionProducts = await db.select({
+                id: products.id, storeId: products.storeId, title: products.title, description: products.description, price: products.price, compareAtPrice: products.compareAtPrice, inventory: products.inventory, sku: products.sku, imageUrl: products.imageUrl, images: products.images, category: products.category, tags: products.tags, isPublished: products.isPublished, seoTitle: products.seoTitle, seoDescription: products.seoDescription, seoKeywords: products.seoKeywords, bundlePricing: products.bundlePricing, createdAt: products.createdAt, updatedAt: products.updatedAt
+            }).from(products)
+            .innerJoin(productCollections, eq(products.id, productCollections.productId))
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .where(and(eq(productCollections.collectionId, collectionData.id), ...(baseFilters as any)))
+            .limit(50).orderBy(orderByClause);
+        } else {
+            // String match fallback
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            collectionProducts = await db.select().from(products).where(and(...(baseFilters as any), like(products.category, slug))).limit(50).orderBy(orderByClause);
+        }
+    }
+
+    const collection = {
+        title: (slug === 'all' || slug === 'all-products') ? 'All Products' : slug.charAt(0).toUpperCase() + slug.slice(1),
+        description: `Browse our ${(slug === 'all' || slug === 'all-products') ? 'latest' : slug} collection.`,
+        slug,
+    };
+
+    const categoriesResult = await db.select({ category: products.category }).from(products).where(eq(products.storeId, storeId)).groupBy(products.category);
+    const categories = categoriesResult.map(r => r.category).filter(Boolean) as string[];
+
+    const responseData: CollectionPageData = {
+        pageType: 'collection',
+        storeId,
+        storeName: unified.storeName,
+        logo: unified.logo,
+        favicon: unified.favicon,
+        collectionName: collection.title,
+        currency: store?.currency || 'BDT',
+        storeTemplateId: unified.storeTemplateId,
+        theme: unified.theme,
+        socialLinks,
+        businessInfo,
+        themeConfig: unified.themeConfig,
+        mvpSettings: unified.mvpSettings,
+        collection,
+        products: collectionProducts,
+        categories,
+        sortBy,
+        inStock,
+        onSale,
+        minPrice,
+        maxPrice,
+        planType: store?.planType || 'free',
+        customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
+    };
+
+    return json(responseData);
+  }
+}
+
+// ===================================
+// MAIN COMPONENT
+// ===================================
+export default function UniversalProductRoute() {
+  const data = useLoaderData<typeof loader>();
+
+  if (data.pageType === 'product') {
+    return <ProductDetailView data={data as ProductPageData} />;
+  } else {
+    return <CollectionPageView data={data as CollectionPageData} />;
+  }
+}
+
+// ===================================
+// PRODUCT VIEW COMPONENT
+// ===================================
+function ProductDetailView({ data }: { data: ProductPageData }) {
+    const { product, storeName, logo, currency, showReviews, relatedProducts, reviews, avgRating, reviewCount, storeId, storeTemplateId, theme, socialLinks, businessInfo, footerConfig, categories, planType, customer, storeShippingInfo, storeRefundPolicy, isCustomerAiEnabled, aiCredits, themeConfig } = data;
+    
+    // Track ViewContent
+    const hasTracked = useRef(false);
+    useEffect(() => {
+        if (hasTracked.current) return;
+        hasTracked.current = true;
+        trackingEvents.viewContent({
+            id: String(product.id), name: product.title, price: product.price, currency, category: product.category || undefined,
+        });
+    }, [product, currency]);
+
+    const template = getStoreTemplate(storeTemplateId);
+
+    return (
+        <StorePageWrapper
+          storeName={storeName} storeId={storeId} logo={logo} templateId={storeTemplateId} theme={theme} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo} categories={categories} footerConfig={footerConfig} planType={planType} customer={customer} isCustomerAiEnabled={isCustomerAiEnabled} aiCredits={aiCredits} config={themeConfig}
+        >
+          {template.ProductPage ? (
+            <template.ProductPage
+              product={{ ...product, shippingInfo: storeShippingInfo, returnPolicy: storeRefundPolicy, reviews: showReviews ? { average: avgRating, count: reviewCount, items: reviews } : undefined }}
+              relatedProducts={relatedProducts} reviews={showReviews ? reviews : []} avgRating={avgRating} reviewCount={reviewCount} currency={currency} theme={theme} config={themeConfig} storeName={storeName}
+            />
+          ) : (
+            <div className="text-center py-20"><h1 className="text-2xl font-bold text-red-600">Product Page Template Not Found</h1></div>
+          )}
+        </StorePageWrapper>
+    );
+}
+
+// ===================================
+// COLLECTION VIEW COMPONENT
+// ===================================
+function CollectionPageView({ data }: { data: CollectionPageData }) {
+    const { storeId, storeName, logo, currency, storeTemplateId, theme, socialLinks, businessInfo, themeConfig, collection, products, categories, sortBy, inStock, onSale, minPrice, maxPrice, planType, customer, mvpSettings } = data;
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    // Filter handlers
+    // Filter handlers
+    const handleSortChange = (value: string) => { const p = new URLSearchParams(searchParams); p.set('sort', value); setSearchParams(p); };
+    const handleInStockToggle = (checked: boolean) => { 
+        const p = new URLSearchParams(searchParams); 
+        if (checked) { p.set('inStock', 'true'); } else { p.delete('inStock'); }
+        setSearchParams(p); 
+    };
+    const handlePriceChange = (type: 'min' | 'max', value: string) => { 
+        const p = new URLSearchParams(searchParams); 
+        if (value) { p.set(type === 'min' ? 'minPrice' : 'maxPrice', value); } 
+        else { p.delete(type === 'min' ? 'minPrice' : 'maxPrice'); }
+        setSearchParams(p); 
+    };
+    const handleOnSaleToggle = (checked: boolean) => { 
+        const p = new URLSearchParams(searchParams); 
+        if (checked) { p.set('onSale', 'true'); } else { p.delete('onSale'); }
+        setSearchParams(p); 
+    };
+
+    const template = useMemo(() => getStoreTemplate(storeTemplateId), [storeTemplateId]);
+    // FORCE using SharedCollectionPage if available or fall back to template's unique one
+    const CollectionPageComponent = template.CollectionPage;
+
+    // CSS Variables injection
+    const cssVariables = `:root { --color-primary: ${theme.primary}; --color-accent: ${theme.accent}; --color-text: ${theme.text}; --color-muted: ${theme.muted}; --color-background: ${theme.background}; }`;
+
+    const collectionPageProps = {
+        storeName, storeId, logo, theme, currency, collection, mvpSettings, products, categories, sortBy, inStock, onSale, minPrice, maxPrice,
+        onSortChange: handleSortChange, onInStockToggle: handleInStockToggle, onPriceChange: handlePriceChange, onOnSaleToggle: handleOnSaleToggle,
+        config: themeConfig, socialLinks, businessInfo, planType, category: collection.title
+    };
+
+    return (
+        <>
+            <style dangerouslySetInnerHTML={{ __html: cssVariables }} />
+            <StorePageWrapper storeName={storeName} storeId={storeId} logo={logo} templateId={storeTemplateId} theme={theme} currency={currency} socialLinks={socialLinks} businessInfo={businessInfo} config={themeConfig} planType={planType} customer={customer} categories={categories}>
+                <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div></div>}>
+                    {CollectionPageComponent ? <CollectionPageComponent {...collectionPageProps} /> : <div className="p-10 text-center">No Collection Template Found</div>}
+                </Suspense>
+            </StorePageWrapper>
+        </>
+    );
+}
+
+// ===================================
+// ERROR BOUNDARY
+// ===================================
+export function ErrorBoundary() {
+  const error = useRouteError();
+  if (isRouteErrorResponse(error)) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50"><div className="text-center"><h1 className="text-4xl font-bold text-red-600 mb-4">{error.status}</h1><p className="text-gray-600">{error.statusText}</p><a href="/" className="mt-4 inline-block text-blue-600 hover:underline">← Back to Home</a></div></div>;
+  }
+  return <div className="min-h-screen flex items-center justify-center bg-gray-50"><div className="text-center"><h1 className="text-4xl font-bold text-red-600 mb-4">Error</h1><p className="text-gray-600">Something went wrong.</p><a href="/" className="mt-4 inline-block text-blue-600 hover:underline">← Back to Home</a></div></div>;
+}

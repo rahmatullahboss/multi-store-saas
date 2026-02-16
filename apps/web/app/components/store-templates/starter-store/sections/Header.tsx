@@ -165,7 +165,7 @@ export function StarterStoreHeader({
                 return (
                   <PreviewSafeLink
                     key={title}
-                    to={`/collections/${encodedSlug}`}
+                    to={`/products/${encodedSlug}`}
                     isPreview={isPreview}
                     className="text-sm font-medium hover:opacity-70 transition-opacity"
                     style={{

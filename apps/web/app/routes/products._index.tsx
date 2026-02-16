@@ -10,26 +10,26 @@ import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/clo
 import { useLoaderData, Link, useSearchParams } from '@remix-run/react';
 import { useTranslation } from 'react-i18next';
 import { eq, and, desc, asc, gte, lte } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/d1';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { getStoreConfig } from '~/services/store-config.server';
-import { products, stores } from '@db/schema';
+import { products } from '@db/schema';
 import {
   parseThemeConfig,
   parseSocialLinks,
-  parseFooterConfig,
   type ThemeConfig,
-  type SocialLinks,
-  type FooterConfig,
 } from '@db/types';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { resolveStoreTheme, getStoreTemplate } from '~/templates/store-registry';
+import { getStoreTemplate } from '~/templates/store-registry';
 import { ShoppingBag, Filter, ChevronRight, Grid, List } from 'lucide-react';
 import { Suspense, useMemo, useState } from 'react';
 import { getCustomer } from '~/services/customer-auth.server';
 import { parsePriceRange } from '~/utils/price';
+import {
+  resolveUnifiedStorefrontSettings,
+  resolveStoreSocialLinks,
+} from '~/services/storefront-settings.server';
 
 // Serialized product type for client components
 interface SerializedProduct {
@@ -80,14 +80,29 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     throw new Response('Store configuration not found', { status: 404 });
   }
 
-  const { themeConfig, businessInfo, footerConfig } = storeConfig;
-  const { storeTemplateId, theme } = resolveStoreTheme(
-    (themeConfig as Record<string, unknown> | null | undefined) ?? null,
-    (store.theme as string) || null
+  const { businessInfo, footerConfig } = storeConfig;
+  const fallbackThemeConfig = parseThemeConfig(store.themeConfig as string | null) as
+    | Record<string, unknown>
+    | null;
+  const unified = await resolveUnifiedStorefrontSettings({
+    db,
+    storeId,
+    store: {
+      id: store.id,
+      name: store.name,
+      logo: store.logo,
+      favicon: store.favicon,
+      currency: store.currency,
+      theme: store.theme,
+    },
+    themeConfig:
+      (storeConfig.themeConfig as Record<string, unknown> | null | undefined) ?? fallbackThemeConfig,
+  });
+  const socialLinks = resolveStoreSocialLinks(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (storeConfig as any).socialLinks,
+    parseSocialLinks(store.socialLinks as string | null)
   );
-  const socialLinks = storeConfig.socialLinks
-    ? storeConfig.socialLinks
-    : parseSocialLinks(store.socialLinks as string | null);
 
   // Get category filter from URL
   const url = new URL(request.url);
@@ -141,16 +156,17 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   return json({
     products: allProducts,
-    storeName: store?.name || 'Store',
-    logo: store.logo || null,
+    storeName: unified.storeName,
+    logo: unified.logo,
     currency: store?.currency || 'BDT',
     storeId,
-    storeTemplateId,
-    theme,
+    storeTemplateId: unified.storeTemplateId,
+    theme: unified.theme,
     socialLinks,
     businessInfo,
-    themeConfig,
+    themeConfig: unified.themeConfig,
     footerConfig,
+    mvpSettings: unified.mvpSettings,
     categories,
     currentCategory: category,
     sortBy,
@@ -179,6 +195,7 @@ export default function ProductsIndex() {
     businessInfo,
     themeConfig,
     footerConfig,
+    mvpSettings,
     categories,
     currentCategory,
     sortBy,
@@ -276,6 +293,7 @@ export default function ProductsIndex() {
         customer={customer}
         isCustomerAiEnabled={isCustomerAiEnabled}
         aiCredits={aiCredits}
+        mvpSettings={mvpSettings}
       >
         <Suspense
           fallback={
@@ -285,11 +303,19 @@ export default function ProductsIndex() {
           }
         >
           <TemplateCollectionPage
+            storeName={storeName}
+            storeId={storeId}
+            logo={logo}
+            config={themeConfig}
             products={products}
             category={currentCategory || 'all-products'}
             categories={categories}
             currency={currency}
             theme={theme}
+            socialLinks={socialLinks}
+            businessInfo={businessInfo}
+            planType={planType}
+            mvpSettings={mvpSettings}
           />
         </Suspense>
       </StorePageWrapper>
@@ -315,6 +341,7 @@ export default function ProductsIndex() {
       customer={customer}
       isCustomerAiEnabled={isCustomerAiEnabled}
       aiCredits={aiCredits}
+      mvpSettings={mvpSettings}
     >
       <div className={`min-h-screen ${bgColor}`}>
         {/* Breadcrumb */}

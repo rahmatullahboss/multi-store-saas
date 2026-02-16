@@ -6,7 +6,7 @@
  */
 
 import { Link } from '@remix-run/react';
-import { Search, Bell, User, Home, Menu } from 'lucide-react';
+import { Bell, User, Home, Menu } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -23,6 +23,7 @@ interface AccountHeaderProps {
   };
   onMobileMenuToggle?: () => void;
   showMobileMenu?: boolean;
+  categories?: string[];
 }
 
 export function AccountHeader({
@@ -32,7 +33,8 @@ export function AccountHeader({
   loyaltyTier = 'Member',
   theme,
   onMobileMenuToggle,
-  showMobileMenu = false,
+  // showMobileMenu, // unused
+  categories = [],
 }: AccountHeaderProps) {
   const { t } = useTranslation();
 
@@ -91,21 +93,51 @@ export function AccountHeader({
         </Link>
       </div>
 
-      {/* Center Section - Search Bar (Hidden on mobile) */}
-      <div className="hidden md:flex items-center rounded-lg px-4 py-2 w-96 border focus-within:ring-2 transition-all"
+      {/* Center Section - Navigation Links (Desktop) */}
+      <nav className="hidden md:flex items-center justify-center gap-6 flex-1 px-8">
+        <Link 
+          to="/" 
+          className="text-sm font-medium hover:opacity-80 transition-colors"
+          style={{ color: textColor }}
+        >
+          {t('home') || 'Home'}
+        </Link>
+        <Link 
+          to="/products"
+          className="text-sm font-medium hover:opacity-80 transition-colors"
+          style={{ color: textColor }}
+        >
+          {t('shop') || 'Shop'}
+        </Link>
+        {categories.slice(0, 3).map((category) => (
+          <Link
+            key={category}
+            to={`/products?category=${encodeURIComponent(category)}`}
+            className="text-sm font-medium hover:opacity-80 transition-colors capitalize"
+            style={{ color: textColor }}
+          >
+            {category}
+          </Link>
+        ))}
+      </nav>
+
+      {/* Search Bar - Moved to right side or condensed if needed, but keeping it simple for now */}
+       {/* 
+      <div className="hidden lg:flex items-center rounded-lg px-4 py-2 w-64 border focus-within:ring-2 transition-all mx-4"
         style={{
           backgroundColor: headerBg === '#ffffff' ? '#f9fafb' : 'rgba(255,255,255,0.05)',
           borderColor: theme.primary + '30',
         }}
       >
-        <Search className="h-5 w-5" style={{ color: theme.primary + '80' }} />
+        <Search className="h-4 w-4" style={{ color: theme.primary + '80' }} />
         <input 
           className="bg-transparent border-none outline-none text-sm w-full ml-3 placeholder-opacity-60" 
-          placeholder={t('searchProducts') || "Search products..."} 
+          placeholder={t('search') || "Search..."} 
           type="text"
           style={{ color: textColor }}
         />
       </div>
+      */}
 
       {/* Right Section - Notifications + User Profile */}
       <div className="flex items-center gap-4 ml-auto">

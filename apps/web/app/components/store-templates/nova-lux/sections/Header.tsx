@@ -113,7 +113,7 @@ export function NovaLuxHeader({
               return (
                 <PreviewSafeLink
                   key={title}
-                  to={`/collections/${encodeURIComponent(title.trim().toLowerCase().replace(/\s+/g, ' ')).replace(/%20/g, '-')}`}
+                  to={`/products/${encodeURIComponent(title.trim().toLowerCase().replace(/\s+/g, ' ')).replace(/%20/g, '-')}`}
                   className="px-4 py-2 text-sm font-medium tracking-wide uppercase transition-all duration-300 hover:opacity-70"
                   style={{ color: currentCategory === title ? THEME.accent : THEME.text }}
                   isPreview={isPreview}

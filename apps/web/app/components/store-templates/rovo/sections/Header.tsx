@@ -84,15 +84,21 @@ export function RovoHeader({
               >
                 Home
               </Link>
-              {categories.filter(Boolean).slice(0, 5).map((category) => (
-                <Link
-                  key={category}
-                  to={`/collections/${category}`}
-                  className="text-sm font-medium uppercase tracking-wide text-gray-900 hover:text-red-600 transition-colors"
-                >
-                  {category}
-                </Link>
-              ))}
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {categories.filter(Boolean).slice(0, 5).map((category: any) => {
+                const title = typeof category === 'string' ? category : category?.title;
+                if (!title) return null;
+                const encodedSlug = encodeURIComponent(title);
+                return (
+                  <Link
+                    key={title}
+                    to={`/products/${encodedSlug}`}
+                    className="text-sm font-medium uppercase tracking-wide text-gray-900 hover:text-red-600 transition-colors"
+                  >
+                    {title}
+                  </Link>
+                );
+              })}
               <Link to="/products" className="text-sm font-medium uppercase tracking-wide text-gray-900 hover:text-red-600 transition-colors">
                 Shop
               </Link>
