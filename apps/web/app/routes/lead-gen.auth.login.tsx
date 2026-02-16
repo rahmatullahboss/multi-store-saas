@@ -1,8 +1,3 @@
-/**
- * Lead Gen Login Page
- * Pro Max Design: Split Layout + Premium UI
- */
-
 import {
   json,
   redirect,
@@ -10,10 +5,7 @@ import {
   type ActionFunctionArgs,
 } from '@remix-run/cloudflare';
 import { useLoaderData, Form, Link, useNavigation, useActionData } from '@remix-run/react';
-import { createDb } from '~/lib/db.server';
-import { customers } from '@db/schema';
-import { eq, and } from 'drizzle-orm';
-import { getCustomerId, createCustomerSession } from '~/services/customer-auth.server';
+import { getCustomerId, createCustomerSession, loginCustomer } from '~/services/customer-auth.server';
 import { resolveStore } from '~/lib/store.server';
 import { Lock, Mail, ArrowRight, Loader2, CheckCircle } from 'lucide-react';
 
@@ -67,7 +59,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const env = context.cloudflare.env;
-  const db = createDb(env.DB);
 
   const formData = await request.formData();
   const email = (formData.get('email') as string)?.trim().toLowerCase();
@@ -83,63 +74,26 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: 'Store not found' }, { status: 404 });
     }
 
-    // Find customer in THIS STORE ONLY
-    const [customer] = await db
-      .select()
-      .from(customers)
-      .where(and(eq(customers.email, email), eq(customers.storeId, storeContext.storeId)))
-      .limit(1);
+    // Use unified loginCustomer — handles both legacy JSON and base64url hash formats
+    const loginResult = await loginCustomer({
+      storeId: storeContext.storeId,
+      email,
+      password,
+      db: env.DB,
+    });
 
-    if (!customer) {
-      return json({ error: 'Invalid email or password' }, { status: 401 });
+    if (loginResult.error || !loginResult.customer) {
+      return json({ error: loginResult.error || 'Invalid credentials' }, { status: 401 });
     }
 
-    // Parse stored password hash
-    let storedHash: string;
-    let salt: string;
-    try {
-      const parsed = JSON.parse(customer.passwordHash as string);
-      storedHash = parsed.hash;
-      salt = parsed.salt;
-    } catch {
-      return json({ error: 'Invalid account. Please reset your password.' }, { status: 401 });
-    }
-
-    // Verify password
-    const isValid = await verifyPassword(password, storedHash, salt);
-    if (!isValid) {
-      return json({ error: 'Invalid email or password' }, { status: 401 });
-    }
-
-    return createCustomerSession(customer.id, customer.storeId, '/lead-dashboard', env);
+    return createCustomerSession(loginResult.customer.id, loginResult.customer.storeId, '/lead-dashboard', env);
   } catch (error) {
     console.error('Login error:', error);
     return json({ error: 'Login failed. Please try again.' }, { status: 500 });
   }
 }
 
-async function verifyPassword(
-  password: string,
-  storedHash: string,
-  salt: string
-): Promise<boolean> {
-  const encoder = new TextEncoder();
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(password),
-    'PBKDF2',
-    false,
-    ['deriveBits']
-  );
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt: encoder.encode(salt), iterations: 100000, hash: 'SHA-256' },
-    keyMaterial,
-    256
-  );
-  const hashArray = Array.from(new Uint8Array(bits));
-  const hash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-  return hash === storedHash;
-}
+// Local verifyPassword removed — now using unified loginCustomer from customer-auth.server.ts
 
 type ActionData = { error?: string };
 

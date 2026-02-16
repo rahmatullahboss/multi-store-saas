@@ -14,6 +14,7 @@ import { createDb } from '~/lib/db.server';
 import { customers } from '@db/schema';
 import { eq, and } from 'drizzle-orm';
 import { getCustomerId, createCustomerSession } from '~/services/customer-auth.server';
+import { hashPassword } from '~/services/auth.server';
 import { resolveStore } from '~/lib/store.server';
 import { Lock, Mail, User, ArrowRight, Loader2, Phone, CheckCircle, GraduationCap } from 'lucide-react';
 
@@ -104,9 +105,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: 'An account with this email already exists' }, { status: 400 });
     }
 
-    // Hash password with PBKDF2
-    const { hash, salt } = await hashPassword(password);
-    const passwordHash = JSON.stringify({ hash, salt });
+    // Hash password using unified PBKDF2 hasher from auth.server
+    const passwordHash = await hashPassword(password);
 
     // Create customer
     const [customer] = await db
@@ -130,28 +130,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 }
 
-async function hashPassword(
-  password: string,
-  salt?: string
-): Promise<{ hash: string; salt: string }> {
-  const useSalt = salt || crypto.randomUUID();
-  const encoder = new TextEncoder();
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(password),
-    'PBKDF2',
-    false,
-    ['deriveBits']
-  );
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt: encoder.encode(useSalt), iterations: 100000, hash: 'SHA-256' },
-    keyMaterial,
-    256
-  );
-  const hashArray = Array.from(new Uint8Array(bits));
-  const hash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-  return { hash, salt: useSalt };
-}
+// Local hashPassword removed — now using unified hashPassword from auth.server.ts
 
 type ActionData = { error?: string };
 

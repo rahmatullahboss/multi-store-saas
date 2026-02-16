@@ -172,11 +172,35 @@ function base64UrlToBytes(base64url: string): Uint8Array {
 
 /**
  * Verify a password against a stored hash
- * Supports both legacy base64 and new base64url formats
+ * Supports:
+ *   1. New base64url format (salt+hash combined)
+ *   2. Legacy base64 format (salt+hash combined)
+ *   3. Legacy JSON format: {"hash":"hex","salt":"uuid"} (from lead-gen registration)
  */
 export async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
   try {
     const encoder = new TextEncoder();
+
+    // Handle legacy JSON format from lead-gen registration: {"hash":"hex","salt":"uuid"}
+    if (storedHash.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(storedHash);
+        if (parsed.hash && parsed.salt) {
+          const keyMaterial = await crypto.subtle.importKey(
+            'raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']
+          );
+          const bits = await crypto.subtle.deriveBits(
+            { name: 'PBKDF2', salt: encoder.encode(parsed.salt), iterations: 100000, hash: 'SHA-256' },
+            keyMaterial, 256
+          );
+          const hashArray = Array.from(new Uint8Array(bits));
+          const hash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+          return hash === parsed.hash;
+        }
+      } catch {
+        // Not valid JSON or missing fields — fall through to standard verification
+      }
+    }
 
     // Try to decode the hash - supports both base64 and base64url formats
     let combined: Uint8Array;
@@ -184,12 +208,8 @@ export async function verifyPassword(password: string, storedHash: string): Prom
       // First try the new base64url format (no padding, URL-safe chars)
       combined = base64UrlToBytes(storedHash);
     } catch {
-      try {
-        // Fall back to legacy base64 format
-        combined = Uint8Array.from(atob(storedHash), (c) => c.charCodeAt(0));
-      } catch (base64Error) {
-        throw base64Error;
-      }
+      // Fall back to legacy base64 format
+      combined = Uint8Array.from(atob(storedHash), (c) => c.charCodeAt(0));
     }
 
     // Extract salt (first 16 bytes)
