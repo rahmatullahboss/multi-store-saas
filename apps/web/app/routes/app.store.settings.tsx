@@ -23,6 +23,7 @@ import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { invalidateStoreConfig as invalidateStoreConfigD1 } from '~/services/store-config.server';
 import { KVCache, CACHE_KEYS } from '~/services/kv-cache.server';
+import { saveUnifiedStorefrontSettingsWithCacheInvalidation } from '~/services/unified-storefront-settings.server';
 
 const MAX_STORE_NAME_LENGTH = 100;
 const MAX_ANNOUNCEMENT_LENGTH = 160;
@@ -124,12 +125,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const storeNameInput = ((formData.get('storeName') as string) || '').trim();
   const logoInput = (formData.get('logo') as string) || '';
   const faviconInput = (formData.get('favicon') as string) || '';
-  const primaryColor =
-    ((formData.get('primaryColorText') as string) || (formData.get('primaryColor') as string) || '')
-      .trim();
-  const accentColor =
-    ((formData.get('accentColorText') as string) || (formData.get('accentColor') as string) || '')
-      .trim();
+  const primaryColor = (
+    (formData.get('primaryColorText') as string) ||
+    (formData.get('primaryColor') as string) ||
+    ''
+  ).trim();
+  const accentColor = (
+    (formData.get('accentColorText') as string) ||
+    (formData.get('accentColor') as string) ||
+    ''
+  ).trim();
   const showAnnouncement = formData.get('showAnnouncement') === 'on';
   const announcementText = ((formData.get('announcementText') as string) || '')
     .trim()
@@ -138,7 +143,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Validate theme ID
   const newThemeId = isValidMVPTheme(themeId) ? themeId : currentThemeId;
 
-  const normalizedStoreName = storeNameInput.slice(0, MAX_STORE_NAME_LENGTH) || currentSettings.storeName;
+  const normalizedStoreName =
+    storeNameInput.slice(0, MAX_STORE_NAME_LENGTH) || currentSettings.storeName;
   const validatedVisualSettings = validateMVPSettings(
     {
       storeName: normalizedStoreName,
@@ -188,6 +194,36 @@ export async function action({ request, context }: ActionFunctionArgs) {
     })
     .where(eq(stores.id, store.id));
 
+  // Also save to unified canonical column (new system)
+  try {
+    await saveUnifiedStorefrontSettingsWithCacheInvalidation(
+      db as any,
+      {
+        KV: context.cloudflare.env.STORE_CACHE,
+      },
+      store.id,
+      {
+        branding: {
+          storeName: updatedSettings.storeName,
+          logo: updatedSettings.logo,
+          favicon: updatedSettings.favicon,
+        },
+        theme: {
+          templateId: newThemeId,
+          primary: updatedSettings.primaryColor,
+          accent: updatedSettings.accentColor,
+        },
+        announcement: {
+          enabled: showAnnouncement,
+          text: announcementText || null,
+        },
+      }
+    );
+  } catch (error) {
+    console.error('Failed to save unified settings:', error);
+    // Don't fail the whole request if unified save fails - legacy save succeeded
+  }
+
   // Invalidate all caches so storefront routes pick up new colors immediately
   const kvNamespace = context.cloudflare.env.STORE_CACHE;
   if (kvNamespace) {
@@ -197,7 +233,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
     await Promise.all([
       kvCache.delete(`${CACHE_KEYS.STORE_CONFIG}${store.id}`),
       subdomain ? kvCache.delete(`${CACHE_KEYS.TENANT_SUBDOMAIN}${subdomain}`) : Promise.resolve(),
-      customDomain ? kvCache.delete(`${CACHE_KEYS.TENANT_DOMAIN}${customDomain}`) : Promise.resolve(),
+      customDomain
+        ? kvCache.delete(`${CACHE_KEYS.TENANT_DOMAIN}${customDomain}`)
+        : Promise.resolve(),
     ]);
   }
   await invalidateStoreConfigD1(new D1Cache(createDb(context.cloudflare.env.DB)), store.id);

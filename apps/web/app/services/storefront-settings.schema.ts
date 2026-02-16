@@ -1,0 +1,395 @@
+/**
+ * Unified Storefront Settings Schema (Canonical Type)
+ *
+ * This is the single source of truth for all storefront settings.
+ * Replaces fragmented settings from:
+ * - stores.themeConfig
+ * - store_mvp_settings
+ * - stores.socialLinks
+ * - stores.businessInfo
+ * - stores columns (name, logo, favicon, tagline, description)
+ *
+ * Version: 1
+ */
+
+import { z } from 'zod';
+
+// ============================================================================
+// THEME SETTINGS
+// ============================================================================
+
+const ThemeSettingsSchema = z.object({
+  templateId: z.string().default('starter-store'),
+  primary: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
+    .default('#4F46E5'),
+  accent: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
+    .default('#F59E0B'),
+  background: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
+    .default('#ffffff'),
+  text: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
+    .default('#1f2937'),
+  muted: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
+    .default('#6b7280'),
+  cardBg: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
+    .default('#ffffff'),
+  headerBg: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
+    .default('#ffffff'),
+  footerBg: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
+    .default('#1f2937'),
+  footerText: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
+    .default('#ffffff'),
+});
+
+export type ThemeSettings = z.infer<typeof ThemeSettingsSchema>;
+
+// ============================================================================
+// BRANDING SETTINGS
+// ============================================================================
+
+const BrandingSettingsSchema = z.object({
+  storeName: z.string().default('My Store'),
+  logo: z.string().url().nullable().default(null),
+  favicon: z.string().url().nullable().default(null),
+  tagline: z.string().max(200).nullable().default(null),
+  description: z.string().max(500).nullable().default(null),
+});
+
+export type BrandingSettings = z.infer<typeof BrandingSettingsSchema>;
+
+// ============================================================================
+// BUSINESS SETTINGS
+// ============================================================================
+
+const BusinessSettingsSchema = z.object({
+  phone: z.string().nullable().default(null),
+  email: z.string().email().nullable().default(null),
+  address: z.string().nullable().default(null),
+});
+
+export type BusinessSettings = z.infer<typeof BusinessSettingsSchema>;
+
+// ============================================================================
+// SOCIAL SETTINGS
+// ============================================================================
+
+const SocialSettingsSchema = z.object({
+  facebook: z.string().url().nullable().default(null),
+  instagram: z.string().nullable().default(null),
+  whatsapp: z.string().nullable().default(null),
+  twitter: z.string().nullable().default(null),
+  youtube: z.string().url().nullable().default(null),
+  linkedin: z.string().url().nullable().default(null),
+});
+
+export type SocialSettings = z.infer<typeof SocialSettingsSchema>;
+
+// ============================================================================
+// ANNOUNCEMENT SETTINGS
+// ============================================================================
+
+const AnnouncementSettingsSchema = z.object({
+  enabled: z.boolean().default(false),
+  text: z.string().max(500).nullable().default(null),
+  link: z.string().url().nullable().default(null),
+  backgroundColor: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
+    .default('#4F46E5'),
+  textColor: z
+    .string()
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
+    .default('#ffffff'),
+});
+
+export type AnnouncementSettings = z.infer<typeof AnnouncementSettingsSchema>;
+
+// ============================================================================
+// SEO SETTINGS
+// ============================================================================
+
+const SeoSettingsSchema = z.object({
+  title: z.string().max(70).nullable().default(null),
+  description: z.string().max(160).nullable().default(null),
+  keywords: z.array(z.string()).default([]),
+  ogImage: z.string().url().nullable().default(null),
+});
+
+export type SeoSettings = z.infer<typeof SeoSettingsSchema>;
+
+// ============================================================================
+// CHECKOUT SETTINGS (Storefront subset)
+// ============================================================================
+
+const CheckoutSettingsSchema = z.object({
+  shippingSummaryText: z.string().nullable().default(null),
+  showStockWarning: z.boolean().default(true),
+  enableGuestCheckout: z.boolean().default(true),
+});
+
+export type CheckoutSettings = z.infer<typeof CheckoutSettingsSchema>;
+
+// ============================================================================
+// FLAGS
+// ============================================================================
+
+const SettingsFlagsSchema = z.object({
+  sourceLocked: z.boolean().default(false),
+  legacyFallbackUsed: z.boolean().default(false),
+  migrationCompleted: z.boolean().default(false),
+});
+
+export type SettingsFlags = z.infer<typeof SettingsFlagsSchema>;
+
+// ============================================================================
+// UNIFIED STOREFRONT SETTINGS V1
+// ============================================================================
+
+export const UnifiedStorefrontSettingsV1Schema = z.object({
+  version: z.literal(1),
+  theme: ThemeSettingsSchema.default({
+    templateId: 'starter-store',
+    primary: '#4F46E5',
+    accent: '#F59E0B',
+    background: '#ffffff',
+    text: '#1f2937',
+    muted: '#6b7280',
+    cardBg: '#ffffff',
+    headerBg: '#ffffff',
+    footerBg: '#1f2937',
+    footerText: '#ffffff',
+  }),
+  branding: BrandingSettingsSchema.default({
+    storeName: 'My Store',
+    logo: null,
+    favicon: null,
+    tagline: null,
+    description: null,
+  }),
+  business: BusinessSettingsSchema.default({
+    phone: null,
+    email: null,
+    address: null,
+  }),
+  social: SocialSettingsSchema.default({
+    facebook: null,
+    instagram: null,
+    whatsapp: null,
+    twitter: null,
+    youtube: null,
+    linkedin: null,
+  }),
+  announcement: AnnouncementSettingsSchema.default({
+    enabled: false,
+    text: null,
+    link: null,
+    backgroundColor: '#4F46E5',
+    textColor: '#ffffff',
+  }),
+  seo: SeoSettingsSchema.default({
+    title: null,
+    description: null,
+    keywords: [],
+    ogImage: null,
+  }),
+  checkout: CheckoutSettingsSchema.default({
+    shippingSummaryText: null,
+    showStockWarning: true,
+    enableGuestCheckout: true,
+  }),
+  flags: SettingsFlagsSchema.default({
+    sourceLocked: false,
+    legacyFallbackUsed: false,
+    migrationCompleted: false,
+  }),
+  updatedAt: z
+    .string()
+    .datetime()
+    .default(() => new Date().toISOString()),
+});
+
+export type UnifiedStorefrontSettingsV1 = z.infer<typeof UnifiedStorefrontSettingsV1Schema>;
+
+// ============================================================================
+// PARTIAL UPDATE SCHEMAS
+// ============================================================================
+
+export const ThemeSettingsPatchSchema = ThemeSettingsSchema.partial();
+export const BrandingSettingsPatchSchema = BrandingSettingsSchema.partial();
+export const BusinessSettingsPatchSchema = BusinessSettingsSchema.partial();
+export const SocialSettingsPatchSchema = SocialSettingsSchema.partial();
+export const AnnouncementSettingsPatchSchema = AnnouncementSettingsSchema.partial();
+export const SeoSettingsPatchSchema = SeoSettingsSchema.partial();
+export const CheckoutSettingsPatchSchema = CheckoutSettingsSchema.partial();
+
+export const UnifiedStorefrontSettingsPatchSchema = z.object({
+  theme: ThemeSettingsPatchSchema.optional(),
+  branding: BrandingSettingsPatchSchema.optional(),
+  business: BusinessSettingsPatchSchema.optional(),
+  social: SocialSettingsPatchSchema.optional(),
+  announcement: AnnouncementSettingsPatchSchema.optional(),
+  seo: SeoSettingsPatchSchema.optional(),
+  checkout: CheckoutSettingsPatchSchema.optional(),
+});
+
+export type UnifiedStorefrontSettingsPatch = z.infer<typeof UnifiedStorefrontSettingsPatchSchema>;
+
+// ============================================================================
+// VALIDATION HELPERS
+// ============================================================================
+
+const ALLOWED_THEME_IDS = [
+  'starter-store',
+  'luxe-boutique',
+  'nova-lux',
+  'ghorer-bazar',
+  'tech-modern',
+] as const;
+export type AllowedThemeId = (typeof ALLOWED_THEME_IDS)[number];
+
+export function isAllowedThemeId(themeId: string): themeId is AllowedThemeId {
+  return ALLOWED_THEME_IDS.includes(themeId as AllowedThemeId);
+}
+
+export function validateThemeId(themeId: string): AllowedThemeId {
+  return isAllowedThemeId(themeId) ? themeId : 'starter-store';
+}
+
+export function isValidHexColor(color: string | null | undefined): boolean {
+  if (!color) return false;
+  return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color);
+}
+
+export function validateColor(color: string | null | undefined, fallback: string): string {
+  if (!color || !isValidHexColor(color)) return fallback;
+  return color;
+}
+
+// ============================================================================
+// DEFAULT VALUES
+// ============================================================================
+
+export const DEFAULT_UNIFIED_SETTINGS: UnifiedStorefrontSettingsV1 = {
+  version: 1,
+  theme: {
+    templateId: 'starter-store',
+    primary: '#4F46E5',
+    accent: '#F59E0B',
+    background: '#ffffff',
+    text: '#1f2937',
+    muted: '#6b7280',
+    cardBg: '#ffffff',
+    headerBg: '#ffffff',
+    footerBg: '#1f2937',
+    footerText: '#ffffff',
+  },
+  branding: {
+    storeName: 'My Store',
+    logo: null,
+    favicon: null,
+    tagline: null,
+    description: null,
+  },
+  business: {
+    phone: null,
+    email: null,
+    address: null,
+  },
+  social: {
+    facebook: null,
+    instagram: null,
+    whatsapp: null,
+    twitter: null,
+    youtube: null,
+    linkedin: null,
+  },
+  announcement: {
+    enabled: false,
+    text: null,
+    link: null,
+    backgroundColor: '#4F46E5',
+    textColor: '#ffffff',
+  },
+  seo: {
+    title: null,
+    description: null,
+    keywords: [],
+    ogImage: null,
+  },
+  checkout: {
+    shippingSummaryText: null,
+    showStockWarning: true,
+    enableGuestCheckout: true,
+  },
+  flags: {
+    sourceLocked: false,
+    legacyFallbackUsed: false,
+    migrationCompleted: false,
+  },
+  updatedAt: new Date().toISOString(),
+};
+
+export const DEFAULT_THEME_COLORS: Record<AllowedThemeId, { primary: string; accent: string }> = {
+  'starter-store': { primary: '#4F46E5', accent: '#F59E0B' },
+  'luxe-boutique': { primary: '#1a1a1a', accent: '#c9a961' },
+  'nova-lux': { primary: '#1C1C1E', accent: '#C4A35A' },
+  'ghorer-bazar': { primary: '#fc8934', accent: '#e53935' },
+  'tech-modern': { primary: '#0f172a', accent: '#3b82f6' },
+};
+
+// ============================================================================
+// SERIALIZATION
+// ============================================================================
+
+export function serializeUnifiedSettings(settings: UnifiedStorefrontSettingsV1): string {
+  return JSON.stringify({
+    ...settings,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+export function deserializeUnifiedSettings(
+  json: string | null
+): UnifiedStorefrontSettingsV1 | null {
+  if (!json) return null;
+  try {
+    const parsed = JSON.parse(json);
+    return UnifiedStorefrontSettingsV1Schema.parse(parsed);
+  } catch {
+    return null;
+  }
+}
+
+export function createUnifiedSettingsFromPatch(
+  current: UnifiedStorefrontSettingsV1,
+  patch: UnifiedStorefrontSettingsPatch
+): UnifiedStorefrontSettingsV1 {
+  return {
+    ...current,
+    ...(patch.theme && { theme: { ...current.theme, ...patch.theme } }),
+    ...(patch.branding && { branding: { ...current.branding, ...patch.branding } }),
+    ...(patch.business && { business: { ...current.business, ...patch.business } }),
+    ...(patch.social && { social: { ...current.social, ...patch.social } }),
+    ...(patch.announcement && { announcement: { ...current.announcement, ...patch.announcement } }),
+    ...(patch.seo && { seo: { ...current.seo, ...patch.seo } }),
+    ...(patch.checkout && { checkout: { ...current.checkout, ...patch.checkout } }),
+    updatedAt: new Date().toISOString(),
+  };
+}

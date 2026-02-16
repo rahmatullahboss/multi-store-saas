@@ -1,12 +1,22 @@
+/**
+ * Unified Storefront Settings Resolver (Backward Compatibility Layer)
+ *
+ * This file provides backward compatibility for routes that use the old
+ * resolveUnifiedStorefrontSettings interface.
+ *
+ * Internally, it now uses the new unified-storefront-settings.server.ts service
+ * which reads from the canonical stores.storefront_settings column.
+ */
+
 import type { ThemeConfig, SocialLinks } from '@db/types';
 import { resolveStoreTheme, type StoreTemplateTheme } from '~/templates/store-registry';
-import {
-  getMVPSettings,
-  getRawMVPSettings,
-  type MVPSettingsWithTheme,
-} from '~/services/mvp-settings.server';
 import type { Database } from '~/lib/db.server';
 import { DEFAULT_MVP_SETTINGS } from '~/config/mvp-theme-settings';
+
+import {
+  getUnifiedStorefrontSettings,
+  getStorefrontThemeForRenderer,
+} from './unified-storefront-settings.server';
 
 interface StoreLike {
   id: number;
@@ -26,7 +36,16 @@ interface ResolveStorefrontSettingsInput {
 
 export interface UnifiedStorefrontSettings {
   storeTemplateId: string;
-  mvpSettings: MVPSettingsWithTheme;
+  mvpSettings: {
+    storeName: string;
+    logo: string | null;
+    favicon: string | null;
+    primaryColor: string;
+    accentColor: string;
+    showAnnouncement: boolean;
+    announcementText: string | null;
+    themeId: string;
+  };
   storeName: string;
   logo: string | null;
   favicon: string | null;
@@ -48,84 +67,81 @@ function pickString(...values: unknown[]): string | null {
   return null;
 }
 
-function asAnnouncement(value: unknown): ThemeConfig['announcement'] | undefined {
-  if (!value || typeof value !== 'object') return undefined;
-  const record = value as Record<string, unknown>;
-  const text = asNonEmptyString(record.text);
-  if (!text) return undefined;
-  const link = asNonEmptyString(record.link) ?? undefined;
-  return link ? { text, link } : { text };
-}
-
 /**
  * Unified storefront settings resolver for MVP.
  *
- * Source of truth:
- * 1) Template + base theme from store/themeConfig via resolveStoreTheme()
- * 2) Name/logo/favicon + primary/accent from MVP settings
- * 3) Legacy themeConfig only as fallback
+ * This function now uses the canonical stores.storefront_settings column
+ * via the new unified service, with backward compatibility for existing routes.
+ *
+ * Source of truth (NEW):
+ * 1) stores.storefront_settings (canonical column)
+ * 2) Fallback to legacy sources with auto-migration
  */
 export async function resolveUnifiedStorefrontSettings(
   input: ResolveStorefrontSettingsInput
 ): Promise<UnifiedStorefrontSettings> {
   const { db, storeId, store } = input;
-  const configRecord =
-    input.themeConfig && typeof input.themeConfig === 'object'
-      ? (input.themeConfig as Record<string, unknown>)
-      : {};
 
-  const { storeTemplateId, theme: baseTheme } = resolveStoreTheme(
-    configRecord,
-    (store.theme as string) || null
-  );
+  // Use new unified service to get canonical settings
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
+    enableFallback: true,
+  });
 
-  const rawMvpSettings = await getRawMVPSettings(db, storeId);
-  const mvpSettings = await getMVPSettings(db, storeId, storeTemplateId);
-  const themeDefaults = DEFAULT_MVP_SETTINGS[storeTemplateId] || DEFAULT_MVP_SETTINGS['starter-store'];
+  // Transform to old interface format for backward compatibility
+  const storeTemplateId = unifiedSettings.theme.templateId;
+  const themeDefaults =
+    DEFAULT_MVP_SETTINGS[storeTemplateId] || DEFAULT_MVP_SETTINGS['starter-store'];
 
-  const hasThemeConfigStoreName = asNonEmptyString(configRecord.storeName) !== null;
-  const hasRealStoreName = asNonEmptyString(store.name) !== null;
-  const mvpNameLooksDefault =
-    asNonEmptyString(mvpSettings.storeName) === asNonEmptyString(themeDefaults.storeName);
-  const shouldPreferStoreName =
-    (!rawMvpSettings || mvpNameLooksDefault) && !hasThemeConfigStoreName && hasRealStoreName;
-
-  const storeName = shouldPreferStoreName
-    ? pickString(configRecord.storeName, store.name, mvpSettings.storeName) ?? 'Store'
-    : pickString(mvpSettings.storeName, configRecord.storeName, store.name) ?? 'Store';
-  const logo = pickString(mvpSettings.logo, configRecord.logo, store.logo);
-  const favicon = pickString(mvpSettings.favicon, configRecord.favicon, store.favicon);
-
-  const mergedTheme: StoreTemplateTheme = {
-    ...baseTheme,
-    primary: pickString(mvpSettings.primaryColor, configRecord.primaryColor, baseTheme.primary) ?? baseTheme.primary,
-    accent: pickString(mvpSettings.accentColor, configRecord.accentColor, baseTheme.accent) ?? baseTheme.accent,
+  // Build StoreTemplateTheme from unified settings
+  const theme: StoreTemplateTheme = {
+    primary: unifiedSettings.theme.primary,
+    accent: unifiedSettings.theme.accent,
+    background: unifiedSettings.theme.background,
+    text: unifiedSettings.theme.text,
+    muted: unifiedSettings.theme.muted,
+    cardBg: unifiedSettings.theme.cardBg,
+    headerBg: unifiedSettings.theme.headerBg,
+    footerBg: unifiedSettings.theme.footerBg,
+    footerText: unifiedSettings.theme.footerText,
   };
 
-  const mvpAnnouncementText = asNonEmptyString(mvpSettings.announcementText);
-  const announcement =
-    mvpSettings.showAnnouncement && mvpAnnouncementText
-      ? { text: mvpAnnouncementText }
-      : asAnnouncement(configRecord.announcement);
+  // Build mvpSettings-like object for backward compatibility
+  const mvpSettings = {
+    storeName: unifiedSettings.branding.storeName,
+    logo: unifiedSettings.branding.logo,
+    favicon: unifiedSettings.branding.favicon,
+    primaryColor: unifiedSettings.theme.primary,
+    accentColor: unifiedSettings.theme.accent,
+    showAnnouncement: unifiedSettings.announcement.enabled,
+    announcementText: unifiedSettings.announcement.text,
+    themeId: storeTemplateId,
+  };
 
-  const mergedThemeConfig: ThemeConfig & Record<string, unknown> = {
-    ...configRecord,
-    storeName,
-    logo: logo ?? undefined,
-    favicon: favicon ?? undefined,
-    primaryColor: mergedTheme.primary,
-    accentColor: mergedTheme.accent,
-    ...(announcement ? { announcement } : {}),
+  // Build themeConfig for backward compatibility
+  const legacyThemeConfig: ThemeConfig & Record<string, unknown> = {
+    storeName: unifiedSettings.branding.storeName,
+    logo: unifiedSettings.branding.logo ?? undefined,
+    favicon: unifiedSettings.branding.favicon ?? undefined,
+    tagline: unifiedSettings.branding.tagline ?? undefined,
+    description: unifiedSettings.branding.description ?? undefined,
+    primaryColor: unifiedSettings.theme.primary,
+    accentColor: unifiedSettings.theme.accent,
+    announcement: unifiedSettings.announcement.enabled
+      ? {
+          text: unifiedSettings.announcement.text || '',
+          link: unifiedSettings.announcement.link || undefined,
+        }
+      : undefined,
   };
 
   return {
     storeTemplateId,
     mvpSettings,
-    storeName,
-    logo,
-    favicon,
-    theme: mergedTheme,
-    themeConfig: mergedThemeConfig,
+    storeName: unifiedSettings.branding.storeName,
+    logo: unifiedSettings.branding.logo,
+    favicon: unifiedSettings.branding.favicon,
+    theme,
+    themeConfig: legacyThemeConfig,
   };
 }
 

@@ -154,6 +154,12 @@ export const stores = sqliteTable('stores', {
   // Links to a new builder page (builder_pages.id) to use as homepage in funnel mode
   homepageBuilderPageId: text('homepage_builder_page_id'),
 
+  // === NEW: UNIFIED STOREFRONT SETTINGS (Canonical Source) ===
+  // Single source of truth for storefront settings (MVP v2)
+  // JSON: { version, theme, branding, business, social, announcement, seo, checkout, flags, updatedAt }
+  storefrontSettings: text('storefront_settings'),
+
+  // === SOFT DELETE & TIMESTAMPS ===
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   deletedAt: integer('deleted_at', { mode: 'timestamp' }), // Soft delete timestamp (null = not deleted)
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
@@ -2237,7 +2243,7 @@ export const messages = sqliteTable(
     functionName: text('function_name'),
     functionArgs: text('function_args'), // JSON
     functionResult: text('function_result'),
-    
+
     // Metadata
     metadata: text('metadata'),
     tokensUsed: integer('tokens_used'),
@@ -2840,6 +2846,39 @@ export type StoreMvpSettings = typeof storeMvpSettings.$inferSelect;
 export type NewStoreMvpSettings = typeof storeMvpSettings.$inferInsert;
 
 // ============================================================================
+// UNIFIED STOREFRONT SETTINGS ARCHIVE TABLE
+// Archives legacy settings snapshots for rollback and audit
+// ============================================================================
+export const storeSettingsArchives = sqliteTable(
+  'store_settings_archives',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    source: text('source').notNull(), // 'theme_config', 'mvp_settings', 'social_links', 'business_info', 'legacy_columns'
+    snapshotJson: text('snapshot_json').notNull(), // JSON snapshot of settings at archive time
+    schemaVersion: integer('schema_version').notNull().default(1), // Canonical schema version
+    releaseTag: text('release_tag').notNull(), // e.g., 'v2.0', 'v2.1' for rollback reference
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_settings_archives_store').on(table.storeId),
+    index('idx_settings_archives_source').on(table.storeId, table.source),
+  ]
+);
+
+export const storeSettingsArchivesRelations = relations(storeSettingsArchives, ({ one }) => ({
+  store: one(stores, {
+    fields: [storeSettingsArchives.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export type StoreSettingsArchive = typeof storeSettingsArchives.$inferSelect;
+export type NewStoreSettingsArchive = typeof storeSettingsArchives.$inferInsert;
+
+// ============================================================================
 // CREDIT PURCHASES TABLE - Manual bKash Payment for AI Credits
 // ============================================================================
 // Merchants submit bKash transaction IDs, Super Admin reviews and approves credits
@@ -2850,24 +2889,22 @@ export const creditPurchases = sqliteTable(
     storeId: integer('store_id')
       .notNull()
       .references(() => stores.id, { onDelete: 'cascade' }),
-    
+
     // Package info
     packageId: text('package_id').notNull(), // 'starter', 'pro', 'business'
     credits: integer('credits').notNull(),
     amount: integer('amount').notNull(), // Amount in BDT (taka)
-    
+
     // Payment info (bKash)
     transactionId: text('transaction_id'), // bKash Transaction ID
     phone: text('phone'), // bKash phone number
-    
+
     // Approval status
-    status: text('status')
-      .$type<'pending' | 'approved' | 'rejected'>()
-      .default('pending'),
+    status: text('status').$type<'pending' | 'approved' | 'rejected'>().default('pending'),
     adminNotes: text('admin_notes'), // Reason for rejection or notes
     reviewedBy: integer('reviewed_by').references(() => users.id, { onDelete: 'set null' }),
     reviewedAt: integer('reviewed_at', { mode: 'timestamp' }),
-    
+
     createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
     updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   },
@@ -2990,7 +3027,9 @@ export const studentDocuments = sqliteTable(
     fileType: text('file_type').notNull(),
     fileSize: integer('file_size').notNull(),
     documentType: text('document_type').default('other'),
-    status: text('status').$type<'uploaded' | 'reviewed' | 'approved' | 'rejected'>().default('uploaded'),
+    status: text('status')
+      .$type<'uploaded' | 'reviewed' | 'approved' | 'rejected'>()
+      .default('uploaded'),
     notes: text('notes'),
     reviewedBy: integer('reviewed_by').references(() => users.id, { onDelete: 'set null' }),
     reviewedAt: integer('reviewed_at', { mode: 'timestamp' }),
@@ -3033,21 +3072,25 @@ export const supportTickets = sqliteTable(
     id: integer('id').primaryKey({ autoIncrement: true }),
     storeId: integer('store_id').notNull(),
     userId: integer('user_id').notNull(),
-    
+
     // Ticket details
     subject: text('subject').notNull(),
     description: text('description').notNull(),
-    category: text('category').$type<'billing' | 'technical' | 'account' | 'feature' | 'other'>().default('other'),
+    category: text('category')
+      .$type<'billing' | 'technical' | 'account' | 'feature' | 'other'>()
+      .default('other'),
     priority: text('priority').$type<'low' | 'medium' | 'high' | 'urgent'>().default('medium'),
-    
+
     // Status tracking
-    status: text('status').$type<'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed'>().default('open'),
-    
+    status: text('status')
+      .$type<'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed'>()
+      .default('open'),
+
     // Admin response
     assignedTo: integer('assigned_to'),
     adminResponse: text('admin_response'),
     resolvedAt: integer('resolved_at', { mode: 'timestamp' }),
-    
+
     // Metadata
     createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
     updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
