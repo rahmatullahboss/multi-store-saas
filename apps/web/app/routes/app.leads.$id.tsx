@@ -7,10 +7,10 @@ import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/cloudfla
 import { json, redirect } from '@remix-run/cloudflare';
 import { useLoaderData, Form, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { leadSubmissions } from '@db/schema';
-import { eq, and } from 'drizzle-orm';
+import { leadSubmissions, customers, studentDocuments } from '@db/schema';
+import { eq, and, desc, SQL, or } from 'drizzle-orm';
 import { getStoreId, requireUserId } from '~/services/auth.server';
-import { ArrowLeft, Mail, Phone, Building2, Calendar, Globe, Tag, Brain, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Building2, Calendar, Globe, Tag, Brain, Save, Loader2, Paperclip } from 'lucide-react';
 import { Link } from '@remix-run/react';
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
@@ -31,7 +31,63 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     throw new Response('Lead not found', { status: 404 });
   }
 
-  return json({ lead });
+  let relatedDocuments: Array<{
+    id: number;
+    fileUrl: string;
+    fileName: string;
+    documentType: string | null;
+    createdAt: Date | null;
+  }> = [];
+
+  if (lead.email || lead.phone) {
+    let identityCondition: SQL<unknown> | null = null;
+    if (lead.email && lead.phone) {
+      identityCondition = or(eq(customers.email, lead.email), eq(customers.phone, lead.phone)) as SQL<unknown>;
+    } else if (lead.email) {
+      identityCondition = eq(customers.email, lead.email) as SQL<unknown>;
+    } else if (lead.phone) {
+      identityCondition = eq(customers.phone, lead.phone) as SQL<unknown>;
+    }
+
+    if (identityCondition) {
+      const [matchedCustomer] = await db
+        .select({ id: customers.id })
+        .from(customers)
+        .where(and(eq(customers.storeId, storeId), identityCondition))
+        .limit(1);
+
+      if (matchedCustomer) {
+        try {
+          relatedDocuments = await db
+            .select({
+              id: studentDocuments.id,
+              fileUrl: studentDocuments.fileUrl,
+              fileName: studentDocuments.fileName,
+              documentType: studentDocuments.documentType,
+              createdAt: studentDocuments.createdAt,
+            })
+            .from(studentDocuments)
+            .where(
+              and(
+                eq(studentDocuments.storeId, storeId),
+                eq(studentDocuments.customerId, matchedCustomer.id)
+              )
+            )
+            .orderBy(desc(studentDocuments.createdAt))
+            .limit(50);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          if (/no such table:\s*student_documents/i.test(message)) {
+            relatedDocuments = [];
+          } else {
+            throw error;
+          }
+        }
+      }
+    }
+  }
+
+  return json({ lead, relatedDocuments });
 }
 
 export async function action({ request, params, context }: ActionFunctionArgs) {
@@ -71,16 +127,16 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 }
 
 export default function LeadDetailPage() {
-  const { lead } = useLoaderData<typeof loader>();
+  const { lead, relatedDocuments } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const leadStatus = lead.status ?? 'new';
   const leadNotes = lead.notes ?? '';
 
-  let formData: { message?: string } = {};
+  let formData: { message?: string; document?: string } = {};
   let aiInsights: Record<string, unknown> | null = null;
   try {
-    formData = lead.formData ? (JSON.parse(lead.formData) as { message?: string }) : {};
+    formData = lead.formData ? (JSON.parse(lead.formData) as { message?: string; document?: string }) : {};
   } catch {
     formData = {};
   }
@@ -89,6 +145,11 @@ export default function LeadDetailPage() {
   } catch {
     aiInsights = null;
   }
+
+  const allDocuments = [
+    ...(formData.document ? [{ id: -1, fileUrl: formData.document, fileName: 'Lead Attachment', documentType: 'lead-form', createdAt: lead.createdAt }] : []),
+    ...relatedDocuments,
+  ].filter((doc, index, arr) => arr.findIndex((item) => item.fileUrl === doc.fileUrl) === index);
 
   return (
     <div className="space-y-6">
@@ -164,6 +225,36 @@ export default function LeadDetailPage() {
               </div>
               <div className="p-6">
                 <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{formData.message}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Documents */}
+          {allDocuments.length > 0 && (
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-indigo-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+                <Paperclip className="w-5 h-5 text-indigo-600" />
+                <h2 className="text-lg font-bold text-gray-900">Uploaded Documents</h2>
+              </div>
+              <div className="p-6 space-y-3">
+                {allDocuments.map((doc) => (
+                  <a
+                    key={`${doc.id}-${doc.fileUrl}`}
+                    href={doc.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 hover:bg-gray-50 transition"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{doc.fileName || 'Document'}</p>
+                      <p className="text-xs text-gray-500">
+                        {doc.documentType || 'general'}
+                        {doc.createdAt ? ` • ${new Date(doc.createdAt).toLocaleDateString()}` : ''}
+                      </p>
+                    </div>
+                    <span className="text-xs font-semibold text-indigo-600">Open</span>
+                  </a>
+                ))}
               </div>
             </div>
           )}

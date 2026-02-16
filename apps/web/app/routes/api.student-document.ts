@@ -1,23 +1,30 @@
 /**
- * Student Document Upload API
+ * Student Document Upload & Delete API
  *
  * For study abroad students to upload their documents (PDF, images)
  * - Images: compressed on client before upload
  * - PDFs: uploaded directly (already compressed)
  *
  * POST: Upload document file and return R2 public URL
+ * DELETE: Delete a document by ID
  */
 
 import type { ActionFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { getCustomerId, getCustomerStoreId } from '~/services/customer-auth.server';
 import { createDb } from '~/lib/db.server';
-import { customers } from '@db/schema';
+import { customers, studentDocuments } from '@db/schema';
 import { eq, and } from 'drizzle-orm';
 
 export async function action({ request, context }: ActionFunctionArgs) {
+  // Handle DELETE request for document deletion
+  if (request.method === 'DELETE') {
+    return handleDelete(request, context);
+  }
+
+  // Only allow POST for uploads
   if (request.method !== 'POST') {
-    return json({ error: 'Method not allowed' }, { status: 405, headers: { Allow: 'POST' } });
+    return json({ error: 'Method not allowed' }, { status: 405, headers: { Allow: 'POST, DELETE' } });
   }
 
   // Get authenticated customer
@@ -47,6 +54,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'Storage not configured' }, { status: 500 });
   }
 
+  let uploadedKey: string | null = null;
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
@@ -115,10 +123,50 @@ export async function action({ request, context }: ActionFunctionArgs) {
         cacheControl: 'public, max-age=31536000', // Cache for 1 year
       },
     });
+    uploadedKey = key;
 
     // Build public URL
     const baseUrl = r2PublicUrl.endsWith('/') ? r2PublicUrl.slice(0, -1) : r2PublicUrl;
     const publicUrl = `${baseUrl}/${key}`;
+
+    let metadataPersisted = true;
+    try {
+      await db.insert(studentDocuments).values({
+        storeId: customer.storeId,
+        customerId,
+        fileUrl: publicUrl,
+        fileKey: key,
+        fileName: file.name || `document.${extension}`,
+        fileType: contentType,
+        fileSize: file.size,
+        documentType: sanitizedDocType || 'other',
+        status: 'uploaded',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (/no such table:\s*student_documents/i.test(message)) {
+        console.warn('[api.student-document] student_documents table not found; skipping metadata persist.');
+        metadataPersisted = false;
+      } else {
+        throw error;
+      }
+    }
+
+    if (!metadataPersisted) {
+      if (uploadedKey) {
+        try {
+          await r2.delete(uploadedKey);
+        } catch (r2Error) {
+          console.error('R2 rollback error:', r2Error);
+        }
+      }
+      return json(
+        { error: 'Document storage is temporarily unavailable. Please try again shortly.' },
+        { status: 503 }
+      );
+    }
 
     return json({
       success: true,
@@ -129,11 +177,86 @@ export async function action({ request, context }: ActionFunctionArgs) {
       documentType: documentType,
     });
   } catch (error) {
+    if (uploadedKey) {
+      try {
+        await r2.delete(uploadedKey);
+      } catch (r2Error) {
+        console.error('R2 cleanup error:', r2Error);
+      }
+    }
     console.error('Student document upload error:', error);
     return json({ error: 'Upload failed. Please try again.' }, { status: 500 });
   }
 }
 
+/**
+ * Handle DELETE request - Delete a document by ID
+ */
+async function handleDelete(request: Request, context: any) {
+  // Get authenticated customer
+  const customerId = await getCustomerId(request, context.cloudflare.env);
+  const sessionStoreId = await getCustomerStoreId(request, context.cloudflare.env);
+  if (!customerId || !sessionStoreId) {
+    return json({ error: 'Unauthorized - Please login first' }, { status: 401 });
+  }
+
+  const db = createDb(context.cloudflare.env.DB);
+  const r2 = context.cloudflare.env.R2;
+
+  try {
+    // Parse request body for documentId
+    const body = await request.json();
+    const documentId =
+      typeof body === 'object' && body && 'documentId' in body
+        ? (body as { documentId?: number | string }).documentId
+        : undefined;
+
+    const parsedDocumentId =
+      typeof documentId === 'string' ? Number(documentId) : documentId;
+
+    if (!parsedDocumentId || !Number.isFinite(parsedDocumentId)) {
+      return json({ error: 'Document ID is required' }, { status: 400 });
+    }
+
+    // Find the document
+    const [document] = await db
+      .select()
+      .from(studentDocuments)
+      .where(
+        and(
+          eq(studentDocuments.id, parsedDocumentId),
+          eq(studentDocuments.customerId, customerId),
+          eq(studentDocuments.storeId, sessionStoreId)
+        )
+      )
+      .limit(1);
+
+    if (!document) {
+      return json({ error: 'Document not found' }, { status: 404 });
+    }
+
+    // Delete from R2
+    if (r2 && document.fileKey) {
+      try {
+        await r2.delete(document.fileKey);
+      } catch (r2Error) {
+        console.error('R2 delete error:', r2Error);
+        // Continue to delete from DB even if R2 delete fails
+      }
+    }
+
+    // Delete from database
+    await db
+      .delete(studentDocuments)
+      .where(eq(studentDocuments.id, parsedDocumentId));
+
+    return json({ success: true, message: 'Document deleted successfully' });
+  } catch (error) {
+    console.error('Document delete error:', error);
+    return json({ error: 'Delete failed. Please try again.' }, { status: 500 });
+  }
+}
+
 export async function loader() {
-  return json({ error: 'Method not allowed' }, { status: 405, headers: { Allow: 'POST' } });
+  return json({ error: 'Method not allowed' }, { status: 405, headers: { Allow: 'POST, DELETE' } });
 }

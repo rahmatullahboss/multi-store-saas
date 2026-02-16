@@ -7,10 +7,10 @@ import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData, Link, Form } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { leadSubmissions } from '@db/schema';
-import { eq, desc, and, sql, gte } from 'drizzle-orm';
+import { leadSubmissions, customers, studentDocuments } from '@db/schema';
+import { eq, desc, and, sql, gte, or, inArray } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
-import { Download, Mail, Phone, Calendar, Filter, TrendingUp, Users, CheckCircle, XCircle, Settings2, Megaphone } from 'lucide-react';
+import { Download, Mail, Phone, Calendar, Filter, TrendingUp, Users, CheckCircle, Settings2, Megaphone, FileText } from 'lucide-react';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -26,7 +26,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const source = url.searchParams.get('source') || 'all';
 
   // Build query conditions
-  let conditions = [eq(leadSubmissions.storeId, storeId)];
+  const conditions = [eq(leadSubmissions.storeId, storeId)];
 
   if (status !== 'all') {
     conditions.push(eq(leadSubmissions.status, status as any));
@@ -50,6 +50,80 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .orderBy(desc(leadSubmissions.createdAt))
     .limit(100);
 
+  // Fetch document counts in batch to avoid N+1 queries.
+  const leadEmails = [...new Set(leads.map((lead) => lead.email).filter((v): v is string => Boolean(v)))];
+  const leadPhones = [...new Set(leads.map((lead) => lead.phone).filter((v): v is string => Boolean(v)))];
+
+  const docCountByEmail = new Map<string, number>();
+  const docCountByPhone = new Map<string, number>();
+
+  if (leadEmails.length > 0 || leadPhones.length > 0) {
+    try {
+      const customerFilters = [];
+      if (leadEmails.length > 0) {
+        customerFilters.push(inArray(customers.email, leadEmails));
+      }
+      if (leadPhones.length > 0) {
+        customerFilters.push(inArray(customers.phone, leadPhones));
+      }
+
+      if (customerFilters.length > 0) {
+        const matchedCustomers = await db
+          .select({
+            id: customers.id,
+            email: customers.email,
+            phone: customers.phone,
+          })
+          .from(customers)
+          .where(and(eq(customers.storeId, storeId), or(...customerFilters)));
+
+        const matchedCustomerIds = matchedCustomers.map((customer) => customer.id);
+        let docCountByCustomerId = new Map<number, number>();
+
+        if (matchedCustomerIds.length > 0) {
+          const docCounts = await db
+            .select({
+              customerId: studentDocuments.customerId,
+              count: sql<number>`count(*)`,
+            })
+            .from(studentDocuments)
+            .where(
+              and(
+                eq(studentDocuments.storeId, storeId),
+                inArray(studentDocuments.customerId, matchedCustomerIds)
+              )
+            )
+            .groupBy(studentDocuments.customerId);
+
+          docCountByCustomerId = new Map(
+            docCounts.map((row) => [row.customerId, row.count || 0])
+          );
+        }
+
+        for (const customer of matchedCustomers) {
+          const count = docCountByCustomerId.get(customer.id) || 0;
+          if (customer.email) {
+            docCountByEmail.set(customer.email, Math.max(docCountByEmail.get(customer.email) || 0, count));
+          }
+          if (customer.phone) {
+            docCountByPhone.set(customer.phone, Math.max(docCountByPhone.get(customer.phone) || 0, count));
+          }
+        }
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!/no such table:\s*student_documents/i.test(message)) {
+        throw error;
+      }
+    }
+  }
+
+  const leadsWithDocCounts = leads.map((lead) => {
+    const emailCount = lead.email ? docCountByEmail.get(lead.email) || 0 : 0;
+    const phoneCount = lead.phone ? docCountByPhone.get(lead.phone) || 0 : 0;
+    return { ...lead, docCount: Math.max(emailCount, phoneCount) };
+  });
+
   // Fetch stats
   const statsResult = await db
     .select({
@@ -66,7 +140,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const stats = statsResult[0];
 
   return json({
-    leads,
+    leads: leadsWithDocCounts,
     stats,
     filters: { status, dateRange, source },
   });
@@ -74,6 +148,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 export default function LeadsPage() {
   const { leads, stats, filters } = useLoaderData<typeof loader>();
+  const leadsWithDocuments = leads;
+  // leads already have docCount from loader
 
   const conversionRate = stats.total > 0
     ? ((stats.converted / stats.total) * 100).toFixed(1)
@@ -256,6 +332,9 @@ export default function LeadsPage() {
                   Date
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Docs
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -263,7 +342,7 @@ export default function LeadsPage() {
             <tbody className="divide-y divide-gray-100">
               {leads.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-16 text-center">
+                  <td colSpan={7} className="px-6 py-16 text-center">
                     <div className="flex flex-col items-center">
                       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                         <Users className="w-8 h-8 text-gray-400" />
@@ -276,7 +355,7 @@ export default function LeadsPage() {
                   </td>
                 </tr>
               ) : (
-                leads.map((lead) => (
+                leadsWithDocuments.map((lead: typeof leads[number]) => (
                   <tr key={lead.id} className="hover:bg-gray-50 transition">
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-900">{lead.name}</div>
@@ -334,6 +413,18 @@ export default function LeadsPage() {
                       <div className="text-xs text-gray-400 mt-0.5">
                         {new Date(lead.createdAt).toLocaleTimeString()}
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {lead.docCount > 0 ? (
+                        <div className="flex items-center gap-1.5">
+                          <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
+                            <FileText className="w-3 h-3 mr-1" />
+                            {lead.docCount} {lead.docCount === 1 ? 'file' : 'files'}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">No docs</span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <Link

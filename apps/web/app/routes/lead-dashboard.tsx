@@ -10,12 +10,13 @@ import {
   type ActionFunctionArgs,
   type SerializeFrom,
 } from '@remix-run/cloudflare';
-import { useLoaderData, Form, Link, useActionData } from '@remix-run/react';
+import { useLoaderData, Form, Link, useActionData, useSearchParams } from '@remix-run/react';
 import { createDb } from '~/lib/db.server';
-import { customers, leadGenForms, leadGenSubmissions } from '@db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { customers, leadGenForms, leadGenSubmissions, leadSubmissions, studentDocuments } from '@db/schema';
+import { eq, desc, and, SQL, or } from 'drizzle-orm';
 import { getCustomerId, getCustomerStoreId, requireCustomer, logoutCustomer } from '~/services/customer-auth.server';
 import { resolveStore } from '~/lib/store.server';
+import { ClientOnly } from 'remix-utils/client-only';
 import {
   LogOut,
   FileText,
@@ -30,6 +31,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { LeadGenFileUpload } from '~/components/lead-gen/LeadGenFileUpload';
 
 // Interfaces
 type Customer = typeof customers.$inferSelect;
@@ -42,10 +44,22 @@ interface SubmissionData {
   formName: string | null;
 }
 
+interface StudentDocumentData {
+  id: number;
+  fileUrl: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  documentType: string | null;
+  createdAt: Date | null;
+}
+
 interface LoaderData {
   customer: Customer;
   storeName: string;
   submissions: SubmissionData[];
+  documents: StudentDocumentData[];
+  activeTab: 'dashboard' | 'applications' | 'documents' | 'profile';
   primaryColor: string;
   logo: string | undefined;
   stats: {
@@ -171,14 +185,123 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     console.warn('[lead-dashboard] Legacy lead_gen_submissions schema detected; skipping submissions query.');
   }
 
+  // Also include legacy lead_submissions rows tied to this customer identity.
+  if (customer.email || customer.phone) {
+    let identityCondition: SQL<unknown> | null = null;
+    if (customer.email && customer.phone) {
+      identityCondition = or(
+        eq(leadSubmissions.email, customer.email),
+        eq(leadSubmissions.phone, customer.phone)
+      ) as SQL<unknown>;
+    } else if (customer.email) {
+      identityCondition = eq(leadSubmissions.email, customer.email) as SQL<unknown>;
+    } else if (customer.phone) {
+      identityCondition = eq(leadSubmissions.phone, customer.phone) as SQL<unknown>;
+    }
+
+    if (identityCondition) {
+      try {
+        const legacyRows = await db
+          .select({
+            id: leadSubmissions.id,
+            status: leadSubmissions.status,
+            data: leadSubmissions.formData,
+            createdAt: leadSubmissions.createdAt,
+            formName: leadSubmissions.formId,
+          })
+          .from(leadSubmissions)
+          .where(and(eq(leadSubmissions.storeId, sessionStoreId), identityCondition))
+          .orderBy(desc(leadSubmissions.createdAt));
+
+        const mappedLegacyRows = legacyRows.map((row) => {
+          const mappedStatus =
+            row.status === 'converted'
+              ? 'completed'
+              : row.status === 'lost'
+                ? 'rejected'
+                : row.status === 'contacted' || row.status === 'qualified'
+                  ? 'in_review'
+                  : 'pending';
+
+          return {
+            id: -row.id,
+            status: mappedStatus as SubmissionData['status'],
+            data: row.data,
+            createdAt: row.createdAt,
+            formName: row.formName,
+          };
+        });
+
+        submissions = [...submissions, ...mappedLegacyRows];
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (/no such table:\s*lead_submissions/i.test(message)) {
+          console.warn('[lead-dashboard] lead_submissions table not found; skipping legacy submissions.');
+        } else {
+          throw error;
+        }
+      }
+    }
+  }
+
   // Parse JSON data in submissions and cast to SubmissionData
-  const parsedSubmissions: SubmissionData[] = submissions.map(s => ({
-    id: s.id,
-    status: s.status,
-    data: typeof s.data === 'string' ? JSON.parse(s.data) : (s.data as Record<string, unknown>),
-    createdAt: s.createdAt,
-    formName: s.formName,
-  }));
+  const parsedSubmissions: SubmissionData[] = submissions
+    .map((s) => {
+      let parsedData: Record<string, unknown> = {};
+      if (typeof s.data === 'string') {
+        try {
+          parsedData = JSON.parse(s.data) as Record<string, unknown>;
+        } catch {
+          parsedData = {};
+        }
+      } else if (s.data && typeof s.data === 'object') {
+        parsedData = s.data as Record<string, unknown>;
+      }
+
+      return {
+        id: s.id,
+        status: s.status,
+        data: parsedData,
+        createdAt: s.createdAt,
+        formName: s.formName,
+      };
+    })
+    .sort((a, b) => {
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return bTime - aTime;
+    });
+
+  let documents: StudentDocumentData[] = [];
+  try {
+    documents = await db
+      .select({
+        id: studentDocuments.id,
+        fileUrl: studentDocuments.fileUrl,
+        fileName: studentDocuments.fileName,
+        fileType: studentDocuments.fileType,
+        fileSize: studentDocuments.fileSize,
+        documentType: studentDocuments.documentType,
+        createdAt: studentDocuments.createdAt,
+      })
+      .from(studentDocuments)
+      .where(and(eq(studentDocuments.storeId, sessionStoreId), eq(studentDocuments.customerId, customerId)))
+      .orderBy(desc(studentDocuments.createdAt))
+      .limit(100);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (/no such table:\s*student_documents/i.test(message)) {
+      console.warn('[lead-dashboard] student_documents table not found; returning empty documents.');
+      documents = [];
+    } else {
+      throw error;
+    }
+  }
+
+  const url = new URL(request.url);
+  const requestedTab = url.searchParams.get('tab');
+  const allowedTabs = new Set(['dashboard', 'applications', 'documents', 'profile']);
+  const activeTab = (allowedTabs.has(requestedTab || '') ? requestedTab : 'dashboard') as LoaderData['activeTab'];
 
   // Calculate stats
   const stats = {
@@ -191,6 +314,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     customer,
     storeName,
     submissions: parsedSubmissions,
+    documents,
+    activeTab,
     primaryColor,
     logo,
     stats
@@ -236,10 +361,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function LeadDashboard() {
-  const { customer, storeName, submissions, primaryColor, logo, stats } = useLoaderData<typeof loader>() as SerializeFrom<LoaderData>;
+  const { customer, storeName, submissions, documents, activeTab: initialTab, primaryColor, logo, stats } = useLoaderData<typeof loader>() as SerializeFrom<LoaderData>;
+  const [searchParams] = useSearchParams();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'applications' | 'documents' | 'profile'>('dashboard');
   const actionData = useActionData<{ success?: boolean; message?: string; error?: string }>();
+  const tabFromUrl = searchParams.get('tab');
+  const activeTab = (tabFromUrl === 'applications' || tabFromUrl === 'documents' || tabFromUrl === 'profile' || tabFromUrl === 'dashboard'
+    ? tabFromUrl
+    : initialTab) as 'dashboard' | 'applications' | 'documents' | 'profile';
   
   // Close sidebar on route change (or tab change on mobile)
   useEffect(() => {
@@ -265,6 +394,53 @@ export default function LeadDashboard() {
       case 'in_review': return 'bg-blue-100 text-blue-800 border-blue-200';
       default: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
     }
+  };
+
+  // Handle document deletion
+  const handleDeleteDocument = async (docId: number) => {
+    if (!confirm('Are you sure you want to delete this document?')) return;
+    try {
+      const response = await fetch('/api/student-document', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentId: docId }),
+      });
+      if (response.ok) {
+        // Refresh the page to get updated documents
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+    }
+  };
+
+  // Get document icon based on file type
+  const getDocumentIcon = (fileType: string) => {
+    if (fileType === 'application/pdf') {
+      return (
+        <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+          <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+        </div>
+      );
+    }
+    return (
+      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+        <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+    );
+  };
+
+  // Format file size
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
 
@@ -316,23 +492,23 @@ export default function LeadDashboard() {
 
           {/* Navigation Links */}
           <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
-            <button
-               onClick={() => setActiveTab('dashboard')}
+            <Link
+               to="/lead-dashboard?tab=dashboard"
                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                 activeTab === 'dashboard' 
-                   ? 'bg-gray-50 text-gray-900 shadow-sm ring-1 ring-gray-200' 
+                 activeTab === 'dashboard'
+                   ? 'bg-gray-50 text-gray-900 shadow-sm ring-1 ring-gray-200'
                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                }`}
             >
                <LayoutDashboard className={`w-5 h-5 ${activeTab === 'dashboard' ? 'text-indigo-600' : 'text-gray-400'}`} style={activeTab === 'dashboard' ? { color: primaryColor } : undefined} />
                Dashboard
-            </button>
+            </Link>
             
-            <button
-               onClick={() => setActiveTab('applications')}
+            <Link
+               to="/lead-dashboard?tab=applications"
                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                 activeTab === 'applications' 
-                   ? 'bg-gray-50 text-gray-900 shadow-sm ring-1 ring-gray-200' 
+                 activeTab === 'applications'
+                   ? 'bg-gray-50 text-gray-900 shadow-sm ring-1 ring-gray-200'
                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                }`}
             >
@@ -343,29 +519,29 @@ export default function LeadDashboard() {
                      {stats.pendingAction}
                   </span>
                )}
-            </button>
-            <button
-               onClick={() => setActiveTab('documents')}
+            </Link>
+            <Link
+               to="/lead-dashboard?tab=documents"
                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                 activeTab === 'documents' 
-                   ? 'bg-gray-50 text-gray-900 shadow-sm ring-1 ring-gray-200' 
+                 activeTab === 'documents'
+                   ? 'bg-gray-50 text-gray-900 shadow-sm ring-1 ring-gray-200'
                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                }`}
             >
                <Upload className={`w-5 h-5 ${activeTab === 'documents' ? 'text-indigo-600' : 'text-gray-400'}`} style={activeTab === 'documents' ? { color: primaryColor } : undefined} />
                Documents
-            </button>
-            <button
-               onClick={() => setActiveTab('profile')}
+            </Link>
+            <Link
+               to="/lead-dashboard?tab=profile"
                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                 activeTab === 'profile' 
-                   ? 'bg-gray-50 text-gray-900 shadow-sm ring-1 ring-gray-200' 
+                 activeTab === 'profile'
+                   ? 'bg-gray-50 text-gray-900 shadow-sm ring-1 ring-gray-200'
                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                }`}
             >
                <Settings className={`w-5 h-5 ${activeTab === 'profile' ? 'text-indigo-600' : 'text-gray-400'}`} style={activeTab === 'profile' ? { color: primaryColor } : undefined} />
                Profile Settings
-            </button>
+            </Link>
           </nav>
 
           {/* Logout Button */}
@@ -464,13 +640,13 @@ export default function LeadDashboard() {
                      <div className="p-6 border-b border-gray-50 flex items-center justify-between">
                         <h2 className="text-lg font-bold text-gray-900">Recent Applications</h2>
                         {activeTab === 'dashboard' && (
-                           <button 
-                             onClick={() => setActiveTab('applications')}
+                           <Link
+                             to="/lead-dashboard?tab=applications"
                              className="text-sm font-medium hover:underline"
                              style={{ color: primaryColor }}
                            >
                              View All
-                           </button>
+                           </Link>
                         )}
                      </div>
                      
@@ -530,24 +706,65 @@ export default function LeadDashboard() {
                         <h2 className="text-lg font-bold text-gray-900 mb-2">My Documents</h2>
                         <p className="text-gray-500 text-sm">Upload and manage your required documents for applications.</p>
                      </div>
-                     
-                     <div className="p-6 grid gap-6">
-                        {/* Upload Zone */}
-                        <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:border-indigo-300 hover:bg-gray-50 transition-all cursor-pointer">
-                           <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                              <Upload className="w-6 h-6 text-indigo-600" />
-                           </div>
-                           <h3 className="text-gray-900 font-medium">Click to upload or drag and drop</h3>
-                           <p className="text-gray-500 text-sm mt-1">PDF, JPG, PNG up to 10MB</p>
-                        </div>
 
-                        {/* File Liist (Mock for now since logic is simplified) */}
+                     <div className="p-6 grid gap-6">
+                        <ClientOnly fallback={<div className="h-32 bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg animate-pulse" />}>
+                          {() => (
+                            <LeadGenFileUpload
+                              name="studentDocument"
+                              label="Upload Document"
+                              accept="image,pdf"
+                              maxSize={10 * 1024 * 1024}
+                              primaryColor={primaryColor}
+                              uploadEndpoint="/api/student-document"
+                              extraFormData={{ documentType: 'general' }}
+                            />
+                          )}
+                        </ClientOnly>
+
+                        {/* Uploaded files list with proper management */}
                         <div className="space-y-3">
                            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Uploaded Files</h3>
-                           {/* Empty state for now */}
-                           <div className="text-center py-8 text-gray-400 text-sm italic">
-                              No documents uploaded yet.
-                           </div>
+                           {documents.length === 0 ? (
+                             <div className="text-center py-8 text-gray-400 text-sm italic">
+                                No documents uploaded yet.
+                             </div>
+                           ) : (
+                             <div className="space-y-2">
+                               {documents.map((doc: SerializeFrom<StudentDocumentData>) => (
+                                 <div
+                                   key={doc.id}
+                                   className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 hover:bg-gray-50 transition-colors"
+                                 >
+                                   <div className="flex items-center gap-3 min-w-0">
+                                     {getDocumentIcon(doc.fileType)}
+                                     <div className="min-w-0">
+                                       <p className="text-sm font-medium text-gray-900 truncate">{doc.fileName}</p>
+                                       <p className="text-xs text-gray-500">
+                                         {doc.documentType || 'Document'} • {formatFileSize(doc.fileSize)} • {formatDate(doc.createdAt)}
+                                       </p>
+                                     </div>
+                                   </div>
+                                   <div className="flex items-center gap-2 flex-shrink-0">
+                                     <a
+                                       href={doc.fileUrl}
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       className="text-xs font-medium px-3 py-1.5 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                                     >
+                                       View
+                                     </a>
+                                     <button
+                                       onClick={() => handleDeleteDocument(doc.id)}
+                                       className="text-xs font-medium px-3 py-1.5 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                                     >
+                                       Delete
+                                     </button>
+                                   </div>
+                                 </div>
+                               ))}
+                             </div>
+                           )}
                         </div>
                      </div>
                   </div>
