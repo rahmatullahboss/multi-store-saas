@@ -18,12 +18,12 @@ import { KVCache, CACHE_KEYS } from '~/services/kv-cache.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { invalidateStoreConfig as invalidateStoreConfigD1 } from '~/services/store-config.server';
 import { createDb } from '~/lib/db.server';
-import { useTranslation } from '~/contexts/LanguageContext';
+
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import {
   Eye, Edit3, Palette, Image as ImageIcon, Type, Info,
   Layout, CheckCircle, Truck, Shield, RefreshCw, X,
-  Upload, Loader2, Store, Globe, Phone, Mail, MapPin,
+  Upload, Loader2, Store, Phone, Mail, MapPin,
   Facebook, Instagram, MessageCircle, Plus, Trash2, ChevronUp, ChevronDown,
 } from 'lucide-react';
 import type { UnifiedStorefrontSettingsV1 } from '~/services/storefront-settings.schema';
@@ -109,7 +109,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         patch.theme = { templateId };
         // Also update legacy store field
         let themeConfig: Record<string, unknown> = {};
-        try { if (store.themeConfig) themeConfig = JSON.parse(store.themeConfig as string); } catch {}
+        try { if (store.themeConfig) themeConfig = JSON.parse(store.themeConfig as string); } catch { /* ignore parse error, use defaults */ }
         await db.update(stores).set({
           themeConfig: JSON.stringify({ ...themeConfig, storeTemplateId: templateId }),
         }).where(eq(stores.id, storeId));
@@ -187,12 +187,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     await saveUnifiedStorefrontSettingsWithCacheInvalidation(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       db as any,
       {
         KV: context.cloudflare.env.STORE_CACHE,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         STORE_CONFIG_SERVICE: (context.cloudflare.env as any).STORE_CONFIG_SERVICE,
       },
       storeId,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       patch as any,
     );
 
@@ -226,7 +229,7 @@ export default function StoreDesignPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigation = useNavigation();
   const isSaving = navigation.state === 'submitting';
-  const { t } = useTranslation();
+
 
   const activeTab = (searchParams.get('tab') as TabId) || 'template';
   const setTab = (tab: TabId) => setSearchParams({ tab }, { preventScrollReset: true });
@@ -670,6 +673,7 @@ function ContentTab({ settings, isSaving }: { settings: UnifiedStorefrontSetting
 // INFO TAB
 // ============================================================================
 function InfoTab({ settings, store, isSaving }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   settings: UnifiedStorefrontSettingsV1; store: any; isSaving: boolean;
 }) {
   // Logo upload state
@@ -697,7 +701,7 @@ function InfoTab({ settings, store, isSaving }: {
       const format = getOptimalFormat();
       const compressed = await compressImage(file, { maxWidth: 500, maxHeight: 500, quality: 0.85, format });
       fileToUpload = new File([compressed], `logo.${format}`, { type: `image/${format}` });
-    } catch {}
+    } catch { /* ignore compression error, use original file */ }
     const fd = new FormData();
     fd.append('file', fileToUpload);
     fd.append('folder', 'logos');

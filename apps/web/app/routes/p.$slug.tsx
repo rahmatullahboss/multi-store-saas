@@ -295,7 +295,7 @@ function BuilderPageRenderer({ data }: { data: BuilderPageData }) {
     <TemplateLayoutRenderer templateId={page.templateId || 'default'}>
       {/* Render all visible sections */}
       <SectionRenderer
-        sections={visibleSections as Parameters<typeof SectionRenderer>[0]['sections']}
+        sections={visibleSections}
         activeSectionId={null}
         storeId={page.storeId}
         productId={page.productId || undefined}
@@ -323,6 +323,7 @@ function BuilderPageRenderer({ data }: { data: BuilderPageData }) {
 }
 
 // Sub-component for Custom Pages (GrapesJS)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function CustomPageRenderer({ page }: { page: any }) {
   // UseTrackVisit hook for client-side unique visitor tracking
   useTrackVisit(page.storeId);
@@ -342,7 +343,7 @@ function CustomPageRenderer({ page }: { page: any }) {
         themeConfig = { ...themeConfig, ...parsed.themeConfig };
       }
     }
-  } catch (e) {
+  } catch {
     // Use defaults
   }
 
