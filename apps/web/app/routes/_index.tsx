@@ -49,7 +49,7 @@ import {
   type SerializedProduct,
 } from '~/templates/store-registry';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
-import { parseFooterConfig } from '@db/types';
+import { parseFooterConfig, type SocialLinks } from '@db/types';
 // import { createDb } from '~/lib/db.server';
 import { getCustomer } from '~/services/customer-auth.server';
 
@@ -213,7 +213,7 @@ interface StoreModeData {
   products: SerializedProduct[];
   categories: string[];
   currentCategory: string | null;
-  socialLinks: ReturnType<typeof parseSocialLinks>;
+  socialLinks: SocialLinks | null;
   footerConfig: ReturnType<typeof parseFooterConfig>;
   businessInfo: { phone?: string; email?: string; address?: string } | null;
   themeConfig: ThemeConfig | null;
