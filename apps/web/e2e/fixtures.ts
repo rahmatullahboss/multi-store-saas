@@ -245,23 +245,23 @@ type Fixtures = {
 };
 
 export const test = base.extend<Fixtures>({
-  landingPage: async ({ page }, use) => {
-    await use(new LandingPage(page));
+  landingPage: async ({ page }, applyFixture) => {
+    await applyFixture(new LandingPage(page));
   },
-  authPage: async ({ page }, use) => {
-    await use(new AuthPage(page));
+  authPage: async ({ page }, applyFixture) => {
+    await applyFixture(new AuthPage(page));
   },
-  dashboardPage: async ({ page }, use) => {
-    await use(new DashboardPage(page));
+  dashboardPage: async ({ page }, applyFixture) => {
+    await applyFixture(new DashboardPage(page));
   },
-  productsPage: async ({ page }, use) => {
-    await use(new ProductsPage(page));
+  productsPage: async ({ page }, applyFixture) => {
+    await applyFixture(new ProductsPage(page));
   },
-  storefrontPage: async ({ page }, use) => {
-    await use(new StorefrontPage(page));
+  storefrontPage: async ({ page }, applyFixture) => {
+    await applyFixture(new StorefrontPage(page));
   },
-  checkoutPage: async ({ page }, use) => {
-    await use(new CheckoutPage(page));
+  checkoutPage: async ({ page }, applyFixture) => {
+    await applyFixture(new CheckoutPage(page));
   },
 });
 

@@ -74,6 +74,7 @@ interface Env extends TenantEnv {
   CLOUDFLARE_API_TOKEN: string;
   GOOGLE_CLIENT_SECRET: string;
   AXION_TOKEN: string;
+  HEALTH_CHECK_TOKEN?: string;
 }
 
 type AppContext = {
@@ -83,6 +84,7 @@ type AppContext = {
 
 // Create Hono app with typed context
 const app = new Hono<AppContext>();
+const HEALTH_PATHS = new Set(['/api/health', '/api/healthz']);
 
 function serializeError(err: unknown): Record<string, unknown> {
   if (err instanceof Error) {
@@ -311,7 +313,7 @@ app.use('/cart', cartLimit()); // 50 req/min - Cart operations (separate limit)
 const tenantMw = tenantMiddleware<AppContext>();
 app.use('*', async (c, next) => {
   // Keep health + staging-only Sentry debug page usable even when hostname→store mapping doesn't exist.
-  if (c.req.path === '/api/health') return next();
+  if (HEALTH_PATHS.has(c.req.path)) return next();
   if (c.env.ENVIRONMENT === 'staging' && c.req.path === '/sentry-test') return next();
   return tenantMw(c, next);
 });
@@ -320,7 +322,7 @@ app.use('*', async (c, next) => {
 // Skip /api/health to reduce noise and avoid relying on tenant context.
 const telemetryMw = workerTelemetryMiddleware<AppContext>();
 app.use('*', async (c, next) => {
-  if (c.req.path === '/api/health') return next();
+  if (HEALTH_PATHS.has(c.req.path)) return next();
   return telemetryMw(c, next);
 });
 
@@ -341,7 +343,7 @@ app.use('*', async (c, next) => {
   }
 
   // Avoid noisy health checks.
-  if (url.pathname === '/api/health') {
+  if (HEALTH_PATHS.has(url.pathname)) {
     return next();
   }
 
@@ -393,6 +395,30 @@ app.get('/api/health', (c) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     store: c.get('store')?.name || 'unknown',
+  });
+});
+
+// Monitoring health endpoint (token protected, tenant-agnostic).
+// Use for uptime checks when custom domains are protected by challenge rules.
+app.get('/api/healthz', (c) => {
+  const configuredToken = c.env.HEALTH_CHECK_TOKEN;
+  if (!configuredToken) {
+    return c.json({ status: 'disabled' }, 503);
+  }
+
+  const suppliedToken =
+    c.req.header('x-health-token') ||
+    c.req.query('token') ||
+    c.req.header('authorization')?.replace(/^Bearer\s+/i, '');
+
+  if (!suppliedToken || suppliedToken !== configuredToken) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  return c.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: c.env.ENVIRONMENT || 'unknown',
   });
 });
 
@@ -519,7 +545,8 @@ app.all('*', async (c) => {
 
   if (c.req.method === 'GET' && isCacheablePath && !isSensitivePath && !hasAuthHeaders) {
     const cache = (caches as unknown as { default: Cache }).default;
-    const cacheKey = new Request(c.req.raw.url, c.req.raw);
+    // Keep cache key stable across benign header differences to improve hit ratio.
+    const cacheKey = new Request(c.req.raw.url, { method: 'GET' });
     const cachedResponse = await cache.match(cacheKey);
 
     if (cachedResponse) {
@@ -537,12 +564,13 @@ app.all('*', async (c) => {
     });
 
     const cacheableResponse = new Response(response.body, response);
-    cacheableResponse.headers.set(
-      'Cache-Control',
-      'public, s-maxage=60, stale-while-revalidate=300'
-    );
-
-    c.executionCtx.waitUntil(cache.put(cacheKey, cacheableResponse.clone()));
+    if (response.status === 200) {
+      cacheableResponse.headers.set(
+        'Cache-Control',
+        'public, s-maxage=60, stale-while-revalidate=300'
+      );
+      c.executionCtx.waitUntil(cache.put(cacheKey, cacheableResponse.clone()));
+    }
 
     return cacheableResponse;
   }

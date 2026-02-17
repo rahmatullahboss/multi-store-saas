@@ -70,7 +70,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const riskResult = await checkCustomerRisk(phone, db, storeId);
 
       // Optionally cache the result in customers table if they exist
-      const normalizedPhone = phone.replace(/[\s\-]/g, '');
+      const normalizedPhone = phone.replace(/[\s-]/g, '');
       await db
         .update(customers)
         .set({

@@ -100,20 +100,26 @@ export const tenantMiddleware = <
     const cleanHostname = hostname.split(':')[0];
     const saasDomain = c.env.SAAS_DOMAIN || 'mysaas.com';
     const envName = (c.env as TenantEnv).ENVIRONMENT || 'production';
+    const isVerboseTenantLogging = envName !== 'production';
+    const tenantLog = (...args: unknown[]) => {
+      if (isVerboseTenantLogging) {
+        console.warn(...args);
+      }
+    };
 
-    console.warn(`[TENANT] ============================================`);
-    console.warn(`[TENANT] Request: ${c.req.method} ${requestPath}`);
-    console.warn(`[TENANT] Hostname: ${hostname}`);
-    console.warn(`[TENANT] Clean Hostname: ${cleanHostname}`);
-    console.warn(`[TENANT] SAAS_DOMAIN: ${saasDomain}`);
-    console.warn(`[TENANT] ENVIRONMENT: ${envName}`);
+    tenantLog(`[TENANT] ============================================`);
+    tenantLog(`[TENANT] Request: ${c.req.method} ${requestPath}`);
+    tenantLog(`[TENANT] Hostname: ${hostname}`);
+    tenantLog(`[TENANT] Clean Hostname: ${cleanHostname}`);
+    tenantLog(`[TENANT] SAAS_DOMAIN: ${saasDomain}`);
+    tenantLog(`[TENANT] ENVIRONMENT: ${envName}`);
 
     // Handle localhost development
     if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) {
-      console.warn(`[TENANT] Mode: Development (localhost)`);
+      tenantLog(`[TENANT] Mode: Development (localhost)`);
       // In development, use query param or default to first store
       const storeParam = c.req.query('store');
-      console.warn(`[TENANT] Store param: ${storeParam || 'none'}`);
+      tenantLog(`[TENANT] Store param: ${storeParam || 'none'}`);
 
       const db = createDb(c.env.DB);
 
@@ -122,42 +128,42 @@ export const tenantMiddleware = <
       try {
         if (storeParam) {
           // Try to find by subdomain or ID (exclude soft-deleted stores)
-          console.warn(`[TENANT] Looking up store by subdomain: ${storeParam}`);
+          tenantLog(`[TENANT] Looking up store by subdomain: ${storeParam}`);
           const storeResult = await db
             .select()
             .from(stores)
             .where(and(eq(stores.subdomain, storeParam), isNull(stores.deletedAt)))
             .limit(1);
           store = storeResult[0];
-          console.warn(
+          tenantLog(
             `[TENANT] Subdomain lookup result: ${store ? `Found (ID: ${store.id})` : 'Not found'}`
           );
 
           if (!store) {
             const idParam = parseInt(storeParam, 10);
             if (!isNaN(idParam)) {
-              console.warn(`[TENANT] Looking up store by ID: ${idParam}`);
+              tenantLog(`[TENANT] Looking up store by ID: ${idParam}`);
               const storeById = await db
                 .select()
                 .from(stores)
                 .where(and(eq(stores.id, idParam), isNull(stores.deletedAt)))
                 .limit(1);
               store = storeById[0];
-              console.warn(
+              tenantLog(
                 `[TENANT] ID lookup result: ${store ? `Found (ID: ${store.id})` : 'Not found'}`
               );
             }
           }
         } else {
           // Default to first active store in development (exclude soft-deleted)
-          console.warn(`[TENANT] No store param, fetching first active store`);
+          tenantLog(`[TENANT] No store param, fetching first active store`);
           const defaultStore = await db
             .select()
             .from(stores)
             .where(and(eq(stores.isActive, true), isNull(stores.deletedAt)))
             .limit(1);
           store = defaultStore[0];
-          console.warn(
+          tenantLog(
             `[TENANT] Default store result: ${store ? `Found (ID: ${store.id}, Name: ${store.name})` : 'Not found'}`
           );
         }
@@ -182,11 +188,11 @@ export const tenantMiddleware = <
       }
 
       if (!store) {
-        console.warn(`[TENANT] No store found in development mode`);
+        tenantLog(`[TENANT] No store found in development mode`);
         return c.json({ error: 'Store not found' }, 404);
       }
 
-      console.warn(
+      tenantLog(
         `[TENANT] Resolved store: ID=${store.id}, Name=${store.name}, Active=${store.isActive}`
       );
       c.set('storeId', store.id);
@@ -208,7 +214,7 @@ export const tenantMiddleware = <
     // NOTE: Prefer configuring a staging custom domain (e.g. staging.<store>.ozzyl.com)
     // or setting `stores.custom_domain` in the staging DB for deterministic routing.
     if (envName === 'staging' && cleanHostname.endsWith('.workers.dev')) {
-      console.warn(`[TENANT] Staging workers.dev fallback: selecting first active store`);
+      tenantLog(`[TENANT] Staging workers.dev fallback: selecting first active store`);
       const db = createDb(c.env.DB);
       const defaultStore = await db
         .select()
@@ -219,7 +225,7 @@ export const tenantMiddleware = <
 
       const store = defaultStore[0];
       if (store) {
-        console.warn(
+        tenantLog(
           `[TENANT] Staging fallback resolved store: ID=${store.id}, Name=${store.name}`
         );
         c.set('storeId', store.id);
@@ -227,20 +233,20 @@ export const tenantMiddleware = <
         c.set('isCustomDomain', true);
         return next();
       }
-      console.warn(`[TENANT] Staging fallback failed: no active stores in DB`);
+      tenantLog(`[TENANT] Staging fallback failed: no active stores in DB`);
       // Continue normal tenant resolution to return a helpful "Store not found" error.
     }
 
     // Production: Parse hostname
     const { type, value } = parseHostname(cleanHostname, saasDomain);
-    console.warn(`[TENANT] Mode: Production`);
-    console.warn(`[TENANT] Parsed: type=${type}, value=${value}`);
+    tenantLog(`[TENANT] Mode: Production`);
+    tenantLog(`[TENANT] Parsed: type=${type}, value=${value}`);
 
     // ADMIN APP EXEMPTION:
     // If subdomain is 'app', this is the Admin Panel / Platform Dashboard.
     // We skip store lookup and allow the request to proceed (handled by admin routes).
     if (type === 'subdomain' && value === 'app') {
-      console.warn(`[TENANT] Routing to Admin App (app.${saasDomain})`);
+      tenantLog(`[TENANT] Routing to Admin App (app.${saasDomain})`);
       return next();
     }
 
@@ -274,7 +280,7 @@ export const tenantMiddleware = <
     if (kvCache) {
       const kvCached = await kvCache.get<Store>(kvKey);
       if (kvCached) {
-        console.warn(`[TENANT] ✓ KV Cache Hit: ID=${kvCached.id}, Name=${kvCached.name}`);
+        tenantLog(`[TENANT] ✓ KV Cache Hit: ID=${kvCached.id}, Name=${kvCached.name}`);
         c.set('storeId', kvCached.id);
         c.set('store', kvCached);
         c.set('isCustomDomain', isCustomDomain);
@@ -289,7 +295,7 @@ export const tenantMiddleware = <
     let store = await d1Cache.get<Store>(d1CacheKey);
 
     if (store) {
-      console.warn(`[TENANT] ✓ D1 Cache Hit: ID=${store.id}, Name=${store.name}`);
+      tenantLog(`[TENANT] ✓ D1 Cache Hit: ID=${store.id}, Name=${store.name}`);
       // Warm KV cache for next request
       if (kvCache) {
         kvCache.set(kvKey, store, CACHE_TTL.TENANT).catch(() => {});
@@ -303,26 +309,26 @@ export const tenantMiddleware = <
     try {
       if (type === 'subdomain') {
         // Lookup by subdomain (exclude soft-deleted stores)
-        console.warn(`[TENANT] Looking up store by subdomain: ${value}`);
+        tenantLog(`[TENANT] Looking up store by subdomain: ${value}`);
         const result = await db
           .select()
           .from(stores)
           .where(and(eq(stores.subdomain, value), isNull(stores.deletedAt)))
           .limit(1);
         store = result[0];
-        console.warn(
+        tenantLog(
           `[TENANT] Subdomain lookup result: ${store ? `Found (ID: ${store.id}, Name: ${store.name})` : 'Not found'}`
         );
       } else {
         // Lookup by custom domain (exclude soft-deleted stores)
-        console.warn(`[TENANT] Looking up store by custom domain: ${value}`);
+        tenantLog(`[TENANT] Looking up store by custom domain: ${value}`);
         const result = await db
           .select()
           .from(stores)
           .where(and(eq(stores.customDomain, value), isNull(stores.deletedAt)))
           .limit(1);
         store = result[0];
-        console.warn(
+        tenantLog(
           `[TENANT] Custom domain lookup result: ${store ? `Found (ID: ${store.id}, Name: ${store.name})` : 'Not found'}`
         );
       }
@@ -369,11 +375,11 @@ export const tenantMiddleware = <
       // FIX: Allow Google Auth callback and other auth routes to bypass store resolution
       // The callback route handles store resolution internally via the state parameter
       if (requestPath.startsWith('/store/auth/') || requestPath.startsWith('/api/oauth/')) {
-        console.warn(`[TENANT] Bypassing store check for auth route: ${requestPath}`);
+        tenantLog(`[TENANT] Bypassing store check for auth route: ${requestPath}`);
         return next();
       }
 
-      console.warn(`[TENANT] Store not found for ${type}: ${value}`);
+      tenantLog(`[TENANT] Store not found for ${type}: ${value}`);
       
       // Redirect invalid subdomains to main landing page
       // But keep localhost/dev environments working normally
@@ -410,7 +416,7 @@ export const tenantMiddleware = <
 
     // Store is not active
     if (!store.isActive) {
-      console.warn(`[TENANT] Store is inactive: ID=${store.id}, Name=${store.name}`);
+      tenantLog(`[TENANT] Store is inactive: ID=${store.id}, Name=${store.name}`);
       return c.json(
         {
           error: 'Store unavailable',
@@ -426,7 +432,7 @@ export const tenantMiddleware = <
     }
 
     // Inject store context
-    console.warn(`[TENANT] ✓ Store resolved successfully: ID=${store.id}, Name=${store.name}`);
+    tenantLog(`[TENANT] ✓ Store resolved successfully: ID=${store.id}, Name=${store.name}`);
     c.set('storeId', store.id);
     c.set('store', store);
     c.set('isCustomDomain', isCustomDomain);

@@ -239,7 +239,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         env as any,
         storeIdForRateLimit,
         clientIP,
-        'checkout' // 5 requests per minute for checkout
+        'checkout', // 5 requests per minute for checkout
+        1,
+        { failOpen: false }
       );
 
       if (!rateLimitResult.allowed) {

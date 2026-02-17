@@ -221,10 +221,7 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
 // ============================================================================
 import React from 'react';
 
-// Shared Product Page for templates without their own ProductPage
-const SharedProductPage = React.lazy(
-  () => import('~/components/store-templates/shared/ProductPage')
-);
+
 
 // Shared Cart Page
 const SharedCartPage = React.lazy(() => import('~/components/store-templates/shared/CartPage'));
@@ -327,7 +324,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     name: 'Luxe Boutique',
     description:
       'Elegant design for fashion, jewelry & luxury goods with gold accents and serif typography.',
-    thumbnail: '/templates/luxe-boutique.png',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/luxe-boutique.webp',
     category: 'luxury',
     theme: STORE_TEMPLATE_THEMES['luxe-boutique'],
     fonts: {
@@ -346,7 +343,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     id: 'nova-lux',
     name: 'Nova Lux',
     description: 'World-class luxury ecommerce template inspired by Shopify Prestige.',
-    thumbnail: '/templates/nova-lux.png',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/nova-lux.webp',
     category: 'luxury',
     theme: STORE_TEMPLATE_THEMES['nova-lux'],
     fonts: {
@@ -366,7 +363,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     name: 'Starter Store',
     description:
       'Complete immersive store template with working cart, checkout, search, and all pages. Perfect for demos and quick starts. Fully backend-connected in live mode.',
-    thumbnail: '/templates/starter-store.png',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/starter-store.webp',
     category: 'modern',
     theme: STORE_TEMPLATE_THEMES['starter-store'],
     fonts: {

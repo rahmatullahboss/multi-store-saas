@@ -34,7 +34,7 @@ export function RovoFooter({
     <StandardFooter
       storeName={storeName}
       logo={logo}
-      // @ts-ignore
+      // @ts-ignore StandardFooter accepts broader runtime theme config shape
       config={config}
       socialLinks={socialLinks}
       footerConfig={{

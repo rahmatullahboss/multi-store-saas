@@ -154,7 +154,7 @@ describe('Order API - Security', () => {
     
     extremeQuantities.forEach(qty => {
       const isValid = qty >= 1 && qty <= 99;
-      expect([0, -1, 100, 999999].includes(qty) && !isValid || qty === 1).toBeTruthy;
+      expect(([0, -1, 100, 999999].includes(qty) && !isValid) || qty === 1).toBeTruthy();
     });
   });
 });

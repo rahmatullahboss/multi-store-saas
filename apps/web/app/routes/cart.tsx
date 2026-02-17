@@ -10,24 +10,30 @@
  */
 
 import { useState, useEffect, Suspense } from 'react';
-import { json, type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
+import {
+  json,
+  type LoaderFunctionArgs,
+  type ActionFunctionArgs,
+  type MetaFunction,
+} from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher, useRouteError, isRouteErrorResponse } from '@remix-run/react';
 import { eq, and, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { products } from '@db/schema';
-import { parseSocialLinks } from '@db/types';
+import { type SocialLinks, type ThemeConfig } from '@db/types';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import {
-  getStoreTemplateTheme,
   getStoreTemplate,
-  DEFAULT_STORE_TEMPLATE_ID,
 } from '~/templates/store-registry';
 import { resolveStore } from '~/lib/store.server';
 import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
 import { formatPrice } from '~/lib/theme-engine';
 import { createDb } from '~/lib/db.server';
-import { getMVPSettings } from '~/services/mvp-settings.server';
+import {
+  getUnifiedStorefrontSettings,
+  toLegacyFormat,
+} from '~/services/unified-storefront-settings.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) {
@@ -68,40 +74,27 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeData = store;
   const db = createDb(context.cloudflare.env.DB);
 
-  // Parse theme
-  let themeConfig = null;
-  try {
-    if (storeData.themeConfig) {
-      themeConfig = JSON.parse(storeData.themeConfig as string);
-    }
-  } catch {
-    // Ignore parse errors
-  }
+  // Use unified service for settings (single source of truth)
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId);
+  const unified = toLegacyFormat(unifiedSettings);
 
-  let businessInfo = null;
-  try {
-    if (storeData.businessInfo) {
-      businessInfo = JSON.parse(storeData.businessInfo as string);
-    }
-  } catch {
-    // Ignore parse errors
-  }
+  const businessInfo = {
+    phone: unifiedSettings.business.phone ?? undefined,
+    email: unifiedSettings.business.email ?? undefined,
+    address: unifiedSettings.business.address ?? undefined,
+  };
 
-  const storeTemplateId =
-    themeConfig?.storeTemplateId || (storeData.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
-  const theme = getStoreTemplateTheme(storeTemplateId);
-  const socialLinks = parseSocialLinks(storeData.socialLinks as string | null);
-  const mvpSettings = await getMVPSettings(db, storeId as number, storeTemplateId);
+  const socialLinks: SocialLinks = {
+    facebook: unifiedSettings.social.facebook ?? undefined,
+    instagram: unifiedSettings.social.instagram ?? undefined,
+    whatsapp: unifiedSettings.social.whatsapp ?? undefined,
+    twitter: unifiedSettings.social.twitter ?? undefined,
+    youtube: unifiedSettings.social.youtube ?? undefined,
+    linkedin: unifiedSettings.social.linkedin ?? undefined,
+  };
 
   // Load customer session
   const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
-
-  // Merge MVP settings + themeConfig colors with template theme
-  const mergedTheme = {
-    ...theme,
-    primary: mvpSettings.primaryColor || themeConfig?.primaryColor || theme.primary,
-    accent: mvpSettings.accentColor || themeConfig?.accentColor || theme.accent,
-  };
 
   // Fetch unique categories for footer
   const categoriesResult = await db
@@ -115,32 +108,23 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   return json({
     storeId: storeId as number,
-    storeName: mvpSettings.storeName || storeData?.name || 'Store',
-    logo: mvpSettings.logo || storeData?.logo || null,
-    favicon: mvpSettings.favicon || storeData?.favicon || null,
+    storeName: unified.storeName || storeData?.name || 'Store',
+    logo: unified.logo || storeData?.logo || null,
+    favicon: unified.favicon || storeData?.favicon || null,
     currency: storeData?.currency || 'BDT',
-    storeTemplateId,
-    theme: mergedTheme,
-    socialLinks,
-    businessInfo,
-    themeConfig: {
-      ...themeConfig,
-      storeName: mvpSettings.storeName,
-      logo: mvpSettings.logo,
-      favicon: mvpSettings.favicon,
-      primaryColor: mvpSettings.primaryColor,
-      accentColor: mvpSettings.accentColor,
-      announcement:
-        mvpSettings.showAnnouncement && mvpSettings.announcementText
-          ? { text: mvpSettings.announcementText }
-          : themeConfig?.announcement,
-    },
+    storeTemplateId: unified.storeTemplateId,
+    theme: unified.theme,
+    socialLinks: Object.values(socialLinks).some(Boolean) ? socialLinks : null,
+    businessInfo: Object.values(businessInfo).some(Boolean) ? businessInfo : null,
+    themeConfig: unified.themeConfig,
     planType: storeData?.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
     categories,
-    mvpSettings,
+    mvpSettings: unified.mvpSettings,
     // AI Chat props
-    isCustomerAiEnabled: Boolean((storeData as { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled),
+    isCustomerAiEnabled: Boolean(
+      (storeData as { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled
+    ),
     aiCredits: Number((storeData as { aiCredits?: number }).aiCredits) || 0,
   });
 }
@@ -340,33 +324,31 @@ export default function CartPage() {
     }
   }, [cartItems, isLoading]);
 
-interface CartActionData {
-  success?: boolean;
-  items?: Array<{
-    removed?: boolean;
-    productId: number;
-    quantity: number;
-    title: string;
-    price: number;
-    imageUrl?: string | null;
-    isValid?: boolean;
+  interface CartActionData {
+    success?: boolean;
+    items?: Array<{
+      removed?: boolean;
+      productId: number;
+      quantity: number;
+      title: string;
+      price: number;
+      imageUrl?: string | null;
+      isValid?: boolean;
+      error?: string;
+    }>;
     error?: string;
-  }>;
-  error?: string;
-}
+  }
 
   // Handle server validation response
   useEffect(() => {
     const data = fetcher.data as CartActionData | undefined;
     if (data?.success && data.items) {
-      const validatedItems = data.items.filter(
-        (item) => !item.removed
-      );
+      const validatedItems = data.items.filter((item) => !item.removed);
       // We need to map back to the state shape if it differs, but here it looks compatible-ish
       // Actually state expects: productId, title, price, compareAtPrice, quantity, imageUrl
       // validatedItems has these.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setCartItems(validatedItems as any); 
+      setCartItems(validatedItems as any);
     }
   }, [fetcher.data]);
 
@@ -413,7 +395,7 @@ interface CartActionData {
         currency={currency}
         socialLinks={socialLinks || undefined}
         businessInfo={businessInfo || undefined}
-        config={themeConfig || undefined}
+        config={themeConfig as unknown as ThemeConfig}
         planType={planType}
         customer={customer || undefined}
         categories={categories}

@@ -76,6 +76,7 @@ interface CacheEntry {
 interface Env {
   STORE_CONFIG: DurableObjectNamespace;
   DB: D1Database;
+  WORKER_ENV?: string;
 }
 
 // ============================================================================
@@ -86,9 +87,11 @@ export class StoreConfigCache extends DurableObject<Env> {
   private cache: CacheEntry | null = null;
   private storeId: number = 0;
   private fetchPromise: Promise<StoreConfig | null> | null = null;
+  private readonly isProd: boolean;
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
+    this.isProd = env.WORKER_ENV === 'production';
   }
 
   async fetch(request: Request): Promise<Response> {
@@ -123,6 +126,9 @@ export class StoreConfigCache extends DurableObject<Env> {
           });
         
         case '/test-db':
+          if (this.isProd) {
+            return Response.json({ error: 'Not found' }, { status: 404 });
+          }
           // Direct DB test
           try {
             const result = await this.env.DB.prepare("SELECT id, name FROM stores LIMIT 1").first();
@@ -139,7 +145,7 @@ export class StoreConfigCache extends DurableObject<Env> {
       return Response.json({ 
         error: 'Internal error', 
         details: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
+        stack: this.isProd ? undefined : (error instanceof Error ? error.stack : undefined)
       }, { status: 500 });
     }
   }
@@ -301,7 +307,9 @@ export class StoreConfigCache extends DurableObject<Env> {
   private async refreshCache(storeId: number): Promise<void> {
     try {
       await this.fetchFromDB(storeId);
-      console.log(`Store config cache refreshed for store ${storeId}`);
+      if (!this.isProd) {
+        console.log(`Store config cache refreshed for store ${storeId}`);
+      }
     } catch (error) {
       console.error(`Failed to refresh store config cache for store ${storeId}:`, error);
     }
@@ -313,7 +321,9 @@ export class StoreConfigCache extends DurableObject<Env> {
   private async invalidateCache(): Promise<Response> {
     this.cache = null;
     
-    console.log(`Store config cache invalidated for store ${this.storeId}`);
+    if (!this.isProd) {
+      console.log(`Store config cache invalidated for store ${this.storeId}`);
+    }
     
     return Response.json({ 
       success: true, 
@@ -401,10 +411,11 @@ export default {
       const storeId = match[1];
       const doPath = match[2] || '/';
 
-      // Log source for debugging high traffic
-      const origin = request.headers.get('Origin') || 'unknown';
-      const referer = request.headers.get('Referer') || 'unknown';
-      console.log(`[StoreConfig] Request for store ${storeId} from ${origin} (Ref: ${referer})`);
+      if (env.WORKER_ENV !== 'production') {
+        const origin = request.headers.get('Origin') || 'unknown';
+        const referer = request.headers.get('Referer') || 'unknown';
+        console.log(`[StoreConfig] Request for store ${storeId} from ${origin} (Ref: ${referer})`);
+      }
       
       const id = env.STORE_CONFIG.idFromName(`store-${storeId}`);
       const stub = env.STORE_CONFIG.get(id);

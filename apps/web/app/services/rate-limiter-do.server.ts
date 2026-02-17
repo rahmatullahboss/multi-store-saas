@@ -27,6 +27,7 @@ export interface RateLimitResult {
   windowMs: number;
   resetAt: number;
   retryAfterMs?: number;
+  fallback?: boolean;
 }
 
 export type RateLimitPreset = 'api' | 'auth' | 'checkout' | 'upload' | 'search';
@@ -59,8 +60,11 @@ export async function checkRateLimit(
   storeId: number | string,
   clientIP: string,
   preset: RateLimitPreset = 'api',
-  cost = 1
+  cost = 1,
+  options?: { failOpen?: boolean }
 ): Promise<RateLimitResult> {
+  const failOpen = options?.failOpen ?? true;
+
   try {
     // Sanitize IP for use in DO ID
     const sanitizedIP = clientIP.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -78,6 +82,18 @@ export async function checkRateLimit(
     return await response.json() as RateLimitResult;
   } catch (error) {
     console.error('checkRateLimit error:', error);
+    if (!failOpen) {
+      return {
+        allowed: false,
+        remaining: 0,
+        limit: RATE_LIMIT_PRESETS[preset]?.limit ?? 100,
+        windowMs: RATE_LIMIT_PRESETS[preset]?.windowMs ?? 60000,
+        resetAt: Date.now() + 60000,
+        retryAfterMs: 60000,
+        fallback: true,
+      };
+    }
+
     // Fail open on errors (allow request)
     return {
       allowed: true,
@@ -85,6 +101,7 @@ export async function checkRateLimit(
       limit: 100,
       windowMs: 60000,
       resetAt: Date.now() + 60000,
+      fallback: true,
     };
   }
 }

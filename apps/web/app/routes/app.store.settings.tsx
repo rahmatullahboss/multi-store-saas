@@ -6,13 +6,23 @@
  */
 
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
-import { useLoaderData, useActionData, Form, useSearchParams, useNavigation, useFetcher } from '@remix-run/react';
+import {
+  useLoaderData,
+  useActionData,
+  Form,
+  useSearchParams,
+  useNavigation,
+  useFetcher,
+} from '@remix-run/react';
 import { useState, useEffect, useRef } from 'react';
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores } from '@db/schema';
 import { requireUserId, getStoreId } from '~/services/auth.server';
-import { getUnifiedStorefrontSettings, saveUnifiedStorefrontSettingsWithCacheInvalidation } from '~/services/unified-storefront-settings.server';
+import {
+  getUnifiedStorefrontSettings,
+  saveUnifiedStorefrontSettingsWithCacheInvalidation,
+} from '~/services/unified-storefront-settings.server';
 import { MVP_STORE_TEMPLATES } from '~/templates/store-registry';
 import { KVCache, CACHE_KEYS } from '~/services/kv-cache.server';
 import { D1Cache } from '~/services/cache-layer.server';
@@ -21,10 +31,32 @@ import { createDb } from '~/lib/db.server';
 
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import {
-  Eye, Edit3, Palette, Image as ImageIcon, Type, Info,
-  Layout, CheckCircle, Truck, Shield, RefreshCw, X,
-  Upload, Loader2, Store, Phone, Mail, MapPin,
-  Facebook, Instagram, MessageCircle, Plus, Trash2, ChevronUp, ChevronDown,
+  Eye,
+
+  Palette,
+  Image as ImageIcon,
+  Type,
+  Info,
+  Layout,
+  CheckCircle,
+  Truck,
+  Shield,
+  RefreshCw,
+  X,
+  Upload,
+  Loader2,
+  Store,
+  Phone,
+  Mail,
+  MapPin,
+  Facebook,
+  Instagram,
+  MessageCircle,
+  Plus,
+  Trash2,
+  ChevronUp,
+  ChevronDown,
+  ExternalLink,
 } from 'lucide-react';
 import type { UnifiedStorefrontSettingsV1 } from '~/services/storefront-settings.schema';
 
@@ -53,7 +85,7 @@ const TABS = [
   { id: 'template', label: 'টেমপ্লেট', icon: Layout },
   { id: 'theme', label: 'থিম', icon: Palette },
   { id: 'banner', label: 'ব্যানার', icon: ImageIcon },
-  { id: 'content', label: 'Content', icon: Type },
+  { id: 'content', label: 'কন্টেন্ট', icon: Type },
   { id: 'info', label: 'তথ্য', icon: Info },
 ] as const;
 
@@ -78,7 +110,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     store,
     settings,
     availableThemes: MVP_STORE_TEMPLATES.map((t) => ({
-      id: t.id, name: t.name, thumbnail: t.thumbnail, description: t.description,
+      id: t.id,
+      name: t.name,
+      thumbnail: t.thumbnail,
+      description: t.description,
       colors: t.theme ? { primary: t.theme.primary, accent: t.theme.accent } : null,
     })),
   });
@@ -109,16 +144,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
         patch.theme = { templateId };
         // Also update legacy store field
         let themeConfig: Record<string, unknown> = {};
-        try { if (store.themeConfig) themeConfig = JSON.parse(store.themeConfig as string); } catch { /* ignore parse error, use defaults */ }
-        await db.update(stores).set({
-          themeConfig: JSON.stringify({ ...themeConfig, storeTemplateId: templateId }),
-        }).where(eq(stores.id, storeId));
+        try {
+          if (store.themeConfig) themeConfig = JSON.parse(store.themeConfig as string);
+        } catch {
+          /* ignore parse error, use defaults */
+        }
+        await db
+          .update(stores)
+          .set({
+            themeConfig: JSON.stringify({ ...themeConfig, storeTemplateId: templateId }),
+          })
+          .where(eq(stores.id, storeId));
       }
     } else if (intent === 'theme') {
       const primary = (formData.get('primaryColor') as string) || undefined;
       const accent = (formData.get('accentColor') as string) || undefined;
       const fontFamily = (formData.get('fontFamily') as string) || undefined;
-      if (primary || accent) patch.theme = { ...(primary && { primary }), ...(accent && { accent }) };
+      if (primary || accent)
+        patch.theme = { ...(primary && { primary }), ...(accent && { accent }) };
       if (fontFamily) patch.typography = { fontFamily };
     } else if (intent === 'banner') {
       const mode = (formData.get('bannerMode') as 'single' | 'carousel') || 'single';
@@ -171,19 +214,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
         whatsapp: (formData.get('whatsapp') as string) || null,
       };
       // Sync legacy store columns
-      await db.update(stores).set({
-        logo: logo || null,
-        socialLinks: JSON.stringify({
-          facebook: (formData.get('facebook') as string) || '',
-          instagram: (formData.get('instagram') as string) || '',
-          whatsapp: (formData.get('whatsapp') as string) || '',
-        }),
-        businessInfo: JSON.stringify({
-          phone: (formData.get('businessPhone') as string) || '',
-          email: (formData.get('businessEmail') as string) || '',
-          address: (formData.get('businessAddress') as string) || '',
-        }),
-      }).where(eq(stores.id, storeId));
+      await db
+        .update(stores)
+        .set({
+          logo: logo || null,
+          socialLinks: JSON.stringify({
+            facebook: (formData.get('facebook') as string) || '',
+            instagram: (formData.get('instagram') as string) || '',
+            whatsapp: (formData.get('whatsapp') as string) || '',
+          }),
+          businessInfo: JSON.stringify({
+            phone: (formData.get('businessPhone') as string) || '',
+            email: (formData.get('businessEmail') as string) || '',
+            address: (formData.get('businessAddress') as string) || '',
+          }),
+        })
+        .where(eq(stores.id, storeId));
     }
 
     await saveUnifiedStorefrontSettingsWithCacheInvalidation(
@@ -196,7 +242,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       },
       storeId,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      patch as any,
+      patch as any
     );
 
     // Invalidate caches
@@ -207,8 +253,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const customDomain = (store.customDomain as string | null) || null;
       await Promise.all([
         kvCache.delete(`${CACHE_KEYS.STORE_CONFIG}${storeId}`),
-        subdomain ? kvCache.delete(`${CACHE_KEYS.TENANT_SUBDOMAIN}${subdomain}`) : Promise.resolve(),
-        customDomain ? kvCache.delete(`${CACHE_KEYS.TENANT_DOMAIN}${customDomain}`) : Promise.resolve(),
+        subdomain
+          ? kvCache.delete(`${CACHE_KEYS.TENANT_SUBDOMAIN}${subdomain}`)
+          : Promise.resolve(),
+        customDomain
+          ? kvCache.delete(`${CACHE_KEYS.TENANT_DOMAIN}${customDomain}`)
+          : Promise.resolve(),
       ]);
     }
     await invalidateStoreConfigD1(new D1Cache(createDb(context.cloudflare.env.DB)), storeId);
@@ -229,7 +279,6 @@ export default function StoreDesignPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigation = useNavigation();
   const isSaving = navigation.state === 'submitting';
-
 
   const activeTab = (searchParams.get('tab') as TabId) || 'template';
   const setTab = (tab: TabId) => setSearchParams({ tab }, { preventScrollReset: true });
@@ -254,13 +303,13 @@ export default function StoreDesignPage() {
           <p className="text-gray-500 text-sm">আপনার স্টোরের চেহারা এবং সেটিংস কাস্টমাইজ করুন</p>
         </div>
         <div className="flex gap-2">
-          <a href={storeUrl} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+          <a
+            href={storeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+          >
             <Eye className="w-4 h-4" /> লাইভ স্টোর দেখুন
-          </a>
-          <a href="/app/store-live-editor" target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
-            <Edit3 className="w-4 h-4" /> লাইভ এডিটর খুলুন
           </a>
         </div>
       </div>
@@ -279,10 +328,15 @@ export default function StoreDesignPage() {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
-              <button key={tab.id} onClick={() => setTab(tab.id)}
+              <button
+                key={tab.id}
+                onClick={() => setTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap ${
-                  isActive ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}>
+                  isActive
+                    ? 'border-purple-600 text-purple-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
                 <Icon className="w-4 h-4" /> {tab.label}
               </button>
             );
@@ -292,7 +346,9 @@ export default function StoreDesignPage() {
 
       {/* Tab Content */}
       <div className="min-h-[400px]">
-        {activeTab === 'template' && <TemplateTab settings={settings} themes={availableThemes} isSaving={isSaving} />}
+        {activeTab === 'template' && (
+          <TemplateTab settings={settings} themes={availableThemes} isSaving={isSaving} />
+        )}
         {activeTab === 'theme' && <ThemeTab settings={settings} isSaving={isSaving} />}
         {activeTab === 'banner' && <BannerTab settings={settings} isSaving={isSaving} />}
         {activeTab === 'content' && <ContentTab settings={settings} isSaving={isSaving} />}
@@ -305,9 +361,19 @@ export default function StoreDesignPage() {
 // ============================================================================
 // TEMPLATE TAB
 // ============================================================================
-function TemplateTab({ settings, themes, isSaving }: {
+function TemplateTab({
+  settings,
+  themes,
+  isSaving,
+}: {
   settings: UnifiedStorefrontSettingsV1;
-  themes: Array<{ id: string; name: string; thumbnail: string; description: string; colors: { primary: string; accent: string } | null }>;
+  themes: Array<{
+    id: string;
+    name: string;
+    thumbnail: string;
+    description: string;
+    colors: { primary: string; accent: string } | null;
+  }>;
   isSaving: boolean;
 }) {
   return (
@@ -315,18 +381,31 @@ function TemplateTab({ settings, themes, isSaving }: {
       {themes.map((theme) => {
         const isActive = settings.theme.templateId === theme.id;
         return (
-          <div key={theme.id} className={`relative rounded-xl border-2 overflow-hidden transition-all ${isActive ? 'border-purple-500 shadow-lg' : 'border-gray-200 hover:border-gray-300'}`}>
+          <div
+            key={theme.id}
+            className={`relative rounded-xl border-2 overflow-hidden transition-all ${isActive ? 'border-purple-500 shadow-lg' : 'border-gray-200 hover:border-gray-300'}`}
+          >
             {isActive && (
               <div className="absolute top-3 right-3 z-10 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                 <CheckCircle className="w-3 h-3" /> বর্তমানে সক্রিয়
               </div>
             )}
             <div className="aspect-[4/3] bg-gray-900 relative overflow-hidden">
-              <img src={theme.thumbnail} alt={theme.name} className="w-full h-full object-cover opacity-80" />
+              <img
+                src={theme.thumbnail}
+                alt={theme.name}
+                className="w-full h-full object-cover opacity-80"
+              />
               {theme.colors && (
                 <div className="absolute top-3 left-3 flex gap-1">
-                  <div className="w-5 h-5 rounded-full border-2 border-white/50" style={{ backgroundColor: theme.colors.primary }} />
-                  <div className="w-5 h-5 rounded-full border-2 border-white/50" style={{ backgroundColor: theme.colors.accent }} />
+                  <div
+                    className="w-5 h-5 rounded-full border-2 border-white/50"
+                    style={{ backgroundColor: theme.colors.primary }}
+                  />
+                  <div
+                    className="w-5 h-5 rounded-full border-2 border-white/50"
+                    style={{ backgroundColor: theme.colors.accent }}
+                  />
                 </div>
               )}
             </div>
@@ -336,19 +415,40 @@ function TemplateTab({ settings, themes, isSaving }: {
               {theme.colors && (
                 <div className="flex items-center gap-1.5 mt-2">
                   <span className="text-xs text-gray-400">কালার:</span>
-                  <div className="w-4 h-4 rounded-full border" style={{ backgroundColor: theme.colors.primary }} />
-                  <div className="w-4 h-4 rounded-full border" style={{ backgroundColor: theme.colors.accent }} />
+                  <div
+                    className="w-4 h-4 rounded-full border"
+                    style={{ backgroundColor: theme.colors.primary }}
+                  />
+                  <div
+                    className="w-4 h-4 rounded-full border"
+                    style={{ backgroundColor: theme.colors.accent }}
+                  />
                 </div>
               )}
               <Form method="post" className="mt-3">
                 <input type="hidden" name="intent" value="template" />
                 <input type="hidden" name="templateId" value={theme.id} />
-                <button type="submit" disabled={isActive || isSaving}
-                  className={`w-full py-2 rounded-lg text-sm font-medium transition ${
-                    isActive ? 'bg-gray-100 text-emerald-600 cursor-default' : 'bg-purple-600 text-white hover:bg-purple-700'
-                  }`}>
-                  {isActive ? 'বর্তমানে সক্রিয়' : 'টেমপ্লেট এপ্লাই করুন'}
-                </button>
+                <div className="flex gap-2">
+                  <a
+                    href={`/store-template-preview/${theme.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 py-2 rounded-lg text-sm font-medium transition border border-gray-300 text-gray-700 hover:bg-gray-50 flex items-center justify-center gap-1"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" /> প্রিভিউ
+                  </a>
+                  <button
+                    type="submit"
+                    disabled={isActive || isSaving}
+                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
+                      isActive
+                        ? 'bg-gray-100 text-emerald-600 cursor-default'
+                        : 'bg-purple-600 text-white hover:bg-purple-700'
+                    }`}
+                  >
+                    {isActive ? 'সক্রিয়' : 'এপ্লাই'}
+                  </button>
+                </div>
               </Form>
             </div>
           </div>
@@ -361,7 +461,13 @@ function TemplateTab({ settings, themes, isSaving }: {
 // ============================================================================
 // THEME TAB
 // ============================================================================
-function ThemeTab({ settings, isSaving }: { settings: UnifiedStorefrontSettingsV1; isSaving: boolean }) {
+function ThemeTab({
+  settings,
+  isSaving,
+}: {
+  settings: UnifiedStorefrontSettingsV1;
+  isSaving: boolean;
+}) {
   const [primary, setPrimary] = useState(settings.theme.primary);
   const [accent, setAccent] = useState(settings.theme.accent);
   const [font, setFont] = useState(settings.typography?.fontFamily || 'inter');
@@ -387,11 +493,19 @@ function ThemeTab({ settings, isSaving }: { settings: UnifiedStorefrontSettingsV
           <h3 className="text-sm font-medium text-gray-700 mb-3">কুইক প্রিসেটস</h3>
           <div className="flex flex-wrap gap-2">
             {COLOR_PRESETS.map((preset) => (
-              <button key={preset.name} type="button"
-                onClick={() => { setPrimary(preset.primary); setAccent(preset.accent); }}
+              <button
+                key={preset.name}
+                type="button"
+                onClick={() => {
+                  setPrimary(preset.primary);
+                  setAccent(preset.accent);
+                }}
                 className={`flex items-center gap-2 px-3 py-2 rounded-full border-2 text-sm transition ${
-                  primary === preset.primary && accent === preset.accent ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-gray-300'
-                }`}>
+                  primary === preset.primary && accent === preset.accent
+                    ? 'border-purple-500 bg-purple-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
                 <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.primary }} />
                 <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.accent }} />
                 <span>{preset.name}</span>
@@ -404,22 +518,44 @@ function ThemeTab({ settings, isSaving }: { settings: UnifiedStorefrontSettingsV
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="p-4 bg-gray-50 rounded-xl">
             <h4 className="font-medium text-gray-900 mb-1">প্রাথমিক রং (Primary Color)</h4>
-            <p className="text-xs text-gray-500 mb-3">বাটন, হেডার এবং অ্যাকসেন্টের জন্য ব্যবহৃত হয়</p>
+            <p className="text-xs text-gray-500 mb-3">
+              বাটন, হেডার এবং অ্যাকসেন্টের জন্য ব্যবহৃত হয়
+            </p>
             <div className="flex items-center gap-3">
-              <input type="color" name="primaryColor" value={primary} onChange={(e) => setPrimary(e.target.value)}
-                className="w-12 h-12 rounded-lg border border-gray-300 cursor-pointer" />
-              <input type="text" value={primary} onChange={(e) => setPrimary(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono" />
+              <input
+                type="color"
+                name="primaryColor"
+                value={primary}
+                onChange={(e) => setPrimary(e.target.value)}
+                className="w-12 h-12 rounded-lg border border-gray-300 cursor-pointer"
+              />
+              <input
+                type="text"
+                value={primary}
+                onChange={(e) => setPrimary(e.target.value)}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+              />
             </div>
           </div>
           <div className="p-4 bg-gray-50 rounded-xl">
             <h4 className="font-medium text-gray-900 mb-1">অ্যাকসেন্ট কালার</h4>
-            <p className="text-xs text-gray-500 mb-3">হাইলাইট এবং সেকেন্ডারি এলিমেন্টের জন্য ব্যবহৃত হয়</p>
+            <p className="text-xs text-gray-500 mb-3">
+              হাইলাইট এবং সেকেন্ডারি এলিমেন্টের জন্য ব্যবহৃত হয়
+            </p>
             <div className="flex items-center gap-3">
-              <input type="color" name="accentColor" value={accent} onChange={(e) => setAccent(e.target.value)}
-                className="w-12 h-12 rounded-lg border border-gray-300 cursor-pointer" />
-              <input type="text" value={accent} onChange={(e) => setAccent(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono" />
+              <input
+                type="color"
+                name="accentColor"
+                value={accent}
+                onChange={(e) => setAccent(e.target.value)}
+                className="w-12 h-12 rounded-lg border border-gray-300 cursor-pointer"
+              />
+              <input
+                type="text"
+                value={accent}
+                onChange={(e) => setAccent(e.target.value)}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+              />
             </div>
           </div>
         </div>
@@ -439,10 +575,16 @@ function ThemeTab({ settings, isSaving }: { settings: UnifiedStorefrontSettingsV
         <input type="hidden" name="fontFamily" value={font} />
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {FONT_OPTIONS.map((f) => (
-            <button key={f.id} type="button" onClick={() => setFont(f.id)}
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setFont(f.id)}
               className={`p-4 rounded-xl border-2 text-left transition ${
-                font === f.id ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-gray-300'
-              }`}>
+                font === f.id
+                  ? 'border-purple-500 bg-purple-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
               <div className="font-semibold text-gray-900">{f.name}</div>
               <div className="text-xs text-gray-500 mt-1">{f.desc}</div>
             </button>
@@ -454,10 +596,18 @@ function ThemeTab({ settings, isSaving }: { settings: UnifiedStorefrontSettingsV
       <section className="bg-white rounded-xl border border-gray-200 p-6">
         <h3 className="text-sm font-medium text-gray-700 mb-3">প্রিভিউ</h3>
         <div className="flex items-center gap-3">
-          <button type="button" className="px-4 py-2 rounded-lg text-white text-sm font-medium" style={{ backgroundColor: primary }}>
+          <button
+            type="button"
+            className="px-4 py-2 rounded-lg text-white text-sm font-medium"
+            style={{ backgroundColor: primary }}
+          >
             প্রাইমারি বাটন
           </button>
-          <button type="button" className="px-4 py-2 rounded-lg text-white text-sm font-medium" style={{ backgroundColor: accent }}>
+          <button
+            type="button"
+            className="px-4 py-2 rounded-lg text-white text-sm font-medium"
+            style={{ backgroundColor: accent }}
+          >
             অ্যাকসেন্ট বাটন
           </button>
           <div className="w-10 h-10 rounded-full" style={{ backgroundColor: primary }} />
@@ -465,9 +615,16 @@ function ThemeTab({ settings, isSaving }: { settings: UnifiedStorefrontSettingsV
       </section>
 
       <div className="flex justify-center">
-        <button type="submit" disabled={isSaving}
-          className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition disabled:opacity-50 flex items-center gap-2">
-          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Palette className="w-4 h-4" />}
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition disabled:opacity-50 flex items-center gap-2"
+        >
+          {isSaving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Palette className="w-4 h-4" />
+          )}
           থিম সেভ করুন
         </button>
       </div>
@@ -478,19 +635,59 @@ function ThemeTab({ settings, isSaving }: { settings: UnifiedStorefrontSettingsV
 // ============================================================================
 // BANNER TAB
 // ============================================================================
-function BannerTab({ settings, isSaving }: { settings: UnifiedStorefrontSettingsV1; isSaving: boolean }) {
-  const heroBanner = settings.heroBanner || { mode: 'single', overlayOpacity: 40, slides: [], fallbackHeadline: null };
+function BannerTab({
+  settings,
+  isSaving,
+}: {
+  settings: UnifiedStorefrontSettingsV1;
+  isSaving: boolean;
+}) {
+  const heroBanner = settings.heroBanner || {
+    mode: 'single',
+    overlayOpacity: 40,
+    slides: [],
+    fallbackHeadline: null,
+  };
   const announcement = settings.announcement;
   const [mode, setMode] = useState<'single' | 'carousel'>(heroBanner.mode as 'single' | 'carousel');
   const [opacity, setOpacity] = useState(heroBanner.overlayOpacity);
-  const [slides, setSlides] = useState(heroBanner.slides.length > 0 ? heroBanner.slides : [{ imageUrl: null, heading: null, subheading: null, ctaText: null, ctaLink: null }]);
+  // Ensure we have at least one slide structure
+  const [slides, setSlides] = useState(
+    heroBanner.slides.length > 0
+      ? heroBanner.slides
+      : [{ imageUrl: null, heading: null, subheading: null, ctaText: null, ctaLink: null }]
+  );
   const [headline, setHeadline] = useState(heroBanner.fallbackHeadline || '');
 
   const addSlide = () => {
-    if (slides.length < 6) setSlides([...slides, { imageUrl: null, heading: null, subheading: null, ctaText: null, ctaLink: null }]);
+    if (slides.length < 6) {
+      setSlides([
+        ...slides,
+        { imageUrl: null, heading: null, subheading: null, ctaText: null, ctaLink: null },
+      ]);
+    }
   };
+
   const removeSlide = (idx: number) => {
-    if (slides.length > 1) setSlides(slides.filter((_, i) => i !== idx));
+    if (slides.length > 1) {
+      setSlides(slides.filter((_, i) => i !== idx));
+    }
+  };
+
+  const updateSlide = (idx: number, updates: Partial<typeof slides[0]>) => {
+    const newSlides = [...slides];
+    newSlides[idx] = { ...newSlides[idx], ...updates };
+    setSlides(newSlides);
+  };
+
+  const moveSlide = (idx: number, direction: 'up' | 'down') => {
+    const newSlides = [...slides];
+    if (direction === 'up' && idx > 0) {
+      [newSlides[idx - 1], newSlides[idx]] = [newSlides[idx], newSlides[idx - 1]];
+    } else if (direction === 'down' && idx < newSlides.length - 1) {
+      [newSlides[idx], newSlides[idx + 1]] = [newSlides[idx + 1], newSlides[idx]];
+    }
+    setSlides(newSlides);
   };
 
   return (
@@ -509,8 +706,12 @@ function BannerTab({ settings, isSaving }: { settings: UnifiedStorefrontSettings
         {/* Mode Toggle */}
         <div className="flex gap-2 mb-4">
           {(['single', 'carousel'] as const).map((m) => (
-            <button key={m} type="button" onClick={() => setMode(m)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${mode === m ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMode(m)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${mode === m ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+            >
               {m === 'single' ? 'Single Image' : `Carousel (${slides.length}/6)`}
             </button>
           ))}
@@ -523,52 +724,68 @@ function BannerTab({ settings, isSaving }: { settings: UnifiedStorefrontSettings
             <span>Hero Overlay Opacity</span>
             <span className="text-purple-600 font-medium">{opacity}%</span>
           </div>
-          <input type="range" name="overlayOpacity" min="0" max="100" value={opacity}
+          <input
+            type="range"
+            name="overlayOpacity"
+            min="0"
+            max="100"
+            value={opacity}
             onChange={(e) => setOpacity(parseInt(e.target.value))}
-            className="w-full accent-purple-600" />
-          <p className="text-xs text-gray-500 mt-1">Adjust the darkness of the overlay on your banner images. 0% is fully transparent, 100% is fully black.</p>
+            className="w-full accent-purple-600"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Adjust the darkness of the overlay on your banner images. 0% is fully transparent, 100%
+            is fully black.
+          </p>
         </div>
 
         {/* Slides */}
         {slides.map((slide, idx) => (
-          <div key={idx} className="border border-gray-200 rounded-lg p-4 mb-4">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-sm font-medium">Slide {idx + 1}</span>
-              <div className="flex gap-1">
-                {idx > 0 && <button type="button" onClick={() => { const s = [...slides]; [s[idx-1], s[idx]] = [s[idx], s[idx-1]]; setSlides(s); }}><ChevronUp className="w-4 h-4" /></button>}
-                {idx < slides.length - 1 && <button type="button" onClick={() => { const s = [...slides]; [s[idx], s[idx+1]] = [s[idx+1], s[idx]]; setSlides(s); }}><ChevronDown className="w-4 h-4" /></button>}
-                {slides.length > 1 && <button type="button" onClick={() => removeSlide(idx)} className="text-red-500"><Trash2 className="w-4 h-4" /></button>}
-              </div>
-            </div>
-            <input type="hidden" name={`slide_${idx}_imageUrl`} value={slide.imageUrl || ''} />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input type="text" name={`slide_${idx}_heading`} defaultValue={slide.heading || ''} placeholder="Heading (optional)" className="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-              <input type="text" name={`slide_${idx}_subheading`} defaultValue={slide.subheading || ''} placeholder="Subheading (optional)" className="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-              <input type="text" name={`slide_${idx}_ctaText`} defaultValue={slide.ctaText || ''} placeholder="CTA text (optional)" className="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-              <input type="url" name={`slide_${idx}_ctaLink`} defaultValue={slide.ctaLink || ''} placeholder="https://example.com/products" className="px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-            </div>
-          </div>
+          <BannerSlide
+            key={idx}
+            idx={idx}
+            slide={slide}
+            totalSlides={slides.length}
+            onUpdate={updateSlide}
+            onRemove={removeSlide}
+            onMove={moveSlide}
+          />
         ))}
 
         {slides.length < 6 && (
-          <button type="button" onClick={addSlide} className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1">
+          <button
+            type="button"
+            onClick={addSlide}
+            className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1"
+          >
             <Plus className="w-4 h-4" /> Add Slide
           </button>
         )}
-        <p className="text-xs text-gray-500 mt-2">Use up to 6 slides. First slide is used as fallback banner.</p>
+        <p className="text-xs text-gray-500 mt-2">
+          Use up to 6 slides. First slide is used as fallback banner.
+        </p>
 
         {/* Fallback Headline */}
         <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">ব্যানার হেডলাইন (fallback)</label>
-          <input type="text" name="fallbackHeadline" value={headline} onChange={(e) => setHeadline(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            ব্যানার হেডলাইন (fallback)
+          </label>
+          <input
+            type="text"
+            name="fallbackHeadline"
+            value={headline}
+            onChange={(e) => setHeadline(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+          />
         </div>
       </section>
 
       {/* Announcement Bar */}
       <section className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">📢</div>
+          <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+            📢
+          </div>
           <div>
             <h2 className="text-lg font-semibold">আনাউন্সমেন্ট বার</h2>
             <p className="text-sm text-gray-500">আপনার স্টোরের একদম উপরে দেখাবে।</p>
@@ -576,27 +793,53 @@ function BannerTab({ settings, isSaving }: { settings: UnifiedStorefrontSettings
         </div>
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">আনাউন্সমেন্ট টেক্সট</label>
-            <input type="text" name="announcementText" defaultValue={announcement?.text || ''}
-              placeholder="🎉 ১০০০ টাকার বেশি অর্ডারে ফ্রি শিপিং!" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              আনাউন্সমেন্ট টেক্সট
+            </label>
+            <input
+              type="text"
+              name="announcementText"
+              defaultValue={announcement?.text || ''}
+              placeholder="🎉 ১০০০ টাকার বেশি অর্ডারে ফ্রি শিপিং!"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">লিংক (ঐচ্ছিক)</label>
-            <input type="url" name="announcementLink" defaultValue={announcement?.link || ''}
-              placeholder="https://yourstore.com/sale" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+            <input
+              type="url"
+              name="announcementLink"
+              defaultValue={announcement?.link || ''}
+              placeholder="https://yourstore.com/sale"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
           </div>
           <div className="flex items-center gap-2">
-            <input type="checkbox" name="announcementEnabled" id="announcementEnabled" defaultChecked={announcement?.enabled}
-              className="h-4 w-4 text-purple-600 rounded" />
-            <label htmlFor="announcementEnabled" className="text-sm text-gray-700">আনাউন্সমেন্ট বার দেখান</label>
+            <input
+              type="checkbox"
+              name="announcementEnabled"
+              id="announcementEnabled"
+              defaultChecked={announcement?.enabled}
+              className="h-4 w-4 text-purple-600 rounded"
+            />
+            <label htmlFor="announcementEnabled" className="text-sm text-gray-700">
+              আনাউন্সমেন্ট বার দেখান
+            </label>
           </div>
         </div>
       </section>
 
       <div className="flex justify-center">
-        <button type="submit" disabled={isSaving}
-          className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition disabled:opacity-50 flex items-center gap-2">
-          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition disabled:opacity-50 flex items-center gap-2"
+        >
+          {isSaving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <ImageIcon className="w-4 h-4" />
+          )}
           🖼 ব্যানার সেভ করুন
         </button>
       </div>
@@ -604,10 +847,209 @@ function BannerTab({ settings, isSaving }: { settings: UnifiedStorefrontSettings
   );
 }
 
+interface Slide {
+  imageUrl: string | null;
+  heading: string | null;
+  subheading: string | null;
+  ctaText: string | null;
+  ctaLink: string | null;
+}
+
+function BannerSlide({
+  idx,
+  slide,
+  totalSlides,
+  onUpdate,
+  onRemove,
+  onMove,
+}: {
+  idx: number;
+  slide: Slide;
+  totalSlides: number;
+  onUpdate: (idx: number, updates: Partial<Slide>) => void;
+  onRemove: (idx: number) => void;
+  onMove: (idx: number, direction: 'up' | 'down') => void;
+}) {
+  const fetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
+  const [isUploading, setIsUploading] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (fetcher.state === 'submitting') {
+      setIsUploading(true);
+    } else if (fetcher.state === 'idle') {
+      setIsUploading(false);
+      if (fetcher.data?.success && fetcher.data.url) {
+        onUpdate(idx, { imageUrl: fetcher.data.url });
+        setPreview(null);
+      }
+    }
+  }, [fetcher.state, fetcher.data, idx, onUpdate]);
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => setPreview(reader.result as string);
+    reader.readAsDataURL(file);
+
+    let fileToUpload: File | Blob = file;
+    try {
+      const format = getOptimalFormat();
+      const compressed = await compressImage(file, {
+        maxWidth: 1920,
+        maxHeight: 1080,
+        quality: 0.85,
+        format,
+      });
+      fileToUpload = new File([compressed], `banner_${idx}.${format}`, { type: `image/${format}` });
+    } catch {
+      /* ignore */
+    }
+
+    const fd = new FormData();
+    fd.append('file', fileToUpload);
+    fd.append('folder', 'banners');
+
+    fetcher.submit(fd, {
+      method: 'post',
+      action: '/api/upload-image',
+      encType: 'multipart/form-data',
+    });
+  };
+
+  return (
+    <div className="border border-gray-200 rounded-lg p-4 mb-4">
+      <div className="flex justify-between items-center mb-3">
+        <span className="text-sm font-medium">Slide {idx + 1}</span>
+        <div className="flex gap-1">
+          {idx > 0 && (
+            <button
+              type="button"
+              onClick={() => onMove(idx, 'up')}
+              className="p-1 hover:bg-gray-100 rounded"
+            >
+              <ChevronUp className="w-4 h-4" />
+            </button>
+          )}
+          {idx < totalSlides - 1 && (
+            <button
+              type="button"
+              onClick={() => onMove(idx, 'down')}
+              className="p-1 hover:bg-gray-100 rounded"
+            >
+              <ChevronDown className="w-4 h-4" />
+            </button>
+          )}
+          {totalSlides > 1 && (
+            <button
+              type="button"
+              onClick={() => onRemove(idx)}
+              className="text-red-500 p-1 hover:bg-red-50 rounded"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+      <input type="hidden" name={`slide_${idx}_imageUrl`} value={slide.imageUrl || ''} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <input
+          type="text"
+          name={`slide_${idx}_heading`}
+          value={slide.heading || ''}
+          onChange={(e) => onUpdate(idx, { heading: e.target.value })}
+          placeholder="Heading (optional)"
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+        />
+        <input
+          type="text"
+          name={`slide_${idx}_subheading`}
+          value={slide.subheading || ''}
+          onChange={(e) => onUpdate(idx, { subheading: e.target.value })}
+          placeholder="Subheading (optional)"
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+        />
+        <input
+          type="text"
+          name={`slide_${idx}_ctaText`}
+          value={slide.ctaText || ''}
+          onChange={(e) => onUpdate(idx, { ctaText: e.target.value })}
+          placeholder="CTA text (optional)"
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+        />
+        <input
+          type="url"
+          name={`slide_${idx}_ctaLink`}
+          value={slide.ctaLink || ''}
+          onChange={(e) => onUpdate(idx, { ctaLink: e.target.value })}
+          placeholder="https://example.com/products"
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+        />
+      </div>
+      
+      <div className="mt-3">
+        <label className="block text-sm font-medium text-gray-700 mb-2">ব্যানার ইমেজ</label>
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            {preview || slide.imageUrl ? (
+              <div className="relative">
+                <img
+                  src={preview || slide.imageUrl || ''}
+                  alt={`Slide ${idx + 1}`}
+                  className="w-32 h-20 object-cover rounded-lg border border-gray-200"
+                />
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                    <Loader2 className="w-5 h-5 text-white animate-spin" />
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onUpdate(idx, { imageUrl: null });
+                    setPreview(null);
+                  }}
+                  className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ) : (
+              <label className="w-32 h-20 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-200 transition">
+                <ImageIcon className="w-6 h-6 text-gray-400" />
+                <span className="text-xs text-gray-500 mt-1">আপলোড</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageChange}
+                  disabled={isUploading}
+                />
+              </label>
+            )}
+          </div>
+          <div className="text-xs text-gray-500">
+            <p>সাইজ: 1920x1080 পিক্সেল</p>
+            <p>ফরম্যাট: JPG, PNG, WebP</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ============================================================================
 // CONTENT TAB
 // ============================================================================
-function ContentTab({ settings, isSaving }: { settings: UnifiedStorefrontSettingsV1; isSaving: boolean }) {
+function ContentTab({
+  settings,
+  isSaving,
+}: {
+  settings: UnifiedStorefrontSettingsV1;
+  isSaving: boolean;
+}) {
   const defaultBadges = [
     { icon: 'truck' as const, title: 'দ্রুত ডেলিভারি', description: 'ঢাকায় ১-২ দিনে' },
     { icon: 'shield' as const, title: 'নিরাপদ পেমেন্ট', description: '১০০% সিকিউর' },
@@ -629,7 +1071,9 @@ function ContentTab({ settings, isSaving }: { settings: UnifiedStorefrontSetting
           <h2 className="text-lg font-semibold">Store Content</h2>
         </div>
 
-        <h3 className="font-medium text-gray-900 mb-4">Trust Badges (Fast Delivery, Secure Payment, etc.)</h3>
+        <h3 className="font-medium text-gray-900 mb-4">
+          Trust Badges (Fast Delivery, Secure Payment, etc.)
+        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {badges.map((badge, idx) => {
             const Icon = IconMap[badge.icon as keyof typeof IconMap] || Truck;
@@ -637,19 +1081,28 @@ function ContentTab({ settings, isSaving }: { settings: UnifiedStorefrontSetting
               <div key={idx} className="border border-gray-200 rounded-lg p-4">
                 <div className="text-sm font-medium text-gray-500 mb-3 flex items-center gap-2">
                   <Icon className="w-4 h-4" />
-                  Badge {idx + 1} ({iconLabels[badge.icon as keyof typeof iconLabels] || 'Truck Icon'})
+                  Badge {idx + 1} (
+                  {iconLabels[badge.icon as keyof typeof iconLabels] || 'Truck Icon'})
                 </div>
                 <input type="hidden" name={`badge_${idx}_icon`} value={badge.icon} />
                 <div className="space-y-3">
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">Title</label>
-                    <input type="text" name={`badge_${idx}_title`} defaultValue={badge.title}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                    <input
+                      type="text"
+                      name={`badge_${idx}_title`}
+                      defaultValue={badge.title}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    />
                   </div>
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">Description</label>
-                    <input type="text" name={`badge_${idx}_description`} defaultValue={badge.description}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                    <input
+                      type="text"
+                      name={`badge_${idx}_description`}
+                      defaultValue={badge.description}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    />
                   </div>
                 </div>
               </div>
@@ -659,9 +1112,16 @@ function ContentTab({ settings, isSaving }: { settings: UnifiedStorefrontSetting
       </section>
 
       <div className="flex justify-center">
-        <button type="submit" disabled={isSaving}
-          className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition disabled:opacity-50 flex items-center gap-2">
-          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition disabled:opacity-50 flex items-center gap-2"
+        >
+          {isSaving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <CheckCircle className="w-4 h-4" />
+          )}
           🖊 পরিবর্তনগুলো সেভ করুন
         </button>
       </div>
@@ -672,13 +1132,21 @@ function ContentTab({ settings, isSaving }: { settings: UnifiedStorefrontSetting
 // ============================================================================
 // INFO TAB
 // ============================================================================
-function InfoTab({ settings, store, isSaving }: {
+function InfoTab({
+  settings,
+  store,
+  isSaving,
+}: {
+  settings: UnifiedStorefrontSettingsV1;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  settings: UnifiedStorefrontSettingsV1; store: any; isSaving: boolean;
+  store: any;
+  isSaving: boolean;
 }) {
   // Logo upload state
   const [logoUrl, setLogoUrl] = useState<string>(settings.branding?.logo || store.logo || '');
-  const [logoPreview, setLogoPreview] = useState<string>(settings.branding?.logo || store.logo || '');
+  const [logoPreview, setLogoPreview] = useState<string>(
+    settings.branding?.logo || store.logo || ''
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
   const isUploading = logoFetcher.state !== 'idle';
@@ -699,13 +1167,24 @@ function InfoTab({ settings, store, isSaving }: {
     let fileToUpload: File | Blob = file;
     try {
       const format = getOptimalFormat();
-      const compressed = await compressImage(file, { maxWidth: 500, maxHeight: 500, quality: 0.85, format });
+      const compressed = await compressImage(file, {
+        maxWidth: 500,
+        maxHeight: 500,
+        quality: 0.85,
+        format,
+      });
       fileToUpload = new File([compressed], `logo.${format}`, { type: `image/${format}` });
-    } catch { /* ignore compression error, use original file */ }
+    } catch {
+      /* ignore compression error, use original file */
+    }
     const fd = new FormData();
     fd.append('file', fileToUpload);
     fd.append('folder', 'logos');
-    logoFetcher.submit(fd, { method: 'post', action: '/api/upload-image', encType: 'multipart/form-data' });
+    logoFetcher.submit(fd, {
+      method: 'post',
+      action: '/api/upload-image',
+      encType: 'multipart/form-data',
+    });
   };
 
   const removeLogo = () => {
@@ -741,9 +1220,21 @@ function InfoTab({ settings, store, isSaving }: {
           <div className="relative">
             {logoPreview ? (
               <div className="relative">
-                <img src={logoPreview} alt="Logo" className="w-20 h-20 object-contain rounded-lg border border-gray-200 bg-gray-50" />
-                {isUploading && <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center"><Loader2 className="w-5 h-5 text-white animate-spin" /></div>}
-                <button type="button" onClick={removeLogo} className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center">
+                <img
+                  src={logoPreview}
+                  alt="Logo"
+                  className="w-20 h-20 object-contain rounded-lg border border-gray-200 bg-gray-50"
+                />
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                    <Loader2 className="w-5 h-5 text-white animate-spin" />
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={removeLogo}
+                  className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
+                >
                   <X className="w-3 h-3" />
                 </button>
               </div>
@@ -754,13 +1245,25 @@ function InfoTab({ settings, store, isSaving }: {
             )}
           </div>
           <div>
-            <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isUploading}
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+            >
               <Upload className="w-4 h-4" /> {isUploading ? 'আপলোড হচ্ছে...' : 'আপলোড'}
             </button>
-            <p className="text-xs text-gray-500 mt-1">সর্বোচ্চ: 2MB টাইপ: 200x200 পিক্সেল বা তার বেশি</p>
+            <p className="text-xs text-gray-500 mt-1">
+              সর্বোচ্চ: 2MB টাইপ: 200x200 পিক্সেল বা তার বেশি
+            </p>
           </div>
-          <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleLogoChange} className="hidden" />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleLogoChange}
+            className="hidden"
+          />
         </div>
       </section>
 
@@ -772,20 +1275,35 @@ function InfoTab({ settings, store, isSaving }: {
           </div>
           <div>
             <h2 className="text-lg font-semibold">স্টোর ব্র্যান্ডিং</h2>
-            <p className="text-sm text-gray-500">আপনার স্টোরের জন্য ট্যাগলাইন এবং বিবরণ দেওয়া করুন। এগুলো হেডার, ফুটার এবং SEO তে দেখাবে।</p>
+            <p className="text-sm text-gray-500">
+              আপনার স্টোরের জন্য ট্যাগলাইন এবং বিবরণ দেওয়া করুন। এগুলো হেডার, ফুটার এবং SEO তে
+              দেখাবে।
+            </p>
           </div>
         </div>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">ট্যাগলাইন / স্লোগান</label>
-            <input type="text" name="tagline" defaultValue={branding.tagline || ''} maxLength={200}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              ট্যাগলাইন / স্লোগান
+            </label>
+            <input
+              type="text"
+              name="tagline"
+              defaultValue={branding.tagline || ''}
+              maxLength={200}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
             <p className="text-xs text-gray-500 mt-1">সর্বোচ্চ ২০০ অক্ষর</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">স্টোরের বিবরণ</label>
-            <textarea name="description" defaultValue={branding.description || ''} rows={3} maxLength={500}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none" />
+            <textarea
+              name="description"
+              defaultValue={branding.description || ''}
+              rows={3}
+              maxLength={500}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none"
+            />
             <p className="text-xs text-gray-500 mt-1">SEO এর জন্য ১৫০-৫০০ অক্ষর ভালো কাজ করে</p>
           </div>
         </div>
@@ -801,19 +1319,43 @@ function InfoTab({ settings, store, isSaving }: {
         </div>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1"><Phone className="w-4 h-4 inline mr-1" />ফোন নম্বর</label>
-            <input type="tel" name="businessPhone" defaultValue={business.phone || ''}
-              placeholder="01739416661" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              <Phone className="w-4 h-4 inline mr-1" />
+              ফোন নম্বর
+            </label>
+            <input
+              type="tel"
+              name="businessPhone"
+              defaultValue={business.phone || ''}
+              placeholder="01739416661"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1"><Mail className="w-4 h-4 inline mr-1" />ইমেইল ঠিকানা</label>
-            <input type="email" name="businessEmail" defaultValue={business.email || ''}
-              placeholder="contact@ozzyl.com" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              <Mail className="w-4 h-4 inline mr-1" />
+              ইমেইল ঠিকানা
+            </label>
+            <input
+              type="email"
+              name="businessEmail"
+              defaultValue={business.email || ''}
+              placeholder="contact@ozzyl.com"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1"><MapPin className="w-4 h-4 inline mr-1" />ঠিকানা</label>
-            <input type="text" name="businessAddress" defaultValue={business.address || ''}
-              placeholder="dkp road, barguna" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              <MapPin className="w-4 h-4 inline mr-1" />
+              ঠিকানা
+            </label>
+            <input
+              type="text"
+              name="businessAddress"
+              defaultValue={business.address || ''}
+              placeholder="dkp road, barguna"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
           </div>
         </div>
       </section>
@@ -831,28 +1373,59 @@ function InfoTab({ settings, store, isSaving }: {
         </div>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1"><Facebook className="w-4 h-4 inline mr-1 text-blue-600" />ফেসবুক ইউআরএল</label>
-            <input type="url" name="facebook" defaultValue={social.facebook || ''}
-              placeholder="https://facebook.com/yourpage" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              <Facebook className="w-4 h-4 inline mr-1 text-blue-600" />
+              ফেসবুক ইউআরএল
+            </label>
+            <input
+              type="url"
+              name="facebook"
+              defaultValue={social.facebook || ''}
+              placeholder="https://facebook.com/yourpage"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1"><Instagram className="w-4 h-4 inline mr-1 text-pink-600" />ইন্সটাগ্রাম ইউআরএল</label>
-            <input type="url" name="instagram" defaultValue={social.instagram || ''}
-              placeholder="https://instagram.com/yourprofile" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              <Instagram className="w-4 h-4 inline mr-1 text-pink-600" />
+              ইন্সটাগ্রাম ইউআরএল
+            </label>
+            <input
+              type="url"
+              name="instagram"
+              defaultValue={social.instagram || ''}
+              placeholder="https://instagram.com/yourprofile"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1"><MessageCircle className="w-4 h-4 inline mr-1 text-green-600" />হোয়াটসঅ্যাপ নম্বর</label>
-            <input type="tel" name="whatsapp" defaultValue={social.whatsapp || ''}
-              placeholder="01739416661" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              <MessageCircle className="w-4 h-4 inline mr-1 text-green-600" />
+              হোয়াটসঅ্যাপ নম্বর
+            </label>
+            <input
+              type="tel"
+              name="whatsapp"
+              defaultValue={social.whatsapp || ''}
+              placeholder="01739416661"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
             <p className="text-xs text-gray-500 mt-1">দেশের কোডসহ দিন</p>
           </div>
         </div>
       </section>
 
       <div className="flex justify-center">
-        <button type="submit" disabled={isSaving}
-          className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition disabled:opacity-50 flex items-center gap-2">
-          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition disabled:opacity-50 flex items-center gap-2"
+        >
+          {isSaving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <CheckCircle className="w-4 h-4" />
+          )}
           🏪 স্টোর তথ্য সেভ করুন
         </button>
       </div>

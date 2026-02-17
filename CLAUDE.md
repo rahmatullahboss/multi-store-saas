@@ -23,9 +23,11 @@ When asked to implement complex logic, refactor code, or debug issues, adopt thi
 **Ozzyl** is a Multi-tenant SaaS e-commerce platform built on Cloudflare Workers with Remix.
 
 - **Runtime**: Cloudflare Workers (Edge)
-- **Frontend**: Remix (React 18) + Tailwind CSS
+- **Frontend**: Remix (React 18) + Tailwind CSS v4 + Vite
 - **Backend**: Hono.js (API) + Cloudflare D1 (SQLite) + R2 (Storage) + KV (Cache)
-- **Language**: TypeScript (Strict Mode)
+- **Language**: TypeScript (Strict Mode: `"strict": true`)
+- **Testing**: Vitest + Playwright
+- **Auth**: remix-auth with remix-auth-google
 
 ## 🛠 Coding Standards & Best Practices
 
@@ -67,7 +69,26 @@ When asked to implement complex logic, refactor code, or debug issues, adopt thi
 - **Data Loading**: Use `loader` for READs.
 - **Mutations**: Use `action` for WRITEs.
 - **State**: URL Search Params > Local State (`useState`).
-- **Styles**: Tailwind CSS utilities. Avoid custom CSS files unless absolutely necessary.
+- **Styles**: Tailwind CSS v4 utilities. Use `@tailwindcss/vite` plugin.
+- **i18n**: Uses i18next with `remix-i18next`. Extract with `npm run i18n:extract`.
+
+### 5. Cloudflare Workers (Background Jobs)
+
+The web app has multiple Workers in `apps/web/workers/`:
+
+- `order-processor/` - Order processing
+- `cart-processor/` - Cart operations
+- `checkout-lock/` - Checkout locking
+- `rate-limiter/` - Rate limiting
+- `store-config/` - Store configuration
+- `editor-state/` - Editor state management
+- `pdf-generator/` - PDF generation
+- `webhook-dispatcher/` - Webhook dispatch
+- `subdomain-proxy/` - Subdomain proxy
+- `subscription-cron/` - Subscription cron jobs
+- `courier-cron/` - Courier cron jobs
+
+Each Worker has its own `tsconfig.json` and can be deployed independently.
 
 ## 📂 Monorepo Structure
 
@@ -75,12 +96,14 @@ When asked to implement complex logic, refactor code, or debug issues, adopt thi
 ozzyl-monorepo/
 ├── apps/
 │   ├── web/           # Main e-commerce app (Remix + Hono + Cloudflare)
-│   ├── landing/       # Marketing site
-│   └── ai-builder/    # AI Gen features
+│   ├── landing/       # Marketing site (Vercel)
+│   ├── ai-builder/   # AI Gen features
+│   ├── builder/      # Store builder
+│   └── page-builder/ # Page builder
 ├── packages/
-│   ├── database/      # Drizzle ORM schema & migrations
-│   ├── ui/            # Shared React components (shadcn/ui based)
-│   └── video-engine/  # Video processing
+│   ├── database/     # Drizzle ORM schema & migrations
+│   ├── ui/           # Shared React components (shadcn/ui based)
+│   └── video-engine/ # Video processing
 ```
 
 ## ⚡ Common Commands
@@ -90,14 +113,38 @@ ozzyl-monorepo/
 - `npm install` - Install Deps
 - `npm run turbo:dev` - Start Dev Server
 - `npm run turbo:build` - Build All
+- `npm run turbo:lint` - Lint All
+- `npm run turbo:typecheck` - TypeCheck All
 - `npm run turbo:test` - Run Tests
 
 ### Apps/Web (`cd apps/web`)
 
-- `npm run dev:wrangler` - Dev with Cloudflare environment
+- `npm run dev` - Remix dev (basic)
+- `npm run dev:wrangler` - Dev with Cloudflare environment (use this for full testing)
+- `npm run build` - Build for production
+- `npm run typecheck` - Type check
+- `npm run lint` / `npm run lint:fix` - Lint with ESLint
+
+### Database
+
 - `npm run db:generate` - Generate Drizzle migrations
-- `npm run db:migrate:local` - Apply migrations locally
-- `npm run deploy:prod` - Deploy to Cloudflare
+- `npm run db:bootstrap:local` - Run all SQL migrations locally (initial + seed + hybrid)
+- `npm run db:bootstrap:prod` - Run all SQL migrations on prod
+- `npm run db:migrate:local` - Apply pending migrations locally
+- `npm run db:migrate:prod` - Apply pending migrations to prod
+- `npm run db:studio` - Open Drizzle Studio
+
+### Deploy
+
+- `npm run deploy:prod` - Deploy to Cloudflare production
+- `npm run deploy:staging` - Deploy to Cloudflare staging
+
+### Testing
+
+- `npm run test` - Run Vitest unit tests
+- `npm run e2e` - Run Playwright e2e tests
+- `npm run e2e:smoke` - Run smoke tests (chromium only)
+- `npm run ci:local` - Run lint + typecheck + tests + e2e
 
 ## 🚨 Critical Rules (DO NOT BREAK)
 

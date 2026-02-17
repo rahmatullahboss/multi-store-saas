@@ -277,20 +277,17 @@ export function SocialProofPopup({
   locations,
   variant = 'default',
 }: SocialProofPopupProps) {
-  // If no buyers are provided, do not show fake data.
-  // This component now only works if real data is passed.
-  if (!buyers || buyers.length === 0) {
-    return null;
-  }
-
   const { t, lang } = useTranslation();
-  
-  const activeBuyers = buyers;
+
+  const activeBuyers = buyers || [];
   const activeLocations = locations || []; // Handle case where locations might be empty
   const [visible, setVisible] = useState(false);
   const [currentBuyer, setCurrentBuyer] = useState({ name: '', location: '', time: '' });
+  const hasBuyers = activeBuyers.length > 0;
 
   const showNotification = () => {
+    if (!hasBuyers) return;
+
     const randomBuyer = activeBuyers[Math.floor(Math.random() * activeBuyers.length)];
     const randomLocation = activeLocations.length > 0 
       ? activeLocations[Math.floor(Math.random() * activeLocations.length)]
@@ -316,6 +313,8 @@ export function SocialProofPopup({
   };
 
   useEffect(() => {
+    if (!hasBuyers) return;
+
     // Show first popup after 5 seconds
     const initialTimeout = setTimeout(() => {
       showNotification();
@@ -333,7 +332,13 @@ export function SocialProofPopup({
   // Disable exhaustive-deps to avoid recreating interval on every render.
   // We only want to reset interval if 'interval' prop changes.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [interval]);
+  }, [interval, hasBuyers]);
+
+  // If no buyers are provided, do not show fake data.
+  // This component now only works if real data is passed.
+  if (!hasBuyers) {
+    return null;
+  }
 
   if (!visible) return null;
 

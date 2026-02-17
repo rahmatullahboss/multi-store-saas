@@ -30,13 +30,18 @@ WARNINGS=0
 
 # URLs (override via env for staging/prod/custom domains)
 # Examples:
-#   MAIN_APP_URL="https://multi-store-saas-staging.ozzyl.workers.dev" bash ./workers/health-check.sh --main
-#   MAIN_APP_URL="https://app.ozzyl.com" bash ./workers/health-check.sh --main
-DEFAULT_MAIN_APP_URL="https://multi-store-saas.rahmatullahzisan.workers.dev"
+#   MAIN_APP_URL="https://app.ozzyl.com" HEALTH_CHECK_TOKEN="..." bash ./workers/health-check.sh --main
+#   MAIN_APP_FALLBACK_URL="https://multi-store-saas.rahmatullahzisan.workers.dev" bash ./workers/health-check.sh --main
+DEFAULT_MAIN_APP_URL="https://app.ozzyl.com"
+DEFAULT_MAIN_APP_FALLBACK_URL="https://multi-store-saas.rahmatullahzisan.workers.dev"
 DEFAULT_PAGE_BUILDER_URL="https://builder.ozzyl.com"
+DEFAULT_HEALTH_ENDPOINT="/api/healthz"
 
 MAIN_APP_URL="${MAIN_APP_URL:-$DEFAULT_MAIN_APP_URL}"
+MAIN_APP_FALLBACK_URL="${MAIN_APP_FALLBACK_URL:-$DEFAULT_MAIN_APP_FALLBACK_URL}"
 PAGE_BUILDER_URL="${PAGE_BUILDER_URL:-$DEFAULT_PAGE_BUILDER_URL}"
+HEALTH_ENDPOINT="${HEALTH_ENDPOINT:-$DEFAULT_HEALTH_ENDPOINT}"
+HEALTH_CHECK_TOKEN="${HEALTH_CHECK_TOKEN:-}"
 
 # Parse arguments
 CHECK_WORKERS=true
@@ -84,27 +89,60 @@ echo ""
 # ============================================================================
 if [[ "$CHECK_MAIN" == true ]]; then
     check_header "1. Main App Health Check"
-    
-    # Check main app responds
-    echo -e "${YELLOW}Testing: $MAIN_APP_URL/api/health${NC}"
-    if curl -s -o /dev/null -w "%{http_code}" "$MAIN_APP_URL/api/health" 2>/dev/null | grep -q "200"; then
-        check_pass "Main app responding (HTTP 200)"
-        
-        # Get health response
-        HEALTH_RESPONSE=$(curl -s "$MAIN_APP_URL/api/health" 2>/dev/null)
-        echo -e "   ${GREEN}Response: $HEALTH_RESPONSE${NC}"
+
+    if [[ -n "$HEALTH_CHECK_TOKEN" ]]; then
+        TOKEN_HEADERS=(-H "x-health-token: $HEALTH_CHECK_TOKEN")
     else
-        check_fail "Main app not responding or error"
-        echo -e "   ${YELLOW}Check: wrangler tail in apps/web${NC}"
+        TOKEN_HEADERS=()
     fi
-    
-    # Check API returns JSON (not HTML)
-    echo -e "${YELLOW}Testing API returns JSON...${NC}"
-    API_RESPONSE=$(curl -s "$MAIN_APP_URL/api/health" 2>/dev/null)
-    if echo "$API_RESPONSE" | grep -q "status"; then
-        check_pass "API returns JSON correctly"
+
+    PRIMARY_URL="${MAIN_APP_URL}${HEALTH_ENDPOINT}"
+    FALLBACK_URL="${MAIN_APP_FALLBACK_URL}${HEALTH_ENDPOINT}"
+
+    echo -e "${YELLOW}Testing primary health URL: $PRIMARY_URL${NC}"
+    PRIMARY_HEADERS=$(mktemp)
+    PRIMARY_BODY=$(mktemp)
+    PRIMARY_STATUS=$(curl -sS -D "$PRIMARY_HEADERS" -o "$PRIMARY_BODY" -w "%{http_code}" "${TOKEN_HEADERS[@]}" "$PRIMARY_URL" 2>/dev/null || echo "000")
+    PRIMARY_CHALLENGED=false
+
+    if [[ "$PRIMARY_STATUS" == "200" ]]; then
+        check_pass "Main app health responding (HTTP 200)"
+        echo -e "   ${GREEN}Response: $(cat "$PRIMARY_BODY")${NC}"
     else
-        check_fail "API may be returning HTML (run_worker_first issue?)"
+        if grep -qi "cf-mitigated: challenge" "$PRIMARY_HEADERS"; then
+            PRIMARY_CHALLENGED=true
+            check_warn "Primary domain is challenge-protected for this client (expected with Cloudflare bot/challenge rules)"
+        else
+            check_warn "Primary health check returned HTTP $PRIMARY_STATUS"
+        fi
+
+        echo -e "${YELLOW}Testing fallback health URL: $FALLBACK_URL${NC}"
+        FALLBACK_HEADERS=$(mktemp)
+        FALLBACK_BODY=$(mktemp)
+        FALLBACK_STATUS=$(curl -sS -D "$FALLBACK_HEADERS" -o "$FALLBACK_BODY" -w "%{http_code}" "${TOKEN_HEADERS[@]}" "$FALLBACK_URL" 2>/dev/null || echo "000")
+
+        if [[ "$FALLBACK_STATUS" == "200" ]]; then
+            check_pass "Fallback health responding (HTTP 200)"
+            echo -e "   ${GREEN}Response: $(cat "$FALLBACK_BODY")${NC}"
+        else
+            if [[ "$PRIMARY_CHALLENGED" == true ]]; then
+                check_warn "Could not validate via fallback while primary is challenge-protected (primary=$PRIMARY_STATUS, fallback=$FALLBACK_STATUS)"
+            else
+                check_fail "Health endpoint failed on both primary and fallback (primary=$PRIMARY_STATUS, fallback=$FALLBACK_STATUS)"
+                echo -e "   ${YELLOW}Check: wrangler tail in apps/web${NC}"
+            fi
+        fi
+    fi
+
+    # Check API returns JSON (not HTML/challenge page)
+    if grep -q '"status"' "$PRIMARY_BODY" 2>/dev/null; then
+        check_pass "Primary health endpoint returns JSON"
+    elif [[ -f "${FALLBACK_BODY:-}" ]] && grep -q '"status"' "$FALLBACK_BODY" 2>/dev/null; then
+        check_pass "Fallback health endpoint returns JSON"
+    elif [[ "$PRIMARY_CHALLENGED" == true ]]; then
+        check_warn "JSON payload could not be verified because primary endpoint is challenge-protected"
+    else
+        check_fail "Health endpoint did not return expected JSON payload"
     fi
     
     echo ""
@@ -201,12 +239,20 @@ if [[ "$CHECK_MAIN" == true ]]; then
     check_header "5. DNS & Routing Check"
     
     echo -e "${YELLOW}Checking DNS resolution...${NC}"
+    PRIMARY_HOST=$(echo "$MAIN_APP_URL" | sed -E 's#^https?://([^/]+).*$#\1#')
+    FALLBACK_HOST=$(echo "$MAIN_APP_FALLBACK_URL" | sed -E 's#^https?://([^/]+).*$#\1#')
     
-    # Check if domain resolves
-    if nslookup multi-store-saas.ozzyl.workers.dev &>/dev/null; then
-        check_pass "Main app DNS resolves"
+    # Check if domains resolve
+    if nslookup "$PRIMARY_HOST" &>/dev/null; then
+        check_pass "Primary app DNS resolves ($PRIMARY_HOST)"
     else
-        check_warn "DNS lookup failed (may be network issue)"
+        check_warn "Primary DNS lookup failed ($PRIMARY_HOST)"
+    fi
+
+    if nslookup "$FALLBACK_HOST" &>/dev/null; then
+        check_pass "Fallback app DNS resolves ($FALLBACK_HOST)"
+    else
+        check_warn "Fallback DNS lookup failed ($FALLBACK_HOST)"
     fi
     
     if nslookup builder.ozzyl.com &>/dev/null; then

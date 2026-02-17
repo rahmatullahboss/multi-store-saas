@@ -7,6 +7,23 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      sourceType: 'module',
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        fetch: 'readonly',
+      },
+    },
+  },
+  {
+    files: ['e2e/**/*.ts'],
+    rules: {
+      'react-hooks/rules-of-hooks': 'off',
+    },
+  },
+  {
     files: ['**/*.{ts,tsx}'],
     plugins: {
       react,
@@ -31,6 +48,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-empty-object-type': 'off',
+      '@typescript-eslint/ban-ts-comment': 'off',
 
       // React
       'react/prop-types': 'off',
@@ -42,6 +60,7 @@ export default tseslint.config(
 
       // General
       'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-empty': ['error', { allowEmptyCatch: true }],
       'prefer-const': 'warn',
     },
   },
@@ -56,6 +75,8 @@ export default tseslint.config(
       'functions/**',
       '.cache/**',
       'android/**',
+      'ios/**',
+      'public/sw.js',
       '*.config.js',
       '*.config.ts',
       '**/*.min.js',

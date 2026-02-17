@@ -179,29 +179,27 @@ export async function getStoreConfigWithFallback(
   try {
     const result = await env.DB.prepare(`
       SELECT 
-        id, name, slug, domain, custom_domain as customDomain,
-        logo, favicon, description, currency, locale, timezone,
-        status, plan, settings, theme, created_at as createdAt, updated_at as updatedAt
+        id, name, subdomain, custom_domain,
+        logo, favicon, description, currency,
+        plan_type, usage_limits, is_active, theme_config,
+        created_at, updated_at
       FROM stores 
       WHERE id = ?
     `).bind(storeId).first<{
       id: number;
       name: string;
-      slug: string;
-      domain: string | null;
-      customDomain: string | null;
+      subdomain: string;
+      custom_domain: string | null;
       logo: string | null;
       favicon: string | null;
       description: string | null;
-      currency: string;
-      locale: string;
-      timezone: string;
-      status: string;
-      plan: string;
-      settings: string | null;
-      theme: string | null;
-      createdAt: string;
-      updatedAt: string;
+      currency: string | null;
+      plan_type: string | null;
+      usage_limits: string | null;
+      is_active: number | null;
+      theme_config: string | null;
+      created_at: number | null;
+      updated_at: number | null;
     }>();
     
     if (!result) {
@@ -211,21 +209,25 @@ export async function getStoreConfigWithFallback(
     return {
       id: result.id,
       name: result.name,
-      slug: result.slug,
-      domain: result.domain || undefined,
-      customDomain: result.customDomain || undefined,
+      slug: result.subdomain,
+      domain: result.subdomain ? `${result.subdomain}.ozzyl.com` : undefined,
+      customDomain: result.custom_domain || undefined,
       logo: result.logo || undefined,
       favicon: result.favicon || undefined,
       description: result.description || undefined,
       currency: result.currency || 'BDT',
-      locale: result.locale || 'bn-BD',
-      timezone: result.timezone || 'Asia/Dhaka',
-      status: (result.status as StoreConfig['status']) || 'active',
-      plan: (result.plan as StoreConfig['plan']) || 'free',
-      settings: result.settings ? JSON.parse(result.settings) : {},
-      theme: result.theme ? JSON.parse(result.theme) : {},
-      createdAt: result.createdAt,
-      updatedAt: result.updatedAt,
+      locale: 'bn-BD',
+      timezone: 'Asia/Dhaka',
+      status: result.is_active === 1 ? 'active' : 'inactive',
+      plan: (result.plan_type as StoreConfig['plan']) || 'free',
+      settings: result.usage_limits ? JSON.parse(result.usage_limits) : {},
+      theme: result.theme_config ? JSON.parse(result.theme_config) : {},
+      createdAt: result.created_at
+        ? new Date(result.created_at * 1000).toISOString()
+        : new Date().toISOString(),
+      updatedAt: result.updated_at
+        ? new Date(result.updated_at * 1000).toISOString()
+        : new Date().toISOString(),
     };
   } catch (error) {
     console.error('getStoreConfigWithFallback DB error:', error);

@@ -41,11 +41,6 @@ export function SectionWrapper({
 }: SectionWrapperProps) {
   const [isHovered, setIsHovered] = useState(false);
 
-  // If not in preview mode, just render children
-  if (!isPreview) {
-    return <>{children}</>;
-  }
-
   // Handle section click - send message to parent editor
   const handleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -103,6 +98,11 @@ export function SectionWrapper({
       direction: 'down',
     }, '*');
   }, [sectionId]);
+
+  // If not in preview mode, just render children
+  if (!isPreview) {
+    return <>{children}</>;
+  }
 
   const displayName = lang === 'bn' ? sectionName : (sectionNameEn || sectionName);
 
@@ -248,4 +248,3 @@ export function isRequiredSection(sectionId: string): boolean {
 }
 
 export default SectionWrapper;
-

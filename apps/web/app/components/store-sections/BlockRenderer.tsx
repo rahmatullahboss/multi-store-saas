@@ -56,7 +56,7 @@ function renderBlock(block: Block, theme?: BlockRendererProps['theme']) {
         />
       );
 
-    case 'image':
+    case 'image': {
       const imageContent = (
         <figure>
           <img
@@ -80,6 +80,7 @@ function renderBlock(block: Block, theme?: BlockRendererProps['theme']) {
         );
       }
       return imageContent;
+    }
 
     case 'slide':
       return (

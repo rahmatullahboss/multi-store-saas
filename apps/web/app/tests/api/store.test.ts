@@ -1,6 +1,14 @@
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, type Mock } from 'vitest';
 import app from "../../../server/index"; 
 import { createMockContext } from "../../../tests/setup";
+
+interface StoreResponse {
+  id: number;
+  name: string;
+  subdomain?: string;
+  isActive: boolean;
+  theme: string;
+}
 
 describe('Store Management API', () => {
   const { cloudflare } = createMockContext();
@@ -31,7 +39,7 @@ describe('Store Management API', () => {
       first: vi.fn().mockResolvedValue(mockStore),
     };
     
-    (mockEnv.DB.prepare as any).mockReturnValue(mockStatement);
+    (mockEnv.DB.prepare as Mock).mockReturnValue(mockStatement);
   });
 
   test('POST /api/stores requires body and returns error if subdomain invalid', async () => {
@@ -47,7 +55,7 @@ describe('Store Management API', () => {
         theme: 'modern',
         currency: 'BDT'
       }),
-    }, mockEnv);
+    }, mockEnv, cloudflare.ctx);
 
     expect(res.status).toBe(400);
   });
@@ -58,10 +66,10 @@ describe('Store Management API', () => {
       headers: {
         'Host': 'localhost'
       }
-    }, mockEnv);
+    }, mockEnv, cloudflare.ctx);
     
     expect(res.status).toBe(200);
-    const data: any = await res.json();
+    const data = await res.json<StoreResponse>();
     expect(data.id).toBe(1);
     // Be flexible if mapping is weird, but we expect subdomain
     expect(data.subdomain || data.name).toBeDefined();
@@ -76,7 +84,7 @@ describe('Store Management API', () => {
       headers: {
         'Host': 'localhost'
       }
-    }, mockEnv);
+    }, mockEnv, cloudflare.ctx);
 
     expect(res.status).toBe(200);
     expect(res.headers.get('x-ratelimit-limit')).toBeDefined();

@@ -183,8 +183,6 @@ export async function withCheckoutLock<T>(
   try {
     const result = await callback();
     return { success: true, result };
-  } catch (error) {
-    throw error;
   } finally {
     // Always release lock
     await releaseCheckoutLock(env, cartId, orderId);

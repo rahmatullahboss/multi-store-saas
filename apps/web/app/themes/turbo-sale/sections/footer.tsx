@@ -36,7 +36,7 @@ export default function TurboFooter({ context, settings }: SectionComponentProps
     <StandardFooter
       storeName={store.name}
       logo={store.logo}
-      // @ts-ignore
+      // @ts-ignore StandardFooter expects legacy theme-config-compatible payload
       config={context.theme}
       socialLinks={socialLinks}
       footerConfig={footerConfig}

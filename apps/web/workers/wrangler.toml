@@ -2,12 +2,12 @@
 # Handles *.ozzyl.com/* requests
 name = "wildcard-proxy"
 main = "subdomain-proxy/index.ts"
-compatibility_date = "2024-12-30"
+compatibility_date = "2025-04-14"
+compatibility_flags = ["nodejs_compat"]
 
 [vars]
 WORKER_URL = "https://multi-store-saas.ozzyl.workers.dev"
 
-# Routes for ozzyl.com subdomains
-[[routes]]
-pattern = "*.ozzyl.com/*"
-zone_id = "41147efa7d197cfddda0af7fcbf6d641"
+# NOTE:
+# Keep route ownership in the main app worker (`apps/web/wrangler.toml`) to avoid
+# wildcard route conflicts across multiple workers.

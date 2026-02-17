@@ -772,7 +772,7 @@ function PreviewEclipseStore(props: StoreTemplateProps) {
         return <PreviewCartPageComponent currency={currency} onNavigate={navigate} />;
       case 'checkout':
         return <PreviewCheckoutPage currency={currency} onNavigate={navigate} />;
-      case 'category':
+      case 'category': {
         const filtered = products.filter((p) => p.category === currentPage.category);
         return (
           <div className="pt-32 pb-20 px-4 max-w-7xl mx-auto text-white">
@@ -789,6 +789,7 @@ function PreviewEclipseStore(props: StoreTemplateProps) {
             </div>
           </div>
         );
+      }
       case 'order-success':
         return (
           <div className="min-h-[60vh] flex items-center justify-center pt-20 flex-col text-white">

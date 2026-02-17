@@ -48,6 +48,8 @@ export const createMockContext = () => ({
     },
     ctx: {
       waitUntil: vi.fn(),
+      passThroughOnException: vi.fn(),
+      props: {},
     },
   },
 });
