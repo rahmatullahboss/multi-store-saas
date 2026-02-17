@@ -1,7 +1,7 @@
 # Unified Storefront Settings - Implementation Tracking
 
 **Date:** 2026-02-16  
-**Status:** ✅ Phase 1 Complete
+**Status:** ✅ Phase A + B + C1 + C2 + C3 + D1 + D2 Complete
 
 ---
 
@@ -39,7 +39,7 @@ Implemented single source of truth for storefront settings to eliminate:
 - `invalidateUnifiedSettingsCache()` - D1 + KV + DO cache clearing
 - `migrateStoreToUnifiedSettings()` - Migration helper
 
-### 3. Modified Routes (Phase A - Critical Storefront)
+### 3. Modified Routes (Phase A + B - Storefront Read)
 
 | Route                  | Change                                            |
 | ---------------------- | ------------------------------------------------- |
@@ -50,11 +50,18 @@ Implemented single source of truth for storefront settings to eliminate:
 
 ### 4. Modified Admin Routes (Phase C)
 
-| Route                    | Change                              |
-| ------------------------ | ----------------------------------- |
-| `app.store.settings.tsx` | Dual-write to both legacy + unified |
+| Route                     | Change                              |
+| ------------------------- | ----------------------------------- |
+| `app.store.settings.tsx`  | Dual-write to both legacy + unified |
+| `app.settings._index.tsx` | Dual-write to both legacy + unified |
+| `app.store-design.tsx`    | Frozen as archive candidate         |
 
-### 5. Backward Compatibility
+### 5. Cache (Phase D)
+
+- TTL reduced to 60s in `cache-layer.server.ts`
+- `invalidateUnifiedSettingsCache()` implemented
+
+### 6. Backward Compatibility
 
 - Created wrapper in `storefront-settings.server.ts` that uses new unified service
 - Routes don't need changes - automatic via wrapper
@@ -64,12 +71,12 @@ Implemented single source of truth for storefront settings to eliminate:
 
 ## Verification
 
-| Check           | Status                    |
-| --------------- | ------------------------- |
-| Build           | ✅ Pass                   |
-| Lint            | ⚠️ 1 warning (acceptable) |
-| Local Migration | ✅ Applied                |
-| Git Commit      | ✅ `453a65d8`, `9f4df323` |
+| Check           | Status                                |
+| --------------- | ------------------------------------- |
+| TypeScript      | ✅ Our files clean                    |
+| Lint            | ⚠️ 1 warning (acceptable)             |
+| Local Migration | ✅ Applied                            |
+| Git Commit      | ✅ `453a65d8`, `9f4df323`, `379d3059` |
 
 ---
 
@@ -103,7 +110,7 @@ Write Path:
         ┌──────▼──────┐
         │ canonical    │
         │ column       │
-        └──────────────┘
+        └──────┬──────┘
                │
         ┌──────▼──────┐
         │ invalidate   │
@@ -165,5 +172,5 @@ Track these metrics post-deploy:
 ## Related Files
 
 - Plan: `docs/UNIFIED_STOREFRONT_SETTINGS_MIGRATION_PLAN_2026-02-16.md`
-- Archive Checklist: `docs/MVP_DUAL_SYSTEM_ARCHIVE_UNIFY_CHECKLIST_2026-02-16.md`
+- Checklist: `docs/UNIFIED_STOREFRONT_SETTINGS_IMPLEMENTATION_CHECKLIST_2026-02-16.md`
 - This File: `docs/UNIFIED_STOREFRONT_SETTINGS_IMPLEMENTATION_TRACKING.md`
