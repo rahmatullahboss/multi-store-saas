@@ -14,7 +14,7 @@ import { products } from '@db/schema';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 import { resolveStoreTheme } from '~/templates/store-registry';
-import { parseSocialLinks, type ThemeConfig } from '@db/types';
+import { type ThemeConfig } from '@db/types';
 
 function createCategorySlug(category: string): string {
   const normalized = category.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -105,6 +105,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     image: c.image,
   }));
 
+  // Build footer config from unified settings
+  const footerConfig = {
+    announcement: unifiedSettings.announcement,
+    storeName,
+    logo,
+    tagline: unifiedSettings.branding.tagline ?? undefined,
+    description: unifiedSettings.branding.description ?? undefined,
+  };
+
   return json({
     categories,
     storeName,
@@ -115,7 +124,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     themeConfig: null,
     socialLinks,
     businessInfo,
-    footerConfig: null,
+    footerConfig,
   });
 }
 

@@ -122,7 +122,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       if (fontFamily) patch.typography = { fontFamily };
     } else if (intent === 'banner') {
       const mode = (formData.get('bannerMode') as 'single' | 'carousel') || 'single';
-      const overlayOpacity = parseInt(formData.get('overlayOpacity') as string) || 40;
+      const rawOpacity = parseInt(formData.get('overlayOpacity') as string);
+      const overlayOpacity = Number.isNaN(rawOpacity) ? 40 : rawOpacity;
       const fallbackHeadline = (formData.get('fallbackHeadline') as string) || null;
       // Parse slides
       const slides: Array<Record<string, string | null>> = [];
@@ -187,7 +188,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     await saveUnifiedStorefrontSettingsWithCacheInvalidation(
       db as any,
-      { KV: context.cloudflare.env.STORE_CACHE },
+      {
+        KV: context.cloudflare.env.STORE_CACHE,
+        STORE_CONFIG_SERVICE: (context.cloudflare.env as any).STORE_CONFIG_SERVICE,
+      },
       storeId,
       patch as any,
     );

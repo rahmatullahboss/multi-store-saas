@@ -397,6 +397,28 @@ async function migrateLegacyToUnified(
     enableGuestCheckout: legacy.themeConfig?.checkout?.enableGuestCheckout ?? true,
   };
 
+  // Hero banner (no legacy source - use defaults)
+  const heroBanner = {
+    mode: 'single' as const,
+    overlayOpacity: 40,
+    slides: [] as Array<{ imageUrl: string | null; heading: string | null; subheading: string | null; ctaText: string | null; ctaLink: string | null }>,
+    fallbackHeadline: null,
+  };
+
+  // Trust badges (no legacy source - use defaults)
+  const trustBadges = {
+    badges: [
+      { icon: 'truck' as const, title: 'দ্রুত ডেলিভারি', description: 'ঢাকায় ১-২ দিনে' },
+      { icon: 'shield' as const, title: 'নিরাপদ পেমেন্ট', description: '১০০% সিকিউর' },
+      { icon: 'refresh' as const, title: 'ইজি রিটার্ন', description: '৭ দিনের মধ্যে' },
+    ],
+  };
+
+  // Typography (from legacy fontFamily if available)
+  const typography = {
+    fontFamily: legacy.themeConfig?.fontFamily || legacy.mvpSettings?.fontFamily || 'inter',
+  };
+
   return {
     version: 1,
     theme,
@@ -406,6 +428,9 @@ async function migrateLegacyToUnified(
     announcement,
     seo,
     checkout,
+    heroBanner,
+    trustBadges,
+    typography,
     flags: {
       sourceLocked: false,
       legacyFallbackUsed: false,

@@ -45,7 +45,7 @@ migrations_dir = "../../packages/database/src/migrations"
 # Keep defaults same as production unless you deliberately want different behavior.
 ENVIRONMENT = "staging"
 SAAS_DOMAIN = "ozzyl.com"
-SESSION_SECRET = "staging-secret-change-in-production"
+# SESSION_SECRET - SET VIA: wrangler secret put SESSION_SECRET --env staging
 R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"
 SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"
 CLOUDFLARE_ZONE_ID = "41147efa7d197cfddda0af7fcbf6d641"
