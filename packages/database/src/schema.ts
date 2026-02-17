@@ -116,7 +116,7 @@ export const stores = sqliteTable('stores', {
   manualPaymentConfig: text('manual_payment_config'), // JSON: { bkashPersonal, bkashMerchant, nagadPersonal, ... }
 
   // === AI CHATBOT SETTINGS ===
-  isCustomerAiEnabled: integer('is_customer_ai_enabled', { mode: 'boolean' }).default(false), // Paid add-on
+  isCustomerAiEnabled: integer('is_customer_ai_enabled', { mode: 'boolean' }).default(true), // Available to all stores via credit system
   aiBotPersona: text('ai_bot_persona'), // Custom AI personality e.g., "You are a friendly fashion expert"
   // AI Agent Activation Request System
   aiAgentRequestStatus: text('ai_agent_request_status')

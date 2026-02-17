@@ -57,10 +57,10 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
     ORDER BY date ASC
   `);
 
-  return json({ 
-    agent, 
-    isLocked: !store?.isCustomerAiEnabled,
-    aiCredits: store?.aiCredits || 0,
+  return json({
+    agent,
+    isLocked: false, // AI Assistant is now available to all - credit system replaces subscription
+    aiCredits: store?.aiCredits ?? 50, // Default 50 credits for new stores
     stats: {
         conversations: convCount?.count || 0,
         leads: leadsCount?.count || 0, 

@@ -1699,6 +1699,26 @@ vercel --prod --yes
 
 > **Note**: This project uses Vercel project `Root Directory = apps/landing`, so run deployment from monorepo root via `npm run deploy:landing` (or `vercel --prod --yes` after linking to `multi-store-saas-landing-rlej`).
 
+### Post-Deploy Health Monitoring (Required)
+
+Use token-protected monitoring endpoint (`/api/healthz`) instead of public `/api/health`.
+
+```bash
+cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas
+HEALTH_CHECK_TOKEN='<token>' \
+MAIN_APP_URL='https://app.ozzyl.com' \
+MAIN_APP_FALLBACK_URL='https://multi-store-saas.rahmatullahzisan.workers.dev' \
+bash apps/web/workers/health-check.sh --main
+```
+
+Secret name:
+
+- `HEALTH_CHECK_TOKEN` (set in Cloudflare secrets for `production` and `staging`)
+
+Reference runbook:
+
+- `docs/HEALTH_MONITORING_RUNBOOK_2026-02-17.md`
+
 ### Environment Variables
 
 Set via Cloudflare Dashboard, NEVER in `wrangler.toml`:

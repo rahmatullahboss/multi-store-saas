@@ -9,7 +9,7 @@ import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/clo
 import { useLoaderData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, sql } from 'drizzle-orm';
-import { aiConversations, messages, stores } from '@db/schema';
+import { aiConversations, messages } from '@db/schema';
 import { getSession } from '~/services/auth.server';
 import { useState } from 'react';
 import { MessageSquare, User, Phone, Clock, ChevronDown, ChevronUp, Bot, ArrowLeft } from 'lucide-react';
@@ -44,16 +44,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const db = drizzle(env.DB);
 
-  // Check if AI is enabled for this store
-  const storeResult = await db
-    .select({ isCustomerAiEnabled: stores.isCustomerAiEnabled })
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
-
-  if (!storeResult[0]?.isCustomerAiEnabled) {
-    return json({ conversations: [], aiEnabled: false });
-  }
+  // AI Assistant is now available to all stores via credit system
+  // No longer checking isCustomerAiEnabled - all stores can use it
 
   // Get all conversations for this store with message count
   const conversationsResult = await db

@@ -74,6 +74,20 @@ cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
 npm run deploy
 ```
 
+### 8) Post-deploy health verification (required)
+
+```bash
+cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas
+HEALTH_CHECK_TOKEN='<token>' \
+MAIN_APP_URL='https://app.ozzyl.com' \
+MAIN_APP_FALLBACK_URL='https://multi-store-saas.rahmatullahzisan.workers.dev' \
+bash apps/web/workers/health-check.sh --main
+```
+
+Expected:
+- No `Unhealthy` findings
+- Challenge-related warnings may appear depending on Cloudflare bot/challenge policy
+
 ## If Production Deploy Goes Wrong
 
 1. Immediately stop further changes.
@@ -87,3 +101,4 @@ npm run deploy
 - staging কনফিগ: `apps/web/wrangler.toml` → `[env.staging]`
 - staging workflow: `docs/STAGING_WORKFLOW.md`
 - migration adoption runbook: `docs/DB_BASELINE_ADOPTION_RUNBOOK.md`
+- health monitoring runbook: `docs/HEALTH_MONITORING_RUNBOOK_2026-02-17.md`

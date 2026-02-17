@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm';
 import * as schema from '../../db/schema';
 import { stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { Save, ToggleLeft, ToggleRight, Sparkles } from 'lucide-react';
+import { Save, Sparkles } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
@@ -17,13 +17,13 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
     where: eq(schema.agents.storeId, storeId)
   });
 
-  // Fetch store settings for Storefront AI
+  // Fetch store settings for AI credits display
   const store = await db.query.stores.findFirst({
     where: eq(schema.stores.id, storeId),
-    columns: { isCustomerAiEnabled: true, aiCredits: true }
+    columns: { aiCredits: true }
   });
 
-  return json({ agent, isCustomerAiEnabled: store?.isCustomerAiEnabled || false, aiCredits: store?.aiCredits || 0 });
+  return json({ agent, aiCredits: store?.aiCredits ?? 50 });
 };
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
@@ -37,7 +37,6 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   const tone = formData.get('tone') as string;
   const language = formData.get('language') as string;
   const isActive = formData.get('isActive') === 'on';
-  const isStorefrontAiEnabled = formData.get('isStorefrontAiEnabled') === 'on';
 
   // Construct settings JSON
   const agentSettings = JSON.stringify({
@@ -63,19 +62,20 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         });
     }
 
-    // Update store's isCustomerAiEnabled setting
+    // AI Assistant is globally enabled via credit system.
+    // Keep DB flag aligned to avoid stale false values from older stores.
     await db.update(stores)
-        .set({ isCustomerAiEnabled: isStorefrontAiEnabled })
+        .set({ isCustomerAiEnabled: true })
         .where(eq(stores.id, storeId));
 
     return json({ success: true });
-  } catch (error) {
+  } catch {
     return json({ error: 'Failed to save settings' }, { status: 500 });
   }
 };
 
 export default function AgentConfig() {
-  const { agent, isCustomerAiEnabled, aiCredits } = useLoaderData<typeof loader>();
+  const { agent, aiCredits } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const { t } = useTranslation();
@@ -123,11 +123,12 @@ export default function AgentConfig() {
                         </p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                            type="checkbox" 
-                            name="isStorefrontAiEnabled" 
-                            className="sr-only peer" 
-                            defaultChecked={isCustomerAiEnabled}
+                        <input
+                            type="checkbox"
+                            className="sr-only peer"
+                            checked={true}
+                            readOnly
+                            disabled
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-violet-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-600"></div>
                     </label>

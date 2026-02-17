@@ -1,7 +1,6 @@
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { processMessage } from './agent.server';
 import * as schema from '../../db/schema';
-import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 
 /**
@@ -17,15 +16,8 @@ export async function handleAgentChatAction({ request, context }: ActionFunction
   const env = context.cloudflare.env;
   const db = drizzle(env.DB, { schema });
 
-  // Verify Store has AI enabled
-  const store = await db.query.stores.findFirst({
-    where: eq(schema.stores.id, storeId),
-    columns: { isCustomerAiEnabled: true },
-  });
-
-  if (!store?.isCustomerAiEnabled) {
-    return json({ error: 'AI features are not enabled for this store' }, { status: 403 });
-  }
+  // AI Assistant is now available to all stores via credit system
+  // No longer checking isCustomerAiEnabled
 
   const body = (await request.json()) as {
     message: string;

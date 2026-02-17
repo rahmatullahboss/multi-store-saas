@@ -342,13 +342,8 @@ Return JSON object:
   // CUSTOMER SALES AGENT
   // ============================================================================
   if (context_type === 'customer') {
-    // Check if AI is enabled for this store (paid add-on)
-    if (!store.isCustomerAiEnabled) {
-      return json({
-        error: 'AI Sales Agent not enabled for this store',
-        code: 'ADDON_REQUIRED',
-      }, { status: 403 });
-    }
+    // AI Assistant is now available to all stores via credit system
+    // No longer checking isCustomerAiEnabled
 
     // Check credits (Store Owner pays)
     const creditGate = await requireCredits(db, storeId, CREDIT_COSTS.AI_CHAT_MESSAGE, 'customer');
