@@ -401,7 +401,13 @@ async function migrateLegacyToUnified(
   const heroBanner = {
     mode: 'single' as const,
     overlayOpacity: 40,
-    slides: [] as Array<{ imageUrl: string | null; heading: string | null; subheading: string | null; ctaText: string | null; ctaLink: string | null }>,
+    slides: [] as Array<{
+      imageUrl: string | null;
+      heading: string | null;
+      subheading: string | null;
+      ctaText: string | null;
+      ctaLink: string | null;
+    }>,
     fallbackHeadline: null,
   };
 
@@ -681,10 +687,9 @@ export async function invalidateUnifiedSettingsCache(
   // 3. Store Config DO cache invalidation (via service binding)
   if (env.STORE_CONFIG_SERVICE) {
     try {
-      await env.STORE_CONFIG_SERVICE.fetch(
-        `http://internal/do/${storeId}/invalidate`,
-        { method: 'POST' }
-      );
+      await env.STORE_CONFIG_SERVICE.fetch(`http://internal/do/${storeId}/invalidate`, {
+        method: 'POST',
+      });
     } catch (error) {
       errors.push(`DO cache: ${String(error)}`);
     }
@@ -738,4 +743,77 @@ export async function saveUnifiedStorefrontSettingsWithCacheInvalidation<
   });
 
   return { settings, cacheInvalidation };
+}
+
+// ============================================================================
+// LEGACY FORMAT HELPER (for backward compatibility with routes)
+// ============================================================================
+
+
+
+export interface LegacyStorefrontSettings {
+  storeTemplateId: string;
+  mvpSettings: {
+    storeName: string;
+    logo: string | null;
+    favicon: string | null;
+    primaryColor: string;
+    accentColor: string;
+    showAnnouncement: boolean;
+    announcementText: string | null;
+    themeId: string;
+  };
+  storeName: string;
+  logo: string | null;
+  favicon: string | null;
+  theme: StoreTemplateTheme;
+  themeConfig: Record<string, unknown>;
+}
+
+export function toLegacyFormat(settings: UnifiedStorefrontSettingsV1): LegacyStorefrontSettings {
+  const templateId = settings.theme.templateId;
+
+
+  return {
+    storeTemplateId: templateId,
+    mvpSettings: {
+      storeName: settings.branding.storeName,
+      logo: settings.branding.logo,
+      favicon: settings.branding.favicon,
+      primaryColor: settings.theme.primary,
+      accentColor: settings.theme.accent,
+      showAnnouncement: settings.announcement.enabled,
+      announcementText: settings.announcement.text,
+      themeId: templateId,
+    },
+    storeName: settings.branding.storeName,
+    logo: settings.branding.logo,
+    favicon: settings.branding.favicon,
+    theme: {
+      primary: settings.theme.primary,
+      accent: settings.theme.accent,
+      background: settings.theme.background,
+      text: settings.theme.text,
+      muted: settings.theme.muted,
+      cardBg: settings.theme.cardBg,
+      headerBg: settings.theme.headerBg,
+      footerBg: settings.theme.footerBg,
+      footerText: settings.theme.footerText,
+    },
+    themeConfig: {
+      storeName: settings.branding.storeName,
+      logo: settings.branding.logo ?? undefined,
+      favicon: settings.branding.favicon ?? undefined,
+      tagline: settings.branding.tagline ?? undefined,
+      description: settings.branding.description ?? undefined,
+      primaryColor: settings.theme.primary,
+      accentColor: settings.theme.accent,
+      announcement: settings.announcement.enabled
+        ? {
+            text: settings.announcement.text || '',
+            link: settings.announcement.link || undefined,
+          }
+        : undefined,
+    },
+  };
 }

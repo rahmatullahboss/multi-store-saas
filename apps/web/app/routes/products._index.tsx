@@ -15,11 +15,7 @@ import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { getStoreConfig } from '~/services/store-config.server';
 import { products } from '@db/schema';
-import {
-  parseThemeConfig,
-  parseSocialLinks,
-  type ThemeConfig,
-} from '@db/types';
+import { parseSocialLinks, type ThemeConfig } from '@db/types';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreTemplate } from '~/templates/store-registry';
 import { ShoppingBag, Filter, ChevronRight, Grid, List } from 'lucide-react';
@@ -27,9 +23,9 @@ import { Suspense, useMemo, useState } from 'react';
 import { getCustomer } from '~/services/customer-auth.server';
 import { parsePriceRange } from '~/utils/price';
 import {
-  resolveUnifiedStorefrontSettings,
-  resolveStoreSocialLinks,
-} from '~/services/storefront-settings.server';
+  getUnifiedStorefrontSettings,
+  toLegacyFormat,
+} from '~/services/unified-storefront-settings.server';
 
 // Serialized product type for client components
 interface SerializedProduct {
@@ -81,28 +77,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   const { businessInfo, footerConfig } = storeConfig;
-  const fallbackThemeConfig = parseThemeConfig(store.themeConfig as string | null) as
-    | Record<string, unknown>
-    | null;
-  const unified = await resolveUnifiedStorefrontSettings({
-    db,
-    storeId,
-    store: {
-      id: store.id,
-      name: store.name,
-      logo: store.logo,
-      favicon: store.favicon,
-      currency: store.currency,
-      theme: store.theme,
-    },
-    themeConfig:
-      (storeConfig.themeConfig as Record<string, unknown> | null | undefined) ?? fallbackThemeConfig,
-  });
-  const socialLinks = resolveStoreSocialLinks(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (storeConfig as any).socialLinks,
-    parseSocialLinks(store.socialLinks as string | null)
-  );
+
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId);
+  const unified = toLegacyFormat(unifiedSettings);
+
+  const socialLinks = parseSocialLinks(store.socialLinks as string | null);
 
   // Get category filter from URL
   const url = new URL(request.url);
@@ -177,8 +156,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     planType: store?.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
     // AI Chat props
-    isCustomerAiEnabled: (store as any)?.isCustomerAiEnabled ?? false,
-    aiCredits: (store as any)?.aiCredits ?? 0,
+    isCustomerAiEnabled: store.isCustomerAiEnabled ?? false,
+    aiCredits: store.aiCredits ?? 0,
   });
 }
 
@@ -287,7 +266,7 @@ export default function ProductsIndex() {
         businessInfo={businessInfo}
         cartCount={0}
         categories={categories}
-        config={themeConfig}
+        config={themeConfig as unknown as ThemeConfig}
         footerConfig={footerConfig}
         planType={planType}
         customer={customer}
@@ -306,7 +285,7 @@ export default function ProductsIndex() {
             storeName={storeName}
             storeId={storeId}
             logo={logo}
-            config={themeConfig}
+            config={themeConfig as unknown as ThemeConfig}
             products={products}
             category={currentCategory || 'all-products'}
             categories={categories}
@@ -335,7 +314,7 @@ export default function ProductsIndex() {
       businessInfo={businessInfo}
       cartCount={0}
       categories={categories}
-      config={themeConfig}
+      config={themeConfig as unknown as ThemeConfig}
       footerConfig={footerConfig}
       planType={planType}
       customer={customer}
@@ -348,10 +327,7 @@ export default function ProductsIndex() {
         <nav className={`border-b ${borderColor} ${cardBg}`}>
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center gap-2 text-sm">
-              <Link
-                to="/"
-                className={`${textMuted} hover:text-[var(--color-primary)] transition`}
-              >
+              <Link to="/" className={`${textMuted} hover:text-[var(--color-primary)] transition`}>
                 {t('home')}
               </Link>
               <ChevronRight className={`w-4 h-4 ${textMuted}`} />

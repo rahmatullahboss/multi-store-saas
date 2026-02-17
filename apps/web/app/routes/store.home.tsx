@@ -11,8 +11,6 @@
 import { json, type LinksFunction, type LoaderFunctionArgs } from '@remix-run/cloudflare';
 
 export async function action() {
-  // Gracefully handle accidental POST requests to home by returning null
-  // This causes a data revalidation (refresh) instead of a 405 error
   return null;
 }
 import { useLoaderData } from '@remix-run/react';
@@ -24,26 +22,18 @@ import {
   type SerializedProduct,
   type StoreCategory,
 } from '~/templates/store-registry';
-import { parseThemeConfig, parseSocialLinks, type ThemeConfig } from '@db/types';
+import { parseSocialLinks, type ThemeConfig } from '@db/types';
 import { getCustomer } from '~/services/customer-auth.server';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { eq, desc, and } from 'drizzle-orm';
 import { products as productsTable, collections as collectionsTable } from '@db/schema';
-import { getStoreConfig } from '~/services/store-config.server';
 import {
-  resolveUnifiedStorefrontSettings,
-  resolveStoreSocialLinks,
-} from '~/services/storefront-settings.server';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function normalizeThemeConfigForMvp(themeConfig: any) {
-  if (!themeConfig || typeof themeConfig !== 'object') return themeConfig;
-  return themeConfig;
-}
+  getUnifiedStorefrontSettings,
+  toLegacyFormat,
+} from '~/services/unified-storefront-settings.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  // Resolve store (get storeId from context/subdomain)
   const storeContext = await resolveStore(context, request);
 
   if (!storeContext) {
@@ -54,29 +44,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = createDb(context.cloudflare.env.DB);
   const cache = new D1Cache(db);
 
-  const storeConfig = await getStoreConfig(db, cache, storeId);
-  const fallbackThemeConfig = normalizeThemeConfigForMvp(
-    parseThemeConfig(store.themeConfig as string | null)
-  ) as Record<string, unknown> | null;
-  const unified = await resolveUnifiedStorefrontSettings({
-    db,
-    storeId,
-    store: {
-      id: store.id,
-      name: store.name,
-      logo: store.logo,
-      favicon: store.favicon,
-      currency: store.currency,
-      theme: store.theme,
-    },
-    themeConfig:
-      (storeConfig?.themeConfig as Record<string, unknown> | null | undefined) ?? fallbackThemeConfig,
-  });
-  const socialLinks = resolveStoreSocialLinks(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (storeConfig as any)?.socialLinks,
-    parseSocialLinks(store.socialLinks as string | null)
-  );
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId);
+  const unified = toLegacyFormat(unifiedSettings);
+
+  // Parse socialLinks
+  const socialLinks = parseSocialLinks(store.socialLinks as string | null);
 
   // Parse businessInfo
   let businessInfo = null;
@@ -97,7 +69,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   let featuredProducts: SerializedProduct[] | null =
     await cache.get<SerializedProduct[]>(productsCacheKey);
-  let categories: (string | StoreCategory)[] | null = await cache.get<(string | StoreCategory)[]>(categoriesCacheKey);
+  let categories: (string | StoreCategory)[] | null =
+    await cache.get<(string | StoreCategory)[]>(categoriesCacheKey);
 
   // If cache miss, fetch from DB
   if (!featuredProducts) {
@@ -127,40 +100,38 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     await cache.set(productsCacheKey, featuredProducts, 3600);
   }
 
-    // If no featured products in cache, we still want categories
-    if (!categories) {
-      // Try to fetch from collections table first (Rich Categories with images)
-      const dbCollections = await db
-        .select({
-          id: collectionsTable.id,
-          title: collectionsTable.title,
-          slug: collectionsTable.slug,
-          imageUrl: collectionsTable.imageUrl,
-        })
-        .from(collectionsTable)
-        .where(
-          and(eq(collectionsTable.storeId, storeId), eq(collectionsTable.isActive, true))
-        )
-        .orderBy(collectionsTable.sortOrder);
+  // If no featured products in cache, we still want categories
+  if (!categories) {
+    // Try to fetch from collections table first (Rich Categories with images)
+    const dbCollections = await db
+      .select({
+        id: collectionsTable.id,
+        title: collectionsTable.title,
+        slug: collectionsTable.slug,
+        imageUrl: collectionsTable.imageUrl,
+      })
+      .from(collectionsTable)
+      .where(and(eq(collectionsTable.storeId, storeId), eq(collectionsTable.isActive, true)))
+      .orderBy(collectionsTable.sortOrder);
 
-      if (dbCollections.length > 0) {
-        categories = dbCollections.map((c) => ({
-          id: c.id,
-          title: c.title,
-          slug: c.slug,
-          imageUrl: c.imageUrl,
-        }));
-      } else {
-        // Fallback: derive from products (legacy behavior)
-        const uniqueCategories = [
-          ...new Set(featuredProducts.map((p) => p.category).filter(Boolean)),
-        ] as string[];
-        
-        categories = uniqueCategories;
-      }
+    if (dbCollections.length > 0) {
+      categories = dbCollections.map((c) => ({
+        id: c.id,
+        title: c.title,
+        slug: c.slug,
+        imageUrl: c.imageUrl,
+      }));
+    } else {
+      // Fallback: derive from products (legacy behavior)
+      const uniqueCategories = [
+        ...new Set(featuredProducts.map((p) => p.category).filter(Boolean)),
+      ] as string[];
 
-      await cache.set(categoriesCacheKey, categories, 3600);
+      categories = uniqueCategories;
     }
+
+    await cache.set(categoriesCacheKey, categories, 3600);
+  }
 
   // EDGE CACHING STRATEGY
   const headers = new Headers();
