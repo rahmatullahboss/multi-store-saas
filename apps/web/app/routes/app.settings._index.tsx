@@ -57,10 +57,7 @@ import { useState, useEffect, useRef } from 'react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { GlassCard } from '~/components/ui/GlassCard';
-import { invalidateStoreConfig as invalidateStoreConfigDO } from '~/services/store-config-do.server';
-import { invalidateStoreConfig as invalidateStoreConfigD1 } from '~/services/store-config.server';
-import { createDb } from '~/lib/db.server';
-import { D1Cache } from '~/services/cache-layer.server';
+
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Settings' }];
@@ -375,10 +372,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Dual-write to unified canonical settings (Phase C2)
   try {
-    await saveUnifiedStorefrontSettingsWithCacheInvalidation(
+   await saveUnifiedStorefrontSettingsWithCacheInvalidation(
       db as any,
       {
         KV: context.cloudflare.env.STORE_CACHE,
+        STORE_CONFIG_SERVICE: context.cloudflare.env.STORE_CONFIG_SERVICE as Fetcher,
       },
       storeId,
       {
@@ -406,28 +404,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     console.warn('Failed to update unified settings:', error);
     // Don't fail the whole request - legacy save succeeded
   }
-
-  // Keep tenant/store cache aligned after subdomain or settings updates.
-  const kvNamespace = context.cloudflare.env.STORE_CACHE;
-  if (kvNamespace) {
-    const kvCache = new KVCache(kvNamespace);
-    await Promise.all([
-      kvCache.delete(`${CACHE_KEYS.STORE_CONFIG}${storeId}`),
-      kvCache.delete(`${CACHE_KEYS.TENANT_SUBDOMAIN}${existingSubdomain}`),
-      kvCache.delete(`${CACHE_KEYS.TENANT_SUBDOMAIN}${requestedSubdomain}`),
-    ]);
-  }
-
-  if (
-    'STORE_CONFIG_SERVICE' in context.cloudflare.env &&
-    context.cloudflare.env.STORE_CONFIG_SERVICE
-  ) {
-    await invalidateStoreConfigDO(
-      { STORE_CONFIG_SERVICE: context.cloudflare.env.STORE_CONFIG_SERVICE },
-      storeId
-    );
-  }
-  await invalidateStoreConfigD1(new D1Cache(createDb(context.cloudflare.env.DB)), storeId);
 
   // ========================================================================
   // AI AUTO-SYNC: Update Vector Database

@@ -15,7 +15,7 @@
  * 3. Optional dual-write to legacy columns (temporary)
  */
 
-import { eq } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import { stores, storeSettingsArchives } from '@db/schema';
 
@@ -115,12 +115,12 @@ export async function getUnifiedStorefrontSettings<TSchema extends Record<string
     const legacySettings = await getLegacySettings(db, storeId);
     const unified = await migrateLegacyToUnified(legacySettings, storeId);
 
-    // Auto-backfill canonical column
+    // Auto-backfill canonical column (conditional — only if still NULL to prevent race conditions)
     try {
       await db
         .update(stores)
         .set({ storefrontSettings: serializeUnifiedSettings(unified) })
-        .where(eq(stores.id, storeId));
+        .where(and(eq(stores.id, storeId), isNull(stores.storefrontSettings)));
     } catch (error) {
       console.warn('Failed to backfill unified settings:', error);
     }
@@ -610,7 +610,7 @@ export async function invalidateUnifiedSettingsCache(
   env: {
     DB?: DrizzleD1Database<Record<string, unknown>>;
     KV?: KVNamespace;
-    STORE_CONFIG_DO?: DurableObjectNamespace;
+    STORE_CONFIG_SERVICE?: Fetcher;
   },
   storeId: number,
   options: CacheInvalidationOptions = {}
@@ -620,11 +620,9 @@ export async function invalidateUnifiedSettingsCache(
   // 1. D1 Cache invalidation (cache_store table)
   if (env.DB && typeof env.DB === 'object') {
     try {
-      // Import here to avoid circular dependencies
       const { cacheStore } = await import('@db/schema');
       const importedSql = (await import('drizzle-orm')).sql;
 
-      // Delete store config cache keys
       const db = env.DB as DrizzleD1Database<Record<string, unknown>>;
       await db
         .delete(cacheStore)
@@ -639,23 +637,15 @@ export async function invalidateUnifiedSettingsCache(
     try {
       const kv = env.KV;
 
-      // Delete store config keys
-      const configPrefix = `store:config:${storeId}`;
-      await kv.delete(configPrefix).catch(() => {}); // Ignore if key doesn't exist
+      await kv.delete(`store:config:${storeId}`).catch(() => {});
 
-      // If subdomain provided, invalidate tenant cache
       if (options.subdomain) {
-        const tenantSubKey = `tenant:sub:${options.subdomain}`;
-        await kv.delete(tenantSubKey).catch(() => {});
+        await kv.delete(`tenant:sub:${options.subdomain}`).catch(() => {});
       }
-
-      // If custom domain provided, invalidate tenant domain cache
       if (options.customDomain) {
-        const tenantDomKey = `tenant:dom:${options.customDomain}`;
-        await kv.delete(tenantDomKey).catch(() => {});
+        await kv.delete(`tenant:dom:${options.customDomain}`).catch(() => {});
       }
 
-      // Invalidate all store-prefixed keys
       const list = await kv.list({ prefix: `store:${storeId}:` });
       await Promise.all(list.keys.map((k) => kv.delete(k.name).catch(() => {})));
     } catch (error) {
@@ -663,21 +653,13 @@ export async function invalidateUnifiedSettingsCache(
     }
   }
 
-  // 3. Durable Object cache invalidation
-  if (env.STORE_CONFIG_DO && options.storeId) {
+  // 3. Store Config DO cache invalidation (via service binding)
+  if (env.STORE_CONFIG_SERVICE) {
     try {
-      const doNamespace = env.STORE_CONFIG_DO;
-
-      // Get the DO ID for this store
-      const doId = doNamespace.idFromName(`store-config-${options.storeId}`);
-      const doStub = doNamespace.get(doId);
-
-      // Call invalidate endpoint if it exists
-      try {
-        await doStub.fetch('/invalidate', { method: 'POST' });
-      } catch {
-        // DO might not have /invalidate endpoint, ignore
-      }
+      await env.STORE_CONFIG_SERVICE.fetch(
+        `http://internal/do/${storeId}/invalidate`,
+        { method: 'POST' }
+      );
     } catch (error) {
       errors.push(`DO cache: ${String(error)}`);
     }
@@ -687,12 +669,10 @@ export async function invalidateUnifiedSettingsCache(
   if (env.KV) {
     try {
       const kv = env.KV;
-
-      // Bump settings version for this store
       const versionKey = `store:${storeId}:settingsVersion`;
       const currentVersion = await kv.get(versionKey);
       const newVersion = currentVersion ? parseInt(currentVersion) + 1 : 1;
-      await kv.put(versionKey, String(newVersion), { expirationTtl: 86400 * 30 }); // 30 days
+      await kv.put(versionKey, String(newVersion), { expirationTtl: 86400 * 30 });
     } catch (error) {
       errors.push(`Settings version bump: ${String(error)}`);
     }
@@ -715,7 +695,7 @@ export async function saveUnifiedStorefrontSettingsWithCacheInvalidation<
   env: {
     DB?: DrizzleD1Database<Record<string, unknown>>;
     KV?: KVNamespace;
-    STORE_CONFIG_DO?: DurableObjectNamespace;
+    STORE_CONFIG_SERVICE?: Fetcher;
   },
   storeId: number,
   patch: UnifiedStorefrontSettingsPatch,
@@ -727,7 +707,7 @@ export async function saveUnifiedStorefrontSettingsWithCacheInvalidation<
   // Save settings
   const settings = await saveUnifiedStorefrontSettings(db, storeId, patch, options);
 
-  // Invalidate caches
+  // Invalidate all caches (D1 + KV + DO) in one call
   const cacheInvalidation = await invalidateUnifiedSettingsCache(env, storeId, {
     storeId,
   });

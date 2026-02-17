@@ -52,7 +52,7 @@ import { GlassCard } from '~/components/ui/GlassCard';
 import { z } from 'zod';
 import { logActivity } from '~/lib/activity.server';
 import { KVCache, CACHE_KEYS } from '~/services/kv-cache.server';
-import { invalidateStoreConfig } from '~/services/store-config-do.server';
+import { invalidateUnifiedSettingsCache } from '~/services/unified-storefront-settings.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Domain Settings' }];
@@ -219,9 +219,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
       ]);
     }
 
-    if ('STORE_CONFIG_SERVICE' in env && env.STORE_CONFIG_SERVICE) {
-      await invalidateStoreConfig({ STORE_CONFIG_SERVICE: env.STORE_CONFIG_SERVICE as Fetcher }, storeId);
-    }
+    // Invalidate all caches (D1+KV+DO) in one call
+    await invalidateUnifiedSettingsCache(
+      {
+        KV: context.cloudflare.env.STORE_CACHE,
+        STORE_CONFIG_SERVICE: ('STORE_CONFIG_SERVICE' in env && env.STORE_CONFIG_SERVICE) ? env.STORE_CONFIG_SERVICE as Fetcher : undefined,
+      },
+      storeId,
+      { subdomain: currentSubdomain }
+    );
 
     await logActivity(db, {
       storeId,

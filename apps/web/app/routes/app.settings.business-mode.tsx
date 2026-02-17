@@ -15,10 +15,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { stores } from '@db/schema';
 import { eq } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
-import { invalidateStoreConfig as invalidateStoreConfigDO } from '~/services/store-config-do.server';
-import { createDb } from '~/lib/db.server';
-import { D1Cache } from '~/services/cache-layer.server';
-import { invalidateStoreConfig as invalidateStoreConfigD1 } from '~/services/store-config.server';
+import { invalidateUnifiedSettingsCache } from '~/services/unified-storefront-settings.server';
 import { ShoppingCart, Users, Settings, CheckCircle, AlertCircle } from 'lucide-react';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -115,14 +112,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .set(updateData)
       .where(eq(stores.id, storeId));
 
-    // Invalidate cache so changes take effect immediately
+    // Invalidate all caches (D1 + KV + DO) in one call
     try {
-      await invalidateStoreConfigDO(
-        { STORE_CONFIG_SERVICE: context.cloudflare.env.STORE_CONFIG_SERVICE as any },
-        storeId
-      );
-      await invalidateStoreConfigD1(
-        new D1Cache(createDb(context.cloudflare.env.DB)),
+      await invalidateUnifiedSettingsCache(
+        {
+          KV: context.cloudflare.env.STORE_CACHE,
+          STORE_CONFIG_SERVICE: context.cloudflare.env.STORE_CONFIG_SERVICE as Fetcher,
+        },
         storeId
       );
     } catch (cacheError) {

@@ -90,8 +90,8 @@ export async function getStoreConfig(db: Database, cache: D1Cache, storeId: numb
     footerConfig: safeJsonParse<any>(store.footerConfig),
   };
   
-  // 3. Cache the result (5 minutes)
-  await cache.set(cacheKey, config, 300);
+  // 3. Cache the result (60 seconds — aligned with all other cache layers)
+  await cache.set(cacheKey, config, 60);
   
   return config;
 }
