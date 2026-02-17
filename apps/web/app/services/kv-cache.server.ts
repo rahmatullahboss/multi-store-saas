@@ -1,14 +1,14 @@
 /**
  * KV-Based Cache Layer (Fast Edge Caching)
- * 
+ *
  * Uses Cloudflare Workers KV for ultra-fast edge caching.
  * KV provides ~10ms latency for hot keys vs ~50-100ms for D1 queries.
- * 
+ *
  * Best practices from Cloudflare docs:
  * - KV is eventually consistent (writes propagate in ~60s)
  * - Ideal for high read, low write scenarios
  * - TTL minimum is 60 seconds
- * 
+ *
  * Use cases:
  * - Tenant/store resolution (most frequent)
  * - Store configuration caching
@@ -19,32 +19,32 @@
 // Cache key prefixes for different data types
 export const CACHE_KEYS = {
   TENANT_SUBDOMAIN: 'tenant:sub:', // tenant:sub:mystore
-  TENANT_DOMAIN: 'tenant:dom:',     // tenant:dom:custom.com
-  STORE_CONFIG: 'store:config:',    // store:config:123
-  LANDING_CONFIG: 'landing:',       // landing:123
-  PRODUCTS: 'products:',            // products:123
-  PRODUCT: 'product:',              // product:123:456
-  PAGE: 'page:',                    // page:123:landing
+  TENANT_DOMAIN: 'tenant:dom:', // tenant:dom:custom.com
+  STORE_CONFIG: 'store:config:', // store:config:123
+  LANDING_CONFIG: 'landing:', // landing:123
+  PRODUCTS: 'products:', // products:123
+  PRODUCT: 'product:', // product:123:456
+  PAGE: 'page:', // page:123:landing
 } as const;
 
 // TTL values in seconds
 export const CACHE_TTL = {
-  TENANT: 3600,       // 1 hour - store resolution rarely changes
-  STORE_CONFIG: 300,  // 5 minutes - config may update
-  LANDING: 300,       // 5 minutes - landing page config
-  PRODUCTS: 120,      // 2 minutes - products update frequently
-  PRODUCT: 180,       // 3 minutes - single product
-  PAGE: 600,          // 10 minutes - rendered page cache
+  TENANT: 3600, // 1 hour - store resolution rarely changes
+  STORE_CONFIG: 60, // 60 seconds - reduced for faster settings propagation (was 300)
+  LANDING: 300, // 5 minutes - landing page config
+  PRODUCTS: 120, // 2 minutes - products update frequently
+  PRODUCT: 180, // 3 minutes - single product
+  PAGE: 600, // 10 minutes - rendered page cache
 } as const;
 
 /**
  * KV Cache Class
- * 
+ *
  * Wraps Cloudflare KV namespace with typed methods
  */
 export class KVCache {
   private kv: KVNamespace;
-  
+
   constructor(kv: KVNamespace) {
     this.kv = kv;
   }
@@ -92,7 +92,7 @@ export class KVCache {
   async invalidateByPrefix(prefix: string): Promise<void> {
     try {
       const list = await this.kv.list({ prefix });
-      await Promise.all(list.keys.map(k => this.kv.delete(k.name)));
+      await Promise.all(list.keys.map((k) => this.kv.delete(k.name)));
     } catch (error) {
       console.error(`[KV_CACHE] Error invalidating prefix ${prefix}:`, error);
     }
@@ -118,7 +118,7 @@ export class KVCache {
 
     // Fetch from source
     const value = await fetcher();
-    
+
     // Cache if value exists
     if (value !== null) {
       await this.set(key, value, ttlSeconds);
@@ -287,7 +287,7 @@ export function createKVCache(kv: KVNamespace | undefined): KVCache | null {
 
 /**
  * Hybrid cache: Try KV first, fallback to D1
- * 
+ *
  * This provides best of both worlds:
  * - KV for ultra-fast reads (hot cache)
  * - D1 for persistence when KV miss
@@ -346,4 +346,3 @@ export async function invalidateCacheOnSave(
       break;
   }
 }
-

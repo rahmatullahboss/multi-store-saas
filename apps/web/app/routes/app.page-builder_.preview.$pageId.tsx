@@ -1,10 +1,16 @@
 /**
  * Page Builder Preview Route
- * 
+ * MVP_FROZEN_ARCHIVE_CANDIDATE: 2026-02-17
+ *
+ * ⚠️ DEPRECATED - This route is frozen for MVP.
+ * Canonical preview route for page builder.
+ *
  * Opens the page in a new tab exactly as customers would see it.
  * Similar to Elementor's preview functionality.
- * 
+ *
  * Route: /app/page-builder/preview/:pageId
+ *
+ * @see docs/MVP_DUAL_SYSTEM_ARCHIVE_UNIFY_CHECKLIST_2026-02-16.md
  */
 
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
@@ -46,11 +52,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       .from(landingPages)
       .where(and(eq(landingPages.id, parseInt(pageId)), eq(landingPages.storeId, storeId)))
       .get(),
-    db
-      .select({ name: stores.name })
-      .from(stores)
-      .where(eq(stores.id, storeId))
-      .get()
+    db.select({ name: stores.name }).from(stores).where(eq(stores.id, storeId)).get(),
   ]);
 
   if (!page) {
@@ -76,12 +78,24 @@ export default function PageBuilderPreview() {
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center p-8 bg-white rounded-2xl shadow-lg max-w-md">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <svg
+              className="w-8 h-8 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">No Content Yet</h2>
-          <p className="text-gray-500">Start building your page in the editor to see a preview here.</p>
+          <p className="text-gray-500">
+            Start building your page in the editor to see a preview here.
+          </p>
         </div>
       </div>
     );
@@ -94,24 +108,41 @@ export default function PageBuilderPreview() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full backdrop-blur-sm">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
             </svg>
             <span className="text-xs font-bold uppercase tracking-wider">Preview Mode</span>
           </div>
           <span className="text-sm font-medium opacity-90">{pageName}</span>
           {!isPublished && (
-            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold uppercase">Draft</span>
+            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold uppercase">
+              Draft
+            </span>
           )}
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs opacity-75">{storeName}</span>
-          <button 
+          <button
             onClick={() => window.close()}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition text-xs font-bold backdrop-blur-sm"
           >
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
             Close Preview
           </button>
@@ -123,10 +154,12 @@ export default function PageBuilderPreview() {
         {/* ==============================================
             EXACT SAME CDN/RESOURCES AS GRAPESJS EDITOR CANVAS
             ============================================== */}
-        
+
         {/* Tailwind Play CDN - Same as editor canvas */}
         <script src="https://cdn.tailwindcss.com"></script>
-        <script dangerouslySetInnerHTML={{ __html: `
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
           tailwind.config = {
             theme: {
               extend: {
@@ -138,22 +171,32 @@ export default function PageBuilderPreview() {
               }
             }
           }
-        `}} />
-        
+        `,
+          }}
+        />
+
         {/* Google Fonts - EXACT SAME as editor canvas */}
-        <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&family=Lato:wght@300;400;700&family=Open+Sans:wght@300;400;500;600;700&family=Oswald:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Galada&family=Tiro+Bangla&family=Mina:wght@400;700&family=Atma:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-        
+        <link
+          href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&family=Lato:wght@300;400;700&family=Open+Sans:wght@300;400;500;600;700&family=Oswald:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Galada&family=Tiro+Bangla&family=Mina:wght@400;700&family=Atma:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+
         {/* Swiper CSS - Same as editor canvas */}
-        <link href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" rel="stylesheet" />
-        
+        <link
+          href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
+          rel="stylesheet"
+        />
+
         {/* Lucide Icons */}
         <script src="https://unpkg.com/lucide@latest"></script>
-        
+
         {/* Swiper JS */}
         <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-        
+
         {/* CSS Fallbacks for gradient text, animations, etc */}
-        <style dangerouslySetInnerHTML={{ __html: `
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
           body { font-family: 'Hind Siliguri', sans-serif; }
           
           /* Theme colors */
@@ -178,16 +221,20 @@ export default function PageBuilderPreview() {
           /* SVG Icons */
           svg { display: inline-block; vertical-align: middle; }
           svg:not([fill]) { fill: currentColor; }
-        `}} />
-        
+        `,
+          }}
+        />
+
         {/* GrapesJS CSS */}
         <style dangerouslySetInnerHTML={{ __html: css }} />
-        
+
         {/* HTML Content */}
         <div dangerouslySetInnerHTML={{ __html: html }} />
-        
+
         {/* Button Action Handler Script */}
-        <script dangerouslySetInnerHTML={{ __html: `
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
           (function() {
             var storeId = ${storeId};
             
@@ -285,7 +332,9 @@ export default function PageBuilderPreview() {
               initOrderForms();
             }
           })();
-        ` }} />
+        `,
+          }}
+        />
       </div>
     </>
   );

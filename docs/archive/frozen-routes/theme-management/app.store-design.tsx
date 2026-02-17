@@ -1,12 +1,18 @@
 /**
  * Store Design & Customization Page - Merchant Dashboard
  * Route: /app/store-design
+ * MVP_FROZEN_ARCHIVE_CANDIDATE: 2026-02-17
+ *
+ * ⚠️ DEPRECATED - This route is frozen for MVP.
+ * All theme management should use: /app/store-settings
  *
  * Allows merchants to:
  * 1. Select store templates (Shopify OS 2.0 themes)
  * 2. Customize colors (primary, accent)
  * 3. Edit banner (image, text)
  * 4. Update store info (announcement, contact)
+ *
+ * @see docs/MVP_DUAL_SYSTEM_ARCHIVE_UNIFY_CHECKLIST_2026-02-16.md
  */
 
 import type { MetaFunction } from '@remix-run/cloudflare';
@@ -199,7 +205,9 @@ export const loader = async ({
   // MVP: Only show approved themes from central registry
   // Import from store-registry to keep in sync
   const { MVP_THEME_IDS } = await import('~/templates/store-registry');
-  const mvpThemes = availableThemes.filter((t) => (MVP_THEME_IDS as readonly string[]).includes(t.id));
+  const mvpThemes = availableThemes.filter((t) =>
+    (MVP_THEME_IDS as readonly string[]).includes(t.id)
+  );
 
   return json({
     currentTemplateId,
@@ -774,7 +782,9 @@ export default function StoreDesignPage() {
 
               {/* Trust Badges Section */}
               <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900">Trust Badges (Fast Delivery, Secure Payment, etc.)</h3>
+                <h3 className="font-semibold text-gray-900">
+                  Trust Badges (Fast Delivery, Secure Payment, etc.)
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Badge 1 */}
                   <div className="p-4 border border-gray-100 rounded-xl bg-gray-50 space-y-3">
@@ -791,7 +801,9 @@ export default function StoreDesignPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Description
+                      </label>
                       <input
                         type="text"
                         name="trustBadge1Desc"
@@ -818,7 +830,9 @@ export default function StoreDesignPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Description
+                      </label>
                       <input
                         type="text"
                         name="trustBadge2Desc"
@@ -845,7 +859,9 @@ export default function StoreDesignPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Description
+                      </label>
                       <input
                         type="text"
                         name="trustBadge3Desc"
@@ -1317,7 +1333,10 @@ export default function StoreDesignPage() {
 
                   <div className="space-y-4">
                     {heroSlides.map((slide, index) => (
-                      <div key={slide.id} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                      <div
+                        key={slide.id}
+                        className="border border-gray-200 rounded-lg p-4 space-y-3"
+                      >
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-semibold text-gray-900">Slide {index + 1}</p>
                           <div className="flex items-center gap-2">

@@ -3,8 +3,7 @@
  *
  * Route: /pages/:slug
  *
- * Uses the old React Component System (legacy templates)
- * instead of Shopify OS 2.0 section-based system.
+ * Uses unified storefront settings (single source of truth)
  *
  * @see AGENTS.md - MVP Simple Theme System section
  */
@@ -19,8 +18,13 @@ import {
   DEFAULT_STORE_TEMPLATE_ID,
   type StoreTemplateTheme,
 } from '~/templates/store-registry';
-import { parseSocialLinks, parseThemeConfig, parseBusinessInfo, defaultThemeConfig } from '@db/types';
-import { getMVPSettings } from '~/services/mvp-settings.server';
+import {
+  parseSocialLinks,
+  parseThemeConfig,
+  parseBusinessInfo,
+  defaultThemeConfig,
+} from '@db/types';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 import { createDb } from '~/lib/db.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -50,18 +54,20 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const socialLinks = parseSocialLinks(store.socialLinks as string | null);
   const storeTemplateId =
     themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
-  const theme = getStoreTemplateTheme(storeTemplateId);
+  const baseTheme = getStoreTemplateTheme(storeTemplateId);
 
   const businessInfo = parseBusinessInfo(store.businessInfo as string | null);
 
-  // Get MVP settings for theme colors
-  const mvpSettings = await getMVPSettings(db as any, storeId, storeTemplateId);
+  // Get unified storefront settings (single source of truth)
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
+    enableFallback: true,
+  });
 
-  // Merge MVP colors with template theme
+  // Merge unified settings colors with template theme
   const mergedTheme = {
-    ...theme,
-    primary: mvpSettings.primaryColor || theme.primary,
-    accent: mvpSettings.accentColor || theme.accent,
+    ...baseTheme,
+    primary: unifiedSettings.theme.primary,
+    accent: unifiedSettings.theme.accent,
   };
 
   // Fetch page content from database if available
@@ -85,8 +91,8 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
   return json({
     storeId,
-    storeName: store.name || mvpSettings.storeName,
-    logo: mvpSettings.logo || store.logo,
+    storeName: unifiedSettings.branding.storeName || store.name,
+    logo: unifiedSettings.branding.logo || store.logo,
     currency: store.currency || 'BDT',
     storeTemplateId,
     theme: mergedTheme,

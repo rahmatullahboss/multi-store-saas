@@ -1,8 +1,14 @@
 /**
  * My Themes - User's Theme Collection
  * Route: /app/my-themes
- * 
+ * MVP_FROZEN_ARCHIVE_CANDIDATE: 2026-02-17
+ *
+ * ⚠️ DEPRECATED - This route is frozen for MVP.
+ * All theme management should use: /app/store-settings
+ *
  * Displays all themes the user has installed/purchased. Allows switching between themes.
+ *
+ * @see docs/MVP_DUAL_SYSTEM_ARCHIVE_UNIFY_CHECKLIST_2026-02-16.md
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
@@ -12,9 +18,16 @@ import { drizzle } from 'drizzle-orm/d1';
 import { stores, storeThemes } from '@db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { requireUserId, getStoreId } from '~/services/auth.server';
-import { 
-  Palette, Trash2, CheckCircle2, Sparkles, ArrowLeft,
-  Plus, Settings, RotateCcw, Loader2
+import {
+  Palette,
+  Trash2,
+  CheckCircle2,
+  Sparkles,
+  ArrowLeft,
+  Plus,
+  Settings,
+  RotateCcw,
+  Loader2,
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -59,10 +72,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     // Deactivate all themes for this store
-    await db
-      .update(storeThemes)
-      .set({ isActive: false })
-      .where(eq(storeThemes.storeId, storeId));
+    await db.update(storeThemes).set({ isActive: false }).where(eq(storeThemes.storeId, storeId));
 
     // Activate selected theme
     await db
@@ -91,7 +101,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .limit(1);
 
     if (theme.length > 0 && theme[0].isActive) {
-      return json({ error: 'Cannot delete active theme. Activate another theme first.' }, { status: 400 });
+      return json(
+        { error: 'Cannot delete active theme. Activate another theme first.' },
+        { status: 400 }
+      );
     }
 
     await db
@@ -121,17 +134,17 @@ export default function MyThemes() {
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">My Themes</h1>
           <p className="text-gray-500 mt-1">Manage your installed themes. Switch anytime.</p>
         </div>
-        
+
         <div className="flex gap-3">
-          <Link 
-            to="/app/theme-store"
+          <Link
+            to="/app/store-settings"
             className="inline-flex items-center gap-2 text-sm font-medium text-white bg-purple-600 px-4 py-2 rounded-lg shadow-sm hover:bg-purple-700 transition-colors"
           >
             <Plus size={16} />
             Browse Themes
           </Link>
-          <Link 
-            to="/app/store-design"
+          <Link
+            to="/app/store-settings"
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-purple-600 transition-colors bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm hover:border-purple-200"
           >
             <ArrowLeft size={16} />
@@ -146,8 +159,10 @@ export default function MyThemes() {
             <Palette className="w-8 h-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">No Themes Yet</h3>
-          <p className="text-gray-500 mb-6">Install themes from the Theme Store to build your collection.</p>
-          <Link 
+          <p className="text-gray-500 mb-6">
+            Install themes from the Theme Store to build your collection.
+          </p>
+          <Link
             to="/app/theme-store"
             className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition-colors"
           >
@@ -158,20 +173,20 @@ export default function MyThemes() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {themes.map((theme) => (
-            <div 
+            <div
               key={theme.id}
               className={`bg-white rounded-2xl border overflow-hidden shadow-sm transition-all duration-300 group flex flex-col h-full ${
-                theme.isActive 
-                  ? 'border-purple-400 ring-2 ring-purple-100' 
+                theme.isActive
+                  ? 'border-purple-400 ring-2 ring-purple-100'
                   : 'border-gray-200 hover:shadow-lg hover:border-purple-200'
               }`}
             >
               {/* Thumbnail */}
               <div className="relative aspect-[16/10] bg-gray-100 overflow-hidden border-b border-gray-100">
                 {theme.thumbnail ? (
-                  <img 
-                    src={theme.thumbnail} 
-                    alt={theme.name} 
+                  <img
+                    src={theme.thumbnail}
+                    alt={theme.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (
@@ -179,7 +194,7 @@ export default function MyThemes() {
                     <Palette size={40} className="text-purple-300" />
                   </div>
                 )}
-                
+
                 {/* Active Badge */}
                 {theme.isActive && (
                   <div className="absolute top-3 right-3 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
@@ -191,7 +206,7 @@ export default function MyThemes() {
 
               <div className="p-5 flex flex-col flex-grow">
                 <h3 className="text-lg font-bold text-gray-900 mb-2">{theme.name}</h3>
-                
+
                 <div className="text-xs text-gray-400 mb-4">
                   {theme.installedAt && (
                     <span>Installed: {new Date(theme.installedAt).toLocaleDateString()}</span>
@@ -219,7 +234,7 @@ export default function MyThemes() {
                       </button>
                     </Form>
                   )}
-                  
+
                   {theme.isActive && (
                     <button
                       disabled
@@ -233,7 +248,7 @@ export default function MyThemes() {
                       </span>
                     </button>
                   )}
-                  
+
                   {!theme.isActive && (
                     <Form method="POST">
                       <input type="hidden" name="intent" value="delete" />

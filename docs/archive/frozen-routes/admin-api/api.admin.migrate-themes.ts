@@ -1,15 +1,21 @@
 /**
  * API Route: Migrate Theme Configs
- * 
+ * MVP_FROZEN_ARCHIVE_CANDIDATE: 2026-02-17
+ *
+ * ⚠️ DEPRECATED - This route is frozen for MVP.
+ * RUNBOOK-ONLY: Do not use in normal merchant flow.
+ *
  * POST /api/admin/migrate-themes
- * 
+ *
  * Migrates existing stores' themeConfig to the new draft/publish system.
  * Only accessible by super admins.
- * 
+ *
  * Body options:
  *   - autoPublish: boolean (default: true) - Also publish after migration
  *   - dryRun: boolean (default: false) - Preview only, no changes
  *   - storeIds: number[] (optional) - Specific stores to migrate
+ *
+ * @see docs/MVP_DUAL_SYSTEM_ARCHIVE_UNIFY_CHECKLIST_2026-02-16.md
  */
 
 import { json, type ActionFunction, type LoaderFunction } from '@remix-run/cloudflare';
@@ -17,13 +23,13 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { stores } from '@db/schema';
-import { 
-  themes, 
-  themeTemplates, 
-  templateSectionsDraft, 
+import {
+  themes,
+  themeTemplates,
+  templateSectionsDraft,
   templateSectionsPublished,
   themeSettingsDraft,
-  themeSettingsPublished 
+  themeSettingsPublished,
 } from '@db/schema_templates';
 
 // Loader - GET request (status check)
@@ -31,22 +37,21 @@ export const loader: LoaderFunction = async ({ request, context }) => {
   const db = drizzle(context.cloudflare.env.DB);
   await requireSuperAdmin(request, context.cloudflare.env, context.cloudflare.env.DB);
 
-  
   // Get migration status
   const allStores = await db.select({ id: stores.id, name: stores.name }).from(stores);
   const migratedThemes = await db.select({ shopId: themes.shopId }).from(themes);
-  
-  const migratedIds = new Set(migratedThemes.map(t => t.shopId));
-  
+
+  const migratedIds = new Set(migratedThemes.map((t) => t.shopId));
+
   return json({
     total: allStores.length,
     migrated: migratedIds.size,
     pending: allStores.length - migratedIds.size,
-    stores: allStores.map(s => ({
+    stores: allStores.map((s) => ({
       id: s.id,
       name: s.name,
-      migrated: migratedIds.has(s.id)
-    }))
+      migrated: migratedIds.has(s.id),
+    })),
   });
 };
 
@@ -56,15 +61,15 @@ export const action: ActionFunction = async ({ request, context }) => {
   await requireSuperAdmin(request, context.cloudflare.env, context.cloudflare.env.DB);
 
   const body = await request.json().catch(() => ({}));
-  
-  const { 
-    autoPublish = true, 
-    dryRun = false, 
-    storeIds = [] 
-  } = body as { 
-    autoPublish?: boolean; 
-    dryRun?: boolean; 
-    storeIds?: number[] 
+
+  const {
+    autoPublish = true,
+    dryRun = false,
+    storeIds = [],
+  } = body as {
+    autoPublish?: boolean;
+    dryRun?: boolean;
+    storeIds?: number[];
   };
 
   const results: Array<{
@@ -77,44 +82,45 @@ export const action: ActionFunction = async ({ request, context }) => {
   try {
     // Get stores to migrate
     const allStores = await db.select().from(stores);
-    const storesToMigrate = storeIds.length 
-      ? allStores.filter(s => storeIds.includes(s.id))
+    const storesToMigrate = storeIds.length
+      ? allStores.filter((s) => storeIds.includes(s.id))
       : allStores;
 
     for (const store of storesToMigrate) {
       try {
         // Parse themeConfig
         const themeConfigRaw = (store as unknown as { themeConfig?: string }).themeConfig;
-        
+
         if (!themeConfigRaw) {
           results.push({
             storeId: store.id,
             storeName: store.name,
             status: 'skipped',
-            message: 'No themeConfig found'
+            message: 'No themeConfig found',
           });
           continue;
         }
 
-        const themeConfig = typeof themeConfigRaw === 'string'
-          ? JSON.parse(themeConfigRaw)
-          : themeConfigRaw;
+        const themeConfig =
+          typeof themeConfigRaw === 'string' ? JSON.parse(themeConfigRaw) : themeConfigRaw;
 
         if (dryRun) {
           results.push({
             storeId: store.id,
             storeName: store.name,
             status: 'success',
-            message: `Dry run - would migrate ${themeConfig.sections?.length || 0} sections`
+            message: `Dry run - would migrate ${themeConfig.sections?.length || 0} sections`,
           });
           continue;
         }
 
         // Step 1: Ensure theme exists
-        const existingTheme = await db.select().from(themes)
+        const existingTheme = await db
+          .select()
+          .from(themes)
           .where(eq(themes.shopId, store.id))
           .limit(1);
-        
+
         let themeId: string;
         if (existingTheme.length === 0) {
           themeId = `theme_${store.id}_${Date.now()}`;
@@ -130,10 +136,12 @@ export const action: ActionFunction = async ({ request, context }) => {
         }
 
         // Step 2: Ensure home template exists
-        const existingTemplate = await db.select().from(themeTemplates)
+        const existingTemplate = await db
+          .select()
+          .from(themeTemplates)
           .where(eq(themeTemplates.themeId, themeId))
           .limit(1);
-        
+
         let templateId: string;
         if (existingTemplate.length === 0) {
           templateId = `template_${store.id}_home_${Date.now()}`;
@@ -150,10 +158,11 @@ export const action: ActionFunction = async ({ request, context }) => {
 
         // Step 3: Migrate sections to draft
         const sections = themeConfig.sections || [];
-        
-        await db.delete(templateSectionsDraft)
+
+        await db
+          .delete(templateSectionsDraft)
           .where(eq(templateSectionsDraft.templateId, templateId));
-        
+
         for (let i = 0; i < sections.length; i++) {
           const section = sections[i];
           await db.insert(templateSectionsDraft).values({
@@ -198,10 +207,12 @@ export const action: ActionFunction = async ({ request, context }) => {
           seo: themeConfig.seo,
         };
 
-        const existingSettingsDraft = await db.select().from(themeSettingsDraft)
+        const existingSettingsDraft = await db
+          .select()
+          .from(themeSettingsDraft)
           .where(eq(themeSettingsDraft.themeId, themeId))
           .limit(1);
-        
+
         if (existingSettingsDraft.length === 0) {
           await db.insert(themeSettingsDraft).values({
             id: `settings_draft_${themeId}_${Date.now()}`,
@@ -211,21 +222,27 @@ export const action: ActionFunction = async ({ request, context }) => {
             version: 1,
           });
         } else {
-          await db.update(themeSettingsDraft).set({
-            settingsJson: JSON.stringify(themeSettings),
-            version: (existingSettingsDraft[0].version || 1) + 1,
-            updatedAt: new Date(),
-          }).where(eq(themeSettingsDraft.themeId, themeId));
+          await db
+            .update(themeSettingsDraft)
+            .set({
+              settingsJson: JSON.stringify(themeSettings),
+              version: (existingSettingsDraft[0].version || 1) + 1,
+              updatedAt: new Date(),
+            })
+            .where(eq(themeSettingsDraft.themeId, themeId));
         }
 
         // Step 5: Auto-publish if enabled
         if (autoPublish) {
-          await db.delete(templateSectionsPublished)
+          await db
+            .delete(templateSectionsPublished)
             .where(eq(templateSectionsPublished.templateId, templateId));
-          
-          const draftSections = await db.select().from(templateSectionsDraft)
+
+          const draftSections = await db
+            .select()
+            .from(templateSectionsDraft)
             .where(eq(templateSectionsDraft.templateId, templateId));
-          
+
           for (const section of draftSections) {
             await db.insert(templateSectionsPublished).values({
               id: `pub_${section.id}_${Date.now()}`,
@@ -239,13 +256,16 @@ export const action: ActionFunction = async ({ request, context }) => {
             });
           }
 
-          await db.delete(themeSettingsPublished)
+          await db
+            .delete(themeSettingsPublished)
             .where(eq(themeSettingsPublished.themeId, themeId));
-          
-          const draftSettings = await db.select().from(themeSettingsDraft)
+
+          const draftSettings = await db
+            .select()
+            .from(themeSettingsDraft)
             .where(eq(themeSettingsDraft.themeId, themeId))
             .limit(1);
-          
+
           if (draftSettings.length > 0) {
             await db.insert(themeSettingsPublished).values({
               id: `settings_pub_${themeId}_${Date.now()}`,
@@ -260,39 +280,39 @@ export const action: ActionFunction = async ({ request, context }) => {
           storeId: store.id,
           storeName: store.name,
           status: 'success',
-          message: `Migrated ${sections.length} sections${autoPublish ? ' + published' : ''}`
+          message: `Migrated ${sections.length} sections${autoPublish ? ' + published' : ''}`,
         });
-
       } catch (error) {
         results.push({
           storeId: store.id,
           storeName: store.name,
           status: 'error',
-          message: error instanceof Error ? error.message : 'Unknown error'
+          message: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     }
 
     const summary = {
-      success: results.filter(r => r.status === 'success').length,
-      skipped: results.filter(r => r.status === 'skipped').length,
-      errors: results.filter(r => r.status === 'error').length,
+      success: results.filter((r) => r.status === 'success').length,
+      skipped: results.filter((r) => r.status === 'skipped').length,
+      errors: results.filter((r) => r.status === 'error').length,
     };
 
-    return json({ 
-      success: true, 
+    return json({
+      success: true,
       summary,
       results,
-      message: `Migration complete: ${summary.success} success, ${summary.skipped} skipped, ${summary.errors} errors`
+      message: `Migration complete: ${summary.success} success, ${summary.skipped} skipped, ${summary.errors} errors`,
     });
-
   } catch (error) {
-    return json({ 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Migration failed' 
-    }, { status: 500 });
+    return json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Migration failed',
+      },
+      { status: 500 }
+    );
   }
 };
 
-
-export default function() {}
+export default function () {}

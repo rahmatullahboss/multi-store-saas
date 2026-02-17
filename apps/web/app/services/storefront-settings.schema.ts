@@ -147,6 +147,61 @@ const CheckoutSettingsSchema = z.object({
 export type CheckoutSettings = z.infer<typeof CheckoutSettingsSchema>;
 
 // ============================================================================
+// HERO BANNER SETTINGS
+// ============================================================================
+
+const HeroBannerSlideSchema = z.object({
+  imageUrl: z.string().nullable().default(null),
+  heading: z.string().max(200).nullable().default(null),
+  subheading: z.string().max(300).nullable().default(null),
+  ctaText: z.string().max(50).nullable().default(null),
+  ctaLink: z.string().nullable().default(null),
+});
+
+export type HeroBannerSlide = z.infer<typeof HeroBannerSlideSchema>;
+
+const HeroBannerSettingsSchema = z.object({
+  mode: z.enum(['single', 'carousel']).default('single'),
+  overlayOpacity: z.number().min(0).max(100).default(40),
+  slides: z.array(HeroBannerSlideSchema).max(6).default([]),
+  fallbackHeadline: z.string().max(200).nullable().default(null),
+});
+
+export type HeroBannerSettings = z.infer<typeof HeroBannerSettingsSchema>;
+
+// ============================================================================
+// TRUST BADGES SETTINGS
+// ============================================================================
+
+const TrustBadgeSchema = z.object({
+  icon: z.enum(['truck', 'shield', 'refresh']).default('truck'),
+  title: z.string().max(100).default(''),
+  description: z.string().max(200).default(''),
+});
+
+export type TrustBadge = z.infer<typeof TrustBadgeSchema>;
+
+const TrustBadgesSettingsSchema = z.object({
+  badges: z.array(TrustBadgeSchema).max(3).default([
+    { icon: 'truck', title: 'দ্রুত ডেলিভারি', description: 'ঢাকায় ১-২ দিনে' },
+    { icon: 'shield', title: 'নিরাপদ পেমেন্ট', description: '১০০% সিকিউর' },
+    { icon: 'refresh', title: 'ইজি রিটার্ন', description: '৭ দিনের মধ্যে' },
+  ]),
+});
+
+export type TrustBadgesSettings = z.infer<typeof TrustBadgesSettingsSchema>;
+
+// ============================================================================
+// TYPOGRAPHY SETTINGS
+// ============================================================================
+
+const TypographySettingsSchema = z.object({
+  fontFamily: z.string().default('inter'),
+});
+
+export type TypographySettings = z.infer<typeof TypographySettingsSchema>;
+
+// ============================================================================
 // FLAGS
 // ============================================================================
 
@@ -214,6 +269,22 @@ export const UnifiedStorefrontSettingsV1Schema = z.object({
     showStockWarning: true,
     enableGuestCheckout: true,
   }),
+  heroBanner: HeroBannerSettingsSchema.default({
+    mode: 'single',
+    overlayOpacity: 40,
+    slides: [],
+    fallbackHeadline: null,
+  }),
+  trustBadges: TrustBadgesSettingsSchema.default({
+    badges: [
+      { icon: 'truck', title: 'দ্রুত ডেলিভারি', description: 'ঢাকায় ১-২ দিনে' },
+      { icon: 'shield', title: 'নিরাপদ পেমেন্ট', description: '১০০% সিকিউর' },
+      { icon: 'refresh', title: 'ইজি রিটার্ন', description: '৭ দিনের মধ্যে' },
+    ],
+  }),
+  typography: TypographySettingsSchema.default({
+    fontFamily: 'inter',
+  }),
   flags: SettingsFlagsSchema.default({
     sourceLocked: false,
     legacyFallbackUsed: false,
@@ -238,6 +309,9 @@ export const SocialSettingsPatchSchema = SocialSettingsSchema.partial();
 export const AnnouncementSettingsPatchSchema = AnnouncementSettingsSchema.partial();
 export const SeoSettingsPatchSchema = SeoSettingsSchema.partial();
 export const CheckoutSettingsPatchSchema = CheckoutSettingsSchema.partial();
+export const HeroBannerSettingsPatchSchema = HeroBannerSettingsSchema.partial();
+export const TrustBadgesSettingsPatchSchema = TrustBadgesSettingsSchema.partial();
+export const TypographySettingsPatchSchema = TypographySettingsSchema.partial();
 
 export const UnifiedStorefrontSettingsPatchSchema = z.object({
   theme: ThemeSettingsPatchSchema.optional(),
@@ -247,6 +321,9 @@ export const UnifiedStorefrontSettingsPatchSchema = z.object({
   announcement: AnnouncementSettingsPatchSchema.optional(),
   seo: SeoSettingsPatchSchema.optional(),
   checkout: CheckoutSettingsPatchSchema.optional(),
+  heroBanner: HeroBannerSettingsPatchSchema.optional(),
+  trustBadges: TrustBadgesSettingsPatchSchema.optional(),
+  typography: TypographySettingsPatchSchema.optional(),
 });
 
 export type UnifiedStorefrontSettingsPatch = z.infer<typeof UnifiedStorefrontSettingsPatchSchema>;
@@ -338,6 +415,22 @@ export const DEFAULT_UNIFIED_SETTINGS: UnifiedStorefrontSettingsV1 = {
     showStockWarning: true,
     enableGuestCheckout: true,
   },
+  heroBanner: {
+    mode: 'single',
+    overlayOpacity: 40,
+    slides: [],
+    fallbackHeadline: null,
+  },
+  trustBadges: {
+    badges: [
+      { icon: 'truck', title: 'দ্রুত ডেলিভারি', description: 'ঢাকায় ১-২ দিনে' },
+      { icon: 'shield', title: 'নিরাপদ পেমেন্ট', description: '১০০% সিকিউর' },
+      { icon: 'refresh', title: 'ইজি রিটার্ন', description: '৭ দিনের মধ্যে' },
+    ],
+  },
+  typography: {
+    fontFamily: 'inter',
+  },
   flags: {
     sourceLocked: false,
     legacyFallbackUsed: false,
@@ -390,6 +483,9 @@ export function createUnifiedSettingsFromPatch(
     ...(patch.announcement && { announcement: { ...current.announcement, ...patch.announcement } }),
     ...(patch.seo && { seo: { ...current.seo, ...patch.seo } }),
     ...(patch.checkout && { checkout: { ...current.checkout, ...patch.checkout } }),
+    ...(patch.heroBanner && { heroBanner: { ...current.heroBanner, ...patch.heroBanner } }),
+    ...(patch.trustBadges && { trustBadges: { ...current.trustBadges, ...patch.trustBadges } }),
+    ...(patch.typography && { typography: { ...current.typography, ...patch.typography } }),
     updatedAt: new Date().toISOString(),
   };
 }

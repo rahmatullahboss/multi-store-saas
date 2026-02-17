@@ -1,20 +1,26 @@
 /**
  * Theme Editor - Admin Route
- * 
+ * MVP_FROZEN_ARCHIVE_CANDIDATE: 2026-02-17
+ *
+ * ⚠️ DEPRECATED - This route is frozen for MVP.
+ * All theme management should use: /app/store-settings
+ *
  * Central hub for managing store themes and templates.
  * - View active theme and settings
  * - Access template editors (home, product, collection, cart, checkout)
  * - Install theme presets
  * - Global theme settings (colors, fonts, etc.)
+ *
+ * @see docs/MVP_DUAL_SYSTEM_ARCHIVE_UNIFY_CHECKLIST_2026-02-16.md
  */
 
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, useNavigation, Form, Link } from '@remix-run/react';
 import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { 
-  themes, 
-  themeTemplates, 
+import {
+  themes,
+  themeTemplates,
   themeSettingsDraft,
   stores,
   type Theme,
@@ -22,12 +28,12 @@ import {
 } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { ensureTheme, installThemePreset, getAvailablePresets } from '~/lib/theme-seeding.server';
-import { 
-  Palette, 
-  Layout, 
-  ShoppingBag, 
-  Grid3X3, 
-  ShoppingCart, 
+import {
+  Palette,
+  Layout,
+  ShoppingBag,
+  Grid3X3,
+  ShoppingCart,
   CreditCard,
   FileText,
   Check,
@@ -44,24 +50,20 @@ import {
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
-  
+
   if (!storeId) {
     throw new Response('Store not found', { status: 404 });
   }
-  
+
   const db = context.cloudflare.env.DB;
   const drizzleDb = drizzle(db);
-  
+
   // Get store info
-  const [store] = await drizzleDb
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
-  
+  const [store] = await drizzleDb.select().from(stores).where(eq(stores.id, storeId)).limit(1);
+
   // Ensure store has a theme
   const { themeId, created } = await ensureTheme(db, store.id);
-  
+
   if (!themeId) {
     return json({
       theme: null,
@@ -73,34 +75,34 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       themeCreated: false,
     });
   }
-  
+
   // Fetch theme details
   const [themeResult] = await drizzleDb
     .select()
     .from(themes)
     .where(eq(themes.id, themeId))
     .limit(1);
-  
+
   // Fetch templates
   const templatesResult = await drizzleDb
     .select()
     .from(themeTemplates)
     .where(eq(themeTemplates.themeId, themeId));
-  
+
   // Fetch draft settings
   const [settingsResult] = await drizzleDb
     .select()
     .from(themeSettingsDraft)
     .where(eq(themeSettingsDraft.themeId, themeId))
     .limit(1);
-  
+
   let settings = null;
   try {
     settings = settingsResult?.settingsJson ? JSON.parse(settingsResult.settingsJson) : null;
   } catch {
     settings = null;
   }
-  
+
   return json({
     theme: themeResult,
     templates: templatesResult,
@@ -118,30 +120,30 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
-  
+
   if (!storeId) {
     return json({ error: 'Store not found' }, { status: 404 });
   }
-  
+
   const formData = await request.formData();
   const intent = formData.get('intent');
-  
+
   if (intent === 'install-preset') {
     const presetId = formData.get('presetId') as string;
-    
+
     if (!presetId) {
       return json({ error: 'Preset ID is required' }, { status: 400 });
     }
-    
+
     const result = await installThemePreset(context.cloudflare.env.DB, storeId, presetId);
-    
+
     if (!result.success) {
       return json({ error: result.error }, { status: 400 });
     }
-    
+
     return json({ success: true, themeId: result.themeId });
   }
-  
+
   return json({ error: 'Unknown action' }, { status: 400 });
 }
 
@@ -150,53 +152,49 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // ============================================================================
 
 export default function ThemeEditor() {
-  const { 
-    theme, 
-    templates, 
-    settings, 
-    presets, 
-    storeId, 
-    storeName,
-    themeCreated 
-  } = useLoaderData<typeof loader>();
-  
+  const { theme, templates, settings, presets, storeId, storeName, themeCreated } =
+    useLoaderData<typeof loader>();
+
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
-  
+
   // Template icons and labels
-  const templateConfig: Record<string, { icon: typeof Layout; label: string; description: string }> = {
-    home: { 
-      icon: Layout, 
-      label: 'Home Page', 
-      description: 'Hero, featured products, categories' 
+  const templateConfig: Record<
+    string,
+    { icon: typeof Layout; label: string; description: string }
+  > = {
+    home: {
+      icon: Layout,
+      label: 'Home Page',
+      description: 'Hero, featured products, categories',
     },
-    product: { 
-      icon: ShoppingBag, 
-      label: 'Product Page', 
-      description: 'Gallery, info, reviews, related products' 
+    product: {
+      icon: ShoppingBag,
+      label: 'Product Page',
+      description: 'Gallery, info, reviews, related products',
     },
-    collection: { 
-      icon: Grid3X3, 
-      label: 'Collection Page', 
-      description: 'Product grid, filters, sorting' 
+    collection: {
+      icon: Grid3X3,
+      label: 'Collection Page',
+      description: 'Product grid, filters, sorting',
     },
-    cart: { 
-      icon: ShoppingCart, 
-      label: 'Cart Page', 
-      description: 'Cart items, summary, upsells' 
+    cart: {
+      icon: ShoppingCart,
+      label: 'Cart Page',
+      description: 'Cart items, summary, upsells',
     },
-    checkout: { 
-      icon: CreditCard, 
-      label: 'Checkout Page', 
-      description: 'Customer info, shipping, payment' 
+    checkout: {
+      icon: CreditCard,
+      label: 'Checkout Page',
+      description: 'Customer info, shipping, payment',
     },
-    page: { 
-      icon: FileText, 
-      label: 'Custom Pages', 
-      description: 'About, Contact, FAQ, etc.' 
+    page: {
+      icon: FileText,
+      label: 'Custom Pages',
+      description: 'About, Contact, FAQ, etc.',
     },
   };
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -208,11 +206,9 @@ export default function ThemeEditor() {
                 <Palette className="w-7 h-7 text-indigo-600" />
                 Theme Editor
               </h1>
-              <p className="text-gray-500 mt-1">
-                Customize your store's appearance and templates
-              </p>
+              <p className="text-gray-500 mt-1">Customize your store's appearance and templates</p>
             </div>
-            
+
             {theme && (
               <div className="flex items-center gap-3">
                 <Link
@@ -235,7 +231,7 @@ export default function ThemeEditor() {
           </div>
         </div>
       </div>
-      
+
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Success message for new theme */}
         {themeCreated && (
@@ -246,7 +242,7 @@ export default function ThemeEditor() {
             </p>
           </div>
         )}
-        
+
         {/* Current Theme Info */}
         {theme && settings && (
           <div className="bg-white rounded-xl border shadow-sm mb-8 overflow-hidden">
@@ -257,24 +253,22 @@ export default function ThemeEditor() {
                     <Sparkles className="w-5 h-5 text-indigo-600" />
                     Active Theme: {theme.name}
                   </h2>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Preset: {theme.presetId || 'Custom'}
-                  </p>
+                  <p className="text-sm text-gray-500 mt-1">Preset: {theme.presetId || 'Custom'}</p>
                 </div>
-                
+
                 {/* Theme Colors Preview */}
                 <div className="flex items-center gap-2">
-                  <div 
+                  <div
                     className="w-8 h-8 rounded-full border-2 border-white shadow"
                     style={{ backgroundColor: settings.primaryColor || '#000' }}
                     title="Primary Color"
                   />
-                  <div 
+                  <div
                     className="w-8 h-8 rounded-full border-2 border-white shadow"
                     style={{ backgroundColor: settings.accentColor || '#6366F1' }}
                     title="Accent Color"
                   />
-                  <div 
+                  <div
                     className="w-8 h-8 rounded-full border-2 border-gray-200"
                     style={{ backgroundColor: settings.backgroundColor || '#FFF' }}
                     title="Background Color"
@@ -282,7 +276,7 @@ export default function ThemeEditor() {
                 </div>
               </div>
             </div>
-            
+
             {/* Quick Stats */}
             <div className="grid grid-cols-4 divide-x">
               <div className="p-4 text-center">
@@ -290,29 +284,35 @@ export default function ThemeEditor() {
                 <p className="text-sm text-gray-500">Templates</p>
               </div>
               <div className="p-4 text-center">
-                <p className="text-2xl font-bold text-gray-900">{settings.headingFont || 'Inter'}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {settings.headingFont || 'Inter'}
+                </p>
                 <p className="text-sm text-gray-500">Heading Font</p>
               </div>
               <div className="p-4 text-center">
-                <p className="text-2xl font-bold text-gray-900 capitalize">{settings.headerStyle || 'solid'}</p>
+                <p className="text-2xl font-bold text-gray-900 capitalize">
+                  {settings.headerStyle || 'solid'}
+                </p>
                 <p className="text-sm text-gray-500">Header Style</p>
               </div>
               <div className="p-4 text-center">
-                <p className="text-2xl font-bold text-gray-900 capitalize">{settings.footerStyle || 'minimal'}</p>
+                <p className="text-2xl font-bold text-gray-900 capitalize">
+                  {settings.footerStyle || 'minimal'}
+                </p>
                 <p className="text-sm text-gray-500">Footer Style</p>
               </div>
             </div>
           </div>
         )}
-        
+
         {/* Templates Grid */}
         <div className="mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Page Templates</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Object.entries(templateConfig).map(([key, config]) => {
-              const template = templates.find(t => t && t.templateKey === key);
+              const template = templates.find((t) => t && t.templateKey === key);
               const Icon = config.icon;
-              
+
               return (
                 <Link
                   key={key}
@@ -330,9 +330,7 @@ export default function ThemeEditor() {
                       <h4 className="font-semibold text-gray-900">{config.label}</h4>
                       <p className="text-sm text-gray-500 mt-1">{config.description}</p>
                       {template && (
-                        <p className="text-xs text-indigo-600 mt-2">
-                          Click to customize →
-                        </p>
+                        <p className="text-xs text-indigo-600 mt-2">Click to customize →</p>
                       )}
                     </div>
                   </div>
@@ -341,14 +339,14 @@ export default function ThemeEditor() {
             })}
           </div>
         </div>
-        
+
         {/* Theme Presets */}
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Install Theme Preset</h3>
           <p className="text-sm text-gray-500 mb-4">
             Choose a pre-built theme to get started quickly. This will replace your current theme.
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {presets.map((preset) => (
               <div
@@ -371,7 +369,7 @@ export default function ThemeEditor() {
                 <span className="inline-block px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-600 capitalize mb-4">
                   {preset.category}
                 </span>
-                
+
                 {theme?.presetId !== preset.id && (
                   <Form method="post">
                     <input type="hidden" name="intent" value="install-preset" />

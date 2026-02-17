@@ -1,8 +1,14 @@
 /**
  * Theme Store - Merchant Dashboard
  * Route: /app/theme-store
- * 
+ * MVP_FROZEN_ARCHIVE_CANDIDATE: 2026-02-17
+ *
+ * ⚠️ DEPRECATED - This route is frozen for MVP.
+ * All theme management should use: /app/store-settings
+ *
  * Allows merchants to browse and install system themes (from registry).
+ *
+ * @see docs/MVP_DUAL_SYSTEM_ARCHIVE_UNIFY_CHECKLIST_2026-02-16.md
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
@@ -12,15 +18,26 @@ import { drizzle } from 'drizzle-orm/d1';
 import { stores, storeThemes } from '@db/schema';
 import { eq, and } from 'drizzle-orm';
 import { requireUserId, getStoreId } from '~/services/auth.server';
-import { 
-  Palette, Layout,
-  ExternalLink, Sparkles, ArrowLeft,
-  BadgeCheck, ShoppingBag, Loader2, Crown, Store
+import {
+  Palette,
+  Layout,
+  ExternalLink,
+  Sparkles,
+  ArrowLeft,
+  BadgeCheck,
+  ShoppingBag,
+  Loader2,
+  Crown,
+  Store,
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { STORE_TEMPLATES, MVP_STORE_TEMPLATES } from '~/templates/store-registry';
 import { type ThemeConfig } from '@db/types';
-import { installThemePreset, installCustomThemePreset, convertPresetToConfig } from '~/lib/theme-seeding.server';
+import {
+  installThemePreset,
+  installCustomThemePreset,
+  convertPresetToConfig,
+} from '~/lib/theme-seeding.server';
 import { getThemePreset, createPresetFromStoreTemplate } from '~/lib/theme-presets';
 import { D1Cache } from '~/services/cache-layer.server';
 import { createDb } from '~/lib/db.server';
@@ -31,7 +48,7 @@ export const meta: MetaFunction = () => [{ title: 'Theme Store - Ozzyl' }];
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   await requireUserId(request, context.cloudflare.env);
-  
+
   // We use MVP filtered templates for Theme Store UI (5 themes for MVP)
   // Note: STORE_TEMPLATES is still imported for the action to find any theme by ID
   return json({ themes: MVP_STORE_TEMPLATES });
@@ -50,7 +67,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   // 1. Find the selected template in the registry
-  const template = STORE_TEMPLATES.find(t => t.id === themeId);
+  const template = STORE_TEMPLATES.find((t) => t.id === themeId);
 
   if (!template) {
     return json({ error: 'Theme not found in registry' }, { status: 404 });
@@ -74,17 +91,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
     .limit(1);
 
   // 4. Deactivate all current themes for this store
-  await db
-    .update(storeThemes)
-    .set({ isActive: false })
-    .where(eq(storeThemes.storeId, storeId));
+  await db.update(storeThemes).set({ isActive: false }).where(eq(storeThemes.storeId, storeId));
 
   if (existingTheme.length > 0) {
     // Theme already in collection - just activate it
     await db
       .update(storeThemes)
-      .set({ 
-        isActive: true, 
+      .set({
+        isActive: true,
         lastUsedAt: new Date(),
         updatedAt: new Date(),
       })
@@ -117,7 +131,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // 7. Seed the theme into the new system (for Editor compatibility)
   try {
     const preset = getThemePreset(template.id);
-    
+
     if (preset) {
       await installThemePreset(context.cloudflare.env.DB, storeId, template.id);
     } else {
@@ -169,7 +183,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Non-blocking; do not fail merchant action
   }
 
-  return redirect('/app/store-design');
+  return redirect('/app/store-settings');
 }
 
 export default function ThemeStore() {
@@ -180,11 +194,15 @@ export default function ThemeStore() {
 
   // Category visual helpers
   const getCategoryIcon = (cat: string) => {
-    switch(cat) {
-      case 'luxury': return <Crown size={14} className="text-amber-600" />;
-      case 'tech': return <Sparkles size={14} className="text-blue-600" />;
-      case 'artisan': return <Palette size={14} className="text-orange-600" />;
-      default: return <Store size={14} className="text-gray-600" />;
+    switch (cat) {
+      case 'luxury':
+        return <Crown size={14} className="text-amber-600" />;
+      case 'tech':
+        return <Sparkles size={14} className="text-blue-600" />;
+      case 'artisan':
+        return <Palette size={14} className="text-orange-600" />;
+      default:
+        return <Store size={14} className="text-gray-600" />;
     }
   };
 
@@ -197,10 +215,12 @@ export default function ThemeStore() {
             <span className="text-sm font-semibold tracking-wider uppercase">Marketplace</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Theme Store</h1>
-          <p className="text-gray-500 mt-1">Browse and install professional themes for your store.</p>
+          <p className="text-gray-500 mt-1">
+            Browse and install professional themes for your store.
+          </p>
         </div>
-        
-        <Link 
+
+        <Link
           to="/app/store-design"
           className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-purple-600 transition-colors bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm hover:border-purple-200"
         >
@@ -211,28 +231,30 @@ export default function ThemeStore() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {themes.map((theme) => (
-          <div 
+          <div
             key={theme.id}
             className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-purple-200 transition-all duration-300 group flex flex-col h-full"
           >
             {/* Thumbnail Placeholder/Image */}
             <div className="relative aspect-[16/10] bg-gray-100 overflow-hidden border-b border-gray-100">
               {theme.thumbnail ? (
-                <img 
-                  src={theme.thumbnail} 
-                  alt={theme.name} 
+                <img
+                  src={theme.thumbnail}
+                  alt={theme.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                   {/* Fallback abstract pattern */}
-                   <div className="text-center opacity-20">
-                      <Layout size={48} className="mx-auto mb-2" />
-                      <span className="text-xs uppercase font-bold tracking-widest">{theme.category} TEMPLATE</span>
-                   </div>
+                  {/* Fallback abstract pattern */}
+                  <div className="text-center opacity-20">
+                    <Layout size={48} className="mx-auto mb-2" />
+                    <span className="text-xs uppercase font-bold tracking-widest">
+                      {theme.category} TEMPLATE
+                    </span>
+                  </div>
                 </div>
               )}
-              
+
               {/* Category Badge */}
               <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-bold shadow-sm flex items-center gap-1.5 border border-gray-100">
                 {getCategoryIcon(theme.category)}
@@ -250,22 +272,24 @@ export default function ThemeStore() {
                   Verified
                 </div>
               </div>
-              
+
               <p className="text-sm text-gray-500 line-clamp-2 mb-4 flex-grow">
                 {theme.description}
               </p>
 
               {/* Color Swatches */}
               <div className="flex items-center gap-2 mb-6">
-                 {Object.entries(theme.theme).slice(0, 4).map(([key, color]) => (
-                   <div 
-                    key={key} 
-                    className="w-4 h-4 rounded-full border border-gray-200 shadow-sm" 
-                    style={{ backgroundColor: color as string }} 
-                    title={key}
-                   />
-                 ))}
-                 <span className="text-xs text-gray-400 pl-1">+ more</span>
+                {Object.entries(theme.theme)
+                  .slice(0, 4)
+                  .map(([key, color]) => (
+                    <div
+                      key={key}
+                      className="w-4 h-4 rounded-full border border-gray-200 shadow-sm"
+                      style={{ backgroundColor: color as string }}
+                      title={key}
+                    />
+                  ))}
+                <span className="text-xs text-gray-400 pl-1">+ more</span>
               </div>
 
               <div className="flex items-center gap-3 mt-auto">
@@ -286,9 +310,9 @@ export default function ThemeStore() {
                     )}
                   </button>
                 </Form>
-                
+
                 {/* Preview Link */}
-                <Link 
+                <Link
                   to={`/store-template-preview/${theme.id}`} // Assuming this route exists or we create it
                   className="p-2.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 rounded-xl transition-colors border border-gray-200"
                   title="Preview"

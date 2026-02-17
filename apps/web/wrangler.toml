@@ -23,6 +23,17 @@ main = "server/index.ts"
 [env.staging]
 name = "multi-store-saas-staging"
 
+# Observability for staging
+[env.staging.observability]
+enabled = true
+
+[env.staging.observability.logs]
+enabled = true
+invocation_logs = true
+
+[env.staging.observability.traces]
+enabled = true
+
 # Staging bindings (same binding names in code, different resources)
 [[env.staging.d1_databases]]
 binding = "DB"
@@ -34,6 +45,7 @@ migrations_dir = "../../packages/database/src/migrations"
 # Keep defaults same as production unless you deliberately want different behavior.
 ENVIRONMENT = "staging"
 SAAS_DOMAIN = "ozzyl.com"
+SESSION_SECRET = "staging-secret-change-in-production"
 R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"
 SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"
 CLOUDFLARE_ZONE_ID = "41147efa7d197cfddda0af7fcbf6d641"
@@ -110,6 +122,7 @@ name = "multi-store-saas"
 [env.production.vars]
 ENVIRONMENT = "production"
 SAAS_DOMAIN = "ozzyl.com"
+# SESSION_SECRET is already set in Cloudflare Dashboard as a secret
 R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"
 SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"
 CLOUDFLARE_ZONE_ID = "41147efa7d197cfddda0af7fcbf6d641"
@@ -284,6 +297,13 @@ GOOGLE_CLIENT_ID = "477759293578-24qqc1l4mg7dtm2f44vtqbrme6p9cqa3.apps.googleuse
 # Enable Worker Logs to persist logs in Cloudflare dashboard
 # Access via: Workers & Pages > Observability
 [observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+invocation_logs = true
+
+[observability.traces]
 enabled = true
 
 # ============================================================================

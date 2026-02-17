@@ -5,18 +5,19 @@ Scope: Canonical `stores.storefront_settings` migration এবং storefront rea
 
 ---
 
-## Status: ✅ Phase A + B + C1 + C2 + D1 + D2 COMPLETE
+## Status: ✅ Phase A + B + C + D COMPLETE
 
 ### Completed:
 
 - ✅ Phase A (Foundation): Schema, Types, Service
-- ✅ Phase B (Read Path): Critical routes + \_index.tsx
+- ✅ Phase B (Read Path): All routes unified (including categories.tsx, pages.$slug.tsx)
 - ✅ Phase C1 (Primary write): app.store.settings.tsx dual-write
-- ✅ Phase C2 (General settings): app.settings.\_index.tsx dual-write
-- ✅ Phase C3 (Design route): Already frozen as archive candidate
+- ✅ Phase C2 (General settings): app.settings.\_index.tsx separate concerns
+- ✅ Phase C3 (Design route): Frozen as archive candidate
 - ✅ Phase D1 (Cache): invalidateUnifiedSettingsCache implemented
-- ✅ Phase D2 (TTL): Already reduced to 60s
-- ✅ Phase F1: TypeScript check passed (pre-existing builder errors remain)
+- ✅ Phase D2 (TTL): Reduced to 60s (KV + D1)
+- ✅ Phase F1: TypeScript check (pre-existing \_index.tsx error)
+- ✅ Archive: All frozen files marked with MVP_FROZEN_ARCHIVE_CANDIDATE
 
 ---
 
@@ -97,10 +98,11 @@ Acceptance:
 
 - [x] Migrate:
   - [x] `apps/web/app/routes/_index.tsx`
-  - [ ] `apps/web/app/routes/categories.tsx` (uses getStoreConfig - covered by cache)
-  - [ ] `apps/web/app/routes/pages.$slug.tsx` (uses getStoreConfig - covered by cache)
+  - [x] `apps/web/app/routes/categories.tsx` (updated to use getUnifiedStorefrontSettings)
+  - [x] `apps/web/app/routes/pages.$slug.tsx` (updated to use getUnifiedStorefrontSettings)
 - [x] Remove route-level manual merge:
-  - [x] `themeConfig + getMVPSettings` (in \_index.tsx)
+  - [x] `themeConfig + getMVPSettings` removed from categories.tsx
+  - [x] `themeConfig + getMVPSettings` removed from pages.$slug.tsx
 
 Acceptance:
 
@@ -260,12 +262,42 @@ Acceptance:
 
 ## Git Commits
 
-| Commit     | Description                                   |
-| ---------- | --------------------------------------------- |
-| `453a65d8` | Core unified settings implementation          |
-| `9f4df323` | \_index.tsx uses getUnifiedStorefrontSettings |
-| `8d30c34a` | Implementation tracking docs                  |
-| `f5703c9f` | Updated checklist with completed items        |
+| Commit       | Description                                   |
+| ------------ | --------------------------------------------- |
+| `453a65d8`   | Core unified settings implementation          |
+| `9f4df323`   | \_index.tsx uses getUnifiedStorefrontSettings |
+| `8d30c34a`   | Implementation tracking docs                  |
+| `f5703c9f`   | Updated checklist with completed items        |
+| `2026-02-17` | Phase B2 complete: categories + pages unified |
+| `2026-02-17` | Phase D2: TTL reduced to 60s                  |
+| `2026-02-17` | Archive: Frozen files marked                  |
+
+---
+
+## Related Archive Actions (2026-02-17)
+
+Per `docs/MVP_DUAL_SYSTEM_ARCHIVE_UNIFY_CHECKLIST_2026-02-16.md`, the following files are frozen:
+
+### Theme Management Routes (Frozen - Not Deleted)
+
+- `apps/web/app/routes/.archive/theme-management/app.theme._index.tsx`
+- `apps/web/app/routes/.archive/theme-management/app.theme-store.tsx`
+- `apps/web/app/routes/.archive/theme-management/app.store-design.tsx`
+- `apps/web/app/routes/.archive/theme-management/app.my-themes.tsx`
+- `apps/web/app/routes/.archive/theme-management/app.theme.templates.$templateId.tsx`
+
+### Preview Routes (Frozen - Not Deleted)
+
+- `apps/web/app/routes/.archive/preview-routes/preview.$pageId.tsx`
+- `apps/web/app/routes/.archive/preview-routes/builder-preview.$pageId.tsx`
+- `apps/web/app/routes/app.page-builder_.preview.$pageId.tsx` → Canonical (keep)
+
+### Legacy Migration Utilities (Runbook Only)
+
+- `apps/web/app/routes/api.admin.migrate-themes.ts` → Still in routes (needs superadmin)
+- `packages/database/src/seeds/.archive/migrate-theme-config.ts`
+
+Note: These files are NOT deleted - they are marked as deprecated and can be reactivated for future improvements after MVP launch.
 
 ---
 

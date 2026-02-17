@@ -1,11 +1,17 @@
 /**
  * GrapesJS Page Builder - Preview Route
- * 
+ * MVP_FROZEN_ARCHIVE_CANDIDATE: 2026-02-17
+ *
+ * ⚠️ DEPRECATED - This route is frozen for MVP.
+ * Use /app/page-builder/preview/:pageId for page previews.
+ *
  * Renders the HTML/CSS content saved by GrapesJS editor.
  * This route loads from the landing_pages table where GrapesJS stores its data.
- * 
+ *
  * This is a resource route that returns a complete HTML document,
  * bypassing the Remix root layout.
+ *
+ * @see docs/MVP_DUAL_SYSTEM_ARCHIVE_UNIFY_CHECKLIST_2026-02-16.md
  */
 
 import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
@@ -48,8 +54,9 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const db = context.cloudflare.env.DB;
 
   // Fetch the landing page with HTML/CSS content
-  const page = await db.prepare(
-    `SELECT 
+  const page = await db
+    .prepare(
+      `SELECT 
       id, 
       store_id as storeId, 
       name, 
@@ -61,7 +68,9 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     FROM landing_pages 
     WHERE id = ? AND store_id = ? 
     LIMIT 1`
-  ).bind(parseInt(pageId), auth.store.id).first<LandingPage>();
+    )
+    .bind(parseInt(pageId), auth.store.id)
+    .first<LandingPage>();
 
   if (!page) {
     return new Response('Page not found', { status: 404 });
@@ -74,7 +83,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     fontHeading: 'Hind Siliguri',
     fontBody: 'Hind Siliguri',
   };
-  
+
   try {
     if (page.pageConfig) {
       const parsed = JSON.parse(page.pageConfig);
@@ -89,7 +98,9 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   // Convert hex to RGB for opacity support
   const hexToRgb = (hex: string) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '0, 0, 0';
+    return result
+      ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
+      : '0, 0, 0';
   };
 
   const primaryRgb = hexToRgb(themeConfig.primaryColor || '#059669');
@@ -227,5 +238,4 @@ function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (m) => map[m]);
 }
 
-
-export default function() {}
+export default function () {}

@@ -1,33 +1,39 @@
 /**
  * Migration Script: themeConfig → Draft Tables
- * 
+ * MVP_FROZEN_ARCHIVE_CANDIDATE: 2026-02-17
+ *
+ * ⚠️ DEPRECATED - This script is frozen for MVP.
+ * RUNBOOK-ONLY: Do not use in normal runtime.
+ *
  * This script migrates existing stores' themeConfig data to the new
  * draft/publish template system (Shopify-like architecture).
- * 
+ *
  * Usage:
  *   npx tsx db/seeds/migrate-theme-config.ts
- * 
+ *
  * What it does:
  *   1. Reads all stores with themeConfig
  *   2. Creates theme record if missing
- *   3. Creates themeTemplate record if missing  
+ *   3. Creates themeTemplate record if missing
  *   4. Migrates sections to templateSectionsDraft
  *   5. Migrates settings to themeSettingsDraft
  *   6. Optionally publishes to Published tables
- * 
+ *
  * Safe to run multiple times (idempotent via upsert logic)
+ *
+ * @see docs/MVP_DUAL_SYSTEM_ARCHIVE_UNIFY_CHECKLIST_2026-02-16.md
  */
 
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '../schema';
-import { 
-  themes, 
-  themeTemplates, 
-  templateSectionsDraft, 
+import {
+  themes,
+  themeTemplates,
+  templateSectionsDraft,
   templateSectionsPublished,
   themeSettingsDraft,
-  themeSettingsPublished 
+  themeSettingsPublished,
 } from '../schema_templates';
 
 // Types
@@ -78,9 +84,9 @@ interface MigrationResult {
 export async function migrateThemeConfigs(
   db: ReturnType<typeof drizzle>,
   options: {
-    autoPublish?: boolean;  // Also copy to published tables
-    dryRun?: boolean;       // Log only, don't write
-    storeIds?: number[];    // Specific stores to migrate (empty = all)
+    autoPublish?: boolean; // Also copy to published tables
+    dryRun?: boolean; // Log only, don't write
+    storeIds?: number[]; // Specific stores to migrate (empty = all)
   } = {}
 ): Promise<MigrationResult[]> {
   const { autoPublish = true, dryRun = false, storeIds } = options;
@@ -92,9 +98,9 @@ export async function migrateThemeConfigs(
   // Get all stores (or specific ones)
   const storeQuery = db.select().from(stores);
   const allStores = await storeQuery;
-  
-  const storesToMigrate = storeIds?.length 
-    ? allStores.filter(s => storeIds.includes(s.id))
+
+  const storesToMigrate = storeIds?.length
+    ? allStores.filter((s) => storeIds.includes(s.id))
     : allStores;
 
   console.log(`📦 Found ${storesToMigrate.length} stores to migrate`);
@@ -103,20 +109,19 @@ export async function migrateThemeConfigs(
     try {
       // Parse themeConfig
       const themeConfigRaw = (store as unknown as { themeConfig?: string }).themeConfig;
-      
+
       if (!themeConfigRaw) {
         results.push({
           storeId: store.id,
           storeName: store.name,
           status: 'skipped',
-          message: 'No themeConfig found'
+          message: 'No themeConfig found',
         });
         continue;
       }
 
-      const themeConfig: ThemeConfig = typeof themeConfigRaw === 'string'
-        ? JSON.parse(themeConfigRaw)
-        : themeConfigRaw;
+      const themeConfig: ThemeConfig =
+        typeof themeConfigRaw === 'string' ? JSON.parse(themeConfigRaw) : themeConfigRaw;
 
       if (dryRun) {
         console.log(`[DRY RUN] Would migrate store ${store.id}: ${store.name}`);
@@ -124,16 +129,18 @@ export async function migrateThemeConfigs(
           storeId: store.id,
           storeName: store.name,
           status: 'success',
-          message: 'Dry run - would migrate'
+          message: 'Dry run - would migrate',
         });
         continue;
       }
 
       // Step 1: Ensure theme exists
-      const existingTheme = await db.select().from(themes)
+      const existingTheme = await db
+        .select()
+        .from(themes)
         .where(eq(themes.shopId, store.id))
         .limit(1);
-      
+
       let themeId: string;
       if (existingTheme.length === 0) {
         themeId = `theme_${store.id}_${Date.now()}`;
@@ -151,10 +158,12 @@ export async function migrateThemeConfigs(
       }
 
       // Step 2: Ensure home template exists
-      const existingTemplate = await db.select().from(themeTemplates)
+      const existingTemplate = await db
+        .select()
+        .from(themeTemplates)
         .where(eq(themeTemplates.themeId, themeId))
         .limit(1);
-      
+
       let templateId: string;
       if (existingTemplate.length === 0) {
         templateId = `template_${store.id}_home_${Date.now()}`;
@@ -173,11 +182,12 @@ export async function migrateThemeConfigs(
 
       // Step 3: Migrate sections to draft
       const sections = themeConfig.sections || [];
-      
+
       // Delete existing draft sections
-      await db.delete(templateSectionsDraft)
+      await db
+        .delete(templateSectionsDraft)
         .where(eq(templateSectionsDraft.templateId, templateId));
-      
+
       // Insert new sections
       for (let i = 0; i < sections.length; i++) {
         const section = sections[i];
@@ -225,10 +235,12 @@ export async function migrateThemeConfigs(
       };
 
       // Upsert theme settings draft
-      const existingSettingsDraft = await db.select().from(themeSettingsDraft)
+      const existingSettingsDraft = await db
+        .select()
+        .from(themeSettingsDraft)
         .where(eq(themeSettingsDraft.themeId, themeId))
         .limit(1);
-      
+
       if (existingSettingsDraft.length === 0) {
         await db.insert(themeSettingsDraft).values({
           id: `settings_draft_${themeId}_${Date.now()}`,
@@ -238,23 +250,29 @@ export async function migrateThemeConfigs(
           version: 1,
         });
       } else {
-        await db.update(themeSettingsDraft).set({
-          settingsJson: JSON.stringify(themeSettings),
-          version: (existingSettingsDraft[0].version || 1) + 1,
-          updatedAt: new Date(),
-        }).where(eq(themeSettingsDraft.themeId, themeId));
+        await db
+          .update(themeSettingsDraft)
+          .set({
+            settingsJson: JSON.stringify(themeSettings),
+            version: (existingSettingsDraft[0].version || 1) + 1,
+            updatedAt: new Date(),
+          })
+          .where(eq(themeSettingsDraft.themeId, themeId));
       }
       console.log(`   ✅ Migrated theme settings to draft`);
 
       // Step 5: Auto-publish if enabled
       if (autoPublish) {
         // Copy sections to published
-        await db.delete(templateSectionsPublished)
+        await db
+          .delete(templateSectionsPublished)
           .where(eq(templateSectionsPublished.templateId, templateId));
-        
-        const draftSections = await db.select().from(templateSectionsDraft)
+
+        const draftSections = await db
+          .select()
+          .from(templateSectionsDraft)
           .where(eq(templateSectionsDraft.templateId, templateId));
-        
+
         for (const section of draftSections) {
           await db.insert(templateSectionsPublished).values({
             id: `pub_${section.id}_${Date.now()}`,
@@ -269,13 +287,14 @@ export async function migrateThemeConfigs(
         }
 
         // Copy settings to published
-        await db.delete(themeSettingsPublished)
-          .where(eq(themeSettingsPublished.themeId, themeId));
-        
-        const draftSettings = await db.select().from(themeSettingsDraft)
+        await db.delete(themeSettingsPublished).where(eq(themeSettingsPublished.themeId, themeId));
+
+        const draftSettings = await db
+          .select()
+          .from(themeSettingsDraft)
           .where(eq(themeSettingsDraft.themeId, themeId))
           .limit(1);
-        
+
         if (draftSettings.length > 0) {
           await db.insert(themeSettingsPublished).values({
             id: `settings_pub_${themeId}_${Date.now()}`,
@@ -291,24 +310,23 @@ export async function migrateThemeConfigs(
         storeId: store.id,
         storeName: store.name,
         status: 'success',
-        message: `Migrated ${sections.length} sections${autoPublish ? ' + published' : ''}`
+        message: `Migrated ${sections.length} sections${autoPublish ? ' + published' : ''}`,
       });
-
     } catch (error) {
       console.error(`   ❌ Error migrating store ${store.id}:`, error);
       results.push({
         storeId: store.id,
         storeName: store.name,
         status: 'error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
 
   // Summary
-  const success = results.filter(r => r.status === 'success').length;
-  const skipped = results.filter(r => r.status === 'skipped').length;
-  const errors = results.filter(r => r.status === 'error').length;
+  const success = results.filter((r) => r.status === 'success').length;
+  const skipped = results.filter((r) => r.status === 'skipped').length;
+  const errors = results.filter((r) => r.status === 'error').length;
 
   console.log('\n📊 Migration Summary:');
   console.log(`   ✅ Success: ${success}`);

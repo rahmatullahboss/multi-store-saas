@@ -433,7 +433,7 @@ export function LiveEditorV2({
   // Helper to ensure header/footer are present
   const withGlobals = (sections: EditorSectionWithState[] | undefined | null) => {
     const safeSections = sections || [];
-    // If we have global defaults to inject, do it. 
+    // If we have global defaults to inject, do it.
     // Otherwise assume sections list already has them (if saved previously) or doesn't need them.
     return [...globalHeader, ...safeSections, ...globalFooter].map((s) => ({
       ...s,
@@ -442,11 +442,18 @@ export function LiveEditorV2({
   };
 
   // Convert initial sections to include disabled property
-  const initialHomeSections: EditorSectionWithState[] = withGlobals(themeConfig.sections as EditorSectionWithState[]);
-  const initialProductSections: EditorSectionWithState[] = withGlobals(themeConfig.productSections as EditorSectionWithState[]);
-  const initialCollectionSections: EditorSectionWithState[] = withGlobals(themeConfig.collectionSections as EditorSectionWithState[]);
-  const initialCartSections: EditorSectionWithState[] = withGlobals(themeConfig.cartSections as EditorSectionWithState[]);
-
+  const initialHomeSections: EditorSectionWithState[] = withGlobals(
+    themeConfig.sections as EditorSectionWithState[]
+  );
+  const initialProductSections: EditorSectionWithState[] = withGlobals(
+    themeConfig.productSections as EditorSectionWithState[]
+  );
+  const initialCollectionSections: EditorSectionWithState[] = withGlobals(
+    themeConfig.collectionSections as EditorSectionWithState[]
+  );
+  const initialCartSections: EditorSectionWithState[] = withGlobals(
+    themeConfig.cartSections as EditorSectionWithState[]
+  );
 
   const initialCheckoutSections: EditorSectionWithState[] = (
     themeConfig.checkoutSections || []
@@ -521,9 +528,7 @@ export function LiveEditorV2({
   const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
 
   // Theme settings state
-  const [selectedTemplateId] = useState(
-    themeConfig.storeTemplateId || 'modern-standard'
-  );
+  const [selectedTemplateId] = useState(themeConfig.storeTemplateId || 'modern-standard');
   const [primaryColor, setPrimaryColor] = useState(themeConfig.primaryColor || '#6366f1');
   const [accentColor, setAccentColor] = useState(themeConfig.accentColor || '#f59e0b');
   const [backgroundColor, setBackgroundColor] = useState(themeConfig.backgroundColor || '#f9fafb');
@@ -544,7 +549,7 @@ export function LiveEditorV2({
   const [announcementLink] = useState(themeConfig.announcement?.link || '');
   const [customCSS] = useState(themeConfig.customCSS || '');
   const [favicon, setFavicon] = useState(themeConfig.favicon || '');
-  
+
   // Social Media
   const [facebook, setFacebook] = useState(store.socialLinks?.facebook || '');
   const [instagram, setInstagram] = useState(store.socialLinks?.instagram || '');
@@ -660,15 +665,15 @@ export function LiveEditorV2({
   // Header Group: announcement-bar, header (shared across all pages)
   // Template Sections: page-specific sections
   // Footer Group: footer (shared across all pages)
-  
+
   const { headerSections, templateSections, footerSections } = useMemo(() => {
     const HEADER_TYPES = ['announcement-bar', 'header'];
     const FOOTER_TYPES = ['footer'];
-    
+
     const header: EditorSectionWithState[] = [];
     const template: EditorSectionWithState[] = [];
     const footer: EditorSectionWithState[] = [];
-    
+
     for (const section of sections) {
       if (HEADER_TYPES.includes(section.type)) {
         header.push(section);
@@ -678,7 +683,7 @@ export function LiveEditorV2({
         template.push(section);
       }
     }
-    
+
     return { headerSections: header, templateSections: template, footerSections: footer };
   }, [sections]);
 
@@ -921,57 +926,58 @@ export function LiveEditorV2({
         const defaultTemplate = await newThemeBridge.loadTemplate('index');
 
         if (defaultTemplate) {
-         // Create default global sections for the new theme
-        const headerSection = newThemeBridge.createSection('header');
-        const footerSection = newThemeBridge.createSection('footer');
-        const globalHeader = headerSection ? [headerSection] : [];
-        const globalFooter = footerSection ? [footerSection] : [];
+          // Create default global sections for the new theme
+          const headerSection = newThemeBridge.createSection('header');
+          const footerSection = newThemeBridge.createSection('footer');
+          const globalHeader = headerSection ? [headerSection] : [];
+          const globalFooter = footerSection ? [footerSection] : [];
 
-        // Load index template (Home)
-        const indexTemplate = await newThemeBridge.loadTemplate('index');
-        if (indexTemplate) {
-          const homeSectionsNew = newThemeBridge.templateToEditorSections(indexTemplate);
-          resetHomeSections([...globalHeader, ...homeSectionsNew, ...globalFooter]);
-        } else {
-          resetHomeSections([...globalHeader, ...globalFooter]);
-        }
+          // Load index template (Home)
+          const indexTemplate = await newThemeBridge.loadTemplate('index');
+          if (indexTemplate) {
+            const homeSectionsNew = newThemeBridge.templateToEditorSections(indexTemplate);
+            resetHomeSections([...globalHeader, ...homeSectionsNew, ...globalFooter]);
+          } else {
+            resetHomeSections([...globalHeader, ...globalFooter]);
+          }
 
-        // Load product template
-        const productTemplate = await newThemeBridge.loadTemplate('product');
-        if (productTemplate) {
-          const productSectionsNew = newThemeBridge.templateToEditorSections(productTemplate);
-          resetProductSections([...globalHeader, ...productSectionsNew, ...globalFooter]);
-        } else {
-          resetProductSections([...globalHeader, ...globalFooter]);
-        }
+          // Load product template
+          const productTemplate = await newThemeBridge.loadTemplate('product');
+          if (productTemplate) {
+            const productSectionsNew = newThemeBridge.templateToEditorSections(productTemplate);
+            resetProductSections([...globalHeader, ...productSectionsNew, ...globalFooter]);
+          } else {
+            resetProductSections([...globalHeader, ...globalFooter]);
+          }
 
-        // Load collection template
-        const collectionTemplate = await newThemeBridge.loadTemplate('collection');
-        if (collectionTemplate) {
-          const collectionSectionsNew = newThemeBridge.templateToEditorSections(collectionTemplate);
-          resetCollectionSections([...globalHeader, ...collectionSectionsNew, ...globalFooter]);
-        } else {
-          resetCollectionSections([...globalHeader, ...globalFooter]);
-        }
+          // Load collection template
+          const collectionTemplate = await newThemeBridge.loadTemplate('collection');
+          if (collectionTemplate) {
+            const collectionSectionsNew =
+              newThemeBridge.templateToEditorSections(collectionTemplate);
+            resetCollectionSections([...globalHeader, ...collectionSectionsNew, ...globalFooter]);
+          } else {
+            resetCollectionSections([...globalHeader, ...globalFooter]);
+          }
 
-        // Load cart template
-        const cartTemplate = await newThemeBridge.loadTemplate('cart');
-        if (cartTemplate) {
-          const cartSectionsNew = newThemeBridge.templateToEditorSections(cartTemplate);
-          resetCartSections([...globalHeader, ...cartSectionsNew, ...globalFooter]);
-        } else {
-          resetCartSections([...globalHeader, ...globalFooter]);
-        }
+          // Load cart template
+          const cartTemplate = await newThemeBridge.loadTemplate('cart');
+          if (cartTemplate) {
+            const cartSectionsNew = newThemeBridge.templateToEditorSections(cartTemplate);
+            resetCartSections([...globalHeader, ...cartSectionsNew, ...globalFooter]);
+          } else {
+            resetCartSections([...globalHeader, ...globalFooter]);
+          }
 
-        // Load checkout template (usually minimal/fixed)
-        const checkoutTemplate = await newThemeBridge.loadTemplate('checkout');
-        if (checkoutTemplate) {
-          const checkoutSectionsNew = newThemeBridge.templateToEditorSections(checkoutTemplate);
-          resetCheckoutSections(checkoutSectionsNew.map((s) => ({ ...s, disabled: false })));
-        } else {
-          resetCheckoutSections([]);
+          // Load checkout template (usually minimal/fixed)
+          const checkoutTemplate = await newThemeBridge.loadTemplate('checkout');
+          if (checkoutTemplate) {
+            const checkoutSectionsNew = newThemeBridge.templateToEditorSections(checkoutTemplate);
+            resetCheckoutSections(checkoutSectionsNew.map((s) => ({ ...s, disabled: false })));
+          } else {
+            resetCheckoutSections([]);
+          }
         }
-      }
 
         // Update current theme ID
         setCurrentThemeId(newThemeId);
@@ -989,7 +995,7 @@ export function LiveEditorV2({
           formData.append('borderColor', borderColor);
           formData.append('typography', JSON.stringify(typography));
           formData.append('fontFamily', store.fontFamily || 'inter');
-          
+
           // Create default global sections
           const headerSection = newThemeBridge.createSection('header');
           const footerSection = newThemeBridge.createSection('footer');
@@ -1001,15 +1007,27 @@ export function LiveEditorV2({
           const productTemplate = newThemeBridge.getTemplate('product');
           const collectionTemplate = newThemeBridge.getTemplate('collection');
           const cartTemplate = newThemeBridge.getTemplate('cart');
-          
-          const newHomeSections = indexTemplate ? newThemeBridge.templateToEditorSections(indexTemplate) : [];
-          const newProductSections = productTemplate ? newThemeBridge.templateToEditorSections(productTemplate) : [];
-          const newCollectionSections = collectionTemplate ? newThemeBridge.templateToEditorSections(collectionTemplate) : [];
-          const newCartSections = cartTemplate ? newThemeBridge.templateToEditorSections(cartTemplate) : [];
-          
+
+          const newHomeSections = indexTemplate
+            ? newThemeBridge.templateToEditorSections(indexTemplate)
+            : [];
+          const newProductSections = productTemplate
+            ? newThemeBridge.templateToEditorSections(productTemplate)
+            : [];
+          const newCollectionSections = collectionTemplate
+            ? newThemeBridge.templateToEditorSections(collectionTemplate)
+            : [];
+          const newCartSections = cartTemplate
+            ? newThemeBridge.templateToEditorSections(cartTemplate)
+            : [];
+
           const fullHomeSections = [...globalHeader, ...newHomeSections, ...globalFooter];
           const fullProductSections = [...globalHeader, ...newProductSections, ...globalFooter];
-          const fullCollectionSections = [...globalHeader, ...newCollectionSections, ...globalFooter];
+          const fullCollectionSections = [
+            ...globalHeader,
+            ...newCollectionSections,
+            ...globalFooter,
+          ];
           const fullCartSections = [...globalHeader, ...newCartSections, ...globalFooter];
 
           formData.append('sections', JSON.stringify(fullHomeSections));
@@ -1017,7 +1035,7 @@ export function LiveEditorV2({
           formData.append('collectionSections', JSON.stringify(fullCollectionSections));
           formData.append('cartSections', JSON.stringify(fullCartSections));
           formData.append('checkoutSections', JSON.stringify([]));
-          
+
           // Submit to save to DB
           submit(formData, { method: 'post' });
         }, 100);
@@ -1068,15 +1086,15 @@ export function LiveEditorV2({
         <div className="flex items-center gap-3">
           {/* Exit Button - Shopify OS 2.0 Style */}
           <Link
-            to="/app/store-design"
+            to="/app/store/settings"
             className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-gray-100 rounded-lg transition text-gray-600 hover:text-gray-900 text-sm font-medium"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Exit</span>
           </Link>
-          
+
           <div className="h-6 w-px bg-gray-200" />
-          
+
           {/* Page Selector Dropdown - Shopify OS 2.0 Style */}
           <div className="relative">
             <select
@@ -1106,7 +1124,7 @@ export function LiveEditorV2({
               />
             </div>
           )}
-          
+
           {/* Mobile menu toggle */}
           <button
             onClick={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
@@ -1116,148 +1134,148 @@ export function LiveEditorV2({
           </button>
         </div>
 
-          {/* Center - Undo/Redo + Tools + Devices */}
-          <div className="flex items-center gap-3">
-             <div className="flex items-center gap-1">
-                <button
-                  onClick={() => {
-                    undo();
-                    toast.success('Undone!');
-                  }}
-                  disabled={!canUndo}
-                  className={`p-1.5 rounded ${canUndo ? 'hover:bg-gray-100 text-gray-600' : 'text-gray-300 cursor-not-allowed'}`}
-                  title="Undo (Ctrl+Z)"
-                >
-                  <Undo2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => {
-                    redo();
-                    toast.success('Redone!');
-                  }}
-                  disabled={!canRedo}
-                  className={`p-1.5 rounded ${canRedo ? 'hover:bg-gray-100 text-gray-600' : 'text-gray-300 cursor-not-allowed'}`}
-                  title="Redo (Ctrl+Y)"
-                >
-                  <Redo2 className="w-4 h-4" />
-                </button>
-             </div>
-
-             <div className="h-4 w-px bg-gray-200" />
-            
-             <div className="flex items-center gap-2 bg-gray-100/50 p-1 rounded-lg border border-gray-200">
-               {/* Inspector & AI */}
-                <div className="flex items-center border-r border-gray-300 pr-2 mr-1 gap-1">
-                  <button
-                    onClick={() => setInspectorMode(!inspectorMode)}
-                    className={`p-1.5 rounded ${inspectorMode ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-white'}`}
-                    title="Inspector Mode"
-                  >
-                    <MousePointer2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setIsAIAssistantOpen(true)}
-                    className={`p-1.5 rounded text-purple-600 hover:bg-purple-50`}
-                    title="AI Assistant"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                  </button>
-                </div>
-                
-                {/* Device Toggles */}
-                <button
-                  onClick={() => setPreviewDevice('desktop')}
-                  className={`p-1.5 rounded ${previewDevice === 'desktop' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
-                  title="Desktop view"
-                >
-                  <Monitor className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setPreviewDevice('tablet')}
-                  className={`p-1.5 rounded ${previewDevice === 'tablet' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
-                  title="Tablet view"
-                >
-                  <Tablet className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setPreviewDevice('mobile')}
-                  className={`p-1.5 rounded ${previewDevice === 'mobile' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
-                  title="Mobile view"
-                >
-                  <Smartphone className="w-4 h-4" />
-                </button>
-             </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-             {/* Status Indicator */}
-            <div className="flex items-center gap-1.5 px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-100">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span>Live</span>
-            </div>
-
-            {/* Preview Button */}
-            <a
-              href={`/store/${store.id}`} 
-              target="_blank"
-              rel="noreferrer"
-              className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Preview Store"
-            >
-              <Eye className="w-5 h-5" />
-            </a>
-
-            {/* Actions Menu */}
-            <div className="relative">
-              <button
-                onClick={() => setIsActionsMenuOpen(!isActionsMenuOpen)}
-                className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                title="More actions"
-              >
-                <div className="flex gap-0.5">
-                  <div className="w-1 h-1 rounded-full bg-current" />
-                  <div className="w-1 h-1 rounded-full bg-current" />
-                  <div className="w-1 h-1 rounded-full bg-current" />
-                </div>
-              </button>
-              
-              {isActionsMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                   <button
-                    onClick={() => {
-                      handlePublish();
-                      setIsActionsMenuOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                  >
-                    <CheckCircle className="w-4 h-4" /> Publish Theme
-                  </button>
-                  <a
-                    href={`/store/${store.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                  >
-                    <Eye className="w-4 h-4" /> View Live Store
-                  </a>
-                </div>
-              )}
-            </div>
-
-            {/* Save Button */}
+        {/* Center - Undo/Redo + Tools + Devices */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
             <button
               onClick={() => {
-                // Manual save trigger if needed, though autosave handles it
-                toast.success('Saved successfully');
+                undo();
+                toast.success('Undone!');
               }}
-              disabled={isSubmitting}
-              className={`px-4 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition shadow-sm ${
-                isSubmitting ? 'opacity-70 cursor-wait' : ''
-              }`}
+              disabled={!canUndo}
+              className={`p-1.5 rounded ${canUndo ? 'hover:bg-gray-100 text-gray-600' : 'text-gray-300 cursor-not-allowed'}`}
+              title="Undo (Ctrl+Z)"
             >
-              {isSubmitting ? 'Saving...' : 'Save'}
+              <Undo2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => {
+                redo();
+                toast.success('Redone!');
+              }}
+              disabled={!canRedo}
+              className={`p-1.5 rounded ${canRedo ? 'hover:bg-gray-100 text-gray-600' : 'text-gray-300 cursor-not-allowed'}`}
+              title="Redo (Ctrl+Y)"
+            >
+              <Redo2 className="w-4 h-4" />
             </button>
           </div>
+
+          <div className="h-4 w-px bg-gray-200" />
+
+          <div className="flex items-center gap-2 bg-gray-100/50 p-1 rounded-lg border border-gray-200">
+            {/* Inspector & AI */}
+            <div className="flex items-center border-r border-gray-300 pr-2 mr-1 gap-1">
+              <button
+                onClick={() => setInspectorMode(!inspectorMode)}
+                className={`p-1.5 rounded ${inspectorMode ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-white'}`}
+                title="Inspector Mode"
+              >
+                <MousePointer2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setIsAIAssistantOpen(true)}
+                className={`p-1.5 rounded text-purple-600 hover:bg-purple-50`}
+                title="AI Assistant"
+              >
+                <Sparkles className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Device Toggles */}
+            <button
+              onClick={() => setPreviewDevice('desktop')}
+              className={`p-1.5 rounded ${previewDevice === 'desktop' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+              title="Desktop view"
+            >
+              <Monitor className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setPreviewDevice('tablet')}
+              className={`p-1.5 rounded ${previewDevice === 'tablet' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+              title="Tablet view"
+            >
+              <Tablet className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setPreviewDevice('mobile')}
+              className={`p-1.5 rounded ${previewDevice === 'mobile' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+              title="Mobile view"
+            >
+              <Smartphone className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Status Indicator */}
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-100">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+            <span>Live</span>
+          </div>
+
+          {/* Preview Button */}
+          <a
+            href={`/store/${store.id}`}
+            target="_blank"
+            rel="noreferrer"
+            className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Preview Store"
+          >
+            <Eye className="w-5 h-5" />
+          </a>
+
+          {/* Actions Menu */}
+          <div className="relative">
+            <button
+              onClick={() => setIsActionsMenuOpen(!isActionsMenuOpen)}
+              className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              title="More actions"
+            >
+              <div className="flex gap-0.5">
+                <div className="w-1 h-1 rounded-full bg-current" />
+                <div className="w-1 h-1 rounded-full bg-current" />
+                <div className="w-1 h-1 rounded-full bg-current" />
+              </div>
+            </button>
+
+            {isActionsMenuOpen && (
+              <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                <button
+                  onClick={() => {
+                    handlePublish();
+                    setIsActionsMenuOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                >
+                  <CheckCircle className="w-4 h-4" /> Publish Theme
+                </button>
+                <a
+                  href={`/store/${store.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                >
+                  <Eye className="w-4 h-4" /> View Live Store
+                </a>
+              </div>
+            )}
+          </div>
+
+          {/* Save Button */}
+          <button
+            onClick={() => {
+              // Manual save trigger if needed, though autosave handles it
+              toast.success('Saved successfully');
+            }}
+            disabled={isSubmitting}
+            className={`px-4 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition shadow-sm ${
+              isSubmitting ? 'opacity-70 cursor-wait' : ''
+            }`}
+          >
+            {isSubmitting ? 'Saving...' : 'Save'}
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 flex overflow-hidden">
@@ -1329,7 +1347,9 @@ export function LiveEditorV2({
               </div>
             )}
 
-            <div className={`flex-1 overflow-y-auto custom-scrollbar ${isSubmitting ? 'opacity-50 pointer-events-none' : ''}`}>
+            <div
+              className={`flex-1 overflow-y-auto custom-scrollbar ${isSubmitting ? 'opacity-50 pointer-events-none' : ''}`}
+            >
               {selectedSection && selectedSectionSchema ? (
                 <SchemaSectionEditor
                   sectionId={selectedSection.id}
@@ -1349,11 +1369,11 @@ export function LiveEditorV2({
                     title="Header"
                     icon={Layout}
                     isOpen={openAccordion === 'header-group'}
-                    onToggle={() => setOpenAccordion(openAccordion === 'header-group' ? '' : 'header-group')}
+                    onToggle={() =>
+                      setOpenAccordion(openAccordion === 'header-group' ? '' : 'header-group')
+                    }
                   >
-                    <p className="text-xs text-gray-500 mb-2">
-                      Shared across all pages
-                    </p>
+                    <p className="text-xs text-gray-500 mb-2">Shared across all pages</p>
                     {headerSections.length > 0 ? (
                       <div className="space-y-1">
                         {headerSections.map((section) => (
@@ -1379,7 +1399,9 @@ export function LiveEditorV2({
                     title="Template"
                     icon={Layout}
                     isOpen={openAccordion === 'sections'}
-                    onToggle={() => setOpenAccordion(openAccordion === 'sections' ? '' : 'sections')}
+                    onToggle={() =>
+                      setOpenAccordion(openAccordion === 'sections' ? '' : 'sections')
+                    }
                   >
                     <p className="text-xs text-gray-500 mb-2">
                       Drag to reorder. Click 👁 to hide/show.
@@ -1421,11 +1443,11 @@ export function LiveEditorV2({
                     title="Footer"
                     icon={Layout}
                     isOpen={openAccordion === 'footer-group'}
-                    onToggle={() => setOpenAccordion(openAccordion === 'footer-group' ? '' : 'footer-group')}
+                    onToggle={() =>
+                      setOpenAccordion(openAccordion === 'footer-group' ? '' : 'footer-group')
+                    }
                   >
-                    <p className="text-xs text-gray-500 mb-2">
-                      Shared across all pages
-                    </p>
+                    <p className="text-xs text-gray-500 mb-2">Shared across all pages</p>
                     {footerSections.length > 0 ? (
                       <div className="space-y-1">
                         {footerSections.map((section) => (
@@ -1450,7 +1472,7 @@ export function LiveEditorV2({
                 /* THEME SETTINGS TAB - Shopify OS 2.0 Style */
                 <div className="p-4 space-y-4">
                   <h3 className="font-medium text-gray-900 mb-4 px-2">Theme Settings</h3>
-                  
+
                   {/* Theme Colors */}
                   <AccordionSection
                     title="Colors & Style"
@@ -1551,7 +1573,9 @@ export function LiveEditorV2({
                     title="Branding"
                     icon={Store}
                     isOpen={openAccordion === 'branding'}
-                    onToggle={() => setOpenAccordion(openAccordion === 'branding' ? '' : 'branding')}
+                    onToggle={() =>
+                      setOpenAccordion(openAccordion === 'branding' ? '' : 'branding')
+                    }
                   >
                     <div className="space-y-3">
                       <div>
@@ -1704,8 +1728,8 @@ export function LiveEditorV2({
                 previewDevice === 'mobile'
                   ? 'w-[375px] h-[812px] rounded-[3rem] border-8 border-gray-900'
                   : previewDevice === 'tablet'
-                  ? 'w-[768px] h-[1024px] rounded-[1.5rem] border-8 border-gray-900'
-                  : 'w-full h-full rounded-md border border-gray-200'
+                    ? 'w-[768px] h-[1024px] rounded-[1.5rem] border-8 border-gray-900'
+                    : 'w-full h-full rounded-md border border-gray-200'
               }`}
             >
               <iframe
@@ -1716,7 +1740,7 @@ export function LiveEditorV2({
               />
             </div>
           </div>
-          
+
           {/* Zoom/Fit controls could go here */}
           <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur border border-gray-200 shadow-lg rounded-full px-4 py-2 text-xs font-medium text-gray-600 flex gap-4">
             <span>{previewDevice.charAt(0).toUpperCase() + previewDevice.slice(1)} View</span>

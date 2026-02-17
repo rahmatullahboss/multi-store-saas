@@ -305,7 +305,7 @@ const navSections: NavSection[] = [
   {
     titleKey: 'sidebarOnlineStore',
     items: [
-      { to: '/app/store-design', labelKey: 'navTheme', icon: Palette },
+      { to: '/app/store/settings', labelKey: 'navTheme', icon: Palette },
       { to: '/app/new-builder', labelKey: 'navPages', icon: FileText },
       { to: '/app/page-builder', labelKey: 'navDragDropBuilder', icon: Layers },
     ],
