@@ -49,7 +49,7 @@ import {
   type SerializedProduct,
 } from '~/templates/store-registry';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
-import { parseSocialLinks, parseFooterConfig } from '@db/types';
+import { parseFooterConfig } from '@db/types';
 // import { createDb } from '~/lib/db.server';
 import { getCustomer } from '~/services/customer-auth.server';
 
@@ -662,12 +662,8 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
     const storeName = unifiedSettings.branding.storeName;
     const logo = unifiedSettings.branding.logo;
 
-    // Parse social links, footer config, business info
-    const socialLinks = parseSocialLinks(validatedStore.socialLinks as string | null);
+    // Parse footer config
     const footerConfig = parseFooterConfig(validatedStore.footerConfig as string | null);
-    const businessInfo = parseJsonSafe<{ phone?: string; email?: string; address?: string }>(
-      validatedStore.businessInfo as string | null
-    );
 
     // Serialize products for template
     const serializedProducts: SerializedProduct[] = storeProducts.map((p) => ({
@@ -746,12 +742,12 @@ export default function Index() {
     data.mode === 'landing'
       ? data.landingConfig?.templateId || DEFAULT_LANDING_TEMPLATE_ID
       : DEFAULT_LANDING_TEMPLATE_ID;
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [LandingTemplateComponent, setLandingTemplateComponent] =
-    useState<ComponentType<any> | null>(null);
+  const [LandingTemplateComponent, setLandingTemplateComponent] = useState<ComponentType<any> | null>(null);
+  
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [PreviewTemplateComponent, setPreviewTemplateComponent] =
-    useState<ComponentType<any> | null>(null);
+  const [PreviewTemplateComponent, setPreviewTemplateComponent] = useState<ComponentType<any> | null>(null);
 
   // Check for edit mode via URL param (for merchant editing)
   const isEditMode = searchParams.get('edit') === 'true';
