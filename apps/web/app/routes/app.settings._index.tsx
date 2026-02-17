@@ -30,6 +30,7 @@ import {
 import { parseSocialLinks, parseFooterConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import { KVCache, CACHE_KEYS } from '~/services/kv-cache.server';
+import { saveUnifiedStorefrontSettingsWithCacheInvalidation } from '~/services/unified-storefront-settings.server';
 
 import {
   Store,
@@ -228,7 +229,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const businessAddress = formData.get('businessAddress') as string;
   const customDomain = formData.get('customDomain') as string;
   const currentStore = await db
-    .select({ customDomain: stores.customDomain, planType: stores.planType, subdomain: stores.subdomain })
+    .select({
+      customDomain: stores.customDomain,
+      planType: stores.planType,
+      subdomain: stores.subdomain,
+    })
     .from(stores)
     .where(eq(stores.id, storeId))
     .limit(1);
@@ -368,6 +373,40 @@ export async function action({ request, context }: ActionFunctionArgs) {
     throw error;
   }
 
+  // Dual-write to unified canonical settings (Phase C2)
+  try {
+    await saveUnifiedStorefrontSettingsWithCacheInvalidation(
+      db as any,
+      {
+        KV: context.cloudflare.env.STORE_CACHE,
+      },
+      storeId,
+      {
+        branding: {
+          storeName: name.trim(),
+          logo: logo || null,
+          favicon: favicon || null,
+        },
+        business: {
+          phone: businessPhone || null,
+          email: businessEmail || null,
+          address: businessAddress || null,
+        },
+        social: {
+          facebook: facebook || null,
+          instagram: instagram || null,
+          whatsapp: whatsapp || null,
+        },
+        theme: {
+          templateId: themeValue,
+        },
+      }
+    );
+  } catch (error) {
+    console.warn('Failed to update unified settings:', error);
+    // Don't fail the whole request - legacy save succeeded
+  }
+
   // Keep tenant/store cache aligned after subdomain or settings updates.
   const kvNamespace = context.cloudflare.env.STORE_CACHE;
   if (kvNamespace) {
@@ -379,7 +418,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
     ]);
   }
 
-  if ('STORE_CONFIG_SERVICE' in context.cloudflare.env && context.cloudflare.env.STORE_CONFIG_SERVICE) {
+  if (
+    'STORE_CONFIG_SERVICE' in context.cloudflare.env &&
+    context.cloudflare.env.STORE_CONFIG_SERVICE
+  ) {
     await invalidateStoreConfigDO(
       { STORE_CONFIG_SERVICE: context.cloudflare.env.STORE_CONFIG_SERVICE },
       storeId
@@ -1013,7 +1055,6 @@ export default function SettingsPage() {
             </div>
           </div>
         </GlassCard>
-
 
         {/* Quick Links to Other Settings */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">

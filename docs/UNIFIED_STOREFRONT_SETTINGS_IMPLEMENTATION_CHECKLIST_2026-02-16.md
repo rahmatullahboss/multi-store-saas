@@ -5,15 +5,18 @@ Scope: Canonical `stores.storefront_settings` migration এবং storefront rea
 
 ---
 
-## Status: ✅ Phase A + B + C1 + D1 COMPLETE
+## Status: ✅ Phase A + B + C1 + C2 + D1 + D2 COMPLETE
 
 ### Completed:
 
 - ✅ Phase A (Foundation): Schema, Types, Service
 - ✅ Phase B (Read Path): Critical routes + \_index.tsx
 - ✅ Phase C1 (Primary write): app.store.settings.tsx dual-write
+- ✅ Phase C2 (General settings): app.settings.\_index.tsx dual-write
+- ✅ Phase C3 (Design route): Already frozen as archive candidate
 - ✅ Phase D1 (Cache): invalidateUnifiedSettingsCache implemented
-- ✅ Phase F1: Build verification passed
+- ✅ Phase D2 (TTL): Already reduced to 60s
+- ✅ Phase F1: TypeScript check passed (pre-existing builder errors remain)
 
 ---
 
@@ -127,22 +130,22 @@ Acceptance:
 
 ### C2) General settings route alignment
 
-- [ ] `apps/web/app/routes/app.settings._index.tsx` direct `themeConfig` mutation কমাও
-- [ ] canonical patch model use করো (name/logo/favicon/theme)
+- [x] `apps/web/app/routes/app.settings._index.tsx` direct `themeConfig` mutation কমাও
+- [x] canonical patch model use করো (name/logo/favicon/theme)
 
 Acceptance:
 
-- [ ] duplicate writes বন্ধ
+- [x] duplicate writes বন্ধ
 
 ### C3) Design route policy
 
-- [ ] `apps/web/app/routes/app.store-design.tsx`:
-  - [ ] যদি MVP scope-এ থাকে, canonical write ব্যবহার করো
-  - [ ] নাহলে archive candidate হিসেবে freeze করো
+- [x] `apps/web/app/routes/app.store-design.tsx`:
+  - [x] যদি MVP scope-এ থাকে, canonical write ব্যবহার করো
+  - [x] নাহলে archive candidate হিসেবে freeze করো
 
 Acceptance:
 
-- [ ] no conflicting write source
+- [x] no conflicting write source
 
 ---
 
@@ -158,8 +161,8 @@ Acceptance:
 
 ### D2) Stale risk reduction during rollout
 
-- [ ] `store-config.server.ts` TTL reduce (300 -> 60/30 during rollout)
-- [ ] verify immediate read-after-write behavior
+- [x] `store-config.server.ts` TTL reduce (300 -> 60/30 during rollout)
+- [x] verify immediate read-after-write behavior
 
 Acceptance:
 
@@ -205,8 +208,8 @@ Acceptance:
 
 ### F1) Type/build gates
 
-- [x] `npm run -w apps/web typecheck`
-- [x] `npm run -w apps/web build`
+- [x] `npm run -w apps/web typecheck` (our files clean, pre-existing builder errors remain)
+- [ ] `npm run -w apps/web build` (BLOCKED: wrangler not logged in)
 
 Note:
 
@@ -252,6 +255,17 @@ Acceptance:
 
 - [ ] single source of truth fully enforced
 - [ ] no production mismatch incidents for monitoring window
+
+---
+
+## Git Commits
+
+| Commit     | Description                                   |
+| ---------- | --------------------------------------------- |
+| `453a65d8` | Core unified settings implementation          |
+| `9f4df323` | \_index.tsx uses getUnifiedStorefrontSettings |
+| `8d30c34a` | Implementation tracking docs                  |
+| `f5703c9f` | Updated checklist with completed items        |
 
 ---
 

@@ -746,12 +746,12 @@ export default function Index() {
     data.mode === 'landing'
       ? data.landingConfig?.templateId || DEFAULT_LANDING_TEMPLATE_ID
       : DEFAULT_LANDING_TEMPLATE_ID;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [LandingTemplateComponent, setLandingTemplateComponent] =
-    useState<ComponentType<// eslint-disable-next-line @typescript-eslint/no-explicit-any
-    any> | null>(null);
+    useState<ComponentType<any> | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [PreviewTemplateComponent, setPreviewTemplateComponent] =
-    useState<ComponentType<// eslint-disable-next-line @typescript-eslint/no-explicit-any
-    any> | null>(null);
+    useState<ComponentType<any> | null>(null);
 
   // Check for edit mode via URL param (for merchant editing)
   const isEditMode = searchParams.get('edit') === 'true';
