@@ -12,7 +12,7 @@ import { formatPrice } from '~/lib/theme-engine';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
 import type { StoreTemplateTheme } from '~/templates/store-registry';
-import type { ThemeConfig } from '@db/types';
+import type { ThemeConfig, LandingConfig } from '@db/types';
 
 interface CartItem {
   productId: number;
@@ -22,6 +22,7 @@ interface CartItem {
   imageUrl?: string | null;
   compareAtPrice?: number | null;
   id?: string | number;
+  variantId?: number;
 }
 
 interface StarterStoreCartPageProps {
@@ -29,14 +30,15 @@ interface StarterStoreCartPageProps {
   currency?: string;
   total?: number;
   itemCount?: number;
-  onUpdateQuantity?: (productId: number, quantity: number) => void;
-  onRemoveItem?: (productId: number) => void;
+  onUpdateQuantity?: (productId: number, variantId: number | undefined, quantity: number) => void;
+  onRemoveItem?: (productId: number, variantId?: number) => void;
   onCheckout?: () => void;
   isLoading?: boolean;
   storeName?: string;
   isPreview?: boolean;
   theme?: StoreTemplateTheme;
   config?: ThemeConfig | null;
+  mvpSettings?: LandingConfig | null;
 }
 
 export function StarterStoreCartPage({
@@ -49,6 +51,7 @@ export function StarterStoreCartPage({
   isPreview = false,
   theme,
   config,
+  mvpSettings,
 }: StarterStoreCartPageProps) {
   const resolvedTheme = resolveStarterStoreTheme(config, theme);
   const [cartItems, setCartItems] = useState<CartItem[]>(propItems || []);
@@ -102,21 +105,39 @@ export function StarterStoreCartPage({
     [cartItems]
   );
 
-  const shipping = subtotal >= 1500 ? 0 : 60;
+  // Parse shipping config
+  const shippingConfig = mvpSettings?.shippingConfig;
+  const shippingEnabled = shippingConfig?.enabled ?? true;
+  const deliveryCharge = shippingEnabled ? (shippingConfig?.insideDhaka ?? 60) : 0;
+  const freeShippingAbove = shippingConfig?.freeShippingAbove ?? 0;
+
+  // Calculate shipping
+  // If freeShippingAbove is 0, it means disabled (always charge)
+  // If freeShippingAbove > 0, check if subtotal >= freeShippingAbove
+  const isFreeShipping = freeShippingAbove > 0 && subtotal >= freeShippingAbove;
+  const shipping = isFreeShipping ? 0 : deliveryCharge;
+  
   const total = subtotal + shipping;
 
-  const updateQty = (productId: number, delta: number) => {
+  const updateQty = (productId: number, variantId: number | undefined, delta: number) => {
     const next = cartItems.map((item) => {
       const id = Number(item.productId || item.id);
-      if (id === productId) {
+      const outputVariantId = item.variantId ? Number(item.variantId) : undefined;
+      
+      if (id === productId && outputVariantId === variantId) {
         return { ...item, quantity: Math.max(1, item.quantity + delta) };
       }
       return item;
     });
 
     if (onUpdateQuantity) {
-      const target = next.find((i) => Number(i.productId || i.id) === productId);
-      if (target) onUpdateQuantity(productId, target.quantity);
+      const target = next.find((i) => {
+        const id = Number(i.productId || i.id);
+        const vid = i.variantId ? Number(i.variantId) : undefined;
+        return id === productId && vid === variantId;
+      });
+      
+      if (target) onUpdateQuantity(productId, variantId, target.quantity);
       return;
     }
 
@@ -124,12 +145,17 @@ export function StarterStoreCartPage({
     localStorage.setItem('cart', JSON.stringify(next));
   };
 
-  const removeItem = (productId: number) => {
+  const removeItem = (productId: number, variantId?: number) => {
     if (onRemoveItem) {
-      onRemoveItem(productId);
+      // @ts-ignore - The prop signature in store-registry types might be generic, ensuring compatibility
+      onRemoveItem(productId, variantId);
       return;
     }
-    const next = cartItems.filter((item) => Number(item.productId || item.id) !== productId);
+    const next = cartItems.filter((item) => {
+      const id = Number(item.productId || item.id);
+      const vid = item.variantId ? Number(item.variantId) : undefined;
+      return !(id === productId && vid === variantId);
+    });
     setCartItems(next);
     localStorage.setItem('cart', JSON.stringify(next));
   };
@@ -189,7 +215,7 @@ export function StarterStoreCartPage({
                 const id = Number(item.productId || item.id);
                 return (
                   <div
-                    key={id}
+                    key={`${id}-${item.variantId ?? 'base'}`}
                     className="bg-white rounded-xl p-4 md:p-5 shadow-sm flex gap-4"
                     style={{ border: `1px solid ${resolvedTheme.borderLight}` }}
                   >
@@ -218,7 +244,7 @@ export function StarterStoreCartPage({
                           </p>
                         </div>
                         <button
-                          onClick={() => removeItem(id)}
+                          onClick={() => removeItem(id, item.variantId)}
                           className="p-2 rounded-lg hover:bg-gray-100"
                           aria-label="Remove item"
                         >
@@ -229,7 +255,7 @@ export function StarterStoreCartPage({
                       <div className="mt-4 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => updateQty(id, -1)}
+                            onClick={() => updateQty(id, item.variantId, -1)}
                             className="w-8 h-8 rounded-lg border flex items-center justify-center hover:bg-gray-50"
                             style={{ borderColor: resolvedTheme.border }}
                           >
@@ -237,7 +263,7 @@ export function StarterStoreCartPage({
                           </button>
                           <span className="w-8 text-center">{item.quantity}</span>
                           <button
-                            onClick={() => updateQty(id, 1)}
+                            onClick={() => updateQty(id, item.variantId, 1)}
                             className="w-8 h-8 rounded-lg border flex items-center justify-center hover:bg-gray-50"
                             style={{ borderColor: resolvedTheme.border }}
                           >

@@ -45,6 +45,16 @@ export interface MVPThemeSettings {
 
   /** Announcement banner text */
   announcementText?: string | null;
+
+  /** Shipping configuration (from unified settings) */
+  shippingConfig?: {
+    deliveryCharge?: number;
+    freeDeliveryAbove?: number | null;
+    insideDhaka: number;
+    outsideDhaka: number;
+    freeShippingAbove: number;
+    enabled: boolean;
+  };
 }
 
 /**
@@ -310,11 +320,7 @@ export const MVP_SETTINGS_FORM_FIELDS = [
  * MVP Theme IDs - Only these themes are shown in the Theme Store UI
  * Based on research: 5 themes cover 90% of use cases
  */
-export const MVP_THEME_IDS = [
-  'starter-store',
-  'luxe-boutique',
-  'nova-lux',
-] as const;
+export const MVP_THEME_IDS = ['starter-store', 'luxe-boutique', 'nova-lux'] as const;
 
 export type MVPThemeId = (typeof MVP_THEME_IDS)[number];
 

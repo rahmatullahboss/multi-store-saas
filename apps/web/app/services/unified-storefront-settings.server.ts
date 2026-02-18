@@ -45,6 +45,8 @@ export interface GetUnifiedSettingsOptions {
   enableFallback?: boolean;
   /** Skip cache and force DB read (default: false) */
   forceRefresh?: boolean;
+  /** Environment for strict mode check */
+  env?: Record<string, string>;
 }
 
 export interface SaveUnifiedSettingsOptions {
@@ -90,7 +92,11 @@ export async function getUnifiedStorefrontSettings<TSchema extends Record<string
   storeId: number,
   options: GetUnifiedSettingsOptions = {}
 ): Promise<UnifiedStorefrontSettingsV1> {
-  const { enableFallback = true } = options;
+  const { enableFallback: userEnableFallback = true, env } = options;
+
+  // Check strict mode - if enabled, disable fallback
+  const isStrict = env ? isStrictMode(env) : false;
+  const enableFallback = isStrict ? false : userEnableFallback;
 
   // Try to get from canonical column first
   try {
@@ -134,7 +140,7 @@ export async function getUnifiedStorefrontSettings<TSchema extends Record<string
     };
   }
 
-  // Return defaults if nothing found
+  // Return defaults if nothing found and fallback disabled (strict mode)
   return DEFAULT_UNIFIED_SETTINGS;
 }
 
@@ -397,6 +403,37 @@ async function migrateLegacyToUnified(
     enableGuestCheckout: legacy.themeConfig?.checkout?.enableGuestCheckout ?? true,
   };
 
+  // Shipping config (from themeConfig/mvpSettings when available)
+  const shippingConfig = {
+    deliveryCharge: legacy.themeConfig?.deliveryCharge ?? legacy.mvpSettings?.deliveryCharge ?? 60,
+    freeDeliveryAbove:
+      legacy.themeConfig?.freeDeliveryAbove ?? legacy.mvpSettings?.freeDeliveryAbove ?? null,
+    insideDhaka:
+      legacy.themeConfig?.shippingConfig?.insideDhaka ??
+      legacy.themeConfig?.insideDhaka ??
+      legacy.mvpSettings?.shippingConfig?.insideDhaka ??
+      legacy.mvpSettings?.insideDhaka ??
+      60,
+    outsideDhaka:
+      legacy.themeConfig?.shippingConfig?.outsideDhaka ??
+      legacy.themeConfig?.outsideDhaka ??
+      legacy.mvpSettings?.shippingConfig?.outsideDhaka ??
+      legacy.mvpSettings?.outsideDhaka ??
+      120,
+    freeShippingAbove:
+      legacy.themeConfig?.shippingConfig?.freeShippingAbove ??
+      legacy.themeConfig?.freeShippingAbove ??
+      legacy.mvpSettings?.shippingConfig?.freeShippingAbove ??
+      legacy.mvpSettings?.freeShippingAbove ??
+      0,
+    enabled:
+      legacy.themeConfig?.shippingConfig?.enabled ??
+      legacy.themeConfig?.shippingEnabled ??
+      legacy.mvpSettings?.shippingConfig?.enabled ??
+      legacy.mvpSettings?.shippingEnabled ??
+      true,
+  };
+
   // Hero banner (no legacy source - use defaults)
   const heroBanner = {
     mode: 'single' as const,
@@ -434,6 +471,7 @@ async function migrateLegacyToUnified(
     announcement,
     seo,
     checkout,
+    shippingConfig,
     heroBanner,
     trustBadges,
     typography,
@@ -559,6 +597,7 @@ export interface FeatureFlags {
   UNIFIED_STOREFRONT_SETTINGS_READ: boolean;
   UNIFIED_STOREFRONT_SETTINGS_WRITE: boolean;
   UNIFIED_STOREFRONT_SETTINGS_FALLBACK: boolean;
+  UNIFIED_STOREFRONT_SETTINGS_STRICT: boolean;
   UNIFIED_STOREFRONT_SETTINGS_STRICT_TEMPLATE_ALLOWLIST: boolean;
 }
 
@@ -567,14 +606,46 @@ export function getFeatureFlags(env: Record<string, string>): FeatureFlags {
     UNIFIED_STOREFRONT_SETTINGS_READ: env.UNIFIED_STOREFRONT_SETTINGS_READ !== 'false',
     UNIFIED_STOREFRONT_SETTINGS_WRITE: env.UNIFIED_STOREFRONT_SETTINGS_WRITE !== 'false',
     UNIFIED_STOREFRONT_SETTINGS_FALLBACK: env.UNIFIED_STOREFRONT_SETTINGS_FALLBACK !== 'false',
+    UNIFIED_STOREFRONT_SETTINGS_STRICT: env.UNIFIED_SETTINGS_STRICT === 'true',
     UNIFIED_STOREFRONT_SETTINGS_STRICT_TEMPLATE_ALLOWLIST:
       env.UNIFIED_STOREFRONT_SETTINGS_STRICT_TEMPLATE_ALLOWLIST === 'true',
   };
 }
 
+/**
+ * Check if strict mode is enabled for unified settings
+ * In strict mode, fallback to legacy sources is disabled
+ */
+export function isStrictMode(env: Record<string, string>): boolean {
+  return env.UNIFIED_SETTINGS_STRICT === 'true';
+}
+
 // ============================================================================
 // BACKWARDS COMPATIBILITY
 // ============================================================================
+
+/**
+ * Get shipping config directly from unified settings (single source of truth)
+ * This replaces the need for resolveShippingConfig in routes
+ */
+export function getShippingConfigFromUnified(settings: UnifiedStorefrontSettingsV1): {
+  enabled: boolean;
+  insideDhaka: number;
+  outsideDhaka: number;
+  freeShippingAbove: number;
+  freeDeliveryAbove: number | null;
+  deliveryCharge: number;
+} {
+  const sc = settings.shippingConfig;
+  return {
+    enabled: sc.enabled ?? true,
+    insideDhaka: sc.insideDhaka ?? 60,
+    outsideDhaka: sc.outsideDhaka ?? 120,
+    freeShippingAbove: sc.freeShippingAbove ?? 0,
+    freeDeliveryAbove: sc.freeDeliveryAbove ?? null,
+    deliveryCharge: sc.deliveryCharge ?? 60,
+  };
+}
 
 /**
  * Get theme settings in format expected by existing components
@@ -749,8 +820,6 @@ export async function saveUnifiedStorefrontSettingsWithCacheInvalidation<
 // LEGACY FORMAT HELPER (for backward compatibility with routes)
 // ============================================================================
 
-
-
 export interface LegacyStorefrontSettings {
   storeTemplateId: string;
   mvpSettings: {
@@ -772,7 +841,6 @@ export interface LegacyStorefrontSettings {
 
 export function toLegacyFormat(settings: UnifiedStorefrontSettingsV1): LegacyStorefrontSettings {
   const templateId = settings.theme.templateId;
-
 
   return {
     storeTemplateId: templateId,

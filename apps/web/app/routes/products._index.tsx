@@ -15,7 +15,7 @@ import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { getStoreConfig } from '~/services/store-config.server';
 import { products } from '@db/schema';
-import { parseSocialLinks, type ThemeConfig } from '@db/types';
+import { type ThemeConfig } from '@db/types';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreTemplate } from '~/templates/store-registry';
 import { ShoppingBag, Filter, ChevronRight, Grid, List } from 'lucide-react';
@@ -26,6 +26,11 @@ import {
   getUnifiedStorefrontSettings,
   toLegacyFormat,
 } from '~/services/unified-storefront-settings.server';
+import {
+  resolveCategoryFromParam,
+  buildUnifiedSocialLinks,
+  buildMergedThemeConfig,
+} from '~/utils/storefront-settings';
 
 // Serialized product type for client components
 interface SerializedProduct {
@@ -81,7 +86,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId);
   const unified = toLegacyFormat(unifiedSettings);
 
-  const socialLinks = parseSocialLinks(store.socialLinks as string | null);
+  const socialLinks = buildUnifiedSocialLinks(unifiedSettings);
 
   // Get category filter from URL
   const url = new URL(request.url);
@@ -105,24 +110,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         ? desc(products.price)
         : desc(products.createdAt);
 
-  // Fetch products with optional category filter and sorting
-  const allProducts = await db
-    .select()
-    .from(products)
-    .where(
-      and(
-        eq(products.storeId, storeId),
-        eq(products.isPublished, true),
-        category ? eq(products.category, category) : undefined,
-        inStock ? gte(products.inventory, 1) : undefined,
-        onSale ? gte(products.compareAtPrice, products.price) : undefined,
-        minPrice !== null ? gte(products.price, minPrice) : undefined,
-        maxPrice !== null ? lte(products.price, maxPrice) : undefined
-      )
-    )
-    .orderBy(orderByClause)
-    .limit(100);
-
   // Get all unique categories
   const categoriesResult = await db
     .select({ category: products.category })
@@ -132,6 +119,35 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const categories = [
     ...new Set(categoriesResult.map((p) => p.category).filter((c): c is string => Boolean(c))),
   ];
+
+  const resolvedCategory = resolveCategoryFromParam(categories, category);
+
+  // Fetch products with optional category filter and sorting
+  const allProducts = await db
+    .select()
+    .from(products)
+    .where(
+      and(
+        eq(products.storeId, storeId),
+        eq(products.isPublished, true),
+        resolvedCategory ? eq(products.category, resolvedCategory) : undefined,
+        inStock ? gte(products.inventory, 1) : undefined,
+        onSale ? gte(products.compareAtPrice, products.price) : undefined,
+        minPrice !== null ? gte(products.price, minPrice) : undefined,
+        maxPrice !== null ? lte(products.price, maxPrice) : undefined
+      )
+    )
+    .orderBy(orderByClause)
+    .limit(100);
+
+  // Use unified theme config - no more legacy store.themeConfig reading
+  const mergedThemeConfig = buildMergedThemeConfig(
+    null, // No longer read from store.themeConfig
+    unified.storeTemplateId,
+    unified.theme.primary,
+    unified.theme.accent,
+    unified.themeConfig
+  );
 
   return json({
     products: allProducts,
@@ -143,11 +159,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     theme: unified.theme,
     socialLinks,
     businessInfo,
-    themeConfig: unified.themeConfig,
+    themeConfig: mergedThemeConfig,
     footerConfig,
     mvpSettings: unified.mvpSettings,
     categories,
-    currentCategory: category,
+    currentCategory: resolvedCategory,
     sortBy,
     inStock,
     onSale,

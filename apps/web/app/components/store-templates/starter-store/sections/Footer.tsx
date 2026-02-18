@@ -82,7 +82,7 @@ export function StarterStoreFooter({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2 rounded-full transition-colors hover:opacity-80"
-                  style={{ backgroundColor: theme.primary + '20', color: theme.primary }}
+                  style={{ backgroundColor: theme.footerText + '20', color: theme.footerText }}
                   onClick={isPreview ? (e) => e.preventDefault() : undefined}
                 >
                   <Facebook className="h-4 w-4" />
@@ -94,7 +94,7 @@ export function StarterStoreFooter({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2 rounded-full transition-colors hover:opacity-80"
-                  style={{ backgroundColor: theme.primary + '20', color: theme.primary }}
+                  style={{ backgroundColor: theme.footerText + '20', color: theme.footerText }}
                   onClick={isPreview ? (e) => e.preventDefault() : undefined}
                 >
                   <Instagram className="h-4 w-4" />
@@ -106,7 +106,7 @@ export function StarterStoreFooter({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2 rounded-full transition-colors hover:opacity-80"
-                  style={{ backgroundColor: theme.primary + '20', color: theme.primary }}
+                  style={{ backgroundColor: theme.footerText + '20', color: theme.footerText }}
                   onClick={isPreview ? (e) => e.preventDefault() : undefined}
                 >
                   <Twitter className="h-4 w-4" />
@@ -201,7 +201,7 @@ export function StarterStoreFooter({
             <ul className="space-y-3">
               {displayBusinessInfo.phone && (
                 <li className="flex items-center gap-3">
-                  <Phone className="h-4 w-4 flex-shrink-0" style={{ color: theme.primary }} />
+                  <Phone className="h-4 w-4 flex-shrink-0" style={{ color: theme.footerText }} />
                   <a
                     href={isPreview ? '#' : `tel:${displayBusinessInfo.phone}`}
                     className="text-sm hover:underline"
@@ -214,7 +214,7 @@ export function StarterStoreFooter({
               )}
               {displayBusinessInfo.email && (
                 <li className="flex items-center gap-3">
-                  <Mail className="h-4 w-4 flex-shrink-0" style={{ color: theme.primary }} />
+                  <Mail className="h-4 w-4 flex-shrink-0" style={{ color: theme.footerText }} />
                   <a
                     href={isPreview ? '#' : `mailto:${displayBusinessInfo.email}`}
                     className="text-sm hover:underline"
@@ -229,7 +229,7 @@ export function StarterStoreFooter({
                 <li className="flex items-start gap-3">
                   <MapPin
                     className="h-4 w-4 flex-shrink-0 mt-0.5"
-                    style={{ color: theme.primary }}
+                    style={{ color: theme.footerText }}
                   />
                   <span className="text-sm" style={{ color: theme.footerText + 'CC' }}>
                     {displayBusinessInfo.address}

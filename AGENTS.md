@@ -2,7 +2,7 @@
 
 > **🎯 Mission**: Build the **Shopify of Bangladesh** — A world-class, multi-tenant e-commerce SaaS on Cloudflare's edge. 🇧🇩🚀  
 > **Standard**: 99.99% Uptime, Sub-100ms TTFB, Infinite Scale.  
-> **Last Updated**: 2026-02-01  
+> **Last Updated**: 2026-02-18  
 > **Docs Verified**: ✅ Context7 MCP (Cloudflare, Remix v2, Drizzle ORM, Shopify Themes)
 
 ---
@@ -838,6 +838,15 @@ const SectionComponent = registry['hero-banner'].component;
 > **🔵 FROZEN**: Shopify OS 2.0 system (`themes/` folder) is frozen for future v2.0 release.  
 > **📖 DOCS**: See [docs/MVP_THEME_SYSTEM.md](docs/MVP_THEME_SYSTEM.md) for complete guide.
 
+### 2026-02 Source of Truth Update (Important)
+
+- ✅ **Canonical storefront settings source**: `stores.storefront_settings` (Unified V1 JSON)
+- ✅ **Read entrypoint**: `getUnifiedStorefrontSettings(...)`
+- ✅ **Write entrypoint**: `saveUnifiedStorefrontSettings(...)` / `saveUnifiedStorefrontSettingsWithCacheInvalidation(...)`
+- ⚠️ **Compatibility bridge**: `toLegacyFormat(...)` is temporary for older template props
+- ⚠️ **Legacy sources** (`stores.theme_config`, `store_mvp_settings`, `stores.social_links`, `stores.business_info`) are fallback/migration inputs only
+- ❌ Do not create new storefront features that read directly from `stores.theme_config` first
+
 ### The Problem with Current Dual System
 
 The codebase currently has **two competing theme systems**:
@@ -1208,31 +1217,37 @@ await saveTemplateToShopifySystem(db, storeId, defaultTemplate);
 
 ## 🏪 Store Routes
 
-All storefront routes use `ThemeStoreRenderer`:
+Current production state is **hybrid rendering + unified settings**:
+
+- Most storefront loaders read settings via `getUnifiedStorefrontSettings(...)`
+- Some routes still render with legacy template components through `StorePageWrapper`
+- `toLegacyFormat(...)` is used to feed old component contracts during migration
 
 | Route        | File                    | Renderer                   |
 | ------------ | ----------------------- | -------------------------- |
-| Homepage     | `store.home.tsx`        | ThemeStoreRenderer         |
-| Product      | `products.$id.tsx`      | ThemeStoreRenderer         |
-| Cart         | `cart.tsx`              | ThemeStoreRenderer         |
-| Collection   | `collections.$slug.tsx` | ThemeStoreRenderer         |
-| Custom Pages | `pages.$slug.tsx`       | ThemeStoreRenderer         |
+| Homepage     | `store.home.tsx`        | `StorePageWrapper` + template components |
+| Product      | `products.$handle.tsx`  | `StorePageWrapper` + template components |
+| Cart         | `cart.tsx`              | `StorePageWrapper` + template components |
+| Collection   | `products._index.tsx`   | `StorePageWrapper` + template components |
+| Custom Pages | `pages.$slug.tsx`       | Mixed (page data + legacy config render path) |
 | Checkout     | `checkout.tsx`          | Custom (not section-based) |
 
 ### Route Pattern
 
 ```typescript
-// Load template from DB
-const template = await resolveTemplate(env.DB, storeId, 'home');
+// 1) Read canonical settings first
+const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId);
+const legacy = toLegacyFormat(unifiedSettings);
 
-// Render with ThemeStoreRenderer
-<ThemeStoreRenderer
-  themeId={storeTemplateId}
-  sections={template?.sections || []}
-  store={{ id, name, currency }}
-  pageType="index"
-  products={products}
-/>
+// 2) Render with compatibility props while migrating routes/components
+<StorePageWrapper
+  storeName={legacy.storeName}
+  templateId={legacy.storeTemplateId}
+  theme={legacy.theme}
+  config={legacy.themeConfig}
+>
+  {/* template-specific page component */}
+</StorePageWrapper>
 ```
 
 ---

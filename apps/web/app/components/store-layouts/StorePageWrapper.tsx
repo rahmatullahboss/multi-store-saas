@@ -331,6 +331,15 @@ function StorePageWrapperComponent({
     ]
   );
 
+  const chatAccentColor = useMemo(() => {
+    if (accentColor) return accentColor;
+    if (templateId === 'starter-store') {
+      // Keep starter-store chat color consistent with homepage template behavior.
+      return resolvedTheme.primary;
+    }
+    return resolvedTheme.accent || resolvedTheme.primary;
+  }, [accentColor, templateId, resolvedTheme.primary, resolvedTheme.accent]);
+
   // Error handlers
   const handleHeaderError = React.useCallback((error: Error) => {
     console.error('[StorePageWrapper] Header failed to render:', error);
@@ -404,7 +413,7 @@ function StorePageWrapperComponent({
             aiEnabled={isCustomerAiEnabled}
             aiCredits={aiCredits}
             storeId={storeId}
-            accentColor={accentColor}
+            accentColor={chatAccentColor}
             agentName={agentName}
           />
         )}

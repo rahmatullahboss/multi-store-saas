@@ -3,7 +3,7 @@
 > **Project**: Ozzyl (Multi-Store E-commerce SaaS)  
 > **Stack**: Remix + Hono + D1 + KV + Vectorize + R2 + Workers AI (Cloudflare Native)  
 > **Domain**: E-commerce SaaS (Shopify of Bangladesh)  
-> **Last Updated**: 2026-01-24  
+> **Last Updated**: 2026-02-18  
 > **Docs Verified**: ✅ Context7 MCP (Cloudflare, Remix v2, Hono, Drizzle ORM)
 
 ---
@@ -297,6 +297,15 @@ What are you changing?
 4. **Type Safety** - No `any` types, use explicit TypeScript types
 5. **Test Before Claim** - Run `npm run test:all` before claiming done
 6. **Edge-First** - All code runs on Cloudflare Edge, optimize accordingly
+7. **Storefront Settings Source of Truth** - Read/write storefront config via `getUnifiedStorefrontSettings` and `saveUnifiedStorefrontSettings*`; treat `stores.themeConfig` as compatibility/fallback only.
+
+### Unified Settings Guardrail (Storefront)
+
+- Canonical column: `stores.storefront_settings` (Unified V1 JSON)
+- Read API: `~/services/unified-storefront-settings.server.ts#getUnifiedStorefrontSettings`
+- Write API: `~/services/unified-storefront-settings.server.ts#saveUnifiedStorefrontSettings`
+- Bridge API: `toLegacyFormat` only for legacy component contracts during migration
+- Avoid adding new direct reads/writes to `stores.themeConfig` in new storefront features
 
 ---
 

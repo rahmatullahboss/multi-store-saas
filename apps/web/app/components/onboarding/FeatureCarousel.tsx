@@ -1,35 +1,35 @@
-import { ShieldCheck, Truck, ThumbsUp, Lock } from 'lucide-react';
-// import { useTranslation } from '~/contexts/LanguageContext';
+import { Rocket, LayoutTemplate, LayoutDashboard, ShieldCheck } from 'lucide-react';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 export function FeatureCarousel() {
-  // const { t } = useTranslation();
+  const { t } = useTranslation();
 
   const features = [
     {
-      icon: ShieldCheck,
-      title: 'Premium Quality', // t('featurePremiumQuality')
-      description: 'Handpicked products from top brands', // t('descPremiumQuality')
+      icon: Rocket,
+      title: t('auth:featureLaunchFast'),
+      description: t('auth:descLaunchFast'),
       color: 'text-emerald-600',
       bg: 'bg-emerald-100',
     },
     {
-      icon: Truck,
-      title: 'Fast Delivery', // t('featureFastDelivery')
-      description: 'Get your products in 2-3 days', // t('descFastDelivery')
+      icon: LayoutTemplate,
+      title: t('auth:featureNoCoding'),
+      description: t('auth:descNoCoding'),
       color: 'text-blue-600',
       bg: 'bg-blue-100',
     },
     {
-      icon: ThumbsUp,
-      title: '100% Satisfaction', // t('featureSatisfaction')
-      description: '7-day easy return policy', // t('descSatisfaction')
+      icon: LayoutDashboard,
+      title: t('auth:featureAllInOne'),
+      description: t('auth:descAllInOne'),
       color: 'text-amber-600',
       bg: 'bg-amber-100',
     },
     {
-      icon: Lock,
-      title: 'Secure Payment', // t('featureSecurePayment')
-      description: '100% secure payment gateway', // t('descSecurePayment')
+      icon: ShieldCheck,
+      title: t('auth:featureSecurePlatform'),
+      description: t('auth:descSecurePlatform'),
       color: 'text-purple-600',
       bg: 'bg-purple-100',
     },

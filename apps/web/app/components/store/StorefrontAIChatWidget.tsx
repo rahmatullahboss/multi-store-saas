@@ -440,8 +440,9 @@ export function StorefrontAIChatWidget({
   const [showGreeting, setShowGreeting] = useState(false);
   const [hasShownGreeting, setHasShownGreeting] = useState(false);
   const [input, setInput] = useState('');
+  // Use customer phone for chat history isolation if available
   const [messages, setMessages] = useState<Message[]>(() =>
-    loadChatHistory(storeId, customerPhone)
+    loadChatHistory(storeId, customer?.phone || undefined)
   );
   const [currentCredits, setCurrentCredits] = useState(aiCredits);
 
@@ -487,11 +488,10 @@ export function StorefrontAIChatWidget({
 
   // Load phone-based chat history when customerPhone becomes available
   useEffect(() => {
-    if (customerPhone && messages.length === 0) {
+    if (customerPhone) {
+      // Always prefer phone-based history when phone is available
       const phoneHistory = loadChatHistory(storeId, customerPhone);
-      if (phoneHistory.length > 0) {
-        setMessages(phoneHistory);
-      }
+      setMessages(phoneHistory);
     }
   }, [customerPhone, storeId]);
 
@@ -510,17 +510,10 @@ export function StorefrontAIChatWidget({
     const trimmedPhone = customerPhone.trim();
     const trimmedName = customerName.trim();
 
-    // Migrate existing chat history to phone-based key if needed
-    const existingHistory = loadChatHistory(storeId);
-    if (existingHistory.length > 0) {
-      const phoneBasedHistory = loadChatHistory(storeId, trimmedPhone);
-      if (phoneBasedHistory.length === 0) {
-        saveChatHistory(storeId, trimmedPhone, existingHistory);
-      }
-      // Update messages state to use phone-based history
-      if (phoneBasedHistory.length > 0) {
-        setMessages(phoneBasedHistory);
-      }
+    // Always prefer phone-based history when phone is provided
+    const phoneBasedHistory = loadChatHistory(storeId, trimmedPhone);
+    if (phoneBasedHistory.length > 0) {
+      setMessages(phoneBasedHistory);
     }
 
     // Save to localStorage

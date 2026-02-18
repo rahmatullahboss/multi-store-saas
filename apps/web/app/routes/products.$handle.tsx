@@ -9,7 +9,12 @@
  * 3. If NaN -> Treat as Slug -> Render Collection Page
  */
 
-import { json, type LoaderFunctionArgs, type MetaFunction, type MetaDescriptor } from '@remix-run/cloudflare';
+import {
+  json,
+  type LoaderFunctionArgs,
+  type MetaFunction,
+  type MetaDescriptor,
+} from '@remix-run/cloudflare';
 import {
   useLoaderData,
   useRouteError,
@@ -38,8 +43,14 @@ import { parsePriceRange } from '~/utils/price';
 import {
   getUnifiedStorefrontSettings,
   toLegacyFormat,
+  getShippingConfigFromUnified,
 } from '~/services/unified-storefront-settings.server';
 import type { MVPSettingsWithTheme } from '~/services/mvp-settings.server';
+import {
+  findCategoryBySlug,
+  buildUnifiedSocialLinks,
+  buildMergedThemeConfig,
+} from '~/utils/storefront-settings';
 
 // ===================================
 // CACHE CONFIGURATION
@@ -134,6 +145,8 @@ interface CollectionPageData {
   maxPrice: number | null;
   planType: string;
   customer: SerializedCustomer | null;
+  isCustomerAiEnabled: boolean;
+  aiCredits: number;
 }
 
 // ===================================
@@ -210,20 +223,14 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
   if (store.storeEnabled === false) throw new Response('Store is disabled', { status: 404 });
 
-  // Get common data
-  const { footerConfig, shippingConfig } = storeConfig;
+  // Get common data - use unified settings for shipping (single source of truth)
+  const { footerConfig } = storeConfig;
 
   const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId);
   const unified = toLegacyFormat(unifiedSettings);
+  const unifiedShippingConfig = getShippingConfigFromUnified(unifiedSettings);
 
-  const socialLinks: SocialLinks = {
-    facebook: unifiedSettings.social.facebook ?? undefined,
-    instagram: unifiedSettings.social.instagram ?? undefined,
-    whatsapp: unifiedSettings.social.whatsapp ?? undefined,
-    twitter: unifiedSettings.social.twitter ?? undefined,
-    youtube: unifiedSettings.social.youtube ?? undefined,
-    linkedin: unifiedSettings.social.linkedin ?? undefined,
-  };
+  const socialLinks: SocialLinks = buildUnifiedSocialLinks(unifiedSettings);
   const businessInfo: BusinessInfo = {
     phone: unifiedSettings.business.phone ?? undefined,
     email: unifiedSettings.business.email ?? undefined,
@@ -276,15 +283,15 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       }
     }
 
-    // Determine shipping info (logic from original loader)
+    // Determine shipping info (use unified settings - single source of truth)
     const productDetails = await getProductDetailsMetafields(db, storeId, productId);
     const shippingInfo =
       (productDetails.shippingInfo && productDetails.shippingInfo.trim().length > 0
         ? productDetails.shippingInfo
         : store?.customShippingPolicy && store.customShippingPolicy.trim().length > 0
           ? store.customShippingPolicy
-          : shippingConfig && shippingConfig.enabled !== false
-            ? `Shipping inside Dhaka: ${store?.currency || 'BDT'} ${shippingConfig.insideDhaka ?? 60}. Outside Dhaka: ${store?.currency || 'BDT'} ${shippingConfig.outsideDhaka ?? 120}.${shippingConfig.freeShippingAbove ? ` Free shipping above ${store?.currency || 'BDT'} ${shippingConfig.freeShippingAbove}.` : ''}`
+          : unifiedShippingConfig.enabled !== false
+            ? `Shipping inside Dhaka: ${store?.currency || 'BDT'} ${unifiedShippingConfig.insideDhaka}. Outside Dhaka: ${store?.currency || 'BDT'} ${unifiedShippingConfig.outsideDhaka}.${unifiedShippingConfig.freeShippingAbove ? ` Free shipping above ${store?.currency || 'BDT'} ${unifiedShippingConfig.freeShippingAbove}.` : ''}`
             : null) ?? null;
 
     const showReviews = store?.planType !== 'free';
@@ -385,6 +392,20 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
         ? productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length
         : 0;
 
+    const mergedProductThemeConfig = buildMergedThemeConfig(
+      store.themeConfig,
+      unified.storeTemplateId,
+      unified.theme.primary,
+      unified.theme.accent,
+      unified.themeConfig
+    );
+    // Add trust badges (with defaults)
+    mergedProductThemeConfig.trustBadges = {
+      showPaymentIcons: false,
+      showGuaranteeSeals: false,
+      ...unifiedSettings.trustBadges,
+    };
+
     const responseData: ProductPageData = {
       pageType: 'product',
       product: {
@@ -422,14 +443,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       planType: store?.planType || 'free',
       customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
       productUrl: `${new URL(request.url).protocol}//${new URL(request.url).host}/products/${product.id}`,
-      themeConfig: {
-        ...(unified.themeConfig as unknown as ThemeConfig),
-        trustBadges: {
-      showPaymentIcons: false,
-      showGuaranteeSeals: false,
-      ...unifiedSettings.trustBadges,
-    },
-      },
+      themeConfig: mergedProductThemeConfig,
       storeShippingInfo: shippingInfo,
       storeRefundPolicy: productDetails.returnPolicy || store?.customRefundPolicy || null,
       isCustomerAiEnabled: Boolean(store?.isCustomerAiEnabled),
@@ -480,6 +494,23 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       onSale ? gte(products.compareAtPrice, products.price) : undefined,
     ].filter(Boolean) as SQL[];
 
+    const categoryRows = await db
+      .selectDistinct({ category: products.category })
+      .from(products)
+      .where(
+        and(
+          eq(products.storeId, storeId),
+          eq(products.isPublished, true),
+          sql`${products.category} IS NOT NULL AND ${products.category} != ''`
+        )
+      );
+
+    const storeCategories = categoryRows
+      .map((r) => r.category)
+      .filter((c): c is string => Boolean(c));
+
+    const matchedCategory = findCategoryBySlug(storeCategories, slug);
+
     let collectionProducts = [];
 
     if (slug === 'all' || slug === 'all-products') {
@@ -519,9 +550,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
           })
           .from(products)
           .innerJoin(productCollections, eq(products.id, productCollections.productId))
-          .where(
-            and(eq(productCollections.collectionId, collectionData.id), ...baseFilters)
-          )
+          .where(and(eq(productCollections.collectionId, collectionData.id), ...baseFilters))
           .limit(50)
           .orderBy(orderByClause);
       } else {
@@ -529,7 +558,14 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
         collectionProducts = await db
           .select()
           .from(products)
-          .where(and(...baseFilters, like(products.category, slug)))
+          .where(
+            and(
+              ...baseFilters,
+              matchedCategory
+                ? eq(products.category, matchedCategory)
+                : like(products.category, slug)
+            )
+          )
           .limit(50)
           .orderBy(orderByClause);
       }
@@ -539,17 +575,22 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       title:
         slug === 'all' || slug === 'all-products'
           ? 'All Products'
-          : slug.charAt(0).toUpperCase() + slug.slice(1),
-      description: `Browse our ${slug === 'all' || slug === 'all-products' ? 'latest' : slug} collection.`,
+          : matchedCategory || slug.charAt(0).toUpperCase() + slug.slice(1),
+      description: `Browse our ${
+        slug === 'all' || slug === 'all-products' ? 'latest' : matchedCategory || slug
+      } collection.`,
       slug,
     };
 
-    const categoriesResult = await db
-      .select({ category: products.category })
-      .from(products)
-      .where(eq(products.storeId, storeId))
-      .groupBy(products.category);
-    const categories = categoriesResult.map((r) => r.category).filter(Boolean) as string[];
+    const categories = storeCategories;
+
+    const mergedThemeConfig = buildMergedThemeConfig(
+      store.themeConfig,
+      unified.storeTemplateId,
+      unified.theme.primary,
+      unified.theme.accent,
+      unified.themeConfig
+    );
 
     const responseData: CollectionPageData = {
       pageType: 'collection',
@@ -563,7 +604,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       theme: unified.theme,
       socialLinks,
       businessInfo,
-      themeConfig: unified.themeConfig as unknown as ThemeConfig | null,
+      themeConfig: mergedThemeConfig,
       mvpSettings: unified.mvpSettings,
       collection,
       products: collectionProducts,
@@ -575,6 +616,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       maxPrice,
       planType: store?.planType || 'free',
       customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
+      isCustomerAiEnabled: Boolean(store?.isCustomerAiEnabled),
+      aiCredits: Number(store?.aiCredits) || 0,
     };
 
     return json(responseData);
@@ -656,7 +699,6 @@ function ProductDetailView({ data }: { data: ProductPageData }) {
       customer={customer}
       isCustomerAiEnabled={isCustomerAiEnabled}
       aiCredits={aiCredits}
-      accentColor={theme.accent}
       config={themeConfig}
     >
       {template.ProductPage ? (
@@ -712,6 +754,8 @@ function CollectionPageView({ data }: { data: CollectionPageData }) {
     planType,
     customer,
     mvpSettings,
+    isCustomerAiEnabled,
+    aiCredits,
   } = data;
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -799,7 +843,8 @@ function CollectionPageView({ data }: { data: CollectionPageData }) {
         planType={planType}
         customer={customer}
         categories={categories}
-        accentColor={theme.accent}
+        isCustomerAiEnabled={isCustomerAiEnabled}
+        aiCredits={aiCredits}
       >
         <Suspense
           fallback={

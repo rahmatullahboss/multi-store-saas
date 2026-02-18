@@ -20,11 +20,10 @@ import { useLoaderData, useFetcher, useRouteError, isRouteErrorResponse } from '
 import { eq, and, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { products, productVariants } from '@db/schema';
-import { type SocialLinks, type ThemeConfig } from '@db/types';
+import { type SocialLinks, type ThemeConfig, type LandingConfig } from '@db/types';
+import { type MVPSettingsWithTheme } from '~/config/mvp-theme-settings';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import {
-  getStoreTemplate,
-} from '~/templates/store-registry';
+import { getStoreTemplate } from '~/templates/store-registry';
 import { resolveStore } from '~/lib/store.server';
 import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
@@ -33,6 +32,7 @@ import { createDb } from '~/lib/db.server';
 import {
   getUnifiedStorefrontSettings,
   toLegacyFormat,
+  getShippingConfigFromUnified,
 } from '~/services/unified-storefront-settings.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -78,6 +78,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId);
   const unified = toLegacyFormat(unifiedSettings);
 
+  // Get shipping config directly from unified settings
+  const unifiedShippingConfig = getShippingConfigFromUnified(unifiedSettings);
+
   const businessInfo = {
     phone: unifiedSettings.business.phone ?? undefined,
     email: unifiedSettings.business.email ?? undefined,
@@ -106,6 +109,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     ...new Set(categoriesResult.map((p) => p.category).filter((c): c is string => Boolean(c))),
   ];
 
+  // Use unified theme config - no more legacy storeData.themeConfig reading
+  const mergedThemeConfig = {
+    primaryColor: unified.theme.primary,
+    accentColor: unified.theme.accent,
+    storeTemplateId: unified.storeTemplateId,
+  } as unknown as ThemeConfig;
+
   return json({
     storeId: storeId as number,
     storeName: unified.storeName || storeData?.name || 'Store',
@@ -116,11 +126,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     theme: unified.theme,
     socialLinks: Object.values(socialLinks).some(Boolean) ? socialLinks : null,
     businessInfo: Object.values(businessInfo).some(Boolean) ? businessInfo : null,
-    themeConfig: unified.themeConfig,
+    themeConfig: mergedThemeConfig,
     planType: storeData?.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
     categories,
-    mvpSettings: unified.mvpSettings,
+    mvpSettings: {
+      ...unified.mvpSettings,
+      headline: unifiedSettings.heroBanner?.slides?.[0]?.heading || 'Welcome to our store',
+      ctaText: unifiedSettings.heroBanner?.slides?.[0]?.ctaText || 'Shop Now',
+      shippingConfig: unifiedShippingConfig,
+    } as MVPSettingsWithTheme & LandingConfig,
     // AI Chat props
     isCustomerAiEnabled: Boolean(
       (storeData as { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled
@@ -404,7 +419,11 @@ export default function CartPage() {
     }
   }, [fetcher.data]);
 
-  const updateQuantity = (productId: number, variantId: number | undefined, newQuantity: number) => {
+  const updateQuantity = (
+    productId: number,
+    variantId: number | undefined,
+    newQuantity: number
+  ) => {
     if (newQuantity < 1) return;
 
     setCartItems((prev) =>
@@ -483,6 +502,7 @@ export default function CartPage() {
               storeName={storeName}
               theme={theme}
               config={themeConfig}
+              mvpSettings={mvpSettings}
             />
           ) : (
             <SimpleCartPage
@@ -493,6 +513,7 @@ export default function CartPage() {
               onUpdateQuantity={updateQuantity}
               onRemoveItem={removeItem}
               isLoading={isLoading}
+              mvpSettings={mvpSettings}
             />
           )}
         </Suspense>
@@ -512,6 +533,7 @@ function SimpleCartPage({
   onUpdateQuantity,
   onRemoveItem,
   isLoading,
+  mvpSettings,
 }: {
   items: Array<{
     productId: number;
@@ -528,7 +550,16 @@ function SimpleCartPage({
   onUpdateQuantity: (productId: number, variantId: number | undefined, quantity: number) => void;
   onRemoveItem: (productId: number, variantId: number | undefined) => void;
   isLoading: boolean;
+  mvpSettings?: (LandingConfig & Partial<MVPSettingsWithTheme>) | null;
 }) {
+  const shippingConfig = mvpSettings?.shippingConfig;
+  const shippingEnabled = shippingConfig?.enabled ?? true;
+  const deliveryCharge = shippingEnabled ? (shippingConfig?.insideDhaka ?? 60) : 0;
+  const freeShippingAbove = shippingConfig?.freeShippingAbove ?? 0;
+
+  const isFreeShipping = freeShippingAbove > 0 && total >= freeShippingAbove;
+  const shipping = isFreeShipping ? 0 : deliveryCharge;
+
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -649,14 +680,16 @@ function SimpleCartPage({
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Shipping</span>
-                <span className="text-[var(--color-accent)]">Calculated at checkout</span>
+                <span className="text-[var(--color-accent)]">
+                  {shipping === 0 ? 'Free' : formatPrice(shipping, currency)}
+                </span>
               </div>
             </div>
 
             <div className="border-t border-gray-200 pt-4 mb-6">
               <div className="flex justify-between text-lg font-semibold">
                 <span>Total</span>
-                <span>{formatPrice(total, currency)}</span>
+                <span>{formatPrice(total + shipping, currency)}</span>
               </div>
             </div>
 

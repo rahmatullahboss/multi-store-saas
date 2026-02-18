@@ -214,6 +214,21 @@ const SettingsFlagsSchema = z.object({
 export type SettingsFlags = z.infer<typeof SettingsFlagsSchema>;
 
 // ============================================================================
+// SHIPPING CONFIG SETTINGS
+// ============================================================================
+
+export const ShippingConfigSchema = z.object({
+  deliveryCharge: z.number().default(60),
+  freeDeliveryAbove: z.number().nullable().default(null),
+  insideDhaka: z.number().default(60),
+  outsideDhaka: z.number().default(120),
+  freeShippingAbove: z.number().default(0),
+  enabled: z.boolean().default(true),
+});
+
+export type ShippingConfig = z.infer<typeof ShippingConfigSchema>;
+
+// ============================================================================
 // UNIFIED STOREFRONT SETTINGS V1
 // ============================================================================
 
@@ -269,6 +284,14 @@ export const UnifiedStorefrontSettingsV1Schema = z.object({
     showStockWarning: true,
     enableGuestCheckout: true,
   }),
+  shippingConfig: ShippingConfigSchema.default({
+    deliveryCharge: 60,
+    freeDeliveryAbove: null,
+    insideDhaka: 60,
+    outsideDhaka: 120,
+    freeShippingAbove: 0,
+    enabled: true,
+  }),
   heroBanner: HeroBannerSettingsSchema.default({
     mode: 'single',
     overlayOpacity: 40,
@@ -313,6 +336,8 @@ export const HeroBannerSettingsPatchSchema = HeroBannerSettingsSchema.partial();
 export const TrustBadgesSettingsPatchSchema = TrustBadgesSettingsSchema.partial();
 export const TypographySettingsPatchSchema = TypographySettingsSchema.partial();
 
+export const ShippingConfigPatchSchema = ShippingConfigSchema.partial();
+
 export const UnifiedStorefrontSettingsPatchSchema = z.object({
   theme: ThemeSettingsPatchSchema.optional(),
   branding: BrandingSettingsPatchSchema.optional(),
@@ -321,6 +346,7 @@ export const UnifiedStorefrontSettingsPatchSchema = z.object({
   announcement: AnnouncementSettingsPatchSchema.optional(),
   seo: SeoSettingsPatchSchema.optional(),
   checkout: CheckoutSettingsPatchSchema.optional(),
+  shippingConfig: ShippingConfigPatchSchema.optional(),
   heroBanner: HeroBannerSettingsPatchSchema.optional(),
   trustBadges: TrustBadgesSettingsPatchSchema.optional(),
   typography: TypographySettingsPatchSchema.optional(),
@@ -415,6 +441,14 @@ export const DEFAULT_UNIFIED_SETTINGS: UnifiedStorefrontSettingsV1 = {
     showStockWarning: true,
     enableGuestCheckout: true,
   },
+  shippingConfig: {
+    deliveryCharge: 60,
+    freeDeliveryAbove: null,
+    insideDhaka: 60,
+    outsideDhaka: 120,
+    freeShippingAbove: 0,
+    enabled: true,
+  },
   heroBanner: {
     mode: 'single',
     overlayOpacity: 40,
@@ -483,6 +517,7 @@ export function createUnifiedSettingsFromPatch(
     ...(patch.announcement && { announcement: { ...current.announcement, ...patch.announcement } }),
     ...(patch.seo && { seo: { ...current.seo, ...patch.seo } }),
     ...(patch.checkout && { checkout: { ...current.checkout, ...patch.checkout } }),
+    ...(patch.shippingConfig && { shippingConfig: { ...current.shippingConfig, ...patch.shippingConfig } }),
     ...(patch.heroBanner && { heroBanner: { ...current.heroBanner, ...patch.heroBanner } }),
     ...(patch.trustBadges && { trustBadges: { ...current.trustBadges, ...patch.trustBadges } }),
     ...(patch.typography && { typography: { ...current.typography, ...patch.typography } }),
