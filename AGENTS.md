@@ -1698,10 +1698,9 @@ console.error('Payment failed:', {
 # Run from monorepo root (deploys only apps/landing)
 npm run deploy:landing
 
-# Main App (Cloudflare Pages)
+# Main App (Cloudflare Workers)
 cd apps/web
-npm run build
-wrangler pages deploy build/client
+wrangler deploy
 
 # Alternative: Connect GitHub repo in Cloudflare Dashboard for automatic deploys
 
