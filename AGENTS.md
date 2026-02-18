@@ -782,30 +782,30 @@ const SectionComponent = registry['hero-banner'].component;
 
 > **⚠️ IMPORTANT**: Only these 3 themes are currently active and tested for production use.
 
-| Theme ID         | Description           | Sections      | Status        |
-| ---------------- | --------------------- | ------------- | ------------- |
-| `starter-store`  | Default minimal store | 8 sections    | ✅ Active     |
-| `luxe-boutique`  | Luxury boutique       | 5 sections    | ✅ Active     |
-| `nova-lux`       | High-end fashion      | 6 sections    | ✅ Active     |
+| Theme ID        | Description           | Sections   | Status    |
+| --------------- | --------------------- | ---------- | --------- |
+| `starter-store` | Default minimal store | 8 sections | ✅ Active |
+| `luxe-boutique` | Luxury boutique       | 5 sections | ✅ Active |
+| `nova-lux`      | High-end fashion      | 6 sections | ✅ Active |
 
 ### Available Themes (Development/Future)
 
 > **Note**: These themes exist in the codebase but are not currently active in production. They may require updates and testing.
 
-| Theme ID         | Description           | Sections      | Status        |
-| ---------------- | --------------------- | ------------- | ------------- |
-| `daraz`          | Marketplace style     | 6 sections    | 🔵 Inactive   |
-| `bdshop`         | BDShop variant        | Extends daraz | 🔵 Inactive   |
-| `ghorer-bazar`   | Grocery store         | Extends daraz | 🔵 Inactive   |
-| `tech-modern`    | Tech/gadget store     | 5 sections    | 🔵 Inactive   |
-| `aurora-minimal` | Minimal aesthetic     | 4 sections    | 🔵 Inactive   |
-| `eclipse`        | Dark mode theme       | 5 sections    | 🔵 Inactive   |
-| `artisan-market` | Handmade/crafts       | 5 sections    | 🔵 Inactive   |
-| `freshness`      | Grocery/organic       | 6 sections    | 🔵 Inactive   |
-| `rovo`           | High-fashion          | 5 sections    | 🔵 Inactive   |
-| `sokol`          | Dark/contrast         | 5 sections    | 🔵 Inactive   |
-| `turbo-sale`     | Dropshipping          | 6 sections    | 🔵 Inactive   |
-| `zenith-rise`    | SaaS/Digital          | 6 sections    | 🔵 Inactive   |
+| Theme ID         | Description       | Sections      | Status      |
+| ---------------- | ----------------- | ------------- | ----------- |
+| `daraz`          | Marketplace style | 6 sections    | 🔵 Inactive |
+| `bdshop`         | BDShop variant    | Extends daraz | 🔵 Inactive |
+| `ghorer-bazar`   | Grocery store     | Extends daraz | 🔵 Inactive |
+| `tech-modern`    | Tech/gadget store | 5 sections    | 🔵 Inactive |
+| `aurora-minimal` | Minimal aesthetic | 4 sections    | 🔵 Inactive |
+| `eclipse`        | Dark mode theme   | 5 sections    | 🔵 Inactive |
+| `artisan-market` | Handmade/crafts   | 5 sections    | 🔵 Inactive |
+| `freshness`      | Grocery/organic   | 6 sections    | 🔵 Inactive |
+| `rovo`           | High-fashion      | 5 sections    | 🔵 Inactive |
+| `sokol`          | Dark/contrast     | 5 sections    | 🔵 Inactive |
+| `turbo-sale`     | Dropshipping      | 6 sections    | 🔵 Inactive |
+| `zenith-rise`    | SaaS/Digital      | 6 sections    | 🔵 Inactive |
 
 ### Agent Rules for Theme System
 
@@ -1207,11 +1207,11 @@ await saveTemplateToShopifySystem(db, storeId, defaultTemplate);
 
 > **Current Active Themes**: Only these 3 themes are live and tested for production.
 
-| Theme           | Primary              | Accent              | Best For          | Features                    |
-| --------------- | -------------------- | ------------------- | ----------------- | --------------------------- |
-| `starter-store` | #4F46E5 (Indigo)     | #F59E0B (Amber)     | General purpose   | ✅ Discount pricing, 8 sections |
-| `luxe-boutique` | #1a1a1a (Black)      | #c9a961 (Gold)      | Fashion/Luxury    | ✅ Discount pricing, 5 sections |
-| `nova-lux`      | #1C1C1E (Charcoal)   | #C4A35A (Rose Gold) | Premium lifestyle | ✅ Discount pricing, 6 sections |
+| Theme           | Primary            | Accent              | Best For          | Features                        |
+| --------------- | ------------------ | ------------------- | ----------------- | ------------------------------- |
+| `starter-store` | #4F46E5 (Indigo)   | #F59E0B (Amber)     | General purpose   | ✅ Discount pricing, 8 sections |
+| `luxe-boutique` | #1a1a1a (Black)    | #c9a961 (Gold)      | Fashion/Luxury    | ✅ Discount pricing, 5 sections |
+| `nova-lux`      | #1C1C1E (Charcoal) | #C4A35A (Rose Gold) | Premium lifestyle | ✅ Discount pricing, 6 sections |
 
 ---
 
@@ -1223,14 +1223,14 @@ Current production state is **hybrid rendering + unified settings**:
 - Some routes still render with legacy template components through `StorePageWrapper`
 - `toLegacyFormat(...)` is used to feed old component contracts during migration
 
-| Route        | File                    | Renderer                   |
-| ------------ | ----------------------- | -------------------------- |
-| Homepage     | `store.home.tsx`        | `StorePageWrapper` + template components |
-| Product      | `products.$handle.tsx`  | `StorePageWrapper` + template components |
-| Cart         | `cart.tsx`              | `StorePageWrapper` + template components |
-| Collection   | `products._index.tsx`   | `StorePageWrapper` + template components |
-| Custom Pages | `pages.$slug.tsx`       | Mixed (page data + legacy config render path) |
-| Checkout     | `checkout.tsx`          | Custom (not section-based) |
+| Route        | File                   | Renderer                                      |
+| ------------ | ---------------------- | --------------------------------------------- |
+| Homepage     | `store.home.tsx`       | `StorePageWrapper` + template components      |
+| Product      | `products.$handle.tsx` | `StorePageWrapper` + template components      |
+| Cart         | `cart.tsx`             | `StorePageWrapper` + template components      |
+| Collection   | `products._index.tsx`  | `StorePageWrapper` + template components      |
+| Custom Pages | `pages.$slug.tsx`      | Mixed (page data + legacy config render path) |
+| Checkout     | `checkout.tsx`         | Custom (not section-based)                    |
 
 ### Route Pattern
 
@@ -1701,7 +1701,9 @@ npm run deploy:landing
 # Main App (Cloudflare Pages)
 cd apps/web
 npm run build
-wrangler deploy
+wrangler pages deploy build/client
+
+# Alternative: Connect GitHub repo in Cloudflare Dashboard for automatic deploys
 
 # Page Builder Worker
 cd apps/page-builder
@@ -1713,6 +1715,20 @@ vercel --prod --yes
 ```
 
 > **Note**: This project uses Vercel project `Root Directory = apps/landing`, so run deployment from monorepo root via `npm run deploy:landing` (or `vercel --prod --yes` after linking to `multi-store-saas-landing-rlej`).
+
+### Unified Storefront Settings
+
+This project uses unified settings stored in `stores.storefront_settings` (JSON). The system supports:
+
+- **Single Source of Truth**: All storefront settings (theme, branding, shipping, social, etc.) are stored in unified JSON column
+- **Migration**: Legacy settings (themeConfig, businessInfo, socialLinks) are migrated automatically
+- **Strict Mode**: Set `UNIFIED_SETTINGS_STRICT=true` in Cloudflare Workers secrets to disable fallback to legacy columns
+
+```bash
+# Set strict mode via wrangler
+wrangler secret put UNIFIED_SETTINGS_STRICT
+# Enter "true" when prompted
+```
 
 ### Post-Deploy Health Monitoring (Required)
 
