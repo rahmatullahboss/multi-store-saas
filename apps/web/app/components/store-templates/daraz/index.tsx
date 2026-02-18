@@ -21,7 +21,6 @@
  */
 
 import { useState, useCallback, createContext, useContext, useMemo } from 'react';
-import { Link } from '@remix-run/react';
 import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
 import { WishlistProvider } from '~/contexts/WishlistContext';
 import { ClientOnly } from 'remix-utils/client-only';
@@ -30,6 +29,7 @@ import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-re
 import { SECTION_REGISTRY } from '~/components/store-sections/registry';
 import { formatPrice } from '~/lib/theme-engine';
 import { DARAZ_THEME } from './theme';
+import { CATEGORY_IMAGES } from './assets/category-images';
 import { DarazHeader } from './sections/Header';
 import { DarazFooter } from './sections/Footer';
 import { DarazHeroCarousel } from './sections/HeroCarousel';
@@ -41,7 +41,6 @@ import { DarazCartPage } from './pages/CartPage';
 import {
   DEMO_PRODUCTS,
   DEMO_CATEGORIES,
-  DEMO_COLLECTIONS,
   getDemoProductById,
   getRelatedProducts,
   searchDemoProducts,
@@ -174,7 +173,6 @@ function PreviewHeader({
   onNavigate: (page: PageType) => void;
 }) {
   const cart = usePreviewCart();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -392,7 +390,7 @@ function PreviewHomePage({
   products: DemoProduct[];
   categories: (string | null)[];
   currency: string;
-  config: any;
+  config: StoreTemplateProps['config'];
   onNavigate: (page: PageType) => void;
 }) {
   const flashSaleProducts = products.slice(0, 10);
@@ -409,8 +407,8 @@ function PreviewHomePage({
             ? [
                 {
                   id: 'main',
-                  image: config.bannerUrl,
-                  title: config.bannerText || 'Amazing Deals Await!',
+                  image: String(config.bannerUrl),
+                  title: String(config.bannerText || 'Amazing Deals Await!'),
                   subtitle: 'Shop the best products at unbeatable prices',
                   link: '#',
                   buttonText: 'Shop Now',
@@ -445,35 +443,9 @@ function PreviewHomePage({
       )}
 
       {/* Categories */}
-      <section className="max-w-7xl mx-auto px-4 py-4">
-        <div className="bg-white rounded-lg p-4">
-          <h2 className="text-lg font-bold mb-4" style={{ color: DARAZ_THEME.text }}>
-            Categories
-          </h2>
-          <div className="grid grid-cols-4 md:grid-cols-8 gap-4">
-            {categories
-              .filter(Boolean)
-              .slice(0, 8)
-              .map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => onNavigate({ type: 'category', category: cat! })}
-                  className="text-center hover:opacity-80 transition"
-                >
-                  <div
-                    className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full flex items-center justify-center text-2xl mb-2"
-                    style={{ backgroundColor: DARAZ_THEME.background }}
-                  >
-                    📦
-                  </div>
-                  <span className="text-xs line-clamp-2" style={{ color: DARAZ_THEME.text }}>
-                    {cat}
-                  </span>
-                </button>
-              ))}
-          </div>
-        </div>
-      </section>
+      <div className="max-w-7xl mx-auto px-4 py-4">
+        <DarazCategoryGrid categories={categories} categoryImages={CATEGORY_IMAGES} />
+      </div>
 
       {/* Just For You */}
       <section className="max-w-7xl mx-auto px-4 py-4">
@@ -550,8 +522,7 @@ function PreviewProductDetailPage({
   const cart = usePreviewCart();
   const product = getDemoProductById(productId);
   const relatedProducts = getRelatedProducts(productId, 4);
-  const [quantity, setQuantity] = useState(1);
-  const [addedToCart, setAddedToCart] = useState(false);
+
 
   if (!product) {
     return (
@@ -574,13 +545,11 @@ function PreviewProductDetailPage({
   }
 
   const handleAddToCart = () => {
-    cart.addItem(product, quantity);
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 2000);
+    cart.addItem(product, 1);
   };
 
   const handleBuyNow = () => {
-    cart.addItem(product, quantity);
+    cart.addItem(product, 1);
     onNavigate({ type: 'checkout' });
   };
 
@@ -1310,7 +1279,6 @@ function LiveDarazHomepage(props: StoreTemplateProps) {
     socialLinks,
     footerConfig,
     businessInfo,
-    isPreview,
   } = props;
 
   // Get products for different sections
@@ -1383,7 +1351,10 @@ function LiveDarazHomepage(props: StoreTemplateProps) {
                   <DarazCategoryGrid
                     categories={categories}
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    categoryImages={((config as any)?.categoryImageMap || {}) as Record<string, string>}
+                    categoryImages={{
+                      ...CATEGORY_IMAGES,
+                      ...(((config as any)?.categoryImageMap || {}) as Record<string, string>),
+                    }}
                     maxCategories={16}
                   />
                 )}

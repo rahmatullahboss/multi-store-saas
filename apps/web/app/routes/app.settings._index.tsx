@@ -27,10 +27,12 @@ import {
   savedLandingConfigs,
   emailCampaigns,
 } from '@db/schema';
-import { parseSocialLinks, parseFooterConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import { KVCache, CACHE_KEYS } from '~/services/kv-cache.server';
-import { saveUnifiedStorefrontSettingsWithCacheInvalidation } from '~/services/unified-storefront-settings.server';
+import {
+  getUnifiedStorefrontSettings,
+  saveUnifiedStorefrontSettingsWithCacheInvalidation,
+} from '~/services/unified-storefront-settings.server';
 
 import {
   Store,
@@ -58,7 +60,6 @@ import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { GlassCard } from '~/components/ui/GlassCard';
 
-
 export const meta: MetaFunction = () => {
   return [{ title: 'Settings' }];
 };
@@ -82,8 +83,32 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
 
   const store = storeResult[0];
-  const socialLinks = parseSocialLinks(store.socialLinks as string | null);
-  const footerConfig = parseFooterConfig(store.footerConfig as string | null);
+
+  // Get unified settings (single source of truth)
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
+
+  // Social links from unified settings
+  const socialLinks = {
+    facebook: unifiedSettings.social.facebook ?? '',
+    instagram: unifiedSettings.social.instagram ?? '',
+    whatsapp: unifiedSettings.social.whatsapp ?? '',
+    twitter: unifiedSettings.social.twitter ?? '',
+    youtube: unifiedSettings.social.youtube ?? '',
+    linkedin: unifiedSettings.social.linkedin ?? '',
+  };
+
+  // Footer config from unified settings (use default if not set)
+  const footerConfig = {
+    description: unifiedSettings.branding.description ?? '',
+    showPoweredBy: true,
+  };
+
+  // Business info from unified settings
+  const businessInfo = {
+    phone: unifiedSettings.business.phone ?? '',
+    email: unifiedSettings.business.email ?? '',
+    address: unifiedSettings.business.address ?? '',
+  };
 
   const planType = store.planType || 'free';
   // Note: allowStoreMode removed - mode control now in Homepage Settings
@@ -117,22 +142,20 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json({
     store: {
       id: store.id,
-      name: store.name,
+      name: unifiedSettings.branding.storeName || store.name,
       subdomain: store.subdomain,
       customDomain: store.customDomain,
       currency: store.currency,
       defaultLanguage: store.defaultLanguage || 'en',
       // Note: mode field removed - use storeEnabled from Homepage Settings instead
       planType,
-      theme: store.theme,
-      logo: store.logo,
-      favicon: store.favicon,
-      fontFamily: store.fontFamily || 'inter',
-      socialLinks: socialLinks || { facebook: '', instagram: '', whatsapp: '', twitter: '' },
-      footerConfig: footerConfig || { description: '', showPoweredBy: true },
-      businessInfo: store.businessInfo
-        ? JSON.parse(store.businessInfo)
-        : { phone: '', email: '', address: '' },
+      theme: unifiedSettings.theme.templateId,
+      logo: unifiedSettings.branding.logo || store.logo,
+      favicon: unifiedSettings.branding.favicon || store.favicon,
+      fontFamily: unifiedSettings.typography.fontFamily || store.fontFamily || 'inter',
+      socialLinks: socialLinks,
+      footerConfig: footerConfig,
+      businessInfo: businessInfo,
     },
     // Note: allowStoreMode removed - handled in Homepage Settings
     dataCounts: {
@@ -306,73 +329,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'storeNameMinLength' }, { status: 400 });
   }
 
-  // Note: Store mode validation removed - handled in Homepage Settings (storeEnabled)
-
-  // Build update object
+  // Build unified settings update (single source of truth)
   const themeValue = theme || 'luxe-boutique';
-  const existingStore = await db
-    .select({ themeConfig: stores.themeConfig })
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
-
-  let existingThemeConfig: Record<string, unknown> = {};
-  const rawThemeConfig = existingStore[0]?.themeConfig;
-  if (rawThemeConfig) {
-    try {
-      existingThemeConfig =
-        typeof rawThemeConfig === 'string'
-          ? (JSON.parse(rawThemeConfig) as Record<string, unknown>)
-          : (rawThemeConfig as Record<string, unknown>);
-    } catch {
-      existingThemeConfig = {};
-    }
-  }
-
-  const updateData: Record<string, unknown> = {
-    name: name.trim(),
-    currency: currency || 'BDT',
-    subdomain: requestedSubdomain,
-    theme: themeValue, // Legacy field for backward compatibility
-    logo: logo || null,
-    favicon: favicon || null,
-    fontFamily: fontFamily || 'inter',
-    customDomain: currentStore[0].customDomain || null,
-    socialLinks: JSON.stringify({
-      facebook: facebook || '',
-      instagram: instagram || '',
-      whatsapp: whatsapp || '',
-    }),
-    businessInfo: JSON.stringify({
-      phone: businessPhone || '',
-      email: businessEmail || '',
-      address: businessAddress || '',
-    }),
-    defaultLanguage: defaultLanguage || 'en',
-    updatedAt: new Date(),
-    // Preserve existing themeConfig fields (e.g. floating buttons, hero slides, colors) and only
-    // update general settings values controlled by this page. Colors are managed exclusively by
-    // the Store Appearance page (app.store.settings.tsx) — do NOT touch them here.
-    themeConfig: JSON.stringify({
-      ...existingThemeConfig,
-      storeTemplateId: themeValue,
-    }),
-  };
-
-  // Note: mode field update removed - use Homepage Settings (storeEnabled) instead
 
   try {
-    await db.update(stores).set(updateData).where(eq(stores.id, storeId));
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
-      return json({ error: 'subdomainAlreadyTaken' }, { status: 409 });
-    }
-    throw error;
-  }
-
-  // Dual-write to unified canonical settings (Phase C2)
-  try {
-   await saveUnifiedStorefrontSettingsWithCacheInvalidation(
+    // Unified-only save (no legacy writes)
+    await saveUnifiedStorefrontSettingsWithCacheInvalidation(
       db as any,
       {
         KV: context.cloudflare.env.STORE_CACHE,
@@ -401,8 +363,36 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
     );
   } catch (error) {
-    console.warn('Failed to update unified settings:', error);
-    // Don't fail the whole request - legacy save succeeded
+    console.error('Failed to update unified settings:', error);
+    return json({ error: 'Failed to save settings' }, { status: 500 });
+  }
+
+  // Legacy write for fields not yet in unified schema (subdomain, customDomain, currency, fontFamily)
+  // These are still needed for other parts of the system
+  const legacyUpdateData: Record<string, unknown> = {
+    currency: currency || 'BDT',
+    fontFamily: fontFamily || 'inter',
+    defaultLanguage: defaultLanguage || 'en',
+    updatedAt: new Date(),
+  };
+
+  // Handle subdomain change if requested
+  if (requestedSubdomain && requestedSubdomain !== currentStore[0].subdomain) {
+    legacyUpdateData.subdomain = requestedSubdomain;
+  }
+
+  // Only update legacy columns if there's something to update
+  if (Object.keys(legacyUpdateData).length > 1) {
+    // more than just updatedAt
+    try {
+      await db.update(stores).set(legacyUpdateData).where(eq(stores.id, storeId));
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
+        return json({ error: 'subdomainAlreadyTaken' }, { status: 409 });
+      }
+      console.warn('Legacy column update failed:', error);
+      // Don't fail - unified save already succeeded
+    }
   }
 
   // ========================================================================
@@ -415,9 +405,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
     });
 
     const settingsText = `Store Settings:
-Name: ${updateData.name}
-Currency: ${updateData.currency}
-Domain: ${updateData.customDomain || 'Not set'}
+Name: ${name.trim()}
+Currency: ${currency || 'BDT'}
+Domain: ${currentStore[0].customDomain || 'Not set'}
 Business Phone: ${businessPhone}
 Business Email: ${businessEmail}
 Business Address: ${businessAddress}

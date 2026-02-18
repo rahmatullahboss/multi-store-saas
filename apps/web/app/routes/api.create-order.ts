@@ -37,7 +37,6 @@ import { sendPushNotification } from '~/services/push.server';
 import { dispatchWebhook } from '~/services/webhook.server';
 import { checkUsageLimit, getPlanLimitsSafe } from '~/utils/plans.server';
 import { calculateShipping, BD_DIVISIONS } from '~/utils/shipping';
-import { resolveShippingConfig } from '~/services/shipping.server';
 import { sendPurchaseEvent } from '~/services/facebook-capi.server';
 import { createDb } from '~/lib/db.server';
 import { sendSmartNotification } from '~/services/messaging.server';
@@ -58,6 +57,10 @@ import { checkRateLimit, getClientIP } from '~/services/rate-limiter-do.server';
 // Order Processor DO for background tasks (email, webhooks)
 import { enqueueOrderTasks } from '~/services/order-processor.server';
 import { calculatePlatformFee, isPaymentMethodAllowedForPlan } from '~/lib/payment-policy';
+import {
+  getUnifiedStorefrontSettings,
+  getShippingConfigFromUnified,
+} from '~/services/unified-storefront-settings.server';
 import { createSslCommerzService } from '~/services/sslcommerz.server';
 
 // ============================================================================
@@ -540,6 +543,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const planLimits = getPlanLimitsSafe(storeData.planType || 'free');
     const platformFeeRate = planLimits.fee_rate ?? 0;
 
+    // Get unified shipping config (single source of truth)
+    const unifiedSettings = await getUnifiedStorefrontSettings(db, input.store_id, { env });
+    const unifiedShippingConfig = getShippingConfigFromUnified(unifiedSettings);
+
     // ============================================================================
     // PAYMENT METHOD GUARDRAILS
     // ============================================================================
@@ -965,13 +972,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
     }
 
-    // Calculate shipping
-    const shippingConfig = await resolveShippingConfig(
-      context.cloudflare.env.DB,
-      input.store_id,
-      storeData.shippingConfig as string | null
-    );
-    const shippingResult = calculateShipping(shippingConfig, input.division, subtotal);
+    // Calculate shipping using unified settings (single source of truth)
+    const shippingResult = calculateShipping(unifiedShippingConfig, input.division, subtotal);
     const shipping = shippingResult.cost;
     const tax = 0;
 
@@ -1061,13 +1063,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
         reservedCouponId = discountResult.discount.id;
         reservedCouponStoreId = input.store_id;
 
-        const reserved = await incrementDiscountUsage(db, input.store_id, discountResult.discount.id);
+        const reserved = await incrementDiscountUsage(
+          db,
+          input.store_id,
+          discountResult.discount.id
+        );
         if (!reserved) {
           await abandonCheckoutSession();
-          return json(
-            { success: false, error: 'Discount usage limit reached' },
-            { status: 400 }
-          );
+          return json({ success: false, error: 'Discount usage limit reached' }, { status: 400 });
         }
         reservedCouponUsage = true;
       } else {
@@ -1200,14 +1203,20 @@ export async function action({ request, context }: ActionFunctionArgs) {
           orderNumber,
           status: 'pending',
           paymentStatus: 'pending',
-          paymentMethod: input.payment_method as 'cod' | 'bkash' | 'nagad' | 'rocket' | 'sslcommerz',
-          transactionId: input.payment_method === 'sslcommerz' ? orderNumber : input.transaction_id || null,
+          paymentMethod: input.payment_method as
+            | 'cod'
+            | 'bkash'
+            | 'nagad'
+            | 'rocket'
+            | 'sslcommerz',
+          transactionId:
+            input.payment_method === 'sslcommerz' ? orderNumber : input.transaction_id || null,
           manualPaymentDetails:
             input.payment_method === 'sslcommerz'
               ? null
               : input.manual_payment_details
-            ? JSON.stringify(input.manual_payment_details)
-            : null,
+                ? JSON.stringify(input.manual_payment_details)
+                : null,
           customerName: input.customer_name,
           customerPhone: input.phone,
           customerEmail: input.customer_email || '',
@@ -1564,8 +1573,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         shippingAddress: input.address,
         storeName: storeData.name,
         storeLogo: storeData.logo || undefined,
-        primaryColor:
-          storeData.themeConfig && JSON.parse(storeData.themeConfig as string)?.primaryColor,
+        primaryColor: unifiedSettings.theme.primary,
       });
 
       orderTasks.push({
@@ -1671,10 +1679,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
                   : input.payment_method.toUpperCase(),
               storeName: storeData.name,
               storeLogo: storeData.logo || undefined,
-              primaryColor:
-                (storeData.themeConfig &&
-                  JSON.parse(storeData.themeConfig as string)?.primaryColor) ||
-                undefined,
+              primaryColor: unifiedSettings.theme.primary || undefined,
             })
             .catch((e) => console.error('[Email] Confirmation failed:', e))
         );
@@ -1877,7 +1882,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
           cancelUrl: `${origin}/checkout/cancelled?orderId=${orderId}`,
           ipnUrl: `${origin}/api/webhook/sslcommerz`,
           productName:
-            finalOrderItems.length === 1 ? finalOrderItems[0].title : `${finalOrderItems.length} items`,
+            finalOrderItems.length === 1
+              ? finalOrderItems[0].title
+              : `${finalOrderItems.length} items`,
           customerName: input.customer_name,
           customerEmail: input.customer_email || `${input.phone.replace(/\D/g, '')}@noemail.local`,
           customerAddress: input.address,
@@ -2032,5 +2039,4 @@ export async function loader() {
   );
 }
 
-
-export default function() {}
+export default function () {}

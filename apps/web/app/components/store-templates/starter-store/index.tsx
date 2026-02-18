@@ -24,11 +24,12 @@ import {
 import { getHeroBehavior } from '~/lib/hero-slides';
 
 const FALLBACK_CATEGORY_IMAGES: Record<string, string> = {
-  Electronics: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/categories/electronics.png',
+  Electronics: '/assets/categories/electronics.png',
   Other: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/categories/other.png',
   Fashion: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/categories/fashion.png',
   Home: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/categories/home.png',
-  Beauty: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/categories/beauty.png',
+  Beauty: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/categories/health-beauty.webp',
+  'Health & Beauty': 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/categories/health-beauty.webp',
   Food: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/categories/food.png',
 };
 

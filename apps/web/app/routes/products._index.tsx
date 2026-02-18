@@ -9,7 +9,7 @@
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import { useLoaderData, Link, useSearchParams } from '@remix-run/react';
 import { useTranslation } from 'react-i18next';
-import { eq, and, desc, asc, gte, lte } from 'drizzle-orm';
+import { eq, and, desc, asc, gte, lte, sql } from 'drizzle-orm';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
@@ -30,6 +30,7 @@ import {
   resolveCategoryFromParam,
   buildUnifiedSocialLinks,
   buildMergedThemeConfig,
+  normalizeCategoryValue,
 } from '~/utils/storefront-settings';
 
 // Serialized product type for client components
@@ -83,7 +84,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const { businessInfo, footerConfig } = storeConfig;
 
-  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId);
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
   const unified = toLegacyFormat(unifiedSettings);
 
   const socialLinks = buildUnifiedSocialLinks(unifiedSettings);
@@ -121,6 +122,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   ];
 
   const resolvedCategory = resolveCategoryFromParam(categories, category);
+  const normalizedResolvedCategory = resolvedCategory
+    ? normalizeCategoryValue(resolvedCategory)
+    : null;
 
   // Fetch products with optional category filter and sorting
   const allProducts = await db
@@ -130,7 +134,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       and(
         eq(products.storeId, storeId),
         eq(products.isPublished, true),
-        resolvedCategory ? eq(products.category, resolvedCategory) : undefined,
+        normalizedResolvedCategory
+          ? sql`lower(trim(${products.category})) = ${normalizedResolvedCategory}`
+          : undefined,
         inStock ? gte(products.inventory, 1) : undefined,
         onSale ? gte(products.compareAtPrice, products.price) : undefined,
         minPrice !== null ? gte(products.price, minPrice) : undefined,

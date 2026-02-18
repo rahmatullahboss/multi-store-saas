@@ -63,7 +63,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   // Use unified settings (single source of truth)
-  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId);
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
   const unified = toLegacyFormat(unifiedSettings);
 
   const theme = unified.theme;

@@ -48,6 +48,7 @@ import {
   assertOrderStatusTransition,
   isOrderStatus,
 } from '~/lib/orderStatus';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Orders - Merchant Dashboard' }];
@@ -122,9 +123,27 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .reduce((sum, o) => sum + o.total, 0),
   };
 
-  // Parse theme config to get courier provider
-  const themeConfig = store.themeConfig ? JSON.parse(store.themeConfig) : {};
-  const courierProvider = themeConfig.courier?.provider || null;
+  // Read courier provider from unified settings first (canonical source)
+  let courierProvider: string | null = null;
+  try {
+    const unified = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
+    courierProvider = unified.courier?.provider || null;
+  } catch {
+    courierProvider = null;
+  }
+
+  // Compatibility fallback: dedicated column
+  if (!courierProvider && store.courierSettings) {
+    try {
+      const courierSettings =
+        typeof store.courierSettings === 'string'
+          ? JSON.parse(store.courierSettings)
+          : store.courierSettings;
+      courierProvider = courierSettings?.provider || null;
+    } catch {
+      courierProvider = null;
+    }
+  }
 
   return json({
     orders: ordersWithAddress,
@@ -200,9 +219,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
       if (provider === 'pathao' && courierSettings.pathao) {
         const { createPathaoClient } = await import('~/services/pathao.server');
         const client = createPathaoClient(courierSettings.pathao);
+        const configuredStoreId = Number(courierSettings.pathao.defaultStoreId);
+        if (!Number.isInteger(configuredStoreId) || configuredStoreId <= 0) {
+          return json({ error: 'Pathao default store ID is missing. Please set it in Courier Settings.' }, { status: 400 });
+        }
 
         const result = await client.createOrder({
-          store_id: courierSettings.pathao.defaultStoreId || 1,
+          store_id: configuredStoreId,
           merchant_order_id: order.orderNumber,
           recipient_name: order.customerName || 'Customer',
           recipient_phone: order.customerPhone || '',
@@ -211,7 +234,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           item_type: 2,
           item_quantity: 1,
           item_weight: 0.5,
-          amount_to_collect: order.total,
+          amount_to_collect: Math.round(order.total),
         });
         consignmentId = result.consignment_id;
       } else if (provider === 'redx' && courierSettings.redx) {

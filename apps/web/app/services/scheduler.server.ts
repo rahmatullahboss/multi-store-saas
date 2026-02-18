@@ -1,9 +1,9 @@
-import type { Database } from "../lib/db.server";
-import { abandonedCarts, stores, customers, orders } from "../../db/schema";
-import { eq, and, lt, gt, isNull, not, like } from "drizzle-orm";
-import { sendSmartNotification } from "./messaging.server";
-import { createEmailService } from "./email.server";
-import { parseThemeConfig } from "@db/types";
+import type { Database } from '../lib/db.server';
+import { abandonedCarts, customers, orders } from '../../db/schema';
+import { eq, and, lt, gt, not, like } from 'drizzle-orm';
+import { sendSmartNotification } from './messaging.server';
+import { createEmailService } from './email.server';
+import { getUnifiedStorefrontSettings } from './unified-storefront-settings.server';
 
 /**
  * SCHEDULER SERVICE
@@ -16,16 +16,16 @@ export async function runScheduledTasks(db: Database, env: Env) {
     abandonedCarts: 0,
     winbackCampaigns: 0,
     reviewRequests: 0,
-    errors: [] as string[]
+    errors: [] as string[],
   };
 
   try {
     results.abandonedCarts = await processAbandonedCarts(db, env);
     results.winbackCampaigns = await processWinbackCampaigns(db, env);
     results.reviewRequests = await processReviewRequests(db, env);
-  } catch (error: any) {
-    console.error("[Scheduler] Error running tasks:", error);
-    results.errors.push(error.message);
+  } catch (error: unknown) {
+    console.error('[Scheduler] Error running tasks:', error);
+    results.errors.push((error as Error).message);
   }
 
   return results;
@@ -37,7 +37,7 @@ async function processAbandonedCarts(db: Database, env: Env) {
   // 1. Find carts abandoned > 1 hour ago AND < 24 hours ago (to avoid spamming old carts)
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  
+
   const targetCarts = await db.query.abandonedCarts.findMany({
     where: and(
       eq(abandonedCarts.status, 'abandoned'),
@@ -46,9 +46,9 @@ async function processAbandonedCarts(db: Database, env: Env) {
       gt(abandonedCarts.abandonedAt, twentyFourHoursAgo) // newer than 24 hours
     ),
     with: {
-      store: true // Get store name/details
+      store: true, // Get store name/details
     },
-    limit: 50 // Batch size
+    limit: 50, // Batch size
   });
 
   let processedCount = 0;
@@ -68,15 +68,18 @@ async function processAbandonedCarts(db: Database, env: Env) {
         customerName: cart.customerName || 'Guest',
         cartUrl,
         amount: cart.totalAmount,
-        currency: cart.currency
+        currency: cart.currency,
       });
-      
+
       // 2b. Send recovery email if customer has email
       if (cart.customerEmail && !cart.customerEmail.includes('@phone.local')) {
-        const emailService = createEmailService(env.RESEND_API_KEY);
-        const themeConfig = cart.store.themeConfig ? parseThemeConfig(cart.store.themeConfig as string) : null;
+        // Get unified settings for theme colors
+        const unifiedSettings = await getUnifiedStorefrontSettings(db, cart.storeId, { env });
+        const primaryColor = unifiedSettings.theme?.primary || undefined;
+
         const items = cart.cartItems ? JSON.parse(cart.cartItems) : [];
 
+        const emailService = createEmailService(env.RESEND_API_KEY);
         await emailService.sendAbandonedCartRecovery({
           customerEmail: cart.customerEmail,
           customerName: cart.customerName || 'Guest',
@@ -86,15 +89,16 @@ async function processAbandonedCarts(db: Database, env: Env) {
           items,
           total: cart.totalAmount,
           storeLogo: cart.store.logo || undefined,
-          primaryColor: themeConfig?.primaryColor || undefined,
+          primaryColor,
         });
       }
 
       // 3. Mark as sent
-      await db.update(abandonedCarts)
+      await db
+        .update(abandonedCarts)
         .set({
           recoveryEmailSent: true,
-          recoveryEmailSentAt: new Date()
+          recoveryEmailSentAt: new Date(),
         })
         .where(eq(abandonedCarts.id, cart.id));
 
@@ -111,34 +115,41 @@ async function processAbandonedCarts(db: Database, env: Env) {
 async function processWinbackCampaigns(db: Database, env: Env) {
   // Find customers who haven't ordered in 30 days and haven't received winback msg
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  
-  const targetCustomers = await db.select().from(customers).where(and(
-      lt(customers.lastOrderAt, thirtyDaysAgo),
-      // We check tags to ensure we don't spam. Tag: 'winback_sent'
-      not(like(customers.tags, '%winback_sent%')) 
-  )).limit(20);
+
+  const targetCustomers = await db
+    .select()
+    .from(customers)
+    .where(
+      and(
+        lt(customers.lastOrderAt, thirtyDaysAgo),
+        // We check tags to ensure we don't spam. Tag: 'winback_sent'
+        not(like(customers.tags, '%winback_sent%'))
+      )
+    )
+    .limit(20);
 
   let count = 0;
   for (const customer of targetCustomers) {
-      if (!customer.phone) continue;
+    if (!customer.phone) continue;
 
-      try {
-        await sendSmartNotification(db, env, customer.id, customer.storeId, 'WINBACK_OFFER', { 
-            phone: customer.phone,
-            customerName: customer.name 
-        });
-        
-        // Update Tag to prevent resending
-        const newTags = customer.tags ? JSON.parse(customer.tags) : [];
-        newTags.push('winback_sent');
-        await db.update(customers)
-            .set({ tags: JSON.stringify(newTags) })
-            .where(and(eq(customers.id, customer.id), eq(customers.storeId, customer.storeId)));
-        
-        count++;
-      } catch (e) {
-        console.error(`[Scheduler] Winback error for ${customer.id}`, e);
-      }
+    try {
+      await sendSmartNotification(db, env, customer.id, customer.storeId, 'WINBACK_OFFER', {
+        phone: customer.phone,
+        customerName: customer.name,
+      });
+
+      // Update Tag to prevent resending
+      const newTags = customer.tags ? JSON.parse(customer.tags) : [];
+      newTags.push('winback_sent');
+      await db
+        .update(customers)
+        .set({ tags: JSON.stringify(newTags) })
+        .where(and(eq(customers.id, customer.id), eq(customers.storeId, customer.storeId)));
+
+      count++;
+    } catch (e) {
+      console.error(`[Scheduler] Winback error for ${customer.id}`, e);
+    }
   }
   return count;
 }
@@ -147,30 +158,37 @@ async function processWinbackCampaigns(db: Database, env: Env) {
 // === review REQUESTS (3 Days After Delivery) ===
 async function processReviewRequests(db: Database, env: Env) {
   const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
-  
-  const recentDeliveries = await db.select().from(orders).where(and(
-      eq(orders.status, 'delivered'),
-      eq(orders.reviewRequestSent, false),
-      lt(orders.updatedAt, threeDaysAgo) 
-  )).limit(20);
+
+  const recentDeliveries = await db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.status, 'delivered'),
+        eq(orders.reviewRequestSent, false),
+        lt(orders.updatedAt, threeDaysAgo)
+      )
+    )
+    .limit(20);
 
   let count = 0;
   for (const order of recentDeliveries) {
-       if (!order.customerPhone) continue;
+    if (!order.customerPhone) continue;
 
-       try {
-           await sendSmartNotification(db, env, 0, order.storeId, 'REVIEW_REQUEST', { 
-               phone: order.customerPhone,
-               customerName: order.customerName,
-               reviewUrl: `https://store.com/orders/${order.orderNumber}/review` // Placeholder
-           }); 
-           await db.update(orders)
-               .set({ reviewRequestSent: true, reviewRequestSentAt: new Date() })
-               .where(and(eq(orders.id, order.id), eq(orders.storeId, order.storeId)));
-           count++;
-       } catch (e) {
-           console.error("[Scheduler] Review request error", e);
-       }
+    try {
+      await sendSmartNotification(db, env, 0, order.storeId, 'REVIEW_REQUEST', {
+        phone: order.customerPhone,
+        customerName: order.customerName,
+        reviewUrl: `https://store.com/orders/${order.orderNumber}/review`, // Placeholder
+      });
+      await db
+        .update(orders)
+        .set({ reviewRequestSent: true, reviewRequestSentAt: new Date() })
+        .where(and(eq(orders.id, order.id), eq(orders.storeId, order.storeId)));
+      count++;
+    } catch (e) {
+      console.error('[Scheduler] Review request error', e);
+    }
   }
   return count;
 }

@@ -93,39 +93,36 @@ export const PATHAO_STATUS_MAP: Record<string, string> = {
  * Create Pathao API client
  */
 export function createPathaoClient(credentials: PathaoCredentials) {
-  // Default to Hermes/Aladdin endpoint if not specified
-  // Users can override this with https://api.pathao.com/v1 for standard API
-  // or a sandbox URL like https://hermes-api.p-stageenv.xyz/aladdin/api/v1
-  // We also strip common suffixes like /orders if the user pasted a specific endpoint
-  const baseUrl = (credentials.baseUrl || 'https://api-hermes.pathao.com/aladdin/api/v1')
-    .replace(/\/+$/, '') // Strip trailing slashes
-    .replace(/\/orders$/, ''); // Strip /orders if user copied full endpoint
+  // Accept both:
+  // - host only (docs style): https://api-hermes.pathao.com
+  // - full API base: https://api-hermes.pathao.com/aladdin/api/v1
+  // - copied endpoint URLs ending with /orders or /issue-token
+  const providedBase = (credentials.baseUrl || 'https://api-hermes.pathao.com').trim();
+  let normalizedBase = providedBase.replace(/\/+$/, '');
+  normalizedBase = normalizedBase
+    .replace(/\/(orders(?:\/bulk)?|stores|city-list|merchant\/price-plan|issue-token)$/, '')
+    .replace(/\/cities\/\d+\/zone-list$/, '')
+    .replace(/\/zones\/\d+\/area-list$/, '')
+    .replace(/\/orders\/[^/]+\/info$/, '');
+
+  if (!/\/aladdin\/api\/v1$/i.test(normalizedBase)) {
+    normalizedBase = `${normalizedBase}/aladdin/api/v1`;
+  }
+
+  const baseUrl = normalizedBase;
   
   let accessToken: string | null = null;
+  let refreshToken: string | null = null;
   let tokenExpiry: number = 0;
 
-  /**
-   * Get access token (with caching)
-   */
-  async function getAccessToken(): Promise<string> {
-    // Return cached token if still valid
-    if (accessToken && Date.now() < tokenExpiry) {
-      return accessToken;
-    }
-
+  async function issueToken(payload: Record<string, string>): Promise<string> {
     const response = await fetch(`${baseUrl}/issue-token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify({
-        client_id: credentials.clientId,
-        client_secret: credentials.clientSecret,
-        username: credentials.username,
-        password: credentials.password,
-        grant_type: 'password',
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -141,9 +138,42 @@ export function createPathaoClient(credentials: PathaoCredentials) {
 
     const data: PathaoTokenResponse = await response.json();
     accessToken = data.access_token;
+    refreshToken = data.refresh_token;
     tokenExpiry = Date.now() + (data.expires_in * 1000) - 60000; // 1 min buffer
 
     return accessToken;
+  }
+
+  /**
+   * Get access token (with caching + refresh token fallback)
+   */
+  async function getAccessToken(): Promise<string> {
+    // Return cached token if still valid
+    if (accessToken && Date.now() < tokenExpiry) {
+      return accessToken;
+    }
+
+    // Try refresh token first if available
+    if (refreshToken) {
+      try {
+        return await issueToken({
+          client_id: credentials.clientId,
+          client_secret: credentials.clientSecret,
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+        });
+      } catch {
+        // Fall back to password grant below
+      }
+    }
+
+    return issueToken({
+      client_id: credentials.clientId,
+      client_secret: credentials.clientSecret,
+      username: credentials.username,
+      password: credentials.password,
+      grant_type: 'password',
+    });
   }
 
   /**

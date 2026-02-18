@@ -1,8 +1,8 @@
 /**
  * Policy Pages Route
- * 
+ *
  * Route: /policies/:type (privacy, terms, refund)
- * 
+ *
  * Displays auto-generated or custom legal policy pages
  * with store branding.
  */
@@ -10,9 +10,10 @@
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData, Link } from '@remix-run/react';
-import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { getPolicyContent, type PolicyType } from '~/lib/policies';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
+import { createDb } from '~/lib/db.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: 'Policy - Store' }];
@@ -22,37 +23,38 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ];
 };
 
-export async function loader({ request, context, params }: LoaderFunctionArgs) {
+export async function loader({ request: _request, context, params }: LoaderFunctionArgs) {
   const { type } = params;
-  
+
   // Validate policy type
-  const validTypes: PolicyType[] = ['privacy', 'terms', 'refund', 'shipping', 'subscription', 'legal'];
+  const validTypes: PolicyType[] = [
+    'privacy',
+    'terms',
+    'refund',
+    'shipping',
+    'subscription',
+    'legal',
+  ];
   if (!type || !validTypes.includes(type as PolicyType)) {
     throw new Response('Policy not found', { status: 404 });
   }
-  
+
   const policyType = type as PolicyType;
-  
+
   // Get store from tenant context (set by middleware)
   const store = (context as { store?: typeof stores.$inferSelect }).store;
-  
+
   if (!store) {
     throw new Response('Store not found', { status: 404 });
   }
-  
-  // Parse business info for contact email
-  let contactEmail = 'support@store.com';
-  if (store.businessInfo) {
-    try {
-      const businessInfo = JSON.parse(store.businessInfo);
-      if (businessInfo.email) {
-        contactEmail = businessInfo.email;
-      }
-    } catch {
-      // Use default email
-    }
-  }
-  
+
+  // Get unified settings for business info (single source of truth)
+  const db = createDb(context.cloudflare.env.DB);
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, store.id, { env: context.cloudflare.env });
+
+  // Get contact email from unified settings
+  const contactEmail = unifiedSettings.business.email || 'support@store.com';
+
   // Check for custom policy override
   let customContent: string | null = null;
   switch (policyType) {
@@ -75,10 +77,15 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
       customContent = store.customLegalNotice || null;
       break;
   }
-  
+
   // Get policy content (custom or auto-generated)
-  const policy = getPolicyContent(policyType, store.name, contactEmail, (store.defaultLanguage as 'en' | 'bn') || 'en');
-  
+  const policy = getPolicyContent(
+    policyType,
+    store.name,
+    contactEmail,
+    (store.defaultLanguage as 'en' | 'bn') || 'en'
+  );
+
   return json({
     storeName: store.name,
     logo: store.logo,
@@ -91,8 +98,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 }
 
 export default function PolicyPage() {
-  const { storeName, logo, title, content, policyType, planType } = useLoaderData<typeof loader>();
-  
+  const { storeName, logo, content, policyType, planType } = useLoaderData<typeof loader>();
+
   // Parse markdown-style headers and content
   const renderContent = (text: string) => {
     const lines = text.split('\n');
@@ -100,14 +107,19 @@ export default function PolicyPage() {
     let currentList: string[] = [];
     let listType: 'bullet' | 'numbered' | null = null;
     let key = 0;
-    
+
     const flushList = () => {
       if (currentList.length > 0 && listType) {
         const ListTag = listType === 'numbered' ? 'ol' : 'ul';
         elements.push(
-          <ListTag key={key++} className={`my-4 ml-6 ${listType === 'numbered' ? 'list-decimal' : 'list-disc'} space-y-2`}>
+          <ListTag
+            key={key++}
+            className={`my-4 ml-6 ${listType === 'numbered' ? 'list-decimal' : 'list-disc'} space-y-2`}
+          >
             {currentList.map((item, i) => (
-              <li key={i} className="text-gray-600">{item}</li>
+              <li key={i} className="text-gray-600">
+                {item}
+              </li>
             ))}
           </ListTag>
         );
@@ -115,13 +127,16 @@ export default function PolicyPage() {
         listType = null;
       }
     };
-    
+
     for (const line of lines) {
       // H1 Header
       if (line.startsWith('# ')) {
         flushList();
         elements.push(
-          <h1 key={key++} className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 mt-8 first:mt-0">
+          <h1
+            key={key++}
+            className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 mt-8 first:mt-0"
+          >
             {line.slice(2)}
           </h1>
         );
@@ -178,19 +193,19 @@ export default function PolicyPage() {
         // Handle bold text within paragraphs
         const formattedLine = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
         elements.push(
-          <p 
-            key={key++} 
+          <p
+            key={key++}
             className="text-gray-600 mb-4 leading-relaxed"
             dangerouslySetInnerHTML={{ __html: formattedLine }}
           />
         );
       }
     }
-    
+
     flushList();
     return elements;
   };
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -206,19 +221,24 @@ export default function PolicyPage() {
             )}
             <span className="text-xl font-bold text-gray-900">{storeName}</span>
           </Link>
-          
-          <Link 
-            to="/" 
+
+          <Link
+            to="/"
             className="text-gray-600 hover:text-gray-900 transition flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
             </svg>
             Back to Store
           </Link>
         </div>
       </header>
-      
+
       {/* Policy Content */}
       <main className="max-w-4xl mx-auto px-4 py-12">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 md:p-12">
@@ -285,14 +305,12 @@ export default function PolicyPage() {
               Legal Notice
             </Link>
           </nav>
-          
+
           {/* Policy Content */}
-          <article className="prose prose-gray max-w-none">
-            {renderContent(content)}
-          </article>
+          <article className="prose prose-gray max-w-none">{renderContent(content)}</article>
         </div>
       </main>
-      
+
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-400 py-12 mt-12">
         <div className="max-w-4xl mx-auto px-4 text-center">
@@ -302,9 +320,9 @@ export default function PolicyPage() {
           {/* Viral Loop / Branding */}
           {planType === 'free' && (
             <div className="mt-8 pt-6 border-t border-white/5 flex justify-center items-center">
-              <a 
-                href="https://ozzyl.com?utm_source=policy-branding&utm_medium=referral" 
-                target="_blank" 
+              <a
+                href="https://ozzyl.com?utm_source=policy-branding&utm_medium=referral"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-gray-500 hover:text-white transition-colors flex items-center gap-1.5 grayscale hover:grayscale-0"
               >

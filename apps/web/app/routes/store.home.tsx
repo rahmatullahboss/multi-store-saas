@@ -22,7 +22,7 @@ import {
   type SerializedProduct,
   type StoreCategory,
 } from '~/templates/store-registry';
-import { parseSocialLinks, type ThemeConfig } from '@db/types';
+import type { ThemeConfig } from '@db/types';
 import { getCustomer } from '~/services/customer-auth.server';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
@@ -44,21 +44,25 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = createDb(context.cloudflare.env.DB);
   const cache = new D1Cache(db);
 
-  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId);
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
   const unified = toLegacyFormat(unifiedSettings);
 
-  // Parse socialLinks
-  const socialLinks = parseSocialLinks(store.socialLinks as string | null);
+  // Use socialLinks from unified settings
+  const socialLinks = {
+    facebook: unifiedSettings.social.facebook ?? undefined,
+    instagram: unifiedSettings.social.instagram ?? undefined,
+    whatsapp: unifiedSettings.social.whatsapp ?? undefined,
+    twitter: unifiedSettings.social.twitter ?? undefined,
+    youtube: unifiedSettings.social.youtube ?? undefined,
+    linkedin: unifiedSettings.social.linkedin ?? undefined,
+  };
 
-  // Parse businessInfo
-  let businessInfo = null;
-  try {
-    if (store.businessInfo) {
-      businessInfo = JSON.parse(store.businessInfo as string);
-    }
-  } catch {
-    // Ignore parse errors
-  }
+  // Use businessInfo from unified settings
+  const businessInfo = {
+    phone: unifiedSettings.business.phone ?? undefined,
+    email: unifiedSettings.business.email ?? undefined,
+    address: unifiedSettings.business.address ?? undefined,
+  };
 
   // Load customer session
   const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);

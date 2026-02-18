@@ -18,12 +18,6 @@ import {
   DEFAULT_STORE_TEMPLATE_ID,
   type StoreTemplateTheme,
 } from '~/templates/store-registry';
-import {
-  parseSocialLinks,
-  parseThemeConfig,
-  parseBusinessInfo,
-  defaultThemeConfig,
-} from '@db/types';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 import { createDb } from '~/lib/db.server';
 
@@ -49,19 +43,14 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const { storeId, store } = storeContext;
   const db = createDb(context.cloudflare.env.DB);
 
-  // Parse theme config
-  const themeConfig = parseThemeConfig(store.themeConfig as string | null) || defaultThemeConfig;
-  const socialLinks = parseSocialLinks(store.socialLinks as string | null);
-  const storeTemplateId =
-    themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
-  const baseTheme = getStoreTemplateTheme(storeTemplateId);
-
-  const businessInfo = parseBusinessInfo(store.businessInfo as string | null);
-
   // Get unified storefront settings (single source of truth)
   const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
     enableFallback: true,
   });
+
+  // Get template ID from unified settings
+  const storeTemplateId = unifiedSettings.theme.templateId || DEFAULT_STORE_TEMPLATE_ID;
+  const baseTheme = getStoreTemplateTheme(storeTemplateId);
 
   // Merge unified settings colors with template theme
   const mergedTheme = {
@@ -70,11 +59,39 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     accent: unifiedSettings.theme.accent,
   };
 
+  // Social links from unified settings
+  const socialLinks = {
+    facebook: unifiedSettings.social.facebook ?? undefined,
+    instagram: unifiedSettings.social.instagram ?? undefined,
+    whatsapp: unifiedSettings.social.whatsapp ?? undefined,
+    twitter: unifiedSettings.social.twitter ?? undefined,
+    youtube: unifiedSettings.social.youtube ?? undefined,
+    linkedin: unifiedSettings.social.linkedin ?? undefined,
+  };
+
+  // Business info from unified settings
+  const businessInfo = {
+    phone: unifiedSettings.business.phone ?? undefined,
+    email: unifiedSettings.business.email ?? undefined,
+    address: unifiedSettings.business.address ?? undefined,
+  };
+
+  // Theme config for StorePageWrapper
+  const themeConfig = {
+    primaryColor: unifiedSettings.theme.primary,
+    accentColor: unifiedSettings.theme.accent,
+    backgroundColor: unifiedSettings.theme.background,
+    textColor: unifiedSettings.theme.text,
+    storeName: unifiedSettings.branding.storeName,
+    logo: unifiedSettings.branding.logo,
+    tagline: unifiedSettings.branding.tagline,
+  };
+
   // Fetch page content from database if available
   // This is a placeholder - you may have a pages table or store pages in another way
-  let pageContent = `This is the ${slug} page. You can customize this content in your store settings.`;
-  let pageTitle = slug.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-  let pageDescription = `${pageTitle} page`;
+  const pageContent = `This is the ${slug} page. You can customize this content in your store settings.`;
+  const pageTitle = slug.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+  const pageDescription = `${pageTitle} page`;
 
   // TODO: Fetch actual page content from database if you have a pages table
   // Example:

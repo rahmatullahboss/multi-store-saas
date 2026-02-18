@@ -6,9 +6,13 @@
  * Allows customers to create an account for a specific store.
  */
 
-import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
+import {
+  json,
+  redirect,
+  type LoaderFunctionArgs,
+  type ActionFunctionArgs,
+} from '@remix-run/cloudflare';
 import { useLoaderData, useActionData, Form, Link, useNavigation } from '@remix-run/react';
-import { parseThemeConfig, parseSocialLinks } from '@db/types';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { products as productsTable } from '@db/schema';
@@ -23,6 +27,7 @@ import {
 } from '~/services/customer-auth.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { Lock, Mail, User, ArrowRight, Loader2 } from 'lucide-react';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   // 1. Resolve store context
@@ -42,27 +47,40 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // 3. Check Google Auth availability
   const canUseGoogle = await canStoreUseGoogleAuth(storeId, env.DB);
-  
-  // 4. Get template theme
-  const themeConfig = parseThemeConfig(store.themeConfig as string | null);
-  const socialLinks = parseSocialLinks(store.socialLinks as string | null);
+
+  // 4. Get unified settings (single source of truth)
+  const db = createDb(env.DB);
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
+
+  // Get theme from unified settings
   const { storeTemplateId: templateId, theme } = resolveStoreTheme(
-    themeConfig as Record<string, unknown> | null,
+    {
+      primaryColor: unifiedSettings.theme.primary,
+      accentColor: unifiedSettings.theme.accent,
+      backgroundColor: unifiedSettings.theme.background,
+      textColor: unifiedSettings.theme.text,
+    } as Record<string, unknown>,
     store.theme
   );
 
-  // 5. Parse Business Info
-  let businessInfo = null;
-  try {
-    if (store.businessInfo) {
-      businessInfo = JSON.parse(store.businessInfo as string);
-    }
-  } catch {
-    // Ignore parse errors
-  }
+  // Social links from unified settings
+  const socialLinks = {
+    facebook: unifiedSettings.social.facebook ?? undefined,
+    instagram: unifiedSettings.social.instagram ?? undefined,
+    whatsapp: unifiedSettings.social.whatsapp ?? undefined,
+    twitter: unifiedSettings.social.twitter ?? undefined,
+    youtube: unifiedSettings.social.youtube ?? undefined,
+    linkedin: unifiedSettings.social.linkedin ?? undefined,
+  };
+
+  // Business info from unified settings
+  const businessInfo = {
+    phone: unifiedSettings.business.phone ?? undefined,
+    email: unifiedSettings.business.email ?? undefined,
+    address: unifiedSettings.business.address ?? undefined,
+  };
 
   // 6. Get Categories (Cached)
-  const db = createDb(env.DB);
   const cache = new D1Cache(db);
   const categoriesCacheKey = `store:${store.id}:categories:v1`;
   let categories: string[] | null = await cache.get<string[]>(categoriesCacheKey);
@@ -74,7 +92,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .where(and(eq(productsTable.storeId, store.id), eq(productsTable.isPublished, true)))
       .orderBy(desc(productsTable.createdAt))
       .limit(50);
-      
+
     categories = [...new Set(dbProducts.map((p) => p.category).filter(Boolean))] as string[];
     await cache.set(categoriesCacheKey, categories, 3600);
   }
@@ -88,12 +106,27 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       subdomain: store.subdomain,
       currency: store.currency,
       planType: store.planType,
+      isCustomerAiEnabled: store.isCustomerAiEnabled ?? false,
+      aiCredits: store.aiCredits ?? 0,
     },
     canUseGoogle,
     socialLinks,
     businessInfo,
     categories,
-    themeConfig,
+    themeConfig: {
+      primaryColor: unifiedSettings.theme.primary,
+      accentColor: unifiedSettings.theme.accent,
+      backgroundColor: unifiedSettings.theme.background,
+      textColor: unifiedSettings.theme.text,
+      storeName: unifiedSettings.branding.storeName,
+      logo: unifiedSettings.branding.logo,
+      tagline: unifiedSettings.branding.tagline,
+      floatingWhatsappEnabled: unifiedSettings.floating?.whatsappEnabled,
+      floatingWhatsappNumber: unifiedSettings.floating?.whatsappNumber || undefined,
+      floatingWhatsappMessage: unifiedSettings.floating?.whatsappMessage || undefined,
+      floatingCallEnabled: unifiedSettings.floating?.callEnabled,
+      floatingCallNumber: unifiedSettings.floating?.callNumber || undefined,
+    },
     theme,
   });
 }
@@ -101,9 +134,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 import { z } from 'zod';
 
 const registerSchema = z.object({
-  name: z.string().min(1, "Full Name is required"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters long"),
+  name: z.string().min(1, 'Full Name is required'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters long'),
 });
 
 function getClientIp(request: Request): string {
@@ -178,10 +211,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const { name, email, password } = result.data;
   const isAllowed = await enforceRegisterRateLimit(env, storeId, ip, email);
   if (!isAllowed) {
-    return json(
-      { error: 'Too many signup attempts. Please try again later.' },
-      { status: 429 }
-    );
+    return json({ error: 'Too many signup attempts. Please try again later.' }, { status: 429 });
   }
 
   const registerResult = await registerCustomer({
@@ -193,17 +223,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
   });
 
   if (registerResult.error || !registerResult.customer) {
-    return json({ error: registerResult.error || "Registration failed" }, { status: 400 });
+    return json({ error: registerResult.error || 'Registration failed' }, { status: 400 });
   }
 
   return createCustomerSession(registerResult.customer.id, storeId, '/account', env);
 }
 
 export default function StoreRegister() {
-  const { store, canUseGoogle, socialLinks, businessInfo, categories, themeConfig, theme } = useLoaderData<typeof loader>();
+  const { store, canUseGoogle, socialLinks, businessInfo, categories, themeConfig, theme } =
+    useLoaderData<typeof loader>();
   const actionData = useActionData<{ error?: string }>(); // Typed action data
   const navigation = useNavigation();
-  
+
   const isSubmitting = navigation.state === 'submitting';
 
   return (
@@ -219,6 +250,8 @@ export default function StoreRegister() {
       businessInfo={businessInfo}
       categories={categories}
       config={themeConfig}
+      isCustomerAiEnabled={store.isCustomerAiEnabled ?? false}
+      aiCredits={store.aiCredits ?? 0}
     >
       <div className="min-h-[calc(100vh-200px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
@@ -226,9 +259,7 @@ export default function StoreRegister() {
             <h2 className="text-3xl font-bold" style={{ color: theme.text }}>
               Create Account
             </h2>
-            <p className="mt-2 text-gray-500">
-              Join {store.name} today
-            </p>
+            <p className="mt-2 text-gray-500">Join {store.name} today</p>
           </div>
 
           <Form method="post" className="mt-8 space-y-6">
@@ -307,7 +338,12 @@ export default function StoreRegister() {
               type="submit"
               disabled={isSubmitting}
               className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-              style={{ backgroundColor: theme.primary, '--tw-ring-color': theme.primary } as React.CSSProperties}
+              style={
+                {
+                  backgroundColor: theme.primary,
+                  '--tw-ring-color': theme.primary,
+                } as React.CSSProperties
+              }
             >
               {isSubmitting ? (
                 <Loader2 className="animate-spin h-5 w-5" />
@@ -325,9 +361,7 @@ export default function StoreRegister() {
                 <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
-                  Or sign up with
-                </span>
+                <span className="px-2 bg-white text-gray-500">Or sign up with</span>
               </div>
             </div>
 
@@ -364,8 +398,8 @@ export default function StoreRegister() {
           <div className="text-center mt-6">
             <p className="text-sm text-gray-600">
               Already have an account?{' '}
-              <Link 
-                to="/store/auth/login" 
+              <Link
+                to="/store/auth/login"
                 className="font-medium hover:underline transition-all"
                 style={{ color: theme.primary }}
               >

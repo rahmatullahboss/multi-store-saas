@@ -6,15 +6,18 @@ import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { resolveStoreTheme } from '~/templates/store-registry';
 import { AccountSidebar } from '~/components/account/AccountSidebar';
 import { AccountHeader } from '~/components/account/AccountHeader';
-import { parseThemeConfig, parseSocialLinks } from '@db/types';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
-import { getWishlistCount, getAvailableCouponsCount, getCustomerProfile } from '~/services/customer-account.server';
+import {
+  getWishlistCount,
+  getAvailableCouponsCount,
+  getCustomerProfile,
+} from '~/services/customer-account.server';
 import { products as productsTable } from '@db/schema';
 import { desc, eq, and } from 'drizzle-orm';
 import { useState, useEffect } from 'react';
 import { Sheet, SheetContent } from '~/components/ui/sheet';
-
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   // 1. Resolve store
@@ -34,26 +37,50 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return redirect(`/store/auth/login?redirectTo=${redirectTo}`);
   }
 
-  // 3. Get Theme & Config
-  const themeConfig = parseThemeConfig(store.themeConfig);
-  const socialLinks = parseSocialLinks(store.socialLinks);
+  // 3. Get unified settings (single source of truth)
+  const db = createDb(env.DB);
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, store.id, { env: context.cloudflare.env });
+
+  // Get theme from unified settings
   const { storeTemplateId: templateId, theme } = resolveStoreTheme(
-    themeConfig as Record<string, unknown> | null,
+    {
+      primaryColor: unifiedSettings.theme.primary,
+      accentColor: unifiedSettings.theme.accent,
+      backgroundColor: unifiedSettings.theme.background,
+      textColor: unifiedSettings.theme.text,
+    } as Record<string, unknown>,
     store.theme
   );
 
-  // 4. Parse Business Info
-  let businessInfo = null;
-  try {
-    if (store.businessInfo) {
-      businessInfo = JSON.parse(store.businessInfo as string);
-    }
-  } catch {
-    // Ignore parse errors
-  }
+  // Social links from unified settings
+  const socialLinks = {
+    facebook: unifiedSettings.social.facebook ?? undefined,
+    instagram: unifiedSettings.social.instagram ?? undefined,
+    whatsapp: unifiedSettings.social.whatsapp ?? undefined,
+    twitter: unifiedSettings.social.twitter ?? undefined,
+    youtube: unifiedSettings.social.youtube ?? undefined,
+    linkedin: unifiedSettings.social.linkedin ?? undefined,
+  };
+
+  // Business info from unified settings
+  const businessInfo = {
+    phone: unifiedSettings.business.phone ?? undefined,
+    email: unifiedSettings.business.email ?? undefined,
+    address: unifiedSettings.business.address ?? undefined,
+  };
+
+  // Theme config for StorePageWrapper
+  const themeConfig = {
+    primaryColor: unifiedSettings.theme.primary,
+    accentColor: unifiedSettings.theme.accent,
+    backgroundColor: unifiedSettings.theme.background,
+    textColor: unifiedSettings.theme.text,
+    storeName: unifiedSettings.branding.storeName,
+    logo: unifiedSettings.branding.logo,
+    tagline: unifiedSettings.branding.tagline,
+  };
 
   // 5. Get Categories (Cached)
-  const db = createDb(env.DB);
   const cache = new D1Cache(db);
   const categoriesCacheKey = `store:${store.id}:categories:v1`;
   let categories: string[] | null = await cache.get<string[]>(categoriesCacheKey);
@@ -75,7 +102,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const [wishlistCount, couponsCount, customerProfile] = await Promise.all([
     getWishlistCount(customerId, store.id, db),
     getAvailableCouponsCount(store.id, db),
-    getCustomerProfile(customerId, store.id, db)
+    getCustomerProfile(customerId, store.id, db),
   ]);
 
   return json({
@@ -89,8 +116,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     user: customerProfile || { name: 'Guest' }, // Use real profile
     counts: {
       wishlist: wishlistCount,
-      coupons: couponsCount
-    }
+      coupons: couponsCount,
+    },
   });
 }
 
@@ -98,7 +125,7 @@ export default function AccountLayout() {
   const { store, theme, templateId, socialLinks, businessInfo, categories, themeConfig, user } =
     useLoaderData<typeof loader>();
   const location = useLocation();
-  
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Close mobile menu on route change
@@ -121,7 +148,6 @@ export default function AccountLayout() {
       hideHeaderFooter={true} // Using custom account header/footer for consistency
     >
       <div className="flex min-h-screen bg-slate-50/50 text-slate-800 transition-colors duration-200 font-sans antialiased selection:bg-primary/10 selection:text-primary">
-        
         {/* Desktop Sidebar */}
         <div className="hidden lg:block fixed h-full z-20 w-64 p-4">
           <AccountSidebar user={user} theme={theme} />
@@ -129,7 +155,6 @@ export default function AccountLayout() {
 
         {/* Main Content */}
         <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
-          
           {/* Theme-Consistent Account Header */}
           <AccountHeader
             storeName={store.name}
@@ -145,9 +170,9 @@ export default function AccountLayout() {
           {/* Mobile Sidebar Sheet */}
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetContent side="left" className="p-0 w-72 border-r border-slate-200">
-               <div className="p-4 h-full"> 
-                 <AccountSidebar user={user} theme={theme} />
-               </div>
+              <div className="p-4 h-full">
+                <AccountSidebar user={user} theme={theme} />
+              </div>
             </SheetContent>
           </Sheet>
 

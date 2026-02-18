@@ -182,11 +182,14 @@ const TrustBadgeSchema = z.object({
 export type TrustBadge = z.infer<typeof TrustBadgeSchema>;
 
 const TrustBadgesSettingsSchema = z.object({
-  badges: z.array(TrustBadgeSchema).max(3).default([
-    { icon: 'truck', title: 'দ্রুত ডেলিভারি', description: 'ঢাকায় ১-২ দিনে' },
-    { icon: 'shield', title: 'নিরাপদ পেমেন্ট', description: '১০০% সিকিউর' },
-    { icon: 'refresh', title: 'ইজি রিটার্ন', description: '৭ দিনের মধ্যে' },
-  ]),
+  badges: z
+    .array(TrustBadgeSchema)
+    .max(3)
+    .default([
+      { icon: 'truck', title: 'দ্রুত ডেলিভারি', description: 'ঢাকায় ১-২ দিনে' },
+      { icon: 'shield', title: 'নিরাপদ পেমেন্ট', description: '১০০% সিকিউর' },
+      { icon: 'refresh', title: 'ইজি রিটার্ন', description: '৭ দিনের মধ্যে' },
+    ]),
 });
 
 export type TrustBadgesSettings = z.infer<typeof TrustBadgesSettingsSchema>;
@@ -227,6 +230,54 @@ export const ShippingConfigSchema = z.object({
 });
 
 export type ShippingConfig = z.infer<typeof ShippingConfigSchema>;
+
+// ============================================================================
+// FLOATING CONTACT SETTINGS
+// ============================================================================
+
+const FloatingSettingsSchema = z.object({
+  whatsappEnabled: z.boolean().default(false),
+  whatsappNumber: z.string().nullable().default(null),
+  whatsappMessage: z.string().nullable().default(null),
+  callEnabled: z.boolean().default(false),
+  callNumber: z.string().nullable().default(null),
+});
+
+export type FloatingSettings = z.infer<typeof FloatingSettingsSchema>;
+
+// ============================================================================
+// COURIER SETTINGS
+// ============================================================================
+
+const CourierProviderSettingsSchema = z.object({
+  clientId: z.string().nullable().default(null),
+  clientSecret: z.string().nullable().default(null),
+  username: z.string().nullable().default(null),
+  password: z.string().nullable().default(null),
+  baseUrl: z.string().nullable().default(null),
+  defaultStoreId: z.number().nullable().default(null),
+});
+
+const CourierSettingsSchema = z.object({
+  provider: z.enum(['pathao', 'redx', 'steadfast']).nullable().default(null),
+  pathao: CourierProviderSettingsSchema.nullable().default(null),
+  redx: z
+    .object({
+      apiKey: z.string().nullable().default(null),
+      secretKey: z.string().nullable().default(null),
+    })
+    .nullable()
+    .default(null),
+  steadfast: z
+    .object({
+      apiKey: z.string().nullable().default(null),
+      secretKey: z.string().nullable().default(null),
+    })
+    .nullable()
+    .default(null),
+});
+
+export type CourierSettings = z.infer<typeof CourierSettingsSchema>;
 
 // ============================================================================
 // UNIFIED STOREFRONT SETTINGS V1
@@ -292,6 +343,19 @@ export const UnifiedStorefrontSettingsV1Schema = z.object({
     freeShippingAbove: 0,
     enabled: true,
   }),
+  floating: FloatingSettingsSchema.default({
+    whatsappEnabled: false,
+    whatsappNumber: null,
+    whatsappMessage: null,
+    callEnabled: false,
+    callNumber: null,
+  }),
+  courier: CourierSettingsSchema.default({
+    provider: null,
+    pathao: null,
+    redx: null,
+    steadfast: null,
+  }),
   heroBanner: HeroBannerSettingsSchema.default({
     mode: 'single',
     overlayOpacity: 40,
@@ -338,6 +402,10 @@ export const TypographySettingsPatchSchema = TypographySettingsSchema.partial();
 
 export const ShippingConfigPatchSchema = ShippingConfigSchema.partial();
 
+const FloatingSettingsPatchSchema = FloatingSettingsSchema.partial();
+
+const CourierSettingsPatchSchema = CourierSettingsSchema.partial();
+
 export const UnifiedStorefrontSettingsPatchSchema = z.object({
   theme: ThemeSettingsPatchSchema.optional(),
   branding: BrandingSettingsPatchSchema.optional(),
@@ -347,6 +415,8 @@ export const UnifiedStorefrontSettingsPatchSchema = z.object({
   seo: SeoSettingsPatchSchema.optional(),
   checkout: CheckoutSettingsPatchSchema.optional(),
   shippingConfig: ShippingConfigPatchSchema.optional(),
+  floating: FloatingSettingsPatchSchema.optional(),
+  courier: CourierSettingsPatchSchema.optional(),
   heroBanner: HeroBannerSettingsPatchSchema.optional(),
   trustBadges: TrustBadgesSettingsPatchSchema.optional(),
   typography: TypographySettingsPatchSchema.optional(),
@@ -449,6 +519,19 @@ export const DEFAULT_UNIFIED_SETTINGS: UnifiedStorefrontSettingsV1 = {
     freeShippingAbove: 0,
     enabled: true,
   },
+  floating: {
+    whatsappEnabled: false,
+    whatsappNumber: null,
+    whatsappMessage: null,
+    callEnabled: false,
+    callNumber: null,
+  },
+  courier: {
+    provider: null,
+    pathao: null,
+    redx: null,
+    steadfast: null,
+  },
   heroBanner: {
     mode: 'single',
     overlayOpacity: 40,
@@ -517,7 +600,11 @@ export function createUnifiedSettingsFromPatch(
     ...(patch.announcement && { announcement: { ...current.announcement, ...patch.announcement } }),
     ...(patch.seo && { seo: { ...current.seo, ...patch.seo } }),
     ...(patch.checkout && { checkout: { ...current.checkout, ...patch.checkout } }),
-    ...(patch.shippingConfig && { shippingConfig: { ...current.shippingConfig, ...patch.shippingConfig } }),
+    ...(patch.shippingConfig && {
+      shippingConfig: { ...current.shippingConfig, ...patch.shippingConfig },
+    }),
+    ...(patch.floating && { floating: { ...current.floating, ...patch.floating } }),
+    ...(patch.courier && { courier: { ...current.courier, ...patch.courier } }),
     ...(patch.heroBanner && { heroBanner: { ...current.heroBanner, ...patch.heroBanner } }),
     ...(patch.trustBadges && { trustBadges: { ...current.trustBadges, ...patch.trustBadges } }),
     ...(patch.typography && { typography: { ...current.typography, ...patch.typography } }),

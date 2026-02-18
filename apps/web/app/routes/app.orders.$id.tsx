@@ -281,9 +281,16 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       if (provider === 'pathao' && courierSettings.pathao) {
         const { createPathaoClient } = await import('~/services/pathao.server');
         const client = createPathaoClient(courierSettings.pathao);
+        const configuredStoreId = Number(courierSettings.pathao.defaultStoreId);
+        if (!Number.isInteger(configuredStoreId) || configuredStoreId <= 0) {
+          return json(
+            { error: 'Pathao default store ID is missing. Please set it in Courier Settings.' },
+            { status: 400 }
+          );
+        }
 
         const result = await client.createOrder({
-          store_id: courierSettings.pathao.defaultStoreId || 1,
+          store_id: configuredStoreId,
           merchant_order_id: order.orderNumber,
           recipient_name: order.customerName || 'Customer',
           recipient_phone: order.customerPhone || '',

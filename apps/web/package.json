@@ -19,6 +19,8 @@
     "db:bootstrap:prod": "wrangler d1 execute multi-store-saas-db --file=../../packages/database/src/migrations/0001_initial_schema.sql && wrangler d1 execute multi-store-saas-db --file=../../packages/database/src/migrations/0002_seed_data.sql && wrangler d1 execute multi-store-saas-db --file=../../packages/database/src/migrations/0003_hybrid_mode.sql",
     "db:migrate:local": "wrangler d1 migrations apply multi-store-saas-db --local",
     "db:migrate:prod": "wrangler d1 migrations apply multi-store-saas-db --remote",
+    "db:migrate:unified": "tsx scripts/run-unified-migration.ts",
+    "db:migrate:unified:dry-run": "tsx scripts/run-unified-migration.ts --dry-run",
     "db:export:prod": "mkdir -p tmp && wrangler d1 export multi-store-saas-db --remote --output ./tmp/prod-export.sql",
     "db:export:prod:schema": "mkdir -p tmp && wrangler d1 export multi-store-saas-db --remote --no-data --output ./tmp/prod-export.schema.sql",
     "db:integrity:prod": "wrangler d1 execute multi-store-saas-db --remote --file ./scripts/db-integrity-checks.sql",

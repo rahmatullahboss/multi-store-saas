@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { LeadGenFileUpload } from '~/components/lead-gen/LeadGenFileUpload';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 // Interfaces
 type Customer = typeof customers.$inferSelect;
@@ -130,18 +131,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     } catch { /* ignore */ }
   }
 
-  // 2. Fallback to store theme config (was 'settings' but schema uses 'themeConfig')
-  if (primaryColor === '#4F46E5' && storeContext?.store.themeConfig) {
-    try {
-      const themeConfig = JSON.parse(storeContext.store.themeConfig as string);
-      if (themeConfig.primaryColor) primaryColor = themeConfig.primaryColor;
-      if (!logo && themeConfig.logo) logo = themeConfig.logo; // Assuming logo might be in themeConfig too
-      
-      // Also check specific logo field on store if not found
-      if (!logo && storeContext.store.logo) {
-         logo = storeContext.store.logo;
-      }
-    } catch { /* ignore */ }
+  // 2. Fallback to unified storefront settings (canonical source)
+  if (primaryColor === '#4F46E5') {
+    const unifiedSettings = await getUnifiedStorefrontSettings(db, sessionStoreId, { env });
+    if (unifiedSettings.theme.primary) primaryColor = unifiedSettings.theme.primary;
+    if (!logo && unifiedSettings.branding.logo) logo = unifiedSettings.branding.logo;
+    if (!logo && storeContext.store.logo) logo = storeContext.store.logo;
   }
 
 

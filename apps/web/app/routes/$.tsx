@@ -10,11 +10,11 @@ import { useLoaderData } from '@remix-run/react';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
 import { stores, type Store } from '@db/schema';
-import { parseThemeConfig } from '@db/types';
 import { eq } from 'drizzle-orm';
 import { resolveStoreTheme } from '~/templates/store-registry';
 import type { ThemeConfig as EngineThemeConfig } from '~/lib/theme-engine/types';
 import { Home, Search } from 'lucide-react';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 interface NotFoundData {
   store: {
@@ -79,21 +79,40 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     });
   }
 
-  const themeConfig = parseThemeConfig(storeData?.themeConfig as string | null);
+  // Get unified settings (single source of truth)
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
+
+  // Get theme from unified settings
   const { theme } = resolveStoreTheme(
-    themeConfig as Record<string, unknown> | null,
-    storeData?.theme
+    {
+      primaryColor: unifiedSettings.theme.primary,
+      accentColor: unifiedSettings.theme.accent,
+      backgroundColor: unifiedSettings.theme.background,
+      textColor: unifiedSettings.theme.text,
+    } as Record<string, unknown>,
+    storeData.theme
   );
+
+  // Build themeConfig for the store object
+  const themeConfig = {
+    colors: {
+      primary: unifiedSettings.theme.primary,
+      accent: unifiedSettings.theme.accent,
+      background: unifiedSettings.theme.background,
+      text: unifiedSettings.theme.text,
+      textMuted: unifiedSettings.theme.muted,
+    },
+  };
 
   return json<NotFoundData>({
     store: {
       id: storeId,
-      name: storeData.name,
+      name: unifiedSettings.branding.storeName || storeData.name,
       currency: storeData.currency || '৳',
-      logo: storeData.logo || null,
+      logo: unifiedSettings.branding.logo || storeData.logo || null,
       themeConfig: themeConfig as unknown as EngineThemeConfig,
     },
-    storeName: storeData.name,
+    storeName: unifiedSettings.branding.storeName || storeData.name,
     currency: storeData.currency || '৳',
     theme: theme as NotFoundData['theme'],
     hasTheme: true,

@@ -37,7 +37,7 @@ export function resolveCategoryFromParam(
       (cat) => normalizeCategoryValue(cat) === normalizeCategoryValue(categoryParam)
     ) ||
     categories.find((cat) => normalizeCategoryValue(cat) === normalizeCategoryValue(decoded)) ||
-    categoryParam
+    null
   );
 }
 

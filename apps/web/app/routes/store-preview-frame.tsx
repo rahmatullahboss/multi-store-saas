@@ -15,13 +15,7 @@ import { useLoaderData } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores, products as productsTable } from '@db/schema';
-import {
-  parseThemeConfig,
-  defaultThemeConfig,
-  type ThemeConfig,
-  parseSocialLinks,
-  type TypographySettings,
-} from '@db/types';
+import { type ThemeConfig, type TypographySettings } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import {
   getStoreTemplate,
@@ -34,6 +28,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ArrowLeft, Home, ShoppingCart, Check, Minus, Plus, CreditCard } from 'lucide-react';
 import { ThemeStoreRenderer } from '~/components/store/ThemeStoreRenderer';
 import { formatPrice } from '~/lib/theme-engine';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 // Demo cart items for preview
 const DEMO_CART_ITEMS_COUNT = 3;
@@ -147,22 +142,52 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .where(and(eq(productsTable.storeId, storeId), eq(productsTable.isPublished, true)))
     .limit(20);
 
-  const themeConfig = parseThemeConfig(store.themeConfig as string | null) || defaultThemeConfig;
-  const socialLinks = parseSocialLinks(store.socialLinks as string | null);
+  // Get unified settings (single source of truth)
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
+
+  // Build themeConfig from unified settings
+  const themeConfig = {
+    primaryColor: unifiedSettings.theme.primary,
+    accentColor: unifiedSettings.theme.accent,
+    backgroundColor: unifiedSettings.theme.background,
+    textColor: unifiedSettings.theme.text,
+    storeName: unifiedSettings.branding.storeName,
+    logo: unifiedSettings.branding.logo,
+    tagline: unifiedSettings.branding.tagline,
+    description: unifiedSettings.branding.description,
+    storeTemplateId: unifiedSettings.theme.templateId,
+  };
+
+  // Social links from unified settings
+  const socialLinks = {
+    facebook: unifiedSettings.social.facebook ?? undefined,
+    instagram: unifiedSettings.social.instagram ?? undefined,
+    whatsapp: unifiedSettings.social.whatsapp ?? undefined,
+    twitter: unifiedSettings.social.twitter ?? undefined,
+    youtube: unifiedSettings.social.youtube ?? undefined,
+    linkedin: unifiedSettings.social.linkedin ?? undefined,
+  };
+
+  // Business info from unified settings
+  const businessInfo = {
+    phone: unifiedSettings.business.phone ?? undefined,
+    email: unifiedSettings.business.email ?? undefined,
+    address: unifiedSettings.business.address ?? undefined,
+  };
 
   // Get unique categories
   const categories = [...new Set(storeProducts.map((p) => p.category).filter(Boolean))] as string[];
 
   return json({
     storeId,
-    storeName: store.name,
-    logo: store.logo,
-    fontFamily: store.fontFamily || 'inter',
+    storeName: unifiedSettings.branding.storeName || store.name,
+    logo: unifiedSettings.branding.logo || store.logo,
+    fontFamily: unifiedSettings.typography.fontFamily || 'inter',
     currency: store.currency || 'BDT',
-    theme: store.theme || 'default',
+    theme: unifiedSettings.theme.templateId || 'default',
     themeConfig,
     socialLinks,
-    businessInfo: store.businessInfo ? JSON.parse(store.businessInfo) : null,
+    businessInfo,
     products: storeProducts,
     categories,
   });

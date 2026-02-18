@@ -46,17 +46,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   });
 
   // Get theme from unified settings
-  let parsedThemeConfig: Record<string, unknown> = {};
-  if (store.themeConfig) {
-    try {
-      parsedThemeConfig =
-        typeof store.themeConfig === 'string' ? JSON.parse(store.themeConfig) : store.themeConfig;
-    } catch {
-      parsedThemeConfig = {};
-    }
-  }
-
-  const { storeTemplateId, theme: baseTheme } = resolveStoreTheme(parsedThemeConfig, store.theme);
+  const { storeTemplateId, theme: baseTheme } = resolveStoreTheme(
+    {
+      primaryColor: unifiedSettings.theme.primary,
+      accentColor: unifiedSettings.theme.accent,
+      backgroundColor: unifiedSettings.theme.background,
+      textColor: unifiedSettings.theme.text,
+    } as Record<string, unknown>,
+    store.theme
+  );
 
   // Merge with unified settings theme colors
   const theme = {

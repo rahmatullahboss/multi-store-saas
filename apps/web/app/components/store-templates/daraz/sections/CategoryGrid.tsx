@@ -115,7 +115,7 @@ export function DarazCategoryGrid({
       return {
         id: category.id ?? category.slug ?? category.title,
         title: category.title,
-        imageUrl: category.imageUrl ?? null,
+        imageUrl: categoryImages[category.title] || category.imageUrl || null,
       };
     });
 

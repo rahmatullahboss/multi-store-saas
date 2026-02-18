@@ -7,9 +7,20 @@
  * or Google OAuth (if enabled).
  */
 
-import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
-import { useLoaderData, useActionData, Form, Link, useNavigation, useSearchParams } from '@remix-run/react';
-import { parseThemeConfig, parseSocialLinks } from '@db/types';
+import {
+  json,
+  redirect,
+  type LoaderFunctionArgs,
+  type ActionFunctionArgs,
+} from '@remix-run/cloudflare';
+import {
+  useLoaderData,
+  useActionData,
+  Form,
+  Link,
+  useNavigation,
+  useSearchParams,
+} from '@remix-run/react';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { products as productsTable } from '@db/schema';
@@ -24,6 +35,7 @@ import {
 } from '~/services/customer-auth.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { Lock, Mail, ArrowRight, Loader2 } from 'lucide-react';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   // 1. Resolve store context
@@ -44,27 +56,40 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // 3. Check Google Auth availability
   const canUseGoogle = await canStoreUseGoogleAuth(storeId, env.DB);
-  
-  // 4. Get template theme
-  const themeConfig = parseThemeConfig(store.themeConfig as string | null);
-  const socialLinks = parseSocialLinks(store.socialLinks as string | null);
+
+  // 4. Get unified settings (single source of truth)
+  const db = createDb(env.DB);
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
+
+  // Get theme from unified settings
   const { storeTemplateId: templateId, theme } = resolveStoreTheme(
-    themeConfig as Record<string, unknown> | null,
+    {
+      primaryColor: unifiedSettings.theme.primary,
+      accentColor: unifiedSettings.theme.accent,
+      backgroundColor: unifiedSettings.theme.background,
+      textColor: unifiedSettings.theme.text,
+    } as Record<string, unknown>,
     store.theme
   );
 
-  // 5. Parse Business Info
-  let businessInfo = null;
-  try {
-    if (store.businessInfo) {
-      businessInfo = JSON.parse(store.businessInfo as string);
-    }
-  } catch {
-    // Ignore parse errors
-  }
+  // Social links from unified settings
+  const socialLinks = {
+    facebook: unifiedSettings.social.facebook ?? undefined,
+    instagram: unifiedSettings.social.instagram ?? undefined,
+    whatsapp: unifiedSettings.social.whatsapp ?? undefined,
+    twitter: unifiedSettings.social.twitter ?? undefined,
+    youtube: unifiedSettings.social.youtube ?? undefined,
+    linkedin: unifiedSettings.social.linkedin ?? undefined,
+  };
+
+  // Business info from unified settings
+  const businessInfo = {
+    phone: unifiedSettings.business.phone ?? undefined,
+    email: unifiedSettings.business.email ?? undefined,
+    address: unifiedSettings.business.address ?? undefined,
+  };
 
   // 6. Get Categories (Cached)
-  const db = createDb(env.DB);
   const cache = new D1Cache(db);
   const categoriesCacheKey = `store:${store.id}:categories:v1`;
   let categories: string[] | null = await cache.get<string[]>(categoriesCacheKey);
@@ -76,7 +101,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .where(and(eq(productsTable.storeId, store.id), eq(productsTable.isPublished, true)))
       .orderBy(desc(productsTable.createdAt))
       .limit(50);
-      
+
     categories = [...new Set(dbProducts.map((p) => p.category).filter(Boolean))] as string[];
     await cache.set(categoriesCacheKey, categories, 3600);
   }
@@ -90,12 +115,27 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       subdomain: store.subdomain,
       currency: store.currency,
       planType: store.planType,
+      isCustomerAiEnabled: store.isCustomerAiEnabled ?? false,
+      aiCredits: store.aiCredits ?? 0,
     },
     canUseGoogle,
     socialLinks,
     businessInfo,
     categories,
-    themeConfig,
+    themeConfig: {
+      primaryColor: unifiedSettings.theme.primary,
+      accentColor: unifiedSettings.theme.accent,
+      backgroundColor: unifiedSettings.theme.background,
+      textColor: unifiedSettings.theme.text,
+      storeName: unifiedSettings.branding.storeName,
+      logo: unifiedSettings.branding.logo,
+      tagline: unifiedSettings.branding.tagline,
+      floatingWhatsappEnabled: unifiedSettings.floating?.whatsappEnabled,
+      floatingWhatsappNumber: unifiedSettings.floating?.whatsappNumber || undefined,
+      floatingWhatsappMessage: unifiedSettings.floating?.whatsappMessage || undefined,
+      floatingCallEnabled: unifiedSettings.floating?.callEnabled,
+      floatingCallNumber: unifiedSettings.floating?.callNumber || undefined,
+    },
     theme,
   });
 }
@@ -103,8 +143,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 import { z } from 'zod';
 
 const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(1, "Password is required"),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(1, 'Password is required'),
   redirectTo: z.string().optional().default('/account'),
 });
 
@@ -187,10 +227,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const { email, password, redirectTo } = result.data;
   const isAllowed = await enforceLoginRateLimit(env, storeId, ip, email);
   if (!isAllowed) {
-    return json(
-      { error: 'Too many login attempts. Please try again later.' },
-      { status: 429 }
-    );
+    return json({ error: 'Too many login attempts. Please try again later.' }, { status: 429 });
   }
 
   // Validate redirectTo to prevent Open Redirects
@@ -204,20 +241,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
   });
 
   if (loginResult.error || !loginResult.customer) {
-    return json({ error: loginResult.error || "Invalid credentials" }, { status: 400 });
+    return json({ error: loginResult.error || 'Invalid credentials' }, { status: 400 });
   }
 
   return createCustomerSession(loginResult.customer.id, storeId, safeRedirectTo, env);
 }
 
 export default function StoreLogin() {
-  const { store, canUseGoogle, socialLinks, businessInfo, categories, themeConfig, theme } = useLoaderData<typeof loader>();
+  const { store, canUseGoogle, socialLinks, businessInfo, categories, themeConfig, theme } =
+    useLoaderData<typeof loader>();
   const actionData = useActionData<{ error?: string }>(); // Typed action data
   const navigation = useNavigation();
   const [searchParams] = useSearchParams();
-  
+
   const isSubmitting = navigation.state === 'submitting';
-  
+
   // Get dynamic redirect URL
   const redirectTo = searchParams.get('redirectTo') || '/account';
 
@@ -234,7 +272,8 @@ export default function StoreLogin() {
       businessInfo={businessInfo}
       categories={categories}
       config={themeConfig}
-      // Hide header/footer if needed, but usually we want them
+      isCustomerAiEnabled={store.isCustomerAiEnabled ?? false}
+      aiCredits={store.aiCredits ?? 0}
     >
       <div className="min-h-[calc(100vh-200px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
@@ -242,14 +281,12 @@ export default function StoreLogin() {
             <h2 className="text-3xl font-bold" style={{ color: theme.text }}>
               Welcome back
             </h2>
-            <p className="mt-2 text-gray-500">
-              Sign in to your account
-            </p>
+            <p className="mt-2 text-gray-500">Sign in to your account</p>
           </div>
 
           <Form method="post" className="mt-8 space-y-6">
             <input type="hidden" name="redirectTo" value={redirectTo} />
-            
+
             {actionData?.error && (
               <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-100">
                 {actionData.error}
@@ -315,7 +352,11 @@ export default function StoreLogin() {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium hover:opacity-80 transition-opacity" style={{ color: theme.primary }}>
+                <a
+                  href="#"
+                  className="font-medium hover:opacity-80 transition-opacity"
+                  style={{ color: theme.primary }}
+                >
                   Forgot password?
                 </a>
               </div>
@@ -325,7 +366,12 @@ export default function StoreLogin() {
               type="submit"
               disabled={isSubmitting}
               className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-              style={{ backgroundColor: theme.primary, '--tw-ring-color': theme.primary } as React.CSSProperties}
+              style={
+                {
+                  backgroundColor: theme.primary,
+                  '--tw-ring-color': theme.primary,
+                } as React.CSSProperties
+              }
             >
               {isSubmitting ? (
                 <Loader2 className="animate-spin h-5 w-5" />
@@ -343,9 +389,7 @@ export default function StoreLogin() {
                 <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
-                  Or continue with
-                </span>
+                <span className="px-2 bg-white text-gray-500">Or continue with</span>
               </div>
             </div>
 
@@ -382,8 +426,8 @@ export default function StoreLogin() {
           <div className="text-center mt-6">
             <p className="text-sm text-gray-600">
               Don't have an account?{' '}
-              <Link 
-                to="/store/auth/register" 
+              <Link
+                to="/store/auth/register"
                 className="font-medium hover:underline transition-all"
                 style={{ color: theme.primary }}
               >

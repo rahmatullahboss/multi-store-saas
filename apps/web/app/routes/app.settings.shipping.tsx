@@ -1,8 +1,8 @@
 /**
  * Shipping Zones Management
- * 
+ *
  * Route: /app/settings/shipping
- * 
+ *
  * Manage delivery zones with rates and free shipping thresholds.
  */
 
@@ -13,20 +13,16 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { shippingZones, stores } from '@db/schema';
 import { getStoreId, getUserId } from '~/services/auth.server';
-import { 
-  Truck, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  ArrowLeft,
-  Loader2,
-  MapPin 
-} from 'lucide-react';
+import { Truck, Plus, Edit2, Trash2, ArrowLeft, Loader2, MapPin } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
-import { parseShippingConfig } from '~/utils/shipping';
+
 import { z } from 'zod';
 import { logActivity } from '~/lib/activity.server';
+import {
+  getUnifiedStorefrontSettings,
+  saveUnifiedStorefrontSettingsWithCacheInvalidation,
+} from '~/services/unified-storefront-settings.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Shipping Zones - Settings' }];
@@ -56,21 +52,20 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
-  const zones = await db
-    .select()
-    .from(shippingZones)
-    .where(eq(shippingZones.storeId, storeId));
+  const zones = await db.select().from(shippingZones).where(eq(shippingZones.storeId, storeId));
 
   const store = await db
-    .select({ currency: stores.currency, shippingConfig: stores.shippingConfig })
+    .select({ currency: stores.currency })
     .from(stores)
     .where(eq(stores.id, storeId))
     .limit(1);
 
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
+
   return json({
     zones,
     currency: store[0]?.currency || 'BDT',
-    shippingConfig: parseShippingConfig(store[0]?.shippingConfig || null),
+    shippingConfig: unifiedSettings.shippingConfig,
   });
 }
 
@@ -151,17 +146,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
     const { insideDhaka, outsideDhaka, freeShippingAbove, enabled } = parsed.data;
 
-    await db
-      .update(stores)
-      .set({
-        shippingConfig: JSON.stringify({
+    await saveUnifiedStorefrontSettingsWithCacheInvalidation(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      db as any,
+      {
+        KV: context.cloudflare.env.STORE_CACHE,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        STORE_CONFIG_SERVICE: (context.cloudflare.env as any).STORE_CONFIG_SERVICE,
+      },
+      storeId,
+      {
+        shippingConfig: {
           insideDhaka,
           outsideDhaka,
           freeShippingAbove,
           enabled,
-        }),
-      })
-      .where(eq(stores.id, storeId));
+        },
+      }
+    );
 
     await logActivity(db, {
       storeId,
@@ -210,9 +212,9 @@ export default function ShippingZonesPage() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const { t, lang } = useTranslation();
-  
+
   const [showForm, setShowForm] = useState(false);
-  const [editingZone, setEditingZone] = useState<typeof zones[0] | null>(null);
+  const [editingZone, setEditingZone] = useState<(typeof zones)[0] | null>(null);
 
   const formatPrice = (amount: number) => {
     return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
@@ -222,7 +224,7 @@ export default function ShippingZonesPage() {
     }).format(amount);
   };
 
-  const handleEdit = (zone: typeof zones[0]) => {
+  const handleEdit = (zone: (typeof zones)[0]) => {
     setEditingZone(zone);
     setShowForm(true);
   };
@@ -237,10 +239,7 @@ export default function ShippingZonesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link
-            to="/app/settings"
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
-          >
+          <Link to="/app/settings" className="p-2 hover:bg-gray-100 rounded-lg transition">
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </Link>
           <div>
@@ -261,9 +260,7 @@ export default function ShippingZonesPage() {
 
       {/* Form */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Simple Shipping (Recommended)
-        </h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Simple Shipping (Recommended)</h2>
         <Form method="post" className="space-y-4">
           <input type="hidden" name="intent" value="save-simple" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -339,7 +336,7 @@ export default function ShippingZonesPage() {
           <Form method="post" className="space-y-4">
             <input type="hidden" name="intent" value={editingZone ? 'update' : 'create'} />
             {editingZone && <input type="hidden" name="id" value={editingZone.id} />}
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -354,7 +351,7 @@ export default function ShippingZonesPage() {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('deliveryRate')} ({currency})
@@ -368,7 +365,7 @@ export default function ShippingZonesPage() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('freeShippingAbove')} ({currency})
@@ -382,7 +379,7 @@ export default function ShippingZonesPage() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('estimatedDeliveryTime')}
@@ -449,11 +446,11 @@ export default function ShippingZonesPage() {
                         {zone.rate === 0 ? t('free') : formatPrice(zone.rate)}
                       </span>
                       {zone.freeAbove && (
-                        <span>{t('freeAbove')} {formatPrice(zone.freeAbove)}</span>
+                        <span>
+                          {t('freeAbove')} {formatPrice(zone.freeAbove)}
+                        </span>
                       )}
-                      {zone.estimatedDays && (
-                        <span>{zone.estimatedDays}</span>
-                      )}
+                      {zone.estimatedDays && <span>{zone.estimatedDays}</span>}
                     </div>
                   </div>
                 </div>
@@ -485,10 +482,7 @@ export default function ShippingZonesPage() {
           <div className="p-12 text-center">
             <Truck className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500 mb-4">{t('noShippingZones')}</p>
-            <button
-              onClick={() => setShowForm(true)}
-              className="text-emerald-600 hover:underline"
-            >
+            <button onClick={() => setShowForm(true)} className="text-emerald-600 hover:underline">
               {t('addFirstZone')}
             </button>
           </div>

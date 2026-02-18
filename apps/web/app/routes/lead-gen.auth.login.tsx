@@ -8,6 +8,8 @@ import { useLoaderData, Form, Link, useNavigation, useActionData } from '@remix-
 import { getCustomerId, createCustomerSession, loginCustomer } from '~/services/customer-auth.server';
 import { resolveStore } from '~/lib/store.server';
 import { Lock, Mail, ArrowRight, Loader2, CheckCircle } from 'lucide-react';
+import { createDb } from '~/lib/db.server';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const env = context.cloudflare.env;
@@ -34,20 +36,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     } catch { /* ignore */ }
   }
 
-  // Fallback to store theme config (if not set by lead gen)
-  if (primaryColor === '#4F46E5' && storeContext?.store.themeConfig) {
-    try {
-      const themeConfig = JSON.parse(storeContext.store.themeConfig as string);
-      if (themeConfig.primaryColor) {
-        primaryColor = themeConfig.primaryColor;
-      }
-      if (!logo && themeConfig.logo) {
-         logo = themeConfig.logo;
-      }
-      if (!logo && storeContext.store.logo) {
-         logo = storeContext.store.logo;
-      }
-    } catch { /* ignore */ }
+  // Fallback to unified storefront settings (canonical source)
+  if (primaryColor === '#4F46E5' && storeContext) {
+    const db = createDb(env.DB);
+    const unifiedSettings = await getUnifiedStorefrontSettings(db, storeContext.storeId, {
+      env,
+    });
+    if (unifiedSettings.theme.primary) primaryColor = unifiedSettings.theme.primary;
+    if (!logo && unifiedSettings.branding.logo) logo = unifiedSettings.branding.logo;
+    if (!logo && storeContext.store.logo) logo = storeContext.store.logo;
   }
 
   return json({

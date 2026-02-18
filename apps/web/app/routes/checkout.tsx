@@ -22,13 +22,10 @@ import { drizzle } from 'drizzle-orm/d1';
 import {
   abandonedCarts,
   products,
-  stores,
   orderBumps,
   productVariants,
-  type Store,
 } from '@db/schema';
 import * as schema from '@db/schema';
-import { parseThemeConfig, parseSocialLinks } from '@db/types';
 import {
   getUnifiedStorefrontSettings,
   toLegacyFormat,
@@ -92,7 +89,6 @@ interface ManualPaymentConfig {
 import { useTranslation } from '~/contexts/LanguageContext';
 import { trackingEvents } from '~/utils/tracking';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { resolveStoreTheme } from '~/templates/store-registry';
 import { PaymentMethodSelector } from '~/components/checkout/PaymentMethodSelector';
 import { SearchableSelect } from '~/components/SearchableSelect';
 import { DISTRICTS, UPAZILAS, getShippingZone } from '~/data/bd-locations';
@@ -105,7 +101,6 @@ import { toast } from 'sonner';
 import { validateDiscount } from '~/../server/services/discount.service';
 import { TicketPercent } from 'lucide-react';
 import { formatPrice } from '~/lib/theme-engine';
-import { resolveShippingConfig } from '~/services/shipping.server';
 import {
   getAllowedCheckoutPaymentMethods,
   getDefaultPaymentMethodForPlan,
@@ -146,7 +141,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = drizzle(cloudflare.env.DB, { schema });
 
   // Get unified settings (single source of truth)
-  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId as number);
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId as number, { env: context.cloudflare.env });
   const unified = toLegacyFormat(unifiedSettings);
   const unifiedShippingConfig = getShippingConfigFromUnified(unifiedSettings);
 
@@ -261,6 +256,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       primaryColor: theme.primary,
       accentColor: theme.accent,
       storeTemplateId,
+      floatingWhatsappEnabled: unifiedSettings.floating?.whatsappEnabled,
+      floatingWhatsappNumber: unifiedSettings.floating?.whatsappNumber || undefined,
+      floatingWhatsappMessage: unifiedSettings.floating?.whatsappMessage || undefined,
+      floatingCallEnabled: unifiedSettings.floating?.callEnabled,
+      floatingCallNumber: unifiedSettings.floating?.callNumber || undefined,
     },
     planType: store.planType || 'free',
     customer: customer
@@ -274,6 +274,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       : null,
     checkoutTemplate,
     categories,
+    // AI Chat props
+    isCustomerAiEnabled: store.isCustomerAiEnabled ?? false,
+    aiCredits: store.aiCredits ?? 0,
   });
 }
 
@@ -473,6 +476,8 @@ export default function Checkout() {
     planType,
     customer,
     categories,
+    isCustomerAiEnabled,
+    aiCredits,
   } = useLoaderData<typeof loader>();
 
   const fetcher = useFetcher();
@@ -616,10 +621,12 @@ export default function Checkout() {
 
   const shippingCost = useMemo(() => {
     if (!shippingConfig.enabled) return 0;
+    if (shippingConfig.freeDeliveryAbove && subtotal >= shippingConfig.freeDeliveryAbove) return 0;
     if (shippingConfig.freeShippingAbove && subtotal >= shippingConfig.freeShippingAbove) return 0;
+    if (!selectedDistrict) return shippingConfig.deliveryCharge ?? shippingConfig.insideDhaka;
     const zone = calculatedShippingZone;
     return zone === 'dhaka' ? shippingConfig.insideDhaka : shippingConfig.outsideDhaka;
-  }, [subtotal, calculatedShippingZone, shippingConfig]);
+  }, [subtotal, calculatedShippingZone, selectedDistrict, shippingConfig]);
 
   const bumpTotal = useMemo(() => {
     return selectedBumps.reduce((sum, bumpId) => {
@@ -944,6 +951,9 @@ export default function Checkout() {
         planType={planType}
         customer={customer}
         categories={categories}
+        config={themeConfig}
+        isCustomerAiEnabled={isCustomerAiEnabled}
+        aiCredits={aiCredits}
       >
         <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-6">
           <ShoppingBag className="w-16 h-16 text-gray-300 mb-4" />
@@ -1589,6 +1599,9 @@ export default function Checkout() {
         planType={planType}
         customer={customer}
         categories={categories}
+        config={themeConfig}
+        isCustomerAiEnabled={isCustomerAiEnabled}
+        aiCredits={aiCredits}
       >
         <div className="max-w-2xl mx-auto px-4 py-8">
           <div className="text-center mb-8">
@@ -1748,6 +1761,9 @@ export default function Checkout() {
       planType={planType}
       customer={customer}
       categories={categories}
+      config={themeConfig}
+      isCustomerAiEnabled={isCustomerAiEnabled}
+      aiCredits={aiCredits}
     >
       {content}
     </StorePageWrapper>

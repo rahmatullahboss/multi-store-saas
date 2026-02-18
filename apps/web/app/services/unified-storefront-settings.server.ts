@@ -46,7 +46,7 @@ export interface GetUnifiedSettingsOptions {
   /** Skip cache and force DB read (default: false) */
   forceRefresh?: boolean;
   /** Environment for strict mode check */
-  env?: Record<string, string>;
+  env?: unknown;
 }
 
 export interface SaveUnifiedSettingsOptions {
@@ -92,11 +92,10 @@ export async function getUnifiedStorefrontSettings<TSchema extends Record<string
   storeId: number,
   options: GetUnifiedSettingsOptions = {}
 ): Promise<UnifiedStorefrontSettingsV1> {
-  const { enableFallback: userEnableFallback = true, env } = options;
-
-  // Check strict mode - if enabled, disable fallback
-  const isStrict = env ? isStrictMode(env) : false;
-  const enableFallback = isStrict ? false : userEnableFallback;
+  // Default: strict mode (no fallback). If env provided and UNIFIED_SETTINGS_STRICT is not "true", fallback may be enabled.
+  // Explicit enableFallback option always wins.
+  const strictMode = options.env ? isStrictMode(options.env) : true;
+  const enableFallback = options.enableFallback ?? !strictMode;
 
   // Try to get from canonical column first
   try {
@@ -462,6 +461,23 @@ async function migrateLegacyToUnified(
     fontFamily: legacy.themeConfig?.fontFamily || legacy.mvpSettings?.fontFamily || 'inter',
   };
 
+  // Floating contact settings (from legacy themeConfig)
+  const floating = {
+    whatsappEnabled: legacy.themeConfig?.floatingWhatsappEnabled ?? false,
+    whatsappNumber: legacy.themeConfig?.floatingWhatsappNumber ?? null,
+    whatsappMessage: legacy.themeConfig?.floatingWhatsappMessage ?? null,
+    callEnabled: legacy.themeConfig?.floatingCallEnabled ?? false,
+    callNumber: legacy.themeConfig?.floatingCallNumber ?? null,
+  };
+
+  // Courier settings (from legacy themeConfig)
+  const courier = {
+    provider: legacy.themeConfig?.courier?.provider ?? null,
+    pathao: legacy.themeConfig?.courier?.pathao ?? null,
+    redx: legacy.themeConfig?.courier?.redx ?? null,
+    steadfast: legacy.themeConfig?.courier?.steadfast ?? null,
+  };
+
   return {
     version: 1,
     theme,
@@ -472,6 +488,8 @@ async function migrateLegacyToUnified(
     seo,
     checkout,
     shippingConfig,
+    floating,
+    courier,
     heroBanner,
     trustBadges,
     typography,
@@ -601,14 +619,23 @@ export interface FeatureFlags {
   UNIFIED_STOREFRONT_SETTINGS_STRICT_TEMPLATE_ALLOWLIST: boolean;
 }
 
-export function getFeatureFlags(env: Record<string, string>): FeatureFlags {
+function getEnvFlag(env: unknown, key: string): string | undefined {
+  if (!env || typeof env !== 'object') return undefined;
+  const value = (env as Record<string, unknown>)[key];
+  return typeof value === 'string' ? value : undefined;
+}
+
+export function getFeatureFlags(env: unknown): FeatureFlags {
   return {
-    UNIFIED_STOREFRONT_SETTINGS_READ: env.UNIFIED_STOREFRONT_SETTINGS_READ !== 'false',
-    UNIFIED_STOREFRONT_SETTINGS_WRITE: env.UNIFIED_STOREFRONT_SETTINGS_WRITE !== 'false',
-    UNIFIED_STOREFRONT_SETTINGS_FALLBACK: env.UNIFIED_STOREFRONT_SETTINGS_FALLBACK !== 'false',
-    UNIFIED_STOREFRONT_SETTINGS_STRICT: env.UNIFIED_SETTINGS_STRICT === 'true',
+    UNIFIED_STOREFRONT_SETTINGS_READ:
+      getEnvFlag(env, 'UNIFIED_STOREFRONT_SETTINGS_READ') !== 'false',
+    UNIFIED_STOREFRONT_SETTINGS_WRITE:
+      getEnvFlag(env, 'UNIFIED_STOREFRONT_SETTINGS_WRITE') !== 'false',
+    UNIFIED_STOREFRONT_SETTINGS_FALLBACK:
+      getEnvFlag(env, 'UNIFIED_STOREFRONT_SETTINGS_FALLBACK') !== 'false',
+    UNIFIED_STOREFRONT_SETTINGS_STRICT: getEnvFlag(env, 'UNIFIED_SETTINGS_STRICT') === 'true',
     UNIFIED_STOREFRONT_SETTINGS_STRICT_TEMPLATE_ALLOWLIST:
-      env.UNIFIED_STOREFRONT_SETTINGS_STRICT_TEMPLATE_ALLOWLIST === 'true',
+      getEnvFlag(env, 'UNIFIED_STOREFRONT_SETTINGS_STRICT_TEMPLATE_ALLOWLIST') === 'true',
   };
 }
 
@@ -616,8 +643,8 @@ export function getFeatureFlags(env: Record<string, string>): FeatureFlags {
  * Check if strict mode is enabled for unified settings
  * In strict mode, fallback to legacy sources is disabled
  */
-export function isStrictMode(env: Record<string, string>): boolean {
-  return env.UNIFIED_SETTINGS_STRICT === 'true';
+export function isStrictMode(env: unknown): boolean {
+  return getEnvFlag(env, 'UNIFIED_SETTINGS_STRICT') === 'true';
 }
 
 // ============================================================================

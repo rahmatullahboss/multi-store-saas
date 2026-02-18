@@ -75,7 +75,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = createDb(context.cloudflare.env.DB);
 
   // Use unified service for settings (single source of truth)
-  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId);
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
   const unified = toLegacyFormat(unifiedSettings);
 
   // Get shipping config directly from unified settings
@@ -114,6 +114,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     primaryColor: unified.theme.primary,
     accentColor: unified.theme.accent,
     storeTemplateId: unified.storeTemplateId,
+    floatingWhatsappEnabled: unifiedSettings.floating?.whatsappEnabled,
+    floatingWhatsappNumber: unifiedSettings.floating?.whatsappNumber,
+    floatingWhatsappMessage: unifiedSettings.floating?.whatsappMessage,
+    floatingCallEnabled: unifiedSettings.floating?.callEnabled,
+    floatingCallNumber: unifiedSettings.floating?.callNumber,
   } as unknown as ThemeConfig;
 
   return json({
@@ -554,8 +559,10 @@ function SimpleCartPage({
 }) {
   const shippingConfig = mvpSettings?.shippingConfig;
   const shippingEnabled = shippingConfig?.enabled ?? true;
-  const deliveryCharge = shippingEnabled ? (shippingConfig?.insideDhaka ?? 60) : 0;
-  const freeShippingAbove = shippingConfig?.freeShippingAbove ?? 0;
+  const deliveryCharge = shippingEnabled
+    ? (shippingConfig?.deliveryCharge ?? shippingConfig?.insideDhaka ?? 60)
+    : 0;
+  const freeShippingAbove = shippingConfig?.freeDeliveryAbove ?? shippingConfig?.freeShippingAbove ?? 0;
 
   const isFreeShipping = freeShippingAbove > 0 && total >= freeShippingAbove;
   const shipping = isFreeShipping ? 0 : deliveryCharge;

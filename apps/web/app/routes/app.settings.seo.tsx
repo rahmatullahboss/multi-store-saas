@@ -1,8 +1,8 @@
 /**
  * SEO Settings Page
- * 
+ *
  * Route: /app/settings/seo
- * 
+ *
  * Features:
  * - Meta title/description for store
  * - Open Graph image upload
@@ -12,39 +12,44 @@
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { Form, useLoaderData, useActionData, useNavigation, useFetcher, Link } from '@remix-run/react';
+import {
+  Form,
+  useLoaderData,
+  useActionData,
+  useNavigation,
+  useFetcher,
+  Link,
+} from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { getStoreId, getUserId } from '~/services/auth.server';
-import { 
-  Search, 
-  Loader2, 
-  CheckCircle, 
+import {
+  Search,
+  Loader2,
+  CheckCircle,
   ArrowLeft,
   Globe,
   Image,
   Upload,
   AlertCircle,
-  BarChart3
+  BarChart3,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { z } from 'zod';
 import { logActivity } from '~/lib/activity.server';
+import {
+  getUnifiedStorefrontSettings,
+  saveUnifiedStorefrontSettingsWithCacheInvalidation,
+} from '~/services/unified-storefront-settings.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'SEO Settings - Ozzyl' }];
 };
 
-// Type for SEO config
-interface SeoConfig {
-  metaTitle?: string;
-  metaDescription?: string;
-  ogImage?: string;
-  keywords?: string[];
-}
+// SeoConfig type is now inlined where needed
 
 const SeoSettingsSchema = z.object({
   metaTitle: z.string().trim().max(70).optional(),
@@ -64,30 +69,32 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
+  // Get unified settings (single source of truth)
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
+    env: context.cloudflare.env,
+  });
+
+  // Get store basic info for display
   const storeResult = await db
     .select({
       id: stores.id,
       name: stores.name,
       subdomain: stores.subdomain,
       customDomain: stores.customDomain,
-      themeConfig: stores.themeConfig,
     })
     .from(stores)
     .where(eq(stores.id, storeId))
     .limit(1);
 
   const store = storeResult[0];
-  
-  // Parse SEO config from themeConfig
-  let seoConfig: SeoConfig = {};
-  if (store.themeConfig) {
-    try {
-      const config = JSON.parse(store.themeConfig);
-      seoConfig = config.seo || {};
-    } catch {
-      // Ignore parse errors
-    }
-  }
+
+  // SEO config from unified settings
+  const seoConfig = {
+    metaTitle: unifiedSettings.seo?.title || '',
+    metaDescription: unifiedSettings.seo?.description || '',
+    ogImage: unifiedSettings.seo?.ogImage || '',
+    keywords: unifiedSettings.seo?.keywords || [],
+  };
 
   return json({
     store: {
@@ -128,32 +135,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
-  // Get current themeConfig
-  const storeResult = await db
-    .select({ themeConfig: stores.themeConfig, landingConfig: stores.landingConfig })
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
-
-  let themeConfig: Record<string, unknown> = {};
-  if (storeResult[0]?.themeConfig) {
-    try {
-      themeConfig = JSON.parse(storeResult[0].themeConfig);
-    } catch {
-      // Ignore parse errors
-    }
-  }
-
-  let landingConfig: Record<string, unknown> = {};
-  if (storeResult[0]?.landingConfig) {
-    try {
-      landingConfig = JSON.parse(storeResult[0].landingConfig);
-    } catch {
-      // Ignore parse errors
-    }
-  }
-
-  // Update SEO config
+  // Parse keywords
   const keywordList = keywords
     ? keywords
         .split(',')
@@ -162,22 +144,52 @@ export async function action({ request, context }: ActionFunctionArgs) {
         .slice(0, 20)
     : [];
 
-  themeConfig.seo = {
-    metaTitle: metaTitle?.trim() || null,
-    metaDescription: metaDescription?.trim() || null,
-    ogImage: ogImage?.trim() || null,
-    keywords: keywordList,
-  };
+  // Save to unified settings (single source of truth)
+  try {
+    await saveUnifiedStorefrontSettingsWithCacheInvalidation(
+      db as any,
+      {
+        KV: context.cloudflare.env.STORE_CACHE,
+        STORE_CONFIG_SERVICE: context.cloudflare.env.STORE_CONFIG_SERVICE as Fetcher,
+      },
+      storeId,
+      {
+        seo: {
+          title: metaTitle.trim() || null,
+          description: metaDescription.trim() || null,
+          ogImage: ogImage.trim() || null,
+          keywords: keywordList,
+        },
+      }
+    );
+  } catch (error) {
+    console.error('Failed to save unified SEO settings:', error);
+    return json({ error: 'Failed to save SEO settings' }, { status: 500 });
+  }
 
-  // Keep landing/offer pages in sync (they read SEO keys from landingConfig).
-  landingConfig.seoTitle = metaTitle?.trim() || null;
-  landingConfig.seoDescription = metaDescription?.trim() || null;
-  landingConfig.ogImage = ogImage?.trim() || null;
+  // Also update landingConfig for backwards compatibility (landing pages read from there)
+  const storeResult = await db
+    .select({ landingConfig: stores.landingConfig })
+    .from(stores)
+    .where(eq(stores.id, storeId))
+    .limit(1);
+
+  let landingConfig: Record<string, unknown> = {};
+  if (storeResult[0]?.landingConfig) {
+    try {
+      landingConfig = JSON.parse(storeResult[0].landingConfig);
+    } catch {
+      // Ignore
+    }
+  }
+
+  landingConfig.seoTitle = metaTitle.trim() || null;
+  landingConfig.seoDescription = metaDescription.trim() || null;
+  landingConfig.ogImage = ogImage.trim() || null;
 
   await db
     .update(stores)
     .set({
-      themeConfig: JSON.stringify(themeConfig),
       landingConfig: JSON.stringify(landingConfig),
       updatedAt: new Date(),
     })
@@ -209,7 +221,7 @@ export default function SeoSettingsPage() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const [showSuccess, setShowSuccess] = useState(false);
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
 
   // OG Image upload
   const [ogImageUrl, setOgImageUrl] = useState(seoConfig.ogImage || '');
@@ -258,7 +270,7 @@ export default function SeoSettingsPage() {
         format,
       });
       fileToUpload = new File([compressedBlob], `og-image.${format}`, { type: `image/${format}` });
-      console.log(`OG Image compressed: ${file.size} -> ${compressedBlob.size} bytes`);
+      console.warn(`OG Image compressed: ${file.size} -> ${compressedBlob.size} bytes`);
     } catch (error) {
       console.warn('Image compression failed, uploading original:', error);
     }
@@ -280,10 +292,7 @@ export default function SeoSettingsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link
-          to="/app/settings"
-          className="p-2 hover:bg-gray-100 rounded-lg transition"
-        >
+        <Link to="/app/settings" className="p-2 hover:bg-gray-100 rounded-lg transition">
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
         <div>
@@ -350,12 +359,17 @@ export default function SeoSettingsPage() {
                 placeholder={store.name}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-              <p className="text-xs text-gray-500 mt-1">{metaTitle.length}/60 {t('characters')}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {metaTitle.length}/60 {t('characters')}
+              </p>
             </div>
 
             {/* Meta Description */}
             <div>
-              <label htmlFor="metaDescription" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="metaDescription"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 {t('metaDescription')}
               </label>
               <textarea
@@ -368,7 +382,9 @@ export default function SeoSettingsPage() {
                 placeholder={String(t('seoDescPlaceholder'))}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               />
-              <p className="text-xs text-gray-500 mt-1">{metaDescription.length}/160 {t('characters')}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {metaDescription.length}/160 {t('characters')}
+              </p>
             </div>
 
             {/* Keywords */}

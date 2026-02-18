@@ -4,7 +4,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { products, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { parseThemeConfig, defaultThemeConfig } from '@db/types';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -19,7 +19,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       id: stores.id,
       name: stores.name,
       subdomain: stores.subdomain,
-      themeConfig: stores.themeConfig,
       fontFamily: stores.fontFamily,
     })
     .from(stores)
@@ -31,25 +30,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return json({ error: 'Store not found' }, { status: 404 });
   }
 
-  const themeConfig = parseThemeConfig(store.themeConfig as string | null) || defaultThemeConfig;
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
 
   const storeContext = {
     storeId: store.id,
-    storeName: store.name,
+    storeName: unifiedSettings.branding.storeName,
     subdomain: store.subdomain,
     currentColors: {
-      primary: themeConfig.primaryColor || '#6366f1',
-      accent: themeConfig.accentColor || '#f59e0b',
-      background: themeConfig.backgroundColor || '#f9fafb',
-      text: themeConfig.textColor || '#111827',
+      primary: unifiedSettings.theme.primary,
+      accent: unifiedSettings.theme.accent,
+      background: unifiedSettings.theme.background,
+      text: unifiedSettings.theme.text,
     },
-    currentFont: store.fontFamily || 'inter',
-    sections: (themeConfig.sections || []).map((s: any) => ({
-      id: s.id,
-      type: s.type,
-      heading: s.settings?.heading || null,
-    })),
-    sectionCount: (themeConfig.sections || []).length,
+    currentFont: unifiedSettings.typography.fontFamily,
+    sections: [],
+    sectionCount: 0,
   };
 
   const storeProducts = await db
@@ -67,5 +62,4 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json({ success: true, context: storeContext, products: storeProducts });
 }
 
-
-export default function() {}
+export default function () {}
