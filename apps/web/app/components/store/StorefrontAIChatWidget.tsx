@@ -674,9 +674,6 @@ export function StorefrontAIChatWidget({
     welcomeMessage ||
     `আসসালামু আলাইকুম! 👋 আমি ${storeName} এর AI অ্যাসিস্ট্যান্ট। কীভাবে সাহায্য করতে পারি?`;
 
-  // Check if there's previous chat history (for indicator)
-  const hasPreviousHistory = messages.length > 0;
-
   return (
     <>
       {/* Contact Buttons (Above AI Button) */}

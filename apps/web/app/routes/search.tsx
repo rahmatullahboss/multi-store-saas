@@ -17,7 +17,10 @@ import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
-import { getMVPSettings } from '~/services/mvp-settings.server';
+import {
+  getUnifiedStorefrontSettings,
+  toLegacyFormat,
+} from '~/services/unified-storefront-settings.server';
 import { Search, ShoppingBag, ChevronRight } from 'lucide-react';
 import { formatPrice } from '~/lib/theme-engine';
 
@@ -54,7 +57,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   const { storeId, store } = storeContext;
-  const storeData = store;
   const db = createDb(context.cloudflare.env.DB);
 
   // Route guard: Check if store routes are enabled
@@ -62,39 +64,30 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     throw new Response('Store mode is not enabled for this shop.', { status: 404 });
   }
 
-  // Parse theme config
-  let themeConfig = null;
-  try {
-    if (storeData.themeConfig) {
-      themeConfig = JSON.parse(storeData.themeConfig as string);
-    }
-  } catch {
-    // Ignore parse errors
-  }
+  // Use unified settings (single source of truth)
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId);
+  const unified = toLegacyFormat(unifiedSettings);
 
-  let businessInfo = null;
-  try {
-    if (storeData.businessInfo) {
-      businessInfo = JSON.parse(storeData.businessInfo as string);
-    }
-  } catch {
-    // Ignore parse errors
-  }
-
-  const storeTemplateId =
-    themeConfig?.storeTemplateId || (store.theme as string) || DEFAULT_STORE_TEMPLATE_ID;
-  const theme = getStoreTemplateTheme(storeTemplateId);
-  const socialLinks = parseSocialLinks(storeData.socialLinks as string | null);
-
-  // Get MVP settings for theme colors
-  const mvpSettings = await getMVPSettings(db as any, storeId, storeTemplateId);
-
-  // Merge MVP colors with template theme
-  const mergedTheme = {
-    ...theme,
-    primary: mvpSettings.primaryColor || theme.primary,
-    accent: mvpSettings.accentColor || theme.accent,
+  const theme = unified.theme;
+  const socialLinks = {
+    facebook: unifiedSettings.social.facebook ?? undefined,
+    instagram: unifiedSettings.social.instagram ?? undefined,
+    whatsapp: unifiedSettings.social.whatsapp ?? undefined,
+    twitter: unifiedSettings.social.twitter ?? undefined,
+    youtube: unifiedSettings.social.youtube ?? undefined,
+    linkedin: unifiedSettings.social.linkedin ?? undefined,
   };
+
+  const businessInfo = {
+    phone: unifiedSettings.business.phone ?? undefined,
+    email: unifiedSettings.business.email ?? undefined,
+    address: unifiedSettings.business.address ?? undefined,
+  };
+
+  const storeTemplateId = unified.storeTemplateId;
+
+  // Use unified settings theme
+  const mergedTheme = theme;
 
   // Search products
   let searchResults: SearchProduct[] = [];
@@ -147,15 +140,19 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     productCount: searchResults.length,
     collections,
     storeId: storeId as number,
-    storeName: mvpSettings.storeName || storeData.name || 'Store',
-    logo: mvpSettings.logo || storeData?.logo || null,
-    currency: storeData?.currency || '৳',
+    storeName: unified.storeName || store.name || 'Store',
+    logo: unified.logo || store.logo || null,
+    currency: store.currency || '৳',
     storeTemplateId,
     theme: mergedTheme,
     socialLinks,
     businessInfo,
-    themeConfig,
-    planType: storeData?.planType || 'free',
+    themeConfig: {
+      primaryColor: mergedTheme.primary,
+      accentColor: mergedTheme.accent,
+      storeTemplateId,
+    },
+    planType: store.planType || 'free',
   });
 }
 

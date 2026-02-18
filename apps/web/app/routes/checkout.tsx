@@ -19,9 +19,21 @@ import {
 import { useLoaderData, useFetcher, useNavigate, Link, useSearchParams } from '@remix-run/react';
 import { eq, and, inArray, desc } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { abandonedCarts, products, stores, orderBumps, productVariants, type Store } from '@db/schema';
+import {
+  abandonedCarts,
+  products,
+  stores,
+  orderBumps,
+  productVariants,
+  type Store,
+} from '@db/schema';
 import * as schema from '@db/schema';
 import { parseThemeConfig, parseSocialLinks } from '@db/types';
+import {
+  getUnifiedStorefrontSettings,
+  toLegacyFormat,
+  getShippingConfigFromUnified,
+} from '~/services/unified-storefront-settings.server';
 
 interface CartItem {
   productId: number;
@@ -133,50 +145,39 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const db = drizzle(cloudflare.env.DB, { schema });
 
-  // Fetch store details
-  const storeResult = await db
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId as number))
-    .limit(1);
-
-  const storeData = storeResult[0] as Store;
-
-  const themeConfig = parseThemeConfig(storeData.themeConfig as string | null);
+  // Get unified settings (single source of truth)
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId as number);
+  const unified = toLegacyFormat(unifiedSettings);
+  const unifiedShippingConfig = getShippingConfigFromUnified(unifiedSettings);
 
   // Route guard: Check if store routes are enabled
-  if (storeData.storeEnabled === false) {
+  if (store.storeEnabled === false) {
     throw new Response('Store mode is not enabled for this shop.', { status: 404 });
   }
 
-  const socialLinks = parseSocialLinks(storeData.socialLinks as string | null);
-  const { storeTemplateId, theme } = resolveStoreTheme(
-    themeConfig as Record<string, unknown> | null,
-    storeData.theme
-  );
-
-  let businessInfo = {};
-  let shippingConfig = {
-    insideDhaka: 60,
-    outsideDhaka: 120,
-    freeShippingAbove: 1000,
-    enabled: true,
+  // Use unified settings
+  const socialLinks = {
+    facebook: unifiedSettings.social.facebook ?? undefined,
+    instagram: unifiedSettings.social.instagram ?? undefined,
+    whatsapp: unifiedSettings.social.whatsapp ?? undefined,
+    twitter: unifiedSettings.social.twitter ?? undefined,
+    youtube: unifiedSettings.social.youtube ?? undefined,
+    linkedin: unifiedSettings.social.linkedin ?? undefined,
   };
-  let manualPaymentConfig = {};
 
-  try {
-    businessInfo = storeData.businessInfo ? JSON.parse(storeData.businessInfo as string) : {};
-    shippingConfig = await resolveShippingConfig(
-      cloudflare.env.DB,
-      storeId as number,
-      storeData.shippingConfig as string | null
-    );
-    if (storeData.manualPaymentConfig) {
-      manualPaymentConfig = JSON.parse(storeData.manualPaymentConfig as string);
-    }
-  } catch (e) {
-    console.error('Failed to parse store config', e);
-  }
+  const { storeTemplateId, theme } = {
+    storeTemplateId: unified.storeTemplateId,
+    theme: unified.theme,
+  };
+
+  const businessInfo = {
+    phone: unifiedSettings.business.phone ?? undefined,
+    email: unifiedSettings.business.email ?? undefined,
+    address: unifiedSettings.business.address ?? undefined,
+  };
+
+  // Use unified shipping config
+  const shippingConfig = unifiedShippingConfig;
 
   // Fetch Order Bumps
   const bumps = await db
@@ -235,19 +236,23 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   return json({
     storeId: storeId as number,
-    storeName: storeData.name,
-    logo: storeData.logo,
-    currency: storeData.currency || 'BDT',
+    storeName: unified.storeName || store.name,
+    logo: unified.logo || store.logo,
+    currency: store.currency || 'BDT',
     storeTemplateId,
     theme,
     socialLinks,
     businessInfo,
     shippingConfig,
-    manualPaymentConfig,
+    manualPaymentConfig: {},
     bumpProducts,
-    facebookPixelId: storeData.facebookPixelId,
-    themeConfig,
-    planType: storeData.planType || 'free',
+    facebookPixelId: store.facebookPixelId,
+    themeConfig: {
+      primaryColor: theme.primary,
+      accentColor: theme.accent,
+      storeTemplateId,
+    },
+    planType: store.planType || 'free',
     customer: customer
       ? {
           id: customer.id,
@@ -300,24 +305,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     const recoveredCartItems = parsedItems.reduce<CartItem[]>((acc, item) => {
-        const record = item as Record<string, unknown>;
-        const productId = Number(record.productId);
-        const quantity = Number(record.quantity);
-        const variantIdRaw = record.variantId;
-        const variantId =
-          variantIdRaw === null || variantIdRaw === undefined ? undefined : Number(variantIdRaw);
+      const record = item as Record<string, unknown>;
+      const productId = Number(record.productId);
+      const quantity = Number(record.quantity);
+      const variantIdRaw = record.variantId;
+      const variantId =
+        variantIdRaw === null || variantIdRaw === undefined ? undefined : Number(variantIdRaw);
 
-        if (!Number.isFinite(productId) || !Number.isFinite(quantity) || quantity <= 0) {
-          return acc;
-        }
-
-        acc.push({
-          productId,
-          quantity,
-          variantId: Number.isFinite(variantId) ? variantId : undefined,
-        });
+      if (!Number.isFinite(productId) || !Number.isFinite(quantity) || quantity <= 0) {
         return acc;
-      }, []);
+      }
+
+      acc.push({
+        productId,
+        quantity,
+        variantId: Number.isFinite(variantId) ? variantId : undefined,
+      });
+      return acc;
+    }, []);
 
     return json({ recoveredCartItems });
   }
@@ -390,35 +395,38 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const productMap = new Map(productRows.map((product) => [product.id, product]));
 
     const cartProducts: CartProduct[] = normalizedItems.reduce<CartProduct[]>((acc, item) => {
-        const product = productMap.get(item.productId);
-        if (!product) return acc;
+      const product = productMap.get(item.productId);
+      if (!product) return acc;
 
-        const variant = item.variantId ? variantMap.get(item.variantId) : undefined;
-        const variantTitle = variant
-          ? [variant.option1Value, variant.option2Value, variant.option3Value].filter(Boolean).join(' / ')
-          : '';
-        const effectivePrice = variant?.price ?? product.price;
-        const effectiveInventory = variant
-          ? (variant.available ?? variant.inventory ?? 0)
-          : product.inventory;
-        const effectiveImage = variant?.imageUrl || product.imageUrl;
-        const effectivePublished = product.isPublished && (variant ? variant.isAvailable !== false : true);
-        const row: CartProduct = {
-          id: product.id,
-          title: variantTitle ? `${product.title} (${variantTitle})` : product.title,
-          price: effectivePrice,
-          imageUrl: effectiveImage,
-          inventory: Number(effectiveInventory ?? 0),
-          isPublished: Boolean(effectivePublished),
-        };
+      const variant = item.variantId ? variantMap.get(item.variantId) : undefined;
+      const variantTitle = variant
+        ? [variant.option1Value, variant.option2Value, variant.option3Value]
+            .filter(Boolean)
+            .join(' / ')
+        : '';
+      const effectivePrice = variant?.price ?? product.price;
+      const effectiveInventory = variant
+        ? (variant.available ?? variant.inventory ?? 0)
+        : product.inventory;
+      const effectiveImage = variant?.imageUrl || product.imageUrl;
+      const effectivePublished =
+        product.isPublished && (variant ? variant.isAvailable !== false : true);
+      const row: CartProduct = {
+        id: product.id,
+        title: variantTitle ? `${product.title} (${variantTitle})` : product.title,
+        price: effectivePrice,
+        imageUrl: effectiveImage,
+        inventory: Number(effectiveInventory ?? 0),
+        isPublished: Boolean(effectivePublished),
+      };
 
-        if (variant?.id) {
-          row.variantId = variant.id;
-        }
+      if (variant?.id) {
+        row.variantId = variant.id;
+      }
 
-        acc.push(row);
-        return acc;
-      }, []);
+      acc.push(row);
+      return acc;
+    }, []);
 
     return json({ products: cartProducts });
   }
@@ -537,7 +545,7 @@ export default function Checkout() {
 
   const primaryColor = theme.primary;
   const isLuxeBoutique = storeTemplateId === 'luxe-boutique';
-  
+
   // Button styles based on template
   const getButtonClass = (variant: 'primary' | 'secondary' | 'outline' = 'primary') => {
     if (isLuxeBoutique) {
@@ -930,7 +938,15 @@ export default function Checkout() {
         <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-6">
           <ShoppingBag className="w-16 h-16 text-gray-300 mb-4" />
           <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('cartEmpty')}</h2>
-          <Link to="/" className={isLuxeBoutique ? 'uppercase tracking-widest text-xs font-bold hover:opacity-70' : 'hover:underline'} style={{ color: primaryColor }}>
+          <Link
+            to="/"
+            className={
+              isLuxeBoutique
+                ? 'uppercase tracking-widest text-xs font-bold hover:opacity-70'
+                : 'hover:underline'
+            }
+            style={{ color: primaryColor }}
+          >
             {t('continueShopping')}
           </Link>
         </div>
@@ -1127,7 +1143,10 @@ export default function Checkout() {
                       style={{ accentColor: primaryColor }}
                     />
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-800 transition-colors" style={{ '--hover-color': primaryColor } as React.CSSProperties}>
+                      <p
+                        className="text-sm font-medium text-gray-800 transition-colors"
+                        style={{ '--hover-color': primaryColor } as React.CSSProperties}
+                      >
                         {bump.title || bump.productTitle}
                       </p>
                       <div className="flex items-center gap-2 mt-0.5">
@@ -1194,16 +1213,19 @@ export default function Checkout() {
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                     placeholder={t('discountCode') || 'Promo Code'}
-                    className={isLuxeBoutique 
-                      ? 'flex-1 px-4 py-3 border border-gray-300 focus:outline-none focus:border-black' 
-                      : 'flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]'
+                    className={
+                      isLuxeBoutique
+                        ? 'flex-1 px-4 py-3 border border-gray-300 focus:outline-none focus:border-black'
+                        : 'flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]'
                     }
                   />
                   <button
                     type="button"
                     onClick={handleApplyCoupon}
                     disabled={!couponCode || isApplyingCoupon}
-                    className={isLuxeBoutique ? getButtonClass('secondary') : getButtonClass('secondary')}
+                    className={
+                      isLuxeBoutique ? getButtonClass('secondary') : getButtonClass('secondary')
+                    }
                   >
                     {isApplyingCoupon ? '...' : t('apply') || 'Apply'}
                   </button>
@@ -1244,9 +1266,10 @@ export default function Checkout() {
     </div>
   );
 
-  // Determine layout style from theme config
-  const checkoutStyle =
-    (themeConfig?.checkoutStyle as 'standard' | 'minimal' | 'one_page') || 'standard';
+  // Determine layout style from theme config (default to standard)
+  // Determine layout style from theme config (default to standard)
+  // Using string type to allow future extension via unified settings
+  const checkoutStyle = (themeConfig as { checkoutStyle?: string })?.checkoutStyle || 'standard';
 
   // Minimal Layout: No Header/Footer, just centered logo
   if (checkoutStyle === 'minimal') {

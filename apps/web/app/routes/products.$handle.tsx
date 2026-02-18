@@ -392,8 +392,9 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
         ? productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length
         : 0;
 
+    // Use unified theme config - no more legacy store.themeConfig reading
     const mergedProductThemeConfig = buildMergedThemeConfig(
-      store.themeConfig,
+      null,
       unified.storeTemplateId,
       unified.theme.primary,
       unified.theme.accent,
@@ -584,8 +585,9 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
     const categories = storeCategories;
 
+    // Use unified theme config - no more legacy store.themeConfig reading
     const mergedThemeConfig = buildMergedThemeConfig(
-      store.themeConfig,
+      null,
       unified.storeTemplateId,
       unified.theme.primary,
       unified.theme.accent,

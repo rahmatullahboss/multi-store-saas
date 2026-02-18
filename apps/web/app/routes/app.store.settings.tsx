@@ -32,7 +32,6 @@ import { createDb } from '~/lib/db.server';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import {
   Eye,
-
   Palette,
   Image as ImageIcon,
   Type,
@@ -141,20 +140,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (intent === 'template') {
       const templateId = formData.get('templateId') as string;
       if (templateId) {
+        // Update unified settings only (single source of truth)
         patch.theme = { templateId };
-        // Also update legacy store field
-        let themeConfig: Record<string, unknown> = {};
-        try {
-          if (store.themeConfig) themeConfig = JSON.parse(store.themeConfig as string);
-        } catch {
-          /* ignore parse error, use defaults */
-        }
-        await db
-          .update(stores)
-          .set({
-            themeConfig: JSON.stringify({ ...themeConfig, storeTemplateId: templateId }),
-          })
-          .where(eq(stores.id, storeId));
       }
     } else if (intent === 'theme') {
       const primary = (formData.get('primaryColor') as string) || undefined;
@@ -213,23 +200,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         instagram: (formData.get('instagram') as string) || null,
         whatsapp: (formData.get('whatsapp') as string) || null,
       };
-      // Sync legacy store columns
-      await db
-        .update(stores)
-        .set({
-          logo: logo || null,
-          socialLinks: JSON.stringify({
-            facebook: (formData.get('facebook') as string) || '',
-            instagram: (formData.get('instagram') as string) || '',
-            whatsapp: (formData.get('whatsapp') as string) || '',
-          }),
-          businessInfo: JSON.stringify({
-            phone: (formData.get('businessPhone') as string) || '',
-            email: (formData.get('businessEmail') as string) || '',
-            address: (formData.get('businessAddress') as string) || '',
-          }),
-        })
-        .where(eq(stores.id, storeId));
+      // Note: Legacy store columns are no longer updated (unified settings is single source of truth)
     }
 
     await saveUnifiedStorefrontSettingsWithCacheInvalidation(
@@ -674,7 +645,7 @@ function BannerTab({
     }
   };
 
-  const updateSlide = (idx: number, updates: Partial<typeof slides[0]>) => {
+  const updateSlide = (idx: number, updates: Partial<(typeof slides)[0]>) => {
     const newSlides = [...slides];
     newSlides[idx] = { ...newSlides[idx], ...updates };
     setSlides(newSlides);
@@ -988,7 +959,7 @@ function BannerSlide({
           className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
         />
       </div>
-      
+
       <div className="mt-3">
         <label className="block text-sm font-medium text-gray-700 mb-2">ব্যানার ইমেজ</label>
         <div className="flex items-center gap-4">
