@@ -179,6 +179,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Use unified shipping config
   const shippingConfig = unifiedShippingConfig;
 
+  // Fetch manual payment config from store
+  let manualPaymentConfig = {};
+  try {
+    if (store.manualPaymentConfig) {
+      manualPaymentConfig = JSON.parse(store.manualPaymentConfig as string);
+    }
+  } catch (e) {
+    console.error('Failed to parse manualPaymentConfig', e);
+  }
+
   // Fetch Order Bumps
   const bumps = await db
     .select()
@@ -244,7 +254,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     socialLinks,
     businessInfo,
     shippingConfig,
-    manualPaymentConfig: {},
+    manualPaymentConfig,
     bumpProducts,
     facebookPixelId: store.facebookPixelId,
     themeConfig: {

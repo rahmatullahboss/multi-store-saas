@@ -11,12 +11,10 @@ import { Suspense } from 'react';
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import { useLoaderData, Link, useRouteError, isRouteErrorResponse } from '@remix-run/react';
 import { eq, and, like, desc } from 'drizzle-orm';
-import { products, stores, type Store } from '@db/schema';
-import { parseSocialLinks } from '@db/types';
+import { products } from '@db/schema';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { getStoreTemplateTheme, DEFAULT_STORE_TEMPLATE_ID } from '~/templates/store-registry';
 import {
   getUnifiedStorefrontSettings,
   toLegacyFormat,
