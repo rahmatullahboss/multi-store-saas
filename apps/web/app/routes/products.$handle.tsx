@@ -422,7 +422,14 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       planType: store?.planType || 'free',
       customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
       productUrl: `${new URL(request.url).protocol}//${new URL(request.url).host}/products/${product.id}`,
-      themeConfig: unified.themeConfig as unknown as ThemeConfig | null,
+      themeConfig: {
+        ...(unified.themeConfig as unknown as ThemeConfig),
+        trustBadges: {
+      showPaymentIcons: false,
+      showGuaranteeSeals: false,
+      ...unifiedSettings.trustBadges,
+    },
+      },
       storeShippingInfo: shippingInfo,
       storeRefundPolicy: productDetails.returnPolicy || store?.customRefundPolicy || null,
       isCustomerAiEnabled: Boolean(store?.isCustomerAiEnabled),
@@ -649,6 +656,7 @@ function ProductDetailView({ data }: { data: ProductPageData }) {
       customer={customer}
       isCustomerAiEnabled={isCustomerAiEnabled}
       aiCredits={aiCredits}
+      accentColor={theme.accent}
       config={themeConfig}
     >
       {template.ProductPage ? (
@@ -791,6 +799,7 @@ function CollectionPageView({ data }: { data: CollectionPageData }) {
         planType={planType}
         customer={customer}
         categories={categories}
+        accentColor={theme.accent}
       >
         <Suspense
           fallback={

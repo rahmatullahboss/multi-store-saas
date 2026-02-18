@@ -34,7 +34,6 @@ export function StoreHeader({
   logo, 
   theme, 
   templateId,
-  cartCount = 0,
   storeId,
   config,
   customer
@@ -70,7 +69,7 @@ export function StoreHeader({
       ];
 
   return (
-    <header className={`sticky top-0 z-50 w-full border-b ${headerBg} backdrop-blur supports-[backdrop-filter]:bg-opacity-60`}>
+    <header className={`sticky top-0 z-50 w-full ${headerBg} backdrop-blur supports-[backdrop-filter]:bg-opacity-60`}>
       <div className="max-w-7xl mx-auto flex h-16 items-center px-4 lg:px-10">
         {/* Mobile Menu Button */}
         <button

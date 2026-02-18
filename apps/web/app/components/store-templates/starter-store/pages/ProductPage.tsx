@@ -9,6 +9,7 @@ import {
   Truck,
   RotateCcw,
   ShieldCheck,
+  Star,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { AddToCartButton } from '~/components/AddToCartButton';
@@ -357,35 +358,56 @@ export function StarterProductPage({
             </div>
 
             {/* Trust Badges */}
-            <div className="grid grid-cols-3 gap-4 mt-8 pt-8 border-t border-gray-100">
-              {[
-                { 
-                  icon: Truck, 
-                  label: config?.trustBadge1Title || 'Fast Delivery', 
-                  desc: config?.trustBadge1Desc || '2-4 business days' 
-                },
-                { 
-                  icon: ShieldCheck, 
-                  label: config?.trustBadge2Title || 'Secure Payment', 
-                  desc: config?.trustBadge2Desc || '100% protected' 
-                },
-                { 
-                  icon: RotateCcw, 
-                  label: config?.trustBadge3Title || 'Easy Returns', 
-                  desc: config?.trustBadge3Desc || '7 days policy' 
-                },
-              ].map((badge, idx) => (
-                <div key={idx} className="flex flex-col items-center text-center gap-2">
-                  <div className="p-2 bg-gray-50 rounded-full text-gray-400">
-                    <badge.icon className="w-5 h-5" />
+            {/* Trust Badges */}
+            {((config as any)?.trustBadges?.badges?.length > 0) ? (
+              <div className="grid grid-cols-3 gap-4 mt-8 pt-8 border-t border-gray-100">
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {(config as any)?.trustBadges?.badges.map((badge: any, idx: number) => {
+                  const Icon = badge.icon === 'truck' ? Truck : badge.icon === 'shield' ? ShieldCheck : badge.icon === 'refresh' ? RotateCcw : Star;
+                  return (
+                    <div key={idx} className="flex flex-col items-center text-center gap-2">
+                      <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 text-sm">{badge.title}</h4>
+                        <p className="text-xs text-gray-500">{badge.desc || badge.description}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-4 mt-8 pt-8 border-t border-gray-100">
+                {[
+                  { 
+                    icon: Truck, 
+                    label: config?.trustBadge1Title || 'Fast Delivery', 
+                    desc: config?.trustBadge1Desc || '2-4 business days' 
+                  },
+                  { 
+                    icon: ShieldCheck, 
+                    label: config?.trustBadge2Title || 'Secure Payment', 
+                    desc: config?.trustBadge2Desc || '100% protected' 
+                  },
+                  { 
+                    icon: RotateCcw, 
+                    label: config?.trustBadge3Title || 'Easy Returns', 
+                    desc: config?.trustBadge3Desc || '7 days policy' 
+                  },
+                ].map((badge, idx) => (
+                  <div key={idx} className="flex flex-col items-center text-center gap-2">
+                    <div className="p-2 bg-gray-50 rounded-full text-gray-400">
+                      <badge.icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 text-sm">{badge.label}</h4>
+                      <p className="text-xs text-gray-500">{badge.desc}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 text-sm">{badge.label}</h4>
-                    <p className="text-xs text-gray-500">{badge.desc}</p>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
+            )}
           </div>
         </div>
 

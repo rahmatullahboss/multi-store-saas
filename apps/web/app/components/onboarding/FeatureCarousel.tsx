@@ -1,8 +1,8 @@
 import { ShieldCheck, Truck, ThumbsUp, Lock } from 'lucide-react';
-import { useTranslation } from '~/contexts/LanguageContext';
+// import { useTranslation } from '~/contexts/LanguageContext';
 
 export function FeatureCarousel() {
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
 
   const features = [
     {

@@ -707,6 +707,12 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       themeConfig: {
         ...(ensureHomepageHasCatalogSection(storeThemeConfig, serializedProducts.length > 0) || {}),
         categoryImageMap,
+        announcement: unifiedSettings.announcement,
+        trustBadges: {
+      showPaymentIcons: false,
+      showGuaranteeSeals: false,
+      ...unifiedSettings.trustBadges,
+    },
       } as ThemeConfig,
       planType: validatedStore.planType || 'free',
       // AI Props

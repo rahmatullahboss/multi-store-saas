@@ -96,9 +96,14 @@ interface LiveConfig {
     discountType?: 'percent' | 'fixed';
   };
   trustBadges?: {
-    showPaymentIcons: boolean;
-    showGuaranteeSeals: boolean;
+    showPaymentIcons?: boolean;
+    showGuaranteeSeals?: boolean;
     customText?: string;
+    badges?: {
+      icon: string;
+      title: string;
+      description: string;
+    }[];
   };
   marketingPopup?: {
     isActive: boolean;
@@ -188,7 +193,7 @@ function ProductDetailView({
   product,
   onBack,
   onAddToCart,
-  currency,
+  currency: _currency,
   themeColors,
 }: {
   product: SerializedProduct;
@@ -336,7 +341,7 @@ function CartView({
   products,
   onBack,
   onCheckout,
-  currency,
+  currency: _currency,
   themeColors,
 }: {
   products: SerializedProduct[];
@@ -482,7 +487,7 @@ function CartView({
 function CheckoutView({
   products,
   onBack,
-  currency,
+  currency: _currency,
   themeColors,
 }: {
   products: SerializedProduct[];

@@ -15,38 +15,29 @@ import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/clo
 import {
   useLoaderData,
   Link,
-  Form,
-  useSubmit,
   useSearchParams,
-  useNavigation,
 } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { customers, orders, stores } from '@db/schema';
-import { eq, desc, and, or, like, sql } from 'drizzle-orm';
+import { customers, stores } from '@db/schema';
+import { eq, desc, and, or, like } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
 import { canExportCustomers, type PlanType } from '~/utils/plans.server';
 import {
   Users,
   Search,
-  Mail,
-  Phone,
-  ShoppingBag,
   Filter,
-  ArrowRight,
   UserPlus,
   MoreHorizontal,
   Download,
   Trash2,
   Tag,
 } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { PageHeader, EmptyState } from '~/components/ui';
 import { GlassCard } from '~/components/ui/GlassCard';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { formatPrice } from '~/utils/formatPrice';
-import { Badge } from '~/components/ui/Badge'; // Assuming we have this or I'll use simple span
 import { Button } from '~/components/ui/button';
-import { Input } from '~/components/ui/Input'; // Assuming we have this
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -147,16 +138,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 export default function CustomersListPage() {
   const {
     customers: allCustomers,
-    currency,
     filters,
     canExport,
-    planType,
   } = useLoaderData<typeof loader>();
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const submit = useSubmit();
-  const navigation = useNavigation();
-  const isLoading = navigation.state === 'loading';
 
   // Local state for search debounce
   const [searchQuery, setSearchQuery] = useState(filters.search);
@@ -183,35 +169,25 @@ export default function CustomersListPage() {
     setSearchParams(newParams);
   };
 
-  const formatDate = (date: string | Date | null) => {
-    if (!date) return '—';
-    const d = new Date(date);
-    return d.toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-BD', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
   const tabs = [
-    { id: 'all', label: t('allCustomers') || 'All' },
-    { id: 'vip', label: t('vipCustomers') || 'VIP' },
-    { id: 'new', label: t('newCustomers') || 'New' },
-    { id: 'returning', label: t('returningCustomers') || 'Returning' },
-    { id: 'window_shopper', label: t('windowShoppers') || 'Abandoned' },
+    { id: 'all', label: t('dashboard:allCustomers') || 'All' },
+    { id: 'vip', label: t('dashboard:vipCustomers') || 'VIP' },
+    { id: 'new', label: t('dashboard:newCustomers') || 'New' },
+    { id: 'returning', label: t('dashboard:returningCustomers') || 'Returning' },
+    { id: 'window_shopper', label: t('dashboard:windowShoppers') || 'Abandoned' },
   ];
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <PageHeader title={t('customersTitle')} description={t('customersDescription')} />
+        <PageHeader title={t('dashboard:customersTitle')} description={t('dashboard:customersDescription')} />
         <div className="flex items-center gap-2">
           {/* Export Button - Premium+ only */}
           {canExport ? (
             <Button variant="outline" size="sm" className="gap-2">
               <Download className="w-4 h-4" />
-              {t('export')}
+              {t('dashboard:export')}
             </Button>
           ) : (
             <Link to="/app/upgrade">
@@ -221,7 +197,7 @@ export default function CustomersListPage() {
                 className="gap-2 text-amber-600 border-amber-300 hover:bg-amber-50"
               >
                 <Download className="w-4 h-4" />
-                {t('export')}
+                {t('dashboard:export')}
                 <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full ml-1">
                   Premium
                 </span>
@@ -231,7 +207,7 @@ export default function CustomersListPage() {
           {/* Add Customer Button */}
           <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
             <UserPlus className="w-4 h-4" />
-            {t('addCustomer')}
+            {t('dashboard:addCustomer')}
           </Button>
         </div>
       </div>
@@ -265,7 +241,7 @@ export default function CustomersListPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder={t('searchCustomers')}
+                placeholder={t('dashboard:searchCustomers')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
@@ -274,7 +250,7 @@ export default function CustomersListPage() {
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <Button variant="outline" size="sm" className="gap-2 w-full sm:w-auto justify-center">
                 <Filter className="w-4 h-4" />
-                {t('moreFilters')}
+                {t('dashboard:moreFilters')}
               </Button>
             </div>
           </div>
@@ -285,8 +261,8 @@ export default function CustomersListPage() {
           <div className="flex-1 flex flex-col items-center justify-center p-12">
             <EmptyState
               icon={<Users className="w-10 h-10" />}
-              title={filters.search ? t('noCustomersMatchSearch') : t('noCustomersTitle')}
-              description={t('noCustomersDescription')}
+              title={filters.search ? t('dashboard:noCustomersMatchSearch') : t('dashboard:noCustomersTitle')}
+              description={t('dashboard:noCustomersDescription')}
             />
           </div>
         ) : (
@@ -300,11 +276,11 @@ export default function CustomersListPage() {
                       className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                     />
                   </th>
-                  <th className="px-6 py-3">{t('customerLabel')}</th>
-                  <th className="px-6 py-3">{t('status')}</th>
-                  <th className="px-6 py-3">{t('orders')}</th>
-                  <th className="px-6 py-3">{t('spent')}</th>
-                  <th className="px-6 py-3 pl-10 text-right">{t('actions')}</th>
+                  <th className="px-6 py-3">{t('dashboard:customerLabel')}</th>
+                  <th className="px-6 py-3">{t('dashboard:status')}</th>
+                  <th className="px-6 py-3">{t('dashboard:orders')}</th>
+                  <th className="px-6 py-3">{t('dashboard:spent')}</th>
+                  <th className="px-6 py-3 pl-10 text-right">{t('dashboard:actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white">
@@ -326,7 +302,7 @@ export default function CustomersListPage() {
                             to={`/app/customers/${customer.id}`}
                             className="font-medium text-gray-900 hover:text-emerald-600"
                           >
-                            {customer.name || t('guestLabel')}
+                            {customer.name || t('dashboard:guestLabel')}
                           </Link>
                           <div className="text-xs text-gray-500 mt-0.5">
                             {customer.email || customer.phone || 'No contact info'}
@@ -337,7 +313,7 @@ export default function CustomersListPage() {
                     <td className="px-6 py-4">
                       {customer.status === 'active' ? (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                          Active
+                          {t('dashboard:active')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 capitalize">
@@ -345,7 +321,7 @@ export default function CustomersListPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{customer.totalOrders || 0} orders</td>
+                    <td className="px-6 py-4 text-gray-600">{customer.totalOrders || 0} {t('dashboard:orders')}</td>
                     <td className="px-6 py-4 font-medium text-gray-900">
                       {formatPrice(customer.totalSpent || 0)}
                     </td>
@@ -357,18 +333,18 @@ export default function CustomersListPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuLabel>{t('dashboard:actions')}</DropdownMenuLabel>
                           <DropdownMenuItem asChild>
-                            <Link to={`/app/customers/${customer.id}`}>View Details</Link>
+                            <Link to={`/app/customers/${customer.id}`}>{t('dashboard:viewDetails')}</Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem>
                             <Tag className="w-4 h-4 mr-2" />
-                            Add Tags
+                            {t('dashboard:addTags')}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-red-600">
                             <Trash2 className="w-4 h-4 mr-2" />
-                            Delete Customer
+                            {t('dashboard:deleteCustomer')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -384,7 +360,7 @@ export default function CustomersListPage() {
         <div className="border-t border-gray-100 p-4 bg-gray-50/50 flex items-center justify-between text-sm text-gray-500">
           <div>
             {/* Showing 1-20 of 100 */}
-            {allCustomers.length > 0 && `Showing ${allCustomers.length} results`}
+            {allCustomers.length > 0 && t('dashboard:showingResults', { count: allCustomers.length })}
           </div>
           <div className="flex gap-2">
             <Button
@@ -397,7 +373,7 @@ export default function CustomersListPage() {
                 setSearchParams(newParams);
               }}
             >
-              Previous
+              {t('dashboard:previous')}
             </Button>
             <Button
               variant="outline"
@@ -409,7 +385,7 @@ export default function CustomersListPage() {
                 setSearchParams(newParams);
               }}
             >
-              Next
+              {t('dashboard:next')}
             </Button>
           </div>
         </div>

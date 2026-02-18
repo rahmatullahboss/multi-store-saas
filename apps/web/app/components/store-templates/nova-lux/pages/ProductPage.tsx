@@ -12,6 +12,7 @@ import {
   Heart,
   Truck,
   Package,
+  ShieldCheck,
 } from 'lucide-react';
 import type { StoreTemplateTheme } from '~/templates/store-registry';
 
@@ -65,6 +66,8 @@ interface NovaLuxProductPageProps {
   isPreview?: boolean;
   templateId?: string;
   onNavigate?: (path: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  config?: any; // Theme config
 }
 
 function AccordionItem({
@@ -111,6 +114,7 @@ export function NovaLuxProductPage({
   isPreview = false,
   templateId: propTemplateId,
   onNavigate,
+  config,
 }: NovaLuxProductPageProps) {
   const params = useParams();
   const templateId = propTemplateId || params.templateId;
@@ -460,6 +464,28 @@ export function NovaLuxProductPage({
                  </div>
                </AccordionItem>
             </div>
+
+            {/* Trust Badges - Powered by Unified Settings */}
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {((config as any)?.trustBadges?.badges?.length > 0) && (
+                <div className="grid grid-cols-3 gap-4 mt-8 pt-8 border-t" style={{ borderColor: colors.muted + '30' }}>
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  {(config as any)?.trustBadges?.badges.map((badge: any, idx: number) => {
+                    const Icon = badge.icon === 'truck' ? Truck : badge.icon === 'shield' ? ShieldCheck : badge.icon === 'refresh' ? RotateCcw : Star;
+                    return (
+                      <div key={idx} className="flex flex-col items-center text-center gap-2">
+                        <div className="p-2 rounded-full" style={{ backgroundColor: colors.background, color: colors.muted }}>
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-sm" style={{ color: colors.text }}>{badge.title}</h4>
+                          <p className="text-xs" style={{ color: colors.muted }}>{badge.description}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+            )}
           </div>
         </div>
 

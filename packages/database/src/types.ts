@@ -427,9 +427,14 @@ export interface ThemeConfig {
     discountType?: 'percent' | 'fixed';
   };
   trustBadges?: {
-    showPaymentIcons: boolean;
-    showGuaranteeSeals: boolean;
+    showPaymentIcons?: boolean;
+    showGuaranteeSeals?: boolean;
     customText?: string;
+    badges?: {
+      icon: string;
+      title: string;
+      description: string;
+    }[];
   };
   marketingPopup?: {
     isActive: boolean;

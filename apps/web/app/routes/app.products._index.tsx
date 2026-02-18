@@ -15,7 +15,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remi
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData, Link, Form, useNavigation, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, desc, inArray, sql, and, like, count, or } from 'drizzle-orm';
+import { eq, desc, inArray, and, or } from 'drizzle-orm';
 import {
   products,
   stores,
@@ -45,7 +45,6 @@ import {
   Archive,
   Rocket,
   Check,
-  Copy,
   Star,
 } from 'lucide-react';
 import { useState, useMemo, useCallback, useEffect } from 'react';
@@ -243,7 +242,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export default function ProductsIndexPage() {
   const {
     products: storeProducts,
-    currency,
     stats,
     storeSubdomain,
     storeCustomDomain,
@@ -254,7 +252,7 @@ export default function ProductsIndexPage() {
   const navigation = useNavigation();
   const [searchParams, setSearchParams] = useSearchParams();
   const isSubmitting = navigation.state === 'submitting';
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
 
   // Filter state from URL
   const statusFilter = searchParams.get('status') || 'all';
@@ -286,11 +284,11 @@ export default function ProductsIndexPage() {
 
   // Status tabs configuration
   const statusTabs = [
-    { id: 'all', label: t('allOrders'), count: stats.total },
-    { id: 'published', label: t('publishedStatus'), count: stats.published },
-    { id: 'draft', label: t('draftStatus'), count: stats.draft },
-    { id: 'low-stock', label: t('lowStock'), count: stats.lowStock },
-    { id: 'out-of-stock', label: t('outOfStockLabel'), count: stats.outOfStock },
+    { id: 'all', label: t('dashboard:allProducts'), count: stats.total },
+    { id: 'published', label: t('dashboard:publishedStatus'), count: stats.published },
+    { id: 'draft', label: t('dashboard:draftStatus'), count: stats.draft },
+    { id: 'low-stock', label: t('dashboard:lowStock'), count: stats.lowStock },
+    { id: 'out-of-stock', label: t('dashboard:outOfStockLabel'), count: stats.outOfStock },
   ];
 
   // Filter products based on status and search
@@ -385,15 +383,15 @@ export default function ProductsIndexPage() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <p className="text-amber-800 font-medium">{t('productLimitReached')}</p>
+            <p className="text-amber-800 font-medium">{t('dashboard:productLimitReached')}</p>
             <p className="text-amber-700 text-sm mt-1">
-              {productLimitMessage || t('productLimitDesc')}
+              {productLimitMessage || t('dashboard:productLimitDesc')}
             </p>
             <Link
               to="/app/billing"
               className="inline-flex items-center gap-1 text-sm font-medium text-amber-800 hover:text-amber-900 mt-2"
             >
-              {t('upgradePlan')} →
+              {t('dashboard:upgradePlan')} →
             </Link>
           </div>
         </div>
@@ -401,12 +399,12 @@ export default function ProductsIndexPage() {
 
       {/* Header */}
       <PageHeader
-        title={t('products')}
-        description={t('manageProductCatalog')}
+        title={t('dashboard:products')}
+        description={t('dashboard:manageProductCatalog')}
         primaryAction={
           canAddProduct
             ? {
-                label: t('addProduct'),
+                label: t('dashboard:addProduct'),
                 href: '/app/products/new',
                 icon: <Plus className="w-4 h-4" />,
               }
@@ -417,25 +415,25 @@ export default function ProductsIndexPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
-          label={t('totalProducts')}
+          label={t('dashboard:totalProducts')}
           value={stats.total}
           icon={<Package className="w-5 h-5" />}
           color="blue"
         />
         <StatCard
-          label={t('publishedStatus')}
+          label={t('dashboard:publishedStatus')}
           value={stats.published}
           icon={<CheckCircle className="w-5 h-5" />}
           color="emerald"
         />
         <StatCard
-          label={t('draftStatus')}
+          label={t('dashboard:draftStatus')}
           value={stats.draft}
           icon={<Archive className="w-5 h-5" />}
           color="gray"
         />
         <StatCard
-          label={t('lowStock')}
+          label={t('dashboard:lowStock')}
           value={stats.lowStock + stats.outOfStock}
           icon={<AlertTriangle className="w-5 h-5" />}
           color={stats.lowStock + stats.outOfStock > 0 ? 'red' : 'gray'}
@@ -447,7 +445,7 @@ export default function ProductsIndexPage() {
       <div className="flex flex-col md:flex-row gap-4">
         {/* Search */}
         <SearchInput
-          placeholder={t('searchByProductHint') || t('searchByOrderNumber')}
+          placeholder={t('dashboard:searchByProductHint')}
           value={searchQuery}
           onChange={setSearchQuery}
           className="w-full md:w-80"
@@ -463,7 +461,7 @@ export default function ProductsIndexPage() {
       {selectedIds.size > 0 && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <span className="text-emerald-800 font-medium">
-            {selectedIds.size} {t('productsSelected')}
+            {selectedIds.size} {t('dashboard:productsSelected')}
           </span>
           <div className="flex flex-wrap items-center gap-2">
             <Form method="post" className="inline">
@@ -477,7 +475,7 @@ export default function ProductsIndexPage() {
                 disabled={isSubmitting}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
               >
-                <Eye className="w-4 h-4" /> {t('publish')}
+                <Eye className="w-4 h-4" /> {t('dashboard:publish')}
               </button>
             </Form>
             <Form method="post" className="inline">
@@ -491,7 +489,7 @@ export default function ProductsIndexPage() {
                 disabled={isSubmitting}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
               >
-                <EyeOff className="w-4 h-4" /> {t('unpublish')}
+                <EyeOff className="w-4 h-4" /> {t('dashboard:unpublish')}
               </button>
             </Form>
             {/* Delete button - opens confirmation modal */}
@@ -501,13 +499,13 @@ export default function ProductsIndexPage() {
               disabled={isSubmitting || !isHydrated}
               className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:opacity-50"
             >
-              <Trash2 className="w-4 h-4" /> {t('delete')}
+              <Trash2 className="w-4 h-4" /> {t('dashboard:delete')}
             </button>
             <button
               onClick={clearSelection}
               className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 transition"
             >
-              {t('cancel')}
+              {t('dashboard:cancel')}
             </button>
           </div>
         </div>
@@ -518,12 +516,12 @@ export default function ProductsIndexPage() {
         <GlassCard intensity="low" className="overflow-hidden">
           <EmptyState
             icon={<Package className="w-10 h-10" />}
-            title={t('noProductsFound')}
-            description={t('clearSearch')}
+            title={t('dashboard:noProductsFound')}
+            description={t('dashboard:clearSearch')}
             action={
               canAddProduct
                 ? {
-                    label: t('addNewProduct'),
+                    label: t('dashboard:addNewProduct'),
                     href: '/app/products/new',
                     icon: <Plus className="w-4 h-4" />,
                   }
@@ -534,7 +532,7 @@ export default function ProductsIndexPage() {
       ) : filteredProducts.length === 0 ? (
         <GlassCard intensity="low" className="p-12 text-center">
           <p className="text-gray-500">
-            {t('noProductsMatchFilters')}
+            {t('dashboard:noProductsMatchFilters')}
           </p>
           <button
             onClick={() => {
@@ -543,7 +541,7 @@ export default function ProductsIndexPage() {
             }}
             className="mt-3 text-emerald-600 hover:text-emerald-700 font-medium"
           >
-            {t('clearFilters')}
+            {t('dashboard:clearFilters')}
           </button>
         </GlassCard>
       ) : (
@@ -564,25 +562,25 @@ export default function ProductsIndexPage() {
                     />
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('product')}
+                    {t('dashboard:product')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('status')}
+                    {t('dashboard:status')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('stock')}
+                    {t('dashboard:stock')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('price')}
+                    {t('dashboard:price')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('category')}
+                    {t('dashboard:category')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('sales7d')}
+                    {t('dashboard:sales7d')}
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('actions')}
+                    {t('dashboard:actions')}
                   </th>
                 </tr>
               </thead>
@@ -627,7 +625,7 @@ export default function ProductsIndexPage() {
                                 title="This is your featured product in Landing Mode"
                               >
                                 <Star className="w-3 h-3 fill-amber-400" />
-                                {t('primary')}
+                                {t('dashboard:primary')}
                               </span>
                             )}
                           </div>
@@ -646,13 +644,13 @@ export default function ProductsIndexPage() {
                       )}
                     </td>
                     <td className="px-4 py-4">
-                      <StockBadge stock={product.inventory || 0} lang={lang} />
+                      <StockBadge stock={product.inventory || 0} />
                     </td>
                     <td className="px-4 py-4">
                       <span className="text-gray-600">{product.category || '—'}</span>
                     </td>
                     <td className="px-4 py-4">
-                      <StatusBadge published={product.isPublished ?? true} lang={lang} />
+                      <StatusBadge published={product.isPublished ?? true} />
                     </td>
                     <td className="px-4 py-4 text-right">
                       <div className="inline-flex items-center gap-2">
@@ -677,12 +675,12 @@ export default function ProductsIndexPage() {
                           {copiedProductId === product.id ? (
                             <>
                               <Check className="w-4 h-4" />
-                              {t('adLinkCopied')}
+                              {t('dashboard:adLinkCopied')}
                             </>
                           ) : (
                             <>
                               <Rocket className="w-4 h-4" />
-                              {t('adLink')}
+                              {t('dashboard:adLink')}
                             </>
                           )}
                         </button>
@@ -692,7 +690,7 @@ export default function ProductsIndexPage() {
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded-lg transition"
                         >
                           <Pencil className="w-4 h-4" />
-                          {t('edit')}
+                          {t('dashboard:edit')}
                         </Link>
                       </div>
                     </td>
@@ -742,13 +740,13 @@ export default function ProductsIndexPage() {
                           </span>
                         )}
                       </div>
-                      <StatusBadge published={product.isPublished ?? true} lang={lang} />
+                      <StatusBadge published={product.isPublished ?? true} />
                     </div>
                     <div className="mt-1 flex items-center gap-4 text-sm">
                       <span className="font-semibold text-gray-900">
                         {formatPrice(product.price)}
                       </span>
-                      <StockBadge stock={product.inventory || 0} lang={lang} />
+                      <StockBadge stock={product.inventory || 0} />
                     </div>
                     {product.category && (
                       <p className="mt-1 text-xs text-gray-500">{product.category}</p>
@@ -775,12 +773,12 @@ export default function ProductsIndexPage() {
                         {copiedProductId === product.id ? (
                           <>
                             <Check className="w-4 h-4" />
-                            {t('copied')}
+                            {t('dashboard:copied')}
                           </>
                         ) : (
                           <>
                             <Rocket className="w-4 h-4" />
-                            {t('adLink')}
+                            {t('dashboard:adLink')}
                           </>
                         )}
                       </button>
@@ -790,7 +788,7 @@ export default function ProductsIndexPage() {
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded-lg transition"
                       >
                         <Pencil className="w-4 h-4" />
-                        {t('edit')}
+                        {t('dashboard:edit')}
                       </Link>
                     </div>
                   </div>
@@ -853,7 +851,7 @@ export default function ProductsIndexPage() {
 // ============================================================================
 // STATUS BADGE COMPONENT
 // ============================================================================
-function StatusBadge({ published, lang }: { published: boolean; lang: string }) {
+function StatusBadge({ published }: { published: boolean }) {
   const { t } = useTranslation();
   const label = published ? t('publishedStatus') : t('draftStatus');
   return (
@@ -872,7 +870,7 @@ function StatusBadge({ published, lang }: { published: boolean; lang: string }) 
 // ============================================================================
 // STOCK BADGE COMPONENT
 // ============================================================================
-function StockBadge({ stock, lang }: { stock: number; lang: string }) {
+function StockBadge({ stock }: { stock: number }) {
   const { t } = useTranslation();
   
   if (stock <= 0) {

@@ -387,13 +387,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // STATUS OPTIONS (MOVE KEY TO TRANSLATION AT RENDER TIME)
 // ============================================================================
 const statusOptionsKeys = [
-  { value: 'pending', labelKey: 'pending' },
-  { value: 'confirmed', labelKey: 'confirmed' },
-  { value: 'processing', labelKey: 'processingOrders' },
-  { value: 'shipped', labelKey: 'shippedOrders' },
-  { value: 'delivered', labelKey: 'deliveredOrders' },
-  { value: 'cancelled', labelKey: 'cancelledOrders' },
-  { value: 'returned', labelKey: 'returnedOrders' },
+  { value: 'pending', labelKey: 'dashboard:pending' },
+  { value: 'confirmed', labelKey: 'dashboard:confirmed' },
+  { value: 'processing', labelKey: 'dashboard:processingOrders' },
+  { value: 'shipped', labelKey: 'dashboard:shippedOrders' },
+  { value: 'delivered', labelKey: 'dashboard:deliveredOrders' },
+  { value: 'cancelled', labelKey: 'dashboard:cancelledOrders' },
+  { value: 'returned', labelKey: 'dashboard:returnedOrders' },
 ] as const;
 
 // ============================================================================
@@ -410,14 +410,14 @@ export default function DashboardOrdersPage() {
 
   // Status tabs configuration
   const statusTabs = [
-    { id: 'all', label: t('allOrders'), count: stats.total },
-    { id: 'pending', label: t('pending'), count: stats.pending },
-    { id: 'confirmed', label: t('confirmed'), count: stats.confirmed },
-    { id: 'processing', label: t('processingOrders'), count: stats.processing },
-    { id: 'shipped', label: t('shippedOrders'), count: stats.shipped },
-    { id: 'delivered', label: t('deliveredOrders'), count: stats.delivered },
-    { id: 'cancelled', label: t('cancelledOrders'), count: stats.cancelled },
-    { id: 'returned', label: t('returnedOrders'), count: stats.returned },
+    { id: 'all', label: t('dashboard:allOrders'), count: stats.total },
+    { id: 'pending', label: t('dashboard:pending'), count: stats.pending },
+    { id: 'confirmed', label: t('dashboard:confirmed'), count: stats.confirmed },
+    { id: 'processing', label: t('dashboard:processingOrders'), count: stats.processing },
+    { id: 'shipped', label: t('dashboard:shippedOrders'), count: stats.shipped },
+    { id: 'delivered', label: t('dashboard:deliveredOrders'), count: stats.delivered },
+    { id: 'cancelled', label: t('dashboard:cancelledOrders'), count: stats.cancelled },
+    { id: 'returned', label: t('dashboard:returnedOrders'), count: stats.returned },
   ];
 
   // Filter orders
@@ -480,31 +480,31 @@ export default function DashboardOrdersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <PageHeader title={t('orders')} description={t('manageCustomerOrders')} />
+      <PageHeader title={t('dashboard:orders')} description={t('dashboard:manageCustomerOrders')} />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
-          label={t('totalOrders')}
+          label={t('dashboard:totalOrders')}
           value={stats.total}
           icon={<ShoppingCart className="w-5 h-5" />}
           color="blue"
         />
         <StatCard
-          label={t('pending')}
+          label={t('dashboard:pending')}
           value={stats.pending}
           icon={<Clock className="w-5 h-5" />}
           color={stats.pending > 0 ? 'yellow' : 'gray'}
           href="/app/orders?status=pending"
         />
         <StatCard
-          label={t('deliveredOrders')}
+          label={t('dashboard:deliveredOrders')}
           value={stats.delivered}
           icon={<CheckCircle className="w-5 h-5" />}
           color="emerald"
         />
         <StatCard
-          label={t('totalRevenue')}
+          label={t('dashboard:totalRevenue')}
           value={formatPrice(stats.revenue)}
           icon={<DollarSign className="w-5 h-5" />}
           color="purple"
@@ -518,7 +518,7 @@ export default function DashboardOrdersPage() {
           className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-sm font-medium transition border border-red-200"
         >
           <PackageX className="w-4 h-4" />
-          {t('viewReturnParcels')}
+          {t('dashboard:viewReturnParcels')}
         </Link>
       </div>
 
@@ -526,7 +526,7 @@ export default function DashboardOrdersPage() {
       <div className="flex flex-col md:flex-row gap-4">
         {/* Search */}
         <SearchInput
-          placeholder={t('searchByOrderHint')}
+          placeholder={t('dashboard:searchByOrderHint')}
           value={searchQuery}
           onChange={setSearchQuery}
           className="w-full md:w-80"
@@ -543,17 +543,17 @@ export default function DashboardOrdersPage() {
         <GlassCard intensity="low" className="overflow-hidden">
           <EmptyState
             icon={<ShoppingCart className="w-10 h-10" />}
-            title={t('noOrdersYet')}
-            description={t('noOrdersDescription')}
+            title={t('dashboard:noOrdersYet')}
+            description={t('dashboard:noOrdersDescription')}
             action={{
-              label: t('viewStore'),
+              label: t('dashboard:viewStore'),
               href: '/',
             }}
           />
         </GlassCard>
       ) : filteredOrders.length === 0 ? (
         <GlassCard intensity="low" className="p-12 text-center">
-          <p className="text-gray-500">{t('noOrdersMatchFilters')}</p>
+          <p className="text-gray-500">{t('dashboard:noOrdersMatchFilters')}</p>
           <button
             onClick={() => {
               setSearchQuery('');
@@ -561,7 +561,7 @@ export default function DashboardOrdersPage() {
             }}
             className="mt-3 text-emerald-600 hover:text-emerald-700 font-medium"
           >
-            {t('clearFilters')}
+            {t('dashboard:clearFilters')}
           </button>
         </GlassCard>
       ) : (
@@ -572,22 +572,22 @@ export default function DashboardOrdersPage() {
               <thead className="bg-gray-50/50 border-b border-gray-100">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('order')}
+                    {t('dashboard:order')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('date')}
+                    {t('dashboard:date')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('customer')}
+                    {t('dashboard:customer')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('total')}
+                    {t('dashboard:total')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('status')}
+                    {t('dashboard:status')}
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('actions')}
+                    {t('dashboard:actions')}
                   </th>
                 </tr>
               </thead>
@@ -662,7 +662,7 @@ export default function DashboardOrdersPage() {
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded-lg transition"
                         >
                           <Eye className="w-4 h-4" />
-                          {t('view')}
+                          {t('dashboard:view')}
                         </Link>
                       </div>
                     </td>
@@ -837,7 +837,7 @@ interface FraudCheckResult {
 }
 
 function FraudCheckButton({ orderId, currentStatus }: { orderId: number; currentStatus: string }) {
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   const fetcher = useFetcher<{
     success?: boolean;
     riskResult?: FraudCheckResult;
@@ -888,7 +888,7 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
       ) : (
         <Shield className="w-3.5 h-3.5" />
       )}
-      {lang === 'bn' ? 'চেক' : 'Check'}
+      {t('dashboard:check')}
     </button>
   );
 }
@@ -942,7 +942,7 @@ function SendToCourierButton({
         type="submit"
         disabled={isSubmitting}
         onClick={(e) => {
-          if (!confirm(`Are you sure you want to send order ${orderNumber} to ${courierProvider}?`)) {
+          if (!confirm(t('dashboard:confirmSendToCourier', { orderNumber, courierProvider }))) {
             e.preventDefault();
           }
         }}

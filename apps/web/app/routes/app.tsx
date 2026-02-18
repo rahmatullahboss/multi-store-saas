@@ -66,6 +66,10 @@ const OzzylIcon = ({ className }: { className?: string }) => {
   );
 };
 
+export const handle = {
+  i18n: 'dashboard',
+};
+
 export const meta: MetaFunction = () => {
   return [{ title: 'Dashboard - Ozzyl' }];
 };

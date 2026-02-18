@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { useTranslation } from '~/contexts/LanguageContext';
+// import { useTranslation } from '~/contexts/LanguageContext';
 
 interface OnboardingLayoutProps {
   children: ReactNode;
@@ -7,7 +7,7 @@ interface OnboardingLayoutProps {
 }
 
 export function OnboardingLayout({ children, featureComponent }: OnboardingLayoutProps) {
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">

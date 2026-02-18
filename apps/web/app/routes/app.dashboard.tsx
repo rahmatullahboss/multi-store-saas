@@ -204,14 +204,14 @@ export default function DashboardPage() {
     clv,
     recentOrders,
   } = useLoaderData<typeof loader>();
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   // Get translated greeting
   const getGreeting = () => {
-    if (greeting === 'Good morning') return t('goodMorning');
-    if (greeting === 'Good afternoon') return t('goodAfternoon');
-    return t('goodEvening');
+    if (greeting === 'Good morning') return t('dashboard:goodMorning');
+    if (greeting === 'Good afternoon') return t('dashboard:goodAfternoon');
+    return t('dashboard:goodEvening');
   };
 
   return (
@@ -241,10 +241,10 @@ export default function DashboardPage() {
               </span>
             </div>
             <h1 className="text-3xl md:text-4xl font-bold mb-3 tracking-tight">
-              {t('welcomeTo')} {storeName}
+              {t('dashboard:welcomeTo')} {storeName}
             </h1>
             <p className="text-emerald-100 text-lg max-w-xl leading-relaxed">
-              {t('dashboardSubtitle')}
+              {t('dashboard:dashboardSubtitle')}
             </p>
           </div>
           <div className="flex flex-col gap-3">
@@ -256,23 +256,23 @@ export default function DashboardPage() {
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-emerald-900 hover:bg-emerald-50 rounded-xl font-semibold shadow-lg shadow-emerald-900/20 transition-all duration-300 transform hover:-translate-y-1"
               >
                 <ExternalLink className="w-5 h-5" />
-                {t('viewStore')}
+                {t('dashboard:viewStore')}
               </a>
               {/* Theme Editor - Coming Soon for MVP */}
               <button
                 disabled
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/20 text-white/60 border border-white/20 rounded-xl font-semibold backdrop-blur-sm cursor-not-allowed relative"
-                title={lang === 'bn' ? 'শীঘ্রই আসছে' : 'Coming Soon'}
+                title={t('dashboard:comingSoon')}
               >
                 <Sparkles className="w-5 h-5" />
-                {lang === 'bn' ? 'থিম এডিটর' : 'Theme Editor'}
+                {t('dashboard:themeEditor')}
                 <span className="absolute -top-2 -right-2 bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
-                  {lang === 'bn' ? 'শীঘ্রই' : 'Soon'}
+                  {t('dashboard:soonLabel')}
                 </span>
               </button>
             </div>
             <div className="text-xs text-center text-emerald-200/80 font-medium">
-              {storeEnabled ? 'Store is Live' : 'Maintenance Mode'}
+              {storeEnabled ? t('dashboard:storeIsLive') : t('dashboard:maintenanceMode')}
             </div>
           </div>
         </div>
@@ -294,13 +294,13 @@ export default function DashboardPage() {
             <DollarSign className="w-16 h-16 text-emerald-500/10 rotate-12" />
           </div>
           <MetricCard
-            title={t('todaysSales')}
+            title={t('dashboard:todaysSales')}
             value={formatPrice(stats.todaySales)}
             icon={DollarSign}
             color="emerald"
             trend={{
               value: stats.salesTrend,
-              label: t('vsYesterday'),
+              label: t('dashboard:vsYesterday'),
             }}
           />
         </GlassCard>
@@ -314,7 +314,7 @@ export default function DashboardPage() {
             <TrendingUp className="w-16 h-16 text-purple-500/10 rotate-12" />
           </div>
           <MetricCard
-            title={t('totalRevenue')}
+            title={t('dashboard:totalRevenue')}
             value={formatPrice(stats.revenue)}
             icon={TrendingUp}
             color="purple"
@@ -330,7 +330,7 @@ export default function DashboardPage() {
             <Clock className="w-16 h-16 text-blue-500/10 rotate-12" />
           </div>
           <MetricCard
-            title={t('pendingOrders')}
+            title={t('dashboard:pendingOrders')}
             value={stats.pendingOrders}
             icon={Clock}
             color={stats.pendingOrders > 0 ? 'orange' : 'blue'}
@@ -347,7 +347,7 @@ export default function DashboardPage() {
             <Package className="w-16 h-16 text-blue-500/10 rotate-12" />
           </div>
           <MetricCard
-            title={t('totalProducts')}
+            title={t('dashboard:totalProducts')}
             value={stats.products}
             icon={Package}
             color="blue"
@@ -365,13 +365,13 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-gray-500 text-sm font-medium">
-                    {t('aiCredits') || 'AI Credits'}
+                    {t('dashboard:aiCredits')}
                   </p>
                   <h3 className="text-2xl font-bold text-gray-900 mt-1">
                     {usage.aiCredits.current}
                     <span className="text-sm font-normal text-gray-400">
                       {' '}
-                      {t('available') || 'Available'}
+                      {t('dashboard:available')}
                     </span>
                   </h3>
                 </div>
@@ -383,19 +383,19 @@ export default function DashboardPage() {
                 {usage.aiCredits.current < 10 && (
                   <p className="text-xs text-orange-600 font-medium flex items-center gap-1">
                     <AlertTriangle className="w-3 h-3" />
-                    {t('lowCredits') || 'Low Credits'}
+                    {t('dashboard:lowCredits')}
                     <Link
                       to="/app/billing"
                       className="ml-1 underline font-bold hover:text-orange-700"
                     >
-                      {t('topUp') || 'Top Up'}
+                      {t('dashboard:topUp')}
                     </Link>
                   </p>
                 )}
                 {usage.aiCredits.current >= 10 && (
                    <p className="text-xs text-purple-600 font-medium flex items-center gap-1">
                     <Sparkles className="w-3 h-3" />
-                    {t('active') || 'Active'}
+                    {t('dashboard:active')}
                    </p>
                 )}
               </div>
@@ -411,8 +411,8 @@ export default function DashboardPage() {
           <GlassCard intensity="low" className="p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-bold text-gray-900">{t('salesOverview')}</h2>
-                <p className="text-sm text-gray-500">{t('last7Days')}</p>
+                <h2 className="text-lg font-bold text-gray-900">{t('dashboard:salesOverview')}</h2>
+                <p className="text-sm text-gray-500">{t('dashboard:last7Days')}</p>
               </div>
               <div className="p-2 bg-gray-50 rounded-lg">
                 <BarChart3 className="w-5 h-5 text-gray-400" />
@@ -424,12 +424,12 @@ export default function DashboardPage() {
           {/* Recent Orders */}
           <GlassCard intensity="low" className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">{t('recentOrders')}</h2>
+              <h2 className="text-lg font-bold text-gray-900">{t('dashboard:recentOrders')}</h2>
               <Link
                 to="/app/orders"
                 className="text-sm text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1 hover:gap-2 transition-all"
               >
-                {t('viewAll')} <ArrowRight className="w-4 h-4" />
+                {t('dashboard:viewAll')} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
             <RecentOrders orders={recentOrders} currency={currency} />
@@ -444,7 +444,7 @@ export default function DashboardPage() {
           <GlassCard intensity="low" className="p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-              {t('actionItems')}
+              {t('dashboard:actionItems')}
             </h2>
             <ActionItems items={actionItems} />
           </GlassCard>
@@ -494,7 +494,7 @@ export default function DashboardPage() {
               <action.icon className="w-7 h-7" />
             </div>
             <span className="font-semibold text-gray-700 group-hover:text-gray-900">
-              {t(action.label)}
+              {t(`dashboard:${action.label}`)}
             </span>
           </Link>
         ))}
