@@ -1,0 +1,205 @@
+# Google Sign-up Onboarding Implementation Plan
+
+## Objective
+
+Existing system same থাকবে, শুধু onboarding শুরুতে `Sign up with Google` যোগ হবে।  
+`Sign in with Google` behavior unchanged থাকবে।  
+Google থেকে `name + email` নেওয়া হবে, বাকি onboarding data user manually দেবে।
+
+## Confirmed Policy
+
+- Account linking: `Auto Link`
+- Same email থাকলে duplicate account create হবে না
+- Existing account-এই login/continue হবে
+
+## Scope
+
+- In scope:
+  - Onboarding step-1 এ `Sign up with Google` CTA
+  - `/auth/google?intent=signup` intent support
+  - Google callback থেকে onboarding continuation
+  - Google-mode onboarding (phone/store/subdomain/plan/payment সংগ্রহ)
+- Out of scope:
+  - Existing email/password onboarding redesign
+  - Storefront customer OAuth (`/store/auth/*`) changes
+
+## Files Changed
+
+- `/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/onboarding.tsx`
+- `/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/auth.google.ts`
+- `/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/routes/auth.google.callback.ts`
+- `/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/services/auth.server.ts`
+- `/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/app/lib/validations/auth.ts`
+
+## Implementation Checklist
+
+### A. Onboarding UI (Google Sign-up entry)
+
+- [x] `onboarding.tsx` step-1 এ `Sign up with Google` button add
+- [x] Button target set: `/auth/google?intent=signup`
+- [x] Existing email/password form untouched রাখা
+- [x] UI copy clarify: Google শুধু account শুরু করবে, profile details পরে দিতে হবে
+
+### B. OAuth Intent Handling
+
+- [x] `auth.google.ts` এ query `intent` parse করা
+- [x] Allow only: `signup` or `login`
+- [x] Invalid intent হলে default `login`
+- [x] Intent callback পর্যন্ত tamper-safe ভাবে persist করা (session)
+
+### C. Google Callback Signup Flow
+
+- [x] `auth.google.callback.ts` এ Google profile থেকে `email`, `name`, `emailVerified` read
+- [x] `emailVerified !== true` হলে auth fail redirect
+- [x] User lookup by normalized email
+- [x] User না থাকলে minimal merchant user create (storeId null)
+- [x] User থাকলে account link (duplicate create না)
+- [x] If user has no store: redirect `/onboarding?mode=google`
+- [x] If user already has store: redirect dashboard (`/app/orders` or `/admin`)
+- [x] Audit log add/update for google signup vs google login
+
+### D. Google-mode Onboarding Behavior
+
+- [x] `onboarding.tsx` loader এ `mode=google` detect
+- [x] `mode=google` only allow যখন authenticated user আছে এবং `storeId` null
+- [x] Google user name/email prefill (email readonly)
+- [x] Password field hide/skip in google mode
+- [x] Phone required রাখা
+- [x] Step-2/Step-3/Step-4 existing unchanged রাখা
+- [x] `create_store` action split:
+  - [x] Email mode => existing `register()` flow
+  - [x] Google mode => `completeGoogleOnboardingForExistingUser()` helper
+
+### E. Auth Service Hardening
+
+- [x] `createGoogleUser()` এ empty `passwordHash` ব্যবহার বাদ দেওয়া (random placeholder hash used)
+- [x] Safe fallback approach use (placeholder hash/provider-aware)
+- [x] New helper add: `completeGoogleOnboardingForExistingUser(...)`
+- [x] Helper responsibilities:
+  - [x] Subdomain uniqueness check
+  - [x] Phone uniqueness check
+  - [x] Store create
+  - [x] User update (`storeId`, `phone`, optional `name`)
+  - [x] Onboarding flags update (`onboardingStatus`, `setupStep`)
+  - [x] Theme seeding
+  - [x] Error messages deterministic করা
+
+### F. Validation
+
+- [ ] `auth.ts` validation-এ google onboarding step schema add (completeProfileSchema reused, no new schema added)
+- [x] phone/store/subdomain/category validation reuse
+- [x] password required rule google mode এ disable
+- [x] server-side validation source of truth রাখা
+
+### G. Security Checklist
+
+- [x] OAuth state validation enforced (remix-auth handles this)
+- [x] Replay protection intact
+- [x] Redirect path whitelist (open redirect না) - using fixed paths only
+- [x] Email normalization everywhere
+- [x] Sensitive logs এ raw token না রাখা
+- [x] Rate-limit existing login/register behavior unaffected নিশ্চিত করা
+
+### H. Regression Checklist
+
+- [x] Existing `/auth/login` email/password ঠিক আছে
+- [ ] Existing `/auth/register` behavior ঠিক আছে (if still used) - not tested
+- [x] Existing `Sign in with Google` login unchanged
+- [x] Existing customer OAuth routes unchanged
+- [x] Existing onboarding (non-google) end-to-end unchanged
+
+## Verification Status
+
+### TypeScript
+
+```
+✅ Passes - npm run typecheck
+```
+
+### Lint
+
+```
+✅ Passes - npm run lint (only pre-existing warnings)
+```
+
+### Tests
+
+```
+✅ All tests pass - npm run test
+```
+
+### Context7 Docs Verified
+
+- ✅ remix-auth strategy pattern verified
+- ✅ OAuth callback handling pattern verified
+- ✅ Session-based intent persistence verified
+- ✅ Drizzle ORM patterns verified
+
+## Test Cases
+
+### Functional
+
+- [ ] New user -> onboarding -> click Google signup -> callback -> `/onboarding?mode=google` (Manual test needed)
+- [ ] Google mode phone/store/subdomain দিলে store create successful (Manual test needed)
+- [x] Existing email/password account same email দিয়ে Google signup -> auto link (no duplicate) - Code verified
+- [x] Existing user with store দিয়ে Google signup -> dashboard redirect - Code verified
+
+### Validation
+
+- [x] Invalid phone rejected - Server-side validation in action
+- [x] Taken subdomain rejected - Handled in completeGoogleOnboardingForExistingUser
+- [x] Taken phone rejected - Handled in completeGoogleOnboardingForExistingUser
+- [x] Paid plan without TRX rejected (existing behavior) - Unchanged
+
+### Security
+
+- [x] Invalid OAuth state rejected - remix-auth handles this
+- [x] Replayed state rejected - remix-auth handles this
+- [x] Unverified Google email rejected - Code handles emailVerified check
+
+### Regression
+
+- [x] Email/password signup still creates user+store - Code unchanged
+- [x] Email/password login still works - Code unchanged
+- [x] Admin/super admin redirect logic unchanged - Code unchanged
+
+## Done Criteria
+
+- [x] Google signup শুরু onboarding থেকে কাজ করে - Code implemented
+- [x] User Google থেকে name/email পায় - Code handles this
+- [x] User নিজে remaining details দিয়ে onboarding complete করতে পারে - Code implemented
+- [x] Existing sign-in and non-google flows break করে না - Code verified
+- [x] Duplicate account create হয় না (same email auto-link works) - Code verified
+
+## Implementation Summary
+
+### Key Changes:
+
+1. **auth.server.ts**
+   - Added `completeGoogleOnboardingForExistingUser()` helper
+   - Added `oauthIntent` to session data
+   - Updated `AuthUser` type with `name` and `emailVerified`
+   - Updated GoogleStrategy to extract profile info
+
+2. **auth.google.ts**
+   - Added `intent` parameter parsing (`signup` or `login`)
+   - Stores intent in session for tamper-safe callback handling
+
+3. **auth.google.callback.ts**
+   - Reads `oauthIntent` from session
+   - Handles signup flow: creates user → redirects to `/onboarding?mode=google`
+   - Handles login flow: original behavior unchanged
+   - Auto-links existing email/password accounts
+
+4. **onboarding.tsx**
+   - Added "Sign up with Google" button on Step 1
+   - Detects `mode=google` from URL params
+   - Google mode: pre-fills email/name (read-only), hides password
+   - Passes `isGoogleMode` flag to action
+   - Uses `completeGoogleOnboardingForExistingUser()` for store creation
+
+---
+
+**Status**: ✅ Implementation Complete  
+**Date**: 2026-02-17  
+**Context7 Verified**: ✅ remix-auth, Drizzle ORM patterns verified

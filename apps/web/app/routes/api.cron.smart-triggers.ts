@@ -37,11 +37,23 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
         eq(schema.abandonedCarts.recoveryEmailSent, false),
         lt(schema.abandonedCarts.abandonedAt, oneHourAgo)
       ),
+      with: {
+        store: {
+          columns: {
+            customDomain: true,
+            subdomain: true,
+          },
+        },
+      },
       limit: 20 // Batch limit prevents timeout
     });
 
     for (const cart of abandoned) {
       if (cart.customerPhone) {
+        const storeUrl = cart.store.customDomain
+          ? `https://${cart.store.customDomain}`
+          : `https://${cart.store.subdomain}.ozzyl.com`;
+
         await sendSmartNotification(
             db, 
             env, 
@@ -51,7 +63,9 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
             { 
                 phone: cart.customerPhone,
                 customerName: cart.customerName || 'Guest',
-                recoveryUrl: `https://${env.SAAS_DOMAIN}/checkout/recover/${cart.sessionId}`
+                cartUrl: `${storeUrl}/checkout?recovery=${encodeURIComponent(cart.sessionId)}`,
+                amount: cart.totalAmount,
+                currency: cart.currency || 'BDT',
             }
         );
         

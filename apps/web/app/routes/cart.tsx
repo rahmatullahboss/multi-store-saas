@@ -19,7 +19,7 @@ import {
 import { useLoaderData, useFetcher, useRouteError, isRouteErrorResponse } from '@remix-run/react';
 import { eq, and, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { products } from '@db/schema';
+import { products, productVariants } from '@db/schema';
 import { type SocialLinks, type ThemeConfig } from '@db/types';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import {
@@ -148,6 +148,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const cartItems = JSON.parse(cartItemsJson) as Array<{
         productId: number;
         quantity: number;
+        variantId?: number;
       }>;
 
       if (!Array.isArray(cartItems)) {
@@ -158,6 +159,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         .filter((item) => Number.isFinite(item.productId) && Number.isFinite(item.quantity))
         .map((item) => ({
           productId: Number(item.productId),
+          variantId: Number.isFinite(item.variantId) ? Number(item.variantId) : undefined,
           quantity: Math.max(0, Number(item.quantity)),
         }))
         .filter((item) => item.quantity > 0);
@@ -192,9 +194,39 @@ export async function action({ request, context }: ActionFunctionArgs) {
         .from(products)
         .where(and(eq(products.storeId, storeId), inArray(products.id, productIds)));
 
+      const variantIds = [
+        ...new Set(
+          normalizedItems
+            .map((item) => item.variantId)
+            .filter((variantId): variantId is number => Number.isFinite(variantId))
+        ),
+      ];
+
+      const variantData =
+        variantIds.length > 0
+          ? await db
+              .select({
+                id: productVariants.id,
+                productId: productVariants.productId,
+                option1Value: productVariants.option1Value,
+                option2Value: productVariants.option2Value,
+                option3Value: productVariants.option3Value,
+                price: productVariants.price,
+                inventory: productVariants.inventory,
+                available: productVariants.available,
+                imageUrl: productVariants.imageUrl,
+                isAvailable: productVariants.isAvailable,
+              })
+              .from(productVariants)
+              .where(inArray(productVariants.id, variantIds))
+          : [];
+
+      const variantMap = new Map(variantData.map((variant) => [variant.id, variant]));
+
       // Validate each cart item
       const validatedItems = normalizedItems.map((cartItem) => {
         const product = productData.find((p) => p.id === cartItem.productId);
+        const variant = cartItem.variantId ? variantMap.get(cartItem.variantId) : undefined;
 
         if (!product || !product.isPublished) {
           return {
@@ -205,24 +237,41 @@ export async function action({ request, context }: ActionFunctionArgs) {
           };
         }
 
-        if ((product.inventory || 0) <= 0) {
+        if (variant && variant.productId !== cartItem.productId) {
+          return {
+            ...cartItem,
+            isValid: false,
+            error: 'Variant mismatch',
+            removed: true,
+          };
+        }
+
+        const effectiveInventory = variant
+          ? (variant.available ?? variant.inventory ?? 0)
+          : (product.inventory ?? 0);
+
+        if (effectiveInventory <= 0 || (variant && variant.isAvailable === false)) {
           return {
             ...cartItem,
             isValid: false,
             error: 'Out of stock',
-            title: product.title,
-            price: product.price,
-            imageUrl: product.imageUrl,
+            title: variant
+              ? `${product.title} (${[variant.option1Value, variant.option2Value, variant.option3Value].filter(Boolean).join(' / ')})`
+              : product.title,
+            price: variant?.price ?? product.price,
+            imageUrl: variant?.imageUrl || product.imageUrl,
           };
         }
 
         return {
           ...cartItem,
           isValid: true,
-          title: product.title,
-          price: product.price,
+          title: variant
+            ? `${product.title} (${[variant.option1Value, variant.option2Value, variant.option3Value].filter(Boolean).join(' / ')})`
+            : product.title,
+          price: variant?.price ?? product.price,
           compareAtPrice: product.compareAtPrice,
-          imageUrl: product.imageUrl,
+          imageUrl: variant?.imageUrl || product.imageUrl,
         };
       });
 
@@ -270,6 +319,7 @@ export default function CartPage() {
   const [cartItems, setCartItems] = useState<
     Array<{
       productId: number;
+      variantId?: number;
       title: string;
       price: number;
       compareAtPrice?: number | null;
@@ -296,8 +346,9 @@ export default function CartPage() {
             formData.append(
               'cartItems',
               JSON.stringify(
-                items.map((item: { productId: number; quantity: number }) => ({
+                items.map((item: { productId: number; variantId?: number; quantity: number }) => ({
                   productId: item.productId,
+                  variantId: item.variantId,
                   quantity: item.quantity,
                 }))
               )
@@ -329,6 +380,7 @@ export default function CartPage() {
     items?: Array<{
       removed?: boolean;
       productId: number;
+      variantId?: number;
       quantity: number;
       title: string;
       price: number;
@@ -352,16 +404,25 @@ export default function CartPage() {
     }
   }, [fetcher.data]);
 
-  const updateQuantity = (productId: number, newQuantity: number) => {
+  const updateQuantity = (productId: number, variantId: number | undefined, newQuantity: number) => {
     if (newQuantity < 1) return;
 
     setCartItems((prev) =>
-      prev.map((item) => (item.productId === productId ? { ...item, quantity: newQuantity } : item))
+      prev.map((item) =>
+        item.productId === productId && (item.variantId ?? null) === (variantId ?? null)
+          ? { ...item, quantity: newQuantity }
+          : item
+      )
     );
   };
 
-  const removeItem = (productId: number) => {
-    setCartItems((prev) => prev.filter((item) => item.productId !== productId));
+  const removeItem = (productId: number, variantId: number | undefined) => {
+    setCartItems((prev) =>
+      prev.filter(
+        (item) =>
+          !(item.productId === productId && (item.variantId ?? null) === (variantId ?? null))
+      )
+    );
   };
 
   const cartTotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -454,6 +515,7 @@ function SimpleCartPage({
 }: {
   items: Array<{
     productId: number;
+    variantId?: number;
     title: string;
     price: number;
     compareAtPrice?: number | null;
@@ -463,8 +525,8 @@ function SimpleCartPage({
   currency: string;
   total: number;
   itemCount: number;
-  onUpdateQuantity: (productId: number, quantity: number) => void;
-  onRemoveItem: (productId: number) => void;
+  onUpdateQuantity: (productId: number, variantId: number | undefined, quantity: number) => void;
+  onRemoveItem: (productId: number, variantId: number | undefined) => void;
   isLoading: boolean;
 }) {
   if (isLoading) {
@@ -501,7 +563,7 @@ function SimpleCartPage({
         <div className="lg:col-span-2 space-y-4">
           {items.map((item) => (
             <div
-              key={item.productId}
+              key={`${item.productId}-${item.variantId ?? 'base'}`}
               className="flex gap-4 p-4 bg-white rounded-lg border border-gray-200"
             >
               {/* Product Image */}
@@ -537,7 +599,9 @@ function SimpleCartPage({
                 <div className="mt-3 flex items-center gap-3">
                   <div className="flex items-center border border-gray-200 rounded-lg">
                     <button
-                      onClick={() => onUpdateQuantity(item.productId, item.quantity - 1)}
+                      onClick={() =>
+                        onUpdateQuantity(item.productId, item.variantId, item.quantity - 1)
+                      }
                       className="p-2 hover:bg-gray-100 transition"
                       disabled={item.quantity <= 1}
                     >
@@ -545,7 +609,9 @@ function SimpleCartPage({
                     </button>
                     <span className="w-10 text-center font-medium">{item.quantity}</span>
                     <button
-                      onClick={() => onUpdateQuantity(item.productId, item.quantity + 1)}
+                      onClick={() =>
+                        onUpdateQuantity(item.productId, item.variantId, item.quantity + 1)
+                      }
                       className="p-2 hover:bg-gray-100 transition"
                     >
                       <Plus className="w-4 h-4" />
@@ -553,7 +619,7 @@ function SimpleCartPage({
                   </div>
 
                   <button
-                    onClick={() => onRemoveItem(item.productId)}
+                    onClick={() => onRemoveItem(item.productId, item.variantId)}
                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
                   >
                     <Trash2 className="w-4 h-4" />

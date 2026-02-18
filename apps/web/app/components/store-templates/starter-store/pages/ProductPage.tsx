@@ -147,12 +147,13 @@ export function StarterProductPage({
   };
 
   // Pricing based on variant
-  const currentPrice = (selectedVariant ? selectedVariant.price : product.price) || 0;
-  const currentComparePrice =
-    (selectedVariant ? selectedVariant.compareAtPrice : product.compareAtPrice) || 0;
+  const currentPrice = selectedVariant?.price ?? product.price ?? 0;
+  const currentComparePrice = selectedVariant?.compareAtPrice ?? product.compareAtPrice ?? 0;
 
   // Inventory check
-  const variantAvailable = selectedVariant?.available ?? 0;
+  const variantAvailable = selectedVariant
+    ? (selectedVariant.available ?? selectedVariant.inventory ?? 0)
+    : 0;
   const productInventory = product.inventory ?? 0;
   const isAvailable = selectedVariant ? variantAvailable > 0 : productInventory > 0;
 
@@ -321,7 +322,8 @@ export function StarterProductPage({
               {/* Actions */}
               <div className="grid grid-cols-2 gap-3">
                 <AddToCartButton
-                  productId={selectedVariant ? selectedVariant.id : product.id}
+                  productId={product.id}
+                  variantId={selectedVariant?.id}
                   quantity={quantity}
                   currency={currency}
                   productName={product.title}
@@ -336,7 +338,8 @@ export function StarterProductPage({
                 </AddToCartButton>
 
                 <AddToCartButton
-                  productId={selectedVariant ? selectedVariant.id : product.id}
+                  productId={product.id}
+                  variantId={selectedVariant?.id}
                   quantity={quantity}
                   mode="buy_now"
                   className="w-full py-4 rounded-xl flex items-center justify-center gap-2 font-bold transition-all hover:scale-[1.02] active:scale-[0.98] border-2"

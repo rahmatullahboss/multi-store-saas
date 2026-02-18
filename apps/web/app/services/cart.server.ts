@@ -6,7 +6,7 @@
  */
 
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 import { carts, cartItems, products, productVariants, type Cart, type CartItem } from '@db/schema';
 
 // ============================================================================
@@ -152,10 +152,11 @@ export async function getCartWithItems(
 
   const variantsMap: Map<number, any> = new Map();
   if (variantIds.length > 0) {
+    const uniqueVariantIds = [...new Set(variantIds)];
     const variants = await drizzleDb
       .select()
       .from(productVariants)
-      .where(eq(productVariants.id, variantIds[0])); // Simplified for now
+      .where(inArray(productVariants.id, uniqueVariantIds));
 
     variants.forEach((v) => variantsMap.set(v.id, v));
   }
@@ -213,7 +214,7 @@ export async function addToCart(
   const [product] = await drizzleDb
     .select()
     .from(products)
-    .where(eq(products.id, input.productId))
+    .where(and(eq(products.id, input.productId), eq(products.storeId, storeId)))
     .limit(1);
 
   if (!product) {
@@ -227,13 +228,17 @@ export async function addToCart(
     const [variant] = await drizzleDb
       .select()
       .from(productVariants)
-      .where(eq(productVariants.id, input.variantId))
+      .where(
+        and(eq(productVariants.id, input.variantId), eq(productVariants.productId, input.productId))
+      )
       .limit(1);
 
-    if (variant) {
-      variantInfo = variant;
-      price = variant.price || product.price;
+    if (!variant) {
+      throw new Error('Invalid variant for product');
     }
+
+    variantInfo = variant;
+    price = variant.price ?? product.price;
   }
 
   // Insert new item

@@ -12,6 +12,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
+import { useLoaderData } from '@remix-run/react';
 import { formatPrice } from '~/lib/theme-engine';
 import { json, redirect } from '@remix-run/cloudflare';
 import { useFetcher, Link } from '@remix-run/react';
@@ -31,7 +32,13 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, users } from '@db/schema';
 import { bdPhoneSchema, emailSchema } from '~/lib/validations/auth';
-import { getUserId, register, getSession, commitSession } from '~/services/auth.server';
+import {
+  getUserId,
+  register,
+  getSession,
+  commitSession,
+  completeGoogleOnboardingForExistingUser,
+} from '~/services/auth.server';
 import { seedDefaultTheme } from '~/lib/theme-seeding.server';
 import { OnboardingSteps } from '~/components/onboarding/OnboardingSteps';
 import { AISetupProgress } from '~/components/onboarding/AISetupProgress';
@@ -209,6 +216,9 @@ export const meta: MetaFunction = () => {
 // Redirect if already logged in AND onboarding is completed
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { env } = context.cloudflare;
+  const url = new URL(request.url);
+  const isGoogleMode = url.searchParams.get('mode') === 'google';
+
   const userId = await getUserId(request, env);
 
   if (userId) {
@@ -216,10 +226,23 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       const db = drizzle(env.DB);
 
       const userResult = await db
-        .select({ storeId: users.storeId })
+        .select({
+          storeId: users.storeId,
+          email: users.email,
+          name: users.name,
+        })
         .from(users)
         .where(eq(users.id, userId))
         .limit(1);
+
+      // If in google mode and user has no storeId, allow them to continue onboarding
+      if (isGoogleMode && !userResult[0]?.storeId) {
+        return json({
+          isGoogleMode: true,
+          userEmail: userResult[0]?.email || '',
+          userName: userResult[0]?.name || '',
+        });
+      }
 
       if (userResult[0]?.storeId) {
         const storeResult = await db
@@ -248,7 +271,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
   }
 
-  return json({});
+  return json({ isGoogleMode: false, userEmail: '', userName: '' });
 }
 
 // Action to handle each step
@@ -257,6 +280,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const { env } = context.cloudflare;
   const formData = await request.formData();
   const step = formData.get('step') as string;
+  const isGoogleMode = formData.get('isGoogleMode') === 'true';
 
   // Check if email already exists
   if (step === 'check_email') {
@@ -277,22 +301,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     const db = drizzle(env.DB);
 
-    // Check if email already exists
-    const existingUser = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.email, email.toLowerCase()))
-      .limit(1);
+    // In google mode, we skip email check since user already exists
+    if (!isGoogleMode) {
+      const existingUser = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, email.toLowerCase()))
+        .limit(1);
 
-    if (existingUser.length > 0) {
-      return json(
-        {
-          error: t('emailAlreadyRegistered'),
-          field: 'email',
-          emailExists: true,
-        },
-        { status: 400 }
-      );
+      if (existingUser.length > 0) {
+        return json(
+          {
+            error: t('emailAlreadyRegistered'),
+            field: 'email',
+            emailExists: true,
+          },
+          { status: 400 }
+        );
+      }
     }
 
     // Check if phone already exists
@@ -372,24 +398,85 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // console.log('[Onboarding] Creating store:', { storeName, subdomain, category, selectedPlan, phone });
 
     try {
-      // 1. Register user and create store
-      const result = await register({
-        email,
-        password,
-        name,
-        phone, // Pass phone to register
-        storeName: storeName || 'My Store',
-        subdomain: subdomain || `store-${Date.now()}`,
-        db: env.DB,
-      });
+      let storeId: number;
+      let userId: number;
 
-      if (result.error) {
-        console.warn('[Onboarding] Registration failed:', result.error);
-        return json({ error: result.error }, { status: 400 });
+      // =========================================================================
+      // GOOGLE MODE: User already exists, just create store and link
+      // =========================================================================
+      if (isGoogleMode) {
+        const userIdFromSession = await getUserId(request, env);
+        if (!userIdFromSession) {
+          return json({ error: 'Session expired. Please sign up again.' }, { status: 400 });
+        }
+
+        // Validate phone for google mode
+        const phoneResult = bdPhoneSchema.safeParse(phone);
+        if (!phoneResult.success) {
+          return json({ error: t('validMobileRequired'), field: 'phone' }, { status: 400 });
+        }
+
+        // Validate store name
+        if (!storeName || storeName.trim().length < 2) {
+          return json({ error: t('storeNameRequired'), field: 'storeName' }, { status: 400 });
+        }
+
+        // Validate subdomain
+        if (!subdomain || subdomain.length < 3) {
+          return json({ error: t('subdomainMinChars'), field: 'subdomain' }, { status: 400 });
+        }
+
+        // Complete Google onboarding
+        const result = await completeGoogleOnboardingForExistingUser({
+          userId: userIdFromSession,
+          phone,
+          storeName,
+          subdomain,
+          db: env.DB,
+        });
+
+        if (!result.success) {
+          if (result.error === 'subdomain_taken') {
+            return json(
+              { error: t('subdomainTaken', { subdomain }), field: 'subdomain' },
+              { status: 400 }
+            );
+          }
+          if (result.error === 'phone_taken') {
+            return json({ error: t('phoneAlreadyRegistered'), field: 'phone' }, { status: 400 });
+          }
+          console.warn('[Onboarding] Google onboarding failed:', result.error);
+          return json({ error: result.error || t('failedToCreateStore') }, { status: 400 });
+        }
+
+        storeId = result.storeId!;
+        userId = userIdFromSession;
+      }
+      // =========================================================================
+      // EMAIL MODE: Create new user and store
+      // =========================================================================
+      else {
+        // 1. Register user and create store
+        const result = await register({
+          email,
+          password,
+          name,
+          phone, // Pass phone to register
+          storeName: storeName || 'My Store',
+          subdomain: subdomain || `store-${Date.now()}`,
+          db: env.DB,
+        });
+
+        if (result.error) {
+          console.warn('[Onboarding] Registration failed:', result.error);
+          return json({ error: result.error }, { status: 400 });
+        }
+
+        storeId = result.storeId!;
+        userId = result.user!.id;
       }
 
       const db = drizzle(env.DB);
-      const storeId = result.storeId!;
 
       // 2. Get category-based template
       const template = CATEGORY_TEMPLATES[category] || CATEGORY_TEMPLATES.other;
@@ -464,7 +551,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       // that can occur with soft navigation after heavy onboarding operations.
       // NOTE: We create a fresh session to ensure clean state
       const session = await getSession(new Request('http://localhost'), env);
-      session.set('userId', result.user!.id);
+      session.set('userId', userId);
       session.set('storeId', storeId);
 
       return json(
@@ -494,17 +581,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function OnboardingPage() {
+  const { isGoogleMode: initialGoogleMode, userEmail, userName } = useLoaderData<typeof loader>();
   const [currentStep, setCurrentStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
   const [animationDone, setAnimationDone] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isGoogleMode] = useState(initialGoogleMode);
 
   // Form state including plan and payment
   const [formData, setFormData] = useState({
-    email: '',
+    email: userEmail || '',
     password: '',
-    name: '',
+    name: userName || '',
     phone: '', // Merchant mobile number
     storeName: '',
     subdomain: '',
@@ -624,7 +713,8 @@ export default function OnboardingPage() {
       if (!formData.email || !formData.email.includes('@')) {
         newErrors.email = t('validEmailRequired');
       }
-      if (!formData.password || formData.password.length < 6) {
+      // Skip password validation in google mode
+      if (!isGoogleMode && (!formData.password || formData.password.length < 6)) {
         newErrors.password = t('passwordMinChars');
       }
       if (!formData.name || formData.name.length < 2) {
@@ -646,6 +736,7 @@ export default function OnboardingPage() {
       checkData.append('step', 'check_email');
       checkData.append('email', formData.email);
       checkData.append('phone', formData.phone);
+      checkData.append('isGoogleMode', String(isGoogleMode));
       fetcher.submit(checkData, { method: 'POST' });
       return;
     }
@@ -704,6 +795,7 @@ export default function OnboardingPage() {
       submitData.append('deliveryChargeOutside', String(formData.deliveryChargeOutside));
       submitData.append('enableFreeDelivery', String(formData.enableFreeDelivery));
       submitData.append('freeDeliveryAbove', String(formData.freeDeliveryAbove));
+      submitData.append('isGoogleMode', String(isGoogleMode));
 
       fetcher.submit(submitData, { method: 'POST' });
       return;
@@ -733,6 +825,7 @@ export default function OnboardingPage() {
     submitData.append('deliveryChargeOutside', String(formData.deliveryChargeOutside));
     submitData.append('enableFreeDelivery', String(formData.enableFreeDelivery));
     submitData.append('freeDeliveryAbove', String(formData.freeDeliveryAbove));
+    submitData.append('isGoogleMode', String(isGoogleMode));
 
     fetcher.submit(submitData, { method: 'POST' });
   };
@@ -781,6 +874,60 @@ export default function OnboardingPage() {
                 <p className="text-gray-500 mt-2">{t('createStoreIn2Min')}</p>
               </div>
 
+              {/* Google Sign Up Button - Only show for non-google mode */}
+              {!isGoogleMode && (
+                <div className="mb-6">
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-700 font-medium hover:bg-gray-50 transition"
+                    onClick={() => {
+                      window.location.href = '/auth/google?intent=signup';
+                    }}
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                      <path
+                        fill="#4285F4"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                      />
+                    </svg>
+                    {t('signUpWithGoogle') || 'Sign up with Google'}
+                  </button>
+
+                  <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-white text-gray-500">
+                        {t('orContinueWith') || 'or continue with email'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Google Mode Notice */}
+              {isGoogleMode && (
+                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                  <p className="text-sm text-blue-700">
+                    {t('googleModeDescription') ||
+                      'You signed up with Google. Please complete your store setup below.'}
+                  </p>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t('yourName')}
@@ -793,6 +940,7 @@ export default function OnboardingPage() {
                   onChange={(e) => updateField('name', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   placeholder={t('placeholderName')}
+                  readOnly={isGoogleMode}
                 />
                 {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
               </div>
@@ -807,35 +955,41 @@ export default function OnboardingPage() {
                   onChange={(e) => updateField('email', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   placeholder={t('placeholderEmail')}
+                  readOnly={isGoogleMode}
                 />
                 {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('password')}
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    autoComplete="new-password"
-                    value={formData.password}
-                    onChange={(e) => updateField('password', e.target.value)}
-                    className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                    placeholder="••••••••"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                    tabIndex={-1}
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
+              {/* Password - Hide in Google mode */}
+              {!isGoogleMode && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('password')}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      autoComplete="new-password"
+                      value={formData.password}
+                      onChange={(e) => updateField('password', e.target.value)}
+                      className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                  )}
                 </div>
-                {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
-              </div>
+              )}
 
               {/* Phone Number */}
               <div>
@@ -956,7 +1110,9 @@ export default function OnboardingPage() {
                     min="0"
                     step="10"
                   />
-                  <p className="text-gray-500 text-sm mt-1">Standard delivery charge per order (Inside Dhaka)</p>
+                  <p className="text-gray-500 text-sm mt-1">
+                    Standard delivery charge per order (Inside Dhaka)
+                  </p>
                 </div>
 
                 {/* Delivery Charge (Outside Dhaka) */}
@@ -1251,12 +1407,21 @@ export default function OnboardingPage() {
                       submitData.append('email', formData.email);
                       submitData.append('password', formData.password);
                       submitData.append('name', formData.name);
+                      submitData.append('phone', formData.phone);
                       submitData.append('storeName', formData.storeName);
                       submitData.append('subdomain', formData.subdomain);
                       submitData.append('category', formData.category);
                       submitData.append('selectedPlan', formData.selectedPlan);
                       submitData.append('transactionId', formData.transactionId);
                       submitData.append('paymentPhone', formData.paymentPhone);
+                      submitData.append('deliveryCharge', String(formData.deliveryCharge));
+                      submitData.append(
+                        'deliveryChargeOutside',
+                        String(formData.deliveryChargeOutside)
+                      );
+                      submitData.append('enableFreeDelivery', String(formData.enableFreeDelivery));
+                      submitData.append('freeDeliveryAbove', String(formData.freeDeliveryAbove));
+                      submitData.append('isGoogleMode', String(isGoogleMode));
                       fetcher.submit(submitData, { method: 'POST' });
                     }}
                     className="flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors"

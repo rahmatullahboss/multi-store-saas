@@ -19,7 +19,7 @@ import {
 import { useLoaderData, useFetcher, useNavigate, Link, useSearchParams } from '@remix-run/react';
 import { eq, and, inArray, desc } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { products, stores, orderBumps, type Store } from '@db/schema';
+import { abandonedCarts, products, stores, orderBumps, productVariants, type Store } from '@db/schema';
 import * as schema from '@db/schema';
 import { parseThemeConfig, parseSocialLinks } from '@db/types';
 
@@ -31,6 +31,7 @@ interface CartItem {
 
 interface CartProduct {
   id: number;
+  variantId?: number;
   title: string;
   price: number;
   imageUrl: string | null;
@@ -55,6 +56,7 @@ interface Discount {
 
 interface FetcherData {
   products?: CartProduct[];
+  recoveredCartItems?: CartItem[];
   discountResult?: {
     isValid: boolean;
     error?: string;
@@ -266,13 +268,86 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const formData = await request.formData();
   const intent = formData.get('intent');
 
+  if (intent === 'recover-cart') {
+    const sessionId = formData.get('sessionId')?.toString().trim();
+    if (!sessionId || sessionId.length < 10) {
+      return json({ recoveredCartItems: [] });
+    }
+
+    const db = drizzle(cloudflare.env.DB);
+    const rows = await db
+      .select({ cartItems: abandonedCarts.cartItems })
+      .from(abandonedCarts)
+      .where(
+        and(
+          eq(abandonedCarts.storeId, storeId as number),
+          eq(abandonedCarts.sessionId, sessionId),
+          eq(abandonedCarts.status, 'abandoned')
+        )
+      )
+      .orderBy(desc(abandonedCarts.abandonedAt))
+      .limit(1);
+
+    if (rows.length === 0) {
+      return json({ recoveredCartItems: [] });
+    }
+
+    let parsedItems: unknown[] = [];
+    try {
+      parsedItems = JSON.parse(rows[0].cartItems || '[]') as unknown[];
+    } catch {
+      parsedItems = [];
+    }
+
+    const recoveredCartItems = parsedItems.reduce<CartItem[]>((acc, item) => {
+        const record = item as Record<string, unknown>;
+        const productId = Number(record.productId);
+        const quantity = Number(record.quantity);
+        const variantIdRaw = record.variantId;
+        const variantId =
+          variantIdRaw === null || variantIdRaw === undefined ? undefined : Number(variantIdRaw);
+
+        if (!Number.isFinite(productId) || !Number.isFinite(quantity) || quantity <= 0) {
+          return acc;
+        }
+
+        acc.push({
+          productId,
+          quantity,
+          variantId: Number.isFinite(variantId) ? variantId : undefined,
+        });
+        return acc;
+      }, []);
+
+    return json({ recoveredCartItems });
+  }
+
   if (intent === 'get-products') {
-    const productIds = formData.get('productIds')?.toString().split(',').map(Number) || [];
+    const cartItemsJson = formData.get('cartItems')?.toString();
+    let cartItems: CartItem[] = [];
+
+    if (cartItemsJson) {
+      try {
+        const parsed = JSON.parse(cartItemsJson) as CartItem[];
+        cartItems = Array.isArray(parsed) ? parsed : [];
+      } catch {
+        cartItems = [];
+      }
+    } else {
+      // Backward compatibility for older clients
+      const productIds = formData.get('productIds')?.toString().split(',').map(Number) || [];
+      cartItems = productIds.map((id) => ({ productId: id, quantity: 1 }));
+    }
+
+    const normalizedItems = cartItems.filter(
+      (item) => Number.isFinite(item.productId) && Number.isFinite(item.quantity)
+    );
+    const productIds = [...new Set(normalizedItems.map((item) => item.productId))];
 
     if (productIds.length === 0) return json({ products: [] });
 
     const db = drizzle(cloudflare.env.DB);
-    const cartProducts = await db
+    const productRows = await db
       .select({
         id: products.id,
         title: products.title,
@@ -283,6 +358,67 @@ export async function action({ request, context }: ActionFunctionArgs) {
       })
       .from(products)
       .where(and(eq(products.storeId, storeId as number), inArray(products.id, productIds)));
+
+    const variantIds = [
+      ...new Set(
+        normalizedItems
+          .map((item) => item.variantId)
+          .filter((variantId): variantId is number => Number.isFinite(variantId))
+      ),
+    ];
+
+    const variantRows =
+      variantIds.length > 0
+        ? await db
+            .select({
+              id: productVariants.id,
+              productId: productVariants.productId,
+              option1Value: productVariants.option1Value,
+              option2Value: productVariants.option2Value,
+              option3Value: productVariants.option3Value,
+              price: productVariants.price,
+              inventory: productVariants.inventory,
+              available: productVariants.available,
+              isAvailable: productVariants.isAvailable,
+              imageUrl: productVariants.imageUrl,
+            })
+            .from(productVariants)
+            .where(inArray(productVariants.id, variantIds))
+        : [];
+
+    const variantMap = new Map(variantRows.map((variant) => [variant.id, variant]));
+    const productMap = new Map(productRows.map((product) => [product.id, product]));
+
+    const cartProducts: CartProduct[] = normalizedItems.reduce<CartProduct[]>((acc, item) => {
+        const product = productMap.get(item.productId);
+        if (!product) return acc;
+
+        const variant = item.variantId ? variantMap.get(item.variantId) : undefined;
+        const variantTitle = variant
+          ? [variant.option1Value, variant.option2Value, variant.option3Value].filter(Boolean).join(' / ')
+          : '';
+        const effectivePrice = variant?.price ?? product.price;
+        const effectiveInventory = variant
+          ? (variant.available ?? variant.inventory ?? 0)
+          : product.inventory;
+        const effectiveImage = variant?.imageUrl || product.imageUrl;
+        const effectivePublished = product.isPublished && (variant ? variant.isAvailable !== false : true);
+        const row: CartProduct = {
+          id: product.id,
+          title: variantTitle ? `${product.title} (${variantTitle})` : product.title,
+          price: effectivePrice,
+          imageUrl: effectiveImage,
+          inventory: Number(effectiveInventory ?? 0),
+          isPublished: Boolean(effectivePublished),
+        };
+
+        if (variant?.id) {
+          row.variantId = variant.id;
+        }
+
+        acc.push(row);
+        return acc;
+      }, []);
 
     return json({ products: cartProducts });
   }
@@ -434,10 +570,16 @@ export default function Checkout() {
     [planType]
   );
 
+  const findCartProduct = (item: CartItem) =>
+    cartProducts.find(
+      (product) =>
+        product.id === item.productId && (product.variantId ?? null) === (item.variantId ?? null)
+    );
+
   // Calculations
   const subtotal = useMemo(() => {
     return cartItems.reduce((sum, item) => {
-      const product = cartProducts.find((p) => p.id === item.productId);
+      const product = findCartProduct(item);
       return sum + (product ? product.price * item.quantity : 0);
     }, 0);
   }, [cartItems, cartProducts]);
@@ -472,20 +614,51 @@ export default function Checkout() {
 
   // Load cart from local storage - ONCE on mount
   useEffect(() => {
+    const recoverySessionId = new URLSearchParams(window.location.search).get('recovery');
+    let parsed: CartItem[] = [];
     const saved = localStorage.getItem('cart');
+
     if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.length > 0) {
-        setCartItems(parsed);
-        // Fetch product details
-        const ids = parsed.map((item: CartItem) => item.productId).join(',');
-        fetcher.submit({ intent: 'get-products', productIds: ids }, { method: 'post' });
-      } else {
-        setIsLoading(false);
+      try {
+        const raw = JSON.parse(saved) as unknown[];
+        parsed = Array.isArray(raw)
+          ? raw.filter(
+              (item): item is CartItem =>
+                typeof item === 'object' &&
+                item !== null &&
+                Number.isFinite(Number((item as { productId?: number }).productId)) &&
+                Number.isFinite(Number((item as { quantity?: number }).quantity))
+            )
+          : [];
+      } catch {
+        parsed = [];
       }
-    } else {
-      setIsLoading(false);
     }
+
+    if (parsed.length > 0) {
+      setCartItems(parsed);
+      fetcher.submit(
+        {
+          intent: 'get-products',
+          cartItems: JSON.stringify(
+            parsed.map((item: CartItem) => ({
+              productId: item.productId,
+              variantId: item.variantId,
+              quantity: item.quantity,
+            }))
+          ),
+        },
+        { method: 'post' }
+      );
+      return;
+    }
+
+    if (recoverySessionId) {
+      fetcher.submit({ intent: 'recover-cart', sessionId: recoverySessionId }, { method: 'post' });
+      return;
+    }
+
+    setIsLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount - fetcher is stable
 
@@ -515,6 +688,27 @@ export default function Checkout() {
   useEffect(() => {
     if (fetcher.data) {
       const data = fetcher.data as FetcherData;
+      if (data.recoveredCartItems) {
+        if (data.recoveredCartItems.length > 0) {
+          setCartItems(data.recoveredCartItems);
+          localStorage.setItem('cart', JSON.stringify(data.recoveredCartItems));
+          fetcher.submit(
+            {
+              intent: 'get-products',
+              cartItems: JSON.stringify(
+                data.recoveredCartItems.map((item: CartItem) => ({
+                  productId: item.productId,
+                  variantId: item.variantId,
+                  quantity: item.quantity,
+                }))
+              ),
+            },
+            { method: 'post' }
+          );
+        } else {
+          setIsLoading(false);
+        }
+      }
       if (data.products) {
         setCartProducts(data.products);
         setIsLoading(false);
@@ -556,9 +750,9 @@ export default function Checkout() {
         // Fire Purchase Event
         // Construct items for tracking
         const trackingItems = cartItems.map((item) => {
-          const product = cartProducts.find((p) => p.id === item.productId);
+          const product = findCartProduct(item);
           return {
-            id: String(item.productId),
+            id: item.variantId ? `${item.productId}-${item.variantId}` : String(item.productId),
             name: product?.title || 'Product',
             price: product?.price || 0,
             quantity: item.quantity,
@@ -891,7 +1085,7 @@ export default function Checkout() {
 
           <div className="space-y-4 mb-6">
             {cartItems.map((item, idx) => {
-              const product = cartProducts.find((p) => p.id === item.productId);
+              const product = findCartProduct(item);
               if (!product) return null;
               return (
                 <div key={idx} className="flex gap-3">
@@ -1234,7 +1428,7 @@ export default function Checkout() {
                 {/* Reuse Summary UI Logic */}
                 <div className="space-y-4 mb-6">
                   {cartItems.map((item, idx) => {
-                    const product = cartProducts.find((p) => p.id === item.productId);
+                    const product = findCartProduct(item);
                     if (!product) return null;
                     return (
                       <div key={idx} className="flex gap-3">
@@ -1381,7 +1575,7 @@ export default function Checkout() {
               {/* Mini Items List */}
               <div className="space-y-3 mb-4">
                 {cartItems.map((item, idx) => {
-                  const product = cartProducts.find((p) => p.id === item.productId);
+                  const product = findCartProduct(item);
                   if (!product) return null;
                   return (
                     <div key={idx} className="flex justify-between text-sm">

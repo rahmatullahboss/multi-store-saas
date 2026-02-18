@@ -282,6 +282,14 @@ export async function sendSmartNotification(
   // ...
 
   let messageText = `Update: ${type}`;
+  if (type === 'ABANDONED_CART') {
+    const cartUrl = data.cartUrl || data.recoveryUrl || '';
+    const amountText =
+      typeof data.amount === 'number'
+        ? ` (${data.currency || 'BDT'} ${Math.round(data.amount)})`
+        : '';
+    messageText = `Hi ${data.customerName || 'there'}, your cart is waiting${amountText}. Complete checkout: ${cartUrl}`;
+  }
   if (type === 'WINBACK_OFFER') messageText = `We miss you! Here is a 10% discount for your next order. Code: WELCOMEBACK`;
   if (type === 'REVIEW_REQUEST') messageText = `Hi ${data.customerName}, thanks for your order! Please rate your experience here: ${data.reviewUrl || 'https://store.com/review'}`;
 

@@ -11,6 +11,7 @@ import { trackingEvents } from '~/utils/tracking';
 
 interface AddToCartButtonProps {
   productId: number;
+  variantId?: number;
   storeId?: number;
   disabled?: boolean;
   size?: 'default' | 'large';
@@ -28,6 +29,7 @@ interface AddToCartButtonProps {
 
 export function AddToCartButton({
   productId,
+  variantId,
   storeId,
   disabled = false,
   size = 'default',
@@ -62,7 +64,7 @@ export function AddToCartButton({
       }
 
       // Update local cart even in preview!
-      updateLocalCart(productId, quantity, storeId);
+      updateLocalCart(productId, quantity, storeId, variantId);
       return;
     }
 
@@ -79,7 +81,7 @@ export function AddToCartButton({
     }
 
     // Update local cart in localStorage
-    updateLocalCart(productId, quantity, storeId);
+    updateLocalCart(productId, quantity, storeId, variantId);
 
     if (mode === 'buy_now') {
       // Redirect to cart/checkout immediately
@@ -147,18 +149,19 @@ export function AddToCartButton({
 }
 
 // Helper to update cart count in header (client-side)
-function updateLocalCart(productId: number, quantity: number, storeId?: number) {
+function updateLocalCart(productId: number, quantity: number, storeId?: number, variantId?: number) {
   // Store in localStorage for persistence
   try {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const existingIndex = cart.findIndex(
-      (item: { productId: number }) => item.productId === productId
+      (item: { productId: number; variantId?: number }) =>
+        item.productId === productId && (item.variantId ?? null) === (variantId ?? null)
     );
 
     if (existingIndex >= 0) {
       cart[existingIndex].quantity += quantity;
     } else {
-      cart.push({ productId, quantity, storeId });
+      cart.push({ productId, variantId, quantity, storeId });
     }
 
     localStorage.setItem('cart', JSON.stringify(cart));

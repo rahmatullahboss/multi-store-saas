@@ -10,12 +10,12 @@ export const onboarding = {
   createStoreIn2Min: 'মাত্র ২ মিনিটে আপনার স্টোর তৈরি করুন',
   canChangeLater: 'আপনি পরে সবকিছু পরিবর্তন করতে পারবেন',
   selectPlanBasedNeeds: 'আপনার প্রয়োজন অনুযায়ী প্ল্যান বেছে নিন',
-  
+
   // Form Labels & Progress
   storeLink: 'স্টোর লিংক',
   createMyStore: 'আমার স্টোর তৈরি করুন',
   proceedWithPayment: 'আমি পেমেন্ট করেছি, এগিয়ে যান',
-  
+
   // Category Templates
   categoryFashionHeadline: 'প্রিমিয়াম ফ্যাশন কালেকশন',
   categoryFashionSubheadline: 'ট্রেন্ডি ও স্টাইলিশ পোশাক',
@@ -26,7 +26,7 @@ export const onboarding = {
   featureCashOnDelivery: 'ক্যাশ অন ডেলিভারি',
   descPayOnReceive: 'পণ্য হাতে পেয়ে টাকা দিন',
   descStylishFashion: 'স্টাইলিশ ও ট্রেন্ডি ফ্যাশন আইটেম',
-  
+
   categoryElectronicsHeadline: 'সেরা ইলেকট্রনিক্স প্রোডাক্ট',
   categoryElectronicsSubheadline: 'অরিজিনাল গ্যাজেট ও এক্সেসরিজ',
   featureOriginal: '১০০% অরিজিনাল',
@@ -34,7 +34,7 @@ export const onboarding = {
   featureAfterSales: 'আফটার সেলস সার্ভিস',
   descTechnicalSupport: 'ফ্রি টেকনিক্যাল সাপোর্ট',
   descPremiumElectronics: 'প্রিমিয়াম ইলেকট্রনিক্স আইটেম',
-  
+
   categoryBeautyHeadline: 'বিউটি ও স্কিনকেয়ার সলিউশন',
   categoryBeautySubheadline: 'গ্লো করুন নিজেকে',
   featureAuthentic: 'অথেনটিক প্রোডাক্ট',
@@ -44,7 +44,7 @@ export const onboarding = {
   featureFreeGift: 'ফ্রি গিফট',
   descSurprise: 'প্রতি অর্ডারে সারপ্রাইজ',
   descPremiumBeauty: 'প্রিমিয়াম বিউটি প্রোডাক্ট',
-  
+
   categoryFoodHeadline: 'সুস্বাদু খাবার ও স্ন্যাক্স',
   categoryFoodSubheadline: 'ফ্রেশ ও হাইজিনিক',
   featureFresh: 'ফ্রেশ প্রোডাক্ট',
@@ -54,7 +54,7 @@ export const onboarding = {
   featureTasteGuarantee: 'টেস্ট গ্যারান্টি',
   descDelicious: 'মুখে লেগে যাবে',
   descDeliciousFood: 'সুস্বাদু খাবার',
-  
+
   categoryHomeHeadline: 'হোম ও লাইফস্টাইল প্রোডাক্ট',
   categoryHomeSubheadline: 'আপনার ঘরকে সাজান',
   featureQuality: 'কোয়ালিটি প্রোডাক্ট',
@@ -64,7 +64,7 @@ export const onboarding = {
   featureEasyReturn: 'ইজি রিটার্ন',
   descSevenDays: '৭ দিনে রিটার্ন',
   descHomeDecor: 'হোম ডেকোর আইটেম',
-  
+
   categoryServicesHeadline: 'প্রফেশনাল সার্ভিস',
   categoryServicesSubheadline: 'এক্সপার্ট সলিউশন',
   featureExpertTeam: 'এক্সপার্ট টিম',
@@ -74,12 +74,12 @@ export const onboarding = {
   featureSatisfaction: 'সন্তুষ্টির গ্যারান্টি',
   descBestQuality: 'বেস্ট কোয়ালিটি সার্ভিস',
   descProfessionalService: 'প্রফেশনাল সার্ভিস প্যাকেজ',
-  
+
   categoryOtherHeadline: 'কোয়ালিটি প্রোডাক্ট',
   categoryOtherSubheadline: 'বেস্ট সিলেকশন',
   descBestQualityItem: 'সেরা মানের পণ্য',
   descPremiumProduct: 'প্রিমিয়াম প্রোডাক্ট',
-  
+
   // Landing Config Defaults
   orderNow: 'এখনই অর্ডার করুন',
   cashOnDelivery: 'ক্যাশ অন ডেলিভারি',
@@ -87,7 +87,7 @@ export const onboarding = {
   satisfiedCustomerText: 'অনেক ভালো প্রোডাক্ট, দ্রুত ডেলিভারি!',
   limitedTimeOffer: '🔥 সীমিত সময়ের অফার!',
   satisfactionGuarantee: '১০০% সন্তুষ্টির গ্যারান্টি',
-  
+
   // Onboarding Payment
   bkashPayment: 'বিকাশ পেমেন্ট',
   sendMoneyTo: 'এই নম্বরে সেন্ড মানি করুন',
@@ -100,14 +100,15 @@ export const onboarding = {
   orContinueFree: 'অথবা ফ্রি প্ল্যান নিয়ে এগিয়ে যান',
   startFreeUpgradeLater: 'ফ্রি প্ল্যান দিয়ে শুরু করুন এবং পরে আপগ্রেড করুন!',
   paymentPending: 'পেমেন্ট ভেরিফিকেশন পেন্ডিং',
-  paymentVerificationNotice: 'আপনার পেমেন্ট যাচাই করা হবে। ২৪ ঘণ্টার মধ্যে আপনার প্ল্যান সক্রিয় হবে।',
-  
+  paymentVerificationNotice:
+    'আপনার পেমেন্ট যাচাই করা হবে। ২৪ ঘণ্টার মধ্যে আপনার প্ল্যান সক্রিয় হবে।',
+
   // Validation
   trxIdRequired: 'অনুগ্রহ করে TRX ID দিন',
   storeNameRequired: 'স্টোরের নাম আবশ্যক',
   emailRequired: 'ইমেল আবশ্যক',
   passwordRequired: 'পাসওয়ার্ড আবশ্যক',
-  
+
   // Plan Features
   feature1Product: '২০টি প্রোডাক্ট',
   feature50Orders: '৫০টি অর্ডার/মাস',
@@ -123,16 +124,21 @@ export const onboarding = {
   featureFbApi: 'ফেসবুক কনভার্সন API',
   featurePrioritySupport: 'প্রায়োরিটি সাপোর্ট',
   feature247Support: '২৪/৭ সাপোর্ট',
-  
+
   // Placeholders & Meta
   placeholderName: 'রহিম উদ্দিন',
   placeholderEmail: 'you@example.com',
   placeholderStoreName: 'আমার দারুন স্টোর',
   placeholderSubdomain: 'my-store',
   metaTitle: 'আপনার স্টোর তৈরি করুন - Ozzyl',
-  
+
   // Errors
   emailAlreadyRegistered: 'এই ইমেইল আগেই রেজিস্টার করা হয়েছে। অনুগ্রহ করে লগইন করুন।',
   failedToCreateStore: 'স্টোর তৈরি করতে ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',
   invalidStep: 'অবৈধ ধাপ',
+
+  // Google Signup
+  signUpWithGoogle: 'গুগল দিয়ে সাইন আপ',
+  orContinueWithEmail: 'অথবা ইমেইল দিয়ে এগিয়ে যান',
+  googleModeDescription: 'আপনি গুগল দিয়ে সাইন আপ করেছেন। নিচে আপনার স্টোর সেটআপ সম্পন্ন করুন।',
 };

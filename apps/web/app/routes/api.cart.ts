@@ -262,11 +262,32 @@ export async function action({ request, context }: ActionFunctionArgs) {
                 .bind(item.productId, storeId)
                 .first<{ id: number; title: string; price: number; image_url: string | null }>();
               if (!product) continue;
+
+              let resolvedPrice = product.price;
+              if (item.variantId) {
+                const variant = await db
+                  .prepare(
+                    `SELECT id, option1_value, option2_value, option3_value, price
+                     FROM product_variants
+                     WHERE id = ? AND product_id = ?`
+                  )
+                  .bind(item.variantId, item.productId)
+                  .first<{
+                    id: number;
+                    option1_value: string | null;
+                    option2_value: string | null;
+                    option3_value: string | null;
+                    price: number | null;
+                  }>();
+                if (!variant) continue;
+                resolvedPrice = variant.price ?? product.price;
+              }
+
               await addToCartDO(env as any, authSessionId, {
                 productId: item.productId,
                 variantId: item.variantId,
                 quantity: item.quantity,
-                price: product.price,
+                price: resolvedPrice,
                 name: product.title,
                 image: product.image_url || undefined,
                 storeId,
@@ -303,11 +324,33 @@ export async function action({ request, context }: ActionFunctionArgs) {
             .first<{ id: number; title: string; price: number; image_url: string | null }>();
 
           if (product) {
+            let resolvedPrice = product.price;
+            if (parseResult.data.variantId) {
+              const variant = await db
+                .prepare(
+                  `SELECT id, option1_value, option2_value, option3_value, price
+                   FROM product_variants
+                   WHERE id = ? AND product_id = ?`
+                )
+                .bind(parseResult.data.variantId, parseResult.data.productId)
+                .first<{
+                  id: number;
+                  option1_value: string | null;
+                  option2_value: string | null;
+                  option3_value: string | null;
+                  price: number | null;
+                }>();
+              if (!variant) {
+                return json({ error: 'Invalid variant for product' }, { status: 400 });
+              }
+              resolvedPrice = variant.price ?? product.price;
+            }
+
             await addToCartDO(env as any, authSessionId, {
               productId: parseResult.data.productId,
               variantId: parseResult.data.variantId,
               quantity: parseResult.data.quantity,
-              price: product.price,
+              price: resolvedPrice,
               name: product.title,
               image: product.image_url || undefined,
               storeId,
@@ -548,11 +591,33 @@ export async function action({ request, context }: ActionFunctionArgs) {
           return json({ error: 'Product not found' }, { status: 404 });
         }
 
+        let resolvedPrice = product.price;
+        if (parseResult.data.variantId) {
+          const variant = await db
+            .prepare(
+              `SELECT id, option1_value, option2_value, option3_value, price
+               FROM product_variants
+               WHERE id = ? AND product_id = ?`
+            )
+            .bind(parseResult.data.variantId, parseResult.data.productId)
+            .first<{
+              id: number;
+              option1_value: string | null;
+              option2_value: string | null;
+              option3_value: string | null;
+              price: number | null;
+            }>();
+          if (!variant) {
+            return json({ error: 'Invalid variant for product' }, { status: 400 });
+          }
+          resolvedPrice = variant.price ?? product.price;
+        }
+
         const doResult = await addToCartDO(env as any, sessionId, {
           productId: parseResult.data.productId,
           variantId: parseResult.data.variantId,
           quantity: parseResult.data.quantity,
-          price: product.price,
+          price: resolvedPrice,
           name: product.title,
           image: product.image_url || undefined,
           storeId,
@@ -727,7 +792,7 @@ async function syncAuthDoFromDbCart(
       productId: item.productId,
       variantId: item.variantId ?? undefined,
       quantity: item.quantity,
-      price: item.product?.price ?? fallbackPrice,
+      price: item.variant?.price ?? item.product?.price ?? fallbackPrice,
       name: item.product?.title ?? fallbackName,
       image: item.product?.imageUrl ?? fallbackImage,
       storeId,

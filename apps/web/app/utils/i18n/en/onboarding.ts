@@ -10,12 +10,12 @@ export const onboarding = {
   createStoreIn2Min: 'Create your store in just 2 minutes',
   canChangeLater: 'You can change everything later',
   selectPlanBasedNeeds: 'Select a plan based on your needs',
-  
+
   // Form Labels & Progress
   storeLink: 'Store Link',
   createMyStore: 'Create My Store',
   proceedWithPayment: 'I have paid, proceed',
-  
+
   // Category Templates
   categoryFashionHeadline: 'Premium Fashion Collection',
   categoryFashionSubheadline: 'Trendy & Stylish Clothing',
@@ -26,7 +26,7 @@ export const onboarding = {
   featureCashOnDelivery: 'Cash on Delivery',
   descPayOnReceive: 'Pay when you receive the product',
   descStylishFashion: 'Stylish and trendy fashion item',
-  
+
   categoryElectronicsHeadline: 'Best Electronics Products',
   categoryElectronicsSubheadline: 'Original Gadgets & Accessories',
   featureOriginal: '100% Original',
@@ -34,7 +34,7 @@ export const onboarding = {
   featureAfterSales: 'After Sales Service',
   descTechnicalSupport: 'Free technical support',
   descPremiumElectronics: 'Premium electronics item',
-  
+
   categoryBeautyHeadline: 'Beauty & Skincare Solutions',
   categoryBeautySubheadline: 'Glow Yourself',
   featureAuthentic: 'Authentic Products',
@@ -44,7 +44,7 @@ export const onboarding = {
   featureFreeGift: 'Free Gift',
   descSurprise: 'Surprise with every order',
   descPremiumBeauty: 'Premium beauty product',
-  
+
   categoryFoodHeadline: 'Delicious Food & Snacks',
   categoryFoodSubheadline: 'Fresh & Hygienic',
   featureFresh: 'Fresh Products',
@@ -54,7 +54,7 @@ export const onboarding = {
   featureTasteGuarantee: 'Taste Guarantee',
   descDelicious: 'Delicious taste',
   descDeliciousFood: 'Delicious food',
-  
+
   categoryHomeHeadline: 'Home & Lifestyle Products',
   categoryHomeSubheadline: 'Decorate Your Home',
   featureQuality: 'Quality Products',
@@ -64,7 +64,7 @@ export const onboarding = {
   featureEasyReturn: 'Easy Return',
   descSevenDays: '7 days return',
   descHomeDecor: 'Home decor item',
-  
+
   categoryServicesHeadline: 'Professional Services',
   categoryServicesSubheadline: 'Expert Solutions',
   featureExpertTeam: 'Expert Team',
@@ -74,12 +74,12 @@ export const onboarding = {
   featureSatisfaction: 'Satisfaction Guarantee',
   descBestQuality: 'Best quality service',
   descProfessionalService: 'Professional service package',
-  
+
   categoryOtherHeadline: 'Quality Products',
   categoryOtherSubheadline: 'Best Selection',
   descBestQualityItem: 'Best quality items',
   descPremiumProduct: 'Premium product',
-  
+
   // Landing Config Defaults
   orderNow: 'Order Now',
   cashOnDelivery: 'Cash on Delivery',
@@ -87,7 +87,7 @@ export const onboarding = {
   satisfiedCustomerText: 'Great product, fast delivery!',
   limitedTimeOffer: '🔥 Limited Time Offer!',
   satisfactionGuarantee: '100% Satisfaction Guarantee',
-  
+
   // Onboarding Payment
   bkashPayment: 'bKash Payment',
   sendMoneyTo: 'Send Money to this number',
@@ -100,14 +100,15 @@ export const onboarding = {
   orContinueFree: 'Or continue with Free plan',
   startFreeUpgradeLater: 'Start with Free plan and upgrade later!',
   paymentPending: 'Payment Pending Verification',
-  paymentVerificationNotice: 'Your payment will be verified. Your plan will be activated within 24 hours.',
-  
+  paymentVerificationNotice:
+    'Your payment will be verified. Your plan will be activated within 24 hours.',
+
   // Validation
   trxIdRequired: 'Please enter TRX ID',
   storeNameRequired: 'Store name is required',
   emailRequired: 'Email is required',
   passwordRequired: 'Password is required',
-  
+
   // Plan Features
   feature1Product: '20 Products',
   feature50Orders: '50 Orders/Month',
@@ -123,16 +124,21 @@ export const onboarding = {
   featureFbApi: 'Facebook Conversion API',
   featurePrioritySupport: 'Priority Support',
   feature247Support: '24/7 Support',
-  
+
   // Placeholders & Meta
   placeholderName: 'John Doe',
   placeholderEmail: 'you@example.com',
   placeholderStoreName: 'My Awesome Store',
   placeholderSubdomain: 'my-store',
   metaTitle: 'Create Your Store - Ozzyl',
-  
+
   // Errors
   emailAlreadyRegistered: 'Email already registered. Please login instead.',
   failedToCreateStore: 'Failed to create store. Please try again.',
   invalidStep: 'Invalid step',
+
+  // Google Signup
+  signUpWithGoogle: 'Sign up with Google',
+  orContinueWithEmail: 'or continue with email',
+  googleModeDescription: 'You signed up with Google. Please complete your store setup below.',
 };

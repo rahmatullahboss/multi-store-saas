@@ -262,15 +262,18 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       // Insert new variants
       for (const v of variants) {
         if (v.option1Value) {
+          const variantInventory = v.inventory ?? 0;
           await db.insert(productVariants).values({
             productId,
             option1Name: v.option1Name,
             option1Value: v.option1Value,
             option2Name: v.option2Name || null,
             option2Value: v.option2Value || null,
-            price: v.price || null,
+            price: v.price ?? null,
             sku: v.sku || null,
-            inventory: v.inventory || 0,
+            inventory: variantInventory,
+            available: variantInventory,
+            reserved: 0,
           });
         }
       }

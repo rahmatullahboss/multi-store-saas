@@ -44,7 +44,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     const existingOrder = await db
-      .select({ id: orders.id, storeId: orders.storeId, paymentStatus: orders.paymentStatus })
+      .select({
+        id: orders.id,
+        storeId: orders.storeId,
+        paymentStatus: orders.paymentStatus,
+        total: orders.total,
+      })
       .from(orders)
       .where(eq(orders.orderNumber, tranId))
       .limit(1);
@@ -80,8 +85,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
       (validation.status || '').toUpperCase() === 'VALIDATED';
 
     const sameTransaction = (validation.tran_id || '').trim() === tranId.trim();
+    const validatedAmount = Number(validation.amount);
+    const amountMatches =
+      Number.isFinite(validatedAmount) && Math.abs(validatedAmount - Number(order.total)) < 0.01;
 
-    if (!isValid || !sameTransaction) {
+    if (!isValid || !sameTransaction || !amountMatches) {
       await db
         .update(orders)
         .set({
@@ -95,6 +103,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           success: false,
           error: 'Payment validation failed',
           validationStatus: validation.status || null,
+          amountMismatch: !amountMatches,
         },
         { status: 400 }
       );

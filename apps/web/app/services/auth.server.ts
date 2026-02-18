@@ -29,6 +29,8 @@ export type AuthUser = {
   email: string;
   role: string;
   storeId?: number | null;
+  name?: string;
+  emailVerified?: boolean;
 };
 
 // ============================================================================
@@ -39,6 +41,7 @@ type SessionData = {
   userId: number;
   storeId: number;
   originalAdminId?: number; // For impersonation checking
+  oauthIntent?: 'signup' | 'login'; // For OAuth flow tracking
 };
 
 type SessionFlashData = {
@@ -187,11 +190,21 @@ export async function verifyPassword(password: string, storedHash: string): Prom
         const parsed = JSON.parse(storedHash);
         if (parsed.hash && parsed.salt) {
           const keyMaterial = await crypto.subtle.importKey(
-            'raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']
+            'raw',
+            encoder.encode(password),
+            'PBKDF2',
+            false,
+            ['deriveBits']
           );
           const bits = await crypto.subtle.deriveBits(
-            { name: 'PBKDF2', salt: encoder.encode(parsed.salt), iterations: 100000, hash: 'SHA-256' },
-            keyMaterial, 256
+            {
+              name: 'PBKDF2',
+              salt: encoder.encode(parsed.salt),
+              iterations: 100000,
+              hash: 'SHA-256',
+            },
+            keyMaterial,
+            256
           );
           const hashArray = Array.from(new Uint8Array(bits));
           const hash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -276,7 +289,10 @@ interface RegisterParams {
   db: D1Database;
 }
 
-export function isAllowedSuperAdminLogin(email: string, env?: Pick<Env, 'SUPER_ADMIN_EMAIL'>): boolean {
+export function isAllowedSuperAdminLogin(
+  email: string,
+  env?: Pick<Env, 'SUPER_ADMIN_EMAIL'>
+): boolean {
   const configured = env?.SUPER_ADMIN_EMAIL?.toLowerCase().trim();
   if (!configured) return false;
   return email.toLowerCase().trim() === configured;
@@ -404,10 +420,9 @@ export async function login({ email, password, db, ip, userAgent, env }: LoginPa
       const isAllowedSuperAdmin = isAllowedSuperAdminLogin(normalizedEmail, env);
 
       if (!isAllowedSuperAdmin) {
-        console.error(
-          '[login] Super admin login blocked due to SUPER_ADMIN_EMAIL mismatch',
-          { userId: user.id }
-        );
+        console.error('[login] Super admin login blocked due to SUPER_ADMIN_EMAIL mismatch', {
+          userId: user.id,
+        });
         return {
           error: 'Invalid email or password',
           errorCode: 'ACCOUNT_DISABLED',
@@ -839,12 +854,16 @@ export async function createGoogleUser(email: string, name: string, db: D1Databa
       return { error: 'Email already exists', user: null };
     }
 
-    // Create user without store (will complete profile later)
+    // Create user without store (will complete profile later).
+    // We store a random hash instead of an empty string to keep password_hash non-empty.
+    const placeholderPassword = `oauth_${crypto.randomUUID()}_${Date.now()}`;
+    const placeholderHash = await hashPassword(placeholderPassword);
+
     const result = await drizzleDb
       .insert(users)
       .values({
         email: email.toLowerCase(),
-        passwordHash: '', // Empty for OAuth users
+        passwordHash: placeholderHash,
         name,
         role: 'merchant',
         storeId: null, // No store yet - will be created in complete-profile
@@ -934,6 +953,106 @@ export async function completeGoogleUserProfile({
   } catch (error) {
     console.error('[completeGoogleUserProfile] Error:', error);
     return { error: 'Failed to complete profile', storeId: null };
+  }
+}
+
+/**
+ * Complete Google onboarding for an existing user who signed up via Google OAuth
+ * This is used during the onboarding flow after Google signup
+ *
+ * @param userId - The user's ID
+ * @param phone - User's phone number
+ * @param storeName - Name of the store to create
+ * @param subdomain - Subdomain for the store
+ * @param db - Database instance
+ */
+export async function completeGoogleOnboardingForExistingUser({
+  userId,
+  phone,
+  storeName,
+  subdomain,
+  db,
+}: {
+  userId: number;
+  phone: string;
+  storeName: string;
+  subdomain: string;
+  db: D1Database;
+}): Promise<{ success: boolean; storeId?: number; error?: string }> {
+  try {
+    const drizzleDb = drizzle(db);
+
+    // 1. Check subdomain uniqueness
+    const existingStore = await drizzleDb
+      .select({ id: stores.id })
+      .from(stores)
+      .where(eq(stores.subdomain, subdomain.toLowerCase()))
+      .limit(1);
+
+    if (existingStore.length > 0) {
+      return { success: false, error: 'subdomain_taken' };
+    }
+
+    // 2. Check phone uniqueness
+    const existingPhone = await drizzleDb
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.phone, phone))
+      .limit(1);
+
+    if (existingPhone.length > 0) {
+      return { success: false, error: 'phone_taken' };
+    }
+
+    // 3. Create the store
+    const defaultThemeConfig = {
+      storeTemplateId: 'starter-store',
+      primaryColor: '#6366f1',
+      accentColor: '#f59e0b',
+      backgroundColor: '#ffffff',
+      textColor: '#111827',
+      fontFamily: 'Inter',
+    };
+
+    const storeResult = await drizzleDb
+      .insert(stores)
+      .values({
+        name: storeName,
+        subdomain: subdomain.toLowerCase(),
+        currency: 'BDT',
+        themeConfig: JSON.stringify(defaultThemeConfig),
+        onboardingStatus: 'completed',
+        setupStep: 4,
+      })
+      .returning({ id: stores.id });
+
+    if (!storeResult || storeResult.length === 0) {
+      return { success: false, error: 'Failed to create store' };
+    }
+
+    const storeId = storeResult[0].id;
+
+    // 4. Update user with store, phone, and role
+    await drizzleDb
+      .update(users)
+      .set({
+        storeId,
+        phone,
+        role: 'merchant',
+      })
+      .where(eq(users.id, userId));
+
+    console.warn(
+      '[completeGoogleOnboardingForExistingUser] Completed Google onboarding for user:',
+      userId,
+      'store:',
+      storeId
+    );
+
+    return { success: true, storeId };
+  } catch (error) {
+    console.error('[completeGoogleOnboardingForExistingUser] Error:', error);
+    return { success: false, error: 'Failed to complete onboarding' };
   }
 }
 
@@ -1044,7 +1163,12 @@ export async function getStoreIdWithRecovery(
       // Re-commit the session so subsequent requests don't need recovery
       session.set('storeId', recovered);
       const cookie = await commitSession(session, env);
-      console.warn('[getStoreIdWithRecovery] Recovered storeId from DB for user:', userId, 'storeId:', recovered);
+      console.warn(
+        '[getStoreIdWithRecovery] Recovered storeId from DB for user:',
+        userId,
+        'storeId:',
+        recovered
+      );
       return { storeId: recovered, headers: { 'Set-Cookie': cookie } };
     }
   } catch (err) {
@@ -1302,12 +1426,25 @@ export function getAuthenticator(env: Env, requestUrl?: string) {
         callbackURL,
       },
       async ({ profile }) => {
+        // Extract email and verification status from Google profile
+        const emailObj = profile.emails?.[0];
+        const email = emailObj?.value || '';
+        // emailVerified may not be available in all profiles, default to true
+        const emailVerified = (emailObj as { verified?: boolean })?.verified ?? true;
+        const name =
+          profile.displayName ||
+          profile.name?.givenName ||
+          profile.name?.familyName ||
+          email.split('@')[0];
+
         // We return a minimal profile object here.
         // The database lookup/creation logic will be handled
         // in the callback route's loader function using this profile data.
         return {
           id: 0, // Placeholder, will be resolved in callback
-          email: profile.emails[0].value,
+          email,
+          emailVerified,
+          name,
           role: 'merchant', // Default assumption, resolved in callback
           storeId: null,
         };

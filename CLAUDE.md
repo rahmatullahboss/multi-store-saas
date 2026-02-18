@@ -153,6 +153,36 @@ ozzyl-monorepo/
 3.  **Local Test**: Test with `npm run dev:wrangler` (local D1) before deploying.
 4.  **Store Isolation**: Verify `store_id` is present in every DB query.
 5.  **Context7**: If docs are missing, use `context7` tool to fetch latest docs.
+6.  **Route Ownership**: Keep `*.ozzyl.com/*` route owned by main app worker only. Do not duplicate wildcard routes in proxy worker configs.
+7.  **Post-Deploy Health**: After every production deploy, run token-protected health check (`/api/healthz`) before declaring success.
+
+## 🩺 Health Monitoring (Production Standard)
+
+- Monitoring endpoint: `GET /api/healthz`
+- Auth: `x-health-token` (or bearer/query fallback)
+- Secret: `HEALTH_CHECK_TOKEN` (must be set in both `production` and `staging`)
+
+Set secret:
+
+```bash
+cd apps/web
+openssl rand -hex 24 | npx wrangler secret put HEALTH_CHECK_TOKEN --env production
+openssl rand -hex 24 | npx wrangler secret put HEALTH_CHECK_TOKEN --env staging
+```
+
+Post-deploy verification:
+
+```bash
+cd /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas
+HEALTH_CHECK_TOKEN='<token>' \
+MAIN_APP_URL='https://app.ozzyl.com' \
+MAIN_APP_FALLBACK_URL='https://multi-store-saas.rahmatullahzisan.workers.dev' \
+bash apps/web/workers/health-check.sh --main
+```
+
+Reference:
+
+- `docs/HEALTH_MONITORING_RUNBOOK_2026-02-17.md`
 
 ## 🤖 Slash Commands & Tips
 

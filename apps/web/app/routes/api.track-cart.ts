@@ -12,7 +12,7 @@
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { z } from 'zod';
 import { drizzle } from 'drizzle-orm/d1';
-import { abandonedCarts, products, stores } from '@db/schema';
+import { abandonedCarts, products, productVariants, stores } from '@db/schema';
 import { eq, and, or } from 'drizzle-orm';
 
 // ============================================================================
@@ -105,7 +105,35 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     const product = productResult[0];
-    const unitPrice = product.price;
+
+    const variant =
+      typeof input.variant_id === 'number'
+        ? (
+            await db
+              .select({
+                id: productVariants.id,
+                productId: productVariants.productId,
+                price: productVariants.price,
+                option1Value: productVariants.option1Value,
+                option2Value: productVariants.option2Value,
+                option3Value: productVariants.option3Value,
+              })
+              .from(productVariants)
+              .where(
+                and(
+                  eq(productVariants.id, input.variant_id),
+                  eq(productVariants.productId, input.product_id)
+                )
+              )
+              .limit(1)
+          )[0]
+        : undefined;
+
+    if (input.variant_id && !variant) {
+      return json({ success: false, error: 'Invalid variant for product' }, { status: 400 });
+    }
+
+    const unitPrice = variant?.price ?? product.price;
     const totalAmount = unitPrice * input.quantity;
 
     // Build cart items JSON - extract first image from images JSON array
@@ -119,12 +147,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
     
     const cartItems = JSON.stringify([{
       productId: product.id,
-      title: input.variant_info 
-        ? `${product.title} (${input.variant_info})` 
-        : product.title,
+      title:
+        input.variant_info || variant
+          ? `${product.title} (${input.variant_info || [variant?.option1Value, variant?.option2Value, variant?.option3Value].filter(Boolean).join(' / ')})`
+          : product.title,
       quantity: input.quantity,
       price: unitPrice,
       image: firstImage,
+      variantId: variant?.id ?? null,
     }]);
 
     const now = new Date();
@@ -155,12 +185,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
       await db
         .update(abandonedCarts)
         .set({
+          sessionId: input.session_id,
           customerName: input.customer_name || null,
           customerEmail: input.customer_email || null,
           customerPhone: input.customer_phone || null,
           cartItems,
           totalAmount,
           currency: storeResult[0].currency || 'BDT',
+          abandonedAt: now,
+          recoveredAt: null,
+          status: 'abandoned',
+          recoveryEmailSent: false,
+          recoveryEmailSentAt: null,
         })
         .where(eq(abandonedCarts.id, existingCart[0].id));
 
