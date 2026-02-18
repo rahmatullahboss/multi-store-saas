@@ -583,7 +583,7 @@ function ProductCard({
 }: {
   product: SerializedProduct;
   currency: string;
-  theme: any;
+  theme: { primary: string; accent?: string; [key: string]: unknown };
   isDark: boolean;
 }) {
   const { t } = useTranslation();
@@ -674,7 +674,7 @@ function ProductListItem({
 }: {
   product: SerializedProduct;
   currency: string;
-  theme: any;
+  theme: { primary: string; accent?: string; [key: string]: unknown };
   isDark: boolean;
 }) {
   const { t } = useTranslation();

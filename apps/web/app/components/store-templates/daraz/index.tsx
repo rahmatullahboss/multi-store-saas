@@ -1165,7 +1165,7 @@ function PreviewFooter({
 // FULL PREVIEW STORE (State-based routing, demo data)
 // ============================================================================
 function PreviewDarazStore(props: StoreTemplateProps) {
-  const { storeName, logo, categories, config, currency } = props;
+  const { storeName, logo, config, currency } = props;
   const [currentPage, setCurrentPage] = useState<PageType>({ type: 'home' });
 
   const navigate = useCallback((page: PageType) => {
@@ -1350,10 +1350,9 @@ function LiveDarazHomepage(props: StoreTemplateProps) {
                 {!currentCategory && (
                   <DarazCategoryGrid
                     categories={categories}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     categoryImages={{
                       ...CATEGORY_IMAGES,
-                      ...(((config as any)?.categoryImageMap || {}) as Record<string, string>),
+                      ...((config as unknown as Record<string, unknown>)?.categoryImageMap as Record<string, string> | undefined || {}),
                     }}
                     maxCategories={16}
                   />

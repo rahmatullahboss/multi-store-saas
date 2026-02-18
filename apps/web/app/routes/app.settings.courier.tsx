@@ -21,6 +21,7 @@ import {
   Link,
 } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
+import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { getStoreId, getUserId } from '~/services/auth.server';
@@ -378,7 +379,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           };
 
           await saveUnifiedStorefrontSettingsWithCacheInvalidation(
-            db as any,
+            db as unknown as DrizzleD1Database<Record<string, unknown>>,
             {
               KV: context.cloudflare.env.STORE_CACHE,
               STORE_CONFIG_SERVICE: context.cloudflare.env.STORE_CONFIG_SERVICE as Fetcher,
@@ -477,7 +478,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
       await saveUnifiedStorefrontSettingsWithCacheInvalidation(
-        db as any,
+        db as unknown as DrizzleD1Database<Record<string, unknown>>,
         {
           KV: context.cloudflare.env.STORE_CACHE,
           STORE_CONFIG_SERVICE: context.cloudflare.env.STORE_CONFIG_SERVICE as Fetcher,
@@ -553,7 +554,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       };
 
       await saveUnifiedStorefrontSettingsWithCacheInvalidation(
-        db as any,
+        db as unknown as DrizzleD1Database<Record<string, unknown>>,
         {
           KV: context.cloudflare.env.STORE_CACHE,
           STORE_CONFIG_SERVICE: context.cloudflare.env.STORE_CONFIG_SERVICE as Fetcher,

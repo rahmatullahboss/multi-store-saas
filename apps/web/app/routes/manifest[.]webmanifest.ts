@@ -4,7 +4,7 @@ import { resolveStore } from '~/lib/store.server';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
-  const storeResolution = await resolveStore(context as any, request);
+  const storeResolution = await resolveStore(context as Parameters<typeof resolveStore>[0], request);
   const store = storeResolution?.store;
 
   let unifiedSettings = null;

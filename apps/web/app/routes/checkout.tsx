@@ -92,7 +92,7 @@ import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { PaymentMethodSelector } from '~/components/checkout/PaymentMethodSelector';
 import { SearchableSelect } from '~/components/SearchableSelect';
 import { DISTRICTS, UPAZILAS, getShippingZone } from '~/data/bd-locations';
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Loader2, ArrowLeft, ShoppingBag, ShieldCheck, Truck, CheckCircle } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
 import type { CustomerAddress } from '~/services/customer-account.server';
@@ -593,11 +593,14 @@ export default function Checkout() {
     [planType]
   );
 
-  const findCartProduct = (item: CartItem) =>
-    cartProducts.find(
-      (product) =>
-        product.id === item.productId && (product.variantId ?? null) === (item.variantId ?? null)
-    );
+  const findCartProduct = useCallback(
+    (item: CartItem) =>
+      cartProducts.find(
+        (product) =>
+          product.id === item.productId && (product.variantId ?? null) === (item.variantId ?? null)
+      ),
+    [cartProducts]
+  );
 
   // Calculations
   const subtotal = useMemo(() => {
@@ -605,7 +608,7 @@ export default function Checkout() {
       const product = findCartProduct(item);
       return sum + (product ? product.price * item.quantity : 0);
     }, 0);
-  }, [cartItems, cartProducts]);
+  }, [cartItems, findCartProduct]);
 
   // Helper: Get upazilas for selected district
   const availableUpazilas = useMemo(() => {
@@ -749,7 +752,7 @@ export default function Checkout() {
         }
       }
     }
-  }, [fetcher.data]);
+  }, [fetcher, fetcher.data]);
 
   // Reset upazila when district changes
   useEffect(() => {
@@ -809,7 +812,7 @@ export default function Checkout() {
         toast.error(data.error);
       }
     }
-  }, [orderFetcher.data, navigate, currency, cartItems, cartProducts]);
+  }, [orderFetcher.data, navigate, currency, cartItems, findCartProduct]);
 
   // Calculations already defined above
 

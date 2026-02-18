@@ -291,11 +291,10 @@ async function getLegacySettings<TSchema extends Record<string, unknown>>(
   }
 
   // Get MVP settings
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let mvpSettings: Record<string, any> | null = null;
+  let mvpSettings: Record<string, unknown> | null = null;
   try {
     const rawMvpSettings = await getRawMVPSettings(db, storeId);
-    mvpSettings = rawMvpSettings as Record<string, any>;
+    mvpSettings = rawMvpSettings as unknown as Record<string, unknown>;
   } catch {
     mvpSettings = null;
   }

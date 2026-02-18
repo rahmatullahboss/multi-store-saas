@@ -17,6 +17,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remi
 import { json } from '@remix-run/cloudflare';
 import { Form, useLoaderData, useActionData, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
+import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import { eq, count, sum } from 'drizzle-orm';
 import {
   stores,
@@ -335,7 +336,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   try {
     // Unified-only save (no legacy writes)
     await saveUnifiedStorefrontSettingsWithCacheInvalidation(
-      db as any,
+      db as unknown as DrizzleD1Database<Record<string, unknown>>,
       {
         KV: context.cloudflare.env.STORE_CACHE,
         STORE_CONFIG_SERVICE: context.cloudflare.env.STORE_CONFIG_SERVICE as Fetcher,
