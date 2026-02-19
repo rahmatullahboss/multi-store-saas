@@ -159,6 +159,11 @@ export const stores = sqliteTable('stores', {
   // JSON: { version, theme, branding, business, social, announcement, seo, checkout, flags, updatedAt }
   storefrontSettings: text('storefront_settings'),
 
+  // === FRAUD DETECTION SETTINGS ===
+  // JSON: { enabled, thresholds: { verify: 30, hold: 60, block: 80 }, autoHideCOD: false,
+  //   requireOTPForCOD: false, maxCODAmount: null }
+  fraudSettings: text('fraud_settings'),
+
   // === SOFT DELETE & TIMESTAMPS ===
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   deletedAt: integer('deleted_at', { mode: 'timestamp' }), // Soft delete timestamp (null = not deleted)
@@ -715,6 +720,71 @@ export const shipments = sqliteTable(
 export const shipmentsRelations = relations(shipments, ({ one }) => ({
   order: one(orders, {
     fields: [shipments.orderId],
+    references: [orders.id],
+  }),
+}));
+
+// ============================================================================
+// PHONE BLACKLIST TABLE - Global + per-store fraud blacklist
+// ============================================================================
+export const phoneBlacklist = sqliteTable(
+  'phone_blacklist',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    phone: text('phone').notNull(),
+    storeId: integer('store_id').references(() => stores.id, { onDelete: 'cascade' }),
+    reason: text('reason'),
+    addedBy: text('added_by').$type<'system' | 'merchant' | 'admin'>().default('merchant'),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_phone_blacklist_phone').on(table.phone),
+    index('idx_phone_blacklist_store').on(table.storeId),
+  ]
+);
+
+export const phoneBlacklistRelations = relations(phoneBlacklist, ({ one }) => ({
+  store: one(stores, {
+    fields: [phoneBlacklist.storeId],
+    references: [stores.id],
+  }),
+}));
+
+// ============================================================================
+// FRAUD EVENTS TABLE - Audit trail for fraud decisions
+// ============================================================================
+export const fraudEvents = sqliteTable(
+  'fraud_events',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    orderId: integer('order_id').references(() => orders.id, { onDelete: 'set null' }),
+    phone: text('phone').notNull(),
+    riskScore: integer('risk_score').notNull(), // 0-100
+    decision: text('decision')
+      .$type<'allow' | 'verify' | 'hold' | 'block'>()
+      .notNull(),
+    signals: text('signals'), // JSON: { factors contributing to score }
+    resolvedBy: text('resolved_by'), // 'auto' | 'otp_verified' | user email/id
+    resolvedAt: integer('resolved_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_fraud_events_store').on(table.storeId),
+    index('idx_fraud_events_phone').on(table.phone),
+    index('idx_fraud_events_order').on(table.orderId),
+  ]
+);
+
+export const fraudEventsRelations = relations(fraudEvents, ({ one }) => ({
+  store: one(stores, {
+    fields: [fraudEvents.storeId],
+    references: [stores.id],
+  }),
+  order: one(orders, {
+    fields: [fraudEvents.orderId],
     references: [orders.id],
   }),
 }));
