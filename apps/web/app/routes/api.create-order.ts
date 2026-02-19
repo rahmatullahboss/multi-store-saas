@@ -97,7 +97,11 @@ export const OrderSchema = z.object({
   payment_method: z
     .enum(['cod', 'bkash', 'nagad', 'rocket', 'stripe', 'sslcommerz'])
     .default('cod'),
-  transaction_id: z.string().trim().min(6).max(100).optional(),
+  transaction_id: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? undefined : v))
+    .pipe(z.string().min(6).max(100).optional()),
   variant_id: z.number().int().optional(), // Product variant ID
   manual_payment_details: z
     .object({
