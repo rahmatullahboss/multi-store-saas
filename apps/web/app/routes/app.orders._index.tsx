@@ -208,13 +208,27 @@ export async function action({ request, context }: ActionFunctionArgs) {
       let address = '';
       let city = '';
       if (order.shippingAddress) {
-        const parsed =
-          typeof order.shippingAddress === 'string'
-            ? JSON.parse(order.shippingAddress)
-            : order.shippingAddress;
-        address = parsed.address || '';
-        city = parsed.city || '';
+        try {
+          const parsed =
+            typeof order.shippingAddress === 'string'
+              ? JSON.parse(order.shippingAddress)
+              : order.shippingAddress;
+          city = parsed.city || parsed.district || '';
+          // Build full address from all available components
+          const fullAddress = [
+            parsed.address,
+            parsed.upazila,
+            parsed.district,
+            parsed.city,
+            parsed.division,
+          ].filter(Boolean).join(', ');
+          address = fullAddress || (typeof order.shippingAddress === 'string' ? order.shippingAddress : '');
+        } catch {
+          address = typeof order.shippingAddress === 'string' ? order.shippingAddress : '';
+        }
       }
+      // Pathao requires at least 10 characters
+      if (!address) address = 'Dhaka, Bangladesh';
 
       if (provider === 'pathao' && courierSettings.pathao) {
         const { createPathaoClient } = await import('~/services/pathao.server');
@@ -229,7 +243,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
           merchant_order_id: order.orderNumber,
           recipient_name: order.customerName || 'Customer',
           recipient_phone: order.customerPhone || '',
-          recipient_address: address,
+          // Pathao requires recipient_address to be at least 10 characters
+          recipient_address: address.length >= 10 ? address : (address ? address.padEnd(10, ' ').trim() : 'Dhaka, Bangladesh'),
           delivery_type: 48,
           item_type: 2,
           item_quantity: 1,

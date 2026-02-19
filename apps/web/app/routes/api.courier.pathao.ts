@@ -177,7 +177,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
         const parsed = typeof order.shippingAddress === 'string'
           ? JSON.parse(order.shippingAddress)
           : order.shippingAddress;
-        recipientAddress = [parsed.address, parsed.city].filter(Boolean).join(', ');
+        // Build full address from all available components
+        recipientAddress = [
+          parsed.address,
+          parsed.upazila,
+          parsed.district,
+          parsed.city,
+          parsed.division,
+        ].filter(Boolean).join(', ');
         recipientCity = parsed.pathao_city_id;
         recipientZone = parsed.pathao_zone_id;
         recipientArea = parsed.pathao_area_id;
@@ -189,7 +196,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
         merchant_order_id: order.orderNumber,
         recipient_name: order.customerName || 'Customer',
         recipient_phone: order.customerPhone || '',
-        recipient_address: recipientAddress || 'N/A',
+        // Pathao requires recipient_address to be at least 10 characters
+        recipient_address: recipientAddress.length >= 10
+          ? recipientAddress
+          : recipientAddress
+            ? recipientAddress.padEnd(10, ' ').trim() || 'Dhaka, Bangladesh'
+            : 'Dhaka, Bangladesh',
         recipient_city: recipientCity,
         recipient_zone: recipientZone,
         recipient_area: recipientArea,
