@@ -143,6 +143,8 @@ export const common = {
   navPageBuilderV2: 'New Landing Builder',
   navHomepage: 'Homepage Strategy',
   navShipping: 'Shipping',
+  navCourier: 'Courier',
+  navFraudDetection: 'Fraud Detection',
   navSupport: 'Support',
   navDomain: 'Domain',
   navBilling: 'Billing',

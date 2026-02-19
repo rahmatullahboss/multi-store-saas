@@ -1805,6 +1805,8 @@
   "navReports": "Nav Reports",
   "navReviews": "Nav Reviews",
   "navShipping": "Nav Shipping",
+  "navCourier": "Courier",
+  "navFraudDetection": "Fraud Detection",
   "navSupport": "Support",
   "navStoreEditor": "Nav Store Editor",
   "navStoreTemplates": "Nav Store Templates",

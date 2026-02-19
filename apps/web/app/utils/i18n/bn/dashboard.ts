@@ -176,6 +176,8 @@ export const dashboard = {
   navStoreTemplates: 'স্টোর ডিজাইন',
   navHomepage: 'হোমপেজ সেটিংস',
   navShipping: 'শিপিং',
+  navCourier: 'কুরিয়ার',
+  navFraudDetection: 'ফ্রড ডিটেকশন',
   navDomain: 'ডোমেইন',
   navBilling: 'বিলিং',
   navCredits: 'AI ক্রেডিট',

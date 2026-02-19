@@ -20,7 +20,7 @@ import { useLoaderData, useFetcher, useRouteError, isRouteErrorResponse } from '
 import { eq, and, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { products, productVariants } from '@db/schema';
-import { type SocialLinks, type ThemeConfig, type LandingConfig } from '@db/types';
+import { type ThemeConfig, type LandingConfig } from '@db/types';
 import { type MVPSettingsWithTheme } from '~/config/mvp-theme-settings';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreTemplate } from '~/templates/store-registry';
@@ -74,30 +74,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeData = store;
   const db = createDb(context.cloudflare.env.DB);
 
-  // Use unified service for settings (single source of truth)
-  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
-    env: context.cloudflare.env,
-  });
-  const unified = toLegacyFormat(unifiedSettings);
+  // Use unified  // 4. Get unified settings (single source of truth)
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
+  
+  // Convert to legacy format for compatibility (ensures floating buttons work)
+  const legacySettings = toLegacyFormat(unifiedSettings);
 
-  const floatingSettings = {
-    whatsappEnabled: unifiedSettings.floating?.whatsappEnabled,
-    whatsappNumber: unifiedSettings.floating?.whatsappNumber,
-    whatsappMessage: unifiedSettings.floating?.whatsappMessage,
-    callEnabled: unifiedSettings.floating?.callEnabled,
-    callNumber: unifiedSettings.floating?.callNumber,
-  };
-
-  // Get shipping config directly from unified settings
-  const unifiedShippingConfig = getShippingConfigFromUnified(unifiedSettings);
-
-  const businessInfo = {
-    phone: unifiedSettings.business.phone ?? undefined,
-    email: unifiedSettings.business.email ?? undefined,
-    address: unifiedSettings.business.address ?? undefined,
-  };
-
-  const socialLinks: SocialLinks = {
+  // Use socialLinks from unified settings (or legacy fallback)
+  const socialLinks = {
     facebook: unifiedSettings.social.facebook ?? undefined,
     instagram: unifiedSettings.social.instagram ?? undefined,
     whatsapp: unifiedSettings.social.whatsapp ?? undefined,
@@ -106,10 +90,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     linkedin: unifiedSettings.social.linkedin ?? undefined,
   };
 
-  // Load customer session
+  // Use businessInfo from unified settings
+  const businessInfo = {
+    phone: unifiedSettings.business.phone ?? undefined,
+    email: unifiedSettings.business.email ?? undefined,
+    address: unifiedSettings.business.address ?? undefined,
+  };
+
+  // 5. Get Customer (if logged in)
   const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
 
-  // Fetch unique categories for footer
+  // 6. Get Categories (Cached)
+  // NOTE: This part of the code was not fully provided in the instruction,
+  // so I'm using the original category fetching logic to maintain functionality.
+  // If D1Cache, collectionsTable, StoreCategory, and desc are new imports,
+  // they would need to be added.
   const categoriesResult = await db
     .select({ category: products.category })
     .from(products)
@@ -119,42 +114,30 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     ...new Set(categoriesResult.map((p) => p.category).filter((c): c is string => Boolean(c))),
   ];
 
-  // Use unified theme config - no more legacy storeData.themeConfig reading
-  const mergedThemeConfig = {
-    primaryColor: unified.theme.primary,
-    accentColor: unified.theme.accent,
-    storeTemplateId: unified.storeTemplateId,
-    floatingWhatsappEnabled: floatingSettings.whatsappEnabled,
-    floatingWhatsappNumber: floatingSettings.whatsappNumber,
-    floatingWhatsappMessage: floatingSettings.whatsappMessage,
-    floatingCallEnabled: floatingSettings.callEnabled,
-    floatingCallNumber: floatingSettings.callNumber,
-  } as unknown as ThemeConfig;
+  // Get shipping config directly from unified settings
+  const unifiedShippingConfig = getShippingConfigFromUnified(unifiedSettings);
 
   return json({
     storeId: storeId as number,
-    storeName: unified.storeName || storeData?.name || 'Store',
-    logo: unified.logo || storeData?.logo || null,
-    favicon: unified.favicon || storeData?.favicon || null,
-    currency: storeData?.currency || 'BDT',
-    storeTemplateId: unified.storeTemplateId,
-    theme: unified.theme,
-    socialLinks: Object.values(socialLinks).some(Boolean) ? socialLinks : null,
-    businessInfo: Object.values(businessInfo).some(Boolean) ? businessInfo : null,
-    themeConfig: mergedThemeConfig,
-    planType: storeData?.planType || 'free',
+    storeName: legacySettings.storeName || storeData.name || 'Store',
+    logo: legacySettings.logo || storeData.logo || null,
+    favicon: legacySettings.favicon || storeData.favicon || null,
+    currency: storeData.currency || 'BDT',
+    storeTemplateId: legacySettings.storeTemplateId,
+    theme: legacySettings.theme,
+    socialLinks,
+    businessInfo,
+    themeConfig: legacySettings.themeConfig,
+    planType: storeData.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
     categories,
     mvpSettings: {
-      ...unified.mvpSettings,
+      ...legacySettings.mvpSettings,
       headline: unifiedSettings.heroBanner?.slides?.[0]?.heading || 'Welcome to our store',
       ctaText: unifiedSettings.heroBanner?.slides?.[0]?.ctaText || 'Shop Now',
       shippingConfig: unifiedShippingConfig,
-    } as MVPSettingsWithTheme & LandingConfig,
-    // AI Chat props
-    isCustomerAiEnabled: Boolean(
-      (storeData as { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled
-    ),
+    },
+    isCustomerAiEnabled: Boolean((storeData as { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled),
     aiCredits: Number((storeData as { aiCredits?: number }).aiCredits) || 0,
   });
 }

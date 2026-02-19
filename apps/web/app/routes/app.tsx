@@ -47,6 +47,7 @@ import {
   Users,
   Bell,
   Ticket,
+  Shield,
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -339,6 +340,8 @@ const navSections: NavSection[] = [
       { to: '/app/settings/lead-gen', labelKey: 'navLeadGenSettings', icon: Palette },
       { to: '/app/settings/domain', labelKey: 'navDomain', icon: Globe },
       { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck },
+      { to: '/app/settings/courier', labelKey: 'navCourier', icon: Package },
+      { to: '/app/settings/fraud', labelKey: 'navFraudDetection', icon: Shield },
       { to: '/app/settings/payment', labelKey: 'navPayments', icon: CreditCard },
       { to: '/app/billing', labelKey: 'navPlanBilling', icon: Crown },
       { to: '/app/settings/team', labelKey: 'navTeam', icon: Users },

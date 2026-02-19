@@ -69,6 +69,15 @@ export interface PathaoOrder {
   delivery_fee: number;
 }
 
+export interface PathaoBulkOrderResult {
+  merchant_order_id?: string;
+  consignment_id?: string;
+  order_status?: string;
+  delivery_fee?: number;
+  success: boolean;
+  error?: string;
+}
+
 export interface PathaoOrderStatus {
   consignment_id: string;
   order_status: string;
@@ -307,6 +316,21 @@ export function createPathaoClient(credentials: PathaoCredentials) {
       const result = await apiRequest<{ data: PathaoOrder }>('/orders', {
         method: 'POST',
         body: JSON.stringify(order),
+      });
+      return result.data;
+    },
+
+    /**
+     * Bulk create orders
+     * Endpoint: POST /aladdin/api/v1/orders/bulk
+     *
+     * Sends multiple orders in a single API call. Pathao processes each order
+     * individually and returns success/failure per order.
+     */
+    async bulkCreateOrders(orders: PathaoCreateOrderRequest[]): Promise<PathaoBulkOrderResult[]> {
+      const result = await apiRequest<{ data: PathaoBulkOrderResult[] }>('/orders/bulk', {
+        method: 'POST',
+        body: JSON.stringify({ orders }),
       });
       return result.data;
     },

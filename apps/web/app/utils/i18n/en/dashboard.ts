@@ -176,6 +176,8 @@ export const dashboard = {
   navStoreTemplates: 'Store Design',
   navHomepage: 'Homepage Settings',
   navShipping: 'Shipping',
+  navCourier: 'Courier',
+  navFraudDetection: 'Fraud Detection',
   navDomain: 'Domain',
   navBilling: 'Billing',
   navCredits: 'AI Credits',

@@ -97,6 +97,8 @@
 - [x] **Landing Page Internationalization**: Complete i18n support for all marketing components.
 - [ ] **Phase 9: Reliability Engineering** (Next)
   - [x] **Sentry Integration**: Integrated Sentry for error logging and monitoring.
+- [ ] **Technical Debt (Unified Settings)**
+  - [ ] **Audit Loaders**: Verify strict `toLegacyFormat` usage across all remaining loaders to prevent regressions.
 
 ### Phase 9: Visual Store Builder Upgrade (Completed)
 
@@ -112,6 +114,7 @@
 ### Phase 10: Technical Debt & Standardization (Completed)
 
 - [x] **Reactive Cart Logic**: Standardized `useCartCount` hook across all templates and headers.
+- [x] **Unified Settings Bridge**: Refactored Cart, Checkout, and Login pages to strictly use `toLegacyFormat`, resolving regression bugs.
 - [x] **Template Building Guide**: Created comprehensive documentation for future theme development.
 - [x] **Template Visual Differentiation**:
   - [x] Implement unique section layouts (Features, Testimonials, FAQ, Gallery, Order Form) for each template (Modern Dark, Showcase, Flash Sale, etc.).

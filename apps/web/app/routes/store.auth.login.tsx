@@ -25,8 +25,8 @@ import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { products as productsTable } from '@db/schema';
 import { desc, eq, and } from 'drizzle-orm';
-import { resolveStoreTheme } from '~/templates/store-registry';
 import { resolveStore } from '~/lib/store.server';
+import type { ThemeConfig } from '@db/types';
 import {
   getCustomerId,
   loginCustomer,
@@ -35,7 +35,10 @@ import {
 } from '~/services/customer-auth.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { Lock, Mail, ArrowRight, Loader2 } from 'lucide-react';
-import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
+import {
+  getUnifiedStorefrontSettings,
+  toLegacyFormat,
+} from '~/services/unified-storefront-settings.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   // 1. Resolve store context
@@ -60,17 +63,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // 4. Get unified settings (single source of truth)
   const db = createDb(env.DB);
   const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
-
-  // Get theme from unified settings
-  const { storeTemplateId: templateId, theme } = resolveStoreTheme(
-    {
-      primaryColor: unifiedSettings.theme.primary,
-      accentColor: unifiedSettings.theme.accent,
-      backgroundColor: unifiedSettings.theme.background,
-      textColor: unifiedSettings.theme.text,
-    } as Record<string, unknown>,
-    store.theme
-  );
+  
+  // Convert to legacy format for compatibility
+  const legacySettings = toLegacyFormat(unifiedSettings);
 
   // Social links from unified settings
   const socialLinks = {
@@ -111,7 +106,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       id: store.id,
       name: store.name,
       logo: store.logo,
-      templateId,
+      templateId: legacySettings.storeTemplateId,
       subdomain: store.subdomain,
       currency: store.currency,
       planType: store.planType,
@@ -122,21 +117,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     socialLinks,
     businessInfo,
     categories,
-    themeConfig: {
-      primaryColor: unifiedSettings.theme.primary,
-      accentColor: unifiedSettings.theme.accent,
-      backgroundColor: unifiedSettings.theme.background,
-      textColor: unifiedSettings.theme.text,
-      storeName: unifiedSettings.branding.storeName,
-      logo: unifiedSettings.branding.logo,
-      tagline: unifiedSettings.branding.tagline,
-      floatingWhatsappEnabled: unifiedSettings.floating?.whatsappEnabled,
-      floatingWhatsappNumber: unifiedSettings.floating?.whatsappNumber || undefined,
-      floatingWhatsappMessage: unifiedSettings.floating?.whatsappMessage || undefined,
-      floatingCallEnabled: unifiedSettings.floating?.callEnabled,
-      floatingCallNumber: unifiedSettings.floating?.callNumber || undefined,
-    },
-    theme,
+    themeConfig: legacySettings.themeConfig as unknown as ThemeConfig,
+    theme: legacySettings.theme,
   });
 }
 

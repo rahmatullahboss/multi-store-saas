@@ -101,6 +101,7 @@ import {
   getDefaultPaymentMethodForPlan,
   type CheckoutPaymentMethod,
 } from '~/lib/payment-policy';
+import type { ThemeConfig } from '@db/types';
 
 // Helper: Convert English numbers to Bangla
 const toBanglaNumber = (num: number | string): string => {
@@ -139,16 +140,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId as number, {
     env: context.cloudflare.env,
   });
-  const unified = toLegacyFormat(unifiedSettings);
+  const legacySettings = toLegacyFormat(unifiedSettings);
   const unifiedShippingConfig = getShippingConfigFromUnified(unifiedSettings);
 
-  const floatingSettings = {
-    whatsappEnabled: unifiedSettings.floating?.whatsappEnabled,
-    whatsappNumber: unifiedSettings.floating?.whatsappNumber,
-    whatsappMessage: unifiedSettings.floating?.whatsappMessage,
-    callEnabled: unifiedSettings.floating?.callEnabled,
-    callNumber: unifiedSettings.floating?.callNumber,
-  };
+
 
   // Route guard: Check if store routes are enabled
   if (store.storeEnabled === false) {
@@ -165,10 +160,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     linkedin: unifiedSettings.social.linkedin ?? undefined,
   };
 
-  const { storeTemplateId, theme } = {
-    storeTemplateId: unified.storeTemplateId,
-    theme: unified.theme,
-  };
+
 
   const businessInfo = {
     phone: unifiedSettings.business.phone ?? undefined,
@@ -246,27 +238,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   return json({
     storeId: storeId as number,
-    storeName: unified.storeName || store.name,
-    logo: unified.logo || store.logo,
+    storeName: legacySettings.storeName || store.name,
+    logo: legacySettings.logo || store.logo,
     currency: store.currency || 'BDT',
-    storeTemplateId,
-    theme,
+    storeTemplateId: legacySettings.storeTemplateId,
+    theme: legacySettings.theme,
     socialLinks,
     businessInfo,
+    themeConfig: legacySettings.themeConfig as unknown as ThemeConfig,
     shippingConfig,
     manualPaymentConfig,
     bumpProducts,
     facebookPixelId: store.facebookPixelId,
-    themeConfig: {
-      primaryColor: theme.primary,
-      accentColor: theme.accent,
-      storeTemplateId,
-      floatingWhatsappEnabled: floatingSettings.whatsappEnabled,
-      floatingWhatsappNumber: floatingSettings.whatsappNumber || undefined,
-      floatingWhatsappMessage: floatingSettings.whatsappMessage || undefined,
-      floatingCallEnabled: floatingSettings.callEnabled,
-      floatingCallNumber: floatingSettings.callNumber || undefined,
-    },
     planType: store.planType || 'free',
     customer: customer
       ? {
@@ -959,7 +942,7 @@ export default function Checkout() {
         planType={planType}
         customer={customer}
         categories={categories}
-        config={themeConfig}
+        config={themeConfig as ThemeConfig}
         isCustomerAiEnabled={isCustomerAiEnabled}
         aiCredits={aiCredits}
       >
@@ -1607,7 +1590,7 @@ export default function Checkout() {
         planType={planType}
         customer={customer}
         categories={categories}
-        config={themeConfig}
+        config={themeConfig as ThemeConfig}
         isCustomerAiEnabled={isCustomerAiEnabled}
         aiCredits={aiCredits}
       >
@@ -1769,7 +1752,7 @@ export default function Checkout() {
       planType={planType}
       customer={customer}
       categories={categories}
-      config={themeConfig}
+      config={themeConfig as ThemeConfig}
       isCustomerAiEnabled={isCustomerAiEnabled}
       aiCredits={aiCredits}
     >

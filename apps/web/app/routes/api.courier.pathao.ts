@@ -385,6 +385,120 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
   }
 
+  // ========================================
+  // BULK_BOOK_ORDERS - Bulk create Pathao shipments
+  // ========================================
+  if (intent === 'BULK_BOOK_ORDERS') {
+    const orderIdsRaw = formData.get('orderIds') as string;
+    if (!orderIdsRaw) {
+      return json({ error: 'orderIds is required' }, { status: 400 });
+    }
+
+    const orderIds = orderIdsRaw.split(',').map((id) => parseInt(id.trim())).filter(Boolean);
+    if (orderIds.length === 0) {
+      return json({ error: 'No valid order IDs provided' }, { status: 400 });
+    }
+
+    try {
+      const { client, defaultStoreId } = await getPathaoClient();
+
+      const orderResults = await db
+        .select()
+        .from(orders)
+        .where(and(inArray(orders.id, orderIds), eq(orders.storeId, storeId)));
+
+      const skipped: { orderId: number; reason: string }[] = [];
+      const payloads: { orderId: number; payload: Parameters<typeof client.createOrder>[0] }[] = [];
+
+      for (const order of orderResults) {
+        if (order.courierConsignmentId) {
+          skipped.push({ orderId: order.id, reason: 'Already has a shipment' });
+          continue;
+        }
+        if (['cancelled', 'returned'].includes(order.status || '')) {
+          skipped.push({ orderId: order.id, reason: 'Order is cancelled or returned' });
+          continue;
+        }
+        if (!order.customerPhone || !order.customerName || !order.shippingAddress) {
+          skipped.push({ orderId: order.id, reason: 'Missing required customer info' });
+          continue;
+        }
+
+        const pathaoStoreId = defaultStoreId ?? parseInt(formData.get('storeId') as string ?? '0');
+        if (!pathaoStoreId) {
+          skipped.push({ orderId: order.id, reason: 'No Pathao store ID configured' });
+          continue;
+        }
+
+        payloads.push({
+          orderId: order.id,
+          payload: {
+            store_id: pathaoStoreId,
+            merchant_order_id: String(order.id),
+            recipient_name: order.customerName,
+            recipient_phone: order.customerPhone,
+            recipient_address: order.shippingAddress,
+            delivery_type: 48,
+            item_type: 2,
+            item_quantity: 1,
+            item_weight: 0.5,
+            amount_to_collect: order.total,
+          },
+        });
+      }
+
+      if (payloads.length === 0) {
+        return json({ success: true, booked: 0, skipped, errors: [] });
+      }
+
+      // Call Pathao bulk endpoint
+      const bulkResults = await client.bulkCreateOrders(payloads.map((p) => p.payload));
+
+      const booked: number[] = [];
+      const errors: { orderId: number; error: string }[] = [];
+
+      for (let i = 0; i < bulkResults.length; i++) {
+        const result = bulkResults[i];
+        const { orderId } = payloads[i];
+
+        if (result.success && result.consignment_id) {
+          // Update order with consignment ID
+          await db
+            .update(orders)
+            .set({
+              courierConsignmentId: result.consignment_id,
+              courierProvider: 'pathao',
+              status: 'processing',
+              updatedAt: new Date(),
+            })
+            .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
+
+          // Insert shipment record
+          await db.insert(shipments).values({
+            orderId,
+            courier: 'pathao',
+            trackingNumber: result.consignment_id,
+            status: 'pending',
+            courierData: JSON.stringify(result),
+            shippedAt: new Date(),
+          });
+
+          booked.push(orderId);
+        } else {
+          errors.push({ orderId, error: result.error ?? 'Unknown error from Pathao' });
+        }
+      }
+
+      return json({ success: true, booked, skipped, errors });
+    } catch (error) {
+      console.error('Pathao bulk order error:', error);
+      return json(
+        { error: error instanceof Error ? error.message : 'Bulk booking failed' },
+        { status: 500 }
+      );
+    }
+  }
+
   return json({ error: 'Invalid intent' }, { status: 400 });
 }
 

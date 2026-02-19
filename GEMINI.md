@@ -49,3 +49,25 @@ The unified schema must cover and drive:
 - Always pass `env` when calling unified read APIs.
 - Do not introduce new direct writes to legacy settings columns.
 - If a legacy route/component still needs old props, convert from unified using `toLegacyFormat`.
+
+## The Bridge Strategy (CRITICAL)
+
+We are currently in a **hybrid state** where the database stores `UnifiedStorefrontSettings` (new), but many UI components still expect `ThemeConfig` (old).
+
+**`toLegacyFormat(unifiedSettings)` is the BRIDGE.**
+
+- It maps new fields to old fields.
+- It applies default values (e.g., for `floatingSettings`).
+- It ensures backward compatibility.
+
+### 🚨 Strict Rules
+
+1.  **NEVER** construct a `ThemeConfig` object manually in a loader.
+    - _Wrong:_ `themeConfig: { ...unified.theme, primaryColor: ... }`
+    - _Right:_ `const legacy = toLegacyFormat(unified); return json({ themeConfig: legacy.themeConfig });`
+
+2.  **ALWAYS** use `toLegacyFormat`.
+    - Bypassing it causes regressions (e.g., missing floating buttons, zero delivery charges).
+
+3.  **NEVER** partial-match.
+    - Do not try to "mix and match" manual settings with unified settings. Trust the bridge.
