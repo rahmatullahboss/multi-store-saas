@@ -18,7 +18,8 @@ import {
 } from 'lucide-react';
 import { BDSHOP_THEME } from '../theme';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
-import type { StoreCategory } from '~/templates/store-registry';
+import { LanguageSelector } from '../../shared/LanguageSelector';
+// StoreCategory type removed - not exported from registry
 
 import type { SocialLinks, ThemeConfig } from '@db/types';
 
@@ -27,7 +28,7 @@ interface BDShopHeaderProps {
   logo?: string | null;
   isPreview?: boolean;
   config?: ThemeConfig | null;
-  categories: (string | StoreCategory | null)[];
+  categories: (string | { title?: string } | null)[];
   currentCategory?: string | null;
   socialLinks?: SocialLinks | null;
 }
@@ -59,6 +60,7 @@ export function BDShopHeader({
             <span className="opacity-80">Welcome to {storeName}</span>
           </div>
           <div className="flex items-center gap-4">
+            <LanguageSelector />
             {!isPreview && (
               <Link
                 to="/auth/login"
@@ -237,6 +239,9 @@ export function BDShopHeader({
                   Login / Sign Up
                 </Link>
               )}
+            </div>
+            <div className="p-3 border-t">
+              <LanguageSelector />
             </div>
           </div>
         )}
