@@ -27,6 +27,7 @@ import { stores } from '@db/schema';
 import { getStoreId, getUserId } from '~/services/auth.server';
 import { createPathaoClient } from '~/services/pathao.server';
 import { createSteadfastClient } from '~/services/steadfast.server';
+import { createRedXClient } from '~/services/redx.server';
 import {
   CheckCircle,
   XCircle,
@@ -463,8 +464,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
           steadfast: currentCourier.steadfast,
         };
       } else if (selectedProvider === 'redx') {
-        // Placeholder
-        newSettings = { ...currentCourier };
+        const redxApiKey = String(formData.get('apiKey') || '');
+        const redxSecretKey = String(formData.get('secretKey') || '');
+
+        if (!redxApiKey) {
+          return json({ error: 'RedX API Key is required' }, { status: 400 });
+        }
+
+        newSettings = {
+          provider: 'redx',
+          pathao: currentCourier.pathao,
+          redx: {
+            apiKey: redxApiKey,
+            secretKey: redxSecretKey || currentCourier.redx?.secretKey || '',
+          },
+          steadfast: currentCourier.steadfast,
+        };
       } else if (selectedProvider === 'steadfast') {
         const steadfastData = {
           apiKey: String(formData.get('apiKey')),
@@ -558,6 +573,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
           }
         } else {
           return json({ error: 'Connection failed. Check API Key and Secret Key.' }, { status: 400 });
+        }
+      }
+
+      if (provider === 'redx') {
+        if (!currentCourier.redx?.apiKey) return json({ error: 'No RedX credentials found' }, { status: 400 });
+
+        const client = createRedXClient({
+          apiKey: currentCourier.redx.apiKey,
+          secretKey: currentCourier.redx.secretKey,
+        });
+
+        const isConnected = await client.testConnection();
+        if (isConnected) {
+          return json({ success: true, message: 'RedX connection successful!' });
+        } else {
+          return json({ error: 'RedX connection failed. Check your API Key.' }, { status: 400 });
         }
       }
 
@@ -943,12 +974,44 @@ export default function CourierSettingsPage() {
               {/* RedX Form */}
               {selectedProvider === 'redx' && (
                 <div className="space-y-4 animate-in fade-in duration-300">
-                  <div className="bg-amber-50/50 border border-amber-200/50 rounded-lg p-4 text-sm text-amber-800">
-                    <div className="flex items-center gap-2 mb-1 font-medium">
-                      <AlertCircle className="w-4 h-4" />
-                      Coming Soon
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium text-gray-900">RedX Configuration</h3>
+                    <a
+                      href="https://redx.com.bd/merchant"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-emerald-600 hover:underline flex items-center gap-1"
+                    >
+                      Get API Key <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {t('apiKey')}
+                      </label>
+                      <input
+                        type="text"
+                        name="apiKey"
+                        defaultValue={settings.redx?.apiKey || ''}
+                        placeholder="Your RedX API Key"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white/50 backdrop-blur-sm"
+                        required
+                      />
                     </div>
-                    RedX integration is currently under development.
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {t('secretKey')}
+                      </label>
+                      <input
+                        type="password"
+                        name="secretKey"
+                        defaultValue={settings.redx?.secretKey || ''}
+                        placeholder={settings.redx?.secretKey ? '••••••••' : 'Your RedX Secret Key'}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white/50 backdrop-blur-sm"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
@@ -1005,7 +1068,7 @@ export default function CourierSettingsPage() {
                   value="save"
                   disabled={
                     isSubmitting ||
-                    (selectedProvider !== 'pathao' && selectedProvider !== 'steadfast')
+                    (selectedProvider !== 'pathao' && selectedProvider !== 'steadfast' && selectedProvider !== 'redx')
                   }
                   className="flex-1 inline-flex justify-center items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition shadow-sm"
                 >
@@ -1017,7 +1080,7 @@ export default function CourierSettingsPage() {
                   {t('saveCredentials')}
                 </button>
 
-                {selectedProvider === 'pathao' && (
+                {(selectedProvider === 'pathao' || selectedProvider === 'redx' || selectedProvider === 'steadfast') && (
                   <button
                     type="submit"
                     name="intent"

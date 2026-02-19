@@ -1,9 +1,12 @@
 import type { Database } from '../lib/db.server';
-import { abandonedCarts, customers, orders } from '../../db/schema';
-import { eq, and, lt, gt, not, like } from 'drizzle-orm';
+import { abandonedCarts, customers, orders, shipments, stores } from '../../db/schema';
+import { eq, and, lt, gt, not, like, notInArray } from 'drizzle-orm';
 import { sendSmartNotification } from './messaging.server';
 import { createEmailService } from './email.server';
 import { getUnifiedStorefrontSettings } from './unified-storefront-settings.server';
+import { createPathaoClient, PATHAO_STATUS_MAP } from './pathao.server';
+import { createSteadfastClient, STEADFAST_STATUS_MAP } from './steadfast.server';
+import { createRedXClient, REDX_STATUS_MAP } from './redx.server';
 
 /**
  * SCHEDULER SERVICE
@@ -16,6 +19,7 @@ export async function runScheduledTasks(db: Database, env: Env) {
     abandonedCarts: 0,
     winbackCampaigns: 0,
     reviewRequests: 0,
+    courierSync: 0,
     errors: [] as string[],
   };
 
@@ -23,6 +27,7 @@ export async function runScheduledTasks(db: Database, env: Env) {
     results.abandonedCarts = await processAbandonedCarts(db, env);
     results.winbackCampaigns = await processWinbackCampaigns(db, env);
     results.reviewRequests = await processReviewRequests(db, env);
+    results.courierSync = await syncCourierStatuses(db);
   } catch (error: unknown) {
     console.error('[Scheduler] Error running tasks:', error);
     results.errors.push((error as Error).message);
@@ -191,4 +196,128 @@ async function processReviewRequests(db: Database, env: Env) {
     }
   }
   return count;
+}
+
+// === COURIER STATUS AUTO-SYNC ===
+/**
+ * Automatically polls Pathao, Steadfast, and RedX for shipment status updates.
+ * Runs every 30 minutes via the cron trigger in wrangler.toml.
+ * Only processes active (non-terminal) shipments that have a tracking ID.
+ */
+async function syncCourierStatuses(db: Database): Promise<number> {
+  const TERMINAL_STATUSES = ['delivered', 'cancelled', 'returned'];
+
+  // Fetch all non-terminal shipments
+  const activeShipments = await db
+    .select({
+      shipId: shipments.id,
+      orderId: shipments.orderId,
+      storeId: shipments.storeId,
+      provider: shipments.provider,
+      trackingId: shipments.trackingId,
+      currentStatus: shipments.status,
+    })
+    .from(shipments)
+    .where(notInArray(shipments.status, TERMINAL_STATUSES))
+    .limit(100); // Batch to avoid exhausting courier rate limits
+
+  if (activeShipments.length === 0) return 0;
+
+  // Group by storeId so we only fetch courier settings once per store
+  const byStore = new Map<number, typeof activeShipments>();
+  for (const s of activeShipments) {
+    if (!s.trackingId) continue;
+    const storeShipments = byStore.get(s.storeId) ?? [];
+    storeShipments.push(s);
+    byStore.set(s.storeId, storeShipments);
+  }
+
+  let syncedCount = 0;
+
+  for (const [storeId, storeShipments] of byStore) {
+    // Load courier credentials for this store
+    const storeRow = await db
+      .select({ courierSettings: stores.courierSettings })
+      .from(stores)
+      .where(eq(stores.id, storeId))
+      .get();
+
+    if (!storeRow?.courierSettings) continue;
+
+    let courierConfig: Record<string, unknown>;
+    try {
+      courierConfig = JSON.parse(storeRow.courierSettings as string);
+    } catch {
+      continue;
+    }
+
+    const provider = (courierConfig.provider as string) || '';
+
+    for (const shipment of storeShipments) {
+      if (!shipment.trackingId) continue;
+
+      try {
+        let newStatus: string | null = null;
+
+        // --- Pathao ---
+        if (provider === 'pathao' && courierConfig.pathao) {
+          const creds = courierConfig.pathao as {
+            clientId: string;
+            clientSecret: string;
+            username: string;
+            password: string;
+            baseUrl?: string;
+          };
+          const client = createPathaoClient(creds);
+          const statusResult = await client.getOrderStatus(shipment.trackingId);
+          newStatus = PATHAO_STATUS_MAP[statusResult.order_status] ?? null;
+        }
+
+        // --- Steadfast ---
+        else if (provider === 'steadfast' && courierConfig.steadfast) {
+          const creds = courierConfig.steadfast as { apiKey: string; secretKey: string };
+          const client = createSteadfastClient(creds);
+          const statusResult = await client.checkStatus(shipment.trackingId);
+          newStatus = STEADFAST_STATUS_MAP[statusResult.delivery_status] ?? null;
+        }
+
+        // --- RedX ---
+        else if (provider === 'redx' && courierConfig.redx) {
+          const creds = courierConfig.redx as { apiKey: string; secretKey: string };
+          const client = createRedXClient(creds);
+          const trackingInfo = await client.trackParcel(shipment.trackingId);
+          newStatus = REDX_STATUS_MAP[trackingInfo.current_status] ?? null;
+        }
+
+        if (!newStatus || newStatus === shipment.currentStatus) continue;
+
+        // Update shipment record
+        await db
+          .update(shipments)
+          .set({ status: newStatus, updatedAt: new Date() })
+          .where(eq(shipments.id, shipment.shipId));
+
+        // Update order status
+        const orderStatus =
+          newStatus === 'delivered' ? 'delivered'
+          : newStatus === 'returned' ? 'refunded'
+          : newStatus === 'cancelled' ? 'cancelled'
+          : 'shipped';
+
+        await db
+          .update(orders)
+          .set({ courierStatus: newStatus, status: orderStatus, updatedAt: new Date() })
+          .where(and(eq(orders.id, shipment.orderId), eq(orders.storeId, storeId)));
+
+        syncedCount++;
+        console.log(
+          `[CourierSync] ${shipment.trackingId}: ${shipment.currentStatus} → ${newStatus}`
+        );
+      } catch (err) {
+        console.error(`[CourierSync] Error syncing ${shipment.trackingId}:`, err);
+      }
+    }
+  }
+
+  return syncedCount;
 }

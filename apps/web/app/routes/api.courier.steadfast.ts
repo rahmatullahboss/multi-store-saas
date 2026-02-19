@@ -6,6 +6,8 @@
  * Actions:
  * - CHECK_RISK: Analyze customer phone number for fraud risk
  * - BOOK_ORDER: Create shipment and update order
+ * - GET_STATUS: Check single order delivery status
+ * - CANCEL_ORDER: Mark order as cancelled (DB only — Steadfast cancellation is manual)
  * - SYNC_STATUS: Bulk sync shipment statuses for cron job
  */
 
@@ -18,7 +20,6 @@ import { getStoreId } from '~/services/auth.server';
 import { 
   createSteadfastClient, 
   checkCustomerRisk,
-  STEADFAST_STATUS_MAP,
 } from '~/services/steadfast.server';
 
 // Types for responses
@@ -404,16 +405,74 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const client = createSteadfastClient(courierSettings.steadfast);
       const status = await client.checkStatus(consignmentId);
 
+      const deliveryStatus = status.delivery_status?.toLowerCase() || '';
+      const isTerminal = deliveryStatus.includes('return') || deliveryStatus.includes('cancel');
+      const terminalType = deliveryStatus.includes('return') ? 'returned'
+        : deliveryStatus.includes('cancel') ? 'cancelled'
+        : undefined;
+
       return json({
         status: status.delivery_status,
         trackingCode: status.tracking_code,
         normalizedStatus: client.normalizeStatus(status.delivery_status),
         timelineStep: client.getTimelineStepIndex(status.delivery_status),
+        isTerminal,
+        terminalType,
       });
     } catch (error) {
       console.error('Get status error:', error);
       return json(
         { error: error instanceof Error ? error.message : 'Status check failed' },
+        { status: 500 }
+      );
+    }
+  }
+
+  // ========================================
+  // CANCEL_ORDER - Cancel Steadfast shipment
+  // (Steadfast public API has no cancel endpoint — mark in DB and contact support)
+  // ========================================
+  if (intent === 'CANCEL_ORDER') {
+    const consignmentId = formData.get('consignmentId') as string;
+    const orderId = parseInt(formData.get('orderId') as string);
+
+    if (!consignmentId || !orderId) {
+      return json({ error: 'Consignment ID and Order ID are required' }, { status: 400 });
+    }
+
+    try {
+      // Steadfast does not expose a public cancel API.
+      // We mark the order as cancelled in our DB and instruct the merchant
+      // to contact Steadfast support for refund of the delivery charge.
+      await db
+        .update(orders)
+        .set({
+          courierStatus: 'cancelled',
+          status: 'cancelled',
+          updatedAt: new Date(),
+        })
+        .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
+
+      // Update shipment record
+      await db
+        .update(shipments)
+        .set({
+          status: 'returned',
+          updatedAt: new Date(),
+        })
+        .where(eq(shipments.orderId, orderId));
+
+      return json({
+        success: true,
+        message:
+          'Order marked as cancelled. Please contact Steadfast support to cancel the shipment and reclaim the delivery charge. Consignment ID: ' +
+          consignmentId,
+        manual: true,
+      });
+    } catch (error) {
+      console.error('Steadfast cancel error:', error);
+      return json(
+        { error: error instanceof Error ? error.message : 'Cancel failed' },
         { status: 500 }
       );
     }

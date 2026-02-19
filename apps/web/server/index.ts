@@ -40,7 +40,6 @@ import customersApi from './api/routes/customers';
 import { ServerBuild, createRequestHandler } from '@remix-run/cloudflare';
 // IMPORTANT: Lazy-load the Remix build so unit tests can import this module
 // without executing the compiled server bundle (which can be heavy/fragile in Vitest).
-// @ts-expect-error - build artifact is generated at build time and not present during typecheck.
 const getRemixBuild = () => import('../build/server/index.js') as Promise<ServerBuild>;
 
 // Type definitions for Cloudflare bindings
@@ -588,4 +587,25 @@ app.all('*', async (c) => {
   });
 });
 
-export default app;
+export default {
+  /**
+   * HTTP handler — handled by Hono
+   */
+  fetch: app.fetch.bind(app),
+
+  /**
+   * Cron handler — fires every 30 minutes (configured in wrangler.toml)
+   * Tasks: courier status sync, abandoned cart recovery, win-back, review requests
+   */
+  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(
+      (async () => {
+        const { createDb } = await import('../app/lib/db.server');
+        const { runScheduledTasks } = await import('../app/services/scheduler.server');
+        const db = createDb(env.DB);
+        const results = await runScheduledTasks(db, env);
+        console.log('[CRON] Scheduled tasks completed:', JSON.stringify(results));
+      })()
+    );
+  },
+};

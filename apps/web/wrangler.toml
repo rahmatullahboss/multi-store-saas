@@ -379,3 +379,15 @@ service = "pdf-generator"
 #   binding = "WEBHOOK_QUEUE"
 
 #   binding = "WEBHOOK_QUEUE"
+
+# ============================================================================
+# CRON TRIGGERS - Scheduled Background Tasks
+# ============================================================================
+# Runs the scheduled handler in server/index.ts every 30 minutes.
+# Tasks: courier status sync, abandoned cart recovery, win-back campaigns, review requests.
+#
+# To trigger manually during testing:
+#   wrangler dev --local  (and POST to /__scheduled?cron=* in another terminal)
+#
+[triggers]
+crons = ["*/30 * * * *"]

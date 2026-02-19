@@ -194,3 +194,63 @@ export type MvpThemeId = (typeof MVP_THEME_IDS)[number];
 // Alias for libs that use getAllStoreTemplates
 export const getAllStoreTemplates = () => STORE_TEMPLATES;
 
+// ============================================================================
+// resolveStoreTemplateId — extracts templateId from themeConfig JSON or store.theme
+// ============================================================================
+export function resolveStoreTemplateId(
+  themeConfig: Record<string, unknown> | null | undefined,
+  storeTheme?: string | null
+): string {
+  // Try from themeConfig object first
+  if (themeConfig?.storeTemplateId && typeof themeConfig.storeTemplateId === 'string') {
+    return themeConfig.storeTemplateId;
+  }
+  // Try parsing storeTheme JSON string
+  if (storeTheme) {
+    try {
+      const parsed = JSON.parse(storeTheme) as Record<string, unknown>;
+      if (parsed.storeTemplateId && typeof parsed.storeTemplateId === 'string') {
+        return parsed.storeTemplateId;
+      }
+    } catch {
+      // fallback
+    }
+  }
+  return 'starter-store';
+}
+
+// ============================================================================
+// resolveStoreTheme — resolves templateId + merged theme from mvp settings
+// ============================================================================
+export function resolveStoreTheme(
+  mvpSettings: Record<string, unknown>,
+  themeConfigJson?: string | null
+): { storeTemplateId: string; theme: StoreTemplateTheme } {
+  // Parse themeConfig JSON to get templateId
+  let storeTemplateId = 'starter-store';
+  if (themeConfigJson) {
+    try {
+      const parsed = JSON.parse(themeConfigJson) as Record<string, unknown>;
+      if (parsed.storeTemplateId && typeof parsed.storeTemplateId === 'string') {
+        storeTemplateId = parsed.storeTemplateId;
+      }
+    } catch {
+      // fallback to default
+    }
+  }
+
+  // Get base theme for the template
+  const baseTheme = STORE_TEMPLATE_THEMES[storeTemplateId] || STORE_TEMPLATE_THEMES['starter-store'];
+
+  // Merge user overrides from mvp settings
+  const merged: StoreTemplateTheme = {
+    ...baseTheme,
+    ...(mvpSettings.primaryColor ? { primary: mvpSettings.primaryColor as string } : {}),
+    ...(mvpSettings.accentColor ? { accent: mvpSettings.accentColor as string } : {}),
+    ...(mvpSettings.backgroundColor ? { background: mvpSettings.backgroundColor as string } : {}),
+    ...(mvpSettings.textColor ? { text: mvpSettings.textColor as string } : {}),
+  };
+
+  return { storeTemplateId, theme: merged };
+}
+
