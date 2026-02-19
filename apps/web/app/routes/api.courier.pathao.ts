@@ -104,6 +104,60 @@ export async function action({ request, context }: ActionFunctionArgs) {
         );
       }
 
+      // ========== FRAUD CHECK (Fulfillment Gate) ==========
+      if (order.customerPhone) {
+        try {
+          const { performFraudCheck, parseFraudSettings } = await import('~/services/fraud-engine.server');
+
+          const fraudStoreResult = await db
+            .select({ fraudSettings: stores.fraudSettings })
+            .from(stores)
+            .where(eq(stores.id, storeId))
+            .limit(1);
+
+          const fraudSettings = parseFraudSettings(fraudStoreResult[0]?.fraudSettings);
+
+          if (fraudSettings.enabled) {
+            const assessment = await performFraudCheck({
+              phone: order.customerPhone,
+              storeId,
+              orderTotal: order.total,
+              paymentMethod: order.paymentMethod || 'cod',
+              shippingAddress: order.shippingAddress as string,
+              db,
+              orderId,
+              settings: fraudSettings,
+            });
+
+            if (assessment.decision === 'block') {
+              return json(
+                {
+                  error: `⛔ Fraud detected (Score: ${assessment.clampedScore}/100). This order is blocked.`,
+                  riskScore: assessment.clampedScore,
+                  decision: assessment.decision,
+                  signals: assessment.signals,
+                },
+                { status: 403 }
+              );
+            }
+
+            if (assessment.decision === 'hold') {
+              return json(
+                {
+                  error: `⚠️ High risk order (Score: ${assessment.clampedScore}/100). Order is on HOLD for review. Go to Settings > Fraud Detection.`,
+                  riskScore: assessment.clampedScore,
+                  decision: assessment.decision,
+                  signals: assessment.signals,
+                },
+                { status: 403 }
+              );
+            }
+          }
+        } catch (fraudError) {
+          console.error('[FRAUD] Fraud check error during Pathao booking:', fraudError);
+        }
+      }
+
       const { client, defaultStoreId } = await getPathaoClient();
 
       if (!defaultStoreId) {

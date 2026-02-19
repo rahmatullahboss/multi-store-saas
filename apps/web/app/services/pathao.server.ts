@@ -46,10 +46,11 @@ export interface PathaoArea {
 
 export interface PathaoCreateOrderRequest {
   store_id: number; // Pathao store ID
-  merchant_order_id: string;
+  merchant_order_id?: string;
   recipient_name: string;
   recipient_phone: string;
-  recipient_address: string;
+  recipient_secondary_phone?: string; // Optional secondary phone
+  recipient_address: string; // 10-220 characters
   recipient_city?: number; // Optional — Pathao auto-resolves from address
   recipient_zone?: number; // Optional — Pathao auto-resolves from address
   recipient_area?: number; // Optional — Pathao auto-resolves from address
@@ -73,6 +74,30 @@ export interface PathaoOrderStatus {
   order_status: string;
   order_status_slug: string;
   updated_at: string;
+  invoice_id?: string | null;
+}
+
+export interface PathaoStore {
+  store_id: number;
+  store_name: string;
+  store_address: string;
+  is_active: number; // 1 = active, 0 = deactivated
+  city_id: number;
+  zone_id: number;
+  hub_id: number;
+  is_default_store: boolean;
+  is_default_return_store: boolean;
+}
+
+export interface PathaoPricePlan {
+  price: number;
+  discount: number;
+  promo_discount: number;
+  plan_id: number;
+  cod_enabled: number; // 1 = enabled
+  cod_percentage: number;
+  additional_charge: number;
+  final_price: number;
 }
 
 // Status mapping
@@ -249,8 +274,8 @@ export function createPathaoClient(credentials: PathaoCredentials) {
     /**
      * Get Pathao stores (merchant's pickup locations)
      */
-    async getStores(): Promise<{ store_id: number; store_name: string; store_address: string }[]> {
-      const result = await apiRequest<{ data: { data: { store_id: number; store_name: string; store_address: string }[] } }>('/stores');
+    async getStores(): Promise<PathaoStore[]> {
+      const result = await apiRequest<{ data: { data: PathaoStore[] } }>('/stores');
       return result.data.data;
     },
 
@@ -315,9 +340,11 @@ export function createPathaoClient(credentials: PathaoCredentials) {
       storeId: number,
       recipientCity: number,
       recipientZone: number,
-      itemWeight: number
-    ): Promise<{ price: number; discount: number; final_price: number }> {
-      const result = await apiRequest<{ data: { price: number; discount: number; final_price: number } }>(
+      itemWeight: number,
+      itemType: 1 | 2 = 2,
+      deliveryType: 48 | 12 = 48
+    ): Promise<PathaoPricePlan> {
+      const result = await apiRequest<{ data: PathaoPricePlan }>(
         '/merchant/price-plan',
         {
           method: 'POST',
@@ -326,8 +353,8 @@ export function createPathaoClient(credentials: PathaoCredentials) {
             recipient_city: recipientCity,
             recipient_zone: recipientZone,
             item_weight: itemWeight,
-            item_type: 2, // Parcel
-            delivery_type: 48, // Normal
+            item_type: itemType,
+            delivery_type: deliveryType,
           }),
         }
       );
