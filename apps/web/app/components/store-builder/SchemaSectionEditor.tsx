@@ -638,8 +638,8 @@ function BlocksManager({
 // ============================================================================
 
 export function SchemaSectionEditor({
-  sectionId,
-  sectionType,
+  sectionId: _sectionId,
+  sectionType: _sectionType,
   schema,
   settings,
   blocks = [],

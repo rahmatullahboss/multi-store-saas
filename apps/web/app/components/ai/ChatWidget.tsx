@@ -50,7 +50,7 @@ export function ChatWidget({
   welcomeMessage,
   accentColor = '#6366f1', // Indigo default
 }: ChatWidgetProps) {
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');

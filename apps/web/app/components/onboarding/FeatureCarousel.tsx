@@ -1,4 +1,4 @@
-import { Rocket, LayoutTemplate, LayoutDashboard, ShieldCheck } from 'lucide-react';
+import { Rocket, LayoutTemplate, LayoutDashboard, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export function FeatureCarousel() {
@@ -32,6 +32,13 @@ export function FeatureCarousel() {
       description: t('auth:descSecurePlatform'),
       color: 'text-purple-600',
       bg: 'bg-purple-100',
+    },
+    {
+      icon: ShieldAlert,
+      title: t('auth:featureFraudDetection'),
+      description: t('auth:descFraudDetection'),
+      color: 'text-rose-600',
+      bg: 'bg-rose-100',
     },
   ];
 

@@ -71,7 +71,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const mode = formData.get('mode') as string;
 
   try {
-    let updateData: any = {
+    const updateData: any = {
       updatedAt: new Date(),
     };
 

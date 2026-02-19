@@ -128,7 +128,9 @@ export function GhorerBazarHeader({
               <MessageCircle className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">WhatsApp</span>
             </a>
-            <LanguageSelector className="text-white hover:bg-white/10" />
+            <div className="hidden md:block">
+              <LanguageSelector className="text-white hover:bg-white/10" />
+            </div>
           </div>
         </div>
       </div>
@@ -340,6 +342,9 @@ export function GhorerBazarHeader({
                 <MessageCircle className="w-5 h-5 text-green-500" />
                 {t('whatsappOrder')}
               </a>
+              <div className="px-4 py-2.5">
+                <LanguageSelector />
+              </div>
             </div>
           </div>
         </div>

@@ -31,7 +31,7 @@ export function ClientDate({ date, format, fallback = '—', className }: Client
         month: 'short',
         day: 'numeric',
       }));
-    } catch (e) {
+    } catch (_e) {
       setFormattedDate(fallback);
     }
   }, [date, format, lang, fallback]);
@@ -58,7 +58,7 @@ export function ClientTime({ date, className }: { date: string | Date | number |
       if (isNaN(d.getTime())) return;
       
       setFormattedTime(d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-    } catch (e) {}
+    } catch (_e) {}
   }, [date]);
 
   if (!date || formattedTime === null) return <span className={className}>...</span>;

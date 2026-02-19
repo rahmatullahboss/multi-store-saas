@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { ZENITH_RISE_THEME } from '~/components/store-templates/zenith-rise/styles/tokens';
 import type { SocialLinks, ThemeConfig } from '@db/types';
+import { LanguageSelector } from '../../shared/LanguageSelector';
 
 interface ZenithRiseHeaderProps {
   storeName: string;
@@ -90,6 +91,9 @@ export function ZenithRiseHeader({
 
           {/* Mobile/Right Actions */}
           <div className="flex items-center gap-4">
+             <div className="hidden md:block">
+               <LanguageSelector />
+             </div>
              <Link to="/cart" className="relative p-2 text-slate-300 hover:text-white transition-colors">
                <ShoppingCart size={22} />
                {cartCount > 0 && (
@@ -115,6 +119,10 @@ export function ZenithRiseHeader({
            <Link to="/" onClick={() => setMobileMenuOpen(false)} className="text-2xl font-bold text-white">Home</Link>
            <Link to="/?category=all" onClick={() => setMobileMenuOpen(false)} className="text-2xl font-bold text-gray-400 hover:text-white">Products</Link>
            <Link to="/cart" onClick={() => setMobileMenuOpen(false)} className="text-2xl font-bold text-gray-400 hover:text-white">Cart ({cartCount})</Link>
+           
+           <div className="mt-4">
+             <LanguageSelector />
+           </div>
            
            <button onClick={() => setMobileMenuOpen(false)} className="absolute top-6 right-6 p-2 text-gray-400 hover:text-white">
              <X size={32} />

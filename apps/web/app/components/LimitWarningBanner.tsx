@@ -20,7 +20,7 @@ interface LimitWarningBannerProps {
   planType: string;
 }
 
-export function LimitWarningBanner({ usage, planType }: LimitWarningBannerProps) {
+export function LimitWarningBanner({ usage, planType: _planType }: LimitWarningBannerProps) {
   const [dismissed, setDismissed] = useState(false);
   
   if (dismissed) return null;

@@ -1,10 +1,11 @@
 import { Link } from '@remix-run/react';
-import { Zap, ShoppingBag, Menu, Search } from 'lucide-react';
+import { Zap, ShoppingBag, Menu, Search, X } from 'lucide-react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { ECLIPSE_THEME } from '../theme';
 import { useState, useEffect } from 'react';
 
 import type { SocialLinks, ThemeConfig } from '@db/types';
+import { LanguageSelector } from '../../shared/LanguageSelector';
 
 interface EclipseHeaderProps {
   storeName: string;
@@ -78,6 +79,9 @@ export function EclipseHeader({ storeName, logo, categories = [] }: EclipseHeade
 
         {/* Actions */}
         <div className="flex items-center gap-4">
+          <div className="hidden md:block">
+            <LanguageSelector />
+          </div>
           <Link to="/cart" className="relative group p-2">
             <ShoppingBag className="w-5 h-5 text-white/90 group-hover:text-white transition-colors" />
             {count > 0 && (
@@ -98,6 +102,53 @@ export function EclipseHeader({ storeName, logo, categories = [] }: EclipseHeade
           </button>
         </div>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-[60] flex flex-col bg-black/95 backdrop-blur-xl p-6 transition-all duration-300">
+          <div className="flex items-center justify-between mb-8">
+            <span 
+              className="font-bold text-2xl text-white"
+              style={{ fontFamily: ECLIPSE_THEME.fontHeading }}
+            >
+              Menu
+            </span>
+            <button 
+              onClick={() => setMobileMenuOpen(false)}
+              className="p-2 text-white/80 hover:text-white transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <nav className="flex flex-col gap-6">
+            <Link 
+              to="/" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-xl font-medium text-white/80 hover:text-white transition-colors"
+            >
+              Store
+            </Link>
+            {categories.slice(0, 5).map(cat => cat && (
+              <Link 
+                key={cat} 
+                to={`/?category=${encodeURIComponent(cat)}`}
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-xl font-medium text-white/80 hover:text-white transition-colors"
+              >
+                {cat}
+              </Link>
+            ))}
+            
+            <div className="h-px bg-white/10 my-2" />
+            
+            <div className="flex flex-col gap-4">
+              <span className="text-sm font-medium text-white/50 uppercase tracking-wider">Settings</span>
+              <LanguageSelector />
+            </div>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

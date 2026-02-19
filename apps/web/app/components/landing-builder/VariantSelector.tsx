@@ -77,7 +77,7 @@ function VariantThumbnail({ variant, isSelected }: { variant: SectionVariantDef;
 
 // Compact dropdown variant selector
 function VariantDropdown({
-  sectionId,
+  sectionId: _sectionId,
   variants,
   currentVariant,
   onSelect,

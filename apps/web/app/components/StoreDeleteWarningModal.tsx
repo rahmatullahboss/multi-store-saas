@@ -192,7 +192,7 @@ export function StoreDeleteWarningModal({
                       </div>
                       <div>
                         <p className="font-semibold text-gray-900">{item.count.toLocaleString()}</p>
-                        <p className="text-xs text-gray-500">{t(item.labelKey as any)}</p>
+                        <p className="text-xs text-gray-500">{t(item.labelKey as Parameters<typeof t>[0])}</p>
                         {item.subtext && (
                           <p className="text-xs text-gray-400">{item.subtext}</p>
                         )}
@@ -216,7 +216,7 @@ export function StoreDeleteWarningModal({
                 <option value="">{t('selectReason')}</option>
                 {exitReasons.map((reason) => (
                   <option key={reason.value} value={reason.value}>
-                    {t(reason.labelKey as any)}
+                    {t(reason.labelKey as Parameters<typeof t>[0])}
                   </option>
                 ))}
               </select>

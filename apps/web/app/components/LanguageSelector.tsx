@@ -13,7 +13,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Globe, ChevronDown, Check } from 'lucide-react';
 import { useLanguage } from '~/contexts/LanguageContext';
-import type { Language } from '~/utils/i18n/index';
 
 interface LanguageSelectorProps {
   variant?: 'dropdown' | 'toggle' | 'pills';

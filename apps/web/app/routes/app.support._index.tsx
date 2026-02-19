@@ -35,7 +35,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const status = url.searchParams.get('status') || 'all';
 
   // Build query conditions
-  let conditions = [eq(supportTickets.storeId, storeId)];
+  const conditions = [eq(supportTickets.storeId, storeId)];
 
   if (status !== 'all') {
     conditions.push(eq(supportTickets.status, status as any));

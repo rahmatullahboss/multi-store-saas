@@ -1,7 +1,6 @@
 import { Link } from '@remix-run/react';
 import { 
   CheckCircle2, 
-  Circle, 
   Package, 
   ExternalLink, 
   Share2, 
@@ -100,7 +99,7 @@ export function FirstSaleChecklist({ productCount, storeUrl, className = '' }: F
       </div>
 
       <div className="divide-y divide-gray-100">
-        {steps.map((step, index) => {
+        {steps.map((step, _index) => {
           const Icon = step.icon;
           const isDone = step.isCompleted;
 

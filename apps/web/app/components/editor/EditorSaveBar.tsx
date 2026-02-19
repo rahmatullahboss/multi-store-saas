@@ -16,7 +16,7 @@ interface EditorSaveBarProps {
 }
 
 export function EditorSaveBar({ onReset, onSave, isSaving, isSuccess }: EditorSaveBarProps) {
-  const { t, lang } = useTranslation();
+  const { lang } = useTranslation();
 
   return (
     <div className="fixed bottom-0 inset-x-0 z-50">

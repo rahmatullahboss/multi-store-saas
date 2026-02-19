@@ -33,7 +33,7 @@ export function SalesChart({ data, currency = 'BDT' }: SalesChartProps) {
   const chartHeight = 200;
   const chartWidth = 100; // percentage
   const barWidth = chartWidth / data.length;
-  const padding = 2; // gap between bars
+  // padding = 2 (gap between bars, applied via gap-1 class)
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-BD', {

@@ -35,7 +35,7 @@ function SidebarItem({ href, icon: Icon, label, isActive, badge, isLogout }: Sid
     );
   }
 
-  const activeTheme = (SidebarItem as any).theme || { primary: '#6366f1' };
+  const activeTheme = (SidebarItem as unknown as { theme?: { primary: string } }).theme || { primary: '#6366f1' };
   
   return (
     <Link
@@ -73,7 +73,7 @@ function SidebarItem({ href, icon: Icon, label, isActive, badge, isLogout }: Sid
 }
 
 interface AccountSidebarProps {
-    user?: any;
+    user?: { name?: string };
     theme?: {
       primary?: string;
       accent?: string;
@@ -136,7 +136,7 @@ export function AccountSidebar({ user, theme }: AccountSidebarProps) {
   };
 
   // Set theme for SidebarItem components
-  (SidebarItem as any).theme = activeTheme;
+  (SidebarItem as unknown as { theme: typeof activeTheme }).theme = activeTheme;
 
   return (
     <aside className="w-64 bg-white rounded-xl p-6 border shadow-sm flex flex-col h-full sticky top-6"

@@ -49,7 +49,7 @@ const CONFIG = {
   } as Record<string, { limit: number; windowMs: number }>,
 };
 
-type PresetKey = keyof typeof CONFIG.PRESETS;
+// type PresetKey = keyof typeof CONFIG.PRESETS; // reserved for future use
 
 // ============================================================================
 // TYPES

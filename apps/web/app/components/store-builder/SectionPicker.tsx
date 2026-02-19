@@ -16,8 +16,6 @@ import {
   Star,
   Award,
   MessageSquare,
-  Truck,
-  ChevronRight,
 } from 'lucide-react';
 import type {
   SectionRegistry,

@@ -11,7 +11,7 @@ import {
   Menu,
   X,
 } from 'lucide-react';
-import type { StoreTemplateProps } from '~/templates/store-registry';
+import type { StoreTemplateProps } from '~/templates/types';
 import { useCartCount } from '~/hooks/useCartCount';
 import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
 import { WishlistProvider } from '~/contexts/WishlistContext';
@@ -71,7 +71,23 @@ export function LiveLuxeBoutiqueHomepage({
 
   const count = useCartCount();
 
-  const validCategories = categories?.filter((c): c is string => Boolean(c)) || [];
+  const validCategories = (categories || []).filter((c): c is string => typeof c === 'string');
+  
+  // Sanitize props to ensure they match expected types (handling nulls)
+  const sanitizedSocialLinks = socialLinks ? {
+    facebook: socialLinks.facebook || undefined,
+    instagram: socialLinks.instagram || undefined,
+    whatsapp: socialLinks.whatsapp || undefined,
+    twitter: socialLinks.twitter || undefined,
+    youtube: socialLinks.youtube || undefined,
+    linkedin: socialLinks.linkedin || undefined,
+  } : undefined;
+
+  const sanitizedBusinessInfo = businessInfo ? {
+    phone: businessInfo.phone || undefined,
+    email: businessInfo.email || undefined,
+    address: businessInfo.address || undefined
+  } : undefined;
   const extendedConfig = config as ExtendedThemeConfig | null;
 
   const theme = {
@@ -347,8 +363,8 @@ export function LiveLuxeBoutiqueHomepage({
                           </Link>
                           <div className="mt-2">
                             <AddToCartButton
-                              productId={product.id}
-                              storeId={storeId}
+                              productId={Number(product.id)}
+                              storeId={storeId ? Number(storeId) : undefined}
                               quantity={1}
                               className="w-full flex items-center justify-center gap-2 py-3 text-xs tracking-[0.1em] uppercase transition-all"
                               style={{
@@ -406,11 +422,11 @@ export function LiveLuxeBoutiqueHomepage({
               </section>
 
               <LuxeBoutiqueFooter
-                storeName={storeName}
-                storeId={storeId}
-                socialLinks={socialLinks || undefined}
+                storeName={storeName || ''}
+                storeId={storeId ? Number(storeId) : undefined}
+                socialLinks={sanitizedSocialLinks}
                 footerConfig={footerConfig || undefined}
-                businessInfo={businessInfo || undefined}
+                businessInfo={sanitizedBusinessInfo}
                 planType={planType}
                 categories={validCategories}
               />
@@ -486,7 +502,7 @@ export function LiveLuxeBoutiqueHomepage({
                   }
                   storeName={storeName}
                   aiEnabled={isCustomerAiEnabled}
-                  aiCredits={aiCredits}
+                  aiCredits={aiCredits || 0}
                   storeId={storeId}
                   accentColor={
                     config?.accentColor || config?.primaryColor || theme.accent

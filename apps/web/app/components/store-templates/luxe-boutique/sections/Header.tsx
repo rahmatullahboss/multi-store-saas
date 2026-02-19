@@ -124,7 +124,9 @@ export function LuxeBoutiqueHeader({
 
           {/* Right Icons */}
           <div className="flex items-center gap-3">
-            <LanguageSelector className="mr-1" />
+            <div className="hidden lg:block">
+              <LanguageSelector className="mr-1" />
+            </div>
             <button
               className="p-2 rounded-full transition-colors hover:bg-gray-100"
               onClick={() => setSearchOpen(!searchOpen)}
@@ -252,6 +254,13 @@ export function LuxeBoutiqueHeader({
                 </Link>
               </>
             )}
+
+            <div className="mt-4 px-6">
+              <span className="text-sm font-medium text-gray-500 mb-2 block uppercase tracking-wider">
+                Settings
+              </span>
+              <LanguageSelector />
+            </div>
           </nav>
         </div>
       )}

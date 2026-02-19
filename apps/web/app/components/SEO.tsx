@@ -56,7 +56,7 @@ export function CanonicalLink({ url }: { url: string }) {
 /**
  * Combined SEO Component for use in page components
  */
-export function SEOHead({ config, schemas, canonicalUrl }: SEOProps) {
+export function SEOHead({ config: _config, schemas, canonicalUrl }: SEOProps) {
   return (
     <>
       {canonicalUrl && <CanonicalLink url={canonicalUrl} />}

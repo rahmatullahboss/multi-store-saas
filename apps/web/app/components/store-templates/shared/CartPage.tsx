@@ -222,7 +222,7 @@ export default function SharedCartPage({
         }))
       );
     }
-  }, [fetcher.data, isPreview]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetcher.data, isPreview]);  
 
   // Save cart to localStorage
   useEffect(() => {

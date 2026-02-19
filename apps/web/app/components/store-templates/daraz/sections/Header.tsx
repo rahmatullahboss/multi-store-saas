@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { DARAZ_THEME } from '../theme';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
+import { LanguageSelector } from '../../shared/LanguageSelector';
 import type { SocialLinks, ThemeConfig } from '@db/types';
 import type { StoreCategory } from '~/templates/store-registry';
 
@@ -77,6 +78,7 @@ export function DarazHeader({
             </span>
           </div>
           <div className="flex items-center gap-6">
+            <LanguageSelector />
             <span className="hover:text-white cursor-pointer transition-colors flex items-center gap-1.5">
               <Headphones className="w-3.5 h-3.5" />
               Help &amp; Support
@@ -269,6 +271,10 @@ export function DarazHeader({
                   Login / Sign Up
                 </PreviewSafeLink>
               )}
+              
+              <div className="pt-2 border-t mt-2">
+                 <LanguageSelector />
+              </div>
             </div>
           </div>
         )}

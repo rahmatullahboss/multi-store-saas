@@ -736,6 +736,7 @@ export function IntentWizard({
       const suggestions = getTemplateSuggestions(intent as Intent);
       setSelectedTemplate((prev) => (prev && suggestions.includes(prev) ? prev : suggestions[0]));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [intent.productType, intent.goal, intent.trafficSource]);
 
   // Set default template when intent is complete

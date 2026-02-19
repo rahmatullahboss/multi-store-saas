@@ -77,7 +77,7 @@ export function AddToCartButton({
         quantity: quantity,
         currency: currency,
       });
-      console.log('[Tracking] AddToCart event fired:', productName, productPrice);
+      // AddToCart event fired: productName, productPrice
     }
 
     // Update local cart in localStorage

@@ -98,7 +98,6 @@ export function PreviewSafeLink({
   ...props
 }: PreviewSafeLinkProps) {
   const getPreviewUrl = usePreviewUrl(isPreview);
-  const handlePreviewClick = usePreviewClick(isPreview);
 
   // In preview mode, use transformed URL directly with Link
   if (isPreview) {

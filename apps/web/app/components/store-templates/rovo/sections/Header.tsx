@@ -2,6 +2,7 @@ import { Link } from '@remix-run/react';
 import { ShoppingBag, Search, Menu, X, User } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { StoreHeaderProps } from '~/templates/store-registry';
+import { LanguageSelector } from '../../shared/LanguageSelector';
 
 function cn(...classes: (string | boolean | undefined | null)[]) {
   return classes.filter(Boolean).join(' ');
@@ -106,6 +107,9 @@ export function RovoHeader({
 
             {/* Icons */}
             <div className="flex items-center space-x-2 md:space-x-4">
+              <div className="hidden lg:block">
+                <LanguageSelector />
+              </div>
               <button 
                 className="p-2 hover:bg-black/5 rounded-full transition-colors hidden md:block"
               >
@@ -156,6 +160,9 @@ export function RovoHeader({
                   </Link>
                 ))}
                 <Link to="/products" className="p-3 hover:bg-gray-50 rounded-lg font-medium">All Products</Link>
+                <div className="p-3 border-t mt-2">
+                  <LanguageSelector />
+                </div>
               </nav>
             </div>
           </div>

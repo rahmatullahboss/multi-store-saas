@@ -50,7 +50,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const drizzleDb = drizzle(db);
   
   // Build query conditions
-  let conditions: any[] = [];
+  const conditions: any[] = [];
   
   if (status !== 'all') {
     conditions.push(eq(supportTickets.status, status as any));

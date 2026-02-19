@@ -812,7 +812,7 @@ export class OrderProcessor extends DurableObject<Env> {
    * Best Practice: Validate payload, handle subscription errors
    */
   private async sendNotification(task: OrderTask): Promise<void> {
-    const { title, body, url, icon } = task.payload as { 
+    const { title, body, url: _url, icon: _icon } = task.payload as { 
       title: string; 
       body: string;
       url?: string;
@@ -871,7 +871,7 @@ export default {
    * CRON TRIGGER HANDLER
    * Runs hourly to sync courier statuses
    */
-  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+  async scheduled(event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
     console.log('[Cron] Starting courier status sync...');
     const startTime = Date.now();
     

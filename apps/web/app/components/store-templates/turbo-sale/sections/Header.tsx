@@ -1,7 +1,10 @@
 import { Link } from '@remix-run/react';
 import { Search, ShoppingBag, Phone, Zap, Clock } from 'lucide-react';
 import { useCartCount } from '~/hooks/useCartCount';
+import { Search, ShoppingBag, Phone, Zap, Clock, Menu, X } from 'lucide-react';
+import { useCartCount } from '~/hooks/useCartCount';
 import { TURBO_SALE_THEME } from '../styles/tokens';
+import { LanguageSelector } from '../../shared/LanguageSelector';
 import { useState } from 'react';
 import type { ThemeConfig, SocialLinks } from '@db/types';
 
@@ -40,6 +43,14 @@ export function TurboSaleHeader({ storeName, logo, isPreview, categories = [], c
       <header className="sticky top-0 z-50 shadow-md" style={{ backgroundColor: headerBg }}>
         <div className="max-w-7xl mx-auto px-4 py-2 md:py-3">
           <div className="flex items-center justify-between gap-4">
+            {/* Mobile Menu Toggle */}
+            <button
+              className="lg:hidden p-2 rounded-full transition hover:bg-gray-100"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <Menu className="h-6 w-6" style={{ color: primary }} />
+            </button>
+
             {/* Search - Left */}
             <button 
               className="p-2 rounded-full transition flex-shrink-0"
@@ -77,6 +88,10 @@ export function TurboSaleHeader({ storeName, logo, isPreview, categories = [], c
                 </span>
               )}
             </Link>
+            {/* Language - Desktop */}
+            <div className="hidden lg:block">
+              <LanguageSelector />
+            </div>
           </div>
         </div>
 
@@ -122,6 +137,56 @@ export function TurboSaleHeader({ storeName, logo, isPreview, categories = [], c
           </div>
         </nav>
       </header>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-[60] lg:hidden">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
+          <div className="absolute left-0 top-0 bottom-0 w-[80%] max-w-[300px] bg-white shadow-xl overflow-y-auto">
+            <div className="p-4 border-b flex items-center justify-between">
+              <span className="font-bold text-lg">{storeName}</span>
+              <button onClick={() => setMobileMenuOpen(false)} className="p-2">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <nav className="p-4 space-y-4">
+              <Link to="/" className="block font-medium text-gray-700" onClick={() => setMobileMenuOpen(false)}>
+                Home
+              </Link>
+              <Link to="/cart" className="block font-medium text-gray-700" onClick={() => setMobileMenuOpen(false)}>
+                Cart ({count})
+              </Link>
+              
+              <div className="pt-4 border-t">
+                <p className="mb-2 text-sm font-semibold text-gray-500">Categories</p>
+                <div className="space-y-2">
+                  <Link 
+                    to="/" 
+                    className="block text-sm text-gray-600"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    All Products
+                  </Link>
+                  {categories.filter(Boolean).map((category) => (
+                    <Link
+                      key={category}
+                      to={`?category=${encodeURIComponent(category!)}`}
+                      className="block text-sm text-gray-600"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {category}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t">
+                <LanguageSelector />
+              </div>
+            </nav>
+          </div>
+        </div>
+      )}
     </>
   );
 }

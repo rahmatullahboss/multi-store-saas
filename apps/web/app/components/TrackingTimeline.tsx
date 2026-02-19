@@ -93,6 +93,7 @@ export function TrackingTimeline({
         { method: 'POST', action: '/api/courier/steadfast' }
       );
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, consignmentId]);
   
   // Update active step when data arrives

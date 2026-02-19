@@ -11,7 +11,8 @@ import { isbot } from 'isbot';
 import { renderToReadableStream } from 'react-dom/server';
 import { createInstance } from 'i18next';
 import { I18nextProvider, initReactI18next } from 'react-i18next';
-import Backend from 'i18next-http-backend';
+// Backend imported for i18next-http-backend plugin (used implicitly)
+import 'i18next-http-backend';
 import * as Sentry from '@sentry/remix';
 import i18n from './i18n';
 import i18next from './services/i18n.server';

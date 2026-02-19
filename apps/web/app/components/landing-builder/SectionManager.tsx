@@ -6,16 +6,16 @@
  * Phase 2: Added drag and drop using @dnd-kit/sortable
  */
 
-import { useState, memo, useCallback, useEffect } from 'react';
+import { useState, memo, useEffect } from 'react';
 import { AddSectionModal } from './AddSectionModal';
 import { 
-  Eye, EyeOff, ChevronUp, ChevronDown, Edit2, ChevronRight, Plus, Trash2, Upload, X,
+  Eye, EyeOff, ChevronUp, ChevronDown, Edit2, Plus, Trash2, Upload, X,
   Type, Star, Video, MessageSquare, HelpCircle, ShoppingCart, ShieldCheck, Truck,
-  Image, CheckCircle, Layers, Users, Loader2, GripVertical, Code, AlertCircle, MessageCircle,
+  Image, CheckCircle, Layers, Users, Loader2, GripVertical, AlertCircle,
   Tag, Box, ListOrdered, Package, Palette
 } from 'lucide-react';
-import { VariantSelector, VariantSelectorModal } from './VariantSelector';
-import { hasVariants, getVariantsForSection, getDefaultVariant } from '~/utils/landing-builder/variantRegistry';
+import { VariantSelectorModal } from './VariantSelector';
+import { hasVariants } from '~/utils/landing-builder/variantRegistry';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 // Drag and Drop imports
@@ -513,9 +513,9 @@ function SectionManagerBase({
   orderFormVariant = 'full-width',
   onOrderFormVariantChange,
   // Custom code sections
-  customSections = [],
-  onCustomSectionsChange,
-  onAddCustomSection,
+  customSections: _customSections = [],
+  onCustomSectionsChange: _onCustomSectionsChange,
+  onAddCustomSection: _onAddCustomSection,
   // Problem & Solution
   problemSolution = { problems: [], solutions: [] },
   onProblemSolutionChange,
@@ -529,14 +529,14 @@ function SectionManagerBase({
   featuresTitle, onFeaturesTitleChange,
   faqTitle, onFaqTitleChange,
   faqSubtitle, onFaqSubtitleChange,
-  testimonialsTitle, onTestimonialsTitleChange,
-  reviewsSubtitle, onReviewsSubtitleChange,
-  guaranteeBadgeLabel, onGuaranteeBadgeLabelChange,
-  establishedDate, onEstablishedDateChange,
-  socialProofTitle, onSocialProofTitleChange,
+  testimonialsTitle: _testimonialsTitle, onTestimonialsTitleChange: _onTestimonialsTitleChange,
+  reviewsSubtitle: _reviewsSubtitle, onReviewsSubtitleChange: _onReviewsSubtitleChange,
+  guaranteeBadgeLabel: _guaranteeBadgeLabel, onGuaranteeBadgeLabelChange: _onGuaranteeBadgeLabelChange,
+  establishedDate: _establishedDate, onEstablishedDateChange: _onEstablishedDateChange,
+  socialProofTitle: _socialProofTitle, onSocialProofTitleChange: _onSocialProofTitleChange,
   // Video & Gallery
   videoTitle, onVideoTitleChange,
-  galleryTitle, onGalleryTitleChange,
+  galleryTitle: _galleryTitle, onGalleryTitleChange: _onGalleryTitleChange,
   // Order Form Text
   orderFormText, onOrderFormTextChange,
   // Section Variants (Quick Builder v2)
@@ -616,7 +616,7 @@ function SectionManagerBase({
     }
   };
 
-  const moveSection = (index: number, direction: 'up' | 'down') => {
+  const _moveSection = (index: number, direction: 'up' | 'down') => {
     const newOrder = [...sectionOrder];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     
@@ -1214,7 +1214,7 @@ function SectionManagerBase({
                         const newImages = [...galleryImages, ''];
                         onGalleryImagesChange?.(newImages);
                         
-                        handleGenericUpload(file, `gallery-${newIndex}`, (newUrl) => {
+                        handleGenericUpload(file, `gallery-${newIndex}`, (_newUrl) => {
                           // Re-fetch latest state? No, we need to hope state updates fast enough/we use callback with closure
                           // Better: Update separate state or use functional update if available, but here we depend on prop.
                           // Safe way: Trigger generic upload, and in callback call onChange with PREV + new
@@ -2404,7 +2404,7 @@ function SectionManagerBase({
           <div className="divide-y divide-gray-100">
             {orderedSections.map((section) => {
               const isHidden = hiddenSections.includes(section.id);
-              const Icon = section.icon;
+              const _Icon = section.icon;
               const isExpanded = expandedSection === section.id;
               const isEditable = section.editable;
 
@@ -2508,7 +2508,7 @@ const SortableSectionItem = memo(function SortableSectionItem({
   onToggleExpand,
   onToggleVisibility,
   renderEditor,
-  currentVariant,
+  currentVariant: _currentVariant,
   onVariantClick,
   hasVariantOptions,
 }: SortableSectionItemProps) {

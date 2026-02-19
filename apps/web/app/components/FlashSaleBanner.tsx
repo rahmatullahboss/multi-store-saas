@@ -47,10 +47,11 @@ export default function FlashSaleBanner({
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
+      setTimeLeft(calculateTimeLeft()); // calculateTimeLeft uses closure over endTime
     }, 1000);
 
     return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [endTime]);
 
   if (timeLeft.expired) {

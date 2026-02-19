@@ -9,7 +9,7 @@
  */
 
 import { useState } from 'react';
-import { Check, Moon, Sun, Type, Palette, Square, Circle } from 'lucide-react';
+import { Check, Moon, Sun, Type, Palette, Square } from 'lucide-react';
 import { cn } from '~/utils/cn';
 import type { StyleWizardSettings } from '@db/types';
 
@@ -253,7 +253,7 @@ function DarkModeToggle({
 
 // Main Style Wizard Component
 export function StyleWizard({ value, onChange, compact = false }: StyleWizardProps) {
-  const handleChange = (key: keyof StyleWizardSettings, val: any) => {
+  const handleChange = (key: keyof StyleWizardSettings, val: StyleWizardSettings[typeof key]) => {
     onChange({ ...value, [key]: val });
   };
 

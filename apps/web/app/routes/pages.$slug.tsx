@@ -16,8 +16,8 @@ import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import {
   getStoreTemplateTheme,
   DEFAULT_STORE_TEMPLATE_ID,
-  type StoreTemplateTheme,
 } from '~/templates/store-registry';
+import type { StoreTemplateTheme } from '~/templates/types';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 import { createDb } from '~/lib/db.server';
 

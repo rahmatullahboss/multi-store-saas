@@ -64,13 +64,9 @@ export interface MigrateLegacyOptions {
 }
 
 interface LegacySources {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   themeConfig: Record<string, any> | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mvpSettings: Record<string, any> | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   socialLinks: Record<string, any> | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   businessInfo: Record<string, any> | null;
   storeName: string | null;
   logo: string | null;
@@ -253,7 +249,6 @@ async function getLegacySettings<TSchema extends Record<string, unknown>>(
   const store = storeResult[0] || {};
 
   // Parse themeConfig
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let themeConfig: Record<string, any> | null = null;
   if (store.themeConfig) {
     try {
@@ -265,7 +260,6 @@ async function getLegacySettings<TSchema extends Record<string, unknown>>(
   }
 
   // Parse socialLinks
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let socialLinks: Record<string, any> | null = null;
   if (store.socialLinks) {
     try {
@@ -277,7 +271,6 @@ async function getLegacySettings<TSchema extends Record<string, unknown>>(
   }
 
   // Parse businessInfo
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let businessInfo: Record<string, any> | null = null;
   if (store.businessInfo) {
     try {

@@ -65,8 +65,8 @@ export function FacebookPixelScript({ pixelId, masterPixelId }: FacebookPixelPro
 export const fbPixelEvents = {
   // Track when user views a product
   viewContent: (productId: string, productName: string, value: number, currency = 'BDT') => {
-    if (typeof window !== 'undefined' && (window as any).fbq) {
-      (window as any).fbq('track', 'ViewContent', {
+    if (typeof window !== 'undefined' && (window as Window & { fbq?: (...args: unknown[]) => void }).fbq) {
+      (window as Window & { fbq: (...args: unknown[]) => void }).fbq('track', 'ViewContent', {
         content_ids: [productId],
         content_name: productName,
         content_type: 'product',
@@ -78,8 +78,8 @@ export const fbPixelEvents = {
 
   // Track add to cart
   addToCart: (productId: string, productName: string, value: number, currency = 'BDT') => {
-    if (typeof window !== 'undefined' && (window as any).fbq) {
-      (window as any).fbq('track', 'AddToCart', {
+    if (typeof window !== 'undefined' && (window as Window & { fbq?: (...args: unknown[]) => void }).fbq) {
+      (window as Window & { fbq: (...args: unknown[]) => void }).fbq('track', 'AddToCart', {
         content_ids: [productId],
         content_name: productName,
         content_type: 'product',
@@ -91,8 +91,8 @@ export const fbPixelEvents = {
 
   // Track checkout initiation
   initiateCheckout: (value: number, currency = 'BDT', numItems = 1) => {
-    if (typeof window !== 'undefined' && (window as any).fbq) {
-      (window as any).fbq('track', 'InitiateCheckout', {
+    if (typeof window !== 'undefined' && (window as Window & { fbq?: (...args: unknown[]) => void }).fbq) {
+      (window as Window & { fbq: (...args: unknown[]) => void }).fbq('track', 'InitiateCheckout', {
         value,
         currency,
         num_items: numItems,
@@ -102,8 +102,8 @@ export const fbPixelEvents = {
 
   // Track successful purchase
   purchase: (value: number, currency = 'BDT', contentIds: string[] = []) => {
-    if (typeof window !== 'undefined' && (window as any).fbq) {
-      (window as any).fbq('track', 'Purchase', {
+    if (typeof window !== 'undefined' && (window as Window & { fbq?: (...args: unknown[]) => void }).fbq) {
+      (window as Window & { fbq: (...args: unknown[]) => void }).fbq('track', 'Purchase', {
         value,
         currency,
         content_ids: contentIds,
@@ -114,8 +114,8 @@ export const fbPixelEvents = {
 
   // Track lead generation (form submission)
   lead: (value = 0, currency = 'BDT') => {
-    if (typeof window !== 'undefined' && (window as any).fbq) {
-      (window as any).fbq('track', 'Lead', {
+    if (typeof window !== 'undefined' && (window as Window & { fbq?: (...args: unknown[]) => void }).fbq) {
+      (window as Window & { fbq: (...args: unknown[]) => void }).fbq('track', 'Lead', {
         value,
         currency,
       });
@@ -123,9 +123,9 @@ export const fbPixelEvents = {
   },
 
   // Custom event tracking
-  trackCustom: (eventName: string, params?: Record<string, any>) => {
-    if (typeof window !== 'undefined' && (window as any).fbq) {
-      (window as any).fbq('trackCustom', eventName, params);
+  trackCustom: (eventName: string, params?: Record<string, unknown>) => {
+    if (typeof window !== 'undefined' && (window as Window & { fbq?: (...args: unknown[]) => void }).fbq) {
+      (window as Window & { fbq: (...args: unknown[]) => void }).fbq('trackCustom', eventName, params);
     }
   },
 };

@@ -26,7 +26,13 @@ import { Footer } from '@/components/Footer';
 // CRITICAL - Load immediately (above the fold)
 // ============================================================================
 import { MarketingHeader } from '@/components/MarketingHeader';
+
 import { AwardWinningHero } from '@/components/AwardWinningHero';
+
+const FraudDetectionSection = dynamic(
+  () => import('@/components/FraudDetectionSection').then((m) => ({ default: m.FraudDetectionSection })),
+  { loading: () => <SectionSkeleton />, ssr: false }
+);
 
 // ============================================================================
 // OPTIMIZED DYNAMIC IMPORTS
@@ -498,6 +504,11 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
 
       <LazySectionWrapper minHeight="400px">
         <CustomerExperienceSection />
+      </LazySectionWrapper>
+
+      {/* FRAUD DETECTION - HIGH PRIORITY FEATURE */}
+      <LazySectionWrapper minHeight="500px">
+        <FraudDetectionSection />
       </LazySectionWrapper>
 
       {/* Customer Benefits Section - Google Sign-in Focus */}

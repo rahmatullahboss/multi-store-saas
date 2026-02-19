@@ -1,10 +1,11 @@
 import { Link } from '@remix-run/react';
 import React, { useState } from 'react';
-import { Search, Menu, User, Heart, ShoppingCart, ChevronDown, Phone, Percent } from 'lucide-react';
+import { Search, Menu, User, Heart, ShoppingCart, ChevronDown, Phone, Percent, X } from 'lucide-react';
 import { FRESHNESS_THEME } from '../theme';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useCartCount } from '~/hooks/useCartCount';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
+import { LanguageSelector } from '../../shared/LanguageSelector';
 
 interface FreshnessHeaderProps {
   storeName: string;
@@ -125,6 +126,10 @@ export function FreshnessHeader({
               </span>
             )}
           </PreviewSafeLink>
+
+           <div className="hidden lg:block">
+             <LanguageSelector />
+           </div>
         </div>
       </div>
 
@@ -200,6 +205,52 @@ export function FreshnessHeader({
           </div>
         </div>
       </nav>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-[60] lg:hidden">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
+          <div className="absolute left-0 top-0 bottom-0 w-[80%] max-w-[300px] bg-white shadow-xl overflow-y-auto">
+            <div className="p-4 border-b flex items-center justify-between">
+              <span className="font-bold text-lg text-gray-800">{storeName}</span>
+               <button onClick={() => setMobileMenuOpen(false)}>
+                 <X className="w-6 h-6" />
+               </button>
+            </div>
+            <nav className="p-4 space-y-2">
+              <PreviewSafeLink to="/" className="block py-2 text-gray-700 font-medium" onClick={() => setMobileMenuOpen(false)} isPreview={isPreview}>
+                {t('home') || 'Home'}
+              </PreviewSafeLink>
+              <div className="py-2">
+                <span className="block text-gray-700 font-medium mb-2">{t('categories') || 'Categories'}</span>
+                <div className="pl-4 space-y-2 border-l-2 border-gray-100">
+                  {validCategories.map((cat) => (
+                    <PreviewSafeLink
+                      key={cat}
+                      to={`/?category=${encodeURIComponent(cat)}`}
+                      className="block py-1 text-sm text-gray-600"
+                       onClick={() => setMobileMenuOpen(false)}
+                      isPreview={isPreview}
+                    >
+                      {cat}
+                    </PreviewSafeLink>
+                  ))}
+                </div>
+              </div>
+               <PreviewSafeLink to="/about" className="block py-2 text-gray-700 font-medium" onClick={() => setMobileMenuOpen(false)} isPreview={isPreview}>
+                About Us
+              </PreviewSafeLink>
+              <PreviewSafeLink to="/contact" className="block py-2 text-gray-700 font-medium" onClick={() => setMobileMenuOpen(false)} isPreview={isPreview}>
+                Contact
+              </PreviewSafeLink>
+              
+              <div className="mt-4 pt-4 border-t">
+                 <LanguageSelector />
+              </div>
+            </nav>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

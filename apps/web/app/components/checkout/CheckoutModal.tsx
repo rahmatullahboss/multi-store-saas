@@ -179,7 +179,7 @@ export function CheckoutModal({
   onClose,
   product,
   storeId,
-  storeName,
+  storeName: _storeName,
   shippingOptions = DEFAULT_SHIPPING_OPTIONS,
   whatsappNumber,
   whatsappEnabled,
@@ -193,7 +193,7 @@ export function CheckoutModal({
   const [address, setAddress] = useState('');
   const [deliveryArea, setDeliveryArea] = useState(shippingOptions[0]?.id || 'dhaka');
   const [selectedVariant, setSelectedVariant] = useState(product.variants?.[0]?.id || '');
-  const [quantity, setQuantity] = useState(1);
+  const [quantity] = useState(1);
   const [note, setNote] = useState('');
   const [orderSuccess, setOrderSuccess] = useState<string | null>(null);
 

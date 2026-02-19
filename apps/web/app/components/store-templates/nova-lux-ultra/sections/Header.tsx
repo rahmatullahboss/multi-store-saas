@@ -249,7 +249,9 @@ export function NovaLuxUltraHeader({
 
             {/* Right Navigation - Icons with hover effects */}
             <div className="flex items-center gap-2">
-              <LanguageSelector className="mr-1" />
+              <div className="hidden lg:block">
+                <LanguageSelector className="mr-1" />
+              </div>
 
               {/* Search Button */}
               <motion.button
@@ -394,6 +396,9 @@ export function NovaLuxUltraHeader({
                   </PreviewSafeLink>
                 </motion.div>
               ))}
+              <div className="mt-4">
+                <LanguageSelector />
+              </div>
             </motion.nav>
           </motion.div>
         )}

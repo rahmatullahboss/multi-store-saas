@@ -11,7 +11,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useFetcher } from '@remix-run/react';
-import { X, Send, Sparkles, Loader2, Wand2, Check } from 'lucide-react';
+import { X, Sparkles, Wand2, Check } from 'lucide-react';
 
 interface AIEditPanelProps {
   sectionId: string;

@@ -4,6 +4,7 @@ import { ShoppingBasket, Search, Menu, X, Heart, Leaf, ChevronRight } from 'luci
 import { ARTISAN_MARKET_THEME } from '../theme';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useCartCount } from '~/hooks/useCartCount';
+import { LanguageSelector } from '../../shared/LanguageSelector';
 
 interface ArtisanMarketHeaderProps {
   storeName: string;
@@ -114,6 +115,9 @@ export function ArtisanMarketHeader({
 
           {/* Right Icons */}
           <div className="flex items-center gap-2">
+            <div className="hidden lg:block">
+              <LanguageSelector />
+            </div>
             <button className="p-2.5 rounded-full transition-colors hover:bg-amber-50">
               <Search className="w-5 h-5" style={{ color: theme.text }} />
             </button>
@@ -169,6 +173,9 @@ export function ArtisanMarketHeader({
                 <ChevronRight className="w-5 h-5" />
               </Link>
             ))}
+            <div className="mt-4 pt-4 border-t border-amber-200">
+               <LanguageSelector />
+            </div>
           </nav>
         </div>
       )}

@@ -7,8 +7,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useFetcher } from '@remix-run/react';
 import {
-  Search,
-  Image,
   Upload,
   Loader2,
   Globe,
@@ -45,7 +43,7 @@ export default function SEOPanel({
   // Local state for preview
   const [localTitle, setLocalTitle] = useState(seoTitle || storeName);
   const [localDescription, setLocalDescription] = useState(seoDescription);
-  const [localOgImage, setLocalOgImage] = useState(ogImage);
+  const [_localOgImage, setLocalOgImage] = useState(ogImage);
   const [ogImagePreview, setOgImagePreview] = useState(ogImage);
   
   // Image upload

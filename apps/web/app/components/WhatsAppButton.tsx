@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { MessageCircle, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface WhatsAppButtonProps {
   phoneNumber: string; // WhatsApp number (e.g., "+8801712345678" or "01712345678")

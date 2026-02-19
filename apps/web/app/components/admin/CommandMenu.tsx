@@ -8,13 +8,7 @@ import {
   Users, 
   Search,
   Zap,
-  HardDrive,
-  Ticket,
-  Radio,
   History,
-  BookOpen,
-  Globe,
-  Bot
 } from 'lucide-react';
 
 interface StoreItem {

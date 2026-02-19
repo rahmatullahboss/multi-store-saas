@@ -150,7 +150,9 @@ export function NovaLuxHeader({
 
           {/* Right Navigation */}
           <div className="flex items-center gap-2">
-            <LanguageSelector className="mr-1" />
+            <div className="hidden lg:block">
+              <LanguageSelector className="mr-1" />
+            </div>
             <button className="p-2.5 rounded-full transition-all duration-300 hover:bg-gray-100">
               <Search className="w-5 h-5" style={{ color: THEME.text }} />
             </button>
@@ -201,6 +203,74 @@ export function NovaLuxHeader({
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-[60] flex flex-col bg-white/95 backdrop-blur-xl transition-all duration-300">
+          <div className="flex items-center justify-between p-4 border-b">
+            <span
+              className="text-xl font-semibold tracking-wider"
+              style={{
+                fontFamily: NOVALUX_THEME.fontHeading,
+                color: THEME.primary,
+              }}
+            >
+              Menu
+            </span>
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <X className="w-6 h-6" style={{ color: THEME.primary }} />
+            </button>
+          </div>
+
+          <nav className="flex flex-col p-6 gap-4 overflow-y-auto">
+            <PreviewSafeLink
+              to="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-lg font-medium py-2 border-b border-gray-100"
+              style={{ color: THEME.text }}
+              isPreview={isPreview}
+            >
+              {t('home')}
+            </PreviewSafeLink>
+            
+            <PreviewSafeLink
+              to="/products"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-lg font-medium py-2 border-b border-gray-100"
+              style={{ color: THEME.text }}
+              isPreview={isPreview}
+            >
+              {t('allProducts')}
+            </PreviewSafeLink>
+
+            {validCategories.map((cat) => {
+              const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+              return (
+                <PreviewSafeLink
+                  key={title}
+                  to={`/products/${encodeURIComponent(title.trim().toLowerCase().replace(/\s+/g, ' ')).replace(/%20/g, '-')}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-lg font-medium py-2 border-b border-gray-100"
+                  style={{ color: THEME.text }}
+                  isPreview={isPreview}
+                >
+                  {title}
+                </PreviewSafeLink>
+              );
+            })}
+
+            <div className="mt-4">
+              <span className="text-sm font-medium text-gray-500 mb-2 block uppercase tracking-wider">
+                Settings
+              </span>
+              <LanguageSelector />
+            </div>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

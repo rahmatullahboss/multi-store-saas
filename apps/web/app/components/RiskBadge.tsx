@@ -9,7 +9,7 @@
 
 import { useFetcher } from '@remix-run/react';
 import { Shield, ShieldAlert, ShieldCheck, ShieldQuestion, Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface RiskBadgeProps {
   phone: string;
@@ -29,7 +29,7 @@ interface RiskData {
 export function RiskBadge({ 
   phone, 
   initialRiskScore,
-  showDetails = false, 
+  showDetails: _showDetails = false, 
   className = '' 
 }: RiskBadgeProps) {
   const fetcher = useFetcher<RiskData | { error: string }>();

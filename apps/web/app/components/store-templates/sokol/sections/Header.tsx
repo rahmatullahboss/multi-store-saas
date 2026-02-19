@@ -2,6 +2,7 @@ import { Link } from '@remix-run/react';
 import { ShoppingBag, Search, Menu, X, User, Heart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { StoreHeaderProps } from '~/templates/store-registry';
+import { LanguageSelector } from '../../shared/LanguageSelector';
 
 function cn(...classes: (string | boolean | undefined | null)[]) {
   return classes.filter(Boolean).join(' ');
@@ -138,6 +139,10 @@ export function SokolHeader({
                   </span>
                 )}
               </button>
+              
+               <div className="hidden md:block">
+                 <LanguageSelector />
+               </div>
             </div>
           </div>
         </div>
@@ -199,6 +204,9 @@ export function SokolHeader({
                 <User className="w-5 h-5" />
                 <span className="font-medium">My Account</span>
               </LinkComponent>
+              <div className="mt-4">
+                <LanguageSelector />
+              </div>
             </div>
           </div>
         </div>

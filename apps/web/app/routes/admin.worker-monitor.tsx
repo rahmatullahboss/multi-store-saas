@@ -91,7 +91,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   let visitSummaryRows: unknown[] = [];
   let storeVisitRows: unknown[] = [];
-  let dataWarnings: string[] = [];
+  const dataWarnings: string[] = [];
 
   try {
     visitSummaryRows = await db.all(sql`

@@ -2,7 +2,7 @@
  * Magnetic Button Component
  * Button that follows cursor when hovering nearby for premium interaction
  */
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { ReactNode, useRef } from 'react';
 
 interface MagneticButtonProps {

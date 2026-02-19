@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Form } from '@remix-run/react';
-import { Loader2, Sparkles, X } from 'lucide-react';
+import { Sparkles, X } from 'lucide-react';
 
 interface AIGeneratorModalProps {
   isOpen: boolean;

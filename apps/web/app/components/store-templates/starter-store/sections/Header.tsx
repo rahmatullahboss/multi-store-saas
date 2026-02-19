@@ -180,7 +180,7 @@ export function StarterStoreHeader({
 
             {/* Search, Wishlist, Cart, Account */}
             <div className="flex items-center gap-2">
-              <div className={isTransparent ? 'text-white' : ''}>
+              <div className={`${isTransparent ? 'text-white' : ''} hidden lg:block`}>
                 <LanguageSelector className="mr-1" />
               </div>
 
@@ -334,6 +334,10 @@ export function StarterStoreHeader({
                   </PreviewSafeLink>
                 );
               })}
+
+              <div className="px-4 py-2">
+                <LanguageSelector />
+              </div>
 
               {!isPreview && (
                 <>

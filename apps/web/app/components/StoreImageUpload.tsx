@@ -7,7 +7,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { useFetcher } from '@remix-run/react';
-import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Loader2 } from 'lucide-react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 
 interface StoreImageUploadProps {
@@ -35,7 +35,7 @@ export function StoreImageUpload({
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const fetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
+  useFetcher<{ success?: boolean; url?: string; error?: string }>();
 
   // Aspect ratio styles
   const aspectStyles = {
@@ -64,7 +64,7 @@ export function StoreImageUpload({
         format,
       });
 
-      console.log(`Image compressed: ${file.size} → ${compressedBlob.size} bytes (${Math.round((1 - compressedBlob.size / file.size) * 100)}% reduction)`);
+      // Image compressed successfully
 
       // Upload to R2
       const formData = new FormData();

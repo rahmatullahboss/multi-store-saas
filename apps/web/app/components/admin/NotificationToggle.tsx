@@ -34,7 +34,7 @@ export function NotificationToggle() {
       if (perm === 'granted') {
         const reg = await navigator.serviceWorker.ready;
         // Verify VAPID Key
-        const vapidKey = (window as any).ENV?.VAPID_PUBLIC_KEY;
+        const vapidKey = (window as Window & { ENV?: { VAPID_PUBLIC_KEY?: string } }).ENV?.VAPID_PUBLIC_KEY;
         if (!vapidKey) {
            console.error('[Notification] VAPID Key missing in window.ENV');
            return;
@@ -48,8 +48,8 @@ export function NotificationToggle() {
         // Send to API
         // Note: Using fetch directly or fetcher with json encoding manually for complex objects
         fetcher.submit(
-            { subscription: sub.toJSON() } as any, 
-            { method: 'POST', action: '/api/subscribe', encType: 'application/json' }
+            { subscription: JSON.stringify(sub.toJSON()) },
+            { method: 'POST', action: '/api/subscribe' }
         );
         
         setIsSubscribed(true);

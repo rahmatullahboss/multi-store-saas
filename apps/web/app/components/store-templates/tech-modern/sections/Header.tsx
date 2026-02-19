@@ -145,7 +145,9 @@ export function TechModernHeader({
             </div>
           </div>
 
-          <LanguageSelector className="mr-1" />
+          <div className="hidden lg:block">
+            <LanguageSelector className="mr-1" />
+          </div>
 
           {/* Cart Button */}
           <PreviewSafeLink
@@ -201,6 +203,9 @@ export function TechModernHeader({
                 <ChevronRight className="w-5 h-5" />
               </PreviewSafeLink>
             ))}
+            <div className="px-4 py-3 border-t border-gray-100 mt-2">
+              <LanguageSelector />
+            </div>
           </nav>
         </div>
       )}

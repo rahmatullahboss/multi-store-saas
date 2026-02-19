@@ -175,7 +175,7 @@ export function LandingTemplateGallery({
   onSelect,
   onPreview,
 }: LandingTemplateGalleryProps) {
-  const { t, lang: language } = useTranslation();
+  const { t } = useTranslation();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   return (

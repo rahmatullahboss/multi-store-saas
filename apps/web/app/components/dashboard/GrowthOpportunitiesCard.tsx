@@ -12,7 +12,7 @@ export function GrowthOpportunitiesCard({ forecast, clv, currency }: GrowthProps
   const { t } = useTranslation();
   // 1. Analyze Forecast Trend
   const next7DaysRevenue = forecast.slice(0, 7).reduce((sum, day) => sum + day.predictedRevenue, 0);
-  const isGrowing = next7DaysRevenue > 0; // Simplified logic
+  // const isGrowing = next7DaysRevenue > 0; // Simplified logic - reserved for future use
 
   // 2. Analyze CLV Opportunities
   // If Purchase Frequency is low (< 1.2), suggest retention campaigns

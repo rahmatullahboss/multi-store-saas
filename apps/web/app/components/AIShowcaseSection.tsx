@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, ShoppingBag, Store, Sparkles, Wand2, MessageSquare, ArrowRight, Zap, Target, BrainCircuit } from 'lucide-react';
+import { Bot, ShoppingBag, Sparkles, MessageSquare, Zap, Target, BrainCircuit } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 // Content moved to translation files

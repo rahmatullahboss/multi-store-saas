@@ -23,7 +23,7 @@ import {
   getUnifiedStorefrontSettings,
   saveUnifiedStorefrontSettingsWithCacheInvalidation,
 } from '~/services/unified-storefront-settings.server';
-import { MVP_STORE_TEMPLATES, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';
+import { STORE_TEMPLATES as MVP_STORE_TEMPLATES, STORE_TEMPLATE_THEMES, type StoreTemplateDefinition } from '~/templates/store-registry';
 import { KVCache, CACHE_KEYS } from '~/services/kv-cache.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { invalidateStoreConfig as invalidateStoreConfigD1 } from '~/services/store-config.server';
@@ -103,7 +103,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json({
     store,
     settings,
-    availableThemes: MVP_STORE_TEMPLATES.map((t) => ({
+    availableThemes: MVP_STORE_TEMPLATES.map((t: StoreTemplateDefinition) => ({
       id: t.id,
       name: t.name,
       thumbnail: t.thumbnail,
@@ -219,15 +219,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     await saveUnifiedStorefrontSettingsWithCacheInvalidation(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      db as any,
+      db as any, // Drizzle DB type mismatch with service signature
       {
         KV: context.cloudflare.env.STORE_CACHE,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         STORE_CONFIG_SERVICE: (context.cloudflare.env as any).STORE_CONFIG_SERVICE,
       },
       storeId,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       patch as any
     );
 
@@ -1030,12 +1027,6 @@ function ContentTab({
     { icon: 'refresh' as const, title: 'ইজি রিটার্ন', description: '৭ দিনের মধ্যে' },
   ];
 
-  const defaultWhyChoose = [
-    { icon: '✨', title: 'প্রিমিয়াম কোয়ালিটি', description: 'উন্নত মানের নিশ্চয়তা' },
-    { icon: '⚡', title: 'দ্রুত ডেলিভারি', description: 'দ্রুত ও নিরাপদ ডেলিভারি' },
-    { icon: '💬', title: '২৪/৭ সাপোর্ট', description: 'আমরা ২৪ ঘণ্টা আপনার সেবায় নিয়োজিত' },
-  ];
-  const whyChoose = settings.whyChooseUs || defaultWhyChoose;
   const badges = settings.trustBadges?.badges || defaultBadges;
   const iconLabels = { truck: 'Truck Icon', shield: 'Shield Icon', refresh: 'Return Icon' };
   const IconMap = { truck: Truck, shield: Shield, refresh: RefreshCw };

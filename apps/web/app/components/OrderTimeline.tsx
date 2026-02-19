@@ -10,7 +10,7 @@ import {
   ChevronDown, ChevronUp, Package, CreditCard, Send
 } from 'lucide-react';
 import { useState } from 'react';
-import { Form, useFetcher } from '@remix-run/react';
+import { useFetcher } from '@remix-run/react';
 import { getActionLabel, getActionColor } from '~/lib/activity';
 
 interface ActivityLog {
@@ -75,7 +75,7 @@ function parseDetails(details: string | null): Record<string, unknown> | null {
   }
 }
 
-export function OrderTimeline({ logs, orderId, isSubmitting }: OrderTimelineProps) {
+export function OrderTimeline({ logs, orderId: _orderId, isSubmitting: _isSubmitting }: OrderTimelineProps) {
   const [expandedLogs, setExpandedLogs] = useState<Set<number>>(new Set());
   const [note, setNote] = useState('');
   const fetcher = useFetcher();

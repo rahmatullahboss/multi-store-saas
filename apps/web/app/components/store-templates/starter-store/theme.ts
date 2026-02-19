@@ -10,7 +10,7 @@
  */
 
 import type { ThemeConfig } from '@db/types';
-import type { StoreTemplateTheme } from '~/templates/store-registry';
+import type { StoreTemplateTheme } from '~/templates/types';
 
 export const STARTER_STORE_THEME = {
   // Primary Colors

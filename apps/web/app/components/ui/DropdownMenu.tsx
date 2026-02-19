@@ -89,7 +89,7 @@ interface DropdownMenuTriggerProps {
 }
 
 const DropdownMenuTrigger = React.forwardRef<HTMLButtonElement, DropdownMenuTriggerProps>(
-  ({ children, asChild, className, ...props }, forwardedRef) => {
+  ({ children, asChild: _asChild, className, ...props }, forwardedRef) => {
     const { open, setOpen, triggerRef } = useDropdownMenu();
 
     // Combine refs
