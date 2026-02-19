@@ -26,6 +26,7 @@ import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { getStoreId, getUserId } from '~/services/auth.server';
 import { createPathaoClient } from '~/services/pathao.server';
+import { createSteadfastClient } from '~/services/steadfast.server';
 import {
   CheckCircle,
   XCircle,
@@ -537,8 +538,27 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
       if (provider === 'steadfast') {
-        // ...
-        return json({ success: true, message: 'Steadfast connected' });
+        if (!currentCourier.steadfast) return json({ error: 'No Steadfast credentials found' }, { status: 400 });
+
+        const client = createSteadfastClient({
+          apiKey: currentCourier.steadfast.apiKey,
+          secretKey: currentCourier.steadfast.secretKey,
+        });
+
+        const isConnected = await client.testConnection();
+        if (isConnected) {
+          try {
+            const balance = await client.getBalance();
+            return json({
+              success: true,
+              message: `Connection successful! Balance: ৳${balance.current_balance}`,
+            });
+          } catch {
+            return json({ success: true, message: 'Connection successful!' });
+          }
+        } else {
+          return json({ error: 'Connection failed. Check API Key and Secret Key.' }, { status: 400 });
+        }
       }
 
       return json({ error: 'Provider not supported for testing' }, { status: 400 });

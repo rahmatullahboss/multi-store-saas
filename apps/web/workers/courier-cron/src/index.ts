@@ -78,7 +78,7 @@ async function fetchSteadfastStatus(
   apiKey: string,
   secretKey: string,
   consignmentId: string,
-  baseUrl: string = 'https://portal.steadfast.com.bd/api/v1'
+  baseUrl: string = 'https://portal.packzy.com/api/v1'
 ): Promise<{ courierStatus: string; orderStatus: string } | null> {
   try {
     const response = await fetch(`${baseUrl}/status_by_cid/${consignmentId}`, {
