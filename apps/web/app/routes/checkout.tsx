@@ -571,13 +571,13 @@ export default function Checkout() {
     if (isLuxeBoutique) {
       switch (variant) {
         case 'primary':
-          return 'bg-[#1a1a1a] text-white px-8 py-3 uppercase tracking-widest text-xs font-bold hover:bg-[#c9a961] hover:text-white transition-colors shadow-lg';
+          return 'w-full bg-[#1a1a1a] text-white px-8 py-3 uppercase tracking-widest text-xs font-bold hover:bg-[#c9a961] hover:text-white transition-colors shadow-lg';
         case 'secondary':
-          return 'border border-[#1a1a1a] px-8 py-3 uppercase text-xs tracking-widest hover:bg-[#1a1a1a] hover:text-white transition-colors';
+          return 'w-full border border-[#1a1a1a] px-8 py-3 uppercase text-xs tracking-widest hover:bg-[#1a1a1a] hover:text-white transition-colors';
         case 'outline':
           return 'border border-gray-300 px-4 py-2 text-sm hover:border-[#1a1a1a] transition-colors';
         default:
-          return 'bg-[#1a1a1a] text-white px-8 py-3 uppercase tracking-widest text-xs font-bold hover:bg-[#c9a961] hover:text-white transition-colors';
+          return 'w-full bg-[#1a1a1a] text-white px-8 py-3 uppercase tracking-widest text-xs font-bold hover:bg-[#c9a961] hover:text-white transition-colors shadow-lg';
       }
     }
     // Default styles

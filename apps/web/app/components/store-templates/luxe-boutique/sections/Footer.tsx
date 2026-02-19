@@ -38,7 +38,7 @@ export function LuxeBoutiqueFooter({
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Brand */}
+          {/* Brand - Left Column with Social */}
           <div>
             <h4
               className="text-xl font-semibold mb-4"
@@ -49,6 +49,30 @@ export function LuxeBoutiqueFooter({
             <p className="text-white/70 text-sm leading-relaxed">
               {footerConfig?.description || t('luxeDescription')}
             </p>
+
+            {/* Social Links - Now in Left Column */}
+            <div className="flex gap-4 mt-6">
+              {socialLinks?.instagram && (
+                <a
+                  href={socialLinks.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/70 hover:text-white transition-colors"
+                >
+                  <Instagram className="w-5 h-5" />
+                </a>
+              )}
+              {socialLinks?.facebook && (
+                <a
+                  href={socialLinks.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/70 hover:text-white transition-colors"
+                >
+                  <Facebook className="w-5 h-5" />
+                </a>
+              )}
+            </div>
           </div>
 
           {/* Quick Links */}
@@ -111,30 +135,6 @@ export function LuxeBoutiqueFooter({
                 </li>
               )}
             </ul>
-
-            {/* Social Links */}
-            <div className="flex gap-4 mt-6">
-              {socialLinks?.instagram && (
-                <a
-                  href={socialLinks.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-white/70 hover:text-white transition-colors"
-                >
-                  <Instagram className="w-5 h-5" />
-                </a>
-              )}
-              {socialLinks?.facebook && (
-                <a
-                  href={socialLinks.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-white/70 hover:text-white transition-colors"
-                >
-                  <Facebook className="w-5 h-5" />
-                </a>
-              )}
-            </div>
           </div>
         </div>
       </div>

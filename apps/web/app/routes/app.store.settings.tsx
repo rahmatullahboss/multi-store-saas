@@ -23,7 +23,7 @@ import {
   getUnifiedStorefrontSettings,
   saveUnifiedStorefrontSettingsWithCacheInvalidation,
 } from '~/services/unified-storefront-settings.server';
-import { MVP_STORE_TEMPLATES } from '~/templates/store-registry';
+import { MVP_STORE_TEMPLATES, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';
 import { KVCache, CACHE_KEYS } from '~/services/kv-cache.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { invalidateStoreConfig as invalidateStoreConfigD1 } from '~/services/store-config.server';
@@ -71,14 +71,7 @@ const COLOR_PRESETS = [
   { name: 'স্লেট', primary: '#1e293b', accent: '#c9a961' },
 ];
 
-const FONT_OPTIONS = [
-  { id: 'inter', name: 'Inter', desc: 'মডার্ন এবং ক্লিন' },
-  { id: 'poppins', name: 'Poppins', desc: 'জ্যামিতিক এবং ফ্রেন্ডলি' },
-  { id: 'roboto', name: 'Roboto', desc: 'ইন্ডাস্ট্রিয়াল এবং নির্ভরযোগ্য' },
-  { id: 'hind-siliguri', name: 'Hind Siliguri (Bengali)', desc: 'বাংলার জন্য অপ্টিমাইজড' },
-  { id: 'playfair', name: 'Playfair Display', desc: 'এলিগ্যান্ট এবং ক্লাসিক' },
-  { id: 'montserrat', name: 'Montserrat', desc: 'স্টাইলিশ এবং ভার্সাটাইল' },
-];
+
 
 const TABS = [
   { id: 'template', label: 'টেমপ্লেট', icon: Layout },
@@ -142,8 +135,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (intent === 'template') {
       const templateId = formData.get('templateId') as string;
       if (templateId) {
-        // Update unified settings only (single source of truth)
-        patch.theme = { templateId };
+        // Auto-set theme colors based on selected template
+        const templateTheme = STORE_TEMPLATE_THEMES[templateId];
+
+        // Update unified settings with template and auto-set colors
+        patch.theme = {
+          templateId,
+          ...(templateTheme && {
+            primary: templateTheme.primary,
+            accent: templateTheme.accent,
+          }),
+        };
       }
     } else if (intent === 'theme') {
       const primary = (formData.get('primaryColor') as string) || undefined;
@@ -187,6 +189,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
         });
       }
       patch.trustBadges = { badges };
+
+      // Why Choose Us
+      const whyChooseUs: Array<Record<string, string>> = [];
+      for (let i = 0; i < 3; i++) {
+        whyChooseUs.push({
+          icon: '✨⚡💬'.split('')[i],
+          title: (formData.get(`whyChoose_${i}_title`) as string) || '',
+          description: (formData.get(`whyChoose_${i}_description`) as string) || '',
+        });
+      }
+      patch.whyChooseUs = whyChooseUs;
     } else if (intent === 'info') {
       const logo = (formData.get('logo') as string) || null;
       const tagline = (formData.get('tagline') as string) || null;
@@ -443,12 +456,13 @@ function ThemeTab({
 }) {
   const [primary, setPrimary] = useState(settings.theme.primary);
   const [accent, setAccent] = useState(settings.theme.accent);
-  const [font, setFont] = useState(settings.typography?.fontFamily || 'inter');
+  
+  const whyChoose = settings.whyChooseUs;
 
   return (
     <Form method="post" className="space-y-8">
       <input type="hidden" name="intent" value="theme" />
-
+      
       {/* Color Theme */}
       <section className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center gap-3 mb-4">
@@ -534,56 +548,43 @@ function ThemeTab({
         </div>
       </section>
 
-      {/* Font Family */}
+      {/* Why Choose Us Section */}
       <section className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-            <Type className="w-5 h-5 text-indigo-600" />
+          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+            <Shield className="w-5 h-5 text-green-600" />
           </div>
-          <div>
-            <h2 className="text-lg font-semibold">ফন্ট ফ্যামিলি</h2>
-            <p className="text-sm text-gray-500">আপনার স্টোরের জন্য সেরা ফন্টটি বেছে নিন</p>
-          </div>
+          <h2 className="text-lg font-semibold">কেন আমাদের নির্বাচন করবেন</h2>
         </div>
-        <input type="hidden" name="fontFamily" value={font} />
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {FONT_OPTIONS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => setFont(f.id)}
-              className={`p-4 rounded-xl border-2 text-left transition ${
-                font === f.id
-                  ? 'border-purple-500 bg-purple-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <div className="font-semibold text-gray-900">{f.name}</div>
-              <div className="text-xs text-gray-500 mt-1">{f.desc}</div>
-            </button>
+        <p className="text-sm text-gray-500 mb-4">
+          হোমপেজে "Why Choose Us" সেকশনের জন্য তিনটি ফিচার।
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {whyChoose.map((item: { icon: string; title: string; description: string }, idx: number) => (
+            <div key={idx} className="border border-gray-200 rounded-lg p-4">
+              <div className="text-2xl mb-2">{item.icon}</div>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">শিরোনাম</label>
+                  <input
+                    type="text"
+                    name={`whyChoose_${idx}_title`}
+                    defaultValue={item.title}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">বিবরণ</label>
+                  <input
+                    type="text"
+                    name={`whyChoose_${idx}_description`}
+                    defaultValue={item.description}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  />
+                </div>
+              </div>
+            </div>
           ))}
-        </div>
-      </section>
-
-      {/* Preview */}
-      <section className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-sm font-medium text-gray-700 mb-3">প্রিভিউ</h3>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="px-4 py-2 rounded-lg text-white text-sm font-medium"
-            style={{ backgroundColor: primary }}
-          >
-            প্রাইমারি বাটন
-          </button>
-          <button
-            type="button"
-            className="px-4 py-2 rounded-lg text-white text-sm font-medium"
-            style={{ backgroundColor: accent }}
-          >
-            অ্যাকসেন্ট বাটন
-          </button>
-          <div className="w-10 h-10 rounded-full" style={{ backgroundColor: primary }} />
         </div>
       </section>
 
@@ -1028,6 +1029,13 @@ function ContentTab({
     { icon: 'shield' as const, title: 'নিরাপদ পেমেন্ট', description: '১০০% সিকিউর' },
     { icon: 'refresh' as const, title: 'ইজি রিটার্ন', description: '৭ দিনের মধ্যে' },
   ];
+
+  const defaultWhyChoose = [
+    { icon: '✨', title: 'প্রিমিয়াম কোয়ালিটি', description: 'উন্নত মানের নিশ্চয়তা' },
+    { icon: '⚡', title: 'দ্রুত ডেলিভারি', description: 'দ্রুত ও নিরাপদ ডেলিভারি' },
+    { icon: '💬', title: '২৪/৭ সাপোর্ট', description: 'আমরা ২৪ ঘণ্টা আপনার সেবায় নিয়োজিত' },
+  ];
+  const whyChoose = settings.whyChooseUs || defaultWhyChoose;
   const badges = settings.trustBadges?.badges || defaultBadges;
   const iconLabels = { truck: 'Truck Icon', shield: 'Shield Icon', refresh: 'Return Icon' };
   const IconMap = { truck: Truck, shield: Shield, refresh: RefreshCw };

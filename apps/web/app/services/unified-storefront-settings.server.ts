@@ -455,6 +455,13 @@ async function migrateLegacyToUnified(
     ],
   };
 
+  // Why Choose Us (from legacy themeConfig if available)
+  const whyChooseUs = legacy.themeConfig?.whyChooseUs || [
+    { icon: '✨', title: 'প্রিমিয়াম কোয়ালিটি', description: 'উন্নত মানের নিশ্চয়তা' },
+    { icon: '⚡', title: 'দ্রুত ডেলিভারি', description: 'দ্রুত ও নিরাপদ ডেলিভারি' },
+    { icon: '💬', title: '২৪/৭ সাপোর্ট', description: 'আমরা ২৪ ঘণ্টা আপনার সেবায় নিয়োজিত' },
+  ];
+
   // Typography (from legacy fontFamily if available)
   const typography = {
     fontFamily: legacy.themeConfig?.fontFamily || legacy.mvpSettings?.fontFamily || 'inter',
@@ -499,6 +506,7 @@ async function migrateLegacyToUnified(
     navigation,
     heroBanner,
     trustBadges,
+    whyChooseUs,
     typography,
     flags: {
       sourceLocked: false,

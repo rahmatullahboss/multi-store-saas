@@ -303,7 +303,6 @@ const NavigationSettingsSchema = z.object({
       z.object({
         label: z.string(),
         url: z.string(),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         children: z.array(z.any()).default([]),
       })
     )
@@ -320,6 +319,20 @@ const NavigationSettingsSchema = z.object({
 });
 
 export type NavigationSettings = z.infer<typeof NavigationSettingsSchema>;
+
+const WhyChooseUsSchema = z.array(
+  z.object({
+    icon: z.string(),
+    title: z.string(),
+    description: z.string(),
+  })
+).default([
+  { icon: '✨', title: 'প্রিমিয়াম কোয়ালিটি', description: 'উন্নত মানের নিশ্চয়তা' },
+  { icon: '⚡', title: 'দ্রুত ডেলিভারি', description: 'দ্রুত ও নিরাপদ ডেলিভারি' },
+  { icon: '💬', title: '২৪/৭ সাপোর্ট', description: 'আমরা ২৪ ঘণ্টা আপনার সেবায় নিয়োজিত' },
+]);
+
+export type WhyChooseUsSettings = z.infer<typeof WhyChooseUsSchema>;
 
 // ============================================================================
 // UNIFIED STOREFRONT SETTINGS V1
@@ -416,6 +429,7 @@ export const UnifiedStorefrontSettingsV1Schema = z.object({
       { icon: 'refresh', title: 'ইজি রিটার্ন', description: '৭ দিনের মধ্যে' },
     ],
   }),
+  whyChooseUs: WhyChooseUsSchema,
   typography: TypographySettingsSchema.default({
     fontFamily: 'inter',
   }),
@@ -466,6 +480,7 @@ export const UnifiedStorefrontSettingsPatchSchema = z.object({
   courier: CourierSettingsPatchSchema.optional(),
   heroBanner: HeroBannerSettingsPatchSchema.optional(),
   trustBadges: TrustBadgesSettingsPatchSchema.optional(),
+  whyChooseUs: WhyChooseUsSchema.optional(),
   typography: TypographySettingsPatchSchema.optional(),
   navigation: NavigationSettingsPatchSchema.optional(),
 });
@@ -607,6 +622,11 @@ export const DEFAULT_UNIFIED_SETTINGS: UnifiedStorefrontSettingsV1 = {
       { icon: 'refresh', title: 'ইজি রিটার্ন', description: '৭ দিনের মধ্যে' },
     ],
   },
+  whyChooseUs: [
+    { icon: '✨', title: 'প্রিমিয়াম কোয়ালিটি', description: 'উন্নত মানের নিশ্চয়তা' },
+    { icon: '⚡', title: 'দ্রুত ডেলিভারি', description: 'দ্রুত ও নিরাপদ ডেলিভারি' },
+    { icon: '💬', title: '২৪/৭ সাপোর্ট', description: 'আমরা ২৪ ঘণ্টা আপনার সেবায় নিয়োজিত' },
+  ],
   typography: {
     fontFamily: 'inter',
   },
@@ -669,6 +689,7 @@ export function createUnifiedSettingsFromPatch(
     ...(patch.courier && { courier: { ...current.courier, ...patch.courier } }),
     ...(patch.heroBanner && { heroBanner: { ...current.heroBanner, ...patch.heroBanner } }),
     ...(patch.trustBadges && { trustBadges: { ...current.trustBadges, ...patch.trustBadges } }),
+    ...(patch.whyChooseUs && { whyChooseUs: patch.whyChooseUs }),
     ...(patch.typography && { typography: { ...current.typography, ...patch.typography } }),
     updatedAt: new Date().toISOString(),
   };

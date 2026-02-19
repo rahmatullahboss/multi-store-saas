@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from '@remix-run/react';
 import {
   Home as HomeIcon,
@@ -21,12 +21,31 @@ import { FloatingContactButtons } from '~/components/FloatingContactButtons';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { buildProxyImageUrl, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 import { useTranslation } from '~/contexts/LanguageContext';
+import type { ThemeConfig } from '@db/types';
 
 import { LUXE_BOUTIQUE_THEME } from './theme';
 import { LuxeBoutiqueFooter } from './sections/Footer';
 
 const DEFAULT_HERO_IMAGE =
   'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop';
+
+interface WhyChooseItem {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+interface ExtendedThemeConfig extends ThemeConfig {
+  bannerSubtext?: string;
+  bannerCtaText?: string;
+  heroOverlayOpacity?: number;
+  whyChooseUs?: WhyChooseItem[];
+  floatingWhatsappEnabled?: boolean;
+  floatingWhatsappNumber?: string;
+  floatingWhatsappMessage?: string;
+  floatingCallEnabled?: boolean;
+  floatingCallNumber?: string;
+}
 
 export function LiveLuxeBoutiqueHomepage({
   storeName,
@@ -53,6 +72,7 @@ export function LiveLuxeBoutiqueHomepage({
   const count = useCartCount();
 
   const validCategories = categories?.filter((c): c is string => Boolean(c)) || [];
+  const extendedConfig = config as ExtendedThemeConfig | null;
 
   const theme = {
     ...LUXE_BOUTIQUE_THEME,
@@ -66,10 +86,17 @@ export function LiveLuxeBoutiqueHomepage({
     : buildProxyImageUrl(heroImage, { width: 1600, height: 900, quality: 78 });
   const heroHeading = config?.bannerText || 'Redefining Elegance';
   const heroSubheading =
-    (config as any)?.bannerSubtext ||
+    extendedConfig?.bannerSubtext ||
     'Discover a world of timeless style and uncompromising quality.';
-  const heroCta = (config as any)?.bannerCtaText || 'Shop Collection';
-  const heroOverlayOpacity = (config as any)?.heroOverlayOpacity ?? 0.4;
+  const heroCta = extendedConfig?.bannerCtaText || 'Shop Collection';
+  const heroOverlayOpacity = extendedConfig?.heroOverlayOpacity ?? 0.4;
+
+  const defaultWhyChoose: WhyChooseItem[] = [
+    { icon: '✨', title: 'প্রিমিয়াম কোয়ালিটি', description: 'উন্নত মানের নিশ্চয়তা' },
+    { icon: '⚡', title: 'দ্রুত ডেলিভারি', description: 'দ্রুত ও নিরাপদ ডেলিভারি' },
+    { icon: '💬', title: '২৪/৭ সাপোর্ট', description: 'আমরা ২৪ ঘণ্টা আপনার সেবায় নিয়োজিত' },
+  ];
+  const whyChooseItems = extendedConfig?.whyChooseUs || defaultWhyChoose;
 
   const featuredProducts = products?.slice(0, 8) || [];
 
@@ -323,6 +350,12 @@ export function LiveLuxeBoutiqueHomepage({
                               productId={product.id}
                               storeId={storeId}
                               quantity={1}
+                              className="w-full flex items-center justify-center gap-2 py-3 text-xs tracking-[0.1em] uppercase transition-all"
+                              style={{
+                                backgroundColor: theme.primary,
+                                color: '#ffffff',
+                              }}
+                              isPreview={isPreview}
                             />
                           </div>
                         </div>
@@ -356,33 +389,18 @@ export function LiveLuxeBoutiqueHomepage({
                     </p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="p-8 border border-[#ece7de] bg-[#faf9f7] text-center">
-                      <div className="text-2xl mb-3">✨</div>
-                      <h3 className="text-lg font-medium mb-2" style={{ color: theme.text }}>
-                        {t('premiumQuality') || 'Premium Quality'}
-                      </h3>
-                      <p className="text-sm text-[#6b6b6b]">
-                        {t('premiumQualityDesc') || 'Carefully curated luxury selection.'}
-                      </p>
-                    </div>
-                    <div className="p-8 border border-[#ece7de] bg-[#faf9f7] text-center">
-                      <div className="text-2xl mb-3">⚡</div>
-                      <h3 className="text-lg font-medium mb-2" style={{ color: theme.text }}>
-                        {t('fastDelivery') || 'Fast Delivery'}
-                      </h3>
-                      <p className="text-sm text-[#6b6b6b]">
-                        {t('fastDeliveryDesc') || 'Quick and reliable nationwide shipping.'}
-                      </p>
-                    </div>
-                    <div className="p-8 border border-[#ece7de] bg-[#faf9f7] text-center">
-                      <div className="text-2xl mb-3">💬</div>
-                      <h3 className="text-lg font-medium mb-2" style={{ color: theme.text }}>
-                        {t('support247') || '24/7 Support'}
-                      </h3>
-                      <p className="text-sm text-[#6b6b6b]">
-                        {t('support247Desc') || 'Dedicated support whenever you need us.'}
-                      </p>
-                    </div>
+                    {whyChooseItems.map((item: WhyChooseItem, idx: number) => (
+                      <div
+                        key={idx}
+                        className="p-8 border border-[#ece7de] bg-[#faf9f7] text-center"
+                      >
+                        <div className="text-2xl mb-3">{item.icon}</div>
+                        <h3 className="text-lg font-medium mb-2" style={{ color: theme.text }}>
+                          {item.title}
+                        </h3>
+                        <p className="text-sm text-[#6b6b6b]">{item.description}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </section>
@@ -454,21 +472,25 @@ export function LiveLuxeBoutiqueHomepage({
 
               {!isPreview && (
                 <FloatingContactButtons
-                  whatsappEnabled={config?.floatingWhatsappEnabled}
+                  whatsappEnabled={extendedConfig?.floatingWhatsappEnabled}
                   whatsappNumber={
-                    config?.floatingWhatsappNumber ||
+                    extendedConfig?.floatingWhatsappNumber ||
                     socialLinks?.whatsapp ||
                     businessInfo?.phone ||
                     undefined
                   }
-                  whatsappMessage={config?.floatingWhatsappMessage || undefined}
-                  callEnabled={config?.floatingCallEnabled}
-                  callNumber={config?.floatingCallNumber || businessInfo?.phone || undefined}
+                  whatsappMessage={extendedConfig?.floatingWhatsappMessage || undefined}
+                  callEnabled={extendedConfig?.floatingCallEnabled}
+                  callNumber={
+                    extendedConfig?.floatingCallNumber || businessInfo?.phone || undefined
+                  }
                   storeName={storeName}
                   aiEnabled={isCustomerAiEnabled}
                   aiCredits={aiCredits}
                   storeId={storeId}
-                  accentColor={config?.accentColor || config?.primaryColor || theme.accent}
+                  accentColor={
+                    config?.accentColor || config?.primaryColor || theme.accent
+                  }
                 />
               )}
             </div>
