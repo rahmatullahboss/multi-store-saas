@@ -163,7 +163,19 @@ export type HeroBannerSlide = z.infer<typeof HeroBannerSlideSchema>;
 const HeroBannerSettingsSchema = z.object({
   mode: z.enum(['single', 'carousel']).default('single'),
   overlayOpacity: z.number().min(0).max(100).default(40),
-  slides: z.array(HeroBannerSlideSchema).max(6).default([]),
+  slides: z
+    .array(HeroBannerSlideSchema)
+    .max(6)
+    .default([
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=1600',
+        heading: 'Welcome to Our Store',
+        subheading: 'Discover amazing products at great prices',
+        ctaText: 'Shop Now',
+        ctaLink: '/products',
+      },
+    ]),
   fallbackHeadline: z.string().max(200).nullable().default(null),
 });
 
@@ -279,6 +291,36 @@ const CourierSettingsSchema = z.object({
 
 export type CourierSettings = z.infer<typeof CourierSettingsSchema>;
 
+const CourierSettingsPatchSchema = CourierSettingsSchema.partial();
+
+// ============================================================================
+// NAVIGATION SETTINGS
+// ============================================================================
+
+const NavigationSettingsSchema = z.object({
+  headerMenu: z
+    .array(
+      z.object({
+        label: z.string(),
+        url: z.string(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        children: z.array(z.any()).default([]),
+      })
+    )
+    .default([]),
+  footerColumns: z
+    .array(
+      z.object({
+        title: z.string(),
+        links: z.array(z.object({ label: z.string(), url: z.string() })),
+      })
+    )
+    .default([]),
+  footerDescription: z.string().nullable().default(null),
+});
+
+export type NavigationSettings = z.infer<typeof NavigationSettingsSchema>;
+
 // ============================================================================
 // UNIFIED STOREFRONT SETTINGS V1
 // ============================================================================
@@ -356,6 +398,11 @@ export const UnifiedStorefrontSettingsV1Schema = z.object({
     redx: null,
     steadfast: null,
   }),
+  navigation: NavigationSettingsSchema.default({
+    headerMenu: [],
+    footerColumns: [],
+    footerDescription: null,
+  }),
   heroBanner: HeroBannerSettingsSchema.default({
     mode: 'single',
     overlayOpacity: 40,
@@ -404,7 +451,7 @@ export const ShippingConfigPatchSchema = ShippingConfigSchema.partial();
 
 const FloatingSettingsPatchSchema = FloatingSettingsSchema.partial();
 
-const CourierSettingsPatchSchema = CourierSettingsSchema.partial();
+const NavigationSettingsPatchSchema = NavigationSettingsSchema.partial();
 
 export const UnifiedStorefrontSettingsPatchSchema = z.object({
   theme: ThemeSettingsPatchSchema.optional(),
@@ -420,6 +467,7 @@ export const UnifiedStorefrontSettingsPatchSchema = z.object({
   heroBanner: HeroBannerSettingsPatchSchema.optional(),
   trustBadges: TrustBadgesSettingsPatchSchema.optional(),
   typography: TypographySettingsPatchSchema.optional(),
+  navigation: NavigationSettingsPatchSchema.optional(),
 });
 
 export type UnifiedStorefrontSettingsPatch = z.infer<typeof UnifiedStorefrontSettingsPatchSchema>;
@@ -532,10 +580,24 @@ export const DEFAULT_UNIFIED_SETTINGS: UnifiedStorefrontSettingsV1 = {
     redx: null,
     steadfast: null,
   },
+  navigation: {
+    headerMenu: [],
+    footerColumns: [],
+    footerDescription: null,
+  },
   heroBanner: {
     mode: 'single',
     overlayOpacity: 40,
-    slides: [],
+    slides: [
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=1600',
+        heading: 'Welcome to Our Store',
+        subheading: 'Discover amazing products at great prices',
+        ctaText: 'Shop Now',
+        ctaLink: '/products',
+      },
+    ],
     fallbackHeadline: null,
   },
   trustBadges: {

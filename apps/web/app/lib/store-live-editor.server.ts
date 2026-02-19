@@ -40,6 +40,7 @@ import {
   parseThemeEditorFormData,
   validateSectionSettings,
 } from '~/lib/validations/theme-editor.schema';
+import { saveUnifiedStorefrontSettingsWithCacheInvalidation } from '~/services/unified-storefront-settings.server';
 
 // ============================================================================
 // HELPER: Convert TemplateJSON to SectionInstance[]
@@ -718,6 +719,70 @@ export async function action({ request, context }: ActionFunctionArgs) {
       updatedAt: new Date(),
     })
     .where(eq(stores.id, storeId));
+
+  const normalizedHeaderMenu = (currentConfig.headerMenu || []).map((item) => ({
+    label: item.label,
+    url: item.url,
+    children: item.children ?? [],
+  }));
+
+  // Keep canonical storefront_settings in sync with editor saves.
+  await saveUnifiedStorefrontSettingsWithCacheInvalidation(
+    db,
+    {
+      KV: context.cloudflare.env.STORE_CACHE,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      STORE_CONFIG_SERVICE: context.cloudflare.env.STORE_CONFIG_SERVICE as any,
+    },
+    storeId,
+    {
+      theme: {
+        templateId: storeTemplateId,
+        primary: primaryColor,
+        accent: accentColor,
+        ...(backgroundColor ? { background: backgroundColor } : {}),
+        ...(textColor ? { text: textColor } : {}),
+      },
+      branding: {
+        storeName: store[0].name || 'Store',
+        logo: logo || null,
+        favicon: favicon || null,
+        tagline: store[0].tagline || null,
+        description: store[0].description || null,
+      },
+      business: {
+        phone: phone || null,
+        email: email || null,
+        address: address || null,
+      },
+      social: {
+        facebook: facebook || null,
+        instagram: instagram || null,
+        whatsapp: whatsapp || null,
+      },
+      announcement: {
+        enabled: Boolean(announcementText),
+        text: announcementText || null,
+        link: announcementLink || null,
+      },
+      floating: {
+        whatsappEnabled: Boolean(floatingWhatsappEnabled),
+        whatsappNumber: floatingWhatsappNumber || null,
+        whatsappMessage: floatingWhatsappMessage || null,
+        callEnabled: Boolean(floatingCallEnabled),
+        callNumber: floatingCallNumber || null,
+      },
+      typography: {
+        fontFamily: fontFamily || 'inter',
+      },
+      navigation: {
+        // Preserve existing header menu from current editor config until a dedicated nav editor change.
+        headerMenu: normalizedHeaderMenu,
+        footerColumns: footerColumns || [],
+        footerDescription: footerDescription || null,
+      },
+    }
+  );
 
   // Marketplace publishing
   const publishToMarketplace = formData.get('publishToMarketplace') === 'true';

@@ -182,7 +182,7 @@ export async function saveUnifiedStorefrontSettings<TSchema extends Record<strin
   patch: UnifiedStorefrontSettingsPatch,
   _options: SaveUnifiedSettingsOptions = {}
 ): Promise<UnifiedStorefrontSettingsV1> {
-  // Get current settings
+  // Get current canonical settings only.
   const current = await getUnifiedStorefrontSettings(db, storeId, { enableFallback: false });
 
   // Apply patch
@@ -477,6 +477,13 @@ async function migrateLegacyToUnified(
     steadfast: legacy.themeConfig?.courier?.steadfast ?? null,
   };
 
+  // Navigation settings (from legacy themeConfig)
+  const navigation = {
+    headerMenu: legacy.themeConfig?.headerMenu ?? [],
+    footerColumns: legacy.themeConfig?.footerColumns ?? [],
+    footerDescription: legacy.themeConfig?.footerDescription ?? null,
+  };
+
   return {
     version: 1,
     theme,
@@ -489,6 +496,7 @@ async function migrateLegacyToUnified(
     shippingConfig,
     floating,
     courier,
+    navigation,
     heroBanner,
     trustBadges,
     typography,
@@ -908,6 +916,9 @@ export function toLegacyFormat(settings: UnifiedStorefrontSettingsV1): LegacySto
             link: settings.announcement.link || undefined,
           }
         : undefined,
+      headerMenu: settings.navigation?.headerMenu ?? [],
+      footerColumns: settings.navigation?.footerColumns ?? [],
+      footerDescription: settings.navigation?.footerDescription ?? '',
     },
   };
 }

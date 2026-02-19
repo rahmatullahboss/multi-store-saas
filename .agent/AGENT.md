@@ -303,9 +303,12 @@ What are you changing?
 
 - Canonical column: `stores.storefront_settings` (Unified V1 JSON)
 - Read API: `~/services/unified-storefront-settings.server.ts#getUnifiedStorefrontSettings`
-- Write API: `~/services/unified-storefront-settings.server.ts#saveUnifiedStorefrontSettings`
+- Write API: `~/services/unified-storefront-settings.server.ts#saveUnifiedStorefrontSettings` (prefer `saveUnifiedStorefrontSettingsWithCacheInvalidation` in routes/actions)
 - Bridge API: `toLegacyFormat` only for legacy component contracts during migration
 - Avoid adding new direct reads/writes to `stores.themeConfig` in new storefront features
+- Always pass env on read: `getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env })`
+- Strict mode: set Cloudflare secret `UNIFIED_SETTINGS_STRICT=true` to disable legacy fallback in production
+- Unified coverage includes: theme/branding, shipping, checkout, SEO, floating chat-call/WhatsApp, and courier settings
 
 ---
 

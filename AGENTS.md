@@ -1235,8 +1235,10 @@ Current production state is **hybrid rendering + unified settings**:
 ### Route Pattern
 
 ```typescript
-// 1) Read canonical settings first
-const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId);
+// 1) Read canonical settings first (always pass env for strict/fallback behavior)
+const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
+  env: context.cloudflare.env,
+});
 const legacy = toLegacyFormat(unifiedSettings);
 
 // 2) Render with compatibility props while migrating routes/components
@@ -1719,12 +1721,15 @@ vercel --prod --yes
 
 This project uses unified settings stored in `stores.storefront_settings` (JSON). The system supports:
 
-- **Single Source of Truth**: All storefront settings (theme, branding, shipping, social, etc.) are stored in unified JSON column
-- **Migration**: Legacy settings (themeConfig, businessInfo, socialLinks) are migrated automatically
-- **Strict Mode**: Set `UNIFIED_SETTINGS_STRICT=true` in Cloudflare Workers secrets to disable fallback to legacy columns
+- **Single Source of Truth**: Canonical storefront settings live in `stores.storefront_settings` (Unified V1 JSON)
+- **Coverage**: Theme, branding, business/social, SEO, shipping, checkout, floating contact buttons, and courier config are in unified settings
+- **Read API**: Use `getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env })`
+- **Write API**: Use `saveUnifiedStorefrontSettingsWithCacheInvalidation(...)` from settings routes/actions
+- **Legacy Policy**: `stores.themeConfig`, `stores.socialLinks`, `stores.businessInfo`, `stores.courierSettings` are migration/fallback only
+- **Strict Mode**: Set `UNIFIED_SETTINGS_STRICT=true` in Cloudflare Workers secrets to disable legacy fallback when `env` is passed
 
 ```bash
-# Set strict mode via wrangler
+# Production strict mode (recommended)
 wrangler secret put UNIFIED_SETTINGS_STRICT
 # Enter "true" when prompted
 ```

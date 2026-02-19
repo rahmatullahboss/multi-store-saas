@@ -45,7 +45,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
   // Get unified storefront settings (single source of truth)
   const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
-    enableFallback: true,
+    env: context.cloudflare.env,
   });
 
   // Get template ID from unified settings

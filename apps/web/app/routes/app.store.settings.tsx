@@ -104,7 +104,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   if (!store) throw new Response('Store not found', { status: 404 });
 
   const settings = await getUnifiedStorefrontSettings(db, storeId, {
-    enableFallback: true,
     env: context.cloudflare.env,
   });
 

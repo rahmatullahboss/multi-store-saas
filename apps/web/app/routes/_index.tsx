@@ -585,16 +585,8 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       'Database query timed out while fetching products'
     );
 
-    // ========== MVP TEMPLATE RESOLUTION ==========
-    // Get theme ID from store themeConfig
+    // Parse legacy theme config (used for sections and legacy fields during transition)
     const storeThemeConfig = parseJsonSafe<ThemeConfig>(validatedStore.themeConfig);
-    const storeTemplateId = resolveStoreTemplateId(
-      (storeThemeConfig as unknown as Record<string, unknown> | null | undefined) ?? null,
-      (validatedStore.theme as string) || null
-    );
-
-    // Get base theme colors from registry
-    const baseTheme = getStoreTemplateTheme(storeTemplateId);
 
     // Fetch category data from collections first (includes image_url).
     const collectionsQuery = db
@@ -648,8 +640,19 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
 
     // Get unified storefront settings (single source of truth)
     const unifiedSettings = await getUnifiedStorefrontSettings(db, validatedStoreId, {
-      enableFallback: true,
+      env: context.cloudflare.env,
     });
+
+    // Homepage template must follow unified settings to stay consistent with other routes.
+    const storeTemplateId = unifiedSettings.theme.templateId
+      ? unifiedSettings.theme.templateId
+      : resolveStoreTemplateId(
+          (storeThemeConfig as unknown as Record<string, unknown> | null | undefined) ?? null,
+          (validatedStore.theme as string) || null
+        );
+
+    // Get base theme colors from registry
+    const baseTheme = getStoreTemplateTheme(storeTemplateId);
 
     // Use unified settings for theme colors
     const mergedTheme = {

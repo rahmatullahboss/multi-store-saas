@@ -1,9 +1,10 @@
 /**
  * Navigation Settings Page (MVP)
- * 
+ *
  * Route: /app/settings/navigation
- * 
+ *
  * Allows merchants to manage header navigation links.
+ * Now uses unified settings as single source of truth.
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
@@ -12,17 +13,24 @@ import { Form, useActionData, useLoaderData, useNavigation, Link } from '@remix-
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
-import { defaultThemeConfig, parseThemeConfig, type ThemeConfig } from '@db/types';
 import { z } from 'zod';
 import { getStoreId, getUserId } from '~/services/auth.server';
 import { logActivity } from '~/lib/activity.server';
+import {
+  getUnifiedStorefrontSettings,
+  saveUnifiedStorefrontSettingsWithCacheInvalidation,
+} from '~/services/unified-storefront-settings.server';
 
 const MAX_HEADER_ITEMS = 8;
 const MAX_DEPTH = 3;
 const MAX_FOOTER_COLUMNS = 3;
 const MAX_COLUMN_LINKS = 6;
 
-const emptyMenuItem = () => ({ label: '', url: '', children: [] as Array<{ label: string; url: string; children?: any[] }> });
+const emptyMenuItem = () => ({
+  label: '',
+  url: '',
+  children: [] as Array<{ label: string; url: string; children?: any[] }>,
+});
 const emptyFooterColumn = () => ({ title: '', links: [] as Array<{ label: string; url: string }> });
 import { ArrowLeft, CheckCircle, Loader2, Plus, Trash2, List } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -51,24 +59,25 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
   const store = await db
-    .select({ id: stores.id, themeConfig: stores.themeConfig })
+    .select({ id: stores.id })
     .from(stores)
     .where(eq(stores.id, storeId))
     .limit(1)
-    .then(rows => rows[0]);
+    .then((rows) => rows[0]);
 
   if (!store) {
     throw new Response('Store not found', { status: 404 });
   }
 
-  const themeConfig = parseThemeConfig(store.themeConfig as string | null) || defaultThemeConfig;
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
+    env: context.cloudflare.env,
+  });
 
   return json({
     storeId,
-    themeConfig,
-    headerMenu: themeConfig.headerMenu || defaultThemeConfig.headerMenu || [],
-    footerColumns: themeConfig.footerColumns || defaultThemeConfig.footerColumns || [],
-    footerDescription: themeConfig.footerDescription || defaultThemeConfig.footerDescription || '',
+    headerMenu: unifiedSettings.navigation?.headerMenu ?? [],
+    footerColumns: unifiedSettings.navigation?.footerColumns ?? [],
+    footerDescription: unifiedSettings.navigation?.footerDescription ?? '',
   });
 }
 
@@ -82,30 +91,37 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const formData = await request.formData();
   const menuJson = formData.get('headerMenu') as string | null;
   const footerColumnsJson = formData.get('footerColumns') as string | null;
-  const footerDescriptionParsed = FooterDescriptionSchema.safeParse(formData.get('footerDescription') || '');
+  const footerDescriptionParsed = FooterDescriptionSchema.safeParse(
+    formData.get('footerDescription') || ''
+  );
   if (!footerDescriptionParsed.success) {
     return json({ error: 'Invalid footer description.' }, { status: 400 });
   }
   const footerDescription = footerDescriptionParsed.data;
 
-  let headerMenu: NonNullable<ThemeConfig['headerMenu']> = defaultThemeConfig.headerMenu ?? [];
-  let footerColumns: ThemeConfig['footerColumns'] = defaultThemeConfig.footerColumns || [];
+  let headerMenu: Array<{
+    label: string;
+    url: string;
+    children: Array<{
+      label: string;
+      url: string;
+      children: Array<{ label: string; url: string }>;
+    }>;
+  }> = [];
+  let footerColumns: Array<{ title: string; links: Array<{ label: string; url: string }> }> = [];
 
   if (menuJson) {
     try {
       const parsed = JSON.parse(menuJson) as Array<any>;
-      const sanitizeMenu = (
-        items: Array<any>,
-        depth = 1
-      ): NonNullable<ThemeConfig['headerMenu']> => {
+      const sanitizeMenu = (items: Array<any>, depth = 1): typeof headerMenu => {
         if (depth > MAX_DEPTH) return [];
         return items
-          .map(item => ({
+          .map((item) => ({
             label: (item?.label || '').trim(),
             url: (item?.url || '').trim(),
             children: Array.isArray(item?.children) ? sanitizeMenu(item.children, depth + 1) : [],
           }))
-          .filter(item => item.label && isValidNavigationUrl(item.url))
+          .filter((item) => item.label && isValidNavigationUrl(item.url))
           .slice(0, depth === 1 ? MAX_HEADER_ITEMS : MAX_COLUMN_LINKS);
       };
 
@@ -131,7 +147,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
                 .slice(0, MAX_COLUMN_LINKS)
             : [],
         }))
-        .filter(column => column.title && column.links.length)
+        .filter((column) => column.title && column.links.length)
         .slice(0, MAX_FOOTER_COLUMNS);
     } catch {
       return json({ error: 'Invalid footer menu data.' }, { status: 400 });
@@ -139,32 +155,28 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   const db = drizzle(context.cloudflare.env.DB);
-  const store = await db
-    .select({ id: stores.id, themeConfig: stores.themeConfig })
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1)
-    .then(rows => rows[0]);
 
-  if (!store) {
-    return json({ error: 'Store not found' }, { status: 404 });
+  try {
+    await saveUnifiedStorefrontSettingsWithCacheInvalidation(
+      db,
+      {
+        KV: context.cloudflare.env.STORE_CACHE,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        STORE_CONFIG_SERVICE: context.cloudflare.env.STORE_CONFIG_SERVICE as any,
+      },
+      storeId,
+      {
+        navigation: {
+          headerMenu,
+          footerColumns,
+          footerDescription: footerDescription || null,
+        },
+      }
+    );
+  } catch (error) {
+    console.error('Failed to save unified navigation settings:', error);
+    return json({ error: 'Failed to save settings' }, { status: 500 });
   }
-
-  const currentConfig = parseThemeConfig(store.themeConfig as string | null) || defaultThemeConfig;
-  const updatedConfig: ThemeConfig = {
-    ...currentConfig,
-    headerMenu,
-    footerColumns,
-    footerDescription,
-  };
-
-  await db
-    .update(stores)
-    .set({
-      themeConfig: JSON.stringify(updatedConfig),
-      updatedAt: new Date(),
-    })
-    .where(eq(stores.id, storeId));
 
   await logActivity(db, {
     storeId,
@@ -229,11 +241,18 @@ export default function NavigationSettingsPage() {
 
   const removeChild = (index: number, childIndex: number) => {
     const updated = [...menu];
-    updated[index].children = (updated[index].children || []).filter((_, idx) => idx !== childIndex);
+    updated[index].children = (updated[index].children || []).filter(
+      (_, idx) => idx !== childIndex
+    );
     setMenu(updated);
   };
 
-  const updateChild = (index: number, childIndex: number, field: 'label' | 'url', value: string) => {
+  const updateChild = (
+    index: number,
+    childIndex: number,
+    field: 'label' | 'url',
+    value: string
+  ) => {
     const updated = [...menu];
     const children = updated[index].children || [];
     children[childIndex] = { ...children[childIndex], [field]: value };
@@ -264,7 +283,12 @@ export default function NavigationSettingsPage() {
     setColumns(updated);
   };
 
-  const updateColumnLink = (index: number, linkIndex: number, field: 'label' | 'url', value: string) => {
+  const updateColumnLink = (
+    index: number,
+    linkIndex: number,
+    field: 'label' | 'url',
+    value: string
+  ) => {
     const updated = [...columns];
     const links = updated[index].links || [];
     links[linkIndex] = { ...links[linkIndex], [field]: value };
@@ -317,7 +341,9 @@ export default function NavigationSettingsPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">{t('headerNavigation') || 'Header Navigation'}</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                {t('headerNavigation') || 'Header Navigation'}
+              </h2>
               <p className="text-sm text-gray-500">
                 {t('headerNavigationDesc') || 'Add up to 8 links for your store menu.'}
               </p>
@@ -381,7 +407,9 @@ export default function NavigationSettingsPage() {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-700">{t('childLinks') || 'Dropdown Links'}</p>
+                    <p className="text-sm font-medium text-gray-700">
+                      {t('childLinks') || 'Dropdown Links'}
+                    </p>
                     <button
                       type="button"
                       onClick={() => addChild(index)}
@@ -393,11 +421,16 @@ export default function NavigationSettingsPage() {
                   </div>
 
                   {(link.children || []).length === 0 && (
-                    <p className="text-xs text-gray-500">{t('noChildLinks') || 'No dropdown links yet.'}</p>
+                    <p className="text-xs text-gray-500">
+                      {t('noChildLinks') || 'No dropdown links yet.'}
+                    </p>
                   )}
 
                   {(link.children || []).map((child, childIndex) => (
-                    <div key={childIndex} className="grid grid-cols-1 md:grid-cols-[2fr_3fr_auto] gap-3 items-start">
+                    <div
+                      key={childIndex}
+                      className="grid grid-cols-1 md:grid-cols-[2fr_3fr_auto] gap-3 items-start"
+                    >
                       <input
                         type="text"
                         value={child.label}
@@ -437,7 +470,9 @@ export default function NavigationSettingsPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">{t('footerNavigation') || 'Footer Navigation'}</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                {t('footerNavigation') || 'Footer Navigation'}
+              </h2>
               <p className="text-sm text-gray-500">
                 {t('footerNavigationDesc') || 'Add up to 3 columns for footer links.'}
               </p>
@@ -495,7 +530,9 @@ export default function NavigationSettingsPage() {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-700">{t('columnLinks') || 'Links'}</p>
+                    <p className="text-sm font-medium text-gray-700">
+                      {t('columnLinks') || 'Links'}
+                    </p>
                     <button
                       type="button"
                       onClick={() => addColumnLink(index)}
@@ -511,11 +548,16 @@ export default function NavigationSettingsPage() {
                   )}
 
                   {(column.links || []).map((link, linkIndex) => (
-                    <div key={linkIndex} className="grid grid-cols-1 md:grid-cols-[2fr_3fr_auto] gap-3 items-start">
+                    <div
+                      key={linkIndex}
+                      className="grid grid-cols-1 md:grid-cols-[2fr_3fr_auto] gap-3 items-start"
+                    >
                       <input
                         type="text"
                         value={link.label}
-                        onChange={(e) => updateColumnLink(index, linkIndex, 'label', e.target.value)}
+                        onChange={(e) =>
+                          updateColumnLink(index, linkIndex, 'label', e.target.value)
+                        }
                         placeholder={t('linkLabelPlaceholder') || 'About Us'}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                       />

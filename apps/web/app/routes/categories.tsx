@@ -42,7 +42,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // Get unified storefront settings (single source of truth)
   const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
-    enableFallback: true,
+    env: context.cloudflare.env,
   });
 
   // Get theme from unified settings

@@ -1,20 +1,23 @@
 import { useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
-import { Home as HomeIcon, Grid3X3, User, ShoppingCart } from 'lucide-react';
+import { Home as HomeIcon, Grid3X3, User, ShoppingCart, ArrowRight } from 'lucide-react';
 import type { StoreTemplateProps } from '~/templates/store-registry';
-import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
 import { useCartCount } from '~/hooks/useCartCount';
 import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
 import { WishlistProvider } from '~/contexts/WishlistContext';
 import { ClientOnly } from 'remix-utils/client-only';
 import { SkeletonLoader } from '~/components/SkeletonLoader';
-import { getHeroBehavior } from '~/lib/hero-slides';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
+import { AddToCartButton } from '~/components/AddToCartButton';
+import { buildProxyImageUrl } from '~/utils/imageOptimization';
 
 import { LUXE_BOUTIQUE_THEME } from './theme';
 import { LuxeBoutiqueHeader } from './sections/Header';
 import { LuxeBoutiqueFooter } from './sections/Footer';
+
+const DEFAULT_HERO_IMAGE =
+  'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop';
 
 export function LiveLuxeBoutiqueHomepage({
   storeName,
@@ -36,31 +39,36 @@ export function LiveLuxeBoutiqueHomepage({
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const heroBehavior = getHeroBehavior(config);
-  const [heroIndex, setHeroIndex] = useState(0);
 
   const count = useCartCount();
 
-  const validCategories = categories.filter((c): c is string => Boolean(c));
+  const validCategories = categories?.filter((c): c is string => Boolean(c)) || [];
 
-  useEffect(() => {
-    if (!heroBehavior.isCarousel || !heroBehavior.autoplay) return;
-    const timer = setInterval(() => {
-      setHeroIndex((prev) => (prev + 1) % heroBehavior.slides.length);
-    }, heroBehavior.delayMs);
-    return () => clearInterval(timer);
-  }, [
-    heroBehavior.autoplay,
-    heroBehavior.delayMs,
-    heroBehavior.isCarousel,
-    heroBehavior.slides.length,
-  ]);
+  const theme = {
+    ...LUXE_BOUTIQUE_THEME,
+    primary: config?.primaryColor || LUXE_BOUTIQUE_THEME.primary,
+    accent: config?.accentColor || LUXE_BOUTIQUE_THEME.accent,
+  };
 
-  useEffect(() => {
-    if (heroIndex >= heroBehavior.slides.length) {
-      setHeroIndex(0);
-    }
-  }, [heroBehavior.slides.length, heroIndex]);
+  const heroImage = config?.bannerUrl || DEFAULT_HERO_IMAGE;
+  const heroHeading = config?.bannerText || 'Timeless Elegance';
+  const heroSubheading =
+    config?.heroSubheading || 'Discover our curated collection of luxury pieces';
+
+  const featuredProducts = products?.slice(0, 8) || [];
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency || 'BDT',
+      minimumFractionDigits: 0,
+    }).format(price);
+  };
+
+  const getDiscount = (price: number, compareAtPrice: number | null) => {
+    if (!compareAtPrice || compareAtPrice <= price) return 0;
+    return Math.round((1 - price / compareAtPrice) * 100);
+  };
 
   return (
     <StoreConfigProvider config={config}>
@@ -70,7 +78,7 @@ export function LiveLuxeBoutiqueHomepage({
             <div
               className="min-h-screen pb-16 md:pb-0"
               style={{
-                backgroundColor: LUXE_BOUTIQUE_THEME.background,
+                backgroundColor: theme.background,
                 fontFamily: "'Inter', sans-serif",
               }}
             >
@@ -93,168 +101,221 @@ export function LiveLuxeBoutiqueHomepage({
                 customer={customer}
               />
 
-              {((config?.sections?.length ? config.sections : DEFAULT_SECTIONS) || [])
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .reduce((acc: any[], section: any) => {
-                  if (section.type === 'header' || section.type === 'footer') {
-                    return acc;
-                  }
-
-                  const sectionId = String(section.id || '').toLowerCase();
-                  const heading = String(section?.settings?.heading || '').toLowerCase();
-                  const isStorySection =
-                    section.type === 'rich-text' &&
-                    (sectionId.includes('story') ||
-                      sectionId.includes('power-story') ||
-                      heading.includes('our story') ||
-                      heading.includes('power story'));
-
-                  if (isStorySection) {
-                    return acc;
-                  }
-
-                  const hasHero = acc.some(
-                    (item) => item.type === 'hero' || item.type === 'modern-hero'
-                  );
-                  const isHero = section.type === 'hero' || section.type === 'modern-hero';
-                  if (isHero && hasHero) {
-                    return acc;
-                  }
-
-                  const hasWhyChoose = acc.some(
-                    (item) => item.type === 'features' || item.type === 'modern-features'
-                  );
-                  const isWhyChooseType =
-                    section.type === 'features' || section.type === 'modern-features';
-                  if (isWhyChooseType && hasWhyChoose) {
-                    return acc;
-                  }
-
-                  const isWhyChooseSection = isWhyChooseType && heading.includes('why choose');
-
-                  if (isWhyChooseSection) {
-                    acc.push({
-                      ...section,
-                      settings: {
-                        ...section.settings,
-                        backgroundColor: '#faf9f7',
-                        lightTheme: true,
-                      },
-                    });
-                    return acc;
-                  }
-
-                  acc.push(section);
-                  return acc;
-                }, [])
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .sort((a: Record<string, any>, b: Record<string, any>) => {
-                  const aHeading = String(a?.settings?.heading || '').toLowerCase();
-                  const bHeading = String(b?.settings?.heading || '').toLowerCase();
-                  const aIsWhyChoose =
-                    (a?.type === 'features' || a?.type === 'modern-features') &&
-                    (aHeading.includes('why choose') || aHeading.includes('why shop'));
-                  const bIsWhyChoose =
-                    (b?.type === 'features' || b?.type === 'modern-features') &&
-                    (bHeading.includes('why choose') || bHeading.includes('why shop'));
-
-                  if (aIsWhyChoose && !bIsWhyChoose) return 1;
-                  if (!aIsWhyChoose && bIsWhyChoose) return -1;
-                  return 0;
-                })
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .map((section: any) => {
-                  const SectionComponent = SECTION_REGISTRY[section.type]?.component;
-                  if (!SectionComponent) return null;
-                  const isHeroSection = section.type === 'hero' || section.type === 'modern-hero';
-                  const heroSlide = heroBehavior.slides[heroIndex];
-                  const shouldApplyHeroSlide = isHeroSection && Boolean(heroSlide?.imageUrl);
-                  const sectionSettings = shouldApplyHeroSlide
-                    ? {
-                        ...section.settings,
-                        image: heroSlide.imageUrl,
-                        heading:
-                          heroSlide.heading || section.settings?.heading || config?.bannerText,
-                        subheading: heroSlide.subheading || section.settings?.subheading,
-                        primaryAction: heroSlide.ctaText
-                          ? {
-                              ...(section.settings?.primaryAction || {}),
-                              label: heroSlide.ctaText,
-                              url:
-                                heroSlide.ctaLink ||
-                                section.settings?.primaryAction?.url ||
-                                '/products',
-                            }
-                          : section.settings?.primaryAction,
-                      }
-                    : section.settings;
-
-                  return (
-                    <SectionComponent
-                      key={section.id}
-                      settings={sectionSettings}
-                      theme={LUXE_BOUTIQUE_THEME}
-                      products={products}
-                      categories={categories}
-                      storeId={storeId}
-                      currency={currency}
-                      isPreview={isPreview}
-                      store={{
-                        name: storeName,
-                        email: businessInfo?.email,
-                        phone: businessInfo?.phone,
-                        address: businessInfo?.address,
-                        currency: currency,
-                      }}
-                    />
-                  );
-                })}
-
-              {validCategories.length > 0 && (
-                <div
-                  className="lg:hidden overflow-x-auto py-4 px-4 border-b"
-                  style={{ borderColor: '#e5e5e5' }}
-                >
-                  <div className="flex gap-2">
-                    <PreviewSafeLink
-                      to="/"
-                      className="flex-shrink-0 px-4 py-2 text-sm font-medium rounded-full border transition-all"
-                      style={{
-                        backgroundColor: !currentCategory
-                          ? LUXE_BOUTIQUE_THEME.primary
-                          : 'transparent',
-                        color: !currentCategory ? 'white' : LUXE_BOUTIQUE_THEME.text,
-                        borderColor: !currentCategory ? LUXE_BOUTIQUE_THEME.primary : '#d1d5db',
-                      }}
-                      isPreview={isPreview}
+              {/* Hero Section - Hardcoded */}
+              <section className="relative h-[500px] lg:h-[600px] overflow-hidden">
+                <div className="absolute inset-0">
+                  <img src={heroImage} alt={heroHeading} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/40" />
+                </div>
+                <div className="relative z-10 h-full flex items-center justify-center text-center px-4">
+                  <div className="max-w-2xl">
+                    <h1
+                      className="text-4xl lg:text-5xl font-semibold text-white mb-4"
+                      style={{ fontFamily: "'Playfair Display', serif" }}
                     >
-                      All
-                    </PreviewSafeLink>
-                    {validCategories.map((category) => (
-                      <PreviewSafeLink
-                        key={category}
-                        to={`/products/${encodeURIComponent(category.trim().toLowerCase().replace(/\s+/g, ' ')).replace(/%20/g, '-')}`}
-                        className="flex-shrink-0 px-4 py-2 text-sm font-medium rounded-full border transition-all"
-                        style={{
-                          backgroundColor:
-                            currentCategory === category
-                              ? LUXE_BOUTIQUE_THEME.primary
-                              : 'transparent',
-                          color: currentCategory === category ? 'white' : LUXE_BOUTIQUE_THEME.text,
-                          borderColor:
-                            currentCategory === category ? LUXE_BOUTIQUE_THEME.primary : '#d1d5db',
-                        }}
-                        isPreview={isPreview}
-                      >
-                        {category}
-                      </PreviewSafeLink>
-                    ))}
+                      {heroHeading}
+                    </h1>
+                    <p className="text-lg text-white/90 mb-8">{heroSubheading}</p>
+                    <Link
+                      to="/products"
+                      className="inline-block px-8 py-3 text-sm font-medium uppercase tracking-wider transition-all hover:opacity-90"
+                      style={{ backgroundColor: theme.accent, color: theme.primary }}
+                    >
+                      Shop Now
+                    </Link>
                   </div>
                 </div>
+              </section>
+
+              {/* Categories Section - Hardcoded */}
+              {validCategories.length > 0 && (
+                <section className="py-12 px-4" style={{ backgroundColor: theme.background }}>
+                  <div className="max-w-7xl mx-auto">
+                    <h2
+                      className="text-2xl font-semibold text-center mb-8"
+                      style={{ fontFamily: "'Playfair Display', serif", color: theme.text }}
+                    >
+                      Shop by Category
+                    </h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {validCategories.slice(0, 8).map((category) => (
+                        <PreviewSafeLink
+                          key={category}
+                          to={`/products/${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-'))}`}
+                          isPreview={isPreview}
+                          className="relative aspect-square rounded-lg overflow-hidden group"
+                        >
+                          <div
+                            className="absolute inset-0 flex items-center justify-center"
+                            style={{ backgroundColor: theme.primary }}
+                          >
+                            <span
+                              className="text-white font-medium text-center px-4"
+                              style={{ fontFamily: "'Playfair Display', serif" }}
+                            >
+                              {category}
+                            </span>
+                          </div>
+                          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors" />
+                        </PreviewSafeLink>
+                      ))}
+                    </div>
+                  </div>
+                </section>
               )}
+
+              {/* Featured Products - Hardcoded */}
+              {featuredProducts.length > 0 && (
+                <section className="py-12 px-4" style={{ backgroundColor: theme.cardBg }}>
+                  <div className="max-w-7xl mx-auto">
+                    <div className="flex items-center justify-between mb-8">
+                      <h2
+                        className="text-2xl font-semibold"
+                        style={{ fontFamily: "'Playfair Display', serif", color: theme.text }}
+                      >
+                        Featured Products
+                      </h2>
+                      <PreviewSafeLink
+                        to="/products"
+                        isPreview={isPreview}
+                        className="text-sm font-medium flex items-center gap-1"
+                        style={{ color: theme.accent }}
+                      >
+                        View All <ArrowRight className="w-4 h-4" />
+                      </PreviewSafeLink>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                      {featuredProducts.map((product) => {
+                        const discount = getDiscount(product.price, product.compareAtPrice ?? null);
+                        return (
+                          <div key={product.id} className="group">
+                            <PreviewSafeLink
+                              to={`/products/${product.id}`}
+                              isPreview={isPreview}
+                              className="block"
+                            >
+                              <div
+                                className="relative aspect-[3/4] overflow-hidden mb-3"
+                                style={{ backgroundColor: theme.background }}
+                              >
+                                {product.imageUrl ? (
+                                  <img
+                                    src={buildProxyImageUrl(product.imageUrl, {
+                                      width: 400,
+                                      height: 533,
+                                    })}
+                                    alt={product.title}
+                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-white/50">
+                                    No Image
+                                  </div>
+                                )}
+                                {discount > 0 && (
+                                  <span
+                                    className="absolute top-2 left-2 px-2 py-1 text-xs font-medium text-white"
+                                    style={{ backgroundColor: theme.accent, color: theme.primary }}
+                                  >
+                                    -{discount}%
+                                  </span>
+                                )}
+                              </div>
+                              <h3
+                                className="text-sm font-medium mb-1 line-clamp-2"
+                                style={{ color: theme.text }}
+                              >
+                                {product.title}
+                              </h3>
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold" style={{ color: theme.primary }}>
+                                  {formatPrice(product.price)}
+                                </span>
+                                {product.compareAtPrice &&
+                                  product.compareAtPrice > product.price && (
+                                    <span
+                                      className="text-sm line-through"
+                                      style={{ color: theme.muted }}
+                                    >
+                                      {formatPrice(product.compareAtPrice)}
+                                    </span>
+                                  )}
+                              </div>
+                            </PreviewSafeLink>
+                            <div className="mt-2">
+                              <AddToCartButton
+                                productId={product.id}
+                                storeId={storeId}
+                                quantity={1}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* Why Choose Us - Hardcoded */}
+              <section className="py-16 px-4" style={{ backgroundColor: '#faf9f7' }}>
+                <div className="max-w-7xl mx-auto">
+                  <h2
+                    className="text-2xl font-semibold text-center mb-12"
+                    style={{ fontFamily: "'Playfair Display', serif", color: theme.text }}
+                  >
+                    Why Choose Us
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="text-center">
+                      <div
+                        className="w-16 h-16 mx-auto mb-4 flex items-center justify-center"
+                        style={{ backgroundColor: theme.accent }}
+                      >
+                        <Shield className="w-8 h-8" style={{ color: theme.primary }} />
+                      </div>
+                      <h3 className="font-semibold mb-2" style={{ color: theme.text }}>
+                        Premium Quality
+                      </h3>
+                      <p className="text-sm" style={{ color: theme.muted }}>
+                        Carefully curated products that meet our high standards
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <div
+                        className="w-16 h-16 mx-auto mb-4 flex items-center justify-center"
+                        style={{ backgroundColor: theme.accent }}
+                      >
+                        <Truck className="w-8 h-8" style={{ color: theme.primary }} />
+                      </div>
+                      <h3 className="font-semibold mb-2" style={{ color: theme.text }}>
+                        Fast Delivery
+                      </h3>
+                      <p className="text-sm" style={{ color: theme.muted }}>
+                        Quick and reliable shipping to your doorstep
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <div
+                        className="w-16 h-16 mx-auto mb-4 flex items-center justify-center"
+                        style={{ backgroundColor: theme.accent }}
+                      >
+                        <RotateCcw className="w-8 h-8" style={{ color: theme.primary }} />
+                      </div>
+                      <h3 className="font-semibold mb-2" style={{ color: theme.text }}>
+                        Easy Returns
+                      </h3>
+                      <p className="text-sm" style={{ color: theme.muted }}>
+                        Hassle-free return policy within 7 days
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
 
               <LuxeBoutiqueFooter
                 storeName={storeName}
+                storeId={storeId}
                 socialLinks={socialLinks || undefined}
                 footerConfig={footerConfig || undefined}
                 businessInfo={businessInfo || undefined}
@@ -262,6 +323,7 @@ export function LiveLuxeBoutiqueHomepage({
                 categories={validCategories}
               />
 
+              {/* Mobile Bottom Navigation */}
               <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
                 <div className="flex items-center justify-around h-14">
                   <PreviewSafeLink
@@ -272,17 +334,13 @@ export function LiveLuxeBoutiqueHomepage({
                     <HomeIcon
                       className="w-5 h-5"
                       style={{
-                        color: !currentCategory
-                          ? LUXE_BOUTIQUE_THEME.accent
-                          : LUXE_BOUTIQUE_THEME.muted,
+                        color: !currentCategory ? theme.accent : theme.muted,
                       }}
                     />
                     <span
                       className="text-[10px] font-medium"
                       style={{
-                        color: !currentCategory
-                          ? LUXE_BOUTIQUE_THEME.accent
-                          : LUXE_BOUTIQUE_THEME.muted,
+                        color: !currentCategory ? theme.accent : theme.muted,
                       }}
                     >
                       Home
@@ -292,11 +350,8 @@ export function LiveLuxeBoutiqueHomepage({
                     onClick={() => setMobileMenuOpen(true)}
                     className="flex flex-col items-center gap-0.5 py-1 px-3"
                   >
-                    <Grid3X3 className="w-5 h-5" style={{ color: LUXE_BOUTIQUE_THEME.muted }} />
-                    <span
-                      className="text-[10px] font-medium"
-                      style={{ color: LUXE_BOUTIQUE_THEME.muted }}
-                    >
+                    <Grid3X3 className="w-5 h-5" style={{ color: theme.muted }} />
+                    <span className="text-[10px] font-medium" style={{ color: theme.muted }}>
                       Shop
                     </span>
                   </button>
@@ -305,37 +360,27 @@ export function LiveLuxeBoutiqueHomepage({
                     className="flex flex-col items-center gap-0.5 py-1 px-3 relative"
                     isPreview={isPreview}
                   >
-                    <ShoppingCart
-                      className="w-5 h-5"
-                      style={{ color: LUXE_BOUTIQUE_THEME.muted }}
-                    />
+                    <ShoppingCart className="w-5 h-5" style={{ color: theme.muted }} />
                     <span
                       className="absolute -top-1 right-0 h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold"
                       style={{
-                        backgroundColor: LUXE_BOUTIQUE_THEME.accent,
-                        color: LUXE_BOUTIQUE_THEME.primary,
+                        backgroundColor: theme.accent,
+                        color: theme.primary,
                       }}
                     >
                       {count}
                     </span>
-                    <span
-                      className="text-[10px] font-medium"
-                      style={{ color: LUXE_BOUTIQUE_THEME.muted }}
-                    >
-                      Bag
+                  </PreviewSafeLink>
+                  <PreviewSafeLink
+                    to={customer ? '/account' : '/auth/login'}
+                    className="flex flex-col items-center gap-0.5 py-1 px-3"
+                    isPreview={isPreview}
+                  >
+                    <User className="w-5 h-5" style={{ color: theme.muted }} />
+                    <span className="text-[10px] font-medium" style={{ color: theme.muted }}>
+                      {customer ? 'Account' : 'Login'}
                     </span>
                   </PreviewSafeLink>
-                  {!isPreview && (
-                    <Link to="/auth/login" className="flex flex-col items-center gap-0.5 py-1 px-3">
-                      <User className="w-5 h-5" style={{ color: LUXE_BOUTIQUE_THEME.muted }} />
-                      <span
-                        className="text-[10px] font-medium"
-                        style={{ color: LUXE_BOUTIQUE_THEME.muted }}
-                      >
-                        Account
-                      </span>
-                    </Link>
-                  )}
                 </div>
               </nav>
 
@@ -355,7 +400,7 @@ export function LiveLuxeBoutiqueHomepage({
                   aiEnabled={isCustomerAiEnabled}
                   aiCredits={aiCredits}
                   storeId={storeId}
-                  accentColor={config?.primaryColor || LUXE_BOUTIQUE_THEME.accent}
+                  accentColor={config?.accentColor || config?.primaryColor || theme.accent}
                 />
               )}
             </div>
@@ -365,3 +410,46 @@ export function LiveLuxeBoutiqueHomepage({
     </StoreConfigProvider>
   );
 }
+
+// Icons (inline to avoid extra imports)
+function Shield({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg className={className} style={style} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+      />
+    </svg>
+  );
+}
+
+function Truck({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg className={className} style={style} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+      />
+    </svg>
+  );
+}
+
+function RotateCcw({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg className={className} style={style} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+      />
+    </svg>
+  );
+}
+
+export { LuxeBoutiqueHeader } from './sections/Header';
+export { LuxeBoutiqueFooter } from './sections/Footer';

@@ -19,12 +19,7 @@ import {
 import { useLoaderData, useFetcher, useNavigate, Link, useSearchParams } from '@remix-run/react';
 import { eq, and, inArray, desc } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import {
-  abandonedCarts,
-  products,
-  orderBumps,
-  productVariants,
-} from '@db/schema';
+import { abandonedCarts, products, orderBumps, productVariants } from '@db/schema';
 import * as schema from '@db/schema';
 import {
   getUnifiedStorefrontSettings,
@@ -141,9 +136,19 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = drizzle(cloudflare.env.DB, { schema });
 
   // Get unified settings (single source of truth)
-  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId as number, { env: context.cloudflare.env });
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId as number, {
+    env: context.cloudflare.env,
+  });
   const unified = toLegacyFormat(unifiedSettings);
   const unifiedShippingConfig = getShippingConfigFromUnified(unifiedSettings);
+
+  const floatingSettings = {
+    whatsappEnabled: unifiedSettings.floating?.whatsappEnabled,
+    whatsappNumber: unifiedSettings.floating?.whatsappNumber,
+    whatsappMessage: unifiedSettings.floating?.whatsappMessage,
+    callEnabled: unifiedSettings.floating?.callEnabled,
+    callNumber: unifiedSettings.floating?.callNumber,
+  };
 
   // Route guard: Check if store routes are enabled
   if (store.storeEnabled === false) {
@@ -256,11 +261,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       primaryColor: theme.primary,
       accentColor: theme.accent,
       storeTemplateId,
-      floatingWhatsappEnabled: unifiedSettings.floating?.whatsappEnabled,
-      floatingWhatsappNumber: unifiedSettings.floating?.whatsappNumber || undefined,
-      floatingWhatsappMessage: unifiedSettings.floating?.whatsappMessage || undefined,
-      floatingCallEnabled: unifiedSettings.floating?.callEnabled,
-      floatingCallNumber: unifiedSettings.floating?.callNumber || undefined,
+      floatingWhatsappEnabled: floatingSettings.whatsappEnabled,
+      floatingWhatsappNumber: floatingSettings.whatsappNumber || undefined,
+      floatingWhatsappMessage: floatingSettings.whatsappMessage || undefined,
+      floatingCallEnabled: floatingSettings.callEnabled,
+      floatingCallNumber: floatingSettings.callNumber || undefined,
     },
     planType: store.planType || 'free',
     customer: customer
@@ -626,7 +631,7 @@ export default function Checkout() {
     if (!shippingConfig.enabled) return 0;
     if (shippingConfig.freeDeliveryAbove && subtotal >= shippingConfig.freeDeliveryAbove) return 0;
     if (shippingConfig.freeShippingAbove && subtotal >= shippingConfig.freeShippingAbove) return 0;
-    if (!selectedDistrict) return shippingConfig.deliveryCharge ?? shippingConfig.insideDhaka;
+    if (!selectedDistrict) return shippingConfig.insideDhaka;
     const zone = calculatedShippingZone;
     return zone === 'dhaka' ? shippingConfig.insideDhaka : shippingConfig.outsideDhaka;
   }, [subtotal, calculatedShippingZone, selectedDistrict, shippingConfig]);

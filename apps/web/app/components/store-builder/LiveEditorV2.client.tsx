@@ -74,6 +74,7 @@ import { StoreAIAssistant } from '~/components/store-builder/StoreAIAssistant';
 import { ThemeSwitcher } from '~/components/store-builder/ThemeSwitcher';
 import type { BlockInstance, SectionSchema, SectionInstance } from '~/lib/theme-engine/types';
 import type { ThemeConfig, TypographySettings } from '@db/types';
+import { getStoreTemplate } from '~/templates/store-registry';
 
 // ============================================================================
 // TYPES
@@ -918,6 +919,18 @@ export function LiveEditorV2({
   const handleThemeChange = useCallback(
     async (newThemeId: string) => {
       try {
+        const nextThemeDefaults = getStoreTemplate(newThemeId).theme;
+        const nextPrimaryColor = nextThemeDefaults.primary || primaryColor;
+        const nextAccentColor = nextThemeDefaults.accent || accentColor;
+        const nextBackgroundColor = nextThemeDefaults.background || backgroundColor;
+        const nextTextColor = nextThemeDefaults.text || textColor;
+
+        // Auto-apply selected template palette; merchant can still customize afterward.
+        setPrimaryColor(nextPrimaryColor);
+        setAccentColor(nextAccentColor);
+        setBackgroundColor(nextBackgroundColor);
+        setTextColor(nextTextColor);
+
         // Bug #7 fix: Reset singleton and create fresh bridge for new theme
         resetThemeBridge();
         const newThemeBridge = createThemeBridge(newThemeId);
@@ -988,10 +1001,10 @@ export function LiveEditorV2({
           const formData = new FormData();
           formData.append('themeId', newThemeId);
           formData.append('storeTemplateId', newThemeId);
-          formData.append('primaryColor', primaryColor);
-          formData.append('accentColor', accentColor);
-          formData.append('backgroundColor', backgroundColor);
-          formData.append('textColor', textColor);
+          formData.append('primaryColor', nextPrimaryColor);
+          formData.append('accentColor', nextAccentColor);
+          formData.append('backgroundColor', nextBackgroundColor);
+          formData.append('textColor', nextTextColor);
           formData.append('borderColor', borderColor);
           formData.append('typography', JSON.stringify(typography));
           formData.append('fontFamily', store.fontFamily || 'inter');

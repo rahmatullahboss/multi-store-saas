@@ -14,6 +14,10 @@ import { users, stores, adminRoles, passwordResets } from '@db/schema';
 import { Authenticator } from 'remix-auth';
 import { GoogleStrategy } from 'remix-auth-google';
 import { sendPasswordResetEmail } from './email.server';
+import {
+  DEFAULT_UNIFIED_SETTINGS,
+  serializeUnifiedSettings,
+} from '~/services/storefront-settings.schema';
 
 // Helper types for permissions
 export type AdminPermission =
@@ -741,6 +745,22 @@ export async function register({
       textColor: '#111827',
       fontFamily: 'Inter',
     };
+    const defaultUnifiedSettings = {
+      ...DEFAULT_UNIFIED_SETTINGS,
+      branding: {
+        ...DEFAULT_UNIFIED_SETTINGS.branding,
+        storeName,
+      },
+      theme: {
+        ...DEFAULT_UNIFIED_SETTINGS.theme,
+        templateId: 'starter-store',
+      },
+      flags: {
+        ...DEFAULT_UNIFIED_SETTINGS.flags,
+        migrationCompleted: true,
+      },
+      updatedAt: new Date().toISOString(),
+    };
     const storeResult = await drizzleDb
       .insert(stores)
       .values({
@@ -748,6 +768,7 @@ export async function register({
         subdomain,
         currency: 'BDT',
         themeConfig: JSON.stringify(defaultThemeConfig),
+        storefrontSettings: serializeUnifiedSettings(defaultUnifiedSettings),
       })
       .returning({ id: stores.id });
 
@@ -1013,6 +1034,22 @@ export async function completeGoogleOnboardingForExistingUser({
       textColor: '#111827',
       fontFamily: 'Inter',
     };
+    const defaultUnifiedSettings = {
+      ...DEFAULT_UNIFIED_SETTINGS,
+      branding: {
+        ...DEFAULT_UNIFIED_SETTINGS.branding,
+        storeName,
+      },
+      theme: {
+        ...DEFAULT_UNIFIED_SETTINGS.theme,
+        templateId: 'starter-store',
+      },
+      flags: {
+        ...DEFAULT_UNIFIED_SETTINGS.flags,
+        migrationCompleted: true,
+      },
+      updatedAt: new Date().toISOString(),
+    };
 
     const storeResult = await drizzleDb
       .insert(stores)
@@ -1021,6 +1058,7 @@ export async function completeGoogleOnboardingForExistingUser({
         subdomain: subdomain.toLowerCase(),
         currency: 'BDT',
         themeConfig: JSON.stringify(defaultThemeConfig),
+        storefrontSettings: serializeUnifiedSettings(defaultUnifiedSettings),
         onboardingStatus: 'completed',
         setupStep: 4,
       })
