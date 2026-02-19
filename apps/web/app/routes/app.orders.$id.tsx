@@ -25,6 +25,7 @@ import {
   activityLogs,
   users,
 } from '@db/schema';
+import { calculateOrderWeight } from '~/lib/courier-weight.server';
 import { getStoreId, getUserId } from '~/services/auth.server';
 import {
   ArrowLeft,
@@ -294,6 +295,17 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           );
         }
 
+        // Fetch order items to calculate actual product weight
+        const orderItemsForWeight = await db
+          .select({
+            productId: orderItems.productId,
+            quantity: orderItems.quantity,
+          })
+          .from(orderItems)
+          .where(eq(orderItems.orderId, orderId));
+
+        const pathaoItemWeight = await calculateOrderWeight(db, storeId, orderItemsForWeight);
+
         const result = await client.createOrder({
           store_id: configuredStoreId,
           merchant_order_id: order.orderNumber,
@@ -304,7 +316,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           delivery_type: 48,
           item_type: 2,
           item_quantity: 1,
-          item_weight: 0.5,
+          item_weight: pathaoItemWeight, // Calculated from product metafields (min 0.5 kg)
           amount_to_collect: Math.round(order.total),
           special_instruction: [district, upazila].filter(Boolean).join(', ') || undefined,
           item_description: `Order ${order.orderNumber}`,
@@ -1050,85 +1062,6 @@ export default function OrderDetailPage() {
                   <p className="font-medium text-gray-900">{order.customerEmail}</p>
                 </div>
               )}
-
-              {/* Courier Actions */}
-              <div className="pt-3 mt-3 border-t border-gray-100">
-                {!order.courierConsignmentId ? (
-                  // Not shipped yet - show booking button
-                  availableCouriers.length > 0 ? (
-                    <courierFetcher.Form method="post" className="space-y-3">
-                      <input type="hidden" name="intent" value="bookCourier" />
-                      
-                      {/* Provider Selector if multiple */}
-                      {availableCouriers.length > 1 && (
-                        <div>
-                           <label className="block text-xs font-medium text-gray-700 mb-1">Select Courier</label>
-                           <select 
-                            name="provider" 
-                            value={selectedProvider}
-                            onChange={(e) => setSelectedProvider(e.target.value)}
-                            className="w-full text-sm border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500"
-                           >
-                             {availableCouriers.map(p => (
-                               <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
-                             ))}
-                           </select>
-                        </div>
-                      )}
-                      
-                      {/* Hidden input for single provider or passed from select */}
-                      {availableCouriers.length === 1 && (
-                         <input type="hidden" name="provider" value={availableCouriers[0]} />
-                      )}
-
-                      <button
-                        type="submit"
-                        disabled={
-                          isBooking || order.status === 'delivered' || order.status === 'cancelled'
-                        }
-                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition"
-                      >
-                        {isBooking ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Send className="w-4 h-4" />
-                        )}
-                        Send to {selectedProvider ? selectedProvider.charAt(0).toUpperCase() + selectedProvider.slice(1) : 'Courier'}
-                      </button>
-                    </courierFetcher.Form>
-                  ) : (
-                    <Link
-                      to="/app/settings/courier"
-                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition"
-                    >
-                      <Truck className="w-4 h-4" />
-                      Connect Courier
-                    </Link>
-                  )
-                ) : (
-                  // Already shipped - show tracking button
-                  <button
-                    type="button"
-                    onClick={() => setIsTrackingOpen(true)}
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Track Order
-                  </button>
-                )}
-                {(() => {
-                  const data = courierFetcher.data as
-                    | { error?: string; success?: boolean }
-                    | undefined;
-                  if (data?.error) {
-                    return <p className="text-sm text-red-600 mt-2">{data.error}</p>;
-                  }
-                  if (data?.success) {
-                    return <p className="text-sm text-emerald-600 mt-2">✓ Shipment booked!</p>;
-                  }
-                  return null;
-                })()}
-              </div>
             </div>
           </div>
 
@@ -1174,6 +1107,131 @@ export default function OrderDetailPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Shipment / Courier Card */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 no-print">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Truck className="w-5 h-5 text-gray-500" />
+            Shipment
+          </h2>
+
+          {order.courierConsignmentId ? (
+            // Already shipped — show courier info + tracking
+            <div className="space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-3">
+                  {/* Provider badge */}
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full border ${
+                    order.courierProvider === 'pathao' ? 'bg-red-50 border-red-200 text-red-700' :
+                    order.courierProvider === 'redx' ? 'bg-rose-50 border-rose-200 text-rose-700' :
+                    'bg-orange-50 border-orange-200 text-orange-700'
+                  }`}>
+                    <Truck className="w-3.5 h-3.5" />
+                    {order.courierProvider ? order.courierProvider.charAt(0).toUpperCase() + order.courierProvider.slice(1) : 'Courier'}
+                  </span>
+
+                  {/* Courier status badge */}
+                  {order.courierStatus && (
+                    <span className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full ${
+                      ['delivered'].includes(order.courierStatus.toLowerCase()) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                      ['returned', 'cancelled'].includes(order.courierStatus.toLowerCase()) ? 'bg-red-50 text-red-700 border border-red-200' :
+                      ['booked', 'pending'].includes(order.courierStatus.toLowerCase()) ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' :
+                      'bg-blue-50 text-blue-700 border border-blue-200'
+                    }`}>
+                      {order.courierStatus}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Consignment ID */}
+              <div className="bg-gray-50 rounded-lg px-4 py-3">
+                <p className="text-xs text-gray-500 uppercase font-medium mb-1">Consignment ID</p>
+                <p className="text-sm font-mono font-semibold text-gray-900">{order.courierConsignmentId}</p>
+              </div>
+
+              {/* Track Shipment button */}
+              <button
+                type="button"
+                onClick={() => setIsTrackingOpen(true)}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Track Shipment
+              </button>
+            </div>
+          ) : (
+            // Not shipped yet — show booking form
+            <div className="space-y-4">
+              <p className="text-sm text-gray-500">No shipment booked yet. Send this order to a courier for delivery.</p>
+
+              {availableCouriers.length > 0 ? (
+                <courierFetcher.Form method="post" className="space-y-3">
+                  <input type="hidden" name="intent" value="bookCourier" />
+
+                  {/* Provider Selector if multiple */}
+                  {availableCouriers.length > 1 && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Select Courier</label>
+                      <select
+                        name="provider"
+                        value={selectedProvider}
+                        onChange={(e) => setSelectedProvider(e.target.value)}
+                        className="w-full text-sm border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
+                      >
+                        {availableCouriers.map(p => (
+                          <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Hidden input for single provider */}
+                  {availableCouriers.length === 1 && (
+                    <input type="hidden" name="provider" value={availableCouriers[0]} />
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={
+                      isBooking || order.status === 'delivered' || order.status === 'cancelled'
+                    }
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition"
+                  >
+                    {isBooking ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                    Send to {selectedProvider ? selectedProvider.charAt(0).toUpperCase() + selectedProvider.slice(1) : 'Courier'}
+                  </button>
+                </courierFetcher.Form>
+              ) : (
+                <Link
+                  to="/app/settings/courier"
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition"
+                >
+                  <Truck className="w-4 h-4" />
+                  Connect Courier
+                </Link>
+              )}
+
+              {/* Courier booking feedback */}
+              {(() => {
+                const data = courierFetcher.data as
+                  | { error?: string; success?: boolean }
+                  | undefined;
+                if (data?.error) {
+                  return <p className="text-sm text-red-600">{data.error}</p>;
+                }
+                if (data?.success) {
+                  return <p className="text-sm text-emerald-600">Shipment booked successfully!</p>;
+                }
+                return null;
+              })()}
+            </div>
+          )}
         </div>
 
         {/* Order Timeline */}
@@ -1224,6 +1282,7 @@ export default function OrderDetailPage() {
           consignmentId={order.courierConsignmentId}
           trackingCode={order.courierConsignmentId}
           currentStatus={order.courierStatus || undefined}
+          courierProvider={(order.courierProvider as 'steadfast' | 'pathao' | 'redx') || 'steadfast'}
           isOpen={isTrackingOpen}
           onClose={() => setIsTrackingOpen(false)}
         />

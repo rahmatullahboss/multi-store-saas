@@ -13,12 +13,39 @@ import type { ActionFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, inArray } from 'drizzle-orm';
-import { orders, stores, shipments } from '@db/schema';
+import { orders, orderItems, stores, shipments } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import {
   createPathaoClient,
   PATHAO_STATUS_MAP,
 } from '~/services/pathao.server';
+import { calculateOrderWeight } from '~/lib/courier-weight.server';
+
+/**
+ * Map Pathao order status string to a timeline step index (0-4).
+ * Matches the 5-step timeline used by TrackingTimeline component:
+ * 0 = Order Placed, 1 = Picked Up, 2 = In Transit, 3 = Out for Delivery, 4 = Delivered
+ */
+function getPathaoTimelineStep(status: string): number {
+  switch (status) {
+    case 'Pending':
+    case 'Pickup Requested':
+      return 0;
+    case 'Picked':
+      return 1;
+    case 'In Transit':
+      return 2;
+    case 'Delivered':
+      return 4;
+    // Returned/Cancelled are terminal — show last known progress step
+    case 'Returned':
+      return 2;
+    case 'Cancelled':
+      return 0;
+    default:
+      return 0;
+  }
+}
 
 // ============================================================================
 // ACTION HANDLER
@@ -190,6 +217,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
         recipientArea = parsed.pathao_area_id;
       }
 
+      // Fetch order items to calculate actual weight
+      const orderItemsResult = await db
+        .select({
+          productId: orderItems.productId,
+          quantity: orderItems.quantity,
+        })
+        .from(orderItems)
+        .where(eq(orderItems.orderId, orderId));
+
+      // Calculate weight from product metafields (min 0.5 kg)
+      const itemWeight = await calculateOrderWeight(db, storeId, orderItemsResult);
+
       // Create Pathao order
       const result = await client.createOrder({
         store_id: defaultStoreId,
@@ -208,7 +247,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         delivery_type: 48, // Normal delivery
         item_type: 2, // Parcel
         item_quantity: 1,
-        item_weight: 0.5, // Default 0.5 kg
+        item_weight: itemWeight, // Calculated from product metafields
         amount_to_collect: order.total,
         special_instruction: order.notes || undefined,
       });
@@ -265,10 +304,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       const normalizedStatus = PATHAO_STATUS_MAP[status.order_status] || 'processing';
 
+      // Map Pathao status to timeline step index (0-4) to match Steadfast format
+      const timelineStep = getPathaoTimelineStep(status.order_status);
+      const isTerminal = ['Returned', 'Cancelled'].includes(status.order_status);
+      const terminalType = status.order_status === 'Returned' ? 'returned'
+        : status.order_status === 'Cancelled' ? 'cancelled'
+        : undefined;
+
       return json({
         status: status.order_status,
+        trackingCode: consignmentId,
         statusSlug: status.order_status_slug,
         normalizedStatus,
+        timelineStep,
+        isTerminal,
+        terminalType,
         updatedAt: status.updated_at,
       });
     } catch (error) {
@@ -442,6 +492,33 @@ export async function action({ request, context }: ActionFunctionArgs) {
           continue;
         }
 
+        // Fetch order items for this order to calculate weight
+        const orderItemsForWeight = await db
+          .select({
+            productId: orderItems.productId,
+            quantity: orderItems.quantity,
+          })
+          .from(orderItems)
+          .where(eq(orderItems.orderId, order.id));
+
+        const bulkItemWeight = await calculateOrderWeight(db, storeId, orderItemsForWeight);
+
+        // Build recipient address from shipping address JSON
+        let bulkAddress = 'Dhaka, Bangladesh';
+        if (order.shippingAddress) {
+          try {
+            const parsedAddr = typeof order.shippingAddress === 'string'
+              ? JSON.parse(order.shippingAddress)
+              : order.shippingAddress;
+            const fullAddr = [parsedAddr.address, parsedAddr.upazila, parsedAddr.district, parsedAddr.city, parsedAddr.division]
+              .filter(Boolean).join(', ');
+            if (fullAddr.length >= 10) bulkAddress = fullAddr;
+            else if (fullAddr) bulkAddress = fullAddr.padEnd(10, ' ').trim();
+          } catch {
+            // use default
+          }
+        }
+
         payloads.push({
           orderId: order.id,
           payload: {
@@ -449,11 +526,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
             merchant_order_id: String(order.id),
             recipient_name: order.customerName,
             recipient_phone: order.customerPhone,
-            recipient_address: order.shippingAddress,
+            recipient_address: bulkAddress,
             delivery_type: 48,
             item_type: 2,
             item_quantity: 1,
-            item_weight: 0.5,
+            item_weight: bulkItemWeight, // Calculated from product metafields
             amount_to_collect: order.total,
           },
         });

@@ -18,9 +18,10 @@ import {
 } from '@remix-run/cloudflare';
 import { useLoaderData, Link, useSearchParams, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { orders, stores } from '@db/schema';
+import { orders, orderItems, stores } from '@db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
+import { calculateOrderWeight } from '~/lib/courier-weight.server';
 import {
   ShoppingCart,
   Clock,
@@ -238,6 +239,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
           return json({ error: 'Pathao default store ID is missing. Please set it in Courier Settings.' }, { status: 400 });
         }
 
+        // Fetch order items to calculate actual product weight
+        const orderItemsForWeight = await db
+          .select({
+            productId: orderItems.productId,
+            quantity: orderItems.quantity,
+          })
+          .from(orderItems)
+          .where(eq(orderItems.orderId, orderId));
+
+        const pathaoItemWeight = await calculateOrderWeight(db, storeId, orderItemsForWeight);
+
         const result = await client.createOrder({
           store_id: configuredStoreId,
           merchant_order_id: order.orderNumber,
@@ -248,7 +260,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           delivery_type: 48,
           item_type: 2,
           item_quantity: 1,
-          item_weight: 0.5,
+          item_weight: pathaoItemWeight, // Calculated from product metafields (min 0.5 kg)
           amount_to_collect: Math.round(order.total),
         });
         consignmentId = result.consignment_id;
