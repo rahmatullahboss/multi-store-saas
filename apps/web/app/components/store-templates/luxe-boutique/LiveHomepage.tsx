@@ -1,19 +1,28 @@
 import { useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
-import { Home as HomeIcon, Grid3X3, User, ShoppingCart, ArrowRight } from 'lucide-react';
+import {
+  Home as HomeIcon,
+  Grid3X3,
+  User,
+  ShoppingCart,
+  ShoppingBag,
+  Search,
+  Heart,
+  Menu,
+  X,
+} from 'lucide-react';
 import type { StoreTemplateProps } from '~/templates/store-registry';
 import { useCartCount } from '~/hooks/useCartCount';
 import { StoreConfigProvider } from '~/contexts/StoreConfigContext';
 import { WishlistProvider } from '~/contexts/WishlistContext';
 import { ClientOnly } from 'remix-utils/client-only';
 import { SkeletonLoader } from '~/components/SkeletonLoader';
-import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
 import { AddToCartButton } from '~/components/AddToCartButton';
-import { buildProxyImageUrl } from '~/utils/imageOptimization';
+import { buildProxyImageUrl, optimizeUnsplashUrl } from '~/utils/imageOptimization';
+import { useTranslation } from '~/contexts/LanguageContext';
 
 import { LUXE_BOUTIQUE_THEME } from './theme';
-import { LuxeBoutiqueHeader } from './sections/Header';
 import { LuxeBoutiqueFooter } from './sections/Footer';
 
 const DEFAULT_HERO_IMAGE =
@@ -39,6 +48,7 @@ export function LiveLuxeBoutiqueHomepage({
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const { t } = useTranslation();
 
   const count = useCartCount();
 
@@ -51,9 +61,15 @@ export function LiveLuxeBoutiqueHomepage({
   };
 
   const heroImage = config?.bannerUrl || DEFAULT_HERO_IMAGE;
-  const heroHeading = config?.bannerText || 'Timeless Elegance';
+  const heroBgUrl = heroImage.includes('unsplash.com')
+    ? optimizeUnsplashUrl(heroImage, { width: 1600, height: 900, quality: 80, format: 'webp' })
+    : buildProxyImageUrl(heroImage, { width: 1600, height: 900, quality: 78 });
+  const heroHeading = config?.bannerText || 'Redefining Elegance';
   const heroSubheading =
-    config?.heroSubheading || 'Discover our curated collection of luxury pieces';
+    (config as any)?.bannerSubtext ||
+    'Discover a world of timeless style and uncompromising quality.';
+  const heroCta = (config as any)?.bannerCtaText || 'Shop Collection';
+  const heroOverlayOpacity = (config as any)?.heroOverlayOpacity ?? 0.4;
 
   const featuredProducts = products?.slice(0, 8) || [];
 
@@ -87,226 +103,284 @@ export function LiveLuxeBoutiqueHomepage({
                 rel="stylesheet"
               />
 
-              <LuxeBoutiqueHeader
-                storeName={storeName}
-                logo={logo}
-                categories={validCategories}
-                currentCategory={currentCategory}
-                count={count}
-                mobileMenuOpen={mobileMenuOpen}
-                setMobileMenuOpen={setMobileMenuOpen}
-                searchOpen={searchOpen}
-                setSearchOpen={setSearchOpen}
-                isPreview={isPreview}
-                customer={customer}
-              />
-
-              {/* Hero Section - Hardcoded */}
-              <section className="relative h-[500px] lg:h-[600px] overflow-hidden">
-                <div className="absolute inset-0">
-                  <img src={heroImage} alt={heroHeading} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/40" />
-                </div>
-                <div className="relative z-10 h-full flex items-center justify-center text-center px-4">
-                  <div className="max-w-2xl">
-                    <h1
-                      className="text-4xl lg:text-5xl font-semibold text-white mb-4"
-                      style={{ fontFamily: "'Playfair Display', serif" }}
+              {/* Header */}
+              <header
+                className="sticky top-0 z-50 border-b"
+                style={{ backgroundColor: theme.headerBg, borderColor: '#e5e5e5' }}
+              >
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="flex items-center justify-between h-16 lg:h-20">
+                    <button
+                      className="lg:hidden p-2 -ml-2"
+                      onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                     >
-                      {heroHeading}
-                    </h1>
-                    <p className="text-lg text-white/90 mb-8">{heroSubheading}</p>
+                      {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                    </button>
+
+                    <Link to="/" className="flex items-center">
+                      {logo ? (
+                        <img src={logo} alt={storeName} className="h-10 lg:h-12 object-contain" />
+                      ) : (
+                        <span
+                          className="text-xl lg:text-2xl font-semibold tracking-wide"
+                          style={{ fontFamily: "'Playfair Display', serif", color: theme.primary }}
+                        >
+                          {storeName}
+                        </span>
+                      )}
+                    </Link>
+
+                    <nav className="hidden lg:flex items-center gap-8">
+                      <Link
+                        to="/"
+                        className="text-sm font-medium tracking-wide uppercase transition-colors hover:opacity-70"
+                        style={{ color: theme.text }}
+                      >
+                        {t('allProducts') || 'All Products'}
+                      </Link>
+                      {validCategories.slice(0, 5).map((category) => (
+                        <Link
+                          key={category}
+                          to={`/products/${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-'))}`}
+                          className="text-sm font-medium tracking-wide uppercase transition-colors hover:opacity-70"
+                          style={{ color: theme.text }}
+                        >
+                          {category}
+                        </Link>
+                      ))}
+                    </nav>
+
+                    <div className="flex items-center gap-3">
+                      <button
+                        className="p-2 rounded-full transition-colors hover:bg-gray-100"
+                        onClick={() => setSearchOpen(!searchOpen)}
+                      >
+                        <Search className="w-5 h-5" style={{ color: theme.text }} />
+                      </button>
+                      <button className="hidden sm:block p-2 rounded-full transition-colors hover:bg-gray-100">
+                        <Heart className="w-5 h-5" style={{ color: theme.text }} />
+                      </button>
+                      <Link
+                        to="/cart"
+                        className="p-2 rounded-full transition-colors hover:bg-gray-100 relative"
+                      >
+                        <ShoppingBag className="w-5 h-5" style={{ color: theme.text }} />
+                        <span
+                          className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center"
+                          style={{ backgroundColor: theme.accent, color: theme.primary }}
+                        >
+                          {count}
+                        </span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
+                {searchOpen && (
+                  <div className="absolute inset-x-0 top-full bg-white border-b border-gray-200 py-4 px-4 shadow-lg">
+                    <div className="max-w-2xl mx-auto">
+                      <input
+                        type="text"
+                        placeholder="Search products..."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-none focus:outline-none focus:border-black"
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {mobileMenuOpen && (
+                  <div className="lg:hidden absolute inset-x-0 top-full bg-white border-b border-gray-200 shadow-lg">
+                    <nav className="py-4">
+                      <Link
+                        to="/"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block w-full text-left px-6 py-3 text-sm font-medium uppercase tracking-wide"
+                        style={{ color: theme.text }}
+                      >
+                        {t('allProducts') || 'All Products'}
+                      </Link>
+                      {validCategories.map((category) => (
+                        <Link
+                          key={category}
+                          to={`/products/${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-'))}`}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block w-full text-left px-6 py-3 text-sm font-medium uppercase tracking-wide"
+                          style={{ color: theme.text }}
+                        >
+                          {category}
+                        </Link>
+                      ))}
+                    </nav>
+                  </div>
+                )}
+
+                <div className="h-0.5" style={{ backgroundColor: theme.accent }} />
+              </header>
+
+              {/* Hero Section - 80vh */}
+              <section className="relative h-[80vh] flex items-center justify-center overflow-hidden">
+                <div
+                  className="absolute inset-0 z-0 bg-cover bg-center"
+                  style={{
+                    backgroundImage: `url(${heroBgUrl})`,
+                  }}
+                >
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      backgroundColor: `rgba(0, 0, 0, ${heroOverlayOpacity})`,
+                    }}
+                  />
+                </div>
+
+                <div className="relative z-10 text-center text-white px-4 max-w-4xl">
+                  <h1 className="text-5xl md:text-7xl font-serif mb-6 leading-tight">
+                    {heroHeading}
+                  </h1>
+                  <p className="text-lg md:text-xl mb-8 font-light tracking-wide opacity-90">
+                    {heroSubheading}
+                  </p>
+                  <Link
+                    to="/products"
+                    className="px-10 py-4 bg-white text-black uppercase tracking-[0.2em] text-xs font-bold hover:bg-[#c9a961] hover:text-white transition-colors"
+                  >
+                    {heroCta}
+                  </Link>
+                </div>
+              </section>
+
+              {/* Featured Products */}
+              <section className="py-20 md:py-32 px-6">
+                <div className="max-w-7xl mx-auto">
+                  <div className="text-center mb-16">
+                    <span
+                      className="text-xs uppercase tracking-[0.2em] block mb-4"
+                      style={{ color: theme.accent }}
+                    >
+                      {t('curatedSelection') || 'Curated Selection'}
+                    </span>
+                    <h2 className="text-4xl md:text-5xl font-serif" style={{ color: theme.text }}>
+                      {t('featuredArrivals') || 'Featured Arrivals'}
+                    </h2>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-12">
+                    {featuredProducts.map((product) => {
+                      const discount = getDiscount(product.price, product.compareAtPrice ?? null);
+                      return (
+                        <div key={product.id} className="group cursor-pointer">
+                          <Link to={`/products/${product.id}`} className="block">
+                            <div
+                              className="aspect-[3/4] overflow-hidden mb-4 relative"
+                              style={{ backgroundColor: theme.cardBg }}
+                            >
+                              {product.imageUrl ? (
+                                <img
+                                  src={buildProxyImageUrl(product.imageUrl, {
+                                    width: 640,
+                                    quality: 75,
+                                  })}
+                                  alt={product.title}
+                                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                  loading="lazy"
+                                  decoding="async"
+                                />
+                              ) : (
+                                <div
+                                  className="w-full h-full flex items-center justify-center"
+                                  style={{ color: theme.muted }}
+                                >
+                                  No Image
+                                </div>
+                              )}
+                              {discount > 0 && (
+                                <div
+                                  className="absolute top-4 left-4 text-[10px] tracking-[0.15em] uppercase px-3 py-1.5"
+                                  style={{ backgroundColor: theme.accent, color: theme.primary }}
+                                >
+                                  -{discount}%
+                                </div>
+                              )}
+                            </div>
+                            <h3
+                              className="text-sm mb-1 group-hover:opacity-60 transition-opacity"
+                              style={{ color: theme.text, fontFamily: "'Inter', sans-serif" }}
+                            >
+                              {product.title}
+                            </h3>
+                            <p className="text-sm" style={{ color: theme.muted }}>
+                              {formatPrice(product.price)}
+                              {product.compareAtPrice && product.compareAtPrice > product.price && (
+                                <span className="ml-2 line-through opacity-60">
+                                  {formatPrice(product.compareAtPrice)}
+                                </span>
+                              )}
+                            </p>
+                          </Link>
+                          <div className="mt-2">
+                            <AddToCartButton
+                              productId={product.id}
+                              storeId={storeId}
+                              quantity={1}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="text-center mt-16">
                     <Link
                       to="/products"
-                      className="inline-block px-8 py-3 text-sm font-medium uppercase tracking-wider transition-all hover:opacity-90"
-                      style={{ backgroundColor: theme.accent, color: theme.primary }}
+                      className="inline-block border-b border-black pb-1 uppercase tracking-[0.15em] text-sm hover:opacity-60 transition-opacity"
                     >
-                      Shop Now
+                      {t('viewAllProducts') || 'View All Products'}
                     </Link>
                   </div>
                 </div>
               </section>
 
-              {/* Categories Section - Hardcoded */}
-              {validCategories.length > 0 && (
-                <section className="py-12 px-4" style={{ backgroundColor: theme.background }}>
-                  <div className="max-w-7xl mx-auto">
-                    <h2
-                      className="text-2xl font-semibold text-center mb-8"
-                      style={{ fontFamily: "'Playfair Display', serif", color: theme.text }}
-                    >
-                      Shop by Category
-                    </h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {validCategories.slice(0, 8).map((category) => (
-                        <PreviewSafeLink
-                          key={category}
-                          to={`/products/${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-'))}`}
-                          isPreview={isPreview}
-                          className="relative aspect-square rounded-lg overflow-hidden group"
-                        >
-                          <div
-                            className="absolute inset-0 flex items-center justify-center"
-                            style={{ backgroundColor: theme.primary }}
-                          >
-                            <span
-                              className="text-white font-medium text-center px-4"
-                              style={{ fontFamily: "'Playfair Display', serif" }}
-                            >
-                              {category}
-                            </span>
-                          </div>
-                          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors" />
-                        </PreviewSafeLink>
-                      ))}
-                    </div>
-                  </div>
-                </section>
-              )}
-
-              {/* Featured Products - Hardcoded */}
-              {featuredProducts.length > 0 && (
-                <section className="py-12 px-4" style={{ backgroundColor: theme.cardBg }}>
-                  <div className="max-w-7xl mx-auto">
-                    <div className="flex items-center justify-between mb-8">
-                      <h2
-                        className="text-2xl font-semibold"
-                        style={{ fontFamily: "'Playfair Display', serif", color: theme.text }}
-                      >
-                        Featured Products
-                      </h2>
-                      <PreviewSafeLink
-                        to="/products"
-                        isPreview={isPreview}
-                        className="text-sm font-medium flex items-center gap-1"
-                        style={{ color: theme.accent }}
-                      >
-                        View All <ArrowRight className="w-4 h-4" />
-                      </PreviewSafeLink>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                      {featuredProducts.map((product) => {
-                        const discount = getDiscount(product.price, product.compareAtPrice ?? null);
-                        return (
-                          <div key={product.id} className="group">
-                            <PreviewSafeLink
-                              to={`/products/${product.id}`}
-                              isPreview={isPreview}
-                              className="block"
-                            >
-                              <div
-                                className="relative aspect-[3/4] overflow-hidden mb-3"
-                                style={{ backgroundColor: theme.background }}
-                              >
-                                {product.imageUrl ? (
-                                  <img
-                                    src={buildProxyImageUrl(product.imageUrl, {
-                                      width: 400,
-                                      height: 533,
-                                    })}
-                                    alt={product.title}
-                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-white/50">
-                                    No Image
-                                  </div>
-                                )}
-                                {discount > 0 && (
-                                  <span
-                                    className="absolute top-2 left-2 px-2 py-1 text-xs font-medium text-white"
-                                    style={{ backgroundColor: theme.accent, color: theme.primary }}
-                                  >
-                                    -{discount}%
-                                  </span>
-                                )}
-                              </div>
-                              <h3
-                                className="text-sm font-medium mb-1 line-clamp-2"
-                                style={{ color: theme.text }}
-                              >
-                                {product.title}
-                              </h3>
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold" style={{ color: theme.primary }}>
-                                  {formatPrice(product.price)}
-                                </span>
-                                {product.compareAtPrice &&
-                                  product.compareAtPrice > product.price && (
-                                    <span
-                                      className="text-sm line-through"
-                                      style={{ color: theme.muted }}
-                                    >
-                                      {formatPrice(product.compareAtPrice)}
-                                    </span>
-                                  )}
-                              </div>
-                            </PreviewSafeLink>
-                            <div className="mt-2">
-                              <AddToCartButton
-                                productId={product.id}
-                                storeId={storeId}
-                                quantity={1}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </section>
-              )}
-
-              {/* Why Choose Us - Hardcoded */}
-              <section className="py-16 px-4" style={{ backgroundColor: '#faf9f7' }}>
+              {/* Why Choose Us */}
+              <section className="py-16 md:py-24 px-6 bg-white">
                 <div className="max-w-7xl mx-auto">
-                  <h2
-                    className="text-2xl font-semibold text-center mb-12"
-                    style={{ fontFamily: "'Playfair Display', serif", color: theme.text }}
-                  >
-                    Why Choose Us
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="text-center">
-                      <div
-                        className="w-16 h-16 mx-auto mb-4 flex items-center justify-center"
-                        style={{ backgroundColor: theme.accent }}
-                      >
-                        <Shield className="w-8 h-8" style={{ color: theme.primary }} />
-                      </div>
-                      <h3 className="font-semibold mb-2" style={{ color: theme.text }}>
-                        Premium Quality
+                  <div className="text-center mb-12">
+                    <h2
+                      className="text-3xl md:text-4xl font-serif mb-3"
+                      style={{ color: theme.text }}
+                    >
+                      {t('whyChooseUs') || 'Why Choose Us'}
+                    </h2>
+                    <p className="text-sm md:text-base text-[#6b6b6b]">
+                      {t('whyChooseSubtitle') || 'A premium experience from order to delivery.'}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="p-8 border border-[#ece7de] bg-[#faf9f7] text-center">
+                      <div className="text-2xl mb-3">✨</div>
+                      <h3 className="text-lg font-medium mb-2" style={{ color: theme.text }}>
+                        {t('premiumQuality') || 'Premium Quality'}
                       </h3>
-                      <p className="text-sm" style={{ color: theme.muted }}>
-                        Carefully curated products that meet our high standards
+                      <p className="text-sm text-[#6b6b6b]">
+                        {t('premiumQualityDesc') || 'Carefully curated luxury selection.'}
                       </p>
                     </div>
-                    <div className="text-center">
-                      <div
-                        className="w-16 h-16 mx-auto mb-4 flex items-center justify-center"
-                        style={{ backgroundColor: theme.accent }}
-                      >
-                        <Truck className="w-8 h-8" style={{ color: theme.primary }} />
-                      </div>
-                      <h3 className="font-semibold mb-2" style={{ color: theme.text }}>
-                        Fast Delivery
+                    <div className="p-8 border border-[#ece7de] bg-[#faf9f7] text-center">
+                      <div className="text-2xl mb-3">⚡</div>
+                      <h3 className="text-lg font-medium mb-2" style={{ color: theme.text }}>
+                        {t('fastDelivery') || 'Fast Delivery'}
                       </h3>
-                      <p className="text-sm" style={{ color: theme.muted }}>
-                        Quick and reliable shipping to your doorstep
+                      <p className="text-sm text-[#6b6b6b]">
+                        {t('fastDeliveryDesc') || 'Quick and reliable nationwide shipping.'}
                       </p>
                     </div>
-                    <div className="text-center">
-                      <div
-                        className="w-16 h-16 mx-auto mb-4 flex items-center justify-center"
-                        style={{ backgroundColor: theme.accent }}
-                      >
-                        <RotateCcw className="w-8 h-8" style={{ color: theme.primary }} />
-                      </div>
-                      <h3 className="font-semibold mb-2" style={{ color: theme.text }}>
-                        Easy Returns
+                    <div className="p-8 border border-[#ece7de] bg-[#faf9f7] text-center">
+                      <div className="text-2xl mb-3">💬</div>
+                      <h3 className="text-lg font-medium mb-2" style={{ color: theme.text }}>
+                        {t('support247') || '24/7 Support'}
                       </h3>
-                      <p className="text-sm" style={{ color: theme.muted }}>
-                        Hassle-free return policy within 7 days
+                      <p className="text-sm text-[#6b6b6b]">
+                        {t('support247Desc') || 'Dedicated support whenever you need us.'}
                       </p>
                     </div>
                   </div>
@@ -326,11 +400,7 @@ export function LiveLuxeBoutiqueHomepage({
               {/* Mobile Bottom Navigation */}
               <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
                 <div className="flex items-center justify-around h-14">
-                  <PreviewSafeLink
-                    to="/"
-                    className="flex flex-col items-center gap-0.5 py-1 px-3"
-                    isPreview={isPreview}
-                  >
+                  <Link to="/" className="flex flex-col items-center gap-0.5 py-1 px-3">
                     <HomeIcon
                       className="w-5 h-5"
                       style={{
@@ -345,7 +415,7 @@ export function LiveLuxeBoutiqueHomepage({
                     >
                       Home
                     </span>
-                  </PreviewSafeLink>
+                  </Link>
                   <button
                     onClick={() => setMobileMenuOpen(true)}
                     className="flex flex-col items-center gap-0.5 py-1 px-3"
@@ -355,10 +425,9 @@ export function LiveLuxeBoutiqueHomepage({
                       Shop
                     </span>
                   </button>
-                  <PreviewSafeLink
+                  <Link
                     to="/cart"
                     className="flex flex-col items-center gap-0.5 py-1 px-3 relative"
-                    isPreview={isPreview}
                   >
                     <ShoppingCart className="w-5 h-5" style={{ color: theme.muted }} />
                     <span
@@ -370,17 +439,16 @@ export function LiveLuxeBoutiqueHomepage({
                     >
                       {count}
                     </span>
-                  </PreviewSafeLink>
-                  <PreviewSafeLink
+                  </Link>
+                  <Link
                     to={customer ? '/account' : '/auth/login'}
                     className="flex flex-col items-center gap-0.5 py-1 px-3"
-                    isPreview={isPreview}
                   >
                     <User className="w-5 h-5" style={{ color: theme.muted }} />
                     <span className="text-[10px] font-medium" style={{ color: theme.muted }}>
                       {customer ? 'Account' : 'Login'}
                     </span>
-                  </PreviewSafeLink>
+                  </Link>
                 </div>
               </nav>
 
@@ -408,46 +476,6 @@ export function LiveLuxeBoutiqueHomepage({
         </ClientOnly>
       </WishlistProvider>
     </StoreConfigProvider>
-  );
-}
-
-// Icons (inline to avoid extra imports)
-function Shield({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return (
-    <svg className={className} style={style} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-      />
-    </svg>
-  );
-}
-
-function Truck({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return (
-    <svg className={className} style={style} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-      />
-    </svg>
-  );
-}
-
-function RotateCcw({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return (
-    <svg className={className} style={style} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
-      />
-    </svg>
   );
 }
 
