@@ -56,47 +56,41 @@ async function syncForStore(storeId: string, email: string, password: string) {
 
 async function run() {
   if (isAllStores) {
-    const dbId = process.env.D1_DATABASE_ID;
-    if (!dbId) {
-      console.error('[STEADFAST SYNC] Missing D1_DATABASE_ID env var for --all-stores mode.');
-      process.exit(1);
-    }
-
+    const dbName = process.env.D1_DATABASE_NAME || 'multi-store-saas-db'; // default to production name
+    const wranglerEnv = process.env.WRANGLER_ENV || '';
+    const envFlag = wranglerEnv ? `--env ${wranglerEnv}` : '';
     const encryptKey = process.env.COURIER_ENCRYPT_KEY;
 
-    console.log('[STEADFAST SYNC] Fetching all stores with Steadfast credentials from D1...');
+    console.log(`[STEADFAST SYNC] Fetching all stores with Steadfast credentials from D1 (${dbName})...`);
     const rawJson = execSync(
-      `npx wrangler d1 execute ${dbId} --remote --json --command "SELECT id, courierSettings FROM stores WHERE courierSettings IS NOT NULL"`,
+      `npx wrangler d1 execute ${dbName} ${envFlag} --remote --json --command "SELECT id, json_extract(storefront_settings, '$.courier.steadfast.steadfastEmail') as email, json_extract(storefront_settings, '$.courier.steadfast.steadfastPassword') as password FROM stores WHERE json_extract(storefront_settings, '$.courier.steadfast.steadfastEmail') IS NOT NULL"`,
       { encoding: 'utf8' }
     );
 
-    const parsed = JSON.parse(rawJson) as Array<{ results: Array<{ id: number; courierSettings: string }> }>;
+    const parsed = JSON.parse(rawJson) as Array<{ results: Array<{ id: number; email: string; password: string }> }>;
     const rows = parsed[0]?.results ?? [];
 
     let synced = 0;
     for (const row of rows) {
       try {
-        const settings = JSON.parse(row.courierSettings);
-        const sf = settings?.steadfast ?? settings?.courier?.steadfast;
-        if (sf?.steadfastEmail && sf?.steadfastPassword) {
-          let password = sf.steadfastPassword as string;
+        let password = row.password;
 
-          // Decrypt if COURIER_ENCRYPT_KEY is provided and password looks encrypted (iv:ct format)
-          if (encryptKey && password.includes(':')) {
-            try {
-              password = await decryptPassword(password, encryptKey);
-            } catch (e) {
-              console.warn(`[STEADFAST SYNC] Could not decrypt password for store #${row.id}, trying as plaintext:`, e);
-            }
+        // Decrypt if COURIER_ENCRYPT_KEY is provided and password looks encrypted (iv:ct format)
+        if (encryptKey && password.includes(':')) {
+          try {
+            password = await decryptPassword(password, encryptKey);
+          } catch (e) {
+            console.warn(`[STEADFAST SYNC] Could not decrypt password for store #${row.id}, trying as plaintext:`, e);
           }
-
-          await syncForStore(String(row.id), sf.steadfastEmail, password);
-          synced++;
         }
+
+        await syncForStore(String(row.id), row.email, password);
+        synced++;
       } catch (e) {
         console.warn(`[STEADFAST SYNC] Skipping store #${row.id}:`, e);
       }
     }
+
 
     console.log(`\n[STEADFAST SYNC] Done. Synced ${synced}/${rows.length} stores.`);
   } else {
