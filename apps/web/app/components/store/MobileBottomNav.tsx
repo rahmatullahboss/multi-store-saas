@@ -17,12 +17,14 @@ interface MobileBottomNavProps {
     border?: string;
   };
   wishlistEnabled?: boolean;
+  isPreview?: boolean;
 }
 
 export function MobileBottomNav({
   storeName: _storeName,
   theme,
   wishlistEnabled = true,
+  isPreview = false,
 }: MobileBottomNavProps) {
   const location = useLocation();
   const cartCount = useCartCount();
@@ -49,7 +51,7 @@ export function MobileBottomNav({
   const borderColor = theme?.border || theme?.muted || 'var(--color-muted, #E5E7EB)';
 
   const navItems = [
-    { href: '/store', icon: Home, label: 'Home', exact: true },
+    { href: '/', icon: Home, label: 'Home', exact: true },
     { href: '/products', icon: ShoppingBag, label: 'Products' },
     ...(wishlistEnabled
       ? [{ href: '/wishlist', icon: Heart, label: 'Wishlist', badge: wishlistCount }]
@@ -58,11 +60,19 @@ export function MobileBottomNav({
     { href: '/account', icon: User, label: 'Account' },
   ];
 
+  const resolveLink = (path: string) => {
+    if (isPreview) {
+      if (path === '/') return '#';
+      return `#preview-${path}`;
+    }
+    return path;
+  };
+
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 backdrop-blur-lg border-t shadow-lg"
       style={{
-        paddingBottom: 'env(safe-area-inset-bottom)',
+        paddingBottom: 'env(safe-area-bottom-inset)',
         backgroundColor: backgroundColor,
         borderColor: borderColor,
         color: textColor,
@@ -77,7 +87,7 @@ export function MobileBottomNav({
           return (
             <Link
               key={item.href}
-              to={item.href}
+              to={resolveLink(item.href)}
               className={cn(
                 'flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all duration-200 relative active:scale-95'
               )}

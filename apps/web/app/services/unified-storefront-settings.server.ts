@@ -514,11 +514,21 @@ async function migrateLegacyToUnified(
  * Resolve template ID from legacy sources
  */
 function resolveTemplateId(legacy: LegacySources): AllowedThemeId {
-  // Priority: mvpSettings > themeConfig > default
-  const themeId =
-    legacy.mvpSettings?.themeId || legacy.themeConfig?.storeTemplateId || 'starter-store';
+  // If we have themeConfig, check for its storeTemplateId
+  if (legacy.themeConfig) {
+    if (legacy.themeConfig.storeTemplateId && typeof legacy.themeConfig.storeTemplateId === 'string') {
+      return validateThemeId(legacy.themeConfig.storeTemplateId);
+    }
+  }
 
-  return validateThemeId(themeId);
+  // Try parsing storeTheme JSON string
+  if (legacy.mvpSettings) {
+    if (legacy.mvpSettings.storeTemplateId && typeof legacy.mvpSettings.storeTemplateId === 'string') {
+        return validateThemeId(legacy.mvpSettings.storeTemplateId);
+    }
+  }
+
+  return 'starter-store';
 }
 
 // ============================================================================

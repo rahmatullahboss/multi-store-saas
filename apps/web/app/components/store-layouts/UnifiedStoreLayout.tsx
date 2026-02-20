@@ -18,7 +18,6 @@ import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
 import { StorePageWrapper } from './StorePageWrapper';
 import { MobileBottomNav } from '~/components/store/MobileBottomNav';
 import {
-  getStoreTemplate,
   getStoreTemplateTheme,
   DEFAULT_STORE_TEMPLATE_ID,
 } from '~/templates/store-registry';
@@ -138,7 +137,6 @@ export function UnifiedStoreLayout({
   // LEGACY TEMPLATE SYSTEM FALLBACK
   // ============================================================================
   const templateId = legacyTemplateId || DEFAULT_STORE_TEMPLATE_ID;
-  const template = getStoreTemplate(templateId);
   const theme = getStoreTemplateTheme(templateId);
 
   return (
@@ -216,9 +214,6 @@ function NewTemplateSystemLayout({
   const textColor = settings.textColor || '#1F2937';
   const primaryColor = settings.primaryColor || '#000000';
   const accentColor = settings.accentColor || '#6366F1';
-
-  // Determine if dark theme
-  const isDark = isColorDark(bgColor);
 
   // Filter categories for header
   const filteredCategories = categories.filter((c): c is string => c !== null);
@@ -315,6 +310,7 @@ function NewTemplateSystemLayout({
           cardBg: settings.backgroundColor || bgColor,
         }}
         wishlistEnabled={true}
+        isPreview={isPreview}
       />
     </div>
   );
@@ -340,10 +336,10 @@ function TemplateHeader({
   settings,
   categories,
   currentCategory,
-  socialLinks,
+  socialLinks: _socialLinks,
   cartCount,
   customer,
-  isPreview,
+  isPreview: _isPreview,
 }: TemplateHeaderProps) {
   const headerStyle = settings.headerStyle || 'solid';
   const isSticky = headerStyle === 'sticky';

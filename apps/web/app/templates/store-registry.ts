@@ -201,10 +201,17 @@ export function resolveStoreTemplateId(
   themeConfig: Record<string, unknown> | null | undefined,
   storeTheme?: string | null
 ): string {
-  // Try from themeConfig object first
-  if (themeConfig?.storeTemplateId && typeof themeConfig.storeTemplateId === 'string') {
-    return themeConfig.storeTemplateId;
+  // If we have themeConfig, check for its storeTemplateId
+  if (themeConfig) {
+    if (themeConfig.storeTemplateId && typeof themeConfig.storeTemplateId === 'string') {
+      return themeConfig.storeTemplateId;
+    }
+    // If themeConfig exists but lacks a template ID, we should NOT fall down to storeTheme
+    // because themeConfig is the newer source of truth. We default to starter-store.
+    // Wait, the previous logic just bypassed and checked storeTheme. Let's keep checking storeTheme
+    // as a fallback if themeConfig doesn't have it.
   }
+  
   // Try parsing storeTheme JSON string
   if (storeTheme) {
     try {
@@ -216,6 +223,7 @@ export function resolveStoreTemplateId(
       // fallback
     }
   }
+  
   return 'starter-store';
 }
 

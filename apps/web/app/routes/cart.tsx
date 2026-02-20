@@ -48,9 +48,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
   // Favicon support
   if (data.favicon) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     metaTags.push({ tagName: 'link', rel: 'icon', href: data.favicon } as any);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     metaTags.push({ tagName: 'link', rel: 'shortcut icon', href: data.favicon } as any);
   }
 
@@ -74,11 +72,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeData = store;
   const db = createDb(context.cloudflare.env.DB);
 
-  // Use unified  // 4. Get unified settings (single source of truth)
+  // Use unified settings
   const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
   
   // Convert to legacy format for compatibility (ensures floating buttons work)
   const legacySettings = toLegacyFormat(unifiedSettings);
+  console.log('--- CART ROUTE THEME ID ---', legacySettings.storeTemplateId);
 
   // Use socialLinks from unified settings (or legacy fallback)
   const socialLinks = {
@@ -412,7 +411,6 @@ export default function CartPage() {
       // We need to map back to the state shape if it differs, but here it looks compatible-ish
       // Actually state expects: productId, title, price, compareAtPrice, quantity, imageUrl
       // validatedItems has these.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setCartItems(validatedItems as any);
     }
   }, [fetcher.data]);
@@ -468,7 +466,6 @@ export default function CartPage() {
         storeId={storeId}
         logo={logo}
         templateId={storeTemplateId}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         theme={theme as any}
         currency={currency}
         socialLinks={socialLinks || undefined}

@@ -419,7 +419,7 @@ function StorePageWrapperComponent({
         )}
 
         {/* Mobile Bottom Navigation - DC Store Style */}
-        <MobileBottomNav storeName={storeName} theme={mobileNavTheme} wishlistEnabled={true} />
+        <MobileBottomNav storeName={storeName} theme={mobileNavTheme} wishlistEnabled={true} isPreview={isPreview} />
       </div>
     </WishlistProvider>
   );

@@ -32,8 +32,9 @@ jobs:
 
       - name: Run Steadfast Cookie Sync
         # These secrets must be set in GitHub Repository Settings → Secrets and variables → Actions
+        env:
+          COURIER_ENCRYPT_KEY: ${{ secrets.COURIER_ENCRYPT_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          COURIER_ENCRYPT_KEY="${{ secrets.COURIER_ENCRYPT_KEY }}" \
-          CLOUDFLARE_API_TOKEN="${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-          CLOUDFLARE_ACCOUNT_ID="${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" \
           npx tsx scripts/steadfast-cookie-sync/sync.ts --all-stores
