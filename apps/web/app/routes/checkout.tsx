@@ -92,6 +92,7 @@ import { Loader2, ArrowLeft, ShoppingBag, ShieldCheck, Truck, CheckCircle } from
 import { getCustomer } from '~/services/customer-auth.server';
 import type { CustomerAddress } from '~/services/customer-account.server';
 import { resolveTemplate } from '~/lib/template-resolver.server';
+import { resolveStoreTemplateId } from '~/templates/store-registry';
 import { toast } from 'sonner';
 import { validateDiscount } from '~/../server/services/discount.service';
 import { TicketPercent } from 'lucide-react';
@@ -236,12 +237,20 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // ========== TEMPLATE RESOLUTION (New Template System) ==========
   const checkoutTemplate = await resolveTemplate(cloudflare.env.DB, storeId as number, 'checkout');
 
+  // Resolve template ID from unified settings (same logic as home page)
+  const storeTemplateId = unifiedSettings.theme.templateId
+    ? unifiedSettings.theme.templateId
+    : resolveStoreTemplateId(
+        legacySettings.themeConfig as Record<string, unknown> | null,
+        null
+      );
+
   return json({
     storeId: storeId as number,
     storeName: legacySettings.storeName || store.name,
     logo: legacySettings.logo || store.logo,
     currency: store.currency || 'BDT',
-    storeTemplateId: legacySettings.storeTemplateId,
+    storeTemplateId,
     theme: legacySettings.theme,
     socialLinks,
     businessInfo,

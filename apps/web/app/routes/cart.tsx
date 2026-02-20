@@ -23,7 +23,7 @@ import { products, productVariants } from '@db/schema';
 import { type ThemeConfig, type LandingConfig } from '@db/types';
 import { type MVPSettingsWithTheme } from '~/config/mvp-theme-settings';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { getStoreTemplate } from '~/templates/store-registry';
+import { getStoreTemplate, resolveStoreTemplateId } from '~/templates/store-registry';
 import { resolveStore } from '~/lib/store.server';
 import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
@@ -116,13 +116,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Get shipping config directly from unified settings
   const unifiedShippingConfig = getShippingConfigFromUnified(unifiedSettings);
 
+  // Resolve template ID from unified settings (same logic as home page)
+  const storeTemplateId = unifiedSettings.theme.templateId
+    ? unifiedSettings.theme.templateId
+    : resolveStoreTemplateId(
+        legacySettings.themeConfig as Record<string, unknown> | null,
+        null
+      );
+
   return json({
     storeId: storeId as number,
     storeName: legacySettings.storeName || storeData.name || 'Store',
     logo: legacySettings.logo || storeData.logo || null,
     favicon: legacySettings.favicon || storeData.favicon || null,
     currency: storeData.currency || 'BDT',
-    storeTemplateId: legacySettings.storeTemplateId,
+    storeTemplateId,
     theme: legacySettings.theme,
     socialLinks,
     businessInfo,
