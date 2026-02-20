@@ -276,7 +276,7 @@ const CourierSettingsSchema = z.object({
   redx: z
     .object({
       apiKey: z.string().nullable().default(null),
-      secretKey: z.string().nullable().default(null),
+      baseUrl: z.string().nullable().default(null),
     })
     .nullable()
     .default(null),

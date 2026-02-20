@@ -12,9 +12,8 @@
 
 // Types
 export interface RedXCredentials {
-  apiKey: string;
-  secretKey: string;
-  baseUrl?: string; // Default: https://openapi.redx.com.bd/v1.0.0-beta
+  accessToken: string; // The single Bearer token
+  baseUrl: string; // e.g. https://openapi.redx.com.bd/v1.0.0-beta OR https://sandbox.redx.com.bd/v1.0.0-beta
 }
 
 export interface RedXArea {
@@ -100,7 +99,7 @@ export function createRedXClient(credentials: RedXCredentials) {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'API-ACCESS-TOKEN': `Bearer ${credentials.apiKey}`,
+        'API-ACCESS-TOKEN': `Bearer ${credentials.accessToken}`,
         ...options.headers,
       },
     });

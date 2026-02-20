@@ -208,18 +208,18 @@ async function syncCourierStatuses(db: Database): Promise<number> {
   const TERMINAL_STATUSES = ['delivered', 'cancelled', 'returned'];
 
   // Fetch all non-terminal shipments
-  const activeShipments = await db
-    .select({
+  const activeShipments = await db.select({
       shipId: shipments.id,
       orderId: shipments.orderId,
-      storeId: shipments.storeId,
-      provider: shipments.provider,
-      trackingId: shipments.trackingId,
+      storeId: orders.storeId, // Joined to get storeId since shipments doesn't have it directly
+      provider: shipments.courier, // It's named 'courier' in the schema, not 'provider'
+      trackingId: shipments.trackingNumber, // It's named 'trackingNumber', not 'trackingId'
       currentStatus: shipments.status,
     })
     .from(shipments)
-    .where(notInArray(shipments.status, TERMINAL_STATUSES))
-    .limit(100); // Batch to avoid exhausting courier rate limits
+    .innerJoin(orders, eq(shipments.orderId, orders.id))
+    .where(notInArray(shipments.status, TERMINAL_STATUSES as any))
+    .limit(100);
 
   if (activeShipments.length === 0) return 0;
 
@@ -283,8 +283,8 @@ async function syncCourierStatuses(db: Database): Promise<number> {
 
         // --- RedX ---
         else if (provider === 'redx' && courierConfig.redx) {
-          const creds = courierConfig.redx as { apiKey: string; secretKey: string };
-          const client = createRedXClient(creds);
+          const creds = courierConfig.redx as { apiKey: string; baseUrl: string };
+          const client = createRedXClient({ accessToken: creds.apiKey, baseUrl: creds.baseUrl });
           const trackingInfo = await client.trackParcel(shipment.trackingId);
           newStatus = REDX_STATUS_MAP[trackingInfo.current_status] ?? null;
         }
@@ -294,19 +294,18 @@ async function syncCourierStatuses(db: Database): Promise<number> {
         // Update shipment record
         await db
           .update(shipments)
-          .set({ status: newStatus, updatedAt: new Date() })
+          .set({ status: newStatus as typeof shipment.currentStatus, updatedAt: new Date() })
           .where(eq(shipments.id, shipment.shipId));
 
         // Update order status
         const orderStatus =
           newStatus === 'delivered' ? 'delivered'
-          : newStatus === 'returned' ? 'refunded'
-          : newStatus === 'cancelled' ? 'cancelled'
+          : newStatus === 'returned' || newStatus === 'cancelled' ? 'returned'
           : 'shipped';
 
         await db
           .update(orders)
-          .set({ courierStatus: newStatus, status: orderStatus, updatedAt: new Date() })
+          .set({ courierStatus: newStatus as string, status: orderStatus, updatedAt: new Date() })
           .where(and(eq(orders.id, shipment.orderId), eq(orders.storeId, storeId)));
 
         syncedCount++;

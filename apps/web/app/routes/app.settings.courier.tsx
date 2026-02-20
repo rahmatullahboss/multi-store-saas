@@ -67,7 +67,7 @@ interface CourierSettings {
   };
   redx?: {
     apiKey: string;
-    secretKey: string;
+    baseUrl: string;
   };
   steadfast?: {
     apiKey: string;
@@ -129,7 +129,7 @@ function toUnifiedCourier(courier: Partial<CourierSettings>) {
     redx: courier.redx
       ? {
           apiKey: courier.redx.apiKey || null,
-          secretKey: courier.redx.secretKey || null,
+          baseUrl: courier.redx.baseUrl || null,
         }
       : null,
     steadfast: courier.steadfast
@@ -186,7 +186,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     redx: courierConfig.redx
       ? {
           apiKey: courierConfig.redx.apiKey || '',
-          secretKey: courierConfig.redx.secretKey || '',
+          baseUrl: courierConfig.redx.baseUrl || 'https://sandbox.redx.com.bd/v1.0.0-beta',
         }
       : undefined,
     steadfast: courierConfig.steadfast
@@ -262,7 +262,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     redx: courierSettings.redx
       ? {
           ...courierSettings.redx,
-          secretKey: courierSettings.redx.secretKey ? '••••••••' : '',
+          // apiKey is used as a Bearer token. We can mask it if we want, but usually it's displayed or kept simple.
+          apiKey: courierSettings.redx.apiKey ? '••••••••' : '',
         }
       : undefined,
     steadfast: courierSettings.steadfast
@@ -465,10 +466,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
         };
       } else if (selectedProvider === 'redx') {
         const redxApiKey = String(formData.get('apiKey') || '');
-        const redxSecretKey = String(formData.get('secretKey') || '');
+        const redxBaseUrl = String(formData.get('baseUrl') || 'https://sandbox.redx.com.bd/v1.0.0-beta');
 
         if (!redxApiKey) {
-          return json({ error: 'RedX API Key is required' }, { status: 400 });
+          return json({ error: 'RedX Token/API Key is required' }, { status: 400 });
         }
 
         newSettings = {
@@ -476,7 +477,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           pathao: currentCourier.pathao,
           redx: {
             apiKey: redxApiKey,
-            secretKey: redxSecretKey || currentCourier.redx?.secretKey || '',
+            baseUrl: redxBaseUrl,
           },
           steadfast: currentCourier.steadfast,
         };
@@ -577,11 +578,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
       if (provider === 'redx') {
-        if (!currentCourier.redx?.apiKey) return json({ error: 'No RedX credentials found' }, { status: 400 });
+        const testApiKey = String(formData.get('apiKey') || currentCourier.redx?.apiKey || '');
+        const testBaseUrl = String(formData.get('baseUrl') || currentCourier.redx?.baseUrl || 'https://sandbox.redx.com.bd/v1.0.0-beta');
+        
+        if (!testApiKey) return json({ error: 'No RedX credentials found' }, { status: 400 });
 
         const client = createRedXClient({
-          apiKey: currentCourier.redx.apiKey,
-          secretKey: currentCourier.redx.secretKey,
+          accessToken: testApiKey,
+          baseUrl: testBaseUrl,
         });
 
         const isConnected = await client.testConnection();
@@ -989,28 +993,29 @@ export default function CourierSettingsPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {t('apiKey')}
+                        Token (API Key)
                       </label>
                       <input
                         type="text"
                         name="apiKey"
                         defaultValue={settings.redx?.apiKey || ''}
-                        placeholder="Your RedX API Key"
+                        placeholder="Your RedX Bearer Token"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white/50 backdrop-blur-sm"
                         required
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {t('secretKey')}
+                        Environment
                       </label>
-                      <input
-                        type="password"
-                        name="secretKey"
-                        defaultValue={settings.redx?.secretKey || ''}
-                        placeholder={settings.redx?.secretKey ? '••••••••' : 'Your RedX Secret Key'}
+                      <select
+                        name="baseUrl"
+                        defaultValue={settings.redx?.baseUrl || 'https://sandbox.redx.com.bd/v1.0.0-beta'}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white/50 backdrop-blur-sm"
-                      />
+                      >
+                        <option value="https://sandbox.redx.com.bd/v1.0.0-beta">Sandbox (Testing)</option>
+                        <option value="https://openapi.redx.com.bd/v1.0.0-beta">Production (Live)</option>
+                      </select>
                     </div>
                   </div>
                 </div>
