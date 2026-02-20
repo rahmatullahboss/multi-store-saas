@@ -15,7 +15,7 @@
  * 3. Optional dual-write to legacy columns (temporary)
  */
 
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import { stores, storeSettingsArchives } from '@db/schema';
 
@@ -63,6 +63,10 @@ export interface MigrateLegacyOptions {
   dryRun?: boolean;
 }
 
+/**
+ * Internal type for migration functions
+ * Used to read from legacy columns for migration purposes
+ */
 interface LegacySources {
   themeConfig: Record<string, any> | null;
   mvpSettings: Record<string, any> | null;
@@ -88,10 +92,7 @@ export async function getUnifiedStorefrontSettings<TSchema extends Record<string
   storeId: number,
   options: GetUnifiedSettingsOptions = {}
 ): Promise<UnifiedStorefrontSettingsV1> {
-  // Default: strict mode (no fallback). If env provided and UNIFIED_SETTINGS_STRICT is not "true", fallback may be enabled.
-  // Explicit enableFallback option always wins.
-  const strictMode = options.env ? isStrictMode(options.env) : true;
-  const enableFallback = options.enableFallback ?? !strictMode;
+  void options;
 
   // Try to get from canonical column first
   try {
@@ -108,34 +109,10 @@ export async function getUnifiedStorefrontSettings<TSchema extends Record<string
       }
     }
   } catch (error) {
-    console.warn('Error reading unified settings, trying fallback:', error);
+    console.warn('Error reading unified settings:', error);
   }
 
-  // Fallback: Try legacy sources if enabled
-  if (enableFallback) {
-    const legacySettings = await getLegacySettings(db, storeId);
-    const unified = await migrateLegacyToUnified(legacySettings, storeId);
-
-    // Auto-backfill canonical column (conditional — only if still NULL to prevent race conditions)
-    try {
-      await db
-        .update(stores)
-        .set({ storefrontSettings: serializeUnifiedSettings(unified) })
-        .where(and(eq(stores.id, storeId), isNull(stores.storefrontSettings)));
-    } catch (error) {
-      console.warn('Failed to backfill unified settings:', error);
-    }
-
-    return {
-      ...unified,
-      flags: {
-        ...unified.flags,
-        legacyFallbackUsed: true,
-      },
-    };
-  }
-
-  // Return defaults if nothing found and fallback disabled (strict mode)
+  // Return defaults if nothing found (legacy fallback removed)
   return DEFAULT_UNIFIED_SETTINGS;
 }
 
@@ -516,15 +493,21 @@ async function migrateLegacyToUnified(
 function resolveTemplateId(legacy: LegacySources): AllowedThemeId {
   // If we have themeConfig, check for its storeTemplateId
   if (legacy.themeConfig) {
-    if (legacy.themeConfig.storeTemplateId && typeof legacy.themeConfig.storeTemplateId === 'string') {
+    if (
+      legacy.themeConfig.storeTemplateId &&
+      typeof legacy.themeConfig.storeTemplateId === 'string'
+    ) {
       return validateThemeId(legacy.themeConfig.storeTemplateId);
     }
   }
 
   // Try parsing storeTheme JSON string
   if (legacy.mvpSettings) {
-    if (legacy.mvpSettings.storeTemplateId && typeof legacy.mvpSettings.storeTemplateId === 'string') {
-        return validateThemeId(legacy.mvpSettings.storeTemplateId);
+    if (
+      legacy.mvpSettings.storeTemplateId &&
+      typeof legacy.mvpSettings.storeTemplateId === 'string'
+    ) {
+      return validateThemeId(legacy.mvpSettings.storeTemplateId);
     }
   }
 
@@ -862,74 +845,5 @@ export async function saveUnifiedStorefrontSettingsWithCacheInvalidation<
 }
 
 // ============================================================================
-// LEGACY FORMAT HELPER (for backward compatibility with routes)
+// EXPORTS
 // ============================================================================
-
-export interface LegacyStorefrontSettings {
-  storeTemplateId: string;
-  mvpSettings: {
-    storeName: string;
-    logo: string | null;
-    favicon: string | null;
-    primaryColor: string;
-    accentColor: string;
-    showAnnouncement: boolean;
-    announcementText: string | null;
-    themeId: string;
-  };
-  storeName: string;
-  logo: string | null;
-  favicon: string | null;
-  theme: StoreTemplateTheme;
-  themeConfig: Record<string, unknown>;
-}
-
-export function toLegacyFormat(settings: UnifiedStorefrontSettingsV1): LegacyStorefrontSettings {
-  const templateId = settings.theme.templateId;
-
-  return {
-    storeTemplateId: templateId,
-    mvpSettings: {
-      storeName: settings.branding.storeName,
-      logo: settings.branding.logo,
-      favicon: settings.branding.favicon,
-      primaryColor: settings.theme.primary,
-      accentColor: settings.theme.accent,
-      showAnnouncement: settings.announcement.enabled,
-      announcementText: settings.announcement.text,
-      themeId: templateId,
-    },
-    storeName: settings.branding.storeName,
-    logo: settings.branding.logo,
-    favicon: settings.branding.favicon,
-    theme: {
-      primary: settings.theme.primary,
-      accent: settings.theme.accent,
-      background: settings.theme.background,
-      text: settings.theme.text,
-      muted: settings.theme.muted,
-      cardBg: settings.theme.cardBg,
-      headerBg: settings.theme.headerBg,
-      footerBg: settings.theme.footerBg,
-      footerText: settings.theme.footerText,
-    },
-    themeConfig: {
-      storeName: settings.branding.storeName,
-      logo: settings.branding.logo ?? undefined,
-      favicon: settings.branding.favicon ?? undefined,
-      tagline: settings.branding.tagline ?? undefined,
-      description: settings.branding.description ?? undefined,
-      primaryColor: settings.theme.primary,
-      accentColor: settings.theme.accent,
-      announcement: settings.announcement.enabled
-        ? {
-            text: settings.announcement.text || '',
-            link: settings.announcement.link || undefined,
-          }
-        : undefined,
-      headerMenu: settings.navigation?.headerMenu ?? [],
-      footerColumns: settings.navigation?.footerColumns ?? [],
-      footerDescription: settings.navigation?.footerDescription ?? '',
-    },
-  };
-}

@@ -47,12 +47,11 @@ import {
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { formatPrice } from '~/utils/formatPrice';
-import {
-  type OrderStatus,
-  assertOrderStatusTransition,
-  isOrderStatus,
-} from '~/lib/orderStatus';
+import { type OrderStatus, assertOrderStatusTransition, isOrderStatus } from '~/lib/orderStatus';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
+import type { PathaoCredentials } from '~/services/pathao.server';
+import type { RedXCredentials } from '~/services/redx.server';
+import type { SteadfastCredentials } from '~/services/steadfast.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Orders - Merchant Dashboard' }];
@@ -88,17 +87,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     if (o.shippingAddress) {
       try {
         // Could be a JSON string or a plain address string
-        const parsed = typeof o.shippingAddress === 'string' && o.shippingAddress.startsWith('{')
-          ? JSON.parse(o.shippingAddress)
-          : null;
+        const parsed =
+          typeof o.shippingAddress === 'string' && o.shippingAddress.startsWith('{')
+            ? JSON.parse(o.shippingAddress)
+            : null;
         if (parsed && typeof parsed === 'object') {
           // JSON object: extract address, upazila, district/city
           // Prioritize: Address, Upazila, District
-          const parts = [
-            parsed.address, 
-            parsed.upazila, 
-            parsed.district || parsed.city
-          ].filter(Boolean);
+          const parts = [parsed.address, parsed.upazila, parsed.district || parsed.city].filter(
+            Boolean
+          );
           // Deduplicate components
           displayAddress = [...new Set(parts)].join(', ');
         } else {
@@ -127,33 +125,19 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .reduce((sum, o) => sum + o.total, 0),
   };
 
-  // Read courier provider from unified settings first (canonical source)
+  // Read courier provider from unified settings (single source of truth)
   let courierProvider: string | null = null;
   let allCouriers: string[] = [];
   try {
-    const unified = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
+    const unified = await getUnifiedStorefrontSettings(db, storeId, {
+      env: context.cloudflare.env,
+    });
     courierProvider = unified.courier?.provider || null;
     if (unified.courier?.pathao) allCouriers.push('pathao');
     if (unified.courier?.redx) allCouriers.push('redx');
     if (unified.courier?.steadfast) allCouriers.push('steadfast');
   } catch {
     courierProvider = null;
-  }
-
-  // Compatibility fallback: dedicated column
-  if (!courierProvider && store.courierSettings) {
-    try {
-      const courierSettings =
-        typeof store.courierSettings === 'string'
-          ? JSON.parse(store.courierSettings)
-          : store.courierSettings;
-      courierProvider = courierSettings?.provider || null;
-      if (courierSettings?.pathao) allCouriers.push('pathao');
-      if (courierSettings?.redx) allCouriers.push('redx');
-      if (courierSettings?.steadfast) allCouriers.push('steadfast');
-    } catch {
-      courierProvider = null;
-    }
   }
 
   // Ensure unique couriers
@@ -187,7 +171,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     d.setHours(0, 0, 0, 0);
     const diffTime = d.getTime() - fiveDaysAgo.getTime();
     const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays >= 0 && diffDays <= 4) {
       dailyStats[diffDays].total++;
       if (o.status !== 'cancelled' && o.status !== 'returned') {
@@ -199,33 +183,34 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
   });
 
-
   // === BULK LOAD FRAUD CACHE FROM KV ===
   // Read previously cached Steadfast fraud results for all unique phones in this order list
-  const fraudCacheByPhone: Record<string, {
-    successRate: number;
-    totalOrders: number;
-    deliveredOrders: number;
-    returnedOrders: number;
-    isHighRisk: boolean;
-    riskScore: number;
-    cachedAt: string;
-  }> = {};
+  const fraudCacheByPhone: Record<
+    string,
+    {
+      successRate: number;
+      totalOrders: number;
+      deliveredOrders: number;
+      returnedOrders: number;
+      isHighRisk: boolean;
+      riskScore: number;
+      cachedAt: string;
+    }
+  > = {};
 
   try {
     const kv = context.cloudflare.env.STORE_CACHE;
     if (kv) {
-      const uniquePhones = [...new Set(
-        ordersWithAddress
-          .map((o) => o.customerPhone)
-          .filter((p): p is string => !!p)
-      )];
+      const uniquePhones = [
+        ...new Set(ordersWithAddress.map((o) => o.customerPhone).filter((p): p is string => !!p)),
+      ];
 
       // Fetch in parallel (up to 20 unique phones at a time to avoid overloading)
       const phoneSlice = uniquePhones.slice(0, 40);
       const cacheResults = await Promise.all(
         phoneSlice.map((phone) =>
-          kv.get(`fraud_steadfast_${storeId}_${phone}`, 'json')
+          kv
+            .get(`fraud_steadfast_${storeId}_${phone}`, 'json')
             .then((val) => ({ phone, val }))
             .catch(() => ({ phone, val: null }))
         )
@@ -233,7 +218,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
       for (const { phone, val } of cacheResults) {
         if (val) {
-          fraudCacheByPhone[phone] = val as typeof fraudCacheByPhone[string];
+          fraudCacheByPhone[phone] = val as (typeof fraudCacheByPhone)[string];
         }
       }
     }
@@ -257,7 +242,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     allCouriers,
   });
 }
-
 
 // ============================================================================
 // ACTION - Update order status inline + Fraud Check
@@ -291,21 +275,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     const order = orderResult[0];
 
-    // Get store courier settings
-    const storeResultCourier = await db
-      .select({ courierSettings: stores.courierSettings, name: stores.name })
-      .from(stores)
-      .where(eq(stores.id, storeId))
-      .limit(1);
-
-    if (!storeResultCourier[0]?.courierSettings) {
+    // Get courier settings from unified settings (single source of truth)
+    const unified = await getUnifiedStorefrontSettings(db, storeId, {
+      env: context.cloudflare.env,
+    });
+    const courierSettings = unified.courier;
+    if (!courierSettings) {
       return json(
         { error: 'Courier not configured. Go to Settings > Courier to connect.' },
         { status: 400 }
       );
     }
-
-    const courierSettings = JSON.parse(storeResultCourier[0].courierSettings as string);
     let consignmentId = '';
 
     try {
@@ -326,8 +306,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
             parsed.district,
             parsed.city,
             parsed.division,
-          ].filter(Boolean).join(', ');
-          address = fullAddress || (typeof order.shippingAddress === 'string' ? order.shippingAddress : '');
+          ]
+            .filter(Boolean)
+            .join(', ');
+          address =
+            fullAddress || (typeof order.shippingAddress === 'string' ? order.shippingAddress : '');
         } catch {
           address = typeof order.shippingAddress === 'string' ? order.shippingAddress : '';
         }
@@ -337,10 +320,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       if (provider === 'pathao' && courierSettings.pathao) {
         const { createPathaoClient } = await import('~/services/pathao.server');
-        const client = createPathaoClient(courierSettings.pathao);
+        const client = createPathaoClient(courierSettings.pathao as PathaoCredentials);
         const configuredStoreId = Number(courierSettings.pathao.defaultStoreId);
         if (!Number.isInteger(configuredStoreId) || configuredStoreId <= 0) {
-          return json({ error: 'Pathao default store ID is missing. Please set it in Courier Settings.' }, { status: 400 });
+          return json(
+            { error: 'Pathao default store ID is missing. Please set it in Courier Settings.' },
+            { status: 400 }
+          );
         }
 
         // Fetch order items to calculate actual product weight
@@ -360,7 +346,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
           recipient_name: order.customerName || 'Customer',
           recipient_phone: order.customerPhone || '',
           // Pathao requires recipient_address to be at least 10 characters
-          recipient_address: address.length >= 10 ? address : (address ? address.padEnd(10, ' ').trim() : 'Dhaka, Bangladesh'),
+          recipient_address:
+            address.length >= 10
+              ? address
+              : address
+                ? address.padEnd(10, ' ').trim()
+                : 'Dhaka, Bangladesh',
           delivery_type: 48,
           item_type: 2,
           item_quantity: 1,
@@ -370,7 +361,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         consignmentId = result.consignment_id;
       } else if (provider === 'redx' && courierSettings.redx) {
         const { createRedXClient } = await import('~/services/redx.server');
-        const client = createRedXClient(courierSettings.redx);
+        const client = createRedXClient(courierSettings.redx as RedXCredentials);
 
         const result = await client.createParcel({
           customer_name: order.customerName || 'Customer',
@@ -385,7 +376,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         consignmentId = result.tracking_id;
       } else if (provider === 'steadfast' && courierSettings.steadfast) {
         const { createSteadfastClient } = await import('~/services/steadfast.server');
-        const client = createSteadfastClient(courierSettings.steadfast);
+        const client = createSteadfastClient(courierSettings.steadfast as SteadfastCredentials);
 
         const result = await client.createOrder({
           invoice: order.orderNumber,
@@ -464,19 +455,26 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const phoneForCheck = order.customerPhone || '';
       const fraudCacheKey = `fraud_steadfast_${storeId}_${phoneForCheck}`;
       const kv = context.cloudflare.env.STORE_CACHE;
-      
+
       const forceRefresh = formData.get('forceRefresh') === 'true';
 
       if (kv && phoneForCheck && !forceRefresh) {
         try {
-          const cachedResult = await kv.get(fraudCacheKey, 'json') as {
-            successRate: number; totalOrders: number; deliveredOrders: number;
-            returnedOrders: number; isHighRisk: boolean; riskScore: number;
-            source: string; cachedAt: string;
+          const cachedResult = (await kv.get(fraudCacheKey, 'json')) as {
+            successRate: number;
+            totalOrders: number;
+            deliveredOrders: number;
+            returnedOrders: number;
+            isHighRisk: boolean;
+            riskScore: number;
+            source: string;
+            cachedAt: string;
           } | null;
 
           if (cachedResult) {
-            console.log(`[FRAUD CHECK] Returning KV cached result for ${phoneForCheck} (cached at ${cachedResult.cachedAt})`);
+            console.log(
+              `[FRAUD CHECK] Returning KV cached result for ${phoneForCheck} (cached at ${cachedResult.cachedAt})`
+            );
             return json(
               {
                 success: true,
@@ -499,22 +497,26 @@ export async function action({ request, context }: ActionFunctionArgs) {
             const adminCreds = JSON.parse(adminCredsStr as string);
             if (adminCreds.sessionCookie && adminCreds.xsrfToken) {
               const steadfastClient = createSteadfastClient({
-                apiKey: 'internal', secretKey: 'internal',
-                sessionCookie: adminCreds.sessionCookie, xsrfToken: adminCreds.xsrfToken
+                apiKey: 'internal',
+                secretKey: 'internal',
+                sessionCookie: adminCreds.sessionCookie,
+                xsrfToken: adminCreds.xsrfToken,
               });
 
               // Normalize phone for Steadfast (strip +88/880 prefix)
-              const sfPhone = phoneForCheck.startsWith('+88') 
-                ? phoneForCheck.slice(3) 
-                : phoneForCheck.startsWith('880') ? phoneForCheck.slice(3) : phoneForCheck;
+              const sfPhone = phoneForCheck.startsWith('+88')
+                ? phoneForCheck.slice(3)
+                : phoneForCheck.startsWith('880')
+                  ? phoneForCheck.slice(3)
+                  : phoneForCheck;
 
               const externalFraud = await steadfastClient.checkExternalFraud(sfPhone);
-              
+
               externalCheckSuccess = true;
               deliveredOrders = externalFraud.success || 0;
               returnedOrders = externalFraud.cancellation || 0;
               totalOrders = deliveredOrders + returnedOrders;
-              
+
               if (totalOrders > 0) {
                 successRate = Math.round((deliveredOrders / totalOrders) * 100);
                 const returnRate = (returnedOrders / totalOrders) * 100;
@@ -525,7 +527,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
           }
         }
       } catch (err) {
-        console.warn('[FRAUD CHECK] External Steadfast check failed. Internal fallback is disabled.', err);
+        console.warn(
+          '[FRAUD CHECK] External Steadfast check failed. Internal fallback is disabled.',
+          err
+        );
       }
 
       if (!externalCheckSuccess) {
@@ -536,8 +541,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
       const resultObj = {
-        successRate, totalOrders, deliveredOrders, returnedOrders,
-        isHighRisk, riskScore, source: totalOrders === 0 ? 'no_data' : 'steadfast_external',
+        successRate,
+        totalOrders,
+        deliveredOrders,
+        returnedOrders,
+        isHighRisk,
+        riskScore,
+        source: totalOrders === 0 ? 'no_data' : 'steadfast_external',
         cachedAt: new Date().toISOString(),
       };
 
@@ -645,7 +655,12 @@ const statusOptionsKeys = [
 // MAIN COMPONENT
 // ============================================================================
 export default function DashboardOrdersPage() {
-  const { orders: storeOrders, stats, courierProvider, allCouriers = [] } = useLoaderData<typeof loader>();
+  const {
+    orders: storeOrders,
+    stats,
+    courierProvider,
+    allCouriers = [],
+  } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { t, lang } = useTranslation();
 
@@ -730,23 +745,27 @@ export default function DashboardOrdersPage() {
       {/* Sticky Header / Command Bar */}
       <header className="h-16 border-b border-gray-200 bg-white/90 backdrop-blur-sm flex items-center justify-between px-4 lg:px-6 shrink-0 z-10 sticky top-0 md:top-auto">
         <div className="flex items-center gap-6">
-          <h1 className="text-xl font-semibold tracking-tight text-gray-900">{t('dashboard:orders')}</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-gray-900">
+            {t('dashboard:orders')}
+          </h1>
           {/* Command K Search */}
           <div className="relative group hidden md:block">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-gray-400" />
             </div>
-            <input 
+            <input
               role="search"
               aria-label="Search orders"
-              className="block w-64 lg:w-96 pl-10 pr-12 py-1.5 border-none rounded-lg bg-gray-100 text-sm placeholder-gray-500 focus:ring-2 focus:ring-emerald-500/20 focus:bg-white transition-all" 
-              placeholder={t('dashboard:searchByOrderHint')} 
+              className="block w-64 lg:w-96 pl-10 pr-12 py-1.5 border-none rounded-lg bg-gray-100 text-sm placeholder-gray-500 focus:ring-2 focus:ring-emerald-500/20 focus:bg-white transition-all"
+              placeholder={t('dashboard:searchByOrderHint')}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <kbd className="inline-flex items-center border border-gray-200 rounded px-2 text-[10px] font-sans font-medium text-gray-400">⌘K</kbd>
+              <kbd className="inline-flex items-center border border-gray-200 rounded px-2 text-[10px] font-sans font-medium text-gray-400">
+                ⌘K
+              </kbd>
             </div>
           </div>
         </div>
@@ -758,7 +777,10 @@ export default function DashboardOrdersPage() {
             <UndoDot className="h-[18px] w-[18px]" />
             <span className="hidden sm:inline">{t('dashboard:viewReturnParcels')}</span>
           </Link>
-          <Link to="/app/orders/create" className="flex items-center gap-2 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg shadow-sm shadow-emerald-500/20 transition-all active:scale-95">
+          <Link
+            to="/app/orders/create"
+            className="flex items-center gap-2 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg shadow-sm shadow-emerald-500/20 transition-all active:scale-95"
+          >
             <Plus className="h-[18px] w-[18px]" />
             <span className="hidden sm:inline">{t('dashboard:createOrder')}</span>
           </Link>
@@ -767,15 +789,18 @@ export default function DashboardOrdersPage() {
 
       {/* Scrollable Body */}
       <div className="flex-1 overflow-y-auto p-4 lg:p-6 scroll-smooth bg-gray-50/50">
-        
         {/* KPI Section (Compact) */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           {/* KPI 1 - Revenue */}
           <div className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t('dashboard:totalRevenue')}</span>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+              {t('dashboard:totalRevenue')}
+            </span>
             <div className="flex items-end justify-between">
               <div className="flex flex-col">
-                <span className="text-xl font-bold text-gray-900 tabular-nums">{formatPrice(stats.revenue)}</span>
+                <span className="text-xl font-bold text-gray-900 tabular-nums">
+                  {formatPrice(stats.revenue)}
+                </span>
                 <span className="text-xs font-medium text-emerald-600 flex items-center gap-0.5 mt-1">
                   <TrendingUp className="h-3.5 w-3.5" />
                   {t('dashboard:active')}
@@ -784,7 +809,12 @@ export default function DashboardOrdersPage() {
               <div className="h-8 w-16 opacity-50 group-hover:opacity-100 transition-opacity flex items-end justify-end">
                 <div className="flex items-end h-full gap-0.5 mt-2 w-full">
                   {stats.dailyStats?.map((s: any, i: number) => (
-                    <div key={i} className={`w-1/5 rounded-sm ${i === 4 ? 'bg-emerald-500' : 'bg-emerald-500/30'}`} style={{ height: `${Math.max((s.revenue / maxRevenue) * 100, 15)}%` }} title={`${formatDate(s.date)}: ${formatPrice(s.revenue)}`}></div>
+                    <div
+                      key={i}
+                      className={`w-1/5 rounded-sm ${i === 4 ? 'bg-emerald-500' : 'bg-emerald-500/30'}`}
+                      style={{ height: `${Math.max((s.revenue / maxRevenue) * 100, 15)}%` }}
+                      title={`${formatDate(s.date)}: ${formatPrice(s.revenue)}`}
+                    ></div>
                   ))}
                 </div>
               </div>
@@ -792,8 +822,13 @@ export default function DashboardOrdersPage() {
           </div>
 
           {/* KPI 2 - Orders */}
-          <div className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow group cursor-pointer" onClick={() => handleStatusChange('all')}>
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t('dashboard:totalOrders')}</span>
+          <div
+            className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow group cursor-pointer"
+            onClick={() => handleStatusChange('all')}
+          >
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+              {t('dashboard:totalOrders')}
+            </span>
             <div className="flex items-end justify-between">
               <div className="flex flex-col">
                 <span className="text-xl font-bold text-gray-900 tabular-nums">{stats.total}</span>
@@ -805,7 +840,12 @@ export default function DashboardOrdersPage() {
               <div className="h-8 w-16 opacity-50 group-hover:opacity-100 transition-opacity flex items-end justify-end">
                 <div className="flex items-end h-full gap-0.5 mt-2 w-full">
                   {stats.dailyStats?.map((s: any, i: number) => (
-                    <div key={i} className={`w-1/5 rounded-sm ${i === 4 ? 'bg-emerald-500' : 'bg-emerald-500/30'}`} style={{ height: `${Math.max((s.total / maxOrders) * 100, 15)}%` }} title={`${formatDate(s.date)}: ${s.total} orders`}></div>
+                    <div
+                      key={i}
+                      className={`w-1/5 rounded-sm ${i === 4 ? 'bg-emerald-500' : 'bg-emerald-500/30'}`}
+                      style={{ height: `${Math.max((s.total / maxOrders) * 100, 15)}%` }}
+                      title={`${formatDate(s.date)}: ${s.total} orders`}
+                    ></div>
                   ))}
                 </div>
               </div>
@@ -813,21 +853,33 @@ export default function DashboardOrdersPage() {
           </div>
 
           {/* KPI 3 - Pending */}
-          <div className="flex flex-col gap-1 p-3 rounded-xl bg-orange-50/50 border border-orange-100 hover:shadow-md transition-shadow group cursor-pointer" onClick={() => handleStatusChange('pending')}>
+          <div
+            className="flex flex-col gap-1 p-3 rounded-xl bg-orange-50/50 border border-orange-100 hover:shadow-md transition-shadow group cursor-pointer"
+            onClick={() => handleStatusChange('pending')}
+          >
             <span className="text-xs font-medium text-orange-600/80 uppercase tracking-wider flex items-center gap-1">
               {t('dashboard:pending')}
-              {stats.pending > 0 && <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>}
+              {stats.pending > 0 && (
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+              )}
             </span>
             <div className="flex items-end justify-between">
               <div className="flex flex-col">
-                <span className="text-xl font-bold text-gray-900 tabular-nums">{stats.pending}</span>
+                <span className="text-xl font-bold text-gray-900 tabular-nums">
+                  {stats.pending}
+                </span>
                 <span className="text-xs font-medium text-orange-600 flex items-center gap-0.5 mt-1">
                   {t('dashboard:needsAction')}
                 </span>
               </div>
               <div className="w-16 flex flex-col items-end justify-end h-8 opacity-70 group-hover:opacity-100 transition-opacity pb-1">
                 <div className="w-full bg-orange-200/50 rounded-full h-1.5">
-                  <div className="bg-orange-500 h-1.5 rounded-full" style={{ width: `${stats.total > 0 ? (stats.pending / stats.total) * 100 : 0}%` }}></div>
+                  <div
+                    className="bg-orange-500 h-1.5 rounded-full"
+                    style={{
+                      width: `${stats.total > 0 ? (stats.pending / stats.total) * 100 : 0}%`,
+                    }}
+                  ></div>
                 </div>
                 <span className="text-[10px] text-orange-600 font-medium mt-1">
                   {stats.total > 0 ? Math.round((stats.pending / stats.total) * 100) : 0}%
@@ -837,11 +889,18 @@ export default function DashboardOrdersPage() {
           </div>
 
           {/* KPI 4 - Shipped */}
-          <div className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow group cursor-pointer" onClick={() => handleStatusChange('shipped')}>
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t('dashboard:shippedOrders')}</span>
+          <div
+            className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow group cursor-pointer"
+            onClick={() => handleStatusChange('shipped')}
+          >
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+              {t('dashboard:shippedOrders')}
+            </span>
             <div className="flex items-end justify-between">
               <div className="flex flex-col">
-                <span className="text-xl font-bold text-gray-900 tabular-nums">{stats.shipped}</span>
+                <span className="text-xl font-bold text-gray-900 tabular-nums">
+                  {stats.shipped}
+                </span>
                 <span className="text-xs font-medium text-blue-600 flex items-center gap-0.5 mt-1">
                   <Truck className="h-3.5 w-3.5" />
                   {t('dashboard:inTransit')}
@@ -849,7 +908,12 @@ export default function DashboardOrdersPage() {
               </div>
               <div className="w-16 flex flex-col items-end justify-end h-8 opacity-70 group-hover:opacity-100 transition-opacity pb-1">
                 <div className="w-full bg-blue-200/50 rounded-full h-1.5">
-                  <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: `${stats.total > 0 ? (stats.shipped / stats.total) * 100 : 0}%` }}></div>
+                  <div
+                    className="bg-blue-500 h-1.5 rounded-full"
+                    style={{
+                      width: `${stats.total > 0 ? (stats.shipped / stats.total) * 100 : 0}%`,
+                    }}
+                  ></div>
                 </div>
                 <span className="text-[10px] text-blue-600 font-medium mt-1">
                   {stats.total > 0 ? Math.round((stats.shipped / stats.total) * 100) : 0}%
@@ -859,11 +923,18 @@ export default function DashboardOrdersPage() {
           </div>
 
           {/* KPI 5 - Returns & Cancelled */}
-          <div className="flex flex-col gap-1 p-3 rounded-xl bg-red-50/50 border border-red-100 hover:shadow-md transition-shadow group cursor-pointer" onClick={() => handleStatusChange('returned')}>
-            <span className="text-xs font-medium text-red-600/80 uppercase tracking-wider">{t('dashboard:issuesAndReturns')}</span>
+          <div
+            className="flex flex-col gap-1 p-3 rounded-xl bg-red-50/50 border border-red-100 hover:shadow-md transition-shadow group cursor-pointer"
+            onClick={() => handleStatusChange('returned')}
+          >
+            <span className="text-xs font-medium text-red-600/80 uppercase tracking-wider">
+              {t('dashboard:issuesAndReturns')}
+            </span>
             <div className="flex items-end justify-between">
               <div className="flex flex-col">
-                <span className="text-xl font-bold text-gray-900 tabular-nums">{stats.cancelled + stats.returned}</span>
+                <span className="text-xl font-bold text-gray-900 tabular-nums">
+                  {stats.cancelled + stats.returned}
+                </span>
                 <span className="text-xs font-medium text-red-600 flex items-center gap-0.5 mt-1">
                   <AlertTriangle className="h-3.5 w-3.5" />
                   {t('dashboard:requiresAttention')}
@@ -871,10 +942,18 @@ export default function DashboardOrdersPage() {
               </div>
               <div className="w-16 flex flex-col items-end justify-end h-8 opacity-70 group-hover:opacity-100 transition-opacity pb-1">
                 <div className="w-full bg-red-200/50 rounded-full h-1.5">
-                  <div className="bg-red-500 h-1.5 rounded-full" style={{ width: `${stats.total > 0 ? ((stats.cancelled + stats.returned) / stats.total) * 100 : 0}%` }}></div>
+                  <div
+                    className="bg-red-500 h-1.5 rounded-full"
+                    style={{
+                      width: `${stats.total > 0 ? ((stats.cancelled + stats.returned) / stats.total) * 100 : 0}%`,
+                    }}
+                  ></div>
                 </div>
                 <span className="text-[10px] text-red-600 font-medium mt-1">
-                  {stats.total > 0 ? Math.round(((stats.cancelled + stats.returned) / stats.total) * 100) : 0}%
+                  {stats.total > 0
+                    ? Math.round(((stats.cancelled + stats.returned) / stats.total) * 100)
+                    : 0}
+                  %
                 </span>
               </div>
             </div>
@@ -883,36 +962,44 @@ export default function DashboardOrdersPage() {
 
         {/* Main Content Area */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col min-h-[500px]">
-          
           {/* Toolbar / Filter Row */}
           <div className="px-4 py-3 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4 bg-white">
             <div className="flex items-center gap-4 w-full md:w-auto">
               {/* Saved Views */}
               <div className="relative">
                 <button className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors">
-                  {statusFilter === 'all' ? t('dashboard:allOrders') : statusTabs.find(t => t.id === statusFilter)?.label}
+                  {statusFilter === 'all'
+                    ? t('dashboard:allOrders')
+                    : statusTabs.find((t) => t.id === statusFilter)?.label}
                   <ChevronDown className="h-5 w-5" />
                 </button>
               </div>
-              
+
               <div className="h-5 w-px bg-gray-200"></div>
-              
+
               {/* Chip Filters */}
               <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1 md:pb-0">
-                <select 
+                <select
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors border-none cursor-pointer focus:ring-0 appearance-none pr-8 relative"
                   value={statusFilter}
                   onChange={(e) => handleStatusChange(e.target.value)}
-                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236b7280'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236b7280'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`,
+                    backgroundPosition: 'right 0.5rem center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: '1.5em 1.5em',
+                  }}
                 >
                   <option value="all">Status: All</option>
-                  {statusTabs.slice(1).map(tab => (
-                    <option key={tab.id} value={tab.id}>Status: {tab.label}</option>
+                  {statusTabs.slice(1).map((tab) => (
+                    <option key={tab.id} value={tab.id}>
+                      Status: {tab.label}
+                    </option>
                   ))}
                 </select>
 
                 {searchQuery && (
-                  <button 
+                  <button
                     onClick={() => setSearchQuery('')}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors border border-emerald-200"
                   >
@@ -922,10 +1009,11 @@ export default function DashboardOrdersPage() {
                 )}
               </div>
             </div>
-            
+
             {/* Pagination / Count */}
             <div className="text-xs text-gray-500 font-medium">
-              {t('dashboard:showing')} {filteredOrders.length > 0 ? 1 : 0}-{Math.min(filteredOrders.length, 200)} {t('dashboard:of')} {filteredOrders.length}
+              {t('dashboard:showing')} {filteredOrders.length > 0 ? 1 : 0}-
+              {Math.min(filteredOrders.length, 200)} {t('dashboard:of')} {filteredOrders.length}
             </div>
           </div>
 
@@ -942,7 +1030,9 @@ export default function DashboardOrdersPage() {
             ) : filteredOrders.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-12 text-center">
                 <SearchX className="h-12 w-12 text-gray-300 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900">{t('dashboard:noOrdersMatchFilters')}</h3>
+                <h3 className="text-lg font-medium text-gray-900">
+                  {t('dashboard:noOrdersMatchFilters')}
+                </h3>
                 <button
                   onClick={() => {
                     setSearchQuery('');
@@ -958,91 +1048,156 @@ export default function DashboardOrdersPage() {
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
                     <th className="py-3 px-4 border-b border-gray-200 w-10">
-                      <input type="checkbox" className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-600/20" />
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-600/20"
+                      />
                     </th>
-                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard:order')} ID</th>
-                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard:customer')}</th>
-                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">{t('dashboard:total')}</th>
-                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard:payment')}</th>
-                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard:status')}</th>
-                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">Fraud <span className="text-yellow-400">⚡</span></th>
-                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard:courier')}</th>
+                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      {t('dashboard:order')} ID
+                    </th>
+                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      {t('dashboard:customer')}
+                    </th>
+                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
+                      {t('dashboard:total')}
+                    </th>
+                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      {t('dashboard:payment')}
+                    </th>
+                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      {t('dashboard:status')}
+                    </th>
+                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Fraud <span className="text-yellow-400">⚡</span>
+                    </th>
+                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      {t('dashboard:courier')}
+                    </th>
                     <th className="py-3 px-4 border-b border-gray-200 w-10"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filteredOrders.map(order => {
-                    const isErrorState = order.status === 'cancelled' || order.status === 'returned';
+                  {filteredOrders.map((order) => {
+                    const isErrorState =
+                      order.status === 'cancelled' || order.status === 'returned';
                     return (
-                    <tr key={order.id} className={`group hover:bg-gray-50 transition-colors ${isErrorState ? 'bg-red-50/30 hover:bg-red-50/50' : ''}`}>
-                      <td className="py-3 px-4 w-10">
-                        <input type="checkbox" className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-600/20" />
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2">
-                            <Receipt className={`h-4 w-4 ${isErrorState ? 'text-red-500' : 'text-gray-400'}`} />
-                            <Link to={`/app/orders/${order.id}`} className="font-medium text-emerald-600 text-sm font-sans tabular-nums hover:underline cursor-pointer">
-                              {order.orderNumber}
-                            </Link>
-                          </div>
-                          <span className="text-[11px] text-gray-400 ml-6">{formatDate(order.createdAt)}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900">{order.customerName || 'Customer'}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500 font-sans tabular-nums flex items-center gap-1">
-                              {order.customerPhone}
-                            </span>
-                          </div>
-                          {order.displayAddress && (
-                            <span className="text-xs text-gray-400 flex items-center gap-1 mt-0.5 w-[180px] truncate" title={order.displayAddress}>
-                              {order.displayAddress}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="text-sm font-semibold text-gray-900 font-sans tabular-nums">
-                          {formatPrice(order.total)}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
-                          order.paymentStatus === 'paid' 
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                            : 'bg-orange-50 text-orange-700 border-orange-200'
-                        }`}>
-                          {order.paymentStatus === 'paid' ? t('dashboard:paid') : t('dashboard:cod')}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <StatusDropdown
-                          orderId={order.id}
-                          currentStatus={order.status || 'pending'}
-                        />
-                      </td>
-                      <td className="py-3 px-4 min-w-[110px]">
-                        {'fraudCache' in order && (order as { fraudCache: { successRate: number; totalOrders: number; isHighRisk: boolean; cachedAt: string } | null }).fraudCache ? (() => {
-                          const fc = (order as { fraudCache: { successRate: number; totalOrders: number; isHighRisk: boolean; cachedAt: string } }).fraudCache;
-                          const sr = fc.successRate;
-                          const colorClass = sr >= 80
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : sr >= 50
-                            ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                            : 'bg-red-50 text-red-700 border-red-200';
-                          return (
-                            <div className="flex flex-col gap-0.5">
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold border ${colorClass}`}>
-                                {sr >= 80 ? '✅' : sr >= 50 ? '⚠️' : '🚫'} {sr}%
-                              </span>
-                              <span className="text-[10px] text-gray-400">{fc.totalOrders} orders · ⚡cached</span>
+                      <tr
+                        key={order.id}
+                        className={`group hover:bg-gray-50 transition-colors ${isErrorState ? 'bg-red-50/30 hover:bg-red-50/50' : ''}`}
+                      >
+                        <td className="py-3 px-4 w-10">
+                          <input
+                            type="checkbox"
+                            className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-600/20"
+                          />
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              <Receipt
+                                className={`h-4 w-4 ${isErrorState ? 'text-red-500' : 'text-gray-400'}`}
+                              />
+                              <Link
+                                to={`/app/orders/${order.id}`}
+                                className="font-medium text-emerald-600 text-sm font-sans tabular-nums hover:underline cursor-pointer"
+                              >
+                                {order.orderNumber}
+                              </Link>
                             </div>
-                          );
-                        })() : (
-                          // No cache yet — show the check button inline
+                            <span className="text-[11px] text-gray-400 ml-6">
+                              {formatDate(order.createdAt)}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-gray-900">
+                              {order.customerName || 'Customer'}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-500 font-sans tabular-nums flex items-center gap-1">
+                                {order.customerPhone}
+                              </span>
+                            </div>
+                            {order.displayAddress && (
+                              <span
+                                className="text-xs text-gray-400 flex items-center gap-1 mt-0.5 w-[180px] truncate"
+                                title={order.displayAddress}
+                              >
+                                {order.displayAddress}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="text-sm font-semibold text-gray-900 font-sans tabular-nums">
+                            {formatPrice(order.total)}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
+                              order.paymentStatus === 'paid'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : 'bg-orange-50 text-orange-700 border-orange-200'
+                            }`}
+                          >
+                            {order.paymentStatus === 'paid'
+                              ? t('dashboard:paid')
+                              : t('dashboard:cod')}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <StatusDropdown
+                            orderId={order.id}
+                            currentStatus={order.status || 'pending'}
+                          />
+                        </td>
+                        <td className="py-3 px-4 min-w-[110px]">
+                          {'fraudCache' in order &&
+                          (
+                            order as {
+                              fraudCache: {
+                                successRate: number;
+                                totalOrders: number;
+                                isHighRisk: boolean;
+                                cachedAt: string;
+                              } | null;
+                            }
+                          ).fraudCache ? (
+                            (() => {
+                              const fc = (
+                                order as {
+                                  fraudCache: {
+                                    successRate: number;
+                                    totalOrders: number;
+                                    isHighRisk: boolean;
+                                    cachedAt: string;
+                                  };
+                                }
+                              ).fraudCache;
+                              const sr = fc.successRate;
+                              const colorClass =
+                                sr >= 80
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : sr >= 50
+                                    ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                    : 'bg-red-50 text-red-700 border-red-200';
+                              return (
+                                <div className="flex flex-col gap-0.5">
+                                  <span
+                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold border ${colorClass}`}
+                                  >
+                                    {sr >= 80 ? '✅' : sr >= 50 ? '⚠️' : '🚫'} {sr}%
+                                  </span>
+                                  <span className="text-[10px] text-gray-400">
+                                    {fc.totalOrders} orders · ⚡cached
+                                  </span>
+                                </div>
+                              );
+                            })()
+                          ) : // No cache yet — show the check button inline
                           ['pending', 'confirmed'].includes(order.status || '') ? (
                             <FraudCheckButton
                               orderId={order.id}
@@ -1050,12 +1205,15 @@ export default function DashboardOrdersPage() {
                             />
                           ) : (
                             <span className="text-[11px] text-gray-300 italic">—</span>
-                          )
-                        )}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                           {courierProvider && order.status === 'confirmed' && !['booked', 'in_transit', 'delivered', 'shipped'].includes(order.courierStatus || '') ? (
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            {courierProvider &&
+                            order.status === 'confirmed' &&
+                            !['booked', 'in_transit', 'delivered', 'shipped'].includes(
+                              order.courierStatus || ''
+                            ) ? (
                               <div className="opacity-60 xl:opacity-100 group-hover:opacity-100 transition-opacity">
                                 <SendToCourierButton
                                   orderId={order.id}
@@ -1066,41 +1224,64 @@ export default function DashboardOrdersPage() {
                                   allCouriers={allCouriers}
                                 />
                               </div>
-                           ) : courierProvider ? (
-                             <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                               {courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1)}
-                               {order.courierConsignmentId ? `: ${order.courierConsignmentId}` : ''}
-                             </span>
-                           ) : (
-                             <span className="text-[11px] text-gray-400 italic font-medium">{t('dashboard:notConfigured')}</span>
-                           )}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-right whitespace-nowrap">
-                         <div className="flex items-center justify-end gap-2">
-                           <Link to={`/app/orders/${order.id}`} className="text-gray-400 hover:text-emerald-600 transition-colors" title="View Details">
-                             <Eye className="h-5 w-5" />
-                           </Link>
-                         </div>
-                      </td>
-                    </tr>
-                   );
+                            ) : courierProvider ? (
+                              <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                                {courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1)}
+                                {order.courierConsignmentId
+                                  ? `: ${order.courierConsignmentId}`
+                                  : ''}
+                              </span>
+                            ) : (
+                              <span className="text-[11px] text-gray-400 italic font-medium">
+                                {t('dashboard:notConfigured')}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-2">
+                            <Link
+                              to={`/app/orders/${order.id}`}
+                              className="text-gray-400 hover:text-emerald-600 transition-colors"
+                              title="View Details"
+                            >
+                              <Eye className="h-5 w-5" />
+                            </Link>
+                          </div>
+                        </td>
+                      </tr>
+                    );
                   })}
                 </tbody>
               </table>
             )}
           </div>
-          
+
           {/* Footer / Bulk Actions */}
           <div className="border-t border-gray-200 bg-gray-50 px-4 py-3 flex items-center justify-between text-xs text-gray-500 mt-auto">
             <div>
               <span className="font-medium">0 rows selected</span>
               <span className="mx-2 text-gray-300">|</span>
-              <button className="text-emerald-600 hover:text-emerald-700 font-medium disabled:opacity-50" disabled>{t('dashboard:bulkEdit')}</button>
+              <button
+                className="text-emerald-600 hover:text-emerald-700 font-medium disabled:opacity-50"
+                disabled
+              >
+                {t('dashboard:bulkEdit')}
+              </button>
             </div>
             <div className="flex gap-2">
-              <button className="px-2 py-1 border border-gray-200 rounded hover:bg-white disabled:opacity-50 shadow-sm" disabled>{t('dashboard:prev')}</button>
-              <button className="px-2 py-1 border border-gray-200 rounded hover:bg-white disabled:opacity-50 shadow-sm" disabled>{t('dashboard:next')}</button>
+              <button
+                className="px-2 py-1 border border-gray-200 rounded hover:bg-white disabled:opacity-50 shadow-sm"
+                disabled
+              >
+                {t('dashboard:prev')}
+              </button>
+              <button
+                className="px-2 py-1 border border-gray-200 rounded hover:bg-white disabled:opacity-50 shadow-sm"
+                disabled
+              >
+                {t('dashboard:next')}
+              </button>
             </div>
           </div>
         </div>
@@ -1204,8 +1385,6 @@ function StatusDropdown({ orderId, currentStatus }: { orderId: number; currentSt
 // STATUS BADGE COMPONENT
 // ============================================================================
 
-
-
 // ============================================================================
 // FRAUD CHECK BUTTON COMPONENT
 // ============================================================================
@@ -1240,7 +1419,7 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
     if (fetcher.state === 'idle' && fetcher.data?.success) {
       revalidate();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetcher.state, fetcher.data?.success]);
 
   // While checking — show spinner
@@ -1282,21 +1461,20 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
   );
 }
 
-
 // ============================================================================
 // SEND TO COURIER BUTTON COMPONENT
 // ============================================================================
-function SendToCourierButton({ 
-  orderId, 
+function SendToCourierButton({
+  orderId,
   orderNumber,
-  status, 
+  status,
   courierStatus,
   courierProvider,
-  allCouriers = []
-}: { 
-  orderId: number; 
+  allCouriers = [],
+}: {
+  orderId: number;
   orderNumber: string;
-  status: string; 
+  status: string;
   courierStatus?: string | null;
   courierProvider: string;
   allCouriers?: string[];
@@ -1309,11 +1487,15 @@ function SendToCourierButton({
   }>();
 
   const isSubmitting = fetcher.state !== 'idle';
-  const isBooked = courierStatus === 'booked' || courierStatus === 'in_transit' || courierStatus === 'delivered' || courierStatus === 'shipped';
-  
+  const isBooked =
+    courierStatus === 'booked' ||
+    courierStatus === 'in_transit' ||
+    courierStatus === 'delivered' ||
+    courierStatus === 'shipped';
+
   // Show button only if status is valid for booking (e.g. confirmed) and not already booked
   if (status !== 'confirmed') return null;
-  
+
   // If already booked, show status badge
   if (isBooked) {
     return (
@@ -1328,40 +1510,59 @@ function SendToCourierButton({
     <fetcher.Form method="post" className="flex items-center gap-1.5 flex-nowrap">
       <input type="hidden" name="intent" value="bookCourier" />
       <input type="hidden" name="orderId" value={orderId} />
-      
+
       {allCouriers.length > 1 ? (
         <select
           name="provider"
           defaultValue={courierProvider}
           className="text-[11px] font-medium border border-gray-200 rounded-lg hover:border-emerald-400 focus:ring-emerald-500 focus:border-emerald-500 py-[5px] pl-2 pr-6 bg-gray-50 text-gray-700 min-w-[90px] cursor-pointer outline-none"
         >
-          {allCouriers.map(c => (
-            <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+          {allCouriers.map((c) => (
+            <option key={c} value={c}>
+              {c.charAt(0).toUpperCase() + c.slice(1)}
+            </option>
           ))}
         </select>
       ) : (
         <input type="hidden" name="provider" value={courierProvider} />
       )}
-      
+
       <button
         type="submit"
         disabled={isSubmitting}
         onClick={(e) => {
-          const selectEl = e.currentTarget.form?.elements.namedItem('provider') as HTMLSelectElement | HTMLInputElement;
+          const selectEl = e.currentTarget.form?.elements.namedItem('provider') as
+            | HTMLSelectElement
+            | HTMLInputElement;
           const provider = selectEl ? selectEl.value : courierProvider;
-          if (!confirm(t('dashboard:confirmSendToCourier', { orderNumber, courierProvider: provider.charAt(0).toUpperCase() + provider.slice(1) }))) {
+          if (
+            !confirm(
+              t('dashboard:confirmSendToCourier', {
+                orderNumber,
+                courierProvider: provider.charAt(0).toUpperCase() + provider.slice(1),
+              })
+            )
+          ) {
             e.preventDefault();
           }
         }}
         className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 border border-blue-600 hover:border-blue-700 rounded-lg transition disabled:opacity-50 shadow-sm whitespace-nowrap"
-        title={allCouriers.length > 1 ? t('dashboard:courierSend') : `Send to ${courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1)}`}
+        title={
+          allCouriers.length > 1
+            ? t('dashboard:courierSend')
+            : `Send to ${courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1)}`
+        }
       >
         {isSubmitting ? (
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
         ) : (
           <Truck className="w-3.5 h-3.5" />
         )}
-        {allCouriers.length > 1 ? t('dashboard:courierSend') : t('dashboard:sendToProvider', { provider: courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1) })}
+        {allCouriers.length > 1
+          ? t('dashboard:courierSend')
+          : t('dashboard:sendToProvider', {
+              provider: courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1),
+            })}
       </button>
     </fetcher.Form>
   );
