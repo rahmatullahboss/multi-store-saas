@@ -72,6 +72,8 @@ interface CourierSettings {
   steadfast?: {
     apiKey: string;
     secretKey: string;
+    sessionCookie?: string;
+    xsrfToken?: string;
   };
   isConnected: boolean;
 }
@@ -136,6 +138,8 @@ function toUnifiedCourier(courier: Partial<CourierSettings>) {
       ? {
           apiKey: courier.steadfast.apiKey || null,
           secretKey: courier.steadfast.secretKey || null,
+          sessionCookie: courier.steadfast.sessionCookie || null,
+          xsrfToken: courier.steadfast.xsrfToken || null,
         }
       : null,
   };
@@ -483,8 +487,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
         };
       } else if (selectedProvider === 'steadfast') {
         const steadfastData = {
-          apiKey: String(formData.get('apiKey')),
-          secretKey: String(formData.get('secretKey')),
+          apiKey: String(formData.get('apiKey') || ''),
+          secretKey: String(formData.get('secretKey') || ''),
+          sessionCookie: String(formData.get('sessionCookie') || ''),
+          xsrfToken: String(formData.get('xsrfToken') || ''),
         };
         newSettings = {
           provider: 'steadfast',
@@ -1060,6 +1066,37 @@ export default function CourierSettingsPage() {
                         placeholder={settings.steadfast?.secretKey ? '••••••••' : ''}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white/50 backdrop-blur-sm"
                       />
+                    </div>
+                    <div className="col-span-2 mt-4 pt-4 border-t border-gray-200">
+                      <h4 className="text-sm font-medium text-gray-900 mb-4">
+                        API Headers (Required for Fraud Check)
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Session Cookie (steadfast_courier_session)
+                          </label>
+                          <input
+                            type="password"
+                            name="sessionCookie"
+                            defaultValue={settings.steadfast?.sessionCookie || ''}
+                            placeholder={settings.steadfast?.sessionCookie ? '••••••••' : 'eyJpdiI6...'}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white/50 backdrop-blur-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            XSRF-TOKEN Cookie
+                          </label>
+                          <input
+                            type="password"
+                            name="xsrfToken"
+                            defaultValue={settings.steadfast?.xsrfToken || ''}
+                            placeholder={settings.steadfast?.xsrfToken ? '••••••••' : 'eyJpdiI6...'}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white/50 backdrop-blur-sm"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

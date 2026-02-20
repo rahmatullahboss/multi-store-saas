@@ -1,257 +1,108 @@
-npm warn Unknown cli config "--filter". This will stop working in the next major version of npm.
-
-> turbo:typecheck
-> turbo typecheck
-
-• turbo 2.7.5
-• Packages in scope: @ozzyl/db, @ozzyl/landing, @ozzyl/ui, @ozzyl/video-engine, @ozzyl/web, ai-builder, page-builder
-• Running typecheck in 7 packages
-• Remote caching disabled
-@ozzyl/web:typecheck: cache miss, executing 4aad4c4aac5dcf4d
-page-builder:typecheck: cache hit, replaying logs 8cd020e83428486d
-page-builder:typecheck: 
-page-builder:typecheck: > typecheck
-page-builder:typecheck: > tsc
-page-builder:typecheck: 
-ai-builder:typecheck: cache hit, replaying logs 4fc088920b4b5f14
-ai-builder:typecheck: 
-ai-builder:typecheck: > ai-builder@0.1.0 typecheck
-ai-builder:typecheck: > tsc --noEmit
-ai-builder:typecheck: 
-@ozzyl/web:typecheck: 
-@ozzyl/web:typecheck: > typecheck
-@ozzyl/web:typecheck: > tsc --noEmit
-@ozzyl/web:typecheck: 
 @ozzyl/web:typecheck: app/components/FacebookPixel.tsx(69,8): error TS2352: Conversion of type 'Window & typeof globalThis' to type 'Window & { fbq: (...args: unknown[]) => void; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
-@ozzyl/web:typecheck:   Property 'fbq' is missing in type 'Window & typeof globalThis' but required in type '{ fbq: (...args: unknown[]) => void; }'.
 @ozzyl/web:typecheck: app/components/FacebookPixel.tsx(82,8): error TS2352: Conversion of type 'Window & typeof globalThis' to type 'Window & { fbq: (...args: unknown[]) => void; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
-@ozzyl/web:typecheck:   Property 'fbq' is missing in type 'Window & typeof globalThis' but required in type '{ fbq: (...args: unknown[]) => void; }'.
 @ozzyl/web:typecheck: app/components/FacebookPixel.tsx(95,8): error TS2352: Conversion of type 'Window & typeof globalThis' to type 'Window & { fbq: (...args: unknown[]) => void; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
-@ozzyl/web:typecheck:   Property 'fbq' is missing in type 'Window & typeof globalThis' but required in type '{ fbq: (...args: unknown[]) => void; }'.
 @ozzyl/web:typecheck: app/components/FacebookPixel.tsx(106,8): error TS2352: Conversion of type 'Window & typeof globalThis' to type 'Window & { fbq: (...args: unknown[]) => void; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
-@ozzyl/web:typecheck:   Property 'fbq' is missing in type 'Window & typeof globalThis' but required in type '{ fbq: (...args: unknown[]) => void; }'.
 @ozzyl/web:typecheck: app/components/FacebookPixel.tsx(118,8): error TS2352: Conversion of type 'Window & typeof globalThis' to type 'Window & { fbq: (...args: unknown[]) => void; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
-@ozzyl/web:typecheck:   Property 'fbq' is missing in type 'Window & typeof globalThis' but required in type '{ fbq: (...args: unknown[]) => void; }'.
 @ozzyl/web:typecheck: app/components/FacebookPixel.tsx(128,8): error TS2352: Conversion of type 'Window & typeof globalThis' to type 'Window & { fbq: (...args: unknown[]) => void; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
-@ozzyl/web:typecheck:   Property 'fbq' is missing in type 'Window & typeof globalThis' but required in type '{ fbq: (...args: unknown[]) => void; }'.
 @ozzyl/web:typecheck: app/components/landing-builder/LandingTemplateGallery.tsx(186,22): error TS2304: Cannot find name 'language'.
 @ozzyl/web:typecheck: app/components/landing-builder/LandingTemplateGallery.tsx(187,29): error TS2304: Cannot find name 'language'.
 @ozzyl/web:typecheck: app/components/landing-builder/LandingTemplateGallery.tsx(267,22): error TS2304: Cannot find name 'language'.
 @ozzyl/web:typecheck: app/components/landing-builder/LandingTemplateGallery.tsx(273,22): error TS2304: Cannot find name 'language'.
 @ozzyl/web:typecheck: app/components/store-builder/SectionPicker.tsx(202,12): error TS2304: Cannot find name 'ChevronRight'.
 @ozzyl/web:typecheck: app/components/store-sections/CategorySection.tsx(89,56): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string | number | boolean'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string | number | boolean'.
 @ozzyl/web:typecheck: app/components/store-sections/CategorySection.tsx(128,56): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string | number | boolean'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string | number | boolean'.
 @ozzyl/web:typecheck: app/components/store-sections/CategorySection.tsx(165,43): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-sections/CategorySection.tsx(170,55): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string | number | boolean'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string | number | boolean'.
 @ozzyl/web:typecheck: app/components/store-sections/CategorySection.tsx(203,40): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-sections/CategorySection.tsx(207,52): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string | number | boolean'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string | number | boolean'.
 @ozzyl/web:typecheck: app/components/store-templates/artisan-market/index.tsx(70,27): error TS18048: 'categories' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/artisan-market/index.tsx(91,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/artisan-market/index.tsx(249,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/artisan-market/index.tsx(371,43): error TS2339: Property '0' does not exist on type 'any[] | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/aurora-minimal/index.tsx(826,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/aurora-minimal/index.tsx(829,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/aurora-minimal/index.tsx(838,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/aurora-minimal/index.tsx(843,42): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/aurora-minimal/index.tsx(845,37): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/aurora-minimal/index.tsx(861,19): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/aurora-minimal/index.tsx(906,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/aurora-minimal/index.tsx(913,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/aurora-minimal/index.tsx(916,11): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/aurora-minimal/index.tsx(917,11): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/aurora-minimal/index.tsx(959,27): error TS18048: 'categories' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/aurora-minimal/index.tsx(994,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/aurora-minimal/index.tsx(1133,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/aurora-minimal/index.tsx(1135,17): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/aurora-minimal/index.tsx(1136,17): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/aurora-minimal/index.tsx(1266,43): error TS2339: Property '0' does not exist on type 'any[] | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1312,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1315,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1324,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1333,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1339,56): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1342,42): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1344,37): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1350,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1353,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1372,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1382,24): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1413,30): error TS18048: 'categories' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1428,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1430,17): error TS2322: Type '(string | StoreCategory | null)[] | undefined' is not assignable to type '(string | { title?: string | undefined; } | null)[]'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type '(string | { title?: string | undefined; } | null)[]'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1528,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1530,17): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1532,17): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/bdshop/index.tsx(1533,17): error TS2322: Type '(string | StoreCategory | null)[] | undefined' is not assignable to type '(string | StoreCategory | null)[]'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type '(string | StoreCategory | null)[]'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1184,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1187,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1196,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1205,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1211,56): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1214,42): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1216,37): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1222,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1225,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1244,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1254,24): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1286,7): error TS18048: 'products' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1290,29): error TS18048: 'products' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1291,56): error TS18048: 'products' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1307,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1309,17): error TS2322: Type '(string | StoreCategory | null)[] | undefined' is not assignable to type '(string | StoreCategory | null)[]'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type '(string | StoreCategory | null)[]'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1363,19): error TS2322: Type 'any[] | undefined' is not assignable to type 'SerializedProduct[]'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'SerializedProduct[]'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1436,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1438,17): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1440,17): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/index.tsx(1441,17): error TS2322: Type '(string | StoreCategory | null)[] | undefined' is not assignable to type '(string | StoreCategory | null)[]'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type '(string | StoreCategory | null)[]'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/sections/CategoryGrid.tsx(118,34): error TS2538: Type 'undefined' cannot be used as an index type.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/sections/CategoryGrid.tsx(135,49): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/daraz/sections/CategoryGrid.tsx(140,52): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string | number | boolean'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string | number | boolean'.
 @ozzyl/web:typecheck: app/components/store-templates/eclipse/index.tsx(755,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/eclipse/index.tsx(758,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/eclipse/index.tsx(767,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/eclipse/index.tsx(772,42): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/eclipse/index.tsx(774,37): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/eclipse/index.tsx(785,19): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/eclipse/index.tsx(834,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/eclipse/index.tsx(840,24): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/eclipse/index.tsx(879,27): error TS18048: 'categories' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/eclipse/index.tsx(899,30): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/eclipse/index.tsx(930,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/eclipse/index.tsx(931,17): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/freshness/index.tsx(774,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/freshness/index.tsx(777,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/freshness/index.tsx(786,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/freshness/index.tsx(791,33): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/freshness/index.tsx(793,37): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/freshness/index.tsx(804,19): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/freshness/index.tsx(857,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/freshness/index.tsx(864,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/freshness/index.tsx(867,11): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/freshness/index.tsx(868,11): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/freshness/index.tsx(908,27): error TS18048: 'categories' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/freshness/index.tsx(929,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/freshness/index.tsx(1044,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/freshness/index.tsx(1046,17): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/freshness/index.tsx(1062,43): error TS2339: Property '0' does not exist on type 'any[] | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/index.tsx(2541,38): error TS18048: 'products' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/index.tsx(2545,7): error TS18048: 'products' is possibly 'undefined'.
@@ -261,306 +112,129 @@ ai-builder:typecheck:
 @ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/index.tsx(2618,24): error TS18048: 'products' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/index.tsx(2619,31): error TS18048: 'products' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/index.tsx(2632,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/index.tsx(2638,11): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/index.tsx(2639,11): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/index.tsx(2649,15): error TS2322: Type 'any[] | undefined' is not assignable to type 'SerializedProduct[]'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'SerializedProduct[]'.
 @ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/index.tsx(2673,24): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/index.tsx(2686,32): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/index.tsx(2703,19): error TS2322: Type 'any[] | undefined' is not assignable to type 'SerializedProduct[]'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'SerializedProduct[]'.
 @ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/index.tsx(2741,20): error TS18048: 'products' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/index.tsx(2744,33): error TS18048: 'products' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/index.tsx(2757,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/index.tsx(2759,11): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/ghorer-bazar/index.tsx(2761,11): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/luxe-boutique/LiveHomepage.tsx(506,19): error TS2322: Type 'string | undefined' is not assignable to type 'number | undefined'.
-@ozzyl/web:typecheck:   Type 'string' is not assignable to type 'number'.
 @ozzyl/web:typecheck: app/components/store-templates/luxe-boutique/preview/index.tsx(768,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/luxe-boutique/preview/index.tsx(771,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/luxe-boutique/preview/index.tsx(780,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/luxe-boutique/preview/index.tsx(785,42): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/luxe-boutique/preview/index.tsx(787,37): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/luxe-boutique/preview/index.tsx(801,21): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/luxe-boutique/preview/index.tsx(828,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/luxe-boutique/preview/index.tsx(831,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/luxe-boutique/preview/index.tsx(853,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/luxe-boutique/preview/index.tsx(859,24): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/luxe-boutique/sections/Header.tsx(110,55): error TS18048: 'title' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/luxe-boutique/sections/Header.tsx(217,55): error TS18048: 'title' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux-ultra/index.tsx(1048,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux-ultra/index.tsx(1051,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux-ultra/index.tsx(1081,15): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux-ultra/index.tsx(1123,15): error TS2322: Type 'string | undefined' is not assignable to type 'number | undefined'.
-@ozzyl/web:typecheck:   Type 'string' is not assignable to type 'number'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux-ultra/index.tsx(1142,19): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux-ultra/index.tsx(1207,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux-ultra/index.tsx(1215,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux-ultra/index.tsx(1218,11): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux-ultra/index.tsx(1220,11): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux-ultra/index.tsx(1239,13): error TS2322: Type 'string | undefined' is not assignable to type 'number | undefined'.
-@ozzyl/web:typecheck:   Type 'string' is not assignable to type 'number'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/LiveHomepage.tsx(64,43): error TS2339: Property '0' does not exist on type 'any[] | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/LiveHomepage.tsx(259,27): error TS18048: 'categories' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/LiveHomepage.tsx(294,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/LiveHomepage.tsx(296,17): error TS2322: Type '(string | StoreCategory | null)[] | undefined' is not assignable to type '(string | StoreCategory | null)[]'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type '(string | StoreCategory | null)[]'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/LiveHomepage.tsx(394,19): error TS2322: Type 'string | undefined' is not assignable to type 'number | undefined'.
-@ozzyl/web:typecheck:   Type 'string' is not assignable to type 'number'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/LiveHomepage.tsx(410,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/LiveHomepage.tsx(412,17): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/LiveHomepage.tsx(414,17): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/preview/index.tsx(233,65): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/preview/index.tsx(315,52): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/preview/index.tsx(570,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/preview/index.tsx(573,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/preview/index.tsx(595,15): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/preview/index.tsx(637,15): error TS2322: Type 'string | undefined' is not assignable to type 'number | undefined'.
-@ozzyl/web:typecheck:   Type 'string' is not assignable to type 'number'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/preview/index.tsx(651,19): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/preview/index.tsx(692,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/preview/index.tsx(699,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/sections/Footer.tsx(288,61): error TS18048: 'title' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/sections/Header.tsx(116,55): error TS18048: 'title' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/nova-lux/sections/Header.tsx(254,55): error TS18048: 'title' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/rovo/index.tsx(10,30): error TS18048: 'props.categories' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/rovo/index.tsx(15,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/rovo/index.tsx(28,13): error TS2322: Type 'string | undefined' is not assignable to type 'number | undefined'.
-@ozzyl/web:typecheck:   Type 'string' is not assignable to type 'number'.
 @ozzyl/web:typecheck: app/components/store-templates/rovo/index.tsx(39,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/rovo/sections/Header.tsx(89,16): error TS18048: 'categories' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/rovo/sections/Header.tsx(157,18): error TS18048: 'categories' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/rovo/sections/Header.tsx(158,25): error TS2322: Type 'string | StoreCategory | null' is not assignable to type 'Key | null | undefined'.
-@ozzyl/web:typecheck:   Type 'StoreCategory' is not assignable to type 'Key | null | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/rovo/sections/Header.tsx(159,21): error TS2322: Type 'string | StoreCategory | null' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
-@ozzyl/web:typecheck:   Type 'StoreCategory' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
-@ozzyl/web:typecheck:     Type 'StoreCategory' is missing the following properties from type 'ReactPortal': children, type, props, key
 @ozzyl/web:typecheck: app/components/store-templates/sokol/index.tsx(24,11): error TS2322: Type 'string | undefined' is not assignable to type 'number | undefined'.
-@ozzyl/web:typecheck:   Type 'string' is not assignable to type 'number'.
 @ozzyl/web:typecheck: app/components/store-templates/sokol/sections/Header.tsx(95,19): error TS2322: Type 'string | StoreCategory | null' is not assignable to type 'Key | null | undefined'.
-@ozzyl/web:typecheck:   Type 'StoreCategory' is not assignable to type 'Key | null | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/sokol/sections/Header.tsx(99,19): error TS2322: Type 'string | StoreCategory | null' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
-@ozzyl/web:typecheck:   Type 'StoreCategory' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
-@ozzyl/web:typecheck:     Type 'StoreCategory' is missing the following properties from type 'ReactPortal': children, type, props, key
 @ozzyl/web:typecheck: app/components/store-templates/sokol/sections/Header.tsx(182,21): error TS2322: Type 'string | StoreCategory | null' is not assignable to type 'Key | null | undefined'.
-@ozzyl/web:typecheck:   Type 'StoreCategory' is not assignable to type 'Key | null | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/sokol/sections/Header.tsx(187,21): error TS2322: Type 'string | StoreCategory | null' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
-@ozzyl/web:typecheck:   Type 'StoreCategory' is not assignable to type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>'.
-@ozzyl/web:typecheck:     Type 'StoreCategory' is missing the following properties from type 'ReactPortal': children, type, props, key
 @ozzyl/web:typecheck: app/components/store-templates/sokol/sections/Layout.tsx(39,8): error TS2322: Type '{ categories: any[]; store?: any; template?: StoreTemplateDefinition | undefined; storeName?: string | undefined; storeId?: string | undefined; logo?: string | null | undefined; ... 11 more ...; customer?: any; }' is not assignable to type 'StoreHeaderProps'.
-@ozzyl/web:typecheck:   Types of property 'storeName' are incompatible.
-@ozzyl/web:typecheck:     Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:       Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/sokol/sections/Layout.tsx(43,8): error TS2322: Type '{ categories: any[]; store?: any; template?: StoreTemplateDefinition | undefined; storeName?: string | undefined; storeId?: string | undefined; logo?: string | null | undefined; ... 11 more ...; customer?: any; }' is not assignable to type 'StoreFooterProps'.
-@ozzyl/web:typecheck:   Types of property 'storeName' are incompatible.
-@ozzyl/web:typecheck:     Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:       Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/starter-store/index.test.tsx(33,35): error TS2322: Type '{ storeName: string; storeId: number; products: never[]; categories: never[]; currency: string; config: { primaryColor: string; accentColor: string; }; }' is not assignable to type 'StoreTemplateProps'.
-@ozzyl/web:typecheck:   Types of property 'storeId' are incompatible.
-@ozzyl/web:typecheck:     Type 'number' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/starter-store/index.tsx(59,27): error TS18048: 'categories' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/starter-store/index.tsx(62,28): error TS18048: 'products' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/starter-store/index.tsx(63,23): error TS18048: 'products' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/starter-store/index.tsx(127,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/starter-store/index.tsx(131,9): error TS2322: Type '(string | StoreCategory | null)[] | undefined' is not assignable to type '(string | StoreCategory | null)[]'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type '(string | StoreCategory | null)[]'.
 @ozzyl/web:typecheck: app/components/store-templates/starter-store/index.tsx(133,9): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/starter-store/index.tsx(253,23): error TS2322: Type 'string | undefined' is not assignable to type 'number | undefined'.
-@ozzyl/web:typecheck:   Type 'string' is not assignable to type 'number'.
 @ozzyl/web:typecheck: app/components/store-templates/starter-store/index.tsx(289,23): error TS2322: Type 'string | undefined' is not assignable to type 'number | undefined'.
-@ozzyl/web:typecheck:   Type 'string' is not assignable to type 'number'.
 @ozzyl/web:typecheck: app/components/store-templates/starter-store/index.tsx(301,29): error TS18048: 'products' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/starter-store/index.tsx(306,39): error TS18048: 'products' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/starter-store/index.tsx(309,20): error TS18048: 'products' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/starter-store/index.tsx(313,23): error TS2322: Type 'string | undefined' is not assignable to type 'number | undefined'.
-@ozzyl/web:typecheck:   Type 'string' is not assignable to type 'number'.
 @ozzyl/web:typecheck: app/components/store-templates/starter-store/index.tsx(394,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/starter-store/index.tsx(396,9): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/starter-store/index.tsx(398,9): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/starter-store/index.tsx(421,11): error TS2322: Type 'string | undefined' is not assignable to type 'number | undefined'.
-@ozzyl/web:typecheck:   Type 'string' is not assignable to type 'number'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(344,9): error TS2741: Property 'name' is missing in type '{ id: number; storeId: number; title: string; description: string; price: number; compareAtPrice: number | null; imageUrl: string | null; category: string | null; }' but required in type 'SerializedProduct'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(370,7): error TS2322: Type '{ id: number; storeId: number; title: string; description: string; price: number; compareAtPrice: number | null; imageUrl: string | null; category: string | null; }[]' is not assignable to type 'SerializedProduct[]'.
-@ozzyl/web:typecheck:   Property 'name' is missing in type '{ id: number; storeId: number; title: string; description: string; price: number; compareAtPrice: number | null; imageUrl: string | null; category: string | null; }' but required in type 'SerializedProduct'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(717,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(720,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(729,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(736,37): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(750,21): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(782,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(785,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(804,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(811,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(814,11): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(815,11): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(851,27): error TS18048: 'categories' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(871,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(1015,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(1017,17): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(1018,17): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/tech-modern/index.tsx(1106,19): error TS2322: Type 'string | undefined' is not assignable to type 'number | undefined'.
-@ozzyl/web:typecheck:   Type 'string' is not assignable to type 'number'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(751,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(754,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(763,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(768,33): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(770,37): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(781,19): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(832,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(836,11): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(842,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(844,11): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(846,11): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(963,32): error TS18048: 'categories' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(987,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(993,17): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(994,17): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(1024,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(1026,17): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/index.tsx(1028,17): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/sections/Header.tsx(2,10): error TS2300: Duplicate identifier 'Search'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/sections/Header.tsx(2,18): error TS2300: Duplicate identifier 'ShoppingBag'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/sections/Header.tsx(2,31): error TS2300: Duplicate identifier 'Phone'.
@@ -574,68 +248,27 @@ ai-builder:typecheck:
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/sections/Header.tsx(4,43): error TS2300: Duplicate identifier 'Clock'.
 @ozzyl/web:typecheck: app/components/store-templates/turbo-sale/sections/Header.tsx(5,10): error TS2300: Duplicate identifier 'useCartCount'.
 @ozzyl/web:typecheck: app/components/store-templates/zenith-rise/index.tsx(719,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/zenith-rise/index.tsx(722,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/zenith-rise/index.tsx(731,13): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/zenith-rise/index.tsx(736,33): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/zenith-rise/index.tsx(738,37): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/zenith-rise/index.tsx(754,19): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/zenith-rise/index.tsx(812,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/zenith-rise/index.tsx(819,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/zenith-rise/index.tsx(821,11): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/zenith-rise/index.tsx(823,11): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/zenith-rise/index.tsx(940,32): error TS18048: 'categories' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/zenith-rise/index.tsx(964,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/zenith-rise/index.tsx(970,17): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/zenith-rise/index.tsx(1003,17): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store-templates/zenith-rise/index.tsx(1005,17): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store-templates/zenith-rise/index.tsx(1007,17): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store/rovo/index.tsx(9,30): error TS18048: 'props.categories' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/components/store/rovo/index.tsx(14,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store/rovo/index.tsx(27,13): error TS2322: Type 'string | undefined' is not assignable to type 'number | undefined'.
-@ozzyl/web:typecheck:   Type 'string' is not assignable to type 'number'.
 @ozzyl/web:typecheck: app/components/store/rovo/index.tsx(38,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/components/store/rovo/index.tsx(40,9): error TS2322: Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; } | null | undefined' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; } | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; address?: string | null | undefined; }' is not assignable to type '{ phone?: string | undefined; email?: string | undefined; address?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'phone' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/store/rovo/index.tsx(41,9): error TS2322: Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; } | null | undefined' is not assignable to type 'SocialLinks | null | undefined'.
-@ozzyl/web:typecheck:   Type '{ [key: string]: string | null | undefined; facebook?: string | null | undefined; instagram?: string | null | undefined; whatsapp?: string | null | undefined; twitter?: string | null | undefined; youtube?: string | ... 1 more ... | undefined; linkedin?: string | ... 1 more ... | undefined; }' is not assignable to type 'SocialLinks'.
-@ozzyl/web:typecheck:     Types of property 'facebook' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null | undefined' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/components/ThemePreview.tsx(22,3): error TS2741: Property 'name' is missing in type '{ id: number; storeId: number; title: string; description: string; price: number; compareAtPrice: number; imageUrl: null; category: string; }' but required in type 'SerializedProduct'.
 @ozzyl/web:typecheck: app/components/ThemePreview.tsx(32,3): error TS2741: Property 'name' is missing in type '{ id: number; storeId: number; title: string; description: string; price: number; compareAtPrice: null; imageUrl: null; category: string; }' but required in type 'SerializedProduct'.
 @ozzyl/web:typecheck: app/components/ThemePreview.tsx(42,3): error TS2741: Property 'name' is missing in type '{ id: number; storeId: number; title: string; description: string; price: number; compareAtPrice: number; imageUrl: null; category: string; }' but required in type 'SerializedProduct'.
@@ -644,49 +277,23 @@ ai-builder:typecheck:
 @ozzyl/web:typecheck: app/components/ThemePreview.tsx(72,3): error TS2741: Property 'name' is missing in type '{ id: number; storeId: number; title: string; description: string; price: number; compareAtPrice: number; imageUrl: null; category: string; }' but required in type 'SerializedProduct'.
 @ozzyl/web:typecheck: app/lib/theme-engine/components/BaseTemplate.tsx(175,11): error TS18048: 'categories' is possibly 'undefined'.
 @ozzyl/web:typecheck: app/lib/theme-engine/components/BaseTemplate.tsx(265,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/lib/theme-engine/components/BaseTemplate.tsx(287,55): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/lib/theme-engine/components/BaseTemplate.tsx(292,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:   Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/routes/_index.tsx(672,11): error TS2322: Type '{ id: number; storeId: number; title: string; description: string | null; price: number; compareAtPrice: number | null; imageUrl: string | null; images: string | null; inventory: number | null; category: string | null; }[]' is not assignable to type 'SerializedProduct[]'.
-@ozzyl/web:typecheck:   Property 'name' is missing in type '{ id: number; storeId: number; title: string; description: string | null; price: number; compareAtPrice: number | null; imageUrl: string | null; images: string | null; inventory: number | null; category: string | null; }' but required in type 'SerializedProduct'.
 @ozzyl/web:typecheck: app/routes/account.tsx(153,27): error TS2322: Type 'JsonifyObject<{ id: number; name: string | null; createdAt: Date | null; updatedAt: Date | null; storeId: number; status: "active" | "archived" | "inactive" | "banned" | null; email: string | null; ... 16 more ...; referredBy: number | null; }>' is not assignable to type '{ name?: string | undefined; } | undefined'.
-@ozzyl/web:typecheck:   Type 'JsonifyObject<{ id: number; name: string | null; createdAt: Date | null; updatedAt: Date | null; storeId: number; status: "active" | "archived" | "inactive" | "banned" | null; email: string | null; ... 16 more ...; referredBy: number | null; }>' is not assignable to type '{ name?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'name' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/routes/account.tsx(174,33): error TS2322: Type 'JsonifyObject<{ id: number; name: string | null; createdAt: Date | null; updatedAt: Date | null; storeId: number; status: "active" | "archived" | "inactive" | "banned" | null; email: string | null; ... 16 more ...; referredBy: number | null; }>' is not assignable to type '{ name?: string | undefined; } | undefined'.
-@ozzyl/web:typecheck:   Type 'JsonifyObject<{ id: number; name: string | null; createdAt: Date | null; updatedAt: Date | null; storeId: number; status: "active" | "archived" | "inactive" | "banned" | null; email: string | null; ... 16 more ...; referredBy: number | null; }>' is not assignable to type '{ name?: string | undefined; }'.
-@ozzyl/web:typecheck:     Types of property 'name' are incompatible.
-@ozzyl/web:typecheck:       Type 'string | null' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:         Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/routes/api.courier.redx.ts(55,7): error TS2353: Object literal may only specify known properties, and 'apiKey' does not exist in type 'RedXCredentials'.
 @ozzyl/web:typecheck: app/routes/products.$handle.tsx(416,9): error TS2322: Type '{ id: number; createdAt: Date | null; price: number | null; compareAtPrice: number | null; inventory: number | null; sku: string | null; imageUrl: string | null; productId: number; ... 8 more ...; isAvailable: boolean | null; }[]' is not assignable to type 'SerializedVariant[]'.
-@ozzyl/web:typecheck:   Property 'name' is missing in type '{ id: number; createdAt: Date | null; price: number | null; compareAtPrice: number | null; inventory: number | null; sku: string | null; imageUrl: string | null; productId: number; ... 8 more ...; isAvailable: boolean | null; }' but required in type 'SerializedVariant'.
 @ozzyl/web:typecheck: app/routes/products.$handle.tsx(435,11): error TS2352: Conversion of type '{ storeId: number; description: null; images: null; sku: null; updatedAt: null; id: number; title: string; price: number; compareAtPrice: number | null; imageUrl: string | null; inventory: number | null; category: string | null; isPublished: boolean | null; createdAt: Date | null; priority: number; }' to type 'SerializedProduct' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
-@ozzyl/web:typecheck:   Property 'name' is missing in type '{ storeId: number; description: null; images: null; sku: null; updatedAt: null; id: number; title: string; price: number; compareAtPrice: number | null; imageUrl: string | null; inventory: number | null; category: string | null; isPublished: boolean | null; createdAt: Date | null; priority: number; }' but required in type 'SerializedProduct'.
 @ozzyl/web:typecheck: app/routes/products.$handle.tsx(612,7): error TS2322: Type '{ id: number; description: string | null; createdAt: Date | null; updatedAt: Date | null; storeId: number; title: string; category: string | null; price: number; compareAtPrice: number | null; ... 9 more ...; bundlePricing: string | null; }[]' is not assignable to type 'SerializedProduct[]'.
-@ozzyl/web:typecheck:   Property 'name' is missing in type '{ id: number; description: string | null; createdAt: Date | null; updatedAt: Date | null; storeId: number; title: string; category: string | null; price: number; compareAtPrice: number | null; ... 9 more ...; bundlePricing: string | null; }' but required in type 'SerializedProduct'.
 @ozzyl/web:typecheck: app/routes/store-preview-frame.tsx(434,31): error TS2339: Property 'title' does not exist on type '{ quantity: number; id: number; name: string; price: number; compareAtPrice?: number | null | undefined; images?: string[] | undefined; imageUrl?: string | null | undefined; slug?: string | null | undefined; ... 4 more ...; variants?: SerializedVariant[] | undefined; }'.
 @ozzyl/web:typecheck: app/routes/store-preview-frame.tsx(439,29): error TS2339: Property 'title' does not exist on type '{ quantity: number; id: number; name: string; price: number; compareAtPrice?: number | null | undefined; images?: string[] | undefined; imageUrl?: string | null | undefined; slug?: string | null | undefined; ... 4 more ...; variants?: SerializedVariant[] | undefined; }'.
 @ozzyl/web:typecheck: app/routes/store-preview-frame.tsx(676,33): error TS2339: Property 'title' does not exist on type '{ quantity: number; id: number; name: string; price: number; compareAtPrice?: number | null | undefined; images?: string[] | undefined; imageUrl?: string | null | undefined; slug?: string | null | undefined; ... 4 more ...; variants?: SerializedVariant[] | undefined; }'.
 @ozzyl/web:typecheck: app/routes/store-preview-frame.tsx(684,31): error TS2339: Property 'title' does not exist on type '{ quantity: number; id: number; name: string; price: number; compareAtPrice?: number | null | undefined; images?: string[] | undefined; imageUrl?: string | null | undefined; slug?: string | null | undefined; ... 4 more ...; variants?: SerializedVariant[] | undefined; }'.
 @ozzyl/web:typecheck: app/routes/store-preview-frame.tsx(1244,31): error TS2322: Type 'JsonifyObject<{ storeId: number; storeName: string; logo: string | null; fontFamily: string; currency: string; theme: string; themeConfig: { primaryColor: string; accentColor: string; backgroundColor: string; ... 5 more ...; storeTemplateId: string; }; socialLinks: { ...; }; businessInfo: { ...; }; products: { ...; ...' is not assignable to type 'StorePreviewData'.
-@ozzyl/web:typecheck:   Types of property 'products' are incompatible.
-@ozzyl/web:typecheck:     Type 'JsonifyObject<{ id: number; description: string | null; createdAt: Date | null; updatedAt: Date | null; storeId: number; title: string; category: string | null; price: number; compareAtPrice: number | null; ... 9 more ...; bundlePricing: string | null; }>[]' is not assignable to type 'SerializedProduct[]'.
-@ozzyl/web:typecheck:       Property 'name' is missing in type 'JsonifyObject<{ id: number; description: string | null; createdAt: Date | null; updatedAt: Date | null; storeId: number; title: string; category: string | null; price: number; compareAtPrice: number | null; ... 9 more ...; bundlePricing: string | null; }>' but required in type 'SerializedProduct'.
 @ozzyl/web:typecheck: app/routes/store-template-preview.$templateId.tsx(155,5): error TS2322: Type 'number' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/routes/store-template-preview.$templateId_.products.$id.tsx(322,70): error TS2322: Type 'JsonifyObject<StoreTemplateTheme>' is not assignable to type 'Record<string, string>'.
-@ozzyl/web:typecheck:   'string' index signatures are incompatible.
-@ozzyl/web:typecheck:     Type 'string | undefined' is not assignable to type 'string'.
-@ozzyl/web:typecheck:       Type 'undefined' is not assignable to type 'string'.
 @ozzyl/web:typecheck: app/routes/store.home.tsx(122,7): error TS2322: Type '{ id: number; title: string; slug: string; imageUrl: string | null; }[]' is not assignable to type '(string | StoreCategory)[]'.
-@ozzyl/web:typecheck:   Type '{ id: number; title: string; slug: string; imageUrl: string | null; }' is not assignable to type 'string | StoreCategory'.
-@ozzyl/web:typecheck:     Type '{ id: number; title: string; slug: string; imageUrl: string | null; }' is not assignable to type 'StoreCategory'.
-@ozzyl/web:typecheck:       Types of property 'imageUrl' are incompatible.
-@ozzyl/web:typecheck:         Type 'string | null' is not assignable to type 'string | undefined'.
-@ozzyl/web:typecheck:           Type 'null' is not assignable to type 'string | undefined'.
 @ozzyl/web:typecheck: app/tests/api/payment.test.ts(23,27): error TS2339: Property 'request' does not exist on type '{ fetch: (request: Request<unknown, CfProperties<unknown>>, Env?: {} | Env | undefined, executionCtx?: ExecutionContext | undefined) => Response | Promise<...>; scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext<...>): Promise<...>; }'.
 @ozzyl/web:typecheck: app/tests/api/store.test.ts(46,27): error TS2339: Property 'request' does not exist on type '{ fetch: (request: Request<unknown, CfProperties<unknown>>, Env?: {} | Env | undefined, executionCtx?: ExecutionContext | undefined) => Response | Promise<...>; scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext<...>): Promise<...>; }'.
 @ozzyl/web:typecheck: app/tests/api/store.test.ts(64,27): error TS2339: Property 'request' does not exist on type '{ fetch: (request: Request<unknown, CfProperties<unknown>>, Env?: {} | Env | undefined, executionCtx?: ExecutionContext | undefined) => Response | Promise<...>; scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext<...>): Promise<...>; }'.
@@ -695,36 +302,8 @@ ai-builder:typecheck:
 @ozzyl/web:typecheck: app/tests/security/owasp.test.ts(26,27): error TS2339: Property 'request' does not exist on type '{ fetch: (request: Request<unknown, CfProperties<unknown>>, Env?: {} | Env | undefined, executionCtx?: ExecutionContext | undefined) => Response | Promise<...>; scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext<...>): Promise<...>; }'.
 @ozzyl/web:typecheck: app/tests/security/owasp.test.ts(38,27): error TS2339: Property 'request' does not exist on type '{ fetch: (request: Request<unknown, CfProperties<unknown>>, Env?: {} | Env | undefined, executionCtx?: ExecutionContext | undefined) => Response | Promise<...>; scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext<...>): Promise<...>; }'.
 @ozzyl/web:typecheck: app/themes/professional-services/template.tsx(357,11): error TS2322: Type 'string | undefined' is not assignable to type 'number | undefined'.
-@ozzyl/web:typecheck:   Type 'string' is not assignable to type 'number'.
 @ozzyl/web:typecheck: server/index.ts(43,29): error TS2352: Conversion of type 'Promise<typeof import("/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/build/server/index")>' to type 'Promise<ServerBuild>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
-@ozzyl/web:typecheck:   Type 'typeof import("/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web/build/server/index")' is not comparable to type 'ServerBuild'.
-@ozzyl/web:typecheck:     Types of property 'routes' are incompatible.
-@ozzyl/web:typecheck:       Type '{ root: { id: string; parentId: undefined; path: string; index: undefined; caseSensitive: undefined; module: Readonly<{ __proto__: null; ErrorBoundary: () => Bt.ReactElement<any, string | Bt.JSXElementConstructor<any>>; ... 4 more ...; meta: ({ data: t }: { ...; }) => ({ ...; } | { ...; })[]; }>; }; ... 256 more ......' is not comparable to type 'ServerRouteManifest'.
-@ozzyl/web:typecheck:         Property '"routes/api.admin.migrate-unified-settings"' is incompatible with index signature.
-@ozzyl/web:typecheck:           Type '{ id: string; parentId: string; path: string; index: undefined; caseSensitive: undefined; module: Readonly<{ __proto__: null; action: ({ request: t, context: s }: { request: any; context: any; }) => Promise<TypedResponse<{ error: string; }> | TypedResponse<...>>; loader: ({ request: t, context: s }: { ...; }) => Pro...' is not comparable to type 'Omit<ServerRoute, "children">'.
-@ozzyl/web:typecheck:             Types of property 'module' are incompatible.
-@ozzyl/web:typecheck:               Property 'default' is missing in type 'Readonly<{ __proto__: null; action: ({ request: t, context: s }: { request: any; context: any; }) => Promise<TypedResponse<{ error: string; }> | TypedResponse<{ dryRun: boolean; message: string; migrated: number; failed: number; errors: string[]; success: boolean; }>>; loader: ({ request: t, context: s }: { ...; }) ...' but required in type 'ServerRouteModule'.
 @ozzyl/web:typecheck: tests/theme-switch.test.tsx(98,27): error TS2322: Type '{ storeName: string; storeId: number; products: { id: number; storeId: number; title: string; description: string; price: number; compareAtPrice: number; images: never[]; variants: never[]; imageUrl: string; category: string; }[]; ... 6 more ...; isPreview: boolean; }' is not assignable to type 'StoreTemplateProps'.
-@ozzyl/web:typecheck:   Types of property 'storeId' are incompatible.
-@ozzyl/web:typecheck:     Type 'number' is not assignable to type 'string'.
 @ozzyl/web:typecheck: tests/theme-switch.test.tsx(113,27): error TS2322: Type '{ storeName: string; storeId: number; products: { id: number; storeId: number; title: string; description: string; price: number; compareAtPrice: number; images: never[]; variants: never[]; imageUrl: string; category: string; }[]; ... 6 more ...; isPreview: boolean; }' is not assignable to type 'StoreTemplateProps'.
-@ozzyl/web:typecheck:   Types of property 'storeId' are incompatible.
-@ozzyl/web:typecheck:     Type 'number' is not assignable to type 'string'.
 @ozzyl/web:typecheck: tests/unit/store-registry-theme.test.ts(68,51): error TS2345: Argument of type 'null' is not assignable to parameter of type 'Record<string, unknown>'.
 @ozzyl/web:typecheck: tests/unit/store-registry-theme.test.ts(73,58): error TS2345: Argument of type 'null' is not assignable to parameter of type 'Record<string, unknown>'.
-@ozzyl/web:typecheck: npm error Lifecycle script `typecheck` failed with error:
-@ozzyl/web:typecheck: npm error code 2
-@ozzyl/web:typecheck: npm error path /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
-@ozzyl/web:typecheck: npm error workspace @ozzyl/web
-@ozzyl/web:typecheck: npm error location /Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web
-@ozzyl/web:typecheck: npm error command failed
-@ozzyl/web:typecheck: npm error command sh -c tsc --noEmit
-@ozzyl/web:typecheck: ERROR: command finished with error: command (/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web) /Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/bin/npm run typecheck exited (2)
-@ozzyl/web#typecheck: command (/Users/rahmatullahzisan/Desktop/Dev/Multi Store Saas/apps/web) /Users/rahmatullahzisan/.nvm/versions/node/v24.11.1/bin/npm run typecheck exited (2)
-
- Tasks:    2 successful, 3 total
-Cached:    2 cached, 3 total
-  Time:    27.425s 
-Failed:    @ozzyl/web#typecheck
-
- ERROR  run failed: command  exited (2)

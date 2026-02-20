@@ -29,6 +29,7 @@ import {
   templateAnalytics,
   savedLandingConfigs,
   checkoutSessions,
+  activityLogs,
 } from '@db/schema';
 import { eq, and, or, inArray, sql, gte, isNull } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
@@ -1174,6 +1175,37 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // 2. CREATE ORDER
     let orderId: number | undefined;
+    let orderStatus = 'pending';
+
+    // steadfast auto-confirm logic for COD orders
+    if (input.payment_method === 'cod' && 
+        unifiedSettings.courier?.steadfast?.sessionCookie && 
+        unifiedSettings.courier?.steadfast?.xsrfToken) {
+      try {
+        const { createSteadfastClient } = await import('~/services/steadfast.server');
+        const steadfastClient = createSteadfastClient({
+          apiKey: unifiedSettings.courier.steadfast.apiKey || '',
+          secretKey: unifiedSettings.courier.steadfast.secretKey || '',
+          sessionCookie: unifiedSettings.courier.steadfast.sessionCookie,
+          xsrfToken: unifiedSettings.courier.steadfast.xsrfToken,
+        });
+        
+        const riskResult = await steadfastClient.checkExternalFraud(input.phone);
+        const total = riskResult.success + riskResult.cancellation;
+        
+        // Safe criteria: Must have some history (total > 0) and low/no cancellation rate (<= 5%)
+        // The user specified "fraud rate nai" (no fraud rate) so we use a strict <= 5% threshold
+        if (total > 0 && (riskResult.cancellation === 0 || (riskResult.cancellation / total) <= 0.05)) {
+          orderStatus = 'confirmed';
+          console.log(`[FRAUD CHECK] Phone ${input.phone} is safe (${riskResult.success} delivered, ${riskResult.cancellation} cancelled). Auto-confirming.`);
+        } else {
+          console.log(`[FRAUD CHECK] Phone ${input.phone} is risky or no history (${riskResult.success}/${total}). Leaving as pending.`);
+        }
+      } catch (error) {
+        console.error('[FRAUD CHECK] Steadfast check failed during checkout:', error);
+      }
+    }
+
     try {
       // Determine customerId for the order
       let orderCustomerId: number | null = loggedInCustomer?.id || null;
@@ -1205,7 +1237,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           storeId: input.store_id,
           customerId: orderCustomerId,
           orderNumber,
-          status: 'pending',
+          status: orderStatus as 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned',
           paymentStatus: 'pending',
           paymentMethod: input.payment_method as
             | 'cod'
@@ -1286,6 +1318,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
           total: bump.discountedPrice,
         })),
       ]);
+
+      // 4. LOG ACTIVITY FOR AUTO-CONFIRM
+      if (orderStatus === 'confirmed') {
+        await db.insert(activityLogs).values({
+          storeId: input.store_id,
+          userId: null, // System automated
+          action: 'order_status_update',
+          entityType: 'order',
+          entityId: orderId!,
+          details: JSON.stringify({
+            from: 'pending',
+            to: 'confirmed',
+            reason: 'Steadfast Auto-Confirmation (Fraud Checked)',
+            orderNumber: orderNumber,
+          }),
+          createdAt: now,
+        });
+      }
 
       // Note: Webhook dispatch is now handled by OrderProcessor DO for reliability
       // See NOTIFICATIONS & TRACKING section below

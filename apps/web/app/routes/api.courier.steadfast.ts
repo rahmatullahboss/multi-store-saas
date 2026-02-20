@@ -21,6 +21,7 @@ import {
   createSteadfastClient, 
   checkCustomerRisk,
 } from '~/services/steadfast.server';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 // Types for responses
 interface CheckRiskResponse {
@@ -97,6 +98,49 @@ export async function action({ request, context }: ActionFunctionArgs) {
       console.error('Risk check error:', error);
       return json(
         { error: error instanceof Error ? error.message : 'Risk check failed' },
+        { status: 500 }
+      );
+    }
+  }
+
+  // ========================================
+  // CHECK_EXTERNAL_FRAUD - Live check using Steadfast API
+  // ========================================
+  if (intent === 'CHECK_EXTERNAL_FRAUD') {
+    const phone = formData.get('phone') as string;
+    
+    if (!phone) {
+      return json({ error: 'Phone number is required' }, { status: 400 });
+    }
+
+    try {
+      const settings = await getUnifiedStorefrontSettings(db, storeId, {
+        env: context.cloudflare.env,
+      });
+
+      if (!settings.courier?.steadfast?.sessionCookie || !settings.courier?.steadfast?.xsrfToken) {
+        return json(
+          { error: 'Steadfast session credentials (Cookie & Token) are missing. Please configure them in Courier Settings first.' },
+          { status: 400 }
+        );
+      }
+
+      const client = createSteadfastClient({
+        apiKey: settings.courier.steadfast.apiKey || '',
+        secretKey: settings.courier.steadfast.secretKey || '',
+        sessionCookie: settings.courier.steadfast.sessionCookie || undefined,
+        xsrfToken: settings.courier.steadfast.xsrfToken || undefined,
+      });
+      const riskResult = await client.checkExternalFraud(phone);
+
+      return json({
+        success: true,
+        data: riskResult,
+      });
+    } catch (error) {
+      console.error('External risk check error:', error);
+      return json(
+        { error: error instanceof Error ? error.message : 'External risk check failed' },
         { status: 500 }
       );
     }

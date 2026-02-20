@@ -23,25 +23,18 @@ import { eq, desc, and } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
 import { calculateOrderWeight } from '~/lib/courier-weight.server';
 import {
-  ShoppingCart,
   Clock,
   Package,
   Truck,
   CheckCircle,
   XCircle,
-  Phone,
-  Eye,
-  DollarSign,
   ThumbsUp,
   Loader2,
   ChevronDown,
   Shield,
   PackageX,
-  MapPin,
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
-import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
-import { GlassCard } from '~/components/ui/GlassCard';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { formatPrice } from '~/utils/formatPrice';
 import {
@@ -528,252 +521,369 @@ export default function DashboardOrdersPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <PageHeader title={t('dashboard:orders')} description={t('dashboard:manageCustomerOrders')} />
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          label={t('dashboard:totalOrders')}
-          value={stats.total}
-          icon={<ShoppingCart className="w-5 h-5" />}
-          color="blue"
-        />
-        <StatCard
-          label={t('dashboard:pending')}
-          value={stats.pending}
-          icon={<Clock className="w-5 h-5" />}
-          color={stats.pending > 0 ? 'yellow' : 'gray'}
-          href="/app/orders?status=pending"
-        />
-        <StatCard
-          label={t('dashboard:deliveredOrders')}
-          value={stats.delivered}
-          icon={<CheckCircle className="w-5 h-5" />}
-          color="emerald"
-        />
-        <StatCard
-          label={t('dashboard:totalRevenue')}
-          value={formatPrice(stats.revenue)}
-          icon={<DollarSign className="w-5 h-5" />}
-          color="purple"
-        />
-      </div>
-
-      {/* Quick Links */}
-      <div className="flex gap-2">
-        <Link
-          to="/app/returns"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-sm font-medium transition border border-red-200"
-        >
-          <PackageX className="w-4 h-4" />
-          {t('dashboard:viewReturnParcels')}
-        </Link>
-      </div>
-
-      {/* Filters Row */}
-      <div className="flex flex-col md:flex-row gap-4">
-        {/* Search */}
-        <SearchInput
-          placeholder={t('dashboard:searchByOrderHint')}
-          value={searchQuery}
-          onChange={setSearchQuery}
-          className="w-full md:w-80"
-        />
-
-        {/* Status Tabs */}
-        <div className="flex-1 overflow-x-auto">
-          <StatusTabs tabs={statusTabs} activeTab={statusFilter} onChange={handleStatusChange} />
+    <div className="flex flex-col h-[calc(100vh-80px)] xl:h-[calc(100vh-64px)] relative -m-4 lg:-m-8">
+      {/* Sticky Header / Command Bar */}
+      <header className="h-16 border-b border-gray-200 bg-white/90 backdrop-blur-sm flex items-center justify-between px-4 lg:px-6 shrink-0 z-10 sticky top-0 md:top-auto">
+        <div className="flex items-center gap-6">
+          <h1 className="text-xl font-semibold tracking-tight text-gray-900">{t('dashboard:orders')}</h1>
+          {/* Command K Search */}
+          <div className="relative group hidden md:block">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span className="material-symbols-outlined text-gray-400 text-[20px]">search</span>
+            </div>
+            <input 
+              role="search"
+              aria-label="Search orders"
+              className="block w-64 lg:w-96 pl-10 pr-12 py-1.5 border-none rounded-lg bg-gray-100 text-sm placeholder-gray-500 focus:ring-2 focus:ring-emerald-500/20 focus:bg-white transition-all" 
+              placeholder={t('dashboard:searchByOrderHint')} 
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <kbd className="inline-flex items-center border border-gray-200 rounded px-2 text-[10px] font-sans font-medium text-gray-400">⌘K</kbd>
+            </div>
+          </div>
         </div>
-      </div>
-
-      {/* Orders List */}
-      {storeOrders.length === 0 ? (
-        <GlassCard intensity="low" className="overflow-hidden">
-          <EmptyState
-            icon={<ShoppingCart className="w-10 h-10" />}
-            title={t('dashboard:noOrdersYet')}
-            description={t('dashboard:noOrdersDescription')}
-            action={{
-              label: t('dashboard:viewStore'),
-              href: '/',
-            }}
-          />
-        </GlassCard>
-      ) : filteredOrders.length === 0 ? (
-        <GlassCard intensity="low" className="p-12 text-center">
-          <p className="text-gray-500">{t('dashboard:noOrdersMatchFilters')}</p>
-          <button
-            onClick={() => {
-              setSearchQuery('');
-              handleStatusChange('all');
-            }}
-            className="mt-3 text-emerald-600 hover:text-emerald-700 font-medium"
+        <div className="flex items-center gap-2 lg:gap-3">
+          <Link
+            to="/app/returns"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-transparent hover:border-gray-200"
           >
-            {t('dashboard:clearFilters')}
-          </button>
-        </GlassCard>
-      ) : (
-        <GlassCard intensity="low" className="p-0 overflow-hidden">
-          {/* Desktop Table */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50/50 border-b border-gray-100">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('dashboard:order')}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('dashboard:date')}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('dashboard:customer')}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('dashboard:total')}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('dashboard:status')}
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('dashboard:actions')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4">
-                      <Link
-                        to={`/app/orders/${order.id}`}
-                        className="font-mono text-sm font-medium text-emerald-600 hover:text-emerald-700"
-                      >
-                        {order.orderNumber}
-                      </Link>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {formatDate(order.createdAt)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 font-medium">
-                          {order.customerName?.charAt(0).toUpperCase() || 'C'}
+            <span className="material-symbols-outlined text-[18px]">assignment_return</span>
+            <span className="hidden sm:inline">{t('dashboard:viewReturnParcels')}</span>
+          </Link>
+          <Link to="/app/orders/create" className="flex items-center gap-2 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg shadow-sm shadow-emerald-500/20 transition-all active:scale-95">
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            <span className="hidden sm:inline">Create Order</span>
+          </Link>
+        </div>
+      </header>
+
+      {/* Scrollable Body */}
+      <div className="flex-1 overflow-y-auto p-4 lg:p-6 scroll-smooth bg-gray-50/50">
+        
+        {/* KPI Section (Compact) */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          {/* KPI 1 - Revenue */}
+          <div className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t('dashboard:totalRevenue')}</span>
+            <div className="flex items-end justify-between">
+              <div className="flex flex-col">
+                <span className="text-xl font-bold text-gray-900 tabular-nums">{formatPrice(stats.revenue)}</span>
+                <span className="text-xs font-medium text-emerald-600 flex items-center gap-0.5 mt-1">
+                  <span className="material-symbols-outlined text-[14px]">trending_up</span>
+                  Active
+                </span>
+              </div>
+              <div className="h-8 w-16 opacity-50 group-hover:opacity-100 transition-opacity">
+                {/* Simple CSS Sparkline */}
+                <div className="flex items-end h-full gap-0.5 mt-2">
+                  <div className="bg-emerald-500/30 w-1/5 h-[40%] rounded-sm"></div>
+                  <div className="bg-emerald-500/30 w-1/5 h-[60%] rounded-sm"></div>
+                  <div className="bg-emerald-500/30 w-1/5 h-[50%] rounded-sm"></div>
+                  <div className="bg-emerald-500/30 w-1/5 h-[80%] rounded-sm"></div>
+                  <div className="bg-emerald-500 w-1/5 h-[70%] rounded-sm"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* KPI 2 - Orders */}
+          <div className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow group cursor-pointer" onClick={() => handleStatusChange('all')}>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t('dashboard:totalOrders')}</span>
+            <div className="flex items-end justify-between">
+              <div className="flex flex-col">
+                <span className="text-xl font-bold text-gray-900 tabular-nums">{stats.total}</span>
+                <span className="text-xs font-medium text-emerald-600 flex items-center gap-0.5 mt-1">
+                  <span className="material-symbols-outlined text-[14px]">trending_up</span>
+                  All time
+                </span>
+              </div>
+              <div className="h-8 w-16 opacity-50 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-end h-full gap-0.5 mt-2">
+                  <div className="bg-emerald-500/30 w-1/5 h-[30%] rounded-sm"></div>
+                  <div className="bg-emerald-500/30 w-1/5 h-[45%] rounded-sm"></div>
+                  <div className="bg-emerald-500/30 w-1/5 h-[60%] rounded-sm"></div>
+                  <div className="bg-emerald-500/30 w-1/5 h-[55%] rounded-sm"></div>
+                  <div className="bg-emerald-500 w-1/5 h-[65%] rounded-sm"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* KPI 3 - Pending */}
+          <div className="flex flex-col gap-1 p-3 rounded-xl bg-orange-50/50 border border-orange-100 hover:shadow-md transition-shadow group cursor-pointer" onClick={() => handleStatusChange('pending')}>
+            <span className="text-xs font-medium text-orange-600/80 uppercase tracking-wider flex items-center gap-1">
+              {t('dashboard:pending')}
+              {stats.pending > 0 && <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>}
+            </span>
+            <div className="flex items-end justify-between">
+              <div className="flex flex-col">
+                <span className="text-xl font-bold text-gray-900 tabular-nums">{stats.pending}</span>
+                <span className="text-xs font-medium text-orange-600 flex items-center gap-0.5 mt-1">
+                  Needs Action
+                </span>
+              </div>
+              <div className="h-8 w-16 opacity-50 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-end h-full gap-0.5 mt-2">
+                  <div className="bg-orange-500/30 w-1/5 h-[80%] rounded-sm"></div>
+                  <div className="bg-orange-500/30 w-1/5 h-[60%] rounded-sm"></div>
+                  <div className="bg-orange-500/30 w-1/5 h-[40%] rounded-sm"></div>
+                  <div className="bg-orange-500/30 w-1/5 h-[50%] rounded-sm"></div>
+                  <div className="bg-orange-500 w-1/5 h-[45%] rounded-sm"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* KPI 4 - Shipped */}
+          <div className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow group cursor-pointer" onClick={() => handleStatusChange('shipped')}>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{t('dashboard:shippedOrders')}</span>
+            <div className="flex items-end justify-between">
+              <div className="flex flex-col">
+                <span className="text-xl font-bold text-gray-900 tabular-nums">{stats.shipped}</span>
+                <span className="text-xs font-medium text-blue-600 flex items-center gap-0.5 mt-1">
+                  <span className="material-symbols-outlined text-[14px]">local_shipping</span>
+                  In Transit
+                </span>
+              </div>
+              <div className="h-8 w-16 opacity-50 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-end h-full gap-0.5 mt-2">
+                  <div className="bg-blue-500/30 w-1/5 h-[20%] rounded-sm"></div>
+                  <div className="bg-blue-500/30 w-1/5 h-[30%] rounded-sm"></div>
+                  <div className="bg-blue-500/30 w-1/5 h-[50%] rounded-sm"></div>
+                  <div className="bg-blue-500/30 w-1/5 h-[70%] rounded-sm"></div>
+                  <div className="bg-blue-500 w-1/5 h-[90%] rounded-sm"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* KPI 5 - Returns & Cancelled */}
+          <div className="flex flex-col gap-1 p-3 rounded-xl bg-red-50/50 border border-red-100 hover:shadow-md transition-shadow group cursor-pointer" onClick={() => handleStatusChange('returned')}>
+            <span className="text-xs font-medium text-red-600/80 uppercase tracking-wider">Issues & Returns</span>
+            <div className="flex items-end justify-between">
+              <div className="flex flex-col">
+                <span className="text-xl font-bold text-gray-900 tabular-nums">{stats.cancelled + stats.returned}</span>
+                <span className="text-xs font-medium text-red-600 flex items-center gap-0.5 mt-1">
+                  <span className="material-symbols-outlined text-[14px]">warning</span>
+                  Requires Attention
+                </span>
+              </div>
+              <div className="h-8 w-16 opacity-50 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-end h-full gap-0.5 mt-2">
+                  <div className="bg-red-500/30 w-1/5 h-[10%] rounded-sm"></div>
+                  <div className="bg-red-500/30 w-1/5 h-[10%] rounded-sm"></div>
+                  <div className="bg-red-500/30 w-1/5 h-[15%] rounded-sm"></div>
+                  <div className="bg-red-500/30 w-1/5 h-[20%] rounded-sm"></div>
+                  <div className="bg-red-500 w-1/5 h-[40%] rounded-sm"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col min-h-[500px]">
+          
+          {/* Toolbar / Filter Row */}
+          <div className="px-4 py-3 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4 bg-white">
+            <div className="flex items-center gap-4 w-full md:w-auto">
+              {/* Saved Views */}
+              <div className="relative">
+                <button className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors">
+                  {statusFilter === 'all' ? 'All Orders' : statusTabs.find(t => t.id === statusFilter)?.label}
+                  <span className="material-symbols-outlined text-[20px]">expand_more</span>
+                </button>
+              </div>
+              
+              <div className="h-5 w-px bg-gray-200"></div>
+              
+              {/* Chip Filters */}
+              <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1 md:pb-0">
+                <select 
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors border-none cursor-pointer focus:ring-0 appearance-none pr-8 relative"
+                  value={statusFilter}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236b7280'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
+                >
+                  <option value="all">Status: All</option>
+                  {statusTabs.slice(1).map(tab => (
+                    <option key={tab.id} value={tab.id}>Status: {tab.label}</option>
+                  ))}
+                </select>
+
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors border border-emerald-200"
+                  >
+                    Search: {searchQuery}
+                    <span className="material-symbols-outlined text-[14px]">close</span>
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            {/* Pagination / Count */}
+            <div className="text-xs text-gray-500 font-medium">
+              Showing {filteredOrders.length > 0 ? 1 : 0}-{Math.min(filteredOrders.length, 200)} of {filteredOrders.length}
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="flex-1 overflow-auto bg-white">
+            {storeOrders.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-12 text-center">
+                <div className="mb-4 w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 shadow-sm">
+                  <span className="material-symbols-outlined text-[24px]">dataset</span>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900">{t('dashboard:noOrdersYet')}</h3>
+                <p className="mt-1 text-sm text-gray-500">{t('dashboard:noOrdersDescription')}</p>
+              </div>
+            ) : filteredOrders.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-12 text-center">
+                <span className="material-symbols-outlined text-[48px] text-gray-300 mb-4">search_off</span>
+                <h3 className="text-lg font-medium text-gray-900">{t('dashboard:noOrdersMatchFilters')}</h3>
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    handleStatusChange('all');
+                  }}
+                  className="mt-4 px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg text-sm font-medium transition-colors"
+                >
+                  {t('dashboard:clearFilters')}
+                </button>
+              </div>
+            ) : (
+              <table className="w-full text-left border-collapse min-w-[800px]">
+                <thead className="bg-gray-50 sticky top-0 z-10">
+                  <tr>
+                    <th className="py-3 px-4 border-b border-gray-200 w-10">
+                      <input type="checkbox" className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-600/20" />
+                    </th>
+                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard:order')} ID</th>
+                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard:customer')}</th>
+                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">{t('dashboard:total')}</th>
+                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">Payment</th>
+                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard:status')}</th>
+                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">Courier</th>
+                    <th className="py-3 px-4 border-b border-gray-200 w-10"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredOrders.map(order => {
+                    const isErrorState = order.status === 'cancelled' || order.status === 'returned';
+                    return (
+                    <tr key={order.id} className={`group hover:bg-gray-50 transition-colors ${isErrorState ? 'bg-red-50/30 hover:bg-red-50/50' : ''}`}>
+                      <td className="py-3 px-4 w-10">
+                        <input type="checkbox" className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-600/20" />
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <span className={`${isErrorState ? 'text-red-500' : 'text-gray-400'} material-symbols-outlined text-[16px]`}>receipt_long</span>
+                            <Link to={`/app/orders/${order.id}`} className="font-medium text-emerald-600 text-sm font-sans tabular-nums hover:underline cursor-pointer">
+                              {order.orderNumber}
+                            </Link>
+                          </div>
+                          <span className="text-[11px] text-gray-400 ml-6">{formatDate(order.createdAt)}</span>
                         </div>
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {order.customerName || 'Customer'}
-                          </p>
-                          <a
-                            href={`tel:${order.customerPhone}`}
-                            className="text-xs text-gray-500 hover:text-emerald-600 flex items-center gap-1"
-                          >
-                            <Phone className="w-3 h-3" />
-                            {order.customerPhone}
-                          </a>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-gray-900">{order.customerName || 'Customer'}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500 font-sans tabular-nums flex items-center gap-1">
+                              {order.customerPhone}
+                            </span>
+                            {order.customerPhone && (
+                              <SteadfastFraudCheckButton customerPhone={order.customerPhone} />
+                            )}
+                          </div>
                           {order.displayAddress && (
-                            <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5 max-w-[200px] truncate" title={order.displayAddress}>
-                              <MapPin className="w-3 h-3 flex-shrink-0" />
+                            <span className="text-xs text-gray-400 flex items-center gap-1 mt-0.5 w-[180px] truncate" title={order.displayAddress}>
                               {order.displayAddress}
-                            </p>
+                            </span>
                           )}
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-semibold text-gray-900">
-                        {formatPrice(order.total)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <StatusDropdown
-                        orderId={order.id}
-                        currentStatus={order.status || 'pending'}
-                      />
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {/* Send to Courier Button */}
-                        {courierProvider && (
-                          <SendToCourierButton
-                            orderId={order.id}
-                            orderNumber={order.orderNumber}
-                            status={order.status || 'pending'}
-                            courierStatus={order.courierStatus}
-                            courierProvider={courierProvider}
-                          />
-                        )}
-                        <FraudCheckButton
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <span className="text-sm font-semibold text-gray-900 font-sans tabular-nums">
+                          {formatPrice(order.total)}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
+                          order.paymentStatus === 'paid' 
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                            : 'bg-orange-50 text-orange-700 border-orange-200'
+                        }`}>
+                          {order.paymentStatus === 'paid' ? 'Paid' : 'COD'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <StatusDropdown
                           orderId={order.id}
                           currentStatus={order.status || 'pending'}
                         />
-                        <Link
-                          to={`/app/orders/${order.id}`}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:text-white hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 rounded-lg transition"
-                        >
-                          <Eye className="w-4 h-4" />
-                          {t('dashboard:view')}
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                           {courierProvider && order.status === 'confirmed' && !['booked', 'in_transit', 'delivered', 'shipped'].includes(order.courierStatus || '') ? (
+                              <div className="opacity-60 xl:opacity-100 group-hover:opacity-100 transition-opacity">
+                                <SendToCourierButton
+                                  orderId={order.id}
+                                  orderNumber={order.orderNumber}
+                                  status={order.status || 'pending'}
+                                  courierStatus={order.courierStatus}
+                                  courierProvider={courierProvider}
+                                />
+                              </div>
+                           ) : courierProvider ? (
+                             <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                               {courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1)}
+                               {order.courierConsignmentId ? `: ${order.courierConsignmentId}` : ''}
+                             </span>
+                           ) : (
+                             <span className="text-[11px] text-gray-400 italic font-medium">Not configured</span>
+                           )}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-right whitespace-nowrap">
+                         <div className="flex items-center justify-end gap-2">
+                           <FraudCheckButton
+                              orderId={order.id}
+                              currentStatus={order.status || 'pending'}
+                           />
+                           <Link to={`/app/orders/${order.id}`} className="text-gray-400 hover:text-emerald-600 transition-colors" title="View Details">
+                             <span className="material-symbols-outlined text-[20px]">visibility</span>
+                           </Link>
+                         </div>
+                      </td>
+                    </tr>
+                   );
+                  })}
+                </tbody>
+              </table>
+            )}
           </div>
-
-          {/* Mobile Cards */}
-          <div className="md:hidden divide-y divide-gray-100">
-            {filteredOrders.map((order) => (
-              <div key={order.id} className="p-4 hover:bg-gray-50 transition">
-                <div className="flex items-start justify-between mb-2">
-                  <Link to={`/app/orders/${order.id}`}>
-                    <span className="font-mono text-sm font-medium text-emerald-600">
-                      {order.orderNumber}
-                    </span>
-                    <p className="text-xs text-gray-500 mt-0.5">{formatDate(order.createdAt)}</p>
-                  </Link>
-                  <StatusDropdown orderId={order.id} currentStatus={order.status || 'pending'} />
-                </div>
-                
-                {/* Courier Actions for Mobile */}
-                {courierProvider && (
-                  <div className="mb-3 flex justify-end">
-                    <SendToCourierButton
-                       orderId={order.id}
-                       orderNumber={order.orderNumber}
-                       status={order.status || 'pending'}
-                       courierStatus={order.courierStatus}
-                       courierProvider={courierProvider}
-                    />
-                  </div>
-                )}
-                
-                <Link to={`/app/orders/${order.id}`} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 font-medium text-sm">
-                      {order.customerName?.charAt(0).toUpperCase() || 'C'}
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900 text-sm">
-                        {order.customerName || 'Customer'}
-                      </p>
-                      <p className="text-xs text-gray-500">{order.customerPhone}</p>
-                      {order.displayAddress && (
-                        <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5 truncate max-w-[180px]" title={order.displayAddress}>
-                          <MapPin className="w-3 h-3 flex-shrink-0" />
-                          {order.displayAddress}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <p className="font-bold text-gray-900">{formatPrice(order.total)}</p>
-                </Link>
-              </div>
-            ))}
+          
+          {/* Footer / Bulk Actions */}
+          <div className="border-t border-gray-200 bg-gray-50 px-4 py-3 flex items-center justify-between text-xs text-gray-500 mt-auto">
+            <div>
+              <span className="font-medium">0 rows selected</span>
+              <span className="mx-2 text-gray-300">|</span>
+              <button className="text-emerald-600 hover:text-emerald-700 font-medium disabled:opacity-50" disabled>Bulk Edit</button>
+            </div>
+            <div className="flex gap-2">
+              <button className="px-2 py-1 border border-gray-200 rounded hover:bg-white disabled:opacity-50 shadow-sm" disabled>Prev</button>
+              <button className="px-2 py-1 border border-gray-200 rounded hover:bg-white disabled:opacity-50 shadow-sm" disabled>Next</button>
+            </div>
           </div>
-        </GlassCard>
-      )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -939,6 +1049,73 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
         <Shield className="w-3.5 h-3.5" />
       )}
       {t('dashboard:check')}
+    </button>
+  );
+}
+
+// ============================================================================
+// STEADFAST EXTERNAL FRAUD CHECK BUTTON COMPONENT
+// ============================================================================
+function SteadfastFraudCheckButton({ customerPhone }: { customerPhone: string }) {
+  const fetcher = useFetcher<{
+    success?: boolean;
+    data?: { success: number; cancellation: number };
+    error?: string;
+  }>();
+  const [showResult, setShowResult] = useState(false);
+  const isChecking = fetcher.state !== 'idle';
+
+  const handleCheck = () => {
+    // We send this to the Steadfast courier API route instead of the current page action
+    fetcher.submit(
+      { intent: 'CHECK_EXTERNAL_FRAUD', phone: customerPhone },
+      { method: 'POST', action: '/api/courier/steadfast' }
+    );
+    setShowResult(true);
+  };
+
+  if (fetcher.data?.success && fetcher.data.data && showResult) {
+    const { success, cancellation } = fetcher.data.data;
+    const total = success + cancellation;
+    
+    // Steadfast high risk logic: more than 30% cancellation (if there's enough history)
+    const isRisky = total > 0 && (cancellation / total) > 0.3;
+    
+    return (
+      <span 
+        className={`text-[10px] px-1.5 py-0.5 rounded border font-medium whitespace-nowrap ${
+          isRisky 
+            ? 'bg-red-50 text-red-600 border-red-200' 
+            : 'bg-emerald-50 text-emerald-600 border-emerald-200'
+        }`}
+        title={`Steadfast: ${success} Delivered, ${cancellation} Cancelled`}
+      >
+        SF: {success}/{total} {isRisky && '⚠️'}
+      </span>
+    );
+  }
+
+  if (fetcher.data?.error && showResult) {
+     return (
+       <span className="text-[10px] text-red-500 truncate max-w-[100px]" title={fetcher.data.error}>
+         Error SF
+       </span>
+     );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleCheck}
+      disabled={isChecking}
+      className="inline-flex items-center text-[10px] text-gray-400 hover:text-emerald-600 transition-colors disabled:opacity-50"
+      title="Check Steadfast History"
+    >
+      {isChecking ? (
+        <Loader2 className="w-3 h-3 animate-spin" />
+      ) : (
+        <span className="material-symbols-outlined text-[14px]">public</span>
+      )}
     </button>
   );
 }

@@ -19,6 +19,8 @@ export interface SteadfastCredentials {
   apiKey: string;
   secretKey: string;
   baseUrl?: string; // Default: https://portal.packzy.com/api/v1
+  sessionCookie?: string; // Required for fraud check
+  xsrfToken?: string; // Required for fraud check
 }
 
 export interface SteadfastCreateOrderRequest {
@@ -424,6 +426,46 @@ export function createSteadfastClient(credentials: SteadfastCredentials) {
         normalizedStatus.includes(step.key)
       );
       return index >= 0 ? index : 0;
+    },
+
+    /**
+     * Check external fraud risk using internal Steadfast API (Requires Session Cookie)
+     */
+    async checkExternalFraud(phone: string): Promise<{ success: number; cancellation: number }> {
+      if (!credentials.sessionCookie || !credentials.xsrfToken) {
+        throw new Error('Steadfast session credentials (sessionCookie, xsrfToken) required for fraud check. Please configure them in Courier Settings.');
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s
+
+      try {
+        const response = await fetch(`https://steadfast.com.bd/user/frauds/check/${encodeURIComponent(phone)}`, {
+          method: 'GET',
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/json, text/plain, */*',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-XSRF-TOKEN': credentials.xsrfToken,
+            'Cookie': `steadfast_courier_session=${credentials.sessionCookie}; XSRF-TOKEN=${credentials.xsrfToken}`
+          }
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error(`Fraud check failed: ${response.statusText} (${response.status})`);
+        }
+
+        const data = await response.json() as { success?: number | string; cancellation?: number | string };
+        return {
+          success: Number(data.success || 0),
+          cancellation: Number(data.cancellation || 0)
+        };
+      } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+      }
     },
   };
 }
