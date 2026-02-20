@@ -5,16 +5,42 @@
  * that has saved their Steadfast portal email + password.
  * 
  * Modes:
- *  1. Single store sync:
+ *  1. Single store sync (env vars):
  *     STEADFAST_EMAIL=x STEADFAST_PASSWORD=y STORE_ID=z npx ts-node sync.ts
- *  2. All stores from D1 database:
- *     D1_DATABASE_ID=x npx ts-node sync.ts --all-stores
+ *  2. All stores from D1 (passwords auto-decrypted if COURIER_ENCRYPT_KEY is set):
+ *     D1_DATABASE_ID=x COURIER_ENCRYPT_KEY=base64key npx ts-node sync.ts --all-stores
  */
 import { getSteadfastSessionCookies } from './steadfast-scraper.server';
 import { execSync } from 'child_process';
 
 const KV_NAMESPACE_ID = '026696313f02475c846dc70197a3c98f';
 const isAllStores = process.argv.includes('--all-stores');
+
+// ── AES-GCM helpers (Node.js 18+ Web Crypto API) ─────────────────────────────
+function b64encode(bytes: Uint8Array): string {
+  return Buffer.from(bytes).toString('base64');
+}
+function b64decode(str: string): Uint8Array {
+  return new Uint8Array(Buffer.from(str, 'base64'));
+}
+async function importKey(keyBase64: string, usage: 'decrypt') {
+  const keyBytes = b64decode(keyBase64);
+  return (globalThis.crypto as Crypto).subtle.importKey(
+    'raw', keyBytes.buffer as ArrayBuffer, { name: 'AES-GCM' }, false, [usage]
+  );
+}
+async function decryptPassword(encrypted: string, keyBase64: string): Promise<string> {
+  const [ivB64, ctB64] = encrypted.split(':');
+  if (!ivB64 || !ctB64) throw new Error('Invalid encrypted format');
+  const key = await importKey(keyBase64, 'decrypt');
+  const iv = b64decode(ivB64);
+  const ct = b64decode(ctB64);
+  const plain = await (globalThis.crypto as Crypto).subtle.decrypt(
+    { name: 'AES-GCM', iv }, key, ct.buffer as ArrayBuffer
+  );
+  return new TextDecoder().decode(plain);
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 async function syncForStore(storeId: string, email: string, password: string) {
   console.log(`\n[STEADFAST SYNC] Syncing Store #${storeId} (${email})...`);
@@ -29,12 +55,13 @@ async function syncForStore(storeId: string, email: string, password: string) {
 
 async function run() {
   if (isAllStores) {
-    // --all-stores mode: reads all stores from D1 with Steadfast credentials configured
     const dbId = process.env.D1_DATABASE_ID;
     if (!dbId) {
       console.error('[STEADFAST SYNC] Missing D1_DATABASE_ID env var for --all-stores mode.');
       process.exit(1);
     }
+
+    const encryptKey = process.env.COURIER_ENCRYPT_KEY;
 
     console.log('[STEADFAST SYNC] Fetching all stores with Steadfast credentials from D1...');
     const rawJson = execSync(
@@ -42,7 +69,6 @@ async function run() {
       { encoding: 'utf8' }
     );
 
-    // Wrangler returns a JSON array: [{ results: [...] }]
     const parsed = JSON.parse(rawJson) as Array<{ results: Array<{ id: number; courierSettings: string }> }>;
     const rows = parsed[0]?.results ?? [];
 
@@ -52,7 +78,18 @@ async function run() {
         const settings = JSON.parse(row.courierSettings);
         const sf = settings?.steadfast ?? settings?.courier?.steadfast;
         if (sf?.steadfastEmail && sf?.steadfastPassword) {
-          await syncForStore(String(row.id), sf.steadfastEmail, sf.steadfastPassword);
+          let password = sf.steadfastPassword as string;
+
+          // Decrypt if COURIER_ENCRYPT_KEY is provided and password looks encrypted (iv:ct format)
+          if (encryptKey && password.includes(':')) {
+            try {
+              password = await decryptPassword(password, encryptKey);
+            } catch (e) {
+              console.warn(`[STEADFAST SYNC] Could not decrypt password for store #${row.id}, trying as plaintext:`, e);
+            }
+          }
+
+          await syncForStore(String(row.id), sf.steadfastEmail, password);
           synced++;
         }
       } catch (e) {
@@ -62,7 +99,7 @@ async function run() {
 
     console.log(`\n[STEADFAST SYNC] Done. Synced ${synced}/${rows.length} stores.`);
   } else {
-    // Single store mode via env vars
+    // Single store mode via env vars (no encryption needed here)
     const email = process.env.STEADFAST_EMAIL;
     const password = process.env.STEADFAST_PASSWORD;
     const storeId = process.env.STORE_ID;

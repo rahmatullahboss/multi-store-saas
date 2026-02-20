@@ -50,6 +50,7 @@ import {
   getUnifiedStorefrontSettings,
   saveUnifiedStorefrontSettingsWithCacheInvalidation,
 } from '~/services/unified-storefront-settings.server';
+import { encryptSecret, isEncrypted } from '~/utils/crypto.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Courier Settings - Ozzyl' }];
@@ -487,13 +488,27 @@ export async function action({ request, context }: ActionFunctionArgs) {
           steadfast: currentCourier.steadfast,
         };
       } else if (selectedProvider === 'steadfast') {
+        const rawPassword = String(formData.get('steadfastPassword') || '');
+        const existingPassword = currentCourier.steadfast?.steadfastPassword || '';
+
+        // Use submitted password or keep existing (masked)
+        let passwordToStore = rawPassword || existingPassword;
+
+        // Encrypt if COURIER_ENCRYPT_KEY is available and it's not already encrypted
+        const encryptKey = (context.cloudflare.env as unknown as Record<string, string>).COURIER_ENCRYPT_KEY;
+        if (passwordToStore && encryptKey && !isEncrypted(passwordToStore)) {
+          try {
+            passwordToStore = await encryptSecret(passwordToStore, encryptKey);
+          } catch (e) {
+            console.error('[COURIER SETTINGS] Failed to encrypt Steadfast password:', e);
+          }
+        }
+
         const steadfastData = {
           apiKey: String(formData.get('apiKey') || ''),
           secretKey: String(formData.get('secretKey') || ''),
-          // Save email+password for auto-login scraper; preserve existing if blank
           steadfastEmail: String(formData.get('steadfastEmail') || currentCourier.steadfast?.steadfastEmail || ''),
-          steadfastPassword: String(formData.get('steadfastPassword') || '') ||
-            currentCourier.steadfast?.steadfastPassword || '',
+          steadfastPassword: passwordToStore,
         };
         newSettings = {
           provider: 'steadfast',
