@@ -23,7 +23,6 @@ import { abandonedCarts, products, orderBumps, productVariants } from '@db/schem
 import * as schema from '@db/schema';
 import {
   getUnifiedStorefrontSettings,
-  toLegacyFormat,
   getShippingConfigFromUnified,
 } from '~/services/unified-storefront-settings.server';
 
@@ -141,10 +140,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId as number, {
     env: context.cloudflare.env,
   });
-  const legacySettings = toLegacyFormat(unifiedSettings);
   const unifiedShippingConfig = getShippingConfigFromUnified(unifiedSettings);
-
-
 
   // Route guard: Check if store routes are enabled
   if (store.storeEnabled === false) {
@@ -160,8 +156,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     youtube: unifiedSettings.social.youtube ?? undefined,
     linkedin: unifiedSettings.social.linkedin ?? undefined,
   };
-
-
 
   const businessInfo = {
     phone: unifiedSettings.business.phone ?? undefined,
@@ -237,13 +231,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // ========== TEMPLATE RESOLUTION (New Template System) ==========
   const checkoutTemplate = await resolveTemplate(cloudflare.env.DB, storeId as number, 'checkout');
 
-  // Resolve template ID from unified settings (same logic as home page)
-  const storeTemplateId = unifiedSettings.theme.templateId
-    ? unifiedSettings.theme.templateId
-    : resolveStoreTemplateId(
-        legacySettings.themeConfig as Record<string, unknown> | null,
-        null
-      );
+  // Resolve template ID from unified settings
+  const storeTemplateId = unifiedSettings.theme.templateId || 'starter-store';
 
   // Build merged theme from unified settings (mirrors _index.tsx)
   const baseTheme = getStoreTemplateTheme(storeTemplateId);
@@ -262,7 +251,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     theme: mergedTheme,
     socialLinks,
     businessInfo,
-    themeConfig: legacySettings.themeConfig as unknown as ThemeConfig,
+    themeConfig: null, // Using unified settings - no legacy config needed
     shippingConfig,
     manualPaymentConfig,
     bumpProducts,

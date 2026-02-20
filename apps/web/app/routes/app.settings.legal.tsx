@@ -22,6 +22,7 @@ import { useState } from 'react';
 import { FileText, Eye, Save, RotateCcw, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { desc } from 'drizzle-orm';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 export const meta: MetaFunction = () => [
   { title: 'Legal Policies - Settings' },
@@ -44,7 +45,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       customShippingPolicy: stores.customShippingPolicy,
       customSubscriptionPolicy: stores.customSubscriptionPolicy,
       customLegalNotice: stores.customLegalNotice,
-      businessInfo: stores.businessInfo,
     })
     .from(stores)
     .where(eq(stores.id, storeId))
@@ -54,16 +54,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     throw redirect('/auth/login');
   }
 
-  // Get contact email from business info
-  let contactEmail = 'support@yourstore.com';
-  if (store.businessInfo) {
-    try {
-      const info = JSON.parse(store.businessInfo);
-      if (info.email) contactEmail = info.email;
-    } catch {
-      // Use default
-    }
-  }
+  // Get contact email from unified settings
+  const unified = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
+  const contactEmail = unified.business.email || 'support@yourstore.com';
 
   // Generate default policies for preview
   const defaultPolicies = {
@@ -199,13 +192,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
       // Fetch refined store data for policy generation
       const [updatedStore] = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
       
-      let contactEmail = 'support@yourstore.com';
-      if (updatedStore?.businessInfo) {
-        try {
-          const info = JSON.parse(updatedStore.businessInfo as string);
-          if (info.email) contactEmail = info.email;
-        } catch {}
-      }
+      const updatedUnified = await getUnifiedStorefrontSettings(db, storeId, {
+        env: context.cloudflare.env,
+      });
+      const contactEmail = updatedUnified.business.email || 'support@yourstore.com';
 
       // Generate effective policies (Custom OR Auto-generated)
       const effectivePrivacy = updatedStore.customPrivacyPolicy || getPolicyContent('privacy', updatedStore.name, contactEmail).content;
@@ -310,13 +300,10 @@ ${effectiveLegal}`;
         });
 
         const [updatedStore] = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
-        let contactEmail = 'support@yourstore.com';
-        if (updatedStore?.businessInfo) {
-          try {
-            const info = JSON.parse(updatedStore.businessInfo as string);
-            if (info.email) contactEmail = info.email;
-          } catch {}
-        }
+        const updatedUnified = await getUnifiedStorefrontSettings(db, storeId, {
+          env: context.cloudflare.env,
+        });
+        const contactEmail = updatedUnified.business.email || 'support@yourstore.com';
 
         const effectivePrivacy = updatedStore.customPrivacyPolicy || getPolicyContent('privacy', updatedStore.name, contactEmail).content;
         const effectiveTerms = updatedStore.customTermsOfService || getPolicyContent('terms', updatedStore.name, contactEmail).content;
@@ -412,13 +399,10 @@ ${effectiveLegal}`;
       });
 
       const [updatedStore] = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
-      let contactEmail = 'support@yourstore.com';
-      if (updatedStore?.businessInfo) {
-        try {
-          const info = JSON.parse(updatedStore.businessInfo as string);
-          if (info.email) contactEmail = info.email;
-        } catch {}
-      }
+      const updatedUnified = await getUnifiedStorefrontSettings(db, storeId, {
+        env: context.cloudflare.env,
+      });
+      const contactEmail = updatedUnified.business.email || 'support@yourstore.com';
 
       const effectivePrivacy = updatedStore.customPrivacyPolicy || getPolicyContent('privacy', updatedStore.name, contactEmail).content;
       const effectiveTerms = updatedStore.customTermsOfService || getPolicyContent('terms', updatedStore.name, contactEmail).content;

@@ -14,10 +14,11 @@ import type { ActionFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, inArray } from 'drizzle-orm';
-import { orders, orderItems, stores, shipments } from '@db/schema';
+import { orders, orderItems, shipments } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { createRedXClient, REDX_STATUS_MAP } from '~/services/redx.server';
 import { calculateOrderWeight } from '~/lib/courier-weight.server';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 // ============================================================================
 // ACTION HANDLER
@@ -35,17 +36,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Helper: get RedX client from store settings
   async function getRedXClient() {
-    const storeResult = await db
-      .select({ courierSettings: stores.courierSettings })
-      .from(stores)
-      .where(eq(stores.id, storeId!))
-      .limit(1);
-
-    if (!storeResult[0]?.courierSettings) {
+    const unified = await getUnifiedStorefrontSettings(db, storeId!, {
+      env: context.cloudflare.env,
+    });
+    const courierSettings = unified.courier;
+    if (!courierSettings) {
       throw new Error('RedX not configured. Go to Settings > Courier.');
     }
-
-    const courierSettings = JSON.parse(storeResult[0].courierSettings as string);
 
     if (!courierSettings.redx?.apiKey) {
       throw new Error('RedX credentials not configured. Go to Settings > Courier.');

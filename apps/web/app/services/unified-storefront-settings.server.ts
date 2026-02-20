@@ -2,37 +2,31 @@
  * Unified Storefront Settings Service
  *
  * Single source of truth for all storefront settings.
- * Provides read, write, migration, and archive operations.
+ * Provides read, write, and cache invalidation operations.
  *
  * Read Flow:
  * 1. getUnifiedStorefrontSettings(storeId) reads stores.storefront_settings
- * 2. If missing, uses compatibility fallback (temporary)
- * 3. If fallback resolved, auto-backfills canonical column
+ * 2. If missing, returns strict defaults (no legacy fallback)
  *
  * Write Flow:
  * 1. saveUnifiedStorefrontSettings updates canonical column
  * 2. Invalidates all caches (D1 + KV + DO)
- * 3. Optional dual-write to legacy columns (temporary)
+ * 3. No dual-write to legacy columns
  */
 
 import { eq } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
-import { stores, storeSettingsArchives } from '@db/schema';
+import { stores } from '@db/schema';
 
 import {
   type UnifiedStorefrontSettingsV1,
   type UnifiedStorefrontSettingsPatch,
   DEFAULT_UNIFIED_SETTINGS,
-  DEFAULT_THEME_COLORS,
   UnifiedStorefrontSettingsV1Schema,
   serializeUnifiedSettings,
   deserializeUnifiedSettings,
   createUnifiedSettingsFromPatch,
-  validateThemeId,
-  type AllowedThemeId,
 } from './storefront-settings.schema';
-
-import { getRawMVPSettings } from '~/services/mvp-settings.server';
 
 import type { StoreTemplateTheme } from '~/templates/store-registry';
 
@@ -41,7 +35,7 @@ import type { StoreTemplateTheme } from '~/templates/store-registry';
 // ============================================================================
 
 export interface GetUnifiedSettingsOptions {
-  /** Enable fallback to legacy sources (default: true) */
+  /** Kept for callsite compatibility; fallback is disabled */
   enableFallback?: boolean;
   /** Skip cache and force DB read (default: false) */
   forceRefresh?: boolean;
@@ -52,7 +46,7 @@ export interface GetUnifiedSettingsOptions {
 export interface SaveUnifiedSettingsOptions {
   /** Actor who made the change (for audit) */
   actorId?: number;
-  /** Enable dual-write to legacy columns (default: false - for migration) */
+  /** Kept for callsite compatibility; dual-write is disabled */
   dualWrite?: boolean;
 }
 
@@ -63,29 +57,13 @@ export interface MigrateLegacyOptions {
   dryRun?: boolean;
 }
 
-/**
- * Internal type for migration functions
- * Used to read from legacy columns for migration purposes
- */
-interface LegacySources {
-  themeConfig: Record<string, any> | null;
-  mvpSettings: Record<string, any> | null;
-  socialLinks: Record<string, any> | null;
-  businessInfo: Record<string, any> | null;
-  storeName: string | null;
-  logo: string | null;
-  favicon: string | null;
-  tagline: string | null;
-  description: string | null;
-}
-
 // ============================================================================
 // GET SETTINGS
 // ============================================================================
 
 /**
  * Get unified storefront settings for a store
- * Returns canonical settings with optional fallback to legacy sources
+ * Returns canonical settings without any legacy fallback
  */
 export async function getUnifiedStorefrontSettings<TSchema extends Record<string, unknown>>(
   db: DrizzleD1Database<TSchema>,
@@ -167,7 +145,12 @@ export async function saveUnifiedStorefrontSettings<TSchema extends Record<strin
   // Save to canonical column
   await db
     .update(stores)
-    .set({ storefrontSettings: serializeUnifiedSettings(validated) })
+    .set({
+      storefrontSettings: serializeUnifiedSettings(validated),
+      // Keep legacy-compatible column aligned to prevent route-level theme drift.
+      theme: validated.theme.templateId,
+      updatedAt: new Date(),
+    })
     .where(eq(stores.id, storeId));
 
   // Note: Cache invalidation will be handled by the caller or separate service
@@ -190,362 +173,80 @@ export async function replaceUnifiedStorefrontSettings<TSchema extends Record<st
   // Save to canonical column
   await db
     .update(stores)
-    .set({ storefrontSettings: serializeUnifiedSettings(validated) })
+    .set({
+      storefrontSettings: serializeUnifiedSettings(validated),
+      theme: validated.theme.templateId,
+      updatedAt: new Date(),
+    })
     .where(eq(stores.id, storeId));
 
   return validated;
 }
 
 // ============================================================================
-// LEGACY MIGRATION HELPERS
+// CANONICAL BACKFILL HELPERS
 // ============================================================================
 
 /**
- * Get all legacy settings sources for migration
- */
-async function getLegacySettings<TSchema extends Record<string, unknown>>(
-  db: DrizzleD1Database<TSchema>,
-  storeId: number
-): Promise<LegacySources> {
-  // Get store columns
-  const storeResult = await db
-    .select({
-      name: stores.name,
-      logo: stores.logo,
-      favicon: stores.favicon,
-      tagline: stores.tagline,
-      description: stores.description,
-      themeConfig: stores.themeConfig,
-      socialLinks: stores.socialLinks,
-      businessInfo: stores.businessInfo,
-    })
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
-
-  const store = storeResult[0] || {};
-
-  // Parse themeConfig
-  let themeConfig: Record<string, any> | null = null;
-  if (store.themeConfig) {
-    try {
-      themeConfig =
-        typeof store.themeConfig === 'string' ? JSON.parse(store.themeConfig) : store.themeConfig;
-    } catch {
-      themeConfig = null;
-    }
-  }
-
-  // Parse socialLinks
-  let socialLinks: Record<string, any> | null = null;
-  if (store.socialLinks) {
-    try {
-      socialLinks =
-        typeof store.socialLinks === 'string' ? JSON.parse(store.socialLinks) : store.socialLinks;
-    } catch {
-      socialLinks = null;
-    }
-  }
-
-  // Parse businessInfo
-  let businessInfo: Record<string, any> | null = null;
-  if (store.businessInfo) {
-    try {
-      businessInfo =
-        typeof store.businessInfo === 'string'
-          ? JSON.parse(store.businessInfo)
-          : store.businessInfo;
-    } catch {
-      businessInfo = null;
-    }
-  }
-
-  // Get MVP settings
-  let mvpSettings: Record<string, unknown> | null = null;
-  try {
-    const rawMvpSettings = await getRawMVPSettings(db, storeId);
-    mvpSettings = rawMvpSettings as unknown as Record<string, unknown>;
-  } catch {
-    mvpSettings = null;
-  }
-
-  return {
-    themeConfig,
-    mvpSettings,
-    socialLinks,
-    businessInfo,
-    storeName: store.name || null,
-    logo: store.logo || null,
-    favicon: store.favicon || null,
-    tagline: store.tagline || null,
-    description: store.description || null,
-  };
-}
-
-/**
- * Migrate legacy settings to unified format
- * Precedence: MVP settings > themeConfig > direct store columns
- */
-async function migrateLegacyToUnified(
-  legacy: LegacySources,
-  _storeId: number
-): Promise<UnifiedStorefrontSettingsV1> {
-  // Determine template ID
-  const templateId = resolveTemplateId(legacy);
-
-  // Get theme defaults
-  const themeDefaults = DEFAULT_THEME_COLORS[templateId] || DEFAULT_THEME_COLORS['starter-store'];
-
-  // Theme settings - priority: mvpSettings > themeConfig > defaults
-  const theme = {
-    templateId,
-    primary:
-      legacy.mvpSettings?.primaryColor || legacy.themeConfig?.primaryColor || themeDefaults.primary,
-    accent:
-      legacy.mvpSettings?.accentColor || legacy.themeConfig?.accentColor || themeDefaults.accent,
-    background: legacy.themeConfig?.background || '#ffffff',
-    text: legacy.themeConfig?.text || '#1f2937',
-    muted: legacy.themeConfig?.muted || '#6b7280',
-    cardBg: legacy.themeConfig?.cardBg || '#ffffff',
-    headerBg: legacy.themeConfig?.headerBg || '#ffffff',
-    footerBg: legacy.themeConfig?.footerBg || '#1f2937',
-    footerText: legacy.themeConfig?.footerText || '#ffffff',
-  };
-
-  // Branding - priority: mvpSettings > themeConfig > store columns
-  const branding = {
-    storeName:
-      legacy.mvpSettings?.storeName ||
-      legacy.themeConfig?.storeName ||
-      legacy.storeName ||
-      'My Store',
-    logo: legacy.mvpSettings?.logo || legacy.themeConfig?.logo || legacy.logo || null,
-    favicon: legacy.mvpSettings?.favicon || legacy.themeConfig?.favicon || legacy.favicon || null,
-    tagline: legacy.themeConfig?.tagline || legacy.tagline || null,
-    description: legacy.themeConfig?.description || legacy.description || null,
-  };
-
-  // Business info
-  const business = {
-    phone: legacy.businessInfo?.phone || legacy.themeConfig?.phone || null,
-    email: legacy.businessInfo?.email || legacy.themeConfig?.email || null,
-    address: legacy.businessInfo?.address || legacy.themeConfig?.address || null,
-  };
-
-  // Social links
-  const social = {
-    facebook: legacy.socialLinks?.facebook || legacy.themeConfig?.facebook || null,
-    instagram: legacy.socialLinks?.instagram || legacy.themeConfig?.instagram || null,
-    whatsapp: legacy.socialLinks?.whatsapp || legacy.themeConfig?.whatsapp || null,
-    twitter: legacy.socialLinks?.twitter || legacy.themeConfig?.twitter || null,
-    youtube: legacy.socialLinks?.youtube || null,
-    linkedin: legacy.socialLinks?.linkedin || null,
-  };
-
-  // Announcement - from mvpSettings or themeConfig
-  const announcementEnabled =
-    legacy.mvpSettings?.showAnnouncement || legacy.themeConfig?.announcement?.enabled || false;
-  const announcementText =
-    legacy.mvpSettings?.announcementText || legacy.themeConfig?.announcement?.text || null;
-
-  const announcement = {
-    enabled: announcementEnabled,
-    text: announcementText,
-    link: legacy.themeConfig?.announcement?.link || null,
-    backgroundColor: legacy.themeConfig?.announcement?.backgroundColor || '#4F46E5',
-    textColor: legacy.themeConfig?.announcement?.textColor || '#ffffff',
-  };
-
-  // SEO
-  const seo = {
-    title: legacy.themeConfig?.seo?.title || null,
-    description: legacy.themeConfig?.seo?.description || null,
-    keywords: legacy.themeConfig?.seo?.keywords || [],
-    ogImage: legacy.themeConfig?.seo?.ogImage || null,
-  };
-
-  // Checkout (from themeConfig only)
-  const checkout = {
-    shippingSummaryText: legacy.themeConfig?.checkout?.shippingSummaryText || null,
-    showStockWarning: legacy.themeConfig?.checkout?.showStockWarning ?? true,
-    enableGuestCheckout: legacy.themeConfig?.checkout?.enableGuestCheckout ?? true,
-  };
-
-  // Shipping config (from themeConfig/mvpSettings when available)
-  const shippingConfig = {
-    deliveryCharge: legacy.themeConfig?.deliveryCharge ?? legacy.mvpSettings?.deliveryCharge ?? 60,
-    freeDeliveryAbove:
-      legacy.themeConfig?.freeDeliveryAbove ?? legacy.mvpSettings?.freeDeliveryAbove ?? null,
-    insideDhaka:
-      legacy.themeConfig?.shippingConfig?.insideDhaka ??
-      legacy.themeConfig?.insideDhaka ??
-      legacy.mvpSettings?.shippingConfig?.insideDhaka ??
-      legacy.mvpSettings?.insideDhaka ??
-      60,
-    outsideDhaka:
-      legacy.themeConfig?.shippingConfig?.outsideDhaka ??
-      legacy.themeConfig?.outsideDhaka ??
-      legacy.mvpSettings?.shippingConfig?.outsideDhaka ??
-      legacy.mvpSettings?.outsideDhaka ??
-      120,
-    freeShippingAbove:
-      legacy.themeConfig?.shippingConfig?.freeShippingAbove ??
-      legacy.themeConfig?.freeShippingAbove ??
-      legacy.mvpSettings?.shippingConfig?.freeShippingAbove ??
-      legacy.mvpSettings?.freeShippingAbove ??
-      0,
-    enabled:
-      legacy.themeConfig?.shippingConfig?.enabled ??
-      legacy.themeConfig?.shippingEnabled ??
-      legacy.mvpSettings?.shippingConfig?.enabled ??
-      legacy.mvpSettings?.shippingEnabled ??
-      true,
-  };
-
-  // Hero banner (no legacy source - use defaults)
-  const heroBanner = {
-    mode: 'single' as const,
-    overlayOpacity: 40,
-    slides: [] as Array<{
-      imageUrl: string | null;
-      heading: string | null;
-      subheading: string | null;
-      ctaText: string | null;
-      ctaLink: string | null;
-    }>,
-    fallbackHeadline: null,
-  };
-
-  // Trust badges (no legacy source - use defaults)
-  const trustBadges = {
-    badges: [
-      { icon: 'truck' as const, title: 'দ্রুত ডেলিভারি', description: 'ঢাকায় ১-২ দিনে' },
-      { icon: 'shield' as const, title: 'নিরাপদ পেমেন্ট', description: '১০০% সিকিউর' },
-      { icon: 'refresh' as const, title: 'ইজি রিটার্ন', description: '৭ দিনের মধ্যে' },
-    ],
-  };
-
-  // Why Choose Us (from legacy themeConfig if available)
-  const whyChooseUs = legacy.themeConfig?.whyChooseUs || [
-    { icon: '✨', title: 'প্রিমিয়াম কোয়ালিটি', description: 'উন্নত মানের নিশ্চয়তা' },
-    { icon: '⚡', title: 'দ্রুত ডেলিভারি', description: 'দ্রুত ও নিরাপদ ডেলিভারি' },
-    { icon: '💬', title: '২৪/৭ সাপোর্ট', description: 'আমরা ২৪ ঘণ্টা আপনার সেবায় নিয়োজিত' },
-  ];
-
-  // Typography (from legacy fontFamily if available)
-  const typography = {
-    fontFamily: legacy.themeConfig?.fontFamily || legacy.mvpSettings?.fontFamily || 'inter',
-  };
-
-  // Floating contact settings (from legacy themeConfig)
-  const floating = {
-    whatsappEnabled: legacy.themeConfig?.floatingWhatsappEnabled ?? false,
-    whatsappNumber: legacy.themeConfig?.floatingWhatsappNumber ?? null,
-    whatsappMessage: legacy.themeConfig?.floatingWhatsappMessage ?? null,
-    callEnabled: legacy.themeConfig?.floatingCallEnabled ?? false,
-    callNumber: legacy.themeConfig?.floatingCallNumber ?? null,
-  };
-
-  // Courier settings (from legacy themeConfig)
-  const courier = {
-    provider: legacy.themeConfig?.courier?.provider ?? null,
-    pathao: legacy.themeConfig?.courier?.pathao ?? null,
-    redx: legacy.themeConfig?.courier?.redx ?? null,
-    steadfast: legacy.themeConfig?.courier?.steadfast ?? null,
-  };
-
-  // Navigation settings (from legacy themeConfig)
-  const navigation = {
-    headerMenu: legacy.themeConfig?.headerMenu ?? [],
-    footerColumns: legacy.themeConfig?.footerColumns ?? [],
-    footerDescription: legacy.themeConfig?.footerDescription ?? null,
-  };
-
-  return {
-    version: 1,
-    theme,
-    branding,
-    business,
-    social,
-    announcement,
-    seo,
-    checkout,
-    shippingConfig,
-    floating,
-    courier,
-    navigation,
-    heroBanner,
-    trustBadges,
-    whyChooseUs,
-    typography,
-    flags: {
-      sourceLocked: false,
-      legacyFallbackUsed: false,
-      migrationCompleted: true,
-    },
-    updatedAt: new Date().toISOString(),
-  };
-}
-
-/**
- * Resolve template ID from legacy sources
- */
-function resolveTemplateId(legacy: LegacySources): AllowedThemeId {
-  // If we have themeConfig, check for its storeTemplateId
-  if (legacy.themeConfig) {
-    if (
-      legacy.themeConfig.storeTemplateId &&
-      typeof legacy.themeConfig.storeTemplateId === 'string'
-    ) {
-      return validateThemeId(legacy.themeConfig.storeTemplateId);
-    }
-  }
-
-  // Try parsing storeTheme JSON string
-  if (legacy.mvpSettings) {
-    if (
-      legacy.mvpSettings.storeTemplateId &&
-      typeof legacy.mvpSettings.storeTemplateId === 'string'
-    ) {
-      return validateThemeId(legacy.mvpSettings.storeTemplateId);
-    }
-  }
-
-  return 'starter-store';
-}
-
-// ============================================================================
-// MIGRATION & ARCHIVE
-// ============================================================================
-
-/**
- * Migrate a single store's legacy settings to unified format
- * Archives legacy snapshots before migration
+ * Ensure a single store has canonical unified settings.
+ * This does not read legacy columns. Missing stores receive a minimal settings object.
  */
 export async function migrateStoreToUnifiedSettings<TSchema extends Record<string, unknown>>(
   db: DrizzleD1Database<TSchema>,
   storeId: number,
   options: MigrateLegacyOptions
 ): Promise<{ success: boolean; settings?: UnifiedStorefrontSettingsV1; error?: string }> {
-  const { releaseTag, dryRun = false } = options;
+  const { dryRun = false } = options;
 
   try {
-    // Get current legacy settings
-    const legacy = await getLegacySettings(db, storeId);
+    const storeResult = await db
+      .select({
+        name: stores.name,
+        logo: stores.logo,
+        favicon: stores.favicon,
+        tagline: stores.tagline,
+        description: stores.description,
+        fontFamily: stores.fontFamily,
+        storefrontSettings: stores.storefrontSettings,
+      })
+      .from(stores)
+      .where(eq(stores.id, storeId))
+      .limit(1);
 
-    // Archive each legacy source
-    if (!dryRun) {
-      await archiveLegacySettings(db, storeId, 'theme_config', legacy.themeConfig, releaseTag);
-      await archiveLegacySettings(db, storeId, 'mvp_settings', legacy.mvpSettings, releaseTag);
-      await archiveLegacySettings(db, storeId, 'social_links', legacy.socialLinks, releaseTag);
-      await archiveLegacySettings(db, storeId, 'business_info', legacy.businessInfo, releaseTag);
+    const store = storeResult[0];
+    if (!store) {
+      return { success: false, error: `Store not found: ${storeId}` };
     }
 
-    // Migrate to unified
-    const unified = await migrateLegacyToUnified(legacy, storeId);
+    const existing = store.storefrontSettings
+      ? deserializeUnifiedSettings(store.storefrontSettings)
+      : null;
+    if (existing) {
+      return { success: true, settings: existing };
+    }
+
+    const unified: UnifiedStorefrontSettingsV1 = {
+      ...DEFAULT_UNIFIED_SETTINGS,
+      branding: {
+        ...DEFAULT_UNIFIED_SETTINGS.branding,
+        storeName: store.name || DEFAULT_UNIFIED_SETTINGS.branding.storeName,
+        logo: store.logo || null,
+        favicon: store.favicon || null,
+        tagline: store.tagline || null,
+        description: store.description || null,
+      },
+      typography: {
+        ...DEFAULT_UNIFIED_SETTINGS.typography,
+        fontFamily: store.fontFamily || DEFAULT_UNIFIED_SETTINGS.typography.fontFamily,
+      },
+      flags: {
+        ...DEFAULT_UNIFIED_SETTINGS.flags,
+        migrationCompleted: true,
+      },
+      updatedAt: new Date().toISOString(),
+    };
 
     if (!dryRun) {
-      // Save to canonical column
       await db
         .update(stores)
         .set({ storefrontSettings: serializeUnifiedSettings(unified) })
@@ -560,42 +261,25 @@ export async function migrateStoreToUnifiedSettings<TSchema extends Record<strin
 }
 
 /**
- * Archive legacy settings snapshot
- */
-async function archiveLegacySettings<TSchema extends Record<string, unknown>>(
-  db: DrizzleD1Database<TSchema>,
-  storeId: number,
-  source: string,
-  data: unknown,
-  releaseTag: string
-): Promise<void> {
-  if (!data) return;
-
-  await db.insert(storeSettingsArchives).values({
-    storeId,
-    source,
-    snapshotJson: JSON.stringify(data),
-    schemaVersion: 1,
-    releaseTag,
-  });
-}
-
-/**
- * Migrate all stores (batch operation)
+ * Backfill all stores missing canonical unified settings.
  */
 export async function migrateAllStoresToUnifiedSettings<TSchema extends Record<string, unknown>>(
   db: DrizzleD1Database<TSchema>,
   releaseTag: string,
   dryRun: boolean = false
 ): Promise<{ migrated: number; failed: number; errors: string[] }> {
-  // Get all stores
-  const allStores = await db.select({ id: stores.id }).from(stores);
+  void releaseTag;
+
+  const allStores = await db
+    .select({ id: stores.id, storefrontSettings: stores.storefrontSettings })
+    .from(stores);
+  const pending = allStores.filter((store) => !store.storefrontSettings);
 
   let migrated = 0;
   let failed = 0;
   const errors: string[] = [];
 
-  for (const store of allStores) {
+  for (const store of pending) {
     const result = await migrateStoreToUnifiedSettings(db, store.id, { releaseTag, dryRun });
     if (result.success) {
       migrated++;

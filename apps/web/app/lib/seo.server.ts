@@ -121,8 +121,9 @@ export function generateOrganizationSchema(store: StoreInfo): object {
     };
   }
 
-  if (store.socialLinks) {
-    const sameAs = Object.values(store.socialLinks).filter(Boolean);
+  const socialLinks = (store as { socialLinks?: Record<string, string | undefined> })['socialLinks'];
+  if (socialLinks) {
+    const sameAs = Object.values(socialLinks).filter(Boolean);
     if (sameAs.length > 0) {
       schema.sameAs = sameAs;
     }

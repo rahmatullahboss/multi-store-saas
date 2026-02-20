@@ -31,7 +31,6 @@ export async function getStorePolicyBundle(db: Database, storeId: number): Promi
       currency: true,
       subdomain: true,
       customDomain: true,
-      businessInfo: true,
       shippingConfig: true,
       manualPaymentConfig: true,
       customRefundPolicy: true,
@@ -43,7 +42,6 @@ export async function getStorePolicyBundle(db: Database, storeId: number): Promi
 
   if (!store) return null;
 
-  const businessInfo = safeJson<{ name?: string }>(store.businessInfo);
   const shippingConfig = safeJson<{ insideDhaka?: number; outsideDhaka?: number; freeShippingAbove?: number; enabled?: boolean }>(
     store.shippingConfig
   );
@@ -82,6 +80,6 @@ export async function getStorePolicyBundle(db: Database, storeId: number): Promi
     legalNotice: store.customLegalNotice || undefined,
     paymentMethods: paymentMethods.length ? paymentMethods : undefined,
     storeUrl,
-    businessName: businessInfo?.name || store.name,
+    businessName: store.name,
   };
 }

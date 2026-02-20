@@ -171,12 +171,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     env: context.cloudflare.env,
   });
 
-  const rawCourierSettings =
-    typeof store.courierSettings === 'string'
-      ? JSON.parse(store.courierSettings)
-      : store.courierSettings || null;
-
-  const courierConfig = unifiedSettings.courier || rawCourierSettings || {};
+  // Use unified settings for courier (single source of truth)
+  const courierConfig = unifiedSettings.courier || {};
   const courierSettings = {
     provider: courierConfig.provider || null,
     pathao: courierConfig.pathao
@@ -312,13 +308,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       env: context.cloudflare.env,
     });
 
-    const currentCourier = (
-      store.courierSettings
-        ? typeof store.courierSettings === 'string'
-          ? JSON.parse(store.courierSettings)
-          : store.courierSettings
-        : unifiedSettings.courier || {}
-    ) as CourierSettings;
+    // Use unified settings as single source of truth
+    const currentCourier = (unifiedSettings.courier || {}) as CourierSettings;
 
     // ------------------------------------------------------------------------
     // CASE 4: Create Store (Pathao)
@@ -397,13 +388,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
             { courier: toUnifiedCourier(updatedCourier) }
           );
 
-          await db
-            .update(stores)
-            .set({
-              courierSettings: JSON.stringify(updatedCourier),
-              updatedAt: new Date(),
-            })
-            .where(eq(stores.id, storeId));
+          // Note: No longer writing to legacy courierSettings column
+          // Legacy column will be removed in future migration
 
           message += ` Auto-selected Store ID: ${createdStore.store_id}`;
           autoSet = true;
@@ -472,7 +458,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         };
       } else if (selectedProvider === 'redx') {
         const redxApiKey = String(formData.get('apiKey') || '');
-        const redxBaseUrl = String(formData.get('baseUrl') || 'https://sandbox.redx.com.bd/v1.0.0-beta');
+        const redxBaseUrl = String(
+          formData.get('baseUrl') || 'https://sandbox.redx.com.bd/v1.0.0-beta'
+        );
 
         if (!redxApiKey) {
           return json({ error: 'RedX Token/API Key is required' }, { status: 400 });
@@ -495,7 +483,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
         let passwordToStore = rawPassword || existingPassword;
 
         // Encrypt if COURIER_ENCRYPT_KEY is available and it's not already encrypted
-        const encryptKey = (context.cloudflare.env as unknown as Record<string, string>).COURIER_ENCRYPT_KEY;
+        const encryptKey = (context.cloudflare.env as unknown as Record<string, string>)
+          .COURIER_ENCRYPT_KEY;
         if (passwordToStore && encryptKey && !isEncrypted(passwordToStore)) {
           try {
             passwordToStore = await encryptSecret(passwordToStore, encryptKey);
@@ -507,7 +496,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         const steadfastData = {
           apiKey: String(formData.get('apiKey') || ''),
           secretKey: String(formData.get('secretKey') || ''),
-          steadfastEmail: String(formData.get('steadfastEmail') || currentCourier.steadfast?.steadfastEmail || ''),
+          steadfastEmail: String(
+            formData.get('steadfastEmail') || currentCourier.steadfast?.steadfastEmail || ''
+          ),
           steadfastPassword: passwordToStore,
         };
         newSettings = {
@@ -528,13 +519,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         { courier: toUnifiedCourier(newSettings) }
       );
 
-      await db
-        .update(stores)
-        .set({
-          courierSettings: JSON.stringify(newSettings),
-          updatedAt: new Date(),
-        })
-        .where(eq(stores.id, storeId));
+      // Note: No longer writing to legacy courierSettings column
 
       await logActivity(db, {
         storeId,
@@ -578,7 +563,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
       if (provider === 'steadfast') {
-        if (!currentCourier.steadfast) return json({ error: 'No Steadfast credentials found' }, { status: 400 });
+        if (!currentCourier.steadfast)
+          return json({ error: 'No Steadfast credentials found' }, { status: 400 });
 
         const client = createSteadfastClient({
           apiKey: currentCourier.steadfast.apiKey,
@@ -597,14 +583,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
             return json({ success: true, message: 'Connection successful!' });
           }
         } else {
-          return json({ error: 'Connection failed. Check API Key and Secret Key.' }, { status: 400 });
+          return json(
+            { error: 'Connection failed. Check API Key and Secret Key.' },
+            { status: 400 }
+          );
         }
       }
 
       if (provider === 'redx') {
         const testApiKey = String(formData.get('apiKey') || currentCourier.redx?.apiKey || '');
-        const testBaseUrl = String(formData.get('baseUrl') || currentCourier.redx?.baseUrl || 'https://sandbox.redx.com.bd/v1.0.0-beta');
-        
+        const testBaseUrl = String(
+          formData.get('baseUrl') ||
+            currentCourier.redx?.baseUrl ||
+            'https://sandbox.redx.com.bd/v1.0.0-beta'
+        );
+
         if (!testApiKey) return json({ error: 'No RedX credentials found' }, { status: 400 });
 
         const client = createRedXClient({
@@ -642,13 +635,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         { courier: toUnifiedCourier(disconnectedCourier) }
       );
 
-      await db
-        .update(stores)
-        .set({
-          courierSettings: JSON.stringify(disconnectedCourier),
-          updatedAt: new Date(),
-        })
-        .where(eq(stores.id, storeId));
+      // Note: No longer writing to legacy courierSettings column
 
       await logActivity(db, {
         storeId,
@@ -1034,11 +1021,17 @@ export default function CourierSettingsPage() {
                       </label>
                       <select
                         name="baseUrl"
-                        defaultValue={settings.redx?.baseUrl || 'https://sandbox.redx.com.bd/v1.0.0-beta'}
+                        defaultValue={
+                          settings.redx?.baseUrl || 'https://sandbox.redx.com.bd/v1.0.0-beta'
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white/50 backdrop-blur-sm"
                       >
-                        <option value="https://sandbox.redx.com.bd/v1.0.0-beta">Sandbox (Testing)</option>
-                        <option value="https://openapi.redx.com.bd/v1.0.0-beta">Production (Live)</option>
+                        <option value="https://sandbox.redx.com.bd/v1.0.0-beta">
+                          Sandbox (Testing)
+                        </option>
+                        <option value="https://openapi.redx.com.bd/v1.0.0-beta">
+                          Production (Live)
+                        </option>
                       </select>
                     </div>
                   </div>
@@ -1093,7 +1086,9 @@ export default function CourierSettingsPage() {
                         <div className="group relative flex items-center">
                           <Info className="w-4 h-4 text-emerald-500 cursor-help" />
                           <div className="absolute left-full ml-2 w-72 p-2 bg-gray-900 text-xs text-white rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                            Enter your Steadfast portal login email and password. Our system will automatically log in, extract fresh session cookies, and use them for fraud detection — no manual cookie copying needed.
+                            Enter your Steadfast portal login email and password. Our system will
+                            automatically log in, extract fresh session cookies, and use them for
+                            fraud detection — no manual cookie copying needed.
                           </div>
                         </div>
                       </div>
@@ -1118,7 +1113,11 @@ export default function CourierSettingsPage() {
                             type="password"
                             name="steadfastPassword"
                             defaultValue={settings.steadfast?.steadfastPassword ? '••••••••' : ''}
-                            placeholder={settings.steadfast?.steadfastPassword ? '••••••••' : 'Your portal password'}
+                            placeholder={
+                              settings.steadfast?.steadfastPassword
+                                ? '••••••••'
+                                : 'Your portal password'
+                            }
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white/50 backdrop-blur-sm"
                           />
                         </div>
@@ -1136,7 +1135,7 @@ export default function CourierSettingsPage() {
                   value="save"
                   disabled={
                     isSubmitting ||
-                     (!['pathao', 'steadfast', 'redx'].includes(selectedProvider || ''))
+                    !['pathao', 'steadfast', 'redx'].includes(selectedProvider || '')
                   }
                   className="flex-1 inline-flex justify-center items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition shadow-sm"
                 >

@@ -10,7 +10,7 @@ Use `stores.storefront_settings` (Unified V1 JSON) as the only canonical storefr
 
 - Read: `getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env })`
 - Write: `saveUnifiedStorefrontSettingsWithCacheInvalidation(...)`
-- Compatibility only: `toLegacyFormat(...)` for legacy component props during migration
+- **Legacy bridge REMOVED**: `toLegacyFormat(...)` has been deleted - use unified settings directly
 
 ## Strict Mode
 
@@ -25,12 +25,13 @@ When strict mode is enabled (and env is passed), legacy fallback is disabled.
 
 ## Legacy Policy
 
-These are fallback/migration sources only, not primary read/write targets for new features:
+These columns are deprecated but still exist in DB:
 
 - `stores.themeConfig`
 - `stores.socialLinks`
 - `stores.businessInfo`
 - `stores.courierSettings`
+- `store_mvp_settings` table
 
 ## Unified Coverage
 
@@ -48,26 +49,35 @@ The unified schema must cover and drive:
 
 - Always pass `env` when calling unified read APIs.
 - Do not introduce new direct writes to legacy settings columns.
-- If a legacy route/component still needs old props, convert from unified using `toLegacyFormat`.
 
-## The Bridge Strategy (CRITICAL)
+## Migration Complete (Feb 2026)
 
-We are currently in a **hybrid state** where the database stores `UnifiedStorefrontSettings` (new), but many UI components still expect `ThemeConfig` (old).
+The legacy bridge `toLegacyFormat()` has been **removed**. All routes now use unified settings directly:
 
-**`toLegacyFormat(unifiedSettings)` is the BRIDGE.**
+```typescript
+// NEW PATTERN (required)
+const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
 
-- It maps new fields to old fields.
-- It applies default values (e.g., for `floatingSettings`).
-- It ensures backward compatibility.
+// Build theme from unified settings
+const storeTemplateId = unifiedSettings.theme.templateId || 'starter-store';
+const baseTheme = getStoreTemplateTheme(storeTemplateId);
+const theme = {
+  ...baseTheme,
+  primary: unifiedSettings.theme.primary || baseTheme.primary,
+  accent: unifiedSettings.theme.accent || baseTheme.accent,
+};
 
-### 🚨 Strict Rules
+// Pass to components
+<StorePageWrapper
+  storeName={unifiedSettings.branding.storeName}
+  templateId={storeTemplateId}
+  theme={theme}
+  config={null} // No longer needed
+>
+```
 
-1.  **NEVER** construct a `ThemeConfig` object manually in a loader.
-    - _Wrong:_ `themeConfig: { ...unified.theme, primaryColor: ... }`
-    - _Right:_ `const legacy = toLegacyFormat(unified); return json({ themeConfig: legacy.themeConfig });`
+### 🚨 Strict Rules (Updated)
 
-2.  **ALWAYS** use `toLegacyFormat`.
-    - Bypassing it causes regressions (e.g., missing floating buttons, zero delivery charges).
-
-3.  **NEVER** partial-match.
-    - Do not try to "mix and match" manual settings with unified settings. Trust the bridge.
+1. **NEVER** read from legacy columns directly (themeConfig, businessInfo, etc.)
+2. **ALWAYS** use `getUnifiedStorefrontSettings()` for reading
+3. **USE** `saveUnifiedStorefrontSettingsWithCacheInvalidation()` for writing

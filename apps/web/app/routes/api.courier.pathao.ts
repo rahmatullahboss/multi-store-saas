@@ -20,6 +20,7 @@ import {
   PATHAO_STATUS_MAP,
 } from '~/services/pathao.server';
 import { calculateOrderWeight } from '~/lib/courier-weight.server';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 /**
  * Map Pathao order status string to a timeline step index (0-4).
@@ -63,17 +64,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // Helper: get Pathao client from store settings
   async function getPathaoClient() {
-    const storeResult = await db
-      .select({ courierSettings: stores.courierSettings, name: stores.name })
-      .from(stores)
-      .where(eq(stores.id, storeId!))
-      .limit(1);
-
-    if (!storeResult[0]?.courierSettings) {
+    const unified = await getUnifiedStorefrontSettings(db, storeId!, {
+      env: context.cloudflare.env,
+    });
+    const courierSettings = unified.courier;
+    if (!courierSettings) {
       throw new Error('Pathao not configured. Go to Settings > Courier.');
     }
-
-    const courierSettings = JSON.parse(storeResult[0].courierSettings as string);
 
     if (!courierSettings.pathao) {
       throw new Error('Pathao credentials not configured');

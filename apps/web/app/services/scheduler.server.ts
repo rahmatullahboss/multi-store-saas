@@ -1,5 +1,5 @@
 import type { Database } from '../lib/db.server';
-import { abandonedCarts, customers, orders, shipments, stores } from '../../db/schema';
+import { abandonedCarts, customers, orders, shipments } from '../../db/schema';
 import { eq, and, lt, gt, not, like, notInArray } from 'drizzle-orm';
 import { sendSmartNotification } from './messaging.server';
 import { createEmailService } from './email.server';
@@ -27,7 +27,7 @@ export async function runScheduledTasks(db: Database, env: Env) {
     results.abandonedCarts = await processAbandonedCarts(db, env);
     results.winbackCampaigns = await processWinbackCampaigns(db, env);
     results.reviewRequests = await processReviewRequests(db, env);
-    results.courierSync = await syncCourierStatuses(db);
+    results.courierSync = await syncCourierStatuses(db, env);
   } catch (error: unknown) {
     console.error('[Scheduler] Error running tasks:', error);
     results.errors.push((error as Error).message);
@@ -204,7 +204,7 @@ async function processReviewRequests(db: Database, env: Env) {
  * Runs every 30 minutes via the cron trigger in wrangler.toml.
  * Only processes active (non-terminal) shipments that have a tracking ID.
  */
-async function syncCourierStatuses(db: Database): Promise<number> {
+async function syncCourierStatuses(db: Database, env: Env): Promise<number> {
   const TERMINAL_STATUSES = ['delivered', 'cancelled', 'returned'];
 
   // Fetch all non-terminal shipments
@@ -235,19 +235,10 @@ async function syncCourierStatuses(db: Database): Promise<number> {
   let syncedCount = 0;
 
   for (const [storeId, storeShipments] of byStore) {
-    // Load courier credentials for this store
-    const storeRow = await db
-      .select({ courierSettings: stores.courierSettings })
-      .from(stores)
-      .where(eq(stores.id, storeId))
-      .get();
-
-    if (!storeRow?.courierSettings) continue;
-
-    let courierConfig: Record<string, unknown>;
-    try {
-      courierConfig = JSON.parse(storeRow.courierSettings as string);
-    } catch {
+    // Load courier credentials from unified settings (single source of truth)
+    const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env });
+    const courierConfig = unifiedSettings.courier as Record<string, unknown> | null;
+    if (!courierConfig) {
       continue;
     }
 

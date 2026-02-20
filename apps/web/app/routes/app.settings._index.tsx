@@ -154,9 +154,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       logo: unifiedSettings.branding.logo || store.logo,
       favicon: unifiedSettings.branding.favicon || store.favicon,
       fontFamily: unifiedSettings.typography.fontFamily || store.fontFamily || 'inter',
-      socialLinks: socialLinks,
+      social: socialLinks,
       footerConfig: footerConfig,
-      businessInfo: businessInfo,
+      business: businessInfo,
     },
     // Note: allowStoreMode removed - handled in Homepage Settings
     dataCounts: {
@@ -914,7 +914,7 @@ export default function SettingsPage() {
                 type="url"
                 id="facebook"
                 name="facebook"
-                defaultValue={store.socialLinks?.facebook || ''}
+                defaultValue={store.social?.facebook || ''}
                 placeholder="https://facebook.com/yourpage"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
@@ -929,7 +929,7 @@ export default function SettingsPage() {
                 type="url"
                 id="instagram"
                 name="instagram"
-                defaultValue={store.socialLinks?.instagram || ''}
+                defaultValue={store.social?.instagram || ''}
                 placeholder="https://instagram.com/yourprofile"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
@@ -945,7 +945,7 @@ export default function SettingsPage() {
                 type="tel"
                 id="whatsapp"
                 name="whatsapp"
-                defaultValue={store.socialLinks?.whatsapp || ''}
+                defaultValue={store.social?.whatsapp || ''}
                 placeholder="+8801XXXXXXXXX"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
@@ -979,7 +979,7 @@ export default function SettingsPage() {
                 type="tel"
                 id="businessPhone"
                 name="businessPhone"
-                defaultValue={store.businessInfo?.phone || ''}
+                defaultValue={store.business?.phone || ''}
                 placeholder="+880 1XXX-XXXXXX"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
@@ -997,7 +997,7 @@ export default function SettingsPage() {
                 type="email"
                 id="businessEmail"
                 name="businessEmail"
-                defaultValue={store.businessInfo?.email || ''}
+                defaultValue={store.business?.email || ''}
                 placeholder="contact@yourstore.com"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
@@ -1015,7 +1015,7 @@ export default function SettingsPage() {
                 id="businessAddress"
                 name="businessAddress"
                 rows={2}
-                defaultValue={store.businessInfo?.address || ''}
+                defaultValue={store.business?.address || ''}
                 placeholder="123 Main Street, Dhaka, Bangladesh"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
               />

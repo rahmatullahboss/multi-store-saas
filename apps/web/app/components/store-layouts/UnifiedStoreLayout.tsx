@@ -38,9 +38,6 @@ export interface UnifiedStoreLayoutProps {
   themeSettings?: ThemeSettings;
   renderContext?: RenderContext;
 
-  // Legacy system fallback
-  legacyTemplateId?: string;
-
   // Common props
   currency?: string;
   socialLinks?: SocialLinks | null;
@@ -89,7 +86,6 @@ export function UnifiedStoreLayout({
   templateSections,
   themeSettings,
   renderContext,
-  legacyTemplateId,
   currency = 'BDT',
   socialLinks,
   businessInfo,
@@ -134,9 +130,9 @@ export function UnifiedStoreLayout({
   }
 
   // ============================================================================
-  // LEGACY TEMPLATE SYSTEM FALLBACK
+  // TEMPLATE FALLBACK
   // ============================================================================
-  const templateId = legacyTemplateId || DEFAULT_STORE_TEMPLATE_ID;
+  const templateId = DEFAULT_STORE_TEMPLATE_ID;
   const theme = getStoreTemplateTheme(templateId);
 
   return (

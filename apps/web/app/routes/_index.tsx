@@ -565,6 +565,12 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   }
 
   // ========== FULL STORE MODE ==========
+
+  // Get unified settings (single source of truth)
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, validatedStoreId, {
+    env: context.cloudflare.env,
+  });
+
   try {
     // Fetch products with optional category filter
     const productsQuery = db
@@ -585,8 +591,8 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       'Database query timed out while fetching products'
     );
 
-    // Parse legacy theme config (used for sections and legacy fields during transition)
-    const storeThemeConfig = parseJsonSafe<ThemeConfig>(validatedStore.themeConfig);
+    // Using unified settings - no legacy themeConfig
+    const storeThemeConfig = null;
 
     // Fetch category data from collections first (includes image_url).
     const collectionsQuery = db
@@ -708,14 +714,14 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
         address: unifiedSettings.business.address ?? undefined,
       },
       themeConfig: {
-        ...(ensureHomepageHasCatalogSection(storeThemeConfig, serializedProducts.length > 0) || {}),
+        ...(ensureHomepageHasCatalogSection(null, serializedProducts.length > 0) || {}),
         categoryImageMap,
         announcement: unifiedSettings.announcement,
         trustBadges: {
-      showPaymentIcons: false,
-      showGuaranteeSeals: false,
-      ...unifiedSettings.trustBadges,
-    },
+          showPaymentIcons: false,
+          showGuaranteeSeals: false,
+          ...unifiedSettings.trustBadges,
+        },
       } as ThemeConfig,
       planType: validatedStore.planType || 'free',
       // AI Props
@@ -753,10 +759,12 @@ export default function Index() {
       : DEFAULT_LANDING_TEMPLATE_ID;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [LandingTemplateComponent, setLandingTemplateComponent] = useState<ComponentType<any> | null>(null);
-  
+  const [LandingTemplateComponent, setLandingTemplateComponent] =
+    useState<ComponentType<any> | null>(null);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [PreviewTemplateComponent, setPreviewTemplateComponent] = useState<ComponentType<any> | null>(null);
+  const [PreviewTemplateComponent, setPreviewTemplateComponent] =
+    useState<ComponentType<any> | null>(null);
 
   // Check for edit mode via URL param (for merchant editing)
   const isEditMode = searchParams.get('edit') === 'true';

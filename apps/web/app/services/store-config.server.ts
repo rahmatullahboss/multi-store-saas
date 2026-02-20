@@ -1,98 +1,59 @@
 /**
  * Store Configuration Service
- * 
+ *
  * Provides high-performance access to store settings using D1Cache.
  */
 
-import { stores } from '@db/schema';
-import { eq } from 'drizzle-orm';
 import type { Database } from '~/lib/db.server';
 import type { D1Cache } from './cache-layer.server';
-
-function safeJsonParse<T>(value: string | null): T | null {
-  if (!value) return null;
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Normalize ThemeConfig for MVP correctness:
- * - Empty `sections: []` should behave like "unset" so templates can fall back to defaults.
- * - Floating button flags defaulted to `false` in older configs; treat `false` as "unset"
- *   unless the merchant explicitly provided a floating number (meaning they likely toggled it).
- */
-function normalizeThemeConfig(themeConfig: any | null): any | null {
-  if (!themeConfig || typeof themeConfig !== 'object') return themeConfig;
-
-  // Backward compatibility: older payloads used `templateId`.
-  if (!themeConfig.storeTemplateId && typeof themeConfig.templateId === 'string') {
-    themeConfig.storeTemplateId = themeConfig.templateId;
-  }
-
-  // If the editor saved empty arrays, treat them as unset so storefront doesn't go blank.
-  if (Array.isArray(themeConfig.sections) && themeConfig.sections.length === 0) {
-    delete themeConfig.sections;
-  }
-
-  // Clean up empty string fields.
-  if (themeConfig.floatingWhatsappNumber === '') delete themeConfig.floatingWhatsappNumber;
-  if (themeConfig.floatingCallNumber === '') delete themeConfig.floatingCallNumber;
-  if (themeConfig.floatingWhatsappMessage === '') delete themeConfig.floatingWhatsappMessage;
-
-  // Backward-compat: old configs defaulted enabled flags to false even when merchant
-  // only set socialLinks/businessInfo. If no explicit floating number is set, treat false as unset.
-  if (themeConfig.floatingWhatsappEnabled === false && !themeConfig.floatingWhatsappNumber) {
-    delete themeConfig.floatingWhatsappEnabled;
-  }
-  if (themeConfig.floatingCallEnabled === false && !themeConfig.floatingCallNumber) {
-    delete themeConfig.floatingCallEnabled;
-  }
-
-  return themeConfig;
-}
+import { getUnifiedStorefrontSettings } from './unified-storefront-settings.server';
 
 /**
  * Get store configuration with caching
  */
-export async function getStoreConfig(db: Database, cache: D1Cache, storeId: number) {
+export async function getStoreConfig(
+  db: Database,
+  cache: D1Cache,
+  storeId: number,
+  env?: { KV: KVNamespace }
+) {
   const cacheKey = `store:${storeId}:config`;
-  
+
   // 1. Try cache first
   const cached = await cache.get<any>(cacheKey);
   if (cached) return cached;
-  
-  // 2. Fallback to D1
-  const store = await db.query.stores.findFirst({
-    where: (s, { eq }) => eq(s.id, storeId),
-    columns: {
-      themeConfig: true,
-      socialLinks: true,
-      businessInfo: true,
-      shippingConfig: true,
-      landingConfig: true,
-      footerConfig: true,
-    }
-  });
-  
-  if (!store) return null;
-  
-  // Parse JSON strings to objects for cleaner usage
+
+  // 2. Use unified settings as single source of truth
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env });
+
+  // Build config from unified settings
   const config = {
-    ...store,
-    themeConfig: normalizeThemeConfig(safeJsonParse<any>(store.themeConfig)),
-    socialLinks: safeJsonParse<any>(store.socialLinks),
-    businessInfo: safeJsonParse<any>(store.businessInfo),
-    shippingConfig: safeJsonParse<any>(store.shippingConfig),
-    landingConfig: safeJsonParse<any>(store.landingConfig),
-    footerConfig: safeJsonParse<any>(store.footerConfig),
+    themeConfig: null,
+    socialLinks: {
+      facebook: unifiedSettings.social.facebook,
+      instagram: unifiedSettings.social.instagram,
+      whatsapp: unifiedSettings.social.whatsapp,
+      twitter: unifiedSettings.social.twitter,
+      youtube: unifiedSettings.social.youtube,
+      linkedin: unifiedSettings.social.linkedin,
+    },
+    businessInfo: {
+      phone: unifiedSettings.business.phone,
+      email: unifiedSettings.business.email,
+      address: unifiedSettings.business.address,
+    },
+    shippingConfig: unifiedSettings.shippingConfig,
+    landingConfig: null,
+    footerConfig: {
+      showPoweredBy: true,
+      columns: unifiedSettings.navigation?.footerColumns || [],
+      description: unifiedSettings.navigation?.footerDescription,
+    },
   };
-  
+
   // 3. Cache the result (60 seconds — aligned with all other cache layers)
   await cache.set(cacheKey, config, 60);
-  
+
   return config;
 }
 
@@ -101,6 +62,5 @@ export async function getStoreConfig(db: Database, cache: D1Cache, storeId: numb
  */
 export async function invalidateStoreConfig(cache: D1Cache, storeId: number) {
   await cache.delete(`store:${storeId}:config`);
-  // Optionally invalidate all store-related cache
   await cache.invalidatePattern(`store:${storeId}:`);
 }

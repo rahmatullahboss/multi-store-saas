@@ -767,7 +767,7 @@ export async function register({
         name: storeName,
         subdomain,
         currency: 'BDT',
-        themeConfig: JSON.stringify(defaultThemeConfig),
+        // themeConfig removed - using unified settings only
         storefrontSettings: serializeUnifiedSettings(defaultUnifiedSettings),
       })
       .returning({ id: stores.id });
@@ -1057,7 +1057,7 @@ export async function completeGoogleOnboardingForExistingUser({
         name: storeName,
         subdomain: subdomain.toLowerCase(),
         currency: 'BDT',
-        themeConfig: JSON.stringify(defaultThemeConfig),
+        // themeConfig removed - using unified settings only
         storefrontSettings: serializeUnifiedSettings(defaultUnifiedSettings),
         onboardingStatus: 'completed',
         setupStep: 4,

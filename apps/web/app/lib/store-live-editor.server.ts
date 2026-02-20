@@ -10,6 +10,11 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudfla
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, asc } from 'drizzle-orm';
 import { stores, products, marketplaceThemes } from '@db/schema';
+import { createDb } from '~/lib/db.server';
+import {
+  getUnifiedStorefrontSettings,
+  saveUnifiedStorefrontSettingsWithCacheInvalidation,
+} from '~/services/unified-storefront-settings.server';
 import {
   themes,
   themeTemplates,
@@ -20,10 +25,8 @@ import {
 } from '@db/schema_templates';
 import { templateVersions } from '@db/schema_versions';
 import {
-  parseThemeConfig,
   defaultThemeConfig,
   type ThemeConfig,
-  parseSocialLinks,
 } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
 import { getAllStoreTemplates } from '~/templates/store-registry';
@@ -40,7 +43,6 @@ import {
   parseThemeEditorFormData,
   validateSectionSettings,
 } from '~/lib/validations/theme-editor.schema';
-import { saveUnifiedStorefrontSettingsWithCacheInvalidation } from '~/services/unified-storefront-settings.server';
 
 // ============================================================================
 // HELPER: Convert TemplateJSON to SectionInstance[]
@@ -117,8 +119,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     columns: { id: true },
   });
 
-  // Load themeConfig from stores table (legacy) or from theme settings (new)
-  let themeConfig = parseThemeConfig(store[0].themeConfig as string | null) || defaultThemeConfig;
+  // Load theme configuration from canonical unified settings + theme-engine drafts.
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
+    env: context.cloudflare.env,
+  });
+  let themeConfig = defaultThemeConfig;
 
   // Try to load theme settings from new system
   const themeSettings = await ThemeEngineDB.loadThemeSettingsFromDB(
@@ -327,10 +332,22 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       name: store[0].name,
       subdomain: store[0].subdomain,
       mode: 'store',
-      logo: store[0].logo || '',
+      logo: unifiedSettings.branding.logo || store[0].logo || '',
       fontFamily: store[0].fontFamily || 'inter',
-      businessInfo: store[0].businessInfo ? JSON.parse(store[0].businessInfo) : {},
-      socialLinks: parseSocialLinks(store[0].socialLinks as string | null) || {},
+      // Using unified settings - no legacy businessInfo/socialLinks
+      businessInfo: {
+        phone: unifiedSettings.business.phone,
+        email: unifiedSettings.business.email,
+        address: unifiedSettings.business.address,
+      },
+      socialLinks: {
+        facebook: unifiedSettings.social.facebook,
+        instagram: unifiedSettings.social.instagram,
+        whatsapp: unifiedSettings.social.whatsapp,
+        twitter: unifiedSettings.social.twitter,
+        youtube: unifiedSettings.social.youtube,
+        linkedin: unifiedSettings.social.linkedin,
+      },
       aiCredits: store[0].aiCredits || 0,
     },
     themeConfig,
@@ -375,8 +392,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const store = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
   if (!store[0]) return json({ error: 'Store not found' }, { status: 404 });
 
-  const currentConfig =
-    parseThemeConfig(store[0].themeConfig as string | null) || defaultThemeConfig;
+  // Get unified settings for current config
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
+    env: context.cloudflare.env,
+  });
+
+  // Build ThemeConfig from unified settings for backward compatibility
+  const currentConfig: ThemeConfig = {
+    ...defaultThemeConfig,
+    storeTemplateId: unifiedSettings.theme.templateId || 'starter-store',
+    primaryColor: unifiedSettings.theme.primary || '#4F46E5',
+    accentColor: unifiedSettings.theme.accent || '#F59E0B',
+  };
 
   // ============================================================================
   // VALIDATE FORM DATA WITH ZOD
@@ -511,15 +538,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const actionType = validatedData._action;
 
   // ============================================================================
-  // UPDATE STORE RECORD (Legacy support)
+  // UPDATE STORE RECORD (non-legacy columns only)
   // ============================================================================
   await db
     .update(stores)
     .set({
       fontFamily,
       logo: logo || null,
-      businessInfo: JSON.stringify({ phone, email, address }),
-      socialLinks: JSON.stringify({ facebook, instagram, whatsapp }),
       updatedAt: new Date(),
     })
     .where(eq(stores.id, storeId));
@@ -712,13 +737,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     seo: seo?.metaTitle || seo?.metaDescription ? seo : undefined,
   };
 
-  await db
-    .update(stores)
-    .set({
-      themeConfig: JSON.stringify(updatedConfig),
-      updatedAt: new Date(),
-    })
-    .where(eq(stores.id, storeId));
+  // Note: No longer writing to legacy themeConfig column - using unified settings only
+  // Legacy column will be removed in future migration
 
   const normalizedHeaderMenu = (currentConfig.headerMenu || []).map((item) => ({
     label: item.label,

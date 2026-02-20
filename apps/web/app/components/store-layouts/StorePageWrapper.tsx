@@ -19,8 +19,23 @@ import { WishlistProvider } from '~/contexts/WishlistContext';
 import { getStoreTemplate, type StoreTemplateTheme } from '~/templates/store-registry';
 import { MobileBottomNav } from '~/components/store/MobileBottomNav';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
-import type { SocialLinks, ThemeConfig, FooterConfig } from '@db/types';
+import type { SocialLinks, FooterConfig } from '@db/types';
 import type { MVPSettingsWithTheme } from '~/services/mvp-settings.server';
+
+interface FloatingContactConfig {
+  headerMenu?: Array<{
+    label: string;
+    url: string;
+    children?: Array<{ label: string; url: string; children?: Array<{ label: string; url: string }> }>;
+  }>;
+  footerColumns?: Array<{ title: string; links: Array<{ label: string; url: string }> }>;
+  footerDescription?: string;
+  floatingWhatsappEnabled?: boolean;
+  floatingWhatsappNumber?: string | null;
+  floatingWhatsappMessage?: string | null;
+  floatingCallEnabled?: boolean;
+  floatingCallNumber?: string | null;
+}
 
 interface StorePageWrapperProps {
   children: ReactNode;
@@ -37,7 +52,7 @@ interface StorePageWrapperProps {
   cartCount?: number;
   categories?: (string | null)[];
   currentCategory?: string | null;
-  config?: ThemeConfig | null;
+  config?: FloatingContactConfig | null;
   footerConfig?: FooterConfig | null;
   planType?: string;
   tagline?: string | null;

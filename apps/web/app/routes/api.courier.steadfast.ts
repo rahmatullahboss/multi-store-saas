@@ -261,21 +261,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
       }
 
-      // Get store courier settings
-      const storeResult = await db
-        .select({ courierSettings: stores.courierSettings, name: stores.name })
-        .from(stores)
-        .where(eq(stores.id, storeId))
-        .limit(1);
-
-      if (!storeResult[0]?.courierSettings) {
+      // Get courier settings from unified settings (single source of truth)
+      const settings = await getUnifiedStorefrontSettings(db, storeId, {
+        env: context.cloudflare.env,
+      });
+      const courierSettings = settings.courier;
+      if (!courierSettings) {
         return json(
           { error: 'Steadfast not configured. Go to Settings > Courier.' },
           { status: 400 }
         );
       }
-
-      const courierSettings = JSON.parse(storeResult[0].courierSettings as string);
 
       if (!courierSettings.steadfast) {
         return json(
@@ -347,18 +343,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // ========================================
   if (intent === 'SYNC_STATUS') {
     try {
-      // Get store courier settings
-      const storeResult = await db
-        .select({ courierSettings: stores.courierSettings })
-        .from(stores)
-        .where(eq(stores.id, storeId))
-        .limit(1);
-
-      if (!storeResult[0]?.courierSettings) {
+      // Get courier settings from unified settings (single source of truth)
+      const settings = await getUnifiedStorefrontSettings(db, storeId, {
+        env: context.cloudflare.env,
+      });
+      const courierSettings = settings.courier;
+      if (!courierSettings) {
         return json({ error: 'Steadfast not configured' }, { status: 400 });
       }
-
-      const courierSettings = JSON.parse(storeResult[0].courierSettings as string);
 
       if (!courierSettings.steadfast) {
         return json({ error: 'Steadfast credentials not found' }, { status: 400 });
@@ -448,18 +440,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     try {
-      // Get store courier settings
-      const storeResult = await db
-        .select({ courierSettings: stores.courierSettings })
-        .from(stores)
-        .where(eq(stores.id, storeId))
-        .limit(1);
-
-      if (!storeResult[0]?.courierSettings) {
+      // Get courier settings from unified settings (single source of truth)
+      const settings = await getUnifiedStorefrontSettings(db, storeId, {
+        env: context.cloudflare.env,
+      });
+      const courierSettings = settings.courier;
+      if (!courierSettings) {
         return json({ error: 'Steadfast not configured' }, { status: 400 });
       }
-
-      const courierSettings = JSON.parse(storeResult[0].courierSettings as string);
 
       if (!courierSettings.steadfast) {
         return json({ error: 'Steadfast credentials not found' }, { status: 400 });

@@ -843,9 +843,9 @@ const SectionComponent = registry['hero-banner'].component;
 - ✅ **Canonical storefront settings source**: `stores.storefront_settings` (Unified V1 JSON)
 - ✅ **Read entrypoint**: `getUnifiedStorefrontSettings(...)`
 - ✅ **Write entrypoint**: `saveUnifiedStorefrontSettings(...)` / `saveUnifiedStorefrontSettingsWithCacheInvalidation(...)`
-- ⚠️ **Compatibility bridge**: `toLegacyFormat(...)` is temporary for older template props
-- ⚠️ **Legacy sources** (`stores.theme_config`, `store_mvp_settings`, `stores.social_links`, `stores.business_info`) are fallback/migration inputs only
-- ❌ Do not create new storefront features that read directly from `stores.theme_config` first
+- ✅ **Legacy bridge REMOVED**: `toLegacyFormat(...)` has been deleted
+- ⚠️ **Legacy columns** (`stores.theme_config`, `store_mvp_settings`, `stores.social_links`, `stores.business_info`) are deprecated but still exist in DB
+- ❌ Do not create new storefront features that read directly from legacy columns
 
 ### The Problem with Current Dual System
 
@@ -1217,36 +1217,44 @@ await saveTemplateToShopifySystem(db, storeId, defaultTemplate);
 
 ## 🏪 Store Routes
 
-Current production state is **hybrid rendering + unified settings**:
+Current production state is **unified settings only**:
 
-- Most storefront loaders read settings via `getUnifiedStorefrontSettings(...)`
-- Some routes still render with legacy template components through `StorePageWrapper`
-- `toLegacyFormat(...)` is used to feed old component contracts during migration
+- All storefront loaders read settings via `getUnifiedStorefrontSettings(...)`
+- Routes use unified settings directly, no longer use `toLegacyFormat(...)`
+- Components receive null for legacy props (themeConfig, mvpSettings)
 
-| Route        | File                   | Renderer                                      |
-| ------------ | ---------------------- | --------------------------------------------- |
-| Homepage     | `store.home.tsx`       | `StorePageWrapper` + template components      |
-| Product      | `products.$handle.tsx` | `StorePageWrapper` + template components      |
-| Cart         | `cart.tsx`             | `StorePageWrapper` + template components      |
-| Collection   | `products._index.tsx`  | `StorePageWrapper` + template components      |
-| Custom Pages | `pages.$slug.tsx`      | Mixed (page data + legacy config render path) |
-| Checkout     | `checkout.tsx`         | Custom (not section-based)                    |
+| Route        | File                   | Renderer                                 |
+| ------------ | ---------------------- | ---------------------------------------- |
+| Homepage     | `store.home.tsx`       | `StorePageWrapper` + template components |
+| Product      | `products.$handle.tsx` | `StorePageWrapper` + template components |
+| Cart         | `cart.tsx`             | `StorePageWrapper` + template components |
+| Collection   | `products._index.tsx`  | `StorePageWrapper` + template components |
+| Custom Pages | `pages.$slug.tsx`      | Unified settings                         |
+| Checkout     | `checkout.tsx`         | Custom (not section-based)               |
 
 ### Route Pattern
 
 ```typescript
-// 1) Read canonical settings first (always pass env for strict/fallback behavior)
+// 1) Read unified settings (single source of truth)
 const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
   env: context.cloudflare.env,
 });
-const legacy = toLegacyFormat(unifiedSettings);
 
-// 2) Render with compatibility props while migrating routes/components
+// 2) Build theme from unified settings
+const storeTemplateId = unifiedSettings.theme.templateId || 'starter-store';
+const baseTheme = getStoreTemplateTheme(storeTemplateId);
+const theme = {
+  ...baseTheme,
+  primary: unifiedSettings.theme.primary || baseTheme.primary,
+  accent: unifiedSettings.theme.accent || baseTheme.accent,
+};
+
+// 3) Render with unified props
 <StorePageWrapper
-  storeName={legacy.storeName}
-  templateId={legacy.storeTemplateId}
-  theme={legacy.theme}
-  config={legacy.themeConfig}
+  storeName={unifiedSettings.branding.storeName}
+  templateId={storeTemplateId}
+  theme={theme}
+  config={null} // No longer needed - using unified settings
 >
   {/* template-specific page component */}
 </StorePageWrapper>

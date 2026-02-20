@@ -25,6 +25,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 // Zod schemas for input validation
 const IntentSchema = z.object({
@@ -75,18 +76,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const store = storeResult[0];
   
-  // Parse socialLinks to get WhatsApp number
-  let defaultWhatsAppNumber = '';
-  try {
-    if (store?.socialLinks) {
-      const socialLinks = typeof store.socialLinks === 'string' 
-        ? JSON.parse(store.socialLinks) 
-        : store.socialLinks;
-      defaultWhatsAppNumber = socialLinks?.whatsapp || '';
-    }
-  } catch (e) {
-    console.error('Failed to parse socialLinks:', e);
-  }
+  // Use unified settings for WhatsApp number
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
+    env: context.cloudflare.env,
+  });
+  const defaultWhatsAppNumber = unifiedSettings.social.whatsapp || '';
 
   return json({
     storeId,

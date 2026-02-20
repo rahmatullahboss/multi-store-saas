@@ -12,6 +12,8 @@ import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-r
 import { useLoaderData, useFetcher, useNavigate } from '@remix-run/react';
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { requireAuth } from '~/lib/auth.server';
+import { createDb } from '~/lib/db.server';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { products, productVariants } from '@db/schema';
@@ -76,6 +78,12 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     .from(products)
     .where(eq(products.storeId, store.id));
 
+  // Get unified settings for branding
+  const unifiedDb = createDb(db);
+  const unifiedSettings = await getUnifiedStorefrontSettings(unifiedDb, store.id, {
+    env: context.cloudflare.env,
+  });
+
   // Format products with name field and parse bundlePricing for UI
   const storeProducts = rawProducts.map((p) => {
     let bundleTiers = [];
@@ -106,11 +114,12 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
         facebookPixelId: store.facebookPixelId,
         googleAnalyticsId: store.googleAnalyticsId,
         // Branding
-        logo: store.logo,
-        favicon: store.favicon,
+        logo: unifiedSettings.branding.logo || store.logo,
+        favicon: unifiedSettings.branding.favicon || store.favicon,
         fontFamily: store.fontFamily,
-        themeConfig: store.themeConfig,
-        businessInfo: store.businessInfo,
+        // Using unified settings - no legacy themeConfig/businessInfo needed
+        themeConfig: null,
+        businessInfo: null,
       },
       products: storeProducts,
       product: null,
@@ -150,12 +159,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     const [productRow] = await odb
       .select()
       .from(products)
-      .where(
-        and(
-          eq(products.id, page.productId),
-          eq(products.storeId, store.id)
-        )
-      )
+      .where(and(eq(products.id, page.productId), eq(products.storeId, store.id)))
       .limit(1);
     if (productRow) {
       // Fetch variants
@@ -232,11 +236,12 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       facebookPixelId: store.facebookPixelId,
       googleAnalyticsId: store.googleAnalyticsId,
       // Branding
-      logo: store.logo,
-      favicon: store.favicon,
+      logo: unifiedSettings.branding.logo || store.logo,
+      favicon: unifiedSettings.branding.favicon || store.favicon,
       fontFamily: store.fontFamily,
-      themeConfig: store.themeConfig,
-      businessInfo: store.businessInfo,
+      // Using unified settings - no legacy themeConfig/businessInfo needed
+      themeConfig: null,
+      businessInfo: null,
     },
     products: storeProducts,
     product: selectedProduct,
@@ -754,7 +759,9 @@ export default function NewBuilderPage() {
   useEffect(() => {
     if (fetcher.data?.success && fetcher.data?.section) {
       const newSection = fetcher.data.section as BuilderSection;
-      setSections((prev) => (prev.find((s) => s.id === newSection.id) ? prev : [...prev, newSection]));
+      setSections((prev) =>
+        prev.find((s) => s.id === newSection.id) ? prev : [...prev, newSection]
+      );
     }
   }, [fetcher.data, setSections]);
 

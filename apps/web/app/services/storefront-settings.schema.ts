@@ -2,12 +2,8 @@
  * Unified Storefront Settings Schema (Canonical Type)
  *
  * This is the single source of truth for all storefront settings.
- * Replaces fragmented settings from:
- * - stores.themeConfig
- * - store_mvp_settings
- * - stores.socialLinks
- * - stores.businessInfo
- * - stores columns (name, logo, favicon, tagline, description)
+ * Replaces fragmented historical settings and normalizes all storefront config
+ * into one canonical JSON document.
  *
  * Version: 1
  */

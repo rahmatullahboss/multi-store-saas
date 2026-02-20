@@ -60,7 +60,6 @@ export async function action({ context, request }: ActionFunctionArgs) {
   // Get store info for personalization
   const [store] = await db.select({
     name: stores.name,
-    businessInfo: stores.businessInfo,
   })
     .from(stores)
     .where(eq(stores.id, storeId))

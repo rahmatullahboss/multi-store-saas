@@ -1,6 +1,6 @@
 /**
  * Page Builder Auth Helper
- * 
+ *
  * Simple auth helper for page builder routes.
  */
 
@@ -10,6 +10,8 @@ import { getSession, getUserId, getStoreId } from '~/services/auth.server';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { users, stores } from '@db/schema';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
+import { createDb } from '~/lib/db.server';
 
 export interface AuthResult {
   user: {
@@ -37,24 +39,21 @@ export interface AuthResult {
  * Require authenticated user with store access.
  * Redirects to login if not authenticated.
  */
-export async function requireAuth(
-  request: Request,
-  context: AppLoadContext
-): Promise<AuthResult> {
+export async function requireAuth(request: Request, context: AppLoadContext): Promise<AuthResult> {
   const env = context.cloudflare.env;
-  
+
   const userId = await getUserId(request, env);
   if (!userId) {
     throw redirect('/auth/login');
   }
-  
+
   const storeId = await getStoreId(request, env);
   if (!storeId) {
     throw redirect('/auth/login');
   }
-  
-  const db = drizzle(env.DB);
-  
+
+  const db = createDb(env.DB);
+
   // Get user
   const [user] = await db
     .select({
@@ -64,12 +63,12 @@ export async function requireAuth(
     })
     .from(users)
     .where(eq(users.id, userId));
-  
+
   if (!user) {
     throw redirect('/auth/login');
   }
-  
-  // Get store with additional fields for page builder
+
+  // Get store with basic fields
   const storeIdNonNull = storeId as number;
   const [store] = await db
     .select({
@@ -81,16 +80,17 @@ export async function requireAuth(
       facebookPixelId: stores.facebookPixelId,
       googleAnalyticsId: stores.googleAnalyticsId,
       fontFamily: stores.fontFamily,
-      themeConfig: stores.themeConfig,
-      businessInfo: stores.businessInfo,
     })
     .from(stores)
     .where(eq(stores.id, storeIdNonNull));
-  
+
   if (!store) {
     throw redirect('/auth/login');
   }
-  
+
+  // Get unified settings (single source of truth for branding/theme)
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeIdNonNull, { env });
+
   return {
     user: {
       id: user.id,
@@ -102,13 +102,14 @@ export async function requireAuth(
       name: store.name || 'Store',
       subdomain: store.subdomain,
       slug: store.subdomain, // Use subdomain as slug
-      logo: store.logo,
-      favicon: store.favicon,
+      logo: unifiedSettings.branding.logo || store.logo,
+      favicon: unifiedSettings.branding.favicon || store.favicon,
       facebookPixelId: store.facebookPixelId,
       googleAnalyticsId: store.googleAnalyticsId,
       fontFamily: store.fontFamily,
-      themeConfig: store.themeConfig,
-      businessInfo: store.businessInfo,
+      // Use unified settings for branding info
+      themeConfig: null, // Using unified settings - no legacy config needed
+      businessInfo: null, // Using unified settings - no legacy info needed
     },
   };
 }

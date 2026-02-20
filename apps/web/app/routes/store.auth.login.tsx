@@ -34,11 +34,9 @@ import {
   canStoreUseGoogleAuth,
 } from '~/services/customer-auth.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
+import { getStoreTemplateTheme } from '~/templates/store-registry';
 import { Lock, Mail, ArrowRight, Loader2 } from 'lucide-react';
-import {
-  getUnifiedStorefrontSettings,
-  toLegacyFormat,
-} from '~/services/unified-storefront-settings.server';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   // 1. Resolve store context
@@ -62,10 +60,23 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // 4. Get unified settings (single source of truth)
   const db = createDb(env.DB);
-  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
-  
-  // Convert to legacy format for compatibility
-  const legacySettings = toLegacyFormat(unifiedSettings);
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
+    env: context.cloudflare.env,
+  });
+
+  // Extract settings from unified (previously from toLegacyFormat)
+  const storeTemplateId = unifiedSettings.theme.templateId || 'starter-store';
+  const baseTheme = getStoreTemplateTheme(storeTemplateId);
+  const mergedTheme = {
+    ...baseTheme,
+    primary: unifiedSettings.theme.primary || baseTheme.primary,
+    accent: unifiedSettings.theme.accent || baseTheme.accent,
+  };
+  const legacyCompat = {
+    storeTemplateId,
+    theme: mergedTheme,
+    themeConfig: null, // Using mergedTheme instead
+  };
 
   // Social links from unified settings
   const socialLinks = {
@@ -106,7 +117,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       id: store.id,
       name: store.name,
       logo: store.logo,
-      templateId: legacySettings.storeTemplateId,
+      templateId: legacyCompat.storeTemplateId,
       subdomain: store.subdomain,
       currency: store.currency,
       planType: store.planType,
@@ -117,8 +128,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     socialLinks,
     businessInfo,
     categories,
-    themeConfig: legacySettings.themeConfig as unknown as ThemeConfig,
-    theme: legacySettings.theme,
+    themeConfig: legacyCompat.themeConfig as unknown as ThemeConfig,
+    theme: legacyCompat.theme,
   });
 }
 

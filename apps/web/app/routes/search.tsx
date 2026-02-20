@@ -12,13 +12,11 @@ import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/clo
 import { useLoaderData, Link, useRouteError, isRouteErrorResponse } from '@remix-run/react';
 import { eq, and, like, desc } from 'drizzle-orm';
 import { products } from '@db/schema';
-import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
+import { resolveStore } from '~/lib/store.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import {
-  getUnifiedStorefrontSettings,
-  toLegacyFormat,
-} from '~/services/unified-storefront-settings.server';
+import { getStoreTemplateTheme } from '~/templates/store-registry';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 import { Search, ShoppingBag, ChevronRight } from 'lucide-react';
 import { formatPrice } from '~/lib/theme-engine';
 
@@ -63,10 +61,25 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   // Use unified settings (single source of truth)
-  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
-  const unified = toLegacyFormat(unifiedSettings);
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
+    env: context.cloudflare.env,
+  });
 
-  const theme = unified.theme;
+  // Extract settings from unified (previously from toLegacyFormat)
+  const storeTemplateId = unifiedSettings.theme.templateId || 'starter-store';
+  const baseTheme = getStoreTemplateTheme(storeTemplateId);
+  const theme = {
+    ...baseTheme,
+    primary: unifiedSettings.theme.primary || baseTheme.primary,
+    accent: unifiedSettings.theme.accent || baseTheme.accent,
+  };
+
+  // Legacy compat object for storeName/logo
+  const legacyCompat = {
+    storeName: unifiedSettings.branding.storeName || store?.name || 'Store',
+    logo: unifiedSettings.branding.logo || store?.logo || null,
+  };
+
   const socialLinks = {
     facebook: unifiedSettings.social.facebook ?? undefined,
     instagram: unifiedSettings.social.instagram ?? undefined,
@@ -81,8 +94,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     email: unifiedSettings.business.email ?? undefined,
     address: unifiedSettings.business.address ?? undefined,
   };
-
-  const storeTemplateId = unified.storeTemplateId;
 
   // Use unified settings theme
   const mergedTheme = theme;
@@ -138,8 +149,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     productCount: searchResults.length,
     collections,
     storeId: storeId as number,
-    storeName: unified.storeName || store.name || 'Store',
-    logo: unified.logo || store.logo || null,
+    storeName: legacyCompat.storeName || store.name || 'Store',
+    logo: legacyCompat.logo || store.logo || null,
     currency: store.currency || '৳',
     storeTemplateId,
     theme: mergedTheme,

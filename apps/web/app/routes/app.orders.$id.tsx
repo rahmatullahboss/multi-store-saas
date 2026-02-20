@@ -16,6 +16,8 @@ import { json, redirect } from '@remix-run/cloudflare';
 import { Form, useLoaderData, Link, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc, sql } from 'drizzle-orm';
+import { createDb } from '~/lib/db.server';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 import {
   orders,
   orderItems,
@@ -49,11 +51,7 @@ import { useTranslation } from '~/contexts/LanguageContext';
 import { formatPrice } from '~/utils/formatPrice';
 import { logActivity } from '~/lib/activity.server';
 import { dispatchWebhook } from '~/services/webhook.server';
-import {
-  type OrderStatus,
-  isOrderStatus,
-  assertOrderStatusTransition,
-} from '~/lib/orderStatus';
+import { type OrderStatus, isOrderStatus, assertOrderStatusTransition } from '~/lib/orderStatus';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [{ title: data?.order ? `Order ${data.order.orderNumber}` : 'Order Details' }];
@@ -75,13 +73,17 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
+  // Get unified settings for courier info
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
+    env: context.cloudflare.env,
+  });
+
   // Fetch store info for invoice header
   const storeResult = await db
     .select({
       name: stores.name,
       logo: stores.logo,
       currency: stores.currency,
-      courierSettings: stores.courierSettings,
     })
     .from(stores)
     .where(eq(stores.id, storeId))
@@ -130,27 +132,22 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     })
   );
 
-  // Get courier settings from store
-  const courierSettings = store?.courierSettings as string | null;
+  // Get courier settings from unified settings (single source of truth)
+  const courierConfig = unifiedSettings.courier || {};
   const availableCouriers: string[] = [];
   let defaultCourier: string | null = null;
 
-  if (courierSettings) {
-    try {
-      const settings = JSON.parse(courierSettings);
-      // Check for each provider's credentials to determine availability
-      if (settings.pathao?.clientId && settings.pathao?.clientSecret) availableCouriers.push('pathao');
-      if (settings.steadfast?.apiKey && settings.steadfast?.secretKey) availableCouriers.push('steadfast');
-      if (settings.redx?.apiKey && settings.redx?.secretKey) availableCouriers.push('redx');
-      
-      if (settings.provider && availableCouriers.includes(settings.provider)) {
-        defaultCourier = settings.provider;
-      } else if (availableCouriers.length > 0) {
-        defaultCourier = availableCouriers[0];
-      }
-    } catch {
-      // Invalid JSON
-    }
+  // Check for each provider's credentials to determine availability
+  if (courierConfig.pathao?.clientId && courierConfig.pathao?.clientSecret)
+    availableCouriers.push('pathao');
+  if (courierConfig.steadfast?.apiKey && courierConfig.steadfast?.secretKey)
+    availableCouriers.push('steadfast');
+  if (courierConfig.redx?.apiKey) availableCouriers.push('redx');
+
+  if (courierConfig.provider && availableCouriers.includes(courierConfig.provider)) {
+    defaultCourier = courierConfig.provider;
+  } else if (availableCouriers.length > 0) {
+    defaultCourier = availableCouriers[0];
   }
 
   // Fetch activity logs for this order
@@ -197,7 +194,9 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
         const cached = await kv.get(`fraud_steadfast_${storeId}_${order.customerPhone}`, 'json');
         if (cached) fraudCache = cached;
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   return json({
@@ -230,7 +229,6 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
-
   // Handle fraud check — fetches from Steadfast external API and caches in KV
   if (intent === 'FRAUD_CHECK') {
     try {
@@ -253,15 +251,22 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       // Check KV cache first (24h TTL)
       if (kv && phone && !forceRefresh) {
         try {
-          const cached = await kv.get(fraudCacheKey, 'json') as {
-            successRate: number; totalOrders: number; deliveredOrders: number;
-            returnedOrders: number; isHighRisk: boolean; riskScore: number;
-            source: string; cachedAt: string;
+          const cached = (await kv.get(fraudCacheKey, 'json')) as {
+            successRate: number;
+            totalOrders: number;
+            deliveredOrders: number;
+            returnedOrders: number;
+            isHighRisk: boolean;
+            riskScore: number;
+            source: string;
+            cachedAt: string;
           } | null;
           if (cached) {
             return json({ success: true, riskResult: { ...cached, fromCache: true } });
           }
-        } catch { /* ignore cache errors */ }
+        } catch {
+          /* ignore cache errors */
+        }
       }
 
       // Call Steadfast external API
@@ -282,12 +287,19 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         return json({ error: 'Steadfast credentials not configured' }, { status: 400 });
       }
 
-      const client = createSteadfastClient({ apiKey: 'internal', secretKey: 'internal', sessionCookie, xsrfToken });
-      
+      const client = createSteadfastClient({
+        apiKey: 'internal',
+        secretKey: 'internal',
+        sessionCookie,
+        xsrfToken,
+      });
+
       // Normalize phone for Steadfast (strip +88/880 prefix)
-      const sfPhone = phone.startsWith('+88') 
-        ? phone.slice(3) 
-        : phone.startsWith('880') ? phone.slice(3) : phone;
+      const sfPhone = phone.startsWith('+88')
+        ? phone.slice(3)
+        : phone.startsWith('880')
+          ? phone.slice(3)
+          : phone;
 
       let externalFraud;
       try {
@@ -302,7 +314,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       const totalOrders = deliveredOrders + returnedOrders;
       const successRate = totalOrders > 0 ? Math.round((deliveredOrders / totalOrders) * 100) : 100;
       const riskScore = totalOrders > 0 ? Math.round((returnedOrders / totalOrders) * 100) : 0;
-      const isHighRisk = totalOrders >= 2 && (returnedOrders / totalOrders) > 0.3;
+      const isHighRisk = totalOrders >= 2 && returnedOrders / totalOrders > 0.3;
       let source = 'steadfast_external';
 
       if (totalOrders === 0) {
@@ -310,8 +322,13 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       }
 
       const result = {
-        successRate, totalOrders, deliveredOrders, returnedOrders,
-        isHighRisk, riskScore, source,
+        successRate,
+        totalOrders,
+        deliveredOrders,
+        returnedOrders,
+        isHighRisk,
+        riskScore,
+        source,
         cachedAt: new Date().toISOString(),
       };
 
@@ -319,13 +336,18 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       if (kv && phone) {
         try {
           await kv.put(fraudCacheKey, JSON.stringify(result), { expirationTtl: 86400 });
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       }
 
       return json({ success: true, riskResult: result });
     } catch (error) {
       console.error('[ORDER DETAIL] Fraud check failed:', error);
-      return json({ error: error instanceof Error ? error.message : 'Fraud check failed' }, { status: 500 });
+      return json(
+        { error: error instanceof Error ? error.message : 'Fraud check failed' },
+        { status: 500 }
+      );
     }
   }
 
@@ -346,21 +368,17 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
     const order = orderResult[0];
 
-    // Get store courier settings
-    const storeResultCourier = await db
-      .select({ courierSettings: stores.courierSettings, name: stores.name })
-      .from(stores)
-      .where(eq(stores.id, storeId))
-      .limit(1);
-
-    if (!storeResultCourier[0]?.courierSettings) {
+    // Get courier settings from unified settings (single source of truth)
+    const unified = await getUnifiedStorefrontSettings(db, storeId, {
+      env: context.cloudflare.env,
+    });
+    const courierSettings = unified.courier;
+    if (!courierSettings) {
       return json(
         { error: 'Courier not configured. Go to Settings > Courier to connect.' },
         { status: 400 }
       );
     }
-
-    const courierSettings = JSON.parse(storeResultCourier[0].courierSettings as string);
     let consignmentId = '';
 
     try {
@@ -386,7 +404,9 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
             parsed.district,
             parsed.city,
             parsed.division,
-          ].filter(Boolean).join(', ');
+          ]
+            .filter(Boolean)
+            .join(', ');
           if (fullAddress) address = fullAddress;
         } catch {
           // If JSON parse fails, use raw string as address
@@ -424,7 +444,12 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           recipient_name: order.customerName || 'Customer',
           recipient_phone: order.customerPhone || '',
           // Pathao requires recipient_address to be at least 10 characters
-          recipient_address: address.length >= 10 ? address : (address ? address.padEnd(10, ' ').trim() : 'Dhaka, Bangladesh'),
+          recipient_address:
+            address.length >= 10
+              ? address
+              : address
+                ? address.padEnd(10, ' ').trim()
+                : 'Dhaka, Bangladesh',
           delivery_type: 48,
           item_type: 2,
           item_quantity: 1,
@@ -488,10 +513,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     } catch (error) {
       console.error('Courier booking error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Booking failed';
-      return json(
-        { error: errorMessage },
-        { status: 500 }
-      );
+      return json({ error: errorMessage }, { status: 500 });
     }
   }
 
@@ -870,15 +892,16 @@ function StatusBadge({ status }: { status: string }) {
 // MAIN COMPONENT
 // ============================================================================
 export default function OrderDetailPage() {
-  const { order, items, store, availableCouriers, defaultCourier, activityLogs, fraudCache } = useLoaderData<typeof loader>();
+  const { order, items, store, availableCouriers, defaultCourier, activityLogs, fraudCache } =
+    useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isUpdating = navigation.state === 'submitting';
   const [isTrackingOpen, setIsTrackingOpen] = useState(false);
   const courierFetcher = useFetcher();
   const isBooking = courierFetcher.state === 'submitting';
-  const [selectedProvider, setSelectedProvider] = useState<string>(defaultCourier || (availableCouriers.length > 0 ? availableCouriers[0] : ''));
-
-
+  const [selectedProvider, setSelectedProvider] = useState<string>(
+    defaultCourier || (availableCouriers.length > 0 ? availableCouriers[0] : '')
+  );
 
   const { t, lang } = useTranslation();
 
@@ -901,16 +924,17 @@ export default function OrderDetailPage() {
   };
 
   // Parse shipping address if it's a JSON string or use as is
-  let shippingAddress: { 
-    address?: string; 
-    city?: string; 
+  let shippingAddress: {
+    address?: string;
+    city?: string;
     postalCode?: string;
     district?: string;
     upazila?: string;
   } = {};
   if (order.shippingAddress) {
     try {
-      const isJson = typeof order.shippingAddress === 'string' && order.shippingAddress.trim().startsWith('{');
+      const isJson =
+        typeof order.shippingAddress === 'string' && order.shippingAddress.trim().startsWith('{');
       if (isJson) {
         shippingAddress = JSON.parse(order.shippingAddress);
       } else {
@@ -918,7 +942,9 @@ export default function OrderDetailPage() {
       }
     } catch {
       // Fallback if JSON parse fails
-      shippingAddress = { address: typeof order.shippingAddress === 'string' ? order.shippingAddress : '' };
+      shippingAddress = {
+        address: typeof order.shippingAddress === 'string' ? order.shippingAddress : '',
+      };
     }
   }
 
@@ -1058,10 +1084,16 @@ export default function OrderDetailPage() {
               {shippingAddress.address && (
                 <p className="text-gray-600">{shippingAddress.address}</p>
               )}
-              {shippingAddress.upazila && <p className="text-gray-600">{shippingAddress.upazila}</p>}
-              {shippingAddress.district && <p className="text-gray-600">{shippingAddress.district}</p>}
+              {shippingAddress.upazila && (
+                <p className="text-gray-600">{shippingAddress.upazila}</p>
+              )}
+              {shippingAddress.district && (
+                <p className="text-gray-600">{shippingAddress.district}</p>
+              )}
               {/* Fallback for city if district is missing */}
-              {shippingAddress.city && !shippingAddress.district && <p className="text-gray-600">{shippingAddress.city}</p>}
+              {shippingAddress.city && !shippingAddress.district && (
+                <p className="text-gray-600">{shippingAddress.city}</p>
+              )}
               {shippingAddress.postalCode && (
                 <p className="text-gray-600">Postal: {shippingAddress.postalCode}</p>
               )}
@@ -1154,7 +1186,23 @@ export default function OrderDetailPage() {
                   <p className="text-sm text-gray-500">{t('name')}</p>
                   <p className="font-medium text-gray-900">{order.customerName || 'N/A'}</p>
                 </div>
-                {order.customerPhone && <RiskBadge phone={order.customerPhone} initialData={fraudCache as { successRate: number; totalOrders: number; deliveredOrders: number; returnedOrders: number; isHighRisk: boolean; riskScore: number } | null} orderId={order.id} showDetails />}
+                {order.customerPhone && (
+                  <RiskBadge
+                    phone={order.customerPhone}
+                    initialData={
+                      fraudCache as {
+                        successRate: number;
+                        totalOrders: number;
+                        deliveredOrders: number;
+                        returnedOrders: number;
+                        isHighRisk: boolean;
+                        riskScore: number;
+                      } | null
+                    }
+                    orderId={order.id}
+                    showDetails
+                  />
+                )}
               </div>
               <div className="flex items-start gap-2">
                 <Phone className="w-4 h-4 text-gray-400 mt-1" />
@@ -1234,23 +1282,35 @@ export default function OrderDetailPage() {
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-3">
                   {/* Provider badge */}
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full border ${
-                    order.courierProvider === 'pathao' ? 'bg-red-50 border-red-200 text-red-700' :
-                    order.courierProvider === 'redx' ? 'bg-rose-50 border-rose-200 text-rose-700' :
-                    'bg-orange-50 border-orange-200 text-orange-700'
-                  }`}>
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full border ${
+                      order.courierProvider === 'pathao'
+                        ? 'bg-red-50 border-red-200 text-red-700'
+                        : order.courierProvider === 'redx'
+                          ? 'bg-rose-50 border-rose-200 text-rose-700'
+                          : 'bg-orange-50 border-orange-200 text-orange-700'
+                    }`}
+                  >
                     <Truck className="w-3.5 h-3.5" />
-                    {order.courierProvider ? order.courierProvider.charAt(0).toUpperCase() + order.courierProvider.slice(1) : 'Courier'}
+                    {order.courierProvider
+                      ? order.courierProvider.charAt(0).toUpperCase() +
+                        order.courierProvider.slice(1)
+                      : 'Courier'}
                   </span>
 
                   {/* Courier status badge */}
                   {order.courierStatus && (
-                    <span className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full ${
-                      ['delivered'].includes(order.courierStatus.toLowerCase()) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                      ['returned', 'cancelled'].includes(order.courierStatus.toLowerCase()) ? 'bg-red-50 text-red-700 border border-red-200' :
-                      ['booked', 'pending'].includes(order.courierStatus.toLowerCase()) ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' :
-                      'bg-blue-50 text-blue-700 border border-blue-200'
-                    }`}>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full ${
+                        ['delivered'].includes(order.courierStatus.toLowerCase())
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : ['returned', 'cancelled'].includes(order.courierStatus.toLowerCase())
+                            ? 'bg-red-50 text-red-700 border border-red-200'
+                            : ['booked', 'pending'].includes(order.courierStatus.toLowerCase())
+                              ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                              : 'bg-blue-50 text-blue-700 border border-blue-200'
+                      }`}
+                    >
                       {order.courierStatus}
                     </span>
                   )}
@@ -1260,7 +1320,9 @@ export default function OrderDetailPage() {
               {/* Consignment ID */}
               <div className="bg-gray-50 rounded-lg px-4 py-3">
                 <p className="text-xs text-gray-500 uppercase font-medium mb-1">Consignment ID</p>
-                <p className="text-sm font-mono font-semibold text-gray-900">{order.courierConsignmentId}</p>
+                <p className="text-sm font-mono font-semibold text-gray-900">
+                  {order.courierConsignmentId}
+                </p>
               </div>
 
               {/* Track Shipment button */}
@@ -1276,7 +1338,9 @@ export default function OrderDetailPage() {
           ) : (
             // Not shipped yet — show booking form
             <div className="space-y-4">
-              <p className="text-sm text-gray-500">No shipment booked yet. Send this order to a courier for delivery.</p>
+              <p className="text-sm text-gray-500">
+                No shipment booked yet. Send this order to a courier for delivery.
+              </p>
 
               {availableCouriers.length > 0 ? (
                 <courierFetcher.Form method="post" className="space-y-3">
@@ -1285,15 +1349,19 @@ export default function OrderDetailPage() {
                   {/* Provider Selector if multiple */}
                   {availableCouriers.length > 1 && (
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Select Courier</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                        Select Courier
+                      </label>
                       <select
                         name="provider"
                         value={selectedProvider}
                         onChange={(e) => setSelectedProvider(e.target.value)}
                         className="w-full text-sm border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
                       >
-                        {availableCouriers.map(p => (
-                          <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+                        {availableCouriers.map((p) => (
+                          <option key={p} value={p}>
+                            {p.charAt(0).toUpperCase() + p.slice(1)}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -1316,7 +1384,10 @@ export default function OrderDetailPage() {
                     ) : (
                       <Send className="w-4 h-4" />
                     )}
-                    Send to {selectedProvider ? selectedProvider.charAt(0).toUpperCase() + selectedProvider.slice(1) : 'Courier'}
+                    Send to{' '}
+                    {selectedProvider
+                      ? selectedProvider.charAt(0).toUpperCase() + selectedProvider.slice(1)
+                      : 'Courier'}
                   </button>
                 </courierFetcher.Form>
               ) : (
@@ -1394,7 +1465,9 @@ export default function OrderDetailPage() {
           consignmentId={order.courierConsignmentId}
           trackingCode={order.courierConsignmentId}
           currentStatus={order.courierStatus || undefined}
-          courierProvider={(order.courierProvider as 'steadfast' | 'pathao' | 'redx') || 'steadfast'}
+          courierProvider={
+            (order.courierProvider as 'steadfast' | 'pathao' | 'redx') || 'steadfast'
+          }
           isOpen={isTrackingOpen}
           onClose={() => setIsTrackingOpen(false)}
         />

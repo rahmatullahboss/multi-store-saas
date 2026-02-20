@@ -17,15 +17,12 @@ import { getStoreConfig } from '~/services/store-config.server';
 import { products } from '@db/schema';
 import { type ThemeConfig } from '@db/types';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { getStoreTemplate } from '~/templates/store-registry';
+import { getStoreTemplate, getStoreTemplateTheme } from '~/templates/store-registry';
 import { ShoppingBag, Filter, ChevronRight, Grid, List } from 'lucide-react';
 import { Suspense, useMemo, useState } from 'react';
 import { getCustomer } from '~/services/customer-auth.server';
 import { parsePriceRange } from '~/utils/price';
-import {
-  getUnifiedStorefrontSettings,
-  toLegacyFormat,
-} from '~/services/unified-storefront-settings.server';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 import {
   resolveCategoryFromParam,
   buildUnifiedSocialLinks,
@@ -84,8 +81,26 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const { businessInfo, footerConfig } = storeConfig;
 
-  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
-  const unified = toLegacyFormat(unifiedSettings);
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
+    env: context.cloudflare.env,
+  });
+
+  // Extract settings from unified canonical config
+  const storeTemplateId = unifiedSettings.theme.templateId || 'starter-store';
+  const baseTheme = getStoreTemplateTheme(storeTemplateId);
+  const mergedTheme = {
+    ...baseTheme,
+    primary: unifiedSettings.theme.primary || baseTheme.primary,
+    accent: unifiedSettings.theme.accent || baseTheme.accent,
+  };
+  const legacyCompat = {
+    storeTemplateId,
+    storeName: unifiedSettings.branding.storeName || store?.name || 'Store',
+    logo: unifiedSettings.branding.logo || store?.logo || null,
+    theme: mergedTheme,
+    themeConfig: null, // Using mergedTheme instead
+    mvpSettings: null,
+  };
 
   const socialLinks = buildUnifiedSocialLinks(unifiedSettings);
 
@@ -146,28 +161,28 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .orderBy(orderByClause)
     .limit(100);
 
-  // Use unified theme config - no more legacy store.themeConfig reading
+  // Use unified theme config only
   const mergedThemeConfig = buildMergedThemeConfig(
-    null, // No longer read from store.themeConfig
-    unified.storeTemplateId,
-    unified.theme.primary,
-    unified.theme.accent,
-    unified.themeConfig
+    null,
+    legacyCompat.storeTemplateId,
+    legacyCompat.theme.primary,
+    legacyCompat.theme.accent,
+    {} // Using unified settings - no legacy themeConfig needed
   );
 
   return json({
     products: allProducts,
-    storeName: unified.storeName,
-    logo: unified.logo,
+    storeName: legacyCompat.storeName,
+    logo: legacyCompat.logo,
     currency: store?.currency || 'BDT',
     storeId,
-    storeTemplateId: unified.storeTemplateId,
-    theme: unified.theme,
+    storeTemplateId: legacyCompat.storeTemplateId,
+    theme: legacyCompat.theme,
     socialLinks,
     businessInfo,
     themeConfig: mergedThemeConfig,
     footerConfig,
-    mvpSettings: unified.mvpSettings,
+    mvpSettings: null, // Using unified settings - no legacy mvpSettings needed
     categories,
     currentCategory: resolvedCategory,
     sortBy,

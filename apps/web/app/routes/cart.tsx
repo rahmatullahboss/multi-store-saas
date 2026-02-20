@@ -23,7 +23,11 @@ import { products, productVariants } from '@db/schema';
 import { type ThemeConfig, type LandingConfig } from '@db/types';
 import { type MVPSettingsWithTheme } from '~/config/mvp-theme-settings';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { getStoreTemplate, getStoreTemplateTheme, resolveStoreTemplateId } from '~/templates/store-registry';
+import {
+  getStoreTemplate,
+  getStoreTemplateTheme,
+  resolveStoreTemplateId,
+} from '~/templates/store-registry';
 import { resolveStore } from '~/lib/store.server';
 import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
@@ -31,7 +35,6 @@ import { formatPrice } from '~/lib/theme-engine';
 import { createDb } from '~/lib/db.server';
 import {
   getUnifiedStorefrontSettings,
-  toLegacyFormat,
   getShippingConfigFromUnified,
 } from '~/services/unified-storefront-settings.server';
 
@@ -73,11 +76,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = createDb(context.cloudflare.env.DB);
 
   // Use unified settings
-  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
-  
-  // Convert to legacy format for compatibility (ensures floating buttons work)
-  const legacySettings = toLegacyFormat(unifiedSettings);
-  console.log('--- CART ROUTE THEME ID ---', legacySettings.storeTemplateId);
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
+    env: context.cloudflare.env,
+  });
+
+  // Resolve template ID from unified settings
+  const storeTemplateId = unifiedSettings.theme.templateId || 'starter-store';
 
   // Use socialLinks from unified settings (or legacy fallback)
   const socialLinks = {
@@ -116,20 +120,27 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Get shipping config directly from unified settings
   const unifiedShippingConfig = getShippingConfigFromUnified(unifiedSettings);
 
-  // Resolve template ID from unified settings (same logic as home page)
-  const storeTemplateId = unifiedSettings.theme.templateId
-    ? unifiedSettings.theme.templateId
-    : resolveStoreTemplateId(
-        legacySettings.themeConfig as Record<string, unknown> | null,
-        null
-      );
-
   // Build merged theme from unified settings (same as home page _index.tsx)
   const baseTheme = getStoreTemplateTheme(storeTemplateId);
   const mergedTheme = {
     ...baseTheme,
     primary: unifiedSettings.theme.primary || baseTheme.primary,
     accent: unifiedSettings.theme.accent || baseTheme.accent,
+  };
+
+  // Build mvpSettings from unified settings
+  const mvpSettings = {
+    themeId: storeTemplateId,
+    storeName: unifiedSettings.branding.storeName || storeData.name || 'Store',
+    logo: unifiedSettings.branding.logo || storeData.logo || null,
+    favicon: unifiedSettings.branding.favicon || storeData.favicon || null,
+    primaryColor: unifiedSettings.theme.primary || baseTheme.primary,
+    accentColor: unifiedSettings.theme.accent || baseTheme.accent,
+    showAnnouncement: unifiedSettings.announcement.enabled,
+    announcementText: unifiedSettings.announcement.text,
+    headline: unifiedSettings.heroBanner?.slides?.[0]?.heading || 'Welcome to our store',
+    ctaText: unifiedSettings.heroBanner?.slides?.[0]?.ctaText || 'Shop Now',
+    shippingConfig: unifiedShippingConfig,
   };
 
   return json({
@@ -142,17 +153,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     theme: mergedTheme,
     socialLinks,
     businessInfo,
-    themeConfig: legacySettings.themeConfig,
+    themeConfig: null, // No longer needed - using unified settings
     planType: storeData.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
     categories,
-    mvpSettings: {
-      ...legacySettings.mvpSettings,
-      headline: unifiedSettings.heroBanner?.slides?.[0]?.heading || 'Welcome to our store',
-      ctaText: unifiedSettings.heroBanner?.slides?.[0]?.ctaText || 'Shop Now',
-      shippingConfig: unifiedShippingConfig,
-    },
-    isCustomerAiEnabled: Boolean((storeData as { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled),
+    mvpSettings,
+    isCustomerAiEnabled: Boolean(
+      (storeData as { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled
+    ),
     aiCredits: Number((storeData as { aiCredits?: number }).aiCredits) || 0,
   });
 }

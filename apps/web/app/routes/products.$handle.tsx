@@ -33,6 +33,7 @@ import { trackingEvents } from '~/utils/tracking';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import {
   getStoreTemplate,
+  getStoreTemplateTheme,
   type SerializedProduct,
   type StoreTemplateTheme,
   type SerializedVariant,
@@ -42,7 +43,6 @@ import { getProductDetailsMetafields } from '~/lib/product-details.server';
 import { parsePriceRange } from '~/utils/price';
 import {
   getUnifiedStorefrontSettings,
-  toLegacyFormat,
   getShippingConfigFromUnified,
 } from '~/services/unified-storefront-settings.server';
 import type { MVPSettingsWithTheme } from '~/services/mvp-settings.server';
@@ -226,8 +226,28 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   // Get common data - use unified settings for shipping (single source of truth)
   const { footerConfig } = storeConfig;
 
-  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
-  const unified = toLegacyFormat(unifiedSettings);
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
+    env: context.cloudflare.env,
+  });
+
+  // Extract settings from unified canonical config
+  const storeTemplateId = unifiedSettings.theme.templateId || 'starter-store';
+  const baseTheme = getStoreTemplateTheme(storeTemplateId);
+  const mergedTheme = {
+    ...baseTheme,
+    primary: unifiedSettings.theme.primary || baseTheme.primary,
+    accent: unifiedSettings.theme.accent || baseTheme.accent,
+  };
+  const legacyCompat = {
+    storeTemplateId,
+    storeName: unifiedSettings.branding.storeName || store?.name || 'Store',
+    logo: unifiedSettings.branding.logo || store?.logo || null,
+    favicon: unifiedSettings.branding.favicon || store?.favicon || null,
+    theme: mergedTheme,
+    themeConfig: null, // Using mergedTheme instead - no legacy config needed
+    mvpSettings: null,
+  };
+
   const unifiedShippingConfig = getShippingConfigFromUnified(unifiedSettings);
 
   const socialLinks: SocialLinks = buildUnifiedSocialLinks(unifiedSettings);
@@ -255,12 +275,12 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     // KV Cache Check
     const kv = context.cloudflare.env.PRODUCT_CACHE;
     const settingsFingerprint = [
-      unified.storeTemplateId,
-      unified.storeName,
-      unified.theme.primary,
-      unified.theme.accent,
-      unified.logo ?? '',
-      unified.favicon ?? '',
+      legacyCompat.storeTemplateId,
+      legacyCompat.storeName,
+      legacyCompat.theme.primary,
+      legacyCompat.theme.accent,
+      legacyCompat.logo ?? '',
+      legacyCompat.favicon ?? '',
     ].join('|');
     const cacheKey = `product:${storeId}:${productId}:${settingsFingerprint}`;
 
@@ -392,13 +412,13 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
         ? productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length
         : 0;
 
-    // Use unified theme config - no more legacy store.themeConfig reading
+    // Use unified theme config only
     const mergedProductThemeConfig = buildMergedThemeConfig(
       null,
-      unified.storeTemplateId,
-      unified.theme.primary,
-      unified.theme.accent,
-      unified.themeConfig
+      legacyCompat.storeTemplateId,
+      legacyCompat.theme.primary,
+      legacyCompat.theme.accent,
+      {} // Using unified settings - no legacy themeConfig needed
     );
     // Add trust badges (with defaults)
     mergedProductThemeConfig.trustBadges = {
@@ -415,17 +435,17 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
         returnPolicy: productDetails.returnPolicy || store?.customRefundPolicy || null,
         variants: variantsResult || [],
       },
-      storeName: unified.storeName,
-      logo: unified.logo,
-      favicon: unified.favicon,
+      storeName: legacyCompat.storeName,
+      logo: legacyCompat.logo,
+      favicon: legacyCompat.favicon,
       currency: store?.currency || 'BDT',
       showReviews,
       reviews: productReviews,
       avgRating: Math.round(avgRating * 10) / 10,
       reviewCount: productReviews.length,
       storeId,
-      storeTemplateId: unified.storeTemplateId,
-      theme: unified.theme,
+      storeTemplateId: legacyCompat.storeTemplateId,
+      theme: legacyCompat.theme,
       socialLinks,
       businessInfo,
       footerConfig,
@@ -585,29 +605,29 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 
     const categories = storeCategories;
 
-    // Use unified theme config - no more legacy store.themeConfig reading
+    // Use unified theme config only
     const mergedThemeConfig = buildMergedThemeConfig(
       null,
-      unified.storeTemplateId,
-      unified.theme.primary,
-      unified.theme.accent,
-      unified.themeConfig
+      legacyCompat.storeTemplateId,
+      legacyCompat.theme.primary,
+      legacyCompat.theme.accent,
+      {} // Using unified settings - no legacy themeConfig needed
     );
 
     const responseData: CollectionPageData = {
       pageType: 'collection',
       storeId,
-      storeName: unified.storeName,
-      logo: unified.logo,
-      favicon: unified.favicon,
+      storeName: legacyCompat.storeName,
+      logo: legacyCompat.logo,
+      favicon: legacyCompat.favicon,
       collectionName: collection.title,
       currency: store?.currency || 'BDT',
-      storeTemplateId: unified.storeTemplateId,
-      theme: unified.theme,
+      storeTemplateId: legacyCompat.storeTemplateId,
+      theme: legacyCompat.theme,
       socialLinks,
       businessInfo,
       themeConfig: mergedThemeConfig,
-      mvpSettings: unified.mvpSettings,
+      mvpSettings: legacyCompat.mvpSettings,
       collection,
       products: collectionProducts,
       categories,

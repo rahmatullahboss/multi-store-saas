@@ -18,7 +18,6 @@ import { LanguageProvider } from '~/contexts/LanguageContext';
 import i18nextServer from '~/services/i18n.server';
 import { useChangeLanguage } from 'remix-i18next/react';
 import { useEffect } from 'react';
-import { parseThemeConfig } from '@db/types';
 
 export const links: LinksFunction = () => [
   { rel: 'preload', href: tailwindStyles, as: 'style' },
@@ -26,7 +25,11 @@ export const links: LinksFunction = () => [
   { rel: 'dns-prefetch', href: 'https://images.unsplash.com' },
   { rel: 'preconnect', href: 'https://images.unsplash.com', crossOrigin: 'anonymous' },
   { rel: 'dns-prefetch', href: 'https://o4509758332141568.ingest.de.sentry.io' },
-  { rel: 'preconnect', href: 'https://o4509758332141568.ingest.de.sentry.io', crossOrigin: 'anonymous' },
+  {
+    rel: 'preconnect',
+    href: 'https://o4509758332141568.ingest.de.sentry.io',
+    crossOrigin: 'anonymous',
+  },
   { rel: 'dns-prefetch', href: 'https://www.googletagmanager.com' },
   { rel: 'preconnect', href: 'https://www.googletagmanager.com', crossOrigin: 'anonymous' },
   { rel: 'dns-prefetch', href: 'https://connect.facebook.net' },
@@ -60,8 +63,9 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   // The tenant middleware has already resolved the store
   // Access it from context (populated by Hono middleware)
   const { storeId, store, isCustomDomain } = context;
-  const themeConfig = store?.themeConfig ? parseThemeConfig(store.themeConfig as string) : null;
-  const themeColor = themeConfig?.primaryColor || '#4f46e5';
+
+  // Use unified settings for theme color - no longer reading legacy themeConfig
+  const themeColor = '#4f46e5'; // Default, will be overridden by unified settings in routes
 
   // Get locale from request
   const locale = await i18nextServer.getLocale(request);
@@ -74,7 +78,8 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
       name: store?.name || 'Ozzyl',
       logo: store?.logo || null,
       theme: store?.theme || 'default',
-      themeConfig: themeConfig || null,
+      // Using unified settings in routes - no legacy themeConfig in root
+      themeConfig: null,
       themeColor,
       currency: store?.currency || 'BDT',
       // Tracking IDs - each store has their own (data isolation)
@@ -221,7 +226,7 @@ export default function App() {
  * - 500+: Server Error / Maintenance Mode
  * - Unknown: Generic error fallback
  */
-import * as Sentry from "@sentry/remix";
+import * as Sentry from '@sentry/remix';
 
 export function ErrorBoundary() {
   const error = useRouteError();

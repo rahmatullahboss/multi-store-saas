@@ -19,6 +19,7 @@ import { resolveStore } from '~/lib/store.server';
 
 import {
   getStoreTemplate,
+  getStoreTemplateTheme,
   type SerializedProduct,
   type StoreCategory,
 } from '~/templates/store-registry';
@@ -28,10 +29,7 @@ import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { eq, desc, and } from 'drizzle-orm';
 import { products as productsTable, collections as collectionsTable } from '@db/schema';
-import {
-  getUnifiedStorefrontSettings,
-  toLegacyFormat,
-} from '~/services/unified-storefront-settings.server';
+import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeContext = await resolveStore(context, request);
@@ -44,8 +42,27 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = createDb(context.cloudflare.env.DB);
   const cache = new D1Cache(db);
 
-  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
-  const unified = toLegacyFormat(unifiedSettings);
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
+    env: context.cloudflare.env,
+  });
+
+  // Extract settings from unified (previously from toLegacyFormat)
+  const storeTemplateId = unifiedSettings.theme.templateId || 'starter-store';
+  const baseTheme = getStoreTemplateTheme(storeTemplateId);
+  const mergedTheme = {
+    ...baseTheme,
+    primary: unifiedSettings.theme.primary || baseTheme.primary,
+    accent: unifiedSettings.theme.accent || baseTheme.accent,
+  };
+  const legacyCompat = {
+    storeTemplateId,
+    storeName: unifiedSettings.branding.storeName || store?.name || 'Store',
+    logo: unifiedSettings.branding.logo || store?.logo || null,
+    favicon: unifiedSettings.branding.favicon || store?.favicon || null,
+    theme: mergedTheme,
+    themeConfig: null, // Using mergedTheme instead
+    mvpSettings: null,
+  };
 
   // Use socialLinks from unified settings
   const socialLinks = {
@@ -148,14 +165,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json(
     {
       storeId,
-      storeName: unified.storeName,
-      logo: unified.logo,
-      favicon: unified.favicon,
+      storeName: legacyCompat.storeName,
+      logo: legacyCompat.logo,
+      favicon: legacyCompat.favicon,
       currency: store.currency || 'BDT',
-      storeTemplateId: unified.storeTemplateId,
-      theme: unified.theme,
-      themeConfig: unified.themeConfig,
-      mvpSettings: unified.mvpSettings,
+      storeTemplateId: legacyCompat.storeTemplateId,
+      theme: legacyCompat.theme,
+      themeConfig: legacyCompat.themeConfig,
+      mvpSettings: legacyCompat.mvpSettings,
       socialLinks,
       businessInfo,
       planType: store.planType || 'free',
