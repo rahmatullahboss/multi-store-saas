@@ -5,11 +5,6 @@ import {
   Grid3X3,
   User,
   ShoppingCart,
-  ShoppingBag,
-  Search,
-  Heart,
-  Menu,
-  X,
 } from 'lucide-react';
 import type { StoreTemplateProps } from '~/templates/types';
 import { useCartCount } from '~/hooks/useCartCount';
@@ -25,6 +20,7 @@ import type { ThemeConfig } from '@db/types';
 
 import { LUXE_BOUTIQUE_THEME } from './theme';
 import { LuxeBoutiqueFooter } from './sections/Footer';
+import { LuxeBoutiqueHeader } from './sections/Header';
 
 const DEFAULT_HERO_IMAGE =
   'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop';
@@ -66,7 +62,6 @@ export function LiveLuxeBoutiqueHomepage({
   customer,
 }: StoreTemplateProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const { t } = useTranslation();
 
   const count = useCartCount();
@@ -146,120 +141,18 @@ export function LiveLuxeBoutiqueHomepage({
                 rel="stylesheet"
               />
 
-              {/* Header */}
-              <header
-                className="sticky top-0 z-50 border-b"
-                style={{ backgroundColor: theme.headerBg, borderColor: '#e5e5e5' }}
-              >
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <div className="flex items-center justify-between h-16 lg:h-20">
-                    <button
-                      className="lg:hidden p-2 -ml-2"
-                      onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    >
-                      {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                    </button>
-
-                    <Link to="/" className="flex items-center">
-                      {logo ? (
-                        <img src={logo} alt={storeName} className="h-10 lg:h-12 object-contain" />
-                      ) : (
-                        <span
-                          className="text-xl lg:text-2xl font-semibold tracking-wide"
-                          style={{ fontFamily: "'Playfair Display', serif", color: theme.primary }}
-                        >
-                          {storeName}
-                        </span>
-                      )}
-                    </Link>
-
-                    <nav className="hidden lg:flex items-center gap-8">
-                      <Link
-                        to="/"
-                        className="text-sm font-medium tracking-wide uppercase transition-colors hover:opacity-70"
-                        style={{ color: theme.text }}
-                      >
-                        {t('allProducts') || 'All Products'}
-                      </Link>
-                      {validCategories.slice(0, 5).map((category) => (
-                        <Link
-                          key={category}
-                          to={`/products/${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-'))}`}
-                          className="text-sm font-medium tracking-wide uppercase transition-colors hover:opacity-70"
-                          style={{ color: theme.text }}
-                        >
-                          {category}
-                        </Link>
-                      ))}
-                    </nav>
-
-                    <div className="flex items-center gap-3">
-                      <button
-                        className="p-2 rounded-full transition-colors hover:bg-gray-100"
-                        onClick={() => setSearchOpen(!searchOpen)}
-                      >
-                        <Search className="w-5 h-5" style={{ color: theme.text }} />
-                      </button>
-                      <button className="hidden sm:block p-2 rounded-full transition-colors hover:bg-gray-100">
-                        <Heart className="w-5 h-5" style={{ color: theme.text }} />
-                      </button>
-                      <Link
-                        to="/cart"
-                        className="p-2 rounded-full transition-colors hover:bg-gray-100 relative"
-                      >
-                        <ShoppingBag className="w-5 h-5" style={{ color: theme.text }} />
-                        <span
-                          className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center"
-                          style={{ backgroundColor: theme.accent, color: theme.primary }}
-                        >
-                          {count}
-                        </span>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-
-                {searchOpen && (
-                  <div className="absolute inset-x-0 top-full bg-white border-b border-gray-200 py-4 px-4 shadow-lg">
-                    <div className="max-w-2xl mx-auto">
-                      <input
-                        type="text"
-                        placeholder="Search products..."
-                        className="w-full px-4 py-3 border border-gray-300 rounded-none focus:outline-none focus:border-black"
-                        autoFocus
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {mobileMenuOpen && (
-                  <div className="lg:hidden absolute inset-x-0 top-full bg-white border-b border-gray-200 shadow-lg">
-                    <nav className="py-4">
-                      <Link
-                        to="/"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block w-full text-left px-6 py-3 text-sm font-medium uppercase tracking-wide"
-                        style={{ color: theme.text }}
-                      >
-                        {t('allProducts') || 'All Products'}
-                      </Link>
-                      {validCategories.map((category) => (
-                        <Link
-                          key={category}
-                          to={`/products/${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-'))}`}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="block w-full text-left px-6 py-3 text-sm font-medium uppercase tracking-wide"
-                          style={{ color: theme.text }}
-                        >
-                          {category}
-                        </Link>
-                      ))}
-                    </nav>
-                  </div>
-                )}
-
-                <div className="h-0.5" style={{ backgroundColor: theme.accent }} />
-              </header>
+              {/* Header — shared component (same as product page) */}
+              <LuxeBoutiqueHeader
+                storeName={storeName || ''}
+                logo={logo}
+                categories={categories || []}
+                currentCategory={currentCategory}
+                config={config}
+                mobileMenuOpen={mobileMenuOpen}
+                setMobileMenuOpen={setMobileMenuOpen}
+                isPreview={isPreview}
+                customer={customer}
+              />
 
               {/* Hero Section - 80vh */}
               <section className="relative h-[80vh] flex items-center justify-center overflow-hidden">

@@ -81,7 +81,7 @@ export function LuxeBoutiqueHeader({
               />
             ) : null}
             <span
-              className={`text-xl lg:text-2xl font-semibold tracking-wide ${logo ? 'hidden sm:block' : ''}`}
+              className="text-xl lg:text-2xl font-semibold tracking-wide"
               style={{ fontFamily: "'Playfair Display', serif", color: theme.primary }}
             >
               {storeName}
