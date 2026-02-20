@@ -194,7 +194,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     try {
       const kv = context.cloudflare.env.STORE_CACHE;
       if (kv) {
-        const cached = await kv.get(`fraud_steadfast_${order.customerPhone}`, 'json');
+        const cached = await kv.get(`fraud_steadfast_${storeId}_${order.customerPhone}`, 'json');
         if (cached) fraudCache = cached;
       }
     } catch { /* ignore */ }
@@ -246,7 +246,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
       const phone = (formData.get('phone') as string) || orderResult[0].customerPhone || '';
       const kv = context.cloudflare.env.STORE_CACHE;
-      const fraudCacheKey = `fraud_steadfast_${phone}`;
+      const fraudCacheKey = `fraud_steadfast_${storeId}_${phone}`;
 
       const forceRefresh = formData.get('forceRefresh') === 'true';
 
@@ -270,7 +270,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       let xsrfToken: string | undefined;
 
       if (kv) {
-        const adminCredsRaw = await kv.get('steadfast_admin_credentials');
+        const adminCredsRaw = await kv.get(`steadfast_credentials_${storeId}`);
         if (adminCredsRaw) {
           const creds = JSON.parse(adminCredsRaw as string);
           sessionCookie = creds.sessionCookie;

@@ -73,8 +73,8 @@ interface CourierSettings {
   steadfast?: {
     apiKey: string;
     secretKey: string;
-    sessionCookie?: string;
-    xsrfToken?: string;
+    steadfastEmail?: string;
+    steadfastPassword?: string;
   };
   isConnected: boolean;
 }
@@ -139,8 +139,8 @@ function toUnifiedCourier(courier: Partial<CourierSettings>) {
       ? {
           apiKey: courier.steadfast.apiKey || null,
           secretKey: courier.steadfast.secretKey || null,
-          sessionCookie: courier.steadfast.sessionCookie || null,
-          xsrfToken: courier.steadfast.xsrfToken || null,
+          steadfastEmail: courier.steadfast.steadfastEmail || null,
+          steadfastPassword: courier.steadfast.steadfastPassword || null,
         }
       : null,
   };
@@ -490,8 +490,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
         const steadfastData = {
           apiKey: String(formData.get('apiKey') || ''),
           secretKey: String(formData.get('secretKey') || ''),
-          sessionCookie: String(formData.get('sessionCookie') || ''),
-          xsrfToken: String(formData.get('xsrfToken') || ''),
+          // Save email+password for auto-login scraper; preserve existing if blank
+          steadfastEmail: String(formData.get('steadfastEmail') || currentCourier.steadfast?.steadfastEmail || ''),
+          steadfastPassword: String(formData.get('steadfastPassword') || '') ||
+            currentCourier.steadfast?.steadfastPassword || '',
         };
         newSettings = {
           provider: 'steadfast',
@@ -1068,40 +1070,40 @@ export default function CourierSettingsPage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white/50 backdrop-blur-sm"
                       />
                     </div>
-                    <div className="col-span-2 mt-4 pt-4 border-t border-gray-200">
-                      <div className="flex items-center gap-2 mb-4">
-                        <h4 className="text-sm font-medium text-gray-900">
-                          Advanced Config (Optional)
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-semibold text-emerald-700 uppercase tracking-wide">
+                          Auto Fraud Check (Optional)
                         </h4>
                         <div className="group relative flex items-center">
                           <Info className="w-4 h-4 text-emerald-500 cursor-help" />
-                          <div className="absolute left-full ml-2 w-64 p-2 bg-gray-900 text-xs text-white rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                            These cookies are entirely optional. If you provide them, the system will instantly Auto-Confirm Cash On Delivery (COD) orders for safe customers. <a href="https://steadfast.com.bd" target="_blank" className="underline text-emerald-300">Login to Steadfast</a>, open Developer Tools (F12) &gt; Application &gt; Cookies to extract them.
+                          <div className="absolute left-full ml-2 w-72 p-2 bg-gray-900 text-xs text-white rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                            Enter your Steadfast portal login email and password. Our system will automatically log in, extract fresh session cookies, and use them for fraud detection — no manual cookie copying needed.
                           </div>
                         </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Session Cookie (steadfast_courier_session)
+                            Steadfast Portal Email
                           </label>
                           <input
-                            type="password"
-                            name="sessionCookie"
-                            defaultValue={settings.steadfast?.sessionCookie || ''}
-                            placeholder={settings.steadfast?.sessionCookie ? '••••••••' : 'Optional (For Auto-Confirm COD)'}
+                            type="email"
+                            name="steadfastEmail"
+                            defaultValue={settings.steadfast?.steadfastEmail || ''}
+                            placeholder="your@email.com"
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white/50 backdrop-blur-sm"
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            XSRF-TOKEN Cookie
+                            Steadfast Portal Password
                           </label>
                           <input
                             type="password"
-                            name="xsrfToken"
-                            defaultValue={settings.steadfast?.xsrfToken || ''}
-                            placeholder={settings.steadfast?.xsrfToken ? '••••••••' : 'Optional (For Auto-Confirm COD)'}
+                            name="steadfastPassword"
+                            defaultValue={settings.steadfast?.steadfastPassword ? '••••••••' : ''}
+                            placeholder={settings.steadfast?.steadfastPassword ? '••••••••' : 'Your portal password'}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white/50 backdrop-blur-sm"
                           />
                         </div>

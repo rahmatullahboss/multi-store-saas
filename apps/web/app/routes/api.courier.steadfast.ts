@@ -118,27 +118,28 @@ export async function action({ request, context }: ActionFunctionArgs) {
         env: context.cloudflare.env,
       });
 
-      // 1. Try to get merchant's own steadfast settings
-      let sessionCookie = settings.courier?.steadfast?.sessionCookie;
-      let xsrfToken = settings.courier?.steadfast?.xsrfToken;
+      // 1. Try to get session cookies from KV (populated by sync.ts using merchant's email+password)
+      let sessionCookie: string | undefined;
+      let xsrfToken: string | undefined;
 
-      // 2. Fallback to extracting the automated cached cookies from KV
-      if (!sessionCookie || !xsrfToken) {
-        try {
-          const cachedCredsRaw = await context.cloudflare.env.STORE_CACHE.get('steadfast_admin_credentials');
+      // 2. Load from KV: cookies auto-synced per store using sync.ts
+      try {
+        const kv = context.cloudflare.env?.STORE_CACHE;
+        if (kv) {
+          const cachedCredsRaw = await kv.get(`steadfast_credentials_${storeId}`);
           if (cachedCredsRaw) {
-             const parsedCreds = JSON.parse(cachedCredsRaw) as { sessionCookie: string; xsrfToken: string };
-             sessionCookie = parsedCreds.sessionCookie;
-             xsrfToken = parsedCreds.xsrfToken;
+            const parsedCreds = JSON.parse(cachedCredsRaw) as { sessionCookie: string; xsrfToken: string };
+            sessionCookie = parsedCreds.sessionCookie;
+            xsrfToken = parsedCreds.xsrfToken;
           }
-        } catch (e) {
-          console.error('[FRAUD CHECK] Failed to load Steadfast fallback KV credentials', e);
         }
+      } catch (e) {
+        console.error('[FRAUD CHECK] Failed to load Steadfast KV credentials', e);
       }
 
       if (!sessionCookie || !xsrfToken) {
         return json(
-          { error: 'Steadfast session credentials (Cookie & Token) are missing. Please configure them in Courier Settings first.' },
+          { error: 'Steadfast session cookies not found. Please enter your Steadfast portal Email & Password in Courier Settings so the system can auto-manage authentication.' },
           { status: 400 }
         );
       }

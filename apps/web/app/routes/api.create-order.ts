@@ -1182,24 +1182,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
       try {
         const { createSteadfastClient } = await import('~/services/steadfast.server');
         
-        // 1. Try to get merchant's own steadfast settings
-        let sessionCookie = unifiedSettings.courier?.steadfast?.sessionCookie;
-        let xsrfToken = unifiedSettings.courier?.steadfast?.xsrfToken;
+        // Load session cookies from KV (populated by sync.ts using merchant's email+password)
+        let sessionCookie: string | undefined;
+        let xsrfToken: string | undefined;
 
-        // 2. Fallback to extracting the automated cached cookies from KV
-        if (!sessionCookie || !xsrfToken) {
-          try {
-            if (context.cloudflare.env.STORE_CACHE) {
-              const cachedCredsRaw = await context.cloudflare.env.STORE_CACHE.get('steadfast_admin_credentials');
-              if (cachedCredsRaw) {
-                 const parsedCreds = JSON.parse(cachedCredsRaw) as { sessionCookie: string; xsrfToken: string };
-                 sessionCookie = parsedCreds.sessionCookie;
-                 xsrfToken = parsedCreds.xsrfToken;
-              }
+        try {
+          if (context.cloudflare.env.STORE_CACHE) {
+            const cachedCredsRaw = await context.cloudflare.env.STORE_CACHE.get(`steadfast_credentials_${input.store_id}`);
+            if (cachedCredsRaw) {
+               const parsedCreds = JSON.parse(cachedCredsRaw) as { sessionCookie: string; xsrfToken: string };
+               sessionCookie = parsedCreds.sessionCookie;
+               xsrfToken = parsedCreds.xsrfToken;
             }
-          } catch (e) {
-            console.error('[FRAUD CHECK] Failed to load Steadfast fallback KV credentials', e);
           }
+        } catch (e) {
+          console.error('[COD AUTO-CONFIRM] Failed to load Steadfast KV credentials', e);
         }
 
         if (sessionCookie && xsrfToken) {

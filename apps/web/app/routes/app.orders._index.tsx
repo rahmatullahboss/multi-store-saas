@@ -225,7 +225,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       const phoneSlice = uniquePhones.slice(0, 40);
       const cacheResults = await Promise.all(
         phoneSlice.map((phone) =>
-          kv.get(`fraud_steadfast_${phone}`, 'json')
+          kv.get(`fraud_steadfast_${storeId}_${phone}`, 'json')
             .then((val) => ({ phone, val }))
             .catch(() => ({ phone, val: null }))
         )
@@ -462,7 +462,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       // KV CACHE: Check if we have a recent Steadfast result for this phone
       // ==============================================================
       const phoneForCheck = order.customerPhone || '';
-      const fraudCacheKey = `fraud_steadfast_${phoneForCheck}`;
+      const fraudCacheKey = `fraud_steadfast_${storeId}_${phoneForCheck}`;
       const kv = context.cloudflare.env.STORE_CACHE;
       
       const forceRefresh = formData.get('forceRefresh') === 'true';
@@ -494,7 +494,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       try {
         if (kv) {
-          const adminCredsStr = await kv.get('steadfast_admin_credentials');
+          const adminCredsStr = await kv.get(`steadfast_credentials_${storeId}`);
           if (adminCredsStr) {
             const adminCreds = JSON.parse(adminCredsStr as string);
             if (adminCreds.sessionCookie && adminCreds.xsrfToken) {

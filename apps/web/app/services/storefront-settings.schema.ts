@@ -284,8 +284,8 @@ const CourierSettingsSchema = z.object({
     .object({
       apiKey: z.string().nullable().default(null),
       secretKey: z.string().nullable().default(null),
-      sessionCookie: z.string().nullable().default(null),
-      xsrfToken: z.string().nullable().default(null),
+      steadfastEmail: z.string().nullable().default(null),
+      steadfastPassword: z.string().nullable().default(null),
     })
     .nullable()
     .default(null),
