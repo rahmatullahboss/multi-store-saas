@@ -23,7 +23,7 @@ import { products, productVariants } from '@db/schema';
 import { type ThemeConfig, type LandingConfig } from '@db/types';
 import { type MVPSettingsWithTheme } from '~/config/mvp-theme-settings';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { getStoreTemplate, resolveStoreTemplateId } from '~/templates/store-registry';
+import { getStoreTemplate, getStoreTemplateTheme, resolveStoreTemplateId } from '~/templates/store-registry';
 import { resolveStore } from '~/lib/store.server';
 import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
@@ -124,14 +124,22 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         null
       );
 
+  // Build merged theme from unified settings (same as home page _index.tsx)
+  const baseTheme = getStoreTemplateTheme(storeTemplateId);
+  const mergedTheme = {
+    ...baseTheme,
+    primary: unifiedSettings.theme.primary || baseTheme.primary,
+    accent: unifiedSettings.theme.accent || baseTheme.accent,
+  };
+
   return json({
     storeId: storeId as number,
-    storeName: legacySettings.storeName || storeData.name || 'Store',
-    logo: legacySettings.logo || storeData.logo || null,
-    favicon: legacySettings.favicon || storeData.favicon || null,
+    storeName: unifiedSettings.branding.storeName || storeData.name || 'Store',
+    logo: unifiedSettings.branding.logo || storeData.logo || null,
+    favicon: unifiedSettings.branding.favicon || storeData.favicon || null,
     currency: storeData.currency || 'BDT',
     storeTemplateId,
-    theme: legacySettings.theme,
+    theme: mergedTheme,
     socialLinks,
     businessInfo,
     themeConfig: legacySettings.themeConfig,

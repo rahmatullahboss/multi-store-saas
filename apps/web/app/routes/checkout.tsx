@@ -92,7 +92,7 @@ import { Loader2, ArrowLeft, ShoppingBag, ShieldCheck, Truck, CheckCircle } from
 import { getCustomer } from '~/services/customer-auth.server';
 import type { CustomerAddress } from '~/services/customer-account.server';
 import { resolveTemplate } from '~/lib/template-resolver.server';
-import { resolveStoreTemplateId } from '~/templates/store-registry';
+import { resolveStoreTemplateId, getStoreTemplateTheme } from '~/templates/store-registry';
 import { toast } from 'sonner';
 import { validateDiscount } from '~/../server/services/discount.service';
 import { TicketPercent } from 'lucide-react';
@@ -245,13 +245,21 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         null
       );
 
+  // Build merged theme from unified settings (mirrors _index.tsx)
+  const baseTheme = getStoreTemplateTheme(storeTemplateId);
+  const mergedTheme = {
+    ...baseTheme,
+    primary: unifiedSettings.theme.primary || baseTheme.primary,
+    accent: unifiedSettings.theme.accent || baseTheme.accent,
+  };
+
   return json({
     storeId: storeId as number,
-    storeName: legacySettings.storeName || store.name,
-    logo: legacySettings.logo || store.logo,
+    storeName: unifiedSettings.branding.storeName || store.name,
+    logo: unifiedSettings.branding.logo || store.logo,
     currency: store.currency || 'BDT',
     storeTemplateId,
-    theme: legacySettings.theme,
+    theme: mergedTheme,
     socialLinks,
     businessInfo,
     themeConfig: legacySettings.themeConfig as unknown as ThemeConfig,
