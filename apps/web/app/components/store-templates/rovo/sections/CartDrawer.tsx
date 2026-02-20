@@ -12,7 +12,7 @@ interface CartItem {
   variantName?: string;
 }
 
-export function RovoCartDrawer() {
+export function RovoCartDrawer({ mvpSettings }: { mvpSettings?: any }) {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<CartItem[]>([]);
 
@@ -65,8 +65,13 @@ export function RovoCartDrawer() {
   };
 
   const subtotal = items.reduce((sum, item) => sum + ((item.price || 0) * item.quantity), 0);
-  const freeShippingThreshold = 1500;
-  const progress = Math.min((subtotal / freeShippingThreshold) * 100, 100);
+  
+  const shippingConfig = mvpSettings?.shippingConfig;
+  const freeShippingThreshold = shippingConfig?.freeDeliveryAbove ?? shippingConfig?.freeShippingAbove ?? 0;
+  const hasFreeShippingDisabled = freeShippingThreshold <= 0;
+  const activeThreshold = hasFreeShippingDisabled ? Infinity : freeShippingThreshold;
+  
+  const progress = hasFreeShippingDisabled ? 0 : Math.min((subtotal / activeThreshold) * 100, 100);
 
   if (!open) return null;
 
@@ -97,21 +102,23 @@ export function RovoCartDrawer() {
         </div>
 
         {/* Free Shipping Bar */}
-        <div className="px-4 py-4 sm:px-6 bg-gray-50 border-b">
-          {subtotal >= freeShippingThreshold ? (
-            <p className="text-sm text-green-600 font-medium mb-2">Congratulations! You've got free shipping!</p>
-          ) : (
-            <p className="text-sm text-gray-600 mb-2">
-              Spend <span className="font-bold text-black">Tk {freeShippingThreshold - subtotal}</span> more for free shipping!
-            </p>
-          )}
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-red-600 transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
+        {!hasFreeShippingDisabled && (
+          <div className="px-4 py-4 sm:px-6 bg-gray-50 border-b">
+            {subtotal >= activeThreshold ? (
+              <p className="text-sm text-green-600 font-medium mb-2">Congratulations! You've got free shipping!</p>
+            ) : (
+              <p className="text-sm text-gray-600 mb-2">
+                Spend <span className="font-bold text-black">Tk {activeThreshold - subtotal}</span> more for free shipping!
+              </p>
+            )}
+            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-red-600 transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Cart Items */}
         <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">

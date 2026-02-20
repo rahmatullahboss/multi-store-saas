@@ -69,10 +69,17 @@ interface SharedCartPageProps {
     price: number;
     imageUrl?: string | null;
   }>;
+  items?: any[];
+  currency?: string;
+  total?: number;
+  itemCount?: number;
+  onUpdateQuantity?: any;
+  onRemoveItem?: any;
+  isLoading?: boolean;
+  storeName?: string;
+  config?: any;
+  mvpSettings?: any;
 }
-
-// Free shipping threshold
-const FREE_SHIPPING_THRESHOLD = 1000;
 
 // Demo coupons for preview
 const DEMO_COUPONS: Record<
@@ -90,6 +97,7 @@ export default function SharedCartPage({
   templateId: propTemplateId,
   onNavigate,
   recommendedProducts = [],
+  mvpSettings,
 }: SharedCartPageProps) {
   const params = useParams();
   // Use prop templateId first, fallback to URL params
@@ -149,7 +157,6 @@ export default function SharedCartPage({
         if (isPreview) {
           // Preview Mode: Hydrate from DEMO_PRODUCTS
           const hydratedItems = items
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((item: any) => {
               const pId = Number(item.productId);
               const demoProduct = DEMO_PRODUCTS.find((p) => p.id === pId);
@@ -173,7 +180,6 @@ export default function SharedCartPage({
           setCartItems(hydratedItems);
         } else {
           // Live Mode: Set basic items, fetcher will enrich
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const normalizedItems = items.map((item: any) => ({
             ...item,
             id: String(item.productId),
@@ -242,9 +248,19 @@ export default function SharedCartPage({
     [cartItems]
   );
 
-  const freeShippingProgress = Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
-  const remainingForFreeShipping = Math.max(FREE_SHIPPING_THRESHOLD - subtotal, 0);
-  const hasEarnedFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
+  const shippingConfig = mvpSettings?.shippingConfig;
+  let freeShippingAbove = shippingConfig?.freeDeliveryAbove ?? shippingConfig?.freeShippingAbove ?? 0;
+  
+  if (isPreview && freeShippingAbove === 0) {
+    freeShippingAbove = 1000; // Provide a default for preview mode presentation
+  }
+
+  const hasFreeShippingDisabled = freeShippingAbove <= 0;
+  const FREE_SHIPPING_THRESHOLD = hasFreeShippingDisabled ? Infinity : freeShippingAbove;
+
+  const freeShippingProgress = hasFreeShippingDisabled ? 0 : Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
+  const remainingForFreeShipping = hasFreeShippingDisabled ? 0 : Math.max(FREE_SHIPPING_THRESHOLD - subtotal, 0);
+  const hasEarnedFreeShipping = !hasFreeShippingDisabled && subtotal >= FREE_SHIPPING_THRESHOLD;
 
   const shipping = hasEarnedFreeShipping ? 0 : isPreview ? 60 : 0;
   const total = subtotal - couponDiscount + shipping;
@@ -422,46 +438,48 @@ export default function SharedCartPage({
         </div>
 
         {/* Free Shipping Progress */}
-        <div
-          className="p-4 rounded-xl mb-6"
-          style={{
-            backgroundColor: hasEarnedFreeShipping ? '#ecfdf5' : colors.cardBg,
-            border: `1px solid ${hasEarnedFreeShipping ? '#10b981' : colors.muted + '20'}`,
-          }}
-        >
-          {hasEarnedFreeShipping ? (
-            <div className="flex items-center gap-2 text-green-600">
-              <Check className="w-5 h-5" />
-              <span className="font-medium">You've unlocked FREE shipping!</span>
-            </div>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2" style={{ color: colors.text }}>
-                  <Truck className="w-5 h-5" style={{ color: colors.accent }} />
-                  <span className="text-sm font-medium">
-                    Add {formatPrice(remainingForFreeShipping, currency)} more for FREE shipping!
+        {!hasFreeShippingDisabled && (
+          <div
+            className="p-4 rounded-xl mb-6"
+            style={{
+              backgroundColor: hasEarnedFreeShipping ? '#ecfdf5' : colors.cardBg,
+              border: `1px solid ${hasEarnedFreeShipping ? '#10b981' : colors.muted + '20'}`,
+            }}
+          >
+            {hasEarnedFreeShipping ? (
+              <div className="flex items-center gap-2 text-green-600">
+                <Check className="w-5 h-5" />
+                <span className="font-medium">You've unlocked FREE shipping!</span>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2" style={{ color: colors.text }}>
+                    <Truck className="w-5 h-5" style={{ color: colors.accent }} />
+                    <span className="text-sm font-medium">
+                      Add {formatPrice(remainingForFreeShipping, currency)} more for FREE shipping!
+                    </span>
+                  </div>
+                  <span className="text-sm font-bold" style={{ color: colors.accent }}>
+                    {Math.round(freeShippingProgress)}%
                   </span>
                 </div>
-                <span className="text-sm font-bold" style={{ color: colors.accent }}>
-                  {Math.round(freeShippingProgress)}%
-                </span>
-              </div>
-              <div
-                className="h-2 rounded-full overflow-hidden"
-                style={{ backgroundColor: colors.muted + '20' }}
-              >
                 <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${freeShippingProgress}%`,
-                    backgroundColor: colors.accent,
-                  }}
-                />
-              </div>
-            </>
-          )}
-        </div>
+                  className="h-2 rounded-full overflow-hidden"
+                  style={{ backgroundColor: colors.muted + '20' }}
+                >
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${freeShippingProgress}%`,
+                      backgroundColor: colors.accent,
+                    }}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Cart Items */}

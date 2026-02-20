@@ -28,7 +28,7 @@ export function RovoLayout({ children, ..._props }: RovoLayoutProps) {
       
       {children}
       
-      <RovoCartDrawer />
+      <RovoCartDrawer mvpSettings={_props.mvpSettings} />
     </div>
   );
 }
