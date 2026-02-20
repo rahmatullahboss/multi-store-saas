@@ -18,10 +18,10 @@
  */
 
 import { json, type LoaderFunctionArgs, type MetaFunction, type HeadersFunction } from '@remix-run/cloudflare';
-import { useLoaderData, useSearchParams } from '@remix-run/react';
+import { useLoaderData } from '@remix-run/react';
 import { eq, and, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { stores, products, templateAnalytics, type Product, type Store } from '@db/schema';
+import { stores, products, productVariants, orderBumps, templateAnalytics, type Product, type Store } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
 import { getTemplateComponent, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
 import { useTrackVisit } from '~/hooks/use-track-visit';
@@ -255,6 +255,11 @@ export async function loader({ context, request, params }: LoaderFunctionArgs): 
         )
       );
 
+    const mappedBumps = bumpsResult.map(b => ({
+      ...b,
+      discount: b.discount ?? 0,
+    }));
+
     // ========== PARSE LANDING CONFIG ==========
     const landingConfigRaw = (resolvedStore as Store & { landingConfig?: string }).landingConfig;
     const baseLandingConfig = parseLandingConfig(landingConfigRaw) ?? defaultLandingConfig;
@@ -288,7 +293,7 @@ export async function loader({ context, request, params }: LoaderFunctionArgs): 
       facebookPixelId: (resolvedStore as any).facebookPixelId || undefined,
       googleAnalyticsId: (resolvedStore as any).googleAnalyticsId || undefined,
       productVariants: mappedVariants,
-      orderBumps: bumpsResult,
+      orderBumps: mappedBumps,
     };
 
     // ========== TRACK PAGE VIEW ==========
