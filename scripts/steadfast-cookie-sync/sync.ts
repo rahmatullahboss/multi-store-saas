@@ -20,8 +20,9 @@ const isAllStores = process.argv.includes('--all-stores');
 function b64encode(bytes: Uint8Array): string {
   return Buffer.from(bytes).toString('base64');
 }
-function b64decode(str: string): Uint8Array {
-  return new Uint8Array(Buffer.from(str, 'base64'));
+function b64decode(str: string): Uint8Array<ArrayBuffer> {
+  const buf = Buffer.from(str, 'base64');
+  return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength) as Uint8Array<ArrayBuffer>;
 }
 async function importKey(keyBase64: string, usage: 'decrypt') {
   const keyBytes = b64decode(keyBase64);

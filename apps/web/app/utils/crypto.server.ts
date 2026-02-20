@@ -13,8 +13,11 @@ function b64encode(bytes: Uint8Array): string {
   return btoa(String.fromCharCode(...bytes));
 }
 
-function b64decode(str: string): Uint8Array {
-  return Uint8Array.from(atob(str), (c) => c.charCodeAt(0));
+function b64decode(str: string): Uint8Array<ArrayBuffer> {
+  const raw = atob(str);
+  const buf = new Uint8Array(raw.length) as Uint8Array<ArrayBuffer>;
+  for (let i = 0; i < raw.length; i++) buf[i] = raw.charCodeAt(i);
+  return buf;
 }
 
 async function importKey(keyBase64: string, usage: 'encrypt' | 'decrypt') {
