@@ -7,90 +7,78 @@
 
 ### ⚡ Performance
 
-- **KV/DB read কমবে** — প্রতি request এ legacy fallback চেক (themeConfig, socialLinks, businessInfo, courierSettings) আর হবে না
+- **KV/DB read কমবে** — প্রতি request এ legacy fallback চেক আর হবে না
 - **`toLegacyFormat()` overhead দূর হবে** — প্রতি page load এ unnecessary object transformation বন্ধ
 - **Smaller Worker bundle** — ~200 lines bridge code মুছে গেলে cold-start দ্রুত হবে
 
 ### 🧹 Codebase Simplicity
 
 - **Single source of truth** — `storefront_settings` JSON ছাড়া কোনো settings পড়ার দরকার নেই
-- **No more "which field do I read?"** — নতুন ডেভেলপার কনফিউজ হবে না
 - **Type safety** — `UnifiedStorefrontSettingsV1` single type, legacy ThemeConfig/MVPSettings দরকার নেই
 
 ### 🐛 Bug Prevention
 
-- **Theme mismatch bug দূর হবে** — সেই cart/checkout এ wrong theme দেখানো type issues আর হবে না
-- **Stale data impossible** — legacy columns update হয়নি কিন্তু unified update হয়েছে, এই ধরনের sync issue শেষ
-- **Testing সহজ** — mock করতে একটা object, পাঁচটা না
+- **Theme mismatch bug দূর হবে** — cart/checkout এ wrong theme issue শেষ
+- **Stale data impossible** — legacy vs unified sync issue শেষ
 
 ### 💾 Database
 
 - **4টা column ড্রপ + 1টা table ড্রপ** — disk space সেভ, D1 query faster
-- **Schema cleaner** — stores table থেকে JSON blob columns কমবে
 
 ---
 
-## Phase 0 — Audit (Before touching code)
+## Phase 0 — Audit & Backfill
 
 - [ ] Run this query to confirm ALL stores have `storefront_settings` populated:
   ```sql
   SELECT id, name, storefront_settings IS NULL as missing
-  FROM stores
-  WHERE storefront_settings IS NULL;
+  FROM stores WHERE storefront_settings IS NULL;
   ```
-- [ ] If any store is missing data → run the explicit backfill script:
+- [ ] If any store is missing → run explicit backfill script:
   ```bash
-  # Use the migration endpoint (or create a one-off script)
-  # Do NOT rely on "auto-backfill on visit" — it requires fallback enabled + env passed
   curl -X POST https://your-worker/api/admin/migrate-storefront-settings?releaseTag=v2.0
   ```
-  > ⚠️ **Why not "visit the store"?** The auto-backfill in `getUnifiedStorefrontSettings()` only runs when `enableFallback=true`, which requires `env` to be passed AND `UNIFIED_SETTINGS_STRICT != "true"`. Some callsites (e.g., `shipping.server.ts`) don't pass `env`, so strict mode defaults ON and fallback never fires.
-- [ ] Only proceed to Phase 1 when **zero rows** are returned from the audit query
+  > ⚠️ **Do NOT rely on "visit the store" auto-backfill.** It requires `enableFallback=true` + `env` passed. Some callsites (e.g., `resolveShippingConfig` in `shipping.server.ts`) don't pass `env`, so strict mode defaults ON and fallback never fires.
+- [ ] Only proceed when **zero rows** returned
 
 ---
 
-## Phase 1 — Disable Legacy Fallback (Low Risk)
+## Phase 1 — Disable Legacy Fallback
 
-Turn on strict mode so `getUnifiedStorefrontSettings` no longer falls back to legacy sources.
-
-- [ ] Set the `UNIFIED_SETTINGS_STRICT=true` secret in Cloudflare:
+- [ ] Set `UNIFIED_SETTINGS_STRICT=true`:
   ```bash
   npx wrangler secret put UNIFIED_SETTINGS_STRICT
-  # Enter: true
   ```
-- [ ] Monitor production logs for 24h — watch for these actual log patterns:
-  - `Error reading unified settings, trying fallback:` (line 111 of `unified-storefront-settings.server.ts`)
-  - `Failed to backfill unified settings:` (line 126)
+- [ ] Monitor production logs 24h for these patterns:
+  - `Error reading unified settings, trying fallback:` (`unified-storefront-settings.server.ts` → `getUnifiedStorefrontSettings`)
+  - `Failed to backfill unified settings:` (same file → auto-backfill catch block)
   - `legacyFallbackUsed: true` in any response payload
 - [ ] If no errors → proceed to Phase 2
 
 ---
 
-## Phase 2 — Remove `toLegacyFormat()` Usage Route by Route
+## Phase 2 — Remove `toLegacyFormat()` Usage (Routes)
 
-Each route currently calls `toLegacyFormat(unifiedSettings)` and uses the result.
-Replace each with direct unified reads.
+### Routes using `toLegacyFormat()` — 8 files:
 
-### Routes that use `toLegacyFormat()` (all need migration):
+| File                   | Legacy symbol usage                                                                 |
+| ---------------------- | ----------------------------------------------------------------------------------- |
+| `cart.tsx`             | `toLegacyFormat` → `legacySettings.storeTemplateId`, `.themeConfig`, `.mvpSettings` |
+| `checkout.tsx`         | `toLegacyFormat` → `legacySettings.themeConfig`                                     |
+| `products.$handle.tsx` | `toLegacyFormat` → `unified.themeConfig`, `.mvpSettings`                            |
+| `products._index.tsx`  | `toLegacyFormat` → `unified.mvpSettings`                                            |
+| `store.home.tsx`       | `toLegacyFormat` → `unified.mvpSettings`, theme, layout                             |
+| `search.tsx`           | `toLegacyFormat` → `unified` for theme/layout                                       |
+| `store.auth.login.tsx` | `toLegacyFormat` → `legacySettings.themeConfig`, `.theme`                           |
+| `debug-cart-theme.tsx` | **DELETE entirely** (debug-only)                                                    |
 
-- [ ] `cart.tsx` — uses `legacySettings.storeTemplateId`, `legacySettings.themeConfig`, `legacySettings.mvpSettings`
-- [ ] `checkout.tsx` — uses `legacySettings.themeConfig`, shipping config
-- [ ] `products.$handle.tsx` — uses `unified.themeConfig`, `unified.mvpSettings`
-- [ ] `products._index.tsx` — uses `unified.mvpSettings`, theme
-- [ ] `store.home.tsx` — uses `unified.mvpSettings`, theme, full layout config
-- [ ] `search.tsx` — uses `unified` for theme and layout
-- [ ] `store.auth.login.tsx` — uses `legacySettings.themeConfig`, `legacySettings.theme`
-- [ ] `debug-cart-theme.tsx` — **DELETE this route entirely** (debug-only)
-
-### For each route, the pattern to apply:
+### Migration pattern:
 
 ```typescript
-// ❌ Old (remove this)
+// ❌ Old
 const legacySettings = toLegacyFormat(unifiedSettings);
-const theme = legacySettings.theme;
-const storeTemplateId = legacySettings.storeTemplateId;
 
-// ✅ New (use this)
+// ✅ New
 const storeTemplateId = unifiedSettings.theme.templateId || 'starter-store';
 const baseTheme = getStoreTemplateTheme(storeTemplateId);
 const theme = {
@@ -98,46 +86,79 @@ const theme = {
   primary: unifiedSettings.theme.primary || baseTheme.primary,
   accent: unifiedSettings.theme.accent || baseTheme.accent,
 };
-const storeName = unifiedSettings.branding.storeName;
-const logo = unifiedSettings.branding.logo;
 ```
 
 ---
 
-## Phase 2b — Remove Direct `themeConfig` Column Usage (Routes)
+## Phase 2b — Remove Direct `theme_config` Column Reads (Routes)
 
-These routes don't use `toLegacyFormat()` but still read the legacy `store.themeConfig` column directly:
-
-- [ ] `_index.tsx` — reads `store.themeConfig` from DB, parses as JSON
-- [ ] `categories.tsx` — constructs themeConfig from store data
-- [ ] `pages.$slug.tsx` — builds themeConfig manually
-- [ ] `$.tsx` (catch-all) — constructs themeConfig from store
-- [ ] `store-live-editor.tsx` — passes themeConfig to editor
-
----
-
-## Phase 2c — Remove Legacy Reads from Core Services & Libs
-
-These service/library files directly read legacy DB columns. If these are not updated before Phase 5, **column drops will cause runtime errors**.
-
-- [ ] `root.tsx` (line 63) — reads `store.themeConfig` via `parseThemeConfig`; replace with unified theme or CSS vars
-- [ ] `auth.server.ts` (line 84, 110) — SELECTs `stores.themeConfig` column; remove from query or use unified
-- [ ] `store-config.server.ts` (line 71-77) — SELECTs `themeConfig`, `socialLinks`, `businessInfo` columns; migrate to unified reads
-- [ ] `store-live-editor.server.ts` (line 121+) — heavily reads/writes `store.themeConfig`; needs full refactor to unified
-- [ ] `api.courier.pathao.ts` (line 67) — reads `stores.courierSettings` column; migrate to `unifiedSettings.courier`
-- [ ] `shipping.server.ts` (line 25) — calls `getUnifiedStorefrontSettings` without `env` parameter; add `env` for proper strict mode check
+| File                    | Legacy symbol                                   |
+| ----------------------- | ----------------------------------------------- |
+| `_index.tsx`            | `parseJsonSafe<ThemeConfig>(store.themeConfig)` |
+| `categories.tsx`        | constructs `themeConfig` from store data        |
+| `pages.$slug.tsx`       | builds `themeConfig` manually                   |
+| `$.tsx`                 | constructs `themeConfig` from store             |
+| `store-live-editor.tsx` | passes `themeConfig` to editor                  |
 
 ---
 
-## Phase 3 — Remove `toLegacyFormat()` from Components
+## Phase 2c — Remove Legacy Reads from Services, Libs & Admin Routes
 
-Some UI components still accept old-format props.
+> [!CAUTION]
+> **These are the most critical dependencies.** If not migrated before Phase 5, column drops will cause runtime crashes.
 
-- [ ] `StorePageWrapper.tsx` — replace `ThemeConfig` typed props with unified equivalents
-- [ ] `UnifiedStoreLayout.tsx` — remove `TemplateHeader` usage of old props
-- [ ] `MobileBottomNav.tsx` — verify source is unified (not legacy)
-- [ ] All template components' `config` prop — type should be unified, not `ThemeConfig`
-- [ ] Store template preview routes — replace `DEMO_THEME_CONFIG` with unified demo config
+### `theme_config` column readers:
+
+| File                          | Legacy symbol                                                       |
+| ----------------------------- | ------------------------------------------------------------------- |
+| `root.tsx`                    | `parseThemeConfig(store.themeConfig)` → theme-color meta            |
+| `auth.server.ts`              | SELECT `stores.themeConfig` column                                  |
+| `store-config.server.ts`      | SELECT `themeConfig`, `socialLinks`, `businessInfo` → cached config |
+| `store-live-editor.server.ts` | Heavy read/write of `store.themeConfig`                             |
+
+### `courier_settings` column readers:
+
+| File                       | Legacy symbol                                                  |
+| -------------------------- | -------------------------------------------------------------- |
+| `app.settings.courier.tsx` | `store.courierSettings` — full CRUD for courier setup          |
+| `app.orders._index.tsx`    | `stores.courierSettings` — courier dispatch in bulk actions    |
+| `app.orders.$id.tsx`       | `stores.courierSettings` — single order courier dispatch       |
+| `api.courier.pathao.ts`    | `stores.courierSettings` → Pathao client init                  |
+| `api.courier.redx.ts`      | `stores.courierSettings` → RedX client init                    |
+| `api.courier.steadfast.ts` | `stores.courierSettings` → Steadfast client init (3 callsites) |
+
+### `business_info` column readers:
+
+| File                                | Legacy symbol                                       |
+| ----------------------------------- | --------------------------------------------------- |
+| `app.settings.legal.tsx`            | `stores.businessInfo` → legal policy generation     |
+| `api.generate-marketing-message.ts` | `stores.businessInfo` → AI marketing context        |
+| `thank-you.$orderId.tsx`            | `stores.businessInfo` → thank you page contact info |
+| `store-policy.server.ts`            | `store.businessInfo` → policy builder               |
+
+### `social_links` column readers:
+
+| File                        | Legacy symbol                                           |
+| --------------------------- | ------------------------------------------------------- |
+| `app.quick-builder.new.tsx` | `store.socialLinks` → WhatsApp number for quick builder |
+
+### `shipping.server.ts` (env fix):
+
+| File                 | Issue                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------ |
+| `shipping.server.ts` | `getUnifiedStorefrontSettings(db, storeId)` — missing `env` param, strict mode defaults ON |
+
+---
+
+## Phase 3 — Remove Legacy Props from Components
+
+| Component                     | Change                                         |
+| ----------------------------- | ---------------------------------------------- |
+| `StorePageWrapper.tsx`        | Replace `ThemeConfig` typed props with unified |
+| `UnifiedStoreLayout.tsx`      | Remove `TemplateHeader` old props              |
+| `MobileBottomNav.tsx`         | Verify source is unified                       |
+| All template `config` props   | Type → unified, not `ThemeConfig`              |
+| Store template preview routes | Replace `DEMO_THEME_CONFIG` with unified demo  |
 
 ---
 
@@ -145,70 +166,94 @@ Some UI components still accept old-format props.
 
 Once **all** routes, services, and components pass Phase 2/2b/2c/3:
 
-- [ ] Delete `toLegacyFormat()` from `unified-storefront-settings.server.ts`
-- [ ] Delete `migrateLegacyToUnified()` (internal function)
-- [ ] Delete `getLegacySettings()` (internal function)
-- [ ] Delete `LegacySources` interface
-- [ ] Delete `resolveTemplateId(legacy)` helper
-- [ ] Delete `normalizeThemeConfig()` from `store-config.server.ts`
-- [ ] Delete `parseThemeConfig` import from `root.tsx` and `@db/types`
-- [ ] ✅ **KEEP** `getShippingConfigFromUnified()` — this reads from unified, NOT legacy
+| Action                                       | File                                    |
+| -------------------------------------------- | --------------------------------------- |
+| Delete `toLegacyFormat()`                    | `unified-storefront-settings.server.ts` |
+| Delete `migrateLegacyToUnified()`            | same file                               |
+| Delete `getLegacySettings()`                 | same file                               |
+| Delete `LegacySources` interface             | same file                               |
+| Delete `resolveTemplateId(legacy)`           | same file                               |
+| Delete `normalizeThemeConfig()`              | `store-config.server.ts`                |
+| Delete `parseThemeConfig` import             | `root.tsx`, `@db/types`                 |
+| ✅ **KEEP** `getShippingConfigFromUnified()` | reads unified, NOT legacy               |
 
 ---
 
 ## Phase 5 — Drop Legacy DB Columns
 
 > [!CAUTION]
-> The actual DB column names are **snake_case** (Drizzle maps camelCase to snake_case). Use the correct names in SQL.
-> `mvpSettings` is NOT a column — it's a **separate table** (`store_mvp_settings`).
+> **D1/SQLite `ALTER TABLE DROP COLUMN` is not reliably supported in all environments.**
+> See: `migrations/0076_remove_ai_plan.sql` — the project already has precedent for using **safe no-op migrations** when DROP COLUMN is risky.
 
-Create **separate** D1 migrations per column to avoid partial failure.
+### Recommended strategy: No-op → Maintenance Window Drop
 
-- [ ] Migration 1: `migrations/XXXX_drop_theme_config.sql`
-  ```sql
-  ALTER TABLE stores DROP COLUMN theme_config;
-  ```
-- [ ] Verify: `SELECT sql FROM sqlite_master WHERE name='stores';`
-- [ ] Migration 2: `migrations/XXXX_drop_social_links.sql`
-  ```sql
-  ALTER TABLE stores DROP COLUMN social_links;
-  ```
-- [ ] Migration 3: `migrations/XXXX_drop_business_info.sql`
-  ```sql
-  ALTER TABLE stores DROP COLUMN business_info;
-  ```
-- [ ] Migration 4: `migrations/XXXX_drop_courier_settings.sql`
-  ```sql
-  ALTER TABLE stores DROP COLUMN courier_settings;
-  ```
-- [ ] Migration 5 (separate table): `migrations/XXXX_drop_store_mvp_settings.sql`
-  ```sql
-  DROP TABLE IF EXISTS store_mvp_settings;
-  ```
+**Step 1:** Create no-op placeholder migrations to keep the chain moving:
 
-**Apply order:** local first → test → production one by one:
+```sql
+-- migrations/XXXX_noop_mark_legacy_deprecated.sql
+-- Legacy columns (theme_config, social_links, business_info, courier_settings)
+-- are no longer read by application code as of Phase 4.
+-- Actual DROP will happen during controlled maintenance window.
+SELECT 1;
+```
+
+**Step 2:** During a controlled maintenance window, run drops one by one:
+
+```sql
+-- Correct column names (snake_case, per Drizzle schema):
+ALTER TABLE stores DROP COLUMN theme_config;
+ALTER TABLE stores DROP COLUMN social_links;
+ALTER TABLE stores DROP COLUMN business_info;
+ALTER TABLE stores DROP COLUMN courier_settings;
+
+-- mvpSettings is a separate TABLE, not a column:
+DROP TABLE IF EXISTS store_mvp_settings;
+```
+
+**Step 3:** Verify after each drop:
+
+```sql
+SELECT sql FROM sqlite_master WHERE name='stores';
+```
+
+**Apply order:** local → test → staging → production:
 
 ```bash
 npx wrangler d1 execute DB --local --file=migrations/XXXX_drop_theme_config.sql
-# Test everything locally
+# Smoke test: courier settings, orders, checkout, thank-you, legal pages
 npx wrangler d1 execute DB --remote --file=migrations/XXXX_drop_theme_config.sql
-# Repeat for each column/table
 ```
 
 ---
 
 ## Phase 6 — Cleanup TypeScript Types & Docs
 
-- [ ] Remove `LegacySources` interface from `unified-storefront-settings.server.ts`
-- [ ] Remove legacy type fields from `storefront-settings.schema.ts` if any
-- [ ] Update `@db/types` to remove `ThemeConfig`, `parseThemeConfig`
-- [ ] Remove Drizzle schema columns for dropped DB columns (`themeConfig`, `socialLinks`, `businessInfo`, `courierSettings` from `schema.ts`)
-- [ ] Remove `store_mvp_settings` table definition from `schema.ts`
-- [ ] Remove `getRawMVPSettings` from `mvp-settings.server.ts`
-- [ ] Run `npm run turbo:typecheck` — fix all errors
-- [ ] Update `GEMINI.md` — remove bridge strategy section (no longer needed)
-- [ ] Update `AGENTS.md` — remove `toLegacyFormat` references
-- [ ] Update `DEVELOPMENT_ROADMAP.md` — mark legacy removal as complete
+| Action                                   | File                                                                          |
+| ---------------------------------------- | ----------------------------------------------------------------------------- |
+| Remove `LegacySources` interface         | `unified-storefront-settings.server.ts`                                       |
+| Remove legacy type fields                | `storefront-settings.schema.ts`                                               |
+| Remove `ThemeConfig`, `parseThemeConfig` | `@db/types`                                                                   |
+| Remove Drizzle schema columns            | `schema.ts` → `themeConfig`, `socialLinks`, `businessInfo`, `courierSettings` |
+| Remove `store_mvp_settings` table def    | `schema.ts`                                                                   |
+| Remove `getRawMVPSettings`               | `mvp-settings.server.ts`                                                      |
+| Run `npm run turbo:typecheck`            | fix all errors                                                                |
+| Update `GEMINI.md`                       | remove bridge strategy section                                                |
+| Update `AGENTS.md`                       | remove `toLegacyFormat` references                                            |
+| Update `DEVELOPMENT_ROADMAP.md`          | mark legacy removal complete                                                  |
+
+---
+
+## Verification Checklist (Pre-Phase-5 Smoke Tests)
+
+Before dropping any column, verify these flows work without legacy reads:
+
+- [ ] **Storefront:** Homepage, product page, collection, cart, checkout, thank-you
+- [ ] **Courier:** Pathao/RedX/Steadfast dispatch from orders list and single order
+- [ ] **Admin Settings:** Courier settings page, legal settings page
+- [ ] **Builder:** Quick builder, live editor
+- [ ] **Auth:** Customer login page
+- [ ] **Marketing:** AI marketing message generation
+- [ ] **Shipping:** Shipping calculation (verify `env` is passed)
 
 ---
 
@@ -216,23 +261,23 @@ npx wrangler d1 execute DB --remote --file=migrations/XXXX_drop_theme_config.sql
 
 If anything breaks after Phase 1 or 2:
 
-1. Set `UNIFIED_SETTINGS_STRICT=false` (disables strict mode immediately)
+1. Set `UNIFIED_SETTINGS_STRICT=false` (immediate rollback)
 2. Revert the specific route commit
-3. The DB columns will still be intact since they are dropped last (Phase 5)
+3. DB columns intact until Phase 5
 
 ---
 
 ## Estimated Risk Per Phase
 
-| Phase                          | Risk                   | Time            |
-| ------------------------------ | ---------------------- | --------------- |
-| 0 — Audit + Backfill           | 🟢 None                | 30 min          |
-| 1 — Strict Mode                | 🟡 Low                 | 30 min          |
-| 2 — Route cleanup (8 routes)   | 🟡 Medium              | 4-6 hrs         |
-| 2b — Direct themeConfig routes | 🟠 Medium              | 2-3 hrs         |
-| 2c — Core services/libs        | 🔴 High                | 3-4 hrs         |
-| 3 — Component cleanup          | 🟠 Medium              | 3-5 hrs         |
-| 4 — Delete bridge functions    | 🟠 Medium              | 1 hr            |
-| 5 — Drop DB columns + table    | 🔴 High — irreversible | 1 hr            |
-| 6 — TypeScript + Docs cleanup  | 🟢 Low                 | 1-2 hrs         |
-| **Total**                      |                        | **~2.5-3 days** |
+| Phase                                 | Risk                   | Time          |
+| ------------------------------------- | ---------------------- | ------------- |
+| 0 — Audit + Backfill                  | 🟢 None                | 30 min        |
+| 1 — Strict Mode                       | 🟡 Low                 | 30 min        |
+| 2 — Route cleanup (8 routes)          | 🟡 Medium              | 4-6 hrs       |
+| 2b — Direct themeConfig routes        | 🟠 Medium              | 2-3 hrs       |
+| 2c — Services/libs/admin routes       | 🔴 High                | 4-6 hrs       |
+| 3 — Component cleanup                 | 🟠 Medium              | 3-5 hrs       |
+| 4 — Delete bridge functions           | 🟠 Medium              | 1 hr          |
+| 5 — Drop columns (maintenance window) | 🔴 High — irreversible | 1-2 hrs       |
+| 6 — TypeScript + Docs cleanup         | 🟢 Low                 | 1-2 hrs       |
+| **Total**                             |                        | **~3-4 days** |
