@@ -210,11 +210,11 @@ export default function LuxeHeader({
                 <img src={store.logo} alt={store.name} className="h-10 lg:h-12 object-contain" />
               ) : null}
               <span
-                className={`text-xl lg:text-2xl font-semibold tracking-wide ${store.logo ? 'hidden sm:block' : ''}`}
+                className={`text-lg sm:text-xl lg:text-2xl font-semibold tracking-wide truncate whitespace-nowrap block`}
                 style={{
                   fontFamily: "'Playfair Display', serif",
                   color: THEME.primary,
-                  display: 'block' // Force display
+                  maxWidth: '250px'
                 }}
               >
                 {store.name}

@@ -18,6 +18,7 @@
 interface Env {
   DB: D1Database;
   SAAS_DOMAIN: string;
+  SESSION_SECRET: string;
 }
 
 interface OrderRow {
@@ -198,6 +199,33 @@ export default {
     let totalErrors = 0;
 
     try {
+      // 0. Trigger Steadfast Playwright Session Sync
+      // We do this first so that the main web app always has fresh cookies in the STORE_CACHE
+      // for the `api.create-order.ts` Auto-Confirm COD feature.
+      try {
+        console.log('[COURIER-CRON] Triggering Steadfast Automated Session Sync...');
+        // The SaaS domain config handles pointing to the exact Cloudflare Worker handling API requests
+        const scheme = env.SAAS_DOMAIN === 'localhost:5173' ? 'http' : 'https';
+        const syncUrl = `${scheme}://app.${env.SAAS_DOMAIN}/api/internal/sync-steadfast-session`;
+        
+        // This expects the environment session secret to pass basic auth
+        const syncResponse = await fetch(syncUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${env.SESSION_SECRET}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!syncResponse.ok) {
+           console.error(`[COURIER-CRON] Steadfast sync failed with status ${syncResponse.status}`);
+        } else {
+           console.log('[COURIER-CRON] Steadfast sync returned OK.');
+        }
+      } catch (err) {
+        console.error('[COURIER-CRON] Steadfast sync threw an error:', err);
+      }
+
       // 1. Get all stores with courier settings
       const storesResult = await env.DB.prepare(`
         SELECT id, name, courier_settings as courierSettings

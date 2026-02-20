@@ -20,6 +20,7 @@ export function PremiumBDTemplate({
   planType = 'free',
   productVariants = [],
   orderBumps = [],
+  isEditMode = false,
 }: TemplateProps) {
   const formatPrice = useFormatPrice();
   const theme = applyCustomColors(PREMIUM_BD_THEME, config.primaryColor, config.accentColor);
@@ -48,6 +49,7 @@ export function PremiumBDTemplate({
         currency={currency}
         storeId={storeId}
         isPreview={isPreview}
+        isEditMode={isEditMode}
         planType={planType}
       />
 

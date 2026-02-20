@@ -211,7 +211,7 @@ zone_name = "ozzyl.com"
 directory = "build/client"
 binding = "ASSETS"
 not_found_handling = "none"
-run_worker_first = true
+run_worker_first = false
 
 # ============================================================================
 # BINDINGS - Work in Pages Functions
@@ -286,6 +286,11 @@ SENTRY_DSN = "https://49f43a7c79f0476ad9a12671b579d42c@o4509758332141568.ingest.
 # Master Facebook Pixel for platform-wide audience aggregation
 # Set your own Facebook Pixel ID here to collect data from all stores
 MASTER_FACEBOOK_PIXEL_ID = ""  # Example: "123456789012345"
+
+# Default Steadfast Agent Session for Fallback Fraud Checking
+# SET IN DASHBOARD (secrets, not here)
+# STEADFAST_ADMIN_SESSION = "..."
+# STEADFAST_ADMIN_XSRF = "..."
 
 # Google OAuth Configuration
 GOOGLE_CLIENT_ID = "477759293578-24qqc1l4mg7dtm2f44vtqbrme6p9cqa3.apps.googleusercontent.com"

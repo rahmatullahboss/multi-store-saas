@@ -40,30 +40,30 @@ export const FraudDetectionSection = () => {
   const features = [
     {
       icon: Database,
-      title: "Shared Blacklist Database",
-      titleBn: "শেয়ার্ড ব্ল্যাকলিস্ট ডাটাবেস",
-      description: "আমাদের সেন্ট্রাল ডাটাবেস থেকে অটোমেটিক ব্ল্যাকলিস্টেড বা সাসপিশাস কাস্টমার ডিটেক্ট করে।",
+      title: "Shared Database",
+      titleBn: "শেয়ার্ড কুরিয়ার ডাটাবেস",
+      description: "সারা দেশের লক্ষ লক্ষ পার্সেলের কুরিয়ার ডেলিভারি রেকর্ড থেকে রিয়েল-টাইম ডাটা।" ,
       color: COLORS.primaryLight
     },
     {
       icon: Activity,
-      title: "AI Risk Scoring",
-      titleBn: "AI রিস্ক স্কোরিং",
-      description: "অর্ডারের ধরণ, ভেলোসিটি এবং পূর্বের রেকর্ড বিশ্লেষণ করে ০-১০০ রিস্ক স্কোর দেয়।",
+      title: "Steadfast Integration",
+      titleBn: "স্টেডফাস্ট ফ্রড ট্র্যাকিং",
+      description: "কাস্টমারের ফোন নাম্বার দিয়ে সরাসরি স্টেডফাস্টের সেন্ট্রাল সার্ভার থেকে ক্যান্সেলেশন রেট বের করে।",
       color: COLORS.warning
     },
     {
       icon: Lock,
-      title: "Auto-Block High Risk",
-      titleBn: "অটো-ব্লক হাই রিস্ক",
-      description: "অতিরিক্ত রিস্কি অর্ডারগুলো অটোমেটিক ব্লক করে আপনার কুরিয়ার চার্জ বাঁচায়।",
+      title: "Block High Risk",
+      titleBn: "রিস্কি অর্ডার পেন্ডিং",
+      description: "যাদের ক্যান্সেলেশন রেট ৫% এর বেশি বা কোনো রেকর্ড নেই, সেসব অর্ডার ম্যানুয়াল ভেরিফিকেশনের জন্য পেন্ডিং রাখে।",
       color: COLORS.accent
     },
     {
-      icon: Smartphone,
-      title: "Courier Integration Check",
-      titleBn: "কুরিয়ার ইন্টিগ্রেশন চেক",
-      description: "পাঠাও বা স্টেডফাস্টে বুকিং দেওয়ার আগেই ফ্রড চেক করে ওয়ার্নিং দেয়।",
+      icon: ShieldCheck,
+      title: "Auto-Confirm Safe COD",
+      titleBn: "নিরাপদ COD অটো-কনফার্ম",
+      description: "যাদের ডেলিভারি রেকর্ড ভালো (ক্যান্সেলেশন রেট ৫% এর কম), তাদের ক্যাশ অন ডেলিভারি (COD) অর্ডার নিজে থেকেই কনফার্ম হয়ে যায়!",
       color: COLORS.success
     }
   ];

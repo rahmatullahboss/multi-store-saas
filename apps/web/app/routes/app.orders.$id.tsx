@@ -188,6 +188,18 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     user: log.userId ? userMap.get(log.userId) : null,
   }));
 
+  // Read KV cached fraud data for this order's phone
+  let fraudCache = null;
+  if (order.customerPhone) {
+    try {
+      const kv = context.cloudflare.env.STORE_CACHE;
+      if (kv) {
+        const cached = await kv.get(`fraud_steadfast_${order.customerPhone}`, 'json');
+        if (cached) fraudCache = cached;
+      }
+    } catch { /* ignore */ }
+  }
+
   return json({
     order,
     items: itemsWithImages,
@@ -195,6 +207,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     availableCouriers,
     defaultCourier,
     activityLogs: orderActivityLogs,
+    fraudCache,
   });
 }
 
@@ -216,6 +229,105 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   const intent = formData.get('intent') as string;
 
   const db = drizzle(context.cloudflare.env.DB);
+
+
+  // Handle fraud check — fetches from Steadfast external API and caches in KV
+  if (intent === 'FRAUD_CHECK') {
+    try {
+      const orderResult = await db
+        .select({ id: orders.id, customerPhone: orders.customerPhone })
+        .from(orders)
+        .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)))
+        .limit(1);
+
+      if (!orderResult[0]) {
+        return json({ error: 'Order not found' }, { status: 404 });
+      }
+
+      const phone = (formData.get('phone') as string) || orderResult[0].customerPhone || '';
+      const kv = context.cloudflare.env.STORE_CACHE;
+      const fraudCacheKey = `fraud_steadfast_${phone}`;
+
+      const forceRefresh = formData.get('forceRefresh') === 'true';
+
+      // Check KV cache first (24h TTL)
+      if (kv && phone && !forceRefresh) {
+        try {
+          const cached = await kv.get(fraudCacheKey, 'json') as {
+            successRate: number; totalOrders: number; deliveredOrders: number;
+            returnedOrders: number; isHighRisk: boolean; riskScore: number;
+            source: string; cachedAt: string;
+          } | null;
+          if (cached) {
+            return json({ success: true, riskResult: { ...cached, fromCache: true } });
+          }
+        } catch { /* ignore cache errors */ }
+      }
+
+      // Call Steadfast external API
+      const { createSteadfastClient } = await import('~/services/steadfast.server');
+      let sessionCookie: string | undefined;
+      let xsrfToken: string | undefined;
+
+      if (kv) {
+        const adminCredsRaw = await kv.get('steadfast_admin_credentials');
+        if (adminCredsRaw) {
+          const creds = JSON.parse(adminCredsRaw as string);
+          sessionCookie = creds.sessionCookie;
+          xsrfToken = creds.xsrfToken;
+        }
+      }
+
+      if (!sessionCookie || !xsrfToken) {
+        return json({ error: 'Steadfast credentials not configured' }, { status: 400 });
+      }
+
+      const client = createSteadfastClient({ apiKey: 'internal', secretKey: 'internal', sessionCookie, xsrfToken });
+      
+      // Normalize phone for Steadfast (strip +88/880 prefix)
+      const sfPhone = phone.startsWith('+88') 
+        ? phone.slice(3) 
+        : phone.startsWith('880') ? phone.slice(3) : phone;
+
+      let externalFraud;
+      try {
+        externalFraud = await client.checkExternalFraud(sfPhone);
+      } catch (err) {
+        console.warn('[FRAUD CHECK] API Failed:', err);
+        return json({ error: 'Steadfast API error' }, { status: 400 });
+      }
+
+      const deliveredOrders = externalFraud.success || 0;
+      const returnedOrders = externalFraud.cancellation || 0;
+      const totalOrders = deliveredOrders + returnedOrders;
+      const successRate = totalOrders > 0 ? Math.round((deliveredOrders / totalOrders) * 100) : 100;
+      const riskScore = totalOrders > 0 ? Math.round((returnedOrders / totalOrders) * 100) : 0;
+      const isHighRisk = totalOrders >= 2 && (returnedOrders / totalOrders) > 0.3;
+      let source = 'steadfast_external';
+
+      if (totalOrders === 0) {
+        source = 'no_data';
+      }
+
+      const result = {
+        successRate, totalOrders, deliveredOrders, returnedOrders,
+        isHighRisk, riskScore, source,
+        cachedAt: new Date().toISOString(),
+      };
+
+      // Save to KV cache (24 hours) so orders list and this page both show it
+      if (kv && phone) {
+        try {
+          await kv.put(fraudCacheKey, JSON.stringify(result), { expirationTtl: 86400 });
+        } catch { /* ignore */ }
+      }
+
+      return json({ success: true, riskResult: result });
+    } catch (error) {
+      console.error('[ORDER DETAIL] Fraud check failed:', error);
+      return json({ error: error instanceof Error ? error.message : 'Fraud check failed' }, { status: 500 });
+    }
+  }
 
   // Handle courier booking
   if (intent === 'bookCourier') {
@@ -758,7 +870,7 @@ function StatusBadge({ status }: { status: string }) {
 // MAIN COMPONENT
 // ============================================================================
 export default function OrderDetailPage() {
-  const { order, items, store, availableCouriers, defaultCourier, activityLogs } = useLoaderData<typeof loader>();
+  const { order, items, store, availableCouriers, defaultCourier, activityLogs, fraudCache } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isUpdating = navigation.state === 'submitting';
   const [isTrackingOpen, setIsTrackingOpen] = useState(false);
@@ -1042,7 +1154,7 @@ export default function OrderDetailPage() {
                   <p className="text-sm text-gray-500">{t('name')}</p>
                   <p className="font-medium text-gray-900">{order.customerName || 'N/A'}</p>
                 </div>
-                {order.customerPhone && <RiskBadge phone={order.customerPhone} showDetails />}
+                {order.customerPhone && <RiskBadge phone={order.customerPhone} initialData={fraudCache as { successRate: number; totalOrders: number; deliveredOrders: number; returnedOrders: number; isHighRisk: boolean; riskScore: number } | null} orderId={order.id} showDetails />}
               </div>
               <div className="flex items-start gap-2">
                 <Phone className="w-4 h-4 text-gray-400 mt-1" />

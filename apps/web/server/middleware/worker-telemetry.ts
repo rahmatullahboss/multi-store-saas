@@ -4,7 +4,7 @@ import type { TenantContext, TenantEnv } from './tenant';
 type WorkerTelemetryCategory = 'document' | 'api' | 'manifest' | 'asset' | 'other';
 
 const TELEMETRY_PREFIX = 'telemetry:worker:v1';
-const SAMPLE_RATE = 0.1; // 10% sampling to keep write cost low
+const SAMPLE_RATE = 0.05; // 5% sampling to stay within KV free-tier write limits (1000/day)
 const TTL_SECONDS = 60 * 60 * 24 * 3; // Keep 3 days of hourly buckets
 const MAX_PATH_LENGTH = 120;
 
@@ -53,9 +53,13 @@ function normalizeTelemetryPath(pathname: string): string {
 }
 
 async function incrementCounter(kv: KVNamespace, key: string): Promise<void> {
-  const current = await kv.get(key);
-  const next = (Number.parseInt(current ?? '0', 10) || 0) + 1;
-  await kv.put(key, String(next), { expirationTtl: TTL_SECONDS });
+  try {
+    const current = await kv.get(key);
+    const next = (Number.parseInt(current ?? '0', 10) || 0) + 1;
+    await kv.put(key, String(next), { expirationTtl: TTL_SECONDS });
+  } catch {
+    // Silently ignore KV rate limits (429) or other errors to prevent log spam
+  }
 }
 
 export const workerTelemetryMiddleware = <

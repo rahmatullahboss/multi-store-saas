@@ -1,47 +1,64 @@
 /**
  * Risk Badge Component
  * 
- * Displays customer fraud risk level based on their order history.
- * - 🟢 Safe Customer: Return rate < 10%
- * - 🟡 Moderate Risk: Return rate 10-30%
- * - 🔴 High Risk: Return rate > 30%
+ * Displays customer fraud risk level using Steadfast external check.
+ * Posts FRAUD_CHECK intent to the current page action, which saves to KV.
+ * Accepts initialData prop to show persisted result on page load.
+ *
+ * Risk Levels:
+ * - 🟢 Safe Customer: Risk score ≤ 10%
+ * - 🟡 Moderate Risk: Risk score 10-30%
+ * - 🔴 High Risk: Risk score > 30%
  */
 
 import { useFetcher } from '@remix-run/react';
 import { Shield, ShieldAlert, ShieldCheck, ShieldQuestion, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
+interface FraudCacheData {
+  successRate: number;
+  totalOrders: number;
+  deliveredOrders: number;
+  returnedOrders: number;
+  isHighRisk: boolean;
+  riskScore: number;
+  source?: string;
+  cachedAt?: string;
+}
+
 interface RiskBadgeProps {
   phone: string;
-  initialRiskScore?: number | null;
+  /** Pre-loaded fraud data from KV cache (passed by loader) */
+  initialData?: FraudCacheData | null;
+  /** The orderId to pass in the FRAUD_CHECK form submission */
+  orderId?: number;
   showDetails?: boolean;
   className?: string;
 }
 
-interface RiskData {
-  isHighRisk: boolean;
-  successRate: number;
-  totalOrders: number;
-  returnedOrders: number;
-  riskScore: number;
-}
-
 export function RiskBadge({ 
   phone, 
-  initialRiskScore,
+  initialData = null,
+  orderId,
   showDetails: _showDetails = false, 
   className = '' 
 }: RiskBadgeProps) {
-  const fetcher = useFetcher<RiskData | { error: string }>();
+  const fetcher = useFetcher<{
+    success?: boolean;
+    riskResult?: FraudCacheData;
+    error?: string;
+  }>();
   const [showTooltip, setShowTooltip] = useState(false);
   
-  // Check if we have data
-  const isLoading = fetcher.state === 'submitting';
-  const hasData = fetcher.data && !('error' in fetcher.data);
-  const riskData = hasData ? (fetcher.data as RiskData) : null;
+  const isLoading = fetcher.state !== 'idle';
   
-  // Calculate risk level from fetched data or initial score
-  const riskScore = riskData?.riskScore ?? initialRiskScore ?? null;
+  // Use fetcher result first, then fall back to initial data from KV
+  const riskData: FraudCacheData | null = 
+    (fetcher.data?.success && fetcher.data.riskResult) 
+      ? fetcher.data.riskResult 
+      : initialData;
+  
+  const riskScore = riskData?.riskScore ?? null;
   
   const getRiskLevel = (score: number | null) => {
     if (score === null) return 'unknown';
@@ -56,7 +73,6 @@ export function RiskBadge({
     safe: {
       icon: ShieldCheck,
       label: 'Safe Customer',
-      labelBn: 'নিরাপদ',
       bgColor: 'bg-emerald-50',
       textColor: 'text-emerald-700',
       borderColor: 'border-emerald-200',
@@ -65,7 +81,6 @@ export function RiskBadge({
     moderate: {
       icon: Shield,
       label: 'Moderate Risk',
-      labelBn: 'মাঝারি ঝুঁকি',
       bgColor: 'bg-amber-50',
       textColor: 'text-amber-700',
       borderColor: 'border-amber-200',
@@ -74,7 +89,6 @@ export function RiskBadge({
     high: {
       icon: ShieldAlert,
       label: 'High Risk',
-      labelBn: 'উচ্চ ঝুঁকি',
       bgColor: 'bg-red-50',
       textColor: 'text-red-700',
       borderColor: 'border-red-200',
@@ -82,8 +96,7 @@ export function RiskBadge({
     },
     unknown: {
       icon: ShieldQuestion,
-      label: 'Check Risk',
-      labelBn: 'চেক করুন',
+      label: 'Check',
       bgColor: 'bg-gray-50',
       textColor: 'text-gray-600',
       borderColor: 'border-gray-200',
@@ -97,9 +110,11 @@ export function RiskBadge({
   const handleCheck = () => {
     if (!phone || isLoading) return;
     
+    // Post FRAUD_CHECK to the CURRENT page action (not a separate API route)
+    // Both app.orders._index and app.orders.$id have this intent handler
     fetcher.submit(
-      { intent: 'CHECK_RISK', phone },
-      { method: 'POST', action: '/api/courier/steadfast' }
+      { intent: 'FRAUD_CHECK', orderId: String(orderId || 0), phone },
+      { method: 'POST' }
     );
   };
   
@@ -107,13 +122,13 @@ export function RiskBadge({
     <div className={`relative inline-flex ${className}`}>
       <button
         type="button"
-        onClick={handleCheck}
+        onClick={riskLevel === 'unknown' ? handleCheck : undefined}
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
         disabled={isLoading}
         className={`
           inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
-          border transition-all cursor-pointer
+          border transition-all ${riskLevel === 'unknown' ? 'cursor-pointer' : 'cursor-default'}
           ${config.bgColor} ${config.textColor} ${config.borderColor}
           hover:opacity-90 disabled:opacity-50
         `}
@@ -123,7 +138,7 @@ export function RiskBadge({
         ) : (
           <Icon className={`w-3.5 h-3.5 ${config.iconColor}`} />
         )}
-        <span>{riskLevel === 'unknown' ? 'Check' : config.label}</span>
+        <span>{config.label}</span>
       </button>
       
       {/* Tooltip with details */}
@@ -143,6 +158,12 @@ export function RiskBadge({
                 <span className="text-gray-400">Returns:</span>
                 <span className="font-medium">{riskData.returnedOrders}</span>
               </div>
+              {riskData.cachedAt && (
+                <div className="flex justify-between gap-4">
+                  <span className="text-gray-400">Source:</span>
+                  <span className="font-medium">⚡ Cached</span>
+                </div>
+              )}
             </div>
             <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
           </div>

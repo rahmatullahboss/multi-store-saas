@@ -83,6 +83,30 @@ interface LoaderData {
   // Tracking
   facebookPixelId?: string;
   googleAnalyticsId?: string;
+  // Specific Product Associations
+  productVariants: Array<{
+    id: number;
+    option1Name: string | null;
+    option1Value: string | null;
+    option2Name: string | null;
+    option2Value: string | null;
+    price: number | null;
+    inventory: number | null;
+    isAvailable: boolean | null;
+    name: string; // Combined name
+  }>;
+  orderBumps: Array<{
+    id: number;
+    title: string;
+    description?: string | null;
+    discount: number;
+    bumpProduct: {
+      id: number;
+      title: string;
+      price: number;
+      imageUrl?: string | null;
+    };
+  }>;
 }
 
 // ============================================================================
@@ -183,6 +207,54 @@ export async function loader({ context, request, params }: LoaderFunctionArgs): 
 
     const product = productResult[0];
 
+    // ========== FETCH PRODUCT VARIANTS & BUMPS ==========
+    // Get variants specific to this product
+    const variantsResult = await db
+      .select()
+      .from(productVariants)
+      .where(eq(productVariants.productId, productIdNum));
+
+    const mappedVariants = variantsResult.map(v => {
+        const parts = [];
+        if (v.option1Value) parts.push(v.option1Value);
+        if (v.option2Value) parts.push(v.option2Value);
+        
+        return {
+           id: v.id,
+           option1Name: v.option1Name,
+           option1Value: v.option1Value,
+           option2Name: v.option2Name,
+           option2Value: v.option2Value,
+           price: v.price,
+           inventory: v.inventory,
+           isAvailable: v.isAvailable,
+           name: parts.join(' / ') || 'Default'
+        };
+    })
+
+    // Get order bumps specifically tied to this product
+    const bumpsResult = await db
+      .select({
+         id: orderBumps.id,
+         title: orderBumps.title,
+         description: orderBumps.description,
+         discount: orderBumps.discount,
+         bumpProduct: {
+            id: products.id,
+            title: products.title,
+            price: products.price,
+            imageUrl: products.imageUrl,
+         }
+      })
+      .from(orderBumps)
+      .innerJoin(products, eq(orderBumps.bumpProductId, products.id))
+      .where(
+        and(
+          eq(orderBumps.productId, productIdNum),
+          eq(orderBumps.isActive, true)
+        )
+      );
+
     // ========== PARSE LANDING CONFIG ==========
     const landingConfigRaw = (resolvedStore as Store & { landingConfig?: string }).landingConfig;
     const baseLandingConfig = parseLandingConfig(landingConfigRaw) ?? defaultLandingConfig;
@@ -194,12 +266,12 @@ export async function loader({ context, request, params }: LoaderFunctionArgs): 
     const ctaTextOverride = url.searchParams.get('cta');
     const urgencyOverride = url.searchParams.get('urgency');
 
-    // Build final landing config with overrides
+    // Build final landing config with overrides and fallback to product title
     const landingConfig: LandingConfig = {
       ...baseLandingConfig,
-      // Use query param if provided, otherwise use product title as headline
-      headline: headlineOverride || baseLandingConfig.headline,
-      subheadline: subheadlineOverride || baseLandingConfig.subheadline,
+      // Use query param if provided, otherwise fallback to product title to make the landing page specific
+      headline: headlineOverride || product.title,
+      subheadline: subheadlineOverride || product.description || baseLandingConfig.subheadline,
       ctaText: ctaTextOverride || baseLandingConfig.ctaText,
       urgencyText: urgencyOverride || baseLandingConfig.urgencyText,
     };
@@ -215,6 +287,8 @@ export async function loader({ context, request, params }: LoaderFunctionArgs): 
       // Tracking IDs from Store Settings
       facebookPixelId: (resolvedStore as any).facebookPixelId || undefined,
       googleAnalyticsId: (resolvedStore as any).googleAnalyticsId || undefined,
+      productVariants: mappedVariants,
+      orderBumps: bumpsResult,
     };
 
     // ========== TRACK PAGE VIEW ==========
@@ -322,10 +396,12 @@ export default function OfferProductPage() {
         storeName={data.storeName}
         storeId={data.storeId}
         product={data.product}
+        productVariants={data.productVariants}
+        orderBumps={data.orderBumps}
         config={data.landingConfig}
         currency={data.currency}
         isPreview={false}
-        isEditMode={false}
+        isEditMode={false} // Explicitly disable editor magic wrapper on live page
         isCustomerAiEnabled={data.isCustomerAiEnabled}
         planType={data.planType}
       />

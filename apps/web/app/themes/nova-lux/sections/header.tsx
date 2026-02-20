@@ -165,10 +165,11 @@ export default function NovaLuxHeader({ context, settings }: SectionComponentPro
               <img src={store.logo} alt={store.name} className="h-10 lg:h-12 object-contain" />
             ) : null}
             <span
-              className="text-2xl lg:text-3xl font-semibold tracking-wider"
+              className="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-wider truncate whitespace-nowrap block"
               style={{
                 fontFamily: THEME_COLORS.fontHeading,
                 color: THEME_COLORS.primary,
+                maxWidth: '250px'
               }}
             >
               {store.name}

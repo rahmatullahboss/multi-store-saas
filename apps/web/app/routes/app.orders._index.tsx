@@ -16,7 +16,7 @@ import {
   type ActionFunctionArgs,
   type MetaFunction,
 } from '@remix-run/cloudflare';
-import { useLoaderData, Link, useSearchParams, useFetcher } from '@remix-run/react';
+import { useLoaderData, Link, useSearchParams, useFetcher, useRevalidator } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { orders, orderItems, stores } from '@db/schema';
 import { eq, desc, and } from 'drizzle-orm';
@@ -44,7 +44,7 @@ import {
   Receipt,
   Eye,
 } from 'lucide-react';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { formatPrice } from '~/utils/formatPrice';
 import {
@@ -129,9 +129,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // Read courier provider from unified settings first (canonical source)
   let courierProvider: string | null = null;
+  let allCouriers: string[] = [];
   try {
     const unified = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
     courierProvider = unified.courier?.provider || null;
+    if (unified.courier?.pathao) allCouriers.push('pathao');
+    if (unified.courier?.redx) allCouriers.push('redx');
+    if (unified.courier?.steadfast) allCouriers.push('steadfast');
   } catch {
     courierProvider = null;
   }
@@ -144,19 +148,116 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
           ? JSON.parse(store.courierSettings)
           : store.courierSettings;
       courierProvider = courierSettings?.provider || null;
+      if (courierSettings?.pathao) allCouriers.push('pathao');
+      if (courierSettings?.redx) allCouriers.push('redx');
+      if (courierSettings?.steadfast) allCouriers.push('steadfast');
     } catch {
       courierProvider = null;
     }
   }
 
+  // Ensure unique couriers
+  allCouriers = Array.from(new Set(allCouriers));
+  if (allCouriers.length === 0 && courierProvider) {
+    allCouriers.push(courierProvider);
+  }
+
+  // Calculate daily stats for the last 5 days
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const fiveDaysAgo = new Date(now);
+  fiveDaysAgo.setDate(now.getDate() - 4);
+
+  const dailyStats = Array.from({ length: 5 }, (_, i) => {
+    const d = new Date(fiveDaysAgo);
+    d.setDate(fiveDaysAgo.getDate() + i);
+    return {
+      date: d,
+      total: 0,
+      revenue: 0,
+      pending: 0,
+      shipped: 0,
+      issues: 0,
+    };
+  });
+
+  storeOrders.forEach((o) => {
+    if (!o.createdAt) return;
+    const d = new Date(o.createdAt);
+    d.setHours(0, 0, 0, 0);
+    const diffTime = d.getTime() - fiveDaysAgo.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays >= 0 && diffDays <= 4) {
+      dailyStats[diffDays].total++;
+      if (o.status !== 'cancelled' && o.status !== 'returned') {
+        dailyStats[diffDays].revenue += o.total;
+      }
+      if (o.status === 'pending') dailyStats[diffDays].pending++;
+      if (o.status === 'shipped') dailyStats[diffDays].shipped++;
+      if (o.status === 'returned' || o.status === 'cancelled') dailyStats[diffDays].issues++;
+    }
+  });
+
+
+  // === BULK LOAD FRAUD CACHE FROM KV ===
+  // Read previously cached Steadfast fraud results for all unique phones in this order list
+  const fraudCacheByPhone: Record<string, {
+    successRate: number;
+    totalOrders: number;
+    deliveredOrders: number;
+    returnedOrders: number;
+    isHighRisk: boolean;
+    riskScore: number;
+    cachedAt: string;
+  }> = {};
+
+  try {
+    const kv = context.cloudflare.env.STORE_CACHE;
+    if (kv) {
+      const uniquePhones = [...new Set(
+        ordersWithAddress
+          .map((o) => o.customerPhone)
+          .filter((p): p is string => !!p)
+      )];
+
+      // Fetch in parallel (up to 20 unique phones at a time to avoid overloading)
+      const phoneSlice = uniquePhones.slice(0, 40);
+      const cacheResults = await Promise.all(
+        phoneSlice.map((phone) =>
+          kv.get(`fraud_steadfast_${phone}`, 'json')
+            .then((val) => ({ phone, val }))
+            .catch(() => ({ phone, val: null }))
+        )
+      );
+
+      for (const { phone, val } of cacheResults) {
+        if (val) {
+          fraudCacheByPhone[phone] = val as typeof fraudCacheByPhone[string];
+        }
+      }
+    }
+  } catch (e) {
+    // Non-blocking — fraud cache is optional display data
+    console.warn('[FRAUD CACHE] Bulk KV read failed:', e);
+  }
+
+  // Attach cached fraud data to each order
+  const ordersWithFraud = ordersWithAddress.map((o) => ({
+    ...o,
+    fraudCache: o.customerPhone ? (fraudCacheByPhone[o.customerPhone] ?? null) : null,
+  }));
+
   return json({
-    orders: ordersWithAddress,
+    orders: ordersWithFraud,
     storeName: store.name,
     currency: store.currency || 'BDT',
-    stats,
+    stats: { ...stats, dailyStats },
     courierProvider,
+    allCouriers,
   });
 }
+
 
 // ============================================================================
 // ACTION - Update order status inline + Fraud Check
@@ -355,25 +456,59 @@ export async function action({ request, context }: ActionFunctionArgs) {
       let externalCheckSuccess = false;
 
       // Import clients
-      const { createSteadfastClient, checkCustomerRisk } = await import('~/services/steadfast.server');
+      const { createSteadfastClient } = await import('~/services/steadfast.server');
+
+      // ==============================================================
+      // KV CACHE: Check if we have a recent Steadfast result for this phone
+      // ==============================================================
+      const phoneForCheck = order.customerPhone || '';
+      const fraudCacheKey = `fraud_steadfast_${phoneForCheck}`;
+      const kv = context.cloudflare.env.STORE_CACHE;
+      
+      const forceRefresh = formData.get('forceRefresh') === 'true';
+
+      if (kv && phoneForCheck && !forceRefresh) {
+        try {
+          const cachedResult = await kv.get(fraudCacheKey, 'json') as {
+            successRate: number; totalOrders: number; deliveredOrders: number;
+            returnedOrders: number; isHighRisk: boolean; riskScore: number;
+            source: string; cachedAt: string;
+          } | null;
+
+          if (cachedResult) {
+            console.log(`[FRAUD CHECK] Returning KV cached result for ${phoneForCheck} (cached at ${cachedResult.cachedAt})`);
+            return json(
+              {
+                success: true,
+                intent: 'FRAUD_CHECK',
+                orderId,
+                riskResult: { ...cachedResult, fromCache: true },
+              },
+              { headers: { 'x-order-id': String(orderId) } }
+            );
+          }
+        } catch (cacheReadErr) {
+          console.warn('[FRAUD CHECK] KV cache read failed, proceeding to API:', cacheReadErr);
+        }
+      }
 
       try {
-        // Try external check using cached admin credentials
-        const kv = context.cloudflare.env.STORE_CACHE;
         if (kv) {
           const adminCredsStr = await kv.get('steadfast_admin_credentials');
           if (adminCredsStr) {
             const adminCreds = JSON.parse(adminCredsStr as string);
             if (adminCreds.sessionCookie && adminCreds.xsrfToken) {
               const steadfastClient = createSteadfastClient({
-                apiKey: 'internal', // Not used for this endpoint
-                secretKey: 'internal',
-                sessionCookie: adminCreds.sessionCookie,
-                xsrfToken: adminCreds.xsrfToken
+                apiKey: 'internal', secretKey: 'internal',
+                sessionCookie: adminCreds.sessionCookie, xsrfToken: adminCreds.xsrfToken
               });
 
-              // External checking using Steadfast's system
-              const externalFraud = await steadfastClient.checkExternalFraud(order.customerPhone || '');
+              // Normalize phone for Steadfast (strip +88/880 prefix)
+              const sfPhone = phoneForCheck.startsWith('+88') 
+                ? phoneForCheck.slice(3) 
+                : phoneForCheck.startsWith('880') ? phoneForCheck.slice(3) : phoneForCheck;
+
+              const externalFraud = await steadfastClient.checkExternalFraud(sfPhone);
               
               externalCheckSuccess = true;
               deliveredOrders = externalFraud.success || 0;
@@ -390,19 +525,29 @@ export async function action({ request, context }: ActionFunctionArgs) {
           }
         }
       } catch (err) {
-        console.warn('External fraud check failed, falling back to internal:', err);
+        console.warn('[FRAUD CHECK] External Steadfast check failed. Internal fallback is disabled.', err);
       }
 
-      // Fallback to internal checking if external failed or wasn't configured
       if (!externalCheckSuccess) {
-        // Pass undefined for storeId to check across all Ozzyl platform orders
-        const riskResult = await checkCustomerRisk(order.customerPhone || '', db);
-        totalOrders = riskResult.totalOrders;
-        successRate = riskResult.successRate;
-        deliveredOrders = riskResult.deliveredOrders;
-        returnedOrders = riskResult.returnedOrders;
-        isHighRisk = riskResult.isHighRisk;
-        riskScore = riskResult.riskScore;
+        return json(
+          { error: 'Steadfast external check failed or not configured' },
+          { status: 400 }
+        );
+      }
+
+      const resultObj = {
+        successRate, totalOrders, deliveredOrders, returnedOrders,
+        isHighRisk, riskScore, source: totalOrders === 0 ? 'no_data' : 'steadfast_external',
+        cachedAt: new Date().toISOString(),
+      };
+
+      // Save result to KV cache for 24 hours to prevent rate-limiting
+      if (kv && phoneForCheck) {
+        try {
+          await kv.put(fraudCacheKey, JSON.stringify(resultObj), { expirationTtl: 86400 });
+        } catch (cacheWriteErr) {
+          console.warn('[FRAUD CHECK] KV cache write failed:', cacheWriteErr);
+        }
       }
 
       return json(
@@ -410,15 +555,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           success: true,
           intent: 'FRAUD_CHECK',
           orderId,
-          riskResult: {
-            successRate,
-            totalOrders,
-            deliveredOrders,
-            returnedOrders,
-            isHighRisk,
-            riskScore,
-            source: externalCheckSuccess ? 'steadfast_external' : 'internal_database'
-          },
+          riskResult: resultObj,
         },
         {
           headers: {
@@ -508,7 +645,7 @@ const statusOptionsKeys = [
 // MAIN COMPONENT
 // ============================================================================
 export default function DashboardOrdersPage() {
-  const { orders: storeOrders, stats, courierProvider } = useLoaderData<typeof loader>();
+  const { orders: storeOrders, stats, courierProvider, allCouriers = [] } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { t, lang } = useTranslation();
 
@@ -585,6 +722,9 @@ export default function DashboardOrdersPage() {
     });
   };
 
+  const maxRevenue = Math.max(...(stats.dailyStats?.map((s: any) => s.revenue) || [1]), 1);
+  const maxOrders = Math.max(...(stats.dailyStats?.map((s: any) => s.total) || [1]), 1);
+
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] xl:h-[calc(100vh-64px)] relative -m-4 lg:-m-8">
       {/* Sticky Header / Command Bar */}
@@ -642,7 +782,11 @@ export default function DashboardOrdersPage() {
                 </span>
               </div>
               <div className="h-8 w-16 opacity-50 group-hover:opacity-100 transition-opacity flex items-end justify-end">
-                {/* Visual removed to keep focus on real numbers */}
+                <div className="flex items-end h-full gap-0.5 mt-2 w-full">
+                  {stats.dailyStats?.map((s: any, i: number) => (
+                    <div key={i} className={`w-1/5 rounded-sm ${i === 4 ? 'bg-emerald-500' : 'bg-emerald-500/30'}`} style={{ height: `${Math.max((s.revenue / maxRevenue) * 100, 15)}%` }} title={`${formatDate(s.date)}: ${formatPrice(s.revenue)}`}></div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -659,7 +803,11 @@ export default function DashboardOrdersPage() {
                 </span>
               </div>
               <div className="h-8 w-16 opacity-50 group-hover:opacity-100 transition-opacity flex items-end justify-end">
-                {/* Visual removed to keep focus on real numbers */}
+                <div className="flex items-end h-full gap-0.5 mt-2 w-full">
+                  {stats.dailyStats?.map((s: any, i: number) => (
+                    <div key={i} className={`w-1/5 rounded-sm ${i === 4 ? 'bg-emerald-500' : 'bg-emerald-500/30'}`} style={{ height: `${Math.max((s.total / maxOrders) * 100, 15)}%` }} title={`${formatDate(s.date)}: ${s.total} orders`}></div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -817,6 +965,7 @@ export default function DashboardOrdersPage() {
                     <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">{t('dashboard:total')}</th>
                     <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard:payment')}</th>
                     <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard:status')}</th>
+                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">Fraud <span className="text-yellow-400">⚡</span></th>
                     <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard:courier')}</th>
                     <th className="py-3 px-4 border-b border-gray-200 w-10"></th>
                   </tr>
@@ -847,9 +996,6 @@ export default function DashboardOrdersPage() {
                             <span className="text-xs text-gray-500 font-sans tabular-nums flex items-center gap-1">
                               {order.customerPhone}
                             </span>
-                            {order.customerPhone && (
-                              <SteadfastFraudCheckButton customerPhone={order.customerPhone} />
-                            )}
                           </div>
                           {order.displayAddress && (
                             <span className="text-xs text-gray-400 flex items-center gap-1 mt-0.5 w-[180px] truncate" title={order.displayAddress}>
@@ -878,6 +1024,35 @@ export default function DashboardOrdersPage() {
                           currentStatus={order.status || 'pending'}
                         />
                       </td>
+                      <td className="py-3 px-4 min-w-[110px]">
+                        {'fraudCache' in order && (order as { fraudCache: { successRate: number; totalOrders: number; isHighRisk: boolean; cachedAt: string } | null }).fraudCache ? (() => {
+                          const fc = (order as { fraudCache: { successRate: number; totalOrders: number; isHighRisk: boolean; cachedAt: string } }).fraudCache;
+                          const sr = fc.successRate;
+                          const colorClass = sr >= 80
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : sr >= 50
+                            ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                            : 'bg-red-50 text-red-700 border-red-200';
+                          return (
+                            <div className="flex flex-col gap-0.5">
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold border ${colorClass}`}>
+                                {sr >= 80 ? '✅' : sr >= 50 ? '⚠️' : '🚫'} {sr}%
+                              </span>
+                              <span className="text-[10px] text-gray-400">{fc.totalOrders} orders · ⚡cached</span>
+                            </div>
+                          );
+                        })() : (
+                          // No cache yet — show the check button inline
+                          ['pending', 'confirmed'].includes(order.status || '') ? (
+                            <FraudCheckButton
+                              orderId={order.id}
+                              currentStatus={order.status || 'pending'}
+                            />
+                          ) : (
+                            <span className="text-[11px] text-gray-300 italic">—</span>
+                          )
+                        )}
+                      </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
                            {courierProvider && order.status === 'confirmed' && !['booked', 'in_transit', 'delivered', 'shipped'].includes(order.courierStatus || '') ? (
@@ -888,6 +1063,7 @@ export default function DashboardOrdersPage() {
                                   status={order.status || 'pending'}
                                   courierStatus={order.courierStatus}
                                   courierProvider={courierProvider}
+                                  allCouriers={allCouriers}
                                 />
                               </div>
                            ) : courierProvider ? (
@@ -902,10 +1078,6 @@ export default function DashboardOrdersPage() {
                       </td>
                       <td className="py-3 px-4 text-right whitespace-nowrap">
                          <div className="flex items-center justify-end gap-2">
-                           <FraudCheckButton
-                              orderId={order.id}
-                              currentStatus={order.status || 'pending'}
-                           />
                            <Link to={`/app/orders/${order.id}`} className="text-gray-400 hover:text-emerald-600 transition-colors" title="View Details">
                              <Eye className="h-5 w-5" />
                            </Link>
@@ -1052,33 +1224,45 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
     riskResult?: FraudCheckResult;
     error?: string;
   }>();
-  const [showResult, setShowResult] = useState(false);
+  const { revalidate } = useRevalidator();
   const isChecking = fetcher.state !== 'idle';
 
-  // Only show for pending orders (most useful for pending)
+  // Only show for pending/confirmed orders
   const showButton = ['pending', 'confirmed'].includes(currentStatus);
 
   const handleCheck = () => {
     fetcher.submit({ intent: 'FRAUD_CHECK', orderId: String(orderId) }, { method: 'POST' });
-    setShowResult(true);
   };
 
-  // If we have a result
-  if (fetcher.data?.success && showResult) {
-    const result = fetcher.data.riskResult!;
-    const successColor =
-      result.successRate >= 80
-        ? 'bg-green-100 text-green-700 border-green-200'
-        : result.successRate >= 50
-          ? 'bg-yellow-100 text-yellow-700 border-yellow-200'
-          : 'bg-red-100 text-red-700 border-red-200';
+  // After a successful FRAUD_CHECK, revalidate the loader so the
+  // KV-cached result immediately updates the Fraud column badge
+  useEffect(() => {
+    if (fetcher.state === 'idle' && fetcher.data?.success) {
+      revalidate();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetcher.state, fetcher.data?.success]);
 
+  // While checking — show spinner
+  if (isChecking) {
     return (
-      <div className="flex items-center gap-1">
-        <span className={`text-xs px-2 py-1 rounded-full border ${successColor} font-medium`}>
-          {result.successRate}% ({result.deliveredOrders}/{result.totalOrders})
-        </span>
-      </div>
+      <button
+        type="button"
+        disabled
+        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-orange-600 border border-orange-200 rounded-lg opacity-50"
+      >
+        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        {t('dashboard:check')}
+      </button>
+    );
+  }
+
+  // Show error if check failed
+  if (fetcher.data?.error) {
+    return (
+      <span className="text-[10px] text-red-500 italic" title={fetcher.data.error}>
+        ⚠️ error
+      </span>
     );
   }
 
@@ -1092,82 +1276,12 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
       className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-orange-600 hover:text-white hover:bg-orange-500 border border-orange-200 hover:border-orange-500 rounded-lg transition disabled:opacity-50"
       title={t('checkFraud')}
     >
-      {isChecking ? (
-        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-      ) : (
-        <Shield className="w-3.5 h-3.5" />
-      )}
+      <Shield className="w-3.5 h-3.5" />
       {t('dashboard:check')}
     </button>
   );
 }
 
-// ============================================================================
-// STEADFAST EXTERNAL FRAUD CHECK BUTTON COMPONENT
-// ============================================================================
-function SteadfastFraudCheckButton({ customerPhone }: { customerPhone: string }) {
-  const fetcher = useFetcher<{
-    success?: boolean;
-    data?: { success: number; cancellation: number };
-    error?: string;
-  }>();
-  const [showResult, setShowResult] = useState(false);
-  const isChecking = fetcher.state !== 'idle';
-
-  const handleCheck = () => {
-    // We send this to the Steadfast courier API route instead of the current page action
-    fetcher.submit(
-      { intent: 'CHECK_EXTERNAL_FRAUD', phone: customerPhone },
-      { method: 'POST', action: '/api/courier/steadfast' }
-    );
-    setShowResult(true);
-  };
-
-  if (fetcher.data?.success && fetcher.data.data && showResult) {
-    const { success, cancellation } = fetcher.data.data;
-    const total = success + cancellation;
-    
-    // Steadfast high risk logic: more than 30% cancellation (if there's enough history)
-    const isRisky = total > 0 && (cancellation / total) > 0.3;
-    
-    return (
-      <span 
-        className={`text-[10px] px-1.5 py-0.5 rounded border font-medium whitespace-nowrap ${
-          isRisky 
-            ? 'bg-red-50 text-red-600 border-red-200' 
-            : 'bg-emerald-50 text-emerald-600 border-emerald-200'
-        }`}
-        title={`History: ${success} Delivered, ${cancellation} Cancelled`}
-      >
-        হিস্ট্রি: {success}/{total} {isRisky && '⚠️'}
-      </span>
-    );
-  }
-
-  if (fetcher.data?.error && showResult) {
-     return (
-       <span className="text-[10px] text-red-500 truncate max-w-[100px]" title={fetcher.data.error}>
-         Error SF
-       </span>
-     );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleCheck}
-      disabled={isChecking}
-      className="inline-flex items-center text-[10px] text-gray-400 hover:text-emerald-600 transition-colors disabled:opacity-50"
-      title="Check Courier History"
-    >
-      {isChecking ? (
-        <Loader2 className="w-3 h-3 animate-spin" />
-      ) : (
-        <span className="material-symbols-outlined text-[14px]">history</span>
-      )}
-    </button>
-  );
-}
 
 // ============================================================================
 // SEND TO COURIER BUTTON COMPONENT
@@ -1177,13 +1291,15 @@ function SendToCourierButton({
   orderNumber,
   status, 
   courierStatus,
-  courierProvider 
+  courierProvider,
+  allCouriers = []
 }: { 
   orderId: number; 
   orderNumber: string;
   status: string; 
   courierStatus?: string | null;
   courierProvider: string;
+  allCouriers?: string[];
 }) {
   const { t } = useTranslation();
   const fetcher = useFetcher<{
@@ -1209,28 +1325,43 @@ function SendToCourierButton({
   }
 
   return (
-    <fetcher.Form method="post">
+    <fetcher.Form method="post" className="flex items-center gap-1.5 flex-nowrap">
       <input type="hidden" name="intent" value="bookCourier" />
       <input type="hidden" name="orderId" value={orderId} />
-      <input type="hidden" name="provider" value={courierProvider} />
+      
+      {allCouriers.length > 1 ? (
+        <select
+          name="provider"
+          defaultValue={courierProvider}
+          className="text-[11px] font-medium border border-gray-200 rounded-lg hover:border-emerald-400 focus:ring-emerald-500 focus:border-emerald-500 py-[5px] pl-2 pr-6 bg-gray-50 text-gray-700 min-w-[90px] cursor-pointer outline-none"
+        >
+          {allCouriers.map(c => (
+            <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+          ))}
+        </select>
+      ) : (
+        <input type="hidden" name="provider" value={courierProvider} />
+      )}
       
       <button
         type="submit"
         disabled={isSubmitting}
         onClick={(e) => {
-          if (!confirm(t('dashboard:confirmSendToCourier', { orderNumber, courierProvider }))) {
+          const selectEl = e.currentTarget.form?.elements.namedItem('provider') as HTMLSelectElement | HTMLInputElement;
+          const provider = selectEl ? selectEl.value : courierProvider;
+          if (!confirm(t('dashboard:confirmSendToCourier', { orderNumber, courierProvider: provider.charAt(0).toUpperCase() + provider.slice(1) }))) {
             e.preventDefault();
           }
         }}
         className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 border border-blue-600 hover:border-blue-700 rounded-lg transition disabled:opacity-50 shadow-sm whitespace-nowrap"
-        title={`Send to ${courierProvider}`}
+        title={allCouriers.length > 1 ? t('dashboard:courierSend') : `Send to ${courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1)}`}
       >
         {isSubmitting ? (
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
         ) : (
           <Truck className="w-3.5 h-3.5" />
         )}
-        {t('dashboard:sendToProvider', { provider: courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1) })}
+        {allCouriers.length > 1 ? t('dashboard:courierSend') : t('dashboard:sendToProvider', { provider: courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1) })}
       </button>
     </fetcher.Form>
   );

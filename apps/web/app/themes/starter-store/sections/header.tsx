@@ -211,7 +211,7 @@ export default function Header({ section, context, settings }: SectionComponentP
                     style={{ maxWidth: `${logo_width}px` }}
                   />
                 ) : null}
-                <span className="text-xl font-bold" style={{ color: text_color }}>
+                <span className="text-lg sm:text-xl font-bold truncate whitespace-nowrap block" style={{ color: text_color, maxWidth: '200px' }}>
                   {storeName}
                 </span>
               </Link>

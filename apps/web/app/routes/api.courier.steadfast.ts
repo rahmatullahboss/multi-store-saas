@@ -118,7 +118,25 @@ export async function action({ request, context }: ActionFunctionArgs) {
         env: context.cloudflare.env,
       });
 
-      if (!settings.courier?.steadfast?.sessionCookie || !settings.courier?.steadfast?.xsrfToken) {
+      // 1. Try to get merchant's own steadfast settings
+      let sessionCookie = settings.courier?.steadfast?.sessionCookie;
+      let xsrfToken = settings.courier?.steadfast?.xsrfToken;
+
+      // 2. Fallback to extracting the automated cached cookies from KV
+      if (!sessionCookie || !xsrfToken) {
+        try {
+          const cachedCredsRaw = await context.cloudflare.env.STORE_CACHE.get('steadfast_admin_credentials');
+          if (cachedCredsRaw) {
+             const parsedCreds = JSON.parse(cachedCredsRaw) as { sessionCookie: string; xsrfToken: string };
+             sessionCookie = parsedCreds.sessionCookie;
+             xsrfToken = parsedCreds.xsrfToken;
+          }
+        } catch (e) {
+          console.error('[FRAUD CHECK] Failed to load Steadfast fallback KV credentials', e);
+        }
+      }
+
+      if (!sessionCookie || !xsrfToken) {
         return json(
           { error: 'Steadfast session credentials (Cookie & Token) are missing. Please configure them in Courier Settings first.' },
           { status: 400 }
@@ -126,10 +144,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
       const client = createSteadfastClient({
-        apiKey: settings.courier.steadfast.apiKey || '',
-        secretKey: settings.courier.steadfast.secretKey || '',
-        sessionCookie: settings.courier.steadfast.sessionCookie || undefined,
-        xsrfToken: settings.courier.steadfast.xsrfToken || undefined,
+        apiKey: settings.courier?.steadfast?.apiKey || '',
+        secretKey: settings.courier?.steadfast?.secretKey || '',
+        sessionCookie,
+        xsrfToken,
       });
       const riskResult = await client.checkExternalFraud(phone);
 

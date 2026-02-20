@@ -29,8 +29,15 @@ export function PremiumBDOrderForm({
     address: '',
     division: 'dhaka' as DivisionValue,
     quantity: 1,
-    selectedVariant: config.productVariants?.[0] || null,
+    selectedVariant: productVariants?.[0] || null,
   });
+
+  // Display error from server action if it failed
+  useEffect(() => {
+    if (fetcher.data?.error) {
+      setValidationErrors(prev => ({ ...prev, server: fetcher.data?.error || 'Error occurred' }));
+    }
+  }, [fetcher.data?.error]);
 
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -149,17 +156,17 @@ export function PremiumBDOrderForm({
                     </div>
                   </div>
 
-                  {config.productVariants && config.productVariants.length > 0 && (
+                  {productVariants && productVariants.length > 0 && (
                     <div className="border-b border-gray-50 pb-4">
                       <span className="text-gray-500 font-bold uppercase tracking-wider text-[10px] block mb-3">
                          {config.orderFormText?.variantLabel || 'পণ্য নির্বাচন করুন'}
                       </span>
                       <div className="flex flex-wrap gap-2">
-                        {config.productVariants.map((variant) => (
+                        {productVariants.map((variant) => (
                           <button
                             key={variant.id}
                             type="button"
-                            onClick={() => setFormData({ ...formData, selectedVariant: variant })}
+                            onClick={() => setFormData({ ...formData, selectedVariant: variant as any })}
                             className={`px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all ${formData.selectedVariant?.id === variant.id
                                 ? 'border-orange-500 bg-orange-50 text-orange-600'
                                 : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200'
@@ -257,6 +264,13 @@ export function PremiumBDOrderForm({
                   </>
                 )}
               </button>
+
+              {/* Display Validation / Server Errors explicitly */}
+              {Object.keys(validationErrors).length > 0 && (
+                <div className="mt-4 p-4 bg-red-50 text-red-600 rounded-xl text-sm font-bold text-center border border-red-100">
+                  {validationErrors.server ? validationErrors.server : 'ফর্মের সব তথ্য সঠিকভাবে দিন।'}
+                </div>
+              )}
             </form>
           </div>
         </div>

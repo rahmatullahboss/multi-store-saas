@@ -243,7 +243,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (hasRateLimiter && storeIdForRateLimit > 0) {
       const clientIP = getClientIP(request);
       const rateLimitResult = await checkRateLimit(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
         env as any,
         storeIdForRateLimit,
         clientIP,
@@ -679,7 +679,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     orderNumberForLock = generateOrderNumber();
 
     if (hasCheckoutLock) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    
       const lockResult = await acquireCheckoutLock(env as any, checkoutLockId, {
         orderId: orderNumberForLock, // lock identifier (not DB id)
         lockedBy: input.phone,
@@ -1178,31 +1178,61 @@ export async function action({ request, context }: ActionFunctionArgs) {
     let orderStatus = 'pending';
 
     // steadfast auto-confirm logic for COD orders
-    if (input.payment_method === 'cod' && 
-        unifiedSettings.courier?.steadfast?.sessionCookie && 
-        unifiedSettings.courier?.steadfast?.xsrfToken) {
+    if (input.payment_method === 'cod') {
       try {
         const { createSteadfastClient } = await import('~/services/steadfast.server');
-        const steadfastClient = createSteadfastClient({
-          apiKey: unifiedSettings.courier.steadfast.apiKey || '',
-          secretKey: unifiedSettings.courier.steadfast.secretKey || '',
-          sessionCookie: unifiedSettings.courier.steadfast.sessionCookie,
-          xsrfToken: unifiedSettings.courier.steadfast.xsrfToken,
-        });
         
-        const riskResult = await steadfastClient.checkExternalFraud(input.phone);
-        const total = riskResult.success + riskResult.cancellation;
+        // 1. Try to get merchant's own steadfast settings
+        let sessionCookie = unifiedSettings.courier?.steadfast?.sessionCookie;
+        let xsrfToken = unifiedSettings.courier?.steadfast?.xsrfToken;
+
+        // 2. Fallback to extracting the automated cached cookies from KV
+        if (!sessionCookie || !xsrfToken) {
+          try {
+            if (context.cloudflare.env.STORE_CACHE) {
+              const cachedCredsRaw = await context.cloudflare.env.STORE_CACHE.get('steadfast_admin_credentials');
+              if (cachedCredsRaw) {
+                 const parsedCreds = JSON.parse(cachedCredsRaw) as { sessionCookie: string; xsrfToken: string };
+                 sessionCookie = parsedCreds.sessionCookie;
+                 xsrfToken = parsedCreds.xsrfToken;
+              }
+            }
+          } catch (e) {
+            console.error('[FRAUD CHECK] Failed to load Steadfast fallback KV credentials', e);
+          }
+        }
+
+        if (sessionCookie && xsrfToken) {
+          const steadfastClient = createSteadfastClient({
+            apiKey: unifiedSettings.courier?.steadfast?.apiKey || '',
+            secretKey: unifiedSettings.courier?.steadfast?.secretKey || '',
+            sessionCookie,
+            xsrfToken,
+          });
         
-        // Safe criteria: Must have some history (total > 0) and low/no cancellation rate (<= 5%)
-        // The user specified "fraud rate nai" (no fraud rate) so we use a strict <= 5% threshold
-        if (total > 0 && (riskResult.cancellation === 0 || (riskResult.cancellation / total) <= 0.05)) {
-          orderStatus = 'confirmed';
-          console.log(`[FRAUD CHECK] Phone ${input.phone} is safe (${riskResult.success} delivered, ${riskResult.cancellation} cancelled). Auto-confirming.`);
-        } else {
-          console.log(`[FRAUD CHECK] Phone ${input.phone} is risky or no history (${riskResult.success}/${total}). Leaving as pending.`);
+          const sfPhone = input.phone.startsWith('+88')
+            ? input.phone.slice(3) 
+            : input.phone.startsWith('880') ? input.phone.slice(3) : input.phone;
+            
+          const riskResult = await steadfastClient.checkExternalFraud(sfPhone);
+          const total = riskResult.success + riskResult.cancellation;
+          
+          // Safe criteria: Must have some history (total > 0) and low/no cancellation rate (<= 5%)
+          // The user specified "fraud rate nai" (no fraud rate) so we use a strict <= 5% threshold
+          if (total > 0 && (riskResult.cancellation === 0 || (riskResult.cancellation / total) <= 0.05)) {
+            orderStatus = 'confirmed';
+            console.log(`[FRAUD CHECK] Phone ${input.phone} is safe (${riskResult.success} delivered, ${riskResult.cancellation} cancelled). Auto-confirming.`);
+          } else {
+            console.log(`[FRAUD CHECK] Phone ${input.phone} is risky or no history (${riskResult.success}/${total}). Leaving as pending.`);
+          }
         }
       } catch (error) {
-        console.error('[FRAUD CHECK] Steadfast check failed during checkout:', error);
+        const msg = error instanceof Error ? error.message : String(error);
+        if (msg.includes('429')) {
+          console.warn('[FRAUD CHECK] Steadfast rate limit (429) hit during checkout. Safe fallback applied.');
+        } else {
+          console.error('[FRAUD CHECK] Steadfast check failed during checkout:', error);
+        }
       }
     }
 
@@ -2072,7 +2102,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Always release checkout lock (covers early-return paths after acquiring)
     if (checkoutLockAcquired && hasCheckoutLock && checkoutLockId) {
       context.cloudflare.ctx.waitUntil(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
         releaseCheckoutLock(env as any, checkoutLockId, orderNumberForLock || undefined).catch(
           (err) => {
             console.error('[CHECKOUT_LOCK] Failed to release lock (finally):', err);

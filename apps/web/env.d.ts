@@ -61,6 +61,10 @@ declare global {
     // Master Facebook Pixel for platform-wide audience aggregation
     MASTER_FACEBOOK_PIXEL_ID?: string;
 
+    // Default Steadfast Agent Session for Fallback Fraud Checking
+    STEADFAST_ADMIN_SESSION?: string;
+    STEADFAST_ADMIN_XSRF?: string;
+
     // SMS Gateway (SSL Wireless)
     SMS_PROVIDER?: 'ssl_wireless' | 'bulksms_bd' | 'simulator';
     SSL_SMS_API_TOKEN?: string;

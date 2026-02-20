@@ -39,6 +39,7 @@ import {
   X,
   ExternalLink,
   AlertCircle,
+  Info,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -1068,9 +1069,17 @@ export default function CourierSettingsPage() {
                       />
                     </div>
                     <div className="col-span-2 mt-4 pt-4 border-t border-gray-200">
-                      <h4 className="text-sm font-medium text-gray-900 mb-4">
-                        API Headers (Required for Fraud Check)
-                      </h4>
+                      <div className="flex items-center gap-2 mb-4">
+                        <h4 className="text-sm font-medium text-gray-900">
+                          Advanced Config (Optional)
+                        </h4>
+                        <div className="group relative flex items-center">
+                          <Info className="w-4 h-4 text-emerald-500 cursor-help" />
+                          <div className="absolute left-full ml-2 w-64 p-2 bg-gray-900 text-xs text-white rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                            These cookies are entirely optional. If you provide them, the system will instantly Auto-Confirm Cash On Delivery (COD) orders for safe customers. <a href="https://steadfast.com.bd" target="_blank" className="underline text-emerald-300">Login to Steadfast</a>, open Developer Tools (F12) &gt; Application &gt; Cookies to extract them.
+                          </div>
+                        </div>
+                      </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1080,7 +1089,7 @@ export default function CourierSettingsPage() {
                             type="password"
                             name="sessionCookie"
                             defaultValue={settings.steadfast?.sessionCookie || ''}
-                            placeholder={settings.steadfast?.sessionCookie ? '••••••••' : 'eyJpdiI6...'}
+                            placeholder={settings.steadfast?.sessionCookie ? '••••••••' : 'Optional (For Auto-Confirm COD)'}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white/50 backdrop-blur-sm"
                           />
                         </div>
@@ -1092,7 +1101,7 @@ export default function CourierSettingsPage() {
                             type="password"
                             name="xsrfToken"
                             defaultValue={settings.steadfast?.xsrfToken || ''}
-                            placeholder={settings.steadfast?.xsrfToken ? '••••••••' : 'eyJpdiI6...'}
+                            placeholder={settings.steadfast?.xsrfToken ? '••••••••' : 'Optional (For Auto-Confirm COD)'}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white/50 backdrop-blur-sm"
                           />
                         </div>
@@ -1110,7 +1119,7 @@ export default function CourierSettingsPage() {
                   value="save"
                   disabled={
                     isSubmitting ||
-                    (selectedProvider !== 'pathao' && selectedProvider !== 'steadfast' && selectedProvider !== 'redx')
+                     (!['pathao', 'steadfast', 'redx'].includes(selectedProvider || ''))
                   }
                   className="flex-1 inline-flex justify-center items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition shadow-sm"
                 >
@@ -1122,7 +1131,7 @@ export default function CourierSettingsPage() {
                   {t('saveCredentials')}
                 </button>
 
-                {(selectedProvider === 'pathao' || selectedProvider === 'redx' || selectedProvider === 'steadfast') && (
+                {['pathao', 'steadfast', 'redx'].includes(selectedProvider || '') && (
                   <button
                     type="submit"
                     name="intent"
