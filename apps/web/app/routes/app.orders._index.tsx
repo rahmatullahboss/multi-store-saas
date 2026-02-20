@@ -33,6 +33,16 @@ import {
   ChevronDown,
   Shield,
   PackageX,
+  Search,
+  UndoDot,
+  Plus,
+  TrendingUp,
+  AlertTriangle,
+  X,
+  Database,
+  SearchX,
+  Receipt,
+  Eye,
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -336,10 +346,64 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       const order = orderResult[0];
 
-      // Import and use checkCustomerRisk - check across ALL stores (platform-wide)
-      const { checkCustomerRisk } = await import('~/services/steadfast.server');
-      // Pass undefined for storeId to check across all Ozzyl platform orders
-      const riskResult = await checkCustomerRisk(order.customerPhone || '', db);
+      let isHighRisk = false;
+      let riskScore = 0;
+      let successRate = 100;
+      let totalOrders = 0;
+      let deliveredOrders = 0;
+      let returnedOrders = 0;
+      let externalCheckSuccess = false;
+
+      // Import clients
+      const { createSteadfastClient, checkCustomerRisk } = await import('~/services/steadfast.server');
+
+      try {
+        // Try external check using cached admin credentials
+        const kv = context.cloudflare.env.STORE_CACHE;
+        if (kv) {
+          const adminCredsStr = await kv.get('steadfast_admin_credentials');
+          if (adminCredsStr) {
+            const adminCreds = JSON.parse(adminCredsStr as string);
+            if (adminCreds.sessionCookie && adminCreds.xsrfToken) {
+              const steadfastClient = createSteadfastClient({
+                apiKey: 'internal', // Not used for this endpoint
+                secretKey: 'internal',
+                sessionCookie: adminCreds.sessionCookie,
+                xsrfToken: adminCreds.xsrfToken
+              });
+
+              // External checking using Steadfast's system
+              const externalFraud = await steadfastClient.checkExternalFraud(order.customerPhone || '');
+              
+              externalCheckSuccess = true;
+              deliveredOrders = externalFraud.success || 0;
+              returnedOrders = externalFraud.cancellation || 0;
+              totalOrders = deliveredOrders + returnedOrders;
+              
+              if (totalOrders > 0) {
+                successRate = Math.round((deliveredOrders / totalOrders) * 100);
+                const returnRate = (returnedOrders / totalOrders) * 100;
+                riskScore = Math.round(returnRate);
+                isHighRisk = totalOrders >= 2 && returnRate > 30;
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('External fraud check failed, falling back to internal:', err);
+      }
+
+      // Fallback to internal checking if external failed or wasn't configured
+      if (!externalCheckSuccess) {
+        // Pass undefined for storeId to check across all Ozzyl platform orders
+        const riskResult = await checkCustomerRisk(order.customerPhone || '', db);
+        totalOrders = riskResult.totalOrders;
+        successRate = riskResult.successRate;
+        deliveredOrders = riskResult.deliveredOrders;
+        returnedOrders = riskResult.returnedOrders;
+        isHighRisk = riskResult.isHighRisk;
+        riskScore = riskResult.riskScore;
+      }
 
       return json(
         {
@@ -347,12 +411,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
           intent: 'FRAUD_CHECK',
           orderId,
           riskResult: {
-            successRate: riskResult.successRate,
-            totalOrders: riskResult.totalOrders,
-            deliveredOrders: riskResult.deliveredOrders,
-            returnedOrders: riskResult.returnedOrders,
-            isHighRisk: riskResult.isHighRisk,
-            riskScore: riskResult.riskScore,
+            successRate,
+            totalOrders,
+            deliveredOrders,
+            returnedOrders,
+            isHighRisk,
+            riskScore,
+            source: externalCheckSuccess ? 'steadfast_external' : 'internal_database'
           },
         },
         {
@@ -529,7 +594,7 @@ export default function DashboardOrdersPage() {
           {/* Command K Search */}
           <div className="relative group hidden md:block">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="material-symbols-outlined text-gray-400 text-[20px]">search</span>
+              <Search className="h-5 w-5 text-gray-400" />
             </div>
             <input 
               role="search"
@@ -550,12 +615,12 @@ export default function DashboardOrdersPage() {
             to="/app/returns"
             className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-transparent hover:border-gray-200"
           >
-            <span className="material-symbols-outlined text-[18px]">assignment_return</span>
+            <UndoDot className="h-[18px] w-[18px]" />
             <span className="hidden sm:inline">{t('dashboard:viewReturnParcels')}</span>
           </Link>
           <Link to="/app/orders/create" className="flex items-center gap-2 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg shadow-sm shadow-emerald-500/20 transition-all active:scale-95">
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            <span className="hidden sm:inline">Create Order</span>
+            <Plus className="h-[18px] w-[18px]" />
+            <span className="hidden sm:inline">{t('dashboard:createOrder')}</span>
           </Link>
         </div>
       </header>
@@ -572,19 +637,12 @@ export default function DashboardOrdersPage() {
               <div className="flex flex-col">
                 <span className="text-xl font-bold text-gray-900 tabular-nums">{formatPrice(stats.revenue)}</span>
                 <span className="text-xs font-medium text-emerald-600 flex items-center gap-0.5 mt-1">
-                  <span className="material-symbols-outlined text-[14px]">trending_up</span>
-                  Active
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  {t('dashboard:active')}
                 </span>
               </div>
-              <div className="h-8 w-16 opacity-50 group-hover:opacity-100 transition-opacity">
-                {/* Simple CSS Sparkline */}
-                <div className="flex items-end h-full gap-0.5 mt-2">
-                  <div className="bg-emerald-500/30 w-1/5 h-[40%] rounded-sm"></div>
-                  <div className="bg-emerald-500/30 w-1/5 h-[60%] rounded-sm"></div>
-                  <div className="bg-emerald-500/30 w-1/5 h-[50%] rounded-sm"></div>
-                  <div className="bg-emerald-500/30 w-1/5 h-[80%] rounded-sm"></div>
-                  <div className="bg-emerald-500 w-1/5 h-[70%] rounded-sm"></div>
-                </div>
+              <div className="h-8 w-16 opacity-50 group-hover:opacity-100 transition-opacity flex items-end justify-end">
+                {/* Visual removed to keep focus on real numbers */}
               </div>
             </div>
           </div>
@@ -596,18 +654,12 @@ export default function DashboardOrdersPage() {
               <div className="flex flex-col">
                 <span className="text-xl font-bold text-gray-900 tabular-nums">{stats.total}</span>
                 <span className="text-xs font-medium text-emerald-600 flex items-center gap-0.5 mt-1">
-                  <span className="material-symbols-outlined text-[14px]">trending_up</span>
-                  All time
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  {t('dashboard:allTime')}
                 </span>
               </div>
-              <div className="h-8 w-16 opacity-50 group-hover:opacity-100 transition-opacity">
-                <div className="flex items-end h-full gap-0.5 mt-2">
-                  <div className="bg-emerald-500/30 w-1/5 h-[30%] rounded-sm"></div>
-                  <div className="bg-emerald-500/30 w-1/5 h-[45%] rounded-sm"></div>
-                  <div className="bg-emerald-500/30 w-1/5 h-[60%] rounded-sm"></div>
-                  <div className="bg-emerald-500/30 w-1/5 h-[55%] rounded-sm"></div>
-                  <div className="bg-emerald-500 w-1/5 h-[65%] rounded-sm"></div>
-                </div>
+              <div className="h-8 w-16 opacity-50 group-hover:opacity-100 transition-opacity flex items-end justify-end">
+                {/* Visual removed to keep focus on real numbers */}
               </div>
             </div>
           </div>
@@ -622,17 +674,16 @@ export default function DashboardOrdersPage() {
               <div className="flex flex-col">
                 <span className="text-xl font-bold text-gray-900 tabular-nums">{stats.pending}</span>
                 <span className="text-xs font-medium text-orange-600 flex items-center gap-0.5 mt-1">
-                  Needs Action
+                  {t('dashboard:needsAction')}
                 </span>
               </div>
-              <div className="h-8 w-16 opacity-50 group-hover:opacity-100 transition-opacity">
-                <div className="flex items-end h-full gap-0.5 mt-2">
-                  <div className="bg-orange-500/30 w-1/5 h-[80%] rounded-sm"></div>
-                  <div className="bg-orange-500/30 w-1/5 h-[60%] rounded-sm"></div>
-                  <div className="bg-orange-500/30 w-1/5 h-[40%] rounded-sm"></div>
-                  <div className="bg-orange-500/30 w-1/5 h-[50%] rounded-sm"></div>
-                  <div className="bg-orange-500 w-1/5 h-[45%] rounded-sm"></div>
+              <div className="w-16 flex flex-col items-end justify-end h-8 opacity-70 group-hover:opacity-100 transition-opacity pb-1">
+                <div className="w-full bg-orange-200/50 rounded-full h-1.5">
+                  <div className="bg-orange-500 h-1.5 rounded-full" style={{ width: `${stats.total > 0 ? (stats.pending / stats.total) * 100 : 0}%` }}></div>
                 </div>
+                <span className="text-[10px] text-orange-600 font-medium mt-1">
+                  {stats.total > 0 ? Math.round((stats.pending / stats.total) * 100) : 0}%
+                </span>
               </div>
             </div>
           </div>
@@ -644,41 +695,39 @@ export default function DashboardOrdersPage() {
               <div className="flex flex-col">
                 <span className="text-xl font-bold text-gray-900 tabular-nums">{stats.shipped}</span>
                 <span className="text-xs font-medium text-blue-600 flex items-center gap-0.5 mt-1">
-                  <span className="material-symbols-outlined text-[14px]">local_shipping</span>
-                  In Transit
+                  <Truck className="h-3.5 w-3.5" />
+                  {t('dashboard:inTransit')}
                 </span>
               </div>
-              <div className="h-8 w-16 opacity-50 group-hover:opacity-100 transition-opacity">
-                <div className="flex items-end h-full gap-0.5 mt-2">
-                  <div className="bg-blue-500/30 w-1/5 h-[20%] rounded-sm"></div>
-                  <div className="bg-blue-500/30 w-1/5 h-[30%] rounded-sm"></div>
-                  <div className="bg-blue-500/30 w-1/5 h-[50%] rounded-sm"></div>
-                  <div className="bg-blue-500/30 w-1/5 h-[70%] rounded-sm"></div>
-                  <div className="bg-blue-500 w-1/5 h-[90%] rounded-sm"></div>
+              <div className="w-16 flex flex-col items-end justify-end h-8 opacity-70 group-hover:opacity-100 transition-opacity pb-1">
+                <div className="w-full bg-blue-200/50 rounded-full h-1.5">
+                  <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: `${stats.total > 0 ? (stats.shipped / stats.total) * 100 : 0}%` }}></div>
                 </div>
+                <span className="text-[10px] text-blue-600 font-medium mt-1">
+                  {stats.total > 0 ? Math.round((stats.shipped / stats.total) * 100) : 0}%
+                </span>
               </div>
             </div>
           </div>
 
           {/* KPI 5 - Returns & Cancelled */}
           <div className="flex flex-col gap-1 p-3 rounded-xl bg-red-50/50 border border-red-100 hover:shadow-md transition-shadow group cursor-pointer" onClick={() => handleStatusChange('returned')}>
-            <span className="text-xs font-medium text-red-600/80 uppercase tracking-wider">Issues & Returns</span>
+            <span className="text-xs font-medium text-red-600/80 uppercase tracking-wider">{t('dashboard:issuesAndReturns')}</span>
             <div className="flex items-end justify-between">
               <div className="flex flex-col">
                 <span className="text-xl font-bold text-gray-900 tabular-nums">{stats.cancelled + stats.returned}</span>
                 <span className="text-xs font-medium text-red-600 flex items-center gap-0.5 mt-1">
-                  <span className="material-symbols-outlined text-[14px]">warning</span>
-                  Requires Attention
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  {t('dashboard:requiresAttention')}
                 </span>
               </div>
-              <div className="h-8 w-16 opacity-50 group-hover:opacity-100 transition-opacity">
-                <div className="flex items-end h-full gap-0.5 mt-2">
-                  <div className="bg-red-500/30 w-1/5 h-[10%] rounded-sm"></div>
-                  <div className="bg-red-500/30 w-1/5 h-[10%] rounded-sm"></div>
-                  <div className="bg-red-500/30 w-1/5 h-[15%] rounded-sm"></div>
-                  <div className="bg-red-500/30 w-1/5 h-[20%] rounded-sm"></div>
-                  <div className="bg-red-500 w-1/5 h-[40%] rounded-sm"></div>
+              <div className="w-16 flex flex-col items-end justify-end h-8 opacity-70 group-hover:opacity-100 transition-opacity pb-1">
+                <div className="w-full bg-red-200/50 rounded-full h-1.5">
+                  <div className="bg-red-500 h-1.5 rounded-full" style={{ width: `${stats.total > 0 ? ((stats.cancelled + stats.returned) / stats.total) * 100 : 0}%` }}></div>
                 </div>
+                <span className="text-[10px] text-red-600 font-medium mt-1">
+                  {stats.total > 0 ? Math.round(((stats.cancelled + stats.returned) / stats.total) * 100) : 0}%
+                </span>
               </div>
             </div>
           </div>
@@ -693,8 +742,8 @@ export default function DashboardOrdersPage() {
               {/* Saved Views */}
               <div className="relative">
                 <button className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors">
-                  {statusFilter === 'all' ? 'All Orders' : statusTabs.find(t => t.id === statusFilter)?.label}
-                  <span className="material-symbols-outlined text-[20px]">expand_more</span>
+                  {statusFilter === 'all' ? t('dashboard:allOrders') : statusTabs.find(t => t.id === statusFilter)?.label}
+                  <ChevronDown className="h-5 w-5" />
                 </button>
               </div>
               
@@ -720,7 +769,7 @@ export default function DashboardOrdersPage() {
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors border border-emerald-200"
                   >
                     Search: {searchQuery}
-                    <span className="material-symbols-outlined text-[14px]">close</span>
+                    <X className="h-3.5 w-3.5" />
                   </button>
                 )}
               </div>
@@ -728,7 +777,7 @@ export default function DashboardOrdersPage() {
             
             {/* Pagination / Count */}
             <div className="text-xs text-gray-500 font-medium">
-              Showing {filteredOrders.length > 0 ? 1 : 0}-{Math.min(filteredOrders.length, 200)} of {filteredOrders.length}
+              {t('dashboard:showing')} {filteredOrders.length > 0 ? 1 : 0}-{Math.min(filteredOrders.length, 200)} {t('dashboard:of')} {filteredOrders.length}
             </div>
           </div>
 
@@ -737,14 +786,14 @@ export default function DashboardOrdersPage() {
             {storeOrders.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-12 text-center">
                 <div className="mb-4 w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 shadow-sm">
-                  <span className="material-symbols-outlined text-[24px]">dataset</span>
+                  <Database className="h-6 w-6" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900">{t('dashboard:noOrdersYet')}</h3>
                 <p className="mt-1 text-sm text-gray-500">{t('dashboard:noOrdersDescription')}</p>
               </div>
             ) : filteredOrders.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-12 text-center">
-                <span className="material-symbols-outlined text-[48px] text-gray-300 mb-4">search_off</span>
+                <SearchX className="h-12 w-12 text-gray-300 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900">{t('dashboard:noOrdersMatchFilters')}</h3>
                 <button
                   onClick={() => {
@@ -766,9 +815,9 @@ export default function DashboardOrdersPage() {
                     <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard:order')} ID</th>
                     <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard:customer')}</th>
                     <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">{t('dashboard:total')}</th>
-                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">Payment</th>
+                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard:payment')}</th>
                     <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard:status')}</th>
-                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">Courier</th>
+                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard:courier')}</th>
                     <th className="py-3 px-4 border-b border-gray-200 w-10"></th>
                   </tr>
                 </thead>
@@ -783,7 +832,7 @@ export default function DashboardOrdersPage() {
                       <td className="py-3 px-4">
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-2">
-                            <span className={`${isErrorState ? 'text-red-500' : 'text-gray-400'} material-symbols-outlined text-[16px]`}>receipt_long</span>
+                            <Receipt className={`h-4 w-4 ${isErrorState ? 'text-red-500' : 'text-gray-400'}`} />
                             <Link to={`/app/orders/${order.id}`} className="font-medium text-emerald-600 text-sm font-sans tabular-nums hover:underline cursor-pointer">
                               {order.orderNumber}
                             </Link>
@@ -820,7 +869,7 @@ export default function DashboardOrdersPage() {
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                             : 'bg-orange-50 text-orange-700 border-orange-200'
                         }`}>
-                          {order.paymentStatus === 'paid' ? 'Paid' : 'COD'}
+                          {order.paymentStatus === 'paid' ? t('dashboard:paid') : t('dashboard:cod')}
                         </span>
                       </td>
                       <td className="py-3 px-4">
@@ -847,7 +896,7 @@ export default function DashboardOrdersPage() {
                                {order.courierConsignmentId ? `: ${order.courierConsignmentId}` : ''}
                              </span>
                            ) : (
-                             <span className="text-[11px] text-gray-400 italic font-medium">Not configured</span>
+                             <span className="text-[11px] text-gray-400 italic font-medium">{t('dashboard:notConfigured')}</span>
                            )}
                         </div>
                       </td>
@@ -858,7 +907,7 @@ export default function DashboardOrdersPage() {
                               currentStatus={order.status || 'pending'}
                            />
                            <Link to={`/app/orders/${order.id}`} className="text-gray-400 hover:text-emerald-600 transition-colors" title="View Details">
-                             <span className="material-symbols-outlined text-[20px]">visibility</span>
+                             <Eye className="h-5 w-5" />
                            </Link>
                          </div>
                       </td>
@@ -875,11 +924,11 @@ export default function DashboardOrdersPage() {
             <div>
               <span className="font-medium">0 rows selected</span>
               <span className="mx-2 text-gray-300">|</span>
-              <button className="text-emerald-600 hover:text-emerald-700 font-medium disabled:opacity-50" disabled>Bulk Edit</button>
+              <button className="text-emerald-600 hover:text-emerald-700 font-medium disabled:opacity-50" disabled>{t('dashboard:bulkEdit')}</button>
             </div>
             <div className="flex gap-2">
-              <button className="px-2 py-1 border border-gray-200 rounded hover:bg-white disabled:opacity-50 shadow-sm" disabled>Prev</button>
-              <button className="px-2 py-1 border border-gray-200 rounded hover:bg-white disabled:opacity-50 shadow-sm" disabled>Next</button>
+              <button className="px-2 py-1 border border-gray-200 rounded hover:bg-white disabled:opacity-50 shadow-sm" disabled>{t('dashboard:prev')}</button>
+              <button className="px-2 py-1 border border-gray-200 rounded hover:bg-white disabled:opacity-50 shadow-sm" disabled>{t('dashboard:next')}</button>
             </div>
           </div>
         </div>
@@ -1088,9 +1137,9 @@ function SteadfastFraudCheckButton({ customerPhone }: { customerPhone: string })
             ? 'bg-red-50 text-red-600 border-red-200' 
             : 'bg-emerald-50 text-emerald-600 border-emerald-200'
         }`}
-        title={`Steadfast: ${success} Delivered, ${cancellation} Cancelled`}
+        title={`History: ${success} Delivered, ${cancellation} Cancelled`}
       >
-        SF: {success}/{total} {isRisky && '⚠️'}
+        হিস্ট্রি: {success}/{total} {isRisky && '⚠️'}
       </span>
     );
   }
@@ -1109,12 +1158,12 @@ function SteadfastFraudCheckButton({ customerPhone }: { customerPhone: string })
       onClick={handleCheck}
       disabled={isChecking}
       className="inline-flex items-center text-[10px] text-gray-400 hover:text-emerald-600 transition-colors disabled:opacity-50"
-      title="Check Steadfast History"
+      title="Check Courier History"
     >
       {isChecking ? (
         <Loader2 className="w-3 h-3 animate-spin" />
       ) : (
-        <span className="material-symbols-outlined text-[14px]">public</span>
+        <span className="material-symbols-outlined text-[14px]">history</span>
       )}
     </button>
   );
@@ -1173,7 +1222,7 @@ function SendToCourierButton({
             e.preventDefault();
           }
         }}
-        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 border border-blue-600 hover:border-blue-700 rounded-lg transition disabled:opacity-50 shadow-sm"
+        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 border border-blue-600 hover:border-blue-700 rounded-lg transition disabled:opacity-50 shadow-sm whitespace-nowrap"
         title={`Send to ${courierProvider}`}
       >
         {isSubmitting ? (
@@ -1181,7 +1230,7 @@ function SendToCourierButton({
         ) : (
           <Truck className="w-3.5 h-3.5" />
         )}
-        {t('courierSend')}
+        {t('dashboard:sendToProvider', { provider: courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1) })}
       </button>
     </fetcher.Form>
   );
