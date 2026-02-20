@@ -110,6 +110,7 @@ export function NovaLuxHeader({
             </PreviewSafeLink>
             {validCategories.slice(0, 3).map((cat) => {
               const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+              if (!title) return null;
               return (
                 <PreviewSafeLink
                   key={title}
@@ -165,7 +166,7 @@ export function NovaLuxHeader({
               {count > 0 && (
                 <span
                   className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center"
-                  style={{ background: NOVALUX_THEME.accentGradient, color: THEME.primary }}
+                  style={{ backgroundColor: THEME.primary, color: 'white' }}
                 >
                   {count}
                 </span>
@@ -248,6 +249,7 @@ export function NovaLuxHeader({
 
             {validCategories.map((cat) => {
               const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+              if (!title) return null;
               return (
                 <PreviewSafeLink
                   key={title}

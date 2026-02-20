@@ -104,6 +104,7 @@ export function LuxeBoutiqueHeader({
             </PreviewSafeLink>
             {validCategories.slice(0, 5).map((cat) => {
               const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+              if (!title) return null;
               return (
                 <PreviewSafeLink
                   key={title}
@@ -147,7 +148,7 @@ export function LuxeBoutiqueHeader({
               <ShoppingBag className="w-5 h-5" style={{ color: theme.text }} />
               <span
                 className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center"
-                style={{ backgroundColor: theme.accent, color: theme.primary }}
+                style={{ backgroundColor: theme.primary, color: 'white' }}
               >
                 {count}
               </span>
@@ -211,6 +212,7 @@ export function LuxeBoutiqueHeader({
             </PreviewSafeLink>
             {validCategories.map((cat) => {
               const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+              if (!title) return null;
               return (
                 <PreviewSafeLink
                   key={title}

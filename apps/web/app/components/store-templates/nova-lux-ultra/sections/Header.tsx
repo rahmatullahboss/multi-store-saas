@@ -297,8 +297,8 @@ export function NovaLuxUltraHeader({
                       }}
                       className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center"
                       style={{
-                        background: NOVALUX_ULTRA_THEME.accentGradient,
-                        color: NOVALUX_ULTRA_THEME.primary,
+                        backgroundColor: NOVALUX_ULTRA_THEME.primary,
+                        color: 'white',
                         boxShadow: NOVALUX_ULTRA_THEME.buttonShadow,
                       }}
                     >

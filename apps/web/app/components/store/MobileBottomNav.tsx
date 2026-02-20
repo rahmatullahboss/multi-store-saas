@@ -54,9 +54,9 @@ export function MobileBottomNav({
     { href: '/', icon: Home, label: 'Home', exact: true },
     { href: '/products', icon: ShoppingBag, label: 'Products' },
     ...(wishlistEnabled
-      ? [{ href: '/wishlist', icon: Heart, label: 'Wishlist', badge: wishlistCount }]
+      ? [{ href: '/wishlist', icon: Heart, label: 'Wishlist', badge: wishlistCount, badgeColor: accentColor }]
       : []),
-    { href: '/cart', icon: ShoppingCart, label: 'Cart', badge: cartCount },
+    { href: '/cart', icon: ShoppingCart, label: 'Cart', badge: cartCount, badgeColor: primaryColor },
     { href: '/account', icon: User, label: 'Account' },
   ];
 
@@ -98,7 +98,7 @@ export function MobileBottomNav({
                 {item.badge !== undefined && item.badge > 0 && (
                   <span
                     className="absolute -top-2 -right-2 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center animate-in zoom-in duration-200"
-                    style={{ backgroundColor: accentColor }}
+                    style={{ backgroundColor: item.badgeColor || accentColor }}
                   >
                     {item.badge > 9 ? '9+' : item.badge}
                   </span>

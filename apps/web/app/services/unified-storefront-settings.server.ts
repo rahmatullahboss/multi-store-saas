@@ -249,7 +249,11 @@ export async function migrateStoreToUnifiedSettings<TSchema extends Record<strin
     if (!dryRun) {
       await db
         .update(stores)
-        .set({ storefrontSettings: serializeUnifiedSettings(unified) })
+        .set({
+          storefrontSettings: serializeUnifiedSettings(unified),
+          theme: unified.theme.templateId,
+          updatedAt: new Date(),
+        })
         .where(eq(stores.id, storeId));
     }
 
