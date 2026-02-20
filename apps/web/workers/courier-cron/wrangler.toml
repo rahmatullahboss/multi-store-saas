@@ -30,7 +30,7 @@ SAAS_DOMAIN = "ozzyl.com"
 # ==============================================================================
 # SECRETS (Set via wrangler secret)
 # ==============================================================================
-# SESSION_SECRET must be set via wrangler secret put for auth to api.internal.sync-steadfast-session
+# No secrets currently required by this worker.
 
 # ==============================================================================
 # OBSERVABILITY - Logs

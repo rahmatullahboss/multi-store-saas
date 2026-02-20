@@ -8,7 +8,8 @@
  *  1. Single store sync (env vars):
  *     STEADFAST_EMAIL=x STEADFAST_PASSWORD=y STORE_ID=z npx ts-node sync.ts
  *  2. All stores from D1 (passwords auto-decrypted if COURIER_ENCRYPT_KEY is set):
- *     D1_DATABASE_ID=x COURIER_ENCRYPT_KEY=base64key npx ts-node sync.ts --all-stores
+ *     D1_DATABASE_NAME=multi-store-saas-db COURIER_ENCRYPT_KEY=base64key npx tsx sync.ts --all-stores
+ *     (D1_DATABASE_NAME defaults to 'multi-store-saas-db' if not set)
  */
 import { getSteadfastSessionCookies } from './steadfast-scraper.server';
 import { execSync } from 'child_process';
