@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { BDShopPageWrapper, BDSHOP_THEME } from './BDShopPageWrapper';
 import type { SocialLinks } from '@db/types';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 interface CartItem {
   id: number;

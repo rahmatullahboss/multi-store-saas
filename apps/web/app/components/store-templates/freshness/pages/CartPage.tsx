@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Minus, Plus, Trash2, ArrowRight, ShoppingBag, Leaf } from 'lucide-react';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 

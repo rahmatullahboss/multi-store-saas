@@ -28,7 +28,7 @@ import {
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { GhorerBazarPageWrapper, GHORER_BAZAR_THEME } from './GhorerBazarPageWrapper';
 import type { SocialLinks } from '@db/types';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 interface Product {
   id: number;

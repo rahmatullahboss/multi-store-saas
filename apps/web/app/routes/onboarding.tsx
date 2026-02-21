@@ -13,7 +13,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import { json, redirect } from '@remix-run/cloudflare';
 import { useFetcher } from '@remix-run/react';
 import {

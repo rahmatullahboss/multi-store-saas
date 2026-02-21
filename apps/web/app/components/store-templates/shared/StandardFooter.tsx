@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from '@remix-run/react';
 import {
@@ -20,7 +19,7 @@ import {
 import { useLanguage } from '~/contexts/LanguageContext';
 import { OzzylBranding } from '~/components/store-templates/shared/OzzylBranding';
 import type { SocialLinks, FooterConfig } from '@db/types';
-import type { ThemeConfig } from '~/lib/theme-engine/types';
+import type { ThemeConfig } from '~/lib/theme-engine-types';
 
 // ============================================================================
 // TYPES
@@ -43,12 +42,11 @@ interface StandardFooterProps {
 // HELPER COMPONENTS
 // ============================================================================
 
-
 function BkashIcon() {
   return (
-    <img 
-      src="https://cdn.jsdelivr.net/gh/zzseba78/payment-web-font/png/bkash.png" 
-      alt="bKash" 
+    <img
+      src="https://cdn.jsdelivr.net/gh/zzseba78/payment-web-font/png/bkash.png"
+      alt="bKash"
       className="h-8 w-auto rounded bg-white p-1 object-contain"
       style={{ minWidth: '40px' }}
       onError={(e) => {
@@ -62,16 +60,14 @@ function BkashIcon() {
 
 function NagadIcon() {
   return (
-    <img 
-      src="https://cdn.jsdelivr.net/gh/zzseba78/payment-web-font/png/nagad.png" 
-      alt="Nagad" 
+    <img
+      src="https://cdn.jsdelivr.net/gh/zzseba78/payment-web-font/png/nagad.png"
+      alt="Nagad"
       className="h-8 w-auto rounded bg-white p-1 object-contain"
       style={{ minWidth: '40px' }}
     />
   );
 }
-
-
 
 function CodIcon() {
   return (
@@ -110,7 +106,8 @@ export function StandardFooter({
     footerBg: config.colors?.footerBg || config.colors?.primary || '#1C1C1E',
     footerText: config.colors?.footerText || '#FAFAFA',
     fontHeading: config.typography?.fontFamilyHeading || 'sans-serif',
-    accentGradient: config.colors?.accentGradient || 
+    accentGradient:
+      config.colors?.accentGradient ||
       `linear-gradient(135deg, ${config.colors?.accent || '#C4A35A'} 0%, ${config.colors?.accent || '#C4A35A'} 100%)`,
   };
 
@@ -125,9 +122,7 @@ export function StandardFooter({
     address: 'House 123, Road 5, Gulshan, Dhaka 1212, Bangladesh',
   };
 
-  const displayBusinessInfo = isPreview ? (businessInfo || defaultBusinessInfo) : businessInfo;
-
-
+  const displayBusinessInfo = isPreview ? businessInfo || defaultBusinessInfo : businessInfo;
 
   return (
     <footer style={{ backgroundColor: THEME.footerBg, color: THEME.footerText }}>
@@ -227,10 +222,7 @@ export function StandardFooter({
             {logo ? (
               <img src={logo} alt={storeName} className="h-10 w-auto object-contain mb-4" />
             ) : (
-              <h4
-                className="text-2xl font-semibold mb-4"
-                style={{ fontFamily: THEME.fontHeading }}
-              >
+              <h4 className="text-2xl font-semibold mb-4" style={{ fontFamily: THEME.fontHeading }}>
                 {storeName}
               </h4>
             )}
@@ -241,23 +233,23 @@ export function StandardFooter({
 
             {/* Language Selector */}
             <div className="mb-6">
-                <div className="flex items-center gap-2 text-sm">
-                    <Globe className="w-4 h-4 opacity-70" />
-                    <span className="opacity-70">Language:</span>
-                    <button 
-                        onClick={() => setLang('en')}
-                        className={`px-2 py-1 rounded transition-colors ${lang === 'en' ? 'bg-white/20 font-medium' : 'hover:bg-white/10 opacity-70'}`}
-                    >
-                        English
-                    </button>
-                    <span className="opacity-30">|</span>
-                    <button 
-                        onClick={() => setLang('bn')} 
-                        className={`px-2 py-1 rounded transition-colors ${lang === 'bn' ? 'bg-white/20 font-medium' : 'hover:bg-white/10 opacity-70'}`}
-                    >
-                        বাংলা
-                    </button>
-                </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Globe className="w-4 h-4 opacity-70" />
+                <span className="opacity-70">Language:</span>
+                <button
+                  onClick={() => setLang('en')}
+                  className={`px-2 py-1 rounded transition-colors ${lang === 'en' ? 'bg-white/20 font-medium' : 'hover:bg-white/10 opacity-70'}`}
+                >
+                  English
+                </button>
+                <span className="opacity-30">|</span>
+                <button
+                  onClick={() => setLang('bn')}
+                  className={`px-2 py-1 rounded transition-colors ${lang === 'bn' ? 'bg-white/20 font-medium' : 'hover:bg-white/10 opacity-70'}`}
+                >
+                  বাংলা
+                </button>
+              </div>
             </div>
 
             {/* Social Links */}
@@ -323,8 +315,7 @@ export function StandardFooter({
               <div className="flex flex-wrap gap-2">
                 <BkashIcon />
                 <NagadIcon />
-                
-                
+
                 <CodIcon />
               </div>
             </div>
@@ -473,17 +464,11 @@ export function StandardFooter({
         {/* Policies Links */}
         <div className="mt-12 pt-8 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
           <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-sm">
-            <Link
-              to="/policies/privacy"
-              className="opacity-60 hover:opacity-100 transition-colors"
-            >
+            <Link to="/policies/privacy" className="opacity-60 hover:opacity-100 transition-colors">
               Privacy Policy
             </Link>
             <span className="opacity-20 hidden md:inline">•</span>
-            <Link
-              to="/policies/refund"
-              className="opacity-60 hover:opacity-100 transition-colors"
-            >
+            <Link to="/policies/refund" className="opacity-60 hover:opacity-100 transition-colors">
               Refund Policy
             </Link>
             <span className="opacity-20 hidden md:inline">•</span>

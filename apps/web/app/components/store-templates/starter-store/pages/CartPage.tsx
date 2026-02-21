@@ -8,7 +8,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { STARTER_STORE_FONTS, resolveStarterStoreTheme } from '../theme';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
 import type { StoreTemplateTheme } from '~/templates/store-registry';

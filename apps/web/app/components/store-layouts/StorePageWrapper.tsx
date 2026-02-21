@@ -26,7 +26,11 @@ interface FloatingContactConfig {
   headerMenu?: Array<{
     label: string;
     url: string;
-    children?: Array<{ label: string; url: string; children?: Array<{ label: string; url: string }> }>;
+    children?: Array<{
+      label: string;
+      url: string;
+      children?: Array<{ label: string; url: string }>;
+    }>;
   }>;
   footerColumns?: Array<{ title: string; links: Array<{ label: string; url: string }> }>;
   footerDescription?: string;
@@ -39,7 +43,7 @@ interface FloatingContactConfig {
 
 interface StorePageWrapperProps {
   children: ReactNode;
-  /** When true, do not render legacy template header/footer. Use when ThemeStoreRenderer renders header/footer sections. */
+  /** When true, do not render template header/footer (for custom layouts). */
   hideHeaderFooter?: boolean;
   storeName: string;
   storeId: number;
@@ -255,7 +259,17 @@ function StorePageWrapperComponent({
       socialLinks,
       mvpSettings,
     }),
-    [storeName, logo, isPreview, config, resolvedTheme, categories, currentCategory, socialLinks, mvpSettings]
+    [
+      storeName,
+      logo,
+      isPreview,
+      config,
+      resolvedTheme,
+      categories,
+      currentCategory,
+      socialLinks,
+      mvpSettings,
+    ]
   );
 
   // Memoize fallback header props
@@ -287,7 +301,18 @@ function StorePageWrapperComponent({
       isPreview,
       mvpSettings,
     }),
-    [storeName, logo, socialLinks, footerConfig, resolvedTheme, businessInfo, categories, planType, isPreview, mvpSettings]
+    [
+      storeName,
+      logo,
+      socialLinks,
+      footerConfig,
+      resolvedTheme,
+      businessInfo,
+      categories,
+      planType,
+      isPreview,
+      mvpSettings,
+    ]
   );
 
   // Memoize fallback footer props
@@ -391,7 +416,7 @@ function StorePageWrapperComponent({
 
         {/* Main Content */}
         <main className="relative z-10">
-            {/* <StorePushPrompt storeName={storeName} /> */}
+          {/* <StorePushPrompt storeName={storeName} /> */}
           {children}
         </main>
 
@@ -434,7 +459,12 @@ function StorePageWrapperComponent({
         )}
 
         {/* Mobile Bottom Navigation - DC Store Style */}
-        <MobileBottomNav storeName={storeName} theme={mobileNavTheme} wishlistEnabled={true} isPreview={isPreview} />
+        <MobileBottomNav
+          storeName={storeName}
+          theme={mobileNavTheme}
+          wishlistEnabled={true}
+          isPreview={isPreview}
+        />
       </div>
     </WishlistProvider>
   );

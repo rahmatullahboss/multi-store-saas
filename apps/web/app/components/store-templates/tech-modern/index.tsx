@@ -37,7 +37,7 @@ import { useWishlist } from '~/hooks/useWishlist';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { getHeroBehavior } from '~/lib/hero-slides';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
 import { buildProxyImageUrl, generateProxySrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 

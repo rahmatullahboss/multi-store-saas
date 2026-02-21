@@ -2,7 +2,7 @@ import { useState, useCallback, createContext, useContext, useMemo, useEffect } 
 import { ShoppingBag, Search, Menu, X, Heart } from 'lucide-react';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
 import { useTranslation } from '~/contexts/LanguageContext';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import { getHeroBehavior } from '~/lib/hero-slides';
 import {
   buildProxyImageUrl,

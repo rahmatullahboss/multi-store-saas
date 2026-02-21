@@ -9,7 +9,7 @@ import type {
 import type { ThemeConfig } from '@db/types';
 import type { StoreSection } from '~/components/store-sections/registry';
 import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import { getHeroBehavior } from '~/lib/hero-slides';
 import { buildProxyImageUrl, generateProxySrcset } from '~/utils/imageOptimization';
 

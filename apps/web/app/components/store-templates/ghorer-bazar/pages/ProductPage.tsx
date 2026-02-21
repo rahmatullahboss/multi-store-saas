@@ -4,7 +4,7 @@ import { GHORER_BAZAR_THEME } from '../theme';
 import type { Product } from '@db/schema';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { AddToCartButton } from '~/components/AddToCartButton';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 interface ProductPageProps {
   product: Product;

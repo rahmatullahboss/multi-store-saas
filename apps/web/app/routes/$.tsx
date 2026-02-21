@@ -12,7 +12,7 @@ import { createDb } from '~/lib/db.server';
 import { stores, type Store } from '@db/schema';
 import { eq } from 'drizzle-orm';
 import { resolveStoreTheme } from '~/templates/store-registry';
-import type { ThemeConfig as EngineThemeConfig } from '~/lib/theme-engine/types';
+import type { ThemeConfig as EngineThemeConfig } from '~/lib/theme-engine-types';
 import { Home, Search } from 'lucide-react';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
@@ -80,7 +80,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   // Get unified settings (single source of truth)
-  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
+    env: context.cloudflare.env,
+  });
 
   // Get theme from unified settings
   const { theme } = resolveStoreTheme(

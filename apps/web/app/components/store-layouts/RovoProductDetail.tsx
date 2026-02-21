@@ -5,7 +5,7 @@ import { RovoHeader } from '~/components/store/rovo/RovoHeader';
 import { RovoFooter } from '~/components/store/rovo/RovoFooter';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import type { SocialLinks } from '@db/types';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 interface Product {
   id: number;

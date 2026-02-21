@@ -22,7 +22,7 @@ import {
   ArrowLeft,
   ChevronRight,
 } from 'lucide-react';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 interface CartItem {
   id: number;

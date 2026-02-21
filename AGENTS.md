@@ -409,12 +409,15 @@ npm run db:studio
 npm run db:migrate:prod
 ```
 
-### 3. Creating a New Theme Section
+### 3. Creating a New Theme Section (Archived - See dev/shopify-os2/)
+
+> **Note**: This section describes the Shopify OS 2.0 system which has been archived.
+> For the active MVP system, see `components/store-templates/`.
 
 ```typescript
-// 1. Create section file: app/themes/{theme}/sections/my-section.tsx
+// 1. Create section file: dev/shopify-os2/themes/{theme}/sections/my-section.tsx
 
-import type { SectionComponentProps } from '~/lib/theme-engine/types';
+import type { SectionComponentProps } from '~/lib/theme-engine-types';
 
 export function MySection({ section, context }: SectionComponentProps) {
   const { settings, blocks } = section;
@@ -674,108 +677,50 @@ app.get('/api/products', async (c) => {
 
 ---
 
-## 🎨 Shopify OS 2.0 Theme System
+## 🎨 Theme System
 
-### Overview
+> **📦 ARCHIVED**: The Shopify OS 2.0 system has been moved to `dev/shopify-os2/` for future development.
+> **Current Production System**: MVP Simple Theme System using React components from `components/store-templates/`
 
-The storefront uses a **Shopify OS 2.0 compatible theme system** with:
+### Active Production Themes
 
-- **JSON-based section schemas** with settings and blocks
-- **ThemeBridge** for loading themes and sections
-- **ThemeStoreRenderer** for rendering sections on storefront
-- **LiveEditorV2** for visual editing (drag-and-drop)
-- **Database-backed draft/publish workflow**
-
-### Key Components
+The production storefront uses **MVP Simple Theme System** with React components:
 
 ```
 apps/web/app/
-├── themes/                          # Shopify OS 2.0 themes
-│   ├── starter-store/              # Default starter theme
-│   ├── daraz/                      # Daraz-style marketplace
-│   ├── bdshop/                     # BDShop variant
-│   ├── ghorer-bazar/               # Grocery theme
-│   ├── luxe-boutique/              # Luxury boutique
-│   └── tech-modern/                # Tech/gadget theme
-├── lib/theme-engine/               # Core engine
-│   ├── ThemeBridge.ts             # Theme loader & section registry
-│   ├── types/index.ts             # TypeScript types
-│   ├── db-integration.ts          # DB CRUD operations
-│   └── utils/page-renderer.tsx    # Dynamic page rendering
-└── components/store/
-    └── ThemeStoreRenderer.tsx     # Storefront section renderer
+├── components/store-templates/     # Active themes (React components)
+│   ├── starter-store/             # Default starter theme
+│   ├── luxe-boutique/             # Luxury boutique
+│   └── nova-lux/                  # Premium lifestyle
+└── templates/
+    └── store-registry.ts         # Theme registry
 ```
 
-### Theme Structure (Shopify-like)
+### Archived (Future Development)
 
-```
-themes/starter-store/
-├── index.ts                 # Theme exports & registration
-├── theme.json              # Theme config (colors, typography)
-├── templates/
-│   └── index.json          # Homepage template (section order)
-└── sections/
-    ├── header.tsx          # Header section with schema
-    ├── footer.tsx          # Footer section with schema
-    ├── hero-banner.tsx     # Hero banner section
-    ├── featured-collection.tsx
-    └── ...
-```
+The Shopify OS 2.0 system is archived at:
 
-### Section Schema Format
+- `dev/shopify-os2/` - Contains:
+  - `themes/` - 15+ Shopify OS 2.0 themes
+  - `theme-engine/` - Theme engine core
+  - `ThemeStoreRenderer.tsx` - Section-based renderer
+  - `LiveEditorV2.client.tsx` - Visual editor
 
-```typescript
-export const schema: SectionSchema = {
-  type: 'hero-banner',
-  name: 'Hero Banner',
-  settings: [
-    { type: 'text', id: 'heading', label: 'Heading', default: 'Welcome' },
-    { type: 'image', id: 'background_image', label: 'Background' },
-    { type: 'color', id: 'text_color', label: 'Text Color', default: '#ffffff' },
-  ],
-  blocks: [
-    {
-      type: 'button',
-      name: 'Button',
-      settings: [
-        { type: 'text', id: 'text', label: 'Button Text' },
-        { type: 'url', id: 'link', label: 'Link' },
-      ],
-    },
-  ],
-  max_blocks: 3,
-};
-```
+---
 
-### Using ThemeBridge
+## 🚧 DO NOT USE (Archived)
 
-```typescript
-import { getThemeBridge } from '~/lib/theme-engine/ThemeBridge';
-
-const bridge = getThemeBridge('luxe-boutique');
-const config = bridge.getConfig();
-const registry = bridge.getSectionRegistry();
-const SectionComponent = registry['hero-banner'].component;
-```
-
-### Using ThemeStoreRenderer
-
-```tsx
-<ThemeStoreRenderer
-  themeId={storeTemplateId}
-  sections={template.sections.map((s) => ({
-    id: s.id,
-    type: s.type,
-    settings: s.props || {},
     blocks: s.blocks || [],
     enabled: s.enabled,
-  }))}
-  store={{ id: storeId, name: storeName, currency, logo }}
-  pageType="index"
-  products={products}
-  collections={collections}
-  skipHeaderFooter={true}
+
+}))}
+store={{ id: storeId, name: storeName, currency, logo }}
+pageType="index"
+products={products}
+collections={collections}
+skipHeaderFooter={true}
 />
+
 ```
 
 ### Active Themes (Production)
@@ -822,20 +767,20 @@ const SectionComponent = registry['hero-banner'].component;
 - ❌ `LiveEditor.client.tsx` (deleted - use LiveEditorV2)
 - ❌ `template-render.tsx` route (deleted)
 
-### File Locations
+### File Locations (Archived)
 
-- **Theme sections**: `~/themes/{theme}/sections/*.tsx`
-- **Theme config**: `~/themes/{theme}/theme.json`
-- **Theme bridge**: `~/lib/theme-engine/ThemeBridge.ts`
-- **Store renderer**: `~/components/store/ThemeStoreRenderer.tsx`
-- **Live editor**: `~/components/store-builder/LiveEditorV2.client.tsx`
+- **Theme sections**: `dev/shopify-os2/themes/{theme}/sections/*.tsx`
+- **Theme config**: `dev/shopify-os2/themes/{theme}/theme.json`
+- **Theme bridge**: `dev/shopify-os2/theme-engine/ThemeBridge.ts`
+- **Store renderer**: `dev/shopify-os2/ThemeStoreRenderer.tsx`
+- **Live editor**: `dev/shopify-os2/LiveEditorV2.client.tsx`
 
 ---
 
 ## 🏪 MVP Simple Theme System (ACTIVE - Production Ready)
 
-> **✅ STATUS**: This is the **ACTIVE PRODUCTION SYSTEM** for MVP launch.  
-> **🔵 FROZEN**: Shopify OS 2.0 system (`themes/` folder) is frozen for future v2.0 release.  
+> **✅ STATUS**: This is the **ACTIVE PRODUCTION SYSTEM** for MVP launch.
+> **🔵 FROZEN**: Shopify OS 2.0 system (`themes/` folder) is frozen for future v2.0 release.
 > **📖 DOCS**: See [docs/MVP_THEME_SYSTEM.md](docs/MVP_THEME_SYSTEM.md) for complete guide.
 
 ### 2026-02 Source of Truth Update (Important)
@@ -866,39 +811,41 @@ The codebase currently has **two competing theme systems**:
 **Approach**: Use the old **React Component System** with a simple settings layer on top.
 
 ```
+
 ┌──────────────────────────────────────────────────────────────┐
-│              MVP SIMPLE THEME SYSTEM                         │
+│ MVP SIMPLE THEME SYSTEM │
 ├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│  Database (Simple Key-Value)                                 │
-│  ┌─────────────────────────────────────┐                     │
-│  │ store_mvp_settings                  │                     │
-│  │  - storeName                        │                     │
-│  │  - logo                             │                     │
-│  │  - primaryColor                     │                     │
-│  │  - accentColor                      │                     │
-│  │  - announcementText                 │                     │
-│  └─────────────────────────────────────┘                     │
-│                          │                                   │
-│                          ▼                                   │
-│  Theme Registry (store-registry.ts)                          │
-│  ┌─────────────────────────────────────┐                     │
-│  │ 1. Get base theme colors            │                     │
-│  │ 2. Merge with user settings         │                     │
-│  │ 3. Pass to React components         │                     │
-│  └─────────────────────────────────────┘                     │
-│                          │                                   │
-│                          ▼                                   │
-│  React Components (Old System)                               │
-│  ┌─────────────────────────────────────┐                     │
-│  │ <Template.component />              │                     │
-│  │ <template.Header />                 │                     │
-│  │ <template.Footer />                 │                     │
-│  │ <template.ProductPage />            │                     │
-│  └─────────────────────────────────────┘                     │
-│                                                              │
+│ │
+│ Database (Simple Key-Value) │
+│ ┌─────────────────────────────────────┐ │
+│ │ store_mvp_settings │ │
+│ │ - storeName │ │
+│ │ - logo │ │
+│ │ - primaryColor │ │
+│ │ - accentColor │ │
+│ │ - announcementText │ │
+│ └─────────────────────────────────────┘ │
+│ │ │
+│ ▼ │
+│ Theme Registry (store-registry.ts) │
+│ ┌─────────────────────────────────────┐ │
+│ │ 1. Get base theme colors │ │
+│ │ 2. Merge with user settings │ │
+│ │ 3. Pass to React components │ │
+│ └─────────────────────────────────────┘ │
+│ │ │
+│ ▼ │
+│ React Components (Old System) │
+│ ┌─────────────────────────────────────┐ │
+│ │ <Template.component /> │ │
+│ │ <template.Header /> │ │
+│ │ <template.Footer /> │ │
+│ │ <template.ProductPage /> │ │
+│ └─────────────────────────────────────┘ │
+│ │
 └──────────────────────────────────────────────────────────────┘
-```
+
+````
 
 ### Configuration Schema
 
@@ -939,7 +886,7 @@ export const DEFAULT_MVP_SETTINGS: Record<string, MVPThemeSettings> = {
   },
   // ... other themes
 };
-```
+````
 
 ### Database Schema
 
@@ -1818,14 +1765,15 @@ index_name = "ozzyl-search"
 
 ### Key Files Reference
 
-| Purpose             | Path                                                                                                                    |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| **Theme Bridge**    | [`app/lib/theme-engine/ThemeBridge.ts`](apps/web/app/lib/theme-engine/ThemeBridge.ts)                                   |
-| **Store Renderer**  | [`app/components/store/ThemeStoreRenderer.tsx`](apps/web/app/components/store/ThemeStoreRenderer.tsx)                   |
-| **Live Editor**     | [`app/components/store-builder/LiveEditorV2.client.tsx`](apps/web/app/components/store-builder/LiveEditorV2.client.tsx) |
-| **Database Schema** | [`packages/database/src/schema*.ts`](packages/database/src/)                                                            |
-| **Middleware**      | [`app/server/middleware/`](apps/web/app/server/middleware/)                                                             |
-| **Services**        | [`app/services/`](apps/web/app/services/)                                                                               |
+| Purpose             | Path                                                                                                              |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Theme Registry**  | [`app/templates/store-registry.ts`](apps/web/app/templates/store-registry.ts)                                     |
+| **Store Templates** | [`app/components/store-templates/`](apps/web/app/components/store-templates/)                                     |
+| **Store Wrapper**   | [`app/components/store-layouts/StorePageWrapper.tsx`](apps/web/app/components/store-layouts/StorePageWrapper.tsx) |
+| **Database Schema** | [`packages/database/src/schema*.ts`](packages/database/src/)                                                      |
+| **Middleware**      | [`app/server/middleware/`](apps/web/app/server/middleware/)                                                       |
+| **Services**        | [`app/services/`](apps/web/app/services/)                                                                         |
+| **Archived (v2.0)** | [`dev/shopify-os2/`](dev/shopify-os2/) - Shopify OS 2.0 system (archived)                                         |
 
 ### Context7 Library References
 

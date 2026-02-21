@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { GhorerBazarPageWrapper, GHORER_BAZAR_THEME } from './GhorerBazarPageWrapper';
 import type { SocialLinks } from '@db/types';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 interface CartItem {
   id: number;

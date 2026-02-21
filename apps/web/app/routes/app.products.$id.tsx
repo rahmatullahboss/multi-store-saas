@@ -42,7 +42,7 @@ import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useUnsavedChanges, deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
 import { LazyRichTextEditor } from '~/components/RichTextEditor.lazy';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import { toCents, fromCents } from '~/utils/money';
 import {
   getProductDetailsMetafields,

@@ -3,7 +3,7 @@ import { Link } from '@remix-run/react';
 import { Star, Heart } from 'lucide-react';
 import { useWishlist } from '~/hooks/useWishlist';
 import type { StoreTemplateProps } from '~/templates/store-registry';
-import type { SectionInstance } from '~/lib/theme-engine/types';
+import type { SectionInstance } from '~/lib/theme-engine-types';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
 import { StoreConfigProvider } from '~/contexts/StoreConfigContext';

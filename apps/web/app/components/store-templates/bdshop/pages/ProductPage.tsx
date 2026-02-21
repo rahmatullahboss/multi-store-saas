@@ -22,7 +22,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import type { Product } from '@db/schema';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 // BDShop Theme Colors
 const BDSHOP_THEME = {

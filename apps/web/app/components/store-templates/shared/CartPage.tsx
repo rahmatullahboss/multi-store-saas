@@ -40,7 +40,7 @@ import {
   RotateCcw,
   Clock,
 } from 'lucide-react';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import type { StoreTemplateTheme } from '~/templates/store-registry';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
 

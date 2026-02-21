@@ -45,7 +45,7 @@ import {
   LineChart,
 } from 'lucide-react';
 import { AIResponseRenderer } from '~/components/ui/AIResponseRenderer';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 // Time periods for comparison
 const getDateRange = (days: number) => {

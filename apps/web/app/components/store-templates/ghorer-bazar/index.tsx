@@ -123,7 +123,7 @@ function CartProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 // ============================================================================
 // COMPONENT: Coupon Input (Functional)

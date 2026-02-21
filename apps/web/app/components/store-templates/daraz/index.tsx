@@ -27,7 +27,7 @@ import { ClientOnly } from 'remix-utils/client-only';
 import { SkeletonLoader } from '~/components/SkeletonLoader';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
 import { SECTION_REGISTRY } from '~/components/store-sections/registry';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import { DARAZ_THEME } from './theme';
 import { CATEGORY_IMAGES } from './assets/category-images';
 import { DarazHeader } from './sections/Header';

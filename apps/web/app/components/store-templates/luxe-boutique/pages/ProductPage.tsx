@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { LUXE_BOUTIQUE_THEME } from '../theme';
 import type { Product } from '@db/schema';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 interface ProductPageProps {
   product: Product;

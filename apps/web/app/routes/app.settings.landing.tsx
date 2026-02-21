@@ -17,7 +17,7 @@ import { eq, and } from 'drizzle-orm';
 import { stores, products } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
 import { getStoreId } from '~/services/auth.server';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import {
   Loader2,
   CheckCircle,

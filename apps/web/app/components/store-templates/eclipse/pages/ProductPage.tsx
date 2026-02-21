@@ -29,7 +29,7 @@ import {
 import { ECLIPSE_THEME } from '../theme';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import type { SerializedProduct } from '~/templates/store-registry';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 interface ProductPageProps {
   product: SerializedProduct;

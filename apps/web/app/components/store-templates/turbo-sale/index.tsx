@@ -37,7 +37,7 @@ import {
   getDemoProductById,
   type DemoProduct,
 } from '~/utils/store-preview-data';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 // ============================================================================
 // TYPES

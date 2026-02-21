@@ -14,7 +14,7 @@ import { ArrowLeft, Eye, X } from 'lucide-react';
 import { useState } from 'react';
 import { getStoreTemplate, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import {
   DEMO_PRODUCTS,
   DEMO_CATEGORIES,

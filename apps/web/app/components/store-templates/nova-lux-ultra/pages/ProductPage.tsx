@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 
 import { NOVALUX_ULTRA_THEME } from '../theme';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { useWishlist } from '~/hooks/useWishlist';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';

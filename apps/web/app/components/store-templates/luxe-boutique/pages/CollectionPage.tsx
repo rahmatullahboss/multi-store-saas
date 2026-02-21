@@ -2,7 +2,7 @@ import { Link, useParams, useSearchParams } from '@remix-run/react';
 import { useState } from 'react';
 import { Filter, ChevronDown } from 'lucide-react';
 import type { SerializedProduct } from '~/templates/store-registry';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 interface LuxeCollectionProps {
   products: SerializedProduct[];

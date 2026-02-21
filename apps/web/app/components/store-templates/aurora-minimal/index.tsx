@@ -35,7 +35,7 @@ import { useWishlist } from '~/hooks/useWishlist';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { useTranslation } from '~/contexts/LanguageContext';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
 import { useCartCount } from '~/hooks/useCartCount';
 import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';

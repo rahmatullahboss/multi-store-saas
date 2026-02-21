@@ -26,7 +26,7 @@ import {
   type DemoProduct,
 } from '~/utils/store-preview-data';
 import { ShoppingBag, Minus, Plus, Check, Star, ArrowLeft, Sparkles } from 'lucide-react';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 
 // ============================================================================

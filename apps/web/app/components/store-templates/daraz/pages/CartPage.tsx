@@ -12,7 +12,7 @@ import { useState, useEffect } from 'react';
 import { Trash2, Plus, Minus, ShoppingBag, ChevronRight, Truck, Shield, Tag } from 'lucide-react';
 import { DARAZ_THEME } from '../theme';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 interface CartItem {
   productId: number;

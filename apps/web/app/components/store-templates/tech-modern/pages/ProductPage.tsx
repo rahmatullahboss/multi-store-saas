@@ -4,7 +4,7 @@ import { ShoppingCart, Star, ShieldCheck, Truck, Cpu, ChevronRight } from 'lucid
 import type { SerializedProduct } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 interface TechProductProps {
   product: SerializedProduct & {

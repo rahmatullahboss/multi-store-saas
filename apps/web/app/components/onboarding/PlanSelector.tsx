@@ -4,7 +4,7 @@
  */
 
 import { Check, Crown, Zap, Sparkles } from 'lucide-react';
-import { formatPrice } from '~/lib/theme-engine'
+import { formatPrice } from '~/lib/formatting'
 import type { PlanType } from '~/utils/plans.server';
 import { useTranslation } from '~/contexts/LanguageContext';
 

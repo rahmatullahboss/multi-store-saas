@@ -29,7 +29,7 @@ import {
 import { cn } from '~/utils/cn';
 import type { Intent, QuickProduct, StyleTokens } from '~/utils/landing-builder/intentEngine';
 import { getTemplateSuggestions, DEFAULT_STYLE_TOKENS } from '~/utils/landing-builder/intentEngine';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 // Step indicator component with accessibility
 function StepIndicator({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {

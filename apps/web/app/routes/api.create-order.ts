@@ -206,17 +206,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
     }
 
-    // Debug: Log payment_method and transaction_id if validation fails
-    const debugPaymentMethod = body.payment_method;
-    const debugTransactionId = body.transaction_id;
-    if (debugPaymentMethod) {
-      console.log(
-        '[ORDER DEBUG] payment_method:',
-        debugPaymentMethod,
-        'transaction_id:',
-        debugTransactionId
-      );
-    }
+    // Debug: Removed - was logging sensitive order metadata to production logs
 
     // ========================================================================
     // CHECK IF CUSTOMER IS LOGGED IN

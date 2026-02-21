@@ -14,7 +14,7 @@ import { Link } from '@remix-run/react';
 import { Star, Heart, ShoppingCart } from 'lucide-react';
 import { DARAZ_THEME } from '../theme';
 import type { SerializedProduct } from '~/templates/store-registry';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 type Product = SerializedProduct;
 

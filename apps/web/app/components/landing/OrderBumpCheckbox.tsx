@@ -10,7 +10,7 @@ import { motion } from 'framer-motion';
 import { Check, Gift, Sparkles } from 'lucide-react';
 import { OptimizedImage } from '~/components/OptimizedImage';
 import { useTranslation } from '~/contexts/LanguageContext';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 interface OrderBumpProduct {
   id: number;

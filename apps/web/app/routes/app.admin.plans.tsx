@@ -13,7 +13,7 @@
  */
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import { json } from '@remix-run/cloudflare';
 import {
   Form,

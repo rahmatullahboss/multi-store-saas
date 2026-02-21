@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useParams } from '@remix-run/react';
 import { Minus, Plus, X } from 'lucide-react';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 interface LuxeCartProps {
   theme?: any;

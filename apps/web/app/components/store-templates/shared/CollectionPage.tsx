@@ -19,7 +19,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useParams, useSearchParams } from '@remix-run/react';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import {
   Filter,
   ChevronDown,

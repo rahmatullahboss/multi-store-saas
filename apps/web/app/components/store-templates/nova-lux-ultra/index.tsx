@@ -39,7 +39,7 @@ import {
 } from 'lucide-react';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
 import type { ThemeConfig } from '@db/types';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import {
   buildProxyImageUrl,
   generateProxySrcset,

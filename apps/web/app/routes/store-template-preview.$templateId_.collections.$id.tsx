@@ -21,7 +21,7 @@ import {
   getDemoProductsByCollection,
   getDemoProductsByCategory,
 } from '~/utils/store-preview-data';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [

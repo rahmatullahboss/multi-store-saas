@@ -62,6 +62,7 @@
     "sale-banner": {
       "id": "sale-banner",
       "type": "sale-banner",
+      "disabled": true,
       "settings": {
         "heading": "",
         "subheading": "",
@@ -78,6 +79,7 @@
     "new-arrivals": {
       "id": "new-arrivals",
       "type": "featured-collection",
+      "disabled": true,
       "settings": {
         "heading": "নতুন এসেছে",
         "products_count": 4,

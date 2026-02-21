@@ -40,7 +40,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import type { StoreTemplateTheme } from '~/templates/store-registry';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
 import {
   DISTRICTS,

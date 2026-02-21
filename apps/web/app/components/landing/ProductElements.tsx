@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 interface WhatsAppOrderButtonProps {
   /** Store's WhatsApp number */

@@ -32,7 +32,7 @@ import {
   Target,
   Zap,
 } from 'lucide-react';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 export async function loader({ context, request }: LoaderFunctionArgs) {
   const db = drizzle(context.cloudflare.env.DB);

@@ -22,7 +22,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useFetcher, useParams } from '@remix-run/react';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import {
   ShoppingCart,
   Heart,

@@ -95,7 +95,7 @@ import { resolveStoreTemplateId, getStoreTemplateTheme } from '~/templates/store
 import { toast } from 'sonner';
 import { validateDiscount } from '~/../server/services/discount.service';
 import { TicketPercent } from 'lucide-react';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import {
   getAllowedCheckoutPaymentMethods,
   getDefaultPaymentMethodForPlan,

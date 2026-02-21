@@ -27,7 +27,7 @@ import {
   Percent,
   Sparkles,
 } from 'lucide-react';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Order Bumps - Settings' }];

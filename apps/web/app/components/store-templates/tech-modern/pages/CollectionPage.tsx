@@ -2,7 +2,7 @@ import { Link, useParams } from '@remix-run/react';
 import { Filter, Grid, List } from 'lucide-react';
 import type { SerializedProduct } from '~/templates/store-registry';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 interface TechCollectionProps {
   products: SerializedProduct[];

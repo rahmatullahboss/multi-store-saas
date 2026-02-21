@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { StoreTemplateProps, SerializedProduct } from '~/templates/store-registry';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import { SECTION_REGISTRY, DEFAULT_SECTIONS } from '~/components/store-sections/registry';
 import { useCartCount } from '~/hooks/useCartCount';
 import { FRESHNESS_THEME } from './theme';

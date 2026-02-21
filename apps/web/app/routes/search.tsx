@@ -18,7 +18,7 @@ import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreTemplateTheme } from '~/templates/store-registry';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 import { Search, ShoppingBag, ChevronRight } from 'lucide-react';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: 'Search' }];

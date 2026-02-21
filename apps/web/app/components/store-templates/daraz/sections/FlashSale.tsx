@@ -14,7 +14,7 @@ import { ChevronLeft, ChevronRight, Zap, Clock } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import { DARAZ_THEME } from '../theme';
 import type { SerializedProduct } from '~/templates/store-registry';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 type Product = SerializedProduct;
 

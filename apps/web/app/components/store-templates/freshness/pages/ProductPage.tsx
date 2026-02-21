@@ -14,7 +14,7 @@ import { FRESHNESS_THEME } from '../theme';
 import type { SerializedProduct } from '~/templates/store-registry';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { AddToCartButton } from '~/components/AddToCartButton';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 interface ProductPageProps {
   product: SerializedProduct;

@@ -39,7 +39,7 @@ import {
   type PlanType,
 } from '~/utils/plans.server';
 import { useState } from 'react';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'AI Activation Requests - Super Admin' }];

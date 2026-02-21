@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams } from '@remix-run/react';
 import { Minus, Plus, Trash2, ArrowRight, Shield } from 'lucide-react';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import { DEMO_PRODUCTS } from '~/utils/store-preview-data';
 
 interface TechCartProps {

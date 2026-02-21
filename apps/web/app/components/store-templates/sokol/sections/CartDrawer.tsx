@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 import { X, Plus, Minus, ShoppingBag, Trash2 } from 'lucide-react';
 
 interface CartItem {

@@ -31,7 +31,7 @@ import {
   Send,
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice } from '~/lib/formatting';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Upgrade Plan' }];
