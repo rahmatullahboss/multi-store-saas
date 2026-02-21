@@ -134,7 +134,7 @@ interface CollectionPageData {
   socialLinks: SocialLinks | null;
   businessInfo: BusinessInfo | null;
   themeConfig: ThemeConfig | null;
-  mvpSettings: MVPSettingsWithTheme;
+  mvpSettings: MVPSettingsWithTheme | null;
   collection: { title: string; description: string; slug: string };
   products: SerializedProduct[];
   categories: string[];
@@ -455,6 +455,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
           ({
             ...p,
             storeId,
+            name: p.title, // Map to name property
             description: null,
             images: null,
             sku: null,
@@ -629,7 +630,16 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       themeConfig: mergedThemeConfig,
       mvpSettings: legacyCompat.mvpSettings,
       collection,
-      products: collectionProducts,
+      products: collectionProducts.map((p) => ({
+        id: p.id,
+        storeId: p.storeId,
+        name: p.title,   // Add name field mapped from title
+        title: p.title,
+        description: p.description,
+        price: p.price,
+        compareAtPrice: p.compareAtPrice,
+        imageUrl: p.imageUrl,
+      })),
       categories,
       sortBy,
       inStock,

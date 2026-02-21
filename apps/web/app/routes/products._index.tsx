@@ -182,7 +182,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     businessInfo,
     themeConfig: mergedThemeConfig,
     footerConfig,
-    mvpSettings: null, // Using unified settings - no legacy mvpSettings needed
+    mvpSettings: undefined, // Using unified settings - no legacy mvpSettings needed
     categories,
     currentCategory: resolvedCategory,
     sortBy,
@@ -211,7 +211,6 @@ export default function ProductsIndex() {
     businessInfo,
     themeConfig,
     footerConfig,
-    mvpSettings,
     categories,
     currentCategory,
     sortBy,
@@ -309,7 +308,6 @@ export default function ProductsIndex() {
         customer={customer}
         isCustomerAiEnabled={isCustomerAiEnabled}
         aiCredits={aiCredits}
-        mvpSettings={mvpSettings}
       >
         <Suspense
           fallback={
@@ -331,7 +329,6 @@ export default function ProductsIndex() {
             socialLinks={socialLinks}
             businessInfo={businessInfo}
             planType={planType}
-            mvpSettings={mvpSettings}
           />
         </Suspense>
       </StorePageWrapper>
@@ -357,7 +354,6 @@ export default function ProductsIndex() {
       customer={customer}
       isCustomerAiEnabled={isCustomerAiEnabled}
       aiCredits={aiCredits}
-      mvpSettings={mvpSettings}
     >
       <div className={`min-h-screen ${bgColor}`}>
         {/* Breadcrumb */}

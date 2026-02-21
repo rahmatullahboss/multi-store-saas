@@ -214,7 +214,7 @@ function FallbackProductPage({
     category: string | null;
   };
   currency: string;
-  theme: Record<string, string>;
+  theme: Record<string, any>;
 }) {
   return (
     <div className="min-h-screen py-8 px-4" style={{ backgroundColor: theme.background }}>

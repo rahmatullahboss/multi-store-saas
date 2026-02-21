@@ -137,10 +137,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     if (dbCollections.length > 0) {
       categories = dbCollections.map((c) => ({
-        id: c.id,
+        id: String(c.id),
         title: c.title,
         slug: c.slug,
-        imageUrl: c.imageUrl,
+        imageUrl: c.imageUrl || undefined,
       }));
     } else {
       // Fallback: derive from products (legacy behavior)

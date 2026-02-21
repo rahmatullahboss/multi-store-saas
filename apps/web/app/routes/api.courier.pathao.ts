@@ -78,11 +78,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     return {
       client: createPathaoClient({
-        clientId: courierSettings.pathao.clientId,
-        clientSecret: courierSettings.pathao.clientSecret,
-        username: courierSettings.pathao.username,
-        password: courierSettings.pathao.password,
-        baseUrl: courierSettings.pathao.baseUrl,
+        clientId: courierSettings.pathao.clientId || '',
+        clientSecret: courierSettings.pathao.clientSecret || '',
+        username: courierSettings.pathao.username || '',
+        password: courierSettings.pathao.password || '',
+        baseUrl: courierSettings.pathao.baseUrl || undefined,
       }),
       defaultStoreId: courierSettings.pathao.defaultStoreId as number | undefined,
     };

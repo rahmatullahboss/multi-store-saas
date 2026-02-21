@@ -566,11 +566,6 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
 
   // ========== FULL STORE MODE ==========
 
-  // Get unified settings (single source of truth)
-  const unifiedSettings = await getUnifiedStorefrontSettings(db, validatedStoreId, {
-    env: context.cloudflare.env,
-  });
-
   try {
     // Fetch products with optional category filter
     const productsQuery = db
@@ -678,12 +673,13 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
     const serializedProducts: SerializedProduct[] = storeProducts.map((p) => ({
       id: p.id,
       storeId: p.storeId,
+      name: p.title,
       title: p.title,
       description: p.description,
       price: p.price,
       compareAtPrice: p.compareAtPrice,
       imageUrl: p.imageUrl,
-      images: p.images,
+      images: p.images ? (typeof p.images === 'string' ? JSON.parse(p.images) : p.images) : [],
       inventory: p.inventory,
       category: p.category,
     }));
@@ -758,11 +754,9 @@ export default function Index() {
       ? data.landingConfig?.templateId || DEFAULT_LANDING_TEMPLATE_ID
       : DEFAULT_LANDING_TEMPLATE_ID;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [LandingTemplateComponent, setLandingTemplateComponent] =
     useState<ComponentType<any> | null>(null);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [PreviewTemplateComponent, setPreviewTemplateComponent] =
     useState<ComponentType<any> | null>(null);
 
@@ -1034,9 +1028,7 @@ export default function Index() {
               <PreviewTemplateComponent
                 storeName={data.storeName}
                 storeId={data.storeId}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 product={demoProduct as any}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 config={demoConfig as any}
                 currency={data.currency}
                 isPreview={true}

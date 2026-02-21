@@ -65,12 +65,12 @@ describe('resolveStoreTheme', () => {
   });
 
   it('uses legacy theme id as fallback', () => {
-    const { storeTemplateId } = resolveStoreTheme(null, 'luxe-boutique');
+    const { storeTemplateId } = resolveStoreTheme({}, 'luxe-boutique');
     expect(storeTemplateId).toBe('luxe-boutique');
   });
 
   it('falls back to starter-store when no theme info provided', () => {
-    const { storeTemplateId, theme } = resolveStoreTheme(null, null);
+    const { storeTemplateId, theme } = resolveStoreTheme({}, null);
     expect(storeTemplateId).toBe('starter-store');
     expect(theme.primary).toBeTruthy();
   });

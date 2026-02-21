@@ -65,6 +65,7 @@ describe('Flash Sale Persistence (Theme Switch)', () => {
   const mockProduct = {
     id: 1,
     storeId: 1,
+    name: 'Test Product',
     title: 'Test Product',
     description: 'Test Description',
     price: 80, // After 20% off
@@ -77,7 +78,7 @@ describe('Flash Sale Persistence (Theme Switch)', () => {
 
   const commonProps = {
     storeName: 'Test Store',
-    storeId: 1,
+    storeId: '1',
     products: [mockProduct],
     categories: ['Electronics'],
     currentCategory: '',

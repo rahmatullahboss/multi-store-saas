@@ -101,8 +101,11 @@ export const OrderSchema = z.object({
   transaction_id: z
     .string()
     .trim()
-    .transform((v) => (v === '' ? undefined : v))
-    .pipe(z.string().min(6).max(100).optional()),
+    .min(6, 'Transaction ID must be at least 6 characters')
+    .max(100)
+    .optional()
+    .or(z.literal(''))
+    .transform((val) => (val === '' ? undefined : val)),
   variant_id: z.number().int().optional(), // Product variant ID
   manual_payment_details: z
     .object({
@@ -203,6 +206,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
     }
 
+    // Debug: Log payment_method and transaction_id if validation fails
+    const debugPaymentMethod = body.payment_method;
+    const debugTransactionId = body.transaction_id;
+    if (debugPaymentMethod) {
+      console.log(
+        '[ORDER DEBUG] payment_method:',
+        debugPaymentMethod,
+        'transaction_id:',
+        debugTransactionId
+      );
+    }
+
     // ========================================================================
     // CHECK IF CUSTOMER IS LOGGED IN
     // ========================================================================
@@ -243,7 +258,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (hasRateLimiter && storeIdForRateLimit > 0) {
       const clientIP = getClientIP(request);
       const rateLimitResult = await checkRateLimit(
-  
         env as any,
         storeIdForRateLimit,
         clientIP,
@@ -679,7 +693,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     orderNumberForLock = generateOrderNumber();
 
     if (hasCheckoutLock) {
-    
       const lockResult = await acquireCheckoutLock(env as any, checkoutLockId, {
         orderId: orderNumberForLock, // lock identifier (not DB id)
         lockedBy: input.phone,
@@ -1181,18 +1194,23 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (input.payment_method === 'cod') {
       try {
         const { createSteadfastClient } = await import('~/services/steadfast.server');
-        
+
         // Load session cookies from KV (populated by sync.ts using merchant's email+password)
         let sessionCookie: string | undefined;
         let xsrfToken: string | undefined;
 
         try {
           if (context.cloudflare.env.STORE_CACHE) {
-            const cachedCredsRaw = await context.cloudflare.env.STORE_CACHE.get(`steadfast_credentials_${input.store_id}`);
+            const cachedCredsRaw = await context.cloudflare.env.STORE_CACHE.get(
+              `steadfast_credentials_${input.store_id}`
+            );
             if (cachedCredsRaw) {
-               const parsedCreds = JSON.parse(cachedCredsRaw) as { sessionCookie: string; xsrfToken: string };
-               sessionCookie = parsedCreds.sessionCookie;
-               xsrfToken = parsedCreds.xsrfToken;
+              const parsedCreds = JSON.parse(cachedCredsRaw) as {
+                sessionCookie: string;
+                xsrfToken: string;
+              };
+              sessionCookie = parsedCreds.sessionCookie;
+              xsrfToken = parsedCreds.xsrfToken;
             }
           }
         } catch (e) {
@@ -1206,27 +1224,38 @@ export async function action({ request, context }: ActionFunctionArgs) {
             sessionCookie,
             xsrfToken,
           });
-        
+
           const sfPhone = input.phone.startsWith('+88')
-            ? input.phone.slice(3) 
-            : input.phone.startsWith('880') ? input.phone.slice(3) : input.phone;
-            
+            ? input.phone.slice(3)
+            : input.phone.startsWith('880')
+              ? input.phone.slice(3)
+              : input.phone;
+
           const riskResult = await steadfastClient.checkExternalFraud(sfPhone);
           const total = riskResult.success + riskResult.cancellation;
-          
+
           // Safe criteria: Must have some history (total > 0) and low/no cancellation rate (<= 5%)
           // The user specified "fraud rate nai" (no fraud rate) so we use a strict <= 5% threshold
-          if (total > 0 && (riskResult.cancellation === 0 || (riskResult.cancellation / total) <= 0.05)) {
+          if (
+            total > 0 &&
+            (riskResult.cancellation === 0 || riskResult.cancellation / total <= 0.05)
+          ) {
             orderStatus = 'confirmed';
-            console.log(`[FRAUD CHECK] Phone ${input.phone} is safe (${riskResult.success} delivered, ${riskResult.cancellation} cancelled). Auto-confirming.`);
+            console.log(
+              `[FRAUD CHECK] Phone ${input.phone} is safe (${riskResult.success} delivered, ${riskResult.cancellation} cancelled). Auto-confirming.`
+            );
           } else {
-            console.log(`[FRAUD CHECK] Phone ${input.phone} is risky or no history (${riskResult.success}/${total}). Leaving as pending.`);
+            console.log(
+              `[FRAUD CHECK] Phone ${input.phone} is risky or no history (${riskResult.success}/${total}). Leaving as pending.`
+            );
           }
         }
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
         if (msg.includes('429')) {
-          console.warn('[FRAUD CHECK] Steadfast rate limit (429) hit during checkout. Safe fallback applied.');
+          console.warn(
+            '[FRAUD CHECK] Steadfast rate limit (429) hit during checkout. Safe fallback applied.'
+          );
         } else {
           console.error('[FRAUD CHECK] Steadfast check failed during checkout:', error);
         }
@@ -1264,7 +1293,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
           storeId: input.store_id,
           customerId: orderCustomerId,
           orderNumber,
-          status: orderStatus as 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned',
+          status: orderStatus as
+            | 'pending'
+            | 'confirmed'
+            | 'processing'
+            | 'shipped'
+            | 'delivered'
+            | 'cancelled'
+            | 'returned',
           paymentStatus: 'pending',
           paymentMethod: input.payment_method as
             | 'cod'
@@ -2099,7 +2135,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Always release checkout lock (covers early-return paths after acquiring)
     if (checkoutLockAcquired && hasCheckoutLock && checkoutLockId) {
       context.cloudflare.ctx.waitUntil(
-  
         releaseCheckoutLock(env as any, checkoutLockId, orderNumberForLock || undefined).catch(
           (err) => {
             console.error('[CHECKOUT_LOCK] Failed to release lock (finally):', err);

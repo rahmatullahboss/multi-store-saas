@@ -281,7 +281,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
       // Create Steadfast client
-      const client = createSteadfastClient(courierSettings.steadfast);
+      const client = createSteadfastClient({
+        apiKey: courierSettings.steadfast.apiKey || '',
+        secretKey: courierSettings.steadfast.secretKey || '',
+      });
 
       // Parse shipping address
       let address = '';
@@ -357,7 +360,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
       // Create client
-      const client = createSteadfastClient(courierSettings.steadfast);
+      const client = createSteadfastClient({
+        apiKey: courierSettings.steadfast.apiKey || '',
+        secretKey: courierSettings.steadfast.secretKey || '',
+      });
 
       // Get all in-transit orders with Steadfast
       const inTransitOrders = await db
@@ -453,7 +459,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
         return json({ error: 'Steadfast credentials not found' }, { status: 400 });
       }
 
-      const client = createSteadfastClient(courierSettings.steadfast);
+      const client = createSteadfastClient({
+        apiKey: courierSettings.steadfast.apiKey || '',
+        secretKey: courierSettings.steadfast.secretKey || '',
+      });
       const status = await client.checkStatus(consignmentId);
 
       const deliveryStatus = status.delivery_status?.toLowerCase() || '';

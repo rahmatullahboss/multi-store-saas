@@ -6,8 +6,8 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const baseUrl = process.env.OZZYL_APP_API_BASE || 'https://app.ozzyl.com';
-    // Hit Remix data endpoint directly to guarantee JSON action response (not document HTML stream).
-    const upstreamUrl = `${baseUrl.replace(/\/$/, '')}/api/visitor-chat?_data=routes%2Fapi.visitor-chat`;
+    // Hit Remix action directly - no need for _data parameter
+    const upstreamUrl = `${baseUrl.replace(/\/$/, '')}/api/visitor-chat`;
 
     const upstream = await fetch(upstreamUrl, {
       method: 'POST',

@@ -49,9 +49,6 @@ import { useTranslation } from '~/contexts/LanguageContext';
 import { formatPrice } from '~/utils/formatPrice';
 import { type OrderStatus, assertOrderStatusTransition, isOrderStatus } from '~/lib/orderStatus';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
-import type { PathaoCredentials } from '~/services/pathao.server';
-import type { RedXCredentials } from '~/services/redx.server';
-import type { SteadfastCredentials } from '~/services/steadfast.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Orders - Merchant Dashboard' }];
@@ -320,7 +317,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       if (provider === 'pathao' && courierSettings.pathao) {
         const { createPathaoClient } = await import('~/services/pathao.server');
-        const client = createPathaoClient(courierSettings.pathao as PathaoCredentials);
+        const client = createPathaoClient({
+          clientId: courierSettings.pathao.clientId || '',
+          clientSecret: courierSettings.pathao.clientSecret || '',
+          username: courierSettings.pathao.username || '',
+          password: courierSettings.pathao.password || '',
+          baseUrl: courierSettings.pathao.baseUrl || undefined,
+        });
         const configuredStoreId = Number(courierSettings.pathao.defaultStoreId);
         if (!Number.isInteger(configuredStoreId) || configuredStoreId <= 0) {
           return json(
@@ -361,7 +364,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
         consignmentId = result.consignment_id;
       } else if (provider === 'redx' && courierSettings.redx) {
         const { createRedXClient } = await import('~/services/redx.server');
-        const client = createRedXClient(courierSettings.redx as RedXCredentials);
+        const client = createRedXClient({
+          accessToken: courierSettings.redx.apiKey || '',
+          baseUrl: courierSettings.redx.baseUrl || '',
+        });
 
         const result = await client.createParcel({
           customer_name: order.customerName || 'Customer',
@@ -376,7 +382,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
         consignmentId = result.tracking_id;
       } else if (provider === 'steadfast' && courierSettings.steadfast) {
         const { createSteadfastClient } = await import('~/services/steadfast.server');
-        const client = createSteadfastClient(courierSettings.steadfast as SteadfastCredentials);
+        const client = createSteadfastClient({
+          apiKey: courierSettings.steadfast.apiKey || '',
+          secretKey: courierSettings.steadfast.secretKey || '',
+        });
 
         const result = await client.createOrder({
           invoice: order.orderNumber,

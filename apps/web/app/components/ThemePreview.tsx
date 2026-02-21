@@ -22,7 +22,7 @@ const MOCK_PRODUCTS: SerializedProduct[] = [
   {
     id: 1,
     storeId: 1,
-    title: 'Premium Wireless Headphones',
+    name: "Preview Product", title: 'Premium Wireless Headphones',
     description: 'Experience crystal-clear audio with active noise cancellation.',
     price: 2999,
     compareAtPrice: 3999,
@@ -32,7 +32,7 @@ const MOCK_PRODUCTS: SerializedProduct[] = [
   {
     id: 2,
     storeId: 1,
-    title: 'Organic Green Tea (100g)',
+    name: "Preview Product", title: 'Organic Green Tea (100g)',
     description: 'Pure organic green tea sourced from the hills of Sylhet.',
     price: 450,
     compareAtPrice: null,
@@ -42,7 +42,7 @@ const MOCK_PRODUCTS: SerializedProduct[] = [
   {
     id: 3,
     storeId: 1,
-    title: 'Smart Watch Pro X1',
+    name: "Preview Product", title: 'Smart Watch Pro X1',
     description: 'Track your fitness, receive notifications, and more.',
     price: 4599,
     compareAtPrice: 5999,
@@ -52,7 +52,7 @@ const MOCK_PRODUCTS: SerializedProduct[] = [
   {
     id: 4,
     storeId: 1,
-    title: 'Handcrafted Leather Bag',
+    name: "Preview Product", title: 'Handcrafted Leather Bag',
     description: 'Genuine leather bag handmade by local artisans.',
     price: 1899,
     compareAtPrice: 2499,
@@ -62,7 +62,7 @@ const MOCK_PRODUCTS: SerializedProduct[] = [
   {
     id: 5,
     storeId: 1,
-    title: 'Traditional Pottery Set',
+    name: "Preview Product", title: 'Traditional Pottery Set',
     description: 'Beautiful handmade pottery from Comilla.',
     price: 899,
     compareAtPrice: null,
@@ -72,7 +72,7 @@ const MOCK_PRODUCTS: SerializedProduct[] = [
   {
     id: 6,
     storeId: 1,
-    title: 'Bamboo Desk Organizer',
+    name: "Preview Product", title: 'Bamboo Desk Organizer',
     description: 'Eco-friendly desk organizer made from sustainable bamboo.',
     price: 599,
     compareAtPrice: 799,

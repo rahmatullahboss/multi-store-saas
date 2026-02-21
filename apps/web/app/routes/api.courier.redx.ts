@@ -16,7 +16,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, inArray } from 'drizzle-orm';
 import { orders, orderItems, shipments } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { createRedXClient, REDX_STATUS_MAP } from '~/services/redx.server';
+import { REDX_STATUS_MAP } from '~/services/redx.server';
 import { calculateOrderWeight } from '~/lib/courier-weight.server';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
@@ -48,12 +48,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
       throw new Error('RedX credentials not configured. Go to Settings > Courier.');
     }
 
+    const { createRedXClient } = await import('~/services/redx.server');
     return createRedXClient({
-      apiKey: courierSettings.redx.apiKey,
-      secretKey: courierSettings.redx.secretKey,
+      accessToken: courierSettings.redx.apiKey || '',
+      baseUrl: courierSettings.redx.baseUrl || '',
     });
   }
-
   // ========================================
   // BOOK_ORDER - Create RedX parcel
   // ========================================

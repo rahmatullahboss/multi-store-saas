@@ -152,7 +152,7 @@ export default function StoreTemplatePreview() {
   // Prepare props for the template
   const templateProps: StoreTemplateProps = {
     storeName: data.storeName,
-    storeId: 0, // Demo store
+    storeId: '0', // Demo store
     logo: null,
     products: data.products as unknown as import('~/templates/store-registry').SerializedProduct[],
     categories: data.categories,
