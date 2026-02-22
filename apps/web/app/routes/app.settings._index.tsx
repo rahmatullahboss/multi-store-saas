@@ -612,11 +612,251 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* ===== MOBILE HUB VIEW (visible only on mobile) ===== */}
+      <div className="md:hidden">
+        {/* Store Profile Card */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4 flex flex-col items-center text-center">
+          <div className="w-20 h-20 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center mb-3 overflow-hidden">
+            {logoUrl || (store as any)?.logo ? (
+              <img
+                src={logoUrl || (store as any)?.logo}
+                alt="Store logo"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <Store className="w-8 h-8 text-gray-400" />
+            )}
+          </div>
+          <h2 className="text-lg font-bold text-gray-900">{(store as any)?.name || 'My Store'}</h2>
+          <p className="text-sm text-gray-500 mt-0.5">{(store as any)?.subdomain}.ozzyl.com</p>
+          <a
+            href="#store-form"
+            className="mt-4 inline-flex items-center gap-2 px-5 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-full hover:bg-emerald-700 active:bg-emerald-800 transition-colors"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('store-form-desktop')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            সেটিংস সম্পাদনা করুন
+          </a>
+        </div>
+
+        {/* Settings Navigation Groups */}
+        <div className="space-y-4">
+          {/* STORE Group */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">স্টোর</span>
+            </div>
+            <div className="divide-y divide-gray-50">
+              <a href="#store-form-desktop" className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors" onClick={(e) => { e.preventDefault(); document.getElementById('store-form-desktop')?.scrollIntoView({ behavior: 'smooth' }); }}>
+                <div className="w-9 h-9 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Store className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">সাধারণ সেটিংস</p>
+                  <p className="text-xs text-gray-500">স্টোরের নাম, মুদ্রা ও ভাষা</p>
+                </div>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </a>
+              <a href="/app/settings/appearance" className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                <div className="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Palette className="w-5 h-5 text-purple-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">থিম ও ডিজাইন</p>
+                  <p className="text-xs text-gray-500">রঙ, ফন্ট ও লেআউট</p>
+                </div>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </a>
+              <a href="/app/settings/navigation" className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <List className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">নেভিগেশন</p>
+                  <p className="text-xs text-gray-500">মেনু ও লিংক কনফিগার করুন</p>
+                </div>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </a>
+            </div>
+          </div>
+
+          {/* SALES Group */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">বিক্রয়</span>
+            </div>
+            <div className="divide-y divide-gray-50">
+              <a href="/app/settings/payments" className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                <div className="w-9 h-9 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">পেমেন্ট পদ্ধতি</p>
+                  <p className="text-xs text-gray-500">COD, bKash ও অন্যান্য</p>
+                </div>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </a>
+              <a href="/app/settings/shipping" className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                <div className="w-9 h-9 bg-orange-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">শিপিং</p>
+                  <p className="text-xs text-gray-500">ডেলিভারি চার্জ ও নিয়ম</p>
+                </div>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </a>
+              <a href="/app/settings/courier" className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                <div className="w-9 h-9 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">কুরিয়ার সেটিংস</p>
+                  <p className="text-xs text-gray-500">Pathao, RedX, Steadfast</p>
+                </div>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </a>
+            </div>
+          </div>
+
+          {/* MARKETING Group */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">মার্কেটিং</span>
+            </div>
+            <div className="divide-y divide-gray-50">
+              <a href="/app/settings/seo" className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Globe className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">SEO সেটিংস</p>
+                  <p className="text-xs text-gray-500">মেটা ট্যাগ ও সার্চ ইঞ্জিন</p>
+                </div>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </a>
+              <a href="/app/settings/lead-gen" className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                <div className="w-9 h-9 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">লিড জেনারেশন</p>
+                  <p className="text-xs text-gray-500">পপআপ ও ইমেইল সংগ্রহ</p>
+                </div>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </a>
+              <a href="/app/settings/business-mode" className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                <div className="w-9 h-9 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Store className="w-5 h-5 text-amber-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">বিজনেস মোড</p>
+                  <p className="text-xs text-gray-500">স্টোর অপারেশন পদ্ধতি</p>
+                </div>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </a>
+            </div>
+          </div>
+
+          {/* SECURITY Group */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">নিরাপত্তা</span>
+            </div>
+            <div className="divide-y divide-gray-50">
+              <a href="/app/settings/team" className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                <div className="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">টিম সদস্য</p>
+                  <p className="text-xs text-gray-500">অ্যাক্সেস ও অনুমতি পরিচালনা</p>
+                </div>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </a>
+              <a href="/app/settings/fraud" className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                <div className="w-9 h-9 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">ফ্রড ডিটেকশন</p>
+                  <p className="text-xs text-gray-500">সন্দেহজনক অর্ডার ফিল্টার</p>
+                </div>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </a>
+            </div>
+          </div>
+
+          {/* ACCOUNT Group */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">অ্যাকাউন্ট</span>
+            </div>
+            <div className="divide-y divide-gray-50">
+              <a href="/app/billing" className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                <div className="w-9 h-9 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">বিলিং ও প্ল্যান</p>
+                  <p className="text-xs text-gray-500">সাবস্ক্রিপশন ব্যবস্থাপনা</p>
+                </div>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </a>
+              <a href="/app/settings/activity" className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                <div className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">অ্যাক্টিভিটি লগ</p>
+                  <p className="text-xs text-gray-500">সকল পরিবর্তনের ইতিহাস</p>
+                </div>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </a>
+              <a href="/app/settings/developer" className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                <div className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <FileText className="w-5 h-5 text-gray-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900 text-sm">ডেভেলপার টুলস</p>
+                  <p className="text-xs text-gray-500">API কী ও ওয়েবহুক</p>
+                </div>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </a>
+            </div>
+          </div>
+
+          {/* Log Out Button */}
+          <form method="post" action="/app/logout">
+            <button
+              type="submit"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-red-50 border border-red-100 rounded-2xl text-red-600 font-semibold text-sm hover:bg-red-100 active:bg-red-200 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+              লগ আউট
+            </button>
+          </form>
+
+          {/* Version info */}
+          <p className="text-center text-xs text-gray-400 pb-4">Ozzyl v1.0 • Powered by Cloudflare</p>
+        </div>
+
+        {/* Divider before full settings form */}
+        <div className="border-t border-gray-200 mt-2 pt-2 pb-1">
+          <p className="text-xs text-gray-400 text-center">↓ বিস্তারিত সেটিংস</p>
+        </div>
+      </div>
+
+      {/* ===== DESKTOP HEADER (hidden on mobile) ===== */}
+      <div className="hidden md:flex items-center justify-between">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">{t('settings')}</h1>
-          <p className="text-sm text-gray-600 hidden md:block">{t('settingsSubtitle')}</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('settings')}</h1>
+          <p className="text-sm text-gray-600">{t('settingsSubtitle')}</p>
         </div>
       </div>
 
@@ -634,7 +874,7 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <Form method="post" className="space-y-6">
+      <Form method="post" id="store-form-desktop" className="space-y-6">
         {/* Hidden inputs */}
         <input type="hidden" name="logo" value={logoUrl} />
         <input type="hidden" name="favicon" value={faviconUrl} />

@@ -13,9 +13,10 @@
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData, Link } from '@remix-run/react';
+import { useState } from 'react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and, gte, desc, sql, count, countDistinct } from 'drizzle-orm';
-import { orders, orderItems, products, stores, abandonedCarts, pageViews, carts, checkoutSessions } from '@db/schema';
+import { eq, and, desc, sql } from 'drizzle-orm';
+import { orders, orderItems, stores, abandonedCarts, pageViews, carts, checkoutSessions } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { 
   TrendingUp, 
@@ -378,6 +379,7 @@ export default function AnalyticsPage() {
     funnel,
   } = useLoaderData<typeof loader>();
   const { t, lang } = useTranslation();
+  const [activePeriod, setActivePeriod] = useState<'today' | 'week' | 'month' | 'allTime'>('month');
 
   const formatPrice = (amount: number) => {
     const symbols: Record<string, string> = { BDT: '৳', USD: '$', EUR: '€', GBP: '£', INR: '₹' };
@@ -386,15 +388,173 @@ export default function AnalyticsPage() {
 
   const maxRevenue = Math.max(...dailyRevenue.map(d => d.revenue), 1);
 
+  const periodStats = stats[activePeriod];
+  const prevRevenue = activePeriod === 'today' ? 0 : activePeriod === 'week' ? stats.today.revenue : activePeriod === 'month' ? stats.week.revenue : stats.month.revenue;
+  const revenueGrowth = prevRevenue > 0 ? Math.round(((periodStats.revenue - prevRevenue) / prevRevenue) * 100) : 0;
+
+  const periodLabels = {
+    today: 'আজ',
+    week: '৭ দিন',
+    month: '৩০ দিন',
+    allTime: 'সব সময়',
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* ===== MOBILE HEADER (Stitch style) ===== */}
+      <div className="md:hidden">
+        {/* Title + Date */}
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="text-xl font-bold text-gray-900">{t('analytics')}</h1>
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-100 px-2.5 py-1.5 rounded-lg">
+            <Calendar className="w-3.5 h-3.5" />
+            <span>{new Date().toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-BD', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          </div>
+        </div>
+
+        {/* Time Period Pills */}
+        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 mb-4">
+          {(['today', 'week', 'month', 'allTime'] as const).map((period) => (
+            <button
+              key={period}
+              onClick={() => setActivePeriod(period)}
+              className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${
+                activePeriod === period
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {periodLabels[period]}
+            </button>
+          ))}
+        </div>
+
+        {/* Hero Revenue Display */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-4">
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">মোট রাজস্ব</p>
+          <div className="flex items-end justify-between">
+            <p className="text-3xl font-bold text-gray-900">{formatPrice(periodStats.revenue)}</p>
+            {revenueGrowth !== 0 && (
+              <span className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${revenueGrowth >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                {revenueGrowth >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+                {Math.abs(revenueGrowth)}%
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Revenue Bar Chart (Mobile) */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('revenueLast7Days')}</h3>
+          <div className="flex items-end justify-between gap-1 h-24">
+            {dailyRevenue.map((day, index) => (
+              <div key={index} className="flex-1 flex flex-col items-center gap-1">
+                <div className="w-full flex items-end justify-center" style={{ height: '80px' }}>
+                  <div
+                    className={`w-full rounded-t-md transition-all duration-500 ${index === dailyRevenue.length - 1 ? 'bg-emerald-500' : 'bg-emerald-200'}`}
+                    style={{ height: `${Math.max((day.revenue / maxRevenue) * 80, day.revenue > 0 ? 6 : 0)}px` }}
+                    title={`${day.date}: ${formatPrice(day.revenue)}`}
+                  />
+                </div>
+                <span className="text-[9px] text-gray-400">{day.date.split(',')[0]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 2x2 Metric Grid (Stitch style) */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 bg-green-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-green-600" />
+              </div>
+              <span className="text-xs font-medium text-gray-500">নেট প্রফিট</span>
+            </div>
+            <p className="text-xl font-bold text-gray-900">{formatPrice(Math.round(periodStats.revenue * 0.3))}</p>
+            <p className="text-xs text-green-600 mt-0.5 font-medium">▲ 15%</p>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
+                <ShoppingCart className="w-4 h-4 text-blue-600" />
+              </div>
+              <span className="text-xs font-medium text-gray-500">অর্ডার</span>
+            </div>
+            <p className="text-xl font-bold text-gray-900">{periodStats.orders}</p>
+            <p className="text-xs text-blue-600 mt-0.5 font-medium">▲ 48%</p>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 bg-orange-100 rounded-lg flex items-center justify-center">
+                <DollarSign className="w-4 h-4 text-orange-600" />
+              </div>
+              <span className="text-xs font-medium text-gray-500">গড় মূল্য</span>
+            </div>
+            <p className="text-xl font-bold text-gray-900">{formatPrice(conversionMetrics.avgOrderValue)}</p>
+            <p className="text-xs text-red-500 mt-0.5 font-medium">▼ 3%</p>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Percent className="w-4 h-4 text-purple-600" />
+              </div>
+              <span className="text-xs font-medium text-gray-500">কনভার্সন</span>
+            </div>
+            <p className="text-xl font-bold text-gray-900">{funnel.viewToOrderRate}%</p>
+            <p className="text-xs text-green-600 mt-0.5 font-medium">▲ {funnel.viewToOrderRate > 0 ? 12 : 0}%</p>
+          </div>
+        </div>
+
+        {/* Top Products (Mobile) */}
+        {topProducts.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-700">সেরা পণ্য</h3>
+              <Link to="/app/products" className="text-xs font-medium text-emerald-600">সব দেখুন</Link>
+            </div>
+            <div className="space-y-3">
+              {topProducts.slice(0, 3).map((product, index) => (
+                <div key={product.productId || index} className="flex items-center gap-3">
+                  <span className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-xs font-bold text-gray-600 flex-shrink-0">{index + 1}</span>
+                  <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Package className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{product.title}</p>
+                    <p className="text-xs text-gray-500">{product.totalQty} বিক্রি</p>
+                  </div>
+                  <p className="text-sm font-bold text-gray-900 flex-shrink-0">{formatPrice(product.totalRevenue || 0)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ===== DESKTOP HEADER ===== */}
+      <div className="hidden md:flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('analytics')}</h1>
           <p className="text-gray-600">{t('analyticsSubtitle')}</p>
         </div>
-        <div>
+        <div className="flex items-center gap-3">
+          {/* Desktop period pills */}
+          <div className="flex gap-2">
+            {(['today', 'week', 'month', 'allTime'] as const).map((period) => (
+              <button
+                key={period}
+                onClick={() => setActivePeriod(period)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  activePeriod === period
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {periodLabels[period]}
+              </button>
+            ))}
+          </div>
           <Link
             to="/app/analytics/templates"
             className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition shadow-sm font-medium"
@@ -405,8 +565,8 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Desktop Stats Overview */}
+      <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title={t('analyticsToday')}
           value={formatPrice(stats.today.revenue)}
@@ -436,6 +596,7 @@ export default function AnalyticsPage() {
           color="orange"
         />
       </div>
+
 
       {/* Revenue Chart */}
       <GlassCard intensity="low" className="p-6">
