@@ -7,118 +7,50 @@
  * - Static pages (About, Contact, FAQ, Policies)
  * - Mobile responsive
  * - Clean modern design
- *
- * Design System:
- * - Primary: #4F46E5 (Indigo)
- * - Accent: #F59E0B (Amber)
- * - Font: system font stack
- * - Border Radius: rounded-xl (12px)
  */
 
 import type { ThemeConfig } from '@db/types';
 import type { StoreTemplateTheme } from '~/templates/types';
 
-/**
- * Complete design system theme configuration
- */
-export const starterStoreTheme = {
-  colors: {
-    primary: '#4F46E5',
-    primaryHover: '#4338CA',
-    accent: '#F59E0B',
-    accentHover: '#D97706',
-    background: '#FFFFFF',
-    surface: '#F9FAFB',
-    border: '#E5E7EB',
-    text: {
-      primary: '#111827',
-      secondary: '#6B7280',
-      muted: '#9CA3AF',
-    },
-    success: '#10B981',
-    error: '#EF4444',
-    warning: '#F59E0B',
-  },
-  typography: {
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-    fontSize: {
-      xs: '0.75rem',
-      sm: '0.875rem',
-      base: '1rem',
-      lg: '1.125rem',
-      xl: '1.25rem',
-      '2xl': '1.5rem',
-      '3xl': '1.875rem',
-      '4xl': '2.25rem',
-    },
-    fontWeight: {
-      normal: '400',
-      medium: '500',
-      semibold: '600',
-      bold: '700',
-      extrabold: '800',
-    },
-  },
-  spacing: {
-    borderRadius: {
-      sm: '0.375rem',
-      md: '0.5rem',
-      lg: '0.75rem',
-      xl: '0.75rem',
-      '2xl': '1rem',
-      full: '9999px',
-    },
-  },
-  shadows: {
-    sm: '0 1px 2px rgba(0,0,0,0.05)',
-    md: '0 4px 6px rgba(0,0,0,0.07)',
-    lg: '0 10px 15px rgba(0,0,0,0.1)',
-    xl: '0 20px 25px rgba(0,0,0,0.1)',
-  },
-};
-
-/**
- * Legacy theme object for backward compatibility
- */
 export const STARTER_STORE_THEME = {
   // Primary Colors
-  primary: starterStoreTheme.colors.primary,
-  secondary: starterStoreTheme.colors.primaryHover,
-  primaryDark: starterStoreTheme.colors.primaryHover,
-  primaryLight: '#EEF2FF', // Light indigo background
+  primary: '#6366f1', // Indigo
+  secondary: '#4f46e5', // Supportive action color (e.g. secondary CTA)
+  primaryDark: '#4f46e5', // Darker indigo
+  primaryLight: '#eef2ff', // Light indigo background
 
   // Accent & Status
-  accent: starterStoreTheme.colors.accent,
-  success: starterStoreTheme.colors.success,
-  danger: starterStoreTheme.colors.error,
-  warning: starterStoreTheme.colors.warning,
+  accent: '#f59e0b', // Amber for highlights
+  success: '#22c55e', // Green
+  danger: '#ef4444', // Red
+  warning: '#f59e0b', // Amber
 
   // Layout Colors
-  background: starterStoreTheme.colors.surface,
-  cardBg: starterStoreTheme.colors.background,
-  headerBg: starterStoreTheme.colors.background,
+  background: '#f9fafb', // Light gray page background
+  cardBg: '#ffffff', // White card background
+  headerBg: '#ffffff', // White header
   footerBg: '#111827', // Dark gray footer
-  footerText: '#FFFFFF', // White footer text
+  footerText: '#ffffff', // White footer text
 
   // Text Colors
-  text: starterStoreTheme.colors.text.primary,
-  textSecondary: starterStoreTheme.colors.text.secondary,
-  muted: starterStoreTheme.colors.text.muted,
+  text: '#111827', // Primary text
+  textSecondary: '#4b5563', // Secondary text
+  muted: '#6b7280', // Muted text
 
   // Border
-  border: starterStoreTheme.colors.border,
-  borderLight: '#F3F4F6',
+  border: '#e5e7eb',
+  borderLight: '#f3f4f6',
 
   // Shadows
-  shadowSm: starterStoreTheme.shadows.sm,
-  shadowMd: starterStoreTheme.shadows.md,
-  shadowLg: starterStoreTheme.shadows.lg,
+  shadowSm: '0 1px 2px rgba(0,0,0,0.05)',
+  shadowMd: '0 4px 6px -1px rgba(0,0,0,0.1)',
+  shadowLg: '0 10px 15px -3px rgba(0,0,0,0.1)',
   shadowCard: '0 1px 3px rgba(0,0,0,0.1)',
 };
 
 export const STARTER_STORE_FONTS = {
-  heading: starterStoreTheme.typography.fontFamily,
-  body: starterStoreTheme.typography.fontFamily,
+  heading: "'Inter', 'Hind Siliguri', sans-serif",
+  body: "'Inter', 'Hind Siliguri', sans-serif",
 };
 
 type StarterThemeWithSecondary = StoreTemplateTheme & {
@@ -142,7 +74,7 @@ function normalizeHex(color: string | undefined): string | null {
 
 function withAlpha(hex: string, alpha: number): string {
   const normalized = normalizeHex(hex);
-  if (!normalized) return `rgba(79, 70, 229, ${alpha})`;
+  if (!normalized) return `rgba(99, 102, 241, ${alpha})`;
   const value = normalized.slice(1);
   const r = parseInt(value.slice(0, 2), 16);
   const g = parseInt(value.slice(2, 4), 16);

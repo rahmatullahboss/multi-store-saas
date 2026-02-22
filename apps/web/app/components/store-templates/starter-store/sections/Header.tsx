@@ -1,16 +1,14 @@
 /**
- * Starter Store Header Component (Redesigned)
+ * Starter Store Header Component
  *
- * A modern, mobile-first responsive header for the Starter Store template.
- * Features:
- * - Mobile: Hamburger menu, centered logo, cart icon, full-width search below
- * - Desktop: Sticky navbar with logo, wide search bar, nav links, cart & user icons
- * - Dismissible announcement banner
- * - Slide-out mobile drawer menu with overlay
+ * A clean, modern header for the Starter Store template.
+ * Works in both preview and live modes:
+ * - Preview: Links are disabled, demo cart count
+ * - Live: Real navigation, real cart count from API
  */
 
 import { Link, useNavigate } from '@remix-run/react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ShoppingCart, Search, Menu, X, User, Heart } from 'lucide-react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { useWishlist } from '~/hooks/useWishlist';
@@ -25,15 +23,9 @@ import type { StoreCategory, StoreTemplateTheme } from '~/templates/store-regist
 interface StarterStoreHeaderProps {
   storeName: string;
   logo?: string | null;
-  cartCount?: number;
-  primaryColor?: string;
-  accentColor?: string;
-  announcementText?: string;
-  showAnnouncement?: boolean;
-  currency?: string;
   isPreview?: boolean;
   config?: ThemeConfig | null;
-  categories?: (string | StoreCategory | null)[];
+  categories: (string | StoreCategory | null)[];
   currentCategory?: string | null;
   socialLinks?: SocialLinks | null;
   variant?: 'default' | 'overlay';
@@ -44,12 +36,6 @@ interface StarterStoreHeaderProps {
 export function StarterStoreHeader({
   storeName,
   logo,
-  cartCount: propCartCount,
-  primaryColor = '#4F46E5',
-  accentColor = '#F59E0B',
-  announcementText,
-  showAnnouncement = false,
-  currency = 'BDT',
   isPreview = false,
   categories = [],
   currentCategory,
@@ -60,12 +46,12 @@ export function StarterStoreHeader({
 }: StarterStoreHeaderProps) {
   const theme = resolveStarterStoreTheme(config, themeColors);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [announcementDismissed, setAnnouncementDismissed] = useState(false);
 
-  // Use real cart count in live mode, prop count or demo count in preview
+  // Use real cart count in live mode, demo count in preview
   const realCartCount = useCartCount();
-  const cartCount = isPreview ? (propCartCount ?? 3) : realCartCount;
+  const cartCount = isPreview ? 3 : realCartCount;
   const { t } = useTranslation();
 
   const { count: wishlistCount } = useWishlist();
@@ -75,444 +61,319 @@ export function StarterStoreHeader({
   const getPreviewUrl = usePreviewUrl(isPreview);
   const navigate = useNavigate();
 
-  // Resolve colors - prefer props, then theme, then defaults
-  const resolvedPrimary = primaryColor || theme.primary || '#4F46E5';
-  const resolvedAccent = accentColor || theme.accent || '#F59E0B';
-
-  // Close mobile menu on escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMobileMenuOpen(false);
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, []);
-
-  // Prevent body scroll when mobile menu is open
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [mobileMenuOpen]);
+  // Scroll detection removed as user requested solid header always
+  // useEffect(() => {
+  //   const handleScroll = () => {
+  //     setIsScrolled(window.scrollY > 20);
+  //   };
+  //   window.addEventListener('scroll', handleScroll);
+  //   return () => window.removeEventListener('scroll', handleScroll);
+  // }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedQuery = searchQuery.trim();
     if (!trimmedQuery) return;
-    const target = getPreviewUrl(`/products?search=${encodeURIComponent(trimmedQuery)}`);
+    const target = getPreviewUrl(`/?search=${encodeURIComponent(trimmedQuery)}`);
     navigate(target);
-    setMobileMenuOpen(false);
   };
 
-  // Announcement text - prefer prop, then config
-  const displayAnnouncementText = announcementText || config?.announcement?.text?.trim();
-  const shouldShowAnnouncement =
-    (showAnnouncement || config?.announcement?.text?.trim()) && !announcementDismissed;
+  // Determine styles based on variant and scroll state
+  // User requested white background instead of transparent, but keeping fixed positioning
+  const isTransparent = false; // Forced to false based on user feedback
+  const headerBg = theme.headerBg; // Always use theme header bg (white)
+  const textColor = theme.text; // Always use theme text color
+  const iconColor = theme.text; // Always use theme icon color
+  const logoBg = 'bg-transparent'; // No special bg needed for logo since header is white
 
-  // Nav links for desktop
-  const navLinks = [
-    { label: t('home'), to: '/' },
-    { label: t('allProducts'), to: '/products' },
-    { label: t('collections') || 'Collections', to: '/collections' },
-  ];
+  const headerClass =
+    variant === 'overlay'
+      ? 'fixed top-0 left-0 right-0 z-50 transition-all duration-300'
+      : 'sticky top-0 z-50 shadow-sm transition-all duration-300';
+
+  const containerClass = 'shadow-sm'; // Always show shadow since it is white
 
   return (
     <>
-      {/* Announcement Banner - Dismissible */}
-      {shouldShowAnnouncement && displayAnnouncementText && (
+      {/* Announcement Bar - Always show since background is solid */}
+      {config?.announcement?.text?.trim() && (
         <div
-          className="relative text-center py-2.5 px-4 text-sm font-medium text-white z-50"
-          style={{ backgroundColor: resolvedPrimary }}
+          className="text-center py-2 text-sm font-medium text-white relative z-50"
+          style={{ backgroundColor: theme.accent }}
         >
-          <span className="block pr-8">{displayAnnouncementText}</span>
-          <button
-            onClick={() => setAnnouncementDismissed(true)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/20 transition-colors"
-            aria-label="Dismiss announcement"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          {config.announcement.text}
         </div>
       )}
 
       {/* Main Header */}
-      <header className="sticky top-0 z-40 bg-white shadow-sm">
-        {/* Mobile Header */}
-        <div className="lg:hidden">
-          {/* Top bar: hamburger, logo, cart */}
-          <div className="flex items-center justify-between h-14 px-4 border-b border-gray-100">
-            {/* Hamburger Menu */}
+      <header className={`${headerClass} ${containerClass}`} style={{ backgroundColor: headerBg }}>
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Mobile Menu Button */}
             <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="p-2 -ml-2 rounded-xl hover:bg-gray-100 transition-colors"
-              aria-label="Open menu"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className={`lg:hidden p-2 rounded-lg transition-colors ${isTransparent ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+              aria-label="Toggle menu"
             >
-              <Menu className="h-6 w-6 text-gray-700" />
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" style={{ color: iconColor }} />
+              ) : (
+                <Menu className="h-6 w-6" style={{ color: iconColor }} />
+              )}
             </button>
 
-            {/* Logo / Store Name - Centered */}
+            {/* Logo */}
             <PreviewSafeLink to="/" isPreview={isPreview} className="flex items-center gap-2">
-              {logo ? (
-                <img src={logo} alt={storeName} className="h-8 w-auto object-contain" />
-              ) : (
-                <span
-                  className="text-lg font-bold"
-                  style={{ color: resolvedPrimary }}
-                >
-                  {storeName}
-                </span>
+              {logo && (
+                <img
+                  src={logo}
+                  alt={storeName}
+                  className={`h-10 w-auto object-contain rounded px-2 py-1 ${logoBg}`}
+                />
               )}
+              <span className="text-xl font-bold" style={{ color: theme.primary }}>
+                {storeName}
+              </span>
             </PreviewSafeLink>
 
-            {/* Cart Icon */}
-            <PreviewSafeLink
-              to="/cart"
-              isPreview={isPreview}
-              className="p-2 -mr-2 rounded-xl hover:bg-gray-100 transition-colors relative"
-            >
-              <ShoppingCart className="h-6 w-6 text-gray-700" />
-              {cartCount > 0 && (
-                <span
-                  className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1 rounded-full text-white text-xs flex items-center justify-center font-semibold"
-                  style={{ backgroundColor: resolvedAccent }}
-                >
-                  {cartCount > 99 ? '99+' : cartCount}
-                </span>
-              )}
-            </PreviewSafeLink>
-          </div>
-
-          {/* Mobile Search Bar */}
-          <div className="px-4 py-3 bg-gray-50">
-            <form onSubmit={handleSearch} className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t('searchProducts') || 'Search products...'}
-                className="w-full h-11 pl-4 pr-12 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-shadow"
-                style={{ '--tw-ring-color': resolvedPrimary } as React.CSSProperties}
-              />
-              <button
-                type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors"
-                style={{ backgroundColor: resolvedPrimary }}
-                aria-label="Search"
-              >
-                <Search className="h-4 w-4 text-white" />
-              </button>
-            </form>
-          </div>
-        </div>
-
-        {/* Desktop Header */}
-        <div className="hidden lg:block">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="flex items-center justify-between h-16 gap-8">
-              {/* Logo / Store Name */}
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center gap-6">
               <PreviewSafeLink
                 to="/"
                 isPreview={isPreview}
-                className="flex items-center gap-3 flex-shrink-0"
+                className="text-sm font-medium hover:opacity-70 transition-opacity"
+                style={{ color: textColor }}
               >
-                {logo && (
-                  <img src={logo} alt={storeName} className="h-10 w-auto object-contain" />
-                )}
-                <span
-                  className="text-xl font-bold"
-                  style={{ color: resolvedPrimary }}
-                >
-                  {storeName}
-                </span>
+                {t('home')}
               </PreviewSafeLink>
+              <PreviewSafeLink
+                to="/products"
+                isPreview={isPreview}
+                className="text-sm font-medium hover:opacity-70 transition-opacity"
+                style={{ color: textColor }}
+              >
+                {t('allProducts')}
+              </PreviewSafeLink>
+              {validCategories.slice(0, 4).map((cat) => {
+                const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+                
+                if (!title) return null;
 
-              {/* Search Bar - Wide, centered */}
-              <form onSubmit={handleSearch} className="flex-1 max-w-xl">
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={t('searchProducts') || 'Search products...'}
-                    className="w-full h-11 pl-5 pr-12 rounded-xl bg-gray-100 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:bg-white focus:border focus:border-gray-200 transition-all"
-                    style={{ '--tw-ring-color': resolvedPrimary } as React.CSSProperties}
-                  />
-                  <button
-                    type="submit"
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:opacity-90 transition-opacity"
-                    style={{ backgroundColor: resolvedPrimary }}
-                    aria-label="Search"
-                  >
-                    <Search className="h-4 w-4 text-white" />
-                  </button>
-                </div>
-              </form>
+                const slug = title.trim().toLowerCase().replace(/\s+/g, ' ');
+                const encodedSlug = encodeURIComponent(slug).replace(/%20/g, '-');
 
-              {/* Nav Links + Actions */}
-              <div className="flex items-center gap-1">
-                {/* Navigation Links */}
-                <nav className="flex items-center gap-1 mr-2">
-                  {navLinks.map((link) => {
-                    const isActive = currentCategory === link.label;
-                    return (
-                      <PreviewSafeLink
-                        key={link.to}
-                        to={link.to}
-                        isPreview={isPreview}
-                        className="px-3 py-2 rounded-xl text-sm font-medium transition-colors hover:bg-gray-100"
-                        style={{
-                          color: isActive ? resolvedPrimary : '#374151',
-                          backgroundColor: isActive ? `${resolvedPrimary}10` : undefined,
-                        }}
-                      >
-                        {link.label}
-                      </PreviewSafeLink>
-                    );
-                  })}
-                </nav>
-
-                {/* Language Selector */}
-                <div className="mr-1">
-                  <LanguageSelector className="text-gray-600" />
-                </div>
-
-                {/* Wishlist */}
-                {!isPreview && (
+                return (
                   <PreviewSafeLink
-                    to="/account/wishlist"
+                    key={title}
+                    to={`/products/${encodedSlug}`}
                     isPreview={isPreview}
-                    className="p-2.5 rounded-xl hover:bg-gray-100 transition-colors relative"
-                    aria-label="Wishlist"
+                    className="text-sm font-medium hover:opacity-70 transition-opacity"
+                    style={{
+                      color: currentCategory === title && !isTransparent ? theme.primary : textColor,
+                    }}
                   >
-                    <Heart className="h-5 w-5 text-gray-600" />
-                    {wishlistCount > 0 && (
-                      <span
-                        className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-white text-[10px] flex items-center justify-center font-semibold"
-                        style={{ backgroundColor: resolvedAccent }}
-                      >
-                        {wishlistCount > 99 ? '99+' : wishlistCount}
-                      </span>
-                    )}
+                    {title}
                   </PreviewSafeLink>
-                )}
+                );
+              })}
+            </nav>
 
-                {/* Cart */}
+            {/* Search, Wishlist, Cart, Account */}
+            <div className="flex items-center gap-2">
+              <div className={`${isTransparent ? 'text-white' : ''} hidden lg:block`}>
+                <LanguageSelector className="mr-1" />
+              </div>
+
+              {/* Search Toggle */}
+              <button
+                onClick={() => setSearchOpen(!searchOpen)}
+                className={`p-2 rounded-lg transition-colors ${isTransparent ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+                aria-label="Search"
+              >
+                <Search className="h-5 w-5" style={{ color: iconColor }} />
+              </button>
+
+              {/* Wishlist */}
+              {!isPreview && (
                 <PreviewSafeLink
-                  to="/cart"
+                  to="/account/wishlist"
                   isPreview={isPreview}
-                  className="p-2.5 rounded-xl hover:bg-gray-100 transition-colors relative"
-                  aria-label="Cart"
+                  className={`p-2 rounded-lg transition-colors relative ${isTransparent ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
                 >
-                  <ShoppingCart className="h-5 w-5 text-gray-600" />
-                  {cartCount > 0 && (
+                  <Heart className="h-5 w-5" style={{ color: iconColor }} />
+                  {wishlistCount > 0 && (
                     <span
-                      className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-white text-[10px] flex items-center justify-center font-semibold"
-                      style={{ backgroundColor: resolvedPrimary }}
+                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-white text-xs flex items-center justify-center font-medium"
+                      style={{ backgroundColor: theme.accent }}
                     >
-                      {cartCount > 99 ? '99+' : cartCount}
+                      {wishlistCount}
                     </span>
                   )}
                 </PreviewSafeLink>
+              )}
 
-                {/* Account */}
-                {!isPreview && (
-                  <Link
-                    to="/account"
-                    className="p-2.5 rounded-xl hover:bg-gray-100 transition-colors flex items-center gap-2"
-                    title={customer ? customer.name || customer.email || 'My Account' : 'Login'}
-                  >
-                    {customer ? (
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold text-white"
-                        style={{ backgroundColor: resolvedPrimary }}
-                      >
-                        {(customer.name?.[0] || customer.email?.[0] || 'U').toUpperCase()}
-                      </div>
-                    ) : (
-                      <User className="h-5 w-5 text-gray-600" />
-                    )}
-                  </Link>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Mobile Slide-out Menu Drawer */}
-      {mobileMenuOpen && (
-        <>
-          {/* Overlay */}
-          <div
-            className="fixed inset-0 bg-black/50 z-50 lg:hidden"
-            onClick={() => setMobileMenuOpen(false)}
-            aria-hidden="true"
-          />
-
-          {/* Drawer */}
-          <div className="fixed inset-y-0 left-0 w-[280px] max-w-[85vw] bg-white z-50 lg:hidden shadow-2xl animate-slide-in-left">
-            {/* Drawer Header */}
-            <div className="flex items-center justify-between h-14 px-4 border-b border-gray-100">
+              {/* Cart */}
               <PreviewSafeLink
-                to="/"
+                to="/cart"
                 isPreview={isPreview}
-                className="flex items-center gap-2"
-                onClick={() => setMobileMenuOpen(false)}
+                className={`p-2 rounded-lg transition-colors relative ${isTransparent ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
               >
-                {logo ? (
-                  <img src={logo} alt={storeName} className="h-8 w-auto object-contain" />
-                ) : (
-                  <span className="text-lg font-bold" style={{ color: resolvedPrimary }}>
-                    {storeName}
+                <ShoppingCart className="h-5 w-5" style={{ color: iconColor }} />
+                {cartCount > 0 && (
+                  <span
+                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-white text-xs flex items-center justify-center font-medium"
+                    style={{ backgroundColor: theme.primary }}
+                  >
+                    {cartCount > 9 ? '9+' : cartCount}
                   </span>
                 )}
               </PreviewSafeLink>
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-2 -mr-2 rounded-xl hover:bg-gray-100 transition-colors"
-                aria-label="Close menu"
-              >
-                <X className="h-5 w-5 text-gray-600" />
-              </button>
-            </div>
 
-            {/* Drawer Navigation */}
-            <nav className="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-56px)]">
-              {/* Main Nav Links */}
-              {navLinks.map((link) => {
-                const isActive = currentCategory === link.label;
+              {/* Account */}
+              {!isPreview && (
+                <Link
+                  to="/account"
+                  className={`hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${isTransparent ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+                  title={customer ? customer.name || customer.email || 'My Account' : 'Login'}
+                >
+                  {customer ? (
+                    <>
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium text-white"
+                        style={{ backgroundColor: theme.primary }}
+                      >
+                        {(customer.name?.[0] || customer.email?.[0] || 'U').toUpperCase()}
+                      </div>
+                      <span
+                        className="text-sm font-medium hidden md:block"
+                        style={{ color: iconColor }}
+                      >
+                        {customer.name || customer.email?.split('@')[0] || 'Account'}
+                      </span>
+                    </>
+                  ) : (
+                    <User className="h-5 w-5" style={{ color: iconColor }} />
+                  )}
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* Search Bar - Expandable */}
+          {searchOpen && (
+            <div className="py-3 border-t" style={{ borderColor: theme.muted + '30' }}>
+              <form onSubmit={handleSearch} className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t('searchProducts')}
+                  className="w-full px-4 py-3 pr-12 rounded-lg border focus:outline-none focus:ring-2"
+                  style={{
+                    borderColor: theme.muted + '40',
+                    backgroundColor: theme.background,
+                    color: theme.text,
+                  }}
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-colors"
+                  style={{ backgroundColor: theme.primary, color: 'white' }}
+                >
+                  <Search className="h-4 w-4" />
+                </button>
+              </form>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div
+            className="lg:hidden border-t shadow-lg"
+            style={{
+              backgroundColor: theme.headerBg,
+              borderColor: theme.muted + '30',
+            }}
+          >
+            <nav className="p-4 space-y-2">
+              <PreviewSafeLink
+                to="/"
+                isPreview={isPreview}
+                className="block px-4 py-3 rounded-lg font-medium transition-colors hover:bg-gray-100"
+                style={{ color: theme.text }}
+              >
+                {t('home')}
+              </PreviewSafeLink>
+              <PreviewSafeLink
+                to="/products"
+                isPreview={isPreview}
+                className="block px-4 py-3 rounded-lg font-medium transition-colors hover:bg-gray-100"
+                style={{ color: theme.text }}
+              >
+                {t('allProducts')}
+              </PreviewSafeLink>
+              {validCategories.map((cat) => {
+                const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : (cat as string);
+                
+                if (!title) return null;
+
+                const slug = title.trim().toLowerCase().replace(/\s+/g, ' ');
+                const encodedSlug = encodeURIComponent(slug).replace(/%20/g, '-');
+
                 return (
                   <PreviewSafeLink
-                    key={link.to}
-                    to={link.to}
+                    key={title}
+                    to={`/collections/${encodedSlug}`}
                     isPreview={isPreview}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors"
-                    style={{
-                      color: isActive ? resolvedPrimary : '#374151',
-                      backgroundColor: isActive ? `${resolvedPrimary}10` : undefined,
-                    }}
+                    className="block px-4 py-3 rounded-lg font-medium transition-colors hover:bg-gray-100"
+                    style={{ color: currentCategory === title ? theme.primary : theme.text }}
                   >
-                    {link.label}
+                    {title}
                   </PreviewSafeLink>
                 );
               })}
 
-              {/* Categories */}
-              {validCategories.length > 0 && (
-                <>
-                  <div className="h-px bg-gray-100 my-3" />
-                  <p className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    {t('categories')}
-                  </p>
-                  {validCategories.map((cat) => {
-                    const title =
-                      typeof cat === 'object' && cat !== null
-                        ? (cat as StoreCategory).title
-                        : (cat as string);
-
-                    if (!title) return null;
-
-                    const slug = title.trim().toLowerCase().replace(/\s+/g, ' ');
-                    const encodedSlug = encodeURIComponent(slug).replace(/%20/g, '-');
-                    const isActive = currentCategory === title;
-
-                    return (
-                      <PreviewSafeLink
-                        key={title}
-                        to={`/products/${encodedSlug}`}
-                        isPreview={isPreview}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors"
-                        style={{
-                          color: isActive ? resolvedPrimary : '#374151',
-                          backgroundColor: isActive ? `${resolvedPrimary}10` : undefined,
-                        }}
-                      >
-                        {title}
-                      </PreviewSafeLink>
-                    );
-                  })}
-                </>
-              )}
-
-              {/* Language Selector */}
-              <div className="h-px bg-gray-100 my-3" />
               <div className="px-4 py-2">
                 <LanguageSelector />
               </div>
 
-              {/* Account Section */}
               {!isPreview && (
                 <>
-                  <div className="h-px bg-gray-100 my-3" />
+                  <div className="border-t my-2" style={{ borderColor: theme.muted + '30' }} />
                   <Link
                     to="/account"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="block px-4 py-3 rounded-lg font-medium transition-colors hover:bg-gray-100"
+                    style={{ color: theme.text }}
                   >
-                    {customer ? (
-                      <>
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold text-white"
-                          style={{ backgroundColor: resolvedPrimary }}
-                        >
-                          {(customer.name?.[0] || customer.email?.[0] || 'U').toUpperCase()}
-                        </div>
-                        <span>{customer.name || customer.email?.split('@')[0] || t('myAccount')}</span>
-                      </>
-                    ) : (
-                      <>
-                        <User className="h-5 w-5" />
-                        <span>{t('myAccount')}</span>
-                      </>
-                    )}
+                    <span className="flex items-center gap-3">
+                      {customer ? (
+                        <>
+                          <div
+                            className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium text-white"
+                            style={{ backgroundColor: theme.primary }}
+                          >
+                            {(customer.name?.[0] || customer.email?.[0] || 'U').toUpperCase()}
+                          </div>
+                          <span>
+                            {customer.name || customer.email?.split('@')[0] || t('myAccount')}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <User className="h-5 w-5" />
+                          {t('myAccount')}
+                        </>
+                      )}
+                    </span>
                   </Link>
-
-                  {/* Wishlist in mobile menu */}
-                  <PreviewSafeLink
-                    to="/account/wishlist"
-                    isPreview={isPreview}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <Heart className="h-5 w-5" />
-                    <span>{t('wishlist') || 'Wishlist'}</span>
-                    {wishlistCount > 0 && (
-                      <span
-                        className="ml-auto px-2 py-0.5 rounded-full text-white text-xs font-semibold"
-                        style={{ backgroundColor: resolvedAccent }}
-                      >
-                        {wishlistCount}
-                      </span>
-                    )}
-                  </PreviewSafeLink>
                 </>
               )}
             </nav>
           </div>
-        </>
-      )}
-
-      {/* CSS for slide-in animation */}
-      <style>{`
-        @keyframes slide-in-left {
-          from {
-            transform: translateX(-100%);
-          }
-          to {
-            transform: translateX(0);
-          }
-        }
-        .animate-slide-in-left {
-          animation: slide-in-left 0.25s ease-out;
-        }
-      `}</style>
+        )}
+      </header>
     </>
   );
 }
