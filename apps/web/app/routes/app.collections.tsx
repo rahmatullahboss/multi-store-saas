@@ -68,7 +68,34 @@ export default function CollectionsIndexPage() {
                 </div>
             ) : (
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <table className="w-full">
+                    {/* Mobile Card View */}
+                    <div className="md:hidden divide-y divide-gray-100">
+                        {storeCollections.map((c) => (
+                            <div key={c.id} className="p-4 flex items-center gap-3">
+                                {c.imageUrl
+                                    ? <img src={c.imageUrl} alt={c.title} className="w-14 h-14 object-cover rounded-lg flex-shrink-0" />
+                                    : <div className="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0"><ImageOff className="w-6 h-6 text-gray-400" /></div>
+                                }
+                                <div className="flex-1 min-w-0">
+                                    <Link to={`/app/collections/${c.id}`} className="font-medium text-gray-900 hover:text-emerald-600 block truncate">{c.title}</Link>
+                                    <p className="text-xs text-gray-500">/{c.slug}</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${c.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-800'}`}>{c.isActive ? 'Active' : 'Draft'}</span>
+                                        <span className="text-xs text-gray-500">{c.productCount} products</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <Link to={`/app/collections/${c.id}`} className="p-2 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg"><Pencil className="w-4 h-4" /></Link>
+                                    <Form method="post" onSubmit={(e) => { if (!confirm('Delete this collection?')) e.preventDefault(); }}>
+                                        <input type="hidden" name="intent" value="delete" /><input type="hidden" name="id" value={c.id} />
+                                        <button type="submit" disabled={isSubmitting} className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                                    </Form>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    {/* Desktop Table View */}
+                    <table className="hidden md:table w-full">
                         <thead className="bg-gray-50 border-b border-gray-200">
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Title</th>

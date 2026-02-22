@@ -305,7 +305,7 @@ export default function FraudSettingsPage() {
       )}
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
         <GlassCard className="p-4 text-center">
           <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
           <p className="text-xs text-gray-500">Total Checks</p>
@@ -527,7 +527,57 @@ export default function FraudSettingsPage() {
         {heldEvents.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-6">No orders pending review 🎉</p>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile Card View */}
+          <div className="md:hidden divide-y divide-gray-100">
+            {heldEvents.map((event) => {
+              const signals = event.signals ? JSON.parse(event.signals as string) : [];
+              const isPending = !event.resolvedBy;
+              return (
+                <div key={event.id} className={`p-4 space-y-2 ${isPending ? 'bg-orange-50/30' : 'opacity-60'}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-sm font-medium">{event.phone}</span>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                      event.riskScore >= 80 ? 'bg-red-100 text-red-800' :
+                      event.riskScore >= 60 ? 'bg-orange-100 text-orange-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {event.riskScore}/100
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {signals.slice(0, 3).map((s: { name: string }, i: number) => (
+                      <span key={i} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{s.name}</span>
+                    ))}
+                  </div>
+                  {isPending && (
+                    <div className="flex gap-2 pt-1">
+                      <Form method="post" className="inline">
+                        <input type="hidden" name="intent" value="resolve" />
+                        <input type="hidden" name="eventId" value={event.id} />
+                        <input type="hidden" name="action" value="approve" />
+                        <button type="submit" className="px-3 py-1.5 text-xs bg-emerald-100 text-emerald-700 rounded-lg">✅ Approve</button>
+                      </Form>
+                      <Form method="post" className="inline">
+                        <input type="hidden" name="intent" value="resolve" />
+                        <input type="hidden" name="eventId" value={event.id} />
+                        <input type="hidden" name="action" value="reject" />
+                        <button type="submit" className="px-3 py-1.5 text-xs bg-red-100 text-red-700 rounded-lg">❌ Reject</button>
+                      </Form>
+                      <Form method="post" className="inline">
+                        <input type="hidden" name="intent" value="resolve" />
+                        <input type="hidden" name="eventId" value={event.id} />
+                        <input type="hidden" name="action" value="blacklist" />
+                        <button type="submit" className="px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-lg">🚫 Block</button>
+                      </Form>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {/* Desktop Table View */}
+          <div className="overflow-x-auto hidden md:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-gray-500">
@@ -622,6 +672,7 @@ export default function FraudSettingsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </GlassCard>
 

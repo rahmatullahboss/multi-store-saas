@@ -1026,7 +1026,46 @@ export default function DashboardOrdersPage() {
             </div>
           </div>
 
-          {/* Table */}
+          {/* Mobile Search Bar (visible only on mobile) */}
+          <div className="md:hidden px-4 py-3 border-b border-gray-100 bg-white">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                role="search"
+                aria-label="Search orders"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-gray-100 text-sm placeholder-gray-500 focus:ring-2 focus:ring-emerald-500/20 focus:bg-white transition-all outline-none"
+                placeholder={t('dashboard:searchByOrderHint')}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            {/* Mobile Status Pills */}
+            <div className="flex gap-2 mt-3 overflow-x-auto hide-scrollbar pb-1">
+              {statusTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => handleStatusChange(tab.id)}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    statusFilter === tab.id
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {tab.label}
+                  {tab.count > 0 && (
+                    <span
+                      className={`ml-1 ${statusFilter === tab.id ? 'text-emerald-100' : 'text-gray-400'}`}
+                    >
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Table / Card List */}
           <div className="flex-1 overflow-auto bg-white">
             {storeOrders.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-12 text-center">
@@ -1053,216 +1092,314 @@ export default function DashboardOrdersPage() {
                 </button>
               </div>
             ) : (
-              <table className="w-full text-left border-collapse min-w-[800px]">
-                <thead className="bg-gray-50 sticky top-0 z-10">
-                  <tr>
-                    <th className="py-3 px-4 border-b border-gray-200 w-10">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-600/20"
-                      />
-                    </th>
-                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      {t('dashboard:order')} ID
-                    </th>
-                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      {t('dashboard:customer')}
-                    </th>
-                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
-                      {t('dashboard:total')}
-                    </th>
-                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      {t('dashboard:payment')}
-                    </th>
-                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      {t('dashboard:status')}
-                    </th>
-                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      Fraud <span className="text-yellow-400">⚡</span>
-                    </th>
-                    <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      {t('dashboard:courier')}
-                    </th>
-                    <th className="py-3 px-4 border-b border-gray-200 w-10"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
+              <>
+                {/* ===== MOBILE CARD VIEW ===== */}
+                <div className="md:hidden divide-y divide-gray-100 -mx-4">
                   {filteredOrders.map((order) => {
                     const isErrorState =
                       order.status === 'cancelled' || order.status === 'returned';
+                    const statusColors: Record<string, string> = {
+                      pending: 'bg-orange-50 text-orange-700 border-orange-200',
+                      confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
+                      processing: 'bg-purple-50 text-purple-700 border-purple-200',
+                      shipped: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                      delivered: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                      cancelled: 'bg-red-50 text-red-700 border-red-200',
+                      returned: 'bg-red-50 text-red-700 border-red-200',
+                    };
                     return (
-                      <tr
+                      <Link
                         key={order.id}
-                        className={`group hover:bg-gray-50 transition-colors ${isErrorState ? 'bg-red-50/30 hover:bg-red-50/50' : ''}`}
+                        to={`/app/orders/${order.id}`}
+                        className={`block px-4 py-4 hover:bg-gray-50 active:bg-gray-100 transition-colors ${isErrorState ? 'bg-red-50/30' : ''}`}
                       >
-                        <td className="py-3 px-4 w-10">
-                          <input
-                            type="checkbox"
-                            className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-600/20"
-                          />
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2">
-                              <Receipt
-                                className={`h-4 w-4 ${isErrorState ? 'text-red-500' : 'text-gray-400'}`}
-                              />
-                              <Link
-                                to={`/app/orders/${order.id}`}
-                                className="font-medium text-emerald-600 text-sm font-sans tabular-nums hover:underline cursor-pointer"
-                              >
-                                {order.orderNumber}
-                              </Link>
-                            </div>
-                            <span className="text-[11px] text-gray-400 ml-6">
-                              {formatDate(order.createdAt)}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-900">
+                        {/* Top row: Order # + Status */}
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span className="font-bold text-emerald-700 text-sm font-mono">
+                            {order.orderNumber}
+                          </span>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold border ${statusColors[order.status || 'pending'] || 'bg-gray-50 text-gray-600 border-gray-200'}`}
+                          >
+                            {order.status}
+                          </span>
+                        </div>
+
+                        {/* Customer info */}
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-base font-semibold text-gray-900 truncate">
                               {order.customerName || 'Customer'}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-500 font-sans tabular-nums flex items-center gap-1">
-                                {order.customerPhone}
-                              </span>
-                            </div>
-                            {order.displayAddress && (
-                              <span
-                                className="text-xs text-gray-400 flex items-center gap-1 mt-0.5 w-[180px] truncate"
-                                title={order.displayAddress}
+                            </p>
+                            <p className="text-sm text-gray-500 mt-0.5 flex items-center gap-1">
+                              <svg
+                                className="w-3.5 h-3.5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
                               >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                                />
+                              </svg>
+                              {order.customerPhone}
+                            </p>
+                            {order.displayAddress && (
+                              <p className="text-xs text-gray-400 mt-1 truncate max-w-[200px]">
                                 {order.displayAddress}
-                              </span>
+                              </p>
                             )}
                           </div>
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <span className="text-sm font-semibold text-gray-900 font-sans tabular-nums">
-                            {formatPrice(order.total)}
+                          <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                            <span className="font-bold text-gray-900 text-lg">
+                              {formatPrice(order.total)}
+                            </span>
+                            <span
+                              className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
+                                order.paymentStatus === 'paid'
+                                  ? 'bg-emerald-100 text-emerald-700'
+                                  : 'bg-orange-100 text-orange-700'
+                              }`}
+                            >
+                              {order.paymentStatus === 'paid'
+                                ? t('dashboard:paid')
+                                : t('dashboard:cod')}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Bottom row: Date + Courier */}
+                        <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
+                          <span className="text-xs text-gray-400">
+                            {formatDate(order.createdAt)}
                           </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
-                              order.paymentStatus === 'paid'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : 'bg-orange-50 text-orange-700 border-orange-200'
-                            }`}
-                          >
-                            {order.paymentStatus === 'paid'
-                              ? t('dashboard:paid')
-                              : t('dashboard:cod')}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <StatusDropdown
-                            orderId={order.id}
-                            currentStatus={order.status || 'pending'}
-                          />
-                        </td>
-                        <td className="py-3 px-4 min-w-[110px]">
-                          {'fraudCache' in order &&
-                          (
-                            order as {
-                              fraudCache: {
-                                successRate: number;
-                                totalOrders: number;
-                                isHighRisk: boolean;
-                                cachedAt: string;
-                              } | null;
-                            }
-                          ).fraudCache ? (
-                            (() => {
-                              const fc = (
-                                order as {
-                                  fraudCache: {
-                                    successRate: number;
-                                    totalOrders: number;
-                                    isHighRisk: boolean;
-                                    cachedAt: string;
-                                  };
-                                }
-                              ).fraudCache;
-                              const sr = fc.successRate;
-                              const colorClass =
-                                sr >= 80
+                          {order.courier && (
+                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                              {order.courier}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                {/* ===== DESKTOP TABLE VIEW ===== */}
+                <table className="hidden md:table w-full text-left border-collapse min-w-[800px]">
+                  <thead className="bg-gray-50 sticky top-0 z-10">
+                    <tr>
+                      <th className="py-3 px-4 border-b border-gray-200 w-10">
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-600/20"
+                        />
+                      </th>
+                      <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {t('dashboard:order')} ID
+                      </th>
+                      <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {t('dashboard:customer')}
+                      </th>
+                      <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
+                        {t('dashboard:total')}
+                      </th>
+                      <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {t('dashboard:payment')}
+                      </th>
+                      <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {t('dashboard:status')}
+                      </th>
+                      <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Fraud <span className="text-yellow-400">⚡</span>
+                      </th>
+                      <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        {t('dashboard:courier')}
+                      </th>
+                      <th className="py-3 px-4 border-b border-gray-200 w-10"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {filteredOrders.map((order) => {
+                      const isErrorState =
+                        order.status === 'cancelled' || order.status === 'returned';
+                      return (
+                        <tr
+                          key={order.id}
+                          className={`group hover:bg-gray-50 transition-colors ${isErrorState ? 'bg-red-50/30 hover:bg-red-50/50' : ''}`}
+                        >
+                          <td className="py-3 px-4 w-10">
+                            <input
+                              type="checkbox"
+                              className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-600/20"
+                            />
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-2">
+                                <Receipt
+                                  className={`h-4 w-4 ${isErrorState ? 'text-red-500' : 'text-gray-400'}`}
+                                />
+                                <Link
+                                  to={`/app/orders/${order.id}`}
+                                  className="font-medium text-emerald-600 text-sm font-sans tabular-nums hover:underline cursor-pointer"
+                                >
+                                  {order.orderNumber}
+                                </Link>
+                              </div>
+                              <span className="text-[11px] text-gray-400 ml-6">
+                                {formatDate(order.createdAt)}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-900">
+                                {order.customerName || 'Customer'}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-500 font-sans tabular-nums flex items-center gap-1">
+                                  {order.customerPhone}
+                                </span>
+                              </div>
+                              {order.displayAddress && (
+                                <span
+                                  className="text-xs text-gray-400 flex items-center gap-1 mt-0.5 w-[180px] truncate"
+                                  title={order.displayAddress}
+                                >
+                                  {order.displayAddress}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <span className="text-sm font-semibold text-gray-900 font-sans tabular-nums">
+                              {formatPrice(order.total)}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
+                                order.paymentStatus === 'paid'
                                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                  : sr >= 50
-                                    ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                                    : 'bg-red-50 text-red-700 border-red-200';
-                              return (
-                                <div className="flex flex-col gap-0.5">
-                                  <span
-                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold border ${colorClass}`}
-                                  >
-                                    {sr >= 80 ? '✅' : sr >= 50 ? '⚠️' : '🚫'} {sr}%
-                                  </span>
-                                  <span className="text-[10px] text-gray-400">
-                                    {fc.totalOrders} orders · ⚡cached
-                                  </span>
-                                </div>
-                              );
-                            })()
-                          ) : // No cache yet — show the check button inline
-                          ['pending', 'confirmed'].includes(order.status || '') ? (
-                            <FraudCheckButton
+                                  : 'bg-orange-50 text-orange-700 border-orange-200'
+                              }`}
+                            >
+                              {order.paymentStatus === 'paid'
+                                ? t('dashboard:paid')
+                                : t('dashboard:cod')}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <StatusDropdown
                               orderId={order.id}
                               currentStatus={order.status || 'pending'}
                             />
-                          ) : (
-                            <span className="text-[11px] text-gray-300 italic">—</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            {courierProvider &&
-                            order.status === 'confirmed' &&
-                            !['booked', 'in_transit', 'delivered', 'shipped'].includes(
-                              order.courierStatus || ''
-                            ) ? (
-                              <div className="opacity-60 xl:opacity-100 group-hover:opacity-100 transition-opacity">
-                                <SendToCourierButton
-                                  orderId={order.id}
-                                  orderNumber={order.orderNumber}
-                                  status={order.status || 'pending'}
-                                  courierStatus={order.courierStatus}
-                                  courierProvider={courierProvider}
-                                  allCouriers={allCouriers}
-                                />
-                              </div>
-                            ) : courierProvider ? (
-                              <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                                {courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1)}
-                                {order.courierConsignmentId
-                                  ? `: ${order.courierConsignmentId}`
-                                  : ''}
-                              </span>
+                          </td>
+                          <td className="py-3 px-4 min-w-[110px]">
+                            {'fraudCache' in order &&
+                            (
+                              order as {
+                                fraudCache: {
+                                  successRate: number;
+                                  totalOrders: number;
+                                  isHighRisk: boolean;
+                                  cachedAt: string;
+                                } | null;
+                              }
+                            ).fraudCache ? (
+                              (() => {
+                                const fc = (
+                                  order as {
+                                    fraudCache: {
+                                      successRate: number;
+                                      totalOrders: number;
+                                      isHighRisk: boolean;
+                                      cachedAt: string;
+                                    };
+                                  }
+                                ).fraudCache;
+                                const sr = fc.successRate;
+                                const colorClass =
+                                  sr >= 80
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                    : sr >= 50
+                                      ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                      : 'bg-red-50 text-red-700 border-red-200';
+                                return (
+                                  <div className="flex flex-col gap-0.5">
+                                    <span
+                                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold border ${colorClass}`}
+                                    >
+                                      {sr >= 80 ? '✅' : sr >= 50 ? '⚠️' : '🚫'} {sr}%
+                                    </span>
+                                    <span className="text-[10px] text-gray-400">
+                                      {fc.totalOrders} orders · ⚡cached
+                                    </span>
+                                  </div>
+                                );
+                              })()
+                            ) : // No cache yet — show the check button inline
+                            ['pending', 'confirmed'].includes(order.status || '') ? (
+                              <FraudCheckButton
+                                orderId={order.id}
+                                currentStatus={order.status || 'pending'}
+                              />
                             ) : (
-                              <span className="text-[11px] text-gray-400 italic font-medium">
-                                {t('dashboard:notConfigured')}
-                              </span>
+                              <span className="text-[11px] text-gray-300 italic">—</span>
                             )}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-right whitespace-nowrap">
-                          <div className="flex items-center justify-end gap-2">
-                            <Link
-                              to={`/app/orders/${order.id}`}
-                              className="text-gray-400 hover:text-emerald-600 transition-colors"
-                              title="View Details"
-                            >
-                              <Eye className="h-5 w-5" />
-                            </Link>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              {courierProvider &&
+                              order.status === 'confirmed' &&
+                              !['booked', 'in_transit', 'delivered', 'shipped'].includes(
+                                order.courierStatus || ''
+                              ) ? (
+                                <div className="opacity-60 xl:opacity-100 group-hover:opacity-100 transition-opacity">
+                                  <SendToCourierButton
+                                    orderId={order.id}
+                                    orderNumber={order.orderNumber}
+                                    status={order.status || 'pending'}
+                                    courierStatus={order.courierStatus}
+                                    courierProvider={courierProvider}
+                                    allCouriers={allCouriers}
+                                  />
+                                </div>
+                              ) : courierProvider ? (
+                                <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                                  {courierProvider.charAt(0).toUpperCase() +
+                                    courierProvider.slice(1)}
+                                  {order.courierConsignmentId
+                                    ? `: ${order.courierConsignmentId}`
+                                    : ''}
+                                </span>
+                              ) : (
+                                <span className="text-[11px] text-gray-400 italic font-medium">
+                                  {t('dashboard:notConfigured')}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-2">
+                              <Link
+                                to={`/app/orders/${order.id}`}
+                                className="text-gray-400 hover:text-emerald-600 transition-colors"
+                                title="View Details"
+                              >
+                                <Eye className="h-5 w-5" />
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </>
             )}
           </div>
 

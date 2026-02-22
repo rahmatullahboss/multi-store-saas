@@ -296,7 +296,38 @@ export default function ReviewsPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile card view */}
+          <div className="md:hidden space-y-3 p-4">
+            {filteredReviews.map((review) => (
+              <div key={review.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">{review.customerName || 'Anonymous'}</p>
+                    <p className="text-xs text-gray-500">{review.productTitle}</p>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    review.status === 'approved' ? 'bg-green-100 text-green-700' :
+                    review.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-red-100 text-red-700'
+                  }`}>{review.status}</span>
+                </div>
+                <div className="flex items-center gap-1 mb-2">
+                  {[1,2,3,4,5].map(s => (
+                    <span key={s} className={s <= (review.rating||0) ? 'text-yellow-400 text-sm' : 'text-gray-300 text-sm'}>★</span>
+                  ))}
+                  <span className="text-xs text-gray-500 ml-1">{review.rating}/5</span>
+                </div>
+                {review.comment && <p className="text-sm text-gray-600 mb-3 line-clamp-2">{review.comment}</p>}
+                <div className="flex gap-2 pt-2 border-t border-gray-100">
+                  <button className="flex-1 py-1.5 text-xs bg-emerald-50 text-emerald-700 rounded-lg font-medium">Approve</button>
+                  <button className="flex-1 py-1.5 text-xs bg-red-50 text-red-700 rounded-lg font-medium">Reject</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Desktop table view */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
@@ -315,6 +346,7 @@ export default function ReviewsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>

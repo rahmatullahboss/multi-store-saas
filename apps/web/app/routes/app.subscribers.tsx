@@ -175,7 +175,7 @@ export default function SubscribersPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
             <Users className="w-4 h-4" />
@@ -306,7 +306,7 @@ export default function SubscribersPage() {
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto hidden md:block">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
@@ -372,6 +372,20 @@ export default function SubscribersPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+          {/* Mobile Card View */}
+          <div className="md:hidden divide-y divide-gray-100">
+            {subscribers.map((sub) => (
+              <div key={sub.id} className="p-4 flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 text-sm truncate">{sub.email}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{sub.createdAt ? new Date(sub.createdAt).toLocaleDateString() : '-'}</p>
+                </div>
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${sub.status === 'subscribed' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                  {sub.status === 'subscribed' ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       )}

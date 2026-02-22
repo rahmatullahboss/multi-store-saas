@@ -1184,7 +1184,7 @@ export default function OrderDetailPage() {
         </div>
 
         {/* Non-print sections: Customer, Shipping, Summary cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 no-print">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 no-print">
           {/* Customer Info */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">

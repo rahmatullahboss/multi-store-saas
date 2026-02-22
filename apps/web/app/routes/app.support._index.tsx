@@ -118,66 +118,26 @@ export default function SupportTicketsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-gray-600 mb-1">Total Tickets</div>
-              <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
-            </div>
-            <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Ticket className="w-6 h-6 text-gray-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-red-50 to-pink-50 p-6 rounded-xl border border-red-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-red-700 mb-1">Open</div>
-              <div className="text-3xl font-bold text-red-900">{stats.open}</div>
-            </div>
-            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-              <AlertCircle className="w-6 h-6 text-red-600" />
+      <div className="grid grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
+        {[
+          { label: 'Total', value: stats.total, bg: 'bg-white border-gray-200', text: 'text-gray-900', labelColor: 'text-gray-600', icon: Ticket, iconBg: 'bg-gray-100', iconColor: 'text-gray-600' },
+          { label: 'Open', value: stats.open, bg: 'bg-gradient-to-br from-red-50 to-pink-50 border-red-200', text: 'text-red-900', labelColor: 'text-red-700', icon: AlertCircle, iconBg: 'bg-red-100', iconColor: 'text-red-600' },
+          { label: 'In Progress', value: stats.inProgress, bg: 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200', text: 'text-yellow-900', labelColor: 'text-yellow-700', icon: Loader2, iconBg: 'bg-yellow-100', iconColor: 'text-yellow-600' },
+          { label: 'Waiting', value: stats.waiting, bg: 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200', text: 'text-blue-900', labelColor: 'text-blue-700', icon: Clock, iconBg: 'bg-blue-100', iconColor: 'text-blue-600' },
+          { label: 'Resolved', value: stats.resolved, bg: 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200', text: 'text-green-900', labelColor: 'text-green-700', icon: CheckCircle, iconBg: 'bg-green-100', iconColor: 'text-green-600' },
+        ].map(({ label, value, bg, text, labelColor, icon: Icon, iconBg, iconColor }) => (
+          <div key={label} className={`${bg} p-3 md:p-6 rounded-xl border shadow-sm`}>
+            <div className="flex items-center justify-between gap-1">
+              <div>
+                <div className={`text-xs md:text-sm font-medium ${labelColor} mb-0.5 md:mb-1`}>{label}</div>
+                <div className={`text-xl md:text-3xl font-bold ${text}`}>{value}</div>
+              </div>
+              <div className={`w-8 h-8 md:w-12 md:h-12 ${iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                <Icon className={`w-4 h-4 md:w-6 md:h-6 ${iconColor}`} />
+              </div>
             </div>
           </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-6 rounded-xl border border-yellow-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-yellow-700 mb-1">In Progress</div>
-              <div className="text-3xl font-bold text-yellow-900">{stats.inProgress}</div>
-            </div>
-            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <Loader2 className="w-6 h-6 text-yellow-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-blue-700 mb-1">Waiting</div>
-              <div className="text-3xl font-bold text-blue-900">{stats.waiting}</div>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Clock className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium text-green-700 mb-1">Resolved</div>
-              <div className="text-3xl font-bold text-green-900">{stats.resolved}</div>
-            </div>
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Filters */}

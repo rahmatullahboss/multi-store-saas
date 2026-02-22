@@ -304,7 +304,48 @@ export default function UnifiedLeadsPage() {
 
        {/* Table */}
        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-         <div className="overflow-x-auto">
+
+         {/* Mobile Card View */}
+         <div className="md:hidden divide-y divide-gray-100">
+           {table.getRowModel().rows.length === 0 ? (
+             <div className="py-12 text-center text-gray-500 text-sm">No leads found.</div>
+           ) : (
+             table.getRowModel().rows.map(row => {
+               const lead = row.original as any;
+               return (
+                 <div key={row.id} className="p-4 hover:bg-gray-50">
+                   <div className="flex items-start justify-between gap-3">
+                     <div className="flex-1 min-w-0">
+                       <p className="font-semibold text-gray-900 text-sm truncate">{lead.name}</p>
+                       <p className="text-xs text-gray-500 mt-0.5">{lead.email}</p>
+                       {lead.phone && <p className="text-xs text-gray-500">{lead.phone}</p>}
+                     </div>
+                     <div className="flex flex-col items-end gap-1.5">
+                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                         lead.status === 'converted' ? 'bg-green-100 text-green-700' :
+                         lead.status === 'interested' ? 'bg-blue-100 text-blue-700' :
+                         lead.status === 'lost' ? 'bg-red-100 text-red-700' :
+                         'bg-yellow-100 text-yellow-700'
+                       }`}>{lead.status || 'New'}</span>
+                       {lead.source && <span className="text-xs text-gray-400">{lead.source}</span>}
+                     </div>
+                   </div>
+                   {lead.notes && <p className="text-xs text-gray-500 mt-2 line-clamp-2">{lead.notes}</p>}
+                   <div className="flex items-center justify-between mt-3">
+                     <span className="text-xs text-gray-400">{lead.createdAt ? new Date(lead.createdAt).toLocaleDateString('bn-BD') : ''}</span>
+                     <div className="flex gap-2">
+                       <button className="text-xs text-violet-600 font-medium px-2 py-1 rounded hover:bg-violet-50">View</button>
+                       <button className="text-xs text-gray-500 font-medium px-2 py-1 rounded hover:bg-gray-100">Edit</button>
+                     </div>
+                   </div>
+                 </div>
+               );
+             })
+           )}
+         </div>
+
+         {/* Desktop Table View */}
+         <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left">
               <thead className="bg-gray-50 border-b border-gray-200 text-xs font-semibold uppercase text-gray-500 tracking-wider">
                 {table.getHeaderGroups().map(headerGroup => (
@@ -338,7 +379,7 @@ export default function UnifiedLeadsPage() {
               </tbody>
             </table>
          </div>
-         
+
          {/* Pagination Controls */}
          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-end gap-2">
             <button 

@@ -65,6 +65,7 @@ interface FetcherData {
     error?: string;
     discount?: Discount;
   };
+  error?: string;
 }
 
 interface OrderFetcherData {
@@ -738,11 +739,20 @@ export default function Checkout() {
       if (data.discountResult) {
         setIsApplyingCoupon(false);
         if (data.discountResult.isValid) {
-          setAppliedCoupon(data.discountResult.discount || null); // FIX: handle undefined
-          toast.success('Coupon applied!');
+          setAppliedCoupon(data.discountResult.discount || null);
+          toast.success(lang === 'bn' ? 'কুপন প্রয়োগ হয়েছে!' : 'Coupon applied!');
         } else {
           setAppliedCoupon(null);
-          toast.error(data.discountResult.error || 'Invalid Coupon');
+          const errorMsg = data.discountResult.error || 'Invalid Coupon';
+          const bnMessages: Record<string, string> = {
+            'Invalid discount code': 'অবৈধ কুপন কোড',
+            'Discount expired': 'কুপনের মেয়াদ শেষ হয়ে গেছে',
+            'Discount not yet active': 'কুপন এখনো সক্রিয় হয়নি',
+            'Discount usage limit reached': 'কুপনের সীমা পৌঁছে গেছে',
+            'Per-customer usage limit reached': 'আপনি ইতিমধ্যে এই কুপন ব্যবহার করেছেন',
+          };
+          const bnError = bnMessages[errorMsg] || errorMsg;
+          toast.error(lang === 'bn' ? bnError : errorMsg);
         }
       }
     }

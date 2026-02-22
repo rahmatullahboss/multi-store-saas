@@ -1,14 +1,8 @@
-export type CheckoutPaymentMethod =
-  | 'cod'
-  | 'bkash'
-  | 'nagad'
-  | 'rocket'
-  | 'stripe'
-  | 'sslcommerz';
+export type CheckoutPaymentMethod = 'cod' | 'bkash' | 'nagad' | 'rocket' | 'stripe' | 'sslcommerz';
 
 export type NormalizedPlanType = 'free' | 'starter' | 'premium' | 'business';
 
-const FREE_METHODS: CheckoutPaymentMethod[] = ['cod', 'bkash'];
+const FREE_METHODS: CheckoutPaymentMethod[] = ['cod', 'bkash', 'nagad'];
 const PAID_METHODS: CheckoutPaymentMethod[] = [
   'cod',
   'bkash',
@@ -47,11 +41,16 @@ export function getDefaultPaymentMethodForPlan(
   return 'cod';
 }
 
-export function canUseAdvancedManualPayments(planType: string | null | undefined): boolean {
-  return normalizePlanType(planType) !== 'free';
+export function canUseAdvancedManualPayments(_planType: string | null | undefined): boolean {
+  // Free plan now supports COD + bKash + Nagad.
+  // Rocket and full gateway integrations remain paid-only.
+  return normalizePlanType(_planType) !== 'free';
 }
 
-export function calculatePlatformFee(total: number, feeRate: number): {
+export function calculatePlatformFee(
+  total: number,
+  feeRate: number
+): {
   platformFeeAmount: number;
   merchantNetAmount: number;
 } {

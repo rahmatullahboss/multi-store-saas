@@ -669,7 +669,23 @@ export default function DomainSettings() {
           </h3>
           <p className="text-blue-800 mb-4">{t('addCnameRecord')}</p>
           <div className="bg-white/80 rounded-lg p-4 font-mono text-sm mb-4 backdrop-blur-sm border border-blue-100/50">
-            <table className="w-full">
+            {/* Mobile DNS view */}
+            <div className="md:hidden space-y-3">
+              <div className="space-y-1">
+                <p className="text-xs text-gray-500 uppercase">{t('type')}</p>
+                <p className="font-semibold">CNAME</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-gray-500 uppercase">{t('nameHost')}</p>
+                <p className="font-semibold text-blue-600 break-all">{t('cnameNameHost')}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-gray-500 uppercase">{t('valueTarget')}</p>
+                <p className="font-semibold text-emerald-600 break-all">{dnsTarget}</p>
+              </div>
+            </div>
+            {/* Desktop DNS table */}
+            <table className="w-full hidden md:table">
               <thead>
                 <tr className="text-gray-500 text-left">
                   <th className="pb-2">{t('type')}</th>

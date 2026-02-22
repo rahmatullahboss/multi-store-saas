@@ -187,7 +187,53 @@ export default function CampaignsPage() {
       ) : (
         /* Campaigns Table */
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Mobile Card View */}
+          <div className="block md:hidden divide-y divide-gray-100">
+            {campaigns.map((campaign) => (
+              <div key={campaign.id} className="p-4 hover:bg-gray-50">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 truncate">{campaign.name}</p>
+                    <p className="text-xs text-gray-500 truncate mt-0.5">{campaign.subject}</p>
+                  </div>
+                  <StatusBadge status={campaign.status || 'draft'} />
+                </div>
+                <div className="flex items-center gap-4 text-xs text-gray-500 mt-2">
+                  <span>📩 {campaign.recipientCount || 0} recipients</span>
+                  {campaign.status === 'sent' && campaign.sentCount ? (
+                    <span>✅ {campaign.sentCount} sent</span>
+                  ) : null}
+                  {campaign.createdAt ? (
+                    <span>🗓 {new Date(campaign.createdAt).toLocaleDateString()}</span>
+                  ) : null}
+                </div>
+                <div className="flex items-center gap-2 mt-3">
+                  <Link
+                    to={`/app/campaigns/${campaign.id}`}
+                    className="flex-1 text-center py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 rounded-lg"
+                  >
+                    View
+                  </Link>
+                  {campaign.status === 'draft' && (
+                    <Form method="post" className="flex-1">
+                      <input type="hidden" name="intent" value="delete" />
+                      <input type="hidden" name="campaignId" value={campaign.id} />
+                      <button
+                        type="submit"
+                        disabled={isDeleting}
+                        onClick={(e) => { if (!confirm('Delete this campaign?')) e.preventDefault(); }}
+                        className="w-full py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg"
+                      >
+                        Delete
+                      </button>
+                    </Form>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>

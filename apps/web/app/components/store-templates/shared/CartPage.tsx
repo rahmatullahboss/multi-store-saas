@@ -228,7 +228,7 @@ export default function SharedCartPage({
         }))
       );
     }
-  }, [fetcher.data, isPreview]);  
+  }, [fetcher.data, isPreview]);
 
   // Save cart to localStorage
   useEffect(() => {
@@ -249,8 +249,9 @@ export default function SharedCartPage({
   );
 
   const shippingConfig = mvpSettings?.shippingConfig;
-  let freeShippingAbove = shippingConfig?.freeDeliveryAbove ?? shippingConfig?.freeShippingAbove ?? 0;
-  
+  let freeShippingAbove =
+    shippingConfig?.freeDeliveryAbove ?? shippingConfig?.freeShippingAbove ?? 0;
+
   if (isPreview && freeShippingAbove === 0) {
     freeShippingAbove = 1000; // Provide a default for preview mode presentation
   }
@@ -258,8 +259,12 @@ export default function SharedCartPage({
   const hasFreeShippingDisabled = freeShippingAbove <= 0;
   const FREE_SHIPPING_THRESHOLD = hasFreeShippingDisabled ? Infinity : freeShippingAbove;
 
-  const freeShippingProgress = hasFreeShippingDisabled ? 0 : Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
-  const remainingForFreeShipping = hasFreeShippingDisabled ? 0 : Math.max(FREE_SHIPPING_THRESHOLD - subtotal, 0);
+  const freeShippingProgress = hasFreeShippingDisabled
+    ? 0
+    : Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
+  const remainingForFreeShipping = hasFreeShippingDisabled
+    ? 0
+    : Math.max(FREE_SHIPPING_THRESHOLD - subtotal, 0);
   const hasEarnedFreeShipping = !hasFreeShippingDisabled && subtotal >= FREE_SHIPPING_THRESHOLD;
 
   const shipping = hasEarnedFreeShipping ? 0 : isPreview ? 60 : 0;
@@ -348,8 +353,8 @@ export default function SharedCartPage({
       setAppliedCoupon(code);
       setCouponCode('');
     } else {
-      // TODO: Real API call for live mode
-      setCouponError('Coupon validation coming soon');
+      // Direct users to checkout for coupon validation
+      setCouponError('Please proceed to checkout to apply coupon codes');
     }
   };
 
@@ -672,9 +677,7 @@ export default function SharedCartPage({
                     <div className="flex items-center gap-2 text-green-600">
                       <Tag className="w-4 h-4" />
                       <span className="font-medium">{appliedCoupon}</span>
-                      <span className="text-sm">
-                        (-{formatPrice(couponDiscount, currency)})
-                      </span>
+                      <span className="text-sm">(-{formatPrice(couponDiscount, currency)})</span>
                     </div>
                     <button onClick={removeCoupon} className="p-1 text-green-600 hover:opacity-70">
                       <X className="w-4 h-4" />
@@ -729,16 +732,12 @@ export default function SharedCartPage({
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between" style={{ color: colors.muted }}>
                   <span>Subtotal ({totalItems} items)</span>
-                  <span style={{ color: colors.text }}>
-                    {formatPrice(subtotal, currency)}
-                  </span>
+                  <span style={{ color: colors.text }}>{formatPrice(subtotal, currency)}</span>
                 </div>
                 {couponDiscount > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span>Discount</span>
-                    <span>
-                      -{formatPrice(couponDiscount, currency)}
-                    </span>
+                    <span>-{formatPrice(couponDiscount, currency)}</span>
                   </div>
                 )}
                 <div className="flex justify-between" style={{ color: colors.muted }}>

@@ -9,7 +9,10 @@ import { Save, AlertCircle, CheckCircle, Wallet, ArrowLeft } from 'lucide-react'
 import { useTranslation } from '~/contexts/LanguageContext';
 import { z } from 'zod';
 import { logActivity } from '~/lib/activity.server';
-import { canUseAdvancedManualPayments } from '~/lib/payment-policy';
+import {
+  canUseAdvancedManualPayments,
+  getAllowedCheckoutPaymentMethods,
+} from '~/lib/payment-policy';
 
 const bdPhoneRegex = /^(?:\+?88)?01[3-9]\d{8}$/;
 
@@ -84,7 +87,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     instructions: parsed.data.instructions || undefined,
   };
 
-  if (!canUseAdvanced && (normalized.nagadMerchant || normalized.nagadPersonal || normalized.rocketMerchant || normalized.rocketPersonal)) {
+  if (!canUseAdvanced && (normalized.rocketMerchant || normalized.rocketPersonal)) {
     return json(
       {
         success: false,
@@ -130,8 +133,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function PaymentSettings() {
-  const { manualPaymentConfig, canUseAdvancedManualPayments: canUseAdvanced } =
+  const { manualPaymentConfig, canUseAdvancedManualPayments: canUseAdvanced, planType } =
     useLoaderData<typeof loader>();
+  const allowedMethods = getAllowedCheckoutPaymentMethods(planType || 'free');
+  const canUseNagad = allowedMethods.includes('nagad');
+  const canUseRocket = allowedMethods.includes('rocket');
   const fetcher = useFetcher<{ success: boolean; message: string }>();
   const isSaving = fetcher.state === 'submitting';
   const { t } = useTranslation();
@@ -164,8 +170,8 @@ export default function PaymentSettings() {
           <div>
             <p className="font-medium">Free plan payment policy active</p>
             <p className="text-sm">
-              Free stores can use only Cash on Delivery and manual bKash collection. Upgrade to
-              Starter or higher to unlock Nagad, Rocket, and full gateway integrations.
+              Free stores can use Cash on Delivery, manual bKash, and manual Nagad collection.
+              Upgrade to Starter or higher to unlock Rocket and full gateway integrations.
             </p>
           </div>
         </div>
@@ -208,7 +214,7 @@ export default function PaymentSettings() {
           </div>
         </div>
 
-        {canUseAdvanced && (
+        {canUseNagad && (
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="bg-orange-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
               <div className="bg-orange-100 p-2 rounded-lg text-orange-600">
@@ -248,7 +254,7 @@ export default function PaymentSettings() {
           </div>
         )}
 
-        {canUseAdvanced && (
+        {canUseRocket && (
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="bg-purple-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
               <div className="bg-purple-100 p-2 rounded-lg text-purple-600">

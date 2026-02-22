@@ -470,7 +470,7 @@ export default function UpgradePage() {
       </div>
 
       {/* Plan Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
         {(
           Object.entries(UPGRADE_PLANS) as [
             keyof typeof UPGRADE_PLANS,

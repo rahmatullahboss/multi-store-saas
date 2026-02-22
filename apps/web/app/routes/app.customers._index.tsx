@@ -266,94 +266,128 @@ export default function CustomersListPage() {
             />
           </div>
         ) : (
-          <div className="overflow-x-auto flex-1">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50/80 text-gray-600 font-medium border-b border-gray-100 sticky top-0 backdrop-blur-sm z-10">
-                <tr>
-                  <th className="px-6 py-3 w-10">
-                    <input
-                      type="checkbox"
-                      className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                    />
-                  </th>
-                  <th className="px-6 py-3">{t('dashboard:customerLabel')}</th>
-                  <th className="px-6 py-3">{t('dashboard:status')}</th>
-                  <th className="px-6 py-3">{t('dashboard:orders')}</th>
-                  <th className="px-6 py-3">{t('dashboard:spent')}</th>
-                  <th className="px-6 py-3 pl-10 text-right">{t('dashboard:actions')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
-                {allCustomers.map((customer) => (
-                  <tr key={customer.id} className="hover:bg-gray-50/80 transition group">
-                    <td className="px-6 py-4">
+          <>
+            {/* ===== MOBILE CARD VIEW ===== */}
+            <div className="md:hidden divide-y divide-gray-100 flex-1">
+              {allCustomers.map((customer) => (
+                <Link
+                  key={customer.id}
+                  to={`/app/customers/${customer.id}`}
+                  className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center text-emerald-700 font-bold text-sm shadow-sm flex-shrink-0">
+                    {(customer.name || customer.email || '?').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 truncate">
+                      {customer.name || t('dashboard:guestLabel')}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate mt-0.5">
+                      {customer.email || customer.phone || 'No contact info'}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    <span className="font-semibold text-gray-900 text-sm tabular-nums">
+                      {formatPrice(customer.totalSpent || 0)}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {customer.totalOrders || 0} {t('dashboard:orders')}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* ===== DESKTOP TABLE VIEW ===== */}
+            <div className="hidden md:block overflow-x-auto flex-1">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-gray-50/80 text-gray-600 font-medium border-b border-gray-100 sticky top-0 backdrop-blur-sm z-10">
+                  <tr>
+                    <th className="px-6 py-3 w-10">
                       <input
                         type="checkbox"
-                        className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 opactiy-0 group-hover:opacity-100 transition-opacity"
+                        className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                       />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center text-emerald-700 font-bold text-sm shadow-sm">
-                          {(customer.name || customer.email || '?').charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <Link
-                            to={`/app/customers/${customer.id}`}
-                            className="font-medium text-gray-900 hover:text-emerald-600"
-                          >
-                            {customer.name || t('dashboard:guestLabel')}
-                          </Link>
-                          <div className="text-xs text-gray-500 mt-0.5">
-                            {customer.email || customer.phone || 'No contact info'}
+                    </th>
+                    <th className="px-6 py-3">{t('dashboard:customerLabel')}</th>
+                    <th className="px-6 py-3">{t('dashboard:status')}</th>
+                    <th className="px-6 py-3">{t('dashboard:orders')}</th>
+                    <th className="px-6 py-3">{t('dashboard:spent')}</th>
+                    <th className="px-6 py-3 pl-10 text-right">{t('dashboard:actions')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 bg-white">
+                  {allCustomers.map((customer) => (
+                    <tr key={customer.id} className="hover:bg-gray-50/80 transition group">
+                      <td className="px-6 py-4">
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 opactiy-0 group-hover:opacity-100 transition-opacity"
+                        />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center text-emerald-700 font-bold text-sm shadow-sm">
+                            {(customer.name || customer.email || '?').charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <Link
+                              to={`/app/customers/${customer.id}`}
+                              className="font-medium text-gray-900 hover:text-emerald-600"
+                            >
+                              {customer.name || t('dashboard:guestLabel')}
+                            </Link>
+                            <div className="text-xs text-gray-500 mt-0.5">
+                              {customer.email || customer.phone || 'No contact info'}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {customer.status === 'active' ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                          {t('dashboard:active')}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 capitalize">
-                          {customer.status}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-gray-600">{customer.totalOrders || 0} {t('dashboard:orders')}</td>
-                    <td className="px-6 py-4 font-medium text-gray-900">
-                      {formatPrice(customer.totalSpent || 0)}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuLabel>{t('dashboard:actions')}</DropdownMenuLabel>
-                          <DropdownMenuItem asChild>
-                            <Link to={`/app/customers/${customer.id}`}>{t('dashboard:viewDetails')}</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Tag className="w-4 h-4 mr-2" />
-                            {t('dashboard:addTags')}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-600">
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            {t('dashboard:deleteCustomer')}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {customer.status === 'active' ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                            {t('dashboard:active')}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 capitalize">
+                            {customer.status}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">{customer.totalOrders || 0} {t('dashboard:orders')}</td>
+                      <td className="px-6 py-4 font-medium text-gray-900">
+                        {formatPrice(customer.totalSpent || 0)}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuLabel>{t('dashboard:actions')}</DropdownMenuLabel>
+                            <DropdownMenuItem asChild>
+                              <Link to={`/app/customers/${customer.id}`}>{t('dashboard:viewDetails')}</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Tag className="w-4 h-4 mr-2" />
+                              {t('dashboard:addTags')}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-red-600">
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              {t('dashboard:deleteCustomer')}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
 
         {/* Pagination Footer */}

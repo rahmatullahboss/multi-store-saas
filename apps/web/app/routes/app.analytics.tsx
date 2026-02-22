@@ -652,34 +652,61 @@ export default function AnalyticsPage() {
           {t('recentOrders')}
         </h2>
         {recentOrders.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-500 border-b border-gray-100">
-                  <th className="pb-3 font-medium">{t('order')}</th>
-                  <th className="pb-3 font-medium">{t('customerLabel')}</th>
-                  <th className="pb-3 font-medium">{t('amountLabel')}</th>
-                  <th className="pb-3 font-medium">{t('status')}</th>
-                  <th className="pb-3 font-medium">{t('date')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {recentOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="py-3 font-medium text-gray-900">#{order.orderNumber}</td>
-                    <td className="py-3 text-gray-600">{order.customerName || t('guestLabel')}</td>
-                    <td className="py-3 font-medium text-gray-900">{formatPrice(order.total)}</td>
-                    <td className="py-3">
+          <>
+            {/* Mobile card view */}
+            <div className="md:hidden divide-y divide-gray-100 -mx-6">
+              {recentOrders.map((order) => (
+                <Link
+                  key={order.id}
+                  to={`/app/orders/${order.id}`}
+                  className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="font-semibold text-emerald-700 text-sm">#{order.orderNumber}</span>
                       <StatusBadge status={order.status || 'pending'} />
-                    </td>
-                    <td className="py-3 text-gray-500">
+                    </div>
+                    <p className="text-xs text-gray-500 truncate">{order.customerName || t('guestLabel')}</p>
+                  </div>
+                  <div className="flex flex-col items-end ml-3 flex-shrink-0">
+                    <span className="font-bold text-gray-900 text-sm">{formatPrice(order.total)}</span>
+                    <span className="text-[11px] text-gray-400 mt-0.5">
                       {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '-'}
-                    </td>
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            {/* Desktop table view */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-gray-500 border-b border-gray-100">
+                    <th className="pb-3 font-medium">{t('order')}</th>
+                    <th className="pb-3 font-medium">{t('customerLabel')}</th>
+                    <th className="pb-3 font-medium">{t('amountLabel')}</th>
+                    <th className="pb-3 font-medium">{t('status')}</th>
+                    <th className="pb-3 font-medium">{t('date')}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {recentOrders.map((order) => (
+                    <tr key={order.id} className="hover:bg-gray-50">
+                      <td className="py-3 font-medium text-gray-900">#{order.orderNumber}</td>
+                      <td className="py-3 text-gray-600">{order.customerName || t('guestLabel')}</td>
+                      <td className="py-3 font-medium text-gray-900">{formatPrice(order.total)}</td>
+                      <td className="py-3">
+                        <StatusBadge status={order.status || 'pending'} />
+                      </td>
+                      <td className="py-3 text-gray-500">
+                        {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '-'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         ) : (
           <p className="text-gray-500 text-center py-8">{t('noOrdersYet')}</p>
         )}

@@ -7,8 +7,11 @@
   --font-display: 'Outfit', sans-serif;
   --font-body: 'Inter', sans-serif;
 
-  --color-primary: #6366f1;
-  --color-primary-dark: #4f46e5;
+  /* Ozzyl Brand Green - from Stitch Design */
+  --color-primary: #10b77f;
+  --color-primary-dark: #059669;
+  --color-primary-light: #34d399;
+
   --color-secondary: #f59e0b;
   --color-success: #10b981;
   --color-danger: #ef4444;
@@ -16,6 +19,10 @@
   --color-surface-dark: #1f2937;
   --color-text: #111827;
   --color-text-muted: #6b7280;
+
+  /* Background from Stitch */
+  --color-background-light: #f6f8f7;
+  --color-background-dark: #10221c;
 
   /* ============================================= */
   /* PREMIUM LIGHT THEME DESIGN SYSTEM            */
@@ -504,4 +511,9 @@
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: rgba(107, 114, 128, 0.8);
+}
+
+/* Safe area padding for modern phones with home indicator */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }

@@ -16,7 +16,8 @@ export const dashboard = {
   aiStandardDesc: 'Growing stores',
   aiProDesc: 'High volume',
   verificationInProgress: 'Verification in Progress',
-  verificationDesc: 'We are verifying your payment (TRX ID: {{trxId}}). You will receive a notification once activated.',
+  verificationDesc:
+    'We are verifying your payment (TRX ID: {{trxId}}). You will receive a notification once activated.',
   sendMoneyTo: 'Send Money To',
   addSubscriber: 'Add Subscriber',
   totalSubscribers: 'Total Subscribers',
@@ -88,15 +89,15 @@ export const dashboard = {
 
   // First Sale Checklist
   letsGetYourFirstSale: "Let's get your first sale!",
-  completeStepsToLaunch: "Complete these steps to launch your business effectively.",
-  readyStatus: "Ready",
-  firstProductTitle: "Add your first product",
-  firstProductDesc: "Start by adding a product to sell.",
-  visitStoreTitle: "Visit your store",
-  visitStoreDesc: "See how your store looks to customers.",
-  shareStoreTitle: "Share your store link",
-  shareStoreDesc: "Share on social media to get visitors.",
-  copyLink: "Copy Link",
+  completeStepsToLaunch: 'Complete these steps to launch your business effectively.',
+  readyStatus: 'Ready',
+  firstProductTitle: 'Add your first product',
+  firstProductDesc: 'Start by adding a product to sell.',
+  visitStoreTitle: 'Visit your store',
+  visitStoreDesc: 'See how your store looks to customers.',
+  shareStoreTitle: 'Share your store link',
+  shareStoreDesc: 'Share on social media to get visitors.',
+  copyLink: 'Copy Link',
 
   // Analytics & Reports
   analyticsOverview: 'Analytics Overview',
@@ -166,7 +167,8 @@ export const dashboard = {
 
   // Enable Store CTA
   enableStoreTitle: 'Ready to Sell Products?',
-  enableStoreDescription: 'Enable your online store to add products, accept orders, and grow your business.',
+  enableStoreDescription:
+    'Enable your online store to add products, accept orders, and grow your business.',
   enableStoreButton: 'Enable Store',
 
   // navPlans already defined
@@ -362,7 +364,8 @@ export const dashboard = {
   refreshStatus: 'Refresh Status',
   removeDomainBtn: 'Remove Domain',
   addCnameRecord: "Add this CNAME record to your domain's DNS settings:",
-  dnsSetupWaitMsg: 'After adding the DNS record, SSL certificate will be automatically issued (usually 5-15 minutes).',
+  dnsSetupWaitMsg:
+    'After adding the DNS record, SSL certificate will be automatically issued (usually 5-15 minutes).',
   domainConnected: 'Domain Connected!',
   domainConnectedDesc: 'Your custom domain is active and serving your store with HTTPS.',
   domainRequestPending: 'Domain Request Pending',
@@ -374,7 +377,8 @@ export const dashboard = {
   premiumFeature: 'Premium Feature',
   upgradeToStarter: 'Upgrade to a paid plan',
   upgradeToConnectDomain: 'to connect your own domain (e.g., myshop.com).',
-  freePlanSubdomainOnly: 'Free plans use subdomains only. Custom domains require a paid subscription.',
+  freePlanSubdomainOnly:
+    'Free plans use subdomains only. Custom domains require a paid subscription.',
   upgradeToStarterPlan: 'Upgrade to Starter Plan',
   yourDomain: 'Your Domain',
   enterDomainYouOwn: 'Enter the domain you want to use for your store. You must own this domain.',
@@ -388,7 +392,8 @@ export const dashboard = {
   dns: 'DNS',
   cnameNameHost: '@ (or www)',
   domainPlaceholder: 'shop.yourdomain.com',
-  domainAlreadyConfigured: 'You already have a custom domain configured. Remove it first to add a new one.',
+  domainAlreadyConfigured:
+    'You already have a custom domain configured. Remove it first to add a new one.',
   hostnameRefreshSuccess: 'Status refreshed!',
   hostnameRefreshFailed: 'Failed to refresh status',
   domainRemovalSuccess: 'Domain removed successfully.',
@@ -519,13 +524,17 @@ export const dashboard = {
   submitPayment: 'Submit Payment',
   faqs: 'Frequently Asked Questions',
   faqBillingTitle: 'How does billing work?',
-  faqBillingDesc: "You'll be charged monthly. Your subscription renews automatically unless you cancel before the renewal date.",
+  faqBillingDesc:
+    "You'll be charged monthly. Your subscription renews automatically unless you cancel before the renewal date.",
   faqUpgradeTitle: 'Can I upgrade later?',
-  faqUpgradeDesc: "Yes! You can upgrade to a higher plan anytime. You'll only pay the difference for the remaining billing period.",
+  faqUpgradeDesc:
+    "Yes! You can upgrade to a higher plan anytime. You'll only pay the difference for the remaining billing period.",
   faqDowngradeTitle: 'What happens to my data if I downgrade?',
-  faqDowngradeDesc: "Your data is safe. However, if you exceed the new plan's limits, you may need to remove some products or wait for the next billing cycle for orders.",
+  faqDowngradeDesc:
+    "Your data is safe. However, if you exceed the new plan's limits, you may need to remove some products or wait for the next billing cycle for orders.",
   faqCouponTitle: 'How do coupon codes work?',
-  faqCouponDesc: "Coupon codes give you a discount on your subscription fee. Select a plan, enter your coupon code, and click Apply. The discounted price will be shown.",
+  faqCouponDesc:
+    'Coupon codes give you a discount on your subscription fee. Select a plan, enter your coupon code, and click Apply. The discounted price will be shown.',
   teamSettings: 'Team Management',
   teamMembers: 'Team Members',
   inviteTeamMember: 'Invite Team Member',
@@ -607,6 +616,7 @@ export const dashboard = {
   minOrderAmountLabel: 'Minimum Order',
   maxDiscountCap: 'Max Discount Cap',
   maxUsesLabel: 'Max Uses (Total)',
+  perCustomerLimitLabel: 'Per Customer Limit',
   expiryDateLabel: 'Expiry Date',
   codeIsActive: 'Code is active',
   saving: 'Saving...',
@@ -651,8 +661,8 @@ export const dashboard = {
   webhookSecretTitle: 'Webhook Secret',
   webhookSecretDesc: 'Use this secret to verify webhook signatures',
   apiKeyCreatedTitle: 'API Key Created',
-  copyKeyNow: 'Copy your API key now. You won\'t be able to see it again.',
-  savedIt: 'I\'ve saved it',
+  copyKeyNow: "Copy your API key now. You won't be able to see it again.",
+  savedIt: "I've saved it",
   revokeConfirm: 'Are you sure you want to revoke this API key?',
   revoked: 'Revoked',
   active: 'Active',
@@ -689,7 +699,8 @@ export const dashboard = {
   purchase: 'Purchase',
   lead: 'Lead',
   importantInfo: 'Important Information',
-  pixelWarning: 'Your pixel data is stored by Facebook/Google. If you disconnect your pixels, you will lose access to this data.',
+  pixelWarning:
+    'Your pixel data is stored by Facebook/Google. If you disconnect your pixels, you will lose access to this data.',
   trackingSetupDesc: 'Set up Facebook Pixel and Google Analytics to track customer behavior.',
   everyPageLoad: 'Every page load',
   productPage: 'Product page',
@@ -857,7 +868,7 @@ export const dashboard = {
   unlockStorefrontModeStatus: 'Unlock Storefront Mode',
   upgradeToSwitchModes: 'Upgrade to a paid plan to switch between modes.',
   savedCampaignsCountMsg: 'You have {{count}} saved campaign(s) from previous mode switches.',
-  
+
   // Hybrid Mode Settings (NEW)
   enableStoreRoutes: 'Enable Store Routes',
   enableStoreRoutesDesc: 'When enabled, /products, /cart, and /checkout routes will be accessible.',
@@ -895,7 +906,8 @@ export const dashboard = {
   selectProduct: 'Select Product',
   chooseProduct: 'Choose a product...',
   loadingProducts: 'Loading store products...',
-  smartBlockTip: '* Smart blocks like Order Form will automatically use the selected product\'s name and price.',
+  smartBlockTip:
+    "* Smart blocks like Order Form will automatically use the selected product's name and price.",
   whatsappConfig: 'WhatsApp Config',
   defaultMessage: 'Default Message',
   whatsappPlaceholder: 'I want to order this product...',
@@ -906,7 +918,8 @@ export const dashboard = {
   templatesSelectDesc: 'Select a ready-made template and customize',
   orderNow: 'ORDER NOW',
   blocks: 'blocks',
-  templateTip: 'Select a template to load it into the canvas. Then customize colors, fonts, and content to match your brand.',
+  templateTip:
+    'Select a template to load it into the canvas. Then customize colors, fonts, and content to match your brand.',
   loadingEditor: 'Loading editor...',
   savingDraft: 'Saving draft...',
   draftSaved: 'Draft saved successfully!',
@@ -970,7 +983,8 @@ export const dashboard = {
   typography: 'Typography',
   headingFont: 'Heading Font',
   bodyFont: 'Body Font',
-  themeNote: 'Note: Changes apply instantly to all "Smart Blocks". Custom elements might need manual updates.',
+  themeNote:
+    'Note: Changes apply instantly to all "Smart Blocks". Custom elements might need manual updates.',
   magicAiEditor: 'Magic AI Editor',
   magicPageGenerator: 'Magic Page Generator',
   designingRequest: 'Designing Your Request...',
@@ -978,14 +992,16 @@ export const dashboard = {
   appliedSuccess: 'Applied Successfully!',
   designApplied: 'Design Applied!',
   checkCanvas: 'Check your canvas',
-  describeEditHint: 'Tell AI how to edit or design this section. (e.g. "Move this to right", "Make it dark gold")',
+  describeEditHint:
+    'Tell AI how to edit or design this section. (e.g. "Move this to right", "Make it dark gold")',
   describeProductHint: 'Describe your product, and AI will build a high-converting landing page.',
   generatingHtml: 'AI is generating high-quality HTML & Tailwind CSS...',
   designCompletedHint: 'The AI has completed your design. Click Apply to update your page.',
   updatingEditorHint: 'Your page has been updated. Loading editor changes...',
   premiumPro: 'Premium PRO',
   unlockMagicAi: 'Unlock Magic AI',
-  magicAiFutureDesc: 'Experience the future of landing page creation. Our AI models generate high-converting, mobile-perfect designs in seconds.',
+  magicAiFutureDesc:
+    'Experience the future of landing page creation. Our AI models generate high-converting, mobile-perfect designs in seconds.',
   customSectionRedesign: 'Custom Section Redesign',
   editInstantly: 'Edit colors, layouts, and copy instantly.',
   landingPageGeneration: 'Landing Page Generation',
@@ -1067,7 +1083,8 @@ export const dashboard = {
   configuration: 'Configuration',
   chatSimulator: 'Chat Simulator',
   knowledgeBase: 'Knowledge Base',
-  premiumFeatureDesc: 'AI Agent is a premium feature. Upgrade your plan to enable 24/7 automated customer support.',
+  premiumFeatureDesc:
+    'AI Agent is a premium feature. Upgrade your plan to enable 24/7 automated customer support.',
   agentNotConfigured: 'Agent not configured.',
   noActiveAgentFound: 'No active agent found.',
   setupAgent: 'Setup Agent',
@@ -1138,9 +1155,11 @@ export const dashboard = {
   // AI Chat Widget
   dashboardChat_title: 'Ozzyl AI Assistant',
   dashboardChat_online: 'Online',
-  dashboardChat_welcome: 'Hey {{userName}}! I\'m Ozzyl, your AI business assistant. How can I help you grow your store today?',
+  dashboardChat_welcome:
+    "Hey {{userName}}! I'm Ozzyl, your AI business assistant. How can I help you grow your store today?",
   dashboardChat_unlockTitle: 'Unlock Ozzyl AI',
-  dashboardChat_unlockDesc: 'Get business insights, automated responses, and smart suggestions with our Pro plan.',
+  dashboardChat_unlockDesc:
+    'Get business insights, automated responses, and smart suggestions with our Pro plan.',
   dashboardChat_upgradePro: 'Upgrade to Pro',
   dashboardChat_maybeLater: 'Maybe later',
   dashboardChat_thinking: 'Ozzyl is thinking...',
@@ -1157,7 +1176,8 @@ export const dashboard = {
   growthOpportunities: 'Growth Opportunities',
   aiInsights: 'AI Insights',
   revenueForecast: 'Revenue Forecast (7 Days)',
-  revenueForecastDesc: 'Based on recent trends, you are expected to generate this amount next week.',
+  revenueForecastDesc:
+    'Based on recent trends, you are expected to generate this amount next week.',
   recommendedActions: 'Recommended Actions',
   launchRetentionCampaign: 'Launch Retention Campaign',
   launchRetentionCampaignDesc: 'Purchase frequency is low. Send an SMS to inactive customers.',
@@ -1209,7 +1229,7 @@ export const dashboard = {
   // Analytics
   analyticsSubtitle: 'Track your store performance',
   templatePerformanceReport: 'Template Performance Report',
-  analyticsToday: "Today",
+  analyticsToday: 'Today',
   analyticsThisWeek: 'This Week',
   analyticsThisMonth: 'This Month',
   analyticsAllTime: 'All Time',

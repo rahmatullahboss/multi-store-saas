@@ -457,7 +457,7 @@ export default function ReportsPage() {
           <span className="text-sm text-gray-500">{reportData.length} {t('records')}</span>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
           {reportType === 'sales' && <SalesTable data={reportData} formatPrice={formatPrice} />}
           {reportType === 'inventory' && <InventoryTable data={reportData} formatPrice={formatPrice} />}
           {reportType === 'customers' && <CustomersTable data={reportData} formatPrice={formatPrice} />}

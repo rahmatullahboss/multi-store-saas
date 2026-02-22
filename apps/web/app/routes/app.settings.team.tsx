@@ -493,7 +493,7 @@ export default function TeamManagementPage() {
         <Form method="post" className="space-y-4">
           <input type="hidden" name="intent" value="invite" />
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
             {/* Email */}
             <div className="md:col-span-2">
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">

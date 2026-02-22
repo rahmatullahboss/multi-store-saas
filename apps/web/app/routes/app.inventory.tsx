@@ -798,7 +798,61 @@ export default function InventoryPage() {
               </Form>
             </div>
           )}
-          <div className="overflow-x-auto">
+          {/* ===== MOBILE CARD VIEW ===== */}
+          <div className="md:hidden divide-y divide-gray-100">
+            {filteredProducts.map((product) => {
+              const stock = product.inventory || 0;
+              const stockLevel = getStockLevel(stock);
+              const stockColor = getStockColor(stock);
+              return (
+                <div key={product.id} className="px-4 py-3.5 flex items-center gap-3">
+                  {product.imageUrl ? (
+                    <img src={product.imageUrl} alt={product.title} className="w-12 h-12 object-cover rounded-lg border border-gray-200 flex-shrink-0" />
+                  ) : (
+                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <ImageOff className="w-5 h-5 text-gray-400" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <Link to={`/app/products/${product.id}`} className="font-medium text-gray-900 text-sm truncate block hover:text-emerald-600">
+                      {product.title}
+                    </Link>
+                    <p className="text-xs text-gray-500 mt-0.5">{formatPrice(product.price)}</p>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className={`h-full ${stockColor} transition-all duration-300`} style={{ width: `${stockLevel}%` }} />
+                      </div>
+                      <StockStatusBadge stock={stock} threshold={lowStockThreshold} />
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                    <span className="font-bold text-gray-900 text-sm tabular-nums">{stock}</span>
+                    <div className="flex gap-1">
+                      <Form method="post">
+                        <input type="hidden" name="intent" value="adjustStock" />
+                        <input type="hidden" name="productId" value={product.id} />
+                        <input type="hidden" name="adjustment" value="-1" />
+                        <button type="submit" disabled={isSubmitting || stock <= 0} aria-label={t('decreaseStock')} className="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 active:bg-gray-200">
+                          <Minus className="w-4 h-4" />
+                        </button>
+                      </Form>
+                      <Form method="post">
+                        <input type="hidden" name="intent" value="adjustStock" />
+                        <input type="hidden" name="productId" value={product.id} />
+                        <input type="hidden" name="adjustment" value="1" />
+                        <button type="submit" disabled={isSubmitting} aria-label={t('increaseStock')} className="w-8 h-8 flex items-center justify-center bg-emerald-100 text-emerald-700 rounded-lg disabled:opacity-50 active:bg-emerald-200">
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </Form>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ===== DESKTOP TABLE VIEW ===== */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50/50 border-b border-gray-100">
                 <tr>

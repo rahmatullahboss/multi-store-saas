@@ -14,11 +14,11 @@ describe('payment policy', () => {
     expect(normalizePlanType('unknown')).toBe('free');
   });
 
-  it('allows only cod + bkash for free plan', () => {
-    expect(getAllowedCheckoutPaymentMethods('free')).toEqual(['cod', 'bkash']);
+  it('allows cod + bkash + nagad for free plan', () => {
+    expect(getAllowedCheckoutPaymentMethods('free')).toEqual(['cod', 'bkash', 'nagad']);
     expect(isPaymentMethodAllowedForPlan('free', 'cod')).toBe(true);
     expect(isPaymentMethodAllowedForPlan('free', 'bkash')).toBe(true);
-    expect(isPaymentMethodAllowedForPlan('free', 'nagad')).toBe(false);
+    expect(isPaymentMethodAllowedForPlan('free', 'nagad')).toBe(true);
     expect(canUseAdvancedManualPayments('free')).toBe(false);
   });
 

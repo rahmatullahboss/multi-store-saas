@@ -226,55 +226,24 @@ export default function DashboardPage() {
         onAction={() => navigate('/app/inventory?filter=low')}
       />
 
-      {/* Welcome Section - Glassmorphism */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500 via-teal-600 to-emerald-800 p-8 shadow-xl text-white">
-        {/* Abstract shapes for premium feel */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 h-64 w-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-64 w-64 rounded-full bg-emerald-400/20 blur-3xl pointer-events-none" />
+      {/* Welcome Section - Stitch Design Style */}
+      <div className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-primary p-6 md:p-8 shadow-lg text-white">
+        {/* Abstract shapes */}
+        <div className="absolute top-0 right-0 -mt-6 -mr-6 w-24 h-24 rounded-full bg-white/10 blur-xl" />
+        <div className="absolute bottom-0 left-0 -mb-6 -ml-6 w-32 h-32 rounded-full bg-black/10 blur-xl" />
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-medium text-emerald-50 border border-white/10">
-                <Sparkles className="w-3 h-3" />
-                {getGreeting()}
-              </span>
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-3 tracking-tight">
-              {t('dashboard:welcomeTo')} {storeName}
-            </h1>
-            <p className="text-emerald-100 text-lg max-w-xl leading-relaxed">
-              {t('dashboard:dashboardSubtitle')}
-            </p>
-          </div>
-          <div className="flex flex-col gap-3">
-            <div className="flex gap-3">
-              <a
-                href={storeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-emerald-900 hover:bg-emerald-50 rounded-xl font-semibold shadow-lg shadow-emerald-900/20 transition-all duration-300 transform hover:-translate-y-1"
-              >
-                <ExternalLink className="w-5 h-5" />
-                {t('dashboard:viewStore')}
-              </a>
-              {/* Theme Editor - Coming Soon for MVP */}
-              <button
-                disabled
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/20 text-white/60 border border-white/20 rounded-xl font-semibold backdrop-blur-sm cursor-not-allowed relative"
-                title={t('dashboard:comingSoon')}
-              >
-                <Sparkles className="w-5 h-5" />
-                {t('dashboard:themeEditor')}
-                <span className="absolute -top-2 -right-2 bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
-                  {t('dashboard:soonLabel')}
-                </span>
-              </button>
-            </div>
-            <div className="text-xs text-center text-emerald-200/80 font-medium">
-              {storeEnabled ? t('dashboard:storeIsLive') : t('dashboard:maintenanceMode')}
-            </div>
-          </div>
+        <div className="relative z-10">
+          <h2 className="text-xl md:text-2xl font-bold mb-1">
+            {getGreeting()}, {storeName}
+          </h2>
+          <p className="text-white/80 text-sm font-medium">
+            {new Date().toLocaleDateString('en-BD', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })}
+          </p>
         </div>
       </div>
 
@@ -283,125 +252,58 @@ export default function DashboardPage() {
         <FirstSaleChecklist productCount={stats.products} storeUrl={storeUrl} />
       )}
 
-      {/* Key Metrics - Glass Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <GlassCard
-          variant="hover"
-          intensity="medium"
-          className="p-0 overflow-hidden relative group"
-        >
-          <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
-            <DollarSign className="w-16 h-16 text-emerald-500/10 rotate-12" />
-          </div>
-          <MetricCard
-            title={t('dashboard:todaysSales')}
-            value={formatPrice(stats.todaySales)}
-            icon={DollarSign}
-            color="emerald"
-            trend={{
-              value: stats.salesTrend,
-              label: t('dashboard:vsYesterday'),
-            }}
-          />
-        </GlassCard>
-
-        <GlassCard
-          variant="hover"
-          intensity="medium"
-          className="p-0 overflow-hidden relative group"
-        >
-          <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
-            <TrendingUp className="w-16 h-16 text-purple-500/10 rotate-12" />
-          </div>
-          <MetricCard
-            title={t('dashboard:totalRevenue')}
-            value={formatPrice(stats.revenue)}
-            icon={TrendingUp}
-            color="purple"
-          />
-        </GlassCard>
-
-        <GlassCard
-          variant="hover"
-          intensity="medium"
-          className="p-0 overflow-hidden relative group"
-        >
-          <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
-            <Clock className="w-16 h-16 text-blue-500/10 rotate-12" />
-          </div>
-          <MetricCard
-            title={t('dashboard:pendingOrders')}
-            value={stats.pendingOrders}
-            icon={Clock}
-            color={stats.pendingOrders > 0 ? 'orange' : 'blue'}
-            link="/app/orders?status=pending"
-          />
-        </GlassCard>
-
-        <GlassCard
-          variant="hover"
-          intensity="medium"
-          className="p-0 overflow-hidden relative group"
-        >
-          <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
-            <Package className="w-16 h-16 text-blue-500/10 rotate-12" />
-          </div>
-          <MetricCard
-            title={t('dashboard:totalProducts')}
-            value={stats.products}
-            icon={Package}
-            color="blue"
-            link="/app/products"
-          />
-        </GlassCard>
-
-        {/* AI Credits Card */}
-        {usage.aiCredits && (
-          <GlassCard
-            variant="default"
-            className="p-6 flex flex-col justify-between border-purple-100 bg-purple-50/50"
-          >
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-gray-500 text-sm font-medium">
-                    {t('dashboard:aiCredits')}
-                  </p>
-                  <h3 className="text-2xl font-bold text-gray-900 mt-1">
-                    {usage.aiCredits.current}
-                    <span className="text-sm font-normal text-gray-400">
-                      {' '}
-                      {t('dashboard:available')}
-                    </span>
-                  </h3>
-                </div>
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 shadow-md flex items-center justify-center text-white">
-                  <Bot className="w-5 h-5" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                {usage.aiCredits.current < 10 && (
-                  <p className="text-xs text-orange-600 font-medium flex items-center gap-1">
-                    <AlertTriangle className="w-3 h-3" />
-                    {t('dashboard:lowCredits')}
-                    <Link
-                      to="/app/billing"
-                      className="ml-1 underline font-bold hover:text-orange-700"
-                    >
-                      {t('dashboard:topUp')}
-                    </Link>
-                  </p>
-                )}
-                {usage.aiCredits.current >= 10 && (
-                   <p className="text-xs text-purple-600 font-medium flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
-                    {t('dashboard:active')}
-                   </p>
-                )}
-              </div>
+      {/* Key Metrics - Stitch Design Style (2x2 grid) */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Today's Orders */}
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+          <div className="flex justify-between items-start mb-2">
+            <div className="p-2 bg-blue-50 rounded-full">
+              <ShoppingCart className="w-5 h-5 text-blue-600" />
             </div>
-          </GlassCard>
-        )}
+            {stats.salesTrend !== 0 && (
+              <span
+                className={`flex items-center text-xs font-bold ${stats.salesTrend >= 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'} px-1.5 py-0.5 rounded`}
+              >
+                {stats.salesTrend >= 0 ? '↑' : '↓'} {Math.abs(stats.salesTrend)}%
+              </span>
+            )}
+          </div>
+          <p className="text-gray-500 text-xs font-medium mb-0.5">{t('dashboard:todaysOrders')}</p>
+          <h3 className="text-2xl font-bold text-gray-900">{stats.orders || 0}</h3>
+        </div>
+
+        {/* Today's Revenue */}
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+          <div className="flex justify-between items-start mb-2">
+            <div className="p-2 bg-green-50 rounded-full">
+              <DollarSign className="w-5 h-5 text-green-600" />
+            </div>
+          </div>
+          <p className="text-gray-500 text-xs font-medium mb-0.5">{t('dashboard:todaysSales')}</p>
+          <h3 className="text-2xl font-bold text-gray-900">{formatPrice(stats.todaySales)}</h3>
+        </div>
+
+        {/* Total Products */}
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+          <div className="flex justify-between items-start mb-2">
+            <div className="p-2 bg-purple-50 rounded-full">
+              <Package className="w-5 h-5 text-purple-600" />
+            </div>
+          </div>
+          <p className="text-gray-500 text-xs font-medium mb-0.5">{t('dashboard:totalProducts')}</p>
+          <h3 className="text-2xl font-bold text-gray-900">{stats.products || 0}</h3>
+        </div>
+
+        {/* Pending Orders */}
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+          <div className="flex justify-between items-start mb-2">
+            <div className="p-2 bg-orange-50 rounded-full">
+              <Clock className="w-5 h-5 text-orange-600" />
+            </div>
+          </div>
+          <p className="text-gray-500 text-xs font-medium mb-0.5">{t('dashboard:pendingOrders')}</p>
+          <h3 className="text-2xl font-bold text-gray-900">{stats.pendingOrders || 0}</h3>
+        </div>
       </div>
 
       {/* Main Content Grid */}
@@ -452,52 +354,103 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          {
-            to: '/app/products/new',
-            icon: Package,
-            label: 'addProduct',
-            color: 'bg-emerald-100 text-emerald-600',
-            border: 'hover:border-emerald-300',
-          },
-          {
-            to: '/app/orders',
-            icon: ShoppingCart,
-            label: 'viewOrders',
-            color: 'bg-blue-100 text-blue-600',
-            border: 'hover:border-blue-300',
-          },
-          {
-            to: '/app/analytics',
-            icon: TrendingUp,
-            label: 'analytics',
-            color: 'bg-purple-100 text-purple-600',
-            border: 'hover:border-purple-300',
-          },
-          {
-            to: '/app/settings',
-            icon: Sparkles,
-            label: 'settings',
-            color: 'bg-gray-100 text-gray-600',
-            border: 'hover:border-gray-300',
-          },
-        ].map((action, i) => (
-          <Link
-            key={i}
-            to={action.to}
-            className={`flex flex-col items-center gap-3 p-6 bg-white rounded-2xl border border-gray-100 shadow-sm ${action.border} hover:shadow-lg transition-all duration-300 text-center group transform hover:-translate-y-1`}
-          >
-            <div
-              className={`w-14 h-14 ${action.color} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-inner`}
+      {/* Mobile: horizontal scroll row | Desktop: 4-col grid */}
+      <div>
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 md:hidden px-0.5">
+          Quick Actions
+        </h2>
+        {/* Mobile: scrollable horizontal pills */}
+        <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-1 md:hidden">
+          {[
+            {
+              to: '/app/products/new',
+              icon: Package,
+              label: 'addProduct',
+              color: 'bg-emerald-100 text-emerald-600',
+            },
+            {
+              to: '/app/orders',
+              icon: ShoppingCart,
+              label: 'viewOrders',
+              color: 'bg-blue-100 text-blue-600',
+            },
+            {
+              to: '/app/analytics',
+              icon: TrendingUp,
+              label: 'analytics',
+              color: 'bg-purple-100 text-purple-600',
+            },
+            {
+              to: '/app/settings',
+              icon: Sparkles,
+              label: 'settings',
+              color: 'bg-gray-100 text-gray-600',
+            },
+          ].map((action, i) => (
+            <Link
+              key={i}
+              to={action.to}
+              className="flex-shrink-0 flex flex-col items-center gap-2 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm active:scale-95 transition-transform min-w-[88px]"
             >
-              <action.icon className="w-7 h-7" />
-            </div>
-            <span className="font-semibold text-gray-700 group-hover:text-gray-900">
-              {t(`dashboard:${action.label}`)}
-            </span>
-          </Link>
-        ))}
+              <div
+                className={`w-11 h-11 ${action.color} rounded-xl flex items-center justify-center`}
+              >
+                <action.icon className="w-5 h-5" />
+              </div>
+              <span className="text-xs font-medium text-gray-700 text-center leading-tight">
+                {t(`dashboard:${action.label}`)}
+              </span>
+            </Link>
+          ))}
+        </div>
+        {/* Desktop: 4-col grid */}
+        <div className="hidden md:grid grid-cols-4 gap-4">
+          {[
+            {
+              to: '/app/products/new',
+              icon: Package,
+              label: 'addProduct',
+              color: 'bg-emerald-100 text-emerald-600',
+              border: 'hover:border-emerald-300',
+            },
+            {
+              to: '/app/orders',
+              icon: ShoppingCart,
+              label: 'viewOrders',
+              color: 'bg-blue-100 text-blue-600',
+              border: 'hover:border-blue-300',
+            },
+            {
+              to: '/app/analytics',
+              icon: TrendingUp,
+              label: 'analytics',
+              color: 'bg-purple-100 text-purple-600',
+              border: 'hover:border-purple-300',
+            },
+            {
+              to: '/app/settings',
+              icon: Sparkles,
+              label: 'settings',
+              color: 'bg-gray-100 text-gray-600',
+              border: 'hover:border-gray-300',
+            },
+          ].map((action, i) => (
+            <Link
+              key={i}
+              to={action.to}
+              className={`flex flex-col items-center gap-3 p-6 bg-white rounded-2xl border border-gray-100 shadow-sm ${action.border} hover:shadow-lg transition-all duration-300 text-center group transform hover:-translate-y-1`}
+            >
+              <div
+                className={`w-14 h-14 ${action.color} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-inner`}
+              >
+                <action.icon className="w-7 h-7" />
+              </div>
+              <span className="font-semibold text-gray-700 group-hover:text-gray-900">
+                {t(`dashboard:${action.label}`)}
+              </span>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

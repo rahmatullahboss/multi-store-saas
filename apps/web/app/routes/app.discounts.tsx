@@ -1,8 +1,8 @@
 /**
  * Discount Codes Management
- * 
+ *
  * Route: /app/discounts
- * 
+ *
  * Features:
  * - Create/edit discount codes
  * - Percentage or fixed amount discounts
@@ -17,18 +17,18 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { discounts, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
-import { 
-  Tag, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  Loader2, 
-  CheckCircle, 
-  Percent, 
+import {
+  Tag,
+  Plus,
+  Edit2,
+  Trash2,
+  Loader2,
+  CheckCircle,
+  Percent,
   DollarSign,
   Calendar,
   Users,
-  Copy
+  Copy,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -81,6 +81,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const minOrderAmount = formData.get('minOrderAmount') as string;
       const maxDiscountAmount = formData.get('maxDiscountAmount') as string;
       const maxUses = formData.get('maxUses') as string;
+      const perCustomerLimit = formData.get('perCustomerLimit') as string;
       const expiresAt = formData.get('expiresAt') as string;
       const isActive = formData.get('isActive') === 'true';
 
@@ -102,6 +103,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         minOrderAmount: minOrderAmount ? parseFloat(minOrderAmount) : null,
         maxDiscountAmount: maxDiscountAmount ? parseFloat(maxDiscountAmount) : null,
         maxUses: maxUses ? parseInt(maxUses) : null,
+        perCustomerLimit: perCustomerLimit ? parseInt(perCustomerLimit) : 1,
         expiresAt: expiresAt ? new Date(expiresAt) : null,
         isActive,
         updatedAt: new Date(),
@@ -167,9 +169,9 @@ export default function DiscountsPage() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
   const { t, lang } = useTranslation();
-  
+
   const [showForm, setShowForm] = useState(false);
-  const [editingDiscount, setEditingDiscount] = useState<typeof allDiscounts[0] | null>(null);
+  const [editingDiscount, setEditingDiscount] = useState<(typeof allDiscounts)[0] | null>(null);
   const [discountType, setDiscountType] = useState<'percentage' | 'fixed'>('percentage');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
@@ -178,7 +180,7 @@ export default function DiscountsPage() {
     return `${symbols[currency] || currency} ${amount.toLocaleString()}`;
   };
 
-  const handleEdit = (discount: typeof allDiscounts[0]) => {
+  const handleEdit = (discount: (typeof allDiscounts)[0]) => {
     setEditingDiscount(discount);
     setDiscountType(discount.type || 'percentage');
     setShowForm(true);
@@ -239,11 +241,11 @@ export default function DiscountsPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             {editingDiscount ? t('editDiscountCode') : t('createDiscountCode')}
           </h2>
-          
+
           <Form method="post" className="space-y-4">
             <input type="hidden" name="intent" value={editingDiscount ? 'update' : 'create'} />
             {editingDiscount && <input type="hidden" name="id" value={editingDiscount.id} />}
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Code */}
               <div>
@@ -262,7 +264,7 @@ export default function DiscountsPage() {
               </div>
 
               {/* Type */}
-               <div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('discountTypeLabel')}
                 </label>
@@ -275,7 +277,7 @@ export default function DiscountsPage() {
                         ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
-                   >
+                  >
                     <Percent className="w-4 h-4" />
                     {t('percentage')}
                   </button>
@@ -287,7 +289,7 @@ export default function DiscountsPage() {
                         ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
-                   >
+                  >
                     <DollarSign className="w-4 h-4" />
                     {t('fixed')}
                   </button>
@@ -297,8 +299,10 @@ export default function DiscountsPage() {
 
               {/* Value */}
               <div>
-                 <label htmlFor="value" className="block text-sm font-medium text-gray-700 mb-1">
-                  {discountType === 'percentage' ? t('percentageOff') : `${t('amountOff')} (${currency})`}
+                <label htmlFor="value" className="block text-sm font-medium text-gray-700 mb-1">
+                  {discountType === 'percentage'
+                    ? t('percentageOff')
+                    : `${t('amountOff')} (${currency})`}
                 </label>
                 <input
                   type="number"
@@ -316,7 +320,10 @@ export default function DiscountsPage() {
 
               {/* Min Order */}
               <div>
-                 <label htmlFor="minOrderAmount" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="minOrderAmount"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   {t('minOrderAmountLabel')} ({currency})
                 </label>
                 <input
@@ -334,7 +341,10 @@ export default function DiscountsPage() {
               {/* Max Discount (for percentage) */}
               {discountType === 'percentage' && (
                 <div>
-                   <label htmlFor="maxDiscountAmount" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="maxDiscountAmount"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     {t('maxDiscountCap')} ({currency})
                   </label>
                   <input
@@ -352,7 +362,7 @@ export default function DiscountsPage() {
 
               {/* Max Uses */}
               <div>
-                 <label htmlFor="maxUses" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="maxUses" className="block text-sm font-medium text-gray-700 mb-1">
                   {t('maxUsesLabel')}
                 </label>
                 <input
@@ -366,16 +376,39 @@ export default function DiscountsPage() {
                 />
               </div>
 
+              {/* Per Customer Limit */}
+              <div>
+                <label
+                  htmlFor="perCustomerLimit"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  {t('perCustomerLimitLabel') || 'Per Customer Limit'}
+                </label>
+                <input
+                  type="number"
+                  id="perCustomerLimit"
+                  name="perCustomerLimit"
+                  min="1"
+                  defaultValue={editingDiscount?.perCustomerLimit || 1}
+                  placeholder="1"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+              </div>
+
               {/* Expiry Date */}
               <div>
-                 <label htmlFor="expiresAt" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="expiresAt" className="block text-sm font-medium text-gray-700 mb-1">
                   {t('expiryDateLabel')}
                 </label>
                 <input
                   type="date"
                   id="expiresAt"
                   name="expiresAt"
-                  defaultValue={editingDiscount?.expiresAt ? new Date(editingDiscount.expiresAt).toISOString().split('T')[0] : ''}
+                  defaultValue={
+                    editingDiscount?.expiresAt
+                      ? new Date(editingDiscount.expiresAt).toISOString().split('T')[0]
+                      : ''
+                  }
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
               </div>
@@ -391,7 +424,7 @@ export default function DiscountsPage() {
                 defaultChecked={editingDiscount?.isActive !== false}
                 className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
               />
-               <label htmlFor="isActive" className="text-sm text-gray-700">
+              <label htmlFor="isActive" className="text-sm text-gray-700">
                 {t('codeIsActive')}
               </label>
             </div>
@@ -403,16 +436,18 @@ export default function DiscountsPage() {
                 disabled={isSubmitting}
                 className="px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 flex items-center gap-2"
               >
-                 {isSubmitting ? (
+                {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
                     {t('saving')}
                   </>
+                ) : editingDiscount ? (
+                  t('updateCode')
                 ) : (
-                  editingDiscount ? t('updateCode') : t('createCode')
+                  t('createCode')
                 )}
               </button>
-               <button
+              <button
                 type="button"
                 onClick={handleCancel}
                 className="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition"
@@ -429,11 +464,11 @@ export default function DiscountsPage() {
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100">
             <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-               <Tag className="w-5 h-5 text-emerald-600" />
+              <Tag className="w-5 h-5 text-emerald-600" />
               {t('yourDiscountCodes')} ({allDiscounts.length})
             </h2>
           </div>
-          
+
           <div className="divide-y divide-gray-100">
             {allDiscounts.map((discount) => {
               const expired = isExpired(discount.expiresAt);
@@ -443,16 +478,22 @@ export default function DiscountsPage() {
               return (
                 <div
                   key={discount.id}
-                  className={`p-4 flex items-center justify-between ${inactive ? 'bg-gray-50 opacity-70' : ''}`}
+                  className={`p-3 md:p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 ${inactive ? 'bg-gray-50 opacity-70' : ''}`}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                      inactive ? 'bg-gray-200' : 'bg-emerald-100'
-                    }`}>
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-10 h-10 md:w-12 md:h-12 rounded-lg flex-shrink-0 flex items-center justify-center ${
+                        inactive ? 'bg-gray-200' : 'bg-emerald-100'
+                      }`}
+                    >
                       {discount.type === 'percentage' ? (
-                        <Percent className={`w-6 h-6 ${inactive ? 'text-gray-400' : 'text-emerald-600'}`} />
+                        <Percent
+                          className={`w-6 h-6 ${inactive ? 'text-gray-400' : 'text-emerald-600'}`}
+                        />
                       ) : (
-                        <DollarSign className={`w-6 h-6 ${inactive ? 'text-gray-400' : 'text-emerald-600'}`} />
+                        <DollarSign
+                          className={`w-6 h-6 ${inactive ? 'text-gray-400' : 'text-emerald-600'}`}
+                        />
                       )}
                     </div>
                     <div>
@@ -470,26 +511,29 @@ export default function DiscountsPage() {
                           )}
                         </button>
                       </div>
-                      <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
-                         <span className="font-medium text-emerald-600">
-                          {discount.type === 'percentage' 
-                            ? `${discount.value}% ${t('offLabel')}` 
-                            : `${formatPrice(discount.value)} ${t('offLabel')}`
-                          }
+                      <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm text-gray-500 mt-1">
+                        <span className="font-medium text-emerald-600">
+                          {discount.type === 'percentage'
+                            ? `${discount.value}% ${t('offLabel')}`
+                            : `${formatPrice(discount.value)} ${t('offLabel')}`}
                         </span>
                         {discount.minOrderAmount && (
                           <span>Min: {formatPrice(discount.minOrderAmount)}</span>
                         )}
                         {discount.maxUses && (
-                           <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-1">
                             <Users className="w-3 h-3" />
                             {discount.usedCount || 0}/{discount.maxUses} {t('usedLabel')}
                           </span>
                         )}
-                         {discount.expiresAt && (
-                          <span className={`flex items-center gap-1 ${expired ? 'text-red-500' : ''}`}>
+                        {discount.expiresAt && (
+                          <span
+                            className={`flex items-center gap-1 ${expired ? 'text-red-500' : ''}`}
+                          >
                             <Calendar className="w-3 h-3" />
-                            {expired ? t('expiredLabel') : `${t('expiresLabel')} ${new Date(discount.expiresAt).toLocaleDateString()}`}
+                            {expired
+                              ? t('expiredLabel')
+                              : `${t('expiresLabel')} ${new Date(discount.expiresAt).toLocaleDateString()}`}
                           </span>
                         )}
                       </div>
@@ -501,7 +545,11 @@ export default function DiscountsPage() {
                     <Form method="post">
                       <input type="hidden" name="intent" value="toggle" />
                       <input type="hidden" name="id" value={discount.id} />
-                      <input type="hidden" name="isActive" value={discount.isActive ? 'true' : 'false'} />
+                      <input
+                        type="hidden"
+                        name="isActive"
+                        value={discount.isActive ? 'true' : 'false'}
+                      />
                       <button
                         type="submit"
                         className={`px-3 py-1 text-xs font-medium rounded-full transition ${
@@ -509,7 +557,7 @@ export default function DiscountsPage() {
                             ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
                             : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
                         }`}
-                       >
+                      >
                         {discount.isActive ? t('activeLabel') : t('inactiveLabel')}
                       </button>
                     </Form>
@@ -522,12 +570,15 @@ export default function DiscountsPage() {
                       <Edit2 className="w-4 h-4" />
                     </button>
 
-                     {/* Delete */}
-                    <Form method="post" onSubmit={(e) => {
-                      if (!confirm(t('deleteConfirmDiscount'))) {
-                        e.preventDefault();
-                      }
-                    }}>
+                    {/* Delete */}
+                    <Form
+                      method="post"
+                      onSubmit={(e) => {
+                        if (!confirm(t('deleteConfirmDiscount'))) {
+                          e.preventDefault();
+                        }
+                      }}
+                    >
                       <input type="hidden" name="intent" value="delete" />
                       <input type="hidden" name="id" value={discount.id} />
                       <button
@@ -546,7 +597,7 @@ export default function DiscountsPage() {
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-             <Tag className="w-8 h-8 text-gray-400" />
+            <Tag className="w-8 h-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noDiscountsYet')}</h3>
           <p className="text-gray-500 mb-6">{t('createFirstCodeDesc')}</p>

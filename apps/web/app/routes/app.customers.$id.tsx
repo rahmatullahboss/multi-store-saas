@@ -350,39 +350,62 @@ export default function CustomerDetailsPage() {
             {customerOrders.length === 0 ? (
               <div className="p-12 text-center text-gray-500">{t('noOrdersFoundForCustomer')}</div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3">{t('order')}</th>
-                      <th className="px-6 py-3">{t('date')}</th>
-                      <th className="px-6 py-3">{t('status')}</th>
-                      <th className="px-6 py-3">{t('total')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {customerOrders.slice(0, 5).map((order) => (
-                      <tr key={order.id} className="hover:bg-gray-50 transition">
-                        <td className="px-6 py-4">
-                          <Link
-                            to={`/app/orders/${order.id}`}
-                            className="font-mono font-medium text-emerald-600 hover:underline"
-                          >
-                            {order.orderNumber}
-                          </Link>
-                        </td>
-                        <td className="px-6 py-4 text-gray-500">
-                          {formatDate(order.createdAt).split(',')[0]}
-                        </td>
-                        <td className="px-6 py-4">{getStatusBadge(order.status || 'pending')}</td>
-                        <td className="px-6 py-4 font-medium text-gray-900">
-                          {formatPrice(order.total)}
-                        </td>
+              <>
+                {/* Mobile Card View */}
+                <div className="md:hidden divide-y divide-gray-100">
+                  {customerOrders.slice(0, 5).map((order) => (
+                    <div key={order.id} className="p-4 flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <Link
+                          to={`/app/orders/${order.id}`}
+                          className="font-mono font-medium text-emerald-600 hover:underline text-sm"
+                        >
+                          {order.orderNumber}
+                        </Link>
+                        <p className="text-xs text-gray-500 mt-0.5">{formatDate(order.createdAt).split(',')[0]}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {getStatusBadge(order.status || 'pending')}
+                        <span className="font-medium text-gray-900 text-sm">{formatPrice(order.total)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200">
+                      <tr>
+                        <th className="px-6 py-3">{t('order')}</th>
+                        <th className="px-6 py-3">{t('date')}</th>
+                        <th className="px-6 py-3">{t('status')}</th>
+                        <th className="px-6 py-3">{t('total')}</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {customerOrders.slice(0, 5).map((order) => (
+                        <tr key={order.id} className="hover:bg-gray-50 transition">
+                          <td className="px-6 py-4">
+                            <Link
+                              to={`/app/orders/${order.id}`}
+                              className="font-mono font-medium text-emerald-600 hover:underline"
+                            >
+                              {order.orderNumber}
+                            </Link>
+                          </td>
+                          <td className="px-6 py-4 text-gray-500">
+                            {formatDate(order.createdAt).split(',')[0]}
+                          </td>
+                          <td className="px-6 py-4">{getStatusBadge(order.status || 'pending')}</td>
+                          <td className="px-6 py-4 font-medium text-gray-900">
+                            {formatPrice(order.total)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </GlassCard>
 
