@@ -1176,9 +1176,9 @@ export default function DashboardOrdersPage() {
                           <span className="text-xs text-gray-400">
                             {formatDate(order.createdAt)}
                           </span>
-                          {order.courier && (
+                          {order.courierProvider && (
                             <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                              {order.courier}
+                              {order.courierProvider}
                             </span>
                           )}
                         </div>
