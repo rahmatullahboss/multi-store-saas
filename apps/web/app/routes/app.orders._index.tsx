@@ -648,14 +648,17 @@ export default function DashboardOrdersPage() {
     [setSearchParams]
   );
 
+  const [isHydrated, setIsHydrated] = useState(false);
+  useEffect(() => setIsHydrated(true), []);
+
   /*
    * Hydration safe date formatting
    * Note: Relative time (e.g. "5 mins ago") causes hydration mismatches because "now" changes
    * between server render and client hydration.
-   * For now, we return a stable absolute date format.
+   * For now, we return a stable absolute date format once the client hydrates.
    */
   const formatDate = (date: string | Date | null) => {
-    if (!date) return '—';
+    if (!date || !isHydrated) return '—';
     const d = new Date(date);
 
     // Stable format for both server and client
@@ -968,11 +971,10 @@ export default function DashboardOrdersPage() {
                 <button
                   key={tab.id}
                   onClick={() => handleStatusChange(tab.id)}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                    statusFilter === tab.id
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${statusFilter === tab.id
                       ? 'bg-emerald-600 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
+                    }`}
                 >
                   {tab.label}
                   {tab.count > 0 && (
@@ -1080,11 +1082,10 @@ export default function DashboardOrdersPage() {
                               {formatPrice(order.total)}
                             </span>
                             <span
-                              className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
-                                order.paymentStatus === 'paid'
+                              className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${order.paymentStatus === 'paid'
                                   ? 'bg-emerald-100 text-emerald-700'
                                   : 'bg-orange-100 text-orange-700'
-                              }`}
+                                }`}
                             >
                               {order.paymentStatus === 'paid'
                                 ? t('dashboard:paid')
@@ -1203,11 +1204,10 @@ export default function DashboardOrdersPage() {
                           </td>
                           <td className="py-3 px-4">
                             <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
-                                order.paymentStatus === 'paid'
+                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${order.paymentStatus === 'paid'
                                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                   : 'bg-orange-50 text-orange-700 border-orange-200'
-                              }`}
+                                }`}
                             >
                               {order.paymentStatus === 'paid'
                                 ? t('dashboard:paid')
@@ -1222,16 +1222,16 @@ export default function DashboardOrdersPage() {
                           </td>
                           <td className="py-3 px-4 min-w-[110px]">
                             {'fraudCache' in order &&
-                            (
-                              order as {
-                                fraudCache: {
-                                  successRate: number;
-                                  totalOrders: number;
-                                  isHighRisk: boolean;
-                                  cachedAt: string;
-                                } | null;
-                              }
-                            ).fraudCache ? (
+                              (
+                                order as {
+                                  fraudCache: {
+                                    successRate: number;
+                                    totalOrders: number;
+                                    isHighRisk: boolean;
+                                    cachedAt: string;
+                                  } | null;
+                                }
+                              ).fraudCache ? (
                               (() => {
                                 const fc = (
                                   order as {
@@ -1264,22 +1264,22 @@ export default function DashboardOrdersPage() {
                                 );
                               })()
                             ) : // No cache yet — show the check button inline
-                            ['pending', 'confirmed'].includes(order.status || '') ? (
-                              <FraudCheckButton
-                                orderId={order.id}
-                                currentStatus={order.status || 'pending'}
-                              />
-                            ) : (
-                              <span className="text-[11px] text-gray-300 italic">—</span>
-                            )}
+                              ['pending', 'confirmed'].includes(order.status || '') ? (
+                                <FraudCheckButton
+                                  orderId={order.id}
+                                  currentStatus={order.status || 'pending'}
+                                />
+                              ) : (
+                                <span className="text-[11px] text-gray-300 italic">—</span>
+                              )}
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
                               {courierProvider &&
-                              order.status === 'confirmed' &&
-                              !['booked', 'in_transit', 'delivered', 'shipped'].includes(
-                                order.courierStatus || ''
-                              ) ? (
+                                order.status === 'confirmed' &&
+                                !['booked', 'in_transit', 'delivered', 'shipped'].includes(
+                                  order.courierStatus || ''
+                                ) ? (
                                 <div className="opacity-60 xl:opacity-100 group-hover:opacity-100 transition-opacity">
                                   <SendToCourierButton
                                     orderId={order.id}
@@ -1372,45 +1372,45 @@ function StatusDropdown({ orderId, currentStatus }: { orderId: number; currentSt
     : currentStatus;
 
   const configs: Record<string, { icon: typeof Clock; bg: string; text: string; border: string }> =
-    {
-      pending: {
-        icon: Clock,
-        bg: 'bg-yellow-50',
-        text: 'text-yellow-700',
-        border: 'border-yellow-200',
-      },
-      confirmed: {
-        icon: ThumbsUp,
-        bg: 'bg-cyan-50',
-        text: 'text-cyan-700',
-        border: 'border-cyan-200',
-      },
-      processing: {
-        icon: Package,
-        bg: 'bg-blue-50',
-        text: 'text-blue-700',
-        border: 'border-blue-200',
-      },
-      shipped: {
-        icon: Truck,
-        bg: 'bg-purple-50',
-        text: 'text-purple-700',
-        border: 'border-purple-200',
-      },
-      delivered: {
-        icon: CheckCircle,
-        bg: 'bg-emerald-50',
-        text: 'text-emerald-700',
-        border: 'border-emerald-200',
-      },
-      cancelled: { icon: XCircle, bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
-      returned: {
-        icon: PackageX,
-        bg: 'bg-orange-50',
-        text: 'text-orange-700',
-        border: 'border-orange-200',
-      },
-    };
+  {
+    pending: {
+      icon: Clock,
+      bg: 'bg-yellow-50',
+      text: 'text-yellow-700',
+      border: 'border-yellow-200',
+    },
+    confirmed: {
+      icon: ThumbsUp,
+      bg: 'bg-cyan-50',
+      text: 'text-cyan-700',
+      border: 'border-cyan-200',
+    },
+    processing: {
+      icon: Package,
+      bg: 'bg-blue-50',
+      text: 'text-blue-700',
+      border: 'border-blue-200',
+    },
+    shipped: {
+      icon: Truck,
+      bg: 'bg-purple-50',
+      text: 'text-purple-700',
+      border: 'border-purple-200',
+    },
+    delivered: {
+      icon: CheckCircle,
+      bg: 'bg-emerald-50',
+      text: 'text-emerald-700',
+      border: 'border-emerald-200',
+    },
+    cancelled: { icon: XCircle, bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+    returned: {
+      icon: PackageX,
+      bg: 'bg-orange-50',
+      text: 'text-orange-700',
+      border: 'border-orange-200',
+    },
+  };
 
   const config = configs[displayStatus] || configs.pending;
   const Icon = config.icon;
@@ -1502,10 +1502,10 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
 
   const riskConfig = {
     excellent: { color: 'text-emerald-700 bg-emerald-50 border-emerald-200', label: '✅ নিরাপদ' },
-    good:      { color: 'text-green-700 bg-green-50 border-green-200',       label: '👍 ভালো' },
-    moderate:  { color: 'text-yellow-700 bg-yellow-50 border-yellow-200',    label: '⚠️ মাঝারি' },
-    high:      { color: 'text-orange-700 bg-orange-50 border-orange-200',    label: '🔶 উচ্চ ঝুঁকি' },
-    critical:  { color: 'text-red-700 bg-red-50 border-red-200',             label: '🚫 ক্রিটিক্যাল' },
+    good: { color: 'text-green-700 bg-green-50 border-green-200', label: '👍 ভালো' },
+    moderate: { color: 'text-yellow-700 bg-yellow-50 border-yellow-200', label: '⚠️ মাঝারি' },
+    high: { color: 'text-orange-700 bg-orange-50 border-orange-200', label: '🔶 উচ্চ ঝুঁকি' },
+    critical: { color: 'text-red-700 bg-red-50 border-red-200', label: '🚫 ক্রিটিক্যাল' },
   };
 
   return (
@@ -1538,9 +1538,8 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
         <div className="absolute right-0 top-8 z-50 w-72 bg-white border border-gray-200 rounded-xl shadow-xl p-3 text-xs space-y-2">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <span className={`px-2 py-0.5 rounded-full border font-medium ${
-              riskConfig[result.riskLevel ?? 'moderate']?.color
-            }`}>
+            <span className={`px-2 py-0.5 rounded-full border font-medium ${riskConfig[result.riskLevel ?? 'moderate']?.color
+              }`}>
               {riskConfig[result.riskLevel ?? 'moderate']?.label}
             </span>
             <button
@@ -1570,10 +1569,9 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
           <div className="flex items-center gap-2">
             <div className="flex-1 bg-gray-100 rounded-full h-1.5">
               <div
-                className={`h-1.5 rounded-full ${
-                  result.successRate >= 70 ? 'bg-emerald-500' :
-                  result.successRate >= 40 ? 'bg-yellow-500' : 'bg-red-500'
-                }`}
+                className={`h-1.5 rounded-full ${result.successRate >= 70 ? 'bg-emerald-500' :
+                    result.successRate >= 40 ? 'bg-yellow-500' : 'bg-red-500'
+                  }`}
                 style={{ width: `${Math.max(result.successRate, 2)}%` }}
               />
             </div>
@@ -1589,10 +1587,9 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
                   <span className="text-gray-600">{c.name}</span>
                   <div className="flex items-center gap-1.5">
                     <span className="text-gray-400">{c.orders} অর্ডার</span>
-                    <span className={`font-medium ${
-                      parseFloat(c.delivery_rate) >= 70 ? 'text-emerald-600' :
-                      parseFloat(c.delivery_rate) >= 40 ? 'text-yellow-600' : 'text-red-600'
-                    }`}>{c.delivery_rate}</span>
+                    <span className={`font-medium ${parseFloat(c.delivery_rate) >= 70 ? 'text-emerald-600' :
+                        parseFloat(c.delivery_rate) >= 40 ? 'text-yellow-600' : 'text-red-600'
+                      }`}>{c.delivery_rate}</span>
                   </div>
                 </div>
               ))}
@@ -1722,8 +1719,8 @@ function SendToCourierButton({
         {allCouriers.length > 1
           ? t('dashboard:courierSend')
           : t('dashboard:sendToProvider', {
-              provider: courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1),
-            })}
+            provider: courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1),
+          })}
       </button>
     </fetcher.Form>
   );

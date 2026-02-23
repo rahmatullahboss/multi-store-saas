@@ -102,7 +102,7 @@ export async function fetchExternalFraudData(
         'Content-Type': 'application/json',
         Referer: 'https://fraudchecker.link/free-fraud-checker-bd/',
         'User-Agent':
-          'Mozilla/5.0 (compatible; FraudChecker/1.0)',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       },
       // 5 second timeout
       signal: AbortSignal.timeout(5000),
