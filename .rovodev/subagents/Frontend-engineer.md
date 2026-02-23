@@ -13,6 +13,7 @@ tools:
   - grep
   - expand_folder
   - bash
+  - create_technical_plan
   - resolve-library-id
   - query-docs
 model: claude-sonnet-4-6
