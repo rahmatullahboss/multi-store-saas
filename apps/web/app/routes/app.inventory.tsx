@@ -252,13 +252,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     const now = new Date();
     const updateQueries = productsToUpdate.map((product) => {
-        const currentStock = product.inventory || 0;
-        const newStock = Math.max(0, currentStock + adjustment);
-        return db
-          .update(products)
-          .set({ inventory: newStock, updatedAt: now })
-          .where(and(eq(products.id, product.id), eq(products.storeId, storeId)));
-      });
+      const currentStock = product.inventory || 0;
+      const newStock = Math.max(0, currentStock + adjustment);
+      return db
+        .update(products)
+        .set({ inventory: newStock, updatedAt: now })
+        .where(and(eq(products.id, product.id), eq(products.storeId, storeId)));
+    });
     // Drizzle's D1 batch typing expects a non-empty tuple; we already guard length at runtime.
     await db.batch(updateQueries as any);
 
@@ -619,8 +619,7 @@ export default function InventoryPage() {
       {/* ══════════════════════════════════════
           MOBILE LAYOUT (hidden on md+)
       ══════════════════════════════════════ */}
-      <div className="md:hidden -mx-4 -mt-6">
-
+      <div className="md:hidden flex flex-col w-full bg-white dark:bg-slate-900 -mx-4 -mt-6">
         {/* Undo banner */}
         {undoItems.length > 0 && (
           <div className="px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border-b border-emerald-100 dark:border-emerald-800/30 flex items-center justify-between gap-3">
@@ -635,483 +634,126 @@ export default function InventoryPage() {
           </div>
         )}
 
-        {/* Scrollable filter pill tabs */}
-        <div className="overflow-x-auto scrollbar-hide px-4 py-4 flex gap-3 snap-x">
-          {mobileFilterTabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => handleStatusChange(tab.id)}
-              className={`snap-start shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                statusFilter === tab.id
-                  ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              {tab.label}
+        <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-4 py-3 flex items-center justify-between">
+          <h1 className="text-xl font-bold tracking-tight">{t('inventory')}</h1>
+          <div className="flex items-center gap-3">
+            <button className="p-2 text-slate-500 hover:text-emerald-500 hover:bg-slate-50 rounded-full transition-colors">
+              <span className="material-symbols-outlined text-[24px]">search</span>
             </button>
-          ))}
-        </div>
-
-        {/* Stats row */}
-        <div className="px-4 mb-4 flex items-center justify-between text-xs text-slate-500 font-medium uppercase tracking-wider">
-          <span>Total SKU: {stats.total}</span>
-          {stats.lowStock > 0 && (
-            <span className="text-orange-500 dark:text-orange-400">Low Stock: {stats.lowStock}</span>
-          )}
-        </div>
-
-        {/* Product cards */}
-        {storeProducts.length === 0 ? (
-          <div className="px-4 py-12 text-center">
-            <Package className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <p className="font-medium text-slate-700 dark:text-slate-300">{t('noProductsTitle')}</p>
-            <p className="text-sm text-slate-500 mt-1">{t('noProductsDesc')}</p>
-            <Link to="/app/products/new" className="mt-4 inline-block px-4 py-2 bg-emerald-500 text-white text-sm font-semibold rounded-lg">
-              {t('addProduct')}
-            </Link>
-          </div>
-        ) : filteredProducts.length === 0 ? (
-          <div className="px-4 py-12 text-center">
-            <p className="text-slate-500">{t('noProductsMatchFilters')}</p>
-            <button
-              onClick={() => { setSearchQuery(''); handleStatusChange('all'); }}
-              className="mt-3 text-emerald-600 font-medium text-sm"
-            >
-              {t('clearFilters')}
+            <button className="p-2 text-slate-500 hover:text-emerald-500 hover:bg-slate-50 rounded-full transition-colors">
+              <span className="material-symbols-outlined text-[24px]">barcode_scanner</span>
             </button>
           </div>
-        ) : (
-          <div className="px-4 flex flex-col gap-4">
-            {filteredProducts.map((product) => {
-              const stock = product.inventory || 0;
-              const isOutOfStock = stock <= 0;
-              return (
-                <div
-                  key={product.id}
-                  className={`bg-white dark:bg-slate-800 rounded-xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-700 flex gap-4 ${isOutOfStock ? 'opacity-75' : ''}`}
-                >
-                  {/* Product Image — bg-cover div, exactly like design */}
+        </header>
+
+        <main className="flex-1 pb-24">
+          <div className="overflow-x-auto scrollbar-hide px-4 py-4 flex gap-3 snap-x">
+            {mobileFilterTabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => handleStatusChange(tab.id)}
+                className={`snap-start shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${statusFilter === tab.id
+                    ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="px-4 mb-4 flex items-center justify-between text-xs text-slate-500 font-medium uppercase tracking-wider">
+            <span>Total SKU: {stats.total}</span>
+            {stats.lowStock > 0 && <span className="text-orange-500">Low Stock: {stats.lowStock}</span>}
+          </div>
+
+          {storeProducts.length === 0 ? (
+            <div className="px-4 py-12 text-center">
+              <Package className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <p className="font-medium text-slate-700 dark:text-slate-300">{t('noProductsTitle')}</p>
+              <p className="text-sm text-slate-500 mt-1">{t('noProductsDesc')}</p>
+              <Link to="/app/products/new" className="mt-4 inline-block px-4 py-2 bg-emerald-500 text-white text-sm font-semibold rounded-lg">
+                {t('addProduct')}
+              </Link>
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="px-4 py-12 text-center">
+              <p className="text-slate-500">{t('noProductsMatchFilters')}</p>
+              <button
+                onClick={() => { setSearchQuery(''); handleStatusChange('all'); }}
+                className="mt-3 text-emerald-600 font-medium text-sm"
+              >
+                {t('clearFilters')}
+              </button>
+            </div>
+          ) : (
+            <div className="px-4 flex flex-col gap-4">
+              {filteredProducts.map((product) => {
+                const stock = product.inventory || 0;
+                const isOutOfStock = stock <= 0;
+                const isLowStock = stock > 0 && stock <= lowStockThreshold;
+
+                let stockBadge = (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 whitespace-nowrap">
+                    In Stock
+                  </span>
+                );
+
+                if (isOutOfStock) {
+                  stockBadge = (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 whitespace-nowrap">
+                      Out of Stock
+                    </span>
+                  );
+                } else if (isLowStock) {
+                  stockBadge = (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 whitespace-nowrap">
+                      Low Stock
+                    </span>
+                  );
+                }
+
+                return (
                   <div
-                    className={`h-24 w-24 rounded-lg bg-slate-100 flex-shrink-0 bg-cover bg-center border border-slate-100 dark:border-slate-700 ${isOutOfStock ? 'grayscale' : ''}`}
-                    style={product.imageUrl ? { backgroundImage: `url("${product.imageUrl.replace(/"/g, '%22')}")` } : undefined}
+                    key={product.id}
+                    className={`bg-white dark:bg-slate-800 rounded-xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-700 flex gap-4 ${isOutOfStock ? 'opacity-75' : ''}`}
                   >
-                    {!product.imageUrl && (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ImageOff className="w-6 h-6 text-slate-400" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0 flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-start mb-1">
-                        <Link
-                          to={`/app/products/${product.id}`}
-                          className="font-bold text-slate-900 dark:text-slate-100 truncate pr-2 hover:text-emerald-600 transition-colors"
-                        >
-                          {product.title}
-                        </Link>
-                        <MobileStockBadge stock={stock} threshold={lowStockThreshold} />
-                      </div>
-                      <p className="text-xs text-slate-500 mb-2">
-                        {product.sku ? `SKU: ${product.sku}` : '\u00A0'}
-                      </p>
+                    <div
+                      className={`h-24 w-24 rounded-lg bg-slate-100 flex-shrink-0 bg-cover bg-center border border-slate-100 dark:border-slate-700 ${isOutOfStock ? 'grayscale' : ''}`}
+                      style={product.imageUrl ? { backgroundImage: `url("${product.imageUrl.replace(/"/g, '%22')}")` } : undefined}
+                    >
+                      {!product.imageUrl && (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <ImageOff className="w-6 h-6 text-slate-400" />
+                        </div>
+                      )}
                     </div>
 
-                    <div className="flex items-end justify-between">
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
                       <div>
-                        <p className="text-xs text-slate-400 mb-0.5">Price</p>
-                        <p className="font-bold text-slate-900 dark:text-slate-100">
-                          {formatPrice(product.price)}
+                        <div className="flex justify-between items-start mb-1">
+                          <Link
+                            to={`/app/products/${product.id}`}
+                            className="font-bold text-slate-900 dark:text-slate-100 truncate pr-2"
+                          >
+                            {product.title}
+                          </Link>
+                          {stockBadge}
+                        </div>
+                        <p className="text-xs text-slate-500 mb-2">
+                          {product.sku ? `SKU: ${product.sku}` : '\u00A0'}
                         </p>
                       </div>
 
-                      {/* +/- Stepper — material-symbols-outlined exactly like design */}
-                      <div className="flex items-center bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <Form method="post">
-                          <input type="hidden" name="intent" value="adjustStock" />
-                          <input type="hidden" name="productId" value={product.id} />
-                          <input type="hidden" name="adjustment" value="-1" />
-                          <button
-                            type="submit"
-                            disabled={isSubmitting || stock <= 0}
-                            className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-emerald-500 active:scale-95 transition-transform disabled:opacity-40"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">remove</span>
-                          </button>
-                        </Form>
-                        <span className={`w-8 text-center text-sm font-semibold ${stock <= 0 ? 'text-red-500' : 'text-slate-900 dark:text-slate-100'}`}>
-                          {stock}
-                        </span>
-                        <Form method="post">
-                          <input type="hidden" name="intent" value="adjustStock" />
-                          <input type="hidden" name="productId" value={product.id} />
-                          <input type="hidden" name="adjustment" value="1" />
-                          <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-emerald-500 active:scale-95 transition-transform disabled:opacity-40"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">add</span>
-                          </button>
-                        </Form>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* FAB - Add product — material-symbols-outlined exactly like design */}
-        <Link
-          to="/app/products/new"
-          className="fixed bottom-24 right-4 z-40 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full p-4 shadow-lg shadow-emerald-500/40 active:scale-95 transition-all flex items-center justify-center"
-        >
-          <span className="material-symbols-outlined text-[28px]">add</span>
-        </Link>
-
-      </div>
-
-      {/* ══════════════════════════════════════
-          DESKTOP LAYOUT (hidden on mobile)
-      ══════════════════════════════════════ */}
-      <div className="hidden md:block space-y-6">
-      {/* Header */}
-      <PageHeader
-        title={t('inventory')}
-        description={t('inventoryManageDesc')}
-        secondaryAction={{
-          label: t('importCsv'),
-          href: '/app/inventory/import',
-          icon: <Upload className="w-4 h-4" />,
-        }}
-        primaryAction={{
-          label: t('exportCsv'),
-          href: '/api/products/export',
-          icon: <Download className="w-4 h-4" />,
-        }}
-      />
-
-      {undoItems.length > 0 && (
-        <GlassCard intensity="low" className="p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <p className="font-medium text-gray-900">{t('stockUpdated')}</p>
-            <p className="text-sm text-gray-600">
-              {t('undoHint', { count: undoItems.length })}
-            </p>
-          </div>
-          <Form method="post">
-            <input type="hidden" name="intent" value="undoStock" />
-            <input type="hidden" name="items" value={JSON.stringify(undoItems)} />
-            <button
-              type="submit"
-              className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-800 font-medium hover:bg-gray-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-            >
-              {t('inventoryUndo')}
-            </button>
-          </Form>
-        </GlassCard>
-      )}
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <StatCard
-          label={t('totalProducts')}
-          value={stats.total}
-          icon={<Package className="w-5 h-5" />}
-          color="blue"
-        />
-        <StatCard
-          label={t('totalUnits')}
-          value={stats.totalUnits.toLocaleString()}
-          icon={<Package className="w-5 h-5" />}
-          color="purple"
-        />
-        <StatCard
-          label={t('inStock')}
-          value={stats.healthy}
-          icon={<CheckCircle className="w-5 h-5" />}
-          color="emerald"
-        />
-        <StatCard
-          label={t('lowStock')}
-          value={stats.lowStock}
-          icon={<AlertTriangle className="w-5 h-5" />}
-          color={stats.lowStock > 0 ? 'yellow' : 'gray'}
-        />
-        <StatCard
-          label={t('outOfStockLabel')}
-          value={stats.outOfStock}
-          icon={<AlertTriangle className="w-5 h-5" />}
-          color={stats.outOfStock > 0 ? 'red' : 'gray'}
-        />
-      </div>
-
-      {/* Low Stock Alert */}
-      <LowStockAlertBanner
-        count={stats.lowStock}
-        threshold={lowStockThreshold}
-        onAction={statusFilter === 'all' ? () => handleStatusChange('low') : undefined}
-      />
-
-      {/* Low Stock Threshold */}
-      <GlassCard intensity="low" className="p-4">
-        <Form method="post" className="flex flex-col md:flex-row md:items-center gap-4">
-          <input type="hidden" name="intent" value="setLowStockThreshold" />
-          <div className="flex-1">
-            <p className="font-medium text-gray-900">{t('lowStockThresholdLabel')}</p>
-            <p className="text-sm text-gray-500">{t('lowStockThresholdHelp')}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              name="threshold"
-              min="0"
-              value={thresholdValue}
-              onChange={(e) => setThresholdValue(e.target.value)}
-              className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              autoComplete="off"
-            />
-            <button
-              type="submit"
-              className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-            >
-              {t('updateThreshold')}
-            </button>
-          </div>
-        </Form>
-      </GlassCard>
-
-      {/* Filters Row */}
-      <div className="flex flex-col md:flex-row gap-4">
-        {/* Search */}
-        <SearchInput
-          placeholder={t('searchInventoryPlaceholder')}
-          value={searchQuery}
-          onChange={handleSearchChange}
-          className="w-full md:w-80"
-        />
-
-        {/* Status Tabs */}
-        <div className="flex-1">
-          <StatusTabs tabs={statusTabs} activeTab={statusFilter} onChange={handleStatusChange} />
-        </div>
-      </div>
-
-      {/* Products List */}
-      {storeProducts.length === 0 ? (
-        <GlassCard intensity="low" className="overflow-hidden">
-          <EmptyState
-            icon={<Package className="w-10 h-10" />}
-            title={t('noProductsTitle')}
-            description={t('noProductsDesc')}
-            action={{
-              label: t('addProduct'),
-              href: '/app/products/new',
-              icon: <Plus className="w-4 h-4" />,
-            }}
-          />
-        </GlassCard>
-      ) : filteredProducts.length === 0 ? (
-        <GlassCard intensity="low" className="p-12 text-center">
-          <p className="text-gray-500">{t('noProductsMatchFilters')}</p>
-          <button
-            onClick={() => {
-              setSearchQuery('');
-              handleStatusChange('all');
-            }}
-            className="mt-3 text-emerald-600 hover:text-emerald-700 font-medium"
-          >
-            {t('clearFilters')}
-          </button>
-        </GlassCard>
-      ) : (
-        <GlassCard intensity="low" className="p-0 overflow-hidden">
-          {selectedIds.size > 0 && (
-            <div className="border-b border-gray-100 bg-white/80 backdrop-blur-sm px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span className="font-medium text-gray-900">{t('bulkActions')}</span>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold">
-                  {t('selectedCount', { count: selectedIds.size })}
-                </span>
-              </div>
-              <Form method="post" className="flex flex-wrap items-center gap-2">
-                <input type="hidden" name="intent" value="bulkAdjustStock" />
-                <input
-                  type="hidden"
-                  name="productIds"
-                  value={JSON.stringify(Array.from(selectedIds))}
-                />
-                <input
-                  type="number"
-                  name="adjustment"
-                  value={bulkAdjustment}
-                  onChange={(e) => setBulkAdjustment(e.target.value)}
-                  className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  autoComplete="off"
-                />
-                <button
-                  type="submit"
-                  disabled={isSubmitting || parseInt(bulkAdjustment || '0', 10) === 0}
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 disabled:opacity-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                >
-                  {t('inventoryApply')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedIds(new Set())}
-                  className="px-3 py-2 text-gray-600 hover:text-gray-900 transition"
-                >
-                  {t('clearSelection')}
-                </button>
-              </Form>
-            </div>
-          )}
-          {/* ===== DESKTOP TABLE VIEW ===== */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50/50 border-b border-gray-100">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-10">
-                    <input
-                      type="checkbox"
-                      checked={allVisibleSelected}
-                      onChange={toggleSelectAll}
-                      aria-label={t('selectAll')}
-                      className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                    />
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('productTableHeader')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('skuTableHeader')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('priceTableHeader')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[200px]">
-                    {t('stockLevelTableHeader')}
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    {t('adjustTableHeader')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredProducts.map((product) => {
-                  const stock = product.inventory || 0;
-                  const stockLevel = getStockLevel(stock);
-                  const stockColor = getStockColor(stock);
-                  const isEditing = editingId === product.id;
-
-                  return (
-                    <tr key={product.id} className="hover:bg-gray-50 transition">
-                      <td className="px-4 py-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.has(product.id)}
-                          onChange={() => toggleSelectOne(product.id)}
-                          aria-label={t('inventorySelectProduct', { name: product.title })}
-                          className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                        />
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-3">
-                          {product.imageUrl ? (
-                            <img
-                              src={product.imageUrl}
-                              alt={product.title}
-                              width={48}
-                              height={48}
-                              loading="lazy"
-                              className="w-12 h-12 object-cover rounded-lg border border-gray-200"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                              <ImageOff className="w-5 h-5 text-gray-400" />
-                            </div>
-                          )}
-                          <div className="min-w-0">
-                            <Link
-                              to={`/app/products/${product.id}`}
-                              className="font-medium text-gray-900 hover:text-emerald-600 transition truncate block"
-                            >
-                              {product.title}
-                            </Link>
-                            {product.category && (
-                              <p className="text-xs text-gray-500">{product.category}</p>
-                            )}
-                          </div>
+                      <div className="flex items-end justify-between">
+                        <div>
+                          <p className="text-xs text-slate-400 mb-0.5">Price</p>
+                          <p className="font-bold text-slate-900 dark:text-slate-100">
+                            {formatPrice(product.price)}
+                          </p>
                         </div>
-                      </td>
-                      <td className="px-4 py-4 text-gray-600 font-mono text-sm tabular-nums">
-                        {product.sku || '—'}
-                      </td>
-                      <td className="px-4 py-4 font-semibold text-gray-900 tabular-nums">
-                        {formatPrice(product.price)}
-                      </td>
-                      <td className="px-4 py-4">
-                        {isEditing ? (
-                          <Form method="post" className="flex items-center gap-2">
-                            <input type="hidden" name="intent" value="setStock" />
-                            <input type="hidden" name="productId" value={product.id} />
-                            <input
-                              type="number"
-                              name="stock"
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
-                              min="0"
-                              className="w-20 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-center"
-                              autoComplete="off"
-                            />
-                            <button
-                              type="submit"
-                              disabled={isSubmitting}
-                              className="px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                            >
-                              {t('saveBtn')}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setEditingId(null)}
-                              className="px-3 py-1.5 text-gray-600 text-sm hover:bg-gray-100 rounded-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                            >
-                              {t('cancel')}
-                            </button>
-                          </Form>
-                        ) : (
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <button
-                                onClick={() => {
-                                  setEditingId(product.id);
-                                  setEditValue(stock.toString());
-                                }}
-                                className="font-bold text-lg hover:text-emerald-600 transition tabular-nums"
-                              >
-                                {stock}{' '}
-                                <span className="text-xs text-gray-500 font-normal">
-                                  {t('unitsLabel')}
-                                </span>
-                              </button>
-                              <StockStatusBadge stock={stock} threshold={lowStockThreshold} />
-                            </div>
-                            {/* Visual stock bar */}
-                            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                              <div
-                                className={`h-full ${stockColor} transition-all duration-300`}
-                                style={{ width: `${stockLevel}%` }}
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center justify-center gap-1">
+
+                        <div className="flex items-center bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-700">
                           <Form method="post">
                             <input type="hidden" name="intent" value="adjustStock" />
                             <input type="hidden" name="productId" value={product.id} />
@@ -1119,12 +761,14 @@ export default function InventoryPage() {
                             <button
                               type="submit"
                               disabled={isSubmitting || stock <= 0}
-                              aria-label={t('decreaseStock')}
-                              className="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                              className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-emerald-500 active:scale-95 transition-transform disabled:opacity-40"
                             >
-                              <Minus className="w-4 h-4" />
+                              <span className="material-symbols-outlined text-[18px]">remove</span>
                             </button>
                           </Form>
+                          <span className={`w-8 text-center text-sm font-semibold ${isOutOfStock ? 'text-red-500' : 'text-slate-900 dark:text-slate-100'}`}>
+                            {stock}
+                          </span>
                           <Form method="post">
                             <input type="hidden" name="intent" value="adjustStock" />
                             <input type="hidden" name="productId" value={product.id} />
@@ -1132,22 +776,402 @@ export default function InventoryPage() {
                             <button
                               type="submit"
                               disabled={isSubmitting}
-                              aria-label={t('increaseStock')}
-                              className="w-8 h-8 flex items-center justify-center bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 disabled:opacity-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                              className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-emerald-500 active:scale-95 transition-transform disabled:opacity-40"
                             >
-                              <Plus className="w-4 h-4" />
+                              <span className="material-symbols-outlined text-[18px]">add</span>
                             </button>
                           </Form>
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </main>
+
+        <Link
+          to="/app/products/new"
+          className="fixed bottom-24 right-4 z-40 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full p-4 shadow-lg shadow-emerald-500/40 active:scale-95 transition-all flex items-center justify-center"
+        >
+          <span className="material-symbols-outlined text-[28px]">add</span>
+        </Link>
+      </div>
+
+      {/* ══════════════════════════════════════
+          DESKTOP LAYOUT (hidden on mobile)
+      ══════════════════════════════════════ */}
+      <div className="hidden md:block space-y-6">
+        {/* Header */}
+        <PageHeader
+          title={t('inventory')}
+          description={t('inventoryManageDesc')}
+          secondaryAction={{
+            label: t('importCsv'),
+            href: '/app/inventory/import',
+            icon: <Upload className="w-4 h-4" />,
+          }}
+          primaryAction={{
+            label: t('exportCsv'),
+            href: '/api/products/export',
+            icon: <Download className="w-4 h-4" />,
+          }}
+        />
+
+        {undoItems.length > 0 && (
+          <GlassCard intensity="low" className="p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <p className="font-medium text-gray-900">{t('stockUpdated')}</p>
+              <p className="text-sm text-gray-600">
+                {t('undoHint', { count: undoItems.length })}
+              </p>
+            </div>
+            <Form method="post">
+              <input type="hidden" name="intent" value="undoStock" />
+              <input type="hidden" name="items" value={JSON.stringify(undoItems)} />
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-800 font-medium hover:bg-gray-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+              >
+                {t('inventoryUndo')}
+              </button>
+            </Form>
+          </GlassCard>
+        )}
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <StatCard
+            label={t('totalProducts')}
+            value={stats.total}
+            icon={<Package className="w-5 h-5" />}
+            color="blue"
+          />
+          <StatCard
+            label={t('totalUnits')}
+            value={stats.totalUnits.toLocaleString()}
+            icon={<Package className="w-5 h-5" />}
+            color="purple"
+          />
+          <StatCard
+            label={t('inStock')}
+            value={stats.healthy}
+            icon={<CheckCircle className="w-5 h-5" />}
+            color="emerald"
+          />
+          <StatCard
+            label={t('lowStock')}
+            value={stats.lowStock}
+            icon={<AlertTriangle className="w-5 h-5" />}
+            color={stats.lowStock > 0 ? 'yellow' : 'gray'}
+          />
+          <StatCard
+            label={t('outOfStockLabel')}
+            value={stats.outOfStock}
+            icon={<AlertTriangle className="w-5 h-5" />}
+            color={stats.outOfStock > 0 ? 'red' : 'gray'}
+          />
+        </div>
+
+        {/* Low Stock Alert */}
+        <LowStockAlertBanner
+          count={stats.lowStock}
+          threshold={lowStockThreshold}
+          onAction={statusFilter === 'all' ? () => handleStatusChange('low') : undefined}
+        />
+
+        {/* Low Stock Threshold */}
+        <GlassCard intensity="low" className="p-4">
+          <Form method="post" className="flex flex-col md:flex-row md:items-center gap-4">
+            <input type="hidden" name="intent" value="setLowStockThreshold" />
+            <div className="flex-1">
+              <p className="font-medium text-gray-900">{t('lowStockThresholdLabel')}</p>
+              <p className="text-sm text-gray-500">{t('lowStockThresholdHelp')}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                name="threshold"
+                min="0"
+                value={thresholdValue}
+                onChange={(e) => setThresholdValue(e.target.value)}
+                className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                autoComplete="off"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+              >
+                {t('updateThreshold')}
+              </button>
+            </div>
+          </Form>
         </GlassCard>
-      )}
+
+        {/* Filters Row */}
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Search */}
+          <SearchInput
+            placeholder={t('searchInventoryPlaceholder')}
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="w-full md:w-80"
+          />
+
+          {/* Status Tabs */}
+          <div className="flex-1">
+            <StatusTabs tabs={statusTabs} activeTab={statusFilter} onChange={handleStatusChange} />
+          </div>
+        </div>
+
+        {/* Products List */}
+        {storeProducts.length === 0 ? (
+          <GlassCard intensity="low" className="overflow-hidden">
+            <EmptyState
+              icon={<Package className="w-10 h-10" />}
+              title={t('noProductsTitle')}
+              description={t('noProductsDesc')}
+              action={{
+                label: t('addProduct'),
+                href: '/app/products/new',
+                icon: <Plus className="w-4 h-4" />,
+              }}
+            />
+          </GlassCard>
+        ) : filteredProducts.length === 0 ? (
+          <GlassCard intensity="low" className="p-12 text-center">
+            <p className="text-gray-500">{t('noProductsMatchFilters')}</p>
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                handleStatusChange('all');
+              }}
+              className="mt-3 text-emerald-600 hover:text-emerald-700 font-medium"
+            >
+              {t('clearFilters')}
+            </button>
+          </GlassCard>
+        ) : (
+          <GlassCard intensity="low" className="p-0 overflow-hidden">
+            {selectedIds.size > 0 && (
+              <div className="border-b border-gray-100 bg-white/80 backdrop-blur-sm px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <span className="font-medium text-gray-900">{t('bulkActions')}</span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold">
+                    {t('selectedCount', { count: selectedIds.size })}
+                  </span>
+                </div>
+                <Form method="post" className="flex flex-wrap items-center gap-2">
+                  <input type="hidden" name="intent" value="bulkAdjustStock" />
+                  <input
+                    type="hidden"
+                    name="productIds"
+                    value={JSON.stringify(Array.from(selectedIds))}
+                  />
+                  <input
+                    type="number"
+                    name="adjustment"
+                    value={bulkAdjustment}
+                    onChange={(e) => setBulkAdjustment(e.target.value)}
+                    className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    autoComplete="off"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || parseInt(bulkAdjustment || '0', 10) === 0}
+                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 disabled:opacity-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                  >
+                    {t('inventoryApply')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedIds(new Set())}
+                    className="px-3 py-2 text-gray-600 hover:text-gray-900 transition"
+                  >
+                    {t('clearSelection')}
+                  </button>
+                </Form>
+              </div>
+            )}
+            {/* ===== DESKTOP TABLE VIEW ===== */}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50/50 border-b border-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-10">
+                      <input
+                        type="checkbox"
+                        checked={allVisibleSelected}
+                        onChange={toggleSelectAll}
+                        aria-label={t('selectAll')}
+                        className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      {t('productTableHeader')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      {t('skuTableHeader')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      {t('priceTableHeader')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[200px]">
+                      {t('stockLevelTableHeader')}
+                    </th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      {t('adjustTableHeader')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredProducts.map((product) => {
+                    const stock = product.inventory || 0;
+                    const stockLevel = getStockLevel(stock);
+                    const stockColor = getStockColor(stock);
+                    const isEditing = editingId === product.id;
+
+                    return (
+                      <tr key={product.id} className="hover:bg-gray-50 transition">
+                        <td className="px-4 py-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(product.id)}
+                            onChange={() => toggleSelectOne(product.id)}
+                            aria-label={t('inventorySelectProduct', { name: product.title })}
+                            className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                          />
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-3">
+                            {product.imageUrl ? (
+                              <img
+                                src={product.imageUrl}
+                                alt={product.title}
+                                width={48}
+                                height={48}
+                                loading="lazy"
+                                className="w-12 h-12 object-cover rounded-lg border border-gray-200"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <ImageOff className="w-5 h-5 text-gray-400" />
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <Link
+                                to={`/app/products/${product.id}`}
+                                className="font-medium text-gray-900 hover:text-emerald-600 transition truncate block"
+                              >
+                                {product.title}
+                              </Link>
+                              {product.category && (
+                                <p className="text-xs text-gray-500">{product.category}</p>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-gray-600 font-mono text-sm tabular-nums">
+                          {product.sku || '—'}
+                        </td>
+                        <td className="px-4 py-4 font-semibold text-gray-900 tabular-nums">
+                          {formatPrice(product.price)}
+                        </td>
+                        <td className="px-4 py-4">
+                          {isEditing ? (
+                            <Form method="post" className="flex items-center gap-2">
+                              <input type="hidden" name="intent" value="setStock" />
+                              <input type="hidden" name="productId" value={product.id} />
+                              <input
+                                type="number"
+                                name="stock"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                min="0"
+                                className="w-20 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-center"
+                                autoComplete="off"
+                              />
+                              <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                              >
+                                {t('saveBtn')}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEditingId(null)}
+                                className="px-3 py-1.5 text-gray-600 text-sm hover:bg-gray-100 rounded-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                              >
+                                {t('cancel')}
+                              </button>
+                            </Form>
+                          ) : (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <button
+                                  onClick={() => {
+                                    setEditingId(product.id);
+                                    setEditValue(stock.toString());
+                                  }}
+                                  className="font-bold text-lg hover:text-emerald-600 transition tabular-nums"
+                                >
+                                  {stock}{' '}
+                                  <span className="text-xs text-gray-500 font-normal">
+                                    {t('unitsLabel')}
+                                  </span>
+                                </button>
+                                <StockStatusBadge stock={stock} threshold={lowStockThreshold} />
+                              </div>
+                              {/* Visual stock bar */}
+                              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full ${stockColor} transition-all duration-300`}
+                                  style={{ width: `${stockLevel}%` }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center justify-center gap-1">
+                            <Form method="post">
+                              <input type="hidden" name="intent" value="adjustStock" />
+                              <input type="hidden" name="productId" value={product.id} />
+                              <input type="hidden" name="adjustment" value="-1" />
+                              <button
+                                type="submit"
+                                disabled={isSubmitting || stock <= 0}
+                                aria-label={t('decreaseStock')}
+                                className="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                              >
+                                <Minus className="w-4 h-4" />
+                              </button>
+                            </Form>
+                            <Form method="post">
+                              <input type="hidden" name="intent" value="adjustStock" />
+                              <input type="hidden" name="productId" value={product.id} />
+                              <input type="hidden" name="adjustment" value="1" />
+                              <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                aria-label={t('increaseStock')}
+                                className="w-8 h-8 flex items-center justify-center bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 disabled:opacity-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                              >
+                                <Plus className="w-4 h-4" />
+                              </button>
+                            </Form>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </GlassCard>
+        )}
 
       </div>{/* end desktop wrapper */}
 

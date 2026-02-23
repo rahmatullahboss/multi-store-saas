@@ -750,9 +750,9 @@ export default function DashboardOrdersPage() {
   const maxOrders = Math.max(...(stats.dailyStats?.map((s: any) => s.total) || [1]), 1);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] xl:h-[calc(100vh-64px)] relative -m-4 lg:-m-8">
-      {/* Sticky Header / Command Bar */}
-      <header className="h-16 border-b border-gray-200 bg-white/90 backdrop-blur-sm flex items-center justify-between px-4 lg:px-6 shrink-0 z-10 sticky top-0 md:top-auto">
+    <div className="flex flex-col relative w-full">
+      {/* Header / Command Bar */}
+      <header className="mb-6 flex items-center justify-between shrink-0 z-10 relative">
         <div className="flex items-center gap-6">
           <h1 className="text-xl font-semibold tracking-tight text-gray-900">
             {t('dashboard:orders')}
@@ -796,10 +796,10 @@ export default function DashboardOrdersPage() {
         </div>
       </header>
 
-      {/* Scrollable Body */}
-      <div className="flex-1 overflow-y-auto p-4 lg:p-6 scroll-smooth bg-gray-50/50">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col gap-6">
         {/* KPI Section (Compact) */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {/* KPI 1 - Revenue */}
           <div className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -1046,11 +1046,10 @@ export default function DashboardOrdersPage() {
                 <button
                   key={tab.id}
                   onClick={() => handleStatusChange(tab.id)}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                    statusFilter === tab.id
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${statusFilter === tab.id
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
                 >
                   {tab.label}
                   {tab.count > 0 && (
@@ -1158,11 +1157,10 @@ export default function DashboardOrdersPage() {
                               {formatPrice(order.total)}
                             </span>
                             <span
-                              className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
-                                order.paymentStatus === 'paid'
-                                  ? 'bg-emerald-100 text-emerald-700'
-                                  : 'bg-orange-100 text-orange-700'
-                              }`}
+                              className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${order.paymentStatus === 'paid'
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : 'bg-orange-100 text-orange-700'
+                                }`}
                             >
                               {order.paymentStatus === 'paid'
                                 ? t('dashboard:paid')
@@ -1281,11 +1279,10 @@ export default function DashboardOrdersPage() {
                           </td>
                           <td className="py-3 px-4">
                             <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
-                                order.paymentStatus === 'paid'
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                  : 'bg-orange-50 text-orange-700 border-orange-200'
-                              }`}
+                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${order.paymentStatus === 'paid'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : 'bg-orange-50 text-orange-700 border-orange-200'
+                                }`}
                             >
                               {order.paymentStatus === 'paid'
                                 ? t('dashboard:paid')
@@ -1300,16 +1297,16 @@ export default function DashboardOrdersPage() {
                           </td>
                           <td className="py-3 px-4 min-w-[110px]">
                             {'fraudCache' in order &&
-                            (
-                              order as {
-                                fraudCache: {
-                                  successRate: number;
-                                  totalOrders: number;
-                                  isHighRisk: boolean;
-                                  cachedAt: string;
-                                } | null;
-                              }
-                            ).fraudCache ? (
+                              (
+                                order as {
+                                  fraudCache: {
+                                    successRate: number;
+                                    totalOrders: number;
+                                    isHighRisk: boolean;
+                                    cachedAt: string;
+                                  } | null;
+                                }
+                              ).fraudCache ? (
                               (() => {
                                 const fc = (
                                   order as {
@@ -1342,22 +1339,22 @@ export default function DashboardOrdersPage() {
                                 );
                               })()
                             ) : // No cache yet — show the check button inline
-                            ['pending', 'confirmed'].includes(order.status || '') ? (
-                              <FraudCheckButton
-                                orderId={order.id}
-                                currentStatus={order.status || 'pending'}
-                              />
-                            ) : (
-                              <span className="text-[11px] text-gray-300 italic">—</span>
-                            )}
+                              ['pending', 'confirmed'].includes(order.status || '') ? (
+                                <FraudCheckButton
+                                  orderId={order.id}
+                                  currentStatus={order.status || 'pending'}
+                                />
+                              ) : (
+                                <span className="text-[11px] text-gray-300 italic">—</span>
+                              )}
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
                               {courierProvider &&
-                              order.status === 'confirmed' &&
-                              !['booked', 'in_transit', 'delivered', 'shipped'].includes(
-                                order.courierStatus || ''
-                              ) ? (
+                                order.status === 'confirmed' &&
+                                !['booked', 'in_transit', 'delivered', 'shipped'].includes(
+                                  order.courierStatus || ''
+                                ) ? (
                                 <div className="opacity-60 xl:opacity-100 group-hover:opacity-100 transition-opacity">
                                   <SendToCourierButton
                                     orderId={order.id}
@@ -1450,45 +1447,45 @@ function StatusDropdown({ orderId, currentStatus }: { orderId: number; currentSt
     : currentStatus;
 
   const configs: Record<string, { icon: typeof Clock; bg: string; text: string; border: string }> =
-    {
-      pending: {
-        icon: Clock,
-        bg: 'bg-yellow-50',
-        text: 'text-yellow-700',
-        border: 'border-yellow-200',
-      },
-      confirmed: {
-        icon: ThumbsUp,
-        bg: 'bg-cyan-50',
-        text: 'text-cyan-700',
-        border: 'border-cyan-200',
-      },
-      processing: {
-        icon: Package,
-        bg: 'bg-blue-50',
-        text: 'text-blue-700',
-        border: 'border-blue-200',
-      },
-      shipped: {
-        icon: Truck,
-        bg: 'bg-purple-50',
-        text: 'text-purple-700',
-        border: 'border-purple-200',
-      },
-      delivered: {
-        icon: CheckCircle,
-        bg: 'bg-emerald-50',
-        text: 'text-emerald-700',
-        border: 'border-emerald-200',
-      },
-      cancelled: { icon: XCircle, bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
-      returned: {
-        icon: PackageX,
-        bg: 'bg-orange-50',
-        text: 'text-orange-700',
-        border: 'border-orange-200',
-      },
-    };
+  {
+    pending: {
+      icon: Clock,
+      bg: 'bg-yellow-50',
+      text: 'text-yellow-700',
+      border: 'border-yellow-200',
+    },
+    confirmed: {
+      icon: ThumbsUp,
+      bg: 'bg-cyan-50',
+      text: 'text-cyan-700',
+      border: 'border-cyan-200',
+    },
+    processing: {
+      icon: Package,
+      bg: 'bg-blue-50',
+      text: 'text-blue-700',
+      border: 'border-blue-200',
+    },
+    shipped: {
+      icon: Truck,
+      bg: 'bg-purple-50',
+      text: 'text-purple-700',
+      border: 'border-purple-200',
+    },
+    delivered: {
+      icon: CheckCircle,
+      bg: 'bg-emerald-50',
+      text: 'text-emerald-700',
+      border: 'border-emerald-200',
+    },
+    cancelled: { icon: XCircle, bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+    returned: {
+      icon: PackageX,
+      bg: 'bg-orange-50',
+      text: 'text-orange-700',
+      border: 'border-orange-200',
+    },
+  };
 
   const config = configs[displayStatus] || configs.pending;
   const Icon = config.icon;
@@ -1707,8 +1704,8 @@ function SendToCourierButton({
         {allCouriers.length > 1
           ? t('dashboard:courierSend')
           : t('dashboard:sendToProvider', {
-              provider: courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1),
-            })}
+            provider: courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1),
+          })}
       </button>
     </fetcher.Form>
   );
