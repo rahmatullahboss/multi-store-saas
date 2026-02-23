@@ -40,7 +40,7 @@ import customersApi from './api/routes/customers';
 import { ServerBuild, createRequestHandler } from '@remix-run/cloudflare';
 // IMPORTANT: Lazy-load the Remix build so unit tests can import this module
 // without executing the compiled server bundle (which can be heavy/fragile in Vitest).
-const getRemixBuild = () => import('../build/server/index.js') as Promise<ServerBuild>;
+const getRemixBuild = () => import('../build/server/index.js') as unknown as Promise<ServerBuild>;
 
 // Type definitions for Cloudflare bindings
 interface Env extends TenantEnv {
@@ -586,6 +586,8 @@ app.all('*', async (c) => {
     isCustomDomain: c.get('isCustomDomain'),
   });
 });
+
+export { app };
 
 export default {
   /**

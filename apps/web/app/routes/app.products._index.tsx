@@ -46,8 +46,11 @@ import {
   Rocket,
   Check,
   Star,
+  Search,
+  Edit,
 } from 'lucide-react';
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useRouteError, isRouteErrorResponse } from '@remix-run/react';
 import { PageHeader, SearchInput, StatusTabs, EmptyState, StatCard } from '~/components/ui';
 import { GlassCard } from '~/components/ui/GlassCard';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -274,13 +277,17 @@ export default function ProductsIndexPage() {
   // Delete confirmation modal state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
   // Close modal and clear selection when form is submitting
   useEffect(() => {
     if (isSubmitting && showDeleteConfirm) {
       setShowDeleteConfirm(false);
       clearSelection();
     }
-  }, [isSubmitting, showDeleteConfirm]);
+    // clearSelection is defined as a stable arrow function referencing setSelectedIds (a state setter),
+    // so it is safe to include; eslint-plugin-react-hooks requires it.
+  }, [isSubmitting, showDeleteConfirm, clearSelection]);
 
   // Status tabs configuration
   const statusTabs = [
@@ -360,45 +367,209 @@ export default function ProductsIndexPage() {
     }
   };
 
-  const clearSelection = () => setSelectedIds(new Set());
-
   // Generate offer URL for a product
-  const getOfferUrl = (productId: number) => {
-    const domain = storeCustomDomain || `${storeSubdomain}.ozzyl.com`;
-    return `https://${domain}/offers/${productId}`;
-  };
+  const getOfferUrl = useCallback(
+    (productId: number) => {
+      const domain = storeCustomDomain || `${storeSubdomain}.ozzyl.com`;
+      return `https://${domain}/offers/${productId}`;
+    },
+    [storeCustomDomain, storeSubdomain]
+  );
 
   // Copy Ad Link to clipboard
-  const copyAdLink = async (productId: number) => {
-    const url = getOfferUrl(productId);
-    await navigator.clipboard.writeText(url);
-    setCopiedProductId(productId);
-    setTimeout(() => setCopiedProductId(null), 2000);
-  };
+  const copyAdLink = useCallback(
+    async (productId: number) => {
+      const url = getOfferUrl(productId);
+      await navigator.clipboard.writeText(url);
+      setCopiedProductId(productId);
+      setTimeout(() => setCopiedProductId(null), 2000);
+    },
+    [getOfferUrl]
+  );
 
   return (
-    <div className="space-y-6">
-      {/* Product Limit Warning */}
-      {!canAddProduct && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="text-amber-800 font-medium">{t('dashboard:productLimitReached')}</p>
-            <p className="text-amber-700 text-sm mt-1">
-              {productLimitMessage || t('dashboard:productLimitDesc')}
-            </p>
-            <Link
-              to="/app/billing"
-              className="inline-flex items-center gap-1 text-sm font-medium text-amber-800 hover:text-amber-900 mt-2"
-            >
-              {t('dashboard:upgradePlan')} →
-            </Link>
+    <>
+      {/* ===== MOBILE VIEW (md:hidden) ===== */}
+      <div className="md:hidden -m-4 bg-gray-50 min-h-screen flex flex-col">
+        {/* Sticky Header */}
+        <header className="sticky top-0 z-20 bg-gray-50/95 backdrop-blur-md px-4 pt-6 pb-2">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{t('dashboard:products')}</h1>
+            {canAddProduct && (
+              <Link
+                to="/app/products/new"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-white text-gray-900 shadow-sm hover:bg-gray-50 active:scale-95 transition-all"
+              >
+                <Plus className="w-5 h-5" />
+              </Link>
+            )}
+          </div>
+          {/* Search */}
+          <div className="flex gap-3 mb-2">
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="w-4 h-4 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t('dashboard:searchProductsSkuPlaceholder') || 'Search name, SKU...'}
+                className="block w-full pl-10 pr-3 py-3 rounded-xl border-none bg-white text-gray-900 placeholder-gray-400 shadow-sm focus:ring-2 focus:ring-emerald-500 transition-all text-sm"
+              />
+            </div>
+          </div>
+        </header>
+
+        {/* Status Tabs */}
+        <div className="sticky top-[130px] z-10 bg-gray-50 py-2">
+          <div className="flex gap-2 px-4 overflow-x-auto no-scrollbar pb-1">
+            {['all', 'published', 'draft', 'out-of-stock'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => handleStatusChange(tab)}
+                className={`flex h-9 shrink-0 items-center px-4 rounded-full text-sm font-medium transition-all active:scale-95 ${
+                  statusFilter === tab
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
+                    : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'
+                }`}
+              >
+                {tab === 'all' ? (t('dashboard:all') || 'All')
+                  : tab === 'published' ? (t('dashboard:publishedStatus') || 'Active')
+                  : tab === 'draft' ? (t('dashboard:draftStatus') || 'Draft')
+                  : (t('dashboard:outOfStockLabel') || 'Out of Stock')}
+              </button>
+            ))}
           </div>
         </div>
-      )}
 
-      {/* Header */}
-      <PageHeader
+        {/* Product List */}
+        <div className="flex flex-col gap-3 px-4 pt-1 pb-6 flex-1">
+          {/* Product Limit Warning */}
+          {!canAddProduct && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-amber-800 text-sm font-medium">{t('dashboard:productLimitReached')}</p>
+                <Link to="/app/billing" className="text-xs font-medium text-amber-700 hover:text-amber-900 mt-1 inline-block">
+                  {t('dashboard:upgradePlan')} →
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {filteredProducts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <Package className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 mb-1">
+                {searchQuery ? t('dashboard:noProductsFound') : t('dashboard:noProductsYet')}
+              </h3>
+              <p className="text-sm text-gray-500 mb-4">
+                {searchQuery ? t('dashboard:tryDifferentSearch') : t('dashboard:addFirstProduct')}
+              </p>
+              {canAddProduct && !searchQuery && (
+                <Link
+                  to="/app/products/new"
+                  className="inline-flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-full text-sm font-semibold shadow-md shadow-emerald-500/20 hover:bg-emerald-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  {t('dashboard:addProduct')}
+                </Link>
+              )}
+            </div>
+          ) : (
+            filteredProducts.map((product) => {
+              const isOutOfStock = (product.inventory || 0) === 0;
+              const isPublished = product.isPublished ?? true;
+              const statusLabel = !isPublished ? 'draft' : isOutOfStock ? 'out' : 'active';
+              const statusCls = !isPublished
+                ? 'bg-gray-100 text-gray-500'
+                : isOutOfStock
+                ? 'bg-red-100 text-red-600'
+                : 'bg-emerald-50 text-emerald-600';
+
+              return (
+                <div
+                  key={product.id}
+                  className="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border border-transparent hover:border-emerald-100 transition-all active:scale-[0.99]"
+                >
+                  {/* Product Image */}
+                  <div className="relative shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-gray-100">
+                    {product.imageUrl ? (
+                      <img src={product.imageUrl} alt={product.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ImageOff className="w-7 h-7 text-gray-300" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Product Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start mb-0.5">
+                      <Link
+                        to={`/app/products/${product.id}`}
+                        className="text-base font-semibold text-gray-900 truncate pr-2 hover:text-emerald-600 transition-colors"
+                      >
+                        {product.title}
+                      </Link>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide shrink-0 ${statusCls}`}>
+                        {statusLabel === 'draft' ? (t('dashboard:draft') || 'Draft')
+                          : statusLabel === 'out' ? 'Out'
+                          : (t('dashboard:active') || 'Active')}
+                      </span>
+                    </div>
+                    <p className="text-emerald-600 font-bold text-sm">{formatPrice(product.price)}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {t('dashboard:stock') || 'Stock'}: <span className={`font-medium ${isOutOfStock ? 'text-red-500' : 'text-gray-800'}`}>{product.inventory || 0}</span>
+                    </p>
+                  </div>
+
+                  {/* Edit Button */}
+                  <Link
+                    to={`/app/products/${product.id}`}
+                    className="shrink-0 p-2 text-gray-400 hover:text-emerald-600 transition-colors"
+                  >
+                    <Edit className="w-5 h-5" />
+                  </Link>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* FAB */}
+        {canAddProduct && (
+          <Link
+            to="/app/products/new"
+            className="fixed bottom-20 right-4 z-30 flex items-center justify-center w-14 h-14 bg-emerald-600 rounded-full shadow-lg shadow-emerald-500/40 text-white hover:bg-emerald-700 active:scale-95 transition-all"
+          >
+            <Plus className="w-7 h-7" />
+          </Link>
+        )}
+      </div>
+
+      {/* ===== DESKTOP VIEW (hidden on mobile) ===== */}
+      <div className="hidden md:block space-y-6">
+        {/* Product Limit Warning */}
+        {!canAddProduct && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-amber-800 font-medium">{t('dashboard:productLimitReached')}</p>
+              <p className="text-amber-700 text-sm mt-1">
+                {productLimitMessage || t('dashboard:productLimitDesc')}
+              </p>
+              <Link to="/app/billing" className="inline-flex items-center gap-1 text-sm font-medium text-amber-800 hover:text-amber-900 mt-2">
+                {t('dashboard:upgradePlan')} →
+              </Link>
+            </div>
+          </div>
+        )}
+
+        <PageHeader
         title={t('dashboard:products')}
         description={t('dashboard:manageProductCatalog')}
         primaryAction={
@@ -636,6 +807,12 @@ export default function ProductsIndexPage() {
                       </div>
                     </td>
                     <td className="px-4 py-4">
+                      <StatusBadge published={product.isPublished ?? true} />
+                    </td>
+                    <td className="px-4 py-4">
+                      <StockBadge stock={product.inventory || 0} />
+                    </td>
+                    <td className="px-4 py-4">
                       <p className="font-semibold text-gray-900">{formatPrice(product.price)}</p>
                       {product.compareAtPrice && product.compareAtPrice > product.price && (
                         <p className="text-xs text-gray-500 line-through">
@@ -644,13 +821,7 @@ export default function ProductsIndexPage() {
                       )}
                     </td>
                     <td className="px-4 py-4">
-                      <StockBadge stock={product.inventory || 0} />
-                    </td>
-                    <td className="px-4 py-4">
                       <span className="text-gray-600">{product.category || '—'}</span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <StatusBadge published={product.isPublished ?? true} />
                     </td>
                     <td className="px-4 py-4 text-right">
                       <div className="inline-flex items-center gap-2">
@@ -804,10 +975,10 @@ export default function ProductsIndexPage() {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
           <GlassCard intensity="high" className="p-6 shadow-xl max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {t('deleteProducts')}
+              {t('dashboard:deleteProducts')}
             </h3>
             <p className="text-gray-600 mb-4">
-              {t('deleteProductsConfirm', { count: selectedIds.size })}
+              {t('dashboard:deleteProductsConfirm', { count: selectedIds.size })}
             </p>
             <div className="flex justify-end gap-3">
               <button
@@ -815,7 +986,7 @@ export default function ProductsIndexPage() {
                 onClick={() => setShowDeleteConfirm(false)}
                 className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition"
               >
-                {t('cancel')}
+                {t('dashboard:cancel')}
               </button>
               <Form method="post" className="inline">
                 {Array.from(selectedIds).map((id) => (
@@ -827,7 +998,7 @@ export default function ProductsIndexPage() {
                   value="delete"
                   className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                 >
-                  {t('delete')}
+                  {t('dashboard:delete')}
                 </button>
               </Form>
             </div>
@@ -844,7 +1015,24 @@ export default function ProductsIndexPage() {
           </GlassCard>
         </div>
       )}
-    </div>
+      </div>
+    </>
+  );
+}
+
+// ============================================================================
+// STOCK BADGE COMPONENT
+// ============================================================================
+function StockBadge({ stock }: { stock: number }) {
+  const cls = stock === 0
+    ? 'bg-red-100 text-red-600'
+    : stock < 5
+    ? 'bg-amber-100 text-amber-600'
+    : 'bg-gray-100 text-gray-600';
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${cls}`}>
+      {stock === 0 ? 'Out of stock' : `${stock} in stock`}
+    </span>
   );
 }
 
@@ -853,7 +1041,8 @@ export default function ProductsIndexPage() {
 // ============================================================================
 function StatusBadge({ published }: { published: boolean }) {
   const { t } = useTranslation();
-  const label = published ? t('publishedStatus') : t('draftStatus');
+  // Use the same dashboard: namespace as the rest of the file
+  const label = published ? t('dashboard:publishedStatus') : t('dashboard:draftStatus');
   return (
     <span
       className={`
@@ -868,34 +1057,29 @@ function StatusBadge({ published }: { published: boolean }) {
 }
 
 // ============================================================================
-// STOCK BADGE COMPONENT
+// ERROR BOUNDARY
 // ============================================================================
-function StockBadge({ stock }: { stock: number }) {
-  const { t } = useTranslation();
-  
-  if (stock <= 0) {
-    return (
-      <span
-        className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded-full"
-        suppressHydrationWarning
-      >
-        <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-        {t('outOfStock')}
-      </span>
-    );
-  }
+export function ErrorBoundary() {
+  const error = useRouteError();
+  const message = isRouteErrorResponse(error)
+    ? `${error.status} — ${error.data}`
+    : error instanceof Error
+    ? error.message
+    : 'An unexpected error occurred';
 
-  if (stock <= 5) {
-    return (
-      <span
-        className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full"
-        suppressHydrationWarning
+  return (
+    <div className="flex flex-col items-center justify-center py-20 text-center px-4">
+      <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+        <AlertTriangle className="w-8 h-8 text-red-500" />
+      </div>
+      <h2 className="text-xl font-semibold text-gray-900 mb-2">Failed to load products</h2>
+      <p className="text-gray-500 text-sm max-w-md mb-6">{message}</p>
+      <a
+        href="/app/products"
+        className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition"
       >
-        <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></span>
-        {t('stockLeft', { count: stock })}
-      </span>
-    );
-  }
-
-  return <span className="font-medium text-gray-900">{stock}</span>;
+        Try again
+      </a>
+    </div>
+  );
 }

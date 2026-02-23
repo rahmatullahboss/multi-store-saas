@@ -13,16 +13,18 @@
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
-import { Form, useLoaderData, useNavigation } from '@remix-run/react';
+import { Form, Link, useLoaderData, useNavigation, useActionData } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, and } from 'drizzle-orm';
 import { webhooks, webhookDeliveryLogs } from '@db/schema';
 import { getStoreId, getUserId } from '~/services/auth.server';
 import { useState } from 'react';
-import { Plus, Trash2, Eye, EyeOff, Copy, Check, Webhook, ExternalLink, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Trash2, Eye, EyeOff, Copy, Check, Webhook, ExternalLink, Loader2, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { z } from 'zod';
 import { logActivity } from '~/lib/activity.server';
+
+export const handle = { i18n: 'settings' };
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Webhook Settings' }];
@@ -37,17 +39,10 @@ const EVENT_TYPE_VALUES = [
   'payment.received',
 ] as const;
 
-const EVENT_TYPES = [
-  { value: 'order.created', label: 'Order Created', labelBn: 'অর্ডার তৈরি হয়েছে' },
-  { value: 'order.updated', label: 'Order Updated', labelBn: 'অর্ডার আপডেট হয়েছে' },
-  { value: 'order.cancelled', label: 'Order Cancelled', labelBn: 'অর্ডার বাতিল হয়েছে' },
-  { value: 'order.delivered', label: 'Order Delivered', labelBn: 'অর্ডার ডেলিভারি হয়েছে' },
-  { value: 'payment.received', label: 'Payment Received', labelBn: 'পেমেন্ট এসেছে' },
-];
 
 const WebhookCreateSchema = z.object({
   url: z.string().trim().url().refine((v) => v.startsWith('https://'), 'URL must start with https://'),
-  events: z.array(z.enum(EVENT_TYPE_VALUES)).min(1).max(5),
+  topic: z.enum(EVENT_TYPE_VALUES),
 });
 
 // ============================================================================
@@ -97,12 +92,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (intent === 'create') {
     const parsed = WebhookCreateSchema.safeParse({
       url: formData.get('url'),
-      events: formData.getAll('events'),
+      topic: formData.get('topic') || 'order.created',
     });
     if (!parsed.success) {
       return json({ error: parsed.error.issues[0]?.message || 'Invalid webhook payload' }, { status: 400 });
     }
-    const { url, events: selectedEvents } = parsed.data;
+    const { url, topic } = parsed.data;
 
     // Generate secret
     const array = new Uint8Array(24);
@@ -112,7 +107,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     await db.insert(webhooks).values({
       storeId,
       url,
-      topic: selectedEvents[0] || 'order.created', // Schema uses single topic
+      topic,
       secret,
       isActive: true,
     });
@@ -125,7 +120,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       details: {
         section: 'webhooks',
         intent: 'create',
-        topic: selectedEvents[0] || 'order.created',
+        topic,
       },
     });
 
@@ -196,15 +191,20 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export default function WebhookSettings() {
   const { webhooks: webhookList, recentLogs } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
-  const { lang } = useTranslation();
+  const { lang, t } = useTranslation();
   const [showSecrets, setShowSecrets] = useState<Record<number, boolean>>({});
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
 
-  const isSubmitting = navigation.state === 'submitting';
+  const actionData = useActionData<typeof action>();
+  const isCreating = navigation.state === 'submitting' &&
+    navigation.formData?.get('intent') === 'create';
 
   const copyToClipboard = (text: string, id: number) => {
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(text).catch(() => {
+      // Clipboard API not available — user can copy manually
+    });
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
@@ -223,35 +223,307 @@ export default function WebhookSettings() {
     });
   };
 
+  const topicLabel = (topic: string): string => {
+    const keyMap: Record<string, string> = {
+      'order.created': 'settings:webhooks.topic.orderCreated',
+      'order.updated': 'settings:webhooks.topic.orderUpdated',
+      'order.cancelled': 'settings:webhooks.topic.orderCancelled',
+      'order.delivered': 'settings:webhooks.topic.orderDelivered',
+      'payment.received': 'settings:webhooks.topic.paymentReceived',
+      'product.updated': 'settings:webhooks.topic.productUpdated',
+    };
+    return keyMap[topic] ? t(keyMap[topic]) : topic;
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Webhook className="w-6 h-6 text-emerald-600" />
-            {lang === 'bn' ? 'ওয়েবহুক সেটিংস' : 'Webhook Settings'}
-          </h1>
-          <p className="text-gray-600 mt-1">
-            {lang === 'bn' 
-              ? 'রিয়েল-টাইম নোটিফিকেশনের জন্য ওয়েবহুক এন্ডপয়েন্ট কনফিগার করুন'
-              : 'Configure webhook endpoints for real-time notifications'}
-          </p>
+    <>
+      {/* ==================== MOBILE LAYOUT ==================== */}
+      <div className="md:hidden -mx-4 -mt-4">
+        {/* Sticky Header */}
+        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+          <div className="flex items-center justify-between px-4 h-[60px]">
+            <Link to="/app/settings" className="p-2 -ml-2 text-gray-600">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <h1 className="text-lg font-semibold text-gray-900">
+              {t('settings:webhooks.pageTitle')}
+            </h1>
+            <div className="w-10" />
+          </div>
+        </header>
+
+        {/* Mobile Content */}
+        <div className="flex flex-col gap-5 p-4 pb-10">
+          {/* Action Feedback */}
+          {actionData && 'success' in actionData && actionData.success && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
+              {t('settings:webhooks.savedSuccess')}
+            </div>
+          )}
+          {actionData && 'error' in actionData && actionData.error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+              {actionData.error}
+            </div>
+          )}
+          {/* Add Webhook Button */}
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white rounded-2xl font-medium"
+          >
+            <Plus className="w-5 h-5" />
+            {t('settings:webhooks.addWebhook')}
+          </button>
+
+          {/* Mobile Add Webhook Form */}
+          {showAddForm && (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="p-4 border-b border-gray-100">
+                <h2 className="font-semibold text-gray-900">
+                  {t('settings:webhooks.newWebhook')}
+                </h2>
+              </div>
+              <Form method="post" className="p-4 space-y-4">
+                <input type="hidden" name="intent" value="create" />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('settings:webhooks.endpointUrl')}
+                  </label>
+                  <input
+                    type="url"
+                    name="url"
+                    required
+                    placeholder="https://your-server.com/webhook"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {t('settings:webhooks.mustBeHttps')}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    {t('settings:webhooks.event')}
+                  </label>
+                  <select
+                    name="topic"
+                    defaultValue="order.created"
+                    className="w-full border border-gray-200 rounded-lg p-2 text-sm"
+                    required
+                  >
+                    <option value="order.created">{t('settings:webhooks.topic.orderCreated')}</option>
+                    <option value="order.updated">{t('settings:webhooks.topic.orderUpdated')}</option>
+                    <option value="order.cancelled">{t('settings:webhooks.topic.orderCancelled')}</option>
+                    <option value="payment.received">{t('settings:webhooks.topic.paymentReceived')}</option>
+                    <option value="product.updated">{t('settings:webhooks.topic.productUpdated')}</option>
+                  </select>
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="submit"
+                    disabled={isCreating}
+                    className="flex-1 py-3 bg-emerald-600 text-white rounded-2xl font-medium disabled:opacity-50"
+                  >
+                    {isCreating ? (
+                      <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                    ) : (
+                      t('settings:webhooks.create')
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddForm(false)}
+                    className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-2xl font-medium"
+                  >
+                    {t('settings:webhooks.cancel')}
+                  </button>
+                </div>
+              </Form>
+            </div>
+          )}
+
+          {/* Mobile Webhooks List */}
+          <div>
+            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">
+              {t('settings:webhooks.yourWebhooks')} ({webhookList.length})
+            </h2>
+            {webhookList.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden p-8 text-center text-gray-500">
+                <Webhook className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p>{t('settings:webhooks.noWebhooksYet')}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {webhookList.map((webhook) => {
+                  const isVisible = showSecrets[webhook.id];
+                  return (
+                    <div key={`mobile-webhook-${webhook.id}`} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                      <div className="p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`w-2 h-2 rounded-full ${webhook.isActive ? 'bg-emerald-500' : 'bg-gray-300'}`} />
+                          <p className="font-mono text-sm text-gray-900 truncate flex-1">
+                            {webhook.url}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">
+                            {topicLabel(webhook.topic)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-xs text-gray-500">{t('settings:webhooks.secret')}:</span>
+                          <code className="text-xs bg-gray-100 px-2 py-0.5 rounded font-mono flex-1 truncate">
+                            {isVisible ? (webhook.secret ?? t('settings:webhooks.noSecret')) : '••••••••••••••••'}
+                          </code>
+                          <button onClick={() => toggleSecret(webhook.id)} className="p-1 text-gray-400">
+                            {isVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                          <button onClick={() => copyToClipboard(webhook.secret || '', webhook.id)} className="p-1 text-gray-400">
+                            {copiedId === webhook.id ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        {(webhook.failureCount || 0) > 0 && (
+                          <p className="text-xs text-red-500 mb-3">{t('settings:webhooks.failedAttempts', { count: webhook.failureCount })}</p>
+                        )}
+                        <div className="flex gap-2">
+                          <Form method="post" className="flex-1">
+                            <input type="hidden" name="intent" value="toggle" />
+                            <input type="hidden" name="webhookId" value={webhook.id} />
+                            <input type="hidden" name="isActive" value={String(webhook.isActive)} />
+                            <button
+                              type="submit"
+                              className={`w-full py-2 text-sm rounded-xl ${
+                                webhook.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'
+                              }`}
+                            >
+                              {webhook.isActive ? t('settings:webhooks.active') : t('settings:webhooks.inactive')}
+                            </button>
+                          </Form>
+                          {confirmDelete === webhook.id ? (
+                            <div className="flex gap-2 items-center">
+                              <Form method="post">
+                                <input type="hidden" name="intent" value="delete" />
+                                <input type="hidden" name="webhookId" value={webhook.id} />
+                                <button
+                                  type="submit"
+                                  className="px-3 py-1.5 text-xs bg-red-600 text-white rounded-xl font-medium"
+                                >
+                                  {t('settings:webhooks.confirmDelete')}
+                                </button>
+                              </Form>
+                              <button
+                                type="button"
+                                onClick={() => setConfirmDelete(null)}
+                                className="px-3 py-1.5 text-xs border border-gray-300 text-gray-600 rounded-xl"
+                              >
+                                {t('settings:webhooks.cancel')}
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setConfirmDelete(webhook.id)}
+                              className="p-2 text-red-500 bg-red-50 rounded-xl"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Delivery Logs */}
+          <div>
+            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">
+              {t('settings:webhooks.recentDeliveries')}
+            </h2>
+            {recentLogs.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden p-8 text-center text-gray-500">
+                <p>{t('settings:webhooks.noDeliveryLogs')}</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {recentLogs.map((log) => (
+                  <div key={`mobile-log-${log.id}`} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded">
+                        {log.eventType}
+                      </span>
+                      {log.success ? (
+                        <span className="inline-flex items-center gap-1 text-sm text-emerald-600">
+                          <CheckCircle className="w-4 h-4" />
+                          {log.statusCode}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-sm text-red-500">
+                          <XCircle className="w-4 h-4" />
+                          {log.statusCode || 'Error'}
+                        </span>
+                      )}
+                    </div>
+                    <p className="font-mono text-xs text-gray-600 truncate">{log.webhookUrl}</p>
+                    <p className="text-xs text-gray-400 mt-1">{formatDate(log.deliveredAt)}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Documentation */}
+          <div className="bg-blue-50 rounded-2xl border border-blue-100 p-4">
+            <h3 className="font-medium text-blue-900 mb-2">
+              {t('settings:webhooks.howToIntegrate')}
+            </h3>
+            <div className="text-sm text-blue-800 space-y-1">
+              <p>• {t('settings:webhooks.integrationTip1')}</p>
+              <p>• {t('settings:webhooks.integrationTip2')}</p>
+              <p>• {t('settings:webhooks.integrationTip3')}</p>
+            </div>
+          </div>
         </div>
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
-        >
-          <Plus className="w-4 h-4" />
-          {lang === 'bn' ? 'ওয়েবহুক যোগ করুন' : 'Add Webhook'}
-        </button>
       </div>
+
+      {/* ==================== DESKTOP LAYOUT ==================== */}
+      <div className="hidden md:block space-y-6">
+        {/* Action Feedback */}
+        {actionData && 'success' in actionData && actionData.success && (
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+            {t('settings:webhooks.savedSuccess')}
+          </div>
+        )}
+        {actionData && 'error' in actionData && actionData.error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            {actionData.error}
+          </div>
+        )}
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <Webhook className="w-6 h-6 text-emerald-600" />
+              {t('settings:webhooks.pageTitle')}
+            </h1>
+            <p className="text-gray-600 mt-1">
+              {t('settings:webhooks.pageSubtitle')}
+            </p>
+          </div>
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
+          >
+            <Plus className="w-4 h-4" />
+            {t('settings:webhooks.addWebhook')}
+          </button>
+        </div>
 
       {/* Add Webhook Form */}
       {showAddForm && (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            {lang === 'bn' ? 'নতুন ওয়েবহুক' : 'New Webhook'}
+            {t('settings:webhooks.newWebhook')}
           </h2>
           <Form method="post" className="space-y-4">
             <input type="hidden" name="intent" value="create" />
@@ -259,7 +531,7 @@ export default function WebhookSettings() {
             {/* URL Input */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {lang === 'bn' ? 'এন্ডপয়েন্ট URL' : 'Endpoint URL'}
+                {t('settings:webhooks.endpointUrl')}
               </label>
               <input
                 type="url"
@@ -269,47 +541,40 @@ export default function WebhookSettings() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               />
               <p className="text-xs text-gray-500 mt-1">
-                {lang === 'bn' ? 'HTTPS প্রয়োজন' : 'Must be HTTPS'}
+                {t('settings:webhooks.mustBeHttps')}
               </p>
             </div>
 
-            {/* Event Types */}
+            {/* Event Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {lang === 'bn' ? 'ইভেন্ট টাইপস' : 'Event Types'}
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {t('settings:webhooks.event')}
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {EVENT_TYPES.map((event) => (
-                  <label
-                    key={event.value}
-                    className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      name="events"
-                      value={event.value}
-                      defaultChecked={event.value === 'order.created'}
-                      className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
-                    />
-                    <span className="text-sm text-gray-700">
-                      {lang === 'bn' ? event.labelBn : event.label}
-                    </span>
-                  </label>
-                ))}
-              </div>
+              <select
+                name="topic"
+                defaultValue="order.created"
+                className="w-full border border-gray-200 rounded-lg p-2 text-sm"
+                required
+              >
+                <option value="order.created">{t('settings:webhooks.topic.orderCreated')}</option>
+                <option value="order.updated">{t('settings:webhooks.topic.orderUpdated')}</option>
+                <option value="order.cancelled">{t('settings:webhooks.topic.orderCancelled')}</option>
+                <option value="payment.received">{t('settings:webhooks.topic.paymentReceived')}</option>
+                <option value="product.updated">{t('settings:webhooks.topic.productUpdated')}</option>
+              </select>
             </div>
 
             {/* Submit */}
             <div className="flex gap-3">
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isCreating}
                 className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
               >
-                {isSubmitting ? (
+                {isCreating ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  lang === 'bn' ? 'তৈরি করুন' : 'Create'
+                  t('settings:webhooks.create')
                 )}
               </button>
               <button
@@ -317,7 +582,7 @@ export default function WebhookSettings() {
                 onClick={() => setShowAddForm(false)}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
               >
-                {lang === 'bn' ? 'বাতিল' : 'Cancel'}
+                {t('settings:webhooks.cancel')}
               </button>
             </div>
           </Form>
@@ -328,7 +593,7 @@ export default function WebhookSettings() {
       <div className="bg-white rounded-xl border border-gray-200">
         <div className="p-4 border-b border-gray-200">
           <h2 className="font-semibold text-gray-900">
-            {lang === 'bn' ? 'আপনার ওয়েবহুকস' : 'Your Webhooks'}
+            {t('settings:webhooks.yourWebhooks')}
             <span className="ml-2 text-sm font-normal text-gray-500">
               ({webhookList.length})
             </span>
@@ -338,7 +603,7 @@ export default function WebhookSettings() {
         {webhookList.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
             <Webhook className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p>{lang === 'bn' ? 'এখনও কোনো ওয়েবহুক নেই' : 'No webhooks yet'}</p>
+            <p>{t('settings:webhooks.noWebhooksYet')}</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -373,16 +638,16 @@ export default function WebhookSettings() {
                             key={topic}
                             className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded"
                           >
-                            {topic}
+                            {topicLabel(topic)}
                           </span>
                         ))}
                       </div>
 
                       {/* Secret */}
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs text-gray-500">Secret:</span>
+                        <span className="text-xs text-gray-500">{t('settings:webhooks.secret')}:</span>
                         <code className="text-xs bg-gray-100 px-2 py-0.5 rounded font-mono">
-                          {isVisible ? webhook.secret : '••••••••••••••••'}
+                          {isVisible ? (webhook.secret ?? t('settings:webhooks.noSecret')) : '••••••••••••••••'}
                         </code>
                         <button
                           onClick={() => toggleSecret(webhook.id)}
@@ -405,7 +670,7 @@ export default function WebhookSettings() {
                       {/* Failure count */}
                       {(webhook.failureCount || 0) > 0 && (
                         <p className="text-xs text-red-500 mt-1">
-                          {webhook.failureCount} failed attempts
+                          {t('settings:webhooks.failedAttempts', { count: webhook.failureCount })}
                         </p>
                       )}
                     </div>
@@ -424,26 +689,40 @@ export default function WebhookSettings() {
                               : 'bg-gray-100 text-gray-600'
                           }`}
                         >
-                          {webhook.isActive 
-                            ? (lang === 'bn' ? 'সক্রিয়' : 'Active') 
-                            : (lang === 'bn' ? 'নিষ্ক্রিয়' : 'Inactive')}
+                          {webhook.isActive
+                            ? t('settings:webhooks.active')
+                            : t('settings:webhooks.inactive')}
                         </button>
                       </Form>
-                      <Form method="post">
-                        <input type="hidden" name="intent" value="delete" />
-                        <input type="hidden" name="webhookId" value={webhook.id} />
+                      {confirmDelete === webhook.id ? (
+                        <div className="flex gap-2 items-center">
+                          <Form method="post">
+                            <input type="hidden" name="intent" value="delete" />
+                            <input type="hidden" name="webhookId" value={webhook.id} />
+                            <button
+                              type="submit"
+                              className="px-3 py-1 text-xs bg-red-600 text-white rounded-lg font-medium"
+                            >
+                              {t('settings:webhooks.confirmDelete')}
+                            </button>
+                          </Form>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDelete(null)}
+                            className="px-3 py-1 text-xs border border-gray-300 text-gray-600 rounded-lg"
+                          >
+                            {t('settings:webhooks.cancel')}
+                          </button>
+                        </div>
+                      ) : (
                         <button
-                          type="submit"
+                          type="button"
+                          onClick={() => setConfirmDelete(webhook.id)}
                           className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                          onClick={(e) => {
-                            if (!confirm(lang === 'bn' ? 'মুছে ফেলতে চান?' : 'Delete this webhook?')) {
-                              e.preventDefault();
-                            }
-                          }}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-                      </Form>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -457,23 +736,23 @@ export default function WebhookSettings() {
       <div className="bg-white rounded-xl border border-gray-200">
         <div className="p-4 border-b border-gray-200">
           <h2 className="font-semibold text-gray-900">
-            {lang === 'bn' ? 'সাম্প্রতিক ডেলিভারি' : 'Recent Deliveries'}
+            {t('settings:webhooks.recentDeliveries')}
           </h2>
         </div>
 
         {recentLogs.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
-            <p>{lang === 'bn' ? 'এখনও কোনো ডেলিভারি লগ নেই' : 'No delivery logs yet'}</p>
+            <p>{t('settings:webhooks.noDeliveryLogs')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-2 text-left font-medium text-gray-600">Event</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-600">Endpoint</th>
-                  <th className="px-4 py-2 text-center font-medium text-gray-600">Status</th>
-                  <th className="px-4 py-2 text-right font-medium text-gray-600">Time</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-600">{t('settings:webhooks.tableEvent')}</th>
+                  <th className="px-4 py-2 text-left font-medium text-gray-600">{t('settings:webhooks.tableEndpoint')}</th>
+                  <th className="px-4 py-2 text-center font-medium text-gray-600">{t('settings:webhooks.tableStatus')}</th>
+                  <th className="px-4 py-2 text-right font-medium text-gray-600">{t('settings:webhooks.tableTime')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -514,14 +793,15 @@ export default function WebhookSettings() {
       {/* Documentation */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
         <h3 className="font-medium text-blue-900 mb-2">
-          {lang === 'bn' ? 'কীভাবে ইন্টিগ্রেট করবেন' : 'How to Integrate'}
+          {t('settings:webhooks.howToIntegrate')}
         </h3>
         <div className="text-sm text-blue-800 space-y-1">
-          <p>• {lang === 'bn' ? 'ওয়েবহুক পেলোড JSON ফর্ম্যাটে আসবে' : 'Webhook payloads are sent as JSON'}</p>
-          <p>• {lang === 'bn' ? 'Signature ভেরিফাই করতে X-Shop-Hmac-Sha256 হেডার ব্যবহার করুন' : 'Verify signature using X-Shop-Hmac-Sha256 header'}</p>
-          <p>• {lang === 'bn' ? '200-299 রেসপন্স কোড সফল বলে গণ্য হবে' : 'Response codes 200-299 are considered successful'}</p>
+          <p>• {t('settings:webhooks.integrationTip1')}</p>
+          <p>• {t('settings:webhooks.integrationTip2')}</p>
+          <p>• {t('settings:webhooks.integrationTip3')}</p>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

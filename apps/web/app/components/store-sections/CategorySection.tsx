@@ -54,11 +54,11 @@ function CategorySectionBase({ settings, theme, categories }: CategorySectionPro
   const getCategoryData = (cat: string | StoreCategory) => {
     const isObject = typeof cat === 'object' && cat !== null;
     return {
-      title: isObject ? (cat as StoreCategory).title : (cat as string),
+      title: isObject ? ((cat as StoreCategory).title ?? '') : (cat as string),
       imageUrl: isObject
         ? (cat as StoreCategory).imageUrl
         : categoryImageMap[cat as string] || null,
-      id: isObject ? (cat as StoreCategory).id : (cat as string),
+      id: isObject ? ((cat as StoreCategory).id ?? '') : (cat as string),
       slug: isObject ? (cat as StoreCategory).slug : null
     };
   };

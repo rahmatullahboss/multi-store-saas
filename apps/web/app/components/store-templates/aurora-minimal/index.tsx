@@ -823,10 +823,10 @@ function PreviewAuroraStore(props: StoreTemplateProps) {
       case 'home':
         return (
           <PreviewHomePage
-            storeName={storeName}
+            storeName={storeName ?? ''}
             products={products}
             categories={validCategories}
-            currency={currency}
+            currency={currency ?? ''}
             config={config}
             onNavigate={navigate}
           />
@@ -835,14 +835,14 @@ function PreviewAuroraStore(props: StoreTemplateProps) {
         return (
           <PreviewProductDetailPage
             productId={currentPage.productId}
-            currency={currency}
+            currency={currency ?? ''}
             onNavigate={navigate}
           />
         );
       case 'cart':
-        return <PreviewCartPageComponent currency={currency} onNavigate={navigate} />;
+        return <PreviewCartPageComponent currency={currency ?? ''} onNavigate={navigate} />;
       case 'checkout':
-        return <PreviewCheckoutPage currency={currency} onNavigate={navigate} />;
+        return <PreviewCheckoutPage currency={currency ?? ''} onNavigate={navigate} />;
       case 'category': {
         const filtered = products.filter((p) => p.category === currentPage.category);
         return (
@@ -858,7 +858,7 @@ function PreviewAuroraStore(props: StoreTemplateProps) {
                 <PreviewProductCard
                   key={p.id}
                   product={p}
-                  currency={currency}
+                  currency={currency ?? ''}
                   onNavigate={navigate}
                 />
               ))}
@@ -903,18 +903,29 @@ function PreviewAuroraStore(props: StoreTemplateProps) {
           rel="stylesheet"
         />
         <PreviewHeader
-          storeName={storeName}
+          storeName={storeName ?? ''}
           logo={logo}
           categories={validCategories}
           onNavigate={navigate}
         />
         <main>{renderPage()}</main>
         <AuroraMinimalFooter
-          storeName={storeName}
+          storeName={storeName ?? ''}
           logo={logo}
           footerConfig={footerConfig}
-          businessInfo={businessInfo}
-          socialLinks={socialLinks}
+          businessInfo={businessInfo ? {
+            phone: businessInfo.phone ?? undefined,
+            email: businessInfo.email ?? undefined,
+            address: businessInfo.address ?? undefined,
+          } : undefined}
+          socialLinks={socialLinks ? {
+            facebook: socialLinks.facebook ?? undefined,
+            instagram: socialLinks.instagram ?? undefined,
+            whatsapp: socialLinks.whatsapp ?? undefined,
+            twitter: socialLinks.twitter ?? undefined,
+            youtube: socialLinks.youtube ?? undefined,
+            linkedin: socialLinks.linkedin ?? undefined,
+          } : undefined}
           planType={planType}
           categories={validCategories}
         />
@@ -956,7 +967,7 @@ function LiveAuroraMinimalHomepage({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const validCategories = categories.filter((c): c is string => Boolean(c));
+  const validCategories = (categories || []).filter((c): c is string => Boolean(c));
   const announcement = config?.announcement;
 
   const THEME = {
@@ -991,7 +1002,7 @@ function LiveAuroraMinimalHomepage({
               />
 
               <AuroraMinimalHeader
-                storeName={storeName}
+                storeName={storeName ?? ''}
                 logo={logo}
                 categories={validCategories}
                 currentCategory={currentCategory}
@@ -1130,10 +1141,21 @@ function LiveAuroraMinimalHomepage({
               </section>
 
               <AuroraMinimalFooter
-                storeName={storeName}
+                storeName={storeName ?? ''}
                 footerConfig={footerConfig}
-                businessInfo={businessInfo}
-                socialLinks={socialLinks}
+                businessInfo={businessInfo ? {
+                  phone: businessInfo.phone ?? undefined,
+                  email: businessInfo.email ?? undefined,
+                  address: businessInfo.address ?? undefined,
+                } : undefined}
+                socialLinks={socialLinks ? {
+                  facebook: socialLinks.facebook ?? undefined,
+                  instagram: socialLinks.instagram ?? undefined,
+                  whatsapp: socialLinks.whatsapp ?? undefined,
+                  twitter: socialLinks.twitter ?? undefined,
+                  youtube: socialLinks.youtube ?? undefined,
+                  linkedin: socialLinks.linkedin ?? undefined,
+                } : undefined}
                 planType={planType}
                 themeColors={THEME}
                 categories={validCategories}
@@ -1263,7 +1285,7 @@ function LiveAuroraMinimalHomepage({
 // AURORA PRODUCT CARD COMPONENT (Live)
 // ============================================================================
 interface AuroraProductCardProps {
-  product: StoreTemplateProps['products'][0];
+  product: NonNullable<StoreTemplateProps['products']>[0];
   storeId: number;
   formatPrice: (price: number) => string;
   isPreview?: boolean;

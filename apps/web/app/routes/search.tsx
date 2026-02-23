@@ -206,7 +206,7 @@ export default function SearchPage() {
         currency={currency}
         socialLinks={socialLinks || undefined}
         businessInfo={businessInfo || undefined}
-        config={themeConfig || undefined}
+        config={null}
         planType={planType}
       >
         <Suspense

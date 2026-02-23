@@ -58,6 +58,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
 
   const store = storeResult[0];
+  if (!store) {
+    throw new Response('Store not found', { status: 404 });
+  }
 
   // Get all products for featured product selector
   const storeProducts = await db
@@ -141,6 +144,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
+  // Ownership validation: if featuredProductId is provided, verify it belongs to this store
+  if (featuredProductId) {
+    const productIdInt = parseInt(featuredProductId, 10);
+    if (isNaN(productIdInt)) {
+      return json({ error: 'Invalid product selection' }, { status: 400 });
+    }
+    const productRow = await db
+      .select({ id: products.id })
+      .from(products)
+      .where(and(eq(products.id, productIdInt), eq(products.storeId, storeId)))
+      .limit(1);
+    if (productRow.length === 0) {
+      return json({ error: 'Product not found or does not belong to your store' }, { status: 403 });
+    }
+  }
+
   await db
     .update(stores)
     .set({
@@ -178,7 +197,7 @@ export default function LandingSettingsPage() {
     }
   );
   const [testimonials, setTestimonials] = useState<LandingConfig['testimonials']>(
-    store.landingConfig.testimonials || []
+    store.landingConfig?.testimonials ?? []
   );
   const { t, lang } = useTranslation();
 
@@ -205,57 +224,315 @@ export default function LandingSettingsPage() {
     setTestimonials(updated);
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link to="/app/settings" className="p-2 hover:bg-gray-100 rounded-lg transition">
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
+  // Shared Genie CTA Card
+  const GenieCTACard = () => (
+    <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 text-white">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
+      <div className="relative z-10">
+        <div className="flex items-center gap-2 mb-2">
+          <Sparkles className="w-5 h-5" />
+          <span className="text-sm font-medium text-purple-200">✨ Genie</span>
+        </div>
+        <h3 className="text-xl font-bold mb-2">Genie দিয়ে ম্যাজিক্যালি তৈরি করুন</h3>
+        <p className="text-purple-100 mb-4 max-w-md">
+          মাত্র ৩টি ধাপে হাই-কনভার্টিং ল্যান্ডিং পেইজ তৈরি করুন। আপনার ইন্টেন্ট অনুযায়ী অটোমেটিক
+          সেকশন ও টেমপ্লেট সাজেশন পাবেন।
+        </p>
+        <Link
+          to="/app/new-builder"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-purple-600 rounded-lg font-semibold hover:bg-purple-50 transition-colors shadow-lg"
+        >
+          ✨ Genie শুরু করুন
+          <ArrowRight className="w-4 h-4" />
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('landingSettings')}</h1>
-          <p className="text-gray-600">{t('landingSettingsDesc')}</p>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* ===== MOBILE LAYOUT ===== */}
+      <div className="md:hidden -mx-4 -mt-4 pb-32">
+        {/* Sticky Header */}
+        <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+          <Link to="/app/settings" className="p-2 -ml-2 hover:bg-gray-100 rounded-lg transition">
+            <ArrowLeft className="w-5 h-5 text-gray-600" />
+          </Link>
+          <h1 className="text-lg font-semibold text-gray-900">{t('landingSettings')}</h1>
+          <div className="w-10" /> {/* Spacer */}
+        </div>
+
+        <div className="px-4 pt-4 space-y-4">
+          {/* Success Message */}
+          {showSuccess && (
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-2xl flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              {t('settingsSaved')}
+            </div>
+          )}
+
+          {/* Error Message */}
+          {actionData && 'error' in actionData && actionData.error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl">
+              {actionData.error}
+            </div>
+          )}
+
+          {/* Genie CTA */}
+          <GenieCTACard />
+
+          <Form method="post" id="landing-settings-form-mobile" className="space-y-4">
+            <input type="hidden" name="testimonials" value={JSON.stringify(testimonials)} />
+            <input type="hidden" name="styleWizard" value={JSON.stringify(styleWizard)} />
+
+            {/* Featured Product - Mobile */}
+            <div className="rounded-2xl border border-gray-100 shadow-sm bg-white p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('featuredProduct')}</h2>
+                  <p className="text-sm text-gray-500">{t('featuredProductDesc')}</p>
+                </div>
+              </div>
+              {storeProducts.length > 0 ? (
+                <select
+                  name="featuredProductId"
+                  value={featuredProductId || ''}
+                  onChange={(e) => setFeaturedProductId(e.target.value ? Number(e.target.value) : null)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
+                >
+                  <option value="">{t('selectAProduct')}</option>
+                  {storeProducts.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.title} - {formatPrice(product.price)}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="text-center py-6 text-gray-500">
+                  <p>{t('noProductsFoundAddFirst')}</p>
+                  <Link to="/app/products/new" className="inline-flex items-center gap-2 mt-3 text-emerald-600 hover:text-emerald-700">
+                    <Plus className="w-4 h-4" />
+                    {t('addProduct')}
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Checkout Mode - Mobile */}
+            <div className="rounded-2xl border border-gray-100 shadow-sm bg-white p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <ShoppingBag className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">চেকআউট মোড</h2>
+                  <p className="text-sm text-gray-500">কাস্টমার কিভাবে অর্ডার করবে</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <label className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition ${
+                  !checkoutModalEnabled ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'
+                }`}>
+                  <input type="radio" name="checkoutModalEnabled" value="false" checked={!checkoutModalEnabled}
+                    onChange={() => setCheckoutModalEnabled(false)} className="sr-only" />
+                  <span className="text-2xl mb-1">🔗</span>
+                  <span className="font-semibold text-gray-900">রিডাইরেক্ট চেকআউট</span>
+                  <span className="text-sm text-gray-500">আলাদা চেকআউট পেইজে নিয়ে যাবে</span>
+                  {!checkoutModalEnabled && <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-emerald-600" />}
+                </label>
+                <label className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition ${
+                  checkoutModalEnabled ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'
+                }`}>
+                  <input type="radio" name="checkoutModalEnabled" value="true" checked={checkoutModalEnabled}
+                    onChange={() => setCheckoutModalEnabled(true)} className="sr-only" />
+                  <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-purple-500 text-white text-xs font-medium rounded-full">নতুন!</div>
+                  <span className="text-2xl mb-1">⚡</span>
+                  <span className="font-semibold text-gray-900">মোডাল চেকআউট</span>
+                  <span className="text-sm text-gray-500">পেইজেই পপআপে অর্ডার ফর্ম</span>
+                  {checkoutModalEnabled && <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-emerald-600" />}
+                </label>
+              </div>
+            </div>
+
+            {/* Style Wizard - Mobile */}
+            <div className="rounded-2xl border border-gray-100 shadow-sm bg-white p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
+                  <Palette className="w-5 h-5 text-pink-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">স্টাইল সেটিংস</h2>
+                  <p className="text-sm text-gray-500">ব্র্যান্ড কালার ও ফন্ট</p>
+                </div>
+              </div>
+              <StyleWizard value={styleWizard} onChange={setStyleWizard} compact={false} />
+            </div>
+
+            {/* Headline & Copy - Mobile */}
+            <div className="rounded-2xl border border-gray-100 shadow-sm bg-white p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <MessageSquare className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('headlinesCopy')}</h2>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('mainHeadline')} *</label>
+                  <input type="text" name="headline" defaultValue={store.landingConfig.headline}
+                    placeholder={String(t('mainHeadline'))}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('subheadline')}</label>
+                  <input type="text" name="subheadline" defaultValue={store.landingConfig.subheadline || ''}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('urgencyText')}</label>
+                  <input type="text" name="urgencyText" defaultValue={store.landingConfig?.urgencyText || ''}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('guaranteeText')}</label>
+                  <input type="text" name="guaranteeText" defaultValue={store.landingConfig.guaranteeText || ''}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500" />
+                </div>
+              </div>
+            </div>
+
+            {/* Video - Mobile */}
+            <div className="rounded-2xl border border-gray-100 shadow-sm bg-white p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                  <Video className="w-5 h-5 text-red-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('videoEmbed')}</h2>
+                </div>
+              </div>
+              <input type="url" name="videoUrl" defaultValue={store.landingConfig.videoUrl || ''}
+                placeholder="https://www.youtube.com/watch?v=..."
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500" />
+            </div>
+
+            {/* CTA Button - Mobile */}
+            <div className="rounded-2xl border border-gray-100 shadow-sm bg-white p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <Play className="w-5 h-5 text-orange-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('callToAction')}</h2>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('buttonText')}</label>
+                  <input type="text" name="ctaText" defaultValue={store.landingConfig.ctaText}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('buttonSubtext')}</label>
+                  <input type="text" name="ctaSubtext" defaultValue={store.landingConfig.ctaSubtext || ''}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500" />
+                </div>
+              </div>
+            </div>
+
+            {/* Testimonials - Mobile */}
+            <div className="rounded-2xl border border-gray-100 shadow-sm bg-white p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Users className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('testimonials')}</h2>
+                </div>
+                <button type="button" onClick={addTestimonial}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-emerald-100 text-emerald-700 rounded-lg">
+                  <Plus className="w-4 h-4" />{t('add')}
+                </button>
+              </div>
+              <div className="space-y-3">
+                {testimonials && testimonials.length > 0 ? (
+                  testimonials.map((testimonial, index) => (
+                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-1 space-y-2">
+                          <input type="text" value={testimonial.name}
+                            onChange={(e) => updateTestimonial(index, 'name', e.target.value)}
+                            placeholder={String(t('customerName'))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                          <textarea value={testimonial.text}
+                            onChange={(e) => updateTestimonial(index, 'text', e.target.value)}
+                            placeholder={String(t('theirReview'))} rows={2}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none" />
+                        </div>
+                        <button type="button" onClick={() => removeTestimonial(index)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-6 text-gray-500">
+                    <Users className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                    <p>{t('noTestimonialsYet')}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Form>
+        </div>
+
+        {/* Fixed Save Button - Mobile */}
+        <div className="fixed bottom-20 left-0 right-0 px-4 pb-2 z-[70] md:hidden">
+          <button type="submit" form="landing-settings-form-mobile" disabled={isSubmitting}
+            className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 transition disabled:opacity-50 shadow-lg">
+            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+            {isSubmitting ? t('savingSettings') : t('saveSettings')}
+          </button>
         </div>
       </div>
 
-      {/* Success Message */}
-      {showSuccess && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
-          <CheckCircle className="w-5 h-5" />
-          {t('settingsSaved')}
+      {/* ===== DESKTOP LAYOUT ===== */}
+      <div className="hidden md:block space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <Link to="/app/settings" className="p-2 hover:bg-gray-100 rounded-lg transition">
+            <ArrowLeft className="w-5 h-5 text-gray-600" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{t('landingSettings')}</h1>
+            <p className="text-gray-600">{t('landingSettingsDesc')}</p>
+          </div>
         </div>
-      )}
 
-      {/* Error Message */}
-      {actionData && 'error' in actionData && actionData.error && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-          {actionData.error}
-        </div>
-      )}
+        {/* Success Message */}
+        {showSuccess && (
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
+            <CheckCircle className="w-5 h-5" />
+            {t('settingsSaved')}
+          </div>
+        )}
+
+        {/* Error Message */}
+        {actionData && 'error' in actionData && actionData.error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+            {actionData.error}
+          </div>
+        )}
 
       {/* Genie - Quick Builder CTA Card */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 text-white">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="w-5 h-5" />
-            <span className="text-sm font-medium text-purple-200">✨ Genie</span>
-          </div>
-          <h3 className="text-xl font-bold mb-2">Genie দিয়ে ম্যাজিক্যালি তৈরি করুন</h3>
-          <p className="text-purple-100 mb-4 max-w-md">
-            মাত্র ৩টি ধাপে হাই-কনভার্টিং ল্যান্ডিং পেইজ তৈরি করুন। আপনার ইন্টেন্ট অনুযায়ী অটোমেটিক
-            সেকশন ও টেমপ্লেট সাজেশন পাবেন।
-          </p>
-          <Link
-            to="/app/new-builder"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-purple-600 rounded-lg font-semibold hover:bg-purple-50 transition-colors shadow-lg"
-          >
-            ✨ Genie শুরু করুন
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-      </div>
+      <GenieCTACard />
 
       <Form method="post" className="space-y-6">
         <input type="hidden" name="testimonials" value={JSON.stringify(testimonials)} />
@@ -650,6 +927,7 @@ export default function LandingSettingsPage() {
           </button>
         </div>
       </Form>
-    </div>
+      </div>
+    </>
   );
 }

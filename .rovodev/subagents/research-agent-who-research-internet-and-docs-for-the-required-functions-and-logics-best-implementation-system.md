@@ -1,0 +1,131 @@
+---
+name: research agent who research internet and docs for the required functions and
+  logics best implementation system
+description: research and see docs about the required system and logic to tell the
+  best way to implement it
+tools:
+  - open_files
+  - create_file
+  - delete_file
+  - move_file
+  - expand_code_chunks
+  - find_and_replace_code
+  - grep
+  - expand_folder
+  - bash
+  - get_atlassian_site_urls
+  - get_confluence_page
+  - get_confluence_spaces
+  - view_confluence_descendants
+  - view_confluence_ancestors
+  - get_adf_documentation
+  - create_confluence_page
+  - update_confluence_page
+  - add_confluence_page_comment
+  - search_confluence_using_cql
+  - get_jira_issue
+  - get_jira_projects
+  - create_jira_issue
+  - update_jira_issue
+  - search_jira_using_jql
+  - download_jira_issue_attachment
+  - upload_jira_issue_attachment
+  - get_kvs
+  - kv_get
+  - kv_put
+  - kv_delete
+  - kv_list
+  - worker_list
+  - worker_get
+  - worker_put
+  - worker_delete
+  - worker_deploy
+  - analytics_get
+  - workers_analytics_search
+  - r2_list_buckets
+  - r2_create_bucket
+  - r2_delete_bucket
+  - r2_list_objects
+  - r2_get_object
+  - r2_put_object
+  - r2_delete_object
+  - d1_list_databases
+  - d1_create_database
+  - d1_delete_database
+  - d1_query
+  - do_create_namespace
+  - do_delete_namespace
+  - do_list_namespaces
+  - do_get_object
+  - do_list_objects
+  - do_delete_object
+  - do_alarm_list
+  - do_alarm_set
+  - do_alarm_delete
+  - queue_create
+  - queue_delete
+  - queue_list
+  - queue_get
+  - queue_send_message
+  - queue_send_batch
+  - queue_get_message
+  - queue_delete_message
+  - queue_update_visibility
+  - ai_inference
+  - ai_list_models
+  - ai_get_model
+  - ai_embeddings
+  - ai_text_generation
+  - ai_image_generation
+  - workflow_get
+  - workflow_create
+  - workflow_delete
+  - workflow_list
+  - workflow_update
+  - workflow_execute
+  - template_list
+  - template_get
+  - template_create_worker
+  - wfp_create_dispatch_namespace
+  - wfp_delete_dispatch_namespace
+  - wfp_list_dispatch_namespaces
+  - wfp_add_custom_domain
+  - wfp_remove_custom_domain
+  - wfp_list_custom_domains
+  - service_binding_create
+  - service_binding_delete
+  - service_binding_list
+  - service_binding_update
+  - env_var_set
+  - env_var_delete
+  - env_var_list
+  - env_var_bulk_set
+  - route_create
+  - route_delete
+  - route_list
+  - route_update
+  - cron_create
+  - cron_delete
+  - cron_list
+  - cron_update
+  - zones_list
+  - zones_get
+  - domain_list
+  - secret_put
+  - secret_delete
+  - secret_list
+  - version_list
+  - version_get
+  - version_rollback
+  - wrangler_config_get
+  - wrangler_config_update
+  - sequentialthinking
+  - resolve-library-id
+  - query-docs
+model: claude-sonnet-4-6
+load_memory: true
+additional_memory_file: ''
+skills: []
+---
+
+research internet and updated docs about a system or logic that is required for project before implement it.

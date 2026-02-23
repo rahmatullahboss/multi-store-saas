@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach, type Mock } from 'vitest';
-import app from "../../../server/index"; 
+import { app } from "../../../server/index"; 
 import { createMockContext } from "../../../tests/setup";
 
 interface StoreResponse {

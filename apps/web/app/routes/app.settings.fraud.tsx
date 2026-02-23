@@ -97,23 +97,29 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .orderBy(desc(fraudEvents.createdAt))
     .limit(20);
 
-  // Stats
-  const allEvents = await db
-    .select({
-      id: fraudEvents.id,
-      decision: fraudEvents.decision,
-    })
-    .from(fraudEvents)
-    .where(eq(fraudEvents.storeId, storeId))
-    .limit(1000);
+  // Stats — wrapped in try/catch so a DB failure here doesn't break the whole page
+  let stats = { total: 0, allowed: 0, verified: 0, held: 0, blocked: 0 };
+  try {
+    const allEvents = await db
+      .select({
+        id: fraudEvents.id,
+        decision: fraudEvents.decision,
+      })
+      .from(fraudEvents)
+      .where(eq(fraudEvents.storeId, storeId))
+      .limit(1000);
 
-  const stats = {
-    total: allEvents.length,
-    allowed: allEvents.filter(e => e.decision === 'allow').length,
-    verified: allEvents.filter(e => e.decision === 'verify').length,
-    held: allEvents.filter(e => e.decision === 'hold').length,
-    blocked: allEvents.filter(e => e.decision === 'block').length,
-  };
+    stats = {
+      total: allEvents.length,
+      allowed: allEvents.filter(e => e.decision === 'allow').length,
+      verified: allEvents.filter(e => e.decision === 'verify').length,
+      held: allEvents.filter(e => e.decision === 'hold').length,
+      blocked: allEvents.filter(e => e.decision === 'block').length,
+    };
+  } catch (statsError) {
+    console.error('Failed to load fraud stats:', statsError);
+    // stats remains zeroed — page still renders with settings and blacklist
+  }
 
   return json({ settings, blacklist, heldEvents, stats });
 }
@@ -140,6 +146,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const maxCODAmount = formData.get('maxCODAmount')
       ? parseInt(formData.get('maxCODAmount') as string)
       : null;
+
+    // Validate threshold ordering: verify < hold < block
+    if (!(verifyThreshold < holdThreshold && holdThreshold < blockThreshold)) {
+      return json(
+        { success: false, error: 'Thresholds must be in order: Verify < Hold < Block' },
+        { status: 400 }
+      );
+    }
 
     const settings = {
       enabled,
@@ -204,9 +218,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Resolve held order
   if (intent === 'resolve') {
     const eventId = parseInt(formData.get('eventId') as string);
-    const action = formData.get('action') as string;
+    // Renamed from 'action' to 'resolveAction' to avoid shadowing the exported action function
+    const resolveAction = formData.get('action') as string;
 
-    if (!eventId || !action) {
+    if (!eventId || !resolveAction) {
       return json({ error: 'Event ID and action required' }, { status: 400 });
     }
 
@@ -217,19 +232,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (!event) return json({ error: 'Event not found' }, { status: 404 });
 
     await db.update(fraudEvents).set({
-      resolvedBy: `merchant:${action}`,
+      resolvedBy: `merchant:${resolveAction}`,
       resolvedAt: new Date(),
     }).where(eq(fraudEvents.id, eventId));
 
     if (event.orderId) {
-      if (action === 'approve') {
+      if (resolveAction === 'approve') {
         await db.update(orders).set({ status: 'confirmed', updatedAt: new Date() })
           .where(and(eq(orders.id, event.orderId), eq(orders.storeId, storeId)));
-      } else if (action === 'reject' || action === 'blacklist') {
+      } else if (resolveAction === 'reject' || resolveAction === 'blacklist') {
         await db.update(orders).set({ status: 'cancelled', updatedAt: new Date() })
           .where(and(eq(orders.id, event.orderId), eq(orders.storeId, storeId)));
 
-        if (action === 'blacklist') {
+        if (resolveAction === 'blacklist') {
           await db.insert(phoneBlacklist).values({
             phone: event.phone,
             storeId,
@@ -240,7 +255,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
     }
 
-    return json({ success: true, message: `Order ${action}d` });
+    return json({ success: true, message: `Order ${resolveAction}d` });
   }
 
   return json({ error: 'Invalid intent' }, { status: 400 });
@@ -260,35 +275,331 @@ export default function FraudSettingsPage() {
   const [newPhone, setNewPhone] = useState('');
   const [newReason, setNewReason] = useState('');
 
+  // Shared status badge component
+  const StatusBadge = () => (
+    <div className={`px-3 py-1.5 md:px-4 md:py-2 rounded-full border flex items-center gap-2 ${
+      settings.enabled
+        ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+        : 'bg-gray-50 border-gray-200 text-gray-600'
+    }`}>
+      {settings.enabled ? (
+        <><ShieldCheck className="w-4 h-4" /><span className="text-sm font-medium">Active</span></>
+      ) : (
+        <><ShieldX className="w-4 h-4" /><span className="text-sm font-medium">Inactive</span></>
+      )}
+    </div>
+  );
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link to="/app/settings" className="p-2 hover:bg-gray-100 rounded-lg transition">
+    <>
+      {/* ===== MOBILE LAYOUT ===== */}
+      <div className="md:hidden -mx-4 -mt-4 pb-32">
+        {/* Sticky Header */}
+        <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+          <Link to="/app/settings" className="p-2 -ml-2 hover:bg-gray-100 rounded-lg transition">
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Shield className="w-6 h-6 text-emerald-600" />
-              Fraud Detection
-            </h1>
-            <p className="text-gray-600">COD ফ্রড প্রতিরোধ এবং রিস্ক স্কোরিং</p>
+          <h1 className="text-lg font-semibold text-gray-900">Fraud Detection</h1>
+          <StatusBadge />
+        </div>
+
+        <div className="px-4 pt-4 space-y-4">
+          {/* Status Messages */}
+          {actionData && 'success' in actionData && (
+            <div className="bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 px-4 py-3 rounded-2xl flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-emerald-600" />
+              {actionData.message}
+            </div>
+          )}
+          {actionData && 'error' in actionData && (
+            <div className="bg-red-50/50 border border-red-200/50 text-red-600 px-4 py-3 rounded-2xl flex items-center gap-2">
+              <XCircle className="w-5 h-5" />
+              {actionData.error}
+            </div>
+          )}
+
+          {/* Stats - 3 columns on mobile */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="rounded-2xl border border-gray-100 shadow-sm p-3 text-center bg-white">
+              <p className="text-xl font-bold text-gray-900">{stats.total}</p>
+              <p className="text-xs text-gray-500">Total</p>
+            </div>
+            <div className="rounded-2xl border border-gray-100 shadow-sm p-3 text-center bg-white">
+              <p className="text-xl font-bold text-emerald-600">{stats.allowed}</p>
+              <p className="text-xs text-gray-500">Allowed</p>
+            </div>
+            <div className="rounded-2xl border border-gray-100 shadow-sm p-3 text-center bg-white">
+              <p className="text-xl font-bold text-red-600">{stats.blocked}</p>
+              <p className="text-xs text-gray-500">Blocked</p>
+            </div>
+          </div>
+
+          {/* Settings Form - Mobile */}
+          <div className="rounded-2xl border border-gray-100 shadow-sm bg-white p-5">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-orange-500" />
+              Risk Thresholds
+            </h2>
+
+            <Form method="post" id="fraud-settings-form-mobile" className="space-y-5">
+              <input type="hidden" name="intent" value="save_settings" />
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="enabled"
+                  value="true"
+                  defaultChecked={settings.enabled}
+                  className="w-5 h-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                />
+                <span className="text-sm font-medium text-gray-700">Enable Fraud Detection</span>
+              </label>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    ⚠️ Verify Threshold
+                  </label>
+                  <input
+                    type="number"
+                    name="verifyThreshold"
+                    defaultValue={settings.thresholds.verify}
+                    min={10} max={90}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Score {settings.thresholds.verify}+ → verify করতে হবে</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    🔶 Hold Threshold
+                  </label>
+                  <input
+                    type="number"
+                    name="holdThreshold"
+                    defaultValue={settings.thresholds.hold}
+                    min={20} max={95}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Score {settings.thresholds.hold}+ → review queue</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    🚫 Block Threshold
+                  </label>
+                  <input
+                    type="number"
+                    name="blockThreshold"
+                    defaultValue={settings.thresholds.block}
+                    min={30} max={100}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Score {settings.thresholds.block}+ → auto block</p>
+                </div>
+              </div>
+
+              <div className="border-t pt-4 space-y-3">
+                <h3 className="text-sm font-semibold text-gray-700">COD Controls</h3>
+
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="autoHideCOD"
+                    value="true"
+                    defaultChecked={settings.autoHideCOD}
+                    className="w-4 h-4 rounded border-gray-300 text-emerald-600"
+                  />
+                  <span className="text-sm text-gray-600">High risk এ COD লুকাও</span>
+                </label>
+
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="requireOTPForCOD"
+                    value="true"
+                    defaultChecked={settings.requireOTPForCOD}
+                    className="w-4 h-4 rounded border-gray-300 text-emerald-600"
+                  />
+                  <span className="text-sm text-gray-600">সব COD এ OTP লাগবে</span>
+                </label>
+
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Max COD Amount (৳)</label>
+                  <input
+                    type="number"
+                    name="maxCODAmount"
+                    defaultValue={settings.maxCODAmount || ''}
+                    placeholder="No limit"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+            </Form>
+          </div>
+
+          {/* Phone Blacklist - Mobile */}
+          <div className="rounded-2xl border border-gray-100 shadow-sm bg-white p-5">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Ban className="w-5 h-5 text-red-500" />
+              Blacklist ({blacklist.length})
+            </h2>
+
+            <Form method="post" className="flex gap-2 mb-4" onSubmit={() => { setNewPhone(''); setNewReason(''); }}>
+              <input type="hidden" name="intent" value="blacklist_add" />
+              <input
+                type="text"
+                name="phone"
+                value={newPhone}
+                onChange={(e) => setNewPhone(e.target.value)}
+                placeholder="01XXXXXXXXX"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
+                required
+              />
+              <input
+                type="text"
+                name="reason"
+                value={newReason}
+                onChange={(e) => setNewReason(e.target.value)}
+                placeholder="Reason"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500"
+              />
+              <button type="submit" className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                <Plus className="w-4 h-4" />
+              </button>
+            </Form>
+
+            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+              {blacklist.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-4">No blacklisted numbers</p>
+              ) : (
+                blacklist.map((entry) => (
+                  <div key={entry.id} className="flex items-center justify-between p-3 bg-red-50/50 border border-red-100 rounded-lg">
+                    <div>
+                      <p className="text-sm font-mono font-medium text-gray-900 flex items-center gap-2">
+                        <Phone className="w-3.5 h-3.5 text-red-500" />
+                        {entry.phone}
+                      </p>
+                      {entry.reason && <p className="text-xs text-gray-500 mt-0.5">{entry.reason}</p>}
+                    </div>
+                    <blacklistFetcher.Form method="post">
+                      <input type="hidden" name="intent" value="blacklist_remove" />
+                      <input type="hidden" name="id" value={entry.id} />
+                      <button type="submit" className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-100 rounded transition">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </blacklistFetcher.Form>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Review Queue - Mobile (existing card view) */}
+          <div className="rounded-2xl border border-gray-100 shadow-sm bg-white p-5">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Eye className="w-5 h-5 text-orange-500" />
+              Review ({heldEvents.filter(e => !e.resolvedBy).length})
+            </h2>
+
+            {heldEvents.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-6">No orders pending 🎉</p>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {heldEvents.map((event) => {
+                  const signals = event.signals ? JSON.parse(event.signals as string) : [];
+                  const isPending = !event.resolvedBy;
+                  return (
+                    <div key={event.id} className={`py-3 space-y-2 ${isPending ? '' : 'opacity-60'}`}>
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-sm font-medium">{event.phone}</span>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          event.riskScore >= 80 ? 'bg-red-100 text-red-800' :
+                          event.riskScore >= 60 ? 'bg-orange-100 text-orange-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {event.riskScore}/100
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {signals.slice(0, 3).map((s: { name: string }, i: number) => (
+                          <span key={i} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{s.name}</span>
+                        ))}
+                      </div>
+                      {isPending && (
+                        <div className="flex gap-2 pt-1">
+                          <Form method="post" className="inline">
+                            <input type="hidden" name="intent" value="resolve" />
+                            <input type="hidden" name="eventId" value={event.id} />
+                            <input type="hidden" name="action" value="approve" />
+                            <button type="submit" className="px-3 py-1.5 text-xs bg-emerald-100 text-emerald-700 rounded-lg">✅ Approve</button>
+                          </Form>
+                          <Form method="post" className="inline">
+                            <input type="hidden" name="intent" value="resolve" />
+                            <input type="hidden" name="eventId" value={event.id} />
+                            <input type="hidden" name="action" value="reject" />
+                            <button type="submit" className="px-3 py-1.5 text-xs bg-red-100 text-red-700 rounded-lg">❌ Reject</button>
+                          </Form>
+                          <Form method="post" className="inline">
+                            <input type="hidden" name="intent" value="resolve" />
+                            <input type="hidden" name="eventId" value={event.id} />
+                            <input type="hidden" name="action" value="blacklist" />
+                            <button type="submit" className="px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-lg">🚫 Block</button>
+                          </Form>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* How it works - Mobile */}
+          <div className="rounded-2xl border border-blue-100/50 shadow-sm bg-blue-50/30 p-5">
+            <h3 className="text-sm font-semibold text-blue-900 mb-2">📖 কীভাবে কাজ করে?</h3>
+            <div className="text-xs text-blue-800 space-y-1">
+              <p>• Risk score (0-100) তৈরি হয়</p>
+              <p>• <strong>ALLOW</strong> (0-{settings.thresholds.verify - 1}): অটো</p>
+              <p>• <strong>VERIFY</strong> ({settings.thresholds.verify}-{settings.thresholds.hold - 1}): OTP</p>
+              <p>• <strong>HOLD</strong> ({settings.thresholds.hold}-{settings.thresholds.block - 1}): Review</p>
+              <p>• <strong>BLOCK</strong> ({settings.thresholds.block}+): ব্লক</p>
+            </div>
           </div>
         </div>
 
-        <div className={`px-4 py-2 rounded-full border flex items-center gap-2 ${
-          settings.enabled
-            ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-            : 'bg-gray-50 border-gray-200 text-gray-600'
-        }`}>
-          {settings.enabled ? (
-            <><ShieldCheck className="w-4 h-4" /><span className="text-sm font-medium">Active</span></>
-          ) : (
-            <><ShieldX className="w-4 h-4" /><span className="text-sm font-medium">Inactive</span></>
-          )}
+        {/* Fixed Save Button - Mobile */}
+        <div className="fixed bottom-20 left-0 right-0 px-4 pb-2 z-[70] md:hidden">
+          <button
+            type="submit"
+            form="fraud-settings-form-mobile"
+            disabled={isSubmitting}
+            className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 transition disabled:opacity-50 shadow-lg"
+          >
+            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {isSubmitting ? t('savingSettings') : t('saveSettings')}
+          </button>
         </div>
       </div>
+
+      {/* ===== DESKTOP LAYOUT ===== */}
+      <div className="hidden md:block space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link to="/app/settings" className="p-2 hover:bg-gray-100 rounded-lg transition">
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <Shield className="w-6 h-6 text-emerald-600" />
+                Fraud Detection
+              </h1>
+              <p className="text-gray-600">COD ফ্রড প্রতিরোধ এবং রিস্ক স্কোরিং</p>
+            </div>
+          </div>
+          <StatusBadge />
+        </div>
 
       {/* Status Messages */}
       {actionData && 'success' in actionData && (
@@ -440,7 +751,7 @@ export default function FraudSettingsPage() {
               className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white py-2.5 rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              Save Settings
+              {isSubmitting ? t('savingSettings') : t('saveSettings')}
             </button>
           </Form>
         </GlassCard>
@@ -688,6 +999,7 @@ export default function FraudSettingsPage() {
           <p>• ব্ল্যাকলিস্টে থাকা নম্বর সরাসরি BLOCK হবে (score 100)</p>
         </div>
       </GlassCard>
-    </div>
+      </div>
+    </>
   );
 }

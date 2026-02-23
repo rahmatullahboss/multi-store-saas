@@ -129,6 +129,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   if (intent === 'toggle') {
     const bumpId = parseInt(formData.get('bumpId') as string);
+    if (isNaN(bumpId) || bumpId <= 0) {
+      return json({ error: 'Invalid bump id' }, { status: 400 });
+    }
     const isActive = formData.get('isActive') === 'true';
 
     await db
@@ -141,6 +144,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   if (intent === 'delete') {
     const bumpId = parseInt(formData.get('bumpId') as string);
+    if (isNaN(bumpId) || bumpId <= 0) {
+      return json({ error: 'Invalid bump id' }, { status: 400 });
+    }
 
     await db
       .delete(orderBumps)
@@ -158,38 +164,265 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export default function OrderBumpsSettings() {
   const { bumps, products, currency } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   const [showForm, setShowForm] = useState(false);
 
   const isSubmitting = navigation.state === 'submitting';
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link to="/app/settings" className="p-2 hover:bg-gray-100 rounded-lg transition">
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Gift className="w-6 h-6 text-amber-500" />
-              {t('orderBumps')}
-            </h1>
-            <p className="text-gray-600 mt-1">{t('orderBumpsDesc')}</p>
+    <>
+      {/* ==================== MOBILE LAYOUT ==================== */}
+      <div className="md:hidden -mx-4 -mt-4">
+        {/* Sticky Header */}
+        <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+          <div className="flex items-center justify-between px-4 py-3">
+            <Link to="/app/settings" className="p-2 -ml-2 hover:bg-gray-100 rounded-lg transition">
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </Link>
+            <h1 className="font-semibold text-gray-900">{t('orderBumps')}</h1>
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="p-2 -mr-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-lg hover:from-amber-600 hover:to-orange-600 transition shadow-md"
-        >
-          <Plus className="w-5 h-5" />
-          {t('newBump')}
-        </button>
+        {/* Mobile Content */}
+        <div className="px-4 py-4 pb-32 space-y-4">
+          {/* Info Banner */}
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4">
+            <div className="flex items-start gap-3">
+              <Sparkles className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-amber-800 text-sm">{t('whatAreOrderBumps')}</h3>
+                <p className="text-xs text-amber-700 mt-1">{t('orderBumpExplainer')}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Create Form - Mobile */}
+          {showForm && (
+            <Form method="post" className="rounded-2xl border border-gray-100 shadow-sm bg-white p-4 space-y-4">
+              <input type="hidden" name="intent" value="create" />
+              <h3 className="font-semibold text-gray-900 text-sm">{t('createNewOrderBump')}</h3>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    {t('mainProduct')} *
+                  </label>
+                  <select
+                    name="productId"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  >
+                    <option value="">{t('select')}...</option>
+                    {products.map((p) => (
+                      <option key={`mobile-main-${p.id}`} value={p.id}>
+                        {p.title} - {formatPrice(p.price)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    {t('bumpProduct')} *
+                  </label>
+                  <select
+                    name="bumpProductId"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  >
+                    <option value="">{t('select')}...</option>
+                    {products.map((p) => (
+                      <option key={`mobile-bump-${p.id}`} value={p.id}>
+                        {p.title} - {formatPrice(p.price)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    {t('offerTitle')} *
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    required
+                    placeholder={t('offerTitlePlaceholder')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    {t('description')} ({t('optional')})
+                  </label>
+                  <textarea
+                    name="description"
+                    rows={2}
+                    placeholder={t('descriptionPlaceholder')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  />
+                </div>
+
+                <div className="w-28">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    <Percent className="w-3 h-3 inline mr-1" />
+                    {t('discountPercentage')}
+                  </label>
+                  <input
+                    type="number"
+                    name="discount"
+                    min="0"
+                    max="100"
+                    defaultValue="0"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl text-sm disabled:opacity-50"
+                >
+                  {isSubmitting ? t('creating') : t('create')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl text-sm"
+                >
+                  {t('cancel')}
+                </button>
+              </div>
+            </Form>
+          )}
+
+          {/* Bumps List - Mobile */}
+          <div className="rounded-2xl border border-gray-100 shadow-sm bg-white overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+              <h3 className="font-semibold text-gray-900 text-sm">
+                {t('yourOrderBumps')}
+                <span className="ml-2 text-xs font-normal text-gray-500">({bumps.length})</span>
+              </h3>
+            </div>
+
+            {bumps.length === 0 ? (
+              <div className="p-8 text-center">
+                <Gift className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                <h4 className="text-sm font-medium text-gray-900 mb-1">{t('noOrderBumpsYet')}</h4>
+                <p className="text-xs text-gray-500 mb-3">{t('createFirstOrderBump')}</p>
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-500 text-white text-sm font-semibold rounded-xl"
+                >
+                  <Plus className="w-4 h-4" />
+                  {t('createBump')}
+                </button>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {bumps.map((bump) => (
+                  <div key={`mobile-bump-${bump.id}`} className="p-4">
+                    <div className="flex items-start gap-3">
+                      {bump.bumpProductImage ? (
+                        <img
+                          src={bump.bumpProductImage}
+                          alt=""
+                          className="w-12 h-12 rounded-xl object-cover border border-gray-200 flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
+                          <Package className="w-5 h-5 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-gray-900 text-sm">{bump.title}</span>
+                          {(bump.discount ?? 0) > 0 && (
+                            <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-xs font-medium rounded-full">
+                              {bump.discount}% {t('offLabel')}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                          {bump.mainProductTitle} → {bump.bumpProductTitle}
+                        </p>
+                        <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                          <span>{bump.views ?? 0} {t('views')}</span>
+                          <span>{bump.conversions ?? 0} {t('conversions')}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-100">
+                      <Form method="post">
+                        <input type="hidden" name="intent" value="toggle" />
+                        <input type="hidden" name="bumpId" value={bump.id} />
+                        <input type="hidden" name="isActive" value={bump.isActive ? 'true' : 'false'} />
+                        <button
+                          type="submit"
+                          className={`p-2 rounded-lg transition ${
+                            bump.isActive ? 'text-emerald-600 bg-emerald-50' : 'text-gray-400 bg-gray-100'
+                          }`}
+                        >
+                          {bump.isActive ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
+                        </button>
+                      </Form>
+                      <Form
+                        method="post"
+                        onSubmit={(e) => {
+                          if (!confirm(t('deleteBumpConfirm'))) e.preventDefault();
+                        }}
+                      >
+                        <input type="hidden" name="intent" value="delete" />
+                        <input type="hidden" name="bumpId" value={bump.id} />
+                        <button type="submit" className="p-2 text-red-500 bg-red-50 rounded-lg">
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </Form>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Info Banner */}
+      {/* ==================== DESKTOP LAYOUT ==================== */}
+      <div className="hidden md:block space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link to="/app/settings" className="p-2 hover:bg-gray-100 rounded-lg transition">
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <Gift className="w-6 h-6 text-amber-500" />
+                {t('orderBumps')}
+              </h1>
+              <p className="text-gray-600 mt-1">{t('orderBumpsDesc')}</p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-lg hover:from-amber-600 hover:to-orange-600 transition shadow-md"
+          >
+            <Plus className="w-5 h-5" />
+            {t('newBump')}
+          </button>
+        </div>
+
+        {/* Info Banner */}
       <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4">
         <div className="flex items-start gap-3">
           <Sparkles className="w-6 h-6 text-amber-600 flex-shrink-0" />
@@ -402,7 +635,7 @@ export default function OrderBumpsSettings() {
                             ? 'text-emerald-600 hover:bg-emerald-50'
                             : 'text-gray-400 hover:bg-gray-100'
                         }`}
-                        title={bump.isActive ? 'Deactivate' : 'Activate'}
+                        title={bump.isActive ? t('deactivate') : t('activate')}
                       >
                         {bump.isActive ? (
                           <CheckCircle className="w-5 h-5" />
@@ -437,6 +670,7 @@ export default function OrderBumpsSettings() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

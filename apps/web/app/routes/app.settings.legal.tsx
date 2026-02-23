@@ -11,17 +11,17 @@
 
 import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
-import { useLoaderData, Form, Link, useNavigation } from '@remix-run/react';
+import { useLoaderData, useActionData, Form, Link, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
+
 import { stores, users } from '@db/schema';
 import { policyVersions, generatePolicyVersionId } from '@db/schema_versions';
 import { getSession, getStoreId } from '~/services/auth.server';
 import { getPolicyContent } from '~/lib/policies';
 import { useState } from 'react';
-import { FileText, Eye, Save, RotateCcw, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { FileText, Eye, Save, RotateCcw, ChevronDown, ChevronUp, ExternalLink, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
-import { desc } from 'drizzle-orm';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 
 export const meta: MetaFunction = () => [
@@ -233,7 +233,6 @@ ${effectiveLegal}`;
               customId: `policies-${storeId}` // Deterministic ID for upsert
           })
       );
-      console.log(`[AI SYNC] Queued vector update for policies-${storeId}`);
     } catch (err) {
       console.error('[AI SYNC] Failed to update policies vector:', err);
     }
@@ -243,7 +242,12 @@ ${effectiveLegal}`;
 
   if (intent === 'reset') {
     const policyType = formData.get('policyType') as string;
-    
+
+    const VALID_POLICY_TYPES = ['privacy', 'terms', 'refund', 'shipping', 'subscription', 'legal'] as const;
+    if (!VALID_POLICY_TYPES.includes(policyType as (typeof VALID_POLICY_TYPES)[number])) {
+      return json({ error: 'Invalid policy type' }, { status: 400 });
+    }
+
     const updateData: Record<string, null> = {};
     if (policyType === 'privacy') updateData.customPrivacyPolicy = null;
     if (policyType === 'terms') updateData.customTermsOfService = null;
@@ -439,7 +443,7 @@ ${effectiveLegal}`;
           customId: `policies-${storeId}`,
         })
       );
-      console.log(`[AI SYNC] Queued vector update for policies-${storeId}`);
+      console.info(`[AI SYNC] Queued vector update for policies-${storeId}`);
     } catch (err) {
       console.error('[AI SYNC] Failed to update policies vector:', err);
     }
@@ -453,6 +457,7 @@ ${effectiveLegal}`;
 export default function LegalSettingsPage() {
   const { store, defaultPolicies, contactEmail, policyHistory } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
+  const actionData = useActionData<typeof action>();
   const isSubmitting = navigation.state === 'submitting';
   const { t, lang } = useTranslation();
 
@@ -479,41 +484,238 @@ export default function LegalSettingsPage() {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-            <FileText className="w-5 h-5 text-purple-600" />
+    <>
+      {/* ==================== MOBILE LAYOUT ==================== */}
+      <div className="md:hidden -mx-4 -mt-4">
+        {/* Sticky Header */}
+        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+          <div className="flex items-center justify-between px-4 h-[60px]">
+            <Link to="/app/settings" className="p-2 -ml-2 text-gray-600">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <h1 className="text-lg font-semibold text-gray-900">{t('legalSettings')}</h1>
+            <div className="w-10" />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('legalSettings')}</h1>
-            <p className="text-gray-500 text-sm">{t('legalPagesDesc')}</p>
+        </header>
+
+        {/* Mobile Content */}
+        <div className="flex flex-col gap-5 p-4 pb-32">
+          {actionData && 'success' in actionData && actionData.success && (
+            <div className="mx-4 mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+              {actionData.message || t('settingsSaved')}
+            </div>
+          )}
+          {actionData && 'error' in actionData && actionData.error && (
+            <div className="mx-4 mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+              {actionData.error}
+            </div>
+          )}
+          {/* Info Banner */}
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+            <div className="flex gap-3">
+              <div className="flex-shrink-0">
+                <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-medium text-blue-900 text-sm">{t('autoGeneratedPolicies')}</h3>
+                <p className="text-xs text-blue-700 mt-1">
+                  {t('autoGeneratedDesc')
+                    .replace('{{name}}', store.name)
+                    .replace('{{email}}', contactEmail)}
+                </p>
+              </div>
+            </div>
           </div>
+
+          {/* Mobile Form */}
+          <Form method="post" id="legal-form-mobile">
+            <input type="hidden" name="intent" value="save" />
+            
+            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">{t('policies')}</h2>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-100">
+              {/* Privacy Policy */}
+              <MobilePolicyItem
+                title={t('privacyPolicy')}
+                icon="🔒"
+                policyKey="privacy"
+                value={privacyPolicy}
+                onChange={setPrivacyPolicy}
+                defaultContent={defaultPolicies.privacy}
+                expanded={expanded.privacy}
+                onToggle={() => toggleExpanded('privacy')}
+                inputName="privacyPolicy"
+                previewUrl="/policies/privacy"
+                t={t}
+              />
+              {/* Terms of Service */}
+              <MobilePolicyItem
+                title={t('termsOfService')}
+                icon="📋"
+                policyKey="terms"
+                value={termsOfService}
+                onChange={setTermsOfService}
+                defaultContent={defaultPolicies.terms}
+                expanded={expanded.terms}
+                onToggle={() => toggleExpanded('terms')}
+                inputName="termsOfService"
+                previewUrl="/policies/terms"
+                t={t}
+              />
+              {/* Refund Policy */}
+              <MobilePolicyItem
+                title={t('refundPolicy')}
+                icon="↩️"
+                policyKey="refund"
+                value={refundPolicy}
+                onChange={setRefundPolicy}
+                defaultContent={defaultPolicies.refund}
+                expanded={expanded.refund}
+                onToggle={() => toggleExpanded('refund')}
+                inputName="refundPolicy"
+                previewUrl="/policies/refund"
+                t={t}
+              />
+              {/* Shipping Policy */}
+              <MobilePolicyItem
+                title={t('shippingPolicy')}
+                icon="🚚"
+                policyKey="shipping"
+                value={shippingPolicy}
+                onChange={setShippingPolicy}
+                defaultContent={defaultPolicies.shipping}
+                expanded={expanded.shipping}
+                onToggle={() => toggleExpanded('shipping')}
+                inputName="shippingPolicy"
+                previewUrl="/policies/shipping"
+                t={t}
+              />
+              {/* Subscription Policy */}
+              <MobilePolicyItem
+                title={t('subscriptionPolicy')}
+                icon="🔁"
+                policyKey="subscription"
+                value={subscriptionPolicy}
+                onChange={setSubscriptionPolicy}
+                defaultContent={defaultPolicies.subscription}
+                expanded={expanded.subscription}
+                onToggle={() => toggleExpanded('subscription')}
+                inputName="subscriptionPolicy"
+                previewUrl="/policies/subscription"
+                t={t}
+              />
+              {/* Legal Notice */}
+              <MobilePolicyItem
+                title={t('legalNotice')}
+                icon="⚖️"
+                policyKey="legal"
+                value={legalNotice}
+                onChange={setLegalNotice}
+                defaultContent={defaultPolicies.legal}
+                expanded={expanded.legal}
+                onToggle={() => toggleExpanded('legal')}
+                inputName="legalNotice"
+                previewUrl="/policies/legal"
+                t={t}
+              />
+            </div>
+          </Form>
+
+          {/* Policy History (Mobile) */}
+          {policyHistory && policyHistory.length > 0 && (
+            <>
+              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">{t('policyHistory')}</h2>
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-100">
+                {policyHistory.map((ver: { id: string; version: number; label: string | null; changedBy: string | null; createdAt: string | null }) => (
+                  <div key={ver.id} className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="font-medium text-sm text-gray-900">{t('versionLabel')} {ver.version}</span>
+                        {ver.label && <span className="text-xs text-gray-500 ml-1">• {ver.label}</span>}
+                        <div className="text-xs text-gray-500 mt-1">
+                          {ver.createdAt ? new Date(ver.createdAt).toLocaleDateString() : '—'}
+                        </div>
+                      </div>
+                      <Form method="post">
+                        <input type="hidden" name="intent" value="rollback" />
+                        <input type="hidden" name="versionId" value={ver.id} />
+                        <button
+                          type="submit"
+                          className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition"
+                        >
+                          {t('restore')}
+                        </button>
+                      </Form>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Fixed Save Button */}
+        <div className="fixed bottom-20 left-0 right-0 px-4 pb-2 z-[70] md:hidden">
+          <button
+            type="submit"
+            form="legal-form-mobile"
+            disabled={isSubmitting}
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-2xl font-medium hover:bg-emerald-700 transition disabled:opacity-50"
+          >
+            <Save className="w-4 h-4" />
+            {isSubmitting ? t('saving') : t('savePolicies')}
+          </button>
         </div>
       </div>
 
-      {/* Info Banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-        <div className="flex gap-3">
-          <div className="flex-shrink-0">
-            <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div>
-            <h3 className="font-medium text-blue-900">{t('autoGeneratedPolicies')}</h3>
-            <p className="text-sm text-blue-700 mt-1">
-              {t('autoGeneratedDesc')
-                .replace('{{name}}', store.name)
-                .replace('{{email}}', contactEmail)}
-            </p>
+      {/* ==================== DESKTOP LAYOUT ==================== */}
+      <div className="hidden md:block space-y-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+              <FileText className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{t('legalSettings')}</h1>
+              <p className="text-gray-500 text-sm">{t('legalPagesDesc')}</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Form */}
-      <Form method="post">
+        {actionData && 'success' in actionData && actionData.success && (
+          <div className="mx-4 mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+            {actionData.message || t('settingsSaved')}
+          </div>
+        )}
+        {actionData && 'error' in actionData && actionData.error && (
+          <div className="mx-4 mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            {actionData.error}
+          </div>
+        )}
+
+        {/* Info Banner */}
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+          <div className="flex gap-3">
+            <div className="flex-shrink-0">
+              <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-medium text-blue-900">{t('autoGeneratedPolicies')}</h3>
+              <p className="text-sm text-blue-700 mt-1">
+                {t('autoGeneratedDesc')
+                  .replace('{{name}}', store.name)
+                  .replace('{{email}}', contactEmail)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Form */}
+        <Form method="post">
         <input type="hidden" name="intent" value="save" />
         
         <div className="space-y-6">
@@ -619,7 +821,7 @@ export default function LegalSettingsPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex items-center gap-2 px-6 py-2.5 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
             {isSubmitting ? t('saving') : t('savePolicies')}
@@ -627,42 +829,43 @@ export default function LegalSettingsPage() {
         </div>
       </Form>
 
-      {/* Policy History */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('policyHistory')}</h2>
-        {policyHistory && policyHistory.length > 0 ? (
-          <div className="space-y-3">
-            {policyHistory.map((ver: any) => (
-              <div
-                key={ver.id}
-                className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 border border-gray-100 rounded-lg p-3"
-              >
-                <div className="text-sm text-gray-700">
-                  <span className="font-medium">{t('versionLabel')} {ver.version}</span>
-                  {ver.label ? <span className="text-gray-500"> • {ver.label}</span> : null}
-                  <div className="text-xs text-gray-500 mt-1">
-                    {t('savedAt')}: {ver.createdAt ? new Date(ver.createdAt).toLocaleString() : '—'} • {t('savedBy')}:{' '}
-                    {ver.changedBy || '—'}
+        {/* Policy History */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('policyHistory')}</h2>
+          {policyHistory && policyHistory.length > 0 ? (
+            <div className="space-y-3">
+              {policyHistory.map((ver) => (
+                <div
+                  key={ver.id}
+                  className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 border border-gray-100 rounded-lg p-3"
+                >
+                  <div className="text-sm text-gray-700">
+                    <span className="font-medium">{t('versionLabel')} {ver.version}</span>
+                    {ver.label ? <span className="text-gray-500"> • {ver.label}</span> : null}
+                    <div className="text-xs text-gray-500 mt-1">
+                      {t('savedAt')}: {ver.createdAt ? new Date(ver.createdAt).toLocaleString() : '—'} • {t('savedBy')}:{' '}
+                      {ver.changedBy || '—'}
+                    </div>
                   </div>
+                  <Form method="post">
+                    <input type="hidden" name="intent" value="rollback" />
+                    <input type="hidden" name="versionId" value={ver.id} />
+                    <button
+                      type="submit"
+                      className="px-3 py-1.5 text-xs font-semibold rounded-md bg-gray-900 text-white hover:bg-gray-800 transition"
+                    >
+                      {t('restore')}
+                    </button>
+                  </Form>
                 </div>
-                <Form method="post">
-                  <input type="hidden" name="intent" value="rollback" />
-                  <input type="hidden" name="versionId" value={ver.id} />
-                  <button
-                    type="submit"
-                    className="px-3 py-1.5 text-xs font-semibold rounded-md bg-gray-900 text-white hover:bg-gray-800 transition"
-                  >
-                    {t('restore')}
-                  </button>
-                </Form>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-gray-500">{t('noPolicyHistory')}</p>
-        )}
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">{t('noPolicyHistory')}</p>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -678,6 +881,98 @@ interface PolicySectionProps {
   onToggle: () => void;
   inputName: string;
   previewUrl: string;
+}
+
+interface MobilePolicyItemProps {
+  title: string;
+  icon: string;
+  policyKey: 'privacy' | 'terms' | 'refund' | 'shipping' | 'subscription' | 'legal';
+  value: string;
+  onChange: (value: string) => void;
+  defaultContent: string;
+  expanded: boolean;
+  onToggle: () => void;
+  inputName: string;
+  previewUrl: string;
+  t: (key: string) => string;
+}
+
+function MobilePolicyItem({
+  title,
+  icon,
+  policyKey,
+  value,
+  onChange,
+  defaultContent,
+  expanded,
+  onToggle,
+  inputName,
+  previewUrl,
+  t,
+}: MobilePolicyItemProps) {
+  const isUsingCustom = value.trim().length > 0;
+
+  return (
+    <div className="p-4">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-xl">{icon}</span>
+          <div className="text-left">
+            <h3 className="font-medium text-gray-900 text-sm">{title}</h3>
+            <span className={`text-xs ${isUsingCustom ? 'text-purple-600' : 'text-green-600'}`}>
+              {isUsingCustom ? t('custom') : t('autoGenerated')}
+            </span>
+          </div>
+        </div>
+        {expanded ? (
+          <ChevronUp className="w-5 h-5 text-gray-400" />
+        ) : (
+          <ChevronDown className="w-5 h-5 text-gray-400" />
+        )}
+      </button>
+
+      {expanded && (
+        <div className="mt-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <a
+              href={previewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs text-blue-600"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              {t('viewLivePage')}
+            </a>
+            {isUsingCustom && (
+              <Form method="post" className="inline">
+                <input type="hidden" name="intent" value="reset" />
+                <input type="hidden" name="policyType" value={policyKey} />
+                <button
+                  type="submit"
+                  className="flex items-center gap-1 text-xs text-orange-600"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  {t('resetToAutoGenerated')}
+                </button>
+              </Form>
+            )}
+          </div>
+          <textarea
+            name={inputName}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={t('customContentOptional')}
+            rows={6}
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y text-sm"
+          />
+        </div>
+      )}
+    </div>
+  );
 }
 
 function PolicySection({

@@ -765,10 +765,10 @@ export function PreviewLuxeStore(props: StoreTemplateProps) {
       case 'home':
         return (
           <PreviewHomePage
-            storeName={storeName}
+            storeName={storeName ?? ''}
             products={products}
             categories={validCategories}
-            currency={currency}
+            currency={currency ?? ''}
             config={config}
             onNavigate={navigate}
           />
@@ -777,14 +777,14 @@ export function PreviewLuxeStore(props: StoreTemplateProps) {
         return (
           <PreviewProductDetailPage
             productId={currentPage.productId}
-            currency={currency}
+            currency={currency ?? ''}
             onNavigate={navigate}
           />
         );
       case 'cart':
-        return <PreviewCartPageComponent currency={currency} onNavigate={navigate} />;
+        return <PreviewCartPageComponent currency={currency ?? ''} onNavigate={navigate} />;
       case 'checkout':
-        return <PreviewCheckoutPage currency={currency} onNavigate={navigate} />;
+        return <PreviewCheckoutPage currency={currency ?? ''} onNavigate={navigate} />;
       case 'search':
         return <div className="p-20 text-center">Search results for {currentPage.query}</div>;
       case 'category': {
@@ -798,7 +798,7 @@ export function PreviewLuxeStore(props: StoreTemplateProps) {
                   <PreviewProductCard
                     key={product.id}
                     product={product}
-                    currency={currency}
+                    currency={currency ?? ''}
                     onNavigate={navigate}
                   />
                 ))}
@@ -825,10 +825,10 @@ export function PreviewLuxeStore(props: StoreTemplateProps) {
       default:
         return (
           <PreviewHomePage
-            storeName={storeName}
+            storeName={storeName ?? ''}
             products={products}
             categories={validCategories}
-            currency={currency}
+            currency={currency ?? ''}
             config={config}
             onNavigate={navigate}
           />
@@ -850,13 +850,13 @@ export function PreviewLuxeStore(props: StoreTemplateProps) {
           rel="stylesheet"
         />
         <PreviewHeader
-          storeName={storeName}
+          storeName={storeName ?? ''}
           logo={logo}
           categories={validCategories}
           onNavigate={navigate}
         />
         <main>{renderPage()}</main>
-        <PreviewFooter storeName={storeName} categories={validCategories} onNavigate={navigate} />
+        <PreviewFooter storeName={storeName ?? ''} categories={validCategories} onNavigate={navigate} />
       </div>
     </CartProvider>
   );

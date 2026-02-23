@@ -86,7 +86,7 @@ export function RovoHeader({
                 Home
               </Link>
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {categories.filter(Boolean).slice(0, 5).map((category: any) => {
+              {(categories || []).filter(Boolean).slice(0, 5).map((category: any) => {
                 const title = typeof category === 'string' ? category : category?.title;
                 if (!title) return null;
                 const encodedSlug = encodeURIComponent(title);
@@ -154,11 +154,15 @@ export function RovoHeader({
             <div className="flex-1 overflow-y-auto py-4">
               <nav className="flex flex-col space-y-1 px-2">
                 <Link to="/" className="p-3 hover:bg-gray-50 rounded-lg font-medium">Home</Link>
-                {categories.filter(Boolean).map((cat) => (
-                  <Link key={cat} to={`/collections/${cat}`} className="p-3 hover:bg-gray-50 rounded-lg font-medium">
-                    {cat}
-                  </Link>
-                ))}
+                {(categories ?? []).filter(Boolean).map((cat) => {
+                  const catKey = typeof cat === 'string' ? cat : (cat as { title?: string }).title ?? String(cat);
+                  const catLabel = typeof cat === 'string' ? cat : (cat as { title?: string }).title ?? '';
+                  return (
+                    <Link key={catKey} to={`/collections/${catKey}`} className="p-3 hover:bg-gray-50 rounded-lg font-medium">
+                      {catLabel}
+                    </Link>
+                  );
+                })}
                 <Link to="/products" className="p-3 hover:bg-gray-50 rounded-lg font-medium">All Products</Link>
                 <div className="p-3 border-t mt-2">
                   <LanguageSelector />

@@ -56,11 +56,12 @@ export function StarterStoreTemplate({
   const theme = resolveStarterStoreTheme(config);
 
   // Logic for homepage sections
-  const validCategories = categories.filter(Boolean);
+  const validCategories = (categories || []).filter(Boolean);
 
   // Filter products based on homepage logic
-  const featuredProducts = products.slice(0, 4);
-  const newArrivals = products.slice(4, 8);
+  const safeProducts = products || [];
+  const featuredProducts = safeProducts.slice(0, 4);
+  const newArrivals = safeProducts.slice(4, 8);
 
   const heroBehavior = getHeroBehavior(config);
   const fallbackHero =
@@ -124,13 +125,20 @@ export function StarterStoreTemplate({
     >
       {/* Header */}
       <StarterStoreHeader
-        storeName={storeName}
+        storeName={storeName ?? ''}
         logo={logo}
         isPreview={isPreview}
         config={config}
-        categories={categories}
+        categories={categories || []}
         currentCategory={currentCategory}
-        socialLinks={socialLinks}
+        socialLinks={socialLinks ? {
+          facebook: socialLinks.facebook ?? undefined,
+          instagram: socialLinks.instagram ?? undefined,
+          whatsapp: socialLinks.whatsapp ?? undefined,
+          twitter: socialLinks.twitter ?? undefined,
+          youtube: socialLinks.youtube ?? undefined,
+          linkedin: socialLinks.linkedin ?? undefined,
+        } : undefined}
         variant={!currentCategory ? 'overlay' : 'default'}
         customer={customer}
         themeColors={theme}
@@ -250,7 +258,7 @@ export function StarterStoreTemplate({
                     <StarterProductCard
                       key={product.id}
                       product={product}
-                      storeId={storeId}
+                      storeId={parseInt(storeId ?? '0', 10)}
                       isPreview={isPreview}
                       theme={theme}
                     />
@@ -286,7 +294,7 @@ export function StarterStoreTemplate({
                     <StarterProductCard
                       key={product.id}
                       product={product}
-                      storeId={storeId}
+                      storeId={parseInt(storeId ?? '0', 10)}
                       isPreview={isPreview}
                       theme={theme}
                     />
@@ -298,19 +306,19 @@ export function StarterStoreTemplate({
         )}
 
         {/* Filtered Products (if category selected) */}
-        {currentCategory && products.length > 0 && (
+        {currentCategory && safeProducts.length > 0 && (
           <LazySection minHeight="520px">
             <section className="py-12 px-4" style={{ backgroundColor: theme.cardBg }}>
               <div className="max-w-7xl mx-auto">
                 <h2 className="text-2xl font-bold mb-8" style={{ color: theme.text }}>
-                  {currentCategory} ({products.length} পণ্য)
+                  {currentCategory} ({safeProducts.length} পণ্য)
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                  {products.map((product) => (
+                  {safeProducts.map((product) => (
                     <StarterProductCard
                       key={product.id}
                       product={product}
-                      storeId={storeId}
+                      storeId={parseInt(storeId ?? '0', 10)}
                       isPreview={isPreview}
                       theme={theme}
                     />
@@ -391,11 +399,22 @@ export function StarterStoreTemplate({
 
       {/* Footer */}
       <StarterStoreFooter
-        storeName={storeName}
+        storeName={storeName ?? ''}
         logo={logo}
-        socialLinks={socialLinks}
+        socialLinks={socialLinks ? {
+          facebook: socialLinks.facebook ?? undefined,
+          instagram: socialLinks.instagram ?? undefined,
+          whatsapp: socialLinks.whatsapp ?? undefined,
+          twitter: socialLinks.twitter ?? undefined,
+          youtube: socialLinks.youtube ?? undefined,
+          linkedin: socialLinks.linkedin ?? undefined,
+        } : undefined}
         footerConfig={footerConfig}
-        businessInfo={businessInfo}
+        businessInfo={businessInfo ? {
+          phone: businessInfo.phone ?? undefined,
+          email: businessInfo.email ?? undefined,
+          address: businessInfo.address ?? undefined,
+        } : undefined}
         categories={categories}
         planType={planType}
         isPreview={isPreview}
@@ -418,7 +437,7 @@ export function StarterStoreTemplate({
           storeName={storeName}
           aiEnabled={isCustomerAiEnabled}
           aiCredits={aiCredits}
-          storeId={storeId}
+          storeId={parseInt(storeId ?? '0', 10)}
           accentColor={theme.primary}
         />
       )}

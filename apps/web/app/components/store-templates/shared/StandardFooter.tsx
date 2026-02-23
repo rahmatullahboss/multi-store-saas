@@ -19,16 +19,32 @@ import {
 import { useLanguage } from '~/contexts/LanguageContext';
 import { OzzylBranding } from '~/components/store-templates/shared/OzzylBranding';
 import type { SocialLinks, FooterConfig } from '@db/types';
-import type { ThemeConfig } from '~/lib/theme-engine-types';
+// ThemeConfig import removed — StandardFooter uses a runtime-flexible config shape
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
+type StandardFooterConfig = {
+  colors?: {
+    primary?: string;
+    accent?: string;
+    footerBg?: string;
+    footerText?: string;
+    accentGradient?: string;
+    [key: string]: string | undefined;
+  };
+  typography?: {
+    fontFamilyHeading?: string;
+    [key: string]: string | undefined;
+  };
+  [key: string]: unknown;
+};
+
 interface StandardFooterProps {
   storeName: string;
   logo?: string | null;
-  config: ThemeConfig;
+  config: StandardFooterConfig;
   socialLinks?: SocialLinks | null;
   footerConfig?: FooterConfig | null;
   businessInfo?: { phone?: string; email?: string; address?: string } | null;
@@ -108,7 +124,7 @@ export function StandardFooter({
     fontHeading: config.typography?.fontFamilyHeading || 'sans-serif',
     accentGradient:
       config.colors?.accentGradient ||
-      `linear-gradient(135deg, ${config.colors?.accent || '#C4A35A'} 0%, ${config.colors?.accent || '#C4A35A'} 100%)`,
+      `linear-gradient(135deg, ${config?.colors?.accent || '#C4A35A'} 0%, ${config?.colors?.accent || '#C4A35A'} 100%)`,
   };
 
   const validCategories = categories.filter(Boolean).slice(0, 6) as string[];

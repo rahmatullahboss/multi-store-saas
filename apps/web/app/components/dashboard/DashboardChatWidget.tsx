@@ -190,7 +190,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-[100] w-14 h-14 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all duration-300 group"
+        className="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 z-[100] w-14 h-14 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all duration-300 group"
         style={{
           background: 'linear-gradient(135deg, #00875F 0%, #006A4E 50%, #004D38 100%)',
           boxShadow: '0 0 30px rgba(0, 135, 95, 0.5), 0 8px 25px -5px rgba(0, 0, 0, 0.4)'
@@ -219,7 +219,7 @@ export default function DashboardChatWidget({ userName, storeName, isLocked = fa
   }
 
   return (
-    <div className="fixed bottom-6 right-6 w-96 h-[500px] max-h-[80vh] bg-white rounded-2xl shadow-2xl z-[100] flex flex-col overflow-hidden border border-gray-200 animate-in slide-in-from-bottom-10 fade-in duration-300">
+    <div className="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 w-[calc(100vw-2rem)] max-w-sm lg:w-96 h-[500px] max-h-[75vh] bg-white rounded-2xl shadow-2xl z-[100] flex flex-col overflow-hidden border border-gray-200 animate-in slide-in-from-bottom-10 fade-in duration-300">
       {/* Header */}
       <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white">
         <div className="flex items-center gap-2">

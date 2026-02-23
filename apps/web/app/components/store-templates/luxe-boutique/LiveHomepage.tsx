@@ -396,9 +396,9 @@ export function LiveLuxeBoutiqueHomepage({
                   storeName={storeName}
                   aiEnabled={isCustomerAiEnabled}
                   aiCredits={aiCredits || 0}
-                  storeId={storeId}
+                  storeId={storeId ? Number(storeId) : undefined}
                   accentColor={
-                    config?.accentColor || config?.primaryColor || theme.accent
+                    config?.accentColor || config?.primaryColor || theme.accent || undefined
                   }
                 />
               )}

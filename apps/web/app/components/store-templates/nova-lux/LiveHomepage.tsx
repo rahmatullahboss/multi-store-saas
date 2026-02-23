@@ -61,7 +61,7 @@ function dedupeSectionsByType(sections: SectionInstance[]) {
 // NOVALUX PRODUCT CARD COMPONENT (Live)
 // ============================================================================
 interface NovaLuxProductCardProps {
-  product: StoreTemplateProps['products'][0];
+  product: NonNullable<StoreTemplateProps['products']>[0];
   storeId: number;
   formatPrice: (price: number) => string;
   isPreview?: boolean;
@@ -256,7 +256,7 @@ export function LiveNovaLuxHomepage({
     // Scroll listener removed as isScrolled was unused
   }, []);
 
-  const validCategories = categories.filter(Boolean);
+  const validCategories = (categories || []).filter(Boolean);
   const announcement = config?.announcement;
 
   const THEME = {
@@ -291,9 +291,9 @@ export function LiveNovaLuxHomepage({
               />
 
               <NovaLuxHeader
-                storeName={storeName}
+                storeName={storeName ?? ''}
                 logo={logo}
-                categories={categories}
+                categories={categories || []}
                 currentCategory={currentCategory}
                 config={config}
                 customer={customer}
@@ -391,7 +391,7 @@ export function LiveNovaLuxHomepage({
                   storeName={storeName}
                   aiEnabled={isCustomerAiEnabled}
                   aiCredits={aiCredits}
-                  storeId={storeId}
+                  storeId={parseInt(storeId ?? '0', 10)}
                   accentColor={config?.primaryColor || NOVALUX_THEME.accent}
                 />
               )}
@@ -407,11 +407,22 @@ export function LiveNovaLuxHomepage({
               `}</style>
 
               <NovaLuxFooter
-                storeName={storeName}
+                storeName={storeName ?? ''}
                 logo={logo}
-                socialLinks={socialLinks}
+                socialLinks={socialLinks ? {
+                  facebook: socialLinks.facebook ?? undefined,
+                  instagram: socialLinks.instagram ?? undefined,
+                  whatsapp: socialLinks.whatsapp ?? undefined,
+                  twitter: socialLinks.twitter ?? undefined,
+                  youtube: socialLinks.youtube ?? undefined,
+                  linkedin: socialLinks.linkedin ?? undefined,
+                } : undefined}
                 footerConfig={footerConfig}
-                businessInfo={businessInfo}
+                businessInfo={businessInfo ? {
+                  phone: businessInfo.phone ?? undefined,
+                  email: businessInfo.email ?? undefined,
+                  address: businessInfo.address ?? undefined,
+                } : undefined}
                 categories={validCategories}
                 showNewsletter={false}
               />

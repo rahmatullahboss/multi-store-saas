@@ -970,119 +970,248 @@ export default function OrderDetailPage() {
         @media print {
           body * { visibility: hidden; }
           #invoice-print, #invoice-print * { visibility: visible; }
-          #invoice-print { 
-            position: absolute; 
-            left: 0; 
-            top: 0; 
-            width: 100%;
-            padding: 20px;
-          }
+          #invoice-print { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
           .no-print { display: none !important; }
           .print-break { page-break-after: always; }
         }
       `}</style>
 
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
+      {/* ===== MOBILE VIEW ===== */}
+      <div className="md:hidden -m-4 min-h-screen bg-gray-50 pb-28">
+        {/* Sticky Header */}
+        <div className="sticky top-0 z-40 bg-white border-b border-gray-100 px-4 pt-10 pb-3 flex items-center justify-between shadow-sm">
+          <Link to="/app/orders" className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 transition-colors">
+            <ArrowLeft className="w-5 h-5 text-gray-700" />
+          </Link>
+          <div className="flex flex-col items-center">
+            <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wide">{order.orderNumber}</span>
+            <h1 className="text-base font-bold text-gray-900">{t('order') || 'Order'}</h1>
+          </div>
+          <a href={`/resources/order-invoice/${order.id}`} download className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 transition-colors">
+            <Download className="w-5 h-5 text-gray-700" />
+          </a>
+        </div>
+
+        <div className="px-4 py-4 space-y-3">
+          {/* Status Card */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-xs text-gray-400">{formatDate(order.createdAt as unknown as Date)}</p>
+              </div>
+              <StatusBadge status={order.status || 'pending'} />
+            </div>
+            <Form method="post" className="flex flex-wrap gap-2">
+              {statusOptions.map((option) => (
+                <button key={option.value} type="submit" name="status" value={option.value}
+                  disabled={isUpdating || order.status === option.value}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-95 ${order.status === option.value ? 'bg-emerald-50 border-emerald-400 text-emerald-700' : 'border-gray-200 text-gray-600 hover:border-emerald-300'} disabled:opacity-50`}>
+                  {order.status === option.value && <CheckCircle className="w-3 h-3 inline mr-1" />}
+                  {option.label.split(' ')[0]}
+                </button>
+              ))}
+              {isUpdating && <Loader2 className="w-4 h-4 animate-spin text-emerald-600 self-center" />}
+            </Form>
+          </div>
+
+          {/* Customer Card */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                <User className="w-4 h-4 text-emerald-600" />
+              </div>
+              <p className="font-semibold text-gray-900 text-sm">{t('customer') || 'Customer'}</p>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="font-bold text-gray-900">{order.customerName || 'N/A'}</p>
+                {order.customerPhone && fraudCache && (
+                  <RiskBadge phone={order.customerPhone}
+                    initialData={fraudCache as { successRate: number; totalOrders: number; deliveredOrders: number; returnedOrders: number; isHighRisk: boolean; riskScore: number; } | null}
+                    orderId={order.id} showDetails />
+                )}
+              </div>
+              {order.customerPhone && (
+                <a href={`tel:${order.customerPhone}`} className="flex items-center gap-2 text-emerald-600 text-sm font-medium">
+                  <Phone className="w-4 h-4" />{order.customerPhone}
+                </a>
+              )}
+              {order.customerEmail && <p className="text-sm text-gray-500">{order.customerEmail}</p>}
+            </div>
+          </div>
+
+          {/* Shipping Address */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                <MapPin className="w-4 h-4 text-blue-600" />
+              </div>
+              <p className="font-semibold text-gray-900 text-sm">Shipping Address</p>
+            </div>
+            <div className="text-sm text-gray-600 space-y-0.5">
+              {shippingAddress.address && <p>{shippingAddress.address}</p>}
+              {shippingAddress.upazila && <p>{shippingAddress.upazila}</p>}
+              {shippingAddress.district && <p>{shippingAddress.district}</p>}
+              {shippingAddress.city && !shippingAddress.district && <p>{shippingAddress.city}</p>}
+              {shippingAddress.postalCode && <p>Postal: {shippingAddress.postalCode}</p>}
+              {!shippingAddress.address && !shippingAddress.city && !shippingAddress.district && <p className="text-gray-400">No address provided</p>}
+            </div>
+          </div>
+
+          {/* Items Card */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
+                <Package className="w-4 h-4 text-purple-600" />
+              </div>
+              <p className="font-semibold text-gray-900 text-sm">{t('items') || 'Items'} ({items.length})</p>
+            </div>
+            <div className="space-y-2">
+              {items.map((item) => (
+                <div key={item.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                  <div className="flex-1 min-w-0 pr-2">
+                    <p className="font-medium text-gray-900 text-sm truncate">{item.title}</p>
+                    <p className="text-xs text-gray-400">x{item.quantity} × {formatPrice(item.price)}</p>
+                  </div>
+                  <p className="font-bold text-gray-900 text-sm shrink-0">{formatPrice(item.total)}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 pt-3 border-t border-gray-100 space-y-1.5">
+              <div className="flex justify-between text-sm text-gray-500"><span>{t('subtotal') || 'Subtotal'}</span><span>{formatPrice(order.subtotal)}</span></div>
+              <div className="flex justify-between text-sm text-gray-500"><span>{t('shipping') || 'Shipping'}</span><span>{formatPrice(order.shipping || 0)}</span></div>
+              {(order.tax || 0) > 0 && <div className="flex justify-between text-sm text-gray-500"><span>{t('tax') || 'Tax'}</span><span>{formatPrice(order.tax || 0)}</span></div>}
+              <div className="flex justify-between pt-2 border-t border-gray-100 font-bold text-base">
+                <span>{t('total') || 'Total'}</span>
+                <span className="text-emerald-600">{formatPrice(order.total)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Courier Card */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                <Truck className="w-4 h-4 text-orange-600" />
+              </div>
+              <p className="font-semibold text-gray-900 text-sm">Shipment</p>
+            </div>
+            {order.courierConsignmentId ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border ${order.courierProvider === 'pathao' ? 'bg-red-50 border-red-200 text-red-700' : order.courierProvider === 'redx' ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>
+                    <Truck className="w-3 h-3" />
+                    {(order.courierProvider || 'steadfast').toUpperCase()}
+                  </span>
+                  <span className="text-xs text-gray-500 font-mono">{order.courierConsignmentId}</span>
+                </div>
+                {order.courierStatus && <p className="text-xs text-gray-500">Status: <span className="font-medium text-gray-800">{order.courierStatus}</span></p>}
+                <button onClick={() => setIsTrackingOpen(true)} className="w-full py-2.5 rounded-full border border-emerald-500 text-emerald-600 text-sm font-semibold hover:bg-emerald-50 transition-colors">
+                  Track Shipment
+                </button>
+              </div>
+            ) : availableCouriers.length > 0 ? (
+              <courierFetcher.Form method="post">
+                <input type="hidden" name="intent" value="book-courier" />
+                <div className="mb-3">
+                  <label className="text-xs text-gray-500 mb-1 block">Select Courier</label>
+                  <select name="courierProvider" value={selectedProvider} onChange={(e) => setSelectedProvider(e.target.value)}
+                    className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                    {availableCouriers.map((c) => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+                  </select>
+                </div>
+                <button type="submit" disabled={isBooking} className="w-full py-2.5 rounded-full bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                  {isBooking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Truck className="w-4 h-4" />}
+                  {isBooking ? 'Booking...' : 'Book Courier'}
+                </button>
+              </courierFetcher.Form>
+            ) : (
+              <p className="text-sm text-gray-400 text-center py-2">No courier configured</p>
+            )}
+          </div>
+
+          {/* Notes */}
+          {order.notes && (
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Notes</p>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{order.notes}</p>
+            </div>
+          )}
+
+          {/* Activity Log */}
+          {activityLogs && activityLogs.length > 0 && (
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{t('activityLog') || 'Activity Log'}</p>
+              <div className="space-y-3">
+                {activityLogs.slice(0, 5).map((log) => (
+                  <div key={log.id} className="flex items-start gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
+                    <div>
+                      <p className="text-sm text-gray-700">{log.action}</p>
+                      <p className="text-xs text-gray-400">{formatDateShort(log.createdAt as unknown as Date)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Print */}
+          <button onClick={handlePrint} className="w-full py-3 rounded-2xl border border-gray-200 text-gray-700 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors">
+            <Printer className="w-4 h-4" />{t('printInvoice') || 'Print Invoice'}
+          </button>
+        </div>
+      </div>
+
+      {/* ===== DESKTOP VIEW (hidden on mobile) ===== */}
+      <div className="hidden md:block max-w-4xl mx-auto space-y-6 pt-2">
         <div className="no-print">
-          <Link
-            to="/app/orders"
-            className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 mb-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {t('backToOrders')}
+          <Link to="/app/orders" className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 mb-2">
+            <ArrowLeft className="w-4 h-4" />{t('backToOrders')}
           </Link>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {t('order')} {order.orderNumber}
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900">{t('order')} {order.orderNumber}</h1>
               <p className="text-gray-600">{formatDate(order.createdAt as unknown as Date)}</p>
             </div>
             <div className="flex items-center gap-3">
               <StatusBadge status={order.status || 'pending'} />
-              <a
-                href={`/resources/order-invoice/${order.id}`}
-                download
-                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
-              >
-                <Download className="w-4 h-4" />
-                {t('downloadPdf')}
+              <a href={`/resources/order-invoice/${order.id}`} download className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition">
+                <Download className="w-4 h-4" />{t('downloadPdf')}
               </a>
-              <button
-                onClick={handlePrint}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition"
-              >
-                <Printer className="w-4 h-4" />
-                {t('printInvoice')}
+              <button onClick={handlePrint} className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition">
+                <Printer className="w-4 h-4" />{t('printInvoice')}
               </button>
             </div>
           </div>
         </div>
-
-        {/* Status Update - Hidden on Print */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 no-print">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('updateStatus')}</h2>
           <Form method="post" className="flex flex-wrap gap-3">
             {statusOptions.map((option) => (
-              <button
-                key={option.value}
-                type="submit"
-                name="status"
-                value={option.value}
-                disabled={isUpdating || order.status === option.value}
-                className={`
-                  px-4 py-2 rounded-lg border text-sm font-medium transition
-                  ${
-                    order.status === option.value
-                      ? 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-2 ring-emerald-500'
-                      : 'border-gray-300 hover:bg-gray-50 text-gray-700'
-                  }
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                `}
-              >
+              <button key={option.value} type="submit" name="status" value={option.value} disabled={isUpdating || order.status === option.value}
+                className={`px-4 py-2 rounded-lg border text-sm font-medium transition ${order.status === option.value ? 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-2 ring-emerald-500' : 'border-gray-300 hover:bg-gray-50 text-gray-700'} disabled:opacity-50 disabled:cursor-not-allowed`}>
                 {order.status === option.value && <CheckCircle className="w-4 h-4 inline mr-1" />}
                 {option.label.split(' ')[0]}
               </button>
             ))}
-            {isUpdating && (
-              <Loader2 className="w-5 h-5 animate-spin text-emerald-600 self-center" />
-            )}
+            {isUpdating && <Loader2 className="w-5 h-5 animate-spin text-emerald-600 self-center" />}
           </Form>
         </div>
-
-        {/* Printable Invoice */}
         <div id="invoice-print" className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
-          {/* Invoice Header */}
           <div className="flex justify-between items-start mb-8 border-b border-gray-200 pb-6">
             <div>
-              {store?.logo ? (
-                <img src={store.logo} alt={store.name} className="h-12 mb-2" />
-              ) : (
-                <h2 className="text-2xl font-bold text-gray-900">{store?.name}</h2>
-              )}
+              {store?.logo ? <img src={store.logo} alt={store.name} className="h-12 mb-2" /> : <h2 className="text-2xl font-bold text-gray-900">{store?.name}</h2>}
               <p className="text-sm text-gray-500">{t('invoice')}</p>
             </div>
             <div className="text-right">
               <p className="text-lg font-bold text-gray-900">{order.orderNumber}</p>
-              <p className="text-sm text-gray-500">
-                {formatDateShort(order.createdAt as unknown as Date)}
-              </p>
-              <span
-                className={`inline-block mt-2 px-2 py-1 text-xs font-medium rounded ${
-                  order.status === 'delivered'
-                    ? 'bg-green-100 text-green-800'
-                    : order.status === 'cancelled'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                }`}
-              >
+              <p className="text-sm text-gray-500">{formatDateShort(order.createdAt as unknown as Date)}</p>
+              <span className={`inline-block mt-2 px-2 py-1 text-xs font-medium rounded ${order.status === 'delivered' ? 'bg-green-100 text-green-800' : order.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
                 {order.status?.toUpperCase()}
               </span>
             </div>
           </div>
-
-          {/* Customer & Shipping Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
             <div>
               <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">{t('billTo')}</h3>
@@ -1092,194 +1221,79 @@ export default function OrderDetailPage() {
             </div>
             <div>
               <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">{t('shipTo')}</h3>
-              {shippingAddress.address && (
-                <p className="text-gray-600">{shippingAddress.address}</p>
-              )}
-              {shippingAddress.upazila && (
-                <p className="text-gray-600">{shippingAddress.upazila}</p>
-              )}
-              {shippingAddress.district && (
-                <p className="text-gray-600">{shippingAddress.district}</p>
-              )}
-              {/* Fallback for city if district is missing */}
-              {shippingAddress.city && !shippingAddress.district && (
-                <p className="text-gray-600">{shippingAddress.city}</p>
-              )}
-              {shippingAddress.postalCode && (
-                <p className="text-gray-600">Postal: {shippingAddress.postalCode}</p>
-              )}
-              {!shippingAddress.address && !shippingAddress.city && !shippingAddress.district && (
-                <p className="text-gray-400">N/A</p>
-              )}
+              {shippingAddress.address && <p className="text-gray-600">{shippingAddress.address}</p>}
+              {shippingAddress.upazila && <p className="text-gray-600">{shippingAddress.upazila}</p>}
+              {shippingAddress.district && <p className="text-gray-600">{shippingAddress.district}</p>}
+              {shippingAddress.city && !shippingAddress.district && <p className="text-gray-600">{shippingAddress.city}</p>}
+              {shippingAddress.postalCode && <p className="text-gray-600">Postal: {shippingAddress.postalCode}</p>}
+              {!shippingAddress.address && !shippingAddress.city && !shippingAddress.district && <p className="text-gray-400">N/A</p>}
             </div>
           </div>
-
-          {/* Items Table */}
           <table className="w-full mb-8">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 text-sm font-semibold text-gray-600">{t('item')}</th>
-                <th className="text-center py-3 text-sm font-semibold text-gray-600">
-                  {t('quantity')}
-                </th>
-                <th className="text-right py-3 text-sm font-semibold text-gray-600">
-                  {t('price')}
-                </th>
-                <th className="text-right py-3 text-sm font-semibold text-gray-600">
-                  {t('total')}
-                </th>
-              </tr>
-            </thead>
+            <thead><tr className="border-b border-gray-200">
+              <th className="text-left py-3 text-sm font-semibold text-gray-600">{t('item')}</th>
+              <th className="text-center py-3 text-sm font-semibold text-gray-600">{t('quantity')}</th>
+              <th className="text-right py-3 text-sm font-semibold text-gray-600">{t('price')}</th>
+              <th className="text-right py-3 text-sm font-semibold text-gray-600">{t('total')}</th>
+            </tr></thead>
             <tbody>
               {items.map((item) => (
                 <tr key={item.id} className="border-b border-gray-100">
-                  <td className="py-3">
-                    <p className="font-medium text-gray-900">{item.title}</p>
-                  </td>
+                  <td className="py-3"><p className="font-medium text-gray-900">{item.title}</p></td>
                   <td className="py-3 text-center text-gray-600">{item.quantity}</td>
                   <td className="py-3 text-right text-gray-600">{formatPrice(item.price)}</td>
-                  <td className="py-3 text-right font-medium text-gray-900">
-                    {formatPrice(item.total)}
-                  </td>
+                  <td className="py-3 text-right font-medium text-gray-900">{formatPrice(item.total)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-
-          {/* Totals */}
           <div className="flex justify-end">
             <div className="w-64 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">{t('subtotal')}</span>
-                <span className="text-gray-900">{formatPrice(order.subtotal)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">{t('shipping')}</span>
-                <span className="text-gray-900">{formatPrice(order.shipping || 0)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">{t('tax')}</span>
-                <span className="text-gray-900">{formatPrice(order.tax || 0)}</span>
-              </div>
-              <div className="flex justify-between pt-2 border-t border-gray-200 text-lg font-bold">
-                <span>{t('total')}</span>
-                <span className="text-emerald-600">{formatPrice(order.total)}</span>
-              </div>
+              <div className="flex justify-between text-sm"><span className="text-gray-500">{t('subtotal')}</span><span className="text-gray-900">{formatPrice(order.subtotal)}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-gray-500">{t('shipping')}</span><span className="text-gray-900">{formatPrice(order.shipping || 0)}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-gray-500">{t('tax')}</span><span className="text-gray-900">{formatPrice(order.tax || 0)}</span></div>
+              <div className="flex justify-between pt-2 border-t border-gray-200 text-lg font-bold"><span>{t('total')}</span><span className="text-emerald-600">{formatPrice(order.total)}</span></div>
             </div>
           </div>
-
-          {/* Notes */}
-          {order.notes && (
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Notes</h3>
-              <p className="text-gray-700 whitespace-pre-wrap">{order.notes}</p>
-            </div>
-          )}
-
-          {/* Footer */}
-          <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
-            <p>Thank you for your order!</p>
-            <p className="mt-1">Powered by Ozzyl</p>
-          </div>
+          {order.notes && <div className="mt-8 pt-6 border-t border-gray-200"><h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Notes</h3><p className="text-gray-700 whitespace-pre-wrap">{order.notes}</p></div>}
+          <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-500"><p>Thank you for your order!</p><p className="mt-1">Powered by Ozzyl</p></div>
         </div>
-
-        {/* Non-print sections: Customer, Shipping, Summary cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 no-print">
-          {/* Customer Info */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <User className="w-5 h-5 text-gray-500" />
-              {t('customer')}
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2"><User className="w-5 h-5 text-gray-500" />{t('customer')}</h2>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">{t('name')}</p>
-                  <p className="font-medium text-gray-900">{order.customerName || 'N/A'}</p>
-                </div>
-                {order.customerPhone && (
-                  <RiskBadge
-                    phone={order.customerPhone}
-                    initialData={
-                      fraudCache as {
-                        successRate: number;
-                        totalOrders: number;
-                        deliveredOrders: number;
-                        returnedOrders: number;
-                        isHighRisk: boolean;
-                        riskScore: number;
-                      } | null
-                    }
-                    orderId={order.id}
-                    showDetails
-                  />
+                <div><p className="text-sm text-gray-500">{t('name')}</p><p className="font-medium text-gray-900">{order.customerName || 'N/A'}</p></div>
+                {order.customerPhone && fraudCache && (
+                  <RiskBadge phone={order.customerPhone} initialData={fraudCache as { successRate: number; totalOrders: number; deliveredOrders: number; returnedOrders: number; isHighRisk: boolean; riskScore: number; } | null} orderId={order.id} showDetails />
                 )}
               </div>
-              <div className="flex items-start gap-2">
-                <Phone className="w-4 h-4 text-gray-400 mt-1" />
-                <div>
-                  <p className="text-sm text-gray-500">{t('phone')}</p>
-                  <a
-                    href={`tel:${order.customerPhone}`}
-                    className="font-medium text-emerald-600 hover:underline"
-                  >
-                    {order.customerPhone || 'N/A'}
-                  </a>
-                </div>
-              </div>
-              {order.customerEmail && (
-                <div>
-                  <p className="text-sm text-gray-500">{t('email')}</p>
-                  <p className="font-medium text-gray-900">{order.customerEmail}</p>
-                </div>
-              )}
+              <div className="flex items-start gap-2"><Phone className="w-4 h-4 text-gray-400 mt-1" /><div><p className="text-sm text-gray-500">{t('phone')}</p><a href={`tel:${order.customerPhone}`} className="font-medium text-emerald-600 hover:underline">{order.customerPhone || 'N/A'}</a></div></div>
+              {order.customerEmail && <div><p className="text-sm text-gray-500">{t('email')}</p><p className="font-medium text-gray-900">{order.customerEmail}</p></div>}
             </div>
           </div>
-
-          {/* Shipping Address */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-gray-500" />
-              Shipping Address
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2"><MapPin className="w-5 h-5 text-gray-500" />Shipping Address</h2>
             <div className="space-y-1 text-gray-700">
               {shippingAddress.address && <p>{shippingAddress.address}</p>}
               {shippingAddress.upazila && <p>{shippingAddress.upazila}</p>}
               {shippingAddress.district && <p>{shippingAddress.district}</p>}
-              {/* Fallback for city if district is missing */}
               {shippingAddress.city && !shippingAddress.district && <p>{shippingAddress.city}</p>}
               {shippingAddress.postalCode && <p>Postal: {shippingAddress.postalCode}</p>}
-              {!shippingAddress.address && !shippingAddress.city && !shippingAddress.district && (
-                <p className="text-gray-400">No address provided</p>
-              )}
+              {!shippingAddress.address && !shippingAddress.city && !shippingAddress.district && <p className="text-gray-400">No address provided</p>}
             </div>
           </div>
-
-          {/* Order Summary */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Summary</h2>
             <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Subtotal</span>
-                <span className="text-gray-900">{formatPrice(order.subtotal)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Shipping</span>
-                <span className="text-gray-900">{formatPrice(order.shipping || 0)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Tax</span>
-                <span className="text-gray-900">{formatPrice(order.tax || 0)}</span>
-              </div>
+              <div className="flex justify-between text-sm"><span className="text-gray-500">Subtotal</span><span className="text-gray-900">{formatPrice(order.subtotal)}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-gray-500">Shipping</span><span className="text-gray-900">{formatPrice(order.shipping || 0)}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-gray-500">Tax</span><span className="text-gray-900">{formatPrice(order.tax || 0)}</span></div>
               <hr className="my-2" />
-              <div className="flex justify-between font-semibold text-lg">
-                <span>Total</span>
-                <span className="text-emerald-600">{formatPrice(order.total)}</span>
-              </div>
+              <div className="flex justify-between font-semibold text-lg"><span>Total</span><span className="text-emerald-600">{formatPrice(order.total)}</span></div>
             </div>
           </div>
         </div>
-
         {/* Shipment / Courier Card */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 no-print">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">

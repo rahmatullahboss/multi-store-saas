@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import app from "../../../server/index"; 
+import { app } from "../../../server/index"; 
 import { createMockContext } from "../../../tests/setup";
 
 describe('Security: OWASP Top 10 Checks', () => {

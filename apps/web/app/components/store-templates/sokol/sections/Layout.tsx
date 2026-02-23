@@ -11,10 +11,10 @@ export function SokolLayout(props: SokolLayoutProps) {
   const { children, ...restProps } = props;
   const normalizedCategories = (restProps.categories || []).map((category: any) =>
     typeof category === 'string' || category === null ? category : (category.title ?? null)
-  );
+  ) as (string | null)[];
   const headerFooterProps = {
     ...restProps,
-    categories: normalizedCategories,
+    categories: normalizedCategories as (string | import('~/templates/store-registry').StoreCategory | null)[],
   };
 
   return (
@@ -36,11 +36,19 @@ export function SokolLayout(props: SokolLayoutProps) {
         .font-heading { font-family: var(--font-heading); }
       `}</style>
       
-      <SokolHeader {...headerFooterProps} />
+      <SokolHeader {...headerFooterProps} storeName={headerFooterProps.storeName ?? ''} />
       
       {children}
       
-      <SokolFooter {...headerFooterProps} />
+      <SokolFooter
+        storeName={restProps.storeName ?? ''}
+        logo={restProps.logo}
+        businessInfo={restProps.businessInfo as { phone?: string; email?: string; address?: string } | null}
+        socialLinks={restProps.socialLinks as any}
+        footerConfig={restProps.footerConfig}
+        planType={restProps.planType}
+        categories={normalizedCategories}
+      />
       <SokolCartDrawer />
     </div>
   );

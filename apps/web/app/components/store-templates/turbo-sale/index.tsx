@@ -729,7 +729,7 @@ function PreviewTurboSaleStore(props: StoreTemplateProps) {
     config,
     currency,
     businessInfo,
-    socialLinks,
+    socialLinks: social,
     footerConfig,
     planType,
   } = props;
@@ -748,10 +748,10 @@ function PreviewTurboSaleStore(props: StoreTemplateProps) {
       case 'home':
         return (
           <PreviewHomePage
-            storeName={storeName}
+            storeName={storeName ?? ''}
             products={products}
             categories={validCategories}
-            currency={currency}
+            currency={currency ?? ''}
             config={config}
             onNavigate={navigate}
           />
@@ -760,14 +760,14 @@ function PreviewTurboSaleStore(props: StoreTemplateProps) {
         return (
           <PreviewProductDetailPage
             productId={currentPage.productId}
-            currency={currency}
+            currency={currency ?? ''}
             onNavigate={navigate}
           />
         );
       case 'cart':
-        return <PreviewCartPage currency={currency} onNavigate={navigate} />;
+        return <PreviewCartPage currency={currency ?? ''} onNavigate={navigate} />;
       case 'checkout':
-        return <PreviewCheckoutPage currency={currency} onNavigate={navigate} />;
+        return <PreviewCheckoutPage currency={currency ?? ''} onNavigate={navigate} />;
       case 'category': {
         const filtered = products.filter((p) => p.category === currentPage.category);
         return (
@@ -778,7 +778,7 @@ function PreviewTurboSaleStore(props: StoreTemplateProps) {
                 <PreviewProductCard
                   key={p.id}
                   product={p}
-                  currency={currency}
+                  currency={currency ?? ''}
                   onNavigate={navigate}
                 />
               ))}
@@ -829,21 +829,36 @@ function PreviewTurboSaleStore(props: StoreTemplateProps) {
         />
 
         <PreviewHeader
-          storeName={storeName}
+          storeName={storeName ?? ''}
           logo={logo}
           categories={validCategories}
           onNavigate={navigate}
-          businessInfo={businessInfo}
+          businessInfo={businessInfo ? {
+            phone: businessInfo.phone ?? undefined,
+            email: businessInfo.email ?? undefined,
+            address: businessInfo.address ?? undefined,
+          } : undefined}
         />
 
         <main>{renderPage()}</main>
 
         <TurboSaleFooter
-          storeName={storeName}
+          storeName={storeName ?? ''}
           logo={logo}
-          socialLinks={socialLinks}
+          socialLinks={social ? {
+            facebook: social.facebook ?? undefined,
+            instagram: social.instagram ?? undefined,
+            whatsapp: social.whatsapp ?? undefined,
+            twitter: social.twitter ?? undefined,
+            youtube: social.youtube ?? undefined,
+            linkedin: social.linkedin ?? undefined,
+          } : undefined}
           footerConfig={footerConfig}
-          businessInfo={businessInfo}
+          businessInfo={businessInfo ? {
+            phone: businessInfo.phone ?? undefined,
+            email: businessInfo.email ?? undefined,
+            address: businessInfo.address ?? undefined,
+          } : undefined}
           planType={planType}
           categories={validCategories}
         />
@@ -960,7 +975,7 @@ function LiveTurboSaleHomepage({
 
   const sectionsToRender =
     config?.sections && config.sections.length > 0 ? config.sections : defaultSections;
-  const normalizedCategories = categories.map((category: any) =>
+  const normalizedCategories = (categories || []).map((category: any) =>
     typeof category === 'string' || category === null ? category : (category.title ?? null)
   );
 
@@ -984,14 +999,25 @@ function LiveTurboSaleHomepage({
               }}
             >
               <TurboSaleHeader
-                storeName={storeName}
+                storeName={storeName ?? ''}
                 logo={logo}
                 categories={normalizedCategories}
                 currentCategory={currentCategory}
                 isPreview={isPreview}
                 config={config}
-                socialLinks={socialLinks}
-                businessInfo={businessInfo}
+                socialLinks={socialLinks ? {
+                  facebook: socialLinks.facebook ?? undefined,
+                  instagram: socialLinks.instagram ?? undefined,
+                  whatsapp: socialLinks.whatsapp ?? undefined,
+                  twitter: socialLinks.twitter ?? undefined,
+                  youtube: socialLinks.youtube ?? undefined,
+                  linkedin: socialLinks.linkedin ?? undefined,
+                } : undefined}
+                businessInfo={businessInfo ? {
+                  phone: businessInfo.phone ?? undefined,
+                  email: businessInfo.email ?? undefined,
+                  address: businessInfo.address ?? undefined,
+                } : undefined}
               />
 
               <main className="flex-1">
@@ -1021,11 +1047,22 @@ function LiveTurboSaleHomepage({
               </main>
 
               <TurboSaleFooter
-                storeName={storeName}
+                storeName={storeName ?? ''}
                 logo={logo}
-                socialLinks={socialLinks}
+                socialLinks={socialLinks ? {
+                  facebook: socialLinks.facebook ?? undefined,
+                  instagram: socialLinks.instagram ?? undefined,
+                  whatsapp: socialLinks.whatsapp ?? undefined,
+                  twitter: socialLinks.twitter ?? undefined,
+                  youtube: socialLinks.youtube ?? undefined,
+                  linkedin: socialLinks.linkedin ?? undefined,
+                } : undefined}
                 footerConfig={footerConfig}
-                businessInfo={businessInfo}
+                businessInfo={businessInfo ? {
+                  phone: businessInfo.phone ?? undefined,
+                  email: businessInfo.email ?? undefined,
+                  address: businessInfo.address ?? undefined,
+                } : undefined}
                 categories={normalizedCategories}
                 planType={planType}
               />

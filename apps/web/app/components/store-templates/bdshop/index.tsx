@@ -1309,10 +1309,10 @@ function PreviewBDShopStore(props: StoreTemplateProps) {
       case 'home':
         return (
           <PreviewHomePage
-            storeName={storeName}
+            storeName={storeName ?? ''}
             products={products}
             categories={validCategories}
-            currency={currency}
+            currency={currency ?? ''}
             config={(config || {}) as unknown as Record<string, unknown>}
             onNavigate={navigate}
           />
@@ -1321,7 +1321,7 @@ function PreviewBDShopStore(props: StoreTemplateProps) {
         return (
           <PreviewProductDetailPage
             productId={currentPage.productId}
-            currency={currency}
+            currency={currency ?? ''}
             onNavigate={navigate}
           />
         );
@@ -1330,27 +1330,27 @@ function PreviewBDShopStore(props: StoreTemplateProps) {
           <PreviewCategoryPage
             category={currentPage.category}
             products={products}
-            currency={currency}
+            currency={currency ?? ''}
             onNavigate={navigate}
           />
         );
       case 'search':
         return (
-          <PreviewSearchPage query={currentPage.query} currency={currency} onNavigate={navigate} />
+          <PreviewSearchPage query={currentPage.query} currency={currency ?? ''} onNavigate={navigate} />
         );
       case 'cart':
-        return <PreviewCartPageComponent currency={currency} onNavigate={navigate} />;
+        return <PreviewCartPageComponent currency={currency ?? ''} onNavigate={navigate} />;
       case 'checkout':
-        return <PreviewCheckoutPage currency={currency} onNavigate={navigate} />;
+        return <PreviewCheckoutPage currency={currency ?? ''} onNavigate={navigate} />;
       case 'order-success':
         return <PreviewOrderSuccessPage onNavigate={navigate} />;
       default:
         return (
           <PreviewHomePage
-            storeName={storeName}
+            storeName={storeName ?? ''}
             products={products}
             categories={validCategories}
-            currency={currency}
+            currency={currency ?? ''}
             config={(config || {}) as unknown as Record<string, unknown>}
             onNavigate={navigate}
           />
@@ -1369,7 +1369,7 @@ function PreviewBDShopStore(props: StoreTemplateProps) {
       >
         {/* Header */}
         <PreviewHeader
-          storeName={storeName}
+          storeName={storeName ?? ''}
           logo={logo}
           categories={validCategories}
           onNavigate={navigate}
@@ -1379,7 +1379,7 @@ function PreviewBDShopStore(props: StoreTemplateProps) {
         <main>{renderPage()}</main>
 
         {/* Footer */}
-        <PreviewFooter storeName={storeName} categories={validCategories} onNavigate={navigate} />
+        <PreviewFooter storeName={storeName ?? ''} categories={validCategories} onNavigate={navigate} />
 
         {/* Scrollbar Hide CSS */}
         <style>{`
@@ -1410,7 +1410,7 @@ function LiveBDShopHomepage(props: StoreTemplateProps) {
     isPreview,
   } = props;
 
-  const featuredCategories = categories.filter(Boolean).slice(0, 12);
+  const featuredCategories = (categories || []).filter(Boolean).slice(0, 12);
 
   return (
     <StoreConfigProvider config={config}>
@@ -1425,9 +1425,9 @@ function LiveBDShopHomepage(props: StoreTemplateProps) {
               }}
             >
               <BDShopHeader
-                storeName={storeName}
+                storeName={storeName ?? ''}
                 logo={logo}
-                categories={categories}
+                categories={categories || []}
                 currentCategory={currentCategory}
                 isPreview={false}
                 config={config}
@@ -1508,16 +1508,16 @@ function LiveBDShopHomepage(props: StoreTemplateProps) {
                       key={section.id}
                       settings={resolvedSettings}
                       theme={BDSHOP_THEME}
-                      products={products}
-                      categories={categories}
+                      products={products || []}
+                      categories={categories || []}
                       storeId={storeId}
-                      currency={currency}
+                      currency={currency ?? ''}
                       store={{
-                        name: storeName,
+                        name: storeName ?? '',
                         email: businessInfo?.email,
                         phone: businessInfo?.phone,
                         address: businessInfo?.address,
-                        currency: currency,
+                        currency: currency ?? '',
                       }}
                     />
                   );
@@ -1525,12 +1525,23 @@ function LiveBDShopHomepage(props: StoreTemplateProps) {
               </main>
 
               <BDShopFooter
-                storeName={storeName}
+                storeName={storeName ?? ''}
                 logo={logo}
-                socialLinks={socialLinks}
+                socialLinks={socialLinks ? {
+                  facebook: socialLinks.facebook ?? undefined,
+                  instagram: socialLinks.instagram ?? undefined,
+                  whatsapp: socialLinks.whatsapp ?? undefined,
+                  twitter: socialLinks.twitter ?? undefined,
+                  youtube: socialLinks.youtube ?? undefined,
+                  linkedin: socialLinks.linkedin ?? undefined,
+                } : null}
                 footerConfig={footerConfig}
-                businessInfo={businessInfo}
-                categories={categories}
+                businessInfo={businessInfo ? {
+                  phone: businessInfo.phone ?? undefined,
+                  email: businessInfo.email ?? undefined,
+                  address: businessInfo.address ?? undefined,
+                } : null}
+                categories={categories || []}
               />
 
               {/* Floating Contact Buttons */}

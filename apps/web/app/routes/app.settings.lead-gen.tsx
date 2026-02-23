@@ -9,6 +9,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudfla
 import { json } from '@remix-run/cloudflare';
 import { Form, useLoaderData, useActionData, useNavigation, Link } from '@remix-run/react';
 import { useState } from 'react';
+import { useTranslation } from '~/contexts/LanguageContext';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores } from '@db/schema';
 import { eq } from 'drizzle-orm';
@@ -118,12 +119,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (action === 'save_settings') {
       const current = await getLeadGenSettings(db, storeId);
 
-      // Parse array fields from formData
-      const parseJsonField = (key: string, defaultValue: any[]): any[] => {
+      // Parse array fields from formData.
+      // Uses a generic type parameter so callers keep their specific array types,
+      // while the runtime still validates that the parsed value is actually an array.
+      const parseJsonField = <T,>(key: string, defaultValue: T[]): T[] => {
         const value = formData.get(key);
         if (!value) return defaultValue;
         try {
-          return JSON.parse(value as string);
+          const parsed: unknown = JSON.parse(value as string);
+          return Array.isArray(parsed) ? (parsed as T[]) : defaultValue;
         } catch {
           return defaultValue;
         }
@@ -132,8 +136,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const updated: LeadGenSettingsWithTheme = {
         ...current,
         storeName: (formData.get('storeName') as string) || current.storeName,
-        logo: (formData.get('logo') as string) || null,
-        favicon: (formData.get('favicon') as string) || null,
+        logo: (formData.get('logo') as string) || current.logo || null,
+        favicon: (formData.get('favicon') as string) || current.favicon || null,
         primaryColor: (formData.get('primaryColor') as string) || current.primaryColor,
         accentColor: (formData.get('accentColor') as string) || current.accentColor,
         heroHeading: (formData.get('heroHeading') as string) || current.heroHeading,
@@ -231,38 +235,54 @@ export default function LeadGenSettingsPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
+  const { t } = useTranslation();
+  const [primaryColor, setPrimaryColor] = useState(currentSettings.primaryColor || '#4F46E5');
+  const [accentColor, setAccentColor] = useState(currentSettings.accentColor || '#F59E0B');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 md:pb-0 pb-32">
+      {/* Mobile Sticky Header */}
+      <div className="md:hidden -mx-4 -mt-4 mb-4">
+        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+          <div className="flex items-center justify-between px-4 py-3 h-[60px]">
+            <Link to="/app/settings" className="flex items-center justify-center p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
+              <ArrowLeft className="w-6 h-6" />
+            </Link>
+            <h1 className="text-lg font-bold tracking-tight">{t('leadGenSettings')}</h1>
+            <div className="w-10" />
+          </div>
+        </header>
+      </div>
+
       {/* Header */}
-      <div className="flex items-center gap-3">
+      <div className="hidden md:flex items-center gap-3">
         <Link to="/app/settings" className="p-2 hover:bg-gray-100 rounded-lg transition">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Megaphone className="w-6 h-6 text-violet-600" />
-            Lead Generation Settings
+            {t('leadGenSettings')}
           </h1>
-          <p className="text-gray-500 mt-1">Customize your lead capture website</p>
+          <p className="text-gray-500 mt-1">{t('leadGenSettingsDesc')}</p>
         </div>
       </div>
 
       {/* Messages */}
       {actionData?.success && 'message' in actionData && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-2xl flex items-center gap-2">
           <CheckCircle className="w-5 h-5" />
           {actionData.message}
         </div>
       )}
       {actionData?.success === false && 'error' in actionData && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl">
           {actionData.error}
         </div>
       )}
 
       {/* Preview Link */}
-      <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-xl border border-violet-200 p-5">
+      <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-2xl border border-violet-200 p-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center">
@@ -321,8 +341,7 @@ export default function LeadGenSettingsPage() {
 
         {/* Main Settings Form */}
         <div className="lg:col-span-2">
-          <Form method="post" className="space-y-6">
-            <input type="hidden" name="_action" value="save_settings" />
+          <Form method="post" id="lead-gen-form" className="space-y-6">
 
             {/* Basic Identity */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -389,14 +408,15 @@ export default function LeadGenSettingsPage() {
                     <input
                       type="color"
                       name="primaryColor"
-                      defaultValue={currentSettings.primaryColor}
+                      value={primaryColor}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
                       className="w-12 h-10 rounded cursor-pointer"
                     />
                     <input
                       type="text"
-                      defaultValue={currentSettings.primaryColor}
-                      className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                      value={primaryColor}
                       readOnly
+                      className="flex-1 px-3 py-2 border rounded-lg text-sm"
                     />
                   </div>
                 </div>
@@ -408,14 +428,15 @@ export default function LeadGenSettingsPage() {
                     <input
                       type="color"
                       name="accentColor"
-                      defaultValue={currentSettings.accentColor}
+                      value={accentColor}
+                      onChange={(e) => setAccentColor(e.target.value)}
                       className="w-12 h-10 rounded cursor-pointer"
                     />
                     <input
                       type="text"
-                      defaultValue={currentSettings.accentColor}
-                      className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                      value={accentColor}
                       readOnly
+                      className="flex-1 px-3 py-2 border rounded-lg text-sm"
                     />
                   </div>
                 </div>
@@ -613,25 +634,14 @@ export default function LeadGenSettingsPage() {
 
             {/* Success Stories Section */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="bg-amber-50/50 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="bg-amber-100 p-2 rounded-lg text-amber-600">
-                    <Award className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900">Success Stories</h3>
-                    <p className="text-sm text-gray-500">Student testimonials and achievements</p>
-                  </div>
+              <div className="bg-amber-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                <div className="bg-amber-100 p-2 rounded-lg text-amber-600">
+                  <Award className="w-5 h-5" />
                 </div>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    name="showTestimonials"
-                    defaultChecked={currentSettings.showTestimonials}
-                    className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
-                  />
-                  <span className="text-sm text-gray-600">Show</span>
-                </label>
+                <div>
+                  <h3 className="font-bold text-gray-900">Success Stories</h3>
+                  <p className="text-sm text-gray-500">Student testimonials and achievements</p>
+                </div>
               </div>
               <div className="p-6 space-y-4">
                 <SuccessStoryEditor
@@ -644,25 +654,14 @@ export default function LeadGenSettingsPage() {
 
             {/* University Partners Section */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="bg-blue-50/50 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="bg-blue-100 p-2 rounded-lg text-blue-600">
-                    <Building className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900">University Partners</h3>
-                    <p className="text-sm text-gray-500">Partner university logos</p>
-                  </div>
+              <div className="bg-blue-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                <div className="bg-blue-100 p-2 rounded-lg text-blue-600">
+                  <Building className="w-5 h-5" />
                 </div>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    name="showUniversityPartners"
-                    defaultChecked={currentSettings.showUniversityPartners}
-                    className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
-                  />
-                  <span className="text-sm text-gray-600">Show</span>
-                </label>
+                <div>
+                  <h3 className="font-bold text-gray-900">University Partners</h3>
+                  <p className="text-sm text-gray-500">Partner university logos</p>
+                </div>
               </div>
               <div className="p-6 space-y-4">
                 <UniversityLogoEditor
@@ -675,25 +674,14 @@ export default function LeadGenSettingsPage() {
 
             {/* Team Members / Experts Section */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="bg-teal-50/50 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="bg-teal-100 p-2 rounded-lg text-teal-600">
-                    <User className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900">Meet Our Experts</h3>
-                    <p className="text-sm text-gray-500">Team members and counselors</p>
-                  </div>
+              <div className="bg-teal-50/50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                <div className="bg-teal-100 p-2 rounded-lg text-teal-600">
+                  <User className="w-5 h-5" />
                 </div>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    name="showTeam"
-                    defaultChecked={currentSettings.showTeam}
-                    className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
-                  />
-                  <span className="text-sm text-gray-600">Show</span>
-                </label>
+                <div>
+                  <h3 className="font-bold text-gray-900">Meet Our Experts</h3>
+                  <p className="text-sm text-gray-500">Team members and counselors</p>
+                </div>
               </div>
               <div className="p-6 space-y-4">
                 <TeamMemberEditor
@@ -897,7 +885,7 @@ export default function LeadGenSettingsPage() {
                     <input
                       type="checkbox"
                       name={item.name}
-                      defaultChecked={(currentSettings as any)[item.name]}
+                      defaultChecked={!!currentSettings[item.name as keyof typeof currentSettings]}
                       className="w-4 h-4 text-violet-600 rounded focus:ring-violet-500"
                     />
                     <span className="text-gray-700">{item.label}</span>
@@ -1047,21 +1035,38 @@ export default function LeadGenSettingsPage() {
             {/* Submit */}
             <button
               type="submit"
+              name="_action"
+              value="save_settings"
               disabled={isSubmitting}
               className="w-full py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold rounded-lg hover:from-violet-700 hover:to-purple-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" /> Saving...
+                  <Loader2 className="w-5 h-5 animate-spin" /> {t('savingSettings')}
                 </>
               ) : (
                 <>
-                  <Save className="w-5 h-5" /> Save Settings
+                  <Save className="w-5 h-5" /> {t('saveSettings')}
                 </>
               )}
             </button>
           </Form>
         </div>
+      </div>
+
+      {/* Fixed Save Button - Mobile */}
+      <div className="fixed bottom-20 left-0 right-0 px-4 pb-2 z-[70] md:hidden">
+        <button
+          type="submit"
+          form="lead-gen-form"
+          name="_action"
+          value="save_settings"
+          disabled={isSubmitting}
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-semibold transition-all shadow-lg disabled:opacity-50"
+        >
+          {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+          {isSubmitting ? t('saving') : t('saveSettings')}
+        </button>
       </div>
     </div>
   );
@@ -1078,119 +1083,161 @@ function DestinationEditor({
   name: string;
   defaultValue: DestinationConfig[];
 }) {
-  const items =
-    defaultValue.length > 0 ? defaultValue : [{ title: '', description: '', enabled: true }];
+  const [items, setItems] = useState<DestinationConfig[]>(
+    defaultValue.length > 0 ? defaultValue : [{ title: '', description: '', enabled: true }]
+  );
+
+  const updateItem = (idx: number, field: keyof DestinationConfig, value: string | boolean) => {
+    setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item)));
+  };
+
+  const addItem = () =>
+    setItems((prev) => [...prev, { title: '', description: '', enabled: true }]);
+  const removeItem = (idx: number) => setItems((prev) => prev.filter((_, i) => i !== idx));
 
   return (
     <div className="space-y-2">
       {items.map((item, idx) => (
-        <div key={idx} className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
+        <div key={idx} className="flex items-start gap-2 p-3 bg-gray-50 rounded-xl">
           <div className="flex-1 grid gap-2">
             <input
               type="text"
-              name={`${name}[${idx}][title]`}
-              defaultValue={item.title}
+              value={item.title}
+              onChange={(e) => updateItem(idx, 'title', e.target.value)}
               placeholder="Study in Malaysia"
-              className="px-3 py-2 border rounded-lg text-sm"
+              className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm"
             />
             <input
               type="text"
-              name={`${name}[${idx}][description]`}
-              defaultValue={item.description}
+              value={item.description}
+              onChange={(e) => updateItem(idx, 'description', e.target.value)}
               placeholder="Description..."
-              className="px-3 py-2 border rounded-lg text-sm"
+              className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm"
             />
           </div>
-          <label className="flex items-center gap-1 pt-2">
-            <input
-              type="checkbox"
-              name={`${name}[${idx}][enabled]`}
-              defaultChecked={item.enabled}
-              className="w-4 h-4"
-            />
-            <span className="text-xs text-gray-500">Show</span>
-          </label>
+          <button
+            type="button"
+            onClick={() => removeItem(idx)}
+            className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
       ))}
+      <button
+        type="button"
+        onClick={addItem}
+        className="flex items-center gap-2 text-sm text-violet-600 hover:text-violet-700 font-medium"
+      >
+        <Plus className="w-4 h-4" /> Add Destination
+      </button>
       <input type="hidden" name={name} value={JSON.stringify(items)} />
     </div>
   );
 }
 
 function ServiceEditor({ name, defaultValue }: { name: string; defaultValue: ServiceConfig[] }) {
-  const items =
+  const [items, setItems] = useState<ServiceConfig[]>(
     defaultValue.length > 0
       ? defaultValue
-      : [{ icon: '💬', title: '', description: '', enabled: true }];
+      : [{ icon: '💬', title: '', description: '', enabled: true }]
+  );
+
+  const updateItem = (idx: number, field: keyof ServiceConfig, value: string | boolean) => {
+    setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item)));
+  };
+
+  const addItem = () =>
+    setItems((prev) => [...prev, { icon: '💬', title: '', description: '', enabled: true }]);
+  const removeItem = (idx: number) => setItems((prev) => prev.filter((_, i) => i !== idx));
 
   return (
     <div className="space-y-2">
       {items.map((item, idx) => (
-        <div key={idx} className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
+        <div key={idx} className="flex items-start gap-2 p-3 bg-gray-50 rounded-xl">
           <input
             type="text"
-            name={`${name}[${idx}][icon]`}
-            defaultValue={item.icon}
-            className="w-12 px-2 py-2 border rounded-lg text-center"
+            value={item.icon}
+            onChange={(e) => updateItem(idx, 'icon', e.target.value)}
+            className="w-12 px-2 py-1.5 border border-gray-200 rounded-lg text-center text-sm"
             placeholder="🎓"
           />
           <div className="flex-1 grid gap-2">
             <input
               type="text"
-              name={`${name}[${idx}][title]`}
-              defaultValue={item.title}
+              value={item.title}
+              onChange={(e) => updateItem(idx, 'title', e.target.value)}
               placeholder="Service Title"
-              className="px-3 py-2 border rounded-lg text-sm"
+              className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm"
             />
             <input
               type="text"
-              name={`${name}[${idx}][description]`}
-              defaultValue={item.description}
+              value={item.description}
+              onChange={(e) => updateItem(idx, 'description', e.target.value)}
               placeholder="Description..."
-              className="px-3 py-2 border rounded-lg text-sm"
+              className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm"
             />
           </div>
-          <label className="flex items-center gap-1 pt-2">
-            <input
-              type="checkbox"
-              name={`${name}[${idx}][enabled]`}
-              defaultChecked={item.enabled}
-              className="w-4 h-4"
-            />
-            <span className="text-xs text-gray-500">Show</span>
-          </label>
+          <button
+            type="button"
+            onClick={() => removeItem(idx)}
+            className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
       ))}
+      <button
+        type="button"
+        onClick={addItem}
+        className="flex items-center gap-2 text-sm text-violet-600 hover:text-violet-700 font-medium"
+      >
+        <Plus className="w-4 h-4" /> Add Service
+      </button>
       <input type="hidden" name={name} value={JSON.stringify(items)} />
     </div>
   );
 }
 
 function WhyChooseEditor({ name, defaultValue }: { name: string; defaultValue: WhyChoosePoint[] }) {
-  const items = defaultValue.length > 0 ? defaultValue : [{ text: '', enabled: true }];
+  const [items, setItems] = useState<WhyChoosePoint[]>(
+    defaultValue.length > 0 ? defaultValue : [{ text: '', enabled: true }]
+  );
+
+  const updateItem = (idx: number, field: keyof WhyChoosePoint, value: string | boolean) => {
+    setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item)));
+  };
+
+  const addItem = () => setItems((prev) => [...prev, { text: '', enabled: true }]);
+  const removeItem = (idx: number) => setItems((prev) => prev.filter((_, i) => i !== idx));
 
   return (
     <div className="space-y-2">
       {items.map((item, idx) => (
-        <div key={idx} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+        <div key={idx} className="flex items-center gap-2 p-2 bg-gray-50 rounded-xl">
           <input
             type="text"
-            name={`${name}[${idx}][text]`}
-            defaultValue={item.text}
+            value={item.text}
+            onChange={(e) => updateItem(idx, 'text', e.target.value)}
             placeholder="Why choose us point..."
-            className="flex-1 px-3 py-2 border rounded-lg text-sm"
+            className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm"
           />
-          <label className="flex items-center gap-1">
-            <input
-              type="checkbox"
-              name={`${name}[${idx}][enabled]`}
-              defaultChecked={item.enabled}
-              className="w-4 h-4"
-            />
-            <span className="text-xs text-gray-500">Show</span>
-          </label>
+          <button
+            type="button"
+            onClick={() => removeItem(idx)}
+            className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
       ))}
+      <button
+        type="button"
+        onClick={addItem}
+        className="flex items-center gap-2 text-sm text-violet-600 hover:text-violet-700 font-medium"
+      >
+        <Plus className="w-4 h-4" /> Add Point
+      </button>
       <input type="hidden" name={name} value={JSON.stringify(items)} />
     </div>
   );
@@ -1203,38 +1250,58 @@ function FAQEditor({
   name: string;
   defaultValue: { question: string; answer: string; enabled: boolean }[];
 }) {
-  const items =
-    defaultValue.length > 0 ? defaultValue : [{ question: '', answer: '', enabled: true }];
+  const [items, setItems] = useState<{ question: string; answer: string; enabled: boolean }[]>(
+    defaultValue.length > 0 ? defaultValue : [{ question: '', answer: '', enabled: true }]
+  );
+
+  const updateItem = (
+    idx: number,
+    field: 'question' | 'answer' | 'enabled',
+    value: string | boolean
+  ) => {
+    setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item)));
+  };
+
+  const addItem = () =>
+    setItems((prev) => [...prev, { question: '', answer: '', enabled: true }]);
+  const removeItem = (idx: number) => setItems((prev) => prev.filter((_, i) => i !== idx));
 
   return (
     <div className="space-y-2">
       {items.map((item, idx) => (
-        <div key={idx} className="p-3 bg-gray-50 rounded-lg space-y-2">
-          <input
-            type="text"
-            name={`${name}[${idx}][question]`}
-            defaultValue={item.question}
-            placeholder="Question..."
-            className="w-full px-3 py-2 border rounded-lg text-sm font-medium"
-          />
+        <div key={idx} className="p-3 bg-gray-50 rounded-xl space-y-2">
+          <div className="flex items-start gap-2">
+            <input
+              type="text"
+              value={item.question}
+              onChange={(e) => updateItem(idx, 'question', e.target.value)}
+              placeholder="Question..."
+              className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-medium"
+            />
+            <button
+              type="button"
+              onClick={() => removeItem(idx)}
+              className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
           <textarea
-            name={`${name}[${idx}][answer]`}
-            defaultValue={item.answer}
+            value={item.answer}
+            onChange={(e) => updateItem(idx, 'answer', e.target.value)}
             placeholder="Answer..."
             rows={2}
-            className="w-full px-3 py-2 border rounded-lg text-sm"
+            className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm"
           />
-          <label className="flex items-center gap-1">
-            <input
-              type="checkbox"
-              name={`${name}[${idx}][enabled]`}
-              defaultChecked={item.enabled}
-              className="w-4 h-4"
-            />
-            <span className="text-xs text-gray-500">Show</span>
-          </label>
         </div>
       ))}
+      <button
+        type="button"
+        onClick={addItem}
+        className="flex items-center gap-2 text-sm text-violet-600 hover:text-violet-700 font-medium"
+      >
+        <Plus className="w-4 h-4" /> Add FAQ
+      </button>
       <input type="hidden" name={name} value={JSON.stringify(items)} />
     </div>
   );

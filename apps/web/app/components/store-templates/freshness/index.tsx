@@ -771,10 +771,10 @@ function PreviewFreshnessStore(props: StoreTemplateProps) {
       case 'home':
         return (
           <PreviewHomePage
-            storeName={storeName}
+            storeName={storeName ?? ''}
             products={products}
             categories={validCategories}
-            currency={currency}
+            currency={currency ?? ''}
             config={config}
             onNavigate={navigate}
           />
@@ -783,14 +783,14 @@ function PreviewFreshnessStore(props: StoreTemplateProps) {
         return (
           <PreviewProductDetailPage
             productId={currentPage.productId}
-            currency={currency}
+            currency={currency ?? ''}
             onNavigate={navigate}
           />
         );
       case 'cart':
-        return <PreviewCartPage currency={currency} onNavigate={navigate} />;
+        return <PreviewCartPage currency={currency ?? ''} onNavigate={navigate} />;
       case 'checkout':
-        return <PreviewCheckoutPage currency={currency} onNavigate={navigate} />;
+        return <PreviewCheckoutPage currency={currency ?? ''} onNavigate={navigate} />;
       case 'category': {
         const filtered = products.filter((p) => p.category === currentPage.category);
         return (
@@ -801,7 +801,7 @@ function PreviewFreshnessStore(props: StoreTemplateProps) {
                 <PreviewProductCard
                   key={p.id}
                   product={p}
-                  currency={currency}
+                  currency={currency ?? ''}
                   onNavigate={navigate}
                 />
               ))}
@@ -854,18 +854,29 @@ function PreviewFreshnessStore(props: StoreTemplateProps) {
           rel="stylesheet"
         />
         <PreviewHeader
-          storeName={storeName}
+          storeName={storeName ?? ''}
           logo={logo}
           categories={validCategories}
           onNavigate={navigate}
         />
         <main>{renderPage()}</main>
         <FreshnessFooter
-          storeName={storeName}
+          storeName={storeName ?? ''}
           logo={logo}
           footerConfig={footerConfig}
-          businessInfo={businessInfo}
-          socialLinks={socialLinks}
+          businessInfo={businessInfo ? {
+            phone: businessInfo.phone ?? undefined,
+            email: businessInfo.email ?? undefined,
+            address: businessInfo.address ?? undefined,
+          } : undefined}
+          socialLinks={socialLinks ? {
+            facebook: socialLinks.facebook ?? undefined,
+            instagram: socialLinks.instagram ?? undefined,
+            whatsapp: socialLinks.whatsapp ?? undefined,
+            twitter: socialLinks.twitter ?? undefined,
+            youtube: socialLinks.youtube ?? undefined,
+            linkedin: socialLinks.linkedin ?? undefined,
+          } : undefined}
           planType={planType}
           categories={validCategories}
         />
@@ -905,7 +916,7 @@ function LiveFreshnessHomepage({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const validCategories = categories.filter((c): c is string => Boolean(c));
+  const validCategories = (categories || []).filter((c): c is string => Boolean(c));
 
   const THEME = {
     ...FRESHNESS_THEME,
@@ -926,7 +937,7 @@ function LiveFreshnessHomepage({
               }}
             >
               <FreshnessHeader
-                storeName={storeName}
+                storeName={storeName ?? ''}
                 logo={logo}
                 categories={validCategories}
                 count={count}
@@ -1041,9 +1052,13 @@ function LiveFreshnessHomepage({
               })}
 
               <FreshnessFooter
-                storeName={storeName}
+                storeName={storeName ?? ''}
                 footerConfig={footerConfig}
-                businessInfo={businessInfo}
+                businessInfo={businessInfo ? {
+                  phone: businessInfo.phone ?? undefined,
+                  email: businessInfo.email ?? undefined,
+                  address: businessInfo.address ?? undefined,
+                } : undefined}
                 planType={planType}
                 categories={validCategories}
               />
@@ -1059,7 +1074,7 @@ function LiveFreshnessHomepage({
 // FRESHNESS PRODUCT CARD COMPONENT (Live)
 // ============================================================================
 interface FreshnessProductCardProps {
-  product: StoreTemplateProps['products'][0];
+  product: NonNullable<StoreTemplateProps['products']>[0];
   storeId: number;
   formatPrice: (price: number) => string;
 }

@@ -85,15 +85,18 @@ export function LanguageProvider({
   };
   
   const t: (key: string | TranslationKey, options?: any) => string = (key, options) => {
-    // 1. Try customs translations from ~/utils/i18n.ts first
-    const customTranslation = i18nCustomT(key as TranslationKey, lang, options);
+    // Strip namespace prefix (e.g. "dashboard:todaysOrders" -> "todaysOrders")
+    const strippedKey = typeof key === 'string' && key.includes(':') ? key.split(':')[1] : key;
+
+    // 1. Try custom translations from ~/utils/i18n.ts first (using stripped key)
+    const customTranslation = i18nCustomT(strippedKey as TranslationKey, lang, options);
     
-    // If it's not the same as the key, it means we found a translation
-    if (customTranslation !== key) {
+    // If it's not the same as the stripped key, it means we found a translation
+    if (customTranslation !== strippedKey) {
       return customTranslation;
     }
 
-    // 2. Fallback to i18next (JSON files)
+    // 2. Fallback to i18next (JSON files) - pass original key with namespace
     return String(i18nT(key, options));
   };
   

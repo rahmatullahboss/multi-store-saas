@@ -47,6 +47,15 @@ const STEADFAST_STATUS_MAP: Record<string, string> = {
   delivered: 'delivered',
   partial_delivered: 'delivered',
   cancelled: 'cancelled',
+  // Pickup cancelled variants — map to cancelled
+  pickup_cancelled: 'cancelled',
+  pickup_cancel_request: 'cancelled',
+  pickup_cancellation_requested: 'cancelled',
+  // Shipped variants
+  picked: 'shipped',
+  in_transit: 'shipped',
+  out_for_delivery: 'shipped',
+  returned: 'returned',
   hold: 'processing',
   unknown: 'processing',
 };
@@ -54,21 +63,36 @@ const STEADFAST_STATUS_MAP: Record<string, string> = {
 const PATHAO_STATUS_MAP: Record<string, string> = {
   Pending: 'processing',
   'Pickup Requested': 'processing',
+  'Pickup Scheduled': 'processing',
   Picked: 'shipped',
   'In Transit': 'shipped',
+  'Out for Delivery': 'shipped',
+  'Delivery Attempted': 'shipped',
   Delivered: 'delivered',
+  'Partial Delivered': 'delivered',
   Returned: 'returned',
+  'Return in Transit': 'returned',
   Cancelled: 'cancelled',
+  'Pickup Cancelled': 'cancelled',
+  'Pickup Cancel Request': 'cancelled',
+  'Order Cancelled': 'cancelled',
 };
 
 const REDX_STATUS_MAP: Record<string, string> = {
   'Pending Pickup': 'processing',
+  'Pickup Requested': 'processing',
   'Picked Up': 'shipped',
   'In Transit': 'shipped',
   'Out for Delivery': 'shipped',
+  'Delivery Attempted': 'shipped',
   Delivered: 'delivered',
+  'Partial Delivered': 'delivered',
   Returned: 'returned',
+  'Return in Transit': 'returned',
   Cancelled: 'cancelled',
+  'Pickup Cancelled': 'cancelled',
+  'Cancelled by Merchant': 'cancelled',
+  'Cancelled by Customer': 'cancelled',
 };
 
 // ============================================================================
@@ -241,7 +265,7 @@ export default {
             AND courier_provider IS NOT NULL
             AND courier_consignment_id IS NOT NULL
             AND courier_consignment_id != ''
-            AND status NOT IN ('delivered', 'cancelled', 'returned')
+            AND status NOT IN ('delivered', 'returned')
         `).bind(store.id).all<OrderRow>();
 
         const orders = ordersResult.results || [];

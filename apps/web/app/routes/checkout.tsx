@@ -958,7 +958,7 @@ export default function Checkout() {
         planType={planType}
         customer={customer}
         categories={categories}
-        config={themeConfig as ThemeConfig}
+        config={null}
         isCustomerAiEnabled={isCustomerAiEnabled}
         aiCredits={aiCredits}
       >
@@ -1296,7 +1296,7 @@ export default function Checkout() {
   // Determine layout style from theme config (default to standard)
   // Determine layout style from theme config (default to standard)
   // Using string type to allow future extension via unified settings
-  const checkoutStyle = (themeConfig as { checkoutStyle?: string })?.checkoutStyle || 'standard';
+  const checkoutStyle = (themeConfig as unknown as { checkoutStyle?: string })?.checkoutStyle || 'standard';
 
   // Minimal Layout: No Header/Footer, just centered logo
   if (checkoutStyle === 'minimal') {
@@ -1606,7 +1606,7 @@ export default function Checkout() {
         planType={planType}
         customer={customer}
         categories={categories}
-        config={themeConfig as ThemeConfig}
+        config={null}
         isCustomerAiEnabled={isCustomerAiEnabled}
         aiCredits={aiCredits}
       >
@@ -1768,7 +1768,7 @@ export default function Checkout() {
       planType={planType}
       customer={customer}
       categories={categories}
-      config={themeConfig as ThemeConfig}
+      config={null}
       isCustomerAiEnabled={isCustomerAiEnabled}
       aiCredits={aiCredits}
     >

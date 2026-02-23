@@ -7,12 +7,12 @@ import { DEFAULT_SECTIONS } from '~/components/store-sections/registry';
 
 export function RovoTemplate(props: StoreTemplateProps) {
   const sections = props.config?.sections?.length ? props.config.sections : DEFAULT_SECTIONS;
-  const filteredCategories = props.categories.filter((c): c is string => c !== null);
+  const filteredCategories = (props.categories ?? []).filter((c): c is string => c !== null);
 
   return (
     <RovoLayout {...props}>
       <RovoHeader 
-        storeName={props.storeName} 
+        storeName={props.storeName ?? ''} 
         logo={props.logo} 
         categories={filteredCategories}
         currentCategory={props.currentCategory || null}
@@ -25,7 +25,7 @@ export function RovoTemplate(props: StoreTemplateProps) {
             sections={sections} 
             products={props.products}
             categories={filteredCategories}
-            storeId={props.storeId}
+            storeId={props.storeId ? parseInt(props.storeId, 10) : undefined}
           />
         ) : (
           <div className="py-20 text-center">
@@ -36,7 +36,7 @@ export function RovoTemplate(props: StoreTemplateProps) {
       </main>
 
       <RovoFooter 
-        storeName={props.storeName}
+        storeName={props.storeName ?? ''}
         logo={props.logo}
         businessInfo={props.businessInfo}
         socialLinks={props.socialLinks}

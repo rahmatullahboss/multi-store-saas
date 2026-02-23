@@ -48,6 +48,7 @@ import {
   Bell,
   Ticket,
   Shield,
+  Lock,
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -268,12 +269,14 @@ type NavItem = {
   isPaidOnly?: boolean; // Feature requires paid plan
   storeOnly?: boolean; // Only show when storeEnabled=true
   isExternal?: boolean; // Opens in new tab (for builder.ozzyl.com)
+  mobileHidden?: boolean; // Hide on mobile (lg:hidden) - for items covered by a dedicated mobile page
 };
 
 type NavSection = {
   titleKey: TranslationKey;
   items: NavItem[];
   storeOnly?: boolean; // Hide entire section if store disabled
+  mobileHidden?: boolean; // Hide entire section on mobile
 };
 
 const navSections: NavSection[] = [
@@ -333,6 +336,7 @@ const navSections: NavSection[] = [
   // === SETTINGS ===
   {
     titleKey: 'sidebarSettings',
+    mobileHidden: false, // Show settings in mobile sidebar too
     items: [
       { to: '/app/settings', labelKey: 'navGeneral', icon: Settings },
       { to: '/app/settings/homepage', labelKey: 'navStorefront', icon: Home },
@@ -345,6 +349,7 @@ const navSections: NavSection[] = [
       { to: '/app/settings/payment', labelKey: 'navPayments', icon: CreditCard },
       { to: '/app/billing', labelKey: 'navPlanBilling', icon: Crown },
       { to: '/app/settings/team', labelKey: 'navTeam', icon: Users },
+      { to: '/app/settings/activity', labelKey: 'navActivityLock', icon: Lock },
     ],
   },
 ];
@@ -449,7 +454,7 @@ export default function AppLayout() {
       {/* Mobile Sidebar Overlay - hide on builder routes */}
       {!isBuilderRoute && sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-[55] lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -458,13 +463,13 @@ export default function AppLayout() {
       {!isBuilderRoute && (
         <aside
           className={`
-          fixed top-0 left-0 z-50 h-full w-64 bg-white/90 backdrop-blur-xl border-r border-white/20
-          transform transition-transform duration-200 ease-in-out
+          fixed top-0 left-0 z-[60] h-[calc(100%-64px)] lg:h-full w-64 bg-white/90 backdrop-blur-xl border-r border-white/20
+          transform transition-transform duration-200 ease-in-out flex flex-col
           lg:translate-x-0
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
         >
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col flex-1 min-h-0">
             {/* Logo/Store Header */}
             <div className="p-4 border-b border-white/10">
               <div className="flex items-center justify-between">
@@ -499,7 +504,7 @@ export default function AppLayout() {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-4 space-y-4 overflow-y-auto custom-scrollbar">
+            <nav className="flex-1 min-h-0 p-4 space-y-4 overflow-y-auto custom-scrollbar">
               {navSections
                 // Filter out entire sections that are storeOnly when store is disabled
                 .filter((section) => !section.storeOnly || store.storeEnabled)
@@ -513,7 +518,7 @@ export default function AppLayout() {
                   if (visibleItems.length === 0) return null;
 
                   return (
-                    <div key={section.titleKey}>
+                    <div key={section.titleKey} className={section.mobileHidden ? 'hidden lg:block' : undefined}>
                       {/* Section Header - hide for Home */}
                       {section.titleKey !== 'sidebarHome' && (
                         <div className="px-3 pb-2">
@@ -537,7 +542,7 @@ export default function AppLayout() {
                                 key={item.to}
                                 to={`/app/upgrade?feature=${featureName}`}
                                 onClick={() => setSidebarOpen(false)}
-                                className="flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition opacity-50 text-gray-400 hover:opacity-70 hover:bg-gray-50 group"
+                                className={`flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition opacity-50 text-gray-400 hover:opacity-70 hover:bg-gray-50 group${item.mobileHidden ? ' hidden lg:flex' : ''}`}
                               >
                                 <Icon className="w-5 h-5" />
                                 <span className="flex-1">{t(item.labelKey)}</span>
@@ -554,7 +559,7 @@ export default function AppLayout() {
                               to={item.to}
                               onClick={() => setSidebarOpen(false)}
                               className={`
-                              flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition
+                              ${item.mobileHidden ? 'hidden lg:flex' : 'flex'} items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition
                               ${
                                 active
                                   ? 'bg-gradient-to-r from-emerald-50 to-teal-50/50 text-emerald-700 shadow-sm border border-emerald-100/50'
@@ -607,7 +612,7 @@ export default function AppLayout() {
             </nav>
 
             {/* User Info & Logout */}
-            <div className="p-4 border-t border-white/10 bg-white/30 backdrop-blur-sm">
+            <div className="shrink-0 p-4 pb-4 border-t border-white/10 bg-white/30 backdrop-blur-sm">
               {/* Language Selector - Temporarily disabled - Bengali is default */}
               {/* <div className="mb-3">
               <LanguageSelector variant="pills" size="sm" className="w-full" />
@@ -637,6 +642,7 @@ export default function AppLayout() {
                   {t('logout')}
                 </button>
               </Form>
+              {/* no extra padding needed — sidebar height is already reduced on mobile */}
             </div>
           </div>
         </aside>
@@ -644,19 +650,28 @@ export default function AppLayout() {
 
       {/* Main Content - no left padding on builder routes */}
       <div className={isBuilderRoute ? '' : 'lg:pl-64'}>
-        {/* Mobile Header - hide on builder routes */}
-        {!isBuilderRoute && (
-          <header className="lg:hidden sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-white/20 px-4 py-3">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-              <h1 className="font-semibold text-gray-900">{store.name}</h1>
-              <LanguageSelector variant="toggle" size="sm" />
+        {/* Mobile Header - hide on builder routes, order detail pages, and settings sub-pages */}
+        {!isBuilderRoute && !location.pathname.match(/^\/app\/orders\/\d+/) && !location.pathname.match(/^\/app\/settings\/.+/) && (
+          <header className="lg:hidden sticky top-0 z-30 bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between shadow-sm">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-600"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            <div className="flex items-center gap-1">
+              <ShoppingBag className="w-5 h-5 text-emerald-500" />
+              <h1 className="text-lg font-bold tracking-tight text-gray-900">{store.name}</h1>
+              <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </div>
+            <button className="relative p-2 -mr-2 rounded-full hover:bg-slate-100 text-slate-600">
+              <Bell className="w-6 h-6" />
+              {visibleNotifications.length > 0 && (
+                <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
+              )}
+            </button>
           </header>
         )}
 
@@ -698,7 +713,7 @@ export default function AppLayout() {
         )}
 
         {/* Page Content - full width on builder routes */}
-        <main className={isBuilderRoute ? '' : 'p-4 lg:p-8 pb-20 lg:pb-8'}>
+        <main className={isBuilderRoute ? '' : 'p-4 lg:p-8 pb-28 lg:pb-8'}>
           <div className={isBuilderRoute ? 'w-full h-full' : 'max-w-7xl mx-auto w-full'}>
             <Outlet />
           </div>
@@ -707,108 +722,63 @@ export default function AppLayout() {
 
       {/* Mobile Bottom Navigation Bar - Show on screens < 1024px */}
       {!isBuilderRoute && (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 lg:hidden shadow-lg pb-safe">
-          <div className="grid grid-cols-5 h-16 md:h-14">
+        <nav className="fixed bottom-0 left-0 right-0 z-[65] bg-white border-t border-slate-100 lg:hidden shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] pb-safe">
+          <div className="grid grid-cols-4 px-4 py-2 pb-5">
             {[
-              { to: '/app/dashboard', icon: 'home', label: 'হোম' },
-              { to: '/app/orders', icon: 'package', label: 'অর্ডার' },
-              { to: '/app/products', icon: 'shopping-bag', label: 'পণ্য' },
-              { to: '/app/customers', icon: 'users', label: 'গ্রাহক' },
-              { to: '/app/settings', icon: 'more-horizontal', label: 'আরো' },
-            ].map(({ to, label }) => {
-              const isActive = location.pathname === to || location.pathname.startsWith(to + '/');
+              {
+                to: '/app/dashboard',
+                label: 'হোম',
+                icon: (active: boolean) => (
+                  <svg className="w-6 h-6" fill={active ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 0 : 2}
+                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                ),
+              },
+              {
+                to: '/app/orders',
+                label: 'অর্ডার',
+                icon: (active: boolean) => (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.5 : 2}
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                ),
+              },
+              {
+                to: '/app/products',
+                label: 'পণ্য',
+                icon: (active: boolean) => (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.5 : 2}
+                      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                ),
+              },
+              {
+                to: '/app/settings',
+                label: 'সেটিং',
+                icon: (active: boolean) => (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.5 : 2}
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.5 : 2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                ),
+              },
+            ].map(({ to, label, icon }) => {
+              const active = location.pathname === to || location.pathname.startsWith(to + '/');
               return (
                 <Link
                   key={to}
                   to={to}
-                  className={`flex flex-col items-center justify-center gap-0.5 transition-colors ${
-                    isActive ? 'text-emerald-600' : 'text-gray-500 hover:text-gray-700'
+                  className={`flex flex-col items-center gap-1 transition-colors ${
+                    active ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
-                  <span
-                    className={`w-6 h-6 flex items-center justify-center rounded-full ${isActive ? 'bg-emerald-50' : ''}`}
-                  >
-                    {to.includes('dashboard') && (
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={isActive ? 2.5 : 2}
-                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                        />
-                      </svg>
-                    )}
-                    {to.includes('orders') && (
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={isActive ? 2.5 : 2}
-                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                        />
-                      </svg>
-                    )}
-                    {to.includes('products') && (
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={isActive ? 2.5 : 2}
-                          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                        />
-                      </svg>
-                    )}
-                    {to.includes('customers') && (
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={isActive ? 2.5 : 2}
-                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                    )}
-                    {to.includes('settings') && (
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={isActive ? 2.5 : 2}
-                          d="M4 6h16M4 12h16M4 18h16"
-                        />
-                      </svg>
-                    )}
-                  </span>
-                  <span
-                    className={`text-xs font-medium ${isActive ? 'text-emerald-600' : 'text-gray-500'}`}
-                  >
-                    {label}
-                  </span>
+                  {icon(active)}
+                  <span className="text-[10px] font-medium">{label}</span>
                 </Link>
               );
             })}

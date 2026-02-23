@@ -20,14 +20,17 @@ import { emailCampaigns, emailSubscribers } from '@db/schema';
 import { 
   Plus, 
   Mail, 
-  Send, 
+  Send,
+  Pencil,
+  Copy,
+  BarChart3,
+  MoreHorizontal, 
   Clock, 
   CheckCircle, 
   AlertCircle,
   Trash2,
   Eye,
   Users,
-  BarChart3
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -188,49 +191,139 @@ export default function CampaignsPage() {
         /* Campaigns Table */
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           {/* Mobile Card View */}
-          <div className="block md:hidden divide-y divide-gray-100">
-            {campaigns.map((campaign) => (
-              <div key={campaign.id} className="p-4 hover:bg-gray-50">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">{campaign.name}</p>
-                    <p className="text-xs text-gray-500 truncate mt-0.5">{campaign.subject}</p>
+          <div className="block md:hidden p-4 space-y-4">
+            {campaigns.map((campaign) => {
+              const typeColors: Record<string, string> = {
+                email: 'bg-indigo-100 text-indigo-700',
+                sms: 'bg-teal-100 text-teal-700',
+                push: 'bg-orange-100 text-orange-700',
+                social: 'bg-pink-100 text-pink-700',
+              };
+              const campaignType = (campaign as any).type as string | undefined;
+              const typeColor = typeColors[campaignType || 'email'] || 'bg-gray-100 text-gray-600';
+              const status = campaign.status || 'draft';
+
+              return (
+                <div key={campaign.id} className="flex flex-col gap-4 rounded-2xl bg-white border border-gray-100 p-5 shadow-sm">
+                  {/* Header */}
+                  <div className="flex items-start justify-between">
+                    <div className="flex flex-col gap-1 flex-1 min-w-0 pr-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-base font-bold text-slate-900 truncate">{campaign.name}</h3>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${typeColor}`}>
+                          {campaignType || 'Email'}
+                        </span>
+                      </div>
+                      {campaign.createdAt && (
+                        <span className="text-xs text-slate-500">
+                          {new Date(campaign.createdAt).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                    {/* Status badge */}
+                    {status === 'sent' || status === 'sending' || status === 'scheduled' ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 shrink-0">
+                        <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                        {t('active') || 'Active'}
+                      </span>
+                    ) : status === 'draft' ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-slate-600 shrink-0">
+                        {t('draft') || 'Draft'}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600 shrink-0">
+                        {t('ended') || 'Ended'}
+                      </span>
+                    )}
                   </div>
-                  <StatusBadge status={campaign.status || 'draft'} />
+
+                  {/* Metrics Grid */}
+                  <div className={`grid grid-cols-4 gap-2 rounded-xl bg-gray-50 p-3 ${status === 'draft' ? 'opacity-50' : ''}`}>
+                    <div className="flex flex-col items-center gap-1 border-r border-gray-200 px-1">
+                      <span className="text-[10px] font-medium uppercase text-slate-400">{t('sent') || 'Sent'}</span>
+                      <span className="text-sm font-bold text-slate-900">{status === 'draft' ? '—' : (campaign.sentCount || campaign.recipientCount || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-1 border-r border-gray-200 px-1">
+                      <span className="text-[10px] font-medium uppercase text-slate-400">{t('open') || 'Open'}</span>
+                      <span className="text-sm font-bold text-slate-900">{status === 'draft' ? '—' : `${(campaign as any).openRate || 0}%`}</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-1 border-r border-gray-200 px-1">
+                      <span className="text-[10px] font-medium uppercase text-slate-400">{t('click') || 'Click'}</span>
+                      <span className="text-sm font-bold text-slate-900">{status === 'draft' ? '—' : `${(campaign as any).clickRate || 0}%`}</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-1 px-1">
+                      <span className="text-[10px] font-medium uppercase text-slate-400">{t('conv') || 'Conv'}</span>
+                      <span className="text-sm font-bold text-emerald-600">{status === 'draft' ? '—' : `${(campaign as any).conversionRate || 0}%`}</span>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-3">
+                    {status === 'draft' ? (
+                      <>
+                        <Link
+                          to={`/app/campaigns/${campaign.id}`}
+                          className="flex-1 flex items-center justify-center gap-2 h-10 rounded-full bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors"
+                        >
+                          <Send className="w-4 h-4" />
+                          {t('launch') || 'Launch'}
+                        </Link>
+                        <Link
+                          to={`/app/campaigns/${campaign.id}`}
+                          className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-100 text-slate-600 hover:bg-gray-200 transition-colors"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Link>
+                        <Form method="post">
+                          <input type="hidden" name="intent" value="delete" />
+                          <input type="hidden" name="campaignId" value={campaign.id} />
+                          <button
+                            type="submit"
+                            disabled={isDeleting}
+                            onClick={(e) => { if (!confirm('Delete this campaign?')) e.preventDefault(); }}
+                            className="flex items-center justify-center h-10 w-10 rounded-full bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </Form>
+                      </>
+                    ) : status === 'sent' || status === 'sending' || status === 'scheduled' ? (
+                      <>
+                        <Link
+                          to={`/app/campaigns/${campaign.id}`}
+                          className="flex-1 flex items-center justify-center gap-2 h-10 rounded-full border border-emerald-500 text-emerald-600 text-sm font-semibold hover:bg-emerald-50 transition-colors"
+                        >
+                          <BarChart3 className="w-4 h-4" />
+                          {t('viewResults') || 'View Results'}
+                        </Link>
+                        <Link
+                          to={`/app/campaigns/${campaign.id}`}
+                          className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-100 text-slate-600 hover:bg-gray-200 transition-colors"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          to={`/app/campaigns/${campaign.id}`}
+                          className="flex-1 flex items-center justify-center gap-2 h-10 rounded-full border border-gray-200 text-slate-600 text-sm font-semibold hover:bg-gray-50 transition-colors"
+                        >
+                          <Copy className="w-4 h-4" />
+                          {t('duplicate') || 'Duplicate'}
+                        </Link>
+                        <Link
+                          to={`/app/campaigns/${campaign.id}`}
+                          className="flex items-center justify-center h-10 w-10 rounded-full bg-gray-100 text-slate-600 hover:bg-gray-200 transition-colors"
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Link>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-gray-500 mt-2">
-                  <span>📩 {campaign.recipientCount || 0} recipients</span>
-                  {campaign.status === 'sent' && campaign.sentCount ? (
-                    <span>✅ {campaign.sentCount} sent</span>
-                  ) : null}
-                  {campaign.createdAt ? (
-                    <span>🗓 {new Date(campaign.createdAt).toLocaleDateString()}</span>
-                  ) : null}
-                </div>
-                <div className="flex items-center gap-2 mt-3">
-                  <Link
-                    to={`/app/campaigns/${campaign.id}`}
-                    className="flex-1 text-center py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 rounded-lg"
-                  >
-                    View
-                  </Link>
-                  {campaign.status === 'draft' && (
-                    <Form method="post" className="flex-1">
-                      <input type="hidden" name="intent" value="delete" />
-                      <input type="hidden" name="campaignId" value={campaign.id} />
-                      <button
-                        type="submit"
-                        disabled={isDeleting}
-                        onClick={(e) => { if (!confirm('Delete this campaign?')) e.preventDefault(); }}
-                        className="w-full py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg"
-                      >
-                        Delete
-                      </button>
-                    </Form>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           {/* Desktop Table */}
           <div className="hidden md:block overflow-x-auto">

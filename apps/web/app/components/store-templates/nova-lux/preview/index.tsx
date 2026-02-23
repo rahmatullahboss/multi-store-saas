@@ -225,8 +225,8 @@ function PreviewHeader({
             {validCategories.slice(0, 3).map((cat) => {
               const title =
                 typeof cat === 'object' && cat !== null
-                  ? (cat as StoreCategory).title
-                  : (cat as string);
+                  ? (cat as StoreCategory).title ?? ''
+                  : (cat as string) ?? '';
               return (
                 <button
                   key={title}
@@ -306,8 +306,8 @@ function PreviewHeader({
             {validCategories.map((cat) => {
               const title =
                 typeof cat === 'object' && cat !== null
-                  ? (cat as StoreCategory).title
-                  : (cat as string);
+                  ? (cat as StoreCategory).title ?? ''
+                  : (cat as string) ?? '';
               return (
                 <button
                   key={title}
@@ -567,10 +567,10 @@ export function PreviewNovaLuxStore(props: StoreTemplateProps) {
       case 'home':
         return (
           <PreviewHomePage
-            storeName={storeName}
+            storeName={storeName ?? ''}
             products={products}
             categories={validCategories}
-            currency={currency}
+            currency={currency ?? ''}
             config={config}
             onNavigate={navigate}
           />
@@ -592,7 +592,7 @@ export function PreviewNovaLuxStore(props: StoreTemplateProps) {
                 category: product.category,
                 stock: 99,
               }}
-              currency={currency}
+              currency={currency ?? ''}
               relatedProducts={relatedProducts.map((p) => ({
                 id: p.id,
                 title: p.title,
@@ -634,7 +634,7 @@ export function PreviewNovaLuxStore(props: StoreTemplateProps) {
               isPreview={true}
               templateId="nova-lux"
               onNavigate={navigateByPath}
-              storeId={storeId}
+              storeId={storeId ? parseInt(storeId, 10) : undefined}
             />
           </div>
         );
@@ -648,7 +648,7 @@ export function PreviewNovaLuxStore(props: StoreTemplateProps) {
                 <PreviewProductCard
                   key={p.id}
                   product={p}
-                  currency={currency}
+                  currency={currency ?? ''}
                   onNavigate={navigate}
                 />
               ))}
@@ -689,14 +689,14 @@ export function PreviewNovaLuxStore(props: StoreTemplateProps) {
           rel="stylesheet"
         />
         <PreviewHeader
-          storeName={storeName}
+          storeName={storeName ?? ''}
           logo={logo}
           categories={validCategories}
           onNavigate={navigate}
         />
         <main>{renderPage()}</main>
         <NovaLuxFooter
-          storeName={storeName}
+          storeName={storeName ?? ''}
           logo={logo}
           categories={validCategories}
           isPreview={true}

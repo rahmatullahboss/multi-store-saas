@@ -12,7 +12,7 @@
  */
 
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher } from '@remix-run/react';
+import { useLoaderData, useFetcher, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
@@ -20,7 +20,7 @@ import { getStoreId } from '~/services/auth.server';
 import { useState } from 'react';
 import { 
   Save, AlertCircle, CheckCircle, Facebook, ExternalLink, Copy, Eye, EyeOff,
-  BarChart3, AlertTriangle, Info
+  BarChart3, AlertTriangle, Info, ArrowLeft
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -85,7 +85,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export default function TrackingSettings() {
   const { store } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<{ success: boolean; message?: string; error?: string }>();
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   
   const [showPixelId, setShowPixelId] = useState(false);
   const [showAccessToken, setShowAccessToken] = useState(false);
@@ -99,41 +99,188 @@ export default function TrackingSettings() {
   const isAnyConfigured = isFbConfigured || isGaConfigured;
 
   const handleCopy = (value: string, field: string) => {
-    navigator.clipboard.writeText(value);
-    setCopiedField(field);
-    setTimeout(() => setCopiedField(null), 2000);
+    navigator.clipboard.writeText(value)
+      .then(() => {
+        setCopiedField(field);
+        setTimeout(() => setCopiedField(null), 2000);
+      })
+      .catch(() => {
+        // Clipboard API not available — show manual copy hint
+      });
   };
 
-  return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-start gap-4">
-        <div className="bg-gradient-to-br from-blue-100 to-purple-100 p-3 rounded-xl">
-          <BarChart3 className="w-8 h-8 text-blue-600" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {t('trackingAnalytics')}
-          </h1>
-          <p className="text-gray-500 mt-1">
-            {t('trackingSetupDesc')}
-          </p>
-        </div>
-      </div>
-
-      {/* Success/Error Messages */}
+  // Shared status messages component
+  const StatusMessages = () => (
+    <>
       {fetcher.data?.success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2">
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-2xl flex items-center gap-2">
           <CheckCircle className="w-5 h-5" />
-          {t(fetcher.data.message as any)}
+          {fetcher.data.message ? t(fetcher.data.message) : ''}
         </div>
       )}
       {fetcher.data?.error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl flex items-center gap-2">
           <AlertCircle className="w-5 h-5" />
-          {t(fetcher.data.error as any)}
+          {fetcher.data.error ? t(fetcher.data.error) : ''}
         </div>
       )}
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile Layout */}
+      <div className="md:hidden -mx-4 -mt-4">
+        {/* Sticky Header */}
+        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+          <div className="flex items-center justify-between h-[60px] px-4">
+            <Link to="/app/settings" className="p-2 -ml-2">
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </Link>
+            <h1 className="text-lg font-semibold text-gray-900">{t('trackingAnalyticsHeader')}</h1>
+            <div className="w-10" />
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <div className="flex flex-col gap-5 p-4 pb-32">
+          <StatusMessages />
+
+          {/* Status Cards */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className={`rounded-xl border p-3 ${isFbConfigured ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'}`}>
+              <div className="flex items-center gap-2">
+                <Facebook className={`w-4 h-4 ${isFbConfigured ? 'text-blue-600' : 'text-gray-400'}`} />
+                <div className={`w-2 h-2 rounded-full ${isFbConfigured ? 'bg-green-500' : 'bg-gray-300'}`} />
+              </div>
+              <p className={`text-sm font-medium mt-1 ${isFbConfigured ? 'text-blue-700' : 'text-gray-500'}`}>FB Pixel</p>
+            </div>
+            <div className={`rounded-xl border p-3 ${isGaConfigured ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-200'}`}>
+              <div className="flex items-center gap-2">
+                <BarChart3 className={`w-4 h-4 ${isGaConfigured ? 'text-orange-600' : 'text-gray-400'}`} />
+                <div className={`w-2 h-2 rounded-full ${isGaConfigured ? 'bg-green-500' : 'bg-gray-300'}`} />
+              </div>
+              <p className={`text-sm font-medium mt-1 ${isGaConfigured ? 'text-orange-700' : 'text-gray-500'}`}>GA4</p>
+            </div>
+          </div>
+
+          {/* Facebook Pixel Section */}
+          <div>
+            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Facebook Pixel</h2>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <fetcher.Form method="post" id="tracking-form-mobile" className="p-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Pixel ID</label>
+                  <div className="relative">
+                    <input
+                      type={showPixelId ? 'text' : 'password'}
+                      name="facebookPixelId"
+                      defaultValue={store.facebookPixelId || ''}
+                      placeholder="123456789012345"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono pr-12 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPixelId(!showPixelId)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400"
+                    >
+                      {showPixelId ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Access Token</label>
+                  <div className="relative">
+                    <input
+                      type={showAccessToken ? 'text' : 'password'}
+                      name="facebookAccessToken"
+                      defaultValue={store.facebookAccessToken || ''}
+                      placeholder="EAAG..."
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono pr-12 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAccessToken(!showAccessToken)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400"
+                    >
+                      {showAccessToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+              </fetcher.Form>
+            </div>
+          </div>
+
+          {/* Google Analytics Section */}
+          <div>
+            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Google Analytics</h2>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <fetcher.Form method="post" id="tracking-form-mobile-ga" className="p-4">
+                {/* Mirror the FB fields so both pixel + GA submit together via the save button */}
+                <input type="hidden" name="facebookPixelId" value={store.facebookPixelId || ''} />
+                <input type="hidden" name="facebookAccessToken" value={store.facebookAccessToken || ''} />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Measurement ID</label>
+                <div className="relative">
+                  <input
+                    type={showGaId ? 'text' : 'password'}
+                    name="googleAnalyticsId"
+                    defaultValue={store.googleAnalyticsId || ''}
+                    placeholder="G-XXXXXXXXXX"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-mono pr-12 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowGaId(!showGaId)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400"
+                  >
+                    {showGaId ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </fetcher.Form>
+            </div>
+          </div>
+        </div>
+
+        {/* Fixed Save Button */}
+        <div className="fixed bottom-20 left-0 right-0 px-4 pb-2 z-[70] md:hidden">
+          <button
+            type="submit"
+            form="tracking-form-mobile"
+            disabled={isSaving}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 rounded-2xl transition disabled:opacity-50 flex items-center justify-center gap-2"
+            onClick={() => {
+              // Also submit the GA form so all fields are saved
+              document.getElementById('tracking-form-mobile-ga')?.dispatchEvent(
+                new Event('submit', { bubbles: true, cancelable: true })
+              );
+            }}
+          >
+            <Save className="w-4 h-4" />
+            {isSaving ? t('savingSettings') : t('saveSettings')}
+          </button>
+        </div>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden md:block space-y-6">
+        <div className="space-y-8">
+          {/* Header */}
+          <div className="flex items-start gap-4">
+            <div className="bg-gradient-to-br from-blue-100 to-purple-100 p-3 rounded-xl">
+              <BarChart3 className="w-8 h-8 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {t('trackingAnalyticsHeader')}
+              </h1>
+              <p className="text-gray-500 mt-1">
+                {t('trackingSetupDesc')}
+              </p>
+            </div>
+          </div>
+
+      {/* Success/Error Messages */}
+      <StatusMessages />
 
       {/* Status Cards */}
       <div className="grid md:grid-cols-2 gap-4">
@@ -337,7 +484,7 @@ export default function TrackingSettings() {
                       type="button"
                       onClick={() => handleCopy(store.googleAnalyticsId!, 'ga')}
                       className={`p-2 ${copiedField === 'ga' ? 'text-green-500' : 'text-gray-400 hover:text-gray-600'}`}
-                      title="Copy"
+                      title={t('copyBtn')}
                     >
                       <Copy className="w-4 h-4" />
                     </button>
@@ -378,8 +525,8 @@ export default function TrackingSettings() {
               <div key={event} className="flex items-center gap-2 text-gray-600">
                 <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                 <div>
-                  <span className="font-medium">{t(bn as any)}</span>
-                  <span className="text-gray-400 text-xs ml-1">({t(desc as any)})</span>
+                  <span className="font-medium">{t(bn)}</span>
+                  <span className="text-gray-400 text-xs ml-1">({t(desc)})</span>
                 </div>
               </div>
             ))}
@@ -408,7 +555,7 @@ export default function TrackingSettings() {
           <button
             type="submit"
             disabled={isSaving}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-2.5 rounded-lg font-medium flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg font-medium flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
           >
             <Save className="w-4 h-4" />
             {isSaving 
@@ -417,6 +564,8 @@ export default function TrackingSettings() {
           </button>
         </div>
       </fetcher.Form>
-    </div>
+        </div>
+      </div>
+    </>
   );
 }

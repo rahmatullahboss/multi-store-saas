@@ -80,7 +80,11 @@ export const STEADFAST_STATUS_MAP: Record<string, string> = {
   'picked': 'shipped',
   'in_transit': 'shipped',
   'out_for_delivery': 'shipped',
-  'returned': 'cancelled',
+  'returned': 'returned',
+  // Pickup cancelled variants
+  'pickup_cancelled': 'cancelled',
+  'pickup_cancel_request': 'cancelled',
+  'pickup_cancellation_requested': 'cancelled',
 };
 
 // Normalized status for tracking timeline
@@ -98,7 +102,7 @@ export const STEADFAST_TIMELINE_STEPS = [
  */
 export async function checkCustomerRisk(
   phone: string,
-  db: DrizzleD1Database<Record<string, never>>,
+  db: DrizzleD1Database<any>,
   storeId?: number
 ): Promise<CustomerRiskResult> {
   // Import orders schema dynamically to avoid circular imports

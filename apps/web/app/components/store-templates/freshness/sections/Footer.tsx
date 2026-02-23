@@ -64,8 +64,7 @@ export function FreshnessFooter({
       <StandardFooter
         storeName={storeName}
         logo={logo}
-        // @ts-expect-error - Theme config shape mismatches are handled internally
-        config={config}
+        config={config as any}
         socialLinks={socialLinks}
         footerConfig={{
           ...footerConfig,

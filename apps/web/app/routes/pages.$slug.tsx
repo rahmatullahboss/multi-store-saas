@@ -164,7 +164,7 @@ export default function CustomPageRoute() {
         currency={currency}
         socialLinks={socialLinks || undefined}
         businessInfo={businessInfo || undefined}
-        config={themeConfig || undefined}
+        config={null}
         planType={planType}
       >
         <SimplePage title={pageTitle} content={pageContent} slug={pageSlug} theme={theme} />

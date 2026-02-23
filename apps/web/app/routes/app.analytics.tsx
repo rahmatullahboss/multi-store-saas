@@ -17,7 +17,8 @@ import { useState } from 'react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { orders, orderItems, stores, abandonedCarts, pageViews, carts, checkoutSessions } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { getStoreId, requireUserId } from '~/services/auth.server';
+import { formatPrice } from '~/utils/formatPrice';
 import { 
   TrendingUp, 
   ShoppingCart, 
@@ -45,6 +46,7 @@ export const meta: MetaFunction = () => {
 // LOADER - Fetch analytics data
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
+  await requireUserId(request, context.cloudflare.env);
   const storeId = await getStoreId(request, context.cloudflare.env);
   if (!storeId) {
     throw new Response('Store not found', { status: 404 });
@@ -317,7 +319,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const funnelOrders = await db
     .select({ count: sql<number>`count(distinct ${orders.id})` })
     .from(orders)
-    .where(and(eq(orders.storeId, storeId), sql`status != 'cancelled'`));
+    .where(and(eq(orders.storeId, storeId), sql`${orders.status} != 'cancelled'`));
 
   const viewCount = Number(funnelViews[0]?.count || 0);
   const cartCount = Number(funnelCarts[0]?.count || 0);
@@ -381,14 +383,16 @@ export default function AnalyticsPage() {
   const { t, lang } = useTranslation();
   const [activePeriod, setActivePeriod] = useState<'today' | 'week' | 'month' | 'allTime'>('month');
 
-  const formatPrice = (amount: number) => {
-    const symbols: Record<string, string> = { BDT: '৳', USD: '$', EUR: '€', GBP: '£', INR: '₹' };
-    return `${symbols[currency] || currency} ${amount.toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-BD')}`;
-  };
+  // Currency-aware price formatter using the shared utility
+  const fmtPrice = (amount: number) =>
+    formatPrice(amount, {
+      currency: (currency as 'BDT' | 'USD' | 'EUR' | 'GBP') || 'BDT',
+      locale: lang === 'bn' ? 'bn' : 'en',
+    });
 
-  const maxRevenue = Math.max(...dailyRevenue.map(d => d.revenue), 1);
+  const maxRevenue = Math.max(...(dailyRevenue.length > 0 ? dailyRevenue.map(d => d.revenue) : [0]), 1);
 
-  const periodStats = stats[activePeriod];
+  const periodStats = stats[activePeriod] ?? stats.month;
   const prevRevenue = activePeriod === 'today' ? 0 : activePeriod === 'week' ? stats.today.revenue : activePeriod === 'month' ? stats.week.revenue : stats.month.revenue;
   const revenueGrowth = prevRevenue > 0 ? Math.round(((periodStats.revenue - prevRevenue) / prevRevenue) * 100) : 0;
 
@@ -401,27 +405,30 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      {/* ===== MOBILE HEADER (Stitch style) ===== */}
-      <div className="md:hidden">
-        {/* Title + Date */}
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-xl font-bold text-gray-900">{t('analytics')}</h1>
-          <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-100 px-2.5 py-1.5 rounded-lg">
-            <Calendar className="w-3.5 h-3.5" />
-            <span>{new Date().toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-BD', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-          </div>
-        </div>
+      {/* ===== MOBILE VIEW (Sample Design) ===== */}
+      <div className="md:hidden -mx-4 -mt-4">
 
-        {/* Time Period Pills */}
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 mb-4">
+        {/* Sticky Header */}
+        <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 px-4 py-3 flex items-center justify-between">
+          <h1 className="text-xl font-bold tracking-tight">{t('analytics')}</h1>
+          <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
+            <Calendar className="w-4 h-4 text-emerald-600" />
+            <span className="text-sm font-medium text-slate-600" suppressHydrationWarning>
+              {new Date().toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </span>
+          </div>
+        </header>
+
+        {/* Time Period Filter - Horizontal Scroll */}
+        <div className="overflow-x-auto px-4 py-4 flex gap-3 scrollbar-hide">
           {(['today', 'week', 'month', 'allTime'] as const).map((period) => (
             <button
               key={period}
               onClick={() => setActivePeriod(period)}
-              className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${
+              className={`flex-shrink-0 px-5 py-2 rounded-full text-sm font-medium transition-colors ${
                 activePeriod === period
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               {periodLabels[period]}
@@ -429,104 +436,239 @@ export default function AnalyticsPage() {
           ))}
         </div>
 
-        {/* Hero Revenue Display */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-4">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">মোট রাজস্ব</p>
-          <div className="flex items-end justify-between">
-            <p className="text-3xl font-bold text-gray-900">{formatPrice(periodStats.revenue)}</p>
-            {revenueGrowth !== 0 && (
-              <span className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${revenueGrowth >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                {revenueGrowth >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
-                {Math.abs(revenueGrowth)}%
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Revenue Bar Chart (Mobile) */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('revenueLast7Days')}</h3>
-          <div className="flex items-end justify-between gap-1 h-24">
-            {dailyRevenue.map((day, index) => (
-              <div key={index} className="flex-1 flex flex-col items-center gap-1">
-                <div className="w-full flex items-end justify-center" style={{ height: '80px' }}>
-                  <div
-                    className={`w-full rounded-t-md transition-all duration-500 ${index === dailyRevenue.length - 1 ? 'bg-emerald-500' : 'bg-emerald-200'}`}
-                    style={{ height: `${Math.max((day.revenue / maxRevenue) * 80, day.revenue > 0 ? 6 : 0)}px` }}
-                    title={`${day.date}: ${formatPrice(day.revenue)}`}
-                  />
+        {/* Revenue Chart Card */}
+        <div className="px-4 mb-6">
+          <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-100">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <p className="text-slate-500 text-xs font-medium uppercase tracking-wider mb-1">মোট রাজস্ব</p>
+                <h3 className="text-2xl font-bold tracking-tight">{formatPrice(periodStats.revenue)}</h3>
+              </div>
+              {revenueGrowth !== 0 && (
+                <div className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-bold ${revenueGrowth >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                  {revenueGrowth >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                  <span>{revenueGrowth >= 0 ? '+' : ''}{revenueGrowth}%</span>
                 </div>
-                <span className="text-[9px] text-gray-400">{day.date.split(',')[0]}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* 2x2 Metric Grid (Stitch style) */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 bg-green-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-green-600" />
-              </div>
-              <span className="text-xs font-medium text-gray-500">নেট প্রফিট</span>
+              )}
             </div>
-            <p className="text-xl font-bold text-gray-900">{formatPrice(Math.round(periodStats.revenue * 0.3))}</p>
-            <p className="text-xs text-green-600 mt-0.5 font-medium">▲ 15%</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
-                <ShoppingCart className="w-4 h-4 text-blue-600" />
+            {/* Bar Chart */}
+            <div className="relative h-48 w-full flex items-end justify-between gap-1 overflow-hidden">
+              {/* Grid Lines */}
+              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                {[0,1,2,3,4].map((i) => (
+                  <div key={i} className="border-t border-slate-100 w-full h-0" />
+                ))}
               </div>
-              <span className="text-xs font-medium text-gray-500">অর্ডার</span>
-            </div>
-            <p className="text-xl font-bold text-gray-900">{periodStats.orders}</p>
-            <p className="text-xs text-blue-600 mt-0.5 font-medium">▲ 48%</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 bg-orange-100 rounded-lg flex items-center justify-center">
-                <DollarSign className="w-4 h-4 text-orange-600" />
+              {/* Gradient Overlay */}
+              <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-emerald-600/10 to-transparent rounded-b-lg" />
+              {/* Bars */}
+              <div className="relative z-10 w-full h-full flex items-end px-1 pt-8 gap-1">
+                {dailyRevenue.map((day, index) => {
+                  const heightPct = maxRevenue > 0 ? Math.max((day.revenue / maxRevenue) * 100, day.revenue > 0 ? 5 : 0) : 0;
+                  const isLatest = index === dailyRevenue.length - 1;
+                  return (
+                    <div
+                      key={index}
+                      className={`flex-1 rounded-t-sm transition-all duration-500 ${isLatest ? 'bg-emerald-600' : 'bg-emerald-400/60'}`}
+                      style={{ height: `${heightPct}%` }}
+                      title={`${day.date}: ${formatPrice(day.revenue)}`}
+                    />
+                  );
+                })}
               </div>
-              <span className="text-xs font-medium text-gray-500">গড় মূল্য</span>
             </div>
-            <p className="text-xl font-bold text-gray-900">{formatPrice(conversionMetrics.avgOrderValue)}</p>
-            <p className="text-xs text-red-500 mt-0.5 font-medium">▼ 3%</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Percent className="w-4 h-4 text-purple-600" />
-              </div>
-              <span className="text-xs font-medium text-gray-500">কনভার্সন</span>
-            </div>
-            <p className="text-xl font-bold text-gray-900">{funnel.viewToOrderRate}%</p>
-            <p className="text-xs text-green-600 mt-0.5 font-medium">▲ {funnel.viewToOrderRate > 0 ? 12 : 0}%</p>
-          </div>
-        </div>
-
-        {/* Top Products (Mobile) */}
-        {topProducts.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-700">সেরা পণ্য</h3>
-              <Link to="/app/products" className="text-xs font-medium text-emerald-600">সব দেখুন</Link>
-            </div>
-            <div className="space-y-3">
-              {topProducts.slice(0, 3).map((product, index) => (
-                <div key={product.productId || index} className="flex items-center gap-3">
-                  <span className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-xs font-bold text-gray-600 flex-shrink-0">{index + 1}</span>
-                  <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Package className="w-5 h-5 text-gray-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{product.title}</p>
-                    <p className="text-xs text-gray-500">{product.totalQty} বিক্রি</p>
-                  </div>
-                  <p className="text-sm font-bold text-gray-900 flex-shrink-0">{formatPrice(product.totalRevenue || 0)}</p>
-                </div>
+            {/* X-axis labels */}
+            <div className="flex justify-between mt-4 text-xs text-slate-400 font-medium px-1">
+              {dailyRevenue.filter((_, i) => i === 0 || i === Math.floor(dailyRevenue.length / 2) || i === dailyRevenue.length - 1).map((day, i) => (
+                <span key={i}>{day.date.split(',')[0]}</span>
               ))}
+            </div>
+          </div>
+        </div>
+
+        {/* KPI Grid 2x2 */}
+        <div className="grid grid-cols-2 gap-4 px-4 mb-6">
+          {/* Net Profit */}
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-emerald-600/10 rounded-md">
+                <TrendingUp className="w-5 h-5 text-emerald-600" />
+              </div>
+              <span className="text-xs font-medium text-slate-500">নেট প্রফিট</span>
+            </div>
+            <div className="mt-1">
+              <p className="text-lg font-bold">{formatPrice(periodStats.revenue)}</p>
+              <div className="flex items-center gap-1 text-emerald-600 text-xs font-semibold mt-1">
+                <ArrowUpRight className="w-3.5 h-3.5" />
+                <span>{revenueGrowth >= 0 ? '+' : ''}{revenueGrowth}%</span>
+              </div>
+            </div>
+          </div>
+          {/* Orders */}
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-blue-500/10 rounded-md">
+                <ShoppingCart className="w-5 h-5 text-blue-500" />
+              </div>
+              <span className="text-xs font-medium text-slate-500">অর্ডার</span>
+            </div>
+            <div className="mt-1">
+              <p className="text-lg font-bold">{periodStats.orders}</p>
+              <div className="flex items-center gap-1 text-emerald-600 text-xs font-semibold mt-1">
+                <ArrowUpRight className="w-3.5 h-3.5" />
+                <span>{periodStats.orders > 0 ? 'সক্রিয়' : 'কোনো অর্ডার নেই'}</span>
+              </div>
+            </div>
+          </div>
+          {/* Avg Order Value */}
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-orange-500/10 rounded-md">
+                <DollarSign className="w-5 h-5 text-orange-500" />
+              </div>
+              <span className="text-xs font-medium text-slate-500">গড় মূল্য</span>
+            </div>
+            <div className="mt-1">
+              <p className="text-lg font-bold">{formatPrice(conversionMetrics.avgOrderValue)}</p>
+              <div className="flex items-center gap-1 text-slate-500 text-xs font-semibold mt-1">
+                <span>প্রতি অর্ডার</span>
+              </div>
+            </div>
+          </div>
+          {/* Conversion */}
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-purple-500/10 rounded-md">
+                <Percent className="w-5 h-5 text-purple-500" />
+              </div>
+              <span className="text-xs font-medium text-slate-500">কনভার্সন</span>
+            </div>
+            <div className="mt-1">
+              <p className="text-lg font-bold">{funnel.viewToOrderRate}%</p>
+              <div className="flex items-center gap-1 text-emerald-600 text-xs font-semibold mt-1">
+                <ArrowUpRight className="w-3.5 h-3.5" />
+                <span>ভিজিটর → অর্ডার</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Top Products */}
+        {topProducts.length > 0 && (
+          <div className="px-4 mb-6">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 className="font-bold text-base">সেরা পণ্য</h3>
+                <Link to="/app/products" className="text-emerald-600 text-xs font-semibold hover:underline">সব দেখুন</Link>
+              </div>
+              <div className="flex flex-col">
+                {topProducts.slice(0, 3).map((product, index) => (
+                  <div key={product.productId || index} className={`flex items-center gap-4 px-5 py-4 hover:bg-slate-50 transition-colors ${index < Math.min(topProducts.length, 3) - 1 ? 'border-b border-slate-50' : ''}`}>
+                    <span className="text-slate-400 font-bold text-sm w-4 flex-shrink-0">{index + 1}</span>
+                    <div className="h-10 w-10 rounded-lg bg-slate-100 flex-shrink-0 flex items-center justify-center">
+                      <Package className="w-5 h-5 text-slate-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate text-slate-800">{product.title}</p>
+                      <p className="text-xs text-slate-500">{product.totalQty} বিক্রি</p>
+                    </div>
+                    <p className="text-sm font-bold text-slate-900 flex-shrink-0">{formatPrice(product.totalRevenue || 0)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Conversion Funnel (Donut style) */}
+        <div className="px-4 mb-6">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
+            <h3 className="font-bold text-base mb-4">কনভার্সন ফানেল</h3>
+            <div className="flex items-center gap-6">
+              {/* SVG Donut */}
+              <div className="relative h-32 w-32 shrink-0">
+                {(() => {
+                  const total = funnel.views || 1;
+                  const cartPct = Math.min((funnel.carts / total) * 100, 100);
+                  const checkoutPct = Math.min((funnel.checkouts / total) * 100, 100);
+                  const orderPct = Math.min((funnel.orders / total) * 100, 100);
+                  const circ = 251.2;
+                  const seg1 = (orderPct / 100) * circ;
+                  const seg2 = (checkoutPct / 100) * circ;
+                  const seg3 = (cartPct / 100) * circ;
+                  return (
+                    <svg className="transform -rotate-90 w-full h-full" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="40" fill="transparent" stroke="#e2e8f0" strokeWidth="16" strokeDasharray={`${circ} ${circ}`} />
+                      <circle cx="50" cy="50" r="40" fill="transparent" stroke="#86efac" strokeWidth="16" strokeDasharray={`${seg3} ${circ}`} />
+                      <circle cx="50" cy="50" r="40" fill="transparent" stroke="#0d9488" strokeWidth="16" strokeDasharray={`${seg2} ${circ}`} strokeDashoffset={-seg3} />
+                      <circle cx="50" cy="50" r="40" fill="transparent" stroke="#10b981" strokeWidth="16" strokeDasharray={`${seg1} ${circ}`} strokeDashoffset={-(seg3 + seg2)} />
+                    </svg>
+                  );
+                })()}
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-xs text-slate-400 font-medium">ভিজিটর</span>
+                  <span className="text-sm font-bold text-slate-800">{funnel.views.toLocaleString()}</span>
+                </div>
+              </div>
+              {/* Legend */}
+              <div className="flex flex-col gap-3 flex-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-green-300 flex-shrink-0" />
+                    <span className="text-sm text-slate-600">কার্ট</span>
+                  </div>
+                  <span className="text-sm font-bold text-slate-800">{funnel.carts}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-teal-600 flex-shrink-0" />
+                    <span className="text-sm text-slate-600">চেকআউট</span>
+                  </div>
+                  <span className="text-sm font-bold text-slate-800">{funnel.checkouts}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-emerald-500 flex-shrink-0" />
+                    <span className="text-sm text-slate-600">অর্ডার</span>
+                  </div>
+                  <span className="text-sm font-bold text-slate-800">{funnel.orders}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Orders (Mobile) */}
+        {recentOrders.length > 0 && (
+          <div className="px-4 mb-6">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+              <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 className="font-bold text-base">সাম্প্রতিক অর্ডার</h3>
+                <Link to="/app/orders" className="text-emerald-600 text-xs font-semibold hover:underline">সব দেখুন</Link>
+              </div>
+              <div className="flex flex-col divide-y divide-slate-50">
+                {recentOrders.map((order) => (
+                  <Link
+                    key={order.id}
+                    to={`/app/orders/${order.id}`}
+                    className="flex items-center justify-between px-5 py-3.5 hover:bg-slate-50 active:bg-slate-100 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-semibold text-emerald-700 text-sm">#{order.orderNumber}</span>
+                        <StatusBadge status={order.status || 'pending'} />
+                      </div>
+                      <p className="text-xs text-slate-500 truncate">{order.customerName || t('guestLabel')}</p>
+                    </div>
+                    <div className="flex flex-col items-end ml-3 flex-shrink-0">
+                      <span className="font-bold text-slate-900 text-sm">{formatPrice(order.total)}</span>
+                      <span className="text-[11px] text-slate-400 mt-0.5">
+                        {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '-'}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -598,8 +740,8 @@ export default function AnalyticsPage() {
       </div>
 
 
-      {/* Revenue Chart */}
-      <GlassCard intensity="low" className="p-6">
+      {/* Revenue Chart - Desktop only */}
+      <GlassCard intensity="low" className="hidden md:block p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('revenueLast7Days')}</h2>
         <div className="space-y-3">
           {dailyRevenue.map((day, index) => (
@@ -622,7 +764,7 @@ export default function AnalyticsPage() {
         </div>
       </GlassCard>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="hidden md:grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Order Status Breakdown */}
         <GlassCard intensity="low" className="p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -669,8 +811,8 @@ export default function AnalyticsPage() {
         </GlassCard>
       </div>
 
-      {/* Customer Demographics & Conversion Metrics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Customer Demographics & Conversion Metrics - Desktop only */}
+      <div className="hidden md:grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Customer Demographics */}
         <GlassCard intensity="low" className="p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -806,38 +948,14 @@ export default function AnalyticsPage() {
       </GlassCard>
       </div>
 
-      {/* Recent Orders */}
-      <GlassCard intensity="low" className="p-6">
+      {/* Recent Orders - Desktop only */}
+      <GlassCard intensity="low" className="hidden md:block p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <ShoppingCart className="w-5 h-5 text-gray-400" />
           {t('recentOrders')}
         </h2>
         {recentOrders.length > 0 ? (
           <>
-            {/* Mobile card view */}
-            <div className="md:hidden divide-y divide-gray-100 -mx-6">
-              {recentOrders.map((order) => (
-                <Link
-                  key={order.id}
-                  to={`/app/orders/${order.id}`}
-                  className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="font-semibold text-emerald-700 text-sm">#{order.orderNumber}</span>
-                      <StatusBadge status={order.status || 'pending'} />
-                    </div>
-                    <p className="text-xs text-gray-500 truncate">{order.customerName || t('guestLabel')}</p>
-                  </div>
-                  <div className="flex flex-col items-end ml-3 flex-shrink-0">
-                    <span className="font-bold text-gray-900 text-sm">{formatPrice(order.total)}</span>
-                    <span className="text-[11px] text-gray-400 mt-0.5">
-                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '-'}
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
             {/* Desktop table view */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">

@@ -1,14 +1,7 @@
 import * as React from 'react';
-import type {
-  StoreTemplateTheme,
-  StoreTemplateDefinition,
-} from './types';
+import type { StoreTemplateTheme, StoreTemplateDefinition } from './types';
 
 export * from './types';
-
-
-
-
 
 // ============================================================================
 // Theme Imports (Named Exports from each theme file)
@@ -16,6 +9,7 @@ export * from './types';
 import { LUXE_BOUTIQUE_THEME } from '../components/store-templates/luxe-boutique/theme';
 import { NOVALUX_THEME } from '../components/store-templates/nova-lux/theme';
 import { STARTER_STORE_THEME } from '../components/store-templates/starter-store/theme';
+import { OZZYL_PREMIUM_THEME } from '../components/store-templates/ozzyl-premium/theme';
 
 // ============================================================================
 // Shared Pages (Lazy Loaded)
@@ -100,6 +94,43 @@ const StarterStoreFooter = React.lazy(() =>
   }))
 );
 
+// --- Ozzyl Premium ---
+const OzzylPremiumTemplate = React.lazy(() =>
+  import('../components/store-templates/ozzyl-premium').then((m) => ({
+    default: m.OzzylPremiumTemplate,
+  }))
+);
+const OzzylPremiumHeader = React.lazy(() =>
+  import('../components/store-templates/ozzyl-premium/sections/Header').then((m) => ({
+    default: m.OzzylPremiumHeader,
+  }))
+);
+const OzzylPremiumFooter = React.lazy(() =>
+  import('../components/store-templates/ozzyl-premium/sections/Footer').then((m) => ({
+    default: m.OzzylPremiumFooter,
+  }))
+);
+const OzzylPremiumProductPage = React.lazy(() =>
+  import('../components/store-templates/ozzyl-premium/pages/ProductPage').then((m) => ({
+    default: m.OzzylPremiumProductPage,
+  }))
+);
+const OzzylPremiumCartPage = React.lazy(() =>
+  import('../components/store-templates/ozzyl-premium/pages/CartPage').then((m) => ({
+    default: m.OzzylPremiumCartPage,
+  }))
+);
+const OzzylPremiumCheckoutPage = React.lazy(() =>
+  import('../components/store-templates/ozzyl-premium/pages/CheckoutPage').then((m) => ({
+    default: m.OzzylPremiumCheckoutPage,
+  }))
+);
+const OzzylPremiumCollectionPage = React.lazy(() =>
+  import('../components/store-templates/ozzyl-premium/pages/CollectionPage').then((m) => ({
+    default: m.OzzylPremiumCollectionPage,
+  }))
+);
+
 // ============================================================================
 // Theme Map
 // ============================================================================
@@ -107,11 +138,8 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
   'luxe-boutique': LUXE_BOUTIQUE_THEME as StoreTemplateTheme,
   'nova-lux': NOVALUX_THEME as StoreTemplateTheme,
   'starter-store': STARTER_STORE_THEME as StoreTemplateTheme,
+  'ozzyl-premium': OZZYL_PREMIUM_THEME as StoreTemplateTheme,
 };
-
-
-
-
 
 // ============================================================================
 // STORE_TEMPLATES Array
@@ -121,8 +149,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     id: 'starter-store',
     name: 'Starter Store',
     description: 'A clean, modern starting point for your store.',
-    thumbnail:
-      'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/starter-store.webp',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/starter-store.webp',
     category: 'modern',
     theme: STORE_TEMPLATE_THEMES['starter-store'],
     component: StarterStoreTemplate,
@@ -138,8 +165,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     id: 'luxe-boutique',
     name: 'Luxe Boutique',
     description: 'Elegant and sophisticated design for luxury brands.',
-    thumbnail:
-      'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/luxe-boutique.webp',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/luxe-boutique.webp',
     category: 'luxury',
     theme: STORE_TEMPLATE_THEMES['luxe-boutique'],
     component: LuxeBoutiqueTemplate,
@@ -155,8 +181,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     id: 'nova-lux',
     name: 'Nova Lux',
     description: 'Dark, modern, and sleek design for tech and fashion.',
-    thumbnail:
-      'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/nova-lux.webp',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/nova-lux.webp',
     category: 'modern',
     theme: STORE_TEMPLATE_THEMES['nova-lux'],
     component: NovaLuxTemplate,
@@ -167,6 +192,232 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     CheckoutPage: SharedCheckoutPage,
     CollectionPage: SharedCollectionPage,
     fonts: { heading: 'Outfit', body: 'Inter' },
+  },
+  {
+    id: 'ozzyl-premium',
+    name: 'Ozzyl Premium',
+    description:
+      'Award-winning luxury dark theme with gold accents. World-class design for premium brands.',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/ozzyl-premium.webp',
+    category: 'luxury',
+    theme: STORE_TEMPLATE_THEMES['ozzyl-premium'],
+    component: OzzylPremiumTemplate,
+    Header: OzzylPremiumHeader,
+    Footer: OzzylPremiumFooter,
+    ProductPage: OzzylPremiumProductPage,
+    CartPage: OzzylPremiumCartPage,
+    CheckoutPage: OzzylPremiumCheckoutPage,
+    CollectionPage: OzzylPremiumCollectionPage,
+    fonts: { heading: 'Manrope', body: 'Manrope' },
+  },
+  // Locked Premium Themes
+  {
+    id: 'daraz',
+    name: 'Daraz Style',
+    description: 'Marketplace style design inspired by popular e-commerce platforms.',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/daraz.webp',
+    category: 'marketplace',
+    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    component: StarterStoreTemplate,
+    Header: StarterStoreHeader,
+    Footer: StarterStoreFooter,
+    ProductPage: StarterProductPage,
+    CartPage: SharedCartPage,
+    CheckoutPage: SharedCheckoutPage,
+    CollectionPage: SharedCollectionPage,
+    fonts: { heading: 'Inter', body: 'Inter' },
+  },
+  {
+    id: 'ghorer-bazar',
+    name: 'Ghorer Bazar',
+    description: 'Perfect for grocery and daily needs stores with fresh colors.',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/ghorer-bazar.webp',
+    category: 'grocery',
+    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    component: StarterStoreTemplate,
+    Header: StarterStoreHeader,
+    Footer: StarterStoreFooter,
+    ProductPage: StarterProductPage,
+    CartPage: SharedCartPage,
+    CheckoutPage: SharedCheckoutPage,
+    CollectionPage: SharedCollectionPage,
+    fonts: { heading: 'Inter', body: 'Inter' },
+  },
+  {
+    id: 'tech-modern',
+    name: 'Tech Modern',
+    description: 'Sleek design for electronics and tech gadgets stores.',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/tech-modern.webp',
+    category: 'tech',
+    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    component: StarterStoreTemplate,
+    Header: StarterStoreHeader,
+    Footer: StarterStoreFooter,
+    ProductPage: StarterProductPage,
+    CartPage: SharedCartPage,
+    CheckoutPage: SharedCheckoutPage,
+    CollectionPage: SharedCollectionPage,
+    fonts: { heading: 'Inter', body: 'Inter' },
+  },
+  {
+    id: 'aurora-minimal',
+    name: 'Aurora Minimal',
+    description: 'Clean and minimal aesthetic for modern brands.',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/aurora-minimal.webp',
+    category: 'minimal',
+    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    component: StarterStoreTemplate,
+    Header: StarterStoreHeader,
+    Footer: StarterStoreFooter,
+    ProductPage: StarterProductPage,
+    CartPage: SharedCartPage,
+    CheckoutPage: SharedCheckoutPage,
+    CollectionPage: SharedCollectionPage,
+    fonts: { heading: 'Inter', body: 'Inter' },
+  },
+  {
+    id: 'eclipse',
+    name: 'Eclipse',
+    description: 'Dark mode theme with bold contrast for premium brands.',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/eclipse.webp',
+    category: 'dark',
+    theme: STORE_TEMPLATE_THEMES['nova-lux'],
+    component: NovaLuxTemplate,
+    Header: NovaLuxHeader,
+    Footer: NovaLuxFooter,
+    ProductPage: NovaLuxProductPage,
+    CartPage: SharedCartPage,
+    CheckoutPage: SharedCheckoutPage,
+    CollectionPage: SharedCollectionPage,
+    fonts: { heading: 'Outfit', body: 'Inter' },
+  },
+  {
+    id: 'artisan-market',
+    name: 'Artisan Market',
+    description: 'Handmade and crafts marketplace design.',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/artisan-market.webp',
+    category: 'handmade',
+    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    component: StarterStoreTemplate,
+    Header: StarterStoreHeader,
+    Footer: StarterStoreFooter,
+    ProductPage: StarterProductPage,
+    CartPage: SharedCartPage,
+    CheckoutPage: SharedCheckoutPage,
+    CollectionPage: SharedCollectionPage,
+    fonts: { heading: 'Inter', body: 'Inter' },
+  },
+  {
+    id: 'freshness',
+    name: 'Freshness',
+    description: 'Organic and fresh produce store design.',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/freshness.webp',
+    category: 'organic',
+    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    component: StarterStoreTemplate,
+    Header: StarterStoreHeader,
+    Footer: StarterStoreFooter,
+    ProductPage: StarterProductPage,
+    CartPage: SharedCartPage,
+    CheckoutPage: SharedCheckoutPage,
+    CollectionPage: SharedCollectionPage,
+    fonts: { heading: 'Inter', body: 'Inter' },
+  },
+  {
+    id: 'rovo',
+    name: 'Rovo',
+    description: 'High-fashion luxury store design.',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/rovo.webp',
+    category: 'fashion',
+    theme: STORE_TEMPLATE_THEMES['luxe-boutique'],
+    component: LuxeBoutiqueTemplate,
+    Header: LuxeBoutiqueHeader,
+    Footer: LuxeBoutiqueFooter,
+    ProductPage: LuxeProductPage,
+    CartPage: SharedCartPage,
+    CheckoutPage: SharedCheckoutPage,
+    CollectionPage: SharedCollectionPage,
+    fonts: { heading: 'Playfair Display', body: 'Lato' },
+  },
+  {
+    id: 'sokol',
+    name: 'Sokol',
+    description: 'Modern dark theme with elegant accents.',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/sokol.webp',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['nova-lux'],
+    component: NovaLuxTemplate,
+    Header: NovaLuxHeader,
+    Footer: NovaLuxFooter,
+    ProductPage: NovaLuxProductPage,
+    CartPage: SharedCartPage,
+    CheckoutPage: SharedCheckoutPage,
+    CollectionPage: SharedCollectionPage,
+    fonts: { heading: 'Outfit', body: 'Inter' },
+  },
+  {
+    id: 'turbo-sale',
+    name: 'Turbo Sale',
+    description: 'High-conversion flash sale and dropshipping theme.',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/turbo-sale.webp',
+    category: 'sales',
+    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    component: StarterStoreTemplate,
+    Header: StarterStoreHeader,
+    Footer: StarterStoreFooter,
+    ProductPage: StarterProductPage,
+    CartPage: SharedCartPage,
+    CheckoutPage: SharedCheckoutPage,
+    CollectionPage: SharedCollectionPage,
+    fonts: { heading: 'Inter', body: 'Inter' },
+  },
+  {
+    id: 'zenith-rise',
+    name: 'Zenith Rise',
+    description: 'SaaS and digital products store design.',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/zenith-rise.webp',
+    category: 'saas',
+    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    component: StarterStoreTemplate,
+    Header: StarterStoreHeader,
+    Footer: StarterStoreFooter,
+    ProductPage: StarterProductPage,
+    CartPage: SharedCartPage,
+    CheckoutPage: SharedCheckoutPage,
+    CollectionPage: SharedCollectionPage,
+    fonts: { heading: 'Inter', body: 'Inter' },
+  },
+  {
+    id: 'nova-lux-ultra',
+    name: 'Nova Lux Ultra',
+    description: 'Enhanced version of Nova Lux with more features.',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/nova-lux-ultra.webp',
+    category: 'premium',
+    theme: STORE_TEMPLATE_THEMES['nova-lux'],
+    component: NovaLuxTemplate,
+    Header: NovaLuxHeader,
+    Footer: NovaLuxFooter,
+    ProductPage: NovaLuxProductPage,
+    CartPage: SharedCartPage,
+    CheckoutPage: SharedCheckoutPage,
+    CollectionPage: SharedCollectionPage,
+    fonts: { heading: 'Outfit', body: 'Inter' },
+  },
+  {
+    id: 'bdshop',
+    name: 'BDShop',
+    description: 'Localized design for Bangladeshi e-commerce.',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/bdshop.webp',
+    category: 'local',
+    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    component: StarterStoreTemplate,
+    Header: StarterStoreHeader,
+    Footer: StarterStoreFooter,
+    ProductPage: StarterProductPage,
+    CartPage: SharedCartPage,
+    CheckoutPage: SharedCheckoutPage,
+    CollectionPage: SharedCollectionPage,
+    fonts: { heading: 'Inter', body: 'Inter' },
   },
 ];
 
@@ -211,7 +462,7 @@ export function resolveStoreTemplateId(
     // Wait, the previous logic just bypassed and checked storeTheme. Let's keep checking storeTheme
     // as a fallback if themeConfig doesn't have it.
   }
-  
+
   // Try parsing storeTheme JSON string
   if (storeTheme) {
     try {
@@ -223,7 +474,7 @@ export function resolveStoreTemplateId(
       // fallback
     }
   }
-  
+
   return 'starter-store';
 }
 
@@ -236,19 +487,30 @@ export function resolveStoreTheme(
 ): { storeTemplateId: string; theme: StoreTemplateTheme } {
   // Parse themeConfig JSON to get templateId
   let storeTemplateId = 'starter-store';
-  if (themeConfigJson) {
+
+  // 1. Check mvpSettings directly for storeTemplateId
+  if (mvpSettings.storeTemplateId && typeof mvpSettings.storeTemplateId === 'string') {
+    storeTemplateId = mvpSettings.storeTemplateId;
+  }
+
+  // 2. Try parsing themeConfigJson as JSON fallback
+  if (storeTemplateId === 'starter-store' && themeConfigJson) {
     try {
       const parsed = JSON.parse(themeConfigJson) as Record<string, unknown>;
       if (parsed.storeTemplateId && typeof parsed.storeTemplateId === 'string') {
         storeTemplateId = parsed.storeTemplateId;
       }
     } catch {
-      // fallback to default
+      // 3. If not valid JSON, treat the raw string as a legacy theme id
+      if (themeConfigJson && STORE_TEMPLATE_THEMES[themeConfigJson]) {
+        storeTemplateId = themeConfigJson;
+      }
     }
   }
 
   // Get base theme for the template
-  const baseTheme = STORE_TEMPLATE_THEMES[storeTemplateId] || STORE_TEMPLATE_THEMES['starter-store'];
+  const baseTheme =
+    STORE_TEMPLATE_THEMES[storeTemplateId] || STORE_TEMPLATE_THEMES['starter-store'];
 
   // Merge user overrides from mvp settings
   const merged: StoreTemplateTheme = {
@@ -257,8 +519,8 @@ export function resolveStoreTheme(
     ...(mvpSettings.accentColor ? { accent: mvpSettings.accentColor as string } : {}),
     ...(mvpSettings.backgroundColor ? { background: mvpSettings.backgroundColor as string } : {}),
     ...(mvpSettings.textColor ? { text: mvpSettings.textColor as string } : {}),
+    ...(mvpSettings.borderColor ? { cardBorder: mvpSettings.borderColor as string } : {}),
   };
 
   return { storeTemplateId, theme: merged };
 }
-

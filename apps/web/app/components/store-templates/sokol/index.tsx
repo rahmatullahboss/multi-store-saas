@@ -21,7 +21,7 @@ export function SokolTemplate(props: StoreTemplateProps) {
           sections={sections} 
           products={products}
           categories={displayCategories}
-          storeId={props.storeId}
+          storeId={props.storeId ? parseInt(props.storeId, 10) : undefined}
           currency={props.currency}
         />
       </main>

@@ -14,6 +14,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remi
 import { json } from '@remix-run/cloudflare';
 import {
   Form,
+  Link,
   useActionData,
   useLoaderData,
   useNavigation,
@@ -33,6 +34,7 @@ import {
   type CloudflareEnv,
 } from '~/services/cloudflare.server';
 import {
+  ArrowLeft,
   Globe,
   Check,
   Clock,
@@ -68,7 +70,11 @@ const DomainActionSchema = z.enum(['update-subdomain', 'add', 'refresh', 'remove
 const SUBDOMAIN_REGEX = /^[a-z0-9-]+$/;
 const SUBDOMAIN_MIN_LENGTH = 2;
 const SUBDOMAIN_MAX_LENGTH = 30;
-const RESERVED_SUBDOMAINS = new Set(['app', 'www']);
+const RESERVED_SUBDOMAINS = new Set([
+  'www', 'api', 'admin', 'app', 'mail', 'smtp', 'ftp', 'cdn', 'static',
+  'assets', 'media', 'img', 'images', 'blog', 'shop', 'store', 'help',
+  'support', 'status', 'staging', 'dev', 'test', 'dashboard', 'portal',
+]);
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = await getStoreId(request, context.cloudflare.env);
@@ -365,9 +371,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     } catch (error) {
       console.error('[Domain] Cloudflare API error:', error);
       return json<ActionData>(
-        {
-          error: `Failed to add domain: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        },
+        { error: 'Domain verification failed. Please try again.' },
         { status: 500 }
       );
     }
@@ -522,16 +526,12 @@ export default function DomainSettings() {
     setAutoRefresh(false);
   }, [customDomain, sslStatus, dnsVerified, revalidator]);
 
-  return (
-    <div className="space-y-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">{t('domainSettings')}</h1>
-        <p className="text-gray-600 mt-1">{t('domainSettingsDesc')}</p>
-      </div>
-
+  // Shared content rendered in both mobile and desktop layouts
+  const sharedContent = (
+    <>
       {/* Success/Error Messages */}
       {actionData?.success && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3">
+        <div className="p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3">
           <Check className="w-5 h-5 text-green-600 flex-shrink-0" />
           <p className="text-green-800">
             {actionData.message ? t(actionData.message) : t('success')}
@@ -540,14 +540,14 @@ export default function DomainSettings() {
       )}
 
       {actionData?.error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
           <p className="text-red-800">{t(actionData.error)}</p>
         </div>
       )}
 
       {/* Current Domains */}
-      <GlassCard className="p-6 mb-6">
+      <GlassCard className="p-6">
         <h2 className="font-semibold text-gray-900 mb-4">{t('yourStoreUrls')}</h2>
 
         {/* Subdomain (Always Active) */}
@@ -615,7 +615,7 @@ export default function DomainSettings() {
       </GlassCard>
 
       {/* Subdomain Settings */}
-      <GlassCard className="p-6 mb-6">
+      <GlassCard className="p-6">
         <h2 className="font-semibold text-gray-900 mb-2">{t('subdomainSettings')}</h2>
         <p className="text-gray-600 text-sm mb-4">{t('subdomainSettingsDesc')}</p>
 
@@ -623,13 +623,12 @@ export default function DomainSettings() {
           <input type="hidden" name="actionType" value="update-subdomain" />
 
           <div>
-            <label htmlFor="subdomain" className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               {t('subdomainLabel')}
             </label>
             <div className="flex items-center gap-2">
               <input
                 type="text"
-                id="subdomain"
                 name="subdomain"
                 defaultValue={subdomain}
                 minLength={SUBDOMAIN_MIN_LENGTH}
@@ -662,7 +661,7 @@ export default function DomainSettings() {
 
       {/* Pending DNS Setup Instructions */}
       {customDomain && !(sslStatus === 'active' && dnsVerified) && (
-        <GlassCard className="bg-blue-50/50 border-blue-200/50 p-6 mb-6">
+        <GlassCard className="bg-blue-50/50 border-blue-200/50 p-6">
           <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
             <Zap className="w-5 h-5" />
             {t('completeDnsSetup')}
@@ -732,7 +731,7 @@ export default function DomainSettings() {
 
       {/* Active Domain - Management */}
       {customDomain && sslStatus === 'active' && dnsVerified && (
-        <GlassCard className="p-6 mb-6">
+        <GlassCard className="p-6">
           <div className="flex items-center gap-3 mb-4">
             <Check className="w-6 h-6 text-emerald-600" />
             <h2 className="font-semibold text-gray-900">{t('domainConnected')}</h2>
@@ -754,7 +753,7 @@ export default function DomainSettings() {
 
       {/* Pending Request (Legacy Manual System) */}
       {customDomainStatus === 'pending' && customDomainRequest && !customDomain && (
-        <GlassCard className="bg-yellow-50/50 border-yellow-200/50 p-6 mb-6">
+        <GlassCard className="bg-yellow-50/50 border-yellow-200/50 p-6">
           <div className="flex items-start gap-4">
             <Clock className="w-6 h-6 text-yellow-600 flex-shrink-0" />
             <div className="flex-1">
@@ -817,12 +816,11 @@ export default function DomainSettings() {
             <input type="hidden" name="actionType" value="add" />
 
             <div>
-              <label htmlFor="domain" className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('yourDomain')}
               </label>
               <input
                 type="text"
-                id="domain"
                 name="domain"
                 placeholder={t('domainPlaceholder')}
                 disabled={!isPaid}
@@ -872,7 +870,40 @@ export default function DomainSettings() {
           )}
         </GlassCard>
       )}
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile Layout */}
+      <div className="md:hidden -mx-4 -mt-4">
+        {/* Sticky Header */}
+        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+          <div className="flex items-center justify-between h-[60px] px-4">
+            <Link to="/app/settings" className="p-2 -ml-2 text-gray-600 hover:text-gray-900">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <h1 className="text-lg font-semibold text-gray-900">{t('domainSettings')}</h1>
+            <div className="w-9" /> {/* Spacer for centering */}
+          </div>
+        </header>
+
+        {/* Mobile Content */}
+        <div className="flex flex-col gap-5 p-4 pb-10">
+          {sharedContent}
+        </div>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden md:block space-y-6">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">{t('domainSettings')}</h1>
+          <p className="text-gray-600 mt-1">{t('domainSettingsDesc')}</p>
+        </div>
+
+        {sharedContent}
+      </div>
+    </>
   );
 }
 
@@ -881,9 +912,17 @@ function StatusBadge({
   status,
   label,
 }: {
-  status: 'pending' | 'active' | 'failed';
+  status: string;
   label: string;
 }) {
+  const knownStatus = (s: string): 'pending' | 'active' | 'failed' => {
+    if (s === 'active') return 'active';
+    if (s === 'failed') return 'failed';
+    return 'pending'; // default/fallback for unknown values
+  };
+
+  const normalized = knownStatus(status);
+
   const colors = {
     pending: 'bg-yellow-100 text-yellow-700',
     active: 'bg-green-100 text-green-700',
@@ -896,11 +935,11 @@ function StatusBadge({
     failed: X,
   };
 
-  const Icon = icons[status];
+  const Icon = icons[normalized];
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${colors[status]}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${colors[normalized]}`}
     >
       <Icon className="w-3 h-3" />
       {label}: {status}

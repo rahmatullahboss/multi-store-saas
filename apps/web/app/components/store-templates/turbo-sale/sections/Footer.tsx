@@ -66,8 +66,8 @@ export function TurboSaleFooter({
       <StandardFooter
         storeName={storeName}
         logo={logo}
-        // @ts-expect-error - Theme config type mismatch is expected here during migration
-        config={config}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        config={config as any}
         socialLinks={socialLinks}
         footerConfig={{
           ...footerConfig,

@@ -2538,11 +2538,11 @@ export function GhorerBazarTemplate({
   const [cartOpen, setCartOpen] = useState(false);
 
   // Get current product for detail page
-  const currentProduct = productId ? products.find((p) => p.id === Number(productId)) : null;
+  const currentProduct = productId ? (products || []).find((p) => p.id === Number(productId)) : null;
 
   // Search results
   const searchResults = searchQuery
-    ? products.filter(
+    ? (products || []).filter(
         (p) =>
           p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           p.category?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -2607,16 +2607,17 @@ export function GhorerBazarTemplate({
   };
 
   // Filter products by category
+  const safeProducts = products || [];
   const filteredProducts = categoryFilter
-    ? products.filter((p) => p.category === categoryFilter)
-    : products;
+    ? safeProducts.filter((p) => p.category === categoryFilter)
+    : safeProducts;
 
-  const validCategories = categories.filter(Boolean) as string[];
+  const validCategories = (categories || []).filter(Boolean) as string[];
 
   // Group products for different sections
-  const featuredProducts = products.slice(0, 8);
-  const moreProducts = products.slice(8, 16);
-  const recommendedProducts = products.slice(16, 21);
+  const featuredProducts = safeProducts.slice(0, 8);
+  const moreProducts = safeProducts.slice(8, 16);
+  const recommendedProducts = safeProducts.slice(16, 21);
 
   return (
     <CartProvider>
@@ -2629,14 +2630,25 @@ export function GhorerBazarTemplate({
       >
         {/* Header */}
         <GhorerBazarHeader
-          storeName={storeName}
+          storeName={storeName ?? ''}
           logo={logo}
           isPreview={isPreview}
           config={config}
           categories={validCategories}
           currentCategory={categoryFilter}
-          socialLinks={socialLinks}
-          businessInfo={businessInfo}
+          socialLinks={socialLinks ? {
+            facebook: socialLinks.facebook ?? undefined,
+            instagram: socialLinks.instagram ?? undefined,
+            whatsapp: socialLinks.whatsapp ?? undefined,
+            twitter: socialLinks.twitter ?? undefined,
+            youtube: socialLinks.youtube ?? undefined,
+            linkedin: socialLinks.linkedin ?? undefined,
+          } : undefined}
+          businessInfo={businessInfo ? {
+            phone: businessInfo.phone ?? undefined,
+            email: businessInfo.email ?? undefined,
+            address: businessInfo.address ?? undefined,
+          } : undefined}
           onCartClick={() => setCartOpen(true)}
         />
 
@@ -2646,7 +2658,7 @@ export function GhorerBazarTemplate({
           {currentProduct && (
             <ProductDetailPage
               product={currentProduct}
-              products={products}
+              products={products || []}
               onAddToCart={addToCart}
               onBuyNow={buyNow}
               onProductClick={goToProduct}
@@ -2670,7 +2682,7 @@ export function GhorerBazarTemplate({
 
           {/* Static Pages */}
           {!currentProduct && !searchQuery && currentPage === 'about' && (
-            <AboutPage storeName={storeName} businessInfo={businessInfo} />
+            <AboutPage storeName={storeName ?? ''} businessInfo={businessInfo} />
           )}
           {!currentProduct && !searchQuery && currentPage === 'faq' && <FAQPage />}
           {!currentProduct && !searchQuery && currentPage === 'contact' && (
@@ -2683,7 +2695,7 @@ export function GhorerBazarTemplate({
               {/* Hero + Category Shortcuts */}
               {!categoryFilter && (
                 <>
-                  <HeroSection storeName={storeName} config={config} />
+                  <HeroSection storeName={storeName ?? ''} config={config} />
                   <CategoryShortcutSection
                     categories={validCategories}
                     onCategorySelect={(cat) =>
@@ -2738,10 +2750,10 @@ export function GhorerBazarTemplate({
                   <TrustBadgesSection />
 
                   {/* Recently Viewed */}
-                  {products.length > 21 && (
+                  {safeProducts.length > 21 && (
                     <ProductsSection
                       title="Recently Viewed Products"
-                      products={products.slice(21, 29)}
+                      products={safeProducts.slice(21, 29)}
                       onProductClick={goToProduct}
                       onQuickAdd={(item) => addToCart(item, 1)}
                     />
@@ -2754,11 +2766,22 @@ export function GhorerBazarTemplate({
 
         {/* Footer */}
         <GhorerBazarFooter
-          storeName={storeName}
+          storeName={storeName ?? ''}
           logo={logo}
-          socialLinks={socialLinks}
+          socialLinks={socialLinks ? {
+            facebook: socialLinks.facebook ?? undefined,
+            instagram: socialLinks.instagram ?? undefined,
+            whatsapp: socialLinks.whatsapp ?? undefined,
+            twitter: socialLinks.twitter ?? undefined,
+            youtube: socialLinks.youtube ?? undefined,
+            linkedin: socialLinks.linkedin ?? undefined,
+          } : undefined}
           footerConfig={footerConfig}
-          businessInfo={businessInfo}
+          businessInfo={businessInfo ? {
+            phone: businessInfo.phone ?? undefined,
+            email: businessInfo.email ?? undefined,
+            address: businessInfo.address ?? undefined,
+          } : undefined}
           categories={validCategories}
           planType={planType}
         />

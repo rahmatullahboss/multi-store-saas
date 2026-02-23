@@ -6,12 +6,12 @@ import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
 
 export function RovoTemplate(props: StoreTemplateProps) {
   const sections = props.config?.sections || [];
-  const filteredCategories = props.categories.filter((c): c is string => c !== null);
+  const filteredCategories = (props.categories ?? []).filter((c): c is string => c !== null);
 
   return (
     <RovoLayout {...(props as any)}>
       <RovoHeader 
-        storeName={props.storeName} 
+        storeName={props.storeName ?? ''} 
         logo={props.logo} 
         categories={filteredCategories}
         currentCategory={props.currentCategory || null}
@@ -24,7 +24,7 @@ export function RovoTemplate(props: StoreTemplateProps) {
             sections={sections} 
             products={props.products}
             categories={filteredCategories}
-            storeId={props.storeId}
+            storeId={props.storeId ? parseInt(props.storeId, 10) : undefined}
           />
         ) : (
           <div className="py-20 text-center">
@@ -35,10 +35,21 @@ export function RovoTemplate(props: StoreTemplateProps) {
       </main>
 
       <RovoFooter 
-        storeName={props.storeName}
+        storeName={props.storeName ?? ''}
         logo={props.logo}
-        businessInfo={props.businessInfo}
-        socialLinks={props.socialLinks}
+        businessInfo={props.businessInfo ? {
+          phone: props.businessInfo.phone ?? undefined,
+          email: props.businessInfo.email ?? undefined,
+          address: props.businessInfo.address ?? undefined,
+        } : undefined}
+        socialLinks={props.socialLinks ? {
+          facebook: props.socialLinks.facebook ?? undefined,
+          instagram: props.socialLinks.instagram ?? undefined,
+          whatsapp: props.socialLinks.whatsapp ?? undefined,
+          twitter: props.socialLinks.twitter ?? undefined,
+          youtube: props.socialLinks.youtube ?? undefined,
+          linkedin: props.socialLinks.linkedin ?? undefined,
+        } : undefined}
         categories={filteredCategories}
       />
     </RovoLayout>

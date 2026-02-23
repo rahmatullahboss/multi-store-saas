@@ -144,13 +144,13 @@ export default function AccountLayout() {
       socialLinks={socialLinks}
       businessInfo={businessInfo}
       categories={categories}
-      config={themeConfig}
+      config={null}
       hideHeaderFooter={true} // Using custom account header/footer for consistency
     >
       <div className="flex min-h-screen bg-slate-50/50 text-slate-800 transition-colors duration-200 font-sans antialiased selection:bg-primary/10 selection:text-primary">
         {/* Desktop Sidebar */}
         <div className="hidden lg:block fixed h-full z-20 w-64 p-4">
-          <AccountSidebar user={user} theme={theme} />
+          <AccountSidebar user={{ name: user.name ?? undefined }} theme={theme} />
         </div>
 
         {/* Main Content */}
@@ -171,7 +171,7 @@ export default function AccountLayout() {
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetContent side="left" className="p-0 w-72 border-r border-slate-200">
               <div className="p-4 h-full">
-                <AccountSidebar user={user} theme={theme} />
+                <AccountSidebar user={{ name: user.name ?? undefined }} theme={theme} />
               </div>
             </SheetContent>
           </Sheet>

@@ -23,7 +23,12 @@ import {
   getUnifiedStorefrontSettings,
   saveUnifiedStorefrontSettingsWithCacheInvalidation,
 } from '~/services/unified-storefront-settings.server';
-import { STORE_TEMPLATES as MVP_STORE_TEMPLATES, STORE_TEMPLATE_THEMES, type StoreTemplateDefinition } from '~/templates/store-registry';
+import {
+  STORE_TEMPLATES as MVP_STORE_TEMPLATES,
+  STORE_TEMPLATE_THEMES,
+  MVP_THEME_IDS,
+  type StoreTemplateDefinition,
+} from '~/templates/store-registry';
 import { KVCache, CACHE_KEYS } from '~/services/kv-cache.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { invalidateStoreConfig as invalidateStoreConfigD1 } from '~/services/store-config.server';
@@ -71,8 +76,6 @@ const COLOR_PRESETS = [
   { name: 'স্লেট', primary: '#1e293b', accent: '#c9a961' },
 ];
 
-
-
 const TABS = [
   { id: 'template', label: 'টেমপ্লেট', icon: Layout },
   { id: 'theme', label: 'থিম', icon: Palette },
@@ -109,6 +112,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       thumbnail: t.thumbnail,
       description: t.description,
       colors: t.theme ? { primary: t.theme.primary, accent: t.theme.accent } : null,
+      isActive: MVP_THEME_IDS.includes(t.id as any),
     })),
   });
 }
@@ -356,6 +360,7 @@ function TemplateTab({
     thumbnail: string;
     description: string;
     colors: { primary: string; accent: string } | null;
+    isActive: boolean;
   }>;
   isSaving: boolean;
 }) {
@@ -363,14 +368,23 @@ function TemplateTab({
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {themes.map((theme) => {
         const isActive = settings.theme.templateId === theme.id;
+        const isPremium = !theme.isActive;
         return (
           <div
             key={theme.id}
-            className={`relative rounded-xl border-2 overflow-hidden transition-all ${isActive ? 'border-purple-500 shadow-lg' : 'border-gray-200 hover:border-gray-300'}`}
+            className={`relative rounded-xl border-2 overflow-hidden transition-all ${isActive ? 'border-purple-500 shadow-lg' : isPremium ? 'border-gray-800 opacity-75' : 'border-gray-200 hover:border-gray-300'}`}
           >
             {isActive && (
               <div className="absolute top-3 right-3 z-10 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                 <CheckCircle className="w-3 h-3" /> বর্তমানে সক্রিয়
+              </div>
+            )}
+            {isPremium && (
+              <div className="absolute top-3 left-3 z-10 bg-gradient-to-r from-yellow-500 to-amber-600 text-white text-xs px-3 py-1.5 rounded-full font-semibold flex items-center gap-1 shadow-lg">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                প্রিমিয়াম
               </div>
             )}
             <div className="aspect-[4/3] bg-gray-900 relative overflow-hidden">
@@ -411,27 +425,52 @@ function TemplateTab({
               <Form method="post" className="mt-3">
                 <input type="hidden" name="intent" value="template" />
                 <input type="hidden" name="templateId" value={theme.id} />
-                <div className="flex gap-2">
-                  <a
-                    href={`/store-template-preview/${theme.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 py-2 rounded-lg text-sm font-medium transition border border-gray-300 text-gray-700 hover:bg-gray-50 flex items-center justify-center gap-1"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" /> প্রিভিউ
-                  </a>
-                  <button
-                    type="submit"
-                    disabled={isActive || isSaving}
-                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
-                      isActive
-                        ? 'bg-gray-100 text-emerald-600 cursor-default'
-                        : 'bg-purple-600 text-white hover:bg-purple-700'
-                    }`}
-                  >
-                    {isActive ? 'সক্রিয়' : 'এপ্লাই'}
-                  </button>
-                </div>
+                {isPremium ? (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <a
+                        href={`/store-template-preview/${theme.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 py-2 rounded-lg text-sm font-medium transition border border-gray-600 text-gray-300 hover:bg-gray-800 flex items-center justify-center gap-1"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" /> প্রিভিউ
+                      </a>
+                      <button
+                        type="button"
+                        disabled
+                        className="flex-1 py-2 rounded-lg text-sm font-medium transition bg-gray-700 text-gray-400 cursor-not-allowed flex items-center justify-center gap-1"
+                      >
+                        🔒 লক
+                      </button>
+                    </div>
+                    <p className="text-xs text-center text-amber-400 bg-amber-500/10 py-2 rounded-lg">
+                      ⭐ প্রিমিয়াম প্ল্যানে আপগ্রেড করুন
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <a
+                      href={`/store-template-preview/${theme.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 py-2 rounded-lg text-sm font-medium transition border border-gray-300 text-gray-700 hover:bg-gray-50 flex items-center justify-center gap-1"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" /> প্রিভিউ
+                    </a>
+                    <button
+                      type="submit"
+                      disabled={isActive || isSaving}
+                      className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
+                        isActive
+                          ? 'bg-gray-100 text-emerald-600 cursor-default'
+                          : 'bg-purple-600 text-white hover:bg-purple-700'
+                      }`}
+                    >
+                      {isActive ? 'সক্রিয়' : 'এপ্লাই'}
+                    </button>
+                  </div>
+                )}
               </Form>
             </div>
           </div>
@@ -453,13 +492,13 @@ function ThemeTab({
 }) {
   const [primary, setPrimary] = useState(settings.theme.primary);
   const [accent, setAccent] = useState(settings.theme.accent);
-  
+
   const whyChoose = settings.whyChooseUs;
 
   return (
     <Form method="post" className="space-y-8">
       <input type="hidden" name="intent" value="theme" />
-      
+
       {/* Color Theme */}
       <section className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center gap-3 mb-4">
@@ -557,31 +596,33 @@ function ThemeTab({
           হোমপেজে "Why Choose Us" সেকশনের জন্য তিনটি ফিচার।
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {whyChoose.map((item: { icon: string; title: string; description: string }, idx: number) => (
-            <div key={idx} className="border border-gray-200 rounded-lg p-4">
-              <div className="text-2xl mb-2">{item.icon}</div>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">শিরোনাম</label>
-                  <input
-                    type="text"
-                    name={`whyChoose_${idx}_title`}
-                    defaultValue={item.title}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">বিবরণ</label>
-                  <input
-                    type="text"
-                    name={`whyChoose_${idx}_description`}
-                    defaultValue={item.description}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  />
+          {whyChoose.map(
+            (item: { icon: string; title: string; description: string }, idx: number) => (
+              <div key={idx} className="border border-gray-200 rounded-lg p-4">
+                <div className="text-2xl mb-2">{item.icon}</div>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">শিরোনাম</label>
+                    <input
+                      type="text"
+                      name={`whyChoose_${idx}_title`}
+                      defaultValue={item.title}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">বিবরণ</label>
+                    <input
+                      type="text"
+                      name={`whyChoose_${idx}_description`}
+                      defaultValue={item.description}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          )}
         </div>
       </section>
 

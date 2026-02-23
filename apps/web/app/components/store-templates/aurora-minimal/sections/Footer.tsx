@@ -44,8 +44,8 @@ export function AuroraMinimalFooter({
     <StandardFooter
       storeName={storeName}
       logo={logo}
-      // @ts-expect-error - Theme config shape mismatches are handled internally
-      config={config}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      config={config as any}
       socialLinks={socialLinks}
       footerConfig={{
         ...footerConfig,

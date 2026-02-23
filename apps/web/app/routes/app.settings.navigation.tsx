@@ -27,11 +27,12 @@ const MAX_FOOTER_COLUMNS = 3;
 const MAX_COLUMN_LINKS = 6;
 
 const emptyMenuItem = () => ({
+  id: crypto.randomUUID(),
   label: '',
   url: '',
-  children: [] as Array<{ label: string; url: string; children?: any[] }>,
+  children: [] as Array<{ id?: string; label: string; url: string; children?: any[] }>,
 });
-const emptyFooterColumn = () => ({ title: '', links: [] as Array<{ label: string; url: string }> });
+const emptyFooterColumn = () => ({ id: crypto.randomUUID(), title: '', links: [] as Array<{ label: string; url: string }> });
 import { ArrowLeft, CheckCircle, Loader2, Plus, Trash2, List } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -178,18 +179,25 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'Failed to save settings' }, { status: 500 });
   }
 
-  await logActivity(db, {
-    storeId,
-    userId,
-    action: 'settings_updated',
-    entityType: 'settings',
-    details: {
-      section: 'navigation',
-      headerMenuItems: headerMenu.length,
-      footerColumns: footerColumns.length,
-      hasFooterDescription: Boolean(footerDescription),
-    },
-  });
+  if (userId) {
+    try {
+      await logActivity(db, {
+        storeId,
+        userId,
+        action: 'settings_updated',
+        entityType: 'settings',
+        details: {
+          section: 'navigation',
+          headerMenuItems: headerMenu.length,
+          footerColumns: footerColumns.length,
+          hasFooterDescription: Boolean(footerDescription),
+        },
+      });
+    } catch (e) {
+      console.error('logActivity failed:', e);
+      // Don't fail the action because of this
+    }
+  }
 
   return json({ success: true });
 }
@@ -199,8 +207,12 @@ export default function NavigationSettingsPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const [menu, setMenu] = useState(headerMenu);
-  const [columns, setColumns] = useState(footerColumns);
+  const [menu, setMenu] = useState(() =>
+    headerMenu.map((item) => ({ id: crypto.randomUUID(), ...item }))
+  );
+  const [columns, setColumns] = useState(() =>
+    footerColumns.map((col) => ({ id: crypto.randomUUID(), ...col }))
+  );
   const [description, setDescription] = useState(footerDescription);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -303,9 +315,283 @@ export default function NavigationSettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
+    <>
+      {/* Mobile Layout */}
+      <div className="md:hidden -mx-4 -mt-4">
+        {/* Mobile Sticky Header */}
+        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+          <div className="flex items-center justify-between px-4 h-[60px]">
+            <Link to="/app/settings" className="p-2 -ml-2 text-gray-600">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <h1 className="text-base font-semibold text-gray-900">
+              {t('navigationSettings') || 'Navigation'}
+            </h1>
+            <div className="w-10" />
+          </div>
+        </header>
+
+        {/* Mobile Content */}
+        <div className="flex flex-col gap-5 p-4 pb-32">
+          {/* Mobile Success/Error Messages */}
+          {showSuccess && (
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-2xl flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              {t('settingsSaved') || 'Settings saved successfully!'}
+            </div>
+          )}
+
+          {actionData && 'error' in actionData && actionData.error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl">
+              {actionData.error}
+            </div>
+          )}
+
+          {/* Header Navigation Card */}
+          <div>
+            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">
+              {t('headerNavigation') || 'Header Navigation'}
+            </h2>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-500">
+                    {t('headerNavigationDesc') || 'Add up to 8 links for your store menu.'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleAddLink}
+                    disabled={menu.length >= MAX_HEADER_ITEMS}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-emerald-100 text-emerald-700 rounded-xl hover:bg-emerald-200 transition disabled:opacity-50"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {t('addLink') || 'Add'}
+                  </button>
+                </div>
+
+                {menu.length === 0 && (
+                  <div className="text-sm text-gray-500 bg-gray-50 rounded-xl p-4">
+                    {t('noLinksYet') || 'No links yet. Add your first navigation link.'}
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  {menu.map((link, index) => (
+                    <div key={link.id} className="space-y-3 border border-gray-100 rounded-xl p-3">
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          value={link.label}
+                          onChange={(e) => updateLink(index, 'label', e.target.value)}
+                          placeholder={t('linkLabelPlaceholder') || 'Label'}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        />
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={link.url}
+                            onChange={(e) => updateLink(index, 'url', e.target.value)}
+                            placeholder="/products"
+                            className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveLink(index)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-xl"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Child Links */}
+                      <div className="pl-3 border-l-2 border-gray-100 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-medium text-gray-500">
+                            {t('childLinks') || 'Dropdown'}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => addChild(index)}
+                            className="text-xs text-emerald-600"
+                          >
+                            <Plus className="w-3 h-3 inline" /> {t('addChildLink') || 'Add'}
+                          </button>
+                        </div>
+                        {(link.children || []).map((child, childIndex) => (
+                          <div key={child.id ?? childIndex} className="flex gap-2">
+                            <input
+                              type="text"
+                              value={child.label}
+                              onChange={(e) => updateChild(index, childIndex, 'label', e.target.value)}
+                              placeholder="Label"
+                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
+                            />
+                            <input
+                              type="text"
+                              value={child.url}
+                              onChange={(e) => updateChild(index, childIndex, 'url', e.target.value)}
+                              placeholder="/url"
+                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeChild(index, childIndex)}
+                              className="p-1 text-red-500"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {remainingSlots > 0 && (
+                  <p className="text-xs text-gray-400">
+                    {t('navigationLinksRemaining', { count: remainingSlots }) || `${remainingSlots} slots remaining.`}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Navigation Card */}
+          <Form method="post" id="mobile-navigation-form" className="hidden">
+            <input type="hidden" name="headerMenu" value={JSON.stringify(menu)} />
+            <input type="hidden" name="footerColumns" value={JSON.stringify(columns)} />
+            <input type="hidden" name="footerDescription" value={description} />
+          </Form>
+          <div>
+            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">
+              {t('footerNavigation') || 'Footer Navigation'}
+            </h2>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-500">
+                    {t('footerNavigationDesc') || 'Add up to 3 columns.'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleAddColumn}
+                    disabled={columns.length >= MAX_FOOTER_COLUMNS}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-emerald-100 text-emerald-700 rounded-xl hover:bg-emerald-200 transition disabled:opacity-50"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {t('addColumn') || 'Add'}
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('footerDescription') || 'Description'}
+                  </label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder={t('footerDescriptionPlaceholder') || 'Short brand statement...'}
+                  />
+                </div>
+
+                {columns.length === 0 && (
+                  <div className="text-sm text-gray-500 bg-gray-50 rounded-xl p-4">
+                    {t('noFooterColumns') || 'No footer columns yet.'}
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  {columns.map((column, index) => (
+                    <div key={column.id} className="space-y-2 border border-gray-100 rounded-xl p-3">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={column.title}
+                          onChange={(e) => updateColumnTitle(index, e.target.value)}
+                          placeholder={t('columnTitlePlaceholder') || 'Column Title'}
+                          className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm font-medium"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveColumn(index)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-xl"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="pl-3 border-l-2 border-gray-100 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-medium text-gray-500">{t('columnLinks') || 'Links'}</p>
+                          <button
+                            type="button"
+                            onClick={() => addColumnLink(index)}
+                            className="text-xs text-emerald-600"
+                          >
+                            <Plus className="w-3 h-3 inline" /> {t('addLink') || 'Add'}
+                          </button>
+                        </div>
+                        {(column.links || []).map((link, linkIndex) => (
+                          <div key={link.url || link.label || linkIndex} className="flex gap-2"> {/* footer column links have no id */}
+                            <input
+                              type="text"
+                              value={link.label}
+                              onChange={(e) => updateColumnLink(index, linkIndex, 'label', e.target.value)}
+                              placeholder="Label"
+                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
+                            />
+                            <input
+                              type="text"
+                              value={link.url}
+                              onChange={(e) => updateColumnLink(index, linkIndex, 'url', e.target.value)}
+                              placeholder="/url"
+                              className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeColumnLink(index, linkIndex)}
+                              className="p-1 text-red-500"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Fixed Save Button */}
+        <div className="fixed bottom-20 left-0 right-0 px-4 pb-2 z-[70] md:hidden">
+          <button
+            type="submit"
+            form="mobile-navigation-form"
+            disabled={isSubmitting}
+            className="w-full py-3 bg-emerald-600 text-white font-semibold rounded-2xl hover:bg-emerald-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {t('savingSettings') || 'Saving...'}
+              </>
+            ) : (
+              t('saveSettings') || 'Save Settings'
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden md:block space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4">
         <Link to="/app/settings" className="p-2 hover:bg-gray-100 rounded-lg transition">
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
@@ -367,7 +653,7 @@ export default function NavigationSettingsPage() {
 
           <div className="space-y-4">
             {menu.map((link, index) => (
-              <div key={index} className="space-y-3 border border-gray-200 rounded-lg p-4">
+              <div key={link.id} className="space-y-3 border border-gray-200 rounded-lg p-4">
                 <div className="grid grid-cols-1 md:grid-cols-[2fr_3fr_auto] gap-3 items-start">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -428,7 +714,7 @@ export default function NavigationSettingsPage() {
 
                   {(link.children || []).map((child, childIndex) => (
                     <div
-                      key={childIndex}
+                      key={child.id ?? childIndex}
                       className="grid grid-cols-1 md:grid-cols-[2fr_3fr_auto] gap-3 items-start"
                     >
                       <input
@@ -462,7 +748,7 @@ export default function NavigationSettingsPage() {
 
           {remainingSlots > 0 && (
             <p className="text-xs text-gray-500">
-              {t('linksRemaining') || `${remainingSlots} slots remaining.`}
+              {t('navigationLinksRemaining', { count: remainingSlots }) || `${remainingSlots} slots remaining.`}
             </p>
           )}
         </div>
@@ -509,7 +795,7 @@ export default function NavigationSettingsPage() {
 
           <div className="space-y-4">
             {columns.map((column, index) => (
-              <div key={index} className="space-y-3 border border-gray-200 rounded-lg p-4">
+              <div key={column.id} className="space-y-3 border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <input
                     type="text"
@@ -549,7 +835,7 @@ export default function NavigationSettingsPage() {
 
                   {(column.links || []).map((link, linkIndex) => (
                     <div
-                      key={linkIndex}
+                      key={link.url || link.label || linkIndex} /* footer column links have no id */
                       className="grid grid-cols-1 md:grid-cols-[2fr_3fr_auto] gap-3 items-start"
                     >
                       <input
@@ -601,6 +887,7 @@ export default function NavigationSettingsPage() {
           </button>
         </div>
       </Form>
-    </div>
+      </div>
+    </>
   );
 }

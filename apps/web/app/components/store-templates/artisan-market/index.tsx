@@ -67,7 +67,7 @@ export function ArtisanMarketTemplate({
   const count = useCartCount();
 
   // Filter valid categories
-  const validCategories = categories.filter((c): c is string => Boolean(c));
+  const validCategories = (categories || []).filter((c): c is string => Boolean(c));
 
   return (
     <StoreConfigProvider config={config}>
@@ -88,7 +88,7 @@ export function ArtisanMarketTemplate({
               />
 
               <ArtisanMarketHeader
-                storeName={storeName}
+                storeName={storeName ?? ''}
                 logo={logo}
                 categories={validCategories}
                 currentCategory={currentCategory}
@@ -246,7 +246,7 @@ export function ArtisanMarketTemplate({
               })}
 
               <ArtisanMarketFooter
-                storeName={storeName}
+                storeName={storeName ?? ''}
                 footerConfig={footerConfig}
                 businessInfo={businessInfo}
                 socialLinks={socialLinks}
@@ -368,7 +368,7 @@ export function ArtisanMarketTemplate({
 // ARTISAN PRODUCT CARD COMPONENT
 // ============================================================================
 interface ArtisanProductCardProps {
-  product: StoreTemplateProps['products'][0];
+  product: NonNullable<StoreTemplateProps['products']>[0];
   storeId: number;
   formatPrice: (price: number) => string;
   isPreview?: boolean;

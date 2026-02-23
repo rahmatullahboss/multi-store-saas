@@ -90,15 +90,19 @@ export function SokolHeader({
               >
                 Home
               </LinkComponent>
-              {categories?.filter(Boolean).slice(0, 5).map((category) => (
-                <LinkComponent
-                  key={category}
-                  to={`/collections/${category}`}
-                  className="text-sm font-medium tracking-wide text-gray-700 hover:text-rose-600 transition-colors"
-                >
-                  {category}
-                </LinkComponent>
-              ))}
+              {categories?.filter(Boolean).slice(0, 5).map((category) => {
+                const catKey = typeof category === 'string' ? category : (category as { title?: string }).title ?? String(category);
+                const catLabel = typeof category === 'string' ? category : (category as { title?: string }).title ?? '';
+                return (
+                  <LinkComponent
+                    key={catKey}
+                    to={`/collections/${catKey}`}
+                    className="text-sm font-medium tracking-wide text-gray-700 hover:text-rose-600 transition-colors"
+                  >
+                    {catLabel}
+                  </LinkComponent>
+                );
+              })}
               <LinkComponent 
                 to="/products" 
                 className="text-sm font-medium tracking-wide text-gray-700 hover:text-rose-600 transition-colors"
@@ -177,16 +181,20 @@ export function SokolHeader({
                 >
                   Home
                 </LinkComponent>
-                {categories?.filter(Boolean).map((cat) => (
-                  <LinkComponent 
-                    key={cat} 
-                    to={`/products/${cat}`} 
-                    className="p-3 hover:bg-gray-50 rounded-xl font-medium text-gray-700"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {cat}
-                  </LinkComponent>
-                ))}
+                {categories?.filter(Boolean).map((cat) => {
+                  const catKey = typeof cat === 'string' ? cat : (cat as { title?: string }).title ?? String(cat);
+                  const catLabel = typeof cat === 'string' ? cat : (cat as { title?: string }).title ?? '';
+                  return (
+                    <LinkComponent 
+                      key={catKey}
+                      to={`/products/${catKey}`} 
+                      className="p-3 hover:bg-gray-50 rounded-xl font-medium text-gray-700"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {catLabel}
+                    </LinkComponent>
+                  );
+                })}
                 <LinkComponent 
                   to="/products" 
                   className="p-3 hover:bg-gray-50 rounded-xl font-medium text-gray-700"

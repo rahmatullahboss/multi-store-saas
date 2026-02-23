@@ -1,6 +1,4 @@
 import { Link } from '@remix-run/react';
-import { Search, ShoppingBag, Phone, Zap, Clock } from 'lucide-react';
-import { useCartCount } from '~/hooks/useCartCount';
 import { Search, ShoppingBag, Phone, Zap, Clock, Menu, X } from 'lucide-react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { TURBO_SALE_THEME } from '../styles/tokens';

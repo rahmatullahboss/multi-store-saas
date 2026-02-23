@@ -280,8 +280,8 @@ export function NovaLuxFooter({
                 {validCategories.map((cat) => {
                   const title =
                     typeof cat === 'object' && cat !== null
-                      ? (cat as StoreCategory).title
-                      : (cat as string);
+                      ? (cat as StoreCategory).title ?? ''
+                      : (cat as string) ?? '';
                   return (
                     <li key={title}>
                       <PreviewSafeLink

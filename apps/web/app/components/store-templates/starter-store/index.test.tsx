@@ -18,7 +18,7 @@ vi.mock('./sections/Footer', () => ({
 describe('StarterStoreTemplate', () => {
   const mockProps = {
     storeName: 'Test Store',
-    storeId: 1,
+    storeId: '1',
     products: [],
     categories: [],
     currency: 'BDT',

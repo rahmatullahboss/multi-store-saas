@@ -11,15 +11,18 @@
  * - Segments (Tabs) and Filters
  */
 
-import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
+import { json, type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import {
   useLoaderData,
   Link,
   useSearchParams,
+  useFetcher,
+  useRouteError,
+  isRouteErrorResponse,
 } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { customers, stores } from '@db/schema';
-import { eq, desc, and, or, like } from 'drizzle-orm';
+import { eq, desc, and, or, like, sql } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
 import { canExportCustomers, type PlanType } from '~/utils/plans.server';
 import {
@@ -31,6 +34,8 @@ import {
   Download,
   Trash2,
   Tag,
+  ChevronRight,
+  Star,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { PageHeader, EmptyState } from '~/components/ui';
@@ -133,6 +138,63 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 // ============================================================================
+// ACTION — Delete customer (storeId-scoped, server-enforced)
+// ============================================================================
+export async function action({ request, context }: ActionFunctionArgs) {
+  const storeId = await getStoreId(request, context.cloudflare.env);
+  if (!storeId) throw new Response('Unauthorized', { status: 401 });
+
+  const formData = await request.formData();
+  const intent = formData.get('intent');
+
+  if (intent === 'delete_customer') {
+    const customerId = parseInt(formData.get('customerId') as string || '0');
+    if (!customerId) return json({ error: 'Customer ID required' }, { status: 400 });
+
+    const db = drizzle(context.cloudflare.env.DB);
+
+    // SECURITY: verify the customer belongs to THIS store before deleting
+    const [existing] = await db
+      .select({ id: customers.id })
+      .from(customers)
+      .where(and(eq(customers.id, customerId), eq(customers.storeId, storeId)))
+      .limit(1);
+
+    if (!existing) return json({ error: 'Customer not found' }, { status: 404 });
+
+    await db
+      .delete(customers)
+      .where(and(eq(customers.id, customerId), eq(customers.storeId, storeId)));
+
+    return json({ success: true });
+  }
+
+  return json({ error: 'Invalid intent' }, { status: 400 });
+}
+
+// ============================================================================
+// ERROR BOUNDARY
+// ============================================================================
+export function ErrorBoundary() {
+  const error = useRouteError();
+  if (isRouteErrorResponse(error)) {
+    return (
+      <div className="p-8 text-center">
+        <h2 className="text-xl font-bold text-red-600">{error.status} — {error.statusText || 'Error'}</h2>
+        <p className="text-gray-500 mt-2">{error.data}</p>
+        <Link to="/app/customers" className="text-emerald-600 hover:underline mt-4 inline-block">← Back to Customers</Link>
+      </div>
+    );
+  }
+  return (
+    <div className="p-8 text-center">
+      <h2 className="text-xl font-bold text-red-600">Something went wrong</h2>
+      <Link to="/app/customers" className="text-emerald-600 hover:underline mt-4 inline-block">← Back to Customers</Link>
+    </div>
+  );
+}
+
+// ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 export default function CustomersListPage() {
@@ -143,6 +205,7 @@ export default function CustomersListPage() {
   } = useLoaderData<typeof loader>();
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const deleteFetcher = useFetcher();
 
   // Local state for search debounce
   const [searchQuery, setSearchQuery] = useState(filters.search);
@@ -205,10 +268,12 @@ export default function CustomersListPage() {
             </Link>
           )}
           {/* Add Customer Button */}
-          <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
-            <UserPlus className="w-4 h-4" />
-            {t('dashboard:addCustomer')}
-          </Button>
+          <Link to="/app/customers/new">
+            <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
+              <UserPlus className="w-4 h-4" />
+              {t('dashboard:addCustomer')}
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -268,34 +333,92 @@ export default function CustomersListPage() {
         ) : (
           <>
             {/* ===== MOBILE CARD VIEW ===== */}
-            <div className="md:hidden divide-y divide-gray-100 flex-1">
-              {allCustomers.map((customer) => (
-                <Link
-                  key={customer.id}
-                  to={`/app/customers/${customer.id}`}
-                  className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                >
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center text-emerald-700 font-bold text-sm shadow-sm flex-shrink-0">
-                    {(customer.name || customer.email || '?').charAt(0).toUpperCase()}
+            <div className="md:hidden pb-4 space-y-3 px-4">
+              {allCustomers.map((customer) => {
+                const name = customer.name || customer.email || '?';
+                const initials = name.slice(0, 2).toUpperCase();
+                const avatarColors = [
+                  'bg-blue-100 text-blue-600',
+                  'bg-purple-100 text-purple-600',
+                  'bg-amber-100 text-amber-600',
+                  'bg-rose-100 text-rose-600',
+                  'bg-teal-100 text-teal-600',
+                ];
+                const colorClass = avatarColors[(customer.id || 0) % avatarColors.length];
+                const isVip = (customer.totalOrders || 0) >= 10 || (customer.totalSpent || 0) >= 50000;
+                const isInactive = (customer.totalOrders || 0) === 0;
+                const isNew = !isVip && !isInactive && (customer.totalOrders || 0) <= 2;
+
+                return (
+                  <div key={customer.id} className={`bg-white rounded-2xl p-4 shadow-sm border border-slate-100 ${isInactive ? 'opacity-75' : ''}`}>
+                    {/* Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`flex items-center justify-center h-12 w-12 rounded-full font-bold text-lg ${colorClass}`}>
+                          {initials}
+                        </div>
+                        <div>
+                          <h3 className="text-slate-900 font-bold text-base">
+                            {customer.name || t('dashboard:guestLabel')}
+                          </h3>
+                          <p className="text-slate-500 text-xs mt-0.5">
+                            {customer.email || customer.phone || '—'}
+                          </p>
+                        </div>
+                      </div>
+                      <Link
+                        to={`/app/customers/${customer.id}`}
+                        className="text-slate-400 hover:text-slate-600 p-1"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </Link>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="bg-slate-50 rounded-xl p-3 grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <span className="text-slate-500 text-xs block mb-1">{t('dashboard:totalOrders') || 'Total Orders'}</span>
+                        <span className="text-slate-900 font-bold text-sm">{customer.totalOrders || 0}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 text-xs block mb-1">{t('dashboard:totalRevenue') || 'Total Revenue'}</span>
+                        <span className="text-slate-900 font-bold text-sm">{formatPrice(customer.totalSpent || 0)}</span>
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-1">
+                      {isVip ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                          <Star className="w-3 h-3" />
+                          VIP
+                        </span>
+                      ) : isInactive ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                          {t('dashboard:inactive') || 'Inactive'}
+                        </span>
+                      ) : isNew ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                          {t('dashboard:newCustomers') || 'New'}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                          {t('dashboard:active') || 'Active'}
+                        </span>
+                      )}
+                      <Link
+                        to={`/app/customers/${customer.id}`}
+                        className="text-emerald-600 hover:text-emerald-700 text-sm font-semibold flex items-center gap-1 group"
+                      >
+                        {t('dashboard:viewProfile') || 'View Profile'}
+                        <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                      </Link>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">
-                      {customer.name || t('dashboard:guestLabel')}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate mt-0.5">
-                      {customer.email || customer.phone || 'No contact info'}
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                    <span className="font-semibold text-gray-900 text-sm tabular-nums">
-                      {formatPrice(customer.totalSpent || 0)}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {customer.totalOrders || 0} {t('dashboard:orders')}
-                    </span>
-                  </div>
-                </Link>
-              ))}
+                );
+              })}
             </div>
 
             {/* ===== DESKTOP TABLE VIEW ===== */}
@@ -375,9 +498,28 @@ export default function CustomersListPage() {
                               {t('dashboard:addTags')}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600">
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              {t('dashboard:deleteCustomer')}
+                            <DropdownMenuItem asChild>
+                              {/* SECURITY: delete is server-enforced with storeId check in action() */}
+                              <deleteFetcher.Form
+                                method="post"
+                                onSubmit={(e) => {
+                                  if (!window.confirm(t('dashboard:confirmDeleteCustomer') || 'Delete this customer? This cannot be undone.')) {
+                                    e.preventDefault();
+                                  }
+                                }}
+                                className="w-full"
+                              >
+                                <input type="hidden" name="intent" value="delete_customer" />
+                                <input type="hidden" name="customerId" value={customer.id} />
+                                <button
+                                  type="submit"
+                                  disabled={deleteFetcher.state !== 'idle'}
+                                  className="w-full flex items-center text-red-600 px-2 py-1.5 text-sm cursor-pointer"
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  {t('dashboard:deleteCustomer')}
+                                </button>
+                              </deleteFetcher.Form>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

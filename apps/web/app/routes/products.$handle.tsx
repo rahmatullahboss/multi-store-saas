@@ -431,9 +431,19 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       pageType: 'product',
       product: {
         ...product,
+        name: product.title,
+        images: product.images
+          ? (() => { try { return JSON.parse(product.images) as string[]; } catch { return undefined; } })()
+          : undefined,
         specifications: productDetails.specifications,
         returnPolicy: productDetails.returnPolicy || store?.customRefundPolicy || null,
-        variants: variantsResult || [],
+        variants: (variantsResult || []).map((v) => ({
+          ...v,
+          name:
+            [v.option1Value, v.option2Value, v.option3Value].filter(Boolean).join(' / ') ||
+            v.sku ||
+            '',
+        })),
       },
       storeName: legacyCompat.storeName,
       logo: legacyCompat.logo,
@@ -457,7 +467,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
             storeId,
             name: p.title, // Map to name property
             description: null,
-            images: null,
+            images: undefined,
             sku: null,
             updatedAt: null,
           }) as SerializedProduct

@@ -57,7 +57,7 @@ export interface RiskCheckParams {
   paymentMethod: string;
   shippingAddress?: string; // JSON string or raw address
   isOTPVerified?: boolean;
-  db: DrizzleD1Database<Record<string, never>>;
+  db: DrizzleD1Database<any>;
 }
 
 // ============================================================================
@@ -120,7 +120,7 @@ export function isValidBDPhone(phone: string): boolean {
 export async function isBlacklisted(
   phone: string,
   storeId: number,
-  db: DrizzleD1Database<Record<string, never>>
+  db: DrizzleD1Database<any>
 ): Promise<boolean> {
   const { phoneBlacklist } = await import('@db/schema');
   const normalized = normalizePhone(phone);
@@ -430,7 +430,7 @@ export async function addToBlacklist(
   storeId: number | null,
   reason: string,
   addedBy: 'system' | 'merchant' | 'admin',
-  db: DrizzleD1Database<Record<string, never>>
+  db: DrizzleD1Database<any>
 ): Promise<void> {
   const { phoneBlacklist } = await import('@db/schema');
   const normalized = normalizePhone(phone);
@@ -453,7 +453,7 @@ export async function addToBlacklist(
 export async function removeFromBlacklist(
   phone: string,
   storeId: number,
-  db: DrizzleD1Database<Record<string, never>>
+  db: DrizzleD1Database<any>
 ): Promise<void> {
   const { phoneBlacklist } = await import('@db/schema');
   const normalized = normalizePhone(phone);

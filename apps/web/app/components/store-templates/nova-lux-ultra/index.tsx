@@ -1045,10 +1045,10 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
       case 'home':
         return (
           <PreviewHomePage
-            storeName={storeName}
+            storeName={storeName ?? ''}
             products={products}
             categories={normalizedCategories}
-            currency={currency}
+            currency={currency ?? ''}
             config={config}
             onNavigate={navigate}
           />
@@ -1078,7 +1078,7 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
                 category: product.category || undefined,
                 stock: 99,
               }}
-              currency={currency}
+              currency={currency ?? ''}
               relatedProducts={relatedProducts.map((p) => ({
                 id: p.id,
                 title: p.title || 'Untitled',
@@ -1120,7 +1120,7 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
               isPreview={true}
               templateId="nova-lux-ultra"
               onNavigate={navigateByPath}
-              storeId={storeId}
+              storeId={parseInt(storeId ?? '0', 10)}
             />
           </div>
         );
@@ -1139,7 +1139,7 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
                 <PremiumProductCard
                   key={p.id}
                   product={p}
-                  currency={currency}
+                  currency={currency ?? ''}
                   onNavigate={navigate}
                   index={index}
                 />
@@ -1204,7 +1204,7 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
         />
 
         <NovaLuxUltraHeader
-          storeName={storeName}
+          storeName={storeName ?? ''}
           logo={logo}
           categories={normalizedCategories}
           config={config}
@@ -1212,12 +1212,23 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
         />
         <main>{renderPage()}</main>
         <NovaLuxUltraFooter
-          storeName={storeName}
+          storeName={storeName ?? ''}
           logo={logo}
           categories={normalizedCategories}
-          socialLinks={props.socialLinks}
+          socialLinks={props.socialLinks ? {
+            facebook: props.socialLinks.facebook ?? undefined,
+            instagram: props.socialLinks.instagram ?? undefined,
+            whatsapp: props.socialLinks.whatsapp ?? undefined,
+            twitter: props.socialLinks.twitter ?? undefined,
+            youtube: props.socialLinks.youtube ?? undefined,
+            linkedin: props.socialLinks.linkedin ?? undefined,
+          } : undefined}
           footerConfig={props.footerConfig}
-          businessInfo={props.businessInfo}
+          businessInfo={props.businessInfo ? {
+            phone: props.businessInfo.phone ?? undefined,
+            email: props.businessInfo.email ?? undefined,
+            address: props.businessInfo.address ?? undefined,
+          } : undefined}
           planType={props.planType}
           isPreview={isPreview}
         />
@@ -1236,7 +1247,7 @@ function PreviewNovaLuxUltraStore(props: StoreTemplateProps) {
             storeName={storeName}
             aiEnabled={props.isCustomerAiEnabled}
             aiCredits={props.aiCredits}
-            storeId={storeId}
+            storeId={parseInt(storeId ?? '0', 10)}
             accentColor={config?.primaryColor || NOVALUX_ULTRA_THEME.accent}
           />
         )}

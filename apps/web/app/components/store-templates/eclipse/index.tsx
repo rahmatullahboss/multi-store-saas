@@ -752,10 +752,10 @@ function PreviewEclipseStore(props: StoreTemplateProps) {
       case 'home':
         return (
           <PreviewHomePage
-            storeName={storeName}
+            storeName={storeName ?? ''}
             products={products}
             categories={validCategories}
-            currency={currency}
+            currency={currency ?? ''}
             config={config}
             onNavigate={navigate}
           />
@@ -764,14 +764,14 @@ function PreviewEclipseStore(props: StoreTemplateProps) {
         return (
           <PreviewProductDetailPage
             productId={currentPage.productId}
-            currency={currency}
+            currency={currency ?? ''}
             onNavigate={navigate}
           />
         );
       case 'cart':
-        return <PreviewCartPageComponent currency={currency} onNavigate={navigate} />;
+        return <PreviewCartPageComponent currency={currency ?? ''} onNavigate={navigate} />;
       case 'checkout':
-        return <PreviewCheckoutPage currency={currency} onNavigate={navigate} />;
+        return <PreviewCheckoutPage currency={currency ?? ''} onNavigate={navigate} />;
       case 'category': {
         const filtered = products.filter((p) => p.category === currentPage.category);
         return (
@@ -782,7 +782,7 @@ function PreviewEclipseStore(props: StoreTemplateProps) {
                 <PreviewProductCard
                   key={p.id}
                   product={p}
-                  currency={currency}
+                  currency={currency ?? ''}
                   onNavigate={navigate}
                 />
               ))}
@@ -831,13 +831,13 @@ function PreviewEclipseStore(props: StoreTemplateProps) {
           rel="stylesheet"
         />
         <PreviewHeader
-          storeName={storeName}
+          storeName={storeName ?? ''}
           logo={logo}
           categories={validCategories}
           onNavigate={navigate}
         />
         <main>{renderPage()}</main>
-        <PreviewFooter storeName={storeName} categories={validCategories} onNavigate={navigate} />
+        <PreviewFooter storeName={storeName ?? ''} categories={validCategories} onNavigate={navigate} />
       </div>
     </CartProvider>
   );
@@ -876,7 +876,7 @@ export function LiveEclipseTemplate({
     headingFont: ECLIPSE_THEME.fontHeading,
   };
 
-  const validCategories = categories.filter((c): c is string => Boolean(c));
+  const validCategories = (categories || []).filter((c): c is string => Boolean(c));
 
   return (
     <StoreConfigProvider config={config}>
@@ -896,7 +896,7 @@ export function LiveEclipseTemplate({
                 rel="stylesheet"
               />
 
-              <EclipseHeader storeName={storeName} logo={logo} categories={validCategories} />
+              <EclipseHeader storeName={storeName ?? ''} logo={logo} categories={validCategories} />
 
               <main className="pt-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-24 pb-20">
                 {(config?.sections ?? DEFAULT_SECTIONS).map((section: any) => {
@@ -927,8 +927,15 @@ export function LiveEclipseTemplate({
               </main>
 
               <EclipseFooter
-                storeName={storeName}
-                socialLinks={socialLinks}
+                storeName={storeName ?? ''}
+                socialLinks={socialLinks ? {
+                  facebook: socialLinks.facebook ?? undefined,
+                  instagram: socialLinks.instagram ?? undefined,
+                  whatsapp: socialLinks.whatsapp ?? undefined,
+                  twitter: socialLinks.twitter ?? undefined,
+                  youtube: socialLinks.youtube ?? undefined,
+                  linkedin: socialLinks.linkedin ?? undefined,
+                } : undefined}
                 footerConfig={footerConfig}
               />
 

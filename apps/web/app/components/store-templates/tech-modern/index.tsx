@@ -344,6 +344,7 @@ function PreviewProductDetailPage({
   const serializedProduct: SerializedProduct = {
     id: product.id,
     storeId: 0,
+    name: product.title,
     title: product.title,
     description: product.description || '',
     price: product.price,
@@ -355,6 +356,7 @@ function PreviewProductDetailPage({
   const serializedRelated = relatedProducts.map((p) => ({
     id: p.id,
     storeId: 0,
+    name: p.title,
     title: p.title,
     description: p.description || '',
     price: p.price,
@@ -714,10 +716,10 @@ function PreviewTechModernStore(props: StoreTemplateProps) {
       case 'home':
         return (
           <PreviewHomePage
-            storeName={storeName}
+            storeName={storeName ?? ''}
             products={products}
             categories={validCategories}
-            currency={currency}
+            currency={currency ?? ''}
             config={config}
             onNavigate={navigate}
           />
@@ -726,14 +728,14 @@ function PreviewTechModernStore(props: StoreTemplateProps) {
         return (
           <PreviewProductDetailPage
             productId={currentPage.productId}
-            currency={currency}
+            currency={currency ?? ''}
             onNavigate={navigate}
           />
         );
       case 'cart':
         return <PreviewCartPageComponent onNavigate={navigate} />;
       case 'checkout':
-        return <PreviewCheckoutPage currency={currency} onNavigate={navigate} />;
+        return <PreviewCheckoutPage currency={currency ?? ''} onNavigate={navigate} />;
       case 'search':
         return <div className="p-20 text-center">Search results for {currentPage.query}</div>;
       case 'category': {
@@ -747,7 +749,7 @@ function PreviewTechModernStore(props: StoreTemplateProps) {
                   <PreviewProductCard
                     key={product.id}
                     product={product}
-                    currency={currency}
+                    currency={currency ?? ''}
                     onNavigate={navigate}
                   />
                 ))}
@@ -779,10 +781,10 @@ function PreviewTechModernStore(props: StoreTemplateProps) {
       default:
         return (
           <PreviewHomePage
-            storeName={storeName}
+            storeName={storeName ?? ''}
             products={products}
             categories={validCategories}
-            currency={currency}
+            currency={currency ?? ''}
             config={config}
             onNavigate={navigate}
           />
@@ -801,18 +803,29 @@ function PreviewTechModernStore(props: StoreTemplateProps) {
           rel="stylesheet"
         />
         <PreviewHeader
-          storeName={storeName}
+          storeName={storeName ?? ''}
           logo={logo}
           categories={validCategories}
           onNavigate={navigate}
         />
         <main>{renderPage()}</main>
         <TechModernFooter
-          storeName={storeName}
+          storeName={storeName ?? ''}
           logo={logo}
           categories={validCategories}
-          businessInfo={businessInfo}
-          socialLinks={socialLinks}
+          businessInfo={businessInfo ? {
+            phone: businessInfo.phone ?? undefined,
+            email: businessInfo.email ?? undefined,
+            address: businessInfo.address ?? undefined,
+          } : undefined}
+          socialLinks={socialLinks ? {
+            facebook: socialLinks.facebook ?? undefined,
+            instagram: socialLinks.instagram ?? undefined,
+            whatsapp: socialLinks.whatsapp ?? undefined,
+            twitter: socialLinks.twitter ?? undefined,
+            youtube: socialLinks.youtube ?? undefined,
+            linkedin: socialLinks.linkedin ?? undefined,
+          } : undefined}
           footerConfig={footerConfig}
           isPreview={true}
         />
@@ -848,7 +861,7 @@ function LiveTechModernHomepage({
   const heroBehavior = getHeroBehavior(config);
   const primaryHeroSlide = heroBehavior.slides[0];
 
-  const validCategories = categories.filter((c): c is string => Boolean(c));
+  const validCategories = (categories || []).filter((c): c is string => Boolean(c));
 
   return (
     <StoreConfigProvider config={config}>
@@ -868,7 +881,7 @@ function LiveTechModernHomepage({
               />
 
               <TechModernHeader
-                storeName={storeName}
+                storeName={storeName ?? ''}
                 logo={logo}
                 categories={validCategories}
                 currentCategory={currentCategory}
@@ -1012,10 +1025,21 @@ function LiveTechModernHomepage({
               })}
 
               <TechModernFooter
-                storeName={storeName}
+                storeName={storeName ?? ''}
                 footerConfig={footerConfig}
-                businessInfo={businessInfo}
-                socialLinks={socialLinks}
+                businessInfo={businessInfo ? {
+                  phone: businessInfo.phone ?? undefined,
+                  email: businessInfo.email ?? undefined,
+                  address: businessInfo.address ?? undefined,
+                } : undefined}
+                socialLinks={socialLinks ? {
+                  facebook: socialLinks.facebook ?? undefined,
+                  instagram: socialLinks.instagram ?? undefined,
+                  whatsapp: socialLinks.whatsapp ?? undefined,
+                  twitter: socialLinks.twitter ?? undefined,
+                  youtube: socialLinks.youtube ?? undefined,
+                  linkedin: socialLinks.linkedin ?? undefined,
+                } : undefined}
                 planType={planType}
                 categories={validCategories}
               />
@@ -1103,7 +1127,7 @@ function LiveTechModernHomepage({
                   storeName={storeName}
                   aiEnabled={isCustomerAiEnabled}
                   aiCredits={aiCredits}
-                  storeId={storeId}
+                  storeId={storeId ? parseInt(storeId, 10) : undefined}
                   accentColor={config?.primaryColor || TECH_MODERN_THEME.accent}
                 />
               )}
