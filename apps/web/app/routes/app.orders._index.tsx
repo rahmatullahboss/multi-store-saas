@@ -70,9 +70,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const store = storeResult[0];
 
-  // Fetch orders for this store, newest first.
-  // NOTE: Capped at 200 for performance. Stats (total, revenue, etc.) reflect
-  // these 200 most-recent orders only, NOT an all-time count.
+  // Fetch orders for this store, newest first
   const storeOrders = await db
     .select()
     .from(orders)
@@ -665,7 +663,6 @@ const statusOptionsKeys = [
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
-
 export default function DashboardOrdersPage() {
   const {
     orders: storeOrders,
@@ -749,36 +746,13 @@ export default function DashboardOrdersPage() {
     });
   };
 
-  const formatDateShort = (date: string | Date | null) => {
-    if (!date) return '—';
-    const d = new Date(date);
-    return d.toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-BD', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
   const maxRevenue = Math.max(...(stats.dailyStats?.map((s: any) => s.revenue) || [1]), 1);
   const maxOrders = Math.max(...(stats.dailyStats?.map((s: any) => s.total) || [1]), 1);
 
-
-  // Mobile status badge config
-  const statusConfig: Record<string, { dot: string; badge: string; label: string }> = {
-    pending:    { dot: 'bg-amber-400',   badge: 'bg-amber-50 text-amber-700 border border-amber-200',      label: t('dashboard:pending') },
-    confirmed:  { dot: 'bg-blue-500',    badge: 'bg-blue-50 text-blue-700 border border-blue-200',         label: t('dashboard:confirmed') },
-    processing: { dot: 'bg-violet-500',  badge: 'bg-violet-50 text-violet-700 border border-violet-200',   label: t('dashboard:processingOrders') },
-    shipped:    { dot: 'bg-indigo-500',  badge: 'bg-indigo-50 text-indigo-700 border border-indigo-200',   label: t('dashboard:shippedOrders') },
-    delivered:  { dot: 'bg-emerald-500', badge: 'bg-emerald-50 text-emerald-700 border border-emerald-200', label: t('dashboard:deliveredOrders') },
-    cancelled:  { dot: 'bg-red-500',     badge: 'bg-red-50 text-red-700 border border-red-200',            label: t('dashboard:cancelledOrders') },
-    returned:   { dot: 'bg-orange-500',  badge: 'bg-orange-50 text-orange-700 border border-orange-200',   label: t('dashboard:returnedOrders') },
-  };
-
   return (
-    <div className="flex flex-col relative w-full">
-      {/* Header / Command Bar */}
-      <header className="mb-6 flex items-center justify-between shrink-0 z-10 relative">
+    <div className="flex flex-col h-[calc(100vh-80px)] xl:h-[calc(100vh-64px)] relative -m-4 lg:-m-8">
+      {/* Sticky Header / Command Bar */}
+      <header className="h-16 border-b border-gray-200 bg-white/90 backdrop-blur-sm flex items-center justify-between px-4 lg:px-6 shrink-0 z-10 sticky top-0 md:top-auto">
         <div className="flex items-center gap-6">
           <h1 className="text-xl font-semibold tracking-tight text-gray-900">
             {t('dashboard:orders')}
@@ -822,10 +796,10 @@ export default function DashboardOrdersPage() {
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col gap-6">
+      {/* Scrollable Body */}
+      <div className="flex-1 overflow-y-auto p-4 lg:p-6 scroll-smooth bg-gray-50/50">
         {/* KPI Section (Compact) */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           {/* KPI 1 - Revenue */}
           <div className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -869,7 +843,7 @@ export default function DashboardOrdersPage() {
                 <span className="text-xl font-bold text-gray-900 tabular-nums">{stats.total}</span>
                 <span className="text-xs font-medium text-emerald-600 flex items-center gap-0.5 mt-1">
                   <TrendingUp className="h-3.5 w-3.5" />
-                  {t('dashboard:recentOrders')}
+                  {t('dashboard:allTime')}
                 </span>
               </div>
               <div className="h-8 w-16 opacity-50 group-hover:opacity-100 transition-opacity flex items-end justify-end">
@@ -1025,10 +999,10 @@ export default function DashboardOrdersPage() {
                     backgroundSize: '1.5em 1.5em',
                   }}
                 >
-                  <option value="all">{t('dashboard:status')}: {t('dashboard:allOrders')}</option>
+                  <option value="all">Status: All</option>
                   {statusTabs.slice(1).map((tab) => (
                     <option key={tab.id} value={tab.id}>
-                      {t('dashboard:status')}: {tab.label}
+                      Status: {tab.label}
                     </option>
                   ))}
                 </select>
@@ -1072,10 +1046,11 @@ export default function DashboardOrdersPage() {
                 <button
                   key={tab.id}
                   onClick={() => handleStatusChange(tab.id)}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${statusFilter === tab.id
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    statusFilter === tab.id
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
                 >
                   {tab.label}
                   {tab.count > 0 && (
@@ -1183,10 +1158,11 @@ export default function DashboardOrdersPage() {
                               {formatPrice(order.total)}
                             </span>
                             <span
-                              className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${order.paymentStatus === 'paid'
-                                ? 'bg-emerald-100 text-emerald-700'
-                                : 'bg-orange-100 text-orange-700'
-                                }`}
+                              className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
+                                order.paymentStatus === 'paid'
+                                  ? 'bg-emerald-100 text-emerald-700'
+                                  : 'bg-orange-100 text-orange-700'
+                              }`}
                             >
                               {order.paymentStatus === 'paid'
                                 ? t('dashboard:paid')
@@ -1305,10 +1281,11 @@ export default function DashboardOrdersPage() {
                           </td>
                           <td className="py-3 px-4">
                             <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${order.paymentStatus === 'paid'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : 'bg-orange-50 text-orange-700 border-orange-200'
-                                }`}
+                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
+                                order.paymentStatus === 'paid'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : 'bg-orange-50 text-orange-700 border-orange-200'
+                              }`}
                             >
                               {order.paymentStatus === 'paid'
                                 ? t('dashboard:paid')
@@ -1323,16 +1300,16 @@ export default function DashboardOrdersPage() {
                           </td>
                           <td className="py-3 px-4 min-w-[110px]">
                             {'fraudCache' in order &&
-                              (
-                                order as {
-                                  fraudCache: {
-                                    successRate: number;
-                                    totalOrders: number;
-                                    isHighRisk: boolean;
-                                    cachedAt: string;
-                                  } | null;
-                                }
-                              ).fraudCache ? (
+                            (
+                              order as {
+                                fraudCache: {
+                                  successRate: number;
+                                  totalOrders: number;
+                                  isHighRisk: boolean;
+                                  cachedAt: string;
+                                } | null;
+                              }
+                            ).fraudCache ? (
                               (() => {
                                 const fc = (
                                   order as {
@@ -1365,22 +1342,22 @@ export default function DashboardOrdersPage() {
                                 );
                               })()
                             ) : // No cache yet — show the check button inline
-                              ['pending', 'confirmed'].includes(order.status || '') ? (
-                                <FraudCheckButton
-                                  orderId={order.id}
-                                  currentStatus={order.status || 'pending'}
-                                />
-                              ) : (
-                                <span className="text-[11px] text-gray-300 italic">—</span>
-                              )}
+                            ['pending', 'confirmed'].includes(order.status || '') ? (
+                              <FraudCheckButton
+                                orderId={order.id}
+                                currentStatus={order.status || 'pending'}
+                              />
+                            ) : (
+                              <span className="text-[11px] text-gray-300 italic">—</span>
+                            )}
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
                               {courierProvider &&
-                                order.status === 'confirmed' &&
-                                !['booked', 'in_transit', 'delivered', 'shipped'].includes(
-                                  order.courierStatus || ''
-                                ) ? (
+                              order.status === 'confirmed' &&
+                              !['booked', 'in_transit', 'delivered', 'shipped'].includes(
+                                order.courierStatus || ''
+                              ) ? (
                                 <div className="opacity-60 xl:opacity-100 group-hover:opacity-100 transition-opacity">
                                   <SendToCourierButton
                                     orderId={order.id}
@@ -1455,241 +1432,6 @@ export default function DashboardOrdersPage() {
           </div>
         </div>
       </div>
-
-      {/* ═══════════════════════════════════════════════
-          MOBILE VIEW (below md) — new design
-      ═══════════════════════════════════════════════ */}
-      <div className="flex md:hidden flex-col min-h-screen bg-gray-50 -m-4">
-
-        {/* Sticky Header */}
-        <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 pt-3 pb-0">
-          {/* Top row */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-gray-900">{t('dashboard:orders')}</h1>
-              {stats.pending > 0 && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white">
-                  {stats.pending}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <Link
-                to="/app/returns"
-                className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
-                title={t('dashboard:viewReturnParcels')}
-              >
-                <UndoDot className="h-[18px] w-[18px]" />
-              </Link>
-              <Link
-                to="/app/orders/create"
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-sm font-semibold rounded-full shadow-sm shadow-emerald-500/25 transition-all"
-              >
-                <Plus className="h-4 w-4" />
-                <span>{t('dashboard:createOrder')}</span>
-              </Link>
-            </div>
-          </div>
-
-          {/* Search */}
-          <div className="relative mb-3">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400" />
-            </div>
-            <input
-              role="search"
-              aria-label="Search orders"
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('dashboard:searchByOrderHint')}
-              className="block w-full pl-10 pr-10 py-2.5 bg-gray-100 border-none rounded-full text-sm placeholder-gray-400 text-gray-900 focus:ring-2 focus:ring-emerald-500/20 focus:bg-white transition-all"
-            />
-            {searchQuery && (
-              <button
-                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600"
-                onClick={() => setSearchQuery('')}
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-
-          {/* Status tabs */}
-          <div className="flex gap-2 overflow-x-auto pb-3 no-scrollbar">
-            {statusTabs.map((tab) => {
-              const isActive = statusFilter === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => handleStatusChange(tab.id)}
-                  className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all active:scale-95 ${
-                    isActive
-                      ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-500/25'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  {tab.label}
-                  {tab.count > 0 && (
-                    <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white/25 text-white' : 'bg-gray-100 text-gray-500'}`}>
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </header>
-
-        {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto">
-          {/* KPI Stats Grid */}
-          <div className="px-4 pt-4 pb-2">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">{t('dashboard:totalRevenue')}</p>
-                <p className="text-xl font-bold text-gray-900 tabular-nums leading-none">{formatPrice(stats.revenue)}</p>
-                <p className="text-xs text-emerald-600 font-medium mt-1.5 flex items-center gap-1"><TrendingUp className="h-3 w-3" />{t('dashboard:allTime')}</p>
-              </div>
-              <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">{t('dashboard:totalOrders')}</p>
-                <p className="text-xl font-bold text-gray-900 tabular-nums leading-none">{stats.total}</p>
-                <p className="text-xs font-medium mt-1.5">
-                  {stats.pending > 0 ? (
-                    <span className="text-amber-600 flex items-center gap-1"><AlertTriangle className="h-3 w-3" />{stats.pending} {t('dashboard:pending')}</span>
-                  ) : (
-                    <span className="text-gray-400">{t('dashboard:allTime')}</span>
-                  )}
-                </p>
-              </div>
-              <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100 shadow-sm">
-                <p className="text-[11px] font-semibold text-emerald-600/70 uppercase tracking-wider mb-1.5">{t('dashboard:deliveredOrders')}</p>
-                <p className="text-xl font-bold text-gray-900 tabular-nums leading-none">{stats.delivered}</p>
-                <div className="mt-2 h-1.5 bg-emerald-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: stats.total > 0 ? `${Math.round((stats.delivered / stats.total) * 100)}%` : '0%' }} />
-                </div>
-                <p className="text-[11px] text-emerald-600 font-medium mt-1">{stats.total > 0 ? `${Math.round((stats.delivered / stats.total) * 100)}%` : '0%'}</p>
-              </div>
-              <div className="bg-red-50/60 rounded-2xl p-4 border border-red-100 shadow-sm">
-                <p className="text-[11px] font-semibold text-red-500/70 uppercase tracking-wider mb-1.5">{t('dashboard:cancelledOrders')}</p>
-                <p className="text-xl font-bold text-gray-900 tabular-nums leading-none">{stats.cancelled}</p>
-                <div className="mt-2 h-1.5 bg-red-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-red-400 rounded-full" style={{ width: stats.total > 0 ? `${Math.round((stats.cancelled / stats.total) * 100)}%` : '0%' }} />
-                </div>
-                <p className="text-[11px] text-red-500 font-medium mt-1">{stats.total > 0 ? `${Math.round((stats.cancelled / stats.total) * 100)}%` : '0%'}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Orders List */}
-          <div className="px-4 pt-3 pb-28 space-y-3">
-            {filteredOrders.length > 0 && (
-              <p className="text-xs font-medium text-gray-400 px-1">
-                {filteredOrders.length} {t('dashboard:orders').toLowerCase()}
-                {searchQuery && <span className="ml-1 text-gray-500">— &ldquo;{searchQuery}&rdquo;</span>}
-              </p>
-            )}
-
-            {filteredOrders.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                {searchQuery ? (
-                  <>
-                    <SearchX className="h-14 w-14 text-gray-200 mb-4" />
-                    <p className="text-base font-semibold text-gray-500">{t('dashboard:noOrdersFound')}</p>
-                    <p className="text-sm text-gray-400 mt-1">{t('dashboard:tryDifferentSearch')}</p>
-                    <button onClick={() => setSearchQuery('')} className="mt-4 px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-full transition-colors">
-                      {t('common:clear')}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Package className="h-14 w-14 text-gray-200 mb-4" />
-                    <p className="text-base font-semibold text-gray-500">{t('dashboard:noOrdersYet')}</p>
-                    <p className="text-sm text-gray-400 mt-1">{t('dashboard:ordersWillAppearHere')}</p>
-                    <Link to="/app/orders/create" className="mt-5 flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-full shadow-sm shadow-emerald-500/20 transition-all active:scale-95">
-                      <Plus className="h-4 w-4" />{t('dashboard:createOrder')}
-                    </Link>
-                  </>
-                )}
-              </div>
-            )}
-
-            {filteredOrders.map((order) => {
-              const orderStatus = order.status ?? 'pending';
-              const cfg = statusConfig[orderStatus] ?? { dot: 'bg-gray-400', badge: 'bg-gray-100 text-gray-600 border border-gray-200', label: orderStatus };
-              const isCancelled = orderStatus === 'cancelled';
-              const isPending   = orderStatus === 'pending';
-
-              return (
-                <div key={order.id} className={`bg-white rounded-2xl border shadow-sm transition-all hover:shadow-md ${isCancelled ? 'border-gray-100 opacity-70' : 'border-gray-100'}`}>
-                  {/* Card header */}
-                  <div className="flex items-start justify-between px-4 pt-4 pb-3">
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className={`text-[11px] font-bold tracking-widest uppercase ${isCancelled ? 'text-gray-400' : 'text-emerald-600'}`}>
-                          #{order.orderNumber}
-                        </span>
-                        {isPending && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />}
-                      </div>
-                      <h3 className="text-sm font-bold text-gray-900 truncate">{order.customerName || '—'}</h3>
-                      {order.customerPhone && <p className="text-xs text-gray-400 mt-0.5">{order.customerPhone}</p>}
-                    </div>
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0 ml-2 ${cfg.badge}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-                      {cfg.label}
-                    </span>
-                  </div>
-
-                  <div className="mx-4 h-px bg-gray-50" />
-
-                  {/* Card footer */}
-                  <div className="flex items-center justify-between px-4 py-3">
-                    <div className="flex items-center gap-3 text-gray-400">
-                      <span className="flex items-center gap-1 text-xs">
-                        <Clock className="h-3.5 w-3.5" />{formatDateShort(order.createdAt)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2.5">
-                      <span className={`text-base font-bold tabular-nums ${isCancelled ? 'line-through text-gray-400 decoration-red-400/60' : 'text-gray-900'}`}>
-                        {formatPrice(order.total ?? 0)}
-                      </span>
-                      <Link
-                        to={`/app/orders/${order.id}`}
-                        className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-emerald-50 hover:text-emerald-600 text-gray-500 transition-colors"
-                        aria-label="View order"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Link>
-                    </div>
-                  </div>
-
-                  {/* Quick actions for pending */}
-                  {isPending && (
-                    <div className="px-4 pb-4 pt-2 border-t border-gray-50 flex flex-wrap items-center gap-2">
-                      <StatusDropdown orderId={order.id} currentStatus={orderStatus} />
-                      <CourierBookingButton
-                        orderId={order.id}
-                        orderNumber={order.orderNumber ?? ''}
-                        status={orderStatus}
-                        courierStatus={order.courierStatus}
-                        courierProvider={courierProvider ?? ''}
-                        allCouriers={allCouriers}
-                      />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Bottom nav is provided globally by app.tsx */}
-
-        <style>{`
-          .no-scrollbar::-webkit-scrollbar { display: none; }
-          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        `}</style>
-      </div>
     </div>
   );
 }
@@ -1708,45 +1450,45 @@ function StatusDropdown({ orderId, currentStatus }: { orderId: number; currentSt
     : currentStatus;
 
   const configs: Record<string, { icon: typeof Clock; bg: string; text: string; border: string }> =
-  {
-    pending: {
-      icon: Clock,
-      bg: 'bg-yellow-50',
-      text: 'text-yellow-700',
-      border: 'border-yellow-200',
-    },
-    confirmed: {
-      icon: ThumbsUp,
-      bg: 'bg-cyan-50',
-      text: 'text-cyan-700',
-      border: 'border-cyan-200',
-    },
-    processing: {
-      icon: Package,
-      bg: 'bg-blue-50',
-      text: 'text-blue-700',
-      border: 'border-blue-200',
-    },
-    shipped: {
-      icon: Truck,
-      bg: 'bg-purple-50',
-      text: 'text-purple-700',
-      border: 'border-purple-200',
-    },
-    delivered: {
-      icon: CheckCircle,
-      bg: 'bg-emerald-50',
-      text: 'text-emerald-700',
-      border: 'border-emerald-200',
-    },
-    cancelled: { icon: XCircle, bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
-    returned: {
-      icon: PackageX,
-      bg: 'bg-orange-50',
-      text: 'text-orange-700',
-      border: 'border-orange-200',
-    },
-  };
+    {
+      pending: {
+        icon: Clock,
+        bg: 'bg-yellow-50',
+        text: 'text-yellow-700',
+        border: 'border-yellow-200',
+      },
+      confirmed: {
+        icon: ThumbsUp,
+        bg: 'bg-cyan-50',
+        text: 'text-cyan-700',
+        border: 'border-cyan-200',
+      },
+      processing: {
+        icon: Package,
+        bg: 'bg-blue-50',
+        text: 'text-blue-700',
+        border: 'border-blue-200',
+      },
+      shipped: {
+        icon: Truck,
+        bg: 'bg-purple-50',
+        text: 'text-purple-700',
+        border: 'border-purple-200',
+      },
+      delivered: {
+        icon: CheckCircle,
+        bg: 'bg-emerald-50',
+        text: 'text-emerald-700',
+        border: 'border-emerald-200',
+      },
+      cancelled: { icon: XCircle, bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+      returned: {
+        icon: PackageX,
+        bg: 'bg-orange-50',
+        text: 'text-orange-700',
+        border: 'border-orange-200',
+      },
+    };
 
   const config = configs[displayStatus] || configs.pending;
   const Icon = config.icon;
@@ -1866,36 +1608,6 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
 }
 
 // ============================================================================
-// COURIER BOOKING BUTTON COMPONENT (alias for SendToCourierButton)
-// ============================================================================
-function CourierBookingButton({
-  orderId,
-  orderNumber,
-  status,
-  courierStatus,
-  courierProvider,
-  allCouriers = [],
-}: {
-  orderId: number;
-  orderNumber: string;
-  status: string;
-  courierStatus?: string | null;
-  courierProvider: string;
-  allCouriers?: string[];
-}) {
-  return (
-    <SendToCourierButton
-      orderId={orderId}
-      orderNumber={orderNumber}
-      status={status}
-      courierStatus={courierStatus}
-      courierProvider={courierProvider}
-      allCouriers={allCouriers}
-    />
-  );
-}
-
-// ============================================================================
 // SEND TO COURIER BUTTON COMPONENT
 // ============================================================================
 function SendToCourierButton({
@@ -1995,8 +1707,8 @@ function SendToCourierButton({
         {allCouriers.length > 1
           ? t('dashboard:courierSend')
           : t('dashboard:sendToProvider', {
-            provider: courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1),
-          })}
+              provider: courierProvider.charAt(0).toUpperCase() + courierProvider.slice(1),
+            })}
       </button>
     </fetcher.Form>
   );
