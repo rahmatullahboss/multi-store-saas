@@ -605,8 +605,180 @@ export default function InventoryPage() {
     });
   };
 
+  // Mobile filter tab ids mapped to design labels
+  const mobileFilterTabs = [
+    { id: 'all', label: lang === 'bn' ? 'সব' : 'All' },
+    { id: 'healthy', label: lang === 'bn' ? 'স্টকে আছে' : 'In Stock' },
+    { id: 'low', label: lang === 'bn' ? 'কম স্টক' : 'Low Stock' },
+    { id: 'out', label: lang === 'bn' ? 'স্টক নেই' : 'Out of Stock' },
+  ];
+
   return (
     <div className="space-y-6">
+
+      {/* ══════════════════════════════════════
+          MOBILE LAYOUT (hidden on md+)
+      ══════════════════════════════════════ */}
+      <div className="md:hidden -mx-4 -mt-6">
+
+        {/* Undo banner */}
+        {undoItems.length > 0 && (
+          <div className="px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border-b border-emerald-100 dark:border-emerald-800/30 flex items-center justify-between gap-3">
+            <p className="text-sm text-emerald-800 dark:text-emerald-300 font-medium">{t('stockUpdated')}</p>
+            <Form method="post">
+              <input type="hidden" name="intent" value="undoStock" />
+              <input type="hidden" name="items" value={JSON.stringify(undoItems)} />
+              <button type="submit" className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 underline">
+                {t('inventoryUndo')}
+              </button>
+            </Form>
+          </div>
+        )}
+
+        {/* Scrollable filter pill tabs */}
+        <div className="overflow-x-auto scrollbar-hide px-4 py-4 flex gap-3 snap-x">
+          {mobileFilterTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => handleStatusChange(tab.id)}
+              className={`snap-start shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                statusFilter === tab.id
+                  ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Stats row */}
+        <div className="px-4 mb-4 flex items-center justify-between text-xs text-slate-500 font-medium uppercase tracking-wider">
+          <span>Total SKU: {stats.total}</span>
+          {stats.lowStock > 0 && (
+            <span className="text-orange-500 dark:text-orange-400">Low Stock: {stats.lowStock}</span>
+          )}
+        </div>
+
+        {/* Product cards */}
+        {storeProducts.length === 0 ? (
+          <div className="px-4 py-12 text-center">
+            <Package className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+            <p className="font-medium text-slate-700 dark:text-slate-300">{t('noProductsTitle')}</p>
+            <p className="text-sm text-slate-500 mt-1">{t('noProductsDesc')}</p>
+            <Link to="/app/products/new" className="mt-4 inline-block px-4 py-2 bg-emerald-500 text-white text-sm font-semibold rounded-lg">
+              {t('addProduct')}
+            </Link>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="px-4 py-12 text-center">
+            <p className="text-slate-500">{t('noProductsMatchFilters')}</p>
+            <button
+              onClick={() => { setSearchQuery(''); handleStatusChange('all'); }}
+              className="mt-3 text-emerald-600 font-medium text-sm"
+            >
+              {t('clearFilters')}
+            </button>
+          </div>
+        ) : (
+          <div className="px-4 flex flex-col gap-4">
+            {filteredProducts.map((product) => {
+              const stock = product.inventory || 0;
+              const isOutOfStock = stock <= 0;
+              return (
+                <div
+                  key={product.id}
+                  className={`bg-white dark:bg-slate-800 rounded-xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-700 flex gap-4 ${isOutOfStock ? 'opacity-75' : ''}`}
+                >
+                  {/* Product Image — bg-cover div, exactly like design */}
+                  <div
+                    className={`h-24 w-24 rounded-lg bg-slate-100 flex-shrink-0 bg-cover bg-center border border-slate-100 dark:border-slate-700 ${isOutOfStock ? 'grayscale' : ''}`}
+                    style={product.imageUrl ? { backgroundImage: `url("${product.imageUrl.replace(/"/g, '%22')}")` } : undefined}
+                  >
+                    {!product.imageUrl && (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ImageOff className="w-6 h-6 text-slate-400" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0 flex flex-col justify-between">
+                    <div>
+                      <div className="flex justify-between items-start mb-1">
+                        <Link
+                          to={`/app/products/${product.id}`}
+                          className="font-bold text-slate-900 dark:text-slate-100 truncate pr-2 hover:text-emerald-600 transition-colors"
+                        >
+                          {product.title}
+                        </Link>
+                        <MobileStockBadge stock={stock} threshold={lowStockThreshold} />
+                      </div>
+                      <p className="text-xs text-slate-500 mb-2">
+                        {product.sku ? `SKU: ${product.sku}` : '\u00A0'}
+                      </p>
+                    </div>
+
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <p className="text-xs text-slate-400 mb-0.5">Price</p>
+                        <p className="font-bold text-slate-900 dark:text-slate-100">
+                          {formatPrice(product.price)}
+                        </p>
+                      </div>
+
+                      {/* +/- Stepper — material-symbols-outlined exactly like design */}
+                      <div className="flex items-center bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <Form method="post">
+                          <input type="hidden" name="intent" value="adjustStock" />
+                          <input type="hidden" name="productId" value={product.id} />
+                          <input type="hidden" name="adjustment" value="-1" />
+                          <button
+                            type="submit"
+                            disabled={isSubmitting || stock <= 0}
+                            className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-emerald-500 active:scale-95 transition-transform disabled:opacity-40"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">remove</span>
+                          </button>
+                        </Form>
+                        <span className={`w-8 text-center text-sm font-semibold ${stock <= 0 ? 'text-red-500' : 'text-slate-900 dark:text-slate-100'}`}>
+                          {stock}
+                        </span>
+                        <Form method="post">
+                          <input type="hidden" name="intent" value="adjustStock" />
+                          <input type="hidden" name="productId" value={product.id} />
+                          <input type="hidden" name="adjustment" value="1" />
+                          <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-emerald-500 active:scale-95 transition-transform disabled:opacity-40"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">add</span>
+                          </button>
+                        </Form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* FAB - Add product — material-symbols-outlined exactly like design */}
+        <Link
+          to="/app/products/new"
+          className="fixed bottom-24 right-4 z-40 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full p-4 shadow-lg shadow-emerald-500/40 active:scale-95 transition-all flex items-center justify-center"
+        >
+          <span className="material-symbols-outlined text-[28px]">add</span>
+        </Link>
+
+      </div>
+
+      {/* ══════════════════════════════════════
+          DESKTOP LAYOUT (hidden on mobile)
+      ══════════════════════════════════════ */}
+      <div className="hidden md:block space-y-6">
       {/* Header */}
       <PageHeader
         title={t('inventory')}
@@ -798,61 +970,8 @@ export default function InventoryPage() {
               </Form>
             </div>
           )}
-          {/* ===== MOBILE CARD VIEW ===== */}
-          <div className="md:hidden divide-y divide-gray-100">
-            {filteredProducts.map((product) => {
-              const stock = product.inventory || 0;
-              const stockLevel = getStockLevel(stock);
-              const stockColor = getStockColor(stock);
-              return (
-                <div key={product.id} className="px-4 py-3.5 flex items-center gap-3">
-                  {product.imageUrl ? (
-                    <img src={product.imageUrl} alt={product.title} className="w-12 h-12 object-cover rounded-lg border border-gray-200 flex-shrink-0" />
-                  ) : (
-                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <ImageOff className="w-5 h-5 text-gray-400" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <Link to={`/app/products/${product.id}`} className="font-medium text-gray-900 text-sm truncate block hover:text-emerald-600">
-                      {product.title}
-                    </Link>
-                    <p className="text-xs text-gray-500 mt-0.5">{formatPrice(product.price)}</p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div className={`h-full ${stockColor} transition-all duration-300`} style={{ width: `${stockLevel}%` }} />
-                      </div>
-                      <StockStatusBadge stock={stock} threshold={lowStockThreshold} />
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                    <span className="font-bold text-gray-900 text-sm tabular-nums">{stock}</span>
-                    <div className="flex gap-1">
-                      <Form method="post">
-                        <input type="hidden" name="intent" value="adjustStock" />
-                        <input type="hidden" name="productId" value={product.id} />
-                        <input type="hidden" name="adjustment" value="-1" />
-                        <button type="submit" disabled={isSubmitting || stock <= 0} aria-label={t('decreaseStock')} className="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 active:bg-gray-200">
-                          <Minus className="w-4 h-4" />
-                        </button>
-                      </Form>
-                      <Form method="post">
-                        <input type="hidden" name="intent" value="adjustStock" />
-                        <input type="hidden" name="productId" value={product.id} />
-                        <input type="hidden" name="adjustment" value="1" />
-                        <button type="submit" disabled={isSubmitting} aria-label={t('increaseStock')} className="w-8 h-8 flex items-center justify-center bg-emerald-100 text-emerald-700 rounded-lg disabled:opacity-50 active:bg-emerald-200">
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </Form>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
           {/* ===== DESKTOP TABLE VIEW ===== */}
-          <div className="hidden md:block overflow-x-auto">
+          <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50/50 border-b border-gray-100">
                 <tr>
@@ -1030,8 +1149,10 @@ export default function InventoryPage() {
         </GlassCard>
       )}
 
+      </div>{/* end desktop wrapper */}
+
       {/* Recent Stock Changes */}
-      <GlassCard intensity="low" className="p-4">
+      <GlassCard intensity="low" className="p-4 hidden md:block">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-semibold text-gray-900">{t('stockHistoryTitle')}</h3>
@@ -1077,6 +1198,32 @@ export default function InventoryPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// ============================================================================
+// MOBILE STOCK BADGE COMPONENT (pill style matching design)
+// ============================================================================
+function MobileStockBadge({ stock, threshold }: { stock: number; threshold: number }) {
+  const { t } = useTranslation();
+  if (stock <= 0) {
+    return (
+      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 whitespace-nowrap">
+        {t('outOfStockLabel')}
+      </span>
+    );
+  }
+  if (stock <= threshold) {
+    return (
+      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 whitespace-nowrap">
+        {t('lowStock')}
+      </span>
+    );
+  }
+  return (
+    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 whitespace-nowrap">
+      {t('inStock')}
+    </span>
   );
 }
 

@@ -310,7 +310,7 @@ export default function BillingPage() {
 
   return (
     <div className="space-y-8">
-      {/* Success Message */}
+      {/* ── Success / Error banners (shared mobile + desktop) ── */}
       {success && (
         <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
           <p className="text-green-800 font-semibold">🎉 {lang === 'bn' ? 'প্ল্যান সফলভাবে আপগ্রেড হয়েছে!' : 'Plan Upgraded Successfully!'}</p>
@@ -319,20 +319,495 @@ export default function BillingPage() {
           </p>
         </div>
       )}
-      
-      {/* Error Message */}
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
           <p className="text-red-800 font-semibold">{lang === 'bn' ? 'পেমেন্ট ব্যর্থ' : 'Payment Failed'}</p>
           <p className="text-red-700 text-sm mt-1">
-            {error === 'payment_cancelled' && (lang === 'bn' ? 'পেমেন্ট বাতিল করা হয়েছে। আবার চেষ্টা করুন।' : 'Payment was cancelled. Please try again.')}
-            {error === 'payment_failed' && (lang === 'bn' ? 'পেমেন্ট ব্যর্থ হয়েছে। আবার চেষ্টা করুন।' : 'Payment failed. Please try again or use a different method.')}
-            {error === 'payment_incomplete' && (lang === 'bn' ? 'পেমেন্ট সম্পন্ন হয়নি। আবার চেষ্টা করুন।' : 'Payment could not be completed. Please try again.')}
-            {error === 'execution_failed' && (lang === 'bn' ? 'পেমেন্ট প্রসেস করতে সমস্যা হয়েছে। সাপোর্টে যোগাযোগ করুন।' : 'There was an error processing your payment. Please contact support.')}
+            {error === 'payment_cancelled' && (lang === 'bn' ? 'পেমেন্ট বাতিল করা হয়েছে।' : 'Payment was cancelled. Please try again.')}
+            {error === 'payment_failed' && (lang === 'bn' ? 'পেমেন্ট ব্যর্থ হয়েছে।' : 'Payment failed. Please try again.')}
+            {error === 'payment_incomplete' && (lang === 'bn' ? 'পেমেন্ট সম্পন্ন হয়নি।' : 'Payment could not be completed.')}
+            {error === 'execution_failed' && (lang === 'bn' ? 'সাপোর্টে যোগাযোগ করুন।' : 'Please contact support.')}
           </p>
         </div>
       )}
-      
+
+      {/* ══════════════════════════════════════════
+          MOBILE LAYOUT  (hidden on md+)
+      ══════════════════════════════════════════ */}
+      <div className="md:hidden">
+
+        {/* 1. Hero current plan card */}
+        <div className="mb-6">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 text-white rounded-2xl p-6 shadow-lg shadow-slate-200 dark:shadow-none relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+            <div className="flex justify-between items-start relative z-10 mb-4">
+              <div>
+                <span className={`inline-flex items-center gap-1.5 border px-2.5 py-0.5 rounded-full text-xs font-semibold mb-2 ${
+                  subscriptionStatus === 'active'
+                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20'
+                    : subscriptionStatus === 'past_due'
+                    ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/20'
+                    : 'bg-red-500/20 text-red-400 border-red-500/20'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${
+                    subscriptionStatus === 'active' ? 'bg-emerald-400 animate-pulse'
+                    : subscriptionStatus === 'past_due' ? 'bg-yellow-400'
+                    : 'bg-red-400'
+                  }`} />
+                  {subscriptionStatus === 'active' ? t('planStatusActive') : subscriptionStatus === 'past_due' ? t('planStatusPastDue') : t('planStatusCanceled')}
+                </span>
+                <h2 className="text-2xl font-bold">
+                  {lang === 'bn' ? currentPlan.nameBn : currentPlan.name} {t('plan')}
+                </h2>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-emerald-400">{getDisplayPrice(currentPlan)}</p>
+                <p className="text-xs text-slate-400">{currentPlan.period}</p>
+              </div>
+            </div>
+            <div className="space-y-4 relative z-10">
+              <div>
+                <div className="flex justify-between text-xs font-medium mb-1.5 text-slate-300">
+                  <span>{t('monthlyOrders')}</span>
+                  <span>{usage.orders.current} / {usage.orders.limit === Infinity ? '∞' : usage.orders.limit}</span>
+                </div>
+                <div className="h-2 w-full bg-slate-700/50 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${usage.orders.percentage >= 90 ? 'bg-red-500' : usage.orders.percentage >= 70 ? 'bg-yellow-500' : 'bg-emerald-500'}`}
+                    style={{ width: `${Math.min(usage.orders.percentage, 100)}%` }}
+                  />
+                </div>
+                <p className="text-[10px] text-slate-500 mt-1">{t('resetsOn1st')}</p>
+              </div>
+              <div>
+                <div className="flex justify-between text-xs font-medium mb-1.5 text-slate-300">
+                  <span>{t('activeProducts')}</span>
+                  <span>{usage.products.current} / {usage.products.limit === Infinity ? '∞' : usage.products.limit}</span>
+                </div>
+                <div className="h-2 w-full bg-slate-700/50 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${usage.products.percentage >= 90 ? 'bg-red-500' : usage.products.percentage >= 70 ? 'bg-yellow-500' : 'bg-blue-500'}`}
+                    style={{ width: `${Math.min(usage.products.percentage, 100)}%` }}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-between items-center py-1 border-t border-slate-700/50 pt-3 mt-1">
+                <span className="text-xs font-medium text-slate-300">{t('monthlyVisitors')}</span>
+                <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
+                  {usage.visitors.limit === Infinity ? t('unlimited') : `${usage.visitors.current} / ${usage.visitors.limit}`}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. AI Credits card */}
+        <div className="mb-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 p-4 shadow-sm flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 p-2.5 rounded-lg">
+              <Bot className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100">{t('aiCredits')}</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {lang === 'bn' ? 'AI ক্রেডিট ম্যানেজ করুন' : 'Manage your AI credits'}
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/app/credits"
+            className="text-xs font-semibold bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/20 dark:hover:bg-purple-900/40 text-purple-700 dark:text-purple-300 px-3 py-2 rounded-lg transition-colors text-center leading-tight"
+          >
+            {lang === 'bn' ? <>ক্রেডিট<br/>ম্যানেজ করুন</> : <>{t('manageCredits')}</>}
+          </Link>
+        </div>
+
+        {/* 3. Upgrade CTA (free plan only) */}
+        {planType === 'free' && (
+          <div className="mb-8 relative overflow-hidden rounded-xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/30 p-5 text-center">
+            <div className="absolute top-0 right-0 p-12 bg-emerald-200/20 rounded-full blur-2xl -mr-6 -mt-6 pointer-events-none" />
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
+              {lang === 'bn' ? 'আরও বড় কিছুর জন্য প্রস্তুত?' : 'Ready for something bigger?'}
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+              {lang === 'bn' ? 'প্রিমিয়াম ফিচার আনলক করুন এবং সীমা সরান।' : 'Unlock premium features and remove limits.'}
+            </p>
+            <Link
+              to="/app/upgrade"
+              className="block w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-emerald-200 dark:shadow-none transition-all active:scale-[0.98]"
+            >
+              {lang === 'bn' ? 'এখনই আপগ্রেড করুন' : 'Upgrade Now'}
+            </Link>
+          </div>
+        )}
+
+        {/* 4. Billing period toggle */}
+        <div className="flex justify-center mb-6">
+          <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-lg flex items-center">
+            <button
+              onClick={() => setBillingPeriod('monthly')}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                billingPeriod === 'monthly'
+                  ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm font-bold'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              {lang === 'bn' ? 'মাসিক' : 'Monthly'}
+            </button>
+            <button
+              onClick={() => setBillingPeriod('annual')}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1 ${
+                billingPeriod === 'annual'
+                  ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm font-bold'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              {lang === 'bn' ? 'বার্ষিক' : 'Yearly'}
+              <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 px-1.5 py-0.5 rounded-full">-20%</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 5. Plan cards */}
+        <div className="space-y-4">
+          <h3 className="font-bold text-base px-1">{lang === 'bn' ? 'উপলব্ধ প্ল্যান' : 'Available Plans'}</h3>
+
+          {(Object.entries(PLAN_DISPLAY) as [PlanType, typeof PLAN_DISPLAY['free']][]).map(([key, plan]) => {
+            const isCurrentPlan = key === planType;
+            const isStarter = key === 'starter';
+            const isPopular = !!(plan as { popular?: boolean }).popular;
+            return (
+              <div
+                key={key}
+                className={`relative bg-white dark:bg-slate-800 rounded-xl p-5 ${
+                  isStarter
+                    ? 'border-2 border-emerald-500 shadow-lg shadow-emerald-50 dark:shadow-none'
+                    : 'border border-slate-200 dark:border-slate-700'
+                } ${isCurrentPlan ? 'opacity-75' : ''}`}
+              >
+                {isPopular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                      {lang === 'bn' ? 'সবচেয়ে জনপ্রিয়' : 'Most Popular'}
+                    </span>
+                  </div>
+                )}
+                <div className={`flex justify-between items-start mb-4 ${isPopular ? 'mt-2' : ''}`}>
+                  <div>
+                    <h4 className={`font-bold text-lg ${isStarter ? 'text-emerald-500' : 'text-slate-900 dark:text-slate-100'}`}>
+                      {lang === 'bn' ? plan.nameBn : plan.name}
+                    </h4>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      {lang === 'bn' ? plan.descriptionBn : plan.description}
+                    </p>
+                  </div>
+                  <span className="text-2xl font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap">
+                    {getDisplayPrice(plan)}<span className="text-sm font-normal text-slate-500">/mo</span>
+                  </span>
+                </div>
+                <ul className="space-y-2 mb-5">
+                  {plan.features.filter((f) => f.included).map((feature, i) => (
+                    <li key={i} className={`flex items-center gap-2 text-sm ${isStarter ? 'text-slate-700 dark:text-slate-200' : 'text-slate-600 dark:text-slate-300'}`}>
+                      <span className={`material-symbols-outlined text-[18px] ${isStarter ? 'text-emerald-500' : 'text-slate-400'}`}>check_circle</span>
+                      {lang === 'bn' ? feature.text : feature.textEn}
+                    </li>
+                  ))}
+                </ul>
+                {isCurrentPlan ? (
+                  <button disabled className="w-full py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-semibold text-slate-500">
+                    {lang === 'bn' ? 'বর্তমান প্ল্যান' : 'Current Plan'}
+                  </button>
+                ) : (
+                  <Link
+                    to={`/app/upgrade?plan=${key}&billing=${billingPeriod}`}
+                    className={`block w-full py-2.5 text-center rounded-lg text-sm font-semibold transition-colors ${
+                      isStarter
+                        ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                        : 'border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100'
+                    }`}
+                  >
+                    {lang === 'bn' ? `${plan.nameBn} বেছে নিন` : `Choose ${plan.name}`}
+                  </Link>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Business card */}
+          <div className="bg-gradient-to-r from-slate-800 to-slate-900 dark:from-slate-700 dark:to-slate-800 text-white rounded-xl p-5 relative overflow-hidden">
+            <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-l from-white/5 to-transparent pointer-events-none" />
+            <div className="flex justify-between items-start mb-4 relative z-10">
+              <div>
+                <h4 className="font-bold text-lg text-white">{lang === 'bn' ? 'বিজনেস' : 'Business'}</h4>
+                <p className="text-sm text-slate-300">{lang === 'bn' ? 'এন্টারপ্রাইজ গ্রেড শক্তি' : 'Enterprise grade power'}</p>
+              </div>
+            </div>
+            <p className="text-2xl font-bold mb-4">{lang === 'bn' ? 'কাস্টম সমাধান' : 'Custom Solution'}</p>
+            <ul className="space-y-2 mb-6">
+              <li className="flex items-center gap-2 text-sm text-slate-300">
+                <span className="material-symbols-outlined text-[18px] text-emerald-400">check_circle</span>
+                {lang === 'bn' ? 'সব কিছু আনলিমিটেড' : 'Unlimited Everything'}
+              </li>
+              <li className="flex items-center gap-2 text-sm text-slate-300">
+                <span className="material-symbols-outlined text-[18px] text-emerald-400">check_circle</span>
+                {lang === 'bn' ? 'ডেডিকেটেড অ্যাকাউন্ট ম্যানেজার' : 'Dedicated Account Manager'}
+              </li>
+            </ul>
+            <Link
+              to="/contact"
+              className="block w-full py-2.5 text-center bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white rounded-lg text-sm font-semibold transition-colors"
+            >
+              {lang === 'bn' ? 'যোগাযোগ করুন' : 'Contact Us'}
+            </Link>
+          </div>
+        </div>
+
+        {/* 6. Support link */}
+        <div className="mt-8 mb-4 text-center">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
+            {lang === 'bn' ? 'প্ল্যান বেছে নিতে সাহায্য দরকার?' : 'Need help choosing a plan?'}
+          </p>
+          <Link
+            to="/contact"
+            className="inline-flex items-center justify-center gap-2 mx-auto text-emerald-500 font-semibold text-sm hover:underline"
+          >
+            <span className="material-symbols-outlined text-[20px]">support_agent</span>
+            {lang === 'bn' ? 'সাপোর্ট টিমে যোগাযোগ করুন' : 'Contact Support Team'}
+          </Link>
+        </div>
+
+      </div>{/* end md:hidden */}
+
+      {/* REPLACED BELOW — old mobile section removed */}
+      {false && <div className="md:hidden space-y-4">
+        {/* Current Plan hero card */}
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 text-white rounded-2xl p-6 shadow-lg shadow-slate-200 dark:shadow-none relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+          <div className="flex justify-between items-start relative z-10 mb-4">
+            <div>
+              <span className={`inline-flex items-center gap-1.5 border px-2.5 py-0.5 rounded-full text-xs font-semibold mb-2 ${
+                subscriptionStatus === 'active'
+                  ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20'
+                  : subscriptionStatus === 'past_due'
+                  ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/20'
+                  : 'bg-red-500/20 text-red-400 border-red-500/20'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${
+                  subscriptionStatus === 'active' ? 'bg-emerald-400 animate-pulse'
+                  : subscriptionStatus === 'past_due' ? 'bg-yellow-400'
+                  : 'bg-red-400'
+                }`} />
+                {subscriptionStatus === 'active' ? t('planStatusActive') : subscriptionStatus === 'past_due' ? t('planStatusPastDue') : t('planStatusCanceled')}
+              </span>
+              <h2 className="text-2xl font-bold">
+                {lang === 'bn' ? currentPlan.nameBn : currentPlan.name} {t('plan')}
+              </h2>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-bold text-emerald-400">{getDisplayPrice(currentPlan)}</p>
+              <p className="text-xs text-slate-400">{currentPlan.period}</p>
+            </div>
+          </div>
+          {/* Usage bars */}
+          <div className="space-y-4 relative z-10">
+            <div>
+              <div className="flex justify-between text-xs font-medium mb-1.5 text-slate-300">
+                <span>{t('monthlyOrders')}</span>
+                <span>{usage.orders.current} / {usage.orders.limit === Infinity ? '∞' : usage.orders.limit}</span>
+              </div>
+              <div className="h-2 w-full bg-slate-700/50 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${usage.orders.percentage >= 90 ? 'bg-red-500' : usage.orders.percentage >= 70 ? 'bg-yellow-500' : 'bg-emerald-500'}`}
+                  style={{ width: `${Math.min(usage.orders.percentage, 100)}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-slate-500 mt-1">{t('resetsOn1st')}</p>
+            </div>
+            <div>
+              <div className="flex justify-between text-xs font-medium mb-1.5 text-slate-300">
+                <span>{t('activeProducts')}</span>
+                <span>{usage.products.current} / {usage.products.limit === Infinity ? '∞' : usage.products.limit}</span>
+              </div>
+              <div className="h-2 w-full bg-slate-700/50 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${usage.products.percentage >= 90 ? 'bg-red-500' : usage.products.percentage >= 70 ? 'bg-yellow-500' : 'bg-blue-500'}`}
+                  style={{ width: `${Math.min(usage.products.percentage, 100)}%` }}
+                />
+              </div>
+            </div>
+            <div className="flex justify-between items-center border-t border-slate-700/50 pt-3">
+              <span className="text-xs font-medium text-slate-300">{t('monthlyVisitors')}</span>
+              <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
+                {usage.visitors.limit === Infinity ? t('unlimited') : `${usage.visitors.current} / ${usage.visitors.limit}`}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* AI Credits card */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 p-4 shadow-sm flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 p-2.5 rounded-lg">
+              <Bot className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100">{t('aiCredits')}</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {lang === 'bn' ? 'AI ব্যবহার করতে ক্রেডিট কিনুন' : 'Purchase credits to use AI features'}
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/app/credits"
+            className="text-xs font-semibold bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/20 dark:hover:bg-purple-900/40 text-purple-700 dark:text-purple-300 px-3 py-2 rounded-lg transition-colors text-center"
+          >
+            {t('manageCredits')}
+          </Link>
+        </div>
+
+        {/* Upgrade CTA (free plan only) */}
+        {planType === 'free' && (
+          <div className="relative overflow-hidden rounded-xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/30 p-5 text-center">
+            <div className="absolute top-0 right-0 p-12 bg-emerald-200/20 rounded-full blur-2xl -mr-6 -mt-6 pointer-events-none" />
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{t('readyToGrow')}</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{t('upgradeToStarterDesc')}</p>
+            <Link
+              to="/app/upgrade"
+              className="block w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-emerald-200 dark:shadow-none transition-all active:scale-[0.98]"
+            >
+              {t('upgradeNow')}
+            </Link>
+          </div>
+        )}
+
+        {/* Billing period toggle */}
+        <div className="flex justify-center">
+          <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-lg flex items-center">
+            <button
+              onClick={() => setBillingPeriod('monthly')}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${billingPeriod === 'monthly' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}
+            >
+              {lang === 'bn' ? 'মাসিক' : 'Monthly'}
+            </button>
+            <button
+              onClick={() => setBillingPeriod('annual')}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1 ${billingPeriod === 'annual' ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}
+            >
+              {lang === 'bn' ? 'বার্ষিক' : 'Yearly'}
+              <span className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 px-1.5 py-0.5 rounded-full">-20%</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Plan cards */}
+        <h3 className="font-bold text-base px-1">{lang === 'bn' ? 'উপলব্ধ প্ল্যান' : 'Available Plans'}</h3>
+        <div className="space-y-4">
+          {(Object.entries(PLAN_DISPLAY) as [PlanType, typeof PLAN_DISPLAY['free']][]).map(([key, plan]) => {
+            const isCurrentPlan = key === planType;
+            const isStarter = key === 'starter';
+            const isPopular = !!(plan as { popular?: boolean }).popular;
+            return (
+              <div
+                key={key}
+                className={`relative bg-white dark:bg-slate-800 rounded-xl p-5 ${
+                  isStarter
+                    ? 'border-2 border-emerald-500 shadow-lg shadow-emerald-50 dark:shadow-none'
+                    : 'border border-slate-200 dark:border-slate-700'
+                } ${isCurrentPlan ? 'opacity-75' : ''}`}
+              >
+                {isPopular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                      {lang === 'bn' ? 'সবচেয়ে জনপ্রিয়' : 'Most Popular'}
+                    </span>
+                  </div>
+                )}
+                <div className={`flex justify-between items-start mb-4 ${isPopular ? 'mt-2' : ''}`}>
+                  <div>
+                    <h4 className={`font-bold text-lg ${isStarter ? 'text-emerald-500' : 'text-slate-900 dark:text-slate-100'}`}>
+                      {lang === 'bn' ? plan.nameBn : plan.name}
+                    </h4>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{lang === 'bn' ? plan.descriptionBn : plan.description}</p>
+                  </div>
+                  <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                    {getDisplayPrice(plan)}
+                    <span className="text-sm font-normal text-slate-500">/mo</span>
+                  </span>
+                </div>
+                <ul className="space-y-2 mb-5">
+                  {plan.features.filter((f) => f.included).map((feature, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+                      <Check className={`w-4 h-4 flex-shrink-0 ${isStarter ? 'text-emerald-500' : 'text-slate-400'}`} />
+                      {lang === 'bn' ? feature.text : feature.textEn}
+                    </li>
+                  ))}
+                </ul>
+                {isCurrentPlan ? (
+                  <button disabled className="w-full py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-semibold text-slate-400 cursor-default">
+                    {lang === 'bn' ? 'বর্তমান প্ল্যান' : 'Current Plan'}
+                  </button>
+                ) : (
+                  <Link
+                    to={`/app/upgrade?plan=${key}&billing=${billingPeriod}`}
+                    className={`block w-full py-2.5 text-center rounded-lg text-sm font-semibold transition-colors ${
+                      isStarter
+                        ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                        : 'border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100'
+                    }`}
+                  >
+                    {t('upgradeTo')} {lang === 'bn' ? plan.nameBn : plan.name}
+                  </Link>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Business / Enterprise card */}
+          <div className="bg-gradient-to-r from-slate-800 to-slate-900 dark:from-slate-700 dark:to-slate-800 text-white rounded-xl p-5 relative overflow-hidden">
+            <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-l from-white/5 to-transparent pointer-events-none" />
+            <div className="flex justify-between items-start mb-2 relative z-10">
+              <div>
+                <h4 className="font-bold text-lg text-white">{t('businessPlan')}</h4>
+                <p className="text-sm text-slate-300">{t('customSolutionForLarge')}</p>
+              </div>
+            </div>
+            <p className="text-2xl font-bold mb-4">{lang === 'bn' ? 'কাস্টম সমাধান' : 'Custom Solution'}</p>
+            <ul className="space-y-2 mb-5">
+              {[t('unlimitedProducts'), t('unlimitedOrders'), t('unlimitedVisitors'), t('dedicatedSupport')].map((f, i) => (
+                <li key={i} className="flex items-center gap-2 text-sm text-slate-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <Link
+              to="/contact"
+              className="block w-full py-2.5 text-center bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg text-sm font-semibold transition-colors"
+            >
+              {t('contactUs')}
+            </Link>
+          </div>
+        </div>
+
+        {/* Support link */}
+        <div className="mt-8 mb-4 text-center">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">{t('needHelp')}</p>
+          <Link
+            to="/contact"
+            className="inline-flex items-center justify-center gap-2 mx-auto text-emerald-600 dark:text-emerald-400 font-semibold text-sm hover:underline"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 1C5.925 1 1 5.925 1 12c0 2.09.549 4.049 1.508 5.742L1.07 21.908a1 1 0 0 0 1.022 1.022l4.166-1.438A10.96 10.96 0 0 0 12 23c6.075 0 11-4.925 11-11S18.075 1 12 1Zm0 5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Zm0 14.5a8.46 8.46 0 0 1-4.953-1.59A6.003 6.003 0 0 1 12 16a6.003 6.003 0 0 1 4.953 2.91A8.46 8.46 0 0 1 12 20.5Z"/>
+            </svg>
+            {t('billingSupportContact')}
+          </Link>
+        </div>
+      </div>}{/* end {false && ...} — old mobile section */}
+
+      {/* ══════════════════════════════════════════
+          DESKTOP LAYOUT  (hidden on mobile)
+      ══════════════════════════════════════════ */}
+      <div className="hidden md:block space-y-8">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">{t('billing')}</h1>
@@ -692,6 +1167,7 @@ export default function BillingPage() {
           {t('billingSupportContact')}
         </p>
       </div>
+      </div>{/* end desktop wrapper */}
     </div>
   );
 }
