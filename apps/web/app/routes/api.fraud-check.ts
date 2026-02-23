@@ -23,7 +23,7 @@ import {
   normalizePhone,
   addToBlacklist,
   removeFromBlacklist,
-  isBlacklisted,
+  fetchExternalFraudData,
 } from '~/services/fraud-engine.server';
 
 // ============================================================================
@@ -38,6 +38,19 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const type = url.searchParams.get('type');
   const db = drizzle(context.cloudflare.env.DB);
+
+  // External lookup — proxy to fraudchecker.link
+  if (type === 'lookup') {
+    const phone = url.searchParams.get('phone');
+    if (!phone) {
+      return json({ error: 'Phone number is required' }, { status: 400 });
+    }
+    const data = await fetchExternalFraudData(phone);
+    if (!data) {
+      return json({ error: 'No data found for this number' }, { status: 404 });
+    }
+    return json({ data });
+  }
 
   // Get blacklist
   if (type === 'blacklist') {

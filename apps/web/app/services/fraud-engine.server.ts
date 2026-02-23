@@ -15,7 +15,7 @@
  */
 
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
-import { eq, and, gte, sql, or, isNull } from 'drizzle-orm';
+import { eq, and, or, isNull } from 'drizzle-orm';
 
 // ============================================================================
 // TYPES
@@ -58,6 +58,67 @@ export interface RiskCheckParams {
   shippingAddress?: string; // JSON string or raw address
   isOTPVerified?: boolean;
   db: DrizzleD1Database<any>;
+  skipExternalCheck?: boolean; // Skip external API call (for speed)
+}
+
+// ============================================================================
+// EXTERNAL FRAUD CHECKER (fraudchecker.link)
+// ============================================================================
+
+export interface ExternalCourierData {
+  name: string;
+  orders: number;
+  delivered: number;
+  cancelled: number;
+  delivery_rate: string;
+}
+
+export interface ExternalFraudData {
+  phoneNumber: string;
+  totalOrders: number;
+  totalDelivered: number;
+  totalCancelled: number;
+  deliveryRate: number;
+  riskLevel: 'excellent' | 'good' | 'moderate' | 'high' | 'critical';
+  riskMessage: string;
+  riskColor: string;
+  couriers: ExternalCourierData[];
+}
+
+/**
+ * Fetch external fraud data from fraudchecker.link
+ * Uses Bangladesh courier data (Steadfast, Pathao, RedX)
+ */
+export async function fetchExternalFraudData(
+  phone: string
+): Promise<ExternalFraudData | null> {
+  const normalized = normalizePhone(phone);
+  const url = `https://fraudchecker.link/free-fraud-checker-bd/api/search.php?phone=${normalized}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Referer: 'https://fraudchecker.link/free-fraud-checker-bd/',
+        'User-Agent':
+          'Mozilla/5.0 (compatible; FraudChecker/1.0)',
+      },
+      // 5 second timeout
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!response.ok) return null;
+
+    const result = await response.json() as { success: boolean; data: ExternalFraudData };
+    if (!result.success || !result.data) return null;
+
+    return result.data;
+  } catch (error) {
+    // Don't fail fraud check if external API is down
+    console.warn('[FRAUD] External fraud check failed:', error);
+    return null;
+  }
 }
 
 // ============================================================================
@@ -153,8 +214,8 @@ export async function isBlacklisted(
 export async function calculateRiskScore(
   params: RiskCheckParams
 ): Promise<RiskAssessment> {
-  const { phone, storeId, orderTotal, paymentMethod, shippingAddress, isOTPVerified, db } = params;
-  const { orders, customers } = await import('@db/schema');
+  const { phone, storeId, orderTotal, paymentMethod, shippingAddress, isOTPVerified, db, skipExternalCheck } = params;
+  const { orders } = await import('@db/schema');
 
   const normalizedPhone = normalizePhone(phone);
   const signals: RiskSignal[] = [];
@@ -345,6 +406,54 @@ export async function calculateRiskScore(
         description: 'Shipping address is very short/vague',
         descriptionBn: 'ঠিকানা খুব ছোট/অস্পষ্ট',
       });
+    }
+  }
+
+  // ============================
+  // SIGNAL 8: External courier data (fraudchecker.link)
+  // ============================
+  if (!skipExternalCheck) {
+    const externalData = await fetchExternalFraudData(normalizedPhone);
+
+    if (externalData && externalData.totalOrders >= 3) {
+      const { deliveryRate, riskLevel, totalOrders, totalDelivered } = externalData;
+
+      if (riskLevel === 'critical' || deliveryRate < 20) {
+        signals.push({
+          name: 'external_critical_risk',
+          score: 40,
+          description: `External data: Critical risk — ${deliveryRate.toFixed(1)}% delivery rate (${totalDelivered}/${totalOrders} delivered)`,
+          descriptionBn: `বাইরের ডেটা: অতি উচ্চ ঝুঁকি — ${deliveryRate.toFixed(1)}% ডেলিভারি রেট (${totalDelivered}/${totalOrders})`,
+        });
+      } else if (riskLevel === 'high' || deliveryRate < 40) {
+        signals.push({
+          name: 'external_high_risk',
+          score: 25,
+          description: `External data: High risk — ${deliveryRate.toFixed(1)}% delivery rate (${totalDelivered}/${totalOrders} delivered)`,
+          descriptionBn: `বাইরের ডেটা: উচ্চ ঝুঁকি — ${deliveryRate.toFixed(1)}% ডেলিভারি রেট (${totalDelivered}/${totalOrders})`,
+        });
+      } else if (riskLevel === 'moderate' || deliveryRate < 60) {
+        signals.push({
+          name: 'external_moderate_risk',
+          score: 12,
+          description: `External data: Moderate risk — ${deliveryRate.toFixed(1)}% delivery rate (${totalDelivered}/${totalOrders} delivered)`,
+          descriptionBn: `বাইরের ডেটা: মাঝারি ঝুঁকি — ${deliveryRate.toFixed(1)}% ডেলিভারি রেট (${totalDelivered}/${totalOrders})`,
+        });
+      } else if (riskLevel === 'excellent' || deliveryRate >= 80) {
+        signals.push({
+          name: 'external_excellent',
+          score: -20,
+          description: `External data: Excellent customer — ${deliveryRate.toFixed(1)}% delivery rate across ${totalOrders} orders`,
+          descriptionBn: `বাইরের ডেটা: চমৎকার কাস্টমার — ${deliveryRate.toFixed(1)}% ডেলিভারি রেট (${totalOrders}টি অর্ডার)`,
+        });
+      } else if (riskLevel === 'good' || deliveryRate >= 65) {
+        signals.push({
+          name: 'external_good',
+          score: -10,
+          description: `External data: Good customer — ${deliveryRate.toFixed(1)}% delivery rate`,
+          descriptionBn: `বাইরের ডেটা: ভালো কাস্টমার — ${deliveryRate.toFixed(1)}% ডেলিভারি রেট`,
+        });
+      }
     }
   }
 

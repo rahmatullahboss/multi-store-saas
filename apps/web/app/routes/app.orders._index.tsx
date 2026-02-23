@@ -422,7 +422,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   // ========================================================================
-  // FRAUD_CHECK - Check customer fraud risk and auto-confirm if low risk
+  // FRAUD_CHECK - Check customer fraud risk via fraudchecker.link (Pathao + Steadfast + RedX)
   // ========================================================================
   if (intent === 'FRAUD_CHECK') {
     if (!orderId) {
@@ -446,148 +446,70 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
       const order = orderResult[0];
-
-      let isHighRisk = false;
-      let riskScore = 0;
-      let successRate = 100;
-      let totalOrders = 0;
-      let deliveredOrders = 0;
-      let returnedOrders = 0;
-      let externalCheckSuccess = false;
-
-      // Import clients
-      const { createSteadfastClient } = await import('~/services/steadfast.server');
-
-      // ==============================================================
-      // KV CACHE: Check if we have a recent Steadfast result for this phone
-      // ==============================================================
       const phoneForCheck = order.customerPhone || '';
-      const fraudCacheKey = `fraud_steadfast_${storeId}_${phoneForCheck}`;
-      const kv = context.cloudflare.env.STORE_CACHE;
 
+      if (!phoneForCheck) {
+        return json({ error: 'No phone number on this order' }, { status: 400 });
+      }
+
+      const fraudCacheKey = `fraud_fc_${storeId}_${phoneForCheck}`;
+      const kv = context.cloudflare.env.STORE_CACHE;
       const forceRefresh = formData.get('forceRefresh') === 'true';
 
-      if (kv && phoneForCheck && !forceRefresh) {
+      // ── KV Cache read ──
+      if (kv && !forceRefresh) {
         try {
-          const cachedResult = (await kv.get(fraudCacheKey, 'json')) as {
-            successRate: number;
-            totalOrders: number;
-            deliveredOrders: number;
-            returnedOrders: number;
-            isHighRisk: boolean;
-            riskScore: number;
-            source: string;
-            cachedAt: string;
-          } | null;
-
-          if (cachedResult) {
-            console.log(
-              `[FRAUD CHECK] Returning KV cached result for ${phoneForCheck} (cached at ${cachedResult.cachedAt})`
-            );
+          const cached = (await kv.get(fraudCacheKey, 'json')) as Record<string, unknown> | null;
+          if (cached) {
             return json(
-              {
-                success: true,
-                intent: 'FRAUD_CHECK',
-                orderId,
-                riskResult: { ...cachedResult, fromCache: true },
-              },
+              { success: true, intent: 'FRAUD_CHECK', orderId, riskResult: { ...cached, fromCache: true } },
               { headers: { 'x-order-id': String(orderId) } }
             );
           }
-        } catch (cacheReadErr) {
-          console.warn('[FRAUD CHECK] KV cache read failed, proceeding to API:', cacheReadErr);
+        } catch {
+          // fallthrough to live fetch
         }
       }
 
-      try {
-        if (kv) {
-          const adminCredsStr = await kv.get(`steadfast_credentials_${storeId}`);
-          if (adminCredsStr) {
-            const adminCreds = JSON.parse(adminCredsStr as string);
-            if (adminCreds.sessionCookie && adminCreds.xsrfToken) {
-              const steadfastClient = createSteadfastClient({
-                apiKey: 'internal',
-                secretKey: 'internal',
-                sessionCookie: adminCreds.sessionCookie,
-                xsrfToken: adminCreds.xsrfToken,
-              });
+      // ── Live fetch from fraudchecker.link ──
+      const { fetchExternalFraudData } = await import('~/services/fraud-engine.server');
+      const data = await fetchExternalFraudData(phoneForCheck);
 
-              // Normalize phone for Steadfast (strip +88/880 prefix)
-              const sfPhone = phoneForCheck.startsWith('+88')
-                ? phoneForCheck.slice(3)
-                : phoneForCheck.startsWith('880')
-                  ? phoneForCheck.slice(3)
-                  : phoneForCheck;
-
-              const externalFraud = await steadfastClient.checkExternalFraud(sfPhone);
-
-              externalCheckSuccess = true;
-              deliveredOrders = externalFraud.success || 0;
-              returnedOrders = externalFraud.cancellation || 0;
-              totalOrders = deliveredOrders + returnedOrders;
-
-              if (totalOrders > 0) {
-                successRate = Math.round((deliveredOrders / totalOrders) * 100);
-                const returnRate = (returnedOrders / totalOrders) * 100;
-                riskScore = Math.round(returnRate);
-                isHighRisk = totalOrders >= 2 && returnRate > 30;
-              }
-            }
-          }
-        }
-      } catch (err) {
-        console.warn(
-          '[FRAUD CHECK] External Steadfast check failed. Internal fallback is disabled.',
-          err
-        );
-      }
-
-      if (!externalCheckSuccess) {
-        return json(
-          { error: 'Steadfast external check failed or not configured' },
-          { status: 400 }
-        );
+      if (!data) {
+        return json({ error: 'ফ্রড চেক ব্যর্থ হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।' }, { status: 502 });
       }
 
       const resultObj = {
-        successRate,
-        totalOrders,
-        deliveredOrders,
-        returnedOrders,
-        isHighRisk,
-        riskScore,
-        source: totalOrders === 0 ? 'no_data' : 'steadfast_external',
+        successRate: data.deliveryRate,
+        totalOrders: data.totalOrders,
+        deliveredOrders: data.totalDelivered,
+        returnedOrders: data.totalCancelled,
+        isHighRisk: data.riskLevel === 'critical' || data.riskLevel === 'high',
+        riskScore: Math.round(100 - data.deliveryRate),
+        riskLevel: data.riskLevel,
+        riskMessage: data.riskMessage,
+        couriers: data.couriers,
+        source: 'fraudchecker_link',
         cachedAt: new Date().toISOString(),
       };
 
-      // Save result to KV cache for 24 hours to prevent rate-limiting
+      // ── KV Cache write (24h) ──
       if (kv && phoneForCheck) {
         try {
           await kv.put(fraudCacheKey, JSON.stringify(resultObj), { expirationTtl: 86400 });
-        } catch (cacheWriteErr) {
-          console.warn('[FRAUD CHECK] KV cache write failed:', cacheWriteErr);
+        } catch {
+          // non-fatal
         }
       }
 
       return json(
-        {
-          success: true,
-          intent: 'FRAUD_CHECK',
-          orderId,
-          riskResult: resultObj,
-        },
-        {
-          headers: {
-            'x-order-id': String(orderId),
-          },
-        }
+        { success: true, intent: 'FRAUD_CHECK', orderId, riskResult: resultObj },
+        { headers: { 'x-order-id': String(orderId) } }
       );
     } catch (error) {
       console.error('Fraud check error:', error);
       return json(
-        {
-          error: error instanceof Error ? error.message : 'Fraud check failed',
-        },
+        { error: error instanceof Error ? error.message : 'Fraud check failed' },
         { status: 500 }
       );
     }
@@ -1540,6 +1462,12 @@ interface FraudCheckResult {
   deliveredOrders: number;
   returnedOrders: number;
   isHighRisk: boolean;
+  riskScore: number;
+  riskLevel?: 'excellent' | 'good' | 'moderate' | 'high' | 'critical';
+  riskMessage?: string;
+  couriers?: Array<{ name: string; orders: number; delivered: number; cancelled: number; delivery_rate: string }>;
+  source?: string;
+  fromCache?: boolean;
 }
 
 function FraudCheckButton({ orderId, currentStatus }: { orderId: number; currentStatus: string }) {
@@ -1551,11 +1479,13 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
   }>();
   const { revalidate } = useRevalidator();
   const isChecking = fetcher.state !== 'idle';
+  const [showResult, setShowResult] = useState(false);
 
   // Only show for pending/confirmed orders
   const showButton = ['pending', 'confirmed'].includes(currentStatus);
 
   const handleCheck = () => {
+    setShowResult(true);
     fetcher.submit({ intent: 'FRAUD_CHECK', orderId: String(orderId) }, { method: 'POST' });
   };
 
@@ -1568,42 +1498,127 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetcher.state, fetcher.data?.success]);
 
-  // While checking — show spinner
-  if (isChecking) {
-    return (
-      <button
-        type="button"
-        disabled
-        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-orange-600 border border-orange-200 rounded-lg opacity-50"
-      >
-        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-        {t('dashboard:check')}
-      </button>
-    );
-  }
+  const result = fetcher.data?.riskResult;
 
-  // Show error if check failed
-  if (fetcher.data?.error) {
-    return (
-      <span className="text-[10px] text-red-500 italic" title={fetcher.data.error}>
-        ⚠️ error
-      </span>
-    );
-  }
-
-  if (!showButton) return null;
+  const riskConfig = {
+    excellent: { color: 'text-emerald-700 bg-emerald-50 border-emerald-200', label: '✅ নিরাপদ' },
+    good:      { color: 'text-green-700 bg-green-50 border-green-200',       label: '👍 ভালো' },
+    moderate:  { color: 'text-yellow-700 bg-yellow-50 border-yellow-200',    label: '⚠️ মাঝারি' },
+    high:      { color: 'text-orange-700 bg-orange-50 border-orange-200',    label: '🔶 উচ্চ ঝুঁকি' },
+    critical:  { color: 'text-red-700 bg-red-50 border-red-200',             label: '🚫 ক্রিটিক্যাল' },
+  };
 
   return (
-    <button
-      type="button"
-      onClick={handleCheck}
-      disabled={isChecking}
-      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-orange-600 hover:text-white hover:bg-orange-500 border border-orange-200 hover:border-orange-500 rounded-lg transition disabled:opacity-50"
-      title={t('checkFraud')}
-    >
-      <Shield className="w-3.5 h-3.5" />
-      {t('dashboard:check')}
-    </button>
+    <div className="relative inline-block">
+      {/* Check button */}
+      {showButton && !result && (
+        <button
+          type="button"
+          onClick={handleCheck}
+          disabled={isChecking}
+          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-orange-600 hover:text-white hover:bg-orange-500 border border-orange-200 hover:border-orange-500 rounded-lg transition disabled:opacity-50"
+          title={t('checkFraud')}
+        >
+          {isChecking
+            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            : <Shield className="w-3.5 h-3.5" />}
+          {isChecking ? 'চেক করছে…' : t('dashboard:check')}
+        </button>
+      )}
+
+      {/* Error */}
+      {fetcher.data?.error && (
+        <span className="text-[10px] text-red-500 italic" title={fetcher.data.error}>
+          ⚠️ {fetcher.data.error.slice(0, 40)}
+        </span>
+      )}
+
+      {/* Result panel */}
+      {result && showResult && (
+        <div className="absolute right-0 top-8 z-50 w-72 bg-white border border-gray-200 rounded-xl shadow-xl p-3 text-xs space-y-2">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <span className={`px-2 py-0.5 rounded-full border font-medium ${
+              riskConfig[result.riskLevel ?? 'moderate']?.color
+            }`}>
+              {riskConfig[result.riskLevel ?? 'moderate']?.label}
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowResult(false)}
+              className="text-gray-400 hover:text-gray-600 ml-2"
+            >✕</button>
+          </div>
+
+          {/* Overall stats */}
+          <div className="grid grid-cols-3 gap-1 text-center">
+            <div className="bg-gray-50 rounded-lg p-1.5">
+              <p className="font-bold text-gray-900">{result.totalOrders}</p>
+              <p className="text-gray-500 text-[10px]">মোট</p>
+            </div>
+            <div className="bg-emerald-50 rounded-lg p-1.5">
+              <p className="font-bold text-emerald-700">{result.deliveredOrders}</p>
+              <p className="text-gray-500 text-[10px]">ডেলিভারি</p>
+            </div>
+            <div className="bg-red-50 rounded-lg p-1.5">
+              <p className="font-bold text-red-700">{result.returnedOrders}</p>
+              <p className="text-gray-500 text-[10px]">ক্যান্সেল</p>
+            </div>
+          </div>
+
+          {/* Delivery rate */}
+          <div className="flex items-center gap-2">
+            <div className="flex-1 bg-gray-100 rounded-full h-1.5">
+              <div
+                className={`h-1.5 rounded-full ${
+                  result.successRate >= 70 ? 'bg-emerald-500' :
+                  result.successRate >= 40 ? 'bg-yellow-500' : 'bg-red-500'
+                }`}
+                style={{ width: `${Math.max(result.successRate, 2)}%` }}
+              />
+            </div>
+            <span className="font-semibold text-gray-700">{result.successRate.toFixed(1)}%</span>
+          </div>
+
+          {/* Courier breakdown */}
+          {result.couriers && result.couriers.length > 0 && (
+            <div className="space-y-1 border-t pt-2">
+              <p className="font-semibold text-gray-600 text-[10px] uppercase tracking-wide">কুরিয়ার ব্রেকডাউন</p>
+              {result.couriers.map((c) => (
+                <div key={c.name} className="flex items-center justify-between">
+                  <span className="text-gray-600">{c.name}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-gray-400">{c.orders} অর্ডার</span>
+                    <span className={`font-medium ${
+                      parseFloat(c.delivery_rate) >= 70 ? 'text-emerald-600' :
+                      parseFloat(c.delivery_rate) >= 40 ? 'text-yellow-600' : 'text-red-600'
+                    }`}>{c.delivery_rate}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Source & cache info */}
+          <p className="text-[10px] text-gray-400 border-t pt-1 flex items-center gap-1">
+            <span>📊 fraudchecker.link</span>
+            {result.fromCache && <span className="bg-gray-100 px-1 rounded">cached</span>}
+          </p>
+
+          {/* Re-check button */}
+          <button
+            type="button"
+            onClick={() => {
+              fetcher.submit({ intent: 'FRAUD_CHECK', orderId: String(orderId), forceRefresh: 'true' }, { method: 'POST' });
+            }}
+            disabled={isChecking}
+            className="w-full text-center text-[10px] text-gray-500 hover:text-orange-600 transition disabled:opacity-40"
+          >
+            {isChecking ? '⟳ চেক করছে…' : '↺ রিফ্রেশ করুন'}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
