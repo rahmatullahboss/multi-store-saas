@@ -56,6 +56,12 @@ interface PurchaseEventParams {
   customerName?: string;
   /** Customer/user ID for improved match quality (hashed as external_id) */
   customerId?: string | number;
+  /** Customer city/district name — improves EMQ score */
+  city?: string;
+  /** Customer state/division — improves EMQ score */
+  state?: string;
+  /** Customer postal/zip code — improves EMQ score */
+  zip?: string;
   items?: Array<{
     productId: number;
     title: string;
@@ -82,6 +88,8 @@ interface ViewContentEventParams {
   currency: string;
   customerEmail?: string;
   customerPhone?: string;
+  customerFirstName?: string;
+  customerLastName?: string;
   customerId?: string | number;
   clientIpAddress?: string;
   clientUserAgent?: string;
@@ -100,6 +108,8 @@ interface AddToCartEventParams {
   quantity: number;
   customerEmail?: string;
   customerPhone?: string;
+  customerFirstName?: string;
+  customerLastName?: string;
   customerId?: string | number;
   clientIpAddress?: string;
   clientUserAgent?: string;
@@ -309,6 +319,10 @@ export async function sendPurchaseEvent(params: PurchaseEventParams): Promise<{ 
       phone: params.customerPhone,
       firstName,
       lastName,
+      // Location fields — each improves EMQ score
+      city: params.city,
+      state: params.state,
+      zip: params.zip,
       // Always send country for BD stores — improves global match rate
       country: 'bd',
       externalId: params.customerId != null ? String(params.customerId) : undefined,
@@ -342,6 +356,8 @@ export async function sendViewContentEvent(params: ViewContentEventParams): Prom
     userData: {
       email: params.customerEmail,
       phone: params.customerPhone,
+      firstName: params.customerFirstName,
+      lastName: params.customerLastName,
       country: 'bd',
       externalId: params.customerId != null ? String(params.customerId) : undefined,
       clientIpAddress: params.clientIpAddress,
@@ -371,6 +387,8 @@ export async function sendAddToCartEvent(params: AddToCartEventParams): Promise<
     userData: {
       email: params.customerEmail,
       phone: params.customerPhone,
+      firstName: params.customerFirstName,
+      lastName: params.customerLastName,
       country: 'bd',
       externalId: params.customerId != null ? String(params.customerId) : undefined,
       clientIpAddress: params.clientIpAddress,
@@ -402,6 +420,8 @@ interface InitiateCheckoutEventParams {
   contentIds: string[];
   customerEmail?: string;
   customerPhone?: string;
+  customerFirstName?: string;
+  customerLastName?: string;
   customerId?: string | number;
   clientIpAddress?: string;
   clientUserAgent?: string;
@@ -428,6 +448,8 @@ export async function sendInitiateCheckoutEvent(
     userData: {
       email: params.customerEmail,
       phone: params.customerPhone,
+      firstName: params.customerFirstName,
+      lastName: params.customerLastName,
       country: 'bd',
       externalId: params.customerId != null ? String(params.customerId) : undefined,
       clientIpAddress: params.clientIpAddress,

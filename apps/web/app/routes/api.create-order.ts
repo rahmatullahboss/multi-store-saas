@@ -100,6 +100,7 @@ export const OrderSchema = z.object({
   // BD Address System - District & Upazila
   district: z.string().max(50).optional(), // District ID from bd-locations
   upazila: z.string().max(50).optional(), // Upazila ID from bd-locations
+  postal_code: z.string().max(10).optional(), // Optional postal/zip code — improves CAPI EMQ score
   quantity: z.number().int().min(1).max(99).default(1),
   notes: z.string().max(500).optional(),
   customer_email: z.string().email().optional(), // Optional email for confirmation
@@ -749,6 +750,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           division: input.division,
           district: input.district,
           upazila: input.upazila,
+          postalCode: input.postal_code || null,
         }),
         billingAddressJson: null,
         pricingJson: null,
@@ -1365,6 +1367,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             city: input.district || '',
             district: input.district || '',
             upazila: input.upazila || '',
+            postalCode: input.postal_code || null,
           }),
           billingAddress: null,
           subtotal: finalSubtotal, // After combo AND coupon
@@ -1977,6 +1980,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
       // Use stable eventId matching client-side Pixel for deduplication
       const eventId = `purchase_${orderNumber}`;
 
+      // Resolve district name for CAPI city field (improves EMQ score)
+      const { DISTRICTS: BD_DISTRICTS } = await import('~/data/bd-locations');
+      const districtObj = BD_DISTRICTS.find((d: { id: string; nameEn: string }) => d.id === input.district);
+      const districtName = districtObj?.nameEn || input.district || undefined;
+
       context.cloudflare.ctx.waitUntil(
         sendPurchaseEvent({
           pixelId: storeData.facebookPixelId,
@@ -1988,6 +1996,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
           customerEmail: input.customer_email,
           customerPhone: input.phone,
           customerName: input.customer_name,
+          // EMQ boosters: customer ID, location fields
+          customerId: orderCustomerId ?? undefined,
+          city: districtName,
+          state: input.division || undefined,
+          zip: input.postal_code || undefined,
           items: finalOrderItems.map((i) => ({
             productId: i.productId,
             title: i.title,

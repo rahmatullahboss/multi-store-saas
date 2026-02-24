@@ -26,6 +26,12 @@ export interface ProductTrackingData {
   category?: string;
   variant?: string;
   quantity?: number;
+  /** Store ID — required for server-side CAPI AddToCart call */
+  storeId?: number;
+  /** Customer email for improved CAPI match quality */
+  customerEmail?: string;
+  /** Customer ID for improved CAPI match quality (hashed as external_id) */
+  customerId?: string | number;
 }
 
 export interface OrderTrackingData {
@@ -138,12 +144,14 @@ export const trackingEvents = {
 
   /**
    * Track add to cart (AddToCart / add_to_cart)
+   * Fires both browser Pixel AND server-side CAPI via /api/track-events
+   * for improved attribution (bypasses ad blockers & iOS 14+ restrictions).
    */
   addToCart: (product: ProductTrackingData) => {
     const currency = product.currency || 'BDT';
     const quantity = product.quantity || 1;
     
-    // Facebook Pixel
+    // Facebook Pixel (browser-side)
     if (typeof window !== 'undefined' && (window as any).fbq) {
       (window as any).fbq('track', 'AddToCart', {
         content_ids: [product.id],
@@ -168,6 +176,37 @@ export const trackingEvents = {
           quantity,
         }],
       });
+    }
+
+    // Server-side CAPI (via /api/track-events) — bypasses ad blockers
+    if (typeof window !== 'undefined' && product.storeId) {
+      // Read _fbp and _fbc cookies for improved match quality
+      const getCookie = (name: string) => {
+        const match = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
+        return match ? match[1] : undefined;
+      };
+
+      fetch('/api/track-events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          events: [{
+            type: 'add_to_cart',
+            storeId: product.storeId,
+            product_id: product.id,
+            product_name: product.name,
+            value: product.price,
+            currency,
+            quantity,
+            customer_email: product.customerEmail,
+            customer_id: product.customerId,
+            fbp: getCookie('_fbp'),
+            fbc: getCookie('_fbc'),
+            event_source_url: window.location.href,
+          }],
+        }),
+        keepalive: true,
+      }).catch(() => {/* silent fail — non-critical */});
     }
   },
 

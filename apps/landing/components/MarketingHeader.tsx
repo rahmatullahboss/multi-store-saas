@@ -45,6 +45,22 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
           <div className="flex items-center gap-3">
             {!showBackToHome ? (
               <>
+                <Link
+                  href="/features"
+                  className={`hidden md:block font-medium text-sm px-4 py-2 rounded-xl transition-all duration-300 ${
+                    isActive('/features') ? 'text-[#00875F] bg-[#00875F]/10' : 'text-white/60 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  Features
+                </Link>
+                <Link
+                  href="/integrations"
+                  className={`hidden md:block font-medium text-sm px-4 py-2 rounded-xl transition-all duration-300 ${
+                    isActive('/integrations') ? 'text-[#00875F] bg-[#00875F]/10' : 'text-white/60 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  Integrations
+                </Link>
                 {!isActive('/pricing') && (
                   <Link
                     href="/pricing"
@@ -162,6 +178,26 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       {t('navBilling')}
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs">→</span>
+                    </Link>
+                    <Link
+                      href="/features"
+                      className={`font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group ${
+                        isActive('/features') ? 'text-[#00875F] bg-[#00875F]/5' : 'text-white/70 hover:text-white'
+                      }`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Features
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs">→</span>
+                    </Link>
+                    <Link
+                      href="/integrations"
+                      className={`font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group ${
+                        isActive('/integrations') ? 'text-[#00875F] bg-[#00875F]/5' : 'text-white/70 hover:text-white'
+                      }`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Integrations
                       <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs">→</span>
                     </Link>
                     <Link

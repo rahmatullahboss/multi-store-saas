@@ -257,6 +257,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ||
       undefined;
 
+    // Split customer name into first/last for improved EMQ score
+    const customerNameParts = customer?.name?.trim().split(/\s+/) || [];
+    const customerFirstName = customerNameParts[0];
+    const customerLastName = customerNameParts.length > 1 ? customerNameParts.slice(1).join(' ') : undefined;
+
     cloudflare.ctx.waitUntil(
       sendInitiateCheckoutEvent({
         pixelId: store.facebookPixelId,
@@ -266,6 +271,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         numItems: 0, // Unknown at loader time
         contentIds: [], // Unknown at loader time
         customerEmail: customer?.email ?? undefined,
+        customerFirstName,
+        customerLastName,
         customerId: customer?.id ?? undefined,
         clientIpAddress: clientIp,
         clientUserAgent: request.headers.get('User-Agent') ?? undefined,
@@ -526,6 +533,7 @@ export default function Checkout() {
   const [address, setAddress] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedUpazila, setSelectedUpazila] = useState('');
+  const [postalCode, setPostalCode] = useState('');
   const [notes, setNotes] = useState('');
 
   // Auto-fill customer details from account
@@ -948,6 +956,7 @@ export default function Checkout() {
       division: selectedDistrictObj ? selectedDistrictObj.divisionId : 'dhaka',
       district: selectedDistrict,
       upazila: selectedUpazila,
+      postal_code: postalCode.trim() || undefined,
       notes: notes,
       payment_method: paymentMethod,
       transaction_id: trxId,
@@ -1120,6 +1129,26 @@ export default function Checkout() {
                 }
               />
             </div>
+
+            {/* Postal Code — Optional, improves Facebook CAPI match quality */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {lang === 'bn' ? 'পোস্টাল কোড' : 'Postal Code'}
+                <span className="ml-1 text-xs text-gray-400">
+                  ({lang === 'bn' ? 'ঐচ্ছিক' : 'Optional'})
+                </span>
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={postalCode}
+                onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                maxLength={4}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition-all"
+                placeholder={lang === 'bn' ? 'যেমন: ১২১৬' : 'e.g. 1216'}
+              />
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('orderNotes')}

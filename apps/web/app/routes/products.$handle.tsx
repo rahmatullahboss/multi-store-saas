@@ -505,6 +505,11 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
         request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ||
         undefined;
 
+      // Split customer name for improved EMQ score
+      const vcNameParts = customer?.name?.trim().split(/\s+/) || [];
+      const vcFirstName = vcNameParts[0];
+      const vcLastName = vcNameParts.length > 1 ? vcNameParts.slice(1).join(' ') : undefined;
+
       context.cloudflare.ctx.waitUntil?.(
         sendViewContentEvent({
           pixelId: store.facebookPixelId,
@@ -514,6 +519,8 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
           value: product.price,
           currency: store.currency || 'BDT',
           customerEmail: customer?.email ?? undefined,
+          customerFirstName: vcFirstName,
+          customerLastName: vcLastName,
           customerId: customer?.id ?? undefined,
           clientIpAddress: clientIp,
           clientUserAgent: request.headers.get('User-Agent') ?? undefined,
