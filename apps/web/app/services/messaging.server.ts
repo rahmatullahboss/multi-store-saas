@@ -219,7 +219,7 @@ export async function sendWhatsApp(db: Database, env: Env, { to, templateName, t
     return { success: false, error: "not_configured" };
   }
 
-  const url = `https://graph.facebook.com/v18.0/${phoneId}/messages`;
+  const url = `https://graph.facebook.com/v22.0/${phoneId}/messages`;
   
   const body: Record<string, unknown> = {
     messaging_product: "whatsapp",

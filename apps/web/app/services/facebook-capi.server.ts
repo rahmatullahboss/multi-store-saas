@@ -9,7 +9,7 @@
 
 import { createHash } from 'crypto';
 
-const FB_GRAPH_API_VERSION = 'v18.0';
+const FB_GRAPH_API_VERSION = 'v22.0';
 const FB_GRAPH_API_BASE = 'https://graph.facebook.com';
 
 // ============================================================================
@@ -22,7 +22,10 @@ interface CAPIUserData {
   firstName?: string;
   lastName?: string;
   city?: string;
+  state?: string;
+  zip?: string;
   country?: string;
+  externalId?: string; // Customer/user ID for improved match quality
   clientIpAddress?: string;
   clientUserAgent?: string;
   fbc?: string; // Facebook click ID (from _fbc cookie)
@@ -51,6 +54,8 @@ interface PurchaseEventParams {
   customerEmail?: string;
   customerPhone?: string;
   customerName?: string;
+  /** Customer/user ID for improved match quality (hashed as external_id) */
+  customerId?: string | number;
   items?: Array<{
     productId: number;
     title: string;
@@ -77,6 +82,11 @@ interface ViewContentEventParams {
   currency: string;
   customerEmail?: string;
   customerPhone?: string;
+  customerId?: string | number;
+  clientIpAddress?: string;
+  clientUserAgent?: string;
+  fbp?: string;
+  fbc?: string;
   eventSourceUrl?: string;
 }
 
@@ -90,6 +100,11 @@ interface AddToCartEventParams {
   quantity: number;
   customerEmail?: string;
   customerPhone?: string;
+  customerId?: string | number;
+  clientIpAddress?: string;
+  clientUserAgent?: string;
+  fbp?: string;
+  fbc?: string;
   eventSourceUrl?: string;
 }
 
@@ -99,6 +114,9 @@ interface LeadEventParams {
   customerEmail?: string;
   customerPhone?: string;
   customerName?: string;
+  customerId?: string | number;
+  clientIpAddress?: string;
+  clientUserAgent?: string;
   eventSourceUrl?: string;
 }
 
@@ -141,6 +159,9 @@ function generateEventId(): string {
 
 /**
  * Build user data object with hashed values
+ * Per Meta docs: all PII must be SHA256 hashed (lowercase, trimmed)
+ * except client_ip_address, client_user_agent, fbc, fbp
+ * @see https://developers.facebook.com/docs/marketing-api/conversions-api/parameters/customer-information-parameters
  */
 function buildUserData(params: CAPIUserData): Record<string, string | undefined> {
   const userData: Record<string, string | undefined> = {};
@@ -158,11 +179,24 @@ function buildUserData(params: CAPIUserData): Record<string, string | undefined>
     userData.ln = hashData(params.lastName);
   }
   if (params.city) {
-    userData.ct = hashData(params.city);
+    // Docs: lowercase, no spaces/punctuation
+    userData.ct = hashData(params.city.replace(/\s+/g, ''));
+  }
+  if (params.state) {
+    userData.st = hashData(params.state.replace(/\s+/g, ''));
+  }
+  if (params.zip) {
+    userData.zp = hashData(params.zip.replace(/\s+|-/g, '').toLowerCase());
   }
   if (params.country) {
-    userData.country = hashData(params.country);
+    // Docs: lowercase 2-letter ISO 3166-1 alpha-2 country code
+    userData.country = hashData(params.country.toLowerCase().slice(0, 2));
   }
+  if (params.externalId) {
+    // Docs: any unique ID from advertiser (loyalty ID, user ID) — recommended
+    userData.external_id = hashData(params.externalId);
+  }
+  // Do NOT hash these — send as-is per Meta docs
   if (params.clientIpAddress) {
     userData.client_ip_address = params.clientIpAddress;
   }
@@ -275,6 +309,9 @@ export async function sendPurchaseEvent(params: PurchaseEventParams): Promise<{ 
       phone: params.customerPhone,
       firstName,
       lastName,
+      // Always send country for BD stores — improves global match rate
+      country: 'bd',
+      externalId: params.customerId != null ? String(params.customerId) : undefined,
       clientIpAddress: params.clientIpAddress,
       clientUserAgent: params.clientUserAgent,
       fbp: params.fbp,
@@ -282,7 +319,8 @@ export async function sendPurchaseEvent(params: PurchaseEventParams): Promise<{ 
     },
     customData: {
       value: params.total,
-      currency: params.currency,
+      // Meta docs: currency must be lowercase ISO 4217 code
+      currency: params.currency.toLowerCase(),
       order_id: params.orderNumber,
       content_type: 'product',
       content_ids: contentIds,
@@ -304,10 +342,16 @@ export async function sendViewContentEvent(params: ViewContentEventParams): Prom
     userData: {
       email: params.customerEmail,
       phone: params.customerPhone,
+      country: 'bd',
+      externalId: params.customerId != null ? String(params.customerId) : undefined,
+      clientIpAddress: params.clientIpAddress,
+      clientUserAgent: params.clientUserAgent,
+      fbp: params.fbp,
+      fbc: params.fbc,
     },
     customData: {
       value: params.value,
-      currency: params.currency,
+      currency: params.currency.toLowerCase(),
       content_type: 'product',
       content_ids: [params.productId],
       content_name: params.productName,
@@ -327,10 +371,16 @@ export async function sendAddToCartEvent(params: AddToCartEventParams): Promise<
     userData: {
       email: params.customerEmail,
       phone: params.customerPhone,
+      country: 'bd',
+      externalId: params.customerId != null ? String(params.customerId) : undefined,
+      clientIpAddress: params.clientIpAddress,
+      clientUserAgent: params.clientUserAgent,
+      fbp: params.fbp,
+      fbc: params.fbc,
     },
     customData: {
       value: params.value * params.quantity,
-      currency: params.currency,
+      currency: params.currency.toLowerCase(),
       content_type: 'product',
       content_ids: [params.productId],
       content_name: params.productName,
@@ -357,6 +407,10 @@ export async function sendLeadEvent(params: LeadEventParams): Promise<{ success:
       phone: params.customerPhone,
       firstName,
       lastName,
+      country: 'bd',
+      externalId: params.customerId != null ? String(params.customerId) : undefined,
+      clientIpAddress: params.clientIpAddress,
+      clientUserAgent: params.clientUserAgent,
     },
   });
 }
