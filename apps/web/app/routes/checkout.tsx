@@ -90,6 +90,7 @@ import { DISTRICTS, UPAZILAS, getShippingZone } from '~/data/bd-locations';
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Loader2, ArrowLeft, ShoppingBag, ShieldCheck, Truck, CheckCircle } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
+import { sendInitiateCheckoutEvent } from '~/services/facebook-capi.server';
 import type { CustomerAddress } from '~/services/customer-account.server';
 import { resolveTemplate } from '~/lib/template-resolver.server';
 import { resolveStoreTemplateId, getStoreTemplateTheme } from '~/templates/store-registry';

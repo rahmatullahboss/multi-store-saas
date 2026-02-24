@@ -31,6 +31,7 @@ import {
 import { resolveStore } from '~/lib/store.server';
 import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
+import { sendAddToCartEvent } from '~/services/facebook-capi.server';
 import { formatPrice } from '~/lib/formatting';
 import { createDb } from '~/lib/db.server';
 import {

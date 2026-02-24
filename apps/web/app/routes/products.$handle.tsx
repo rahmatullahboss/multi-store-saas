@@ -39,6 +39,7 @@ import {
   type SerializedVariant,
 } from '~/templates/store-registry';
 import { getCustomer } from '~/services/customer-auth.server';
+import { sendViewContentEvent } from '~/services/facebook-capi.server';
 import { getProductDetailsMetafields } from '~/lib/product-details.server';
 import { parsePriceRange } from '~/utils/price';
 import {

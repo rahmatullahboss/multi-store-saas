@@ -14,9 +14,9 @@ export function CourierIntegrationSection() {
   const y = useTransform(scrollYProgress, [0, 1], [50, -50]);
 
   const couriers = [
-    { name: 'Steadfast', color: '#00D1FF', time: '1-2 Days', cost: '৳60' },
-    { name: 'Pathao', color: '#EF4444', time: '1 Day', cost: '৳55' },
-    { name: 'RedX', color: '#F87171', time: '1-2 Days', cost: '৳65' }
+    { name: 'Steadfast', color: '#00D1FF', time: '১-২ দিন', cost: 'মার্চেন্ট সেট' },
+    { name: 'Pathao', color: '#EF4444', time: '১ দিন', cost: 'মার্চেন্ট সেট' },
+    { name: 'RedX', color: '#F87171', time: '১-২ দিন', cost: 'মার্চেন্ট সেট' }
   ];
 
   return (
