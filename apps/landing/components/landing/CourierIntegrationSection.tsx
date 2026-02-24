@@ -1,29 +1,22 @@
-'use client';
-
-import { useRef, useEffect, useState } from 'react';
+import { useRef } from 'react';
+import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { Truck, Package, MapPin, Printer, CheckCircle2, Wallet } from 'lucide-react';
 
-// IntersectionObserver hook for scroll-triggered animations
-const useInView = (threshold = 0.1) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) setInView(true);
-    }, { threshold });
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-  return { ref, inView };
-};
-
 export function CourierIntegrationSection() {
-  const { ref: containerRef, inView: isInView } = useInView(0.1);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(containerRef, { once: true, margin: "-10% 0px" });
+  
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"]
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], [50, -50]);
 
   const couriers = [
-    { name: 'Steadfast', color: '#00D1FF', time: '১-২ দিন', cost: 'মার্চেন্ট সেট' },
-    { name: 'Pathao', color: '#EF4444', time: '১ দিন', cost: 'মার্চেন্ট সেট' },
-    { name: 'RedX', color: '#F87171', time: '১-২ দিন', cost: 'মার্চেন্ট সেট' },
+    { name: 'Steadfast', color: '#00D1FF', time: '1-2 Days', cost: '৳60' },
+    { name: 'Pathao', color: '#EF4444', time: '1 Day', cost: '৳55' },
+    { name: 'RedX', color: '#F87171', time: '1-2 Days', cost: '৳65' }
   ];
 
   return (
@@ -35,13 +28,11 @@ export function CourierIntegrationSection() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10" ref={containerRef}>
         {/* Section Header */}
-        <div
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
           className="text-center mb-16 lg:mb-24"
-          style={{
-            opacity: isInView ? 1 : 0,
-            transform: isInView ? 'translateY(0)' : 'translateY(20px)',
-            transition: 'opacity 0.6s ease-out, transform 0.6s ease-out',
-          }}
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6">
             <Truck className="w-4 h-4 text-blue-400" />
@@ -53,19 +44,17 @@ export function CourierIntegrationSection() {
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">
             বাংলাদেশের সব বড় Courier — এক Dashboard এ! আর ম্যানুয়ালি অর্ডার এন্ট্রি দিতে হবে না।
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Side: Features & Flow */}
           <div className="space-y-12">
             {/* Courier Logos Grid */}
-            <div
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.2 }}
               className="bg-gray-900/50 border border-gray-800 rounded-3xl p-8 backdrop-blur-sm"
-              style={{
-                opacity: isInView ? 1 : 0,
-                transform: isInView ? 'translateX(0)' : 'translateX(-20px)',
-                transition: 'opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s',
-              }}
             >
               <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -73,58 +62,54 @@ export function CourierIntegrationSection() {
               </h3>
               <div className="grid grid-cols-3 gap-6">
                 {couriers.map((courier) => (
-                  <div
+                  <motion.div
                     key={courier.name}
-                    className="flex flex-col items-center justify-center p-4 bg-gray-800/50 rounded-2xl border border-gray-700/50 hover:border-blue-500/30 hover:scale-105 transition-all duration-300"
+                    whileHover={{ scale: 1.05 }}
+                    className="flex flex-col items-center justify-center p-4 bg-gray-800/50 rounded-2xl border border-gray-700/50 hover:border-blue-500/30 transition-colors"
                   >
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
-                      style={{ backgroundColor: `${courier.color}20` }}
-                    >
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3`} style={{ backgroundColor: `${courier.color}20` }}>
                       <span className="font-bold" style={{ color: courier.color }}>{courier.name[0]}</span>
                     </div>
                     <span className="text-gray-300 font-medium">{courier.name}</span>
                     <div className="flex items-center gap-1 mt-2 text-xs text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
                       <CheckCircle2 className="w-3 h-3" /> Ready
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
             {/* Workflow Steps */}
             <div className="space-y-6">
               {[
-                {
-                  icon: Package,
-                  title: '1. Order আসলো',
-                  desc: 'Customer অর্ডার প্লেস করল বা আপনি ম্যানুয়ালি অ্যাড করলেন',
-                  color: 'text-blue-400',
-                  bg: 'bg-blue-400/10',
+                { 
+                  icon: Package, 
+                  title: "1. Order আসলো", 
+                  desc: "Customer অর্ডার প্লেস করল বা আপনি ম্যানুয়ালি অ্যাড করলেন",
+                  color: "text-blue-400",
+                  bg: "bg-blue-400/10"
                 },
-                {
-                  icon: Truck,
-                  title: '2. Courier Book করুন',
-                  desc: '১ ক্লিকে পছন্দের কুরিয়ার সিলেক্ট করে বুকিং কনফার্ম করুন',
-                  color: 'text-purple-400',
-                  bg: 'bg-purple-400/10',
+                { 
+                  icon: Truck, 
+                  title: "2. Courier Book করুন", 
+                  desc: "১ ক্লিকে পছন্দের কুরিয়ার সিলেক্ট করে বুকিং কনফার্ম করুন",
+                  color: "text-purple-400",
+                  bg: "bg-purple-400/10"
                 },
-                {
-                  icon: Printer,
-                  title: '3. Auto Label Print',
-                  desc: 'অটোমেটিক ইনভয়েস এবং লেবেল প্রিন্ট করে প্যাকেটে লাগান',
-                  color: 'text-green-400',
-                  bg: 'bg-green-400/10',
-                },
+                { 
+                  icon: Printer, 
+                  title: "3. Auto Label Print", 
+                  desc: "অটোমেটিক ইনভয়েস এবং লেবেল প্রিন্ট করে প্যাকেটে লাগান",
+                  color: "text-green-400",
+                  bg: "bg-green-400/10"
+                }
               ].map((step, idx) => (
-                <div
+                <motion.div
                   key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.5, delay: 0.4 + (idx * 0.1) }}
                   className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-800/30 transition-colors"
-                  style={{
-                    opacity: isInView ? 1 : 0,
-                    transform: isInView ? 'translateY(0)' : 'translateY(20px)',
-                    transition: `opacity 0.5s ease-out ${0.4 + idx * 0.1}s, transform 0.5s ease-out ${0.4 + idx * 0.1}s`,
-                  }}
                 >
                   <div className={`flex-shrink-0 w-12 h-12 rounded-xl ${step.bg} flex items-center justify-center`}>
                     <step.icon className={`w-6 h-6 ${step.color}`} />
@@ -133,17 +118,19 @@ export function CourierIntegrationSection() {
                     <h4 className="text-lg font-semibold text-white mb-2">{step.title}</h4>
                     <p className="text-gray-400">{step.desc}</p>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
 
           {/* Right Side: Interactive Demo Card */}
-          {/* Parallax-style subtle float via CSS animation */}
-          <div className="relative" style={{ animation: 'float-neutral 6s ease-in-out infinite' }}>
-            {/* Decorative Elements */}
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full blur-3xl opacity-20" />
-
+          <motion.div
+            style={{ y }}
+            className="relative"
+          >
+             {/* Decorative Elements */}
+             <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full blur-3xl opacity-20" />
+             
             <div className="relative bg-[#0F1115] border border-gray-800 rounded-3xl shadow-2xl overflow-hidden">
               {/* Fake Window Header */}
               <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-800 bg-gray-900/50">
@@ -174,20 +161,18 @@ export function CourierIntegrationSection() {
                   <h5 className="text-sm font-medium text-gray-300">Select Courier Partner</h5>
                   <div className="space-y-3">
                     {couriers.map((courier, idx) => (
-                      <div
+                      <div 
                         key={idx}
                         className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
-                          idx === 1
-                            ? 'bg-blue-500/10 border-blue-500/50 shadow-lg shadow-blue-500/10'
+                          idx === 1 
+                            ? 'bg-blue-500/10 border-blue-500/50 shadow-lg shadow-blue-500/10' 
                             : 'bg-gray-800/30 border-gray-700/50 hover:bg-gray-800/50'
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div
-                            className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                              idx === 1 ? 'border-blue-500' : 'border-gray-500'
-                            }`}
-                          >
+                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                            idx === 1 ? 'border-blue-500' : 'border-gray-500'
+                          }`}>
                             {idx === 1 && <div className="w-2 h-2 rounded-full bg-blue-500" />}
                           </div>
                           <span className="text-white font-medium">{courier.name}</span>
@@ -219,10 +204,11 @@ export function CourierIntegrationSection() {
               </div>
             </div>
 
-            {/* Feature Floating Cards — CSS keyframe float animations */}
-            <div
+            {/* Feature Floating Cards */}
+            <motion.div 
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               className="absolute -right-8 top-20 bg-gray-900 border border-gray-800 p-4 rounded-2xl shadow-xl z-20 hidden md:block"
-              style={{ animation: 'float-down 4s ease-in-out infinite' }}
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-500/10 rounded-lg">
@@ -233,11 +219,12 @@ export function CourierIntegrationSection() {
                   <p className="text-sm font-bold text-white">Generated!</p>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div
+            <motion.div 
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
               className="absolute -left-8 bottom-20 bg-gray-900 border border-gray-800 p-4 rounded-2xl shadow-xl z-20 hidden md:block"
-              style={{ animation: 'float-up 5s ease-in-out infinite 1s' }}
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-500/10 rounded-lg">
@@ -248,59 +235,42 @@ export function CourierIntegrationSection() {
                   <p className="text-sm font-bold text-white">Live Update</p>
                 </div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
 
         {/* Bottom Comparison */}
         <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-2xl">😫</span>
-              <h4 className="text-lg font-bold text-red-200">আগে (Manual Process)</h4>
-            </div>
-            <ul className="space-y-3 text-gray-400">
-              <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-500/50" /> Courier Panel এ আলাদা Login</li>
-              <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-500/50" /> Order Details Copy-Paste করা</li>
-              <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-500/50" /> Tracking Number লিখে রাখা</li>
-              <li className="flex items-center gap-2 border-t border-red-500/10 pt-2 font-semibold text-red-300">⏱️ প্রতি অর্ডারে ৫-১০ মিনিট লস!</li>
-            </ul>
+             <div className="flex items-center gap-3 mb-4">
+               <span className="text-2xl">😫</span>
+               <h4 className="text-lg font-bold text-red-200">আগে (Manual Process)</h4>
+             </div>
+             <ul className="space-y-3 text-gray-400">
+               <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-500/50" /> Courier Panel এ আলাদা Login</li>
+               <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-500/50" /> Order Details Copy-Paste করা</li>
+               <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-red-500/50" /> Tracking Number লিখে রাখা</li>
+               <li className="flex items-center gap-2 border-t border-red-500/10 pt-2 font-semibold text-red-300">⏱️ প্রতি অর্ডারে ৫-১০ মিনিট লস!</li>
+             </ul>
           </div>
-
+          
           <div className="bg-green-500/5 border border-green-500/10 rounded-2xl p-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-3 bg-green-500/10 rounded-bl-2xl border-b border-l border-green-500/10">
-              <span className="text-xs font-bold text-green-400">RECOMMENDED</span>
-            </div>
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-2xl">😎</span>
-              <h4 className="text-lg font-bold text-green-200">এখন (Ozzyl Automation)</h4>
-            </div>
-            <ul className="space-y-3 text-gray-400">
-              <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-green-500/50" /> Dashboard এ ১ ক্লিক</li>
-              <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-green-500/50" /> Auto Booking & Status Update</li>
-              <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-green-500/50" /> Customer পায় Auto SMS</li>
-              <li className="flex items-center gap-2 border-t border-green-500/10 pt-2 font-semibold text-green-300">⏱️ প্রতি অর্ডারে ১০ সেকেন্ড! ⚡</li>
-            </ul>
+             <div className="absolute top-0 right-0 p-3 bg-green-500/10 rounded-bl-2xl border-b border-l border-green-500/10">
+               <span className="text-xs font-bold text-green-400">RECOMMENDED</span>
+             </div>
+             <div className="flex items-center gap-3 mb-4">
+               <span className="text-2xl">😎</span>
+               <h4 className="text-lg font-bold text-green-200">এখন (Ozzyl Automation)</h4>
+             </div>
+             <ul className="space-y-3 text-gray-400">
+               <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-green-500/50" /> Dashboard এ ১ ক্লিক</li>
+               <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-green-500/50" /> Auto Booking & Status Update</li>
+               <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-green-500/50" /> Customer পায় Auto SMS</li>
+               <li className="flex items-center gap-2 border-t border-green-500/10 pt-2 font-semibold text-green-300">⏱️ প্রতি অর্ডারে ১০ সেকেন্ড! ⚡</li>
+             </ul>
           </div>
         </div>
       </div>
-
-      {/* Global keyframes */}
-      <style>{`
-        @keyframes float-down {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(10px); }
-        }
-        @keyframes float-up {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        @keyframes float-neutral {
-          0%, 100% { transform: translateY(0px); }
-          33% { transform: translateY(-6px); }
-          66% { transform: translateY(4px); }
-        }
-      `}</style>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Store, Menu, X, ArrowLeft, Globe } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MagneticButton } from '@/components/animations/MagneticButton';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { ASSETS } from '@/config/assets';
@@ -17,17 +18,12 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
   const toggleLang = () => setLang(lang === 'en' ? 'bn' : 'en');
 
   return (
-    <header
-      className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-6xl animate-[slideDown_0.6s_cubic-bezier(0.22,1,0.36,1)_both]"
-      style={{ animationFillMode: 'both' }}
+    <motion.header
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6, type: 'spring', damping: 20 }}
+      className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl"
     >
-      <style>{`
-        @keyframes slideDown {
-          from { transform: translate(-50%, -100px); opacity: 0; }
-          to   { transform: translate(-50%, 0);      opacity: 1; }
-        }
-      `}</style>
-
       <div className="relative bg-[#0A0A0F]/70 backdrop-blur-2xl border border-white/10 rounded-2xl px-6 py-3 shadow-[0_8px_32px_rgb(0_0_0/0.4)] overflow-hidden">
         {/* Subtle top shine */}
         <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50" />
@@ -49,22 +45,6 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
           <div className="flex items-center gap-3">
             {!showBackToHome ? (
               <>
-                <Link
-                  href="/features"
-                  className={`hidden md:block font-medium text-sm px-4 py-2 rounded-xl transition-all duration-300 ${
-                    isActive('/features') ? 'text-[#00875F] bg-[#00875F]/10' : 'text-white/60 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  Features
-                </Link>
-                <Link
-                  href="/integrations"
-                  className={`hidden md:block font-medium text-sm px-4 py-2 rounded-xl transition-all duration-300 ${
-                    isActive('/integrations') ? 'text-[#00875F] bg-[#00875F]/10' : 'text-white/60 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  Integrations
-                </Link>
                 {!isActive('/pricing') && (
                   <Link
                     href="/pricing"
@@ -162,99 +142,82 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu — CSS max-height transition */}
-        <div
-          className={`sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-            isMobileMenuOpen ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'
-          }`}
-        >
-          <div className="border-t border-white/10">
-            <div className="flex flex-col gap-2 pb-2 pt-2">
-              {!showBackToHome ? (
-                <>
+        {/* Mobile Dropdown Menu */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginTop: 16 }}
+              exit={{ opacity: 0, height: 0, marginTop: 0 }}
+              className="sm:hidden border-t border-white/10 overflow-hidden"
+            >
+              <div className="flex flex-col gap-2 pb-2">
+                {!showBackToHome ? (
+                  <>
+                    <Link
+                      href="/pricing"
+                      className={`font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group ${
+                        isActive('/pricing') ? 'text-[#00875F] bg-[#00875F]/5' : 'text-white/70 hover:text-white'
+                      }`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {t('navBilling')}
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs">→</span>
+                    </Link>
+                    <Link
+                      href="/tutorials"
+                      className={`font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group ${
+                        isActive('/tutorials') ? 'text-[#00875F] bg-[#00875F]/5' : 'text-white/70 hover:text-white'
+                      }`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {t('navTutorials')}
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs">→</span>
+                    </Link>
+                    <Link
+                      href="/contact"
+                      className={`font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group ${
+                        isActive('/contact')
+                          ? 'text-[#00875F] bg-[#00875F]/5'
+                          : 'text-white/70 hover:text-white'
+                      }`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {t('contactSupport')}
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs">→</span>
+                    </Link>
+                    <div className="h-[1px] bg-white/5 my-1" />
+                    <Link
+                      href="https://app.ozzyl.com/auth/login"
+                      className="text-white/70 hover:text-white font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition text-center"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {t('login')}
+                    </Link>
+                  </>
+                ) : (
                   <Link
-                    href="/pricing"
-                    className={`font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group ${
-                      isActive('/pricing') ? 'text-[#00875F] bg-[#00875F]/5' : 'text-white/70 hover:text-white'
-                    }`}
+                    href="/"
+                    className="text-white/70 hover:text-white font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center gap-2"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    {t('navBilling')}
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs">→</span>
+                    <ArrowLeft className="w-4 h-4" />
+                    {t('backToHome')}
                   </Link>
-                  <Link
-                    href="/features"
-                    className={`font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group ${
-                      isActive('/features') ? 'text-[#00875F] bg-[#00875F]/5' : 'text-white/70 hover:text-white'
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Features
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs">→</span>
-                  </Link>
-                  <Link
-                    href="/integrations"
-                    className={`font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group ${
-                      isActive('/integrations') ? 'text-[#00875F] bg-[#00875F]/5' : 'text-white/70 hover:text-white'
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Integrations
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs">→</span>
-                  </Link>
-                  <Link
-                    href="/tutorials"
-                    className={`font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group ${
-                      isActive('/tutorials') ? 'text-[#00875F] bg-[#00875F]/5' : 'text-white/70 hover:text-white'
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {t('navTutorials')}
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs">→</span>
-                  </Link>
-                  <Link
-                    href="/contact"
-                    className={`font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group ${
-                      isActive('/contact')
-                        ? 'text-[#00875F] bg-[#00875F]/5'
-                        : 'text-white/70 hover:text-white'
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {t('contactSupport')}
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs">→</span>
-                  </Link>
-                  <div className="h-[1px] bg-white/5 my-1" />
-                  <Link
-                    href="https://app.ozzyl.com/auth/login"
-                    className="text-white/70 hover:text-white font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition text-center"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {t('login')}
-                  </Link>
-                </>
-              ) : (
+                )}
+
                 <Link
-                  href="/"
-                  className="text-white/70 hover:text-white font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center gap-2"
+                  href="https://app.ozzyl.com/auth/register"
+                  className="mx-2 px-4 py-3 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold rounded-xl text-sm text-center shadow-lg shadow-[#006A4E]/25 mt-1 active:scale-[0.98] transition-transform"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <ArrowLeft className="w-4 h-4" />
-                  {t('backToHome')}
+                  {t('register')}
                 </Link>
-              )}
-
-              <Link
-                href="https://app.ozzyl.com/auth/register"
-                className="mx-2 px-4 py-3 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold rounded-xl text-sm text-center shadow-lg shadow-[#006A4E]/25 mt-1 active:scale-[0.98] transition-transform"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {t('register')}
-              </Link>
-            </div>
-          </div>
-        </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </header>
+    </motion.header>
   );
 }

@@ -215,13 +215,6 @@ const AnalyticsInsightsSection = dynamic(
     })),
   { loading: () => <SectionSkeleton />, ssr: false }
 );
-const ServerSideTrackingSection = dynamic(
-  () =>
-    import('@/components/landing/ServerSideTrackingSection').then((m) => ({
-      default: m.ServerSideTrackingSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
 const UseCaseScenariosSection = dynamic(
   () =>
     import('@/components/landing/UseCaseScenariosSection').then((m) => ({
@@ -473,29 +466,65 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
         <ProblemSolutionSection />
       </LazySectionWrapper>
 
-      {/* ── HOMEPAGE: 12 focused sections (30+ → 12) ──────────────────── */}
+      {/* AI Showcase */}
+      <LazySectionWrapper minHeight="600px">
+        <AIShowcaseSection />
+      </LazySectionWrapper>
 
-      {/* 1. Features Overview */}
+      {/* Builder sections */}
+      <LazySectionWrapper minHeight="400px">
+        <DragDropBuilderShowcase />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="300px">
+        <EditorModeComparison />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="300px">
+        <AIMagicSection />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="250px">
+        <AISocialProofSection />
+      </LazySectionWrapper>
+
+      {/* Features */}
       <LazySectionWrapper minHeight="400px">
         <BentoFeaturesSection />
       </LazySectionWrapper>
 
-      {/* 2. Payment */}
+      {/* NEW FEATURES */}
       <LazySectionWrapper minHeight="400px">
-        <PaymentIntegrationSection />
+        <MarketingAutomationSection />
       </LazySectionWrapper>
 
-      {/* 3. Courier */}
       <LazySectionWrapper minHeight="400px">
-        <CourierIntegrationSection />
+        <LogisticsOperationsSection />
       </LazySectionWrapper>
 
-      {/* 4. Fraud Detection */}
+      <LazySectionWrapper minHeight="400px">
+        <CustomerExperienceSection />
+      </LazySectionWrapper>
+
+      {/* FRAUD DETECTION - HIGH PRIORITY FEATURE */}
       <LazySectionWrapper minHeight="500px">
         <FraudDetectionSection />
       </LazySectionWrapper>
 
-      {/* 5. Infrastructure / Speed */}
+      {/* Customer Benefits Section - Google Sign-in Focus */}
+      <LazySectionWrapper minHeight="600px">
+        <CustomerBenefitsSection />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="400px">
+        <BusinessManagementSection />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="400px">
+        <AnalyticsInsightsSection />
+      </LazySectionWrapper>
+
+      {/* Infrastructure */}
       <LazySectionWrapper minHeight="300px">
         <InfrastructureSection />
       </LazySectionWrapper>
@@ -504,85 +533,142 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
         <SpeedComparison />
       </LazySectionWrapper>
 
-      {/* 6. Trust */}
+      {/* Scalability Showcase - NEW */}
+      <LazySectionWrapper minHeight="500px">
+        <ScalabilityShowcase />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="250px">
+        <CDNExplainer />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="250px">
+        <SpeedImpact />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="250px">
+        <CloudflareBenefitsCards />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="250px">
+        <TechnicalSpecs />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="300px">
+        <LiveDashboard />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="200px">
+        <InfrastructureCTA />
+      </LazySectionWrapper>
+
+      {/* Trust & Comparison */}
       <LazySectionWrapper minHeight="250px">
         <TrustSection stats={marketingStats} />
       </LazySectionWrapper>
 
-      {/* 7. Comparison */}
       <LazySectionWrapper minHeight="400px">
         <ComparisonSection />
       </LazySectionWrapper>
 
-      {/* 8. Pricing Teaser — Full pricing at /pricing */}
-      <div className="py-20 text-center px-4">
-        <p className="text-white/50 text-sm uppercase tracking-widest mb-3">মূল্য তালিকা</p>
-        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">সাশ্রয়ী প্ল্যান, বড় সুবিধা</h2>
-        <p className="text-white/60 mb-8 max-w-md mx-auto">ফ্রি থেকে শুরু করুন। যেকোনো সময় আপগ্রেড করুন। কোনো লুকানো চার্জ নেই।</p>
-        <div className="flex flex-wrap justify-center gap-4 mb-8">
-          {[
-            { name: 'ফ্রি', price: '৳০', color: 'border-white/10' },
-            { name: 'স্টার্টার', price: '৳৭৯৯/মাস', color: 'border-[#006A4E]/50' },
-            { name: 'প্রফেশনাল', price: '৳১,৯৯৯/মাস', color: 'border-[#00875F]/70' },
-            { name: 'এন্টারপ্রাইজ', price: 'কাস্টম', color: 'border-white/20' },
-          ].map((plan) => (
-            <div key={plan.name} className={`border ${plan.color} rounded-xl px-6 py-4 bg-white/5 min-w-[140px]`}>
-              <div className="text-white/70 text-sm mb-1">{plan.name}</div>
-              <div className="text-white font-bold text-lg">{plan.price}</div>
-            </div>
-          ))}
-        </div>
-        <a
-          href="/pricing"
-          className="inline-flex items-center gap-2 px-8 py-3 bg-[#006A4E] hover:bg-[#00875F] text-white font-semibold rounded-xl transition-colors"
-        >
-          সম্পূর্ণ মূল্য তালিকা দেখুন →
-        </a>
-      </div>
+      <LazySectionWrapper minHeight="600px">
+        <FeatureMatrixSection />
+      </LazySectionWrapper>
 
-      {/* ── HIDDEN sections — details available at /features & /integrations ──
-      <AIShowcaseSection />
-      <AISocialProofSection />
-      <MarketingAutomationSection />
-      <LogisticsOperationsSection />
-      <CustomerExperienceSection />
-      <CustomerBenefitsSection />
-      <BusinessManagementSection />
-      <AnalyticsInsightsSection />
-      <ServerSideTrackingSection />
-      <ScalabilityShowcase />
-      <CDNExplainer />
-      <SpeedImpact />
-      <CloudflareBenefitsCards />
-      <TechnicalSpecs />
-      <LiveDashboard />
-      <InfrastructureCTA />
-      <FeatureMatrixSection />
-      <InteractiveStoreDemo />
-      <AllInOneSolution />
-      <InventoryOrderManagement />
-      <WhatsAppSMSAutomationSection />
-      <EmailMarketingSection />
-      <StorefrontUXShowcase />
-      <CRMMarketingGrowth />
-      <TeamManagementSection />
-      <ActivityLogsSection />
-      <ProductReviewsSection />
-      <ReturnsRefundsSection />
-      <MessengerIntegrationSection />
-      <TaxReportsSection />
-      <UnifiedCommunicationHub />
-      <BanglaNativeLocalization />
-      <SecuritySpeedInfrastructure />
-      <UseCaseScenariosSection />
-      ── */}
+      {/* Interactive Demo */}
+      <LazySectionWrapper minHeight="400px">
+        <InteractiveStoreDemo />
+      </LazySectionWrapper>
+
+      {/* ================================================================
+          NEW FEATURES (Award-Winning Extras)
+          ================================================================ */}
+      <LazySectionWrapper minHeight="400px">
+        <AllInOneSolution />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="400px">
+        <PaymentIntegrationSection />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="600px">
+        <CourierIntegrationSection />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="400px">
+        <InventoryOrderManagement />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="600px">
+        <WhatsAppSMSAutomationSection />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="600px">
+        <EmailMarketingSection />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="400px">
+        <StorefrontUXShowcase />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="400px">
+        <CRMMarketingGrowth />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="400px">
+        <TeamManagementSection />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="300px">
+        <ActivityLogsSection />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="300px">
+        <ProductReviewsSection />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="300px">
+        <ReturnsRefundsSection />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="300px">
+        <MessengerIntegrationSection />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="300px">
+        <TaxReportsSection />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="400px">
+        <UnifiedCommunicationHub />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="400px">
+        <BanglaNativeLocalization />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="400px">
+        <SecuritySpeedInfrastructure />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="500px">
+        <UseCaseScenariosSection />
+      </LazySectionWrapper>
+
+      <LazySectionWrapper minHeight="600px">
+        <PricingSection />
+      </LazySectionWrapper>
 
       {/* FAQ */}
       <LazySectionWrapper minHeight="400px">
         <FAQSection />
       </LazySectionWrapper>
 
-      {/* Final CTA - single */}
+      {/* Final CTAs */}
+      <LazySectionWrapper minHeight="300px">
+        <AIPoweredFinalCTA />
+      </LazySectionWrapper>
+
       <LazySectionWrapper minHeight="300px">
         <FinalCTA stats={marketingStats} />
       </LazySectionWrapper>

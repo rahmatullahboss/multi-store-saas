@@ -13,29 +13,12 @@
  * - Live signup notification (real, not fake)
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Check, Phone, Mail, Bell, Sparkles, Diamond, Users } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
-
-// ============================================================================
-// USE IN VIEW HOOK
-// ============================================================================
-const useInView = (threshold = 0.1) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setInView(true);
-      },
-      { threshold }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-  return { ref, inView };
-};
+import { ScrollReveal } from '@/components/animations';
 
 // ============================================================================
 // DESIGN TOKENS
@@ -99,25 +82,46 @@ const LiveNotification = ({ recentSignups }: { recentSignups: typeof defaultRece
   const current = recentSignups[currentIndex];
 
   return (
-    <div className="inline-flex items-center gap-3 px-5 py-3 bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl">
-      <div className="w-10 h-10 rounded-full bg-[#006A4E]/20 flex items-center justify-center">
-        <Bell className="w-5 h-5 text-[#006A4E]" />
-      </div>
-
-      <div
-        key={currentIndex}
-        className={`text-sm transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+    <motion.div
+      className="inline-flex items-center gap-3 px-5 py-3 bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+    >
+      <motion.div
+        className="w-10 h-10 rounded-full bg-[#006A4E]/20 flex items-center justify-center"
+        animate={{ scale: [1, 1.1, 1] }}
+        transition={{ duration: 2, repeat: Infinity }}
       >
-        <span className="text-white/60">{t('finalCtaLive')}: </span>
-        <span className="text-white font-medium">{current.name}</span>
-        <span className="text-white/60"> {t('finalCtaFrom')} </span>
-        <span className="text-[#F9A825]">{current.city}</span>
-        <span className="text-white/40"> {t('finalCtaJustSignedUp')}</span>
-      </div>
+        <Bell className="w-5 h-5 text-[#006A4E]" />
+      </motion.div>
+
+      <AnimatePresence mode="wait">
+        {isVisible && (
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.3 }}
+            className="text-sm"
+          >
+            <span className="text-white/60">{t('finalCtaLive')}: </span>
+            <span className="text-white font-medium">{current.name}</span>
+            <span className="text-white/60"> {t('finalCtaFrom')} </span>
+            <span className="text-[#F9A825]">{current.city}</span>
+            <span className="text-white/40"> {t('finalCtaJustSignedUp')}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Live indicator */}
-      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-    </div>
+      <motion.div
+        className="w-2 h-2 rounded-full bg-green-500"
+        animate={{ opacity: [1, 0.4, 1] }}
+        transition={{ duration: 1.5, repeat: Infinity }}
+      />
+    </motion.div>
   );
 };
 
@@ -127,13 +131,22 @@ const LiveNotification = ({ recentSignups }: { recentSignups: typeof defaultRece
 const GlowingCTAButton = () => {
   const { t } = useTranslation();
   return (
-    <div className="relative inline-block transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]">
+    <motion.div
+      className="relative inline-block"
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+    >
       {/* Outer glow */}
-      <div
-        className="absolute -inset-1 rounded-2xl blur-xl opacity-60 animate-pulse"
+      <motion.div
+        className="absolute -inset-1 rounded-2xl blur-xl opacity-60"
         style={{
           background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.primaryLight}, ${COLORS.accent})`,
         }}
+        animate={{
+          opacity: [0.4, 0.7, 0.4],
+          scale: [1, 1.02, 1],
+        }}
+        transition={{ duration: 2, repeat: Infinity }}
       />
 
       {/* Button */}
@@ -147,9 +160,11 @@ const GlowingCTAButton = () => {
         <span style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>
           {t('finalCtaPrimary')}
         </span>
-        <ArrowRight className="w-6 h-6" />
+        <motion.span animate={{ x: [0, 5, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
+          <ArrowRight className="w-6 h-6" />
+        </motion.span>
       </Link>
-    </div>
+    </motion.div>
   );
 };
 
@@ -167,10 +182,17 @@ const TrustBadges = () => {
   return (
     <div className="flex flex-wrap justify-center gap-4 mt-6">
       {badges.map((badge, i) => (
-        <div key={i} className="flex items-center gap-2 text-white/60 text-sm">
+        <motion.div
+          key={i}
+          className="flex items-center gap-2 text-white/60 text-sm"
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3 + i * 0.1 }}
+        >
           <badge.icon className="w-4 h-4 text-[#006A4E]" />
           <span>{badge.text}</span>
-        </div>
+        </motion.div>
       ))}
     </div>
   );
@@ -183,19 +205,26 @@ const DecorativeDiamonds = () => {
   return (
     <div className="flex justify-center gap-2 mb-8">
       {[...Array(16)].map((_, i) => (
-        <Diamond
+        <motion.div
           key={i}
-          className={`w-3 h-3 ${
-            i % 4 === 0
-              ? 'text-[#006A4E]'
-              : i % 4 === 1
-                ? 'text-[#F9A825]'
-                : i % 4 === 2
-                  ? 'text-[#8B5CF6]'
-                  : 'text-white/20'
-          }`}
-          fill="currentColor"
-        />
+          initial={{ opacity: 0, scale: 0 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: i * 0.05 }}
+        >
+          <Diamond
+            className={`w-3 h-3 ${
+              i % 4 === 0
+                ? 'text-[#006A4E]'
+                : i % 4 === 1
+                  ? 'text-[#F9A825]'
+                  : i % 4 === 2
+                    ? 'text-[#8B5CF6]'
+                    : 'text-white/20'
+            }`}
+            fill="currentColor"
+          />
+        </motion.div>
       ))}
     </div>
   );
@@ -210,12 +239,6 @@ export function FinalCTA({ stats }: FinalCTAProps) {
   const recentSignups = stats?.recentSignups ?? [];
   const totalUsers = stats?.totalUsers || 0;
 
-  const { ref: headlineRef, inView: headlineInView } = useInView(0.1);
-  const { ref: missionRef, inView: missionInView } = useInView(0.1);
-  const { ref: ctaRef, inView: ctaInView } = useInView(0.1);
-  const { ref: secondaryCtaRef, inView: secondaryCtaInView } = useInView(0.1);
-  const { ref: notifRef, inView: notifInView } = useInView(0.1);
-
   return (
     <section
       className="py-16 relative overflow-hidden"
@@ -224,19 +247,29 @@ export function FinalCTA({ stats }: FinalCTAProps) {
       {/* Background Effects */}
       <div className="absolute inset-0">
         {/* Gradient orb - top left */}
-        <div
+        <motion.div
           className="absolute -top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full"
           style={{
             background: `radial-gradient(circle, ${COLORS.primary}20 0%, transparent 70%)`,
           }}
+          animate={{
+            scale: [1, 1.1, 1],
+            x: [0, 30, 0],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
         />
 
         {/* Gradient orb - bottom right */}
-        <div
+        <motion.div
           className="absolute -bottom-1/4 -right-1/4 w-[500px] h-[500px] rounded-full"
           style={{
             background: `radial-gradient(circle, ${COLORS.violet}15 0%, transparent 70%)`,
           }}
+          animate={{
+            scale: [1.1, 1, 1.1],
+            x: [0, -20, 0],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         />
 
         {/* Dotted grid overlay */}
@@ -254,10 +287,7 @@ export function FinalCTA({ stats }: FinalCTAProps) {
         <DecorativeDiamonds />
 
         {/* Main Headline */}
-        <div
-          ref={headlineRef}
-          className={`transition-all duration-700 ${headlineInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
-        >
+        <ScrollReveal>
           <h2
             className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-8"
             style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
@@ -273,12 +303,15 @@ export function FinalCTA({ stats }: FinalCTAProps) {
             </span>{' '}
             {t('finalCtaTitlePart3')}
           </h2>
-        </div>
+        </ScrollReveal>
 
         {/* Mission Statement Card */}
-        <div
-          ref={missionRef}
-          className={`bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-8 mb-10 transition-all duration-700 ${missionInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
+        <motion.div
+          className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-8 mb-10"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
         >
           <p
             className="text-xl md:text-2xl text-white/80 leading-relaxed mb-6"
@@ -292,16 +325,18 @@ export function FinalCTA({ stats }: FinalCTAProps) {
           >
             {t('finalCtaJourney')}
           </p>
-        </div>
+        </motion.div>
 
         {/* Main CTA Button */}
-        <div
-          ref={ctaRef}
-          className={`mb-4 transition-all duration-700 ${ctaInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
-          style={{ transitionDelay: '200ms' }}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2 }}
+          className="mb-4"
         >
           <GlowingCTAButton />
-        </div>
+        </motion.div>
 
         {/* Trust Badges */}
         <TrustBadges />
@@ -314,10 +349,12 @@ export function FinalCTA({ stats }: FinalCTAProps) {
         </div>
 
         {/* Secondary CTAs */}
-        <div
-          ref={secondaryCtaRef}
-          className={`flex flex-wrap justify-center gap-4 mb-12 transition-all duration-700 ${secondaryCtaInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
-          style={{ transitionDelay: '400ms' }}
+        <motion.div
+          className="flex flex-wrap justify-center gap-4 mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.4 }}
         >
           <Link
             href="tel:+8801570260118"
@@ -334,17 +371,18 @@ export function FinalCTA({ stats }: FinalCTAProps) {
             <Mail className="w-4 h-4" />
             <span>📧 {t('finalCtaSecondaryMail')}</span>
           </Link>
-        </div>
+        </motion.div>
 
         {/* Live Notification - Only show when real signups exist */}
         {recentSignups.length > 0 && (
-          <div
-            ref={notifRef}
-            className={`transition-all duration-700 ${notifInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
-            style={{ transitionDelay: '600ms' }}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.6 }}
           >
             <LiveNotification recentSignups={recentSignups} />
-          </div>
+          </motion.div>
         )}
       </div>
     </section>

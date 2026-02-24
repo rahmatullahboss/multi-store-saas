@@ -39,7 +39,6 @@
   "team.emailBelongsAnotherStore": "এই ইমেইলটি অন্য একটি স্টোরের সদস্যের।",
   "team.inviteAlreadyPending": "এই ইমেইলে ইতিমধ্যে একটি আমন্ত্রণ পাঠানো হয়েছে।",
   "team.onlyOwnerCanInviteAdmin": "শুধুমাত্র স্টোরের মালিক অ্যাডমিন আমন্ত্রণ করতে পারবেন।",
-
   "webhooks.pageTitle": "ওয়েবহুক সেটিংস",
   "webhooks.pageSubtitle": "রিয়েল-টাইম নোটিফিকেশনের জন্য ওয়েবহুক এন্ডপয়েন্ট কনফিগার করুন",
   "webhooks.metaTitle": "ওয়েবহুক সেটিংস",

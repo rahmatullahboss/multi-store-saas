@@ -13,8 +13,10 @@
  * - Glassmorphism effects
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
 import { ChevronDown, HelpCircle, Sparkles } from 'lucide-react';
+import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/animations';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 
 // ============================================================================
@@ -28,25 +30,6 @@ const COLORS = {
   backgroundAlt: '#0D1512',
 };
 
-// ============================================================================
-// USE IN VIEW HOOK
-// ============================================================================
-const useInView = (threshold = 0.1) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setInView(true);
-      },
-      { threshold }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-  return { ref, inView };
-};
-
 // FAQ data will be generated inside the component to support translation
 
 // ============================================================================
@@ -58,32 +41,34 @@ const FAQItemComponent = ({ faq, index, isOpen, onToggle }: {
   isOpen: boolean; 
   onToggle: () => void;
 }) => {
-  const { ref, inView } = useInView(0.1);
-
   return (
-    <div
-      ref={ref}
-      className={`bg-white/[0.03] backdrop-blur-xl border rounded-2xl overflow-hidden transition-all duration-500 ${
+    <motion.div
+      className={`bg-white/[0.03] backdrop-blur-xl border rounded-2xl overflow-hidden transition-colors duration-300 ${
         isOpen ? 'border-[#006A4E]/50' : 'border-white/10 hover:border-white/20'
-      } ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
-      style={{ transitionDelay: `${index * 100}ms` }}
+      }`}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.1 }}
     >
       <button
         onClick={onToggle}
         className="w-full px-6 py-5 flex items-center justify-between gap-4 text-left"
       >
         <div className="flex items-center gap-4">
-          <div
+          <motion.div
             className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors duration-300 ${
               isOpen 
                 ? 'bg-gradient-to-br from-[#006A4E] to-[#00875F]' 
                 : 'bg-white/5'
             }`}
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
           >
             <span className={`text-lg font-bold ${isOpen ? 'text-white' : 'text-white/40'}`}>
               {index + 1}
             </span>
-          </div>
+          </motion.div>
           <h3 
             className={`text-lg font-semibold transition-colors duration-300 ${
               isOpen ? 'text-white' : 'text-white/80'
@@ -94,32 +79,39 @@ const FAQItemComponent = ({ faq, index, isOpen, onToggle }: {
           </h3>
         </div>
         
-        <div
-          className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
-            isOpen ? 'bg-[#006A4E]/20 rotate-180' : 'bg-white/5 rotate-0'
+        <motion.div
+          className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors duration-300 ${
+            isOpen ? 'bg-[#006A4E]/20' : 'bg-white/5'
           }`}
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.3 }}
         >
           <ChevronDown className={`w-5 h-5 ${isOpen ? 'text-[#006A4E]' : 'text-white/40'}`} />
-        </div>
+        </motion.div>
       </button>
       
-      <div
-        className={`overflow-hidden transition-all duration-300 ease-out ${
-          isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-        }`}
-      >
-        <div className="px-6 pb-5">
-          <div className="pl-14">
-            <p 
-              className="text-white/60 leading-relaxed"
-              style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
-            >
-              {faq.answer}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="px-6 pb-5">
+              <div className="pl-14">
+                <p 
+                  className="text-white/60 leading-relaxed"
+                  style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
+                >
+                  {faq.answer}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 
@@ -134,9 +126,6 @@ interface FAQItem {
 export function FAQSection() {
   const { t } = useTranslation();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-
-  const { ref: headerRef, inView: headerInView } = useInView(0.1);
-  const { ref: ctaRef, inView: ctaInView } = useInView(0.1);
 
   const faqData = [
     { question: t('faq1Q'), answer: t('faq1A') },
@@ -158,17 +147,26 @@ export function FAQSection() {
     >
       {/* Background Effects */}
       <div className="absolute inset-0">
-        <div
+        <motion.div
           className="absolute top-1/4 right-0 w-[500px] h-[500px] rounded-full"
           style={{
             background: `radial-gradient(circle, ${COLORS.primary}15 0%, transparent 70%)`,
           }}
+          animate={{
+            scale: [1, 1.1, 1],
+            x: [0, -30, 0],
+          }}
+          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
         />
-        <div
+        <motion.div
           className="absolute bottom-0 left-1/4 w-[400px] h-[400px] rounded-full"
           style={{
             background: `radial-gradient(circle, ${COLORS.accent}10 0%, transparent 70%)`,
           }}
+          animate={{
+            scale: [1.1, 1, 1.1],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
         />
         
         {/* Grid pattern */}
@@ -184,44 +182,46 @@ export function FAQSection() {
 
       <div className="relative z-10 max-w-4xl mx-auto px-4">
         {/* Section Header */}
-        <div
-          ref={headerRef}
-          className={`text-center mb-16 transition-all duration-700 ${headerInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
-        >
-          <div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-6"
-            style={{ 
-              backgroundColor: `${COLORS.primary}10`,
-              borderColor: `${COLORS.primary}30`,
-            }}
-          >
-            <HelpCircle className="w-4 h-4" style={{ color: COLORS.accent }} />
-            <span className="text-sm" style={{ color: COLORS.accent }}>
-              {t('faqBadge')}
-            </span>
-          </div>
-          
-          <h2 
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4"
-            style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
-          >
-            {t('faqTitlePart1')}{' '}
-            <span 
-              className="bg-clip-text text-transparent"
-              style={{
-                backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 50%, ${COLORS.accent} 100%)`,
+        <ScrollReveal>
+          <div className="text-center mb-16">
+            <motion.div
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-6"
+              style={{ 
+                backgroundColor: `${COLORS.primary}10`,
+                borderColor: `${COLORS.primary}30`,
               }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
             >
-              {t('faqTitlePart2')}
-            </span>
-          </h2>
-          <p 
-            className="text-lg text-white/50 max-w-2xl mx-auto"
-            style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
-          >
-            {t('faqSubtitle')}
-          </p>
-        </div>
+              <HelpCircle className="w-4 h-4" style={{ color: COLORS.accent }} />
+              <span className="text-sm" style={{ color: COLORS.accent }}>
+                {t('faqBadge')}
+              </span>
+            </motion.div>
+            
+            <h2 
+              className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4"
+              style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
+            >
+              {t('faqTitlePart1')}{' '}
+              <span 
+                className="bg-clip-text text-transparent"
+                style={{
+                  backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 50%, ${COLORS.accent} 100%)`,
+                }}
+              >
+                {t('faqTitlePart2')}
+              </span>
+            </h2>
+            <p 
+              className="text-lg text-white/50 max-w-2xl mx-auto"
+              style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
+            >
+              {t('faqSubtitle')}
+            </p>
+          </div>
+        </ScrollReveal>
 
         {/* FAQ Items */}
         <div className="space-y-4">
@@ -237,10 +237,12 @@ export function FAQSection() {
         </div>
 
         {/* Still have questions? */}
-        <div
-          ref={ctaRef}
-          className={`mt-12 text-center transition-all duration-700 ${ctaInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
-          style={{ transitionDelay: '500ms' }}
+        <motion.div
+          className="mt-12 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.5 }}
         >
           <p className="text-white/50 mb-4" style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>
             {t('faqStillQuestions')}
@@ -252,7 +254,7 @@ export function FAQSection() {
             <Sparkles className="w-4 h-4 text-[#F9A825]" />
             <span style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>{t('faqContactUs')}</span>
           </a>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

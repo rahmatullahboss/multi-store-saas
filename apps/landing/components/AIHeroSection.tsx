@@ -11,10 +11,9 @@
  * - Neural network background pattern
  * - Floating typography + AI nodes
  * - AI Chat & Drag-Drop Simulation
- *
- * Animation: Pure CSS + IntersectionObserver (no framer-motion)
  */
 
+import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motion';
 import { useEffect, useRef, useState, ReactNode } from 'react';
 import Link from 'next/link';
 import {
@@ -92,9 +91,9 @@ const GrainOverlay = ({ isLight = false }: { isLight?: boolean }) => (
 );
 
 // ============================================================================
-// NEURAL NETWORK BACKGROUND - CSS animations
+// NEURAL NETWORK BACKGROUND (Updated for AI Theme)
 // ============================================================================
-const NeuralBackground = ({ colors, isMobile = false }: { colors: typeof DARK_COLORS; isMobile?: boolean }) => (
+const NeuralBackground = ({ colors, isMobile = false }: { colors: any; isMobile?: boolean }) => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
     {/* Grid Pattern */}
     <div
@@ -105,75 +104,60 @@ const NeuralBackground = ({ colors, isMobile = false }: { colors: typeof DARK_CO
       }}
     />
 
-    {/* Green Orb */}
-    <div
+    {/* Green Orb - Static on mobile */}
+    <motion.div
       className="absolute -top-[10%] -left-[10%] w-[600px] h-[600px] rounded-full blur-[100px]"
-      style={{
-        background: colors.primary,
-        opacity: isMobile ? 0.1 : undefined,
-        animation: isMobile ? 'none' : 'orbPulseGreen 10s ease-in-out infinite',
-      }}
+      style={{ background: colors.primary }}
+      animate={
+        isMobile
+          ? { opacity: 0.1, scale: 1 }
+          : {
+              opacity: [0.1, 0.15, 0.1],
+              scale: [1, 1.1, 1],
+            }
+      }
+      transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
     />
 
-    {/* Purple Orb (AI) */}
-    <div
+    {/* Purple Orb (AI) - Static on mobile */}
+    <motion.div
       className="absolute top-[20%] right-[0%] w-[500px] h-[500px] rounded-full blur-[100px]"
-      style={{
-        background: colors.aiPurple,
-        opacity: isMobile ? 0.05 : undefined,
-        animation: isMobile ? 'none' : 'orbPulsePurple 12s ease-in-out infinite',
-      }}
+      style={{ background: colors.aiPurple }}
+      animate={
+        isMobile
+          ? { opacity: 0.05, scale: 1, x: 0 }
+          : {
+              opacity: [0.05, 0.1, 0.05],
+              scale: [1, 1.2, 1],
+              x: [0, -20, 0],
+            }
+      }
+      transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
     />
-
-    <style>{`
-      @keyframes orbPulseGreen {
-        0%, 100% { opacity: 0.1; transform: scale(1); }
-        50%       { opacity: 0.15; transform: scale(1.1); }
-      }
-      @keyframes orbPulsePurple {
-        0%, 100% { opacity: 0.05; transform: scale(1) translateX(0); }
-        50%       { opacity: 0.1; transform: scale(1.2) translateX(-20px); }
-      }
-    `}</style>
   </div>
 );
 
 // ============================================================================
-// AI VISUAL COMPONENT - CSS animations replace framer-motion
+// AI VISUAL COMPONENT
 // ============================================================================
 const AIHeroVisual = ({ theme, isMobile }: { theme: 'dark' | 'light'; isMobile?: boolean }) => {
   const colors = getColors(theme);
   const { t } = useTranslation();
   const [activeChat, setActiveChat] = useState(0);
-  const [blocksVisible, setBlocksVisible] = useState(false);
 
   // Chat sequence animation
   useEffect(() => {
-    let cancelled = false;
-
     const sequence = async () => {
-      // Small delay so blocks animate in first
-      await new Promise((r) => setTimeout(r, 400));
-      if (cancelled) return;
-      setBlocksVisible(true);
-
-      while (!cancelled) {
-        await new Promise((r) => setTimeout(r, 1000));
-        if (cancelled) return;
+      while (true) {
+        await new Promise((r) => setTimeout(r, 1000)); // Start
         setActiveChat(1); // User asks
-        await new Promise((r) => setTimeout(r, 2000));
-        if (cancelled) return;
+        await new Promise((r) => setTimeout(r, 2000)); // AI thinks
         setActiveChat(2); // AI responds
-        await new Promise((r) => setTimeout(r, 5000));
-        if (cancelled) return;
+        await new Promise((r) => setTimeout(r, 5000)); // Wait
         setActiveChat(0); // Reset
       }
     };
-
     sequence();
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   return (
@@ -186,7 +170,7 @@ const AIHeroVisual = ({ theme, isMobile }: { theme: 'dark' | 'light'; isMobile?:
           backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.6)',
         }}
       >
-        {/* Split View */}
+        {/* Split View Divider */}
         <div className="absolute inset-0 flex">
           {/* LEFT: Drag & Drop Canvas */}
           <div className="w-1/2 border-r p-4 relative" style={{ borderColor: colors.cardBorder }}>
@@ -196,38 +180,35 @@ const AIHeroVisual = ({ theme, isMobile }: { theme: 'dark' | 'light'; isMobile?:
               <div className="w-2 h-2 rounded-full bg-green-400" />
             </div>
 
-            {/* Draggable Blocks */}
+            {/* Draggable Blocks Simulation */}
             <div className="mt-8 space-y-3">
               {[1, 2, 3].map((i) => (
-                <div
+                <motion.div
                   key={`block-${i}`}
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: i * 0.2 }}
                   className="rounded-lg p-3 border border-dashed relative overflow-hidden"
                   style={{
                     borderColor: colors.cardBorder,
-                    background:
-                      theme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-                    opacity: blocksVisible ? 1 : 0,
-                    transform: blocksVisible ? 'translateX(0)' : 'translateX(-20px)',
-                    transition: `opacity 0.4s ease-out ${i * 0.2}s, transform 0.4s ease-out ${i * 0.2}s`,
+                    background: theme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
                   }}
                 >
                   <div className="h-2 w-2/3 rounded bg-current opacity-10 mb-2" />
                   <div className="h-12 rounded bg-current opacity-5" />
 
-                  {/* Drag Hand */}
-                  {i === 2 && (
-                    <div
+                  {/* Drag Hand Animation */}
+                  {i === 2 && activeChat === 1 && (
+                    <motion.div
                       className="absolute bottom-1 right-2"
-                      style={{
-                        opacity: activeChat === 1 ? 1 : 0,
-                        transform: activeChat === 1 ? 'translate(0,0)' : 'translate(20px,20px)',
-                        transition: 'opacity 0.3s ease-out, transform 0.3s ease-out',
-                      }}
+                      initial={{ opacity: 0, x: 20, y: 20 }}
+                      animate={{ opacity: 1, x: 0, y: 0 }}
+                      exit={{ opacity: 0 }}
                     >
                       <MousePointer2 className="w-6 h-6 fill-white stroke-black" />
-                    </div>
+                    </motion.div>
                   )}
-                </div>
+                </motion.div>
               ))}
             </div>
 
@@ -242,122 +223,115 @@ const AIHeroVisual = ({ theme, isMobile }: { theme: 'dark' | 'light'; isMobile?:
           {/* RIGHT: AI Chat Interface */}
           <div
             className="w-1/2 relative bg-opacity-50"
-            style={{
-              backgroundColor:
-                theme === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)',
-            }}
+            style={{ backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)' }}
           >
             <div className="p-4 flex flex-col justify-center h-full gap-4">
               {/* User Message Bubble */}
-              <div
-                className="self-end max-w-[90%] rounded-2xl rounded-tr-sm p-3 shadow-sm"
-                style={{
-                  background: colors.primary,
-                  color: 'white',
-                  opacity: activeChat >= 1 ? 1 : 0,
-                  transform: activeChat >= 1 ? 'translateY(0) scale(1)' : 'translateY(10px) scale(0.9)',
-                  transition: 'opacity 0.3s ease-out, transform 0.3s ease-out',
-                }}
-              >
-                <p className="text-xs">💬 &quot;{t('heroAiVisualUserMsg')}&quot;</p>
-              </div>
+              <AnimatePresence>
+                {activeChat >= 1 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="self-end max-w-[90%] rounded-2xl rounded-tr-sm p-3 shadow-sm"
+                    style={{ background: colors.primary, color: 'white' }}
+                  >
+                    <p className="text-xs">💬 "{t('heroAiVisualUserMsg')}"</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Bot Typing Indicator */}
-              <div
-                className="self-start"
-                style={{
-                  opacity: activeChat === 1 ? 1 : 0,
-                  transition: 'opacity 0.3s ease-out',
-                  pointerEvents: 'none',
-                }}
-              >
-                <div className="flex gap-1 px-3 py-2 rounded-2xl rounded-tl-sm bg-white/10">
-                  <div
-                    className="w-1 h-1 rounded-full bg-current opacity-50"
-                    style={{ animation: 'typingDot 0.6s ease-in-out infinite', animationDelay: '0s' }}
-                  />
-                  <div
-                    className="w-1 h-1 rounded-full bg-current opacity-50"
-                    style={{ animation: 'typingDot 0.6s ease-in-out infinite', animationDelay: '0.2s' }}
-                  />
-                  <div
-                    className="w-1 h-1 rounded-full bg-current opacity-50"
-                    style={{ animation: 'typingDot 0.6s ease-in-out infinite', animationDelay: '0.4s' }}
-                  />
-                </div>
-              </div>
+              <AnimatePresence>
+                {activeChat === 1 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="self-start relative"
+                  >
+                    <div className="flex gap-1 px-3 py-2 rounded-2xl rounded-tl-sm bg-white/10">
+                      <motion.div
+                        animate={{ y: [0, -3, 0] }}
+                        transition={{ repeat: Infinity, duration: 0.6, delay: 0 }}
+                        className="w-1 h-1 rounded-full bg-current opacity-50"
+                      />
+                      <motion.div
+                        animate={{ y: [0, -3, 0] }}
+                        transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }}
+                        className="w-1 h-1 rounded-full bg-current opacity-50"
+                      />
+                      <motion.div
+                        animate={{ y: [0, -3, 0] }}
+                        transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }}
+                        className="w-1 h-1 rounded-full bg-current opacity-50"
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Bot Response Bubble */}
-              <div
-                className="self-start max-w-[90%] rounded-2xl rounded-tl-sm p-3 border shadow-sm"
-                style={{
-                  background: theme === 'dark' ? '#1a1a20' : '#ffffff',
-                  borderColor: colors.cardBorder,
-                  opacity: activeChat >= 2 ? 1 : 0,
-                  transform: activeChat >= 2 ? 'translateY(0) scale(1)' : 'translateY(10px) scale(0.9)',
-                  transition: 'opacity 0.3s ease-out, transform 0.3s ease-out',
-                }}
-              >
-                <div className="flex items-start gap-2">
-                  <div className="p-1 rounded bg-purple-500/10 mt-0.5">
-                    <Bot className="w-3 h-3 text-purple-500" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium" style={{ color: colors.text }}>
-                      🤖 &quot;{t('heroAiVisualAiReply')}&quot;
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <AnimatePresence>
+                {activeChat >= 2 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="self-start max-w-[90%] rounded-2xl rounded-tl-sm p-3 border shadow-sm"
+                    style={{
+                      background: theme === 'dark' ? '#1a1a20' : '#ffffff',
+                      borderColor: colors.cardBorder,
+                    }}
+                  >
+                    <div className="flex items-start gap-2">
+                      <div className="p-1 rounded bg-purple-500/10 mt-0.5">
+                        <Bot className="w-3 h-3 text-purple-500" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium" style={{ color: colors.text }}>
+                          🤖 "{t('heroAiVisualAiReply')}"
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
 
-        {/* Floating Badge — AI Logic */}
-        <div
+        {/* Floating Badges */}
+        <motion.div
           className="absolute -right-4 top-10 px-3 py-1.5 rounded-full border backdrop-blur-md shadow-lg flex items-center gap-2 z-10"
           style={{
             background: theme === 'dark' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(255,255,255,0.8)',
             borderColor: colors.aiPurple,
-            animation: isMobile ? 'none' : 'floatUp 4s ease-in-out infinite',
           }}
+          animate={isMobile ? {} : { y: [0, -10, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         >
           <Sparkles className="w-3 h-3 text-purple-500" />
           <span className="text-xs font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">
             AI Logic
           </span>
-        </div>
+        </motion.div>
 
-        {/* Floating Badge — Fast CDN */}
-        <div
+        <motion.div
           className="absolute -left-4 bottom-20 px-3 py-1.5 rounded-full border backdrop-blur-md shadow-lg flex items-center gap-2 z-10"
           style={{
             background: theme === 'dark' ? 'rgba(0, 106, 78, 0.1)' : 'rgba(255,255,255,0.8)',
             borderColor: colors.primary,
-            animation: isMobile ? 'none' : 'floatDown 5s ease-in-out infinite',
           }}
+          animate={isMobile ? {} : { y: [0, 10, 0] }}
+          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
         >
           <Zap className="w-3 h-3" style={{ color: colors.primary }} />
           <span className="text-xs font-medium" style={{ color: colors.primary }}>
             Fast CDN
           </span>
-        </div>
+        </motion.div>
       </div>
-
-      <style>{`
-        @keyframes typingDot {
-          0%, 100% { transform: translateY(0); }
-          50%       { transform: translateY(-3px); }
-        }
-        @keyframes floatUp {
-          0%, 100% { transform: translateY(0); }
-          50%       { transform: translateY(-10px); }
-        }
-        @keyframes floatDown {
-          0%, 100% { transform: translateY(0); }
-          50%       { transform: translateY(10px); }
-        }
-      `}</style>
     </div>
   );
 };
@@ -371,14 +345,6 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
   const isMobile = useIsMobile();
   const { t } = useTranslation();
 
-  // Entrance animation: mount flag
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    // Small rAF delay so first paint isn't blocked
-    const id = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
   return (
     <section
       className="relative min-h-[90vh] overflow-hidden flex items-center"
@@ -391,20 +357,19 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* LEFT: CONTENT */}
           <div className="relative z-20">
-            {/* AI Badge */}
-            <div
+            {/* New AI Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border mb-6"
               style={{
                 backgroundColor: isLight ? 'rgba(139, 92, 246, 0.05)' : 'rgba(139, 92, 246, 0.1)',
                 borderColor: isLight ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.3)',
-                opacity: mounted ? 1 : 0,
-                transform: mounted ? 'translateY(0)' : 'translateY(20px)',
-                transition: 'opacity 0.5s ease-out, transform 0.5s ease-out',
               }}
             >
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
               </span>
               <span
                 className="text-xs font-semibold tracking-wide uppercase"
@@ -412,17 +377,10 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
               >
                 {t('heroAiBadge')}
               </span>
-            </div>
+            </motion.div>
 
             {/* Headline */}
-            <h1
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.15] mb-6 tracking-tight"
-              style={{
-                opacity: mounted ? 1 : 0,
-                transform: mounted ? 'translateY(0)' : 'translateY(30px)',
-                transition: 'opacity 0.6s ease-out 0.1s, transform 0.6s ease-out 0.1s',
-              }}
-            >
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.15] mb-6 tracking-tight">
               <span className="block" style={{ color: colors.text }}>
                 {t('heroAiTitle')}
               </span>
@@ -431,25 +389,13 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
             {/* Subheadline */}
             <p
               className="text-lg md:text-xl mb-8 leading-relaxed max-w-lg"
-              style={{
-                color: colors.textMuted,
-                opacity: mounted ? 1 : 0,
-                transform: mounted ? 'translateY(0)' : 'translateY(20px)',
-                transition: 'opacity 0.5s ease-out 0.25s, transform 0.5s ease-out 0.25s',
-              }}
+              style={{ color: colors.textMuted }}
             >
               {t('heroAiSubtitle')}
             </p>
 
             {/* CTAs */}
-            <div
-              className="flex flex-wrap gap-4 mb-10"
-              style={{
-                opacity: mounted ? 1 : 0,
-                transform: mounted ? 'translateY(0)' : 'translateY(20px)',
-                transition: 'opacity 0.5s ease-out 0.35s, transform 0.5s ease-out 0.35s',
-              }}
-            >
+            <div className="flex flex-wrap gap-4 mb-10">
               <Link
                 href="https://app.ozzyl.com/auth/register"
                 className="group relative px-8 py-3.5 rounded-xl font-semibold text-white overflow-hidden transition-all hover:shadow-lg hover:shadow-green-500/25 active:scale-95"
@@ -467,12 +413,7 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
             {/* Trust Badges */}
             <div
               className="grid grid-cols-2 md:grid-cols-4 gap-4 py-6 border-t"
-              style={{
-                borderColor: colors.cardBorder,
-                color: colors.textSubtle,
-                opacity: mounted ? 1 : 0,
-                transition: 'opacity 0.5s ease-out 0.5s',
-              }}
+              style={{ borderColor: colors.cardBorder, color: colors.textSubtle }}
             >
               {[
                 { icon: Bot, label: t('heroAiTrust1'), color: colors.aiPurpleLight },
@@ -489,17 +430,10 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
           </div>
 
           {/* RIGHT: AI VISUAL */}
-          <div
-            className="relative z-10 lg:translate-x-10"
-            style={{
-              opacity: mounted ? 1 : 0,
-              transform: mounted ? 'translateY(0)' : 'translateY(20px)',
-              transition: 'opacity 0.7s ease-out 0.3s, transform 0.7s ease-out 0.3s',
-            }}
-          >
+          <div className="relative z-10 lg:translate-x-10">
             <AIHeroVisual theme={theme} isMobile={isMobile} />
 
-            {/* Decorative Background Blob */}
+            {/* Decorative Background Blob behind Visual */}
             <div
               className="absolute inset-0 -z-10 bg-gradient-to-tr from-purple-500/20 to-green-500/20 rounded-full blur-[80px] opacity-50"
               style={{ transform: 'scale(0.8)' }}

@@ -676,7 +676,6 @@
   "globalThemeDesc": "স্টোরের গ্লোবাল ডিজাইন",
   "goodAfternoon": "শুভ অপরাহ্ন",
   "goodEvening": "শুভ সন্ধ্যা",
-
   "googlePreview": "গুগল প্রিভিউ",
   "goToDashboard": "ড্যাশবোর্ডে যান",
   "goToSettings": "সেটিংসে যান",
@@ -1222,7 +1221,7 @@
   "hc_summary": "সারসংক্ষেপ",
   "hc_support": "সাপোর্ট",
   "hc_suspiciousIps": "সন্দেহজনক আইপি-সমূহ",
-  "hc_sUSTAINABLE": "SUSTAINABLE",
+  "hc_sUSTAINABLE": "টেকসই",
   "hc_sylhet": "সিলেট",
   "hc_system": "সিস্টেম",
   "hc_systemBroadcasts": "সিস্টেম ব্রডকাস্ট",
@@ -1804,7 +1803,7 @@
   "navShipping": "শিপিং",
   "navCourier": "কুরিয়ার",
   "navFraudDetection": "ফ্রড ডিটেকশন",
-  "navFDaaS": "Guard API (FDaaS)",
+  "navFDaaS": "গার্ড API (FDaaS)",
   "navSupport": "সাপোর্ট",
   "navStoreEditor": "স্টোর এডিটর",
   "navStoreTemplates": "স্টোর টেমপ্লেটসমূহ",
@@ -1856,7 +1855,6 @@
   "noOrdersDescription": "আপনার সব অর্ডার এখানে দেখা যাবে।",
   "noOrdersFoundForCustomer": "এই কাস্টমারের কোনো অর্ডার পাওয়া যায়নি",
   "noOrdersMatchFilters": "ফিল্টারের সাথে কোনো অর্ডার মেলেনি",
-
   "noPendingActions": "কোনো পেন্ডিং অ্যাকশন নেই",
   "noProducts": "কোনো পণ্য নেই",
   "noProductsDesc": "আপনার স্টোরে কোনো পণ্য যোগ করা হয়নি।",
@@ -2076,7 +2074,6 @@
   "readyToGrow": "ব্যবসা বড় করতে প্রস্তুত?",
   "realtimeUpdates": "রিয়েল-টাইম আপডেট",
   "recentActivity": "সাম্প্রতিক অ্যাক্টিভিটি",
-
   "recipients": "প্রাপকবৃন্দ",
   "recommendedActions": "সুপারিশকৃত পদক্ষেপ",
   "records": "রেকর্ডসমূহ",
@@ -2214,7 +2211,6 @@
   "seoTip4": "Seo Tip4",
   "seoTips": "এসইও টিপস",
   "setCloudflareEnv": "ক্লাউডফ্লেয়ার এনভায়রনমেন্ট সেট করুন",
-
   "settingsSaved": "সেটিংস সেভ করা হয়েছে",
   "settingsSubtitle": "আপনার স্টোরের প্রয়োজনীয় সেটিংস পরিচালনা করুন",
   "setupAgent": "এজেন্ট সেটআপ করুন",
@@ -2297,7 +2293,6 @@
   "somethingWentWrong": "কিছু ভুল হয়েছে। আবার চেষ্টা করুন।",
   "sort_by": "বাছাই করুন",
   "source": "উৎস",
-
   "specialPrice": "বিশেষ মূল্য",
   "specifications": "স্পেসিফিকেশন",
   "spent": "ব্যয় হয়েছে",
@@ -2418,7 +2413,6 @@
   "totalEmailsSent": "মোট পাঠানো ইমেইল",
   "totalMerchants": "মোট মার্চেন্ট",
   "totalOffers": "মোট অফার",
-
   "totalPayouts": "মোট পে-আউট",
   "totalProducts": "মোট পণ্য",
   "totalRevenue": "মোট আয়",
@@ -2510,7 +2504,6 @@
   "viewLivePage": "লাইভ পেজ দেখুন",
   "viewLiveStore": "লাইভ স্টোর দেখুন",
   "viewLowStock": "লো-স্টক পণ্য দেখুন",
-
   "viewProductsOrders": "পণ্যের অর্ডারসমূহ দেখুন",
   "views": "ভিজিট সংখ্যা",
   "viewStore": "স্টোর দেখুন",

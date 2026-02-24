@@ -3,9 +3,11 @@ import { Truck, Package, CheckCircle, Printer, ArrowRight, Coins, Smartphone, Se
 import { useState, useEffect, type ComponentType } from 'react';
 
 const COURIERS = [
-  { name: 'Steadfast', color: '#00D1FF', logo: 'S', rate: 60, time: '24h' },
-  { name: 'Pathao', color: '#EF4444', logo: 'P', rate: 55, time: '24h' },
-  { name: 'RedX', color: '#F87171', logo: 'R', rate: 65, time: '48h' },
+  { name: 'Steadfast', color: '#EF4444', logo: 'S', rate: 60, time: '24h' },
+  { name: 'Pathao', color: '#EF4444', logo: 'P', rate: 70, time: '24h' },
+  { name: 'RedX', color: '#EF4444', logo: 'R', rate: 65, time: '48h' },
+  { name: 'Paperfly', color: '#3B82F6', logo: 'PF', rate: 65, time: '48h' },
+  { name: 'eCourier', color: '#10B981', logo: 'E', rate: 80, time: '24h' },
 ];
 
 export function LogisticsOperationsSection() {

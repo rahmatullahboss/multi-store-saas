@@ -411,5 +411,12 @@
   "provider": "প্রোভাইডার",
   "quantity": "পরিমাণ",
   "shipTo": "শিপিং ঠিকানা",
-  "updateStatus": "স্ট্যাটাস আপডেট"
+  "updateStatus": "স্ট্যাটাস আপডেট",
+  "time": "সময়",
+  "timeline": "সময়রেখা",
+  "title": "শিরোনাম",
+  "total": "মোট",
+  "totalSpent": "মোট খরচ",
+  "type": "ধরন",
+  "uRL": "URL"
 }
