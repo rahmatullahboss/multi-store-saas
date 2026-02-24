@@ -790,6 +790,100 @@ export const fraudEventsRelations = relations(fraudEvents, ({ one }) => ({
 }));
 
 // ============================================================================
+// FRAUD IP EVENTS TABLE — IP velocity & device tracking (Phase 1C)
+// Records IP → phone mappings to detect fraud rings (same IP, many phones).
+// Also stores Cloudflare edge signals: country, device type.
+// Auto-purge policy: keep 30 days only (run DELETE WHERE created_at < now-30d via cron).
+// ============================================================================
+export const fraudIpEvents = sqliteTable(
+  'fraud_ip_events',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    phone: text('phone').notNull(),
+    ipAddress: text('ip_address').notNull(),
+    cfCountry: text('cf_country'),       // CF-IPCountry (e.g. 'BD', 'IN', 'US')
+    cfDeviceType: text('cf_device_type'), // CF-Device-Type (e.g. 'mobile', 'desktop')
+    userAgent: text('user_agent'),        // User-Agent (first 512 chars)
+    riskScore: integer('risk_score'),     // Score at time of event (0-100)
+    decision: text('decision').$type<'allow' | 'verify' | 'hold' | 'block'>(),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_fraud_ip_events_ip').on(table.ipAddress),
+    index('idx_fraud_ip_events_store').on(table.storeId),
+    index('idx_fraud_ip_events_phone').on(table.phone),
+    index('idx_fraud_ip_events_ip_created').on(table.ipAddress, table.createdAt),
+  ]
+);
+
+export const fraudIpEventsRelations = relations(fraudIpEvents, ({ one }) => ({
+  store: one(stores, {
+    fields: [fraudIpEvents.storeId],
+    references: [stores.id],
+  }),
+}));
+
+// ============================================================================
+// FDAAS API KEYS TABLE — Fraud Detection as a Service (Phase 2)
+// External merchants (WordPress, Shopify, custom) pay to use Ozzyl Guard API.
+// ============================================================================
+export const fdaasApiKeys = sqliteTable(
+  'fdaas_api_keys',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    keyHash: text('key_hash').notNull().unique(),      // SHA-256 of raw key
+    keyPrefix: text('key_prefix').notNull(),            // First 8 chars for display
+    name: text('name').notNull(),                       // "My WooCommerce Store"
+    ownerEmail: text('owner_email').notNull(),
+    plan: text('plan').$type<'free' | 'starter' | 'pro' | 'enterprise'>().notNull().default('free'),
+    monthlyLimit: integer('monthly_limit').notNull().default(100),   // free=100/mo
+    callsThisMonth: integer('calls_this_month').notNull().default(0),
+    callsTotal: integer('calls_total').notNull().default(0),
+    lastResetAt: integer('last_reset_at', { mode: 'timestamp' }),
+    lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),
+    isActive: integer('is_active').notNull().default(1),
+    metadata: text('metadata'),                         // JSON: webhook_url, etc.
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_fdaas_api_keys_hash').on(table.keyHash),
+    index('idx_fdaas_api_keys_email').on(table.ownerEmail),
+    index('idx_fdaas_api_keys_prefix').on(table.keyPrefix),
+  ]
+);
+
+export const fdaasUsageLog = sqliteTable(
+  'fdaas_usage_log',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    apiKeyId: integer('api_key_id')
+      .notNull()
+      .references(() => fdaasApiKeys.id, { onDelete: 'cascade' }),
+    phoneHash: text('phone_hash').notNull(),   // SHA-256 of normalized phone (privacy)
+    riskScore: integer('risk_score'),
+    decision: text('decision').$type<'allow' | 'verify' | 'hold' | 'block'>(),
+    responseMs: integer('response_ms'),
+    ipAddress: text('ip_address'),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_fdaas_usage_key').on(table.apiKeyId),
+    index('idx_fdaas_usage_created').on(table.createdAt),
+  ]
+);
+
+export const fdaasUsageLogRelations = relations(fdaasUsageLog, ({ one }) => ({
+  apiKey: one(fdaasApiKeys, {
+    fields: [fdaasUsageLog.apiKeyId],
+    references: [fdaasApiKeys.id],
+  }),
+}));
+
+// ============================================================================
 // DISCOUNTS TABLE - Promo codes and coupons
 // ============================================================================
 export const discounts = sqliteTable(

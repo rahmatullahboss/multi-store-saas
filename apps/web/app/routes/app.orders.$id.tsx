@@ -41,6 +41,9 @@ import {
   ExternalLink,
   Send,
   Download,
+  ChevronLeft,
+  ChevronRight,
+  MessageSquare,
 } from 'lucide-react';
 import { useState } from 'react';
 import { RiskBadge } from '~/components/RiskBadge';
@@ -184,13 +187,14 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     user: log.userId ? userMap.get(log.userId) : null,
   }));
 
-  // Read KV cached fraud data for this order's phone
+  // Read Ozzyl Guard cached fraud data for this order's phone
   let fraudCache = null;
   if (order.customerPhone) {
     try {
       const kv = context.cloudflare.env.STORE_CACHE;
       if (kv) {
-        const cached = await kv.get(`fraud_steadfast_${storeId}_${order.customerPhone}`, 'json');
+        const { ozzylGuardCacheKey } = await import('~/services/fraud-engine.server');
+        const cached = await kv.get(ozzylGuardCacheKey(storeId, order.customerPhone), 'json');
         if (cached) fraudCache = cached;
       }
     } catch {
@@ -243,104 +247,25 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
       const phone = (formData.get('phone') as string) || orderResult[0].customerPhone || '';
       const kv = context.cloudflare.env.STORE_CACHE;
-      const fraudCacheKey = `fraud_steadfast_${storeId}_${phone}`;
-
       const forceRefresh = formData.get('forceRefresh') === 'true';
 
-      // Check KV cache first (24h TTL)
-      if (kv && phone && !forceRefresh) {
+      const { ozzylGuardCacheKey, fetchAndCacheGuardData } = await import('~/services/fraud-engine.server');
+
+      // If forceRefresh, delete old cache entry so live data is fetched
+      if (forceRefresh && kv && phone) {
         try {
-          const cached = (await kv.get(fraudCacheKey, 'json')) as {
-            successRate: number;
-            totalOrders: number;
-            deliveredOrders: number;
-            returnedOrders: number;
-            isHighRisk: boolean;
-            riskScore: number;
-            source: string;
-            cachedAt: string;
-          } | null;
-          if (cached) {
-            return json({ success: true, riskResult: { ...cached, fromCache: true } });
-          }
-        } catch {
-          /* ignore cache errors */
-        }
+          await kv.delete(ozzylGuardCacheKey(storeId, phone));
+        } catch { /* ignore */ }
       }
 
-      // Call Steadfast external API
-      const { createSteadfastClient } = await import('~/services/steadfast.server');
-      let sessionCookie: string | undefined;
-      let xsrfToken: string | undefined;
+      // fetchAndCacheGuardData: reads KV first → fetches live → saves to ozzyl_guard_* key
+      const result = await fetchAndCacheGuardData(phone, storeId, kv);
 
-      if (kv) {
-        const adminCredsRaw = await kv.get(`steadfast_credentials_${storeId}`);
-        if (adminCredsRaw) {
-          const creds = JSON.parse(adminCredsRaw as string);
-          sessionCookie = creds.sessionCookie;
-          xsrfToken = creds.xsrfToken;
-        }
+      if (!result) {
+        return json({ error: 'Ozzyl Guard: ফ্রড চেক ব্যর্থ হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।' }, { status: 502 });
       }
 
-      if (!sessionCookie || !xsrfToken) {
-        return json({ error: 'Steadfast credentials not configured' }, { status: 400 });
-      }
-
-      const client = createSteadfastClient({
-        apiKey: 'internal',
-        secretKey: 'internal',
-        sessionCookie,
-        xsrfToken,
-      });
-
-      // Normalize phone for Steadfast (strip +88/880 prefix)
-      const sfPhone = phone.startsWith('+88')
-        ? phone.slice(3)
-        : phone.startsWith('880')
-          ? phone.slice(3)
-          : phone;
-
-      let externalFraud;
-      try {
-        externalFraud = await client.checkExternalFraud(sfPhone);
-      } catch (err) {
-        console.warn('[FRAUD CHECK] API Failed:', err);
-        return json({ error: 'Steadfast API error' }, { status: 400 });
-      }
-
-      const deliveredOrders = externalFraud.success || 0;
-      const returnedOrders = externalFraud.cancellation || 0;
-      const totalOrders = deliveredOrders + returnedOrders;
-      const successRate = totalOrders > 0 ? Math.round((deliveredOrders / totalOrders) * 100) : 100;
-      const riskScore = totalOrders > 0 ? Math.round((returnedOrders / totalOrders) * 100) : 0;
-      const isHighRisk = totalOrders >= 2 && returnedOrders / totalOrders > 0.3;
-      let source = 'steadfast_external';
-
-      if (totalOrders === 0) {
-        source = 'no_data';
-      }
-
-      const result = {
-        successRate,
-        totalOrders,
-        deliveredOrders,
-        returnedOrders,
-        isHighRisk,
-        riskScore,
-        source,
-        cachedAt: new Date().toISOString(),
-      };
-
-      // Save to KV cache (24 hours) so orders list and this page both show it
-      if (kv && phone) {
-        try {
-          await kv.put(fraudCacheKey, JSON.stringify(result), { expirationTtl: 86400 });
-        } catch {
-          /* ignore */
-        }
-      }
-
-      return json({ success: true, riskResult: result });
+      return json({ success: true, riskResult: { ...result, fromCache: false } });
     } catch (error) {
       console.error('[ORDER DETAIL] Fraud check failed:', error);
       return json(
@@ -910,6 +835,7 @@ export default function OrderDetailPage() {
   const [isTrackingOpen, setIsTrackingOpen] = useState(false);
   const courierFetcher = useFetcher();
   const isBooking = courierFetcher.state === 'submitting';
+  const fraudFetcher = useFetcher();
   const [selectedProvider, setSelectedProvider] = useState<string>(
     defaultCourier || (availableCouriers.length > 0 ? availableCouriers[0] : '')
   );
@@ -970,119 +896,202 @@ export default function OrderDetailPage() {
         @media print {
           body * { visibility: hidden; }
           #invoice-print, #invoice-print * { visibility: visible; }
-          #invoice-print { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+          #invoice-print { position: fixed; left: 0; top: 0; width: 100%; padding: 20px; }
           .no-print { display: none !important; }
           .print-break { page-break-after: always; }
+          @page { margin: 0.5cm; size: A4; }
         }
       `}</style>
 
-      {/* ===== MOBILE VIEW ===== */}
-      <div className="md:hidden -m-4 min-h-screen bg-gray-50 pb-28">
+      {/* ===== MOBILE VIEW (Stitch Design) ===== */}
+      <div className="md:hidden -m-4 min-h-screen bg-gray-50 pb-24">
         {/* Sticky Header */}
-        <div className="sticky top-0 z-40 bg-white border-b border-gray-100 px-4 pt-10 pb-3 flex items-center justify-between shadow-sm">
-          <Link to="/app/orders" className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 transition-colors">
-            <ArrowLeft className="w-5 h-5 text-gray-700" />
-          </Link>
-          <div className="flex flex-col items-center">
-            <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wide">{order.orderNumber}</span>
-            <h1 className="text-base font-bold text-gray-900">{t('order') || 'Order'}</h1>
+        <div className="bg-white sticky top-0 z-40 border-b border-gray-100 shadow-sm">
+          <div className="px-4 py-3 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <Link to="/app/orders" className="p-2 -ml-2 text-slate-500 rounded-full">
+                <ArrowLeft className="w-5 h-5" />
+              </Link>
+              <div className="flex items-center bg-gray-50 rounded-lg p-1">
+                <button className="p-1.5 text-slate-400 rounded-md" disabled>
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <span className="text-xs font-medium text-slate-500 px-2">{order.orderNumber}</span>
+                <button className="p-1.5 text-slate-600 rounded-md" disabled>
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+              <a href={`/resources/order-invoice/${order.id}`} download className="p-2 -mr-2 text-slate-500 rounded-full">
+                <Download className="w-5 h-5" />
+              </a>
+            </div>
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold tracking-tight text-slate-900">{order.orderNumber}</h1>
+              <Form method="post">
+                <input type="hidden" name="intent" value="update-status" />
+                <select
+                  name="status"
+                  defaultValue={order.status || 'pending'}
+                  onChange={(e) => e.target.form?.requestSubmit()}
+                  className="flex items-center gap-2 pl-3 pr-2 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-100 text-sm font-semibold focus:outline-none"
+                >
+                  {statusOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </Form>
+            </div>
           </div>
-          <a href={`/resources/order-invoice/${order.id}`} download className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 transition-colors">
-            <Download className="w-5 h-5 text-gray-700" />
-          </a>
         </div>
 
         <div className="px-4 py-4 space-y-3">
-          {/* Status Card */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="text-xs text-gray-400">{formatDate(order.createdAt as unknown as Date)}</p>
-              </div>
-              <StatusBadge status={order.status || 'pending'} />
+
+          {/* Order Summary Card — left color bar style */}
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100 flex items-center justify-between relative overflow-hidden">
+            <div className={`absolute top-0 left-0 w-1 h-full ${
+              order.status === 'delivered' ? 'bg-emerald-500' :
+              order.status === 'cancelled' || order.status === 'returned' ? 'bg-red-500' :
+              order.status === 'shipped' ? 'bg-blue-500' :
+              order.status === 'confirmed' ? 'bg-teal-500' :
+              'bg-amber-400'
+            }`} />
+            <div className="ml-3">
+              <p className="text-xs text-slate-400">{formatDate(order.createdAt as unknown as Date)}</p>
+              <p className="text-sm font-semibold text-slate-900 mt-0.5">{items.length} item{items.length !== 1 ? 's' : ''}</p>
             </div>
-            <Form method="post" className="flex flex-wrap gap-2">
-              {statusOptions.map((option) => (
-                <button key={option.value} type="submit" name="status" value={option.value}
-                  disabled={isUpdating || order.status === option.value}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-95 ${order.status === option.value ? 'bg-emerald-50 border-emerald-400 text-emerald-700' : 'border-gray-200 text-gray-600 hover:border-emerald-300'} disabled:opacity-50`}>
-                  {order.status === option.value && <CheckCircle className="w-3 h-3 inline mr-1" />}
-                  {option.label.split(' ')[0]}
-                </button>
-              ))}
-              {isUpdating && <Loader2 className="w-4 h-4 animate-spin text-emerald-600 self-center" />}
-            </Form>
+            <div className="text-right">
+              <p className="text-lg font-bold text-emerald-600">{formatPrice(order.total)}</p>
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                order.paymentMethod === 'cod' ? 'bg-orange-50 text-orange-600' : 'bg-emerald-50 text-emerald-600'
+              }`}>
+                {order.paymentMethod?.toUpperCase() || 'COD'}
+              </span>
+            </div>
           </div>
+
+          {/* Fraud Risk Card */}
+          {order.customerPhone && (
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Ozzyl Guard — Fraud Risk</p>
+              {fraudCache ? (
+                <div className="flex items-center gap-3">
+                  {(() => {
+                    const fd = fraudCache as { successRate: number; totalOrders: number; deliveredOrders: number; returnedOrders: number };
+                    const rate = fd.successRate;
+                    const color = rate >= 80 ? '#10b981' : rate >= 60 ? '#22c55e' : rate >= 40 ? '#f59e0b' : rate >= 20 ? '#f97316' : '#ef4444';
+                    const label = rate >= 80 ? 'নিরাপদ' : rate >= 60 ? 'ভালো' : rate >= 40 ? 'মাঝারি' : rate >= 20 ? 'উচ্চ ঝুঁকি' : 'ক্রিটিক্যাল';
+                    return (
+                      <>
+                        <div className="relative w-14 h-14 shrink-0">
+                          <svg className="w-14 h-14 -rotate-90" viewBox="0 0 36 36">
+                            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e2e8f0" strokeWidth="3.2" />
+                            <circle cx="18" cy="18" r="15.9" fill="none" stroke={color} strokeWidth="3.2"
+                              strokeDasharray={`${rate} ${100 - rate}`} strokeLinecap="round" />
+                          </svg>
+                          <span className="absolute inset-0 flex items-center justify-center text-xs font-bold" style={{ color }}>{rate}%</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-slate-900" style={{ color }}>{label}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">Total: {fd.totalOrders} orders • ↑{fd.deliveredOrders} ↓{fd.returnedOrders}</p>
+                          <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+                            <div className="h-1.5 rounded-full" style={{ width: `${rate}%`, background: color }} />
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <fraudFetcher.Form method="post">
+                  <input type="hidden" name="intent" value="FRAUD_CHECK" />
+                  <input type="hidden" name="orderId" value={order.id} />
+                  <input type="hidden" name="phone" value={order.customerPhone || ''} />
+                  <button type="submit" disabled={fraudFetcher.state !== 'idle'}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg border border-orange-200 bg-orange-50 text-orange-700 text-sm font-semibold w-full justify-center">
+                    {fraudFetcher.state !== 'idle'
+                      ? <><Loader2 className="w-4 h-4 animate-spin" />চেক করা হচ্ছে...</>
+                      : <><Package className="w-4 h-4" />Ozzyl Guard চেক করুন</>
+                    }
+                  </button>
+                </fraudFetcher.Form>
+              )}
+            </div>
+          )}
 
           {/* Customer Card */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-                <User className="w-4 h-4 text-emerald-600" />
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex gap-3">
+                <div className="w-12 h-12 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center">
+                  <span className="text-lg font-bold text-slate-500">
+                    {(order.customerName || 'U')[0].toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900">{order.customerName || 'N/A'}</h3>
+                  <p className="text-xs text-slate-500">{order.customerPhone || order.customerEmail || '—'}</p>
+                </div>
               </div>
-              <p className="font-semibold text-gray-900 text-sm">{t('customer') || 'Customer'}</p>
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="font-bold text-gray-900">{order.customerName || 'N/A'}</p>
-                {order.customerPhone && fraudCache && (
-                  <RiskBadge phone={order.customerPhone}
-                    initialData={fraudCache as { successRate: number; totalOrders: number; deliveredOrders: number; returnedOrders: number; isHighRisk: boolean; riskScore: number; } | null}
-                    orderId={order.id} showDetails />
-                )}
-              </div>
+            <div className="flex gap-2 mb-4">
               {order.customerPhone && (
-                <a href={`tel:${order.customerPhone}`} className="flex items-center gap-2 text-emerald-600 text-sm font-medium">
-                  <Phone className="w-4 h-4" />{order.customerPhone}
+                <a href={`tel:${order.customerPhone}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-medium">
+                  <Phone className="w-4 h-4" />Call
                 </a>
               )}
-              {order.customerEmail && <p className="text-sm text-gray-500">{order.customerEmail}</p>}
+              {order.customerPhone && (
+                <a href={`sms:${order.customerPhone}`} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium">
+                  <MessageSquare className="w-4 h-4" />SMS
+                </a>
+              )}
+              {order.customerPhone && (
+                <a href={`https://wa.me/${order.customerPhone?.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-green-50 text-green-700 text-sm font-medium">
+                  <MessageSquare className="w-4 h-4" />WA
+                </a>
+              )}
             </div>
-          </div>
-
-          {/* Shipping Address */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                <MapPin className="w-4 h-4 text-blue-600" />
+            {/* Shipping Address */}
+            <div className="bg-slate-50 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <MapPin className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm text-slate-700 leading-snug">
+                    {[shippingAddress.address, shippingAddress.upazila, shippingAddress.district, shippingAddress.city].filter(Boolean).join(', ') || 'No address provided'}
+                    {shippingAddress.postalCode && ` ${shippingAddress.postalCode}`}
+                  </p>
+                </div>
               </div>
-              <p className="font-semibold text-gray-900 text-sm">Shipping Address</p>
-            </div>
-            <div className="text-sm text-gray-600 space-y-0.5">
-              {shippingAddress.address && <p>{shippingAddress.address}</p>}
-              {shippingAddress.upazila && <p>{shippingAddress.upazila}</p>}
-              {shippingAddress.district && <p>{shippingAddress.district}</p>}
-              {shippingAddress.city && !shippingAddress.district && <p>{shippingAddress.city}</p>}
-              {shippingAddress.postalCode && <p>Postal: {shippingAddress.postalCode}</p>}
-              {!shippingAddress.address && !shippingAddress.city && !shippingAddress.district && <p className="text-gray-400">No address provided</p>}
             </div>
           </div>
 
           {/* Items Card */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
-                <Package className="w-4 h-4 text-purple-600" />
-              </div>
-              <p className="font-semibold text-gray-900 text-sm">{t('items') || 'Items'} ({items.length})</p>
-            </div>
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">{t('items') || 'Items'} ({items.length})</h3>
             <div className="space-y-2">
               {items.map((item) => (
-                <div key={item.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                  <div className="flex-1 min-w-0 pr-2">
-                    <p className="font-medium text-gray-900 text-sm truncate">{item.title}</p>
-                    <p className="text-xs text-gray-400">x{item.quantity} × {formatPrice(item.price)}</p>
+                <div key={item.id} className="flex items-center gap-3 py-2 border-b border-slate-50 last:border-0">
+                  {item.imageUrl ? (
+                    <img src={item.imageUrl} alt={item.title} className="w-10 h-10 rounded-lg object-cover bg-slate-100 shrink-0" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                      <Package className="w-4 h-4 text-slate-400" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-slate-900 text-sm truncate">{item.title}</p>
+                    <p className="text-xs text-slate-400">x{item.quantity} × {formatPrice(item.price)}</p>
                   </div>
-                  <p className="font-bold text-gray-900 text-sm shrink-0">{formatPrice(item.total)}</p>
+                  <p className="font-bold text-slate-900 text-sm shrink-0">{formatPrice(item.total)}</p>
                 </div>
               ))}
             </div>
-            <div className="mt-3 pt-3 border-t border-gray-100 space-y-1.5">
-              <div className="flex justify-between text-sm text-gray-500"><span>{t('subtotal') || 'Subtotal'}</span><span>{formatPrice(order.subtotal)}</span></div>
-              <div className="flex justify-between text-sm text-gray-500"><span>{t('shipping') || 'Shipping'}</span><span>{formatPrice(order.shipping || 0)}</span></div>
-              {(order.tax || 0) > 0 && <div className="flex justify-between text-sm text-gray-500"><span>{t('tax') || 'Tax'}</span><span>{formatPrice(order.tax || 0)}</span></div>}
-              <div className="flex justify-between pt-2 border-t border-gray-100 font-bold text-base">
-                <span>{t('total') || 'Total'}</span>
+            <div className="mt-3 pt-3 border-t border-slate-100 space-y-1.5">
+              <div className="flex justify-between text-sm text-slate-500"><span>{t('subtotal') || 'Subtotal'}</span><span>{formatPrice(order.subtotal)}</span></div>
+              <div className="flex justify-between text-sm text-slate-500"><span>{t('shipping') || 'Shipping'}</span><span>{formatPrice(order.shipping || 0)}</span></div>
+              {(order.tax || 0) > 0 && <div className="flex justify-between text-sm text-slate-500"><span>{t('tax') || 'Tax'}</span><span>{formatPrice(order.tax || 0)}</span></div>}
+              <div className="flex justify-between pt-2 border-t border-slate-100 font-bold text-base">
+                <span className="text-slate-900">{t('total') || 'Total'}</span>
                 <span className="text-emerald-600">{formatPrice(order.total)}</span>
               </div>
             </div>
@@ -1157,9 +1166,40 @@ export default function OrderDetailPage() {
           )}
 
           {/* Print */}
-          <button onClick={handlePrint} className="w-full py-3 rounded-2xl border border-gray-200 text-gray-700 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors">
+          <button onClick={handlePrint} className="w-full py-3 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm flex items-center justify-center gap-2">
             <Printer className="w-4 h-4" />{t('printInvoice') || 'Print Invoice'}
           </button>
+        </div>
+
+        {/* Fixed Bottom Action Bar */}
+        <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-100 p-4 z-50 shadow-lg">
+          <div className="flex gap-3">
+            <Form method="post" className="flex-1">
+              <input type="hidden" name="intent" value="update-status" />
+              <input type="hidden" name="status" value="cancelled" />
+              <button type="submit"
+                disabled={isUpdating || order.status === 'cancelled'}
+                className="w-full py-3 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm disabled:opacity-40">
+                Cancel Order
+              </button>
+            </Form>
+            <Form method="post" className="flex-[2]">
+              <input type="hidden" name="intent" value="update-status" />
+              <input type="hidden" name="status" value={
+                order.status === 'pending' ? 'confirmed' :
+                order.status === 'confirmed' ? 'shipped' :
+                order.status === 'shipped' ? 'delivered' : 'confirmed'
+              } />
+              <button type="submit"
+                disabled={isUpdating || order.status === 'delivered' || order.status === 'cancelled'}
+                className="w-full py-3 rounded-xl bg-emerald-600 text-white font-semibold text-sm shadow-lg shadow-emerald-200 disabled:opacity-40 flex items-center justify-center gap-2">
+                {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                {order.status === 'pending' ? 'Confirm Order' :
+                 order.status === 'confirmed' ? 'Mark Shipped' :
+                 order.status === 'shipped' ? 'Mark Delivered' : 'Completed'}
+              </button>
+            </Form>
+          </div>
         </div>
       </div>
 

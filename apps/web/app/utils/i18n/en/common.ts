@@ -145,6 +145,7 @@ export const common = {
   navShipping: 'Shipping',
   navCourier: 'Courier',
   navFraudDetection: 'Fraud Detection',
+  navFDaaS: 'Guard API (FDaaS)',
   navSupport: 'Support',
   navDomain: 'Domain',
   navBilling: 'Billing',

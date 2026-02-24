@@ -18,6 +18,36 @@ import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import { eq, and, or, isNull } from 'drizzle-orm';
 
 // ============================================================================
+// OZZYL GUARD — Unified KV cache key helper
+// All fraud data is stored under a single consistent key format.
+// ============================================================================
+
+/**
+ * Returns the unified KV cache key for Ozzyl Guard fraud data.
+ * Format: ozzyl_guard_{storeId}_{normalizedPhone}
+ *
+ * Use this everywhere instead of ad-hoc key strings.
+ */
+export function ozzylGuardCacheKey(storeId: number, phone: string): string {
+  return `ozzyl_guard_${storeId}_${phone}`;
+}
+
+/** Shape of data stored in KV by Ozzyl Guard */
+export interface OzzylGuardCacheEntry {
+  successRate: number;
+  totalOrders: number;
+  deliveredOrders: number;
+  returnedOrders: number;
+  isHighRisk: boolean;
+  riskScore: number;
+  riskLevel: 'excellent' | 'good' | 'moderate' | 'high' | 'critical';
+  riskMessage: string;
+  couriers: ExternalCourierData[];
+  source: 'ozzyl_guard';
+  cachedAt: string;
+}
+
+// ============================================================================
 // TYPES
 // ============================================================================
 
@@ -31,6 +61,17 @@ export interface FraudSettings {
   autoHideCOD: boolean;      // Hide COD for high-risk customers
   requireOTPForCOD: boolean; // Require OTP for all COD orders
   maxCODAmount: number | null; // Max COD amount before requiring advance
+
+  // ── COD Delivery Rate Control ──────────────────────────────────────────────
+  // Uses the Fraud Checker System to look up the customer's delivery history
+  // across BD couriers and make an automatic decision at checkout time.
+  codRateControlEnabled: boolean;   // Master switch for rate-based COD control
+  codBlockBelowRate: number;        // Delivery rate % below this → block COD entirely
+  codAutoConfirmAboveRate: number;  // Delivery rate % above this → auto-confirm order
+  codMinOrdersRequired: number;     // Minimum total orders needed to apply rate rules
+                                    // (if history < this, treat as pending — no block)
+  autoDispatchCourier: boolean;     // OFF by default — merchant must enable explicitly
+                                    // When ON: auto-confirm orders also get booked to courier
 }
 
 export interface RiskSignal {
@@ -59,6 +100,14 @@ export interface RiskCheckParams {
   isOTPVerified?: boolean;
   db: DrizzleD1Database<any>;
   skipExternalCheck?: boolean; // Skip external API call (for speed)
+
+  // ── Cloudflare Edge Signals (optional — additive only) ─────────────────────
+  // Pass these from the incoming request headers for richer fraud scoring.
+  // These are NEVER sent to external APIs — used only for internal scoring.
+  ipAddress?: string;        // CF-Connecting-IP
+  cfCountry?: string;        // CF-IPCountry (e.g. 'BD', 'IN', 'US')
+  cfDeviceType?: string;     // CF-Device-Type (e.g. 'mobile', 'desktop', 'tablet')
+  userAgent?: string;        // User-Agent header
 }
 
 // ============================================================================
@@ -135,6 +184,12 @@ export const DEFAULT_FRAUD_SETTINGS: FraudSettings = {
   autoHideCOD: false,
   requireOTPForCOD: false,
   maxCODAmount: null,
+  // COD Delivery Rate Control defaults
+  codRateControlEnabled: true,
+  codBlockBelowRate: 30,        // Below 30% delivery rate → block COD
+  codAutoConfirmAboveRate: 80,  // Above 80% delivery rate → auto-confirm
+  codMinOrdersRequired: 3,      // Need at least 3 orders in history to apply rules
+  autoDispatchCourier: false,   // OFF by default — merchant must enable
 };
 
 // ============================================================================
@@ -458,6 +513,85 @@ export async function calculateRiskScore(
   }
 
   // ============================
+  // SIGNAL 9: Cloudflare IP Country
+  // ============================
+  // Orders from outside Bangladesh are extremely high risk for BD COD stores.
+  // Cloudflare provides CF-IPCountry header for free — no extra cost.
+  if (params.cfCountry && params.cfCountry !== 'BD' && params.cfCountry !== 'XX') {
+    signals.push({
+      name: 'foreign_ip',
+      score: isCOD ? 35 : 10,
+      description: `Order placed from outside Bangladesh (country: ${params.cfCountry})`,
+      descriptionBn: `বাংলাদেশের বাইরে থেকে অর্ডার (দেশ: ${params.cfCountry})`,
+    });
+  }
+
+  // ============================
+  // SIGNAL 10: IP Velocity (same IP, multiple orders)
+  // ============================
+  // Check if this IP has placed many orders recently — indicates bot or fraud ring.
+  // We read from fraud_ip_events table if ipAddress is provided.
+  if (params.ipAddress && params.ipAddress !== '::1' && params.ipAddress !== '127.0.0.1') {
+    try {
+      const { fraudIpEvents } = await import('@db/schema');
+
+      // Fetch distinct phones seen from this IP (last 50 events = ~last few hours)
+      // We limit to 50 rows for performance — enough to detect fraud rings.
+      const recentIpEvents = await db
+        .select({ phone: fraudIpEvents.phone })
+        .from(fraudIpEvents)
+        .where(eq(fraudIpEvents.ipAddress, params.ipAddress))
+        .orderBy(fraudIpEvents.createdAt)
+        .limit(50)
+        .catch(() => []);
+
+      // More than 5 different phones from same IP = fraud ring
+      const uniquePhones = new Set(recentIpEvents.map((e: { phone: string }) => e.phone));
+      if (uniquePhones.size >= 5) {
+        signals.push({
+          name: 'ip_fraud_ring',
+          score: 40,
+          description: `Suspicious IP: ${uniquePhones.size} different phone numbers used from same IP`,
+          descriptionBn: `সন্দেহজনক IP: একই IP থেকে ${uniquePhones.size}টি ভিন্ন ফোন নম্বর ব্যবহার`,
+        });
+      } else if (uniquePhones.size >= 3) {
+        signals.push({
+          name: 'ip_velocity',
+          score: 20,
+          description: `IP velocity: ${uniquePhones.size} phone numbers from same IP recently`,
+          descriptionBn: `IP ভেলোসিটি: সম্প্রতি একই IP থেকে ${uniquePhones.size}টি ফোন নম্বর`,
+        });
+      }
+    } catch {
+      // Gracefully ignore — table may not exist yet or query failed
+    }
+  }
+
+  // ============================
+  // SIGNAL 11: User-Agent quality
+  // ============================
+  // Bots and scripts often have no UA or use very simple ones.
+  if (params.userAgent !== undefined) {
+    if (!params.userAgent || params.userAgent.trim().length < 10) {
+      signals.push({
+        name: 'missing_user_agent',
+        score: isCOD ? 20 : 5,
+        description: 'Missing or very short User-Agent (possible bot)',
+        descriptionBn: 'User-Agent নেই বা খুব ছোট (সম্ভাব্য বট)',
+      });
+    } else if (
+      /curl|wget|python|java|php|go-http|axios|node-fetch|okhttp/i.test(params.userAgent)
+    ) {
+      signals.push({
+        name: 'bot_user_agent',
+        score: isCOD ? 30 : 10,
+        description: `Programmatic User-Agent detected: ${params.userAgent.slice(0, 40)}`,
+        descriptionBn: `প্রোগ্রামেটিক User-Agent শনাক্ত: ${params.userAgent.slice(0, 40)}`,
+      });
+    }
+  }
+
+  // ============================
   // CALCULATE FINAL SCORE
   // ============================
   const totalScore = signals.reduce((sum, s) => sum + s.score, 0);
@@ -524,6 +658,46 @@ export async function performFraudCheck(
     // Don't fail the order because logging failed
   }
 
+  // ── Phase 1B: Auto-propagate confirmed BLOCK to global shared blocklist ────
+  // When a phone is definitively blocked (score >= block threshold, not just hold),
+  // add it to the global blacklist (storeId = null) so ALL stores benefit.
+  // This creates the "shared fraud immune system" network effect.
+  if (assessment.decision === 'block' && !assessment.isBlacklisted) {
+    try {
+      await addToBlacklist(
+        normalizedPhone,
+        null, // null storeId = global (protects all stores)
+        `Auto-blocked by store #${checkParams.storeId} — risk score ${assessment.clampedScore}/100`,
+        'system',
+        checkParams.db
+      );
+      console.log(`[FRAUD] Auto-promoted phone ${normalizedPhone} to global blacklist (score: ${assessment.clampedScore})`);
+    } catch (error) {
+      // Non-blocking — don't fail the order if global blacklist write fails
+      console.warn('[FRAUD] Failed to auto-promote to global blacklist:', error);
+    }
+  }
+
+  // ── Phase 1B: Log IP event for velocity tracking ───────────────────────────
+  // Record IP → phone mapping so we can detect fraud rings (same IP, many phones).
+  if (checkParams.ipAddress && checkParams.ipAddress !== '::1' && checkParams.ipAddress !== '127.0.0.1') {
+    try {
+      const { fraudIpEvents } = await import('@db/schema');
+      await checkParams.db.insert(fraudIpEvents).values({
+        storeId: checkParams.storeId,
+        phone: normalizedPhone,
+        ipAddress: checkParams.ipAddress,
+        cfCountry: checkParams.cfCountry || null,
+        cfDeviceType: checkParams.cfDeviceType || null,
+        userAgent: checkParams.userAgent || null,
+        riskScore: assessment.clampedScore,
+        decision: assessment.decision,
+      }).catch(() => {}); // Graceful — table may not exist in dev
+    } catch {
+      // Ignore — non-critical
+    }
+  }
+
   return assessment;
 }
 
@@ -578,6 +752,176 @@ export async function removeFromBlacklist(
 }
 
 // ============================================================================
+// COD DELIVERY RATE CONTROL
+// ============================================================================
+
+export type CODRateDecision =
+  | { action: 'block';        deliveryRate: number; totalOrders: number; reason: string }
+  | { action: 'auto_confirm'; deliveryRate: number; totalOrders: number; reason: string }
+  | { action: 'pending';      deliveryRate: number; totalOrders: number; reason: string }
+  | { action: 'skip';         reason: string };
+
+/**
+ * Check whether a COD order should be blocked, auto-confirmed, or held pending
+ * based on the customer's delivery history via the Fraud Checker System.
+ *
+ * Rules (all thresholds configurable per-store in Fraud Settings):
+ *   - No external history found           → skip (no block, leave pending)
+ *   - Total orders < codMinOrdersRequired → skip (not enough data, leave pending)
+ *   - deliveryRate < codBlockBelowRate    → block COD
+ *   - deliveryRate > codAutoConfirmAbove  → auto-confirm order
+ *   - Otherwise                           → leave as pending (merchant reviews)
+ *
+ * Only runs for COD orders. Non-COD orders are never checked here.
+ */
+/**
+ * Fetch fraud data for a phone number, build an OzzylGuardCacheEntry,
+ * and optionally save it to KV (24h TTL).
+ *
+ * Used at order-creation time so the result is immediately available
+ * in the merchant dashboard without requiring a manual check.
+ *
+ * Returns null if the external API is unavailable (fail-open).
+ */
+export async function fetchAndCacheGuardData(
+  phone: string,
+  storeId: number,
+  kv?: KVNamespace | null
+): Promise<OzzylGuardCacheEntry | null> {
+  const normalized = normalizePhone(phone);
+  const cacheKey = ozzylGuardCacheKey(storeId, normalized);
+
+  // 1. Try KV cache first
+  if (kv) {
+    try {
+      const cached = await kv.get(cacheKey, 'json') as OzzylGuardCacheEntry | null;
+      if (cached) return cached;
+    } catch {
+      // ignore cache read errors
+    }
+  }
+
+  // 2. Fetch from fraudchecker.link
+  let externalData: ExternalFraudData | null = null;
+  try {
+    externalData = await fetchExternalFraudData(normalized);
+  } catch {
+    return null; // fail open
+  }
+
+  if (!externalData) return null;
+
+  const entry: OzzylGuardCacheEntry = {
+    successRate: externalData.deliveryRate,
+    totalOrders: externalData.totalOrders,
+    deliveredOrders: externalData.totalDelivered,
+    returnedOrders: externalData.totalCancelled,
+    isHighRisk: externalData.riskLevel === 'critical' || externalData.riskLevel === 'high',
+    riskScore: Math.round(100 - externalData.deliveryRate),
+    riskLevel: externalData.riskLevel,
+    riskMessage: externalData.riskMessage,
+    couriers: externalData.couriers,
+    source: 'ozzyl_guard',
+    cachedAt: new Date().toISOString(),
+  };
+
+  // 3. Save to KV (24h TTL) — non-blocking
+  if (kv) {
+    try {
+      await kv.put(cacheKey, JSON.stringify(entry), { expirationTtl: 86400 });
+    } catch {
+      // ignore cache write errors
+    }
+  }
+
+  return entry;
+}
+
+export async function checkCODByDeliveryRate(
+  phone: string,
+  settings: FraudSettings,
+  kv?: KVNamespace | null,
+  storeId?: number
+): Promise<CODRateDecision> {
+  // Feature gate
+  if (!settings.codRateControlEnabled) {
+    return { action: 'skip', reason: 'COD rate control is disabled' };
+  }
+
+  // Use fetchAndCacheGuardData so the result is cached for the dashboard
+  let externalData: ExternalFraudData | null = null;
+  if (kv && storeId) {
+    const entry = await fetchAndCacheGuardData(phone, storeId, kv);
+    if (entry) {
+      // Convert OzzylGuardCacheEntry back to ExternalFraudData shape for decision logic
+      externalData = {
+        phoneNumber: phone,
+        totalOrders: entry.totalOrders,
+        totalDelivered: entry.deliveredOrders,
+        totalCancelled: entry.returnedOrders,
+        deliveryRate: entry.successRate,
+        riskLevel: entry.riskLevel,
+        riskMessage: entry.riskMessage,
+        riskColor: '',
+        couriers: entry.couriers,
+      };
+    }
+  } else {
+    // No KV — fetch directly (won't be cached)
+    try {
+      externalData = await fetchExternalFraudData(phone);
+    } catch {
+      return { action: 'skip', reason: 'Fraud Checker System unreachable — fail open' };
+    }
+  }
+
+  // No data at all — fail open
+  if (!externalData) {
+    return { action: 'skip', reason: 'No delivery history found — leaving as pending' };
+  }
+
+  const { deliveryRate, totalOrders } = externalData;
+
+  // Not enough history to make a reliable decision
+  if (totalOrders < settings.codMinOrdersRequired) {
+    return {
+      action: 'pending',
+      deliveryRate,
+      totalOrders,
+      reason: `Only ${totalOrders} order(s) in history — need at least ${settings.codMinOrdersRequired}`,
+    };
+  }
+
+  // Block: delivery rate too low
+  if (deliveryRate < settings.codBlockBelowRate) {
+    return {
+      action: 'block',
+      deliveryRate,
+      totalOrders,
+      reason: `Delivery rate ${deliveryRate.toFixed(1)}% is below block threshold of ${settings.codBlockBelowRate}%`,
+    };
+  }
+
+  // Auto-confirm: excellent delivery history
+  if (deliveryRate >= settings.codAutoConfirmAboveRate) {
+    return {
+      action: 'auto_confirm',
+      deliveryRate,
+      totalOrders,
+      reason: `Delivery rate ${deliveryRate.toFixed(1)}% exceeds auto-confirm threshold of ${settings.codAutoConfirmAboveRate}%`,
+    };
+  }
+
+  // Middle ground — merchant reviews
+  return {
+    action: 'pending',
+    deliveryRate,
+    totalOrders,
+    reason: `Delivery rate ${deliveryRate.toFixed(1)}% is between thresholds — pending merchant review`,
+  };
+}
+
+// ============================================================================
 // STORE SETTINGS HELPER
 // ============================================================================
 
@@ -599,6 +943,12 @@ export function parseFraudSettings(raw: string | null | undefined): FraudSetting
       autoHideCOD: parsed.autoHideCOD ?? DEFAULT_FRAUD_SETTINGS.autoHideCOD,
       requireOTPForCOD: parsed.requireOTPForCOD ?? DEFAULT_FRAUD_SETTINGS.requireOTPForCOD,
       maxCODAmount: parsed.maxCODAmount ?? DEFAULT_FRAUD_SETTINGS.maxCODAmount,
+      // COD Delivery Rate Control
+      codRateControlEnabled: parsed.codRateControlEnabled ?? DEFAULT_FRAUD_SETTINGS.codRateControlEnabled,
+      codBlockBelowRate: parsed.codBlockBelowRate ?? DEFAULT_FRAUD_SETTINGS.codBlockBelowRate,
+      codAutoConfirmAboveRate: parsed.codAutoConfirmAboveRate ?? DEFAULT_FRAUD_SETTINGS.codAutoConfirmAboveRate,
+      codMinOrdersRequired: parsed.codMinOrdersRequired ?? DEFAULT_FRAUD_SETTINGS.codMinOrdersRequired,
+      autoDispatchCourier: parsed.autoDispatchCourier ?? DEFAULT_FRAUD_SETTINGS.autoDispatchCourier,
     };
   } catch {
     return DEFAULT_FRAUD_SETTINGS;

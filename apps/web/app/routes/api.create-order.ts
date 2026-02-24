@@ -51,6 +51,11 @@ import {
   decrementDiscountUsage,
 } from '~/../server/services/discount.service';
 import { getCustomerId } from '~/services/customer-auth.server';
+import {
+  parseFraudSettings,
+  checkCODByDeliveryRate,
+  DEFAULT_FRAUD_SETTINGS,
+} from '~/services/fraud-engine.server';
 import { createCustomerAddress } from '~/services/customer-account.server';
 // DO Services for checkout lock and rate limiting
 import { acquireCheckoutLock, releaseCheckoutLock } from '~/services/checkout-do.server';
@@ -363,6 +368,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
       request.headers.get('CF-Connecting-IP') ||
       request.headers.get('X-Forwarded-For')?.split(',')[0] ||
       'unknown';
+
+    // ── Cloudflare Edge Signals (used for fraud scoring) ─────────────────────
+    const cfCountry = request.headers.get('CF-IPCountry') || undefined;
+    const cfDeviceType = request.headers.get('CF-Device-Type') || undefined;
+    const clientUserAgentHeader = request.headers.get('User-Agent') || undefined;
 
     const RATE_LIMIT_MAX = 5; // Max orders per window
     const RATE_LIMIT_WINDOW_MINUTES = 10;
@@ -1179,76 +1189,110 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // 2. CREATE ORDER
     let orderId: number | undefined;
     let orderStatus = 'pending';
+    // Fraud settings are loaded once and reused for both rate-check and auto-dispatch
+    let fraudSettings = DEFAULT_FRAUD_SETTINGS;
 
-    // steadfast auto-confirm logic for COD orders
+    // ── COD Fraud Rate Control ────────────────────────────────────────────────
+    // Non-COD orders (bKash, Nagad, Rocket, SSLCommerz, Stripe) pass freely —
+    // payment is already collected so no fraud risk.
+    //
+    // For COD orders we run a delivery-rate check via the Fraud Checker System.
+    // All thresholds are configured by the merchant in Settings → Fraud Detection.
     if (input.payment_method === 'cod') {
       try {
-        const { createSteadfastClient } = await import('~/services/steadfast.server');
+        // Load this store's fraud settings (stored as JSON in stores.fraudSettings)
+        const storeRow = await db
+          .select({ fraudSettings: stores.fraudSettings })
+          .from(stores)
+          .where(eq(stores.id, input.store_id))
+          .get();
 
-        // Load session cookies from KV (populated by sync.ts using merchant's email+password)
-        let sessionCookie: string | undefined;
-        let xsrfToken: string | undefined;
+        fraudSettings = parseFraudSettings(storeRow?.fraudSettings);
 
-        try {
-          if (context.cloudflare.env.STORE_CACHE) {
-            const cachedCredsRaw = await context.cloudflare.env.STORE_CACHE.get(
-              `steadfast_credentials_${input.store_id}`
+        // ── Phase 1A: Run full fraud score check (additive — CF signals) ──────
+        // This runs BEFORE the COD rate control check.
+        // It logs the IP event and auto-promotes to global blacklist if needed.
+        // NEVER throws — fail open always.
+        if (fraudSettings.enabled) {
+          try {
+            const { performFraudCheck } = await import('~/services/fraud-engine.server');
+            context.cloudflare.ctx.waitUntil(
+              performFraudCheck({
+                phone: input.phone,
+                storeId: input.store_id,
+                orderTotal: 0, // Not yet calculated — use 0 for pre-check
+                paymentMethod: input.payment_method,
+                db,
+                skipExternalCheck: true, // COD rate control below does the external check
+                ipAddress: clientIP !== 'unknown' ? clientIP : undefined,
+                cfCountry,
+                cfDeviceType,
+                userAgent: clientUserAgentHeader,
+                settings: fraudSettings,
+              }).catch((err) => {
+                console.warn('[FRAUD] Pre-check signal logging failed (non-blocking):', err);
+              })
             );
-            if (cachedCredsRaw) {
-              const parsedCreds = JSON.parse(cachedCredsRaw) as {
-                sessionCookie: string;
-                xsrfToken: string;
-              };
-              sessionCookie = parsedCreds.sessionCookie;
-              xsrfToken = parsedCreds.xsrfToken;
-            }
+          } catch {
+            // Ignore — never block order due to fraud logging failure
           }
-        } catch (e) {
-          console.error('[COD AUTO-CONFIRM] Failed to load Steadfast KV credentials', e);
         }
 
-        if (sessionCookie && xsrfToken) {
-          const steadfastClient = createSteadfastClient({
-            apiKey: unifiedSettings.courier?.steadfast?.apiKey || '',
-            secretKey: unifiedSettings.courier?.steadfast?.secretKey || '',
-            sessionCookie,
-            xsrfToken,
-          });
+        const rateDecision = await checkCODByDeliveryRate(
+          input.phone,
+          fraudSettings,
+          context.cloudflare.env.STORE_CACHE ?? null,
+          input.store_id
+        );
 
-          const sfPhone = input.phone.startsWith('+88')
-            ? input.phone.slice(3)
-            : input.phone.startsWith('880')
-              ? input.phone.slice(3)
-              : input.phone;
+        switch (rateDecision.action) {
+          case 'block':
+            // Hard block — reject the order immediately
+            console.warn(
+              `[COD RATE CONTROL] Blocked — phone ${input.phone}, ` +
+              `delivery rate ${rateDecision.deliveryRate.toFixed(1)}% (threshold: ${fraudSettings.codBlockBelowRate}%)`
+            );
+            return json(
+              {
+                success: false,
+                error:
+                  'আপনার অর্ডার হিস্টরি খারাপ হওয়ার কারণে ক্যাশ অন ডেলিভারি (COD) অর্ডার ব্লক করা হয়েছে। ' +
+                  'দয়া করে আমাদের সাথে যোগাযোগ করুন।',
+                code: 'COD_BLOCKED_LOW_DELIVERY_RATE',
+                deliveryRate: rateDecision.deliveryRate,
+              },
+              { status: 403 }
+            );
 
-          const riskResult = await steadfastClient.checkExternalFraud(sfPhone);
-          const total = riskResult.success + riskResult.cancellation;
-
-          // Safe criteria: Must have some history (total > 0) and low/no cancellation rate (<= 5%)
-          // The user specified "fraud rate nai" (no fraud rate) so we use a strict <= 5% threshold
-          if (
-            total > 0 &&
-            (riskResult.cancellation === 0 || riskResult.cancellation / total <= 0.05)
-          ) {
+          case 'auto_confirm':
+            // Excellent history — auto-confirm without merchant intervention
             orderStatus = 'confirmed';
             console.log(
-              `[FRAUD CHECK] Phone ${input.phone} is safe (${riskResult.success} delivered, ${riskResult.cancellation} cancelled). Auto-confirming.`
+              `[COD RATE CONTROL] Auto-confirmed — phone ${input.phone}, ` +
+              `delivery rate ${rateDecision.deliveryRate.toFixed(1)}% (threshold: ${fraudSettings.codAutoConfirmAboveRate}%)`
             );
-          } else {
+            break;
+
+          case 'pending':
+            // Middle ground — leave as pending for merchant to call & confirm
+            orderStatus = 'pending';
             console.log(
-              `[FRAUD CHECK] Phone ${input.phone} is risky or no history (${riskResult.success}/${total}). Leaving as pending.`
+              `[COD RATE CONTROL] Pending — phone ${input.phone}, ` +
+              `delivery rate ${rateDecision.deliveryRate.toFixed(1)}% (between thresholds)`
             );
-          }
+            break;
+
+          case 'skip':
+          default:
+            // No data / feature off — leave as pending (safe default)
+            orderStatus = 'pending';
+            console.log(`[COD RATE CONTROL] Skipped — ${rateDecision.reason}`);
+            break;
         }
       } catch (error) {
-        const msg = error instanceof Error ? error.message : String(error);
-        if (msg.includes('429')) {
-          console.warn(
-            '[FRAUD CHECK] Steadfast rate limit (429) hit during checkout. Safe fallback applied.'
-          );
-        } else {
-          console.error('[FRAUD CHECK] Steadfast check failed during checkout:', error);
-        }
+        // Never fail an order because of a fraud-check error — fail open
+        console.error('[COD RATE CONTROL] Check failed during checkout (fail open):', error);
+        orderStatus = 'pending';
       }
     }
 
@@ -1372,7 +1416,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         })),
       ]);
 
-      // 4. LOG ACTIVITY FOR AUTO-CONFIRM
+      // 4. LOG ACTIVITY FOR AUTO-CONFIRM + OPTIONAL AUTO-DISPATCH TO COURIER
       if (orderStatus === 'confirmed') {
         await db.insert(activityLogs).values({
           storeId: input.store_id,
@@ -1383,11 +1427,55 @@ export async function action({ request, context }: ActionFunctionArgs) {
           details: JSON.stringify({
             from: 'pending',
             to: 'confirmed',
-            reason: 'Steadfast Auto-Confirmation (Fraud Checked)',
+            reason: 'Auto-Confirmed by Fraud Check System',
             orderNumber: orderNumber,
           }),
           createdAt: now,
         });
+
+        // AUTO-DISPATCH: If merchant has enabled auto courier booking,
+        // book the order with the configured courier immediately after confirm.
+        // This is opt-in — OFF by default in fraud settings.
+        if (fraudSettings.autoDispatchCourier && input.payment_method === 'cod') {
+          try {
+            const { bookCourierForOrder } = await import('~/services/courier-dispatch.server');
+            const dispatchResult = await bookCourierForOrder(
+              context.cloudflare.env.DB,
+              context.cloudflare.env,
+              input.store_id,
+              orderId!
+            );
+
+            if (dispatchResult.success) {
+              console.log(
+                `[AUTO-DISPATCH] Order #${orderNumber} booked with ${dispatchResult.provider} — consignment: ${dispatchResult.consignmentId}`
+              );
+              // Log the courier booking activity
+              await db.insert(activityLogs).values({
+                storeId: input.store_id,
+                userId: null,
+                action: 'courier_booked',
+                entityType: 'order',
+                entityId: orderId!,
+                details: JSON.stringify({
+                  provider: dispatchResult.provider,
+                  consignmentId: dispatchResult.consignmentId,
+                  reason: 'Auto-dispatched by Fraud Check System',
+                  orderNumber: orderNumber,
+                }),
+                createdAt: new Date(),
+              });
+            } else {
+              // Courier booking failed — log but do NOT fail the order
+              console.warn(
+                `[AUTO-DISPATCH] Courier booking failed for order #${orderNumber}: ${dispatchResult.reason}`
+              );
+            }
+          } catch (dispatchError) {
+            // Never fail the order because of courier dispatch — fail open
+            console.error('[AUTO-DISPATCH] Unexpected error during courier dispatch:', dispatchError);
+          }
+        }
       }
 
       // Note: Webhook dispatch is now handled by OrderProcessor DO for reliability

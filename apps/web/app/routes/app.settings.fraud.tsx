@@ -147,6 +147,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
       ? parseInt(formData.get('maxCODAmount') as string)
       : null;
 
+    // COD Rate Control fields
+    const codRateControlEnabled = formData.get('codRateControlEnabled') === 'true';
+    const codBlockBelowRate = Math.max(0, Math.min(100, parseInt(formData.get('codBlockBelowRate') as string) || 30));
+    const codAutoConfirmAboveRate = Math.max(0, Math.min(100, parseInt(formData.get('codAutoConfirmAboveRate') as string) || 80));
+    const codMinOrdersRequired = Math.max(1, Math.min(50, parseInt(formData.get('codMinOrdersRequired') as string) || 3));
+    const autoDispatchCourier = formData.get('autoDispatchCourier') === 'true';
+
+    // Validate: block threshold must be below auto-confirm threshold
+    if (codBlockBelowRate >= codAutoConfirmAboveRate) {
+      return json(
+        { success: false, error: 'Block threshold must be lower than Auto-Confirm threshold' },
+        { status: 400 }
+      );
+    }
+
     // Validate threshold ordering: verify < hold < block
     if (!(verifyThreshold < holdThreshold && holdThreshold < blockThreshold)) {
       return json(
@@ -165,6 +180,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
       autoHideCOD,
       requireOTPForCOD,
       maxCODAmount,
+      // COD Rate Control
+      codRateControlEnabled,
+      codBlockBelowRate,
+      codAutoConfirmAboveRate,
+      codMinOrdersRequired,
+      // Auto-Dispatch (opt-in)
+      autoDispatchCourier,
     };
 
     await db
@@ -435,6 +457,186 @@ export default function FraudSettingsPage() {
                   />
                 </div>
               </div>
+            </Form>
+          </div>
+
+          {/* COD Rate Control - Mobile */}
+          <div className="rounded-2xl border border-orange-100 shadow-sm bg-white p-5">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1 flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-orange-500" />
+              COD ডেলিভারি রেট কন্ট্রোল
+            </h2>
+            <p className="text-xs text-gray-500 mb-4">
+              অর্ডার দেওয়ার সময় কাস্টমারের ডেলিভারি হিস্টরি চেক করে স্বয়ংক্রিয়ভাবে COD ব্লক বা কনফার্ম করে।
+            </p>
+
+            <Form method="post" className="space-y-4">
+              <input type="hidden" name="intent" value="save_settings" />
+              <input type="hidden" name="enabled" value={settings.enabled ? 'true' : 'false'} />
+              <input type="hidden" name="verifyThreshold" value={settings.thresholds.verify} />
+              <input type="hidden" name="holdThreshold" value={settings.thresholds.hold} />
+              <input type="hidden" name="blockThreshold" value={settings.thresholds.block} />
+              <input type="hidden" name="autoHideCOD" value={settings.autoHideCOD ? 'true' : 'false'} />
+              <input type="hidden" name="requireOTPForCOD" value={settings.requireOTPForCOD ? 'true' : 'false'} />
+              <input type="hidden" name="maxCODAmount" value={settings.maxCODAmount ?? ''} />
+
+              {/* Master switch */}
+              <label className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="codRateControlEnabled"
+                  value="true"
+                  defaultChecked={settings.codRateControlEnabled}
+                  className="w-4 h-4 rounded border-gray-300 text-orange-500"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-800">রেট কন্ট্রোল চালু রাখুন</span>
+                  <p className="text-xs text-gray-500">বন্ধ করলে সব COD অর্ডার pending হবে</p>
+                </div>
+              </label>
+
+              {/* Block threshold */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  🚫 Block Threshold (%)
+                </label>
+                <input
+                  type="number"
+                  name="codBlockBelowRate"
+                  defaultValue={settings.codBlockBelowRate}
+                  min={0} max={99}
+                  className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-400 text-sm"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  এর নিচে ডেলিভারি রেট হলে COD সম্পূর্ণ ব্লক হবে (Default: 30%)
+                </p>
+              </div>
+
+              {/* Auto-confirm threshold */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  ✅ Auto-Confirm Threshold (%)
+                </label>
+                <input
+                  type="number"
+                  name="codAutoConfirmAboveRate"
+                  defaultValue={settings.codAutoConfirmAboveRate}
+                  min={1} max={100}
+                  className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-400 text-sm"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  এর উপরে ডেলিভারি রেট হলে অর্ডার স্বয়ংক্রিয়ভাবে Confirmed হবে (Default: 80%)
+                </p>
+              </div>
+
+              {/* Min orders required */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  📦 Minimum Order History
+                </label>
+                <input
+                  type="number"
+                  name="codMinOrdersRequired"
+                  defaultValue={settings.codMinOrdersRequired}
+                  min={1} max={50}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400 text-sm"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  এর কম অর্ডার থাকলে নতুন কাস্টমার হিসেবে pending রাখবে (Default: 3)
+                </p>
+              </div>
+
+              {/* Visual guide */}
+              <div className="bg-gray-50 rounded-lg p-3 text-xs space-y-1.5 border border-gray-100">
+                <p className="font-medium text-gray-700 mb-2">📊 কীভাবে সিদ্ধান্ত নেয়:</p>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-red-500 flex-shrink-0" />
+                  <span className="text-gray-600">ডেলিভারি রেট &lt; <strong>{settings.codBlockBelowRate}%</strong> → COD ব্লক</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-yellow-400 flex-shrink-0" />
+                  <span className="text-gray-600"><strong>{settings.codBlockBelowRate}%</strong> – <strong>{settings.codAutoConfirmAboveRate}%</strong> → Pending (আপনি কল করে confirm করবেন)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-emerald-500 flex-shrink-0" />
+                  <span className="text-gray-600">ডেলিভারি রেট &gt; <strong>{settings.codAutoConfirmAboveRate}%</strong> → Auto-Confirmed ✅</span>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-orange-600 text-white rounded-lg font-medium text-sm hover:bg-orange-700 transition flex items-center justify-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                Save Rate Control Settings
+              </button>
+            </Form>
+          </div>
+
+          {/* Auto-Dispatch - Mobile */}
+          <div className="rounded-2xl border border-emerald-100 shadow-sm bg-white p-5">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xl">🚀</span>
+              <h2 className="text-base font-semibold text-gray-900">অটো কুরিয়ার ডিসপ্যাচ</h2>
+              <span className="ml-auto text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">Advanced</span>
+            </div>
+            <p className="text-xs text-gray-500 mb-4">
+              যে কাস্টমারের ডেলিভারি রেট <strong>{settings.codAutoConfirmAboveRate}%</strong>-এর উপরে, তাদের অর্ডার অটো-কনফার্মের পরপরই কুরিয়ারে বুক হয়ে যাবে। কোনো হাত দিতে হবে না।
+            </p>
+
+            <Form method="post" className="space-y-4">
+              <input type="hidden" name="intent" value="save_settings" />
+              <input type="hidden" name="enabled" value={String(settings.enabled)} />
+              <input type="hidden" name="verifyThreshold" value={String(settings.thresholds.verify)} />
+              <input type="hidden" name="holdThreshold" value={String(settings.thresholds.hold)} />
+              <input type="hidden" name="blockThreshold" value={String(settings.thresholds.block)} />
+              <input type="hidden" name="autoHideCOD" value={String(settings.autoHideCOD)} />
+              <input type="hidden" name="requireOTPForCOD" value={String(settings.requireOTPForCOD)} />
+              <input type="hidden" name="maxCODAmount" value={settings.maxCODAmount ?? ''} />
+              <input type="hidden" name="codRateControlEnabled" value={String(settings.codRateControlEnabled)} />
+              <input type="hidden" name="codBlockBelowRate" value={String(settings.codBlockBelowRate)} />
+              <input type="hidden" name="codAutoConfirmAboveRate" value={String(settings.codAutoConfirmAboveRate)} />
+              <input type="hidden" name="codMinOrdersRequired" value={String(settings.codMinOrdersRequired)} />
+
+              {/* Toggle */}
+              <label className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100 cursor-pointer">
+                <div>
+                  <p className="text-sm font-medium text-gray-800">অটো কুরিয়ার ডিসপ্যাচ চালু করুন</p>
+                  <p className="text-xs text-gray-500 mt-0.5">ডিফল্টে বন্ধ — আপনি চাইলে চালু করতে পারবেন</p>
+                </div>
+                <div className="relative flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    name="autoDispatchCourier"
+                    value="true"
+                    defaultChecked={settings.autoDispatchCourier}
+                    className="sr-only peer"
+                    id="autoDispatchMobile"
+                  />
+                  <label
+                    htmlFor="autoDispatchMobile"
+                    className="w-11 h-6 bg-gray-200 peer-checked:bg-emerald-500 rounded-full block cursor-pointer transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"
+                  />
+                </div>
+              </label>
+
+              {/* Info box */}
+              <div className="bg-emerald-50 rounded-lg p-3 text-xs text-emerald-700 border border-emerald-100">
+                <p className="font-semibold mb-1">⚙️ এটি চালু থাকলে:</p>
+                <ul className="space-y-1 list-disc list-inside text-emerald-600">
+                  <li>অর্ডার auto-confirm হওয়ার সাথে সাথে কুরিয়ারে বুক হবে</li>
+                  <li>Settings &gt; Courier-এ যে provider সেট আছে সেটিতে বুক হবে</li>
+                  <li>Courier বুকিং ব্যর্থ হলেও অর্ডার cancel হবে না</li>
+                </ul>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-emerald-600 text-white rounded-lg font-medium text-sm hover:bg-emerald-700 transition flex items-center justify-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                Save Auto-Dispatch Setting
+              </button>
             </Form>
           </div>
 
@@ -753,6 +955,205 @@ export default function FraudSettingsPage() {
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {isSubmitting ? t('savingSettings') : t('saveSettings')}
             </button>
+          </Form>
+        </GlassCard>
+
+        {/* COD Delivery Rate Control - Desktop */}
+        <GlassCard className="p-6 border-orange-100/80">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-orange-500" />
+                COD ডেলিভারি রেট কন্ট্রোল
+              </h2>
+              <p className="text-xs text-gray-500 mt-1">
+                অর্ডার দেওয়ার সময় কাস্টমারের ডেলিভারি হিস্টরি চেক করে স্বয়ংক্রিয়ভাবে COD ব্লক বা কনফার্ম করে।
+                নন-COD অর্ডার (bKash, Nagad ইত্যাদি) সবসময় freely pass হবে।
+              </p>
+            </div>
+          </div>
+
+          <Form method="post" className="space-y-5">
+            <input type="hidden" name="intent" value="save_settings" />
+            <input type="hidden" name="enabled" value={settings.enabled ? 'true' : 'false'} />
+            <input type="hidden" name="verifyThreshold" value={settings.thresholds.verify} />
+            <input type="hidden" name="holdThreshold" value={settings.thresholds.hold} />
+            <input type="hidden" name="blockThreshold" value={settings.thresholds.block} />
+            <input type="hidden" name="autoHideCOD" value={settings.autoHideCOD ? 'true' : 'false'} />
+            <input type="hidden" name="requireOTPForCOD" value={settings.requireOTPForCOD ? 'true' : 'false'} />
+            <input type="hidden" name="maxCODAmount" value={settings.maxCODAmount ?? ''} />
+
+            {/* Master switch */}
+            <label className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-100 rounded-lg cursor-pointer hover:bg-orange-100/50 transition">
+              <input
+                type="checkbox"
+                name="codRateControlEnabled"
+                value="true"
+                defaultChecked={settings.codRateControlEnabled}
+                className="w-4 h-4 rounded border-gray-300 text-orange-500"
+              />
+              <div>
+                <span className="text-sm font-medium text-gray-800">রেট কন্ট্রোল চালু রাখুন</span>
+                <p className="text-xs text-gray-500 mt-0.5">বন্ধ করলে সব COD অর্ডার pending হবে — কোনো auto-confirm বা block হবে না</p>
+              </div>
+            </label>
+
+            {/* Thresholds — 3 columns */}
+            <div className="grid grid-cols-3 gap-4">
+              {/* Block */}
+              <div className="p-4 bg-red-50/50 border border-red-100 rounded-lg">
+                <label className="block text-sm font-semibold text-red-700 mb-2">
+                  🚫 Block Threshold
+                </label>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    name="codBlockBelowRate"
+                    defaultValue={settings.codBlockBelowRate}
+                    min={0} max={99}
+                    className="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-400 text-sm font-medium"
+                  />
+                  <span className="text-gray-500 font-medium">%</span>
+                </div>
+                <p className="text-xs text-red-600 mt-2">এর নিচে → COD সম্পূর্ণ ব্লক</p>
+              </div>
+
+              {/* Pending zone (read-only label) */}
+              <div className="p-4 bg-yellow-50/50 border border-yellow-100 rounded-lg flex flex-col justify-between">
+                <label className="block text-sm font-semibold text-yellow-700 mb-2">
+                  ⏳ Pending Zone
+                </label>
+                <p className="text-2xl font-bold text-yellow-600 text-center py-2">
+                  {settings.codBlockBelowRate}% – {settings.codAutoConfirmAboveRate}%
+                </p>
+                <p className="text-xs text-yellow-700 text-center">আপনি কল করে confirm করবেন</p>
+              </div>
+
+              {/* Auto-confirm */}
+              <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-lg">
+                <label className="block text-sm font-semibold text-emerald-700 mb-2">
+                  ✅ Auto-Confirm Threshold
+                </label>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    name="codAutoConfirmAboveRate"
+                    defaultValue={settings.codAutoConfirmAboveRate}
+                    min={1} max={100}
+                    className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-400 text-sm font-medium"
+                  />
+                  <span className="text-gray-500 font-medium">%</span>
+                </div>
+                <p className="text-xs text-emerald-600 mt-2">এর উপরে → Auto-Confirmed ✅</p>
+              </div>
+            </div>
+
+            {/* Min orders */}
+            <div className="flex items-center gap-4 p-4 bg-blue-50/40 border border-blue-100 rounded-lg">
+              <div className="flex-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  📦 Minimum Order History
+                </label>
+                <p className="text-xs text-gray-500">
+                  এর কম অর্ডার হিস্টরি থাকলে নতুন কাস্টমার হিসেবে <strong>pending</strong> রাখবে — block করবে না
+                </p>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <input
+                  type="number"
+                  name="codMinOrdersRequired"
+                  defaultValue={settings.codMinOrdersRequired}
+                  min={1} max={50}
+                  className="w-20 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400 text-sm font-medium text-center"
+                />
+                <span className="text-gray-500 text-sm">orders</span>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full flex items-center justify-center gap-2 bg-orange-600 text-white py-2.5 rounded-lg hover:bg-orange-700 transition disabled:opacity-50 font-medium"
+            >
+              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Save Rate Control Settings
+            </button>
+          </Form>
+        </GlassCard>
+
+        {/* Auto-Dispatch - Desktop */}
+        <GlassCard className="p-6 border-emerald-100/80">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-2xl">🚀</span>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">অটো কুরিয়ার ডিসপ্যাচ</h2>
+              <p className="text-xs text-gray-500">Full Automation — অর্ডার নিজে নিজে কুরিয়ারে চলে যাবে</p>
+            </div>
+            <span className="ml-auto text-xs bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-medium">Advanced Feature</span>
+          </div>
+
+          <p className="text-sm text-gray-600 mb-5">
+            যে কাস্টমারের ডেলিভারি রেট <strong>{settings.codAutoConfirmAboveRate}%</strong>-এর উপরে —
+            তাদের অর্ডার auto-confirm হওয়ার সাথে সাথে আপনার সিলেক্টেড কুরিয়ারে বুক হয়ে যাবে।
+            কোনো হাত দিতে হবে না।
+          </p>
+
+          <Form method="post" className="space-y-5">
+            <input type="hidden" name="intent" value="save_settings" />
+            <input type="hidden" name="enabled" value={String(settings.enabled)} />
+            <input type="hidden" name="verifyThreshold" value={String(settings.thresholds.verify)} />
+            <input type="hidden" name="holdThreshold" value={String(settings.thresholds.hold)} />
+            <input type="hidden" name="blockThreshold" value={String(settings.thresholds.block)} />
+            <input type="hidden" name="autoHideCOD" value={String(settings.autoHideCOD)} />
+            <input type="hidden" name="requireOTPForCOD" value={String(settings.requireOTPForCOD)} />
+            <input type="hidden" name="maxCODAmount" value={settings.maxCODAmount ?? ''} />
+            <input type="hidden" name="codRateControlEnabled" value={String(settings.codRateControlEnabled)} />
+            <input type="hidden" name="codBlockBelowRate" value={String(settings.codBlockBelowRate)} />
+            <input type="hidden" name="codAutoConfirmAboveRate" value={String(settings.codAutoConfirmAboveRate)} />
+            <input type="hidden" name="codMinOrdersRequired" value={String(settings.codMinOrdersRequired)} />
+
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+              <div>
+                <p className="text-sm font-semibold text-gray-800">অটো কুরিয়ার ডিসপ্যাচ চালু করুন</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  ডিফল্টে বন্ধ — সতর্কভাবে ব্যবহার করুন। Courier settings সঠিকভাবে সেটআপ থাকতে হবে।
+                </p>
+              </div>
+              <div className="relative flex-shrink-0 ml-4">
+                <input
+                  type="checkbox"
+                  name="autoDispatchCourier"
+                  value="true"
+                  defaultChecked={settings.autoDispatchCourier}
+                  className="sr-only peer"
+                  id="autoDispatchDesktop"
+                />
+                <label
+                  htmlFor="autoDispatchDesktop"
+                  className="w-12 h-6 bg-gray-200 peer-checked:bg-emerald-500 rounded-full block cursor-pointer transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-6"
+                />
+              </div>
+            </div>
+
+            <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+              <p className="text-sm font-semibold text-emerald-800 mb-2">⚙️ এটি চালু থাকলে যা হবে:</p>
+              <ul className="space-y-1.5 text-sm text-emerald-700 list-disc list-inside">
+                <li>Delivery rate &gt; {settings.codAutoConfirmAboveRate}% হলে → অর্ডার auto-confirm + কুরিয়ারে বুক</li>
+                <li>Settings → Courier-এ যে provider সেট আছে সেটিতে বুক হবে</li>
+                <li>Courier বুকিং ব্যর্থ হলেও অর্ডার cancel হবে না (fail-safe)</li>
+                <li>Activity log-এ courier booking record রাখা হবে</li>
+              </ul>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="px-6 py-2.5 bg-emerald-600 text-white rounded-lg font-medium text-sm hover:bg-emerald-700 transition flex items-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                Save Auto-Dispatch Setting
+              </button>
+            </div>
           </Form>
         </GlassCard>
 

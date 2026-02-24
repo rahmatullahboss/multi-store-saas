@@ -92,6 +92,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 const navItems = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+  { to: '/admin/fdaas', label: 'Guard API (FDaaS)', icon: Shield },
   { to: '/admin/worker-monitor', label: 'Worker Monitor', icon: Zap },
   { to: '/admin/stores', label: 'All Stores', icon: Store },
   { to: '/admin/domains', label: 'Domain Health', icon: Globe },

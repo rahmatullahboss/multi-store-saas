@@ -181,6 +181,7 @@ export const dashboard = {
   navShipping: 'শিপিং',
   navCourier: 'কুরিয়ার',
   navFraudDetection: 'ফ্রড ডিটেকশন',
+  navFDaaS: 'Guard API (FDaaS)',
   navDomain: 'ডোমেইন',
   navBilling: 'বিলিং',
   navCredits: 'AI ক্রেডিট',

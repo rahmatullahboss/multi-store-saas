@@ -18,8 +18,8 @@ import {
 } from '@remix-run/cloudflare';
 import { useLoaderData, Link, useSearchParams, useFetcher, useRevalidator } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { orders, orderItems, stores } from '@db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { orders, orderItems, stores, products } from '@db/schema';
+import { eq, desc, and, inArray } from 'drizzle-orm';
 import { getStoreId } from '~/services/auth.server';
 import { calculateOrderWeight } from '~/lib/courier-weight.server';
 import {
@@ -44,11 +44,12 @@ import {
   Receipt,
   Eye,
 } from 'lucide-react';
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { formatPrice } from '~/utils/formatPrice';
 import { type OrderStatus, assertOrderStatusTransition, isOrderStatus } from '~/lib/orderStatus';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
+import { ozzylGuardCacheKey, fetchAndCacheGuardData } from '~/services/fraud-engine.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Orders - Merchant Dashboard' }];
@@ -207,7 +208,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       const cacheResults = await Promise.all(
         phoneSlice.map((phone) =>
           kv
-            .get(`fraud_steadfast_${storeId}_${phone}`, 'json')
+            .get(ozzylGuardCacheKey(storeId, phone), 'json')
             .then((val) => ({ phone, val }))
             .catch(() => ({ phone, val: null }))
         )
@@ -224,10 +225,38 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     console.warn('[FRAUD CACHE] Bulk KV read failed:', e);
   }
 
+  // Fetch order items for all orders (with product image)
+  const orderIds = storeOrders.map((o) => o.id);
+  let itemsByOrderId: Record<number, Array<{ title: string; quantity: number; imageUrl: string | null }>> = {};
+  if (orderIds.length > 0) {
+    try {
+      const allItems = await db
+        .select({
+          orderId: orderItems.orderId,
+          title: orderItems.title,
+          quantity: orderItems.quantity,
+          imageUrl: products.imageUrl,
+        })
+        .from(orderItems)
+        .leftJoin(products, eq(orderItems.productId, products.id))
+        .where(inArray(orderItems.orderId, orderIds));
+
+      for (const item of allItems) {
+        if (!itemsByOrderId[item.orderId]) itemsByOrderId[item.orderId] = [];
+        itemsByOrderId[item.orderId].push({
+          title: item.title,
+          quantity: item.quantity,
+          imageUrl: item.imageUrl ?? null,
+        });
+      }
+    } catch { /* ignore */ }
+  }
+
   // Attach cached fraud data to each order
   const ordersWithFraud = ordersWithAddress.map((o) => ({
     ...o,
     fraudCache: o.customerPhone ? (fraudCacheByPhone[o.customerPhone] ?? null) : null,
+    items: itemsByOrderId[o.id] ?? [],
   }));
 
   return json({
@@ -452,58 +481,25 @@ export async function action({ request, context }: ActionFunctionArgs) {
         return json({ error: 'No phone number on this order' }, { status: 400 });
       }
 
-      const fraudCacheKey = `fraud_fc_${storeId}_${phoneForCheck}`;
       const kv = context.cloudflare.env.STORE_CACHE;
       const forceRefresh = formData.get('forceRefresh') === 'true';
 
-      // ── KV Cache read ──
-      if (kv && !forceRefresh) {
+      // ── If forceRefresh, delete cache so fetchAndCacheGuardData re-fetches ──
+      if (forceRefresh && kv) {
         try {
-          const cached = (await kv.get(fraudCacheKey, 'json')) as Record<string, unknown> | null;
-          if (cached) {
-            return json(
-              { success: true, intent: 'FRAUD_CHECK', orderId, riskResult: { ...cached, fromCache: true } },
-              { headers: { 'x-order-id': String(orderId) } }
-            );
-          }
-        } catch {
-          // fallthrough to live fetch
-        }
+          await kv.delete(ozzylGuardCacheKey(storeId, phoneForCheck));
+        } catch { /* ignore */ }
       }
 
-      // ── Live fetch from fraudchecker.link ──
-      const { fetchExternalFraudData } = await import('~/services/fraud-engine.server');
-      const data = await fetchExternalFraudData(phoneForCheck);
+      // ── fetchAndCacheGuardData: reads KV first, then fetches live, saves to KV ──
+      const resultObj = await fetchAndCacheGuardData(phoneForCheck, storeId, kv);
 
-      if (!data) {
+      if (!resultObj) {
         return json({ error: 'ফ্রড চেক ব্যর্থ হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।' }, { status: 502 });
       }
 
-      const resultObj = {
-        successRate: data.deliveryRate,
-        totalOrders: data.totalOrders,
-        deliveredOrders: data.totalDelivered,
-        returnedOrders: data.totalCancelled,
-        isHighRisk: data.riskLevel === 'critical' || data.riskLevel === 'high',
-        riskScore: Math.round(100 - data.deliveryRate),
-        riskLevel: data.riskLevel,
-        riskMessage: data.riskMessage,
-        couriers: data.couriers,
-        source: 'fraudchecker_link',
-        cachedAt: new Date().toISOString(),
-      };
-
-      // ── KV Cache write (24h) ──
-      if (kv && phoneForCheck) {
-        try {
-          await kv.put(fraudCacheKey, JSON.stringify(resultObj), { expirationTtl: 86400 });
-        } catch {
-          // non-fatal
-        }
-      }
-
       return json(
-        { success: true, intent: 'FRAUD_CHECK', orderId, riskResult: resultObj },
+        { success: true, intent: 'FRAUD_CHECK', orderId, riskResult: { ...resultObj, fromCache: false } },
         { headers: { 'x-order-id': String(orderId) } }
       );
     } catch (error) {
@@ -598,6 +594,11 @@ export default function DashboardOrdersPage() {
   // Filter state
   const statusFilter = searchParams.get('status') || 'all';
   const [searchQuery, setSearchQuery] = useState('');
+  const [riskFilter, setRiskFilter] = useState<'all' | 'safe' | 'good' | 'moderate' | 'high' | 'critical' | 'unchecked'>('all');
+  const mobileCourierFetcher = useFetcher();
+  const [dateFilter, setDateFilter] = useState('');
+  const [displayedCount, setDisplayedCount] = useState(10);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Status tabs configuration
   const statusTabs = [
@@ -631,8 +632,51 @@ export default function DashboardOrdersPage() {
       );
     }
 
+    // Apply risk filter
+    if (riskFilter !== 'all') {
+      filtered = filtered.filter((o) => {
+        const fc = 'fraudCache' in o ? (o as { fraudCache: { successRate: number } | null }).fraudCache : null;
+        if (!fc) return riskFilter === 'unchecked';
+        const rate = fc.successRate ?? 0;
+        if (riskFilter === 'safe') return rate >= 80;
+        if (riskFilter === 'good') return rate >= 60 && rate < 80;
+        if (riskFilter === 'moderate') return rate >= 40 && rate < 60;
+        if (riskFilter === 'high') return rate >= 20 && rate < 40;
+        if (riskFilter === 'critical') return rate < 20;
+        return true;
+      });
+    }
+
+    // Apply date filter
+    if (dateFilter) {
+      filtered = filtered.filter((o) => {
+        const raw = o.createdAt;
+        const orderDate = new Date(typeof raw === 'string' ? raw : String(raw)).toISOString().split('T')[0];
+        return orderDate === dateFilter;
+      });
+    }
+
     return filtered;
-  }, [storeOrders, statusFilter, searchQuery]);
+  }, [storeOrders, statusFilter, searchQuery, riskFilter, dateFilter]);
+
+  // Reset displayed count when filters change
+  useEffect(() => { setDisplayedCount(10); }, [statusFilter, searchQuery, riskFilter, dateFilter]);
+
+  // Infinite scroll — load 10 more when sentinel comes into view
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setDisplayedCount((prev) => prev + 10);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [filteredOrders.length]);
 
   const handleStatusChange = useCallback(
     (tabId: string) => {
@@ -706,14 +750,14 @@ export default function DashboardOrdersPage() {
         <div className="flex items-center gap-2 lg:gap-3">
           <Link
             to="/app/returns"
-            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-transparent hover:border-gray-200"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 rounded-lg border border-transparent"
           >
             <UndoDot className="h-[18px] w-[18px]" />
             <span className="hidden sm:inline">{t('dashboard:viewReturnParcels')}</span>
           </Link>
           <Link
             to="/app/orders/create"
-            className="flex items-center gap-2 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg shadow-sm shadow-emerald-500/20 transition-all active:scale-95"
+            className="flex items-center gap-2 px-4 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg shadow-sm shadow-emerald-500/20"
           >
             <Plus className="h-[18px] w-[18px]" />
             <span className="hidden sm:inline">{t('dashboard:createOrder')}</span>
@@ -722,11 +766,11 @@ export default function DashboardOrdersPage() {
       </header>
 
       {/* Scrollable Body */}
-      <div className="flex-1 overflow-y-auto p-4 lg:p-6 scroll-smooth bg-gray-50/50">
-        {/* KPI Section (Compact) */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+      <div className="flex-1 overflow-y-auto p-4 lg:p-6 scroll-smooth bg-gray-50">
+        {/* KPI Section (Compact) — Desktop only */}
+        <div className="hidden md:grid md:grid-cols-5 gap-4 mb-8">
           {/* KPI 1 - Revenue */}
-          <div className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
+          <div className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
               {t('dashboard:totalRevenue')}
             </span>
@@ -757,7 +801,7 @@ export default function DashboardOrdersPage() {
 
           {/* KPI 2 - Orders */}
           <div
-            className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow group cursor-pointer"
+            className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
             onClick={() => handleStatusChange('all')}
           >
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -788,7 +832,7 @@ export default function DashboardOrdersPage() {
 
           {/* KPI 3 - Pending */}
           <div
-            className="flex flex-col gap-1 p-3 rounded-xl bg-orange-50/50 border border-orange-100 hover:shadow-md transition-shadow group cursor-pointer"
+            className="flex flex-col gap-1 p-3 rounded-xl bg-orange-50/50 border border-orange-100 hover:shadow-md transition-shadow cursor-pointer"
             onClick={() => handleStatusChange('pending')}
           >
             <span className="text-xs font-medium text-orange-600/80 uppercase tracking-wider flex items-center gap-1">
@@ -806,7 +850,7 @@ export default function DashboardOrdersPage() {
                   {t('dashboard:needsAction')}
                 </span>
               </div>
-              <div className="w-16 flex flex-col items-end justify-end h-8 opacity-70 group-hover:opacity-100 transition-opacity pb-1">
+              <div className="w-16 flex flex-col items-end justify-end h-8 opacity-100 pb-1">
                 <div className="w-full bg-orange-200/50 rounded-full h-1.5">
                   <div
                     className="bg-orange-500 h-1.5 rounded-full"
@@ -824,7 +868,7 @@ export default function DashboardOrdersPage() {
 
           {/* KPI 4 - Shipped */}
           <div
-            className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow group cursor-pointer"
+            className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
             onClick={() => handleStatusChange('shipped')}
           >
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -858,7 +902,7 @@ export default function DashboardOrdersPage() {
 
           {/* KPI 5 - Returns & Cancelled */}
           <div
-            className="flex flex-col gap-1 p-3 rounded-xl bg-red-50/50 border border-red-100 hover:shadow-md transition-shadow group cursor-pointer"
+            className="flex flex-col gap-1 p-3 rounded-xl bg-red-50/50 border border-red-100 hover:shadow-md transition-shadow cursor-pointer"
             onClick={() => handleStatusChange('returned')}
           >
             <span className="text-xs font-medium text-red-600/80 uppercase tracking-wider">
@@ -899,22 +943,10 @@ export default function DashboardOrdersPage() {
           {/* Toolbar / Filter Row */}
           <div className="px-4 py-3 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4 bg-white">
             <div className="flex items-center gap-4 w-full md:w-auto">
-              {/* Saved Views */}
-              <div className="relative">
-                <button className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-colors">
-                  {statusFilter === 'all'
-                    ? t('dashboard:allOrders')
-                    : statusTabs.find((t) => t.id === statusFilter)?.label}
-                  <ChevronDown className="h-5 w-5" />
-                </button>
-              </div>
-
-              <div className="h-5 w-px bg-gray-200"></div>
-
               {/* Chip Filters */}
-              <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1 md:pb-0">
+              <div className="flex flex-wrap items-center gap-2">
                 <select
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors border-none cursor-pointer focus:ring-0 appearance-none pr-8 relative"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 text-xs font-medium text-gray-700 border-none cursor-pointer focus:ring-0 appearance-none pr-8 relative"
                   value={statusFilter}
                   onChange={(e) => handleStatusChange(e.target.value)}
                   style={{
@@ -932,10 +964,46 @@ export default function DashboardOrdersPage() {
                   ))}
                 </select>
 
+                <select
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 text-xs font-medium text-gray-700 border-none cursor-pointer focus:ring-0 appearance-none pr-8 relative"
+                  value={riskFilter}
+                  onChange={(e) => setRiskFilter(e.target.value as typeof riskFilter)}
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236b7280'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`,
+                    backgroundPosition: 'right 0.5rem center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: '1.5em 1.5em',
+                  }}
+                >
+                  <option value="all">Risk: All</option>
+                  <option value="safe">Risk: Safe (≥80%)</option>
+                  <option value="good">Risk: Good (60-79%)</option>
+                  <option value="moderate">Risk: Moderate (40-59%)</option>
+                  <option value="high">Risk: High (20-39%)</option>
+                  <option value="critical">Risk: Critical (&lt;20%)</option>
+                  <option value="unchecked">Risk: Unchecked</option>
+                </select>
+
+                {/* Date filter — same line as other filters */}
+                <div className="flex items-center gap-1">
+                  <input
+                    type="date"
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                    className="px-2.5 py-1.5 rounded-full bg-gray-100 text-xs font-medium text-gray-700 border-none cursor-pointer focus:ring-0 outline-none"
+                  />
+                  {dateFilter && (
+                    <button
+                      onClick={() => setDateFilter('')}
+                      className="text-[10px] text-gray-400 hover:text-red-500 font-bold leading-none"
+                    >✕</button>
+                  )}
+                </div>
+
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors border border-emerald-200"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-xs font-medium text-emerald-700  border border-emerald-200"
                   >
                     Search: {searchQuery}
                     <X className="h-3.5 w-3.5" />
@@ -944,53 +1012,115 @@ export default function DashboardOrdersPage() {
               </div>
             </div>
 
-            {/* Pagination / Count */}
-            <div className="text-xs text-gray-500 font-medium">
-              {t('dashboard:showing')} {filteredOrders.length > 0 ? 1 : 0}-
-              {Math.min(filteredOrders.length, 200)} {t('dashboard:of')} {filteredOrders.length}
+          </div>
+
+          {/* Mobile Stats Summary — visible only on mobile */}
+          {/* Mobile KPI — compact 2-col grid */}
+          <div className="md:hidden px-3 pt-2 pb-1.5 grid grid-cols-4 gap-1.5">
+            <div className="flex flex-col gap-0.5 p-2 rounded-lg bg-white border border-slate-100 shadow-sm cursor-pointer active:scale-95 col-span-2" onClick={() => handleStatusChange('all')}>
+              <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{t('dashboard:totalRevenue')}</span>
+              <span className="text-base font-bold text-slate-900 tabular-nums leading-tight">{formatPrice(stats.revenue)}</span>
+              <span className="text-[9px] text-emerald-600 font-medium">{t('dashboard:active')}</span>
+            </div>
+            <div className="flex flex-col gap-0.5 p-2 rounded-lg bg-white border border-slate-100 shadow-sm cursor-pointer active:scale-95 col-span-2" onClick={() => handleStatusChange('all')}>
+              <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{t('dashboard:totalOrders')}</span>
+              <span className="text-base font-bold text-slate-900 tabular-nums leading-tight">{stats.total}</span>
+              <span className="text-[9px] text-emerald-600 font-medium">{t('dashboard:allTime')}</span>
+            </div>
+            <div className="flex flex-col gap-0.5 p-2 rounded-lg bg-orange-50 border border-orange-100 shadow-sm cursor-pointer active:scale-95" onClick={() => handleStatusChange('pending')}>
+              <span className="text-[9px] font-semibold text-orange-400 uppercase tracking-wider flex items-center gap-0.5">
+                {stats.pending > 0 && <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse inline-block"></span>}
+                {t('dashboard:pending')}
+              </span>
+              <span className="text-base font-bold text-slate-900 tabular-nums leading-tight">{stats.pending}</span>
+            </div>
+            <div className="flex flex-col gap-0.5 p-2 rounded-lg bg-blue-50 border border-blue-100 shadow-sm cursor-pointer active:scale-95" onClick={() => handleStatusChange('shipped')}>
+              <span className="text-[9px] font-semibold text-blue-400 uppercase tracking-wider">Shipped</span>
+              <span className="text-base font-bold text-slate-900 tabular-nums leading-tight">{stats.shipped}</span>
+            </div>
+            <div className="flex flex-col gap-0.5 p-2 rounded-lg bg-red-50 border border-red-100 shadow-sm cursor-pointer active:scale-95 col-span-2" onClick={() => handleStatusChange('returned')}>
+              <span className="text-[9px] font-semibold text-red-400 uppercase tracking-wider">{t('dashboard:issuesAndReturns')}</span>
+              <span className="text-base font-bold text-slate-900 tabular-nums leading-tight">{stats.cancelled + stats.returned}</span>
             </div>
           </div>
 
-          {/* Mobile Search Bar (visible only on mobile) */}
-          <div className="md:hidden px-4 py-3 border-b border-gray-100 bg-white">
+          {/* Mobile Status Pills — horizontal scroll, no scrollbar */}
+          <div className="md:hidden flex gap-1.5 overflow-x-auto px-3 py-1.5 bg-white border-b border-slate-100" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+            {[{id: 'all', label: 'All'}, ...statusTabs.slice(1)].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => handleStatusChange(tab.id)}
+                className={`flex-none px-3 py-1 rounded-full text-[11px] font-medium whitespace-nowrap ${
+                  statusFilter === tab.id
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-slate-100 text-slate-600 border border-slate-200'
+                }`}
+              >
+                {tab.label}
+                {tab.id !== 'all' && (tab as typeof tab & {count?: number}).count != null && (tab as typeof tab & {count?: number}).count! > 0 && (
+                  <span className={`ml-1 ${statusFilter === tab.id ? 'text-slate-300' : 'text-slate-400'}`}>
+                    {(tab as typeof tab & {count?: number}).count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Mobile Search + Filters */}
+          <div className="md:hidden px-3 py-2 bg-white flex flex-col gap-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
               <input
                 role="search"
                 aria-label="Search orders"
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-gray-100 text-sm placeholder-gray-500 focus:ring-2 focus:ring-emerald-500/20 focus:bg-white transition-all outline-none"
+                className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-100 text-xs placeholder-slate-400 focus:ring-1 focus:ring-emerald-500/20 focus:bg-white outline-none"
                 placeholder={t('dashboard:searchByOrderHint')}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            {/* Mobile Status Pills */}
-            <div className="flex gap-2 mt-3 overflow-x-auto hide-scrollbar pb-1">
-              {statusTabs.map((tab) => (
+            <div className="flex gap-1.5 items-center">
+              <select
+                value={statusFilter}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                className="flex-1 min-w-0 text-[11px] border border-slate-200 rounded-lg py-1.5 px-2 bg-white text-slate-600 focus:ring-1 focus:ring-emerald-500/20 outline-none"
+              >
+                <option value="all">Status: All</option>
+                {statusTabs.slice(1).map((tab) => (
+                  <option key={tab.id} value={tab.id}>{tab.label}</option>
+                ))}
+              </select>
+              <select
+                value={riskFilter}
+                onChange={(e) => setRiskFilter(e.target.value as typeof riskFilter)}
+                className="flex-1 min-w-0 text-[11px] border border-slate-200 rounded-lg py-1.5 px-2 bg-white text-slate-600 focus:ring-1 focus:ring-emerald-500/20 outline-none"
+              >
+                <option value="all">Risk: All</option>
+                <option value="safe">Safe (≥80%)</option>
+                <option value="good">Good (60–79%)</option>
+                <option value="moderate">Moderate (40–59%)</option>
+                <option value="high">High (20–39%)</option>
+                <option value="critical">Critical (&lt;20%)</option>
+                <option value="unchecked">Unchecked</option>
+              </select>
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="flex-1 min-w-0 text-[11px] border border-slate-200 rounded-lg py-1.5 px-2 bg-white text-slate-600 focus:ring-1 focus:ring-emerald-500/20 outline-none"
+              />
+              {dateFilter && (
                 <button
-                  key={tab.id}
-                  onClick={() => handleStatusChange(tab.id)}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${statusFilter === tab.id
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                >
-                  {tab.label}
-                  {tab.count > 0 && (
-                    <span
-                      className={`ml-1 ${statusFilter === tab.id ? 'text-emerald-100' : 'text-gray-400'}`}
-                    >
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              ))}
+                  onClick={() => setDateFilter('')}
+                  className="text-slate-400 hover:text-red-500 font-bold leading-none flex-shrink-0"
+                >✕</button>
+              )}
             </div>
           </div>
 
           {/* Table / Card List */}
-          <div className="flex-1 overflow-auto bg-white">
+          <div className="flex-1 overflow-visible bg-slate-100" data-theme="light">
             {storeOrders.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-12 text-center">
                 <div className="mb-4 w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 shadow-sm">
@@ -1010,7 +1140,7 @@ export default function DashboardOrdersPage() {
                     setSearchQuery('');
                     handleStatusChange('all');
                   }}
-                  className="mt-4 px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg text-sm font-medium transition-colors"
+                  className="mt-4 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-lg text-sm font-medium"
                 >
                   {t('dashboard:clearFilters')}
                 </button>
@@ -1018,339 +1148,441 @@ export default function DashboardOrdersPage() {
             ) : (
               <>
                 {/* ===== MOBILE CARD VIEW ===== */}
-                <div className="md:hidden divide-y divide-gray-100 -mx-4">
-                  {filteredOrders.map((order) => {
-                    const isErrorState =
-                      order.status === 'cancelled' || order.status === 'returned';
-                    const statusColors: Record<string, string> = {
-                      pending: 'bg-orange-50 text-orange-700 border-orange-200',
-                      confirmed: 'bg-blue-50 text-blue-700 border-blue-200',
-                      processing: 'bg-purple-50 text-purple-700 border-purple-200',
-                      shipped: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-                      delivered: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                      cancelled: 'bg-red-50 text-red-700 border-red-200',
-                      returned: 'bg-red-50 text-red-700 border-red-200',
+                <div className="md:hidden space-y-2 p-3 pb-24">
+                  {filteredOrders.slice(0, displayedCount).map((order) => {
+                    // ── Left bar color based on fraud cache or status ──
+                    const fc = ('fraudCache' in order
+                      ? (order as { fraudCache: { successRate: number; totalOrders: number; isHighRisk: boolean; cachedAt: string } | null }).fraudCache
+                      : null);
+
+                    const fraudBarColor = fc
+                      ? fc.successRate >= 80
+                        ? 'bg-emerald-500'
+                        : fc.successRate >= 60
+                          ? 'bg-green-500'
+                          : fc.successRate >= 40
+                            ? 'bg-amber-400'
+                            : fc.successRate >= 20
+                              ? 'bg-orange-500'
+                              : 'bg-red-500'
+                      : order.status === 'delivered'
+                        ? 'bg-emerald-500'
+                        : order.status === 'cancelled' || order.status === 'returned'
+                          ? 'bg-red-500'
+                          : order.status === 'shipped'
+                            ? 'bg-indigo-400'
+                            : 'bg-slate-300';
+
+                    const fraudSuccessText = fc
+                      ? fc.successRate >= 80
+                        ? { color: 'text-emerald-600', text: `${fc.successRate.toFixed(0)}% Success` }
+                        : fc.successRate >= 60
+                          ? { color: 'text-green-600', text: `${fc.successRate.toFixed(0)}% Success` }
+                          : fc.successRate >= 40
+                            ? { color: 'text-amber-600', text: `${fc.successRate.toFixed(0)}% Success` }
+                            : fc.successRate >= 20
+                              ? { color: 'text-orange-600', text: `${fc.successRate.toFixed(0)}% Success` }
+                              : { color: 'text-red-600', text: `${fc.successRate.toFixed(0)}% Success` }
+                      : null;
+
+                    const orderItemsMobile = (order as typeof order & { items: Array<{title: string; quantity: number; imageUrl: string | null}> }).items ?? [];
+                    const firstItem = orderItemsMobile[0] ?? null;
+
+                    const statusBadgeColors: Record<string, string> = {
+                      pending: 'bg-yellow-50 text-yellow-700 ring-1 ring-inset ring-yellow-700/20',
+                      confirmed: 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-700/10',
+                      processing: 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-700/10',
+                      shipped: 'bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-700/10',
+                      delivered: 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-700/20',
+                      cancelled: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-700/10',
+                      returned: 'bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-700/20',
                     };
+
+                    const paymentLabel = order.paymentStatus === 'paid'
+                      ? { label: 'bKash', cls: 'bg-emerald-50 text-emerald-600' }
+                      : { label: 'COD', cls: 'bg-slate-100 text-slate-600' };
+
                     return (
                       <Link
                         key={order.id}
                         to={`/app/orders/${order.id}`}
-                        className={`block px-4 py-4 hover:bg-gray-50 active:bg-gray-100 transition-colors ${isErrorState ? 'bg-red-50/30' : ''}`}
+                        className="relative bg-white rounded-xl border border-slate-100 overflow-hidden block pl-[5px]"
+                        style={{ boxShadow: '0 2px 8px -2px rgba(0,0,0,0.05), 0 1px 4px -1px rgba(0,0,0,0.03)' }}
                       >
-                        {/* Top row: Order # + Status */}
-                        <div className="flex items-center justify-between gap-2 mb-2">
-                          <span className="font-bold text-emerald-700 text-sm font-mono">
-                            {order.orderNumber}
-                          </span>
-                          <span
-                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold border ${statusColors[order.status || 'pending'] || 'bg-gray-50 text-gray-600 border-gray-200'}`}
-                          >
-                            {order.status}
+                        {/* Left color bar based on fraud success rate */}
+                        <div className={`absolute left-0 top-0 bottom-0 w-[5px] rounded-l-xl ${
+                          fc
+                            ? fc.successRate >= 80 ? 'bg-emerald-500'
+                              : fc.successRate >= 60 ? 'bg-green-400'
+                              : fc.successRate >= 40 ? 'bg-amber-400'
+                              : fc.successRate >= 20 ? 'bg-orange-400'
+                              : 'bg-red-500'
+                            : order.status === 'delivered' ? 'bg-emerald-400'
+                            : order.status === 'cancelled' || order.status === 'returned' ? 'bg-red-400'
+                            : order.status === 'shipped' ? 'bg-blue-400'
+                            : 'bg-slate-200'
+                        }`} />
+                        {/* Stitch design: no left bar, card header instead */}
+                        <div className="px-3 py-2 flex items-center justify-between border-b border-slate-50">
+                          <div className="flex flex-col">
+                            <Link to={`/app/orders/${order.id}`} className="text-sm font-bold text-slate-900">
+                              #{order.orderNumber}
+                            </Link>
+                            <span className="text-[10px] text-slate-400">{formatDate(order.createdAt)}</span>
+                          </div>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadgeColors[order.status || 'pending'] || 'bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/10'}`}>
+                            {order.status === 'pending' ? 'Pending'
+                              : order.status === 'confirmed' ? 'Confirmed'
+                              : order.status === 'processing' ? 'Processing'
+                              : order.status === 'shipped' ? 'Shipped'
+                              : order.status === 'delivered' ? 'Delivered'
+                              : order.status === 'cancelled' ? 'Cancelled'
+                              : order.status === 'returned' ? 'Returned'
+                              : order.status}
                           </span>
                         </div>
 
-                        {/* Customer info */}
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-base font-semibold text-gray-900 truncate">
-                              {order.customerName || 'Customer'}
-                            </p>
-                            <p className="text-sm text-gray-500 mt-0.5 flex items-center gap-1">
-                              <svg
-                                className="w-3.5 h-3.5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
+                        {/* Card body — Stitch design */}
+                        <div className="p-3">
+                          <div className="flex gap-3 mb-3">
+                            {/* Product image */}
+                            {firstItem?.imageUrl ? (
+                              <div className="h-12 w-12 flex-shrink-0 rounded-lg bg-slate-100 overflow-hidden border border-slate-200">
+                                <img src={firstItem.imageUrl} alt={firstItem.title} className="h-full w-full object-cover" />
+                              </div>
+                            ) : (
+                              <div className="h-12 w-12 flex-shrink-0 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center">
+                                <Package className="h-5 w-5 text-slate-400" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-sm font-semibold text-slate-900 truncate leading-tight">
+                                {firstItem?.title || t('dashboard:noProducts')}
+                              </h3>
+                              <div className="mt-1 flex items-center text-xs text-slate-500 gap-1.5 flex-wrap">
+                                <span className="truncate">{order.customerName || '—'}</span>
+                                {order.customerPhone && (
+                                  <>
+                                    <span className="text-slate-300">•</span>
+                                    <span className="font-medium text-slate-600">{order.customerPhone}</span>
+                                  </>
+                                )}
+                              </div>
+                              {/* Fraud badge */}
+                              {fc && (
+                                <div className="mt-2 flex items-center gap-2">
+                                  <div className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold border ${
+                                    fc.successRate >= 80 ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                                    fc.successRate >= 60 ? 'bg-green-50 text-green-700 border-green-100' :
+                                    fc.successRate >= 40 ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                                    fc.successRate >= 20 ? 'bg-orange-50 text-orange-700 border-orange-100' :
+                                    'bg-red-50 text-red-700 border-red-100'
+                                  }`}>
+                                    {fc.successRate}% Success
+                                  </div>
+                                  {fc.totalOrders > 0 && (
+                                    <span className="text-[10px] text-slate-400">Total {fc.totalOrders} orders</span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            {/* Price + payment */}
+                            <div className="text-right flex-shrink-0">
+                              <div className="text-sm font-bold text-slate-900">{formatPrice(order.total)}</div>
+                              <div className={`text-[10px] px-1.5 py-0.5 rounded mt-1 inline-block ${paymentLabel.cls}`}>
+                                {paymentLabel.label}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Bottom: fraud check + courier send — always show */}
+                          <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                            {/* Left: fraud check button (only if unchecked & actionable status) */}
+                            {!fc && ['pending', 'confirmed', 'processing'].includes(order.status || '') ? (
+                              <MobileFraudCheckButton orderId={order.id} currentStatus={order.status || 'pending'} />
+                            ) : (
+                              <div />
+                            )}
+                            {/* Right: courier logic */}
+                            {order.courierConsignmentId ? (
+                              // Already booked → show courier name with checkmark
+                              <span className="text-[10px] text-emerald-600 flex items-center gap-1 font-medium">
+                                <Truck className="h-3 w-3" /> {order.courierProvider} ✓
+                              </span>
+                            ) : order.status === 'confirmed' && allCouriers.length > 0 ? (
+                              // Confirmed + courier setup → show send button
+                              <mobileCourierFetcher.Form method="post" onClick={(e: React.MouseEvent) => e.stopPropagation()} className="flex items-center gap-1.5">
+                                <input type="hidden" name="intent" value="BOOK_COURIER" />
+                                <input type="hidden" name="orderId" value={order.id} />
+                                {allCouriers.length === 1 ? (
+                                  <>
+                                    <input type="hidden" name="courierProvider" value={allCouriers[0]} />
+                                    <span className="text-[10px] text-slate-500">{allCouriers[0].charAt(0).toUpperCase() + allCouriers[0].slice(1)}</span>
+                                  </>
+                                ) : (
+                                  <select
+                                    name="courierProvider"
+                                    onClick={(e: React.MouseEvent<HTMLSelectElement>) => e.stopPropagation()}
+                                    className="text-[10px] border border-slate-200 rounded-md py-1 px-1.5 bg-white text-slate-600 outline-none"
+                                    defaultValue={allCouriers[0]}
+                                  >
+                                    {allCouriers.map((c) => (
+                                      <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+                                    ))}
+                                  </select>
+                                )}
+                                <button
+                                  type="submit"
+                                  disabled={mobileCourierFetcher.state !== 'idle'}
+                                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                                  className="flex items-center gap-1 px-2.5 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-semibold whitespace-nowrap"
+                                >
+                                  <Truck className="h-3 w-3" />
+                                  {mobileCourierFetcher.state !== 'idle' ? '...' : 'Send'}
+                                </button>
+                              </mobileCourierFetcher.Form>
+                            ) : order.status === 'confirmed' && allCouriers.length === 0 ? (
+                              // Confirmed but no courier setup → prompt to set up
+                              <Link
+                                to="/app/settings/couriers"
+                                onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                                className="text-[10px] text-blue-500 flex items-center gap-1 font-medium"
                               >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                                />
-                              </svg>
-                              {order.customerPhone}
-                            </p>
-                            {order.displayAddress && (
-                              <p className="text-xs text-gray-400 mt-1 truncate max-w-[200px]">
-                                {order.displayAddress}
-                              </p>
+                                <Truck className="h-3 w-3" /> কুরিয়ার সেটআপ করুন
+                              </Link>
+                            ) : (
+                              <div />
                             )}
                           </div>
-                          <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                            <span className="font-bold text-gray-900 text-lg">
-                              {formatPrice(order.total)}
-                            </span>
-                            <span
-                              className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${order.paymentStatus === 'paid'
-                                  ? 'bg-emerald-100 text-emerald-700'
-                                  : 'bg-orange-100 text-orange-700'
-                                }`}
-                            >
-                              {order.paymentStatus === 'paid'
-                                ? t('dashboard:paid')
-                                : t('dashboard:cod')}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Bottom row: Date + Courier */}
-                        <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
-                          <span className="text-xs text-gray-400">
-                            {formatDate(order.createdAt)}
-                          </span>
-                          {order.courierProvider && (
-                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                              {order.courierProvider}
-                            </span>
-                          )}
                         </div>
                       </Link>
                     );
                   })}
+                  {/* Infinite scroll sentinel */}
+                  {displayedCount < filteredOrders.length && (
+                    <div ref={loadMoreRef} className="flex justify-center py-4">
+                      <div className="flex items-center gap-2 text-xs text-slate-400">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        লোড হচ্ছে...
+                      </div>
+                    </div>
+                  )}
+                  {displayedCount >= filteredOrders.length && filteredOrders.length > 0 && (
+                    <div className="text-center text-[10px] text-slate-300 py-3">
+                      সব {filteredOrders.length}টি অর্ডার দেখানো হয়েছে
+                    </div>
+                  )}
                 </div>
 
                 {/* ===== DESKTOP TABLE VIEW ===== */}
-                <table className="hidden md:table w-full text-left border-collapse min-w-[800px]">
-                  <thead className="bg-gray-50 sticky top-0 z-10">
-                    <tr>
-                      <th className="py-3 px-4 border-b border-gray-200 w-10">
-                        <input
-                          type="checkbox"
-                          className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-600/20"
-                        />
-                      </th>
-                      <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        {t('dashboard:order')} ID
-                      </th>
-                      <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        {t('dashboard:customer')}
-                      </th>
-                      <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
-                        {t('dashboard:total')}
-                      </th>
-                      <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        {t('dashboard:payment')}
-                      </th>
-                      <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        {t('dashboard:status')}
-                      </th>
-                      <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        Fraud <span className="text-yellow-400">⚡</span>
-                      </th>
-                      <th className="py-3 px-4 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        {t('dashboard:courier')}
-                      </th>
-                      <th className="py-3 px-4 border-b border-gray-200 w-10"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {filteredOrders.map((order) => {
-                      const isErrorState =
-                        order.status === 'cancelled' || order.status === 'returned';
-                      return (
-                        <tr
-                          key={order.id}
-                          className={`group hover:bg-gray-50 transition-colors ${isErrorState ? 'bg-red-50/30 hover:bg-red-50/50' : ''}`}
-                        >
-                          <td className="py-3 px-4 w-10">
-                            <input
-                              type="checkbox"
-                              className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-600/20"
-                            />
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center gap-2">
-                                <Receipt
-                                  className={`h-4 w-4 ${isErrorState ? 'text-red-500' : 'text-gray-400'}`}
-                                />
-                                <Link
-                                  to={`/app/orders/${order.id}`}
-                                  className="font-medium text-emerald-600 text-sm font-sans tabular-nums hover:underline cursor-pointer"
-                                >
+                <div className="hidden md:block rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                  <div className="table-scroll-container">
+                    <table className="w-full text-left text-sm min-w-[1100px]">
+                      <thead className="bg-slate-50 text-slate-500 border-b border-slate-200">
+                        <tr>
+                          <th className="px-4 py-3 font-medium w-[240px] min-w-[240px]">{t('dashboard:order')} ID</th>
+                          <th className="px-4 py-3 font-medium min-w-[180px]">{t('dashboard:customer')}</th>
+                          <th className="px-4 py-3 font-medium min-w-[200px]">Products</th>
+                          <th className="px-4 py-3 font-medium w-[100px]">{t('dashboard:total')}</th>
+                          <th className="px-4 py-3 font-medium w-[100px]">{t('dashboard:payment')}</th>
+                          <th className="px-4 py-3 font-medium w-[110px]">{t('dashboard:status')}</th>
+                          <th className="px-4 py-3 font-medium w-[260px] min-w-[260px]">Fraud Risk</th>
+                          <th className="px-4 py-3 font-medium text-right w-[160px]">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {filteredOrders.map((order) => {
+                          const isErrorState = order.status === 'cancelled' || order.status === 'returned';
+                          const orderItemsList = (order as typeof order & { items: Array<{title: string; quantity: number; imageUrl: string | null}> }).items ?? [];
+                          return (
+                            <tr
+                              key={order.id}
+                              className={isErrorState ? 'bg-red-50/30' : ''}
+                            >
+                              {/* Order ID */}
+                              <td className="px-4 py-2.5 font-medium text-slate-900 w-[240px] min-w-[240px]">
+                                <Link to={`/app/orders/${order.id}`} className="text-emerald-600  font-medium">
                                   {order.orderNumber}
                                 </Link>
-                              </div>
-                              <span className="text-[11px] text-gray-400 ml-6">
-                                {formatDate(order.createdAt)}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-900">
-                                {order.customerName || 'Customer'}
-                              </span>
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs text-gray-500 font-sans tabular-nums flex items-center gap-1">
-                                  {order.customerPhone}
-                                </span>
-                              </div>
-                              {order.displayAddress && (
-                                <span
-                                  className="text-xs text-gray-400 flex items-center gap-1 mt-0.5 w-[180px] truncate"
-                                  title={order.displayAddress}
-                                >
-                                  {order.displayAddress}
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <span className="text-sm font-semibold text-gray-900 font-sans tabular-nums">
-                              {formatPrice(order.total)}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${order.paymentStatus === 'paid'
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                  : 'bg-orange-50 text-orange-700 border-orange-200'
-                                }`}
-                            >
-                              {order.paymentStatus === 'paid'
-                                ? t('dashboard:paid')
-                                : t('dashboard:cod')}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <StatusDropdown
-                              orderId={order.id}
-                              currentStatus={order.status || 'pending'}
-                            />
-                          </td>
-                          <td className="py-3 px-4 min-w-[110px]">
-                            {'fraudCache' in order &&
-                              (
-                                order as {
-                                  fraudCache: {
-                                    successRate: number;
-                                    totalOrders: number;
-                                    isHighRisk: boolean;
-                                    cachedAt: string;
-                                  } | null;
-                                }
-                              ).fraudCache ? (
-                              (() => {
-                                const fc = (
-                                  order as {
-                                    fraudCache: {
-                                      successRate: number;
-                                      totalOrders: number;
-                                      isHighRisk: boolean;
-                                      cachedAt: string;
-                                    };
-                                  }
-                                ).fraudCache;
-                                const sr = fc.successRate;
-                                const colorClass =
-                                  sr >= 80
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                    : sr >= 50
-                                      ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                                      : 'bg-red-50 text-red-700 border-red-200';
-                                return (
-                                  <div className="flex flex-col gap-0.5">
-                                    <span
-                                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold border ${colorClass}`}
-                                    >
-                                      {sr >= 80 ? '✅' : sr >= 50 ? '⚠️' : '🚫'} {sr}%
-                                    </span>
-                                    <span className="text-[10px] text-gray-400">
-                                      {fc.totalOrders} orders · ⚡cached
-                                    </span>
+                                <div className="text-xs text-slate-400 font-normal mt-0.5">{formatDate(order.createdAt)}</div>
+                              </td>
+
+                              {/* Customer */}
+                              <td className="px-4 py-2.5">
+                                <div className="flex items-center gap-3">
+                                  <div className="h-9 w-9 overflow-hidden rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm shrink-0">
+                                    {(order.customerName || 'C').charAt(0).toUpperCase()}
                                   </div>
-                                );
-                              })()
-                            ) : // No cache yet — show the check button inline
-                              ['pending', 'confirmed'].includes(order.status || '') ? (
-                                <FraudCheckButton
+                                  <div>
+                                    <div className="font-medium text-slate-900 text-sm">{order.customerName || 'Customer'}</div>
+                                    <div className="text-xs text-slate-500">{order.customerPhone || '—'}</div>
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Products */}
+                              <td className="px-4 py-2.5">
+                                <div className="flex items-center gap-1.5 max-w-[200px]">
+                                  {orderItemsList.slice(0, 6).map((item, idx) => (
+                                    <div key={idx} className="relative shrink-0">
+                                      <div className="h-10 w-10 overflow-hidden rounded bg-slate-100 ring-1 ring-slate-200">
+                                        {item.imageUrl ? (
+                                          <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />
+                                        ) : (
+                                          <div className="h-full w-full flex items-center justify-center text-slate-400 text-[10px] font-medium p-1 text-center leading-tight">
+                                            {item.title.slice(0, 2)}
+                                          </div>
+                                        )}
+                                      </div>
+                                      {item.quantity > 1 && (
+                                        <span className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center rounded-full bg-slate-700 text-[9px] font-bold text-white ring-1 ring-white">
+                                          {item.quantity}
+                                        </span>
+                                      )}
+                                    </div>
+                                  ))}
+                                  {orderItemsList.length > 6 && (
+                                    <div className="h-10 w-10 rounded bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 ring-1 ring-slate-200 shrink-0">
+                                      +{orderItemsList.length - 6}
+                                    </div>
+                                  )}
+                                  {orderItemsList.length === 0 && (
+                                    <span className="text-xs text-slate-400 italic">—</span>
+                                  )}
+                                </div>
+                                {orderItemsList.length > 0 && (
+                                  <div className="text-xs text-slate-500 mt-1 line-clamp-1">
+                                    {orderItemsList[0].title}{orderItemsList.length > 1 ? ` +${orderItemsList.length - 1} more` : ''}
+                                  </div>
+                                )}
+                              </td>
+
+                              {/* Amount */}
+                              <td className="px-4 py-2.5 font-semibold text-slate-900">
+                                {formatPrice(order.total)}
+                              </td>
+
+                              {/* Payment */}
+                              <td className="px-4 py-2.5">
+                                {(() => {
+                                  const method = order.paymentMethod?.toLowerCase() || '';
+                                  const isPaid = order.paymentStatus === 'paid';
+                                  // Show payment method badge only — COD implies unpaid, bKash/card implies paid
+                                  const label = method === 'cod' ? 'COD'
+                                    : method === 'bkash' ? 'bKash'
+                                    : method === 'nagad' ? 'Nagad'
+                                    : method === 'rocket' ? 'Rocket'
+                                    : method === 'card' ? 'Card'
+                                    : method === 'stripe' ? 'Stripe'
+                                    : method ? method.charAt(0).toUpperCase() + method.slice(1)
+                                    : isPaid ? t('dashboard:paid') : t('dashboard:unpaid');
+                                  const colorClass = method === 'cod'
+                                    ? 'bg-orange-50 text-orange-700 border-orange-200'
+                                    : isPaid
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                    : 'bg-slate-100 text-slate-600 border-slate-200';
+                                  return (
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${colorClass}`}>
+                                      {label}
+                                    </span>
+                                  );
+                                })()}
+                              </td>
+
+                              {/* Status */}
+                              <td className="px-4 py-2.5">
+                                <StatusDropdown
                                   orderId={order.id}
                                   currentStatus={order.status || 'pending'}
                                 />
-                              ) : (
-                                <span className="text-[11px] text-gray-300 italic">—</span>
-                              )}
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-2">
-                              {courierProvider &&
-                                order.status === 'confirmed' &&
-                                !['booked', 'in_transit', 'delivered', 'shipped'].includes(
-                                  order.courierStatus || ''
-                                ) ? (
-                                <div className="opacity-60 xl:opacity-100 group-hover:opacity-100 transition-opacity">
-                                  <SendToCourierButton
-                                    orderId={order.id}
-                                    orderNumber={order.orderNumber}
-                                    status={order.status || 'pending'}
-                                    courierStatus={order.courierStatus}
-                                    courierProvider={courierProvider}
-                                    allCouriers={allCouriers}
-                                  />
+                              </td>
+
+
+                              {/* Fraud Risk */}
+                              <td className="px-4 py-2.5 w-[260px] min-w-[260px]">
+                                {(() => {
+                                  const fd = 'fraudCache' in order
+                                    ? (order as typeof order & { fraudCache: { successRate: number; totalOrders: number; deliveredOrders: number; returnedOrders: number; isHighRisk: boolean; riskScore: number; } | null }).fraudCache
+                                    : null;
+                                  const riskColors = fd
+                                    ? fd.successRate >= 80 ? { border: 'border-emerald-100', bg: 'bg-emerald-50/50', bar: 'bg-emerald-500', text: 'text-emerald-700', sub: 'text-emerald-600/70' }
+                                    : fd.successRate >= 60 ? { border: 'border-green-100', bg: 'bg-green-50/50', bar: 'bg-green-500', text: 'text-green-700', sub: 'text-green-600/70' }
+                                    : fd.successRate >= 40 ? { border: 'border-amber-100', bg: 'bg-amber-50/50', bar: 'bg-amber-500', text: 'text-amber-700', sub: 'text-amber-600/70' }
+                                    : fd.successRate >= 20 ? { border: 'border-orange-100', bg: 'bg-orange-50/50', bar: 'bg-orange-500', text: 'text-orange-700', sub: 'text-orange-600/70' }
+                                    : { border: 'border-red-100', bg: 'bg-red-50/50', bar: 'bg-red-500', text: 'text-red-700', sub: 'text-red-600/70' }
+                                    : null;
+                                  if (fd && riskColors) {
+                                    const pct = `${fd.successRate}%`;
+                                    return (
+                                      <div className={`relative flex w-full items-center justify-between rounded-lg border ${riskColors.border} ${riskColors.bg} p-2 pr-3`}>
+                                        <div className={`absolute left-0 top-2 bottom-2 w-1 ${riskColors.bar} rounded-r-full`}></div>
+                                        <div className="ml-3 flex flex-col">
+                                          <span className={`text-xs font-bold ${riskColors.text}`}>{pct} Success</span>
+                                          <span className={`text-[10px] font-medium ${riskColors.sub}`}>Total: {fd.totalOrders} orders</span>
+                                        </div>
+                                        <div
+                                          className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+                                          style={{ background: `conic-gradient(${riskColors.bar.replace('bg-', '').includes('emerald') ? '#10b981' : riskColors.bar.replace('bg-', '').includes('green') ? '#22c55e' : riskColors.bar.replace('bg-', '').includes('amber') ? '#f59e0b' : riskColors.bar.replace('bg-', '').includes('orange') ? '#f97316' : '#ef4444'} ${pct}, #e2e8f0 0deg)`, position: 'relative' }}
+                                        >
+                                          <div className="absolute w-6 h-6 bg-white rounded-full" />
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+                                  if (!order.customerPhone) return <span className="text-[11px] text-gray-300 italic">—</span>;
+                                  return <FraudCheckButton orderId={order.id} currentStatus={order.status || 'pending'} />;
+                                })()}
+                              </td>
+
+                              {/* Actions (includes courier) */}
+                              <td className="px-4 py-2.5 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  {courierProvider &&
+                                    order.status === 'confirmed' &&
+                                    !['booked', 'in_transit', 'delivered', 'shipped'].includes(
+                                      order.courierStatus || ''
+                                    ) ? (
+                                    <div className="opacity-100">
+                                      <SendToCourierButton
+                                        orderId={order.id}
+                                        orderNumber={order.orderNumber}
+                                        status={order.status || 'pending'}
+                                        courierStatus={order.courierStatus}
+                                        courierProvider={courierProvider}
+                                        allCouriers={allCouriers}
+                                      />
+                                    </div>
+                                  ) : courierProvider ? (
+                                    <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                                      {courierProvider.charAt(0).toUpperCase() +
+                                        courierProvider.slice(1)}
+                                      {order.courierConsignmentId
+                                        ? `: ${order.courierConsignmentId}`
+                                        : ''}
+                                    </span>
+                                  ) : (
+                                    <span className="text-[11px] text-gray-400 italic font-medium">
+                                      {t('dashboard:notConfigured')}
+                                    </span>
+                                  )}
                                 </div>
-                              ) : courierProvider ? (
-                                <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                                  {courierProvider.charAt(0).toUpperCase() +
-                                    courierProvider.slice(1)}
-                                  {order.courierConsignmentId
-                                    ? `: ${order.courierConsignmentId}`
-                                    : ''}
-                                </span>
-                              ) : (
-                                <span className="text-[11px] text-gray-400 italic font-medium">
-                                  {t('dashboard:notConfigured')}
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="py-3 px-4 text-right whitespace-nowrap">
-                            <div className="flex items-center justify-end gap-2">
-                              <Link
-                                to={`/app/orders/${order.id}`}
-                                className="text-gray-400 hover:text-emerald-600 transition-colors"
-                                title="View Details"
-                              >
-                                <Eye className="h-5 w-5" />
-                              </Link>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                              </td>
+
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </>
             )}
           </div>
 
-          {/* Footer / Bulk Actions */}
-          <div className="border-t border-gray-200 bg-gray-50 px-4 py-3 flex items-center justify-between text-xs text-gray-500 mt-auto">
-            <div>
-              <span className="font-medium">0 rows selected</span>
-              <span className="mx-2 text-gray-300">|</span>
-              <button
-                className="text-emerald-600 hover:text-emerald-700 font-medium disabled:opacity-50"
-                disabled
-              >
-                {t('dashboard:bulkEdit')}
-              </button>
-            </div>
-            <div className="flex gap-2">
-              <button
-                className="px-2 py-1 border border-gray-200 rounded hover:bg-white disabled:opacity-50 shadow-sm"
-                disabled
-              >
-                {t('dashboard:prev')}
-              </button>
-              <button
-                className="px-2 py-1 border border-gray-200 rounded hover:bg-white disabled:opacity-50 shadow-sm"
-                disabled
-              >
-                {t('dashboard:next')}
-              </button>
-            </div>
+          {/* Desktop: show total count only */}
+          <div className="hidden md:flex border-t border-gray-100 bg-gray-50/50 px-4 py-2.5 items-center justify-between text-xs text-gray-400">
+            <span>{filteredOrders.length} {t('dashboard:orders') || 'orders'}</span>
+            {dateFilter && <button onClick={() => setDateFilter('')} className="text-red-400">✕ {dateFilter}</button>}
           </div>
         </div>
       </div>
@@ -1470,8 +1702,158 @@ interface FraudCheckResult {
   fromCache?: boolean;
 }
 
-function FraudCheckButton({ orderId, currentStatus }: { orderId: number; currentStatus: string }) {
-  const { t } = useTranslation();
+// ── Smart Risk Card helpers ──────────────────────────────────────────────────
+
+const RISK_META: Record<
+  string,
+  { bar: string; badge: string; label: string; dot: string }
+> = {
+  excellent: {
+    bar: 'bg-emerald-500',
+    badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    label: 'নিরাপদ',
+    dot: 'bg-emerald-500',
+  },
+  good: {
+    bar: 'bg-green-500',
+    badge: 'bg-green-50 text-green-700 border-green-200',
+    label: 'ভালো',
+    dot: 'bg-green-500',
+  },
+  moderate: {
+    bar: 'bg-amber-400',
+    badge: 'bg-amber-50 text-amber-700 border-amber-200',
+    label: 'মাঝারি',
+    dot: 'bg-amber-400',
+  },
+  high: {
+    bar: 'bg-orange-500',
+    badge: 'bg-orange-50 text-orange-700 border-orange-200',
+    label: 'উচ্চ ঝুঁকি',
+    dot: 'bg-orange-500',
+  },
+  critical: {
+    bar: 'bg-red-500',
+    badge: 'bg-red-50 text-red-700 border-red-200',
+    label: 'ক্রিটিক্যাল',
+    dot: 'bg-red-500',
+  },
+};
+
+/** Inline Smart Risk Card shown inside the table cell after a result */
+function SmartRiskCard({
+  result,
+  onRecheck,
+  isRechecking,
+}: {
+  result: FraudCheckResult;
+  onRecheck: () => void;
+  isRechecking: boolean;
+}) {
+  const level = result.riskLevel ?? 'moderate';
+  const meta = RISK_META[level] ?? RISK_META.moderate;
+  const sr = result.successRate;
+  const barWidth = `${Math.max(sr, 2)}%`;
+
+  return (
+    <div className="flex items-stretch gap-0 rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden min-w-[160px] max-w-[190px]">
+      {/* Left colored indicator bar */}
+      <div className={`w-1 flex-shrink-0 ${meta.bar}`} />
+
+      {/* Card body */}
+      <div className="flex flex-col gap-1 px-2 py-1.5 flex-1">
+        {/* Top row: badge + rate */}
+        <div className="flex items-center justify-between gap-1">
+          <span
+            className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold border ${meta.badge}`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
+            {meta.label}
+          </span>
+          <span className="text-sm font-bold text-gray-900 tabular-nums">
+            {sr.toFixed(0)}%
+          </span>
+        </div>
+
+        {/* Progress arc bar */}
+        <div className="w-full bg-gray-100 rounded-full h-1">
+          <div
+            className={`h-1 rounded-full transition-all ${meta.bar}`}
+            style={{ width: barWidth }}
+          />
+        </div>
+
+        {/* Bottom row: stats */}
+        <div className="flex items-center justify-between text-[10px] text-gray-500">
+          <span>{result.totalOrders} অর্ডার</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-emerald-600 font-medium">↑{result.deliveredOrders}</span>
+            <span className="text-red-500 font-medium">↓{result.returnedOrders}</span>
+          </div>
+        </div>
+
+        {/* Courier mini breakdown (max 2 shown) */}
+        {result.couriers && result.couriers.length > 0 && (
+          <div className="border-t border-gray-100 pt-1 space-y-0.5">
+            {result.couriers.slice(0, 2).map((c) => {
+              const rate = parseFloat(c.delivery_rate);
+              const courierColor =
+                rate >= 70
+                  ? 'bg-emerald-400'
+                  : rate >= 40
+                    ? 'bg-amber-400'
+                    : 'bg-red-400';
+              return (
+                <div key={c.name} className="flex items-center gap-1">
+                  <span className="text-[9px] text-gray-400 w-10 truncate">{c.name}</span>
+                  <div className="flex-1 bg-gray-100 rounded-full h-0.5">
+                    <div
+                      className={`h-0.5 rounded-full ${courierColor}`}
+                      style={{ width: `${Math.max(rate, 2)}%` }}
+                    />
+                  </div>
+                  <span className="text-[9px] font-medium text-gray-500 tabular-nums w-6 text-right">
+                    {c.delivery_rate}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Re-check link */}
+        <button
+          type="button"
+          onClick={onRecheck}
+          disabled={isRechecking}
+          className="text-[9px] text-gray-400 text-left disabled:opacity-40 mt-0.5"
+        >
+          {isRechecking ? '⟳ চেক করছে…' : '↺ রিফ্রেশ'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Skeleton shimmer shown while fetching */
+function SmartRiskCardSkeleton() {
+  return (
+    <div className="flex items-stretch gap-0 rounded-lg border border-gray-100 bg-white overflow-hidden min-w-[160px] max-w-[190px] animate-pulse">
+      <div className="w-1 flex-shrink-0 bg-gray-200" />
+      <div className="flex flex-col gap-1.5 px-2 py-1.5 flex-1">
+        <div className="flex items-center justify-between gap-1">
+          <div className="h-4 w-14 bg-gray-200 rounded-full" />
+          <div className="h-4 w-8 bg-gray-200 rounded" />
+        </div>
+        <div className="h-1 w-full bg-gray-200 rounded-full" />
+        <div className="h-3 w-20 bg-gray-100 rounded" />
+      </div>
+    </div>
+  );
+}
+
+/** Mobile-specific fraud check button — compact, shown at bottom of card */
+function MobileFraudCheckButton({ orderId, currentStatus }: { orderId: number; currentStatus: string }) {
   const fetcher = useFetcher<{
     success?: boolean;
     riskResult?: FraudCheckResult;
@@ -1479,18 +1861,13 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
   }>();
   const { revalidate } = useRevalidator();
   const isChecking = fetcher.state !== 'idle';
-  const [showResult, setShowResult] = useState(false);
 
-  // Only show for pending/confirmed orders
-  const showButton = ['pending', 'confirmed'].includes(currentStatus);
-
-  const handleCheck = () => {
-    setShowResult(true);
+  const handleCheck = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     fetcher.submit({ intent: 'FRAUD_CHECK', orderId: String(orderId) }, { method: 'POST' });
   };
 
-  // After a successful FRAUD_CHECK, revalidate the loader so the
-  // KV-cached result immediately updates the Fraud column badge
   useEffect(() => {
     if (fetcher.state === 'idle' && fetcher.data?.success) {
       revalidate();
@@ -1500,122 +1877,145 @@ function FraudCheckButton({ orderId, currentStatus }: { orderId: number; current
 
   const result = fetcher.data?.riskResult;
 
-  const riskConfig = {
-    excellent: { color: 'text-emerald-700 bg-emerald-50 border-emerald-200', label: '✅ নিরাপদ' },
-    good: { color: 'text-green-700 bg-green-50 border-green-200', label: '👍 ভালো' },
-    moderate: { color: 'text-yellow-700 bg-yellow-50 border-yellow-200', label: '⚠️ মাঝারি' },
-    high: { color: 'text-orange-700 bg-orange-50 border-orange-200', label: '🔶 উচ্চ ঝুঁকি' },
-    critical: { color: 'text-red-700 bg-red-50 border-red-200', label: '🚫 ক্রিটিক্যাল' },
-  };
+  if (isChecking) {
+    return (
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse">
+        <div className="h-3 w-3 rounded-full bg-slate-300 dark:bg-slate-500" />
+        <div className="h-2.5 w-12 bg-slate-300 dark:bg-slate-500 rounded" />
+      </div>
+    );
+  }
+
+  if (result) {
+    const level = result.riskLevel ?? 'moderate';
+    const meta = RISK_META[level] ?? RISK_META.moderate;
+    return (
+      <div className="flex items-center gap-1.5">
+        <span className={`w-2 h-2 rounded-full ${meta.bar}`} />
+        <span className={`text-[10px] font-bold ${
+          level === 'excellent' || level === 'good' ? 'text-emerald-600' :
+          level === 'moderate' ? 'text-amber-600' :
+          'text-red-600'
+        }`}>
+          {result.successRate.toFixed(0)}% • {meta.label}
+        </span>
+      </div>
+    );
+  }
+
+  if (fetcher.data?.error) {
+    return (
+      <button
+        type="button"
+        onClick={handleCheck}
+        className="text-[10px] text-red-500 font-medium"
+      >
+        ⚠️ পুনরায় চেষ্টা
+      </button>
+    );
+  }
+
+  if (!['pending', 'confirmed', 'processing'].includes(currentStatus)) return null;
 
   return (
-    <div className="relative inline-block">
-      {/* Check button */}
-      {showButton && !result && (
-        <button
-          type="button"
-          onClick={handleCheck}
-          disabled={isChecking}
-          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-orange-600 hover:text-white hover:bg-orange-500 border border-orange-200 hover:border-orange-500 rounded-lg transition disabled:opacity-50"
-          title={t('checkFraud')}
-        >
-          {isChecking
-            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            : <Shield className="w-3.5 h-3.5" />}
-          {isChecking ? 'চেক করছে…' : t('dashboard:check')}
-        </button>
-      )}
+    <button
+      type="button"
+      onClick={handleCheck}
+      disabled={isChecking}
+      className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-semibold rounded-lg border transition-all duration-200
+        text-orange-600 border-orange-200 bg-white dark:bg-slate-800 dark:border-orange-700 dark:text-orange-400
+        "
+    >
+      <Shield className="w-3 h-3" />
+      চেক করুন
+    </button>
+  );
+}
 
-      {/* Error */}
-      {fetcher.data?.error && (
-        <span className="text-[10px] text-red-500 italic" title={fetcher.data.error}>
-          ⚠️ {fetcher.data.error.slice(0, 40)}
+function FraudCheckButton({ orderId, currentStatus }: { orderId: number; currentStatus: string }) {
+  const { t } = useTranslation();
+  const fetcher = useFetcher<{
+    success?: boolean;
+    riskResult?: FraudCheckResult;
+    error?: string;
+  }>();
+  const { revalidate } = useRevalidator();
+  const isChecking = fetcher.state !== 'idle';
+
+  // Only show for pending/confirmed orders
+  const showButton = ['pending', 'confirmed'].includes(currentStatus);
+
+  const handleCheck = () => {
+    fetcher.submit({ intent: 'FRAUD_CHECK', orderId: String(orderId) }, { method: 'POST' });
+  };
+
+  const handleRecheck = () => {
+    fetcher.submit(
+      { intent: 'FRAUD_CHECK', orderId: String(orderId), forceRefresh: 'true' },
+      { method: 'POST' },
+    );
+  };
+
+  // After a successful FRAUD_CHECK, revalidate so the KV-cached badge updates
+  useEffect(() => {
+    if (fetcher.state === 'idle' && fetcher.data?.success) {
+      revalidate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetcher.state, fetcher.data?.success]);
+
+  const result = fetcher.data?.riskResult;
+
+  // ── Loading skeleton ──────────────────────────────────────────────────────
+  if (isChecking) return <SmartRiskCardSkeleton />;
+
+  // ── Result: Smart Risk Card ───────────────────────────────────────────────
+  if (result) {
+    return (
+      <SmartRiskCard
+        result={result}
+        onRecheck={handleRecheck}
+        isRechecking={isChecking}
+      />
+    );
+  }
+
+  // ── Error state ───────────────────────────────────────────────────────────
+  if (fetcher.data?.error) {
+    return (
+      <div className="flex flex-col gap-1">
+        <span className="text-[10px] text-red-500 italic">
+          ⚠️ {fetcher.data.error.slice(0, 35)}
         </span>
-      )}
-
-      {/* Result panel */}
-      {result && showResult && (
-        <div className="absolute right-0 top-8 z-50 w-72 bg-white border border-gray-200 rounded-xl shadow-xl p-3 text-xs space-y-2">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <span className={`px-2 py-0.5 rounded-full border font-medium ${riskConfig[result.riskLevel ?? 'moderate']?.color
-              }`}>
-              {riskConfig[result.riskLevel ?? 'moderate']?.label}
-            </span>
-            <button
-              type="button"
-              onClick={() => setShowResult(false)}
-              className="text-gray-400 hover:text-gray-600 ml-2"
-            >✕</button>
-          </div>
-
-          {/* Overall stats */}
-          <div className="grid grid-cols-3 gap-1 text-center">
-            <div className="bg-gray-50 rounded-lg p-1.5">
-              <p className="font-bold text-gray-900">{result.totalOrders}</p>
-              <p className="text-gray-500 text-[10px]">মোট</p>
-            </div>
-            <div className="bg-emerald-50 rounded-lg p-1.5">
-              <p className="font-bold text-emerald-700">{result.deliveredOrders}</p>
-              <p className="text-gray-500 text-[10px]">ডেলিভারি</p>
-            </div>
-            <div className="bg-red-50 rounded-lg p-1.5">
-              <p className="font-bold text-red-700">{result.returnedOrders}</p>
-              <p className="text-gray-500 text-[10px]">ক্যান্সেল</p>
-            </div>
-          </div>
-
-          {/* Delivery rate */}
-          <div className="flex items-center gap-2">
-            <div className="flex-1 bg-gray-100 rounded-full h-1.5">
-              <div
-                className={`h-1.5 rounded-full ${result.successRate >= 70 ? 'bg-emerald-500' :
-                    result.successRate >= 40 ? 'bg-yellow-500' : 'bg-red-500'
-                  }`}
-                style={{ width: `${Math.max(result.successRate, 2)}%` }}
-              />
-            </div>
-            <span className="font-semibold text-gray-700">{result.successRate.toFixed(1)}%</span>
-          </div>
-
-          {/* Courier breakdown */}
-          {result.couriers && result.couriers.length > 0 && (
-            <div className="space-y-1 border-t pt-2">
-              <p className="font-semibold text-gray-600 text-[10px] uppercase tracking-wide">কুরিয়ার ব্রেকডাউন</p>
-              {result.couriers.map((c) => (
-                <div key={c.name} className="flex items-center justify-between">
-                  <span className="text-gray-600">{c.name}</span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-gray-400">{c.orders} অর্ডার</span>
-                    <span className={`font-medium ${parseFloat(c.delivery_rate) >= 70 ? 'text-emerald-600' :
-                        parseFloat(c.delivery_rate) >= 40 ? 'text-yellow-600' : 'text-red-600'
-                      }`}>{c.delivery_rate}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Source & cache info */}
-          <p className="text-[10px] text-gray-400 border-t pt-1 flex items-center gap-1">
-            <span>📊 fraudchecker.link</span>
-            {result.fromCache && <span className="bg-gray-100 px-1 rounded">cached</span>}
-          </p>
-
-          {/* Re-check button */}
+        {showButton && (
           <button
             type="button"
-            onClick={() => {
-              fetcher.submit({ intent: 'FRAUD_CHECK', orderId: String(orderId), forceRefresh: 'true' }, { method: 'POST' });
-            }}
-            disabled={isChecking}
-            className="w-full text-center text-[10px] text-gray-500 hover:text-orange-600 transition disabled:opacity-40"
+            onClick={handleCheck}
+            className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-orange-600 border border-orange-200 rounded-md transition"
           >
-            {isChecking ? '⟳ চেক করছে…' : '↺ রিফ্রেশ করুন'}
+            <Shield className="w-3 h-3" /> পুনরায় চেষ্টা
           </button>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── Default: check button ─────────────────────────────────────────────────
+  if (!showButton) return <span className="text-[11px] text-gray-300 italic">—</span>;
+
+  return (
+    <button
+      type="button"
+      onClick={handleCheck}
+      disabled={isChecking}
+      title={t('checkFraud')}
+      className="group inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all duration-200 disabled:opacity-50
+        text-orange-600 border-orange-200 bg-white
+        "
+    >
+      <Shield className="w-3.5 h-3.5 " />
+      {t('dashboard:check')}
+    </button>
   );
 }
 
@@ -1673,7 +2073,7 @@ function SendToCourierButton({
         <select
           name="provider"
           defaultValue={courierProvider}
-          className="text-[11px] font-medium border border-gray-200 rounded-lg hover:border-emerald-400 focus:ring-emerald-500 focus:border-emerald-500 py-[5px] pl-2 pr-6 bg-gray-50 text-gray-700 min-w-[90px] cursor-pointer outline-none"
+          className="text-[11px] font-medium border border-gray-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 py-[5px] pl-2 pr-6 bg-gray-50 text-gray-700 min-w-[90px] cursor-pointer outline-none"
         >
           {allCouriers.map((c) => (
             <option key={c} value={c}>
@@ -1704,7 +2104,7 @@ function SendToCourierButton({
             e.preventDefault();
           }
         }}
-        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 border border-blue-600 hover:border-blue-700 rounded-lg transition disabled:opacity-50 shadow-sm whitespace-nowrap"
+        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 border border-blue-600 rounded-lg disabled:opacity-50 shadow-sm whitespace-nowrap"
         title={
           allCouriers.length > 1
             ? t('dashboard:courierSend')

@@ -1807,6 +1807,7 @@
   "navShipping": "Nav Shipping",
   "navCourier": "Courier",
   "navFraudDetection": "Fraud Detection",
+  "navFDaaS": "Guard API (FDaaS)",
   "navSupport": "Support",
   "navStoreEditor": "Nav Store Editor",
   "navStoreTemplates": "Nav Store Templates",

@@ -513,6 +513,32 @@
   background-color: rgba(107, 114, 128, 0.8);
 }
 
+/* Orders table scrollbar — pinned to bottom of container */
+.table-scroll-container {
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f1f5f9;
+}
+
+.table-scroll-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-scroll-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 0;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
 /* Safe area padding for modern phones with home indicator */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);

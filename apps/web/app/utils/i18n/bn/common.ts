@@ -144,6 +144,7 @@ export const common = {
   navShipping: 'শিপিং',
   navCourier: 'কুরিয়ার',
   navFraudDetection: 'ফ্রড ডিটেকশন',
+  navFDaaS: 'Guard API (FDaaS)',
   navSupport: 'সাপোর্ট',
   navDomain: 'ডোমেইন',
   navBilling: 'বিলিং',

@@ -151,6 +151,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
               db,
               orderId,
               settings: fraudSettings,
+              // ── Phase 1A: Cloudflare edge signals ──────────────────────────
+              ipAddress: request.headers.get('CF-Connecting-IP') || undefined,
+              cfCountry: request.headers.get('CF-IPCountry') || undefined,
+              cfDeviceType: request.headers.get('CF-Device-Type') || undefined,
+              userAgent: request.headers.get('User-Agent') || undefined,
             });
 
             if (assessment.decision === 'block') {
