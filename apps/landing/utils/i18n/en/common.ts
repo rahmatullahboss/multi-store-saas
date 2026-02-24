@@ -134,6 +134,8 @@ export const common = {
   navHomepage: 'Homepage Strategy',
   navShipping: 'Shipping',
   navDomain: 'Domain',
+  navFeatures: 'Features',
+  navIntegrations: 'Integrations',
   navBilling: 'Billing',
   navCredits: 'AI Credits',
   navAllSettings: 'All Settings',
