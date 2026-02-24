@@ -215,6 +215,13 @@ const AnalyticsInsightsSection = dynamic(
     })),
   { loading: () => <SectionSkeleton />, ssr: false }
 );
+const ServerSideTrackingSection = dynamic(
+  () =>
+    import('@/components/landing/ServerSideTrackingSection').then((m) => ({
+      default: m.ServerSideTrackingSection,
+    })),
+  { loading: () => <SectionSkeleton />, ssr: false }
+);
 const UseCaseScenariosSection = dynamic(
   () =>
     import('@/components/landing/UseCaseScenariosSection').then((m) => ({
@@ -522,6 +529,11 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
 
       <LazySectionWrapper minHeight="400px">
         <AnalyticsInsightsSection />
+      </LazySectionWrapper>
+
+      {/* Server-Side Tracking & Facebook CAPI */}
+      <LazySectionWrapper minHeight="500px">
+        <ServerSideTrackingSection />
       </LazySectionWrapper>
 
       {/* Infrastructure */}

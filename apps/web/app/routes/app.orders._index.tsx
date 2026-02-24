@@ -1223,7 +1223,7 @@ export default function DashboardOrdersPage() {
                             : 'bg-slate-200'
                         }`} />
                         {/* Stitch design: no left bar, card header instead */}
-                        <div className="px-3 py-2 flex items-center justify-between border-b border-slate-50">
+                        <div className="px-3 py-2 flex items-center justify-between border-b border-slate-100/30">
                           <div className="flex flex-col">
                             <Link to={`/app/orders/${order.id}`} className="text-sm font-bold text-slate-900">
                               #{order.orderNumber}
@@ -1390,7 +1390,7 @@ export default function DashboardOrdersPage() {
                           <th className="px-4 py-3 font-medium text-right w-[160px]">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      <tbody className="divide-y divide-slate-100/50 dark:divide-slate-800/50">
                         {filteredOrders.map((order) => {
                           const isErrorState = order.status === 'cancelled' || order.status === 'returned';
                           const orderItemsList = (order as typeof order & { items: Array<{title: string; quantity: number; imageUrl: string | null}> }).items ?? [];
