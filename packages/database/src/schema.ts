@@ -114,6 +114,7 @@ export const stores = sqliteTable('stores', {
 
   // === MANUAL PAYMENT CONFIG (bKash/Nagad Personal/Merchant) ===
   manualPaymentConfig: text('manual_payment_config'), // JSON: { bkashPersonal, bkashMerchant, nagadPersonal, ... }
+  gatewayConfig: text('gateway_config'), // JSON: per-store payment gateway credentials
 
   // === AI CHATBOT SETTINGS ===
   isCustomerAiEnabled: integer('is_customer_ai_enabled', { mode: 'boolean' }).default(true), // Available to all stores via credit system

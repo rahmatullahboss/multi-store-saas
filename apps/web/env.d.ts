@@ -24,6 +24,10 @@ declare global {
     AI_BASE_URL?: string;
     // Super Admin Email (only this email can impersonate users)
     SUPER_ADMIN_EMAIL?: string;
+    // SSLCommerz Payment Gateway (platform-level)
+    SSLCOMMERZ_STORE_ID?: string;
+    SSLCOMMERZ_STORE_PASSWORD?: string;
+    SSLCOMMERZ_LIVE?: string;
     // bKash Payment Gateway
     BKASH_BASE_URL?: string;
     BKASH_APP_KEY?: string;

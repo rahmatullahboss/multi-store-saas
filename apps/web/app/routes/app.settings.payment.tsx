@@ -1,18 +1,21 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, json } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher, useNavigation, Link } from '@remix-run/react';
+import React from 'react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { getStoreId, getUserId } from '~/services/auth.server';
 import { parseManualPaymentConfig, ManualPaymentConfig } from '@db/types';
-import { Save, AlertCircle, CheckCircle, Wallet, ArrowLeft } from 'lucide-react';
+import { Save, AlertCircle, CheckCircle, Wallet, ArrowLeft, CreditCard, Lock, Globe } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { z } from 'zod';
 import { logActivity } from '~/lib/activity.server';
 import {
   canUseAdvancedManualPayments,
   getAllowedCheckoutPaymentMethods,
+  normalizePlanType,
 } from '~/lib/payment-policy';
+import { parseGatewayConfig, serializeGatewayConfig, StoreGatewayConfig } from '~/lib/gateway-config';
 
 const bdPhoneRegex = /^(?:\+?88)?01[3-9]\d{8}$/;
 
@@ -24,6 +27,22 @@ const PaymentSettingsSchema = z.object({
   rocketPersonal: z.string().trim().optional(),
   rocketMerchant: z.string().trim().optional(),
   instructions: z.string().trim().max(1000).optional(),
+  // Gateway fields
+  sslEnabled: z.string().optional(),
+  sslUseOwn: z.string().optional(),
+  sslStoreId: z.string().trim().optional(),
+  sslStorePassword: z.string().trim().optional(),
+  sslIsLive: z.string().optional(),
+  bkashGwEnabled: z.string().optional(),
+  bkashGwAppKey: z.string().trim().optional(),
+  bkashGwAppSecret: z.string().trim().optional(),
+  bkashGwUsername: z.string().trim().optional(),
+  bkashGwPassword: z.string().trim().optional(),
+  bkashGwIsLive: z.string().optional(),
+  nagadGwEnabled: z.string().optional(),
+  nagadGwMerchantId: z.string().trim().optional(),
+  nagadGwMerchantPrivateKey: z.string().trim().optional(),
+  nagadGwIsLive: z.string().optional(),
 });
 
 function validateOptionalPhone(input?: string) {
@@ -40,11 +59,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   if (!store) throw new Response('Store not found', { status: 404 });
 
+  const isPaidPlan = normalizePlanType(store.planType) !== 'free';
+
   return json({
     storeName: store.name,
     planType: store.planType || 'free',
+    isPaidPlan,
     canUseAdvancedManualPayments: canUseAdvancedManualPayments(store.planType || 'free'),
     manualPaymentConfig: parseManualPaymentConfig(store.manualPaymentConfig),
+    gatewayConfig: parseGatewayConfig(store.gatewayConfig),
+    hasPlatformSsl: !!(context.cloudflare.env.SSLCOMMERZ_STORE_ID && context.cloudflare.env.SSLCOMMERZ_STORE_PASSWORD),
   });
 }
 
@@ -63,15 +87,32 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (!store) throw new Response('Store not found', { status: 404 });
   const canUseAdvanced = canUseAdvancedManualPayments(store.planType || 'free');
 
+  const isPaidPlan = normalizePlanType(store.planType) !== 'free';
   const formData = await request.formData();
+  const g = (key: string) => (formData.get(key) as string) || undefined;
   const parsed = PaymentSettingsSchema.safeParse({
-    bkashPersonal: (formData.get('bkashPersonal') as string) || undefined,
-    bkashMerchant: (formData.get('bkashMerchant') as string) || undefined,
-    nagadPersonal: (formData.get('nagadPersonal') as string) || undefined,
-    nagadMerchant: (formData.get('nagadMerchant') as string) || undefined,
-    rocketPersonal: (formData.get('rocketPersonal') as string) || undefined,
-    rocketMerchant: (formData.get('rocketMerchant') as string) || undefined,
-    instructions: (formData.get('instructions') as string) || undefined,
+    bkashPersonal: g('bkashPersonal'),
+    bkashMerchant: g('bkashMerchant'),
+    nagadPersonal: g('nagadPersonal'),
+    nagadMerchant: g('nagadMerchant'),
+    rocketPersonal: g('rocketPersonal'),
+    rocketMerchant: g('rocketMerchant'),
+    instructions: g('instructions'),
+    sslEnabled: g('sslEnabled'),
+    sslUseOwn: g('sslUseOwn'),
+    sslStoreId: g('sslStoreId'),
+    sslStorePassword: g('sslStorePassword'),
+    sslIsLive: g('sslIsLive'),
+    bkashGwEnabled: g('bkashGwEnabled'),
+    bkashGwAppKey: g('bkashGwAppKey'),
+    bkashGwAppSecret: g('bkashGwAppSecret'),
+    bkashGwUsername: g('bkashGwUsername'),
+    bkashGwPassword: g('bkashGwPassword'),
+    bkashGwIsLive: g('bkashGwIsLive'),
+    nagadGwEnabled: g('nagadGwEnabled'),
+    nagadGwMerchantId: g('nagadGwMerchantId'),
+    nagadGwMerchantPrivateKey: g('nagadGwMerchantPrivateKey'),
+    nagadGwIsLive: g('nagadGwIsLive'),
   });
   if (!parsed.success) {
     return json({ success: false, message: 'invalid_input' }, { status: 400 });
@@ -109,9 +150,39 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ success: false, message: 'invalid_phone_number' }, { status: 400 });
   }
 
+  // Build gateway config (paid plan only)
+  const newGatewayConfig: StoreGatewayConfig = {};
+  if (isPaidPlan) {
+    const d = parsed.data;
+    newGatewayConfig.sslcommerz = {
+      enabled: d.sslEnabled === 'on',
+      useOwn: d.sslUseOwn === 'on',
+      storeId: d.sslStoreId || undefined,
+      storePassword: d.sslStorePassword || undefined,
+      isLive: d.sslIsLive === 'on',
+    };
+    newGatewayConfig.bkash = {
+      enabled: d.bkashGwEnabled === 'on',
+      appKey: d.bkashGwAppKey || undefined,
+      appSecret: d.bkashGwAppSecret || undefined,
+      username: d.bkashGwUsername || undefined,
+      password: d.bkashGwPassword || undefined,
+      isLive: d.bkashGwIsLive === 'on',
+    };
+    newGatewayConfig.nagad = {
+      enabled: d.nagadGwEnabled === 'on',
+      merchantId: d.nagadGwMerchantId || undefined,
+      merchantPrivateKey: d.nagadGwMerchantPrivateKey || undefined,
+      isLive: d.nagadGwIsLive === 'on',
+    };
+  }
+
   await db
     .update(stores)
-    .set({ manualPaymentConfig: JSON.stringify(normalized) })
+    .set({
+      manualPaymentConfig: JSON.stringify(normalized),
+      gatewayConfig: isPaidPlan ? serializeGatewayConfig(newGatewayConfig) : undefined,
+    })
     .where(eq(stores.id, storeId));
 
   await logActivity(db, {
@@ -133,7 +204,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function PaymentSettings() {
-  const { manualPaymentConfig, canUseAdvancedManualPayments: canUseAdvanced, planType } =
+  const { manualPaymentConfig, canUseAdvancedManualPayments: canUseAdvanced, planType, isPaidPlan, gatewayConfig, hasPlatformSsl } =
     useLoaderData<typeof loader>();
   const allowedMethods = getAllowedCheckoutPaymentMethods(planType || 'free');
   const canUseNagad = allowedMethods.includes('nagad');
@@ -142,6 +213,12 @@ export default function PaymentSettings() {
   const navigation = useNavigation();
   const isSaving = fetcher.state === 'submitting' || navigation.state === 'submitting';
   const { t } = useTranslation();
+
+  // Gateway local state
+  const [sslEnabled, setSslEnabled] = React.useState(gatewayConfig?.sslcommerz?.enabled ?? false);
+  const [sslUseOwn, setSslUseOwn] = React.useState(gatewayConfig?.sslcommerz?.useOwn ?? false);
+  const [bkashGwEnabled, setBkashGwEnabled] = React.useState(gatewayConfig?.bkash?.enabled ?? false);
+  const [nagadGwEnabled, setNagadGwEnabled] = React.useState(gatewayConfig?.nagad?.enabled ?? false);
 
   return (
     <div className="space-y-8">
@@ -406,6 +483,182 @@ export default function PaymentSettings() {
           <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
           <p className="leading-snug">{t('manualPaymentInstructions')}</p>
         </div>
+
+        {/* ===== PAYMENT GATEWAY SECTION (Paid Plan Only) ===== */}
+        {isPaidPlan ? (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pt-2">
+              <CreditCard className="w-5 h-5 text-indigo-600" />
+              <h2 className="text-base font-bold text-gray-900">পেমেন্ট গেটওয়ে</h2>
+              <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">Paid</span>
+            </div>
+            <p className="text-sm text-gray-500">অনলাইন পেমেন্ট গেটওয়ে সেটআপ করুন — কার্ড, মোবাইল ব্যাংকিং গেটওয়ে।</p>
+
+            {/* SSLCommerz */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="px-4 md:px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
+                    <Globe className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">SSLCommerz</h3>
+                    <p className="text-xs text-gray-500">কার্ড, নেট ব্যাংকিং, মোবাইল ব্যাংকিং — সব এক জায়গায়</p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" name="sslEnabled" checked={sslEnabled} onChange={e => setSslEnabled(e.target.checked)} className="sr-only peer" />
+                  <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+                </label>
+              </div>
+              {sslEnabled && (
+                <div className="p-4 md:p-6 space-y-4">
+                  {hasPlatformSsl && (
+                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-sm text-blue-700 flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                      <span>Platform SSLCommerz account active আছে। নিজের credentials ব্যবহার না করলে platform account দিয়েই কাজ হবে।</span>
+                    </div>
+                  )}
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" name="sslUseOwn" checked={sslUseOwn} onChange={e => setSslUseOwn(e.target.checked)} className="w-4 h-4 text-indigo-600 rounded" />
+                    <span className="text-sm font-medium text-gray-700">নিজের SSLCommerz credentials ব্যবহার করব</span>
+                  </label>
+                  {sslUseOwn && (
+                    <div className="grid gap-3 md:grid-cols-2 pl-7">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Store ID</label>
+                        <input type="text" name="sslStoreId" defaultValue={gatewayConfig?.sslcommerz?.storeId} placeholder="your_store_id" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Store Password</label>
+                        <input type="password" name="sslStorePassword" defaultValue={gatewayConfig?.sslcommerz?.storePassword} placeholder="••••••••" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="checkbox" name="sslIsLive" defaultChecked={gatewayConfig?.sslcommerz?.isLive} className="w-4 h-4 text-indigo-600 rounded" />
+                          <span className="text-sm text-gray-700">Live mode (uncheck = Sandbox)</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* bKash Gateway */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="px-4 md:px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center shrink-0">
+                    <Wallet className="w-5 h-5 text-pink-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">bKash Payment Gateway</h3>
+                    <p className="text-xs text-gray-500">bKash merchant API দিয়ে অটোমেটিক পেমেন্ট ভেরিফিকেশন</p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" name="bkashGwEnabled" checked={bkashGwEnabled} onChange={e => setBkashGwEnabled(e.target.checked)} className="sr-only peer" />
+                  <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-pink-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+                </label>
+              </div>
+              {bkashGwEnabled && (
+                <div className="p-4 md:p-6 space-y-3">
+                  <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 text-xs text-amber-700 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                    <span>bKash merchant API access দরকার। bKash এর সাথে চুক্তির পরে App Key ও Secret পাবেন।</span>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">App Key</label>
+                      <input type="text" name="bkashGwAppKey" defaultValue={gatewayConfig?.bkash?.appKey} placeholder="bKash App Key" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">App Secret</label>
+                      <input type="password" name="bkashGwAppSecret" defaultValue={gatewayConfig?.bkash?.appSecret} placeholder="••••••••" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Username</label>
+                      <input type="text" name="bkashGwUsername" defaultValue={gatewayConfig?.bkash?.username} placeholder="bKash Username" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Password</label>
+                      <input type="password" name="bkashGwPassword" defaultValue={gatewayConfig?.bkash?.password} placeholder="••••••••" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 outline-none" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="bkashGwIsLive" defaultChecked={gatewayConfig?.bkash?.isLive} className="w-4 h-4 text-pink-600 rounded" />
+                        <span className="text-sm text-gray-700">Live mode (uncheck = Sandbox)</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Nagad Gateway */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="px-4 md:px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center shrink-0">
+                    <Wallet className="w-5 h-5 text-orange-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">Nagad Payment Gateway</h3>
+                    <p className="text-xs text-gray-500">Nagad merchant API দিয়ে অটোমেটিক পেমেন্ট ভেরিফিকেশন</p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" name="nagadGwEnabled" checked={nagadGwEnabled} onChange={e => setNagadGwEnabled(e.target.checked)} className="sr-only peer" />
+                  <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-orange-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+                </label>
+              </div>
+              {nagadGwEnabled && (
+                <div className="p-4 md:p-6 space-y-3">
+                  <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 text-xs text-amber-700 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                    <span>Nagad merchant API access দরকার। Nagad এর সাথে চুক্তির পরে Merchant ID ও Private Key পাবেন।</span>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Merchant ID</label>
+                      <input type="text" name="nagadGwMerchantId" defaultValue={gatewayConfig?.nagad?.merchantId} placeholder="Nagad Merchant ID" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Merchant Private Key</label>
+                      <input type="password" name="nagadGwMerchantPrivateKey" defaultValue={gatewayConfig?.nagad?.merchantPrivateKey} placeholder="••••••••" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="nagadGwIsLive" defaultChecked={gatewayConfig?.nagad?.isLive} className="w-4 h-4 text-orange-500 rounded" />
+                        <span className="text-sm text-gray-700">Live mode (uncheck = Sandbox)</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Security note */}
+            <div className="flex items-start gap-2 text-xs text-gray-500 px-1">
+              <Lock className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              <span>সব credentials এনক্রিপ্টেড ভাবে সংরক্ষিত হয়। কাউকে শেয়ার করবেন না।</span>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-5 flex items-start gap-4">
+            <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center shrink-0">
+              <CreditCard className="w-5 h-5 text-indigo-600" />
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 mb-1">পেমেন্ট গেটওয়ে — Paid Plan</h3>
+              <p className="text-sm text-gray-600 mb-3">SSLCommerz, bKash Gateway, Nagad Gateway সেটআপ করতে Paid Plan এ upgrade করুন।</p>
+              <Link to="/app/billing" className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-700">
+                Upgrade করুন →
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Desktop Save Button */}
         <div className="hidden md:flex justify-end pt-4">

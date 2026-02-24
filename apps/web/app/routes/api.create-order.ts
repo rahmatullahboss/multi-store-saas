@@ -68,6 +68,7 @@ import {
   getShippingConfigFromUnified,
 } from '~/services/unified-storefront-settings.server';
 import { createSslCommerzService } from '~/services/sslcommerz.server';
+import { parseGatewayConfig, getEffectiveSslCommerzConfig } from '~/lib/gateway-config';
 
 // ============================================================================
 // VALIDATION SCHEMA with BD Phone validation
@@ -2064,9 +2065,20 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (input.payment_method === 'sslcommerz') {
       try {
         const origin = new URL(request.url).origin;
-        const ssl = createSslCommerzService(
+        // Per-store credentials with platform fallback
+        const storeGatewayConfig = parseGatewayConfig(storeData.gatewayConfig as string | null);
+        const effectiveSsl = getEffectiveSslCommerzConfig(
+          storeGatewayConfig,
           context.cloudflare.env as unknown as Record<string, string | undefined>
         );
+        if (!effectiveSsl) {
+          return json({ success: false, error: 'SSLCommerz gateway is not configured.' }, { status: 503 });
+        }
+        const ssl = createSslCommerzService({
+          SSLCOMMERZ_STORE_ID: effectiveSsl.storeId,
+          SSLCOMMERZ_STORE_PASSWORD: effectiveSsl.storePassword,
+          SSLCOMMERZ_LIVE: effectiveSsl.isLive ? '1' : '0',
+        } as unknown as Parameters<typeof createSslCommerzService>[0]);
 
         const session = await ssl.createSession({
           totalAmount: total,

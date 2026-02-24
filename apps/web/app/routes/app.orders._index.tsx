@@ -1344,7 +1344,7 @@ export default function DashboardOrdersPage() {
                             ) : order.status === 'confirmed' && allCouriers.length === 0 ? (
                               // Confirmed but no courier setup → prompt to set up
                               <Link
-                                to="/app/settings/couriers"
+                                to="/app/settings/courier"
                                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
                                 className="text-[10px] text-blue-500 flex items-center gap-1 font-medium"
                               >
