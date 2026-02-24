@@ -133,6 +133,8 @@ export const common = {
   navHomepage: 'হোমপেজ সেটিংস',
   navShipping: 'শিপিং',
   navDomain: 'ডোমেইন',
+  navFeatures: 'ফিচার',
+  navIntegrations: 'ইন্টিগ্রেশন',
   navBilling: 'বিলিং',
   navCredits: 'AI ক্রেডিট',
   navAllSettings: 'সব সেটিংস',
