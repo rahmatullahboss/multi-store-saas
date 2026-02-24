@@ -514,10 +514,31 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
         <ComparisonSection />
       </LazySectionWrapper>
 
-      {/* 8. Pricing */}
-      <LazySectionWrapper minHeight="600px">
-        <PricingSection />
-      </LazySectionWrapper>
+      {/* 8. Pricing Teaser — Full pricing at /pricing */}
+      <div className="py-20 text-center px-4">
+        <p className="text-white/50 text-sm uppercase tracking-widest mb-3">মূল্য তালিকা</p>
+        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">সাশ্রয়ী প্ল্যান, বড় সুবিধা</h2>
+        <p className="text-white/60 mb-8 max-w-md mx-auto">ফ্রি থেকে শুরু করুন। যেকোনো সময় আপগ্রেড করুন। কোনো লুকানো চার্জ নেই।</p>
+        <div className="flex flex-wrap justify-center gap-4 mb-8">
+          {[
+            { name: 'ফ্রি', price: '৳০', color: 'border-white/10' },
+            { name: 'স্টার্টার', price: '৳৭৯৯/মাস', color: 'border-[#006A4E]/50' },
+            { name: 'প্রফেশনাল', price: '৳১,৯৯৯/মাস', color: 'border-[#00875F]/70' },
+            { name: 'এন্টারপ্রাইজ', price: 'কাস্টম', color: 'border-white/20' },
+          ].map((plan) => (
+            <div key={plan.name} className={`border ${plan.color} rounded-xl px-6 py-4 bg-white/5 min-w-[140px]`}>
+              <div className="text-white/70 text-sm mb-1">{plan.name}</div>
+              <div className="text-white font-bold text-lg">{plan.price}</div>
+            </div>
+          ))}
+        </div>
+        <a
+          href="/pricing"
+          className="inline-flex items-center gap-2 px-8 py-3 bg-[#006A4E] hover:bg-[#00875F] text-white font-semibold rounded-xl transition-colors"
+        >
+          সম্পূর্ণ মূল্য তালিকা দেখুন →
+        </a>
+      </div>
 
       {/* ── HIDDEN sections — details available at /features & /integrations ──
       <AIShowcaseSection />
@@ -561,11 +582,7 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
         <FAQSection />
       </LazySectionWrapper>
 
-      {/* Final CTAs */}
-      <LazySectionWrapper minHeight="300px">
-        <AIPoweredFinalCTA />
-      </LazySectionWrapper>
-
+      {/* Final CTA - single */}
       <LazySectionWrapper minHeight="300px">
         <FinalCTA stats={marketingStats} />
       </LazySectionWrapper>

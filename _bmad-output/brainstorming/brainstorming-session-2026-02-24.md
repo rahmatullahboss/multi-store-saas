@@ -399,5 +399,127 @@ P3 — Makes it sticky:
 
 ---
 
-*Session completed: 2026-02-24*  
-*Next step: Get Boss approval → Start Phase 1 implementation*
+---
+
+## 🔴 CRITICAL ISSUES — FIXED (Adversarial Review 2026-02-24)
+
+### Fix #1 — GrapesJS Contradiction Resolved
+
+**Decision:** Keep GrapesJS as "Pro Mode" — NOT deleted.
+
+**Updated Phase 1 plan:**
+- `apps/page-builder/` worker stays alive — becomes "Pro Mode"
+- `app.page-builder.tsx` route updated: default "Edit" button → goes to `/app/new-builder/:id`
+- "Pro Mode" button added → redirects to `builder.ozzyl.com/edit/:id` (GrapesJS)
+- Both systems co-exist but new-builder is the DEFAULT
+
+---
+
+### Fix #2 — Real DB State (3 tables, not 2!)
+
+**Actual reality discovered in codebase:**
+
+| Table | System | Status |
+|-------|--------|--------|
+| `landing_pages` | Old GrapesJS (app.page-builder.tsx) | Active, has real merchant data |
+| `builder_pages` | New Section Builder (app.new-builder.$pageId.tsx) | Active, correct schema |
+| `advanced_builder_pages` | Unknown third system | Exists in schema.sql — needs investigation |
+
+**Migration plan (safe, with rollback):**
+```sql
+-- Step 1: Add migration_status column to landing_pages (never drop!)
+ALTER TABLE landing_pages ADD COLUMN migrated_to_builder_page_id TEXT;
+
+-- Step 2: For each landing_page, create corresponding builder_page
+-- Step 3: Map old GrapesJS HTML → sections JSON (best-effort, manual review)
+-- Step 4: Keep landing_pages table permanently as archive (never delete)
+-- Step 5: After 30 days of stable operation → mark landing_pages as archived
+```
+
+**Rollback strategy:**
+- Feature flag: `MIGRATION_ACTIVE=false` in KV → instantly falls back to old system
+- Landing pages table NEVER deleted — only archived
+- Side-by-side testing before cutover
+
+---
+
+### Fix #3 — Live Preview iframe Complexity — Acknowledged & Scoped
+
+**The hard problems (acknowledged upfront):**
+
+| Problem | Solution |
+|---------|----------|
+| CORS between editor and preview | Same-origin: preview route at `/app/new-builder/preview/:pageId` |
+| Auth token passing to iframe | Pass storeId via postMessage only (no JWT in URL) |
+| Real-time sync performance | Debounce 300ms before postMessage → iframe re-renders section only |
+| CPU limits on renderToString | Use streaming SSR (`renderToReadableStream`) for static publish |
+| Cold KV miss | First render = D1 query, subsequent = KV (5 min TTL) |
+
+**Scoped implementation:**
+```typescript
+// Preview iframe: /app/new-builder/preview/:pageId
+// - Loads sections from D1 on first load
+// - Listens for postMessage({ type: 'SECTION_UPDATE', sectionId, props })
+// - Re-renders only the changed section (not full page reload)
+// - No JWT in URL — auth via same-session cookie
+```
+
+**Engineering estimate:** 5-7 days (not 2 days as originally assumed)
+
+---
+
+### Fix #4 — Static Publish CPU Limit Risk — Mitigated
+
+**Cloudflare Worker CPU limits:**
+- Free: 10ms CPU per request
+- Paid: 30ms CPU per request  
+- Subrequest limit: 50ms
+
+**Risk:** `renderToString()` on a complex 10-section page = 15-40ms CPU → may timeout
+
+**Mitigation strategy:**
+```typescript
+// Option A (Simple): Don't server-render on publish
+// Instead: Store sections JSON in KV → client hydrates on first load
+// TTFB < 50ms, but not truly "static"
+
+// Option B (Robust): Use Cloudflare Durable Objects for rendering
+// DO has no CPU time limit per operation (only wall-clock)
+// Render in DO → store HTML in R2 → serve R2 directly
+
+// DECISION: Start with Option A (simpler, ship faster)
+// Upgrade to Option B in Phase 7 if needed
+```
+
+---
+
+### ✅ Updated Success Criteria (Fix #15 — "World-Class" Definition)
+
+| Metric | Target |
+|--------|--------|
+| Editor load time | < 2 seconds |
+| Merchant creates first page | < 5 minutes (Genie Mode) |
+| Published page TTFB | < 100ms (KV-cached) |
+| Mobile preview accuracy | 100% matches real mobile render |
+| AI copy generation | < 8 seconds (Llama 3.1 8B) |
+| Section drag-reorder | < 16ms response (60fps) |
+| Zero data loss | Migration passes with 100% row count match |
+
+---
+
+### ⚠️ Other Issues Noted (Not Critical — Phase 3+)
+
+- **Mobile editor:** Not in scope for MVP. Phase 2+ consideration.
+- **Concurrent editing:** Single-user lock via `updated_at` timestamp check on save.
+- **Template count:** 6 templates confirmed. Plan updated (not 20+).
+- **Conversion scores:** Removed from plan — no real data. Replace with "Best for [industry]" labels.
+- **Analytics JS injection:** Deferred to Phase 6 — separate tracking script tag injected at publish time.
+- **AI Bengali copy:** Prompt templates defined per section type in Phase 4. Fallback = placeholder if AI fails.
+- **Duplicate page feature:** Added to Phase 2 task list.
+- **Timeline:** Realistic estimate with 1 developer = 10-12 weeks total (not 6).
+
+---
+
+*Adversarial Review completed: 2026-02-24*  
+*Critical issues: 4 found, 4 fixed*  
+*Status: READY FOR IMPLEMENTATION PLANNING*

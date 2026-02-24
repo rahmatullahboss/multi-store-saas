@@ -18,7 +18,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
 
   return (
     <header
-      className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl animate-[slideDown_0.6s_cubic-bezier(0.22,1,0.36,1)_both]"
+      className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-6xl animate-[slideDown_0.6s_cubic-bezier(0.22,1,0.36,1)_both]"
       style={{ animationFillMode: 'both' }}
     >
       <style>{`
