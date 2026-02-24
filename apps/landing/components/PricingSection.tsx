@@ -7,8 +7,7 @@
  * Visualizes the massive value provided vs the low cost.
  */
 
-import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Check,
   Sparkles,
@@ -27,6 +26,25 @@ import { ASSETS } from '@/config/assets';
 import { useTranslation, useFormatPrice } from '@/app/contexts/LanguageContext';
 
 // ============================================================================
+// USE IN VIEW HOOK
+// ============================================================================
+const useInView = (threshold = 0.1) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setInView(true);
+      },
+      { threshold }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return { ref, inView };
+};
+
+// ============================================================================
 // MARKET VALUE STACK
 // ============================================================================
 const ValueItem = ({
@@ -43,16 +61,15 @@ const ValueItem = ({
   delay: number;
 }) => {
   const { lang } = useTranslation();
+  const { ref, inView } = useInView(0.1);
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay, duration: 0.5 }}
-      className="flex items-center justify-between p-4 rounded-xl mb-3 border backdrop-blur-md relative overflow-hidden group"
+    <div
+      ref={ref}
+      className={`flex items-center justify-between p-4 rounded-xl mb-3 border backdrop-blur-md relative overflow-hidden group transition-all duration-500 ${inView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-5'}`}
       style={{
         backgroundColor: 'rgba(255, 255, 255, 0.03)',
         borderColor: 'rgba(255, 255, 255, 0.08)',
+        transitionDelay: `${delay * 1000}ms`,
       }}
     >
       {/* Hover Glow */}
@@ -82,7 +99,7 @@ const ValueItem = ({
           {lang === 'bn' ? 'প্রতি মাস' : 'Per Month'}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -122,9 +139,8 @@ const PricingCard = ({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) => {
       : formatPrice(price).replace('.00', '');
 
   return (
-    <motion.div
-      whileHover={{ y: -8 }}
-      className={`relative p-8 rounded-[32px] border h-full flex flex-col ${
+    <div
+      className={`relative p-8 rounded-[32px] border h-full flex flex-col transition-transform duration-300 hover:-translate-y-2 ${
         isPopular
           ? 'bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-emerald-500/50 shadow-2xl shadow-emerald-900/20'
           : 'bg-[#0A0A12]/80 border-white/10'
@@ -134,7 +150,7 @@ const PricingCard = ({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) => {
       {isPopular && (
         <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-bold px-4 py-1.5 rounded-full text-xs uppercase tracking-wider shadow-lg flex items-center gap-1.5 z-20">
           <Sparkles className="w-3 h-3 text-black" />
-          {lang === 'bn' ? 'জনপ্রিয়' : 'Best Value'}
+          {lang === 'bn' ? 'জনপ্রিয়' : 'Best Value'}
         </div>
       )}
 
@@ -169,7 +185,7 @@ const PricingCard = ({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) => {
         {isAnnual && price !== -1 && (
           <div className="text-emerald-400 text-xs font-bold mt-2 flex items-center gap-1">
             <Zap className="w-3 h-3" />
-            {lang === 'bn' ? 'বার্ষিক প্ল্যানে ২০% ছাড়' : 'Save 20% with annual billing'}
+            {lang === 'bn' ? 'বার্ষিক প্ল্যানে ২০% ছাড়' : 'Save 20% with annual billing'}
           </div>
         )}
       </div>
@@ -204,7 +220,7 @@ const PricingCard = ({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) => {
           <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
         )}
       </button>
-    </motion.div>
+    </div>
   );
 };
 
@@ -214,6 +230,12 @@ const PricingCard = ({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) => {
 export function PricingSection() {
   const { lang } = useTranslation();
   const [isAnnual, setIsAnnual] = useState(true);
+
+  const { ref: headerRef, inView: headerInView } = useInView(0.1);
+  const { ref: leftRef, inView: leftInView } = useInView(0.1);
+  const { ref: rightRef, inView: rightInView } = useInView(0.1);
+  const { ref: cardsRef, inView: cardsInView } = useInView(0.1);
+  const { ref: guaranteeRef, inView: guaranteeInView } = useInView(0.1);
 
   const TEXT = {
     en: {
@@ -260,7 +282,7 @@ export function PricingSection() {
     lang === 'bn'
       ? [
           {
-            title: 'প্রিমিয়াম ই-কমার্স ওয়েবসাইট',
+            title: 'প্রিমিয়াম ই-কমার্স ওয়েবসাইট',
             value: '৳৫০,০০০+',
             icon: Globe,
             color: '#3B82F6',
@@ -304,14 +326,14 @@ export function PricingSection() {
     {
       name: lang === 'bn' ? 'স্টার্টার' : 'Starter',
       description:
-        lang === 'bn' ? 'লঞ্চ করার জন্য যা যা প্রয়োজন।' : 'Everything you need to launch.',
+        lang === 'bn' ? 'লঞ্চ করার জন্য যা যা প্রয়োজন।' : 'Everything you need to launch.',
       price: { monthly: 799, annual: 639 },
       features:
         lang === 'bn'
           ? [
               '৫০টি প্রোডাক্ট',
               '৫০০ অর্ডার লিমিট',
-              '৩টি প্রিমিয়াম থিম',
+              '৩টি প্রিমিয়াম থিম',
               'কাস্টম ডোমেইন',
               'স্ট্যান্ডার্ড অ্যানালিটিক্স',
             ]
@@ -326,7 +348,7 @@ export function PricingSection() {
       popular: false,
     },
     {
-      name: lang === 'bn' ? 'প্রিমিয়াম' : 'Premium',
+      name: lang === 'bn' ? 'প্রিমিয়াম' : 'Premium',
       description:
         lang === 'bn' ? 'গ্রোইং ব্যবসার জন্য সেরা পছন্দ।' : 'Best for growing businesses.',
       price: { monthly: 1999, annual: 1599 },
@@ -335,9 +357,9 @@ export function PricingSection() {
           ? [
               'আনলিমিটেড প্রোডাক্ট',
               '২,০০০ অর্ডার লিমিট',
-              'সব প্রিমিয়াম থিম',
+              'সব প্রিমিয়াম থিম',
               'মার্কেটিং অটোমেশন',
-              'প্রায়োরিটি সাপোর্ট',
+              'প্রায়োরিটি সাপোর্ট',
             ]
           : [
               'Unlimited Products',
@@ -346,18 +368,18 @@ export function PricingSection() {
               'Marketing Automation',
               'Priority Support',
             ],
-      cta: lang === 'bn' ? 'প্রিমিয়াম প্ল্যান নিন' : 'Get Premium',
+      cta: lang === 'bn' ? 'প্রিমিয়াম প্ল্যান নিন' : 'Get Premium',
       popular: true,
     },
     {
       name: lang === 'bn' ? 'বিজনেস' : 'Business',
       description:
-        lang === 'bn' ? 'বড় টিম এবং ভলিউম সেলারদের জন্য।' : 'For high-volume sellers & teams.',
+        lang === 'bn' ? 'বড় টিম এবং ভলিউম সেলারদের জন্য।' : 'For high-volume sellers & teams.',
       price: { monthly: -1, annual: -1 },
       features:
         lang === 'bn'
           ? [
-              'সব প্রিমিয়াম ফিচার',
+              'সব প্রিমিয়াম ফিচার',
               'টিম মেম্বার একাউন্ট',
               'অ্যাডভান্সড অ্যানালিটিক্স',
               'ডেডিকেটেড ম্যানেজার',
@@ -385,49 +407,38 @@ export function PricingSection() {
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
-        <div className="text-center mb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6 backdrop-blur-sm"
+        <div ref={headerRef} className="text-center mb-20">
+          <div
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6 backdrop-blur-sm transition-all duration-700 ${headerInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
           >
             <Zap className="w-4 h-4 text-emerald-400" />
             <span className="text-sm font-medium text-emerald-300">{TEXT.headerTag}</span>
-          </motion.div>
+          </div>
 
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className={`text-3xl md:text-5xl font-bold text-white mb-6 ${lang === 'bn' ? 'font-bengali' : ''}`}
+          <h2
+            className={`text-3xl md:text-5xl font-bold text-white mb-6 transition-all duration-700 ${headerInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'} ${lang === 'bn' ? 'font-bengali' : ''}`}
+            style={{ transitionDelay: '100ms' }}
           >
             {TEXT.headerTitle}{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
               {TEXT.headerHighlight}
             </span>
-          </motion.h2>
+          </h2>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="text-white/60 max-w-2xl mx-auto text-lg"
+          <p
+            className={`text-white/60 max-w-2xl mx-auto text-lg transition-all duration-700 ${headerInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
+            style={{ transitionDelay: '200ms' }}
           >
             {TEXT.headerDesc}
-          </motion.p>
+          </p>
         </div>
 
         {/* Value Comparison / Value Stack */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 mb-24 items-center">
           {/* Left: The PROBLEM (High Cost Elsewhere) */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="relative"
+          <div
+            ref={leftRef}
+            className={`relative transition-all duration-700 ${leftInView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'}`}
           >
             <div className="absolute -left-10 top-1/2 -translate-y-1/2 w-1 h-3/4 bg-red-500/20 rounded-full hidden md:block" />
 
@@ -449,14 +460,12 @@ export function PricingSection() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Right: The SOLUTION (Our Offer) */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="relative p-8 rounded-[40px] border border-emerald-500/30 bg-gradient-to-br from-emerald-900/10 to-teal-900/10 backdrop-blur-md overflow-hidden"
+          <div
+            ref={rightRef}
+            className={`relative p-8 rounded-[40px] border border-emerald-500/30 bg-gradient-to-br from-emerald-900/10 to-teal-900/10 backdrop-blur-md overflow-hidden transition-all duration-700 ${rightInView ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}
           >
             {/* Background Beams */}
             <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-20" />
@@ -494,7 +503,7 @@ export function PricingSection() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Toggle (Monthly / Annual) */}
@@ -521,33 +530,28 @@ export function PricingSection() {
         </div>
 
         {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch pt-4">
+        <div ref={cardsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch pt-4">
           {plans.map((plan, idx) => (
-            <motion.div
+            <div
               key={idx}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 * idx }}
-              className="h-full"
+              className={`h-full transition-all duration-500 ${cardsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+              style={{ transitionDelay: `${idx * 100}ms` }}
             >
               <PricingCard plan={plan} isAnnual={isAnnual} />
-            </motion.div>
+            </div>
           ))}
         </div>
 
         {/* Guarantee Banner */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          className="mt-20 max-w-3xl mx-auto text-center"
+        <div
+          ref={guaranteeRef}
+          className={`mt-20 max-w-3xl mx-auto text-center transition-all duration-700 ${guaranteeInView ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
         >
           <div className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20">
             <Shield className="w-5 h-5 text-emerald-400" />
             <span className="text-sm font-medium text-emerald-100">{TEXT.guarantee}</span>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

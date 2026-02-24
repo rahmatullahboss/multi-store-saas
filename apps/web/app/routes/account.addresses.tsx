@@ -66,6 +66,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const phone = formData.get('phone') as string;
     const address1 = formData.get('addressLine1') as string;
     const city = formData.get('city') as string;
+    const state = (formData.get('state') as string) || null;
+    const zip = (formData.get('zip') as string) || null;
     const isDefault = formData.get('isDefault') === 'on';
 
     if (!name || !phone || !address1 || !city) {
@@ -84,6 +86,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
         phone,
         address1,
         city,
+        province: state || undefined,
+        zip: zip || undefined,
         country: 'Bangladesh',
         type: 'shipping',
         isDefault,
@@ -294,6 +298,22 @@ export default function AccountAddresses() {
                      <Label htmlFor="state" className="text-slate-700 font-medium">{t('state') || 'State/Province'}</Label>
                      <Input id="state" name="state" className="bg-slate-50 border-slate-200 focus:border-primary focus:ring-primary/20 h-11" />
                   </div>
+               </div>
+
+               <div className="space-y-2">
+                  <Label htmlFor="zip" className="text-slate-700 font-medium">
+                     {t('postalCode') || 'Postal Code'}
+                     <span className="ml-1 text-xs text-slate-400 font-normal">({t('optional') || 'optional'})</span>
+                  </Label>
+                  <Input
+                     id="zip"
+                     name="zip"
+                     maxLength={10}
+                     inputMode="numeric"
+                     className="bg-slate-50 border-slate-200 focus:border-primary focus:ring-primary/20 h-11"
+                     placeholder="e.g. 1207"
+                  />
+                  <p className="text-xs text-slate-400">{t('postalCodeHint') || 'Adding a postal code improves delivery accuracy.'}</p>
                </div>
                
                <div className="flex items-center space-x-3 p-4 bg-slate-50 rounded-xl border border-slate-100">

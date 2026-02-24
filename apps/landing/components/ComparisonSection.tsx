@@ -14,11 +14,9 @@
  * - Premium glassmorphism effects
  */
 
-import { motion, useInView, AnimatePresence } from 'framer-motion';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Check, X, ArrowRight, ChevronLeft, ChevronRight, Sparkles, Zap } from 'lucide-react';
-import { ScrollReveal, StaggerContainer, StaggerItem } from '@/components/animations';
 import { ASSETS } from '@/config/assets';
 
 // ============================================================================
@@ -31,6 +29,25 @@ const COLORS = {
   accentLight: '#FFB74D',
   background: '#0A0F0D',
   backgroundAlt: '#0D1512',
+};
+
+// ============================================================================
+// USE IN VIEW HOOK
+// ============================================================================
+const useInView = (threshold = 0.1) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setInView(true);
+      },
+      { threshold }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return { ref, inView };
 };
 
 // ============================================================================
@@ -115,31 +132,38 @@ const AnimatedCheck = ({
   isBrandColumn?: boolean;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-50px' });
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setInView(true);
+      },
+      { threshold: 0.1, rootMargin: '-50px' }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div ref={ref} className="flex items-center justify-center gap-1">
-      <motion.div
-        initial={{ scale: 0, rotate: -180 }}
-        animate={isInView ? { scale: 1, rotate: 0 } : { scale: 0, rotate: -180 }}
-        transition={{ delay, duration: 0.5, type: 'spring', stiffness: 200 }}
-        className={`w-7 h-7 rounded-full flex items-center justify-center ${
+      <div
+        className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-500 ${
           isBrandColumn
             ? 'bg-gradient-to-br from-[#006A4E] to-[#00875F] shadow-lg shadow-[#006A4E]/40'
             : 'bg-green-500/20'
-        }`}
+        } ${inView ? 'scale-100 rotate-0 opacity-100' : 'scale-0 -rotate-180 opacity-0'}`}
+        style={{ transitionDelay: `${delay * 1000}ms` }}
       >
         <Check className={`w-4 h-4 ${isBrandColumn ? 'text-white' : 'text-green-400'}`} />
-      </motion.div>
+      </div>
       {isBrandColumn && (
-        <motion.span
-          initial={{ opacity: 0, x: -10 }}
-          animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
-          transition={{ delay: delay + 0.2, duration: 0.3 }}
-          className="text-lg"
+        <span
+          className={`text-lg transition-all duration-300 ${inView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-3'}`}
+          style={{ transitionDelay: `${(delay + 0.2) * 1000}ms` }}
         >
           🇧🇩
-        </motion.span>
+        </span>
       )}
     </div>
   );
@@ -150,18 +174,27 @@ const AnimatedCheck = ({
 // ============================================================================
 const AnimatedX = ({ delay = 0 }: { delay?: number }) => {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-50px' });
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setInView(true);
+      },
+      { threshold: 0.1, rootMargin: '-50px' }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div ref={ref}>
-      <motion.div
-        initial={{ scale: 0, opacity: 0 }}
-        animate={isInView ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
-        transition={{ delay, duration: 0.4 }}
-        className="w-7 h-7 rounded-full bg-red-500/10 flex items-center justify-center"
+      <div
+        className={`w-7 h-7 rounded-full bg-red-500/10 flex items-center justify-center transition-all duration-400 ${inView ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
+        style={{ transitionDelay: `${delay * 1000}ms` }}
       >
         <X className="w-4 h-4 text-red-400/60" />
-      </motion.div>
+      </div>
     </div>
   );
 };
@@ -171,24 +204,30 @@ const AnimatedX = ({ delay = 0 }: { delay?: number }) => {
 // ============================================================================
 const StrikethroughPrice = ({ price, delay = 0 }: { price: string; delay?: number }) => {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-50px' });
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setInView(true);
+      },
+      { threshold: 0.1, rootMargin: '-50px' }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div ref={ref} className="relative inline-block">
-      <motion.span
-        className="text-white/40 text-sm font-medium"
-        initial={{ opacity: 0 }}
-        animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-        transition={{ delay, duration: 0.3 }}
+      <span
+        className={`text-white/40 text-sm font-medium transition-opacity duration-300 ${inView ? 'opacity-100' : 'opacity-0'}`}
+        style={{ transitionDelay: `${delay * 1000}ms` }}
       >
         {price}
-      </motion.span>
-      <motion.div
-        className="absolute top-1/2 left-0 right-0 h-0.5 bg-red-400/60"
-        initial={{ scaleX: 0 }}
-        animate={isInView ? { scaleX: 1 } : { scaleX: 0 }}
-        transition={{ delay: delay + 0.3, duration: 0.4, ease: 'easeOut' }}
-        style={{ transformOrigin: 'left' }}
+      </span>
+      <div
+        className={`absolute top-1/2 left-0 right-0 h-0.5 bg-red-400/60 transition-all duration-400 origin-left ${inView ? 'scale-x-100' : 'scale-x-0'}`}
+        style={{ transitionDelay: `${(delay + 0.3) * 1000}ms` }}
       />
     </div>
   );
@@ -207,28 +246,35 @@ const OurPrice = ({
   delay?: number;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-50px' });
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setInView(true);
+      },
+      { threshold: 0.1, rootMargin: '-50px' }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div ref={ref} className="text-center">
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={isInView ? { scale: 1, opacity: 1 } : { scale: 0.8, opacity: 0 }}
-        transition={{ delay, duration: 0.4, type: 'spring' }}
-        className="inline-block"
+      <div
+        className={`inline-block transition-all duration-400 ${inView ? 'scale-100 opacity-100' : 'scale-90 opacity-0'}`}
+        style={{ transitionDelay: `${delay * 1000}ms` }}
       >
         <span className="text-white font-bold text-lg">{price}</span>
         {label && (
-          <motion.span
-            initial={{ opacity: 0, y: 5 }}
-            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 5 }}
-            transition={{ delay: delay + 0.2, duration: 0.3 }}
-            className="block text-xs text-[#F9A825] font-semibold mt-0.5"
+          <span
+            className={`block text-xs text-[#F9A825] font-semibold mt-0.5 transition-all duration-300 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'}`}
+            style={{ transitionDelay: `${(delay + 0.2) * 1000}ms` }}
           >
             {label}
-          </motion.span>
+          </span>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 };
@@ -274,19 +320,28 @@ const FeatureCell = ({
   // Brand column - special highlighting
   if (isBrandColumn) {
     const ref = useRef<HTMLDivElement>(null);
-    const isInView = useInView(ref, { once: true, margin: '-50px' });
+    const [inView, setInView] = useState(false);
+
+    useEffect(() => {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) setInView(true);
+        },
+        { threshold: 0.1, rootMargin: '-50px' }
+      );
+      if (ref.current) observer.observe(ref.current);
+      return () => observer.disconnect();
+    }, []);
 
     return (
       <div ref={ref}>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
-          transition={{ delay, duration: 0.4 }}
-          className="flex items-center justify-center gap-1"
+        <div
+          className={`flex items-center justify-center gap-1 transition-all duration-400 ${inView ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}
+          style={{ transitionDelay: `${delay * 1000}ms` }}
         >
           <Check className="w-4 h-4 text-[#006A4E]" />
           <span className="text-white font-medium text-sm">{value}</span>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -314,26 +369,20 @@ const MobileComparisonCard = ({
   };
 
   return (
-    <motion.div
-      className={`flex-shrink-0 w-[85vw] max-w-[320px] snap-center ${
+    <div
+      className={`flex-shrink-0 w-[85vw] max-w-[320px] snap-center transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] ${
         isOurs
           ? 'bg-gradient-to-br from-[#006A4E]/20 to-[#00875F]/10 border-2 border-[#006A4E]/50'
           : 'bg-white/5 border border-white/10'
       } backdrop-blur-xl rounded-3xl p-6 mx-2`}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
     >
       {/* Platform Header */}
       <div className="text-center mb-6 pb-4 border-b border-white/10">
         {isOurs && (
-          <motion.div
-            className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F9A825]/20 rounded-full text-[#F9A825] text-xs font-semibold mb-2"
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F9A825]/20 rounded-full text-[#F9A825] text-xs font-semibold mb-2">
             <Sparkles className="w-3 h-3" />
             Best Choice
-          </motion.div>
+          </div>
         )}
         <h3
           className={`text-xl font-bold ${isOurs ? 'text-white' : 'text-white/60'} flex flex-col items-center gap-2`}
@@ -368,7 +417,7 @@ const MobileComparisonCard = ({
           </div>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -378,6 +427,11 @@ const MobileComparisonCard = ({
 export function ComparisonSection() {
   const [mobileCardIndex, setMobileCardIndex] = useState(2); // Start with "ours"
   const platforms: ('shopify' | 'wix' | 'ours')[] = ['shopify', 'wix', 'ours'];
+
+  const { ref: headerRef, inView: headerInView } = useInView(0.1);
+  const { ref: tableRef, inView: tableInView } = useInView(0.05);
+  const { ref: ctaRef, inView: ctaInView } = useInView(0.1);
+  const { ref: trustRef, inView: trustInView } = useInView(0.1);
 
   const nextCard = () => {
     setMobileCardIndex((prev) => (prev + 1) % platforms.length);
@@ -395,27 +449,17 @@ export function ComparisonSection() {
       {/* Background Effects */}
       <div className="absolute inset-0">
         {/* Gradient orbs */}
-        <motion.div
+        <div
           className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full"
           style={{
             background: `radial-gradient(circle, ${COLORS.primary}15 0%, transparent 70%)`,
           }}
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 50, 0],
-          }}
-          transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
         />
-        <motion.div
+        <div
           className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full"
           style={{
             background: `radial-gradient(circle, ${COLORS.accent}10 0%, transparent 70%)`,
           }}
-          animate={{
-            scale: [1.1, 1, 1.1],
-            x: [0, -30, 0],
-          }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
         />
 
         {/* Subtle grid */}
@@ -431,52 +475,47 @@ export function ComparisonSection() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4">
         {/* Section Header */}
-        <ScrollReveal>
-          <div className="text-center mb-16">
-            <motion.div
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-6"
-              style={{
-                backgroundColor: `${COLORS.primary}10`,
-                borderColor: `${COLORS.primary}30`,
-              }}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <Zap className="w-4 h-4" style={{ color: COLORS.accent }} />
-              <span className="text-sm" style={{ color: COLORS.accent }}>
-                সৎ তুলনা
-              </span>
-            </motion.div>
-
-            <h2
-              className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4"
-              style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
-            >
-              কেন আমরাই{' '}
-              <span
-                className="bg-clip-text text-transparent"
-                style={{
-                  backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 50%, ${COLORS.accent} 100%)`,
-                }}
-              >
-                Best Choice?
-              </span>
-            </h2>
-            <p className="text-lg text-white/50 max-w-2xl mx-auto">
-              বাংলাদেশী উদ্যোক্তাদের জন্য আমাদের প্ল্যাটফর্ম কেন সেরা, নিজেই দেখুন
-            </p>
+        <div
+          ref={headerRef}
+          className={`text-center mb-16 transition-all duration-700 ${headerInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
+        >
+          <div
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-6"
+            style={{
+              backgroundColor: `${COLORS.primary}10`,
+              borderColor: `${COLORS.primary}30`,
+            }}
+          >
+            <Zap className="w-4 h-4" style={{ color: COLORS.accent }} />
+            <span className="text-sm" style={{ color: COLORS.accent }}>
+              সৎ তুলনা
+            </span>
           </div>
-        </ScrollReveal>
+
+          <h2
+            className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4"
+            style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
+          >
+            কেন আমরাই{' '}
+            <span
+              className="bg-clip-text text-transparent"
+              style={{
+                backgroundImage: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 50%, ${COLORS.accent} 100%)`,
+              }}
+            >
+              Best Choice?
+            </span>
+          </h2>
+          <p className="text-lg text-white/50 max-w-2xl mx-auto">
+            বাংলাদেশী উদ্যোক্তাদের জন্য আমাদের প্ল্যাটফর্ম কেন সেরা, নিজেই দেখুন
+          </p>
+        </div>
 
         {/* Desktop Comparison Table */}
         <div className="hidden lg:block">
-          <motion.div
-            className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl"
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+          <div
+            ref={tableRef}
+            className={`bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl transition-all duration-600 ${tableInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
           >
             {/* Table Header */}
             <div className="grid grid-cols-4 border-b border-white/10">
@@ -495,24 +534,17 @@ export function ComparisonSection() {
                 }}
               >
                 {/* Best Choice Badge */}
-                <motion.div
+                <div
                   className="absolute -top-1 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg"
                   style={{
                     background: `linear-gradient(135deg, ${COLORS.accent} 0%, ${COLORS.accentLight} 100%)`,
                     color: '#000',
+                    boxShadow: `0 4px 15px ${COLORS.accent}40`,
                   }}
-                  animate={{
-                    boxShadow: [
-                      `0 4px 15px ${COLORS.accent}40`,
-                      `0 4px 25px ${COLORS.accent}70`,
-                      `0 4px 15px ${COLORS.accent}40`,
-                    ],
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
                 >
                   <Sparkles className="w-3 h-3" />
                   Best Choice
-                </motion.div>
+                </div>
 
                 <div className="text-xl font-bold text-white flex flex-col items-center justify-center gap-2 mt-3">
                   <div className="w-12 h-12 bg-white/10 rounded-xl p-2 backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center">
@@ -531,50 +563,48 @@ export function ComparisonSection() {
             </div>
 
             {/* Table Body */}
-            <StaggerContainer>
+            <div>
               {comparisonFeatures.map((feature, i) => (
-                <StaggerItem key={i}>
-                  <motion.div
-                    className={`grid grid-cols-4 border-b border-white/5 ${
-                      feature.highlight ? 'bg-white/[0.02]' : ''
-                    }`}
-                    whileHover={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
+                <div
+                  key={i}
+                  className={`grid grid-cols-4 border-b border-white/5 transition-colors duration-200 hover:bg-white/[0.03] ${
+                    feature.highlight ? 'bg-white/[0.02]' : ''
+                  }`}
+                >
+                  {/* Feature Name */}
+                  <div className="p-5 flex items-center">
+                    <span className="text-white/80 font-medium">{feature.nameBn}</span>
+                  </div>
+
+                  {/* Shopify */}
+                  <div className="p-5 flex items-center justify-center">
+                    <FeatureCell value={feature.shopify} delay={i * 0.05} />
+                  </div>
+
+                  {/* Wix */}
+                  <div className="p-5 flex items-center justify-center">
+                    <FeatureCell value={feature.wix} delay={i * 0.05 + 0.1} />
+                  </div>
+
+                  {/* Our Platform - Highlighted */}
+                  <div
+                    className="p-5 flex items-center justify-center"
+                    style={{
+                      background: `linear-gradient(180deg, ${COLORS.primary}15 0%, ${COLORS.primary}05 100%)`,
+                      boxShadow: `inset 0 0 30px ${COLORS.primary}10`,
+                    }}
                   >
-                    {/* Feature Name */}
-                    <div className="p-5 flex items-center">
-                      <span className="text-white/80 font-medium">{feature.nameBn}</span>
-                    </div>
-
-                    {/* Shopify */}
-                    <div className="p-5 flex items-center justify-center">
-                      <FeatureCell value={feature.shopify} delay={i * 0.05} />
-                    </div>
-
-                    {/* Wix */}
-                    <div className="p-5 flex items-center justify-center">
-                      <FeatureCell value={feature.wix} delay={i * 0.05 + 0.1} />
-                    </div>
-
-                    {/* Our Platform - Highlighted */}
-                    <div
-                      className="p-5 flex items-center justify-center"
-                      style={{
-                        background: `linear-gradient(180deg, ${COLORS.primary}15 0%, ${COLORS.primary}05 100%)`,
-                        boxShadow: `inset 0 0 30px ${COLORS.primary}10`,
-                      }}
-                    >
-                      <FeatureCell
-                        value={feature.ours}
-                        delay={i * 0.05 + 0.2}
-                        isBrandColumn={true}
-                        isHighlight={feature.highlight}
-                      />
-                    </div>
-                  </motion.div>
-                </StaggerItem>
+                    <FeatureCell
+                      value={feature.ours}
+                      delay={i * 0.05 + 0.2}
+                      isBrandColumn={true}
+                      isHighlight={feature.highlight}
+                    />
+                  </div>
+                </div>
               ))}
-            </StaggerContainer>
-          </motion.div>
+            </div>
+          </div>
         </div>
 
         {/* Mobile Comparison Cards (Swipeable) */}
@@ -610,41 +640,30 @@ export function ComparisonSection() {
 
             {/* Cards */}
             <div className="flex justify-center overflow-hidden py-4">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={mobileCardIndex}
-                  initial={{ opacity: 0, x: 100 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -100 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <MobileComparisonCard
-                    platform={platforms[mobileCardIndex]}
-                    isOurs={platforms[mobileCardIndex] === 'ours'}
-                    features={comparisonFeatures}
-                  />
-                </motion.div>
-              </AnimatePresence>
+              <div
+                key={mobileCardIndex}
+                className="transition-all duration-300 opacity-100 translate-x-0"
+              >
+                <MobileComparisonCard
+                  platform={platforms[mobileCardIndex]}
+                  isOurs={platforms[mobileCardIndex] === 'ours'}
+                  features={comparisonFeatures}
+                />
+              </div>
             </div>
           </div>
 
           {/* Swipe Hint */}
-          <motion.p
-            className="text-center text-white/30 text-xs mt-4"
-            animate={{ opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
+          <p className="text-center text-white/30 text-xs mt-4 animate-pulse">
             ← সোয়াইপ করুন →
-          </motion.p>
+          </p>
         </div>
 
         {/* CTA Buttons */}
-        <motion.div
-          className="flex flex-wrap justify-center gap-4 mt-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
+        <div
+          ref={ctaRef}
+          className={`flex flex-wrap justify-center gap-4 mt-12 transition-all duration-700 ${ctaInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
+          style={{ transitionDelay: '400ms' }}
         >
           <Link
             href="#pricing"
@@ -663,26 +682,19 @@ export function ComparisonSection() {
             }}
           >
             <span>ফ্রিতে শুরু করুন</span>
-            <motion.span
-              animate={{ x: [0, 4, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >
-              <ArrowRight className="w-5 h-5" />
-            </motion.span>
+            <ArrowRight className="w-5 h-5 animate-[nudge_1.5s_ease-in-out_infinite]" />
           </Link>
-        </motion.div>
+        </div>
 
         {/* Trust Line */}
-        <motion.p
-          className="text-center text-white/30 text-sm mt-8"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.6 }}
+        <p
+          ref={trustRef}
+          className={`text-center text-white/30 text-sm mt-8 transition-opacity duration-700 ${trustInView ? 'opacity-100' : 'opacity-0'}`}
+          style={{ transitionDelay: '600ms' }}
         >
           ✓ কোনো ক্রেডিট কার্ড লাগবে না &nbsp;•&nbsp; ✓ ৫ মিনিটে সেটআপ &nbsp;•&nbsp; ✓ চিরকাল ফ্রি
           প্ল্যান
-        </motion.p>
+        </p>
       </div>
     </section>
   );

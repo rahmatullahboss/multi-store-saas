@@ -7,7 +7,6 @@
  * with "Liquid Glass" styling and interactive animations.
  */
 
-import { motion } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
 import { 
   GripVertical, ArrowRight, Layout, Type, Image as LucideImage, Star, Bell, Check
@@ -32,6 +31,24 @@ const COLORS = {
 };
 
 // ============================================================================
+// INTERSECTION OBSERVER HOOK
+// ============================================================================
+function useInView(threshold = 0.15) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setInView(true); obs.disconnect(); }
+    }, { threshold });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return { ref, inView };
+}
+
+// ============================================================================
 // TEMPLATE LIBRARY CARD (Large)
 // ============================================================================
 const TemplateLibraryCard = () => {
@@ -53,10 +70,9 @@ const TemplateLibraryCard = () => {
   }, [templates.length]);
 
   return (
-    <motion.div
-      className="group relative h-full p-6 md:p-8 rounded-[32px] overflow-hidden cursor-pointer flex flex-col border border-white/10"
+    <div
+      className="group relative h-full p-6 md:p-8 rounded-[32px] overflow-hidden cursor-pointer flex flex-col border border-white/10 transition-transform duration-300 hover:scale-[1.01]"
       style={{ backgroundColor: COLORS.card }}
-      whileHover={{ scale: 1.01 }}
     >
       <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 backdrop-blur-xl" />
       
@@ -84,26 +100,20 @@ const TemplateLibraryCard = () => {
         {templates.map((template, i) => {
           const Icon = template.icon;
           const isActive = i === activeIndex;
-          // Calculate realistic stack positions
           const indexDiff = (i - activeIndex + templates.length) % templates.length;
-          const isVisible = indexDiff < 3; 
+          const isVisible = indexDiff < 3;
 
           return (
-            <motion.div
+            <div
               key={template.name}
-              className="absolute inset-x-0 top-0 h-[240px] rounded-2xl border overflow-hidden shadow-2xl origin-bottom"
+              className="absolute inset-x-0 top-0 h-[240px] rounded-2xl border overflow-hidden shadow-2xl origin-bottom transition-all duration-[600ms] ease-[cubic-bezier(0.32,0.72,0,1)]"
               style={{ 
                 backgroundColor: '#1E1E24',
                 borderColor: isActive ? template.color : 'rgba(255,255,255,0.1)',
                 zIndex: templates.length - indexDiff,
-              }}
-              animate={{
-                y: indexDiff * 15,
-                scale: 1 - indexDiff * 0.05,
+                transform: `translateY(${indexDiff * 15}px) scale(${1 - indexDiff * 0.05}) rotateX(${indexDiff * 5}deg)`,
                 opacity: isVisible ? 1 - indexDiff * 0.2 : 0,
-                rotateX: indexDiff * 5,
               }}
-              transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
             >
               {/* Card Content */}
               <div className="h-full flex flex-col">
@@ -125,10 +135,10 @@ const TemplateLibraryCard = () => {
                       <Icon className="w-6 h-6" style={{ color: template.color }} />
                     </div>
                     {isActive && (
-                      <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+                      <div className="transition-all duration-300 opacity-100 translate-x-0">
                         <div className="font-bold text-white text-lg">{template.name}</div>
                         <div className="text-xs text-white/40">Theme</div>
-                      </motion.div>
+                      </div>
                     )}
                   </div>
                   
@@ -139,23 +149,20 @@ const TemplateLibraryCard = () => {
                   </div>
 
                   {isActive && (
-                    <motion.div 
-                      className="absolute bottom-6 right-6 px-3 py-1.5 rounded-lg text-xs font-bold text-black"
+                    <div 
+                      className="absolute bottom-6 right-6 px-3 py-1.5 rounded-lg text-xs font-bold text-black transition-transform duration-300 scale-100"
                       style={{ backgroundColor: template.color }}
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.2 }}
                     >
                       Active
-                    </motion.div>
+                    </div>
                   )}
                 </div>
               </div>
-            </motion.div>
+            </div>
           );
         })}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -166,20 +173,25 @@ const LivePreviewCard = () => {
   const { t } = useTranslation();
   const [text, setText] = useState('Welcome');
   const [textIndex, setTextIndex] = useState(0);
+  const [textVisible, setTextVisible] = useState(true);
 
   useEffect(() => {
     const texts = ['Welcome', 'স্বাগতম', 'Hello'];
     const interval = setInterval(() => {
-      setTextIndex(prev => (prev + 1) % texts.length);
-      setText(texts[(textIndex + 1) % texts.length]);
+      setTextVisible(false);
+      setTimeout(() => {
+        const next = (textIndex + 1) % texts.length;
+        setTextIndex(next);
+        setText(texts[next]);
+        setTextVisible(true);
+      }, 150);
     }, 2500);
     return () => clearInterval(interval);
   }, [textIndex]);
 
   return (
-    <motion.div
-      className="group relative h-full p-6 rounded-[32px] overflow-hidden cursor-pointer border border-white/10 bg-white/[0.03]"
-      whileHover={{ scale: 1.02 }}
+    <div
+      className="group relative h-full p-6 rounded-[32px] overflow-hidden cursor-pointer border border-white/10 bg-white/[0.03] transition-transform duration-300 hover:scale-[1.02]"
     >
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
@@ -213,18 +225,16 @@ const LivePreviewCard = () => {
         <div className="flex-1 rounded-xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 p-3 flex flex-col justify-center relative overflow-hidden">
           <div className="absolute inset-0 bg-blue-500/5 backdrop-blur-sm" />
           <div className="relative z-10 text-center">
-             <motion.div 
-               key={text}
-               initial={{ scale: 0.8, opacity: 0 }}
-               animate={{ scale: 1, opacity: 1 }}
-               className="text-lg font-bold text-white"
-             >
-               {text}
-             </motion.div>
+            <div 
+              className="text-lg font-bold text-white transition-all duration-150"
+              style={{ opacity: textVisible ? 1 : 0, transform: textVisible ? 'scale(1)' : 'scale(0.8)' }}
+            >
+              {text}
+            </div>
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -256,9 +266,8 @@ const SectionRearrangeCard = () => {
   ];
 
   return (
-    <motion.div
-      className="group relative h-full p-6 rounded-[32px] overflow-hidden cursor-pointer border border-white/10 bg-white/[0.03]"
-      whileHover={{ scale: 1.02 }}
+    <div
+      className="group relative h-full p-6 rounded-[32px] overflow-hidden cursor-pointer border border-white/10 bg-white/[0.03] transition-transform duration-300 hover:scale-[1.02]"
     >
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
@@ -272,11 +281,9 @@ const SectionRearrangeCard = () => {
 
       <div className="space-y-3 relative">
         {order.map((idx) => (
-          <motion.div
+          <div
             key={idx}
-            layout
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className="h-8 rounded-lg border flex items-center px-3 gap-3"
+            className="h-8 rounded-lg border flex items-center px-3 gap-3 transition-all duration-500"
             style={{ 
               backgroundColor: `${sections[idx].color}10`,
               borderColor: `${sections[idx].color}30`,
@@ -285,10 +292,10 @@ const SectionRearrangeCard = () => {
           >
             <GripVertical className="w-3 h-3 text-white/30 cursor-grab" />
             <div className="h-1.5 rounded-full bg-white/20 flex-1" />
-          </motion.div>
+          </div>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -298,9 +305,8 @@ const SectionRearrangeCard = () => {
 const BanglaSupportCard = () => {
   const { t } = useTranslation();
   return (
-    <motion.div
-      className="group relative h-full p-6 rounded-[32px] overflow-hidden cursor-pointer border border-white/10 bg-white/[0.03]"
-      whileHover={{ scale: 1.02 }}
+    <div
+      className="group relative h-full p-6 rounded-[32px] overflow-hidden cursor-pointer border border-white/10 bg-white/[0.03] transition-transform duration-300 hover:scale-[1.02]"
     >
       <div className="absolute top-0 right-0 w-32 h-32 bg-green-600/10 blur-[50px] rounded-full" />
       
@@ -316,16 +322,12 @@ const BanglaSupportCard = () => {
       </div>
 
       <div className="text-center py-6 relative">
-         <motion.div
-           animate={{ opacity: [0.5, 1, 0.5] }}
-           transition={{ duration: 2, repeat: Infinity }}
-           className="text-2xl font-bold text-white/90 font-bengali mb-1"
-         >
+         <div className="text-2xl font-bold text-white/90 font-bengali mb-1 animate-pulse">
            {t('bentoBanglaSupport_main')}
-         </motion.div>
+         </div>
          <p className="text-sm text-green-400/60 font-bengali">{t('bentoBanglaSupport_sub')}</p>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -335,9 +337,8 @@ const BanglaSupportCard = () => {
 const MobileResponsiveCard = () => {
   const { t } = useTranslation();
   return (
-    <motion.div
-      className="group relative h-full p-6 rounded-[32px] overflow-hidden cursor-pointer border border-white/10 bg-white/[0.03]"
-      whileHover={{ scale: 1.02 }}
+    <div
+      className="group relative h-full p-6 rounded-[32px] overflow-hidden cursor-pointer border border-white/10 bg-white/[0.03] transition-transform duration-300 hover:scale-[1.02]"
     >
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
@@ -350,15 +351,11 @@ const MobileResponsiveCard = () => {
         <h3 className="text-base font-bold text-white">{t('bentoMobileReady_title')}</h3>
       </div>
 
-    <div className="flex justify-center items-end h-[100px] gap-2 pb-2">
-       <motion.div 
-        className="w-10 h-16 border-2 border-white/20 rounded-md bg-white/5"
-        animate={{ width: [40, 60, 40] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-       />
-       <div className="w-16 h-12 border-2 border-white/20 rounded-md bg-white/5 mb-2" />
+      <div className="flex justify-center items-end h-[100px] gap-2 pb-2">
+        <div className="w-10 h-16 border-2 border-white/20 rounded-md bg-white/5 animate-[mobileWidth_4s_ease-in-out_infinite]" />
+        <div className="w-16 h-12 border-2 border-white/20 rounded-md bg-white/5 mb-2" />
+      </div>
     </div>
-  </motion.div>
   );
 };
 
@@ -368,9 +365,8 @@ const MobileResponsiveCard = () => {
 const ComboPlatformCard = () => {
   const { t } = useTranslation();
   return (
-    <motion.div
-      className="group relative p-8 rounded-[32px] border border-white/10 bg-white/[0.03] overflow-hidden"
-      whileHover={{ scale: 1.01 }}
+    <div
+      className="group relative p-8 rounded-[32px] border border-white/10 bg-white/[0.03] overflow-hidden transition-transform duration-300 hover:scale-[1.01]"
     >
       <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-blue-500/5 to-purple-500/5 opacity-50" />
       
@@ -399,7 +395,7 @@ const ComboPlatformCard = () => {
           {t('bentoAllInOne_badge')}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -423,9 +419,8 @@ const ComingSoonTeaser = () => {
   };
 
   return (
-    <motion.div
-      className="group relative p-8 rounded-[32px] border border-amber-500/20 bg-amber-500/[0.03] overflow-hidden"
-      whileHover={{ scale: 1.01 }}
+    <div
+      className="group relative p-8 rounded-[32px] border border-amber-500/20 bg-amber-500/[0.03] overflow-hidden transition-transform duration-300 hover:scale-[1.01]"
     >
       <div className="flex flex-col md:flex-row items-center justify-between gap-6">
         <div>
@@ -459,7 +454,7 @@ const ComingSoonTeaser = () => {
           </button>
         </form>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -468,10 +463,16 @@ const ComingSoonTeaser = () => {
 // ============================================================================
 export function BentoFeaturesSection() {
   const { t } = useTranslation();
-  const containerRef = useRef<HTMLDivElement>(null);
+  const { ref: headingRef, inView: headingInView } = useInView(0.15);
+  const { ref: topLeftRef, inView: topLeftInView } = useInView(0.1);
+  const { ref: topRightRef, inView: topRightInView } = useInView(0.1);
+  const { ref: midLeftRef, inView: midLeftInView } = useInView(0.1);
+  const { ref: midRightRef, inView: midRightInView } = useInView(0.1);
+  const { ref: bottomRow1Ref, inView: bottomRow1InView } = useInView(0.1);
+  const { ref: bottomRow2Ref, inView: bottomRow2InView } = useInView(0.1);
   
   return (
-    <section ref={containerRef} className="py-20 px-4 relative overflow-hidden bg-[#0A0A12]">
+    <section className="py-20 px-4 relative overflow-hidden bg-[#0A0A12]">
       {/* Liquid Background */}
       <div className="absolute top-0 left-0 w-full h-[800px] overflow-hidden pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-emerald-500/10 blur-[120px] rounded-full mix-blend-screen animate-pulse" />
@@ -479,11 +480,11 @@ export function BentoFeaturesSection() {
       </div>
 
       <div className="max-w-6xl mx-auto relative z-10">
-        <motion.div 
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+        <div 
+          ref={headingRef}
+          className={`text-center mb-16 transition-all duration-700 ease-out ${
+            headingInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6 backdrop-blur-sm">
             <LottieIcon 
@@ -497,72 +498,76 @@ export function BentoFeaturesSection() {
           <h2 className="text-3xl md:text-5xl font-bold text-white font-bengali leading-tight mb-4">
             {t('bentoMainTitle_part1')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">{t('bentoMainTitle_part2')}</span>
           </h2>
-        </motion.div>
+        </div>
 
         <div className="flex flex-col gap-6">
           
           {/* TOP ROW */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[440px]">
             {/* Left: Template Library (Large) */}
-            <motion.div 
-              className="h-full"
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
+            <div 
+              ref={topLeftRef}
+              className={`h-full transition-all duration-700 ease-out ${
+                topLeftInView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-5'
+              }`}
             >
               <TemplateLibraryCard />
-            </motion.div>
+            </div>
 
             {/* Right: Stacked Cards */}
-            <motion.div 
-              className="flex flex-col gap-6"
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
+            <div 
+              ref={topRightRef}
+              className={`flex flex-col gap-6 transition-all duration-700 ease-out ${
+                topRightInView ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-5'
+              }`}
             >
               <div className="flex-1 min-h-[200px]"><LivePreviewCard /></div>
               <div className="flex-1 min-h-[200px]"><SectionRearrangeCard /></div>
-            </motion.div>
+            </div>
           </div>
 
           {/* MIDDLE ROW */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 h-[220px]">
-             <motion.div
-               initial={{ opacity: 0, y: 20 }}
-               whileInView={{ opacity: 1, y: 0 }}
-               viewport={{ once: true }}
-               transition={{ delay: 0.2 }}
-             >
-               <BanglaSupportCard />
-             </motion.div>
-             <motion.div
-               initial={{ opacity: 0, y: 20 }}
-               whileInView={{ opacity: 1, y: 0 }}
-               viewport={{ once: true }}
-               transition={{ delay: 0.3 }}
-             >
-               <MobileResponsiveCard />
-             </motion.div>
+            <div
+              ref={midLeftRef}
+              className={`transition-all duration-700 ease-out ${
+                midLeftInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}
+              style={{ transitionDelay: '200ms' }}
+            >
+              <BanglaSupportCard />
+            </div>
+            <div
+              ref={midRightRef}
+              className={`transition-all duration-700 ease-out ${
+                midRightInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}
+              style={{ transitionDelay: '300ms' }}
+            >
+              <MobileResponsiveCard />
+            </div>
           </div>
 
           {/* BOTTOM ROW */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.4 }}
+          <div
+            ref={bottomRow1Ref}
+            className={`transition-all duration-700 ease-out ${
+              bottomRow1InView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
+            style={{ transitionDelay: '400ms' }}
           >
             <ComboPlatformCard />
-          </motion.div>
+          </div>
 
-          <motion.div
-             initial={{ opacity: 0, y: 20 }}
-             whileInView={{ opacity: 1, y: 0 }}
-             viewport={{ once: true }}
-             transition={{ delay: 0.5 }}
+          <div
+            ref={bottomRow2Ref}
+            className={`transition-all duration-700 ease-out ${
+              bottomRow2InView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
+            style={{ transitionDelay: '500ms' }}
           >
             <ComingSoonTeaser />
-          </motion.div>
+          </div>
 
         </div>
       </div>

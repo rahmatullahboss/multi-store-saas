@@ -5,16 +5,28 @@
  *
  * Showcases Cloudflare CDN's global infrastructure with:
  * - "Liquid Glass" World Map
- * - 3D Tilt Cards for Stats
+ * - Hover Tilt Cards for Stats
  * - Interactive Server Nodes
  */
 
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { useRef, useEffect, useState, type MouseEvent } from 'react';
 import { Zap, Shield, Clock, Server, type LucideIcon } from 'lucide-react';
 import { ClientOnly } from '@/components/LazySection';
 import { ScrollReveal } from '@/components/animations';
 
-// COLORS constant removed - using inline values for component portability
+// IntersectionObserver hook for scroll-triggered animations
+const useInView = (threshold = 0.1) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setInView(true);
+    }, { threshold });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return { ref, inView };
+};
 
 // ============================================================================
 // MAP VISUALIZATION - LIQUID GLASS STYLE
@@ -62,8 +74,13 @@ const WorldMap = () => {
     { id: 'newyork', x: 25, y: 35, name: 'New York', type: 'relay' },
   ];
 
+  const { ref, inView } = useInView(0.1);
+
   return (
-    <div className="relative w-full aspect-[2/1] bg-white/5 rounded-3xl overflow-hidden border border-white/10 backdrop-blur-sm">
+    <div
+      ref={ref}
+      className="relative w-full aspect-[2/1] bg-white/5 rounded-3xl overflow-hidden border border-white/10 backdrop-blur-sm"
+    >
       {/* Glow Effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#00DDA2]/10 via-transparent to-blue-500/10 mix-blend-overlay" />
 
@@ -88,19 +105,21 @@ const WorldMap = () => {
 
       {/* Server Nodes */}
       {SERVERS.map((server) => (
-        <motion.div
+        <div
           key={server.id}
           className="absolute"
-          style={{ left: `${server.x}%`, top: `${server.y}%` }}
-          initial={{ scale: 0 }}
-          whileInView={{ scale: 1 }}
-          viewport={{ once: true }}
+          style={{
+            left: `${server.x}%`,
+            top: `${server.y}%`,
+            opacity: inView ? 1 : 0,
+            transform: inView ? 'scale(1)' : 'scale(0)',
+            transition: 'opacity 0.5s ease-out, transform 0.5s ease-out',
+          }}
         >
-          {/* Ping Wave */}
-          <motion.div
+          {/* Ping Wave — CSS keyframe animation */}
+          <div
             className={`absolute -inset-4 rounded-full border ${server.type === 'edge' ? 'border-[#00DDA2]' : 'border-blue-500'}`}
-            animate={{ scale: [0.5, 2], opacity: [1, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
+            style={{ animation: 'ping-wave 2s ease-out infinite' }}
           />
           {/* Core */}
           <div
@@ -113,31 +132,37 @@ const WorldMap = () => {
           >
             {server.name}
           </div>
-        </motion.div>
+        </div>
       ))}
 
       {/* Connection Lines (Simulated) */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-30">
-        <motion.path
-          d="M 68 42 L 72 55 M 68 42 L 45 28 M 68 42 L 25 35" // Scaled coords to % roughly
+        <path
+          d="M 68 42 L 72 55 M 68 42 L 45 28 M 68 42 L 25 35"
           stroke="#00DDA2"
           strokeWidth="0.5"
           fill="none"
-          initial={{ pathLength: 0 }}
-          whileInView={{ pathLength: 1 }}
-          transition={{ duration: 2 }}
-          // Note: SVG coords in % don't work directly in path 'd' usually without viewBox calc,
-          // but for this visual abstracted component we'll assume a viewBox mapping or correct later.
-          // For safety, let's use line elements which support % better in some contexts or CSS.
+          style={{
+            strokeDasharray: 200,
+            strokeDashoffset: inView ? 0 : 200,
+            transition: 'stroke-dashoffset 2s ease-out',
+          }}
         />
-        {/* Fallback Lines using simple CSS/HTML for robustness if SVG fails */}
       </svg>
+
+      {/* CSS keyframe for ping wave */}
+      <style>{`
+        @keyframes ping-wave {
+          0% { transform: scale(0.5); opacity: 1; }
+          100% { transform: scale(2); opacity: 0; }
+        }
+      `}</style>
     </div>
   );
 };
 
 // ============================================================================
-// 3D STAT CARD
+// STAT CARD WITH CSS HOVER TILT EFFECT
 // ============================================================================
 const StatCard3D = ({
   icon: Icon,
@@ -152,26 +177,32 @@ const StatCard3D = ({
   sublabel: string;
   color: string;
 }) => {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  const rotateX = useTransform(y, [-100, 100], [10, -10]);
-  const rotateY = useTransform(x, [-100, 100], [-10, 10]);
+  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    const rotateX = (-y / rect.height) * 10;
+    const rotateY = (x / rect.width) * 10;
+    card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+  };
+
+  const handleMouseLeave = () => {
+    const card = cardRef.current;
+    if (!card) return;
+    card.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg) scale(1)';
+  };
 
   return (
-    <motion.div
-      style={{ x, y, rotateX, rotateY, z: 100 }}
-      whileHover={{ scale: 1.02 }}
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       className="relative p-6 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden group"
-      onMouseMove={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        x.set(e.clientX - rect.left - rect.width / 2);
-        y.set(e.clientY - rect.top - rect.height / 2);
-      }}
-      onMouseLeave={() => {
-        x.set(0);
-        y.set(0);
-      }}
+      style={{ transition: 'transform 0.15s ease-out', willChange: 'transform' }}
     >
       {/* Glare Effect */}
       <div
@@ -193,7 +224,7 @@ const StatCard3D = ({
         <div className="text-white/70 font-medium mb-1">{label}</div>
         <div className="text-white/30 text-xs mt-auto">{sublabel}</div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -201,6 +232,8 @@ const StatCard3D = ({
 // MAIN COMPONENT
 // ============================================================================
 export function InfrastructureSection() {
+  const { ref: badgeRef, inView: badgeInView } = useInView(0.1);
+
   return (
     <section className="py-24 relative bg-[#050807] overflow-hidden">
       {/* Background Ambience */}
@@ -211,17 +244,20 @@ export function InfrastructureSection() {
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <ScrollReveal>
           <div className="text-center mb-16">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+            <div
+              ref={badgeRef}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#00DDA2]/30 bg-[#00DDA2]/10 backdrop-blur-sm mb-6"
+              style={{
+                opacity: badgeInView ? 1 : 0,
+                transform: badgeInView ? 'translateY(0)' : 'translateY(20px)',
+                transition: 'opacity 0.6s ease-out, transform 0.6s ease-out',
+              }}
             >
               <Zap className="w-4 h-4 text-[#00DDA2]" />
               <span className="text-sm font-bold text-[#00DDA2] uppercase tracking-wider">
                 Enterprise Grade
               </span>
-            </motion.div>
+            </div>
 
             <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
               বিশ্বমানের <span className="text-[#00DDA2]">ইনফ্রাস্ট্রাকচার</span>

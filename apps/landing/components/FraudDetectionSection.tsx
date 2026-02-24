@@ -9,8 +9,7 @@
  * - Prepaid = skip fraud check
  */
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   ShieldAlert,
   ShieldCheck,
@@ -38,6 +37,20 @@ const COLORS = {
   textSubtle: 'rgba(255, 255, 255, 0.5)',
   success: '#10B981',
   warning: '#F59E0B',
+};
+
+// IntersectionObserver hook for scroll-triggered animations
+const useInView = (threshold = 0.1) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setInView(true);
+    }, { threshold });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return { ref, inView };
 };
 
 // Simulated order flow for the live demo card
@@ -84,12 +97,115 @@ const DEMO_ORDERS = [
   },
 ];
 
+// Animated progress bar using CSS transitions
+const ProgressBar = ({ value, color }: { value: number; color: string }) => {
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    const timer = setTimeout(() => setWidth(value), 50);
+    return () => clearTimeout(timer);
+  }, [value]);
+  return (
+    <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+      <div
+        className="h-full rounded-full"
+        style={{
+          width: `${width}%`,
+          background: color,
+          transition: 'width 0.6s ease-out',
+        }}
+      />
+    </div>
+  );
+};
+
+// Order card that fades in/out via CSS
+const OrderCard = ({ order, visible }: { order: typeof DEMO_ORDERS[0]; visible: boolean }) => (
+  <div
+    className="p-4 rounded-xl border mb-5"
+    style={{
+      background: `${order.color}08`,
+      borderColor: `${order.color}30`,
+      opacity: visible ? 1 : 0,
+      transform: visible ? 'translateY(0)' : 'translateY(15px)',
+      transition: 'opacity 0.4s ease, transform 0.4s ease',
+    }}
+  >
+    {/* Phone + Label */}
+    <div className="flex items-center justify-between mb-4">
+      <span className="text-xs text-gray-400 font-mono">{order.phone}</span>
+      <span
+        className="text-[10px] px-2 py-0.5 rounded-full font-bold"
+        style={{ background: `${order.color}20`, color: order.color }}
+      >
+        {order.label}
+      </span>
+    </div>
+
+    {/* Delivery Rate */}
+    <div className="mb-3">
+      <div className="flex justify-between text-xs mb-1">
+        <span className="text-gray-400 flex items-center gap-1">
+          <PackageCheck className="w-3 h-3" /> Delivery Rate
+        </span>
+        <span style={{ color: order.deliveryRate >= 80 ? '#10B981' : order.deliveryRate >= 50 ? '#F59E0B' : '#EF4444' }}>
+          {order.deliveryRate}%
+        </span>
+      </div>
+      <ProgressBar
+        value={order.deliveryRate}
+        color={order.deliveryRate >= 80 ? '#10B981' : order.deliveryRate >= 50 ? '#F59E0B' : '#EF4444'}
+      />
+    </div>
+
+    {/* Return Rate */}
+    <div className="mb-4">
+      <div className="flex justify-between text-xs mb-1">
+        <span className="text-gray-400 flex items-center gap-1">
+          <RotateCcw className="w-3 h-3" /> Return Rate
+        </span>
+        <span style={{ color: order.returnRate <= 20 ? '#10B981' : order.returnRate <= 50 ? '#F59E0B' : '#EF4444' }}>
+          {order.returnRate}%
+        </span>
+      </div>
+      <ProgressBar
+        value={order.returnRate}
+        color={order.returnRate <= 20 ? '#10B981' : order.returnRate <= 50 ? '#F59E0B' : '#EF4444'}
+      />
+    </div>
+
+    {/* Signal (if any) */}
+    {order.signal && (
+      <div className="flex items-start gap-2 p-2 rounded-lg bg-yellow-500/5 border border-yellow-500/10 mb-3">
+        <AlertTriangle className="w-3 h-3 text-yellow-500 mt-0.5 flex-shrink-0" />
+        <span className="text-[10px] text-yellow-400">{order.signal}</span>
+      </div>
+    )}
+
+    {/* Action */}
+    <div
+      className="text-center py-2 rounded-lg text-xs font-bold"
+      style={{ background: `${order.color}15`, color: order.color }}
+    >
+      {order.action}
+    </div>
+  </div>
+);
+
 export const FraudDetectionSection = () => {
   const [activeOrder, setActiveOrder] = useState(0);
+  const [cardVisible, setCardVisible] = useState(true);
+  const { ref, inView } = useInView(0.1);
+  const { ref: headerRef, inView: headerInView } = useInView(0.1);
+  const { ref: demoRef, inView: demoInView } = useInView(0.1);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveOrder((prev) => (prev + 1) % DEMO_ORDERS.length);
+      // Fade out first, then switch order, then fade in
+      setCardVisible(false);
+      setTimeout(() => {
+        setActiveOrder((prev) => (prev + 1) % DEMO_ORDERS.length);
+        setCardVisible(true);
+      }, 400);
     }, 2800);
     return () => clearInterval(interval);
   }, []);
@@ -136,12 +252,14 @@ export const FraudDetectionSection = () => {
   const order = DEMO_ORDERS[activeOrder];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.8 }}
+    <div
+      ref={ref}
       className="relative py-24 overflow-hidden"
+      style={{
+        opacity: inView ? 1 : 0,
+        transform: inView ? 'translateY(0)' : 'translateY(40px)',
+        transition: 'opacity 0.8s ease-out, transform 0.8s ease-out',
+      }}
     >
       {/* Background Glow */}
       <div
@@ -151,21 +269,22 @@ export const FraudDetectionSection = () => {
 
       <div className="max-w-6xl mx-auto px-4 relative z-10">
         {/* Section Header */}
-        <div className="text-center mb-16">
-          <motion.span
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
+        <div ref={headerRef} className="text-center mb-16">
+          <span
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-4"
             style={{
               background: `${COLORS.accent}15`,
               color: COLORS.accentLight,
               border: `1px solid ${COLORS.accent}30`,
+              opacity: headerInView ? 1 : 0,
+              transform: headerInView ? 'scale(1)' : 'scale(0.9)',
+              transition: 'opacity 0.5s ease-out, transform 0.5s ease-out',
+              display: 'inline-flex',
             }}
           >
             <ShieldAlert className="w-4 h-4" />
             Advanced Fraud Protection
-          </motion.span>
+          </span>
           <h2
             className="text-3xl md:text-5xl font-bold text-white mb-6"
             style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
@@ -190,16 +309,15 @@ export const FraudDetectionSection = () => {
           {/* Left: Features Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {features.map((feature, index) => (
-              <motion.div
+              <div
                 key={feature.titleBn}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.08 }}
-                className="p-5 rounded-2xl border backdrop-blur-sm transition-all duration-300 hover:scale-[1.02]"
+                className="p-5 rounded-2xl border backdrop-blur-sm hover:scale-[1.02] transition-all duration-300"
                 style={{
                   background: `linear-gradient(135deg, ${COLORS.backgroundCard}, ${feature.color}05)`,
                   borderColor: `${feature.color}20`,
+                  opacity: inView ? 1 : 0,
+                  transform: inView ? 'translateX(0)' : 'translateX(-20px)',
+                  transition: `opacity 0.5s ease-out ${index * 0.08}s, transform 0.5s ease-out ${index * 0.08}s`,
                 }}
               >
                 <div
@@ -214,16 +332,19 @@ export const FraudDetectionSection = () => {
                 <p className="text-xs leading-relaxed" style={{ color: COLORS.textMuted }}>
                   {feature.description}
                 </p>
-              </motion.div>
+              </div>
             ))}
           </div>
 
           {/* Right: Live Demo Card */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
+          <div
+            ref={demoRef}
             className="relative"
+            style={{
+              opacity: demoInView ? 1 : 0,
+              transform: demoInView ? 'scale(1)' : 'scale(0.9)',
+              transition: 'opacity 0.7s ease-out, transform 0.7s ease-out',
+            }}
           >
             <div
               className="rounded-2xl p-6 border relative overflow-hidden"
@@ -245,89 +366,7 @@ export const FraudDetectionSection = () => {
               </div>
 
               {/* Animated Order Card */}
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeOrder}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.4 }}
-                  className="p-4 rounded-xl border mb-5"
-                  style={{
-                    background: `${order.color}08`,
-                    borderColor: `${order.color}30`,
-                  }}
-                >
-                  {/* Phone + Label */}
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs text-gray-400 font-mono">{order.phone}</span>
-                    <span
-                      className="text-[10px] px-2 py-0.5 rounded-full font-bold"
-                      style={{ background: `${order.color}20`, color: order.color }}
-                    >
-                      {order.label}
-                    </span>
-                  </div>
-
-                  {/* Delivery Rate */}
-                  <div className="mb-3">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-gray-400 flex items-center gap-1">
-                        <PackageCheck className="w-3 h-3" /> Delivery Rate
-                      </span>
-                      <span style={{ color: order.deliveryRate >= 80 ? '#10B981' : order.deliveryRate >= 50 ? '#F59E0B' : '#EF4444' }}>
-                        {order.deliveryRate}%
-                      </span>
-                    </div>
-                    <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${order.deliveryRate}%` }}
-                        transition={{ duration: 0.6 }}
-                        className="h-full rounded-full"
-                        style={{ background: order.deliveryRate >= 80 ? '#10B981' : order.deliveryRate >= 50 ? '#F59E0B' : '#EF4444' }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Return Rate */}
-                  <div className="mb-4">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-gray-400 flex items-center gap-1">
-                        <RotateCcw className="w-3 h-3" /> Return Rate
-                      </span>
-                      <span style={{ color: order.returnRate <= 20 ? '#10B981' : order.returnRate <= 50 ? '#F59E0B' : '#EF4444' }}>
-                        {order.returnRate}%
-                      </span>
-                    </div>
-                    <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${order.returnRate}%` }}
-                        transition={{ duration: 0.6 }}
-                        className="h-full rounded-full"
-                        style={{ background: order.returnRate <= 20 ? '#10B981' : order.returnRate <= 50 ? '#F59E0B' : '#EF4444' }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Signal (if any) */}
-                  {order.signal && (
-                    <div className="flex items-start gap-2 p-2 rounded-lg bg-yellow-500/5 border border-yellow-500/10 mb-3">
-                      <AlertTriangle className="w-3 h-3 text-yellow-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-[10px] text-yellow-400">{order.signal}</span>
-                    </div>
-                  )}
-
-                  {/* Action */}
-                  <div
-                    className="text-center py-2 rounded-lg text-xs font-bold"
-                    style={{ background: `${order.color}15`, color: order.color }}
-                  >
-                    {order.action}
-                  </div>
-                </motion.div>
-              </AnimatePresence>
+              <OrderCard order={order} visible={cardVisible} />
 
               {/* Bottom Stats */}
               <div className="grid grid-cols-3 gap-3 text-center">
@@ -349,9 +388,9 @@ export const FraudDetectionSection = () => {
             {/* Decorative */}
             <div className="absolute -top-6 -right-6 w-24 h-24 bg-red-500/20 rounded-full blur-2xl -z-10" />
             <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-orange-500/20 rounded-full blur-2xl -z-10" />
-          </motion.div>
+          </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };

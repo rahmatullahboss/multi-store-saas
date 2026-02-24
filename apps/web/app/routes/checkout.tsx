@@ -550,6 +550,8 @@ export default function Checkout() {
         if (defaultAddress) {
           if (defaultAddress.address1) setAddress(defaultAddress.address1);
           if (defaultAddress.phone && !customer.phone) setPhone(defaultAddress.phone);
+          // Auto-fill postal code from saved address
+          if (defaultAddress.zip) setPostalCode(defaultAddress.zip);
 
           // Try to match city to district
           if (defaultAddress.city) {
