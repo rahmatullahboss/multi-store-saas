@@ -305,14 +305,9 @@ export async function calculateRiskScore(
       description: 'Cash on Delivery order',
       descriptionBn: 'ক্যাশ অন ডেলিভারি অর্ডার',
     });
-  } else {
-    signals.push({
-      name: 'prepaid_verified',
-      score: -40,
-      description: 'Prepaid/verified payment',
-      descriptionBn: 'অগ্রিম/ভেরিফাইড পেমেন্ট',
-    });
   }
+  // Note: prepaid orders never reach this point — performFraudCheck() returns
+  // allow immediately for non-COD payments before calculateRiskScore() is called.
 
   // ============================
   // SIGNAL 3: Customer history (internal DB)
@@ -518,11 +513,14 @@ export async function calculateRiskScore(
   // Orders from outside Bangladesh are extremely high risk for BD COD stores.
   // Cloudflare provides CF-IPCountry header for free — no extra cost.
   if (params.cfCountry && params.cfCountry !== 'BD' && params.cfCountry !== 'XX') {
+    // Foreign IP = flag only (warn), NOT a block signal.
+    // Some legitimate customers place orders from abroad (expats, NRBs).
+    // Score is intentionally low — just enough to appear in signals list.
     signals.push({
       name: 'foreign_ip',
-      score: isCOD ? 35 : 10,
-      description: `Order placed from outside Bangladesh (country: ${params.cfCountry})`,
-      descriptionBn: `বাংলাদেশের বাইরে থেকে অর্ডার (দেশ: ${params.cfCountry})`,
+      score: 10,
+      description: `Order placed from outside Bangladesh (country: ${params.cfCountry}) — flagged for review`,
+      descriptionBn: `বাংলাদেশের বাইরে থেকে অর্ডার (দেশ: ${params.cfCountry}) — পর্যালোচনার জন্য ফ্ল্যাগ করা হয়েছে`,
     });
   }
 
@@ -631,6 +629,20 @@ export async function performFraudCheck(
 ): Promise<RiskAssessment> {
   const { orderId, settings = DEFAULT_FRAUD_SETTINGS, ...checkParams } = params;
   const { fraudEvents } = await import('@db/schema');
+
+  // ── Prepaid orders: skip fraud engine entirely ────────────────────────────
+  // If payment is prepaid (bKash, Nagad, SSLCommerz, Stripe etc.), money is
+  // already collected — blocking would only hurt the merchant. Skip scoring.
+  const isCODPayment = checkParams.paymentMethod === 'cod' || checkParams.paymentMethod === 'COD';
+  if (!isCODPayment) {
+    return {
+      signals: [],
+      totalScore: 0,
+      clampedScore: 0,
+      decision: 'allow',
+      isBlacklisted: false,
+    };
+  }
 
   // Calculate risk
   const assessment = await calculateRiskScore(checkParams);
