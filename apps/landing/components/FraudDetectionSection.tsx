@@ -98,13 +98,13 @@ export const FraudDetectionSection = () => {
     {
       icon: Database,
       titleBn: 'শেয়ার্ড কুরিয়ার ডাটাবেস',
-      description: 'সারা দেশের কুরিয়ার ডেলিভারি রেকর্ড থেকে রিয়েল-টাইম ডাটা।',
+      description: 'Steadfast, Pathao ও RedX — তিনটি কুরিয়ারের ডেলিভারি রেকর্ড থেকে রিয়েল-টাইম কাস্টমার ডাটা।',
       color: COLORS.primaryLight,
     },
     {
       icon: Activity,
-      titleBn: 'Steadfast ফ্রড ট্র্যাকিং',
-      description: 'ফোন নাম্বার দিয়ে সরাসরি Steadfast থেকে ডেলিভারি ও রিটার্ন রেট বের করে।',
+      titleBn: 'Steadfast · Pathao · RedX ট্র্যাকিং',
+      description: 'ফোন নাম্বার দিয়ে Steadfast, Pathao ও RedX — তিনটি কুরিয়ারের ডেলিভারি ও রিটার্ন রেট একসাথে দেখুন।',
       color: COLORS.warning,
     },
     {
