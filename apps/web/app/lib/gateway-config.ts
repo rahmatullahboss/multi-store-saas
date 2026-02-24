@@ -23,7 +23,9 @@ export interface BkashGatewayConfig {
 export interface NagadGatewayConfig {
   enabled: boolean;
   merchantId?: string;
+  merchantNumber?: string;      // Nagad merchant wallet number
   merchantPrivateKey?: string;
+  nagadPublicKey?: string;       // Nagad's public key for encryption
   isLive: boolean;
 }
 
@@ -105,12 +107,14 @@ export function getEffectiveBkashGatewayConfig(
  */
 export function getEffectiveNagadGatewayConfig(
   gatewayConfig: StoreGatewayConfig
-): { merchantId: string; merchantPrivateKey: string; isLive: boolean } | null {
+): { merchantId: string; merchantNumber: string; merchantPrivateKey: string; nagadPublicKey: string; isLive: boolean } | null {
   const nagad = gatewayConfig.nagad;
-  if (nagad?.enabled && nagad?.merchantId && nagad?.merchantPrivateKey) {
+  if (nagad?.enabled && nagad?.merchantId && nagad?.merchantNumber && nagad?.merchantPrivateKey && nagad?.nagadPublicKey) {
     return {
       merchantId: nagad.merchantId,
+      merchantNumber: nagad.merchantNumber,
       merchantPrivateKey: nagad.merchantPrivateKey,
+      nagadPublicKey: nagad.nagadPublicKey,
       isLive: nagad.isLive ?? false,
     };
   }

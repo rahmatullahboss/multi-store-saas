@@ -118,7 +118,7 @@ export class BkashGatewayService {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: idToken,
-        'X-APP-Key': appKey,
+        'X-App-Key': appKey,
       },
       body: JSON.stringify({
         mode: '0011', // Checkout without agreement
@@ -158,7 +158,7 @@ export class BkashGatewayService {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: idToken,
-        'X-APP-Key': appKey,
+        'X-App-Key': appKey,
       },
       body: JSON.stringify({ paymentID }),
     });
@@ -185,7 +185,7 @@ export class BkashGatewayService {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         Authorization: idToken,
-        'X-APP-Key': appKey,
+        'X-App-Key': appKey,
       },
       body: JSON.stringify({ paymentID }),
     });

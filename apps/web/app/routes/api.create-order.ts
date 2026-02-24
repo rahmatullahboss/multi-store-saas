@@ -2197,11 +2197,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
 
         const nagad = createNagadGatewayService(nagadCreds);
+        const clientIp = request.headers.get('CF-Connecting-IP') ||
+          request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ||
+          '127.0.0.1';
         const payment = await nagad.createPayment({
           orderId: orderNumber,
           amount: total.toFixed(2),
+          clientIp,
           callbackURL: `${origin}/api/nagad-callback?orderId=${orderId}&storeId=${input.store_id}`,
-          customerMobile: input.phone,
+          productDetails: { orderId: String(orderId), storeId: String(input.store_id) },
         });
 
         return json(
@@ -2210,7 +2214,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
             orderId,
             orderNumber,
             total,
-            paymentRedirectUrl: payment.callbackURL,
+            paymentRedirectUrl: payment.callBackUrl,
+            paymentReferenceId: payment.paymentReferenceId,
             message: 'Redirecting to Nagad payment...',
           },
           { headers: { 'x-order-number': orderNumber } }

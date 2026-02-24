@@ -76,7 +76,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const nagad = createNagadGatewayService(nagadCreds);
     const result = await nagad.verifyPayment(paymentRefId);
 
-    if (result.status === 'Success' || result.statusCode === '000') {
+    if (result.status === 'Success') {
       await db
         .update(orders)
         .set({
@@ -94,7 +94,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
 
       return redirect(
-        `${origin}/checkout/failed?orderId=${orderId}&error=${result.statusCode || 'verify_failed'}`
+        `${origin}/checkout/failed?orderId=${orderId}&error=${result.status || 'verify_failed'}`
       );
     }
   } catch (error) {
