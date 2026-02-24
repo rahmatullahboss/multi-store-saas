@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from '@/app/contexts/LanguageContext';
 import { MarketingHeader } from '@/components/MarketingHeader';
 import { Footer } from '@/components/Footer';
 
@@ -447,6 +448,7 @@ function StatsBar() {
 
 export default function IntegrationsPage() {
   const [activeFilter, setActiveFilter] = useState<Category>('all');
+  const { t } = useTranslation();
 
   const filtered =
     activeFilter === 'all'
@@ -498,12 +500,12 @@ export default function IntegrationsPage() {
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#006A4E]/15 border border-[#006A4E]/30 mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-[#00D17A] animate-pulse-soft" />
               <span className="text-[#00D17A] text-xs font-semibold tracking-wider uppercase">
-                20 Integrations & Growing
+                {t('intHeroBadge')}
               </span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold font-display text-white mb-5 leading-tight">
-              Everything{' '}
+              {t('intHeroTitle')}{' '}
               <span
                 className="animate-shimmer"
                 style={{
@@ -514,13 +516,12 @@ export default function IntegrationsPage() {
                   backgroundClip: 'text',
                 }}
               >
-                Connected
+                {t('intHeroTitleAccent')}
               </span>
             </h1>
 
             <p className="text-lg text-white/50 max-w-2xl mx-auto leading-relaxed">
-              Ozzyl integrates with Bangladesh&apos;s top payment gateways, courier services, and
-              fraud detection systems — so you can run your business without switching tabs.
+              {t('intHeroSubtitle')}
             </p>
           </div>
 
@@ -574,7 +575,7 @@ export default function IntegrationsPage() {
           {filtered.length === 0 && (
             <div className="text-center py-24 text-white/30">
               <div className="text-5xl mb-4">🔌</div>
-              <p className="text-lg">No integrations found in this category.</p>
+              <p className="text-lg">{t('intEmptyState')}</p>
             </div>
           )}
 
@@ -586,13 +587,13 @@ export default function IntegrationsPage() {
             />
             <div className="relative">
               <p className="text-[#00D17A] text-sm font-semibold uppercase tracking-widest mb-3">
-                Ready to integrate?
+                {t('intBottomCTABadge')}
               </p>
               <h2 className="text-3xl sm:text-4xl font-bold font-display text-white mb-4">
-                Start your store today
+                {t('intBottomCTATitle')}
               </h2>
               <p className="text-white/50 max-w-lg mx-auto mb-8 text-base">
-                All integrations are pre-built and ready to activate from your Ozzyl dashboard — no developer needed.
+                {t('intBottomCTASubtitle')}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <a
@@ -602,7 +603,7 @@ export default function IntegrationsPage() {
                              transition-all duration-200 shadow-lg shadow-[#006A4E]/30
                              hover:shadow-[#006A4E]/50 hover:-translate-y-0.5 active:scale-[0.98]"
                 >
-                  Get started free
+                  {t('intBottomCTAButton')}
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                   </svg>
@@ -613,7 +614,7 @@ export default function IntegrationsPage() {
                              border border-white/10 hover:border-white/20 text-white/80 hover:text-white
                              font-semibold rounded-xl text-sm transition-all duration-200 active:scale-[0.98]"
                 >
-                  View pricing
+                  {t('intBottomCTASecondary')}
                 </a>
               </div>
             </div>

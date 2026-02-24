@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from '@/app/contexts/LanguageContext';
 import { MarketingHeader } from '@/components/MarketingHeader';
 import { Footer } from '@/components/Footer';
 import {
@@ -178,6 +179,7 @@ function FeatureCard({ category, index }: { category: FeatureCategory; index: nu
 
 function FeaturesHero() {
   const [mounted, setMounted] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     // Tiny delay to ensure CSS transition fires after mount
@@ -218,7 +220,7 @@ function FeaturesHero() {
         >
           <Zap className="w-3.5 h-3.5 text-[#00875F]" />
           <span className="text-xs font-semibold text-[#00875F] tracking-widest uppercase">
-            Full Platform Overview
+            {t('featuresHeroBadge')}
           </span>
         </div>
 
@@ -231,7 +233,7 @@ function FeaturesHero() {
             transition: 'opacity 0.55s ease 0.1s, transform 0.55s ease 0.1s',
           }}
         >
-          Every feature your{' '}
+          {t('featuresHeroTitle')}{' '}
           <span
             className="relative inline-block"
             style={{
@@ -241,9 +243,8 @@ function FeaturesHero() {
               backgroundClip: 'text',
             }}
           >
-            store needs
+            {t('featuresHeroTitleAccent')}
           </span>
-          , built in.
         </h1>
 
         {/* Subheadline */}
@@ -255,8 +256,7 @@ function FeaturesHero() {
             transition: 'opacity 0.55s ease 0.18s, transform 0.55s ease 0.18s',
           }}
         >
-          From BD-native payments to AI-powered fraud detection — Ozzyl is the complete e-commerce
-          platform built for Bangladeshi merchants who mean business.
+          {t('featuresHeroSubtitle')}
         </p>
 
         {/* CTA row */}
@@ -292,10 +292,10 @@ function FeaturesHero() {
           }}
         >
           {[
-            { value: '8', label: 'Feature Categories' },
-            { value: '3', label: 'Active Themes' },
-            { value: '5+', label: 'Payment Gateways' },
-            { value: '3', label: 'Courier Partners' },
+            { value: '8', label: t('featuresStatCategories') },
+            { value: '3', label: t('featuresStatThemes') },
+            { value: '5+', label: t('featuresStatPayments') },
+            { value: '3', label: t('featuresStatCouriers') },
           ].map((stat) => (
             <div key={stat.label} className="flex flex-col items-center gap-0.5">
               <span className="text-2xl font-extrabold text-white font-display">{stat.value}</span>
@@ -337,6 +337,7 @@ function SectionHeader() {
 
 function BottomCTA() {
   const [ref, inView] = useInView(0.15);
+  const { t } = useTranslation();
 
   return (
     <section
@@ -369,16 +370,15 @@ function BottomCTA() {
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 mb-6">
           <Zap className="w-3.5 h-3.5 text-white" />
           <span className="text-xs font-semibold text-white tracking-widest uppercase">
-            Start Today — It's Free
+            {t('featBottomCTABadge')}
           </span>
         </div>
 
         <h2 className="text-3xl sm:text-4xl font-extrabold text-white font-display mb-4 leading-tight">
-          Ready to launch your store?
+          {t('featBottomCTATitle')}
         </h2>
         <p className="text-white/75 text-base sm:text-lg mb-10 leading-relaxed">
-          Join hundreds of Bangladeshi merchants already growing with Ozzyl. No credit card required.
-          Get started in under 5 minutes.
+          {t('featBottomCTASubtitle')}
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -386,14 +386,14 @@ function BottomCTA() {
             href="https://app.ozzyl.com/auth/register"
             className="inline-flex items-center gap-2 px-8 py-4 bg-white text-[#006A4E] font-bold rounded-xl text-sm hover:bg-white/90 transition-all shadow-[0_8px_32px_rgba(0,0,0,0.2)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] active:scale-[0.98]"
           >
-            ফ্রি একাউন্ট খুলুন
+            {t('featBottomCTAButton')}
             <ArrowRight className="w-4 h-4" />
           </a>
           <a
-            href="/contact"
+            href="/pricing"
             className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold rounded-xl text-sm transition-all"
           >
-            Talk to us
+            {t('featBottomCTASecondary')}
           </a>
         </div>
       </div>
@@ -403,155 +403,152 @@ function BottomCTA() {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-const FEATURES: FeatureCategory[] = [
-  {
-    id: 'store-management',
-    icon: ShoppingBag,
-    title: 'Store Management',
-    description:
-      'Everything you need to run a full-featured online store — from products to inventory — in one powerful dashboard.',
-    accentColor: '#006A4E',
-    glowColor: 'rgba(0, 106, 78, 0.15)',
-    badge: 'Core',
-    subFeatures: [
-      { label: 'Product catalog with rich media', icon: Package },
-      { label: 'Order management & fulfillment', icon: ClipboardList },
-      { label: 'Real-time inventory tracking', icon: Layers },
-      { label: 'Categories & collections', icon: Tag },
-      { label: 'Product variants & options', icon: Repeat },
-      { label: 'Discount & coupon engine', icon: BadgeCheck },
-    ],
-  },
-  {
-    id: 'payment-gateways',
-    icon: CreditCard,
-    title: 'Payment Gateways',
-    description:
-      'Accept payments the way Bangladeshi customers prefer — from mobile banking to cash on delivery, fully integrated.',
-    accentColor: '#F59E0B',
-    glowColor: 'rgba(245, 158, 11, 0.12)',
-    badge: 'BD-Native',
-    subFeatures: [
-      { label: 'bKash Gateway API', icon: Banknote },
-      { label: 'Nagad Gateway API', icon: Banknote },
-      { label: 'SSLCommerz (Cards & more)', icon: CreditCard },
-      { label: 'Manual bKash / Nagad / Rocket', icon: Repeat },
-      { label: 'Cash on Delivery (COD)', icon: Package },
-      { label: 'Multi-gateway routing', icon: Globe },
-    ],
-  },
-  {
-    id: 'courier-integration',
-    icon: Truck,
-    title: 'Courier Integration',
-    description:
-      'Seamlessly connect with leading Bangladeshi courier services for automated order dispatch, live tracking, and bulk operations.',
-    accentColor: '#3B82F6',
-    glowColor: 'rgba(59, 130, 246, 0.12)',
-    subFeatures: [
-      { label: 'Steadfast — order creation & tracking', icon: MapPin },
-      { label: 'Pathao — order creation & tracking', icon: MapPin },
-      { label: 'RedX — order creation & tracking', icon: MapPin },
-      { label: 'Bulk parcel dispatch', icon: Layers },
-      { label: 'Live delivery status sync', icon: TrendingUp },
-      { label: 'Courier cost estimation', icon: DollarSign },
-    ],
-  },
-  {
-    id: 'fraud-detection',
-    icon: ShieldAlert,
-    title: 'Fraud Detection',
-    description:
-      'Protect your business with intelligent fraud detection — automatically flag risky orders and reward your most trusted customers.',
-    accentColor: '#EF4444',
-    glowColor: 'rgba(239, 68, 68, 0.12)',
-    badge: 'Smart',
-    subFeatures: [
-      { label: 'Delivery success rate scoring', icon: BarChart3 },
-      { label: 'Return rate analysis per customer', icon: Repeat },
-      { label: 'IP-based order flagging', icon: AlertTriangle },
-      { label: 'Customer blacklist management', icon: UserX },
-      { label: 'COD auto-confirm for trusted customers', icon: BadgeCheck },
-      { label: 'Risk level dashboard', icon: ShieldAlert },
-    ],
-  },
-  {
-    id: 'theme-system',
-    icon: Palette,
-    title: 'Theme System',
-    description:
-      'Launch with a stunning storefront in minutes. Choose from curated themes, then personalize colors and branding to match your identity.',
-    accentColor: '#8B5CF6',
-    glowColor: 'rgba(139, 92, 246, 0.12)',
-    badge: '3 Active Themes',
-    subFeatures: [
-      { label: 'starter-store — clean & minimal', icon: Layout },
-      { label: 'luxe-boutique — luxury fashion', icon: Star },
-      { label: 'nova-lux — premium lifestyle', icon: Zap },
-      { label: 'Primary & accent color picker', icon: PaintBucket },
-      { label: 'Logo & favicon upload', icon: ImagePlus },
-      { label: 'Announcement banner control', icon: Tag },
-    ],
-  },
-  {
-    id: 'analytics',
-    icon: BarChart3,
-    title: 'Analytics & Dashboard',
-    description:
-      'Make data-driven decisions with real-time sales charts, revenue tracking, and top-performing product insights right from your dashboard.',
-    accentColor: '#10B981',
-    glowColor: 'rgba(16, 185, 129, 0.12)',
-    subFeatures: [
-      { label: 'Real-time sales charts', icon: TrendingUp },
-      { label: 'Revenue & GMV tracking', icon: DollarSign },
-      { label: 'Top products by sales', icon: Star },
-      { label: 'Order status breakdown', icon: ClipboardList },
-      { label: 'Customer acquisition metrics', icon: BarChart3 },
-      { label: 'Courier performance stats', icon: Truck },
-    ],
-  },
-  {
-    id: 'multi-tenant',
-    icon: Building2,
-    title: 'Multi-Tenant Architecture',
-    description:
-      "Every merchant gets a completely isolated store with custom domain support, running on Cloudflare's global edge network at sub-100ms speeds.",
-    accentColor: '#06B6D4',
-    glowColor: 'rgba(6, 182, 212, 0.12)',
-    badge: 'Enterprise-Grade',
-    subFeatures: [
-      { label: 'Per-store data isolation', icon: Lock },
-      { label: 'Custom subdomain & domain', icon: Globe },
-      { label: 'Edge-deployed on Cloudflare', icon: Zap },
-      { label: 'Sub-100ms TTFB globally', icon: TrendingUp },
-      { label: 'Unlimited store creation', icon: Building2 },
-      { label: 'Custom domain SSL (auto)', icon: LinkIcon },
-    ],
-  },
-  {
-    id: 'mobile-app',
-    icon: Smartphone,
-    title: 'Mobile App',
-    description:
-      'Manage your store on the go. Our Capacitor-based native app brings your full dashboard to Android and iOS with a seamless mobile experience.',
-    accentColor: '#F97316',
-    glowColor: 'rgba(249, 115, 22, 0.12)',
-    badge: 'Android & iOS',
-    subFeatures: [
-      { label: 'Capacitor-based native shell', icon: TabletSmartphone },
-      { label: 'Android & iOS support', icon: Smartphone },
-      { label: 'Push notifications for orders', icon: Zap },
-      { label: 'Order management on mobile', icon: ClipboardList },
-      { label: 'Dashboard & analytics view', icon: BarChart3 },
-      { label: 'Quick inventory updates', icon: Package },
-    ],
-  },
-];
+function useFeatures() {
+  const { t } = useTranslation();
+  const FEATURES: FeatureCategory[] = [
+    {
+      id: 'store-management',
+      icon: ShoppingBag,
+      title: t('featCatStoreManagement'),
+      description: t('featCatStoreDesc'),
+      accentColor: '#006A4E',
+      glowColor: 'rgba(0, 106, 78, 0.15)',
+      badge: 'Core',
+      subFeatures: [
+        { label: t('featSubProductCatalog'), icon: Package },
+        { label: t('featSubOrderMgmt'), icon: ClipboardList },
+        { label: t('featSubInventory'), icon: Layers },
+        { label: t('featSubCategories'), icon: Tag },
+        { label: t('featSubVariants'), icon: Repeat },
+        { label: t('featSubDiscounts'), icon: BadgeCheck },
+      ],
+    },
+    {
+      id: 'payment-gateways',
+      icon: CreditCard,
+      title: t('featCatPayments'),
+      description: t('featCatPaymentsDesc'),
+      accentColor: '#F59E0B',
+      glowColor: 'rgba(245, 158, 11, 0.12)',
+      badge: 'BD-Native',
+      subFeatures: [
+        { label: 'bKash Gateway API', icon: Banknote },
+        { label: t('featSubNagadGateway'), icon: Banknote },
+        { label: t('featSubSSLCommerz'), icon: CreditCard },
+        { label: t('featSubManualMFS'), icon: Repeat },
+        { label: t('featSubCOD'), icon: Package },
+        { label: t('featSubMultiGateway'), icon: Globe },
+      ],
+    },
+    {
+      id: 'courier-integration',
+      icon: Truck,
+      title: t('featCatCourier'),
+      description: t('featCatCourierDesc'),
+      accentColor: '#3B82F6',
+      glowColor: 'rgba(59, 130, 246, 0.12)',
+      subFeatures: [
+        { label: t('featSubSteadfast'), icon: MapPin },
+        { label: t('featSubPathao'), icon: MapPin },
+        { label: t('featSubRedX'), icon: MapPin },
+        { label: t('featSubBulkParcel'), icon: Layers },
+        { label: t('featSubLiveStatus'), icon: TrendingUp },
+        { label: t('featSubCourierCost'), icon: DollarSign },
+      ],
+    },
+    {
+      id: 'fraud-detection',
+      icon: ShieldAlert,
+      title: t('featCatFraud'),
+      description: t('featCatFraudDesc'),
+      accentColor: '#EF4444',
+      glowColor: 'rgba(239, 68, 68, 0.12)',
+      badge: 'Smart',
+      subFeatures: [
+        { label: t('featSubDeliveryScore'), icon: BarChart3 },
+        { label: 'Return rate analysis per customer', icon: Repeat },
+        { label: t('featSubIPFlag'), icon: AlertTriangle },
+        { label: t('featSubBlacklist'), icon: UserX },
+        { label: t('featSubCODAutoConfirm'), icon: BadgeCheck },
+        { label: 'Risk level dashboard', icon: ShieldAlert },
+      ],
+    },
+    {
+      id: 'theme-system',
+      icon: Palette,
+      title: t('featCatThemes'),
+      description: t('featCatThemesDesc'),
+      accentColor: '#8B5CF6',
+      glowColor: 'rgba(139, 92, 246, 0.12)',
+      badge: '3 Active Themes',
+      subFeatures: [
+        { label: 'starter-store — clean & minimal', icon: Layout },
+        { label: 'luxe-boutique — luxury fashion', icon: Star },
+        { label: 'nova-lux — premium lifestyle', icon: Zap },
+        { label: t('featSubColors'), icon: PaintBucket },
+        { label: t('featSubLogo'), icon: ImagePlus },
+        { label: t('featSubAnnouncement'), icon: Tag },
+      ],
+    },
+    {
+      id: 'analytics',
+      icon: BarChart3,
+      title: t('featCatAnalytics'),
+      description: t('featCatAnalyticsDesc'),
+      accentColor: '#10B981',
+      glowColor: 'rgba(16, 185, 129, 0.12)',
+      subFeatures: [
+        { label: t('featSubRealtimeCharts'), icon: TrendingUp },
+        { label: 'Revenue & GMV tracking', icon: DollarSign },
+        { label: 'Top products by sales', icon: Star },
+        { label: t('featSubOrderBreakdown'), icon: ClipboardList },
+        { label: t('featSubAcquisition'), icon: BarChart3 },
+        { label: t('featSubCourierStats'), icon: Truck },
+      ],
+    },
+    {
+      id: 'multi-tenant',
+      icon: Building2,
+      title: t('featCatMultiTenant'),
+      description: t('featCatMultiTenantDesc'),
+      accentColor: '#06B6D4',
+      glowColor: 'rgba(6, 182, 212, 0.12)',
+      badge: 'Enterprise-Grade',
+      subFeatures: [
+        { label: t('featSubPerStoreIsolation'), icon: Lock },
+        { label: t('featSubCustomDomain'), icon: Globe },
+        { label: t('featSubEdgeCDN'), icon: Zap },
+        { label: 'Sub-100ms TTFB globally', icon: TrendingUp },
+        { label: 'Unlimited store creation', icon: Building2 },
+        { label: t('featSubDomainSSL'), icon: LinkIcon },
+      ],
+    },
+    {
+      id: 'mobile-app',
+      icon: Smartphone,
+      title: t('featCatMobile'),
+      description: t('featCatMobileDesc'),
+      accentColor: '#F97316',
+      glowColor: 'rgba(249, 115, 22, 0.12)',
+      badge: 'Android & iOS',
+      subFeatures: [
+        { label: t('featSubCapacitor'), icon: TabletSmartphone },
+        { label: t('featSubAndroidIOS'), icon: Smartphone },
+        { label: t('featSubPushNotif'), icon: Zap },
+        { label: t('featSubMobileOrders'), icon: ClipboardList },
+        { label: 'Dashboard & analytics view', icon: BarChart3 },
+        { label: t('featSubInventoryMobile'), icon: Package },
+      ],
+    },
+  ];
+  return FEATURES;
+}
 
 // ─── Category Nav ─────────────────────────────────────────────────────────────
 
 function CategoryNav() {
   const [activeId, setActiveId] = useState<string>('store-management');
+  const FEATURES = useFeatures();
 
   useEffect(() => {
     if (!('IntersectionObserver' in window)) return;
@@ -625,6 +622,7 @@ function FeatureSection({ category, index }: { category: FeatureCategory; index:
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function FeaturesPage() {
+  const FEATURES = useFeatures();
   return (
     <div className="min-h-screen bg-[#0A0A0F]">
       <MarketingHeader />
@@ -662,16 +660,17 @@ export default function FeaturesPage() {
 
 function ComparisonStrip() {
   const [ref, inView] = useInView(0.1);
+  const { t } = useTranslation();
 
   const rows = [
-    { feature: 'bKash & Nagad Integration', ozzyl: true, others: false },
-    { feature: 'Built-in Fraud Detection', ozzyl: true, others: false },
-    { feature: 'Steadfast / Pathao / RedX', ozzyl: true, others: false },
-    { feature: 'Edge CDN (sub-100ms TTFB)', ozzyl: true, others: false },
-    { feature: 'Multi-tenant Isolation', ozzyl: true, others: false },
-    { feature: 'Mobile App (Android & iOS)', ozzyl: true, others: false },
-    { feature: 'No plugin fees', ozzyl: true, others: false },
-    { feature: 'BD-local Support (Bangla)', ozzyl: true, others: false },
+    { feature: t('featCompareBkashNagad'), ozzyl: true, others: false },
+    { feature: t('featCompareFraud'), ozzyl: true, others: false },
+    { feature: t('featCompareCouriers'), ozzyl: true, others: false },
+    { feature: t('featCompareEdge'), ozzyl: true, others: false },
+    { feature: t('featCompareMultiTenant'), ozzyl: true, others: false },
+    { feature: t('featCompareMobile'), ozzyl: true, others: false },
+    { feature: t('featCompareNoFees'), ozzyl: true, others: false },
+    { feature: t('featCompareBangla'), ozzyl: true, others: false },
   ];
 
   return (
@@ -687,10 +686,10 @@ function ComparisonStrip() {
       {/* Header */}
       <div className="text-center mb-10">
         <h2 className="text-2xl sm:text-3xl font-extrabold text-white font-display mb-3 tracking-tight">
-          Why merchants choose Ozzyl
+          {t('featCompareTitle')}
         </h2>
         <p className="text-white/45 text-sm sm:text-base">
-          Features built for Bangladesh — not bolted on as an afterthought.
+          {t('featCompareSubtitle')}
         </p>
       </div>
 
@@ -699,13 +698,13 @@ function ComparisonStrip() {
           <thead>
             <tr className="border-b border-white/[0.08]">
               <th className="text-left px-6 py-4 text-sm font-semibold text-white/40 w-full">
-                Feature
+                {t('featCompareFeature')}
               </th>
               <th className="px-6 py-4 text-center text-sm font-bold text-[#00875F] whitespace-nowrap">
                 Ozzyl
               </th>
               <th className="px-6 py-4 text-center text-sm font-medium text-white/30 whitespace-nowrap">
-                Others
+                {t('featCompareOthers')}
               </th>
             </tr>
           </thead>
