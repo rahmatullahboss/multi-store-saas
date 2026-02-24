@@ -632,4 +632,12 @@ export const landing = {
   intBottomCTAButton: 'Get started free',
   intBottomCTASecondary: 'View pricing',
   intEmptyState: 'No integrations found in this category.',
+  featuresHeroBadge: 'Full Platform Overview',
+  featuresHeroTitle: 'Everything you need to',
+  featuresHeroTitleAccent: 'sell in Bangladesh',
+  featuresHeroSubtitle: 'Built from the ground up for Bangladeshi merchants — bKash, Nagad, Steadfast, fraud detection, and more. All in one platform.',
+  featuresStatCategories: 'Feature Categories',
+  featuresStatThemes: 'Active Themes',
+  featuresStatPayments: 'Payment Gateways',
+  featuresStatCouriers: 'Courier Partners',
 };

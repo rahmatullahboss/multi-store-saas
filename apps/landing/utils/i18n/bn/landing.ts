@@ -632,4 +632,12 @@ export const landing = {
   intBottomCTAButton: 'বিনামূল্যে শুরু করুন',
   intBottomCTASecondary: 'মূল্য দেখুন',
   intEmptyState: 'এই ক্যাটাগরিতে কোনো ইন্টিগ্রেশন পাওয়া যায়নি।',
+  featuresHeroBadge: 'সম্পূর্ণ প্ল্যাটফর্ম পর্যালোচনা',
+  featuresHeroTitle: 'বাংলাদেশে বিক্রি করতে',
+  featuresHeroTitleAccent: 'যা যা দরকার সব আছে',
+  featuresHeroSubtitle: 'বাংলাদেশি মার্চেন্টদের জন্য তৈরি — bKash, Nagad, Steadfast, ফ্রড ডিটেকশন এবং আরও অনেক কিছু। সব এক প্ল্যাটফর্মে।',
+  featuresStatCategories: 'ফিচার ক্যাটাগরি',
+  featuresStatThemes: 'সক্রিয় থিম',
+  featuresStatPayments: 'পেমেন্ট গেটওয়ে',
+  featuresStatCouriers: 'কুরিয়ার পার্টনার',
 };
