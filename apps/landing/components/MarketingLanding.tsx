@@ -478,7 +478,7 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
         <AIShowcaseSection />
       </LazySectionWrapper>
 
-      {/* Builder sections */}
+      {/* Builder sections — hidden until ready
       <LazySectionWrapper minHeight="400px">
         <DragDropBuilderShowcase />
       </LazySectionWrapper>
@@ -490,6 +490,7 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
       <LazySectionWrapper minHeight="300px">
         <AIMagicSection />
       </LazySectionWrapper>
+      */}
 
       <LazySectionWrapper minHeight="250px">
         <AISocialProofSection />

@@ -492,6 +492,39 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       );
     }
 
+    // ── SERVER-SIDE ViewContent CAPI ────────────────────────────────────────
+    // Fire server-side ViewContent for every product page view.
+    // Complements browser Pixel — bypasses ad blockers & iOS 14+ restrictions.
+    // eventId is NOT set here (no matching client-side deduplication needed for ViewContent).
+    if (store.facebookPixelId && store.facebookAccessToken) {
+      const cookieHeader = request.headers.get('Cookie') || '';
+      const fbpMatch = cookieHeader.match(/_fbp=([^;]+)/);
+      const fbcMatch = cookieHeader.match(/_fbc=([^;]+)/);
+      const clientIp =
+        request.headers.get('CF-Connecting-IP') ||
+        request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ||
+        undefined;
+
+      context.cloudflare.ctx.waitUntil?.(
+        sendViewContentEvent({
+          pixelId: store.facebookPixelId,
+          accessToken: store.facebookAccessToken,
+          productId: String(product.id),
+          productName: product.title,
+          value: product.price,
+          currency: store.currency || 'BDT',
+          customerEmail: customer?.email ?? undefined,
+          customerId: customer?.id ?? undefined,
+          clientIpAddress: clientIp,
+          clientUserAgent: request.headers.get('User-Agent') ?? undefined,
+          fbp: fbpMatch?.[1],
+          fbc: fbcMatch?.[1],
+          eventSourceUrl: request.url,
+        }).catch((e) => console.error('[FB CAPI] ViewContent event failed:', e))
+      );
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     return json(responseData, {
       headers: { 'Cache-Control': 'public, max-age=60, stale-while-revalidate=300' },
     });

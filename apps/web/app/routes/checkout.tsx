@@ -244,6 +244,39 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     accent: unifiedSettings.theme.accent || baseTheme.accent,
   };
 
+  // ── SERVER-SIDE InitiateCheckout CAPI ──────────────────────────────────
+  // Fire when user lands on checkout page — server-side for ad blocker bypass.
+  // Per Meta docs: InitiateCheckout fires when user enters checkout flow.
+  // @see https://developers.facebook.com/docs/meta-pixel/reference#standard-events
+  if (store.facebookPixelId && store.facebookAccessToken) {
+    const cookieHeader = request.headers.get('Cookie') || '';
+    const fbpMatch = cookieHeader.match(/_fbp=([^;]+)/);
+    const fbcMatch = cookieHeader.match(/_fbc=([^;]+)/);
+    const clientIp =
+      request.headers.get('CF-Connecting-IP') ||
+      request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ||
+      undefined;
+
+    cloudflare.ctx.waitUntil(
+      sendInitiateCheckoutEvent({
+        pixelId: store.facebookPixelId,
+        accessToken: store.facebookAccessToken,
+        value: 0, // Cart value unknown at loader time — filled by client
+        currency: store.currency || 'BDT',
+        numItems: 0, // Unknown at loader time
+        contentIds: [], // Unknown at loader time
+        customerEmail: customer?.email ?? undefined,
+        customerId: customer?.id ?? undefined,
+        clientIpAddress: clientIp,
+        clientUserAgent: request.headers.get('User-Agent') ?? undefined,
+        fbp: fbpMatch?.[1],
+        fbc: fbcMatch?.[1],
+        eventSourceUrl: request.url,
+      }).catch((e) => console.error('[FB CAPI] InitiateCheckout event failed:', e))
+    );
+  }
+  // ────────────────────────────────────────────────────────────────────────
+
   return json({
     storeId: storeId as number,
     storeName: unifiedSettings.branding.storeName || store.name,

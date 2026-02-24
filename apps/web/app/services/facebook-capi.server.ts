@@ -389,6 +389,63 @@ export async function sendAddToCartEvent(params: AddToCartEventParams): Promise<
   });
 }
 
+// ============================================================================
+// INITIATE CHECKOUT EVENT
+// ============================================================================
+
+interface InitiateCheckoutEventParams {
+  pixelId: string;
+  accessToken: string;
+  value: number;
+  currency: string;
+  numItems: number;
+  contentIds: string[];
+  customerEmail?: string;
+  customerPhone?: string;
+  customerId?: string | number;
+  clientIpAddress?: string;
+  clientUserAgent?: string;
+  fbp?: string;
+  fbc?: string;
+  eventSourceUrl?: string;
+  /** Shared eventId for deduplication with browser Pixel */
+  eventId?: string;
+}
+
+/**
+ * Send InitiateCheckout event — fired when user enters checkout flow.
+ * @see https://developers.facebook.com/docs/meta-pixel/reference#standard-events
+ */
+export async function sendInitiateCheckoutEvent(
+  params: InitiateCheckoutEventParams
+): Promise<{ success: boolean; error?: string }> {
+  return sendEvent({
+    pixelId: params.pixelId,
+    accessToken: params.accessToken,
+    eventName: 'InitiateCheckout',
+    eventId: params.eventId || `initiate_checkout_${Date.now()}`,
+    eventSourceUrl: params.eventSourceUrl,
+    userData: {
+      email: params.customerEmail,
+      phone: params.customerPhone,
+      country: 'bd',
+      externalId: params.customerId != null ? String(params.customerId) : undefined,
+      clientIpAddress: params.clientIpAddress,
+      clientUserAgent: params.clientUserAgent,
+      fbp: params.fbp,
+      fbc: params.fbc,
+    },
+    customData: {
+      value: params.value,
+      // Meta docs: currency must be lowercase ISO 4217 code
+      currency: params.currency.toLowerCase(),
+      num_items: params.numItems,
+      content_type: 'product',
+      content_ids: params.contentIds,
+    },
+  });
+}
+
 /**
  * Send Lead event (contact form submission, newsletter signup)
  */

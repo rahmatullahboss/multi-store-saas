@@ -1,22 +1,33 @@
 import type { ActionFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
+import { drizzle } from 'drizzle-orm/d1';
+import { eq } from 'drizzle-orm';
+import { stores } from '@db/schema';
 import { action as trackVisitAction } from './api.track-visit';
 import { action as trackCartAction } from './api.track-cart';
+import { sendAddToCartEvent } from '~/services/facebook-capi.server';
 
 interface TrackEvent {
-  type: 'visit' | 'cart';
+  type: 'visit' | 'cart' | 'add_to_cart';
   storeId?: number;
   path?: string;
   visitorId?: string;
   store_id?: number;
   product_id?: number;
+  product_name?: string;
+  value?: number;
+  currency?: string;
+  quantity?: number;
   session_id?: string;
   customer_name?: string;
   customer_email?: string;
   customer_phone?: string;
-  quantity?: number;
+  customer_id?: string | number;
   variant_id?: number;
   variant_info?: string;
+  fbp?: string;
+  fbc?: string;
+  event_source_url?: string;
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
@@ -73,6 +84,59 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       await trackCartAction({ request: cartRequest, context, params: {} } as ActionFunctionArgs);
     }
+
+    // ── SERVER-SIDE AddToCart CAPI ─────────────────────────────────────────
+    // Fire AddToCart CAPI for improved ad attribution (bypasses ad blockers).
+    // Client calls this endpoint with product details when user adds to cart.
+    const addToCartEvents = events.filter((event) => event.type === 'add_to_cart');
+    if (addToCartEvents.length > 0) {
+      const db = drizzle(context.cloudflare.env.DB);
+      const clientIp =
+        request.headers.get('CF-Connecting-IP') ||
+        request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ||
+        undefined;
+      const userAgent = request.headers.get('User-Agent') ?? undefined;
+
+      for (const event of addToCartEvents) {
+        const storeIdForEvent = event.storeId || event.store_id;
+        if (!storeIdForEvent) continue;
+
+        // Fetch store CAPI credentials
+        const storeRows = await db
+          .select({
+            facebookPixelId: stores.facebookPixelId,
+            facebookAccessToken: stores.facebookAccessToken,
+            currency: stores.currency,
+          })
+          .from(stores)
+          .where(eq(stores.id, storeIdForEvent))
+          .limit(1);
+
+        const storeData = storeRows[0];
+        if (!storeData?.facebookPixelId || !storeData?.facebookAccessToken) continue;
+        if (!event.product_id || !event.value) continue;
+
+        context.cloudflare.ctx.waitUntil(
+          sendAddToCartEvent({
+            pixelId: storeData.facebookPixelId,
+            accessToken: storeData.facebookAccessToken,
+            productId: String(event.product_id),
+            productName: event.product_name || 'Product',
+            value: event.value,
+            currency: event.currency || storeData.currency || 'BDT',
+            quantity: event.quantity || 1,
+            customerEmail: event.customer_email,
+            customerId: event.customer_id,
+            clientIpAddress: clientIp,
+            clientUserAgent: userAgent,
+            fbp: event.fbp,
+            fbc: event.fbc,
+            eventSourceUrl: event.event_source_url,
+          }).catch((e) => console.error('[FB CAPI] AddToCart event failed:', e))
+        );
+      }
+    }
+    // ──────────────────────────────────────────────────────────────────────
 
     return json({ success: true });
   } catch (error) {
