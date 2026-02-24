@@ -1672,6 +1672,33 @@ vercel --prod --yes
 
 > **Note**: This project uses Vercel project `Root Directory = apps/landing`, so run deployment from monorepo root via `npm run deploy:landing` (or `vercel --prod --yes` after linking to `multi-store-saas-landing-rlej`).
 
+### Landing i18n Rules (CRITICAL — Last updated 2026-02-24)
+
+The landing app has **two i18n folders** — always use `apps/landing/utils/i18n/` (NOT `apps/landing/app/utils/i18n/`):
+
+| Folder | Used by | Status |
+|--------|---------|--------|
+| `apps/landing/utils/i18n/` | `LanguageContext.tsx` → **ACTIVE** | ✅ Use this |
+| `apps/landing/app/utils/i18n/` | Nothing (unused duplicate) | ❌ Do NOT add keys here |
+
+**Translation file locations:**
+- Nav/header keys → `apps/landing/utils/i18n/{lang}/common.ts`
+- Page content keys → `apps/landing/utils/i18n/{lang}/landing.ts`
+
+**Pages added (2026-02-24):**
+- `/features` → `apps/landing/app/features/page.tsx` — full i18n with `useTranslation`
+- `/integrations` → `apps/landing/app/integrations/page.tsx` — full i18n with `useTranslation`
+- Both pages linked in `MarketingHeader.tsx` (desktop + mobile nav)
+
+**Workflow after adding new landing pages:**
+1. Add EN keys to `utils/i18n/en/landing.ts` (or `common.ts` for nav)
+2. Add BN keys to `utils/i18n/bn/landing.ts` (or `common.ts` for nav)
+3. Use `useTranslation` from `@/app/contexts/LanguageContext` in page
+4. Replace all hardcoded English text with `t('key')`
+5. `cd apps/landing && npm run build` — verify no errors
+6. Commit: `git commit -m "feat/fix: description"`
+7. Deploy: `npm run deploy:landing` (from monorepo root)
+
 ### Unified Storefront Settings
 
 This project uses unified settings stored in `stores.storefront_settings` (JSON). The system supports:
@@ -1845,6 +1872,23 @@ import { Button } from '@ozzyl/ui';
 5. **Type Safety** - No `any` types, use explicit TypeScript types
 6. **Test Before Claim** - Run `npm run test:all` before claiming done
 7. **Edge-First** - All code runs on Cloudflare Edge, optimize accordingly
+8. **Delegate via Subagents** - For complex tasks, ALWAYS use specialized subagents via `invoke_subagents`. **NEVER do everything in one agent context.** This is NON-NEGOTIABLE. Delegate:
+   - DB schema / migrations → `database-architect` or `migration agent`
+   - API routes / Hono → `Hono & Cloudflare Workers Specialist Subagent`
+   - Frontend UI → `Frontend UI Builder Subagent`
+   - Security review → `Code reviewer engineer`
+   - Tests → `test writing agent`
+   - Research / best practices → `research agent who research internet and docs`
+   - Bug fixes → `bug fix agent`
+   - Documentation → `documentation agent`
+   - Architecture decisions → `Architect agent`
+   - Code quality + security review → `Code reviewer engineer`
+
+> **Rule**: Before writing any code yourself, ask: "Can a subagent do this better?" If yes — delegate. Subagents have specialized context, follow best practices, and produce higher quality output than generalist agents doing everything.
+
+> **Anti-pattern**: Writing 500+ lines of code in a single agent context without delegating. This leads to lower quality, missed edge cases, and security vulnerabilities.
+
+> **Pattern**: Plan → Delegate to specialists → Review output → Integrate. This is how world-class engineering teams work.
 
 ---
 
