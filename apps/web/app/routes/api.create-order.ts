@@ -68,7 +68,9 @@ import {
   getShippingConfigFromUnified,
 } from '~/services/unified-storefront-settings.server';
 import { createSslCommerzService } from '~/services/sslcommerz.server';
-import { parseGatewayConfig, getEffectiveSslCommerzConfig } from '~/lib/gateway-config';
+import { parseGatewayConfig, getEffectiveSslCommerzConfig, getEffectiveBkashGatewayConfig, getEffectiveNagadGatewayConfig } from '~/lib/gateway-config';
+import { createBkashGatewayService } from '~/services/bkash-gateway.server';
+import { createNagadGatewayService } from '~/services/nagad-gateway.server';
 
 // ============================================================================
 // VALIDATION SCHEMA with BD Phone validation
@@ -102,7 +104,7 @@ export const OrderSchema = z.object({
   notes: z.string().max(500).optional(),
   customer_email: z.string().email().optional(), // Optional email for confirmation
   payment_method: z
-    .enum(['cod', 'bkash', 'nagad', 'rocket', 'stripe', 'sslcommerz'])
+    .enum(['cod', 'bkash', 'nagad', 'rocket', 'stripe', 'sslcommerz', 'bkash_gateway', 'nagad_gateway'])
     .default('cod'),
   transaction_id: z
     .string()
@@ -116,7 +118,7 @@ export const OrderSchema = z.object({
   manual_payment_details: z
     .object({
       senderNumber: z.string().trim().optional(),
-      method: z.enum(['cod', 'bkash', 'nagad', 'rocket', 'stripe', 'sslcommerz']).optional(),
+      method: z.enum(['cod', 'bkash', 'nagad', 'rocket', 'stripe', 'sslcommerz', 'bkash_gateway', 'nagad_gateway']).optional(),
     })
     .optional(),
   bump_ids: z.array(z.number().int().positive()).optional(), // Order bump product IDs
@@ -593,7 +595,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       );
     }
 
-    if (!['cod', 'sslcommerz'].includes(input.payment_method)) {
+    if (!['cod', 'sslcommerz', 'bkash_gateway', 'nagad_gateway'].includes(input.payment_method)) {
       const senderNumber = input.manual_payment_details?.senderNumber?.replace(/[\s-]/g, '') || '';
       const methodInDetails = input.manual_payment_details?.method;
 
@@ -651,7 +653,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     };
 
     if (
-      ['bkash', 'nagad', 'rocket'].includes(input.payment_method) &&
+      (['bkash', 'nagad', 'rocket'] as string[]).includes(input.payment_method) &&
       !enabledManualMethods[input.payment_method as 'bkash' | 'nagad' | 'rocket']
     ) {
       return json(
@@ -757,7 +759,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
           | 'nagad'
           | 'rocket'
           | 'stripe'
-          | 'sslcommerz',
+          | 'sslcommerz'
+          | 'bkash_gateway'
+          | 'nagad_gateway',
         status: 'processing',
         idempotencyKey,
         orderId: null,
@@ -1342,7 +1346,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
             | 'bkash'
             | 'nagad'
             | 'rocket'
-            | 'sslcommerz',
+            | 'sslcommerz'
+            | 'bkash_gateway'
+            | 'nagad_gateway',
           transactionId:
             input.payment_method === 'sslcommerz' ? orderNumber : input.transaction_id || null,
           manualPaymentDetails:
@@ -2129,6 +2135,95 @@ export async function action({ request, context }: ActionFunctionArgs) {
               gatewayError instanceof Error
                 ? gatewayError.message
                 : 'Could not initialize secure payment gateway.',
+          },
+          { status: 502 }
+        );
+      }
+    }
+
+    // ── bKash Gateway Checkout ─────────────────────────────────────────────────
+    if ((input.payment_method as string) === 'bkash_gateway') {
+      try {
+        const origin = new URL(request.url).origin;
+        const storeGatewayConfig = parseGatewayConfig(storeData.gatewayConfig as string | null);
+        const bkashCreds = getEffectiveBkashGatewayConfig(storeGatewayConfig);
+        if (!bkashCreds) {
+          return json({ success: false, error: 'bKash Gateway is not configured for this store.' }, { status: 503 });
+        }
+
+        const bkash = createBkashGatewayService(bkashCreds);
+        const payment = await bkash.createPayment({
+          amount: total.toFixed(2),
+          currency: 'BDT',
+          merchantInvoiceNumber: orderNumber,
+          callbackURL: `${origin}/api/bkash-callback?orderId=${orderId}&storeId=${input.store_id}`,
+          payerReference: input.phone,
+        });
+
+        return json(
+          {
+            success: true,
+            orderId,
+            orderNumber,
+            total,
+            paymentRedirectUrl: payment.bkashURL,
+            message: 'Redirecting to bKash payment...',
+          },
+          { headers: { 'x-order-number': orderNumber } }
+        );
+      } catch (bkashError) {
+        await db
+          .update(orders)
+          .set({ paymentStatus: 'failed', updatedAt: new Date() })
+          .where(and(eq(orders.id, orderId!), eq(orders.storeId, input.store_id)));
+        return json(
+          {
+            success: false,
+            error: bkashError instanceof Error ? bkashError.message : 'bKash payment initialization failed.',
+          },
+          { status: 502 }
+        );
+      }
+    }
+
+    // ── Nagad Gateway Checkout ─────────────────────────────────────────────────
+    if ((input.payment_method as string) === 'nagad_gateway') {
+      try {
+        const origin = new URL(request.url).origin;
+        const storeGatewayConfig = parseGatewayConfig(storeData.gatewayConfig as string | null);
+        const nagadCreds = getEffectiveNagadGatewayConfig(storeGatewayConfig);
+        if (!nagadCreds) {
+          return json({ success: false, error: 'Nagad Gateway is not configured for this store.' }, { status: 503 });
+        }
+
+        const nagad = createNagadGatewayService(nagadCreds);
+        const payment = await nagad.createPayment({
+          orderId: orderNumber,
+          amount: total.toFixed(2),
+          callbackURL: `${origin}/api/nagad-callback?orderId=${orderId}&storeId=${input.store_id}`,
+          customerMobile: input.phone,
+        });
+
+        return json(
+          {
+            success: true,
+            orderId,
+            orderNumber,
+            total,
+            paymentRedirectUrl: payment.callbackURL,
+            message: 'Redirecting to Nagad payment...',
+          },
+          { headers: { 'x-order-number': orderNumber } }
+        );
+      } catch (nagadError) {
+        await db
+          .update(orders)
+          .set({ paymentStatus: 'failed', updatedAt: new Date() })
+          .where(and(eq(orders.id, orderId!), eq(orders.storeId, input.store_id)));
+        return json(
+          {
+            success: false,
+            error: nagadError instanceof Error ? nagadError.message : 'Nagad payment initialization failed.',
           },
           { status: 502 }
         );
