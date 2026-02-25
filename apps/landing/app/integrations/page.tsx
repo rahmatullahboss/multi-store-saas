@@ -24,290 +24,61 @@ interface Integration {
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
-const INTEGRATIONS: Integration[] = [
-  // ── Payment ──────────────────────────────────────────────────────────────
-  {
-    id: 'bkash-gateway',
-    name: 'bKash Gateway API',
-    category: 'payment',
-    plan: 'paid',
-    description:
-      'Full bKash payment gateway integration with tokenized checkout and automatic webhook verification for seamless mobile financial services.',
-    features: ['Tokenized checkout', 'Webhook verification', 'Refund support', 'Transaction logs'],
-    icon: 'B',
-    color: '#E2136E',
-    bgColor: 'rgba(226,19,110,0.1)',
-  },
-  {
-    id: 'nagad-gateway',
-    name: 'Nagad Gateway API',
-    category: 'payment',
-    plan: 'paid',
-    description:
-      'Nagad payment gateway with RSA signing, secure 3-step payment flow, and real-time transaction status updates.',
-    features: ['RSA signing', '3-step payment flow', 'Real-time status', 'Auto reconciliation'],
-    icon: 'N',
-    color: '#F7941D',
-    bgColor: 'rgba(247,148,29,0.1)',
-  },
-  {
-    id: 'sslcommerz',
-    name: 'SSLCommerz',
-    category: 'payment',
-    plan: 'platform',
-    description:
-      'Platform-default payment gateway supporting all major cards, mobile banking, and net banking. Per-store override available on paid plans.',
-    features: ['Cards & MFS', 'Net banking', 'EMI support', 'Per-store override'],
-    icon: 'S',
-    color: '#00A651',
-    bgColor: 'rgba(0,166,81,0.1)',
-  },
-  {
-    id: 'manual-bkash',
-    name: 'Manual bKash',
-    category: 'payment',
-    plan: 'free',
-    description:
-      'Accept manual bKash payments by sharing your personal bKash number. Merchants confirm transactions manually.',
-    features: ['Personal number', 'Manual confirmation', 'Screenshot upload', 'Order notes'],
-    icon: 'B',
-    color: '#E2136E',
-    bgColor: 'rgba(226,19,110,0.08)',
-  },
-  {
-    id: 'manual-nagad',
-    name: 'Manual Nagad',
-    category: 'payment',
-    plan: 'free',
-    description:
-      'Accept manual Nagad payments. Customers send money to your Nagad number and submit transaction IDs.',
-    features: ['Personal number', 'Transaction ID verify', 'Manual confirmation', 'Order notes'],
-    icon: 'N',
-    color: '#F7941D',
-    bgColor: 'rgba(247,148,29,0.08)',
-  },
-  {
-    id: 'manual-rocket',
-    name: 'Manual Rocket',
-    category: 'payment',
-    plan: 'free',
-    description:
-      'Accept manual Rocket (DBBL) mobile banking payments. Simple and accessible for all merchant tiers.',
-    features: ['Personal number', 'Manual confirmation', 'Screenshot upload', 'All plans'],
-    icon: 'R',
-    color: '#8B2FC9',
-    bgColor: 'rgba(139,47,201,0.1)',
-  },
-  {
-    id: 'cod',
-    name: 'Cash on Delivery',
-    category: 'payment',
-    plan: 'free',
-    description:
-      'Enable Cash on Delivery for customers who prefer to pay when their order arrives. Available on all plans with courier integration.',
-    features: ['All plans', 'Courier synced', 'Auto status update', 'COD reports'],
-    icon: '₳',
-    color: '#10B981',
-    bgColor: 'rgba(16,185,129,0.1)',
-  },
+// INTEGRATIONS data is now built inside the component using useIntegrations() hook
+// so that t() can be used for translations
 
-  // ── Courier ───────────────────────────────────────────────────────────────
-  {
-    id: 'steadfast',
-    name: 'Steadfast Courier',
-    category: 'courier',
-    plan: 'free',
-    description:
-      'Full Steadfast integration with order creation, live tracking, and rich fraud data including delivery rate and return rate by customer phone number.',
-    features: ['Order creation', 'Live tracking', 'Fraud: delivery rate %', 'Fraud: return rate %'],
-    icon: 'SF',
-    color: '#00D1FF',
-    bgColor: 'rgba(0,209,255,0.1)',
-  },
-  {
-    id: 'pathao',
-    name: 'Pathao Courier',
-    category: 'courier',
-    plan: 'free',
-    description:
-      'Pathao courier integration with order creation, real-time tracking, price plan API, and courier history for fraud detection.',
-    features: ['Order creation', 'Live tracking', 'Price plan API', 'Fraud history data'],
-    icon: 'P',
-    color: '#EF4444',
-    bgColor: 'rgba(239,68,68,0.1)',
-  },
-  {
-    id: 'redx',
-    name: 'RedX Courier',
-    category: 'courier',
-    plan: 'free',
-    description:
-      'RedX courier integration supporting order creation and real-time shipment tracking directly from your Ozzyl dashboard.',
-    features: ['Order creation', 'Live tracking', 'Status webhooks', 'Bulk dispatch'],
-    icon: 'RX',
-    color: '#FF3B30',
-    bgColor: 'rgba(255,59,48,0.1)',
-  },
+// ─── useIntegrations hook ─────────────────────────────────────────────────────
 
-  // ── Fraud ─────────────────────────────────────────────────────────────────
-  {
-    id: 'fraud-steadfast',
-    name: 'Steadfast Fraud Data',
-    category: 'fraud',
-    plan: 'free',
-    description:
-      'Leverage Steadfast courier history to surface delivery rate % and return rate % per customer phone number before you dispatch.',
-    features: ['Delivery rate %', 'Return rate %', 'Phone-based lookup', 'Pre-dispatch check'],
-    icon: 'SF',
-    color: '#00D1FF',
-    bgColor: 'rgba(0,209,255,0.08)',
-  },
-  {
-    id: 'fraud-pathao',
-    name: 'Pathao Fraud Data',
-    category: 'fraud',
-    plan: 'free',
-    description:
-      'Use Pathao courier history to detect high-risk customers by analysing their historical delivery and return patterns.',
-    features: ['Courier history', 'Risk scoring', 'Phone-based lookup', 'Order flagging'],
-    icon: 'P',
-    color: '#EF4444',
-    bgColor: 'rgba(239,68,68,0.08)',
-  },
-  {
-    id: 'fraud-redx',
-    name: 'RedX Fraud Data',
-    category: 'fraud',
-    plan: 'free',
-    description:
-      'RedX shipment history integrated into Ozzyl\'s fraud engine to identify repeat returners and bad actors.',
-    features: ['Shipment history', 'Return analysis', 'Phone-based lookup', 'Auto flagging'],
-    icon: 'RX',
-    color: '#FF3B30',
-    bgColor: 'rgba(255,59,48,0.08)',
-  },
-  {
-    id: 'cloudflare-ip',
-    name: 'Cloudflare IP Intelligence',
-    category: 'fraud',
-    plan: 'platform',
-    description:
-      'Cloudflare edge network intelligence for real-time country detection, VPN/proxy identification, and bot detection on every storefront visit.',
-    features: ['Country detection', 'Bot detection', 'VPN/proxy flag', 'Edge-native, zero latency'],
-    icon: 'CF',
-    color: '#F6821F',
-    bgColor: 'rgba(246,130,31,0.1)',
-  },
-
-  // ── Coming Soon ───────────────────────────────────────────────────────────
-  {
-    id: 'stripe',
-    name: 'Stripe',
-    category: 'coming-soon',
-    plan: 'coming-soon',
-    description:
-      'International card payments via Stripe. Accept Visa, Mastercard, and American Express from customers worldwide.',
-    features: ['International cards', 'Subscriptions', 'Payouts', 'Global coverage'],
-    icon: 'St',
-    color: '#635BFF',
-    bgColor: 'rgba(99,91,255,0.1)',
-  },
-  {
-    id: 'paypal',
-    name: 'PayPal',
-    category: 'coming-soon',
-    plan: 'coming-soon',
-    description:
-      'Accept PayPal payments from international customers. Ideal for cross-border e-commerce expansion.',
-    features: ['PayPal wallet', 'Guest checkout', 'Buyer protection', 'Multi-currency'],
-    icon: 'PP',
-    color: '#003087',
-    bgColor: 'rgba(0,48,135,0.15)',
-  },
-  {
-    id: 'dhl',
-    name: 'DHL Express',
-    category: 'coming-soon',
-    plan: 'coming-soon',
-    description:
-      'International shipping via DHL Express. Reach customers globally with reliable, tracked delivery.',
-    features: ['International shipping', 'Live tracking', 'Customs docs', 'Express delivery'],
-    icon: 'DH',
-    color: '#FFCC00',
-    bgColor: 'rgba(255,204,0,0.1)',
-  },
-  {
-    id: 'fedex',
-    name: 'FedEx',
-    category: 'coming-soon',
-    plan: 'coming-soon',
-    description:
-      'Global delivery via FedEx network. Enable cross-border logistics for international market expansion.',
-    features: ['Global logistics', 'Live tracking', 'Rate calculation', 'Express & economy'],
-    icon: 'FX',
-    color: '#4D148C',
-    bgColor: 'rgba(77,20,140,0.12)',
-  },
-  {
-    id: 'whatsapp',
-    name: 'WhatsApp Business API',
-    category: 'coming-soon',
-    plan: 'coming-soon',
-    description:
-      'Send order confirmations, shipping updates, and marketing messages directly via WhatsApp Business API.',
-    features: ['Order notifications', 'Shipping alerts', 'Marketing messages', 'Template messages'],
-    icon: 'WA',
-    color: '#25D366',
-    bgColor: 'rgba(37,211,102,0.1)',
-  },
-  {
-    id: 'facebook-catalog',
-    name: 'Facebook Catalog Sync',
-    category: 'coming-soon',
-    plan: 'coming-soon',
-    description:
-      'Automatically sync your Ozzyl product catalog with Facebook & Instagram for dynamic product ads and shops.',
-    features: ['Auto product sync', 'Dynamic ads', 'Instagram Shop', 'Inventory updates'],
-    icon: 'FB',
-    color: '#1877F2',
-    bgColor: 'rgba(24,119,242,0.1)',
-  },
-];
+function useIntegrations() {
+  const { t } = useTranslation();
+  return [
+    { id: 'bkash-gateway', name: t('intNameBkashGateway'), category: 'payment' as const, plan: 'paid' as const, description: t('intDescBkashGateway'), features: [t('intFeatTokenized'), t('intFeatWebhook'), t('intFeatRefund'), t('intFeatTxLogs')], icon: 'B', color: '#E2136E', bgColor: 'rgba(226,19,110,0.1)' },
+    { id: 'nagad-gateway', name: t('intNameNagadGateway'), category: 'payment' as const, plan: 'paid' as const, description: t('intDescNagadGateway'), features: [t('intFeatRSA'), t('intFeat3Step'), t('intFeatRealtime'), t('intFeatReconcile')], icon: 'N', color: '#F7941D', bgColor: 'rgba(247,148,29,0.1)' },
+    { id: 'sslcommerz', name: t('intNameSSLCommerz'), category: 'payment' as const, plan: 'platform' as const, description: t('intDescSSLCommerz'), features: [t('intFeatCardsMFS'), t('intFeatNetBanking'), t('intFeatEMI'), t('intFeatPerStore')], icon: 'S', color: '#00A651', bgColor: 'rgba(0,166,81,0.1)' },
+    { id: 'manual-bkash', name: t('intNameManualBkash'), category: 'payment' as const, plan: 'free' as const, description: t('intDescManualBkash'), features: [t('intFeatPersonalNum'), t('intFeatManualConfirm'), t('intFeatScreenshot'), t('intFeatOrderNotes')], icon: 'B', color: '#E2136E', bgColor: 'rgba(226,19,110,0.08)' },
+    { id: 'manual-nagad', name: t('intNameManualNagad'), category: 'payment' as const, plan: 'free' as const, description: t('intDescManualNagad'), features: [t('intFeatPersonalNum'), t('intFeatTxIDVerify'), t('intFeatManualConfirm'), t('intFeatOrderNotes')], icon: 'N', color: '#F7941D', bgColor: 'rgba(247,148,29,0.08)' },
+    { id: 'manual-rocket', name: t('intNameManualRocket'), category: 'payment' as const, plan: 'free' as const, description: t('intDescManualRocket'), features: [t('intFeatPersonalNum'), t('intFeatManualConfirm'), t('intFeatScreenshot'), t('intFeatAllPlans')], icon: 'R', color: '#8B2FC9', bgColor: 'rgba(139,47,201,0.1)' },
+    { id: 'cod', name: t('intNameCOD'), category: 'payment' as const, plan: 'free' as const, description: t('intDescCOD'), features: [t('intFeatAllPlans'), t('intFeatCourierSynced'), t('intFeatAutoStatus'), t('intFeatCODReports')], icon: '₳', color: '#10B981', bgColor: 'rgba(16,185,129,0.1)' },
+    { id: 'steadfast', name: t('intNameSteadfast'), category: 'courier' as const, plan: 'free' as const, description: t('intDescSteadfast'), features: [t('intFeatOrderCreation'), t('intFeatLiveTracking'), t('intFeatDeliveryRate'), t('intFeatReturnRate')], icon: 'SF', color: '#00D1FF', bgColor: 'rgba(0,209,255,0.1)' },
+    { id: 'pathao', name: t('intNamePathao'), category: 'courier' as const, plan: 'free' as const, description: t('intDescPathao'), features: [t('intFeatOrderCreation'), t('intFeatLiveTracking'), t('intFeatPricePlan'), t('intFeatFraudHistory')], icon: 'P', color: '#EF4444', bgColor: 'rgba(239,68,68,0.1)' },
+    { id: 'redx', name: t('intNameRedX'), category: 'courier' as const, plan: 'free' as const, description: t('intDescRedX'), features: [t('intFeatOrderCreation'), t('intFeatLiveTracking'), t('intFeatStatusWebhooks'), t('intFeatBulkDispatch')], icon: 'RX', color: '#FF3B30', bgColor: 'rgba(255,59,48,0.1)' },
+    { id: 'fraud-steadfast', name: t('intNameFraudSteadfast'), category: 'fraud' as const, plan: 'free' as const, description: t('intDescFraudSteadfast'), features: [t('intFeatDeliveryPct'), t('intFeatReturnPct'), t('intFeatPhoneLookup'), t('intFeatPreDispatch')], icon: 'SF', color: '#00D1FF', bgColor: 'rgba(0,209,255,0.08)' },
+    { id: 'fraud-pathao', name: t('intNameFraudPathao'), category: 'fraud' as const, plan: 'free' as const, description: t('intDescFraudPathao'), features: [t('intFeatCourierHistory'), t('intFeatRiskScoring'), t('intFeatPhoneLookup'), t('intFeatOrderFlagging')], icon: 'P', color: '#EF4444', bgColor: 'rgba(239,68,68,0.08)' },
+    { id: 'fraud-redx', name: t('intNameFraudRedX'), category: 'fraud' as const, plan: 'free' as const, description: t('intDescFraudRedX'), features: [t('intFeatShipHistory'), t('intFeatReturnAnalysis'), t('intFeatPhoneLookup'), t('intFeatAutoFlagging')], icon: 'RX', color: '#FF3B30', bgColor: 'rgba(255,59,48,0.08)' },
+    { id: 'cloudflare-ip', name: t('intNameCloudflare'), category: 'fraud' as const, plan: 'platform' as const, description: t('intDescCloudflare'), features: [t('intFeatCountryDetect'), t('intFeatBotDetect'), t('intFeatVPNProxy'), t('intFeatEdgeNative')], icon: 'CF', color: '#F6821F', bgColor: 'rgba(246,130,31,0.1)' },
+    { id: 'stripe', name: t('intNameStripe'), category: 'coming-soon' as const, plan: 'coming-soon' as const, description: t('intDescStripe'), features: [t('intFeatIntlCards'), t('intFeatSubscriptions'), t('intFeatPayouts'), t('intFeatGlobalCoverage')], icon: 'St', color: '#635BFF', bgColor: 'rgba(99,91,255,0.1)' },
+    { id: 'paypal', name: t('intNamePaypal'), category: 'coming-soon' as const, plan: 'coming-soon' as const, description: t('intDescPaypal'), features: [t('intFeatPaypalWallet'), t('intFeatGuestCheckout'), t('intFeatBuyerProtection'), t('intFeatMultiCurrency')], icon: 'PP', color: '#003087', bgColor: 'rgba(0,48,135,0.15)' },
+    { id: 'dhl', name: t('intNameDHL'), category: 'coming-soon' as const, plan: 'coming-soon' as const, description: t('intDescDHL'), features: [t('intFeatIntlShipping'), t('intFeatLiveTracking'), t('intFeatCustomsDocs'), t('intFeatExpress')], icon: 'DH', color: '#FFCC00', bgColor: 'rgba(255,204,0,0.1)' },
+    { id: 'fedex', name: t('intNameFedEx'), category: 'coming-soon' as const, plan: 'coming-soon' as const, description: t('intDescFedEx'), features: [t('intFeatGlobalLogistics'), t('intFeatLiveTracking'), t('intFeatRateCalc'), t('intFeatExpressEconomy')], icon: 'FX', color: '#4D148C', bgColor: 'rgba(77,20,140,0.12)' },
+    { id: 'whatsapp', name: t('intNameWhatsApp'), category: 'coming-soon' as const, plan: 'coming-soon' as const, description: t('intDescWhatsApp'), features: [t('intFeatOrderNotif'), t('intFeatShippingAlerts'), t('intFeatMarketing'), t('intFeatTemplate')], icon: 'WA', color: '#25D366', bgColor: 'rgba(37,211,102,0.1)' },
+    { id: 'facebook-catalog', name: t('intNameFacebook'), category: 'coming-soon' as const, plan: 'coming-soon' as const, description: t('intDescFacebook'), features: [t('intFeatAutoSync'), t('intFeatDynamicAds'), t('intFeatInstagramShop'), t('intFeatInventory')], icon: 'FB', color: '#1877F2', bgColor: 'rgba(24,119,242,0.1)' },
+  ];
+}
 
 // ─── Filter Tab config ────────────────────────────────────────────────────────
 
-const TABS: { id: Category; label: string; emoji: string }[] = [
-  { id: 'all',          label: 'All',          emoji: '⚡' },
-  { id: 'payment',      label: 'Payment',      emoji: '💳' },
-  { id: 'courier',      label: 'Courier',      emoji: '📦' },
-  { id: 'fraud',        label: 'Fraud Shield', emoji: '🛡️' },
-  { id: 'coming-soon',  label: 'Coming Soon',  emoji: '🚀' },
-];
+function useTabs() {
+  const { t } = useTranslation();
+  return [
+    { id: 'all' as Category,         label: t('intTabAll'),       emoji: '⚡' },
+    { id: 'payment' as Category,     label: t('intTabPayment'),   emoji: '💳' },
+    { id: 'courier' as Category,     label: t('intTabCourier'),   emoji: '📦' },
+    { id: 'fraud' as Category,       label: t('intTabFraud'),     emoji: '🛡️' },
+    { id: 'coming-soon' as Category, label: t('intTabComingSoon'),emoji: '🚀' },
+  ];
+}
 
 // ─── Plan Badge ───────────────────────────────────────────────────────────────
 
 function PlanBadge({ plan }: { plan: Plan }) {
+  const { t } = useTranslation();
   const styles: Record<Plan, { label: string; className: string }> = {
-    free: {
-      label: 'All Plans',
-      className: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20',
-    },
-    paid: {
-      label: 'Paid Plan',
-      className: 'bg-amber-500/15 text-amber-400 border border-amber-500/20',
-    },
-    platform: {
-      label: 'Platform',
-      className: 'bg-blue-500/15 text-blue-400 border border-blue-500/20',
-    },
-    'coming-soon': {
-      label: 'Coming Soon',
-      className: 'bg-purple-500/15 text-purple-400 border border-purple-500/20',
-    },
+    free:           { label: t('intPlanAllPlans'),  className: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' },
+    paid:           { label: t('intPlanPaid'),       className: 'bg-amber-500/15 text-amber-400 border border-amber-500/20' },
+    platform:       { label: t('intPlanPlatform'),   className: 'bg-blue-500/15 text-blue-400 border border-blue-500/20' },
+    'coming-soon':  { label: t('intPlanComingSoon'), className: 'bg-purple-500/15 text-purple-400 border border-purple-500/20' },
   };
-
   const { label, className } = styles[plan];
-
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide uppercase ${className}`}>
       {label}
@@ -318,11 +89,12 @@ function PlanBadge({ plan }: { plan: Plan }) {
 // ─── Category Badge ───────────────────────────────────────────────────────────
 
 function CategoryBadge({ category }: { category: Exclude<Category, 'all'> }) {
+  const { t } = useTranslation();
   const styles: Record<Exclude<Category, 'all'>, { label: string; className: string }> = {
-    payment:      { label: '💳 Payment',      className: 'text-pink-400/80 bg-pink-500/8' },
-    courier:      { label: '📦 Courier',      className: 'text-cyan-400/80 bg-cyan-500/8' },
-    fraud:        { label: '🛡️ Fraud Shield', className: 'text-orange-400/80 bg-orange-500/8' },
-    'coming-soon':{ label: '🚀 Coming Soon',  className: 'text-purple-400/80 bg-purple-500/8' },
+    payment:      { label: t('intCatPayment'),    className: 'text-pink-400/80 bg-pink-500/8' },
+    courier:      { label: t('intCatCourier'),    className: 'text-cyan-400/80 bg-cyan-500/8' },
+    fraud:        { label: t('intCatFraud'),      className: 'text-orange-400/80 bg-orange-500/8' },
+    'coming-soon':{ label: t('intCatComingSoon'), className: 'text-purple-400/80 bg-purple-500/8' },
   };
 
   const { label, className } = styles[category];
@@ -421,11 +193,12 @@ function IntegrationCard({ integration, index }: { integration: Integration; ind
 // ─── Stats bar ────────────────────────────────────────────────────────────────
 
 function StatsBar() {
+  const { t } = useTranslation();
   const stats = [
-    { value: '7+',  label: 'Payment Methods' },
-    { value: '3',   label: 'Courier Partners' },
-    { value: '4',   label: 'Fraud Data Sources' },
-    { value: '6',   label: 'Coming Soon' },
+    { value: '7+', label: t('intStat1Label') },
+    { value: '3',  label: t('intStat2Label') },
+    { value: '4',  label: t('intStat3Label') },
+    { value: '6',  label: t('intStat4Label') },
   ];
 
   return (
@@ -449,6 +222,8 @@ function StatsBar() {
 export default function IntegrationsPage() {
   const [activeFilter, setActiveFilter] = useState<Category>('all');
   const { t } = useTranslation();
+  const INTEGRATIONS = useIntegrations();
+  const TABS = useTabs();
 
   const filtered =
     activeFilter === 'all'
