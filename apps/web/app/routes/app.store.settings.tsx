@@ -914,6 +914,7 @@ function BannerSlide({
   const fetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (fetcher.state === 'submitting') {
@@ -962,6 +963,28 @@ function BannerSlide({
       action: '/api/upload-image',
       encType: 'multipart/form-data',
     });
+  };
+
+  const handleRemoveImage = async () => {
+    const existingUrl = slide.imageUrl;
+    onUpdate(idx, { imageUrl: null });
+    setPreview(null);
+
+    if (!existingUrl) return;
+
+    try {
+      setIsDeleting(true);
+      const fd = new FormData();
+      fd.append('imageUrl', existingUrl);
+      await fetch('/api/delete-image', {
+        method: 'POST',
+        body: fd,
+      });
+    } catch {
+      // Ignore delete failures here; settings save will still remove the reference.
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -1052,10 +1075,8 @@ function BannerSlide({
                 )}
                 <button
                   type="button"
-                  onClick={() => {
-                    onUpdate(idx, { imageUrl: null });
-                    setPreview(null);
-                  }}
+                  onClick={handleRemoveImage}
+                  disabled={isUploading || isDeleting}
                   className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
                 >
                   <X className="w-3 h-3" />

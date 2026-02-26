@@ -712,6 +712,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       themeConfig: {
         ...(ensureHomepageHasCatalogSection(null, serializedProducts.length > 0) || {}),
         categoryImageMap,
+        heroBanner: unifiedSettings.heroBanner,
         announcement: unifiedSettings.announcement,
         trustBadges: {
           showPaymentIcons: false,
