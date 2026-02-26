@@ -18,7 +18,14 @@ import { authenticateApiKey } from '~/services/api.server';
 // ============================================================================
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   try {
-    const auth = await authenticateApiKey(request, context.cloudflare.env, 'read_orders');
+    const env2 = context.cloudflare.env;
+    const hmacSecret = env2.API_KEY_SECRET;
+    const kv = env2.STORE_CACHE ?? env2.KV;
+    if (!hmacSecret || !kv) {
+      return json({ success: false, error: 'Server misconfiguration' }, { status: 500 });
+    }
+    const rawKey = request.headers.get('Authorization')?.replace('Bearer ', '') ?? '';
+    const auth = rawKey && kv ? await authenticateApiKey(env2.DB, kv, rawKey, hmacSecret) : null;
     const db = drizzle(context.cloudflare.env.DB);
     
     const orderId = parseInt(params.id || '0');
@@ -26,6 +33,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       return json({ success: false, error: 'Invalid order ID' }, { status: 400 });
     }
 
+    if (!auth) return json({ error: 'Unauthorized' }, { status: 401 });
     // Fetch order
     const [order] = await db
       .select()

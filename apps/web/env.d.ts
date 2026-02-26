@@ -82,6 +82,29 @@ declare global {
     // WhatsApp Cloud API
     META_WHATSAPP_TOKEN?: string;
     META_WHATSAPP_PHONE_ID?: string;
+
+    // Builder Analytics — daily-rotating HMAC secret
+    // Set via: wrangler secret put ANALYTICS_SECRET
+    ANALYTICS_SECRET?: string;
+
+    // ─── Shopify App (Phase 4) ────────────────────────────────────────────────
+    /** Shopify App client ID from Partners dashboard */
+    SHOPIFY_CLIENT_ID?: string;
+    /** Shopify App client secret (wrangler secret put SHOPIFY_CLIENT_SECRET) */
+    SHOPIFY_CLIENT_SECRET?: string;
+    /** OAuth redirect URI registered in Shopify Partners */
+    SHOPIFY_REDIRECT_URI?: string;
+    /** 32-byte hex key for AES-GCM token encryption (wrangler secret put SHOPIFY_ENCRYPTION_KEY) */
+    SHOPIFY_ENCRYPTION_KEY?: string;
+    /** App handle for post-install redirect (default: "ozzyl") */
+    SHOPIFY_APP_HANDLE?: string;
+
+    // ─── KV Namespace (general purpose cache) ────────────────────────────────
+    KV?: KVNamespace;
+
+    // ─── API Platform (Phase 1-3) ─────────────────────────────────────────────
+    API_KEY_SECRET?: string;
+    RATE_LIMIT_KV?: KVNamespace;
   }
 }
 

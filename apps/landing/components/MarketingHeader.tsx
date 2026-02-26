@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Store, Menu, X, ArrowLeft, Globe } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { MagneticButton } from '@/components/animations/MagneticButton';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { ASSETS } from '@/config/assets';
@@ -18,11 +17,8 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
   const toggleLang = () => setLang(lang === 'en' ? 'bn' : 'en');
 
   return (
-    <motion.header
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, type: 'spring', damping: 20 }}
-      className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl"
+    <header
+      className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-5xl animate-fade-in-down"
     >
       <div className="relative bg-[#0A0A0F]/70 backdrop-blur-2xl border border-white/10 rounded-2xl px-6 py-3 shadow-[0_8px_32px_rgb(0_0_0/0.4)] overflow-hidden">
         {/* Subtle top shine */}
@@ -163,15 +159,9 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
         </div>
 
         {/* Mobile Dropdown Menu */}
-        <AnimatePresence>
-          {isMobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0, marginTop: 0 }}
-              animate={{ opacity: 1, height: 'auto', marginTop: 16 }}
-              exit={{ opacity: 0, height: 0, marginTop: 0 }}
-              className="sm:hidden border-t border-white/10 overflow-hidden"
-            >
-              <div className="flex flex-col gap-2 pb-2">
+        {isMobileMenuOpen && (
+          <div className="sm:hidden border-t border-white/10 overflow-hidden animate-fade-in">
+            <div className="flex flex-col gap-2 pb-2">
                 {!showBackToHome ? (
                   <>
                     <Link
@@ -253,11 +243,10 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                 >
                   {t('register')}
                 </Link>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          </div>
+        )}
       </div>
-    </motion.header>
+    </header>
   );
 }

@@ -13,6 +13,37 @@ export * from './schema_templates';
 export type CustomerSegment = 'vip' | 'churn_risk' | 'window_shopper' | 'new' | 'regular';
 
 // ============================================================================
+// SHOPIFY INSTALLATIONS TABLE — Phase 4: Shopify App Integration
+// Stores OAuth access tokens (AES-GCM encrypted) per shop domain.
+// ============================================================================
+export const shopifyInstallations = sqliteTable(
+  'shopify_installations',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    /** myshopify.com domain of the installed shop (e.g. my-store.myshopify.com) */
+    shopDomain: text('shop_domain').notNull().unique(),
+    /** Linked Ozzyl store (optional — set when merchant connects their account) */
+    storeId: integer('store_id').references(() => stores.id),
+    /** AES-GCM encrypted Shopify access token (base64) */
+    accessTokenEncrypted: text('access_token_encrypted').notNull(),
+    /** AES-GCM IV used for token encryption (base64) */
+    accessTokenIv: text('access_token_iv').notNull(),
+    /** Comma-separated OAuth scopes granted by the merchant */
+    scopes: text('scopes').notNull(),
+    /** When the app was installed / last re-installed */
+    installedAt: integer('installed_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    /** Set when the merchant uninstalls the app */
+    uninstalledAt: integer('uninstalled_at', { mode: 'timestamp' }),
+    /** Whether mandatory Shopify webhooks have been registered */
+    webhooksRegistered: integer('webhooks_registered', { mode: 'boolean' }).default(false),
+  },
+  (table) => [
+    index('idx_shopify_shop_domain').on(table.shopDomain),
+    index('idx_shopify_store_id').on(table.storeId),
+  ]
+);
+
+// ============================================================================
 // STORES TABLE - Core tenant table with Hybrid Mode support
 // ============================================================================
 export const stores = sqliteTable('stores', {
@@ -1988,10 +2019,12 @@ export const apiKeys = sqliteTable('api_keys', {
     .notNull()
     .references(() => stores.id),
   name: text('name').notNull(), // e.g. "Production Key"
-  keyPrefix: text('key_prefix').notNull(), // First 8 chars for display
-  keyHash: text('key_hash').notNull(), // SHA-256 hash of full key
+  keyPrefix: text('key_prefix').notNull(), // First 12 chars for display
+  keyHash: text('key_hash').notNull(), // HMAC-SHA256 hash of full key
   scopes: text('scopes').default('["read_orders","write_orders"]'), // JSON array
+  planId: integer('plan_id'), // References api_plans(id) — added in migration 0016
   lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }), // Optional key expiry
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   revokedAt: integer('revoked_at', { mode: 'timestamp' }),
 });
@@ -2065,7 +2098,8 @@ export const webhooks = sqliteTable(
     secret: text('secret'), // HMAC secret
     format: text('format').$type<'json' | 'xml'>().default('json'),
     isActive: integer('is_active', { mode: 'boolean' }).default(true),
-    failureCount: integer('failure_count').default(0), // Keep this field
+    failureCount: integer('failure_count').default(0),
+    events: text('events'), // JSON array: ["order/created","product/updated"] — added migration 0016
     createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   },
   (table) => [

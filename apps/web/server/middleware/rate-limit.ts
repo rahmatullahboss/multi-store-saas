@@ -1,491 +1,318 @@
 /**
- * Rate Limiting Middleware - IMPROVED VERSION
+ * rate-limit.ts — Ozzyl API Platform
+ * Hono middleware: sliding-window rate limiting via Cloudflare KV
  *
- * Based on Cloudflare Context7 best practices:
- * - KV has 1 write/second limit per key (uses memory-first strategy)
- * - Exponential backoff for KV write failures
- * - Better error handling and logging
- * - Batch write operations where possible
+ * PRIMARY implementation: KV sliding window (works on free plan, always available).
+ * OPTIONAL upgrade: Cloudflare Workers Rate Limiting API (atomic, paid plan only).
+ *   Requires a [[rate_limiting]] section in wrangler.toml AND a paid Workers plan.
+ *   When the RATE_LIMITER binding is present it is preferred because it is atomic
+ *   (no KV read-modify-write race condition).
  *
- * Features:
- * - Per-IP rate limiting with sliding window
- * - Memory-first strategy to reduce KV writes
- * - Exponential backoff for KV failures
- * - Different limits per endpoint type
- * - Returns rate limit headers (X-RateLimit-*)
+ * Decision flow:
+ *   1. RATE_LIMITER binding present (paid plan)? → use Workers RL API (atomic). REQUIRED in production.
+ *   2. KV namespace present (STORE_CACHE or RATE_LIMIT_KV)? → use KV sliding window (dev/staging only).
+ *   3. Neither available? → fail CLOSED in production (503), allow through in dev/test only.
+ *
+ * KV bindings checked (in order):
+ *   - STORE_CACHE   (already wired in most deployments)
+ *   - RATE_LIMIT_KV (dedicated namespace if preferred)
+ *
+ * ⚠️  TOCTOU RACE CONDITION (KV path):
+ *   The KV sliding-window implementation has an inherent read-modify-write race:
+ *   two concurrent requests may both read count=N, both write N+1, and one extra
+ *   request slips through. This is acceptable for MVP / low-traffic but NOT for
+ *   production at scale. Mitigation:
+ *     - Use the RATE_LIMITER Workers RL binding (atomic, no race) in production.
+ *       Add to wrangler.toml (requires Cloudflare paid plan):
+ *         [[rate_limiting]]
+ *         binding = "RATE_LIMITER"
+ *         namespace_id = "<your-namespace-id>"
+ *         simple = { limit = 100, period = 60 }
+ *     - Set ENVIRONMENT = "production" in wrangler.toml [vars] to enforce the
+ *       RATE_LIMITER binding requirement and fail closed when KV is unavailable.
+ *     - For free-plan deployments, accept the approximate KV behaviour and monitor
+ *       for abuse via Analytics Engine / usage tracking middleware.
  */
 
-import { Context, MiddlewareHandler } from 'hono';
+import type { MiddlewareHandler } from 'hono';
+import type { ValidatedApiKey } from '~/services/api.server';
 
-interface RateLimitConfig {
-  /** Max requests per window */
-  limit: number;
-  /** Window size in seconds */
-  windowMs: number;
-  /** Key prefix for storage */
-  keyPrefix?: string;
-  /** Custom key generator (default: IP address) */
-  keyGenerator?: (c: Context) => string;
-  /** Skip rate limiting for certain requests */
-  skip?: (c: Context) => boolean;
-  /** Custom response when rate limited */
-  onLimitReached?: (c: Context, retryAfter: number) => Response;
-  /** Use memory-first strategy (reduces KV writes) */
-  useMemoryFirst?: boolean;
-}
+// ─── Per-plan rate limits ─────────────────────────────────────────────────────
 
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
-  lastSync?: number; // Last time synced to KV
-}
+export const PLAN_LIMITS: Record<string, { requestsPerMinute: number; requestsPerDay: number }> = {
+  free:    { requestsPerMinute: 30,   requestsPerDay: 1_000 },
+  starter: { requestsPerMinute: 100,  requestsPerDay: 10_000 },
+  pro:     { requestsPerMinute: 500,  requestsPerDay: 100_000 },
+  agency:  { requestsPerMinute: 2000, requestsPerDay: 1_000_000 },
+};
 
-// ============================================================================
-// IN-MEMORY STORE (Development fallback + memory-first strategy)
-// ============================================================================
-const memoryStore = new Map<string, RateLimitEntry>();
+const DEFAULT_PLAN = 'free';
 
-// ============================================================================
-// UTILITIES
-// ============================================================================
+// ─── Middleware ───────────────────────────────────────────────────────────────
 
 /**
- * Get client IP from request
- * Priority: CF-Connecting-IP > X-Forwarded-For > X-Real-IP > unknown
- */
-function getClientIP(c: Context): string {
-  // Cloudflare provides real IP (most reliable)
-  const cfIP = c.req.header('cf-connecting-ip');
-  if (cfIP) return cfIP;
-
-  // X-Forwarded-For header (first IP is usually the client)
-  const xff = c.req.header('x-forwarded-for');
-  if (xff) return xff.split(',')[0].trim();
-
-  // X-Real-IP header
-  const realIP = c.req.header('x-real-ip');
-  if (realIP) return realIP;
-
-  // Fallback - should not happen in production
-  return 'unknown';
-}
-
-/**
- * Derive a tenant-aware scope for rate limiting.
- * This prevents one tenant's traffic from throttling another tenant sharing NAT IPs.
- */
-function getTenantScope(c: Context): string {
-  const host = c.req.header('x-forwarded-host') || c.req.header('host') || 'unknown-host';
-  return host.split(':')[0].toLowerCase();
-}
-
-/**
- * Retry with exponential backoff for KV operations
- * Based on Context7 best practices for handling KV rate limits
- */
-async function retryWithBackoff<T>(
-  fn: () => Promise<T>,
-  maxAttempts = 3,
-  initialDelay = 100
-): Promise<T> {
-  let attempts = 0;
-  let delay = initialDelay;
-
-  while (attempts < maxAttempts) {
-    try {
-      return await fn();
-    } catch (error) {
-      attempts++;
-
-      // Check if it's a KV rate limit error
-      const isRateLimit =
-        error instanceof Error &&
-        (error.message.includes('429') ||
-          error.message.includes('Too Many Requests') ||
-          error.message.includes('KV PUT failed'));
-
-      if (!isRateLimit || attempts >= maxAttempts) {
-        throw error;
-      }
-
-      // Exponential backoff: 100ms, 200ms, 400ms
-      console.warn(`[RateLimiter] KV write attempt ${attempts} failed, retrying in ${delay}ms...`);
-      await new Promise((resolve) => setTimeout(resolve, delay));
-      delay *= 2;
-    }
-  }
-
-  throw new Error('Max retry attempts reached');
-}
-
-/**
- * Sync memory state to KV with debouncing
- * Only syncs every 5 seconds to reduce KV writes
- */
-async function syncToKV(
-  kv: KVNamespace,
-  key: string,
-  entry: RateLimitEntry,
-  windowMs: number
-): Promise<void> {
-  const now = Date.now();
-
-  // Only sync if 5 seconds have passed since last sync
-  if (entry.lastSync && now - entry.lastSync < 5000) {
-    return;
-  }
-
-  try {
-    await retryWithBackoff(async () => {
-      await kv.put(key, JSON.stringify(entry), {
-        expirationTtl: Math.ceil(windowMs),
-      });
-    });
-
-    entry.lastSync = now;
-  } catch (error) {
-    console.error(`[RateLimiter] Failed to sync to KV for key ${key}:`, error);
-    // Don't throw - memory state is still valid
-  }
-}
-
-// ============================================================================
-// RATE LIMITER IMPLEMENTATION
-// ============================================================================
-
-/**
- * Rate Limiting Middleware - Production Ready
+ * rateLimitMiddleware
+ * Must run AFTER apiKeyAuth (needs c.var.apiKey)
  *
  * @example
- * ```ts
- * // Standard API rate limit
- * app.use('/api/*', rateLimit({ limit: 100, windowMs: 60 }));
- *
- * // Strict limit for auth endpoints
- * app.use('/api/auth/*', rateLimit({
- *   limit: 5,
- *   windowMs: 900,
- *   keyPrefix: 'auth'
- * }));
- *
- * // Memory-first strategy (reduces KV writes by 80%)
- * app.use('/api/search/*', rateLimit({
- *   limit: 30,
- *   windowMs: 60,
- *   useMemoryFirst: true
- * }));
- * ```
+ * v1.use('*', apiKeyAuth(), rateLimitMiddleware())
  */
-export const rateLimit = (config: RateLimitConfig): MiddlewareHandler => {
-  const {
-    limit,
-    windowMs,
-    keyPrefix = 'rl',
-    keyGenerator = (c) => `${getTenantScope(c)}:${getClientIP(c)}`,
-    skip,
-    onLimitReached,
-    useMemoryFirst = true, // Default to true for better performance
-  } = config;
-
-  return async (c: Context, next: () => Promise<void>) => {
-    // Skip if configured
-    if (skip && skip(c)) {
-      return next();
+export function rateLimitMiddleware(): MiddlewareHandler {
+  return async (c, next) => {
+    const apiKey: ValidatedApiKey | undefined = c.var.apiKey;
+    if (!apiKey) {
+      // No API key = unauthenticated, skip rate limiting (auth middleware handles rejection)
+      await next();
+      return;
     }
 
-    const key = `${keyPrefix}:${keyGenerator(c)}`;
-    const now = Date.now();
-    const windowEnd = now + windowMs * 1000;
+    const planName = resolvePlanName(apiKey.planId);
+    const limits = PLAN_LIMITS[planName] ?? PLAN_LIMITS[DEFAULT_PLAN];
+    const rateLimitKey = `store:${apiKey.storeId}:key:${apiKey.id}`;
 
-    let current = 0;
-    let resetAt = windowEnd;
-    let entry: RateLimitEntry | undefined;
+    const env = c.env as unknown as Record<string, unknown>;
+    const isProduction = env['ENVIRONMENT'] === 'production';
+    const windowMs = 60_000;
 
-    const kv = c.env?.RATE_LIMIT_KV;
+    // ── Option A: Workers Rate Limiting API (atomic, paid plan only) ──
+    // This binding requires [[rate_limiting]] in wrangler.toml and a paid Workers
+    // plan. It is NOT available on the free plan or in local `wrangler dev`.
+    // When present it is EXCLUSIVELY used — no KV fallback — because it is atomic
+    // (no TOCTOU race condition). REQUIRED in production environments.
+    const rateLimiter = env['RATE_LIMITER'] as RateLimiter | undefined;
+    if (rateLimiter) {
+      const { success } = await rateLimiter.limit({ key: rateLimitKey });
+      if (!success) {
+        return rateLimitResponse(c, planName, limits.requestsPerMinute);
+      }
+      await next();
+      return;
+    }
 
-    if (kv && !useMemoryFirst) {
-      // KV-first strategy (original behavior)
-      try {
-        const stored = (await kv.get(key, 'json')) as RateLimitEntry | null;
+    // ── Option A2: Durable Object rate limiter service (atomic) ──
+    // Existing deployment binding in wrangler.toml:
+    // [[services]]
+    // binding = "RATE_LIMITER_SERVICE"
+    const rateLimiterService = env['RATE_LIMITER_SERVICE'] as Fetcher | undefined;
+    if (rateLimiterService) {
+      const result = await consumeWithRateLimiterService(
+        rateLimiterService,
+        rateLimitKey,
+        limits.requestsPerMinute,
+        windowMs
+      );
 
-        if (stored && stored.resetAt > now) {
-          current = stored.count;
-          resetAt = stored.resetAt;
+      if (result.ok) {
+        if (!result.allowed) {
+          return rateLimitResponse(c, planName, limits.requestsPerMinute);
         }
 
-        current++;
-
-        await retryWithBackoff(async () => {
-          await kv.put(key, JSON.stringify({ count: current, resetAt }), {
-            expirationTtl: Math.ceil(windowMs),
-          });
-        });
-      } catch (error) {
-        console.error('[RateLimiter] KV operation failed:', error);
-        // Fallback to memory store on KV failure
-        entry = memoryStore.get(key);
-        if (entry && entry.resetAt > now) {
-          current = entry.count;
-          resetAt = entry.resetAt;
-        }
-        current++;
-        memoryStore.set(key, { count: current, resetAt });
-      }
-    } else {
-      // Memory-first strategy (recommended - reduces KV writes)
-      entry = memoryStore.get(key);
-
-      if (entry && entry.resetAt > now) {
-        current = entry.count;
-        resetAt = entry.resetAt;
+        c.res.headers.set('X-RateLimit-Limit', String(limits.requestsPerMinute));
+        c.res.headers.set('X-RateLimit-Remaining', String(Math.max(0, result.remaining ?? 0)));
+        c.res.headers.set('X-RateLimit-Reset', String(result.resetEpochSeconds ?? nextMinuteReset()));
+        c.res.headers.set('X-RateLimit-Plan', planName);
+        await next();
+        return;
       }
 
-      current++;
-      const newEntry: RateLimitEntry = {
-        count: current,
-        resetAt,
-        lastSync: entry?.lastSync,
-      };
-      memoryStore.set(key, newEntry);
-
-      // Async sync to KV (don't block request)
-      if (kv && current > limit * 0.8) {
-        // Only sync when approaching limit (80% threshold)
-        c.executionCtx?.waitUntil?.(syncToKV(kv, key, newEntry, windowMs).catch(() => {}));
+      // Fail closed in production when atomic limiter service is configured but unavailable.
+      if (isProduction) {
+        console.error('[RateLimit] CRITICAL: RATE_LIMITER_SERVICE call failed in production — rejecting request.');
+        return c.json(
+          { success: false, error: 'service_unavailable', message: 'Service temporarily unavailable' },
+          503
+        );
       }
     }
 
-    // Calculate remaining
-    const remaining = Math.max(0, limit - current);
-    const retryAfter = Math.ceil((resetAt - now) / 1000);
+    // ── Production guard: RATE_LIMITER binding is required in production ──
+    // If we reach here in production, an atomic rate limiter is missing.
+    // Fail CLOSED to prevent an unprotected production API surface.
+    if (isProduction) {
+      console.error('[RateLimit] CRITICAL: Atomic rate limiter missing in production (RATE_LIMITER or RATE_LIMITER_SERVICE) — rejecting request.');
+      return c.json(
+        { success: false, error: 'service_unavailable', message: 'Service temporarily unavailable' },
+        503
+      );
+    }
+
+    // ── Option B: KV sliding window (dev/staging only) ──
+    // ⚠️  TOCTOU race: concurrent requests may both read count=N and both write
+    // N+1, allowing one extra request through per race window. Acceptable for
+    // development and staging; use RATE_LIMITER binding in production instead.
+    const kv = env['STORE_CACHE'] as KVNamespace | undefined
+      ?? env['RATE_LIMIT_KV'] as KVNamespace | undefined;
+    if (!kv) {
+      // No rate limiter available in dev/test — fail open with a warning.
+      // To fix: wire STORE_CACHE or RATE_LIMIT_KV in wrangler.toml, or add
+      // [[rate_limiting]] for production (paid Workers plan required).
+      console.warn('[RateLimit] No rate limiter available (RATE_LIMITER binding missing, no KV namespace found) — allowing request through in non-production environment');
+      await next();
+      return;
+    }
+    const windowKey = `rl:${rateLimitKey}:${currentMinuteWindow()}`;
+
+    const raw = await kv.get(windowKey);
+    const count = raw ? parseInt(raw, 10) : 0;
+
+    if (count >= limits.requestsPerMinute) {
+      return rateLimitResponse(c, planName, limits.requestsPerMinute);
+    }
+
+    // Increment (approximate — not atomic in KV)
+    await kv.put(windowKey, String(count + 1), { expirationTtl: 120 });
 
     // Set rate limit headers
-    c.header('X-RateLimit-Limit', limit.toString());
-    c.header('X-RateLimit-Remaining', remaining.toString());
-    c.header('X-RateLimit-Reset', Math.ceil(resetAt / 1000).toString());
+    c.res.headers.set('X-RateLimit-Limit', String(limits.requestsPerMinute));
+    c.res.headers.set('X-RateLimit-Remaining', String(Math.max(0, limits.requestsPerMinute - count - 1)));
+    c.res.headers.set('X-RateLimit-Reset', String(nextMinuteReset()));
+    c.res.headers.set('X-RateLimit-Plan', planName);
 
-    // Check if rate limited
-    if (current > limit) {
-      c.header('Retry-After', retryAfter.toString());
+    await next();
+  };
+}
 
-      if (onLimitReached) {
-        return onLimitReached(c, retryAfter);
-      }
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
+function resolvePlanName(planId: number | null): string {
+  if (!planId) return DEFAULT_PLAN;
+  // Map planId → plan name (extend as plans are added to DB)
+  const planMap: Record<number, string> = {
+    1: 'free',
+    2: 'starter',
+    3: 'pro',
+    4: 'agency',
+  };
+  return planMap[planId] ?? DEFAULT_PLAN;
+}
+
+function currentMinuteWindow(): number {
+  return Math.floor(Date.now() / 60_000);
+}
+
+function nextMinuteReset(): number {
+  return Math.ceil(Date.now() / 60_000) * 60;
+}
+
+function rateLimitResponse(c: Parameters<MiddlewareHandler>[0], plan: string, limit: number) {
+  return c.json(
+    {
+      success: false,
+      error: 'rate_limit_exceeded',
+      message: `Rate limit exceeded for plan '${plan}'. Limit: ${limit} requests/minute.`,
+      docs: 'https://docs.ozzyl.com/api/rate-limiting',
+    },
+    429,
+    {
+      'Retry-After': '60',
+      'X-RateLimit-Limit': String(limit),
+      'X-RateLimit-Remaining': '0',
+      'X-RateLimit-Reset': String(nextMinuteReset()),
+      'X-RateLimit-Plan': plan,
+    }
+  );
+}
+
+// ─── Route-specific rate limiters ────────────────────────────────────────────
+
+/**
+ * Creates a simple KV-based rate limiter middleware for a fixed request limit per minute.
+ * Used for route-specific limits (checkout, cart, auth, orders, etc.)
+ */
+function createSimpleRateLimit(limitPerMinute: number, label: string): () => MiddlewareHandler {
+  return () => async (c, next) => {
+    const kv =
+      (c.env as unknown as Record<string, unknown>)['STORE_CACHE'] as KVNamespace | undefined ??
+      (c.env as unknown as Record<string, unknown>)['RATE_LIMIT_KV'] as KVNamespace | undefined;
+
+    if (!kv) {
+      await next();
+      return;
+    }
+
+    const ip = c.req.header('cf-connecting-ip') ?? c.req.header('x-forwarded-for') ?? 'unknown';
+    const windowKey = `rl:${label}:${ip}:${currentMinuteWindow()}`;
+
+    const raw = await kv.get(windowKey);
+    const count = raw ? parseInt(raw, 10) : 0;
+
+    if (count >= limitPerMinute) {
       return c.json(
         {
           success: false,
-          error: 'Too many requests. Please try again later.',
-          code: 'RATE_LIMITED',
-          retryAfter,
+          error: 'rate_limit_exceeded',
+          message: `Too many requests. Limit: ${limitPerMinute} requests/minute.`,
         },
-        429
+        429,
+        { 'Retry-After': '60' }
       );
     }
 
-    return next();
+    await kv.put(windowKey, String(count + 1), { expirationTtl: 120 });
+    await next();
   };
-};
+}
 
-// ============================================================================
-// PRESET CONFIGURATIONS
-// ============================================================================
+/** 30 req/min — standard public API routes */
+export const standardApiLimit = createSimpleRateLimit(30, 'api');
 
-/**
- * Standard API rate limit
- * 100 requests per minute per IP
- */
-export const standardApiLimit = (): MiddlewareHandler => {
-  return rateLimit({
-    limit: 100,
-    windowMs: 60,
-    keyPrefix: 'api',
-    useMemoryFirst: true, // Use memory-first for better performance
-  });
-};
+/** 10 req/min — auth routes (login, register, password reset) */
+export const authLimit = createSimpleRateLimit(10, 'auth');
 
-/**
- * Strict rate limit for auth endpoints
- * 5 requests per 15 minutes per IP
- */
-export const authLimit = (): MiddlewareHandler => {
-  return rateLimit({
-    limit: 5,
-    windowMs: 900, // 15 minutes
-    keyPrefix: 'auth',
-    useMemoryFirst: false, // Auth needs persistence across workers
-    onLimitReached: (c, retryAfter) => {
-      return c.json(
-        {
-          success: false,
-          error: 'অনেক বেশি লগইন চেষ্টা। অনুগ্রহ করে কিছুক্ষণ পরে আবার চেষ্টা করুন।',
-          code: 'AUTH_RATE_LIMITED',
-          retryAfter,
-        },
-        429
-      );
-    },
-  });
-};
+/** 30 req/min — order creation / management */
+export const orderLimit = createSimpleRateLimit(30, 'order');
 
-/**
- * Order creation rate limit
- * 10 orders per minute per IP (prevent order spam)
- */
-export const orderLimit = (): MiddlewareHandler => {
-  return rateLimit({
-    limit: 10,
-    windowMs: 60,
-    keyPrefix: 'order',
-    useMemoryFirst: false, // Orders need persistence
-    onLimitReached: (c, retryAfter) => {
-      return c.json(
-        {
-          success: false,
-          error: 'অর্ডার লিমিট অতিক্রান্ত। অনুগ্রহ করে কিছুক্ষণ পরে আবার চেষ্টা করুন।',
-          code: 'ORDER_RATE_LIMITED',
-          retryAfter,
-        },
-        429
-      );
-    },
-  });
-};
+/** 10 req/min — AI chat / assistant */
+export const aiChatLimit = createSimpleRateLimit(10, 'ai-chat');
 
-/**
- * Search rate limit
- * 30 requests per minute per IP
- * Uses memory-first for better performance (search is non-critical)
- */
-export const searchLimit = (): MiddlewareHandler => {
-  return rateLimit({
-    limit: 30,
-    windowMs: 60,
-    keyPrefix: 'search',
-    useMemoryFirst: true,
-  });
-};
+/** 30 req/min — checkout page & checkout API */
+export const checkoutLimit = createSimpleRateLimit(30, 'checkout');
 
-/**
- * Webhook rate limit
- * 100 requests per minute per endpoint
- */
-export const webhookLimit = (): MiddlewareHandler => {
-  return rateLimit({
-    limit: 100,
-    windowMs: 60,
-    keyPrefix: 'webhook',
-    keyGenerator: (c) => `${c.req.path}`, // Per-endpoint, not per-IP
-    useMemoryFirst: true,
-  });
-};
+/** 50 req/min — cart operations */
+export const cartLimit = createSimpleRateLimit(50, 'cart');
 
-/**
- * AI/Chat rate limit
- * 20 requests per minute per user
- */
-export const aiChatLimit = (): MiddlewareHandler => {
-  return rateLimit({
-    limit: 20,
-    windowMs: 60,
-    keyPrefix: 'ai',
-    useMemoryFirst: true,
-    onLimitReached: (c, retryAfter) => {
-      return c.json(
-        {
-          success: false,
-          error: 'AI chat limit reached. Please wait before sending more messages.',
-          code: 'AI_RATE_LIMITED',
-          retryAfter,
-        },
-        429
-      );
-    },
-  });
-};
+// ─── TypeScript: Workers Rate Limiting API type ───────────────────────────────
 
-/**
- * Checkout Page Rate Limit
- * 30 requests per minute per IP (increased from 15 for better UX)
- */
-export const checkoutLimit = (): MiddlewareHandler => {
-  return rateLimit({
-    limit: 30, // Increased from 15 for better UX
-    windowMs: 60,
-    keyPrefix: 'checkout',
-    useMemoryFirst: false, // Checkout needs persistence
-    onLimitReached: (c, retryAfter) => {
-      // Return HTML for browser navigation (not JSON)
-      const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Too Many Requests</title>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <style>
-            body { 
-              font-family: system-ui, -apple-system, sans-serif; 
-              text-align: center; 
-              padding: 50px 20px;
-              background: #f9fafb;
-            }
-            .container {
-              max-width: 500px;
-              margin: 0 auto;
-              background: white;
-              padding: 40px;
-              border-radius: 12px;
-              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            }
-            h1 { color: #dc2626; margin-bottom: 20px; }
-            p { color: #4b5563; line-height: 1.6; }
-            .timer { 
-              font-size: 24px; 
-              font-weight: bold; 
-              color: #dc2626;
-              margin: 20px 0;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1>⚠️ অনেক বেশি রিকোয়েস্ট</h1>
-            <p>আপনি খুব দ্রুত চেকআউট করার চেষ্টা করছেন।</p>
-            <p class="timer">অনুগ্রহ করে ${retryAfter} সেকেন্ড অপেক্ষা করুন</p>
-            <p>Please wait ${retryAfter} seconds before trying again.</p>
-          </div>
-        </body>
-        </html>
-      `;
-      return c.html(html, 429, {
-        'Retry-After': String(retryAfter),
-        'Cache-Control': 'no-store',
-      });
-    },
-  });
-};
+interface RateLimiter {
+  limit(options: { key: string }): Promise<{ success: boolean }>;
+}
 
-/**
- * Cart rate limit (separate from checkout)
- * 50 cart operations per minute per IP
- */
-export const cartLimit = (): MiddlewareHandler => {
-  return rateLimit({
-    limit: 50,
-    windowMs: 60,
-    keyPrefix: 'cart',
-    useMemoryFirst: true,
-    onLimitReached: (c, retryAfter) => {
-      return c.json(
-        {
-          success: false,
-          error: 'কার্ট আপডেট লিমিট অতিক্রান্ত। অনুগ্রহ করে কিছুক্ষণ পরে আবার চেষ্টা করুন।',
-          code: 'CART_RATE_LIMITED',
-          retryAfter,
-        },
-        429
-      );
-    },
-  });
-};
+interface RateLimiterServiceResponse {
+  allowed: boolean;
+  remaining?: number;
+  resetAt?: number;
+}
+
+interface RateLimiterServiceConsumeResult {
+  ok: boolean;
+  allowed?: boolean;
+  remaining?: number;
+  resetEpochSeconds?: number;
+}
+
+async function consumeWithRateLimiterService(
+  service: Fetcher,
+  key: string,
+  limit: number,
+  windowMs: number
+): Promise<RateLimiterServiceConsumeResult> {
+  try {
+    const identifier = key.replace(/[^a-zA-Z0-9_.-]/g, '_');
+    const url = `http://internal/do/${identifier}/consume?limit=${limit}&window=${windowMs}`;
+    const res = await service.fetch(url, { method: 'POST' });
+
+    if (!res.ok && res.status !== 429) {
+      return { ok: false };
+    }
+
+    const body = await res.json() as RateLimiterServiceResponse;
+    return {
+      ok: true,
+      allowed: body.allowed,
+      remaining: body.remaining,
+      resetEpochSeconds: body.resetAt ? Math.ceil(body.resetAt / 1000) : undefined,
+    };
+  } catch {
+    return { ok: false };
+  }
+}

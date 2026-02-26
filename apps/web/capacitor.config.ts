@@ -10,7 +10,7 @@ const config: CapacitorConfig = {
     // cleartext: true,
     
     // For production (Wrapper mode):
-    url: 'https://ozzyl.com', 
+    url: 'https://app.ozzyl.com', 
     androidScheme: 'https'
   }
 };

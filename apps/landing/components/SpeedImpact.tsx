@@ -13,8 +13,9 @@
  * - Bengali explanations for local audience
  */
 
-import { motion, useInView, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
+import { useInView } from '@/hooks/useInView';
+import { useCountUp } from '@/hooks/useCountUp';
 import {
   TrendingDown,
   TrendingUp,
@@ -70,36 +71,26 @@ const AnimatedNumber = ({
   className = '',
   onComplete,
 }: AnimatedNumberProps) => {
-  const [displayValue, setDisplayValue] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true });
+  const displayValue = useCountUp(value, { duration: duration * 1000, enabled: isInView });
 
   useEffect(() => {
     if (!isInView) return;
-
-    const controls = animate(0, value, {
-      duration,
-      ease: 'easeOut',
-      onUpdate: (v) => setDisplayValue(Math.round(v)),
-      onComplete: () => onComplete?.(),
-    });
-
-    return () => controls.stop();
-  }, [isInView, value, duration, onComplete]);
+    const timeout = setTimeout(() => onComplete?.(), duration * 1000);
+    return () => clearTimeout(timeout);
+  }, [isInView, duration, onComplete]);
 
   return (
-    <motion.span
+    <span
       ref={ref}
-      className={className}
+      className={`${className} animate-fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'}`}
       style={{ color }}
-      initial={{ opacity: 0, scale: 0.5 }}
-      animate={isInView ? { opacity: 1, scale: 1 } : {}}
-      transition={{ duration: 0.5 }}
     >
       {prefix}
       {displayValue.toLocaleString()}
       {suffix}
-    </motion.span>
+    </span>
   );
 };
 
@@ -129,26 +120,25 @@ const StatCard = ({
   const TrendIcon = isNegative ? TrendingDown : TrendingUp;
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ delay, duration: 0.5 }}
-      className="rounded-xl p-5 relative overflow-hidden group"
+      className={`rounded-xl p-5 relative overflow-hidden group animate-fade-in-up ${
+        isInView ? 'opacity-100' : 'opacity-0'
+      }`}
       style={{
         background: `linear-gradient(135deg, ${color}08 0%, ${color}02 100%)`,
         border: `1px solid ${color}20`,
+        animationDelay: `${delay}s`,
       }}
     >
       {/* Icon */}
       <div className="flex items-start justify-between mb-3">
-        <motion.div
-          className="w-10 h-10 rounded-lg flex items-center justify-center"
+        <div
+          className="w-10 h-10 rounded-lg flex items-center justify-center transition-transform duration-200 group-hover:scale-105"
           style={{ background: `${color}20` }}
-          whileHover={{ scale: 1.1, rotate: 5 }}
         >
           <Icon className="w-5 h-5" style={{ color }} />
-        </motion.div>
+        </div>
         <TrendIcon className="w-5 h-5" style={{ color }} />
       </div>
 
@@ -163,7 +153,7 @@ const StatCard = ({
       >
         {descriptionBn}
       </p>
-    </motion.div>
+    </div>
   );
 };
 
@@ -192,15 +182,13 @@ const ComparisonTable = ({ isInView }: ComparisonTableProps) => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ delay: 0.6, duration: 0.6 }}
-      className="rounded-2xl overflow-hidden"
+    <div
+      className={`rounded-2xl overflow-hidden animate-fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'}`}
       style={{
         background:
           'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
         border: '1px solid rgba(255,255,255,0.08)',
+        animationDelay: '0.2s',
       }}
     >
       {/* Table Header */}
@@ -229,38 +217,37 @@ const ComparisonTable = ({ isInView }: ComparisonTableProps) => {
           icon: Users,
           slow: { value: slowData.visitors, suffix: ' জন' },
           fast: { value: fastData.visitors, suffix: ' জন' },
-          delay: 0.8,
+          delay: 0.1,
         },
         {
           label: 'থেকে যায়',
           icon: CheckCircle,
           slow: { value: slowData.stayed, suffix: ' জন', color: COLORS.red },
           fast: { value: fastData.stayed, suffix: ' জন', color: COLORS.green },
-          delay: 1.0,
+          delay: 0.2,
         },
         {
           label: 'কেনাকাটা করে',
           icon: ShoppingCart,
           slow: { value: slowData.bought, suffix: ' জন', color: COLORS.red },
           fast: { value: fastData.bought, suffix: ' জন', color: COLORS.green },
-          delay: 1.2,
+          delay: 0.3,
         },
         {
           label: 'Daily Sales',
           icon: DollarSign,
           slow: { value: slowData.sales, prefix: '৳', color: COLORS.red },
           fast: { value: fastData.sales, prefix: '৳', color: COLORS.green },
-          delay: 1.4,
+          delay: 0.4,
           isHighlight: true,
         },
       ].map((row, index) => (
-        <motion.div
+        <div
           key={index}
-          initial={{ opacity: 0, x: -20 }}
-          animate={isInView ? { opacity: 1, x: 0 } : {}}
-          transition={{ delay: row.delay, duration: 0.4 }}
-          className={`grid grid-cols-3 gap-4 p-4 ${row.isHighlight ? 'bg-white/[0.02]' : ''}`}
-          style={{ borderBottom: index < 3 ? `1px solid ${COLORS.border}` : 'none' }}
+          className={`grid grid-cols-3 gap-4 p-4 ${row.isHighlight ? 'bg-white/[0.02]' : ''} animate-fade-in-left ${
+            isInView ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{ borderBottom: index < 3 ? `1px solid ${COLORS.border}` : 'none', animationDelay: `${row.delay}s` }}
         >
           <div className="flex items-center gap-2">
             <row.icon className="w-4 h-4" style={{ color: COLORS.textMuted }} />
@@ -292,68 +279,34 @@ const ComparisonTable = ({ isInView }: ComparisonTableProps) => {
               onComplete={row.isHighlight ? () => setAnimationComplete(true) : undefined}
             />
           </div>
-        </motion.div>
+        </div>
       ))}
 
       {/* Difference Highlight */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={animationComplete ? { opacity: 1, scale: 1 } : {}}
-        transition={{ duration: 0.5, type: 'spring' }}
-        className="p-4 text-center"
+      <div
+        className={`p-4 text-center animate-fade-in-up ${
+          animationComplete ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+        }`}
         style={{
           background:
             'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(34, 211, 238, 0.1) 100%)',
+          transition: 'opacity 0.4s ease, transform 0.4s ease',
         }}
       >
-        <motion.div
-          animate={
-            animationComplete
-              ? {
-                  scale: [1, 1.05, 1],
-                }
-              : {}
-          }
-          transition={{ duration: 0.5, repeat: 2 }}
-          className="flex items-center justify-center gap-3"
-        >
+        <div className="flex items-center justify-center gap-3">
           <span className="text-2xl">👆</span>
           <p
             className="text-lg font-bold"
             style={{ color: COLORS.green, fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
             প্রতিদিন{' '}
-            <motion.span
-              animate={
-                animationComplete
-                  ? {
-                      textShadow: [
-                        '0 0 10px rgba(16, 185, 129, 0)',
-                        '0 0 20px rgba(16, 185, 129, 0.8)',
-                        '0 0 10px rgba(16, 185, 129, 0)',
-                      ],
-                    }
-                  : {}
-              }
-              transition={{ duration: 1, repeat: Infinity }}
-            >
-              ৳48,000
-            </motion.span>{' '}
+            <span className="animate-glow-text">৳48,000</span>{' '}
             বেশি শুধু Speed এর জন্য!
           </p>
-          {animationComplete && (
-            <motion.span
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: 'spring', stiffness: 500 }}
-              className="text-2xl"
-            >
-              💰
-            </motion.span>
-          )}
-        </motion.div>
-      </motion.div>
-    </motion.div>
+          {animationComplete && <span className="text-2xl animate-pop">💰</span>}
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -362,7 +315,7 @@ const ComparisonTable = ({ isInView }: ComparisonTableProps) => {
 // ============================================================================
 export function SpeedImpact() {
   const sectionRef = useRef<HTMLElement>(null);
-  const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
+  const isInView = useInView(sectionRef, { once: true, rootMargin: '-100px' });
 
   return (
     <section
@@ -372,24 +325,21 @@ export function SpeedImpact() {
     >
       {/* Background */}
       <div className="absolute inset-0">
-        <motion.div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full"
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full animate-pulse-soft"
           style={{
             background: `radial-gradient(ellipse, ${COLORS.accent}08 0%, transparent 70%)`,
           }}
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ duration: 10, repeat: Infinity }}
         />
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-sm mb-6"
+          <div
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-sm mb-6 animate-fade-in-up ${
+              isInView ? 'opacity-100' : 'opacity-0'
+            }`}
             style={{
               backgroundColor: `${COLORS.accent}10`,
               borderColor: `${COLORS.accent}30`,
@@ -399,28 +349,26 @@ export function SpeedImpact() {
             <span style={{ color: COLORS.accent }} className="text-sm font-medium">
               SPEED = SALES
             </span>
-          </motion.div>
+          </div>
 
-          <motion.h2
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4"
+          <h2
+            className={`text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 animate-fade-in-up ${
+              isInView ? 'opacity-100' : 'opacity-0'
+            }`}
             style={{ fontFamily: "'Noto Sans Bengali', 'Inter', sans-serif" }}
           >
             💰 Speed কেন গুরুত্বপূর্ণ?
-          </motion.h2>
+          </h2>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg max-w-2xl mx-auto"
+          <p
+            className={`text-lg max-w-2xl mx-auto animate-fade-in-up ${
+              isInView ? 'opacity-100' : 'opacity-0'
+            }`}
             style={{ color: COLORS.textMuted, fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
             ⚡ <span className="text-white font-semibold">Facebook এর মতো Speed</span>, আপনার ছোট
             Business এও — Research বলছে:
-          </motion.p>
+          </p>
         </div>
 
         {/* Research Stats Grid */}
@@ -452,11 +400,9 @@ export function SpeedImpact() {
         </div>
 
         {/* Real Example Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.5, duration: 0.6 }}
-          className="mb-8"
+        <div
+          className={`mb-8 animate-fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'}`}
+          style={{ animationDelay: '0.3s' }}
         >
           <div className="flex items-center justify-center gap-2 mb-6">
             <span className="text-2xl">💡</span>
@@ -478,23 +424,17 @@ export function SpeedImpact() {
 
           {/* Comparison Table */}
           <ComparisonTable isInView={isInView} />
-        </motion.div>
+        </div>
 
         {/* Final CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 1.8, duration: 0.6 }}
-          className="text-center"
-        >
-          <motion.div
-            className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl"
+        <div className={`text-center animate-fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'}`}>
+          <div
+            className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl transition-transform duration-200 hover:scale-[1.02]"
             style={{
               background:
                 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 106, 78, 0.1) 100%)',
               border: '1px solid rgba(16, 185, 129, 0.2)',
             }}
-            whileHover={{ scale: 1.02 }}
           >
             <Sparkles className="w-6 h-6" style={{ color: COLORS.accent }} />
             <p
@@ -512,19 +452,16 @@ export function SpeedImpact() {
               </span>{' '}
               ⚡
             </p>
-          </motion.div>
+          </div>
 
           {/* Source attribution */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ delay: 2 }}
-            className="text-xs mt-4"
+          <p
+            className={`text-xs mt-4 animate-fade-in ${isInView ? 'opacity-100' : 'opacity-0'}`}
             style={{ color: COLORS.textSubtle }}
           >
             * Source: Google/SOASTA Research, Amazon Internal Studies
-          </motion.p>
-        </motion.div>
+          </p>
+        </div>
       </div>
     </section>
   );

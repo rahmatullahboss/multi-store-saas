@@ -1,0 +1,384 @@
+/**
+ * Ozzyl Commerce — Admin Styles
+ *
+ * @package OzzylCommerce
+ * @since   1.0.0
+ */
+
+/* ── Reset / Base ──────────────────────────────────────────────────────────── */
+
+.ozzyl-admin-wrap *,
+.ozzyl-admin-wrap *::before,
+.ozzyl-admin-wrap *::after {
+	box-sizing: border-box;
+}
+
+/* ── Admin Header ──────────────────────────────────────────────────────────── */
+
+.ozzyl-admin-header {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	padding: 24px 0 16px;
+	border-bottom: 1px solid #e5e7eb;
+	margin-bottom: 0;
+}
+
+.ozzyl-admin-header__logo {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.ozzyl-admin-header__logo h1 {
+	font-size: 22px;
+	font-weight: 700;
+	color: #1e1b4b;
+	margin: 0;
+	padding: 0;
+	line-height: 1;
+}
+
+.ozzyl-admin-header__tagline {
+	color: #6b7280;
+	font-size: 13px;
+	margin: 0;
+}
+
+/* ── Tab Navigation ────────────────────────────────────────────────────────── */
+
+.ozzyl-admin-tabs {
+	margin-top: 0 !important;
+	padding-bottom: 0;
+}
+
+.ozzyl-admin-tabs .nav-tab-active {
+	background: #fff;
+	border-bottom-color: #fff;
+	color: #4f46e5;
+}
+
+/* ── Tab Content ───────────────────────────────────────────────────────────── */
+
+.ozzyl-tab-content {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-top: none;
+	padding: 24px;
+	margin-bottom: 20px;
+}
+
+/* ── Settings form ─────────────────────────────────────────────────────────── */
+
+.ozzyl-field-api-key {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.ozzyl-field-api-key input[type="password"],
+.ozzyl-field-api-key input[type="text"] {
+	font-family: monospace;
+	letter-spacing: 0.05em;
+}
+
+/* ── Connection status indicator ───────────────────────────────────────────── */
+
+.ozzyl-connection-status {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 28px;
+}
+
+.ozzyl-status-dot {
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	flex-shrink: 0;
+	transition: background-color 0.25s ease;
+}
+
+.ozzyl-status-dot.ozzyl-status-unknown {
+	background-color: #d1d5db;
+}
+
+.ozzyl-status-dot.ozzyl-status-connected {
+	background-color: #22c55e;
+	box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+.ozzyl-status-dot.ozzyl-status-disconnected {
+	background-color: #ef4444;
+	box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+.ozzyl-status-dot.ozzyl-status-checking {
+	background-color: #f59e0b;
+	animation: ozzyl-pulse 1s ease-in-out infinite;
+}
+
+@keyframes ozzyl-pulse {
+	0%, 100% { opacity: 1; }
+	50%       { opacity: 0.4; }
+}
+
+.ozzyl-status-text {
+	font-size: 13px;
+	font-weight: 500;
+	color: #374151;
+}
+
+/* ── Webhook URL field ─────────────────────────────────────────────────────── */
+
+.ozzyl-webhook-url-wrapper {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.ozzyl-webhook-url-wrapper input[type="text"] {
+	font-family: monospace;
+	font-size: 12px;
+	color: #374151;
+	background: #f9fafb;
+}
+
+/* ── Notices ───────────────────────────────────────────────────────────────── */
+
+.ozzyl-notice {
+	padding: 10px 14px;
+	border-radius: 4px;
+	font-size: 13px;
+	margin: 8px 0;
+}
+
+.ozzyl-notice--warning {
+	background: #fffbeb;
+	border: 1px solid #fcd34d;
+	color: #92400e;
+}
+
+.ozzyl-notice--success {
+	background: #f0fdf4;
+	border: 1px solid #86efac;
+	color: #166534;
+}
+
+.ozzyl-notice--error {
+	background: #fef2f2;
+	border: 1px solid #fecaca;
+	color: #991b1b;
+}
+
+/* ── Sync action buttons ───────────────────────────────────────────────────── */
+
+.ozzyl-sync-actions {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+/* ── Status page ───────────────────────────────────────────────────────────── */
+
+.ozzyl-status-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: 16px;
+	margin: 24px 0;
+}
+
+.ozzyl-status-card {
+	display: flex;
+	gap: 14px;
+	padding: 16px;
+	background: #f9fafb;
+	border: 1px solid #e5e7eb;
+	border-radius: 8px;
+	align-items: flex-start;
+}
+
+.ozzyl-status-card__icon {
+	font-size: 24px;
+	line-height: 1;
+	flex-shrink: 0;
+	padding-top: 2px;
+}
+
+.ozzyl-status-card__body {
+	flex: 1;
+	min-width: 0;
+}
+
+.ozzyl-status-card__body h3 {
+	font-size: 13px;
+	font-weight: 600;
+	color: #374151;
+	margin: 0 0 6px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.ozzyl-status-card__detail {
+	font-size: 12px;
+	color: #6b7280;
+	margin: 6px 0 0;
+	word-break: break-all;
+}
+
+.ozzyl-status-card__detail a {
+	color: #4f46e5;
+}
+
+/* ── Badges ────────────────────────────────────────────────────────────────── */
+
+.ozzyl-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 9999px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.ozzyl-badge--success {
+	background: #dcfce7;
+	color: #166534;
+}
+
+.ozzyl-badge--error {
+	background: #fee2e2;
+	color: #991b1b;
+}
+
+.ozzyl-badge--warning {
+	background: #fef9c3;
+	color: #854d0e;
+}
+
+.ozzyl-badge--pending {
+	background: #e0e7ff;
+	color: #3730a3;
+}
+
+/* ── Status list ───────────────────────────────────────────────────────────── */
+
+.ozzyl-status-list {
+	list-style: none;
+	padding: 0;
+	margin: 6px 0 0;
+}
+
+.ozzyl-status-list li {
+	font-size: 12px;
+	color: #374151;
+	padding: 3px 0;
+	border-bottom: 1px solid #f3f4f6;
+}
+
+.ozzyl-status-list li:last-child {
+	border-bottom: none;
+}
+
+/* ── Store details panel ───────────────────────────────────────────────────── */
+
+.ozzyl-store-details-panel {
+	margin-top: 24px;
+	padding: 20px;
+	background: #f0f9ff;
+	border: 1px solid #bae6fd;
+	border-radius: 8px;
+}
+
+.ozzyl-store-details-panel h3 {
+	margin-top: 0;
+	color: #0369a1;
+}
+
+.ozzyl-store-details-panel .widefat th {
+	width: 140px;
+	font-weight: 600;
+}
+
+/* ── Shortcodes table ──────────────────────────────────────────────────────── */
+
+.ozzyl-shortcodes-table {
+	margin-bottom: 24px !important;
+}
+
+.ozzyl-shortcodes-table code {
+	background: #f3f4f6;
+	padding: 2px 6px;
+	border-radius: 4px;
+	font-size: 12px;
+}
+
+/* ── Gutenberg block notice ────────────────────────────────────────────────── */
+
+.ozzyl-gutenberg-notice {
+	margin-top: 16px;
+	padding: 16px;
+	background: #f5f3ff;
+	border: 1px solid #ddd6fe;
+	border-radius: 6px;
+}
+
+.ozzyl-gutenberg-notice h3 {
+	margin-top: 0;
+	color: #4f46e5;
+}
+
+/* ── Button loading state ──────────────────────────────────────────────────── */
+
+.button.ozzyl-loading {
+	opacity: 0.7;
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+.button.ozzyl-loading::after {
+	content: ' ⏳';
+}
+
+/* ── Inline result messages ────────────────────────────────────────────────── */
+
+.ozzyl-result-success {
+	color: #16a34a;
+	font-weight: 500;
+	font-size: 13px;
+}
+
+.ozzyl-result-error {
+	color: #dc2626;
+	font-weight: 500;
+	font-size: 13px;
+}
+
+/* ── Responsive adjustments ────────────────────────────────────────────────── */
+
+@media (max-width: 782px) {
+	.ozzyl-admin-header {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.ozzyl-status-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.ozzyl-field-api-key,
+	.ozzyl-webhook-url-wrapper {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.ozzyl-field-api-key input,
+	.ozzyl-webhook-url-wrapper input {
+		width: 100% !important;
+	}
+}

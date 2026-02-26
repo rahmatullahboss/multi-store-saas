@@ -1105,6 +1105,7 @@ export default function Index() {
     `;
 
     // Build storefront config by combining saved merchant config + runtime color overrides
+    const heroBanner = (data.themeConfig as { heroBanner?: any } | null | undefined)?.heroBanner;
     const themeConfig = {
       ...(data.themeConfig || {}),
       primaryColor: data.theme.primary,
@@ -1112,6 +1113,13 @@ export default function Index() {
       storeTemplateId: data.storeTemplateId,
       fontFamily: data.fontFamily,
       favicon: data.favicon || undefined,
+      heroBanner,
+      bannerUrl: heroBanner?.slides?.[0]?.imageUrl,
+      bannerText: heroBanner?.slides?.[0]?.heading || undefined,
+      heroMode: heroBanner?.mode || 'single',
+      heroAutoplay: true,
+      heroDelayMs: 4000,
+      heroOverlayOpacity: heroBanner?.overlayOpacity != null ? heroBanner.overlayOpacity / 100 : undefined,
     };
 
     return (

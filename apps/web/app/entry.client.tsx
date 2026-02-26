@@ -13,6 +13,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import Backend from 'i18next-http-backend';
 import { getInitialNamespaces } from 'remix-i18next/client';
 import i18n from './i18n';
+import { initCapacitor } from './lib/capacitor.client';
 
 // Import Sentry only if needed
 let Sentry: typeof import('@sentry/remix') | null = null;
@@ -139,6 +140,9 @@ async function hydrate() {
     }
   };
   runWhenIdle(() => void initSentry());
+
+  // Initialize Capacitor plugins (only runs in native Android/iOS context)
+  runWhenIdle(() => void initCapacitor());
 
   await i18next
     .use(initReactI18next)

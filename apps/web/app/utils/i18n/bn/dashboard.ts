@@ -154,6 +154,7 @@ export const dashboard = {
   sidebarOnlineStore: 'অনলাইন স্টোর',
   navPages: 'ল্যান্ডিং পেজ',
   navDragDropBuilder: 'ড্র্যাগ অ্যান্ড ড্রপ বিল্ডার',
+  navQuickBuilder: 'কুইক বিল্ডার',
   navTheme: 'স্টোর সেটআপ',
   navGeneral: 'সাধারণ',
   navStorefront: 'স্টোরফ্রন্ট',
@@ -393,7 +394,7 @@ export const dashboard = {
     'আপনি যে ডোমেনটি ব্যবহার করতে চান সেটি লিখুন। ডোমেনটি অবশ্যই আপনার মালিকানাধীন হতে হবে।',
   addingDomain: 'ডোমেন যুক্ত হচ্ছে...',
   dnsInstructionsPreview: 'যুক্ত করার পর, আপনাকে এই DNS রেকর্ডটি যোগ করতে হবে:',
-  invalidDomainFormat: 'ভুল ডোমেন ফরম্যাট। উদাহরণ: shop.example.com',
+  invalidDomainFormat: 'ভুল ডোমেন ফরম্যাট। উদাহরণ: yourdomain.com',
   domainAlreadyTaken: 'এই ডোমেনটি ইতিমধ্যে অন্য একটি স্টোর ব্যবহার করছে।',
   domainRequestSubmitted:
     'ডোমেন রিকোয়েস্ট জমা দেওয়া হয়েছে। আমাদের টিম ২৪ ঘণ্টার মধ্যে এটি সেটআপ করে দিবে।',
@@ -401,7 +402,7 @@ export const dashboard = {
   ssl: 'SSL',
   dns: 'DNS',
   cnameNameHost: '@ (অথবা www)',
-  domainPlaceholder: 'shop.yourdomain.com',
+  domainPlaceholder: 'yourdomain.com',
   domainAlreadyConfigured:
     'আপনার ইতিমধ্যে একটি কাস্টম ডোমেন কনফিগার করা আছে। নতুন ডোমেন যুক্ত করার আগে এটি সরিয়ে ফেলুন।',
   hostnameRefreshSuccess: 'স্ট্যাটাস রিফ্রেশ করা হয়েছে!',

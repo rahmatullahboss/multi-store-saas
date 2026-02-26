@@ -38,7 +38,7 @@
 import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { createDb } from '~/lib/db.server';
 import { fdaasApiKeys, fdaasUsageLog } from '@db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import {
   normalizePhone,
   isValidBDPhone,
@@ -227,11 +227,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
     (async () => {
       try {
         const now = new Date();
+        // ── SECURITY: Use SQL expression for atomic increment to prevent
+        // lost-update race conditions under concurrent requests.
+        // Reading callsThisMonth at auth time and adding 1 later is non-atomic;
+        // concurrent calls would overcount or miss increments (quota drift).
         await db
           .update(fdaasApiKeys)
           .set({
-            callsThisMonth: apiKey.callsThisMonth + 1,
-            callsTotal: apiKey.callsTotal + 1,
+            callsThisMonth: sql`${fdaasApiKeys.callsThisMonth} + 1`,
+            callsTotal: sql`${fdaasApiKeys.callsTotal} + 1`,
             lastUsedAt: now,
             updatedAt: now,
           })

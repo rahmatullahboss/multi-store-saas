@@ -13,6 +13,7 @@ import { ClientOnly } from 'remix-utils/client-only';
 import { SkeletonLoader } from '~/components/SkeletonLoader';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
 import { buildProxyImageUrl, generateProxySrcset } from '~/utils/imageOptimization';
+import { getHeroBehavior } from '~/lib/hero-slides';
 
 import { NOVALUX_THEME } from './theme';
 import { NovaLuxHeader } from './sections/Header';
@@ -258,6 +259,27 @@ export function LiveNovaLuxHomepage({
 
   const validCategories = (categories || []).filter(Boolean);
   const announcement = config?.announcement;
+  const heroBehavior = getHeroBehavior(config);
+  const [heroIndex, setHeroIndex] = useState(0);
+
+  useEffect(() => {
+    if (!heroBehavior.isCarousel || !heroBehavior.autoplay || heroBehavior.slides.length < 2) return;
+    const timer = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % heroBehavior.slides.length);
+    }, heroBehavior.delayMs);
+    return () => clearInterval(timer);
+  }, [
+    heroBehavior.autoplay,
+    heroBehavior.delayMs,
+    heroBehavior.isCarousel,
+    heroBehavior.slides.length,
+  ]);
+
+  useEffect(() => {
+    if (heroIndex >= heroBehavior.slides.length) {
+      setHeroIndex(0);
+    }
+  }, [heroBehavior.slides.length, heroIndex]);
 
   const THEME = {
     primary: NOVALUX_THEME.primary,
@@ -335,10 +357,28 @@ export function LiveNovaLuxHomepage({
                   ['hero', 'modern-hero', 'zenith-hero', 'turbo-hero'].includes(section.type) &&
                   !resolvedSettings.image
                 ) {
+                  const activeHeroSlide =
+                    heroBehavior.slides[heroIndex] || heroBehavior.slides[0] || null;
+                  // Try heroBanner slides first, then bannerUrl, then default
+                  const heroBannerImage = activeHeroSlide?.imageUrl || null;
                   resolvedSettings.image =
-                    resolvedSettings.image ||
+                    heroBannerImage ||
                     config?.bannerUrl ||
                     'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&h=900&fit=crop';
+
+                  // Also pass heroBanner slides & heading/subheading from unified settings
+                  if (!resolvedSettings.heading && activeHeroSlide?.heading) {
+                    resolvedSettings.heading = activeHeroSlide.heading;
+                  }
+                  if (!resolvedSettings.subheading && activeHeroSlide?.subheading) {
+                    resolvedSettings.subheading = activeHeroSlide.subheading;
+                  }
+                  if (!resolvedSettings.ctaText && activeHeroSlide?.ctaText) {
+                    resolvedSettings.ctaText = activeHeroSlide.ctaText;
+                  }
+                  if (!resolvedSettings.ctaLink && activeHeroSlide?.ctaLink) {
+                    resolvedSettings.ctaLink = activeHeroSlide.ctaLink;
+                  }
                 }
 
                 const isFirstSection = index === 0;

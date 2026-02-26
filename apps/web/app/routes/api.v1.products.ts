@@ -30,7 +30,14 @@ function safeJsonArrayParse(value: unknown): unknown[] {
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
   try {
-    const auth = await authenticateApiKey(request, context.cloudflare.env, 'read_products');
+    const env = context.cloudflare.env;
+    const hmacSecret = env.API_KEY_SECRET;
+    const kv = env.STORE_CACHE ?? env.KV;
+    if (!hmacSecret || !kv) {
+      return json({ success: false, error: 'Server misconfiguration' }, { status: 500 });
+    }
+    const rawKey = request.headers.get('Authorization')?.replace('Bearer ', '') ?? '';
+    const auth = rawKey && kv ? await authenticateApiKey(env.DB, kv, rawKey, hmacSecret) : null;
     const db = drizzle(context.cloudflare.env.DB);
     const url = new URL(request.url);
 
@@ -53,6 +60,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const published = url.searchParams.get('published'); // 'true' or 'false'
 
     // Build query conditions
+    if (!auth) return json({ error: 'Unauthorized' }, { status: 401 });
     const conditions = [eq(products.storeId, auth.storeId)];
     
     if (search) {

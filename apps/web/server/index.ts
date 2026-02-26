@@ -35,6 +35,9 @@ import { storesApi } from './api/stores';
 import { graphqlApi } from './api/graphql';
 import { oauthApi } from './api/oauth';
 import customersApi from './api/routes/customers';
+import { v1Router } from './api/v1';
+import { shopifyAppRouter } from './api/shopify-app';
+import { builderPublishApi } from './api/builder-publish';
 
 // Forward all other requests to Remix (via Vite build output)
 import { ServerBuild, createRequestHandler } from '@remix-run/cloudflare';
@@ -74,6 +77,18 @@ interface Env extends TenantEnv {
   GOOGLE_CLIENT_SECRET: string;
   AXION_TOKEN: string;
   HEALTH_CHECK_TOKEN?: string;
+
+  // ─── Shopify App (Phase 4) ──────────────────────────────────────────────────
+  /** Shopify App client ID (from Shopify Partners dashboard) */
+  SHOPIFY_CLIENT_ID: string;
+  /** Shopify App client secret (Cloudflare secret) */
+  SHOPIFY_CLIENT_SECRET: string;
+  /** OAuth callback URL registered in Shopify Partners */
+  SHOPIFY_REDIRECT_URI: string;
+  /** 32-byte hex AES-GCM key for encrypting access tokens (Cloudflare secret) */
+  SHOPIFY_ENCRYPTION_KEY: string;
+  /** App handle for post-install redirect (default: "ozzyl") */
+  SHOPIFY_APP_HANDLE?: string;
 }
 
 type AppContext = {
@@ -441,6 +456,21 @@ app.route('/api/stores', storesApi);
 app.route('/api/graphql', graphqlApi);
 app.route('/api/oauth', oauthApi);
 app.route('/api/customers', customersApi);
+
+// ─── Builder Publish API (Phase 7) ────────────────────────────────────────────
+// Session-cookie authenticated — merchant-only publish/unpublish actions
+app.route('/api/builder', builderPublishApi);
+
+// ─── Public API Platform v1 ───────────────────────────────────────────────────
+// Bearer token (API key) authenticated — for external integrations
+// WordPress plugins, custom sites, mobile apps, etc.
+app.route('/api/v1', v1Router);
+
+// ─── Shopify App (Phase 4) ────────────────────────────────────────────────────
+// OAuth install/callback, App Bridge session verification, webhook receiver
+// Env vars required: SHOPIFY_CLIENT_ID, SHOPIFY_CLIENT_SECRET,
+//   SHOPIFY_REDIRECT_URI, SHOPIFY_ENCRYPTION_KEY
+app.route('/api/shopify-app', shopifyAppRouter);
 
 // ============================================================================
 // CACHING - For public product pages

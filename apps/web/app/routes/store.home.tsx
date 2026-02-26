@@ -54,15 +54,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     primary: unifiedSettings.theme.primary || baseTheme.primary,
     accent: unifiedSettings.theme.accent || baseTheme.accent,
   };
-  const legacyCompat = {
-    storeTemplateId,
-    storeName: unifiedSettings.branding.storeName || store?.name || 'Store',
-    logo: unifiedSettings.branding.logo || store?.logo || null,
-    favicon: unifiedSettings.branding.favicon || store?.favicon || null,
-    theme: mergedTheme,
-    themeConfig: null, // Using mergedTheme instead
-    mvpSettings: null,
-  };
+  // All data now comes from unified settings - no legacy compat needed
+  const storeName = unifiedSettings.branding.storeName || store?.name || 'Store';
+  const logo = unifiedSettings.branding.logo || store?.logo || null;
+  const favicon = unifiedSettings.branding.favicon || store?.favicon || null;
 
   // Use socialLinks from unified settings
   const socialLinks = {
@@ -156,23 +151,30 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // EDGE CACHING STRATEGY
   const headers = new Headers();
+  // No public caching for storefront - ensures banner/settings changes show immediately
   if (!customer) {
-    headers.set('Cache-Control', 'public, max-age=30, s-maxage=30, stale-while-revalidate=60');
+    headers.set('Cache-Control', 'public, max-age=5, s-maxage=5, stale-while-revalidate=10');
   } else {
-    headers.set('Cache-Control', 'private, max-age=60');
+    headers.set('Cache-Control', 'private, max-age=0');
   }
+
+  // Extract heroBanner & announcement from unified settings
+  const heroBanner = unifiedSettings.heroBanner || null;
+  const announcement = unifiedSettings.announcement || null;
+
+  // Build bannerUrl from heroBanner slides for legacy compat
+  const bannerUrl =
+    heroBanner?.slides?.[0]?.imageUrl || null;
 
   return json(
     {
       storeId,
-      storeName: legacyCompat.storeName,
-      logo: legacyCompat.logo,
-      favicon: legacyCompat.favicon,
+      storeName,
+      logo,
+      favicon,
       currency: store.currency || 'BDT',
-      storeTemplateId: legacyCompat.storeTemplateId,
-      theme: legacyCompat.theme,
-      themeConfig: legacyCompat.themeConfig,
-      mvpSettings: legacyCompat.mvpSettings,
+      storeTemplateId,
+      theme: mergedTheme,
       socialLinks,
       businessInfo,
       planType: store.planType || 'free',
@@ -181,6 +183,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
       featuredProducts,
       categories,
+      heroBanner,
+      announcement,
+      bannerUrl,
     },
     { headers }
   );
@@ -208,14 +213,15 @@ export default function StoreHomePage() {
     currency,
     storeTemplateId,
     theme,
-    themeConfig,
     socialLinks,
     businessInfo,
     planType,
     featuredProducts,
     categories,
     customer,
-    mvpSettings,
+    heroBanner,
+    announcement,
+    bannerUrl,
   } = useLoaderData<typeof loader>();
 
   // Get the template from registry (OLD SYSTEM - 1000+ line components)
@@ -312,7 +318,9 @@ export default function StoreHomePage() {
   // Defensive check for theme to prevent "Cannot read properties of undefined (reading 'primary')"
   // This can happen during client-side transitions if data isn't fully ready or cached incorrectly
   const safeTheme = theme || { primary: '#000000', accent: '#000000', background: '#ffffff' };
-  const safeThemeConfig = themeConfig || {};
+  // Sanitize CSS values to prevent injection via dangerouslySetInnerHTML
+  const safePrimary = /^#[0-9A-Fa-f]{3,6}$/.test(safeTheme.primary) ? safeTheme.primary : '#000000';
+  const safeAccent = /^#[0-9A-Fa-f]{3,6}$/.test(safeTheme.accent) ? safeTheme.accent : '#000000';
 
   return (
     <div
@@ -327,14 +335,7 @@ export default function StoreHomePage() {
       {/* Inject CSS variables globally for consistent theming */}
       <style
         dangerouslySetInnerHTML={{
-          __html: `
-            :root {
-              --color-primary: ${safeTheme.primary};
-              --color-accent: ${safeTheme.accent};
-              --font-heading: ${template.fonts?.heading || 'Inter, sans-serif'};
-              --font-body: ${template.fonts?.body || 'Inter, sans-serif'};
-            }
-          `,
+          __html: `:root{--color-primary:${safePrimary};--color-accent:${safeAccent};}`,
         }}
       />
 
@@ -351,12 +352,18 @@ export default function StoreHomePage() {
         currentCategory={null}
         config={
           {
-            ...safeThemeConfig,
-            primaryColor: safeTheme.primary,
-            accentColor: safeTheme.accent,
+            primaryColor: safePrimary,
+            accentColor: safeAccent,
+            heroBanner: heroBanner || undefined,
+            announcement: announcement || undefined,
+            bannerUrl: bannerUrl || undefined,
+            heroOverlayOpacity: heroBanner?.overlayOpacity != null
+              ? heroBanner.overlayOpacity / 100
+              : undefined,
+            heroMode: heroBanner?.mode || 'single',
           } as unknown as ThemeConfig
         }
-        mvpSettings={mvpSettings}
+        mvpSettings={null}
         currency={currency}
         socialLinks={socialLinks}
         footerConfig={null}

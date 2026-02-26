@@ -1243,3 +1243,461 @@ Ozzyl('addToCart', { productId: 'prod_123', qty: 1 });
 ```
 
 ---
+
+## 6. Developer Experience (DX)
+
+### OpenAPI 3.1 Specification Structure
+
+```yaml
+# openapi.yaml — Ozzyl Public API
+openapi: "3.1.0"
+
+info:
+  title:       Ozzyl Commerce API
+  version:     "1.0.0"
+  description: |
+    The Ozzyl API lets you build integrations with our multi-tenant
+    commerce platform. All endpoints require Bearer token authentication.
+
+    ## Authentication
+    Include your API key as a Bearer token:
+    ```
+    Authorization: Bearer oz_live_xxxxxxxxxxxx
+    ```
+
+    ## Rate Limits
+    - 1000 requests/minute per store
+    - 429 response when exceeded, with `Retry-After` header
+
+    ## Idempotency
+    For POST requests, include `Idempotency-Key: <unique-key>` header
+    to safely retry requests without duplicate side-effects.
+  contact:
+    name:  Ozzyl Developer Support
+    url:   https://developers.ozzyl.com
+    email: developers@ozzyl.com
+  license:
+    name: Apache 2.0
+    url:  https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url:         https://api.ozzyl.com/v1
+    description: Production
+  - url:         https://sandbox.api.ozzyl.com/v1
+    description: Sandbox (no real charges)
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name:        Products
+    description: Manage your store's product catalog
+  - name:        Orders
+    description: Order lifecycle management
+  - name:        Webhooks
+    description: Manage webhook endpoints
+
+paths:
+  /products:
+    get:
+      operationId: listProducts
+      summary:     List products
+      tags:        [Products]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name:        search
+          in:          query
+          description: Full-text search across name and description
+          schema:      { type: string }
+        - name:        status
+          in:          query
+          schema:      { type: string, enum: [active, draft, archived] }
+      responses:
+        "200":
+          description: Paginated list of products
+          content:
+            application/json:
+              schema:  { $ref: '#/components/schemas/ProductList' }
+              example:
+                data:       [{ id: "prod_123", name: "T-Shirt", price: 500 }]
+                pagination: { page: 1, limit: 20, total: 100 }
+        "401": { $ref: '#/components/responses/Unauthorized' }
+        "429": { $ref: '#/components/responses/RateLimited' }
+
+    post:
+      operationId: createProduct
+      summary:     Create a product
+      tags:        [Products]
+      parameters:
+        - name:        Idempotency-Key
+          in:          header
+          required:    false
+          description: Unique key to safely retry without duplicates
+          schema:      { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:  { $ref: '#/components/schemas/CreateProductInput' }
+            example:
+              name:        "Eid Special T-Shirt"
+              price:       850
+              currency:    "BDT"
+              description: "Limited edition Eid collection"
+              inventory:   100
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        "400": { $ref: '#/components/responses/ValidationError' }
+        "401": { $ref: '#/components/responses/Unauthorized' }
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      summary:     Get a product
+      tags:        [Products]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        "200":
+          description: Product details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        "404": { $ref: '#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type:         http
+      scheme:       bearer
+      bearerFormat: API Key
+      description:  "Get your API key from: https://app.ozzyl.com/settings/api"
+
+  parameters:
+    IdParam:
+      name:        id
+      in:          path
+      required:    true
+      schema:      { type: string, pattern: "^[a-z]+_[a-zA-Z0-9]+$" }
+    PageParam:
+      name:        page
+      in:          query
+      schema:      { type: integer, minimum: 1, default: 1 }
+    LimitParam:
+      name:        limit
+      in:          query
+      schema:      { type: integer, minimum: 1, maximum: 100, default: 20 }
+
+  schemas:
+    Product:
+      type:     object
+      required: [id, name, price, currency, status, createdAt]
+      properties:
+        id:          { type: string, example: "prod_abc123" }
+        name:        { type: string, example: "Eid Special T-Shirt" }
+        price:       { type: integer, description: "Amount in smallest currency unit (paisa)", example: 85000 }
+        currency:    { type: string, example: "BDT" }
+        status:      { type: string, enum: [active, draft, archived] }
+        inventory:   { type: integer, example: 100 }
+        description: { type: string }
+        images:      { type: array, items: { type: string, format: uri } }
+        createdAt:   { type: string, format: date-time }
+
+    CreateProductInput:
+      type:     object
+      required: [name, price, currency]
+      properties:
+        name:        { type: string, minLength: 1, maxLength: 255 }
+        price:       { type: integer, minimum: 1 }
+        currency:    { type: string, default: "BDT" }
+        description: { type: string, maxLength: 5000 }
+        inventory:   { type: integer, minimum: 0, default: 0 }
+        status:      { type: string, enum: [active, draft], default: "draft" }
+
+    ProductList:
+      type:     object
+      properties:
+        data:       { type: array, items: { $ref: '#/components/schemas/Product' } }
+        pagination: { $ref: '#/components/schemas/Pagination' }
+
+    Pagination:
+      type:     object
+      properties:
+        page:    { type: integer }
+        limit:   { type: integer }
+        total:   { type: integer }
+        hasNext: { type: boolean }
+
+    Error:
+      type:     object
+      required: [error, message]
+      properties:
+        error:   { type: string, example: "validation_error" }
+        message: { type: string, example: "name is required" }
+        details: { type: array, items: { type: object } }
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:  { $ref: '#/components/schemas/Error' }
+          example: { error: "unauthorized", message: "Invalid API key" }
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:  { $ref: '#/components/schemas/Error' }
+          example: { error: "not_found", message: "Product not found" }
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:  { $ref: '#/components/schemas/Error' }
+    RateLimited:
+      description: Too many requests
+      headers:
+        Retry-After:
+          schema: { type: integer }
+          description: Seconds to wait before retrying
+      content:
+        application/json:
+          schema:  { $ref: '#/components/schemas/Error' }
+          example: { error: "rate_limited", message: "Too many requests. Retry after 30 seconds." }
+```
+
+### SDK Generation from OpenAPI
+
+```bash
+# Install openapi-typescript-codegen or @hey-api/openapi-ts (recommended)
+npm install -g @hey-api/openapi-ts
+
+# Generate TypeScript SDK from spec
+openapi-ts \
+  --input  ./openapi.yaml \
+  --output ./packages/sdk-generated/src \
+  --client fetch
+
+# Or use openapi-generator-cli for multi-language SDKs
+# Generates: TypeScript, PHP (WordPress plugin), Python, Ruby (Shopify app)
+docker run --rm \
+  -v ${PWD}:/local openapitools/openapi-generator-cli generate \
+  -i /local/openapi.yaml \
+  -g typescript-fetch \
+  -o /local/packages/sdk-ts \
+  --additional-properties=npmName=@ozzyl/sdk,supportsES6=true
+
+# PHP SDK (for WordPress plugin)
+docker run --rm \
+  -v ${PWD}:/local openapitools/openapi-generator-cli generate \
+  -i /local/openapi.yaml \
+  -g php \
+  -o /local/packages/sdk-php \
+  --additional-properties=packageName=ozzyl-php,invokerPackage=Ozzyl
+```
+
+### Serve Interactive Docs (Cloudflare Worker)
+
+```typescript
+// Scalar API Reference — modern alternative to Swagger UI
+// apps/web/app/routes/api.docs.tsx
+
+export async function loader() {
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <title>Ozzyl API Reference</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+  <script id="api-reference" data-url="/api/openapi.yaml"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+</body>
+</html>`;
+
+  return new Response(html, {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' }
+  });
+}
+
+// Serve the spec file
+// apps/web/app/routes/api.openapi[.yaml].tsx
+export async function loader() {
+  const spec = await import('~/openapi.yaml?raw');
+  return new Response(spec.default, {
+    headers: {
+      'Content-Type':                'application/yaml',
+      'Access-Control-Allow-Origin': '*',  // Allow SDK generators to fetch it
+    }
+  });
+}
+```
+
+### Quick Start Guide Structure (README.md)
+
+```markdown
+# Ozzyl API — Quick Start (5 minutes)
+
+## 1. Get Your API Key
+1. Sign up at https://app.ozzyl.com
+2. Go to Settings → API Keys
+3. Click "Create API Key"
+4. Copy your key — it starts with `oz_live_` (production) or `oz_test_` (sandbox)
+
+## 2. Install the SDK
+
+npm install @ozzyl/sdk
+# or
+yarn add @ozzyl/sdk
+
+## 3. Your First API Call
+
+import { OzzylClient } from '@ozzyl/sdk';
+
+const ozzyl = new OzzylClient({
+  apiKey: 'oz_test_YOUR_KEY_HERE',
+  store:  'your-store-slug',
+});
+
+// List your products
+const { data: products } = await ozzyl.products.list({ limit: 5 });
+console.log(products);
+
+// Create a product
+const product = await ozzyl.products.create({
+  name:      'My First Product',
+  price:     500,  // 500 paisa = 5 BDT
+  currency:  'BDT',
+  inventory: 10,
+});
+console.log('Created:', product.id);
+
+## 4. Test Webhooks Locally
+
+# Install the Ozzyl CLI
+npm install -g @ozzyl/cli
+
+# Forward webhooks to localhost
+ozzyl webhooks listen --forward-to http://localhost:3000/api/webhooks
+
+## 5. Next Steps
+- [Full API Reference](https://developers.ozzyl.com/api)
+- [WordPress Plugin Guide](https://developers.ozzyl.com/integrations/wordpress)
+- [Shopify App Guide](https://developers.ozzyl.com/integrations/shopify)
+- [Webhook Events Reference](https://developers.ozzyl.com/webhooks)
+```
+
+### DX Checklist
+
+| Category | Best Practice | Priority |
+|----------|---------------|----------|
+| **Docs** | Interactive API explorer (Scalar/Swagger UI) | 🔴 Must |
+| **Docs** | Code examples in every language you support | 🔴 Must |
+| **Docs** | Error code reference with fix suggestions | 🔴 Must |
+| **SDK** | TypeScript types for all inputs/outputs | 🔴 Must |
+| **SDK** | Auto-retry with exponential backoff | 🔴 Must |
+| **SDK** | Idempotency key support on mutating ops | 🔴 Must |
+| **Auth** | Sandbox/test mode with `oz_test_` prefix | 🔴 Must |
+| **DX** | CLI tool for local webhook testing | 🟡 Should |
+| **DX** | Postman/Insomnia collection export | 🟡 Should |
+| **DX** | SDK changelogs with migration guides | 🟡 Should |
+| **DX** | Status page (https://status.ozzyl.com) | 🟡 Should |
+| **DX** | API versioning in URL (/v1/, /v2/) | 🟡 Should |
+| **DX** | Deprecation notices with 6-month runway | 🟢 Nice |
+| **DX** | Generated SDKs for PHP, Ruby, Python | 🟢 Nice |
+
+### API Versioning Strategy
+
+```typescript
+// Hono API with versioned routing
+import { Hono } from 'hono';
+
+const api = new Hono();
+
+// Mount versioned sub-apps
+api.route('/v1', v1Router);
+api.route('/v2', v2Router);  // When breaking changes needed
+
+// Version negotiation via Accept header (alternative)
+api.use('*', async (c, next) => {
+  const version = c.req.header('Accept-Version') ?? 'v1';
+  c.set('apiVersion', version);
+  await next();
+});
+
+// Deprecation headers
+api.use('/v1/*', async (c, next) => {
+  await next();
+  c.res.headers.set('Deprecation', 'true');
+  c.res.headers.set('Sunset',      'Sat, 01 Jan 2027 00:00:00 GMT');
+  c.res.headers.set('Link',        '<https://api.ozzyl.com/v2>; rel="successor-version"');
+});
+```
+
+### Error Response Standard
+
+```typescript
+// Consistent error shape across all endpoints
+interface APIError {
+  error:    string;        // Machine-readable code: "validation_error"
+  message:  string;        // Human-readable: "name is required"
+  details?: ErrorDetail[]; // Field-level errors for validation
+  requestId: string;       // For support tickets: "req_abc123"
+  docs?:    string;        // Link to relevant docs page
+}
+
+interface ErrorDetail {
+  field:   string;  // "name"
+  code:    string;  // "required"
+  message: string;  // "name is required"
+}
+
+// Hono error handler
+app.onError((err, c) => {
+  const requestId = crypto.randomUUID();
+  console.error({ requestId, error: err.message, path: c.req.path });
+
+  if (err instanceof OzzylValidationError) {
+    return c.json({
+      error:     'validation_error',
+      message:   'Request validation failed',
+      details:   err.details,
+      requestId,
+      docs:      'https://developers.ozzyl.com/errors#validation_error',
+    }, 400);
+  }
+
+  return c.json({
+    error:     'internal_error',
+    message:   'An unexpected error occurred',
+    requestId,
+    docs:      'https://developers.ozzyl.com/errors#internal_error',
+  }, 500);
+});
+```
+
+---
+
+## Summary: Integration Priority Matrix
+
+| Integration | Effort | Impact | Priority |
+|-------------|--------|--------|----------|
+| **Webhook system** | Medium | 🔴 Critical | Build first |
+| **JS SDK** | Medium | 🔴 Critical | Build with API |
+| **OpenAPI spec** | Low | 🔴 Critical | Write alongside API |
+| **Embeddable widget** | High | 🟡 High | After core API stable |
+| **WordPress plugin** | Medium | 🟡 High | Major distribution channel in BD |
+| **Shopify app** | High | 🟡 High | Merchant acquisition channel |
+| **PHP SDK (auto-gen)** | Low | 🟢 Medium | Auto-generate from OpenAPI |
+| **CLI tool** | Medium | 🟢 Medium | After SDK is stable |
+
+---
+
+*Research sources: Context7 (Stripe SDK, Shopify Dev Docs, WordPress Hooks, Hono, OpenAPI Spec 3.1, TypeScript 5.x)*
+*Compiled for Ozzyl — The Shopify of Bangladesh 🇧🇩*

@@ -30,13 +30,31 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeId = storeIdStr ? parseInt(storeIdStr) : null;
   const origin = url.origin;
 
-  if (!orderId || !storeId) {
+  if (!orderId || !storeId || isNaN(orderId) || isNaN(storeId)) {
     return redirect(`${origin}/checkout/failed?error=invalid_callback`);
   }
 
   const db = drizzle(context.cloudflare.env.DB);
 
-  // Handle cancel
+  // ── SECURITY: Verify order actually exists and belongs to this store ──────
+  // This prevents an attacker from flipping arbitrary orders to failed/paid
+  // by guessing orderId + storeId query params.
+  const existingOrder = await db
+    .select({ id: orders.id, orderNumber: orders.orderNumber, paymentStatus: orders.paymentStatus })
+    .from(orders)
+    .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)))
+    .get();
+
+  if (!existingOrder) {
+    return redirect(`${origin}/checkout/failed?error=invalid_callback`);
+  }
+
+  // If order is already paid, do not allow downgrade to failed
+  if (existingOrder.paymentStatus === 'paid') {
+    return redirect(`${origin}/checkout/success?orderId=${orderId}`);
+  }
+
+  // Handle cancel — order ownership already verified above
   if (status === 'Cancel' || status === 'cancel') {
     await db
       .update(orders)
@@ -77,6 +95,23 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const result = await nagad.verifyPayment(paymentRefId);
 
     if (result.status === 'Success') {
+      // ── SECURITY: Cross-check Nagad orderId vs our local orderNumber ──────
+      // Nagad verify response includes the orderId we sent at payment creation.
+      // If it doesn't match our local orderNumber, reject — possible replay/mix-up.
+      if (result.orderId && result.orderId !== existingOrder.orderNumber) {
+        console.error('[Nagad Callback] orderId mismatch:', {
+          expected: existingOrder.orderNumber,
+          received: result.orderId,
+          orderId,
+          storeId,
+        });
+        await db
+          .update(orders)
+          .set({ paymentStatus: 'failed', updatedAt: new Date() })
+          .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
+        return redirect(`${origin}/checkout/failed?orderId=${orderId}&error=payment_mismatch`);
+      }
+
       await db
         .update(orders)
         .set({

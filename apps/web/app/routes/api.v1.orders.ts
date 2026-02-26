@@ -11,7 +11,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
 
   // 1. Authenticate Request
-  const { storeId } = await authenticateApiKey(request, { DB: env.DB }, 'read_orders');
+  const hmacSecret = env.API_KEY_SECRET;
+  const kv = env.STORE_CACHE ?? env.KV;
+  if (!hmacSecret || !kv) {
+    return json({ success: false, error: 'Server misconfiguration' }, { status: 500 });
+  }
+  const rawKey = request.headers.get('Authorization')?.replace('Bearer ', '') ?? '';
+  const authResult = rawKey && kv ? await authenticateApiKey(env.DB, kv, rawKey, hmacSecret) : null;
+  if (!authResult) return json({ error: 'Unauthorized' }, { status: 401 });
+  const { storeId } = authResult;
 
   // 2. Parse Query Params
   const limitRaw = url.searchParams.get('limit');

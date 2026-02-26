@@ -133,6 +133,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const formData = await request.formData();
   const intent = formData.get('intent') as string;
 
+  // Utility: validate hex color to prevent CSS injection
+  const isValidHexColor = (color: string | null): boolean => {
+    if (!color) return false;
+    return /^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$/.test(color);
+  };
+  // Utility: sanitize text input (strip HTML tags)
+  const sanitizeText = (value: string | null, maxLen = 500): string | null => {
+    if (!value) return null;
+    return value.replace(/<[^>]*>/g, '').slice(0, maxLen) || null;
+  };
+
   try {
     const patch: Record<string, unknown> = {};
 
@@ -152,17 +163,28 @@ export async function action({ request, context }: ActionFunctionArgs) {
         };
       }
     } else if (intent === 'theme') {
-      const primary = (formData.get('primaryColor') as string) || undefined;
-      const accent = (formData.get('accentColor') as string) || undefined;
+      const rawPrimary = formData.get('primaryColor') as string;
+      const rawAccent = formData.get('accentColor') as string;
+      const primary = isValidHexColor(rawPrimary) ? rawPrimary : undefined;
+      const accent = isValidHexColor(rawAccent) ? rawAccent : undefined;
       const fontFamily = (formData.get('fontFamily') as string) || undefined;
+      // Preserve existing templateId when only updating colors
+      const existingSettings = await getUnifiedStorefrontSettings(db, storeId, {
+        env: context.cloudflare.env,
+      });
+      const existingTemplateId = existingSettings.theme?.templateId;
       if (primary || accent)
-        patch.theme = { ...(primary && { primary }), ...(accent && { accent }) };
+        patch.theme = {
+          ...(existingTemplateId && { templateId: existingTemplateId }),
+          ...(primary && { primary }),
+          ...(accent && { accent }),
+        };
       if (fontFamily) patch.typography = { fontFamily };
     } else if (intent === 'banner') {
       const mode = (formData.get('bannerMode') as 'single' | 'carousel') || 'single';
       const rawOpacity = parseInt(formData.get('overlayOpacity') as string);
       const overlayOpacity = Number.isNaN(rawOpacity) ? 40 : rawOpacity;
-      const fallbackHeadline = (formData.get('fallbackHeadline') as string) || null;
+      const fallbackHeadline = sanitizeText(formData.get('fallbackHeadline') as string, 200);
       // Parse slides
       const slides: Array<Record<string, string | null>> = [];
       for (let i = 0; i < 6; i++) {
@@ -170,9 +192,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
         if (img !== null && img !== undefined) {
           slides.push({
             imageUrl: img || null,
-            heading: (formData.get(`slide_${i}_heading`) as string) || null,
-            subheading: (formData.get(`slide_${i}_subheading`) as string) || null,
-            ctaText: (formData.get(`slide_${i}_ctaText`) as string) || null,
+            heading: sanitizeText(formData.get(`slide_${i}_heading`) as string, 200),
+            subheading: sanitizeText(formData.get(`slide_${i}_subheading`) as string, 300),
+            ctaText: sanitizeText(formData.get(`slide_${i}_ctaText`) as string, 100),
             ctaLink: (formData.get(`slide_${i}_ctaLink`) as string) || null,
           });
         }
@@ -180,7 +202,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       patch.heroBanner = { mode, overlayOpacity, slides, fallbackHeadline };
       // Announcement
       const annEnabled = formData.get('announcementEnabled') === 'on';
-      const annText = (formData.get('announcementText') as string) || null;
+      const annText = sanitizeText(formData.get('announcementText') as string, 300);
       const annLink = (formData.get('announcementLink') as string) || null;
       patch.announcement = { enabled: annEnabled, text: annText, link: annLink };
     } else if (intent === 'content') {
@@ -188,26 +210,27 @@ export async function action({ request, context }: ActionFunctionArgs) {
       for (let i = 0; i < 3; i++) {
         badges.push({
           icon: (formData.get(`badge_${i}_icon`) as string) || 'truck',
-          title: (formData.get(`badge_${i}_title`) as string) || '',
-          description: (formData.get(`badge_${i}_description`) as string) || '',
+          title: sanitizeText(formData.get(`badge_${i}_title`) as string, 100) || '',
+          description: sanitizeText(formData.get(`badge_${i}_description`) as string, 200) || '',
         });
       }
       patch.trustBadges = { badges };
 
       // Why Choose Us
       const whyChooseUs: Array<Record<string, string>> = [];
+      const whyChooseIcons = ['✨', '⚡', '💬'];
       for (let i = 0; i < 3; i++) {
         whyChooseUs.push({
-          icon: '✨⚡💬'.split('')[i],
-          title: (formData.get(`whyChoose_${i}_title`) as string) || '',
-          description: (formData.get(`whyChoose_${i}_description`) as string) || '',
+          icon: whyChooseIcons[i] || '✨',
+          title: sanitizeText(formData.get(`whyChoose_${i}_title`) as string, 100) || '',
+          description: sanitizeText(formData.get(`whyChoose_${i}_description`) as string, 200) || '',
         });
       }
       patch.whyChooseUs = whyChooseUs;
     } else if (intent === 'info') {
       const logo = (formData.get('logo') as string) || null;
-      const tagline = (formData.get('tagline') as string) || null;
-      const description = (formData.get('description') as string) || null;
+      const tagline = sanitizeText(formData.get('tagline') as string, 200);
+      const description = sanitizeText(formData.get('description') as string, 1000);
       patch.branding = { logo, tagline, description };
       patch.business = {
         phone: (formData.get('businessPhone') as string) || null,
@@ -265,7 +288,11 @@ export default function StoreDesignPage() {
   const actionData = useActionData<typeof action>();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigation = useNavigation();
-  const isSaving = navigation.state === 'submitting';
+  // Per-intent saving state to avoid disabling wrong tab buttons
+  const submittingIntent = navigation.state === 'submitting'
+    ? (navigation.formData?.get('intent') as string | null)
+    : null;
+  const isSaving = (intent: string) => submittingIntent === intent;
 
   const activeTab = (searchParams.get('tab') as TabId) || 'template';
   const setTab = (tab: TabId) => setSearchParams({ tab }, { preventScrollReset: true });
@@ -334,12 +361,12 @@ export default function StoreDesignPage() {
       {/* Tab Content */}
       <div className="min-h-[400px]">
         {activeTab === 'template' && (
-          <TemplateTab settings={settings} themes={availableThemes} isSaving={isSaving} />
+          <TemplateTab settings={settings} themes={availableThemes} isSaving={isSaving('template')} />
         )}
-        {activeTab === 'theme' && <ThemeTab settings={settings} isSaving={isSaving} />}
-        {activeTab === 'banner' && <BannerTab settings={settings} isSaving={isSaving} />}
-        {activeTab === 'content' && <ContentTab settings={settings} isSaving={isSaving} />}
-        {activeTab === 'info' && <InfoTab settings={settings} store={store} isSaving={isSaving} />}
+        {activeTab === 'theme' && <ThemeTab settings={settings} isSaving={isSaving('theme')} />}
+        {activeTab === 'banner' && <BannerTab settings={settings} isSaving={isSaving('banner')} />}
+        {activeTab === 'content' && <ContentTab settings={settings} isSaving={isSaving('content')} />}
+        {activeTab === 'info' && <InfoTab settings={settings} store={store} isSaving={isSaving('info')} />}
       </div>
     </div>
   );
@@ -387,12 +414,25 @@ function TemplateTab({
                 প্রিমিয়াম
               </div>
             )}
-            <div className="aspect-[4/3] bg-gray-900 relative overflow-hidden">
-              <img
-                src={theme.thumbnail}
-                alt={theme.name}
-                className="w-full h-full object-cover opacity-80"
-              />
+            <div className="aspect-[4/3] relative overflow-hidden"
+              style={{
+                background: theme.colors
+                  ? `linear-gradient(135deg, ${theme.colors.primary}cc 0%, ${theme.colors.accent}cc 100%)`
+                  : 'linear-gradient(135deg, #4F46E5cc 0%, #F59E0Bcc 100%)',
+              }}
+            >
+              {theme.thumbnail && (
+                <img
+                  src={theme.thumbnail}
+                  alt={theme.name}
+                  className="w-full h-full object-cover opacity-80"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+              )}
+              {/* Theme name overlay */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-white font-bold text-lg drop-shadow-lg">{theme.name}</span>
+              </div>
               {theme.colors && (
                 <div className="absolute top-3 left-3 flex gap-1">
                   <div
@@ -493,8 +533,6 @@ function ThemeTab({
   const [primary, setPrimary] = useState(settings.theme.primary);
   const [accent, setAccent] = useState(settings.theme.accent);
 
-  const whyChoose = settings.whyChooseUs;
-
   return (
     <Form method="post" className="space-y-8">
       <input type="hidden" name="intent" value="theme" />
@@ -584,48 +622,6 @@ function ThemeTab({
         </div>
       </section>
 
-      {/* Why Choose Us Section */}
-      <section className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-            <Shield className="w-5 h-5 text-green-600" />
-          </div>
-          <h2 className="text-lg font-semibold">কেন আমাদের নির্বাচন করবেন</h2>
-        </div>
-        <p className="text-sm text-gray-500 mb-4">
-          হোমপেজে "Why Choose Us" সেকশনের জন্য তিনটি ফিচার।
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {whyChoose.map(
-            (item: { icon: string; title: string; description: string }, idx: number) => (
-              <div key={idx} className="border border-gray-200 rounded-lg p-4">
-                <div className="text-2xl mb-2">{item.icon}</div>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">শিরোনাম</label>
-                    <input
-                      type="text"
-                      name={`whyChoose_${idx}_title`}
-                      defaultValue={item.title}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">বিবরণ</label>
-                    <input
-                      type="text"
-                      name={`whyChoose_${idx}_description`}
-                      defaultValue={item.description}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
-            )
-          )}
-        </div>
-      </section>
-
       <div className="flex justify-center">
         <button
           type="submit"
@@ -649,11 +645,14 @@ function ThemeTab({
 // ============================================================================
 function BannerTab({
   settings,
-  isSaving,
 }: {
   settings: UnifiedStorefrontSettingsV1;
   isSaving: boolean;
 }) {
+  const bannerFetcher = useFetcher<{ success?: boolean; intent?: string; error?: string }>();
+  const isSaving = bannerFetcher.state !== 'idle';
+  const [uploadingSlides, setUploadingSlides] = useState<Record<number, boolean>>({});
+
   const heroBanner = settings.heroBanner || {
     mode: 'single',
     overlayOpacity: 40,
@@ -661,6 +660,9 @@ function BannerTab({
     fallbackHeadline: null,
   };
   const announcement = settings.announcement;
+  const [annText, setAnnText] = useState(announcement?.text || '');
+  const [annLink, setAnnLink] = useState(announcement?.link || '');
+  const [annEnabled, setAnnEnabled] = useState(announcement?.enabled || false);
   const [mode, setMode] = useState<'single' | 'carousel'>(heroBanner.mode as 'single' | 'carousel');
   const [opacity, setOpacity] = useState(heroBanner.overlayOpacity);
   // Ensure we have at least one slide structure
@@ -702,9 +704,30 @@ function BannerTab({
     setSlides(newSlides);
   };
 
+  const onSlideUploadStateChange = (idx: number, uploading: boolean) => {
+    setUploadingSlides((prev) => {
+      if (prev[idx] === uploading) return prev;
+      return { ...prev, [idx]: uploading };
+    });
+  };
+
+  const isAnySlideUploading = Object.values(uploadingSlides).some(Boolean);
+
   return (
-    <Form method="post" className="space-y-8">
+    <bannerFetcher.Form method="post" className="space-y-8">
       <input type="hidden" name="intent" value="banner" />
+
+      {/* Success message */}
+      {bannerFetcher.data?.success && (
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
+          <CheckCircle className="w-5 h-5" /> ব্যানার সেভ হয়েছে! স্টোর রিফ্রেশ করুন।
+        </div>
+      )}
+      {bannerFetcher.data?.error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
+          ⚠️ {bannerFetcher.data.error}
+        </div>
+      )}
 
       {/* Hero Banner */}
       <section className="bg-white rounded-xl border border-gray-200 p-6">
@@ -761,6 +784,7 @@ function BannerTab({
             onUpdate={updateSlide}
             onRemove={removeSlide}
             onMove={moveSlide}
+            onUploadStateChange={onSlideUploadStateChange}
           />
         ))}
 
@@ -811,7 +835,8 @@ function BannerTab({
             <input
               type="text"
               name="announcementText"
-              defaultValue={announcement?.text || ''}
+              value={annText}
+              onChange={(e) => setAnnText(e.target.value)}
               placeholder="🎉 ১০০০ টাকার বেশি অর্ডারে ফ্রি শিপিং!"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
             />
@@ -819,9 +844,10 @@ function BannerTab({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">লিংক (ঐচ্ছিক)</label>
             <input
-              type="url"
+              type="text"
               name="announcementLink"
-              defaultValue={announcement?.link || ''}
+              value={annLink}
+              onChange={(e) => setAnnLink(e.target.value)}
               placeholder="https://yourstore.com/sale"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
             />
@@ -831,7 +857,8 @@ function BannerTab({
               type="checkbox"
               name="announcementEnabled"
               id="announcementEnabled"
-              defaultChecked={announcement?.enabled}
+              checked={annEnabled}
+              onChange={(e) => setAnnEnabled(e.target.checked)}
               className="h-4 w-4 text-purple-600 rounded"
             />
             <label htmlFor="announcementEnabled" className="text-sm text-gray-700">
@@ -844,18 +871,18 @@ function BannerTab({
       <div className="flex justify-center">
         <button
           type="submit"
-          disabled={isSaving}
+          disabled={isSaving || isAnySlideUploading}
           className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition disabled:opacity-50 flex items-center gap-2"
         >
-          {isSaving ? (
+          {isSaving || isAnySlideUploading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <ImageIcon className="w-4 h-4" />
           )}
-          🖼 ব্যানার সেভ করুন
+          {isAnySlideUploading ? 'ইমেজ আপলোড হচ্ছে...' : '🖼 ব্যানার সেভ করুন'}
         </button>
       </div>
-    </Form>
+    </bannerFetcher.Form>
   );
 }
 
@@ -874,6 +901,7 @@ function BannerSlide({
   onUpdate,
   onRemove,
   onMove,
+  onUploadStateChange,
 }: {
   idx: number;
   slide: Slide;
@@ -881,6 +909,7 @@ function BannerSlide({
   onUpdate: (idx: number, updates: Partial<Slide>) => void;
   onRemove: (idx: number) => void;
   onMove: (idx: number, direction: 'up' | 'down') => void;
+  onUploadStateChange?: (idx: number, uploading: boolean) => void;
 }) {
   const fetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
   const [isUploading, setIsUploading] = useState(false);
@@ -897,6 +926,10 @@ function BannerSlide({
       }
     }
   }, [fetcher.state, fetcher.data, idx, onUpdate]);
+
+  useEffect(() => {
+    onUploadStateChange?.(idx, isUploading);
+  }, [idx, isUploading, onUploadStateChange]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -992,11 +1025,11 @@ function BannerSlide({
           className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
         />
         <input
-          type="url"
+          type="text"
           name={`slide_${idx}_ctaLink`}
           value={slide.ctaLink || ''}
           onChange={(e) => onUpdate(idx, { ctaLink: e.target.value })}
-          placeholder="https://example.com/products"
+          placeholder="https://example.com/products (optional)"
           className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
         />
       </div>
@@ -1071,21 +1104,64 @@ function ContentTab({
   const badges = settings.trustBadges?.badges || defaultBadges;
   const iconLabels = { truck: 'Truck Icon', shield: 'Shield Icon', refresh: 'Return Icon' };
   const IconMap = { truck: Truck, shield: Shield, refresh: RefreshCw };
+  const whyChoose = settings.whyChooseUs;
 
   return (
     <Form method="post" className="space-y-6">
       <input type="hidden" name="intent" value="content" />
+
+      {/* Why Choose Us Section */}
+      <section className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+            <Shield className="w-5 h-5 text-green-600" />
+          </div>
+          <h2 className="text-lg font-semibold">কেন আমাদের নির্বাচন করবেন</h2>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">
+          হোমপেজে "Why Choose Us" সেকশনের জন্য তিনটি ফিচার।
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {whyChoose.map(
+            (item: { icon: string; title: string; description: string }, idx: number) => (
+              <div key={idx} className="border border-gray-200 rounded-lg p-4">
+                <div className="text-2xl mb-2">{item.icon}</div>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">শিরোনাম</label>
+                    <input
+                      type="text"
+                      name={`whyChoose_${idx}_title`}
+                      defaultValue={item.title}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">বিবরণ</label>
+                    <input
+                      type="text"
+                      name={`whyChoose_${idx}_description`}
+                      defaultValue={item.description}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            )
+          )}
+        </div>
+      </section>
 
       <section className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
             <Type className="w-5 h-5 text-blue-600" />
           </div>
-          <h2 className="text-lg font-semibold">Store Content</h2>
+          <h2 className="text-lg font-semibold">ট্রাস্ট ব্যাজ</h2>
         </div>
 
         <h3 className="font-medium text-gray-900 mb-4">
-          Trust Badges (Fast Delivery, Secure Payment, etc.)
+          Trust Badges (দ্রুত ডেলিভারি, নিরাপদ পেমেন্ট, ইত্যাদি)
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {badges.map((badge, idx) => {

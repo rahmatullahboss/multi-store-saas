@@ -13,8 +13,8 @@
  * - AI Chat & Drag-Drop Simulation
  */
 
-import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motion';
 import { useEffect, useRef, useState, ReactNode } from 'react';
+import { useInView } from '@/hooks/useInView';
 import Link from 'next/link';
 import {
   Play,
@@ -105,34 +105,19 @@ const NeuralBackground = ({ colors, isMobile = false }: { colors: any; isMobile?
     />
 
     {/* Green Orb - Static on mobile */}
-    <motion.div
-      className="absolute -top-[10%] -left-[10%] w-[600px] h-[600px] rounded-full blur-[100px]"
+    <div
+      className={`absolute -top-[10%] -left-[10%] w-[600px] h-[600px] rounded-full blur-[100px] ${
+        isMobile ? 'opacity-10' : 'animate-orb-drift opacity-15'
+      }`}
       style={{ background: colors.primary }}
-      animate={
-        isMobile
-          ? { opacity: 0.1, scale: 1 }
-          : {
-              opacity: [0.1, 0.15, 0.1],
-              scale: [1, 1.1, 1],
-            }
-      }
-      transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
     />
 
     {/* Purple Orb (AI) - Static on mobile */}
-    <motion.div
-      className="absolute top-[20%] right-[0%] w-[500px] h-[500px] rounded-full blur-[100px]"
+    <div
+      className={`absolute top-[20%] right-[0%] w-[500px] h-[500px] rounded-full blur-[100px] ${
+        isMobile ? 'opacity-[0.05]' : 'animate-float-x opacity-10'
+      }`}
       style={{ background: colors.aiPurple }}
-      animate={
-        isMobile
-          ? { opacity: 0.05, scale: 1, x: 0 }
-          : {
-              opacity: [0.05, 0.1, 0.05],
-              scale: [1, 1.2, 1],
-              x: [0, -20, 0],
-            }
-      }
-      transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
     />
   </div>
 );
@@ -144,24 +129,36 @@ const AIHeroVisual = ({ theme, isMobile }: { theme: 'dark' | 'light'; isMobile?:
   const colors = getColors(theme);
   const { t } = useTranslation();
   const [activeChat, setActiveChat] = useState(0);
+  const visualRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(visualRef, { rootMargin: '0px 0px -20% 0px', once: true });
 
   // Chat sequence animation
   useEffect(() => {
-    const sequence = async () => {
-      while (true) {
+    if (!isInView) return;
+
+    let isMounted = true;
+    const run = async () => {
+      while (isMounted) {
         await new Promise((r) => setTimeout(r, 1000)); // Start
+        if (!isMounted) return;
         setActiveChat(1); // User asks
         await new Promise((r) => setTimeout(r, 2000)); // AI thinks
+        if (!isMounted) return;
         setActiveChat(2); // AI responds
         await new Promise((r) => setTimeout(r, 5000)); // Wait
+        if (!isMounted) return;
         setActiveChat(0); // Reset
       }
     };
-    sequence();
-  }, []);
+
+    run();
+    return () => {
+      isMounted = false;
+    };
+  }, [isInView]);
 
   return (
-    <div className="relative w-full aspect-[4/3] md:aspect-square max-h-[500px]">
+    <div ref={visualRef} className="relative w-full aspect-[4/3] md:aspect-square max-h-[500px]">
       {/* Container Frame */}
       <div
         className="absolute inset-0 rounded-2xl border backdrop-blur-xl overflow-hidden shadow-2xl"
@@ -183,15 +180,13 @@ const AIHeroVisual = ({ theme, isMobile }: { theme: 'dark' | 'light'; isMobile?:
             {/* Draggable Blocks Simulation */}
             <div className="mt-8 space-y-3">
               {[1, 2, 3].map((i) => (
-                <motion.div
+                <div
                   key={`block-${i}`}
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: i * 0.2 }}
-                  className="rounded-lg p-3 border border-dashed relative overflow-hidden"
+                  className="rounded-lg p-3 border border-dashed relative overflow-hidden animate-fade-in-left"
                   style={{
                     borderColor: colors.cardBorder,
                     background: theme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+                    animationDelay: `${i * 0.15}s`,
                   }}
                 >
                   <div className="h-2 w-2/3 rounded bg-current opacity-10 mb-2" />
@@ -199,16 +194,14 @@ const AIHeroVisual = ({ theme, isMobile }: { theme: 'dark' | 'light'; isMobile?:
 
                   {/* Drag Hand Animation */}
                   {i === 2 && activeChat === 1 && (
-                    <motion.div
-                      className="absolute bottom-1 right-2"
-                      initial={{ opacity: 0, x: 20, y: 20 }}
-                      animate={{ opacity: 1, x: 0, y: 0 }}
-                      exit={{ opacity: 0 }}
+                    <div
+                      className="absolute bottom-1 right-2 animate-fade-in-up"
+                      style={{ animationDuration: '300ms' }}
                     >
                       <MousePointer2 className="w-6 h-6 fill-white stroke-black" />
-                    </motion.div>
+                    </div>
                   )}
-                </motion.div>
+                </div>
               ))}
             </div>
 
@@ -227,110 +220,87 @@ const AIHeroVisual = ({ theme, isMobile }: { theme: 'dark' | 'light'; isMobile?:
           >
             <div className="p-4 flex flex-col justify-center h-full gap-4">
               {/* User Message Bubble */}
-              <AnimatePresence>
-                {activeChat >= 1 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="self-end max-w-[90%] rounded-2xl rounded-tr-sm p-3 shadow-sm"
-                    style={{ background: colors.primary, color: 'white' }}
-                  >
-                    <p className="text-xs">💬 "{t('heroAiVisualUserMsg')}"</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {activeChat >= 1 && (
+                <div
+                  className="self-end max-w-[90%] rounded-2xl rounded-tr-sm p-3 shadow-sm animate-fade-in-up"
+                  style={{ background: colors.primary, color: 'white' }}
+                >
+                  <p className="text-xs">💬 "{t('heroAiVisualUserMsg')}"</p>
+                </div>
+              )}
 
               {/* Bot Typing Indicator */}
-              <AnimatePresence>
-                {activeChat === 1 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="self-start relative"
-                  >
-                    <div className="flex gap-1 px-3 py-2 rounded-2xl rounded-tl-sm bg-white/10">
-                      <motion.div
-                        animate={{ y: [0, -3, 0] }}
-                        transition={{ repeat: Infinity, duration: 0.6, delay: 0 }}
-                        className="w-1 h-1 rounded-full bg-current opacity-50"
-                      />
-                      <motion.div
-                        animate={{ y: [0, -3, 0] }}
-                        transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }}
-                        className="w-1 h-1 rounded-full bg-current opacity-50"
-                      />
-                      <motion.div
-                        animate={{ y: [0, -3, 0] }}
-                        transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }}
-                        className="w-1 h-1 rounded-full bg-current opacity-50"
-                      />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {activeChat === 1 && (
+                <div className="self-start relative animate-fade-in">
+                  <div className="flex gap-1 px-3 py-2 rounded-2xl rounded-tl-sm bg-white/10">
+                    <span className="w-1 h-1 rounded-full bg-current opacity-50 animate-bounce-dot" />
+                    <span
+                      className="w-1 h-1 rounded-full bg-current opacity-50 animate-bounce-dot"
+                      style={{ animationDelay: '0.2s' }}
+                    />
+                    <span
+                      className="w-1 h-1 rounded-full bg-current opacity-50 animate-bounce-dot"
+                      style={{ animationDelay: '0.4s' }}
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Bot Response Bubble */}
-              <AnimatePresence>
-                {activeChat >= 2 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="self-start max-w-[90%] rounded-2xl rounded-tl-sm p-3 border shadow-sm"
-                    style={{
-                      background: theme === 'dark' ? '#1a1a20' : '#ffffff',
-                      borderColor: colors.cardBorder,
-                    }}
-                  >
-                    <div className="flex items-start gap-2">
-                      <div className="p-1 rounded bg-purple-500/10 mt-0.5">
-                        <Bot className="w-3 h-3 text-purple-500" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-medium" style={{ color: colors.text }}>
-                          🤖 "{t('heroAiVisualAiReply')}"
-                        </p>
-                      </div>
+              {activeChat >= 2 && (
+                <div
+                  className="self-start max-w-[90%] rounded-2xl rounded-tl-sm p-3 border shadow-sm animate-fade-in-up"
+                  style={{
+                    background: theme === 'dark' ? '#1a1a20' : '#ffffff',
+                    borderColor: colors.cardBorder,
+                  }}
+                >
+                  <div className="flex items-start gap-2">
+                    <div className="p-1 rounded bg-purple-500/10 mt-0.5">
+                      <Bot className="w-3 h-3 text-purple-500" />
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <div>
+                      <p className="text-xs font-medium" style={{ color: colors.text }}>
+                        🤖 "{t('heroAiVisualAiReply')}"
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Floating Badges */}
-        <motion.div
-          className="absolute -right-4 top-10 px-3 py-1.5 rounded-full border backdrop-blur-md shadow-lg flex items-center gap-2 z-10"
+        <div
+          className={`absolute -right-4 top-10 px-3 py-1.5 rounded-full border backdrop-blur-md shadow-lg flex items-center gap-2 z-10 ${
+            isMobile ? '' : 'animate-float-reverse'
+          }`}
           style={{
             background: theme === 'dark' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(255,255,255,0.8)',
             borderColor: colors.aiPurple,
           }}
-          animate={isMobile ? {} : { y: [0, -10, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         >
           <Sparkles className="w-3 h-3 text-purple-500" />
           <span className="text-xs font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">
             AI Logic
           </span>
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="absolute -left-4 bottom-20 px-3 py-1.5 rounded-full border backdrop-blur-md shadow-lg flex items-center gap-2 z-10"
+        <div
+          className={`absolute -left-4 bottom-20 px-3 py-1.5 rounded-full border backdrop-blur-md shadow-lg flex items-center gap-2 z-10 ${
+            isMobile ? '' : 'animate-float'
+          }`}
           style={{
             background: theme === 'dark' ? 'rgba(0, 106, 78, 0.1)' : 'rgba(255,255,255,0.8)',
             borderColor: colors.primary,
           }}
-          animate={isMobile ? {} : { y: [0, 10, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
         >
           <Zap className="w-3 h-3" style={{ color: colors.primary }} />
           <span className="text-xs font-medium" style={{ color: colors.primary }}>
             Fast CDN
           </span>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
@@ -358,10 +328,8 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
           {/* LEFT: CONTENT */}
           <div className="relative z-20">
             {/* New AI Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border mb-6"
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border mb-6 animate-fade-in-up"
               style={{
                 backgroundColor: isLight ? 'rgba(139, 92, 246, 0.05)' : 'rgba(139, 92, 246, 0.1)',
                 borderColor: isLight ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.3)',
@@ -377,25 +345,25 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
               >
                 {t('heroAiBadge')}
               </span>
-            </motion.div>
+            </div>
 
             {/* Headline */}
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.15] mb-6 tracking-tight">
-              <span className="block" style={{ color: colors.text }}>
+              <span className="block animate-fade-in-up" style={{ color: colors.text }}>
                 {t('heroAiTitle')}
               </span>
             </h1>
 
             {/* Subheadline */}
             <p
-              className="text-lg md:text-xl mb-8 leading-relaxed max-w-lg"
+              className="text-lg md:text-xl mb-8 leading-relaxed max-w-lg animate-fade-in-up"
               style={{ color: colors.textMuted }}
             >
               {t('heroAiSubtitle')}
             </p>
 
             {/* CTAs */}
-            <div className="flex flex-wrap gap-4 mb-10">
+            <div className="flex flex-wrap gap-4 mb-10 animate-fade-in-up">
               <Link
                 href="https://app.ozzyl.com/auth/register"
                 className="group relative px-8 py-3.5 rounded-xl font-semibold text-white overflow-hidden transition-all hover:shadow-lg hover:shadow-green-500/25 active:scale-95"
@@ -412,7 +380,7 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
 
             {/* Trust Badges */}
             <div
-              className="grid grid-cols-2 md:grid-cols-4 gap-4 py-6 border-t"
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 py-6 border-t animate-fade-in-up"
               style={{ borderColor: colors.cardBorder, color: colors.textSubtle }}
             >
               {[

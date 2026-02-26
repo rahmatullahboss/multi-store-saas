@@ -51,6 +51,16 @@
     "i18n:scan": "npx i18next-parser 'app/**/*.{ts,tsx}' --config i18next-parser.config.js --fail-on-update"
   },
   "dependencies": {
+    "@capacitor/android": "^8.1.0",
+    "@capacitor/app": "^8.0.1",
+    "@capacitor/camera": "^8.0.1",
+    "@capacitor/core": "^8.1.0",
+    "@capacitor/filesystem": "^8.1.2",
+    "@capacitor/ios": "^8.1.0",
+    "@capacitor/network": "^8.0.1",
+    "@capacitor/push-notifications": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.1",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
@@ -106,6 +116,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.1.0",
     "@cloudflare/workers-types": "^4.20241218.0",
     "@eslint/js": "^9.39.2",
     "@playwright/test": "^1.57.0",

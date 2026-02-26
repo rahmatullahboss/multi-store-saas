@@ -32,13 +32,32 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const origin = url.origin;
 
   // Validate required params
-  if (!orderId || !storeId) {
+  if (!orderId || !storeId || isNaN(orderId) || isNaN(storeId)) {
     return redirect(`${origin}/checkout/failed?error=invalid_callback`);
   }
 
   const db = drizzle(context.cloudflare.env.DB);
 
-  // Handle cancel/failure without executing
+  // ── SECURITY: Verify order actually exists and belongs to this store ──────
+  // This prevents an attacker from flipping arbitrary orders to failed/paid
+  // by guessing orderId + storeId query params.
+  const existingOrder = await db
+    .select({ id: orders.id, orderNumber: orders.orderNumber, paymentStatus: orders.paymentStatus })
+    .from(orders)
+    .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)))
+    .get();
+
+  if (!existingOrder) {
+    // No order matching this id+storeId — silently redirect, do not leak info
+    return redirect(`${origin}/checkout/failed?error=invalid_callback`);
+  }
+
+  // If order is already paid, do not allow downgrade to failed
+  if (existingOrder.paymentStatus === 'paid') {
+    return redirect(`${origin}/checkout/success?orderId=${orderId}`);
+  }
+
+  // Handle cancel/failure — order ownership already verified above
   if (status === 'cancel') {
     await db
       .update(orders)
@@ -55,7 +74,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return redirect(`${origin}/checkout/failed?orderId=${orderId}&error=payment_failed`);
   }
 
-  // status === 'success' → execute payment to verify
+  // status === 'success' → execute payment to verify with bKash API
   try {
     // Get store gateway config
     const storeData = await db
@@ -80,7 +99,24 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const result = await bkash.executePayment(paymentID);
 
     if (result.transactionStatus === 'Completed' && result.statusCode === '0000') {
-      // Payment confirmed — mark order as paid
+      // ── SECURITY: Cross-check bKash merchantInvoiceNumber vs our orderNumber ──
+      // bKash returns the merchantInvoiceNumber we originally sent in createPayment.
+      // If it doesn't match, this payment belongs to a different order — reject it.
+      if (result.merchantInvoiceNumber && result.merchantInvoiceNumber !== existingOrder.orderNumber) {
+        console.error('[bKash Callback] merchantInvoiceNumber mismatch:', {
+          expected: existingOrder.orderNumber,
+          received: result.merchantInvoiceNumber,
+          orderId,
+          storeId,
+        });
+        await db
+          .update(orders)
+          .set({ paymentStatus: 'failed', updatedAt: new Date() })
+          .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
+        return redirect(`${origin}/checkout/failed?orderId=${orderId}&error=payment_mismatch`);
+      }
+
+      // Payment confirmed and verified — mark order as paid
       await db
         .update(orders)
         .set({

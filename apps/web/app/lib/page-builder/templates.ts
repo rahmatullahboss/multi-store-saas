@@ -15,6 +15,165 @@ import type { SectionType } from './types';
 
 export type TemplateCategory = 'sales' | 'product' | 'service' | 'minimal' | 'premium';
 
+export type TemplateGoal = 'sales' | 'leads' | 'branding' | 'restaurant';
+
+// ============================================================================
+// BUILDER TEMPLATE — Industry-specific launch templates (Phase 5)
+// ============================================================================
+
+export interface BuilderTemplateSection {
+  type: string;
+  variant: string;
+  position: number;
+  defaultProps: Record<string, unknown>;
+}
+
+export interface BuilderTemplate {
+  id: string;
+  name: string;
+  nameBn: string;
+  industry: string;
+  description: string;
+  descriptionBn: string;
+  primaryColor: string;
+  accentColor: string;
+  conversionScore: number;
+  goal: TemplateGoal;
+  defaultSections: BuilderTemplateSection[];
+}
+
+// ============================================================================
+// 6 LAUNCH TEMPLATES — Industry-specific starting points
+// ============================================================================
+
+export const BUILDER_TEMPLATES: Record<string, BuilderTemplate> = {
+  general: {
+    id: 'general',
+    name: 'General Store',
+    nameBn: 'সাধারণ দোকান',
+    industry: 'সাধারণ',
+    description: 'Best template for any kind of product',
+    descriptionBn: 'যেকোনো ধরনের পণ্যের জন্য সেরা টেমপ্লেট',
+    primaryColor: '#3B82F6',
+    accentColor: '#F59E0B',
+    conversionScore: 8,
+    goal: 'sales',
+    defaultSections: [
+      { type: 'hero', variant: 'product-focused', position: 0, defaultProps: { headline: 'আমাদের সেরা পণ্য', subheadline: 'সেরা মানের পণ্য, সেরা দামে। ক্যাশ অন ডেলিভারি সুবিধা।', ctaText: 'এখনই অর্ডার করুন', badgeText: '🔥 বেস্ট সেলার' } },
+      { type: 'trust-badges', variant: 'default', position: 1, defaultProps: { badges: [{ icon: '🚚', text: 'ফ্রি ডেলিভারি' }, { icon: '💯', text: '১০০% অরিজিনাল' }, { icon: '↩️', text: '৭ দিন রিটার্ন' }, { icon: '💳', text: 'ক্যাশ অন ডেলিভারি' }] } },
+      { type: 'features', variant: 'grid-3', position: 2, defaultProps: { title: 'কেন আমাদের পণ্য?', features: [{ icon: '⭐', title: 'সেরা মান', description: 'প্রিমিয়াম কোয়ালিটি নিশ্চিত' }, { icon: '🚀', title: 'দ্রুত ডেলিভারি', description: '২৪-৪৮ ঘণ্টায় ডেলিভারি' }, { icon: '🛡️', title: 'গ্যারান্টি', description: '৭ দিনের মানি ব্যাক' }] } },
+      { type: 'testimonials', variant: 'cards', position: 3, defaultProps: { title: 'কাস্টমারদের মতামত', testimonials: [] } },
+      { type: 'faq', variant: 'default', position: 4, defaultProps: { title: 'সাধারণ জিজ্ঞাসা', items: [{ question: 'ডেলিভারি কতদিনে হবে?', answer: 'ঢাকায় ১-২ দিন, ঢাকার বাইরে ২-৩ দিন।' }, { question: 'ক্যাশ অন ডেলিভারি আছে?', answer: 'হ্যাঁ, হাতে পেয়ে টাকা দিন।' }] } },
+      { type: 'cta', variant: 'button-only', position: 5, defaultProps: { headline: 'আজই অর্ডার করুন', subheadline: 'সীমিত স্টক! দেরি না করে এখনই অর্ডার করুন', buttonText: 'অর্ডার করুন' } },
+    ],
+  },
+
+  fashion: {
+    id: 'fashion',
+    name: 'Fashion Boutique',
+    nameBn: 'ফ্যাশন বুটিক',
+    industry: 'ফ্যাশন',
+    description: 'Attractive design for fashion & clothing',
+    descriptionBn: 'ফ্যাশন ও পোশাকের জন্য আকর্ষণীয় ডিজাইন',
+    primaryColor: '#EC4899',
+    accentColor: '#8B5CF6',
+    conversionScore: 7,
+    goal: 'sales',
+    defaultSections: [
+      { type: 'hero', variant: 'product-focused', position: 0, defaultProps: { headline: 'নতুন কালেকশন এসেছে', subheadline: 'ট্রেন্ডি ফ্যাশন, সাশ্রয়ী মূল্যে। এক্সক্লুসিভ ডিজাইনের পোশাক।', ctaText: 'কালেকশন দেখুন', badgeText: '✨ নিউ অ্যারাইভাল' } },
+      { type: 'gallery', variant: 'default', position: 1, defaultProps: { title: 'আমাদের কালেকশন', images: [] } },
+      { type: 'features', variant: 'grid-3', position: 2, defaultProps: { title: 'কেন বেছে নেবেন?', features: [{ icon: '👗', title: 'এক্সক্লুসিভ ডিজাইন', description: 'অনন্য ফ্যাশন কালেকশন' }, { icon: '🎨', title: 'প্রিমিয়াম ফেব্রিক', description: 'উচ্চমানের কাপড়' }, { icon: '📏', title: 'সব সাইজ', description: 'S থেকে XXL পর্যন্ত' }] } },
+      { type: 'testimonials', variant: 'cards', position: 3, defaultProps: { title: 'কাস্টমার রিভিউ', testimonials: [] } },
+      { type: 'trust-badges', variant: 'default', position: 4, defaultProps: { badges: [{ icon: '🔄', text: 'ইজি রিটার্ন' }, { icon: '🚚', text: 'ফ্রি ডেলিভারি' }, { icon: '💎', text: 'প্রিমিয়াম কোয়ালিটি' }, { icon: '💳', text: 'ক্যাশ অন ডেলিভারি' }] } },
+      { type: 'cta', variant: 'button-only', position: 5, defaultProps: { headline: 'আপনার পছন্দের পোশাক বেছে নিন', subheadline: 'হোম ডেলিভারি ও ক্যাশ অন ডেলিভারি সুবিধা', buttonText: 'অর্ডার করুন' } },
+    ],
+  },
+
+  food: {
+    id: 'food',
+    name: 'Food & Restaurant',
+    nameBn: 'খাবার ও রেস্তোরাঁ',
+    industry: 'খাবার',
+    description: 'Mouth-watering layout for food & restaurants',
+    descriptionBn: 'খাবার ও রেস্তোরাঁর জন্য মুখরোচক লেআউট',
+    primaryColor: '#F97316',
+    accentColor: '#EF4444',
+    conversionScore: 9,
+    goal: 'restaurant',
+    defaultSections: [
+      { type: 'hero', variant: 'product-focused', position: 0, defaultProps: { headline: 'তাজা ও সুস্বাদু খাবার', subheadline: 'ঘরে বসে উপভোগ করুন রেস্তোরাঁর স্বাদ। দ্রুত ডেলিভারি, তাজা উপাদান।', ctaText: 'অর্ডার করুন', badgeText: '🍔 ফ্রেশ ফুড' } },
+      { type: 'gallery', variant: 'default', position: 1, defaultProps: { title: 'আমাদের মেনু', images: [] } },
+      { type: 'features', variant: 'grid-3', position: 2, defaultProps: { title: 'কেন আমাদের বেছে নেবেন?', features: [{ icon: '🌿', title: 'তাজা উপাদান', description: 'প্রতিদিন তাজা মসলা ও সবজি' }, { icon: '⚡', title: 'দ্রুত ডেলিভারি', description: '৩০-৪৫ মিনিটে ডেলিভারি' }, { icon: '👨‍🍳', title: 'অভিজ্ঞ শেফ', description: 'পেশাদার রাঁধুনির হাতের রান্না' }] } },
+      { type: 'testimonials', variant: 'cards', position: 3, defaultProps: { title: 'কাস্টমারদের রিভিউ', testimonials: [] } },
+      { type: 'contact', variant: 'default', position: 4, defaultProps: { title: 'অর্ডার করুন', phone: '01XXXXXXXXX', address: 'আপনার ঠিকানা' } },
+      { type: 'cta', variant: 'button-only', position: 5, defaultProps: { headline: 'এখনই অর্ডার করুন', subheadline: 'গরম ও তাজা খাবার আপনার দরজায়', buttonText: 'অর্ডার করুন' } },
+    ],
+  },
+
+  tech: {
+    id: 'tech',
+    name: 'Tech & Gadgets',
+    nameBn: 'টেক ও গ্যাজেট',
+    industry: 'টেক',
+    description: 'Modern design for technology products',
+    descriptionBn: 'প্রযুক্তি পণ্যের জন্য আধুনিক ডিজাইন',
+    primaryColor: '#06B6D4',
+    accentColor: '#8B5CF6',
+    conversionScore: 8,
+    goal: 'sales',
+    defaultSections: [
+      { type: 'hero', variant: 'product-focused', position: 0, defaultProps: { headline: 'ভবিষ্যতের প্রযুক্তি আজই', subheadline: 'সেরা মানের গ্যাজেট, অফিসিয়াল ওয়ারেন্টি সহ। ক্যাশ অন ডেলিভারি।', ctaText: 'এখনই কিনুন', badgeText: '⚡ ট্রেন্ডিং গ্যাজেট' } },
+      { type: 'trust-badges', variant: 'default', position: 1, defaultProps: { badges: [{ icon: '🛡️', text: 'অফিসিয়াল ওয়ারেন্টি' }, { icon: '🚚', text: 'এক্সপ্রেস ডেলিভারি' }, { icon: '💳', text: 'ক্যাশ অন ডেলিভারি' }, { icon: '🔄', text: '৭ দিন রিপ্লেসমেন্ট' }] } },
+      { type: 'features', variant: 'grid-4', position: 2, defaultProps: { title: 'কেন এই গ্যাজেট?', features: [{ icon: '🔋', title: 'লং ব্যাটারি', description: 'সারাদিন ব্যবহারের সুবিধা' }, { icon: '🔊', title: 'হাই পারফরম্যান্স', description: 'লেটেস্ট টেকনোলজি' }, { icon: '💧', title: 'টেকসই ডিজাইন', description: 'দীর্ঘস্থায়ী ব্যবহার' }, { icon: '📱', title: 'স্মার্ট কানেক্টিভিটি', description: 'সহজ সংযোগ ব্যবস্থা' }] } },
+      { type: 'testimonials', variant: 'cards', position: 3, defaultProps: { title: 'টেক লাভারদের মতামত', testimonials: [] } },
+      { type: 'faq', variant: 'default', position: 4, defaultProps: { title: 'সচরাচর জিজ্ঞাসা', items: [{ question: 'ওয়ারেন্টি কতদিনের?', answer: 'অফিসিয়াল ওয়ারেন্টি ১২ মাস।' }, { question: 'ক্যাশ অন ডেলিভারি আছে?', answer: 'হ্যাঁ, পণ্য হাতে পেয়ে টাকা দিন।' }] } },
+      { type: 'cta', variant: 'with-trust', position: 5, defaultProps: { headline: 'আজই আপগ্রেড করুন', subheadline: 'সীমিত স্টক! এখনই অর্ডার কনফার্ম করুন', buttonText: 'অর্ডার করুন' } },
+    ],
+  },
+
+  services: {
+    id: 'services',
+    name: 'Professional Services',
+    nameBn: 'পেশাদার সেবা',
+    industry: 'সেবা',
+    description: 'Trustworthy layout for professional services',
+    descriptionBn: 'পেশাদার সেবার জন্য বিশ্বাসযোগ্য লেআউট',
+    primaryColor: '#10B981',
+    accentColor: '#3B82F6',
+    conversionScore: 7,
+    goal: 'leads',
+    defaultSections: [
+      { type: 'hero', variant: 'text-focused', position: 0, defaultProps: { headline: 'পেশাদার সেবা, বিশ্বস্ত অভিজ্ঞতা', subheadline: 'আমাদের বিশেষজ্ঞ দল আপনার সমস্যার সমাধান দিতে সদা প্রস্তুত।', ctaText: 'ফ্রি পরামর্শ নিন', badgeText: '✅ বিশ্বস্ত সেবা' } },
+      { type: 'features', variant: 'grid-3', position: 1, defaultProps: { title: 'আমাদের সেবাসমূহ', features: [{ icon: '💼', title: 'পেশাদার পরামর্শ', description: 'অভিজ্ঞ বিশেষজ্ঞদের পরামর্শ' }, { icon: '⏱️', title: 'সময়মতো ডেলিভারি', description: 'নির্ধারিত সময়ে কাজ শেষ' }, { icon: '🔒', title: 'গোপনীয়তা রক্ষা', description: 'আপনার তথ্য সম্পূর্ণ নিরাপদ' }] } },
+      { type: 'testimonials', variant: 'cards', position: 2, defaultProps: { title: 'ক্লায়েন্টদের মতামত', testimonials: [] } },
+      { type: 'trust-badges', variant: 'default', position: 3, defaultProps: { badges: [{ icon: '🏆', title: '১০+ বছরের অভিজ্ঞতা' }, { icon: '👥', text: '৫০০+ সন্তুষ্ট ক্লায়েন্ট' }, { icon: '⭐', text: '৫ স্টার রেটিং' }, { icon: '🔒', text: 'বিশ্বস্ত ও নির্ভরযোগ্য' }] } },
+      { type: 'faq', variant: 'default', position: 4, defaultProps: { title: 'সাধারণ প্রশ্নোত্তর', items: [{ question: 'কিভাবে শুরু করব?', answer: 'আমাদের সাথে যোগাযোগ করুন, বিনামূল্যে পরামর্শ দেওয়া হবে।' }, { question: 'চার্জ কত?', answer: 'সেবার ধরন অনুযায়ী ভিন্ন। বিস্তারিত আলোচনার পর নির্ধারিত হবে।' }] } },
+      { type: 'contact', variant: 'default', position: 5, defaultProps: { title: 'আজই যোগাযোগ করুন', phone: '01XXXXXXXXX' } },
+    ],
+  },
+
+  beauty: {
+    id: 'beauty',
+    name: 'Beauty & Wellness',
+    nameBn: 'সৌন্দর্য ও সুস্থতা',
+    industry: 'সৌন্দর্য',
+    description: 'Captivating design for beauty products',
+    descriptionBn: 'সৌন্দর্য পণ্যের জন্য মনোমুগ্ধকর ডিজাইন',
+    primaryColor: '#F472B6',
+    accentColor: '#A78BFA',
+    conversionScore: 8,
+    goal: 'sales',
+    defaultSections: [
+      { type: 'hero', variant: 'product-focused', position: 0, defaultProps: { headline: 'প্রকৃতির ছোঁয়ায় সৌন্দর্য', subheadline: '১০০% প্রাকৃতিক উপাদানে তৈরি। ত্বকের যত্নে বিশ্বস্ত পছন্দ।', ctaText: 'এখনই কিনুন', badgeText: '🌸 ন্যাচারাল বিউটি' } },
+      { type: 'trust-badges', variant: 'default', position: 1, defaultProps: { badges: [{ icon: '🌿', text: '১০০% ন্যাচারাল' }, { icon: '🔬', text: 'ডার্মাটোলজিস্ট টেস্টেড' }, { icon: '🕌', text: 'হালাল সার্টিফাইড' }, { icon: '♻️', text: 'ইকো ফ্রেন্ডলি' }] } },
+      { type: 'features', variant: 'grid-3', position: 2, defaultProps: { title: 'কেন আমাদের পণ্য?', features: [{ icon: '✨', title: 'দ্রুত ফলাফল', description: '৭ দিনেই পার্থক্য দেখুন' }, { icon: '🌱', title: 'কোনো কেমিক্যাল নেই', description: 'সম্পূর্ণ প্রাকৃতিক ফর্মুলা' }, { icon: '💆', title: 'সব স্কিন টাইপ', description: 'সেনসিটিভ স্কিনেও নিরাপদ' }] } },
+      { type: 'testimonials', variant: 'cards', position: 3, defaultProps: { title: 'ব্যবহারকারীদের অভিজ্ঞতা', testimonials: [] } },
+      { type: 'faq', variant: 'default', position: 4, defaultProps: { title: 'সাধারণ জিজ্ঞাসা', items: [{ question: 'সাইড ইফেক্ট আছে কি?', answer: 'না, সম্পূর্ণ প্রাকৃতিক উপাদানে তৈরি।' }, { question: 'কতদিনে ফলাফল পাব?', answer: 'নিয়মিত ব্যবহারে ৭-১৪ দিনে পার্থক্য বুঝতে পারবেন।' }] } },
+      { type: 'cta', variant: 'button-only', position: 5, defaultProps: { headline: 'আজই শুরু করুন সৌন্দর্যের যত্ন', subheadline: 'প্রথম অর্ডারে বিশেষ ছাড় পাচ্ছেন', buttonText: 'অর্ডার করুন' } },
+    ],
+  },
+};
+
 export interface TemplateSection {
   type: SectionType;
   props: Record<string, unknown>;
@@ -1216,6 +1375,27 @@ export function getTemplateById(id: string): TemplatePreset | null {
  */
 export function getTemplatesByCategory(category: TemplateCategory): TemplatePreset[] {
   return getAllTemplates().filter(t => t.category === category);
+}
+
+/**
+ * Get all builder templates (Phase 5 - Industry launch templates)
+ */
+export function getAllBuilderTemplates(): BuilderTemplate[] {
+  return Object.values(BUILDER_TEMPLATES);
+}
+
+/**
+ * Get a builder template by ID
+ */
+export function getBuilderTemplateById(id: string): BuilderTemplate | null {
+  return BUILDER_TEMPLATES[id] || null;
+}
+
+/**
+ * Get builder templates filtered by goal
+ */
+export function getBuilderTemplatesByGoal(goal: TemplateGoal): BuilderTemplate[] {
+  return getAllBuilderTemplates().filter(t => t.goal === goal);
 }
 
 /**

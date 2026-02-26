@@ -29,16 +29,13 @@ import {
   Truck,
   Warehouse,
   ShoppingBag,
-  FileText,
   Mail,
-  Layers,
   Eye,
   CreditCard,
   Palette,
   Globe,
   Crown,
   ExternalLink,
-  Home,
   MessageSquare,
   Info,
   AlertTriangle,
@@ -314,8 +311,10 @@ const navSections: NavSection[] = [
     titleKey: 'sidebarOnlineStore',
     items: [
       { to: '/app/store/settings', labelKey: 'navTheme', icon: Palette },
-      { to: '/app/new-builder', labelKey: 'navPages', icon: FileText },
-      { to: '/app/page-builder', labelKey: 'navDragDropBuilder', icon: Layers },
+      // Landing Page Builder & Drag-Drop Builder moved to Super Admin (Work In Progress)
+      // { to: '/app/new-builder', labelKey: 'navPages', icon: FileText },
+      // { to: '/app/quick-builder/new', labelKey: 'navQuickBuilder', icon: Sparkles },
+      // { to: '/app/page-builder', labelKey: 'navDragDropBuilder', icon: Layers },
     ],
   },
   // === MARKETING ===
@@ -323,7 +322,7 @@ const navSections: NavSection[] = [
     titleKey: 'sidebarMarketing',
     items: [
       { to: '/app/campaigns', labelKey: 'navCampaigns', icon: Mail },
-      { to: '/app/leads', labelKey: 'navLeadInbox', icon: Users },
+      // { to: '/app/leads', labelKey: 'navLeadInbox', icon: Users }, // Work In Progress - moved to Super Admin
       { to: '/app/support', labelKey: 'navSupport', icon: Ticket },
       { to: '/app/agent', labelKey: 'landingFinalCTA_aiAssistantName', icon: OzzylIcon },
       { to: '/app/subscribers', labelKey: 'navSubscribers', icon: Mail },
@@ -339,9 +338,10 @@ const navSections: NavSection[] = [
     mobileHidden: false, // Show settings in mobile sidebar too
     items: [
       { to: '/app/settings', labelKey: 'navGeneral', icon: Settings },
-      { to: '/app/settings/homepage', labelKey: 'navStorefront', icon: Home },
-      { to: '/app/settings/business-mode', labelKey: 'navBusinessMode', icon: Layers },
-      { to: '/app/settings/lead-gen', labelKey: 'navLeadGenSettings', icon: Palette },
+      // Work In Progress - hidden from production, moved to Super Admin
+      // { to: '/app/settings/homepage', labelKey: 'navStorefront', icon: Home },
+      // { to: '/app/settings/business-mode', labelKey: 'navBusinessMode', icon: Layers },
+      // { to: '/app/settings/lead-gen', labelKey: 'navLeadGenSettings', icon: Palette },
       { to: '/app/settings/domain', labelKey: 'navDomain', icon: Globe },
       { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck },
       { to: '/app/settings/courier', labelKey: 'navCourier', icon: Package },

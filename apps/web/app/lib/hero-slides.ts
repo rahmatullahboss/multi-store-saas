@@ -22,7 +22,8 @@ function clampDelay(value?: number): number {
 
 function asNonEmpty(value?: string): string | undefined {
   const trimmed = value?.trim();
-  return trimmed ? trimmed : undefined;
+  if (!trimmed || trimmed === 'null' || trimmed === 'undefined') return undefined;
+  return trimmed;
 }
 
 function sanitizeSlide(slide: unknown, index: number): HeroSlide | null {
@@ -43,14 +44,23 @@ function sanitizeSlide(slide: unknown, index: number): HeroSlide | null {
 }
 
 export function getHeroSlides(config: ThemeConfig | null | undefined): HeroSlide[] {
-  const source = Array.isArray(config?.heroSlides) ? config.heroSlides : [];
+  // Unified settings (heroBanner.slides) takes priority over legacy heroSlides
+  const unifiedSource = Array.isArray((config as any)?.heroBanner?.slides)
+    ? (config as any).heroBanner.slides
+    : [];
+  const legacySource = Array.isArray(config?.heroSlides) ? config.heroSlides : [];
+  // Unified wins if it has any entries (even with null imageUrl - they will be filtered)
+  const source = unifiedSource.length > 0 ? unifiedSource : legacySource;
+
   const slides = source
-    .map((slide, index) => sanitizeSlide(slide, index))
-    .filter((slide): slide is HeroSlide => Boolean(slide))
+    .map((slide: unknown, index: number) => sanitizeSlide(slide, index))
+    .filter((slide: HeroSlide | null): slide is HeroSlide => Boolean(slide))
     .slice(0, HERO_SLIDES_MAX);
 
   if (slides.length > 0) {
-    if (config?.heroMode === 'single') return [slides[0]];
+    // Check unified heroBanner.mode FIRST, then legacy heroMode
+    const heroMode = (config as any)?.heroBanner?.mode || config?.heroMode || 'single';
+    if (heroMode === 'single') return [slides[0]];
     return slides;
   }
 

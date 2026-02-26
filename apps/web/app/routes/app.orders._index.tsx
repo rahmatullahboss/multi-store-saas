@@ -1390,17 +1390,17 @@ export default function DashboardOrdersPage() {
                           <th className="px-4 py-3 font-medium text-right w-[160px]">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100/50 dark:divide-slate-800/50">
+                      <tbody className="divide-y divide-gray-100">
                         {filteredOrders.map((order) => {
                           const isErrorState = order.status === 'cancelled' || order.status === 'returned';
                           const orderItemsList = (order as typeof order & { items: Array<{title: string; quantity: number; imageUrl: string | null}> }).items ?? [];
                           return (
                             <tr
                               key={order.id}
-                              className={isErrorState ? 'bg-red-50/30' : ''}
+                              className={`hover:bg-gray-50 transition ${isErrorState ? 'bg-red-50/30' : ''}`}
                             >
                               {/* Order ID */}
-                              <td className="px-4 py-2.5 font-medium text-slate-900 w-[240px] min-w-[240px]">
+                              <td className="px-4 py-4 font-medium text-slate-900 w-[240px] min-w-[240px]">
                                 <Link to={`/app/orders/${order.id}`} className="text-emerald-600  font-medium">
                                   {order.orderNumber}
                                 </Link>
@@ -1408,7 +1408,7 @@ export default function DashboardOrdersPage() {
                               </td>
 
                               {/* Customer */}
-                              <td className="px-4 py-2.5">
+                              <td className="px-4 py-4">
                                 <div className="flex items-center gap-3">
                                   <div className="h-9 w-9 overflow-hidden rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm shrink-0">
                                     {(order.customerName || 'C').charAt(0).toUpperCase()}
@@ -1421,7 +1421,7 @@ export default function DashboardOrdersPage() {
                               </td>
 
                               {/* Products */}
-                              <td className="px-4 py-2.5">
+                              <td className="px-4 py-4">
                                 <div className="flex items-center gap-1.5 max-w-[200px]">
                                   {orderItemsList.slice(0, 6).map((item, idx) => (
                                     <div key={idx} className="relative shrink-0">
@@ -1458,12 +1458,12 @@ export default function DashboardOrdersPage() {
                               </td>
 
                               {/* Amount */}
-                              <td className="px-4 py-2.5 font-semibold text-slate-900">
+                              <td className="px-4 py-4 font-semibold text-slate-900">
                                 {formatPrice(order.total)}
                               </td>
 
                               {/* Payment */}
-                              <td className="px-4 py-2.5">
+                              <td className="px-4 py-4">
                                 {(() => {
                                   const method = order.paymentMethod?.toLowerCase() || '';
                                   const isPaid = order.paymentStatus === 'paid';
@@ -1490,7 +1490,7 @@ export default function DashboardOrdersPage() {
                               </td>
 
                               {/* Status */}
-                              <td className="px-4 py-2.5">
+                              <td className="px-4 py-4">
                                 <StatusDropdown
                                   orderId={order.id}
                                   currentStatus={order.status || 'pending'}
@@ -1499,7 +1499,7 @@ export default function DashboardOrdersPage() {
 
 
                               {/* Fraud Risk */}
-                              <td className="px-4 py-2.5 w-[260px] min-w-[260px]">
+                              <td className="px-4 py-4 w-[260px] min-w-[260px]">
                                 {(() => {
                                   const fd = 'fraudCache' in order
                                     ? (order as typeof order & { fraudCache: { successRate: number; totalOrders: number; deliveredOrders: number; returnedOrders: number; isHighRisk: boolean; riskScore: number; } | null }).fraudCache
@@ -1535,7 +1535,7 @@ export default function DashboardOrdersPage() {
                               </td>
 
                               {/* Actions (includes courier) */}
-                              <td className="px-4 py-2.5 text-right">
+                              <td className="px-4 py-4 text-right">
                                 <div className="flex items-center justify-end gap-2">
                                   {courierProvider &&
                                     order.status === 'confirmed' &&

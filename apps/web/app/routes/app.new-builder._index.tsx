@@ -8,15 +8,15 @@
 
 import { useState, useEffect } from 'react';
 import { json, redirect } from '@remix-run/cloudflare';
-import { useLoaderData, useNavigate, useFetcher } from '@remix-run/react';
+import { useLoaderData, useNavigate, useFetcher, Link } from '@remix-run/react';
 import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/cloudflare';
-import { Plus, Edit, Trash2, Eye, FileText, ExternalLink, X, Sparkles } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, FileText, ExternalLink, X, Sparkles, LayoutTemplate } from 'lucide-react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 
 import { requireAuth } from '~/lib/auth.server';
 import { listPages, createPageFromTemplate, deletePage } from '~/lib/page-builder/actions.server';
-import { getAllTemplates } from '~/lib/page-builder/templates';
+import { getAllTemplates, getAllBuilderTemplates } from '~/lib/page-builder/templates';
 import { IntentWizard } from '~/components/landing-builder/IntentWizard';
 import { 
   generateOptimalSections, 
@@ -39,6 +39,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   
   const pages = await listPages(db, store.id);
   const templates = getAllTemplates();
+  const builderTemplates = getAllBuilderTemplates();
   
   // Fetch existing products for Intent Wizard
   const existingProducts = await drizzleDb
@@ -55,6 +56,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json({ 
     pages, 
     templates,
+    builderTemplates,
     storeSlug: store.slug,
     storeId: store.id,
     existingProducts: existingProducts.map(p => ({
@@ -176,11 +178,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
                 price: product.price,
                 compareAtPrice: product.compareAtPrice || null,
                 imageUrl: product.image || null,
-                slug: slug + '-' + Date.now(),
                 description: '',
                 inventory: 100,
                 isPublished: true,
-              } as any)
+              })
               .returning({ id: products.id });
 
             linkedProductId = newProduct[0]?.id || null;
@@ -258,7 +259,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // ============================================================================
 
 export default function NewBuilderIndex() {
-  const { pages, templates, storeSlug, storeId, existingProducts } = useLoaderData<typeof loader>();
+  const { pages, templates, builderTemplates, storeSlug, storeId, existingProducts } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const fetcher = useFetcher<{ success?: boolean; redirectTo?: string; error?: string }>();
   const [showIntentWizard, setShowIntentWizard] = useState(false);
@@ -358,13 +359,25 @@ export default function NewBuilderIndex() {
               <h1 className="text-2xl font-bold text-gray-900">Page Builder</h1>
               <p className="text-gray-500 mt-1">আপনার ল্যান্ডিং পেজ তৈরি ও ম্যানেজ করুন</p>
             </div>
-            <button
-              onClick={() => setShowIntentWizard(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl font-medium"
-            >
-              <Sparkles size={20} />
-              ✨ Genie দিয়ে তৈরি করুন
-            </button>
+            <div className="flex items-center gap-3">
+              {/* Primary: Template Gallery */}
+              <Link
+                to="/app/new-builder/templates"
+                className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md font-medium text-sm"
+              >
+                <LayoutTemplate size={18} />
+                নতুন পেজ তৈরি করুন
+              </Link>
+
+              {/* Secondary: Genie AI */}
+              <button
+                onClick={() => setShowIntentWizard(true)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-sm hover:shadow-md font-medium text-sm"
+              >
+                <Sparkles size={18} />
+                Genie দিয়ে তৈরি করুন ✨
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -372,22 +385,72 @@ export default function NewBuilderIndex() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {pages.length === 0 ? (
-          /* Empty State */
-          <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <FileText className="w-10 h-10 text-indigo-600" />
+          /* Empty State — redirect to template gallery */
+          <div className="space-y-6">
+            {/* Inline empty-state banner */}
+            <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                <LayoutTemplate className="w-10 h-10 text-indigo-600" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">এখনো কোনো পেজ নেই</h2>
+              <p className="text-gray-500 mb-6 max-w-md mx-auto text-sm">
+                আপনার প্রথম ল্যান্ডিং পেজ তৈরি করুন। টেমপ্লেট বেছে নিন অথবা Genie AI দিয়ে স্বয়ংক্রিয়ভাবে তৈরি করুন।
+              </p>
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                <Link
+                  to="/app/new-builder/templates"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium text-sm shadow-sm"
+                >
+                  <LayoutTemplate size={18} />
+                  টেমপ্লেট থেকে শুরু করুন
+                </Link>
+                <button
+                  onClick={() => setShowIntentWizard(true)}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-colors font-medium text-sm shadow-sm"
+                >
+                  <Sparkles size={18} />
+                  Genie দিয়ে শুরু করুন ✨
+                </button>
+              </div>
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">এখনো কোনো পেজ নেই</h2>
-            <p className="text-gray-500 mb-6 max-w-md mx-auto">
-              আপনার প্রথম ল্যান্ডিং পেজ তৈরি করুন এবং আপনার পণ্য বা সেবা প্রচার করুন
-            </p>
-            <button
-              onClick={() => setShowIntentWizard(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-colors font-medium"
-            >
-              <Sparkles size={20} />
-              ✨ Genie দিয়ে শুরু করুন
-            </button>
+
+            {/* Quick template picker strip — show inline when 0 pages */}
+            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <div>
+                  <h3 className="font-semibold text-gray-900">জনপ্রিয় টেমপ্লেট</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">একটি বেছে নিয়ে সরাসরি শুরু করুন</p>
+                </div>
+                <Link
+                  to="/app/new-builder/templates"
+                  className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
+                >
+                  সব দেখুন →
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-0 divide-x divide-y divide-gray-100">
+                {builderTemplates.slice(0, 6).map((tpl) => (
+                  <Link
+                    key={tpl.id}
+                    to="/app/new-builder/templates"
+                    className="flex flex-col items-center gap-2 p-4 hover:bg-gray-50 transition-colors text-center group"
+                  >
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg shadow-sm group-hover:scale-110 transition-transform"
+                      style={{ background: `linear-gradient(135deg, ${tpl.primaryColor}, ${tpl.accentColor})` }}
+                    >
+                      {tpl.id === 'general'  ? '🏪' :
+                       tpl.id === 'fashion'  ? '👗' :
+                       tpl.id === 'food'     ? '🍔' :
+                       tpl.id === 'tech'     ? '⚡' :
+                       tpl.id === 'services' ? '💼' :
+                                              '🌸'}
+                    </div>
+                    <span className="text-xs font-medium text-gray-700 leading-tight">{tpl.nameBn}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           /* Page Grid */

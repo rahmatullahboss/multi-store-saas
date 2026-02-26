@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from '@remix-run/react';
 import {
   Home as HomeIcon,
@@ -15,6 +15,7 @@ import { SkeletonLoader } from '~/components/SkeletonLoader';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { buildProxyImageUrl, optimizeUnsplashUrl } from '~/utils/imageOptimization';
+import { getHeroBehavior } from '~/lib/hero-slides';
 import { useTranslation } from '~/contexts/LanguageContext';
 import type { ThemeConfig } from '@db/types';
 
@@ -91,16 +92,40 @@ export function LiveLuxeBoutiqueHomepage({
     accent: config?.accentColor || LUXE_BOUTIQUE_THEME.accent,
   };
 
-  const heroImage = config?.bannerUrl || DEFAULT_HERO_IMAGE;
+  const heroBehavior = getHeroBehavior(config);
+  const [heroIndex, setHeroIndex] = useState(0);
+  const heroBannerSlide = heroBehavior.slides[heroIndex] || heroBehavior.slides[0];
+  const heroImage = heroBannerSlide?.imageUrl || config?.bannerUrl || DEFAULT_HERO_IMAGE;
   const heroBgUrl = heroImage.includes('unsplash.com')
     ? optimizeUnsplashUrl(heroImage, { width: 1600, height: 900, quality: 80, format: 'webp' })
     : buildProxyImageUrl(heroImage, { width: 1600, height: 900, quality: 78 });
-  const heroHeading = config?.bannerText || 'Redefining Elegance';
+  const heroHeading = heroBannerSlide?.heading || config?.bannerText || 'Redefining Elegance';
   const heroSubheading =
+    heroBannerSlide?.subheading ||
     extendedConfig?.bannerSubtext ||
     'Discover a world of timeless style and uncompromising quality.';
-  const heroCta = extendedConfig?.bannerCtaText || 'Shop Collection';
+  const heroCta = heroBannerSlide?.ctaText || extendedConfig?.bannerCtaText || 'Shop Collection';
+  const heroCtaLink = heroBannerSlide?.ctaLink || '/products';
   const heroOverlayOpacity = extendedConfig?.heroOverlayOpacity ?? 0.4;
+
+  useEffect(() => {
+    if (!heroBehavior.isCarousel || !heroBehavior.autoplay || heroBehavior.slides.length < 2) return;
+    const timer = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % heroBehavior.slides.length);
+    }, heroBehavior.delayMs);
+    return () => clearInterval(timer);
+  }, [
+    heroBehavior.autoplay,
+    heroBehavior.delayMs,
+    heroBehavior.isCarousel,
+    heroBehavior.slides.length,
+  ]);
+
+  useEffect(() => {
+    if (heroIndex >= heroBehavior.slides.length) {
+      setHeroIndex(0);
+    }
+  }, [heroBehavior.slides.length, heroIndex]);
 
   const defaultWhyChoose: WhyChooseItem[] = [
     { icon: '✨', title: 'প্রিমিয়াম কোয়ালিটি', description: 'উন্নত মানের নিশ্চয়তা' },
@@ -178,7 +203,7 @@ export function LiveLuxeBoutiqueHomepage({
                     {heroSubheading}
                   </p>
                   <Link
-                    to="/products"
+                    to={heroCtaLink}
                     className="px-10 py-4 bg-white text-black uppercase tracking-[0.2em] text-xs font-bold hover:bg-[#c9a961] hover:text-white transition-colors"
                   >
                     {heroCta}

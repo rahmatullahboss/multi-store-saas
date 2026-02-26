@@ -206,8 +206,9 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   }
 
   // Fetch multiple products if intent has productIds
+  // ✅ FIX N+1: Use inArray to fetch only needed products in one query (not all then filter)
   if (intentProductIds.length > 0) {
-    // Fetch all products that match the IDs
+    const { inArray: inArr } = await import('drizzle-orm');
     const multipleProductRows = await odb
       .select({
         id: products.id,
@@ -217,9 +218,14 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
         imageUrl: products.imageUrl,
       })
       .from(products)
-      .where(eq(products.storeId, store.id));
+      .where(
+        and(
+          eq(products.storeId, store.id),
+          inArr(products.id, intentProductIds) // ← fetch only needed IDs
+        )
+      );
 
-    // Filter to only include products in intentProductIds and maintain order
+    // Maintain intentProductIds order (DB returns in arbitrary order)
     selectedProducts = intentProductIds
       .map((id) => multipleProductRows.find((p) => p.id === id))
       .filter((p): p is NonNullable<typeof p> => p !== undefined);

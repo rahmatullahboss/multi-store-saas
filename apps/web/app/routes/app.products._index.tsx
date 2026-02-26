@@ -825,36 +825,7 @@ export default function ProductsIndexPage() {
                     </td>
                     <td className="px-4 py-4 text-right">
                       <div className="inline-flex items-center gap-2">
-                        {/* Ad Link Button */}
-                        <button
-                          type="button"
-                          onClick={() => copyAdLink(product.id)}
-                          disabled={!product.isPublished}
-                          title={
-                            product.isPublished
-                              ? 'Copy Ad Link for Facebook Ads'
-                              : 'Publish product to get Ad Link'
-                          }
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition ${
-                            copiedProductId === product.id
-                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
-                              : product.isPublished
-                                ? 'text-violet-600 hover:text-white hover:bg-violet-600 border border-violet-200 hover:border-violet-600'
-                                : 'text-gray-400 border border-gray-200 cursor-not-allowed'
-                          }`}
-                        >
-                          {copiedProductId === product.id ? (
-                            <>
-                              <Check className="w-4 h-4" />
-                              {t('dashboard:adLinkCopied')}
-                            </>
-                          ) : (
-                            <>
-                              <Rocket className="w-4 h-4" />
-                              {t('dashboard:adLink')}
-                            </>
-                          )}
-                        </button>
+                        {/* Ad Link Button - Hidden */}
                         {/* Edit Button */}
                         <Link
                           to={`/app/products/${product.id}`}
@@ -923,36 +894,7 @@ export default function ProductsIndexPage() {
                       <p className="mt-1 text-xs text-gray-500">{product.category}</p>
                     )}
                     <div className="mt-2 flex items-center gap-2">
-                      {/* Ad Link Button - Mobile */}
-                      <button
-                        type="button"
-                        onClick={() => copyAdLink(product.id)}
-                        disabled={!product.isPublished}
-                        title={
-                          product.isPublished
-                            ? 'Copy Ad Link for Facebook Ads'
-                            : 'Publish product first'
-                        }
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition ${
-                          copiedProductId === product.id
-                            ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
-                            : product.isPublished
-                              ? 'text-violet-600 hover:bg-violet-50 border border-violet-200'
-                              : 'text-gray-400 border border-gray-200 cursor-not-allowed'
-                        }`}
-                      >
-                        {copiedProductId === product.id ? (
-                          <>
-                            <Check className="w-4 h-4" />
-                            {t('dashboard:copied')}
-                          </>
-                        ) : (
-                          <>
-                            <Rocket className="w-4 h-4" />
-                            {t('dashboard:adLink')}
-                          </>
-                        )}
-                      </button>
+                      {/* Ad Link Button - Mobile - Hidden */}
                       {/* Edit Button - Mobile */}
                       <Link
                         to={`/app/products/${product.id}`}

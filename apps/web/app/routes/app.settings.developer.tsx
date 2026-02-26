@@ -43,13 +43,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   if (intent === 'createKey') {
     const name = (formData.get('name') as string) || 'General Key';
-    const result = await generateApiKey(rawDb, storeId, name);
+    const hmacSecret = env.API_KEY_SECRET;
+    if (!hmacSecret) return json({ error: 'Server misconfiguration' }, { status: 500 });
+    const result = await generateApiKey(rawDb, storeId, name, { hmacSecret });
     return json({ newKey: result.key, createdKey: true });
   }
 
   if (intent === 'revokeKey') {
     const keyId = Number(formData.get('keyId'));
-    await revokeApiKey(rawDb, keyId, storeId);
+    const hmacSecret = env.API_KEY_SECRET;
+    const kv = env.STORE_CACHE;
+    if (!hmacSecret) return json({ error: 'Server misconfiguration' }, { status: 500 });
+    if (!kv) return json({ error: 'Server misconfiguration' }, { status: 500 });
+    await revokeApiKey(rawDb, kv, keyId, storeId, hmacSecret);
     return json({ revokedKey: true });
   }
 
@@ -58,8 +64,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (!url || !url.startsWith('https://')) {
       return json({ error: 'Invalid URL: must start with https://' }, { status: 400 });
     }
-    const result = await registerWebhook(rawDb, storeId, url, ['order.created']);
-    return json({ newSecret: result.secret, createdWebhook: true });
+    // registerWebhook topic param is a single string; pass a representative topic
+    await registerWebhook(rawDb, storeId, url, 'order/created');
+    return json({ createdWebhook: true });
   }
 
   if (intent === 'deleteWebhook') {

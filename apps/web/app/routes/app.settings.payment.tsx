@@ -41,7 +41,9 @@ const PaymentSettingsSchema = z.object({
   bkashGwIsLive: z.string().optional(),
   nagadGwEnabled: z.string().optional(),
   nagadGwMerchantId: z.string().trim().optional(),
+  nagadGwMerchantNumber: z.string().trim().optional(),
   nagadGwMerchantPrivateKey: z.string().trim().optional(),
+  nagadGwNagadPublicKey: z.string().trim().optional(),
   nagadGwIsLive: z.string().optional(),
 });
 
@@ -111,7 +113,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
     bkashGwIsLive: g('bkashGwIsLive'),
     nagadGwEnabled: g('nagadGwEnabled'),
     nagadGwMerchantId: g('nagadGwMerchantId'),
+    nagadGwMerchantNumber: g('nagadGwMerchantNumber'),
     nagadGwMerchantPrivateKey: g('nagadGwMerchantPrivateKey'),
+    nagadGwNagadPublicKey: g('nagadGwNagadPublicKey'),
     nagadGwIsLive: g('nagadGwIsLive'),
   });
   if (!parsed.success) {
@@ -172,7 +176,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
     newGatewayConfig.nagad = {
       enabled: d.nagadGwEnabled === 'on',
       merchantId: d.nagadGwMerchantId || undefined,
+      merchantNumber: d.nagadGwMerchantNumber || undefined,
       merchantPrivateKey: d.nagadGwMerchantPrivateKey || undefined,
+      nagadPublicKey: d.nagadGwNagadPublicKey || undefined,
       isLive: d.nagadGwIsLive === 'on',
     };
   }
@@ -625,8 +631,16 @@ export default function PaymentSettings() {
                       <input type="text" name="nagadGwMerchantId" defaultValue={gatewayConfig?.nagad?.merchantId} placeholder="Nagad Merchant ID" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none" />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Merchant Private Key</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Merchant Wallet Number</label>
+                      <input type="text" name="nagadGwMerchantNumber" defaultValue={gatewayConfig?.nagad?.merchantNumber} placeholder="01XXXXXXXXX" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Merchant Private Key (Base64)</label>
                       <input type="password" name="nagadGwMerchantPrivateKey" defaultValue={gatewayConfig?.nagad?.merchantPrivateKey} placeholder="••••••••" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Nagad Public Key (Base64)</label>
+                      <input type="password" name="nagadGwNagadPublicKey" defaultValue={gatewayConfig?.nagad?.nagadPublicKey} placeholder="••••••••" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none" />
                     </div>
                     <div className="md:col-span-2">
                       <label className="flex items-center gap-2 cursor-pointer">
@@ -642,7 +656,7 @@ export default function PaymentSettings() {
             {/* Security note */}
             <div className="flex items-start gap-2 text-xs text-gray-500 px-1">
               <Lock className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-              <span>সব credentials এনক্রিপ্টেড ভাবে সংরক্ষিত হয়। কাউকে শেয়ার করবেন না।</span>
+              <span>সব credentials আপনার স্টোরের সাথে সুরক্ষিতভাবে সংরক্ষিত হয়। কাউকে শেয়ার করবেন না।</span>
             </div>
           </div>
         ) : (

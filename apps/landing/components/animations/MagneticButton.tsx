@@ -1,11 +1,10 @@
 /**
- * Magnetic Button Component - OPTIMIZED
+ * Magnetic Button Component - CSS/JS light
  * Simplified magnetic effect with reduced motion support
  */
 'use client';
 
-import { motion, useMotionValue, useSpring, useReducedMotion } from 'framer-motion';
-import { ReactNode, useRef } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 
 interface MagneticButtonProps {
   children: ReactNode;
@@ -13,28 +12,26 @@ interface MagneticButtonProps {
   magnetStrength?: number;
 }
 
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 export function MagneticButton({
   children,
   className = '',
-  magnetStrength = 0.2, // Reduced from 0.3
+  magnetStrength = 0.2,
 }: MagneticButtonProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const shouldReduceMotion = useReducedMotion();
+  const [shouldReduceMotion, setShouldReduceMotion] = useState(false);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
 
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
+  useEffect(() => {
+    setShouldReduceMotion(prefersReducedMotion());
+  }, []);
 
-  // Softer spring for less CPU usage
-  const springConfig = { stiffness: 200, damping: 20 };
-  const xSpring = useSpring(x, springConfig);
-  const ySpring = useSpring(y, springConfig);
-
-  // Throttled mouse handler
   let lastCall = 0;
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (shouldReduceMotion) return;
 
-    // Throttle to ~30fps
     const now = Date.now();
     if (now - lastCall < 33) return;
     lastCall = now;
@@ -48,30 +45,30 @@ export function MagneticButton({
     const distanceX = (e.clientX - centerX) * magnetStrength;
     const distanceY = (e.clientY - centerY) * magnetStrength;
 
-    x.set(distanceX);
-    y.set(distanceY);
+    setOffset({ x: distanceX, y: distanceY });
   };
 
   const handleMouseLeave = () => {
-    x.set(0);
-    y.set(0);
+    setOffset({ x: 0, y: 0 });
   };
 
-  // If reduced motion, no magnetic effect
-  if (shouldReduceMotion) {
-    return <div className={`inline-block ${className}`}>{children}</div>;
-  }
+  const style = shouldReduceMotion
+    ? undefined
+    : {
+        transform: `translate3d(${offset.x}px, ${offset.y}px, 0)`,
+        transition: 'transform 120ms ease-out',
+      };
 
   return (
-    <motion.div
+    <div
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      style={{ x: xSpring, y: ySpring }}
+      style={style}
       className={`inline-block ${className}`}
     >
-      {children as any}
-    </motion.div>
+      {children}
+    </div>
   );
 }
 
@@ -83,30 +80,14 @@ interface AnimatedButtonProps {
 }
 
 export function AnimatedButton({ children, className = '', onClick }: AnimatedButtonProps) {
-  const shouldReduceMotion = useReducedMotion();
-
-  if (shouldReduceMotion) {
-    return (
-      <button onClick={onClick} className={className}>
-        {children as any}
-      </button>
-    );
-  }
-
   return (
     <MagneticButton>
-      <motion.button
+      <button
         onClick={onClick}
-        className={className}
-        whileHover={{
-          scale: 1.02,
-          boxShadow: '0 15px 30px rgba(16, 185, 129, 0.3)',
-        }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ duration: 0.2 }}
+        className={`${className} transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]`}
       >
-        {children as any}
-      </motion.button>
+        {children}
+      </button>
     </MagneticButton>
   );
 }
