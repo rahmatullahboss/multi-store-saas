@@ -321,18 +321,10 @@ export function LiveNovaLuxHomepage({
                 customer={customer}
               />
 
-              {(() => {
-                const renderedSections = config?.sections?.length
-                  ? dedupeSectionsByType(config.sections)
-                  : NOVA_LUX_DEFAULT_SECTIONS;
-                const firstSectionType = renderedSections[0]?.type ?? '';
-                const firstIsHero = ['hero', 'modern-hero', 'zenith-hero', 'turbo-hero', 'video', 'banner'].includes(firstSectionType);
-                return !firstIsHero ? (
-                  <div
-                    className={`${announcement?.text ? 'h-[104px] lg:h-[120px]' : 'h-[66px] lg:h-[82px]'}`}
-                  />
-                ) : null;
-              })()}
+              {/* Fixed header spacer — always present so content starts below the header */}
+              <div
+                className={announcement?.text ? 'h-[104px] lg:h-[120px]' : 'h-[66px] lg:h-[82px]'}
+              />
 
               {/* BUG FIX: Previously sections were rendered TWICE. Now rendered only once. */}
               {(config?.sections?.length
