@@ -83,6 +83,7 @@ export async function getUnifiedStorefrontSettings<TSchema extends Record<string
     if (result.length > 0 && result[0].storefrontSettings) {
       const parsed = deserializeUnifiedSettings(result[0].storefrontSettings);
       if (parsed) {
+        console.log(JSON.stringify({ level: 'debug', event: 'unified_settings_cache_hit', storeId, ts: Date.now() }));
         return parsed;
       }
     }
@@ -91,6 +92,7 @@ export async function getUnifiedStorefrontSettings<TSchema extends Record<string
   }
 
   // Return defaults if nothing found (legacy fallback removed)
+  console.log(JSON.stringify({ level: 'debug', event: 'unified_settings_cache_miss', storeId, ts: Date.now() }));
   return DEFAULT_UNIFIED_SETTINGS;
 }
 
@@ -528,6 +530,16 @@ export async function saveUnifiedStorefrontSettingsWithCacheInvalidation<
   const cacheInvalidation = await invalidateUnifiedSettingsCache(env, storeId, {
     storeId,
   });
+
+  const cacheKey = `store:${storeId}:unified-settings`;
+  console.log(JSON.stringify({
+    level: 'info',
+    event: 'unified_settings_cache_invalidated',
+    storeId,
+    cacheKey,
+    invalidationSuccess: cacheInvalidation.success,
+    ts: Date.now(),
+  }));
 
   return { settings, cacheInvalidation };
 }

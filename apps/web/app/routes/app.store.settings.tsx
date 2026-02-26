@@ -255,6 +255,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
       patch as any
     );
 
+    if (intent === 'banner') {
+      const bannerPatch = patch.heroBanner as { mode?: string; slides?: unknown[] } | undefined;
+      console.log(JSON.stringify({
+        level: 'info',
+        event: 'banner_saved',
+        storeId,
+        slideCount: bannerPatch?.slides?.length ?? 0,
+        bannerMode: bannerPatch?.mode ?? 'unknown',
+        hasFallbackHeadline: Boolean((patch.heroBanner as { fallbackHeadline?: unknown } | undefined)?.fallbackHeadline),
+        ts: Date.now(),
+      }));
+    }
+
     // Invalidate caches
     const kvNamespace = context.cloudflare.env.STORE_CACHE;
     if (kvNamespace) {

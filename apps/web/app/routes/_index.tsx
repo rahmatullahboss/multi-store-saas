@@ -644,6 +644,17 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       env: context.cloudflare.env,
     });
 
+    console.log(JSON.stringify({
+      level: 'debug',
+      event: 'storefront_loader_hero_config',
+      storeId: validatedStoreId,
+      templateId: unifiedSettings.theme?.templateId ?? 'unknown',
+      heroBannerSlideCount: unifiedSettings.heroBanner?.slides?.length ?? 0,
+      heroBannerMode: unifiedSettings.heroBanner?.mode ?? 'none',
+      hasFirstSlideImage: Boolean(unifiedSettings.heroBanner?.slides?.[0]?.imageUrl),
+      ts: Date.now(),
+    }));
+
     // Homepage template must follow unified settings to stay consistent with other routes.
     const storeTemplateId = unifiedSettings.theme.templateId
       ? unifiedSettings.theme.templateId
