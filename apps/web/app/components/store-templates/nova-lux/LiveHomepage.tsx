@@ -321,16 +321,18 @@ export function LiveNovaLuxHomepage({
                 customer={customer}
               />
 
-              {!(
-                config?.sections?.[0]?.type &&
-                ['hero', 'modern-hero', 'zenith-hero', 'turbo-hero', 'video', 'banner'].includes(
-                  config.sections[0].type
-                )
-              ) && (
-                <div
-                  className={`${announcement?.text ? 'h-[104px] lg:h-[120px]' : 'h-[66px] lg:h-[82px]'}`}
-                />
-              )}
+              {(() => {
+                const renderedSections = config?.sections?.length
+                  ? dedupeSectionsByType(config.sections)
+                  : NOVA_LUX_DEFAULT_SECTIONS;
+                const firstSectionType = renderedSections[0]?.type ?? '';
+                const firstIsHero = ['hero', 'modern-hero', 'zenith-hero', 'turbo-hero', 'video', 'banner'].includes(firstSectionType);
+                return !firstIsHero ? (
+                  <div
+                    className={`${announcement?.text ? 'h-[104px] lg:h-[120px]' : 'h-[66px] lg:h-[82px]'}`}
+                  />
+                ) : null;
+              })()}
 
               {/* BUG FIX: Previously sections were rendered TWICE. Now rendered only once. */}
               {(config?.sections?.length
@@ -394,7 +396,7 @@ export function LiveNovaLuxHomepage({
                 return (
                   <div
                     key={section.id}
-                    className={isFirstSection && isHeroSection ? (announcement?.text ? 'pt-[104px] lg:pt-[120px]' : 'pt-[66px] lg:pt-[82px]') : ''}
+                    className=""
                   >
                     <SectionComponent
                       settings={resolvedSettings}
