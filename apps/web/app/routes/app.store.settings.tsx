@@ -14,7 +14,7 @@ import {
   useNavigation,
   useFetcher,
 } from '@remix-run/react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores } from '@db/schema';
@@ -686,18 +686,49 @@ function BannerTab({
   );
   const [headline, setHeadline] = useState(heroBanner.fallbackHeadline || '');
 
+  const submitBannerPatch = useCallback(
+    (nextSlides: Slide[]) => {
+      const fd = new FormData();
+      fd.append('intent', 'banner');
+      fd.append('bannerMode', mode);
+      fd.append('overlayOpacity', String(opacity));
+      fd.append('fallbackHeadline', headline);
+      fd.append('announcementText', annText);
+      fd.append('announcementLink', annLink);
+      if (annEnabled) fd.append('announcementEnabled', 'on');
+
+      nextSlides.forEach((slide, idx) => {
+        fd.append(`slide_${idx}_imageUrl`, slide.imageUrl || '');
+        fd.append(`slide_${idx}_heading`, slide.heading || '');
+        fd.append(`slide_${idx}_subheading`, slide.subheading || '');
+        fd.append(`slide_${idx}_ctaText`, slide.ctaText || '');
+        fd.append(`slide_${idx}_ctaLink`, slide.ctaLink || '');
+      });
+
+      bannerFetcher.submit(fd, { method: 'post' });
+    },
+    [annEnabled, annLink, annText, bannerFetcher, headline, mode, opacity]
+  );
+
   const addSlide = () => {
     if (slides.length < 6) {
-      setSlides([
+      const nextSlides = [
         ...slides,
         { imageUrl: null, heading: null, subheading: null, ctaText: null, ctaLink: null },
-      ]);
+      ];
+      setSlides(nextSlides);
+      // If there are multiple slides, default to carousel mode.
+      if (mode === 'single' && nextSlides.length > 1) {
+        setMode('carousel');
+      }
     }
   };
 
   const removeSlide = (idx: number) => {
     if (slides.length > 1) {
-      setSlides(slides.filter((_, i) => i !== idx));
+      const nextSlides = slides.filter((_, i) => i !== idx);
+      setSlides(nextSlides);
+      submitBannerPatch(nextSlides);
     }
   };
 
@@ -725,6 +756,19 @@ function BannerTab({
   };
 
   const isAnySlideUploading = Object.values(uploadingSlides).some(Boolean);
+
+  const handlePersistSlideImage = useCallback(
+    (idx: number, imageUrl: string | null) => {
+      setSlides((prevSlides) => {
+        if (!prevSlides[idx]) return prevSlides;
+        const nextSlides = [...prevSlides];
+        nextSlides[idx] = { ...nextSlides[idx], imageUrl };
+        submitBannerPatch(nextSlides);
+        return nextSlides;
+      });
+    },
+    [submitBannerPatch]
+  );
 
   return (
     <bannerFetcher.Form method="post" className="space-y-8">
@@ -798,6 +842,7 @@ function BannerTab({
             onRemove={removeSlide}
             onMove={moveSlide}
             onUploadStateChange={onSlideUploadStateChange}
+            onPersistSlideImage={handlePersistSlideImage}
           />
         ))}
 
@@ -915,6 +960,7 @@ function BannerSlide({
   onRemove,
   onMove,
   onUploadStateChange,
+  onPersistSlideImage,
 }: {
   idx: number;
   slide: Slide;
@@ -923,6 +969,7 @@ function BannerSlide({
   onRemove: (idx: number) => void;
   onMove: (idx: number, direction: 'up' | 'down') => void;
   onUploadStateChange?: (idx: number, uploading: boolean) => void;
+  onPersistSlideImage?: (idx: number, imageUrl: string | null) => void;
 }) {
   const fetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
   const [isUploading, setIsUploading] = useState(false);
@@ -935,11 +982,11 @@ function BannerSlide({
     } else if (fetcher.state === 'idle') {
       setIsUploading(false);
       if (fetcher.data?.success && fetcher.data.url) {
-        onUpdate(idx, { imageUrl: fetcher.data.url });
+        onPersistSlideImage?.(idx, fetcher.data.url);
         setPreview(null);
       }
     }
-  }, [fetcher.state, fetcher.data, idx, onUpdate]);
+  }, [fetcher.state, fetcher.data, idx, onPersistSlideImage]);
 
   useEffect(() => {
     onUploadStateChange?.(idx, isUploading);
@@ -980,7 +1027,7 @@ function BannerSlide({
 
   const handleRemoveImage = async () => {
     const existingUrl = slide.imageUrl;
-    onUpdate(idx, { imageUrl: null });
+    onPersistSlideImage?.(idx, null);
     setPreview(null);
 
     if (!existingUrl) return;

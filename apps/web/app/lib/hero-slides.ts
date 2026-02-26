@@ -80,7 +80,8 @@ export function getHeroSlides(config: ThemeConfig | null | undefined): HeroSlide
 
 export function getHeroBehavior(config: ThemeConfig | null | undefined) {
   const slides = getHeroSlides(config);
-  const isCarousel = (config?.heroMode === 'carousel' || slides.length > 1) && slides.length > 1;
+  const configuredMode = (config as any)?.heroBanner?.mode || config?.heroMode || 'single';
+  const isCarousel = configuredMode === 'carousel' && slides.length > 1;
   return {
     slides,
     isCarousel,
