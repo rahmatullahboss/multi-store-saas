@@ -394,7 +394,7 @@ export function LiveNovaLuxHomepage({
                 return (
                   <div
                     key={section.id}
-                    className={isFirstSection && isHeroSection ? 'mt-4 md:mt-6' : ''}
+                    className={isFirstSection && isHeroSection ? (announcement?.text ? 'pt-[104px] lg:pt-[120px]' : 'pt-[66px] lg:pt-[82px]') : ''}
                   >
                     <SectionComponent
                       settings={resolvedSettings}
