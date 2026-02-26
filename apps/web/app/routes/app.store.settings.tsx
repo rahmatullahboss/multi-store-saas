@@ -957,9 +957,9 @@ function BannerSlide({
     try {
       const format = getOptimalFormat();
       const compressed = await compressImage(file, {
-        maxWidth: 1920,
-        maxHeight: 1080,
-        quality: 0.85,
+        maxWidth: 2560,  // Hero banners are full-width, allow higher res
+        maxHeight: 1440,
+        quality: 0.92,   // High quality WebP — banners need to look sharp
         format,
       });
       fileToUpload = new File([compressed], `banner_${idx}.${format}`, { type: `image/${format}` });
