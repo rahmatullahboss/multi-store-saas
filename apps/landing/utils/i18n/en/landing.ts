@@ -1,29 +1,29 @@
 export const landing = {
-  badge: 'Trusted by 500+ Merchants in Bangladesh',
+  badge: 'Trusted by Merchants Across Bangladesh',
   heroTitle1: 'Your Complete',
   heroTitle2: 'E-commerce Solution',
   heroSubtitle: 'Create your professional online store in minutes. Accept bKash, Nagad & Cash on Delivery. Manage orders, track inventory, and grow your business - all in one platform.',
   getStarted: 'Create Free Store',
   talkExpert: 'Watch Demo',
   noCreditCard: 'No credit card required • Free forever plan available',
-  
+
   // Stats
   statsStores: 'Active Stores',
   statsOrders: 'Orders Processed',
   statsMerchants: 'Happy Merchants',
   statsUptime: 'Uptime',
-  
+
   // Features Section
   featuresTitle: 'Everything You Need to Sell Online',
   featuresSubtitle: 'Powerful features designed for Bangladeshi e-commerce',
-  
+
   // Pricing
   pricingTitle: 'Simple, Honest Pricing',
   pricingSubtitle: 'Start free, upgrade as you grow',
   perMonth: '/month',
   mostPopularTitle: 'Most Popular',
   getStartedCta: 'Get Started',
-  
+
   // How it works
   howTitle: 'Launch Your Store in 3 Steps',
   howSubtitle: 'From signup to first sale in under 10 minutes',
@@ -33,11 +33,11 @@ export const landing = {
   step2Desc: 'Upload product photos, set prices in BDT, and write descriptions.',
   step3: 'Start Selling',
   step3Desc: 'Share your store link on Facebook, accept orders via bKash/COD.',
-  
+
   // Testimonials
   testimonialsTitle: 'Merchants Love Us',
   testimonialsSubtitle: 'Real stories from successful store owners',
-  
+
   // FAQ
   faqBadge: 'Got Questions?',
   faqTitlePart1: 'Common',
@@ -45,12 +45,12 @@ export const landing = {
   faqSubtitle: 'Answers to our most popular questions',
   faqStillQuestions: 'Still have questions?',
   faqContactUs: 'Contact Us',
-  
+
   // CTA
   ctaTitle: 'Start Selling Today',
-  ctaSubtitle: 'Join 500+ merchants already growing their business with Ozzyl',
+  ctaSubtitle: 'Join early adopters growing their business with Ozzyl',
   ctaButton: 'Create Your Free Store',
-  
+
   // Features (Keys for mapping if needed, or just use as strings)
   featureGlobeTitle: 'Your Own Store URL',
   featureGlobeDesc: 'Get yourstore.ozzyl.com instantly. Premium users can connect their own domain.',
@@ -64,7 +64,7 @@ export const landing = {
   featureZapDesc: 'Perfect for single product sellers. High-converting sales page with order form built-in.',
   featureTruckTitle: 'Courier Integration',
   featureTruckDesc: 'Connect with Pathao, Steadfast & RedX. Auto-create shipments and track deliveries.',
-  
+
   // Plans
   planFreeDesc: 'Perfect for testing',
   planStarterDesc: 'For growing sellers',
@@ -72,7 +72,7 @@ export const landing = {
   planCtaStartFree: 'Start Free',
   planCtaGetStarted: 'Get Started',
   planCtaGoPremium: 'Go Premium',
-  
+
   // Testimonials (Mock data)
   testimonial1Name: 'Rahim Ahmed',
   testimonial1Role: 'Fashion Store, Dhaka',
@@ -96,7 +96,7 @@ export const landing = {
   faq5A: 'Only 5 minutes! Sign up, pick a template, add products — and you are ready! No technical knowledge required.',
   faq6Q: 'Who can I talk to if I have any issues?',
   faq6A: 'Our Support Team is available 24/7. WhatsApp, Phone, or Email — whatever works for you. We are always ready to help!',
-  
+
   // Footer
   footerAbout: 'The complete e-commerce platform for Bangladeshi merchants. Create, sell, and grow.',
   footerProduct: 'Product',
@@ -113,8 +113,8 @@ export const landing = {
   footerLinkPrivacy: 'Privacy',
   footerLinkTerms: 'Terms',
   footerLinkRefund: 'Refund Policy',
-  copyright: '© 2026 Ozzyl. Made with ❤️ in Bangladesh.',
-  
+  copyright: '© 2026 Ozzyl. Proudly Built in Bangladesh.',
+
   // AwardWinningHero
   heroSignupPrefix: 'Already',
   heroSignupSuffix: 'users signed up...',
@@ -130,14 +130,14 @@ export const landing = {
   heroDemoLive: 'Your store is now live',
   heroDemoReady: 'Ready in 5 mins!',
   heroDemoNoCoding: 'No coding required',
-  heroBadge: "Bangladesh's First Bangla-Based Builder",
-  heroSubtitle1: 'No coding, no hassle.',
+  heroBadge: "The Complete E-commerce Platform for Bangladesh",
+  heroSubtitle1: 'Professional Storefronts in Minutes.',
   heroSubtitle2: 'Pick a template, add content —',
   heroSubtitle3: 'Online in 5 mins.',
   heroCtaPrimary: 'Start for Free',
   heroTrust1: 'No credit card required',
   heroTrust2: '1-minute signup',
-  heroBetaNotice: 'Join as a Beta User — Get Early Adopter Benefits',
+  heroBetaNotice: 'Join Now for Exclusive Launch Pricing',
   heroFooter: 'From Bangladesh, for Bangladesh',
 
   // AIHeroSection
@@ -201,7 +201,7 @@ export const landing = {
   landingShowcase_visitor_aiResponseBullet2: 'Elite Runner Red - ৳3,200',
   landingShowcase_visitor_aiResponseBullet3: 'Classic Red Sneaker - ৳1,850',
   landingShowcase_visitor_typeMessage: 'Type a message...',
-  
+
   landingShowcase_merchantTitle: 'Merchant AI',
   landingShowcase_merchantRole: 'For You',
   landingShowcase_merchantDesc: 'Your intelligent business co-pilot',

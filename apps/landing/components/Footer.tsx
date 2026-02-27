@@ -85,15 +85,15 @@ export function Footer() {
                   href="https://wa.me/8801739416661"
                   className="text-white/50 hover:text-[#00875F] transition text-sm flex items-center gap-2 justify-center sm:justify-start"
                 >
-                  <MessageCircle className="w-4 h-4" /> <span>WhatsApp: 01739-416661</span>
+                  <MessageCircle className="w-4 h-4" /> <span>Support Chat</span>
                 </a>
               </li>
               <li>
                 <a
-                  href="mailto:contact@ozzyl.com"
+                  href="mailto:hello@ozzyl.com"
                   className="text-white/50 hover:text-[#00875F] transition text-sm flex items-center gap-2 justify-center sm:justify-start"
                 >
-                  <Mail className="w-4 h-4" /> <span>contact@ozzyl.com</span>
+                  <Mail className="w-4 h-4" /> <span>hello@ozzyl.com</span>
                 </a>
               </li>
               <li>
@@ -142,7 +142,7 @@ export function Footer() {
 
       {/* 2. Try Now Section (Full Width) */}
       <div className="w-full border-y border-white/5">
-        <Link 
+        <Link
           href="/register"
           className="group relative flex items-center justify-between w-full py-24 md:py-32 px-4 md:px-12 hover:bg-white/5 transition-colors duration-500 overflow-hidden"
         >
@@ -165,7 +165,7 @@ export function Footer() {
 
               {/* Text (Hover) */}
               <div className="col-start-1 row-start-1 w-full transition-all duration-500 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 flex justify-center">
-                 <h2 className="text-[15vw] leading-none font-bold font-sans text-[#00875F] tracking-tighter text-center pr-[5vw]">
+                <h2 className="text-[15vw] leading-none font-bold font-sans text-[#00875F] tracking-tighter text-center pr-[5vw]">
                   Try Now
                 </h2>
               </div>
@@ -174,7 +174,7 @@ export function Footer() {
 
           {/* Arrow Icon (Right Aligned) */}
           <div className="ml-auto w-16 h-16 md:w-24 md:h-24 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-[#00875F] group-hover:border-[#00875F] transition-all duration-500 group-hover:scale-110 relative z-10 bg-[#0A0F0D] group-hover:bg-[#00875F]">
-             <ArrowRight className="w-8 h-8 md:w-12 md:h-12 text-white transform group-hover:-rotate-45 transition-transform duration-500" />
+            <ArrowRight className="w-8 h-8 md:w-12 md:h-12 text-white transform group-hover:-rotate-45 transition-transform duration-500" />
           </div>
         </Link>
       </div>

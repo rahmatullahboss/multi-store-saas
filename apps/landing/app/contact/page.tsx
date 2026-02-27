@@ -82,13 +82,13 @@ export default function ContactPage() {
               <ContactCard
                 icon={<Mail />}
                 title="ইমেইল"
-                detail="contact@ozzyl.com"
-                link="mailto:contact@ozzyl.com"
+                detail="hello@ozzyl.com"
+                link="mailto:hello@ozzyl.com"
               />
               <ContactCard
                 icon={<MessageCircle />}
                 title="হোয়াটসঅ্যাপ"
-                detail="01739-416661"
+                detail="Support Chat"
                 link="https://wa.me/8801739416661"
               />
               <ContactCard

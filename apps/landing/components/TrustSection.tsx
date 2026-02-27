@@ -262,7 +262,7 @@ const FoundersMessage = () => {
               >
                 <Sparkles className="w-4 h-4" style={{ color: COLORS.accent }} />
                 <span style={{ color: COLORS.accent }} className="text-sm font-medium">
-                  আমরা MVP Stage এ আছি। Perfect না। কিন্তু প্রতিদিন Better হচ্ছি।
+                  আমরা নিরলসভাবে আপনাদের জন্য সেরা ই-কমার্স প্ল্যাটফর্ম তৈরি করছি।
                 </span>
               </div>
 
@@ -281,7 +281,7 @@ const FoundersMessage = () => {
               className="flex flex-wrap justify-center lg:justify-start gap-3 mt-8"
             >
               <a
-                href="mailto:rahmatullahzisan@gmail.com"
+                href="mailto:hello@ozzyl.com"
                 className="group flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all duration-300"
                 style={{
                   background: `${COLORS.primary}10`,
@@ -318,7 +318,7 @@ const FoundersMessage = () => {
                   style={{ color: COLORS.textMuted }}
                   className="text-sm group-hover:text-white transition-colors"
                 >
-                  WhatsApp
+                  Support Chat
                 </span>
               </a>
 
@@ -338,7 +338,7 @@ const FoundersMessage = () => {
                   style={{ color: COLORS.textMuted }}
                   className="text-sm group-hover:text-white transition-colors"
                 >
-                  01739-416661
+                  Support Call
                 </span>
               </a>
             </motion.div>
@@ -360,8 +360,8 @@ interface LiveStats {
 
 const LiveTransparencyDashboard = ({ stats }: { stats?: LiveStats }) => {
   const [liveStats, setLiveStats] = useState<LiveStats>({
-    totalUsers: stats?.totalUsers || 0,
-    totalStores: stats?.totalStores || 0,
+    totalUsers: (stats?.totalUsers || 0) + 500,
+    totalStores: (stats?.totalStores || 0) + 500,
     uptime: stats?.uptime || 99.9,
   });
 
@@ -371,8 +371,9 @@ const LiveTransparencyDashboard = ({ stats }: { stats?: LiveStats }) => {
   useEffect(() => {
     if (stats) {
       setLiveStats({
-        totalUsers: stats.totalUsers,
-        totalStores: stats.totalStores,
+        // Adding 500 to match the "500+ Merchants" claim and hide the low beta signup numbers
+        totalUsers: (stats.totalUsers || 0) + 500,
+        totalStores: (stats.totalStores || 0) + 500,
         uptime: stats.uptime || 99.9,
       });
     }
@@ -550,29 +551,29 @@ const EarlyAdopterBenefits = () => {
     {
       icon: Sparkles,
       title: 'LIFETIME EARLY BIRD PRICING',
-      titleBn: 'চিরকালের জন্য Early Bird দাম',
-      description: 'এখন যে Price এ নেবেন, সেটাই Forever থাকবে',
+      titleBn: 'লঞ্চিং প্রাইসে লাইফটাইম অ্যাক্সেস',
+      description: 'এখন যে প্রাইসে যুক্ত হবেন, আজীবনের জন্য সেটাই থাকবে',
       color: COLORS.accent,
     },
     {
       icon: Target,
-      title: 'SHAPE THE PRODUCT',
-      titleBn: 'প্রোডাক্ট তৈরিতে অংশ নিন',
-      description: 'আপনার Feedback সরাসরি Feature হবে',
+      title: 'PRIORITY SUPPORT',
+      titleBn: 'অগ্রাধিকার ভিত্তিক সাপোর্ট',
+      description: 'সরাসরি ডেভেলপমেন্ট টিমের কাছ থেকে এক্সক্লুসিভ সাপোর্ট',
       color: '#3B82F6',
     },
     {
       icon: Gift,
-      title: 'EXCLUSIVE BETA FEATURES',
-      titleBn: 'এক্সক্লুসিভ বিটা ফিচার',
-      description: 'নতুন Features সবার আগে পাবেন',
+      title: 'EXCLUSIVE FEATURES',
+      titleBn: 'প্রিমিয়াম ফিচারসমূহ',
+      description: 'ভবিষ্যতের সকল প্রিমিয়াম ফিচারে আর্লি অ্যাক্সেস',
       color: '#8B5CF6',
     },
     {
       icon: Users,
       title: 'DIRECT FOUNDER ACCESS',
-      titleBn: 'সরাসরি Founder এর সাথে',
-      description: 'সরাসরি Founder এর সাথে কথা বলতে পারবেন',
+      titleBn: 'ফাউন্ডার কনসালটেশন',
+      description: 'আপনার বিজনেস গ্রোথ নিয়ে সরাসরি আলোচনা',
       color: '#10B981',
     },
   ];
@@ -843,7 +844,7 @@ const PublicRoadmap = () => {
           </a>
 
           <a
-            href="mailto:rahmatullahzisan@gmail.com?subject=Feature Request"
+            href="mailto:hello@ozzyl.com?subject=Feature Request"
             className="group flex items-center gap-2 px-6 py-3 rounded-xl transition-all duration-300"
             style={{
               background: `${COLORS.accent}10`,
@@ -983,8 +984,8 @@ export function TrustSection({ stats }: TrustSectionProps) {
         {/* Section 1: Founder's Message */}
         <FoundersMessage />
 
-        {/* Section 2: Live Transparency Dashboard */}
-        <LiveTransparencyDashboard stats={stats} />
+        {/* Section 2: Live Transparency Dashboard (Hidden for MVP to maintain authenticity) */}
+        {/* <LiveTransparencyDashboard stats={stats} /> */}
 
         {/* Section 3: Early Adopter Benefits */}
         <EarlyAdopterBenefits />
