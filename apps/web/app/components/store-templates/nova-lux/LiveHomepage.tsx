@@ -12,7 +12,7 @@ import { WishlistProvider } from '~/contexts/WishlistContext';
 import { ClientOnly } from 'remix-utils/client-only';
 import { SkeletonLoader } from '~/components/SkeletonLoader';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
-import { buildProxyImageUrl, generateProxySrcset } from '~/utils/imageOptimization';
+import { buildProxyImageUrl, generateProxySrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
 import { getHeroBehavior } from '~/lib/hero-slides';
 
 import { NOVALUX_THEME } from './theme';
@@ -388,8 +388,43 @@ export function LiveNovaLuxHomepage({
                 return (
                   <div
                     key={section.id}
-                    className=""
+                    className={isHeroSection ? 'relative overflow-hidden' : ''}
                   >
+                    {/* Crossfade background layers for carousel hero sections */}
+                    {isHeroSection && heroBehavior.isCarousel && heroBehavior.slides.length > 1 && (
+                      <>
+                        {heroBehavior.slides.map((slide, slideIdx) => (
+                          <div
+                            key={slideIdx}
+                            className="absolute inset-0 bg-cover bg-center pointer-events-none"
+                            style={{
+                              backgroundImage: slide.imageUrl ? `url(${slide.imageUrl.includes('unsplash.com')
+                                ? optimizeUnsplashUrl(slide.imageUrl, { width: 1600, height: 900, quality: 80, format: 'webp' })
+                                : buildProxyImageUrl(slide.imageUrl, { width: 1600, height: 900, quality: 78 })})` : 'none',
+                              opacity: slideIdx === heroIndex ? 1 : 0,
+                              transition: 'opacity 1s ease-in-out',
+                              zIndex: 0,
+                            }}
+                          />
+                        ))}
+                        {/* Dot indicators */}
+                        <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2" style={{ zIndex: 10 }}>
+                          {heroBehavior.slides.map((_, dotIdx) => (
+                            <button
+                              key={dotIdx}
+                              onClick={() => setHeroIndex(dotIdx)}
+                              aria-label={`Go to slide ${dotIdx + 1}`}
+                              className="rounded-full transition-all duration-300"
+                              style={{
+                                width: dotIdx === heroIndex ? '24px' : '8px',
+                                height: '8px',
+                                backgroundColor: dotIdx === heroIndex ? '#C4A35A' : 'rgba(255,255,255,0.5)',
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
                     <SectionComponent
                       settings={resolvedSettings}
                       theme={THEME}

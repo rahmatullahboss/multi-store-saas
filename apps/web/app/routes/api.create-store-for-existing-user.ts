@@ -32,7 +32,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   // CSRF guard: reject requests not originating from our own app
   const origin = request.headers.get('origin') || request.headers.get('referer') || '';
-  const saasDomain = (context.cloudflare.env as Record<string, string>).SAAS_DOMAIN || 'ozzyl.com';
+  const saasDomain = (context.cloudflare.env as unknown as Record<string, string>).SAAS_DOMAIN || 'ozzyl.com';
   const allowedOrigins = [`https://app.${saasDomain}`, `https://${saasDomain}`];
   const isValidOrigin = allowedOrigins.some((allowed) => origin.startsWith(allowed));
   if (!isValidOrigin) {
@@ -43,7 +43,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // Rate limit: max 3 store creation attempts per IP per 10 minutes
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
   const rateLimitKey = `create-store:ip:${ip}`;
-  const kv = (context.cloudflare.env as Record<string, KVNamespace>).KV;
+  const kv = (context.cloudflare.env as unknown as Record<string, KVNamespace>).KV;
   if (kv) {
     const current = await kv.get(rateLimitKey);
     const count = current ? parseInt(current, 10) : 0;
@@ -120,9 +120,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'A store already exists for your account. Please refresh.' }, { status: 409 });
   }
 
+  // Pre-check: if user's own phone matches the submitted phone, skip phone_taken check
+  // (completeGoogleOnboardingForExistingUser checks phone uniqueness globally, which would
+  // incorrectly flag the current user's own existing phone as taken)
+  const submittedPhone = phone || userRow[0].phone || '';
+  const userOwnPhone = userRow[0].phone;
+  const phoneIsOwnNumber = userOwnPhone && userOwnPhone === submittedPhone;
+
+  // If phone is their own number, check only subdomain, then create store directly
   const result = await completeGoogleOnboardingForExistingUser({
     userId,
-    phone: phone || userRow[0].phone || '',
+    phone: submittedPhone,
     storeName,
     subdomain: subdomain.toLowerCase(),
     db: context.cloudflare.env.DB,
@@ -132,8 +140,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (result.error === 'subdomain_taken') {
       return json({ error: `Subdomain "${subdomain}" is already taken. Please choose another.`, field: 'subdomain' }, { status: 400 });
     }
+    if (result.error === 'phone_taken' && phoneIsOwnNumber) {
+      // This is the user's own phone — not actually a conflict. This shouldn't normally happen
+      // since completeGoogleOnboardingForExistingUser should handle this. Log and retry.
+      console.error('[create-store-for-existing-user] phone_taken on own phone — unexpected. userId:', userId);
+      return json({ error: 'Failed to create store due to a data conflict. Please contact support.' }, { status: 500 });
+    }
     if (result.error === 'phone_taken') {
-      return json({ error: 'This phone number is already registered.', field: 'phone' }, { status: 400 });
+      return json({ error: 'This phone number is already registered to another account.', field: 'phone' }, { status: 400 });
     }
     if (result.error === 'already_has_store' || (result.error || '').includes('UNIQUE constraint failed')) {
       return json({ error: 'A store was already created for your account. Please refresh the page.' }, { status: 409 });

@@ -140,8 +140,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         });
       }
 
-      // User is logged in but has no store in DB - send to onboarding.
-      return redirect('/onboarding');
+      // User is logged in but has no store in DB — show Create New Store UI in dashboard
+      // Do NOT redirect to /onboarding (that blocks existing users who deleted their store)
+      const url = new URL(request.url);
+      if (!url.pathname.startsWith('/app/dashboard')) {
+        return redirect('/app/dashboard');
+      }
+      // On dashboard: return storeDeleted signal so UI shows Create New Store panel
+      const session = await getSession(request, context.cloudflare.env);
+      return json(
+        { storeDeleted: true, userId, user: null },
+        { headers: { 'Set-Cookie': await commitSession(session, context.cloudflare.env) } }
+      );
     }
 
     // Fetch store info with error handling
@@ -166,7 +176,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
           name: users.name,
           email: users.email,
           role: users.role,
-          avatarUrl: users.avatarUrl,
         })
         .from(users)
         .where(eq(users.id, userId))
@@ -192,7 +201,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       session.unset('storeId');
       // Only expose safe user fields — never send passwordHash/googleId to client
       const safeUser = userResult[0]
-        ? { id: userResult[0].id, name: userResult[0].name, email: userResult[0].email, role: userResult[0].role, avatarUrl: userResult[0].avatarUrl }
+        ? { id: userResult[0].id, name: userResult[0].name, email: userResult[0].email, role: userResult[0].role }
         : null;
       return json(
         { storeDeleted: true, userId, user: safeUser },
@@ -599,7 +608,7 @@ export default function AppLayout() {
                 })}
 
               {/* Admin Section */}
-              {user.role === 'admin' && (
+              {user?.role === 'admin' && (
                 <>
                   <div className="pt-4 pb-2">
                     <span className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
@@ -642,16 +651,16 @@ export default function AppLayout() {
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-9 h-9 bg-white/50 backdrop-blur rounded-full flex items-center justify-center border border-white/20">
                   <span className="text-sm font-medium text-gray-600">
-                    {user.name?.charAt(0)?.toUpperCase() ||
-                      user.email?.charAt(0)?.toUpperCase() ||
+                    {user?.name?.charAt(0)?.toUpperCase() ||
+                      user?.email?.charAt(0)?.toUpperCase() ||
                       'U'}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">
-                    {user.name || 'Merchant'}
+                    {user?.name || 'Merchant'}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                  <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                 </div>
               </div>
               <Form action="/auth/logout" method="post">
@@ -810,7 +819,7 @@ export default function AppLayout() {
       {/* AI Co-pilot Widget - hide on builder routes */}
       {!isBuilderRoute && (
         <DashboardChatWidget
-          userName={user.name || undefined}
+          userName={user?.name || undefined}
           storeName={store?.name ?? ''}
           isLocked={false}
         />

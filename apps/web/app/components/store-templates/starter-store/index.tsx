@@ -72,13 +72,25 @@ export function StarterStoreTemplate({
     heroBehavior.slides[0]?.imageUrl ||
     config?.bannerUrl ||
     fallbackHero;
-  // Heading from slide or config - if empty string, no text overlay
-  const rawHeading = heroBehavior.slides[heroIndex]?.heading ?? config?.bannerText ?? '';
-  const heroHeading = rawHeading || null; // null if empty string
-  const heroSubheading =
-    heroBehavior.slides[heroIndex]?.subheading ?? config?.heroSubheading ?? null;
-  const heroButtonText = heroBehavior.slides[heroIndex]?.ctaText ?? config?.heroButtonText ?? null;
-  const heroButtonLink = heroBehavior.slides[heroIndex]?.ctaLink ?? '/products';
+  // In carousel mode: use ONLY the current slide's data — no global config fallback
+  // This prevents slide 1's heading from bleeding into slide 2 when slide 2 has no heading
+  const isCarouselMode = heroBehavior.isCarousel && heroBehavior.slides.length > 1;
+  const currentSlide = heroBehavior.slides[heroIndex];
+
+  const rawHeading = isCarouselMode
+    ? (currentSlide?.heading || null) // carousel: only slide data, no fallback
+    : (currentSlide?.heading ?? config?.bannerText ?? ''); // single: allow config fallback
+  const heroHeading = rawHeading || null;
+
+  const heroSubheading = isCarouselMode
+    ? (currentSlide?.subheading || null)
+    : (currentSlide?.subheading ?? config?.heroSubheading ?? null);
+
+  const heroButtonText = isCarouselMode
+    ? (currentSlide?.ctaText || null)
+    : (currentSlide?.ctaText ?? config?.heroButtonText ?? null);
+
+  const heroButtonLink = currentSlide?.ctaLink || '/products';
 
   // Show text content only if there's a heading
   const showHeroText = Boolean(heroHeading);
@@ -144,25 +156,52 @@ export function StarterStoreTemplate({
         themeColors={theme}
       />
 
-      <main>
-        {/* Hero Banner */}
-        <section className="relative h-[50vh] md:h-[70vh]">
-          <img
-            src={heroSrc}
-            alt="Hero"
-            className="w-full h-full object-cover"
-            srcSet={heroSrcSet}
-            sizes="100vw"
-            loading="eager"
-            {...({ fetchpriority: 'high' } as Record<string, unknown>)}
-            decoding="async"
-          />
+      <main className="pt-[64px]">
+        {/* Hero Banner — pt-[64px] offsets fixed header height so hero starts below header */}
+        <section className="relative h-[50vh] md:h-[70vh] overflow-hidden">
+          {/* Carousel slides — all stacked, crossfade via opacity transition */}
+          {heroBehavior.isCarousel && heroBehavior.slides.length > 1
+            ? heroBehavior.slides.map((slide, idx) => {
+                const isUnsplash = (slide.imageUrl || '').includes('unsplash.com');
+                const src = isUnsplash
+                  ? optimizeUnsplashUrl(slide.imageUrl!, { width: 1600, height: 900, quality: 80, format: 'webp' })
+                  : buildProxyImageUrl(slide.imageUrl || heroImage, { width: 1600, height: 900, quality: 78 });
+                return (
+                  <img
+                    key={idx}
+                    src={src}
+                    alt={`Hero slide ${idx + 1}`}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    style={{
+                      opacity: idx === heroIndex ? 1 : 0,
+                      transition: 'opacity 0.8s ease-in-out',
+                      zIndex: idx === heroIndex ? 1 : 0,
+                    }}
+                    loading={idx === 0 ? 'eager' : 'lazy'}
+                    decoding="async"
+                  />
+                );
+              })
+            : (
+              <img
+                src={heroSrc}
+                alt="Hero"
+                className="absolute inset-0 w-full h-full object-cover"
+                srcSet={heroSrcSet}
+                sizes="100vw"
+                loading="eager"
+                {...({ fetchpriority: 'high' } as Record<string, unknown>)}
+                decoding="async"
+              />
+            )
+          }
           {/* Overlay - opacity is configurable, defaults to 0 (no overlay) if no text */}
           <div
             className="absolute inset-0 flex items-center justify-center"
             style={{
               backgroundColor:
                 heroOverlayOpacity > 0 ? `rgba(0, 0, 0, ${heroOverlayOpacity})` : 'transparent',
+              zIndex: 2,
             }}
           >
             {showHeroText && (
@@ -182,6 +221,25 @@ export function StarterStoreTemplate({
               </div>
             )}
           </div>
+
+          {/* Carousel dot indicators */}
+          {heroBehavior.isCarousel && heroBehavior.slides.length > 1 && (
+            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2" style={{ zIndex: 3 }}>
+              {heroBehavior.slides.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setHeroIndex(idx)}
+                  aria-label={`Go to slide ${idx + 1}`}
+                  className="rounded-full transition-all duration-300"
+                  style={{
+                    width: idx === heroIndex ? '24px' : '8px',
+                    height: '8px',
+                    backgroundColor: idx === heroIndex ? '#ffffff' : 'rgba(255,255,255,0.5)',
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Categories */}
