@@ -272,7 +272,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       db
         .update(users)
         .set({ storeId: null })
-        .where(eq(users.id, currentUserId)),
+        .where(eq(users.storeId, storeId)),
     ]);
 
     // Confirm deletion succeeded

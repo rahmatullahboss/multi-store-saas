@@ -214,19 +214,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
           description: sanitizeText(formData.get(`badge_${i}_description`) as string, 200) || '',
         });
       }
-      patch.trustBadges = { badges };
-
-      // Why Choose Us
-      const whyChooseUs: Array<Record<string, string>> = [];
-      const whyChooseIcons = ['✨', '⚡', '💬'];
-      for (let i = 0; i < 3; i++) {
-        whyChooseUs.push({
-          icon: whyChooseIcons[i] || '✨',
-          title: sanitizeText(formData.get(`whyChoose_${i}_title`) as string, 100) || '',
-          description: sanitizeText(formData.get(`whyChoose_${i}_description`) as string, 200) || '',
-        });
-      }
-      patch.whyChooseUs = whyChooseUs;
+      const trustBadgesEnabled = formData.get('trustBadgesEnabled') === 'on';
+      patch.trustBadges = { enabled: trustBadgesEnabled, badges };
     } else if (intent === 'info') {
       const logo = (formData.get('logo') as string) || null;
       const tagline = sanitizeText(formData.get('tagline') as string, 200);
@@ -780,7 +769,9 @@ function BannerTab({
 
       bannerFetcher.submit(fd, { method: 'post' });
     },
-    [annEnabled, annLink, annText, bannerFetcher, headline, mode, opacity]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [annEnabled, annLink, annText, headline, mode, opacity]
+    // bannerFetcher intentionally excluded — it's a new ref on every render and causes infinite loops
   );
 
   const addSlide = () => {
@@ -1264,59 +1255,44 @@ function ContentTab({
     <Form method="post" className="space-y-6">
       <input type="hidden" name="intent" value="content" />
 
-      {/* Why Choose Us Section */}
       <section className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-            <Shield className="w-5 h-5 text-green-600" />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Type className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">ট্রাস্ট ব্যাজ</h2>
+              <p className="text-xs text-gray-500">দ্রুত ডেলিভারি, নিরাপদ পেমেন্ট ইত্যাদি ব্যাজ হোমপেজে দেখাবে</p>
+            </div>
           </div>
-          <h2 className="text-lg font-semibold">কেন আমাদের নির্বাচন করবেন</h2>
+          {/* Enable/Disable toggle */}
+          <label className="flex items-center gap-2 cursor-pointer">
+            <span className="text-sm text-gray-600">{settings.trustBadges?.enabled ? 'চালু' : 'বন্ধ'}</span>
+            <input
+              type="hidden"
+              name="trustBadgesEnabled"
+              value={settings.trustBadges?.enabled ? 'on' : 'off'}
+            />
+            <button
+              type="button"
+              onClick={(e) => {
+                const hidden = e.currentTarget.previousElementSibling as HTMLInputElement;
+                const isOn = hidden.value === 'on';
+                hidden.value = isOn ? 'off' : 'on';
+                e.currentTarget.classList.toggle('bg-indigo-600', !isOn);
+                e.currentTarget.classList.toggle('bg-gray-300', isOn);
+                (e.currentTarget.querySelector('span') as HTMLElement).style.transform = isOn ? 'translateX(0)' : 'translateX(20px)';
+              }}
+              className={`relative w-11 h-6 rounded-full transition-colors ${settings.trustBadges?.enabled ? 'bg-indigo-600' : 'bg-gray-300'}`}
+            >
+              <span
+                className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform"
+                style={{ transform: settings.trustBadges?.enabled ? 'translateX(20px)' : 'translateX(0)' }}
+              />
+            </button>
+          </label>
         </div>
-        <p className="text-sm text-gray-500 mb-4">
-          হোমপেজে "Why Choose Us" সেকশনের জন্য তিনটি ফিচার।
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {whyChoose.map(
-            (item: { icon: string; title: string; description: string }, idx: number) => (
-              <div key={idx} className="border border-gray-200 rounded-lg p-4">
-                <div className="text-2xl mb-2">{item.icon}</div>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">শিরোনাম</label>
-                    <input
-                      type="text"
-                      name={`whyChoose_${idx}_title`}
-                      defaultValue={item.title}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">বিবরণ</label>
-                    <input
-                      type="text"
-                      name={`whyChoose_${idx}_description`}
-                      defaultValue={item.description}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
-            )
-          )}
-        </div>
-      </section>
-
-      <section className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-            <Type className="w-5 h-5 text-blue-600" />
-          </div>
-          <h2 className="text-lg font-semibold">ট্রাস্ট ব্যাজ</h2>
-        </div>
-
-        <h3 className="font-medium text-gray-900 mb-4">
-          Trust Badges (দ্রুত ডেলিভারি, নিরাপদ পেমেন্ট, ইত্যাদি)
-        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {badges.map((badge, idx) => {
             const Icon = IconMap[badge.icon as keyof typeof IconMap] || Truck;

@@ -94,18 +94,25 @@ export function LiveLuxeBoutiqueHomepage({
 
   const heroBehavior = getHeroBehavior(config);
   const [heroIndex, setHeroIndex] = useState(0);
-  const heroBannerSlide = heroBehavior.slides[heroIndex] || heroBehavior.slides[0];
-  const heroImage = heroBannerSlide?.imageUrl || config?.bannerUrl || DEFAULT_HERO_IMAGE;
+  const isCarouselMode = heroBehavior.isCarousel && heroBehavior.slides.length > 1;
+  const currentSlide = heroBehavior.slides[heroIndex] || heroBehavior.slides[0];
+  const heroImage = currentSlide?.imageUrl || config?.bannerUrl || DEFAULT_HERO_IMAGE;
   const heroBgUrl = heroImage.includes('unsplash.com')
     ? optimizeUnsplashUrl(heroImage, { width: 1600, height: 900, quality: 80, format: 'webp' })
     : buildProxyImageUrl(heroImage, { width: 1600, height: 900, quality: 78 });
-  const heroHeading = heroBannerSlide?.heading || config?.bannerText || 'Redefining Elegance';
-  const heroSubheading =
-    heroBannerSlide?.subheading ||
-    extendedConfig?.bannerSubtext ||
-    'Discover a world of timeless style and uncompromising quality.';
-  const heroCta = heroBannerSlide?.ctaText || extendedConfig?.bannerCtaText || 'Shop Collection';
-  const heroCtaLink = heroBannerSlide?.ctaLink || '/products';
+
+  // In carousel mode: use only slide data — no global config fallback
+  // Prevents slide 1's heading bleeding into slide 2 when slide 2 has no heading
+  const heroHeading = isCarouselMode
+    ? (currentSlide?.heading || null)
+    : (currentSlide?.heading || config?.bannerText || 'Redefining Elegance');
+  const heroSubheading = isCarouselMode
+    ? (currentSlide?.subheading || null)
+    : (currentSlide?.subheading || extendedConfig?.bannerSubtext || 'Discover a world of timeless style and uncompromising quality.');
+  const heroCta = isCarouselMode
+    ? (currentSlide?.ctaText || null)
+    : (currentSlide?.ctaText || extendedConfig?.bannerCtaText || 'Shop Collection');
+  const heroCtaLink = currentSlide?.ctaLink || '/products';
   const heroOverlayOpacity = extendedConfig?.heroOverlayOpacity ?? 0.4;
 
   useEffect(() => {
@@ -181,19 +188,62 @@ export function LiveLuxeBoutiqueHomepage({
 
               {/* Hero Section - 80vh */}
               <section className="relative h-[80vh] flex items-center justify-center overflow-hidden">
+                {/* Crossfade carousel slides */}
+                {heroBehavior.isCarousel && heroBehavior.slides.length > 1
+                  ? heroBehavior.slides.map((slide, idx) => {
+                      const imgUrl = slide.imageUrl
+                        ? slide.imageUrl.includes('unsplash.com')
+                          ? optimizeUnsplashUrl(slide.imageUrl, { width: 1600, height: 900, quality: 80, format: 'webp' })
+                          : buildProxyImageUrl(slide.imageUrl, { width: 1600, height: 900, quality: 78 })
+                        : heroBgUrl;
+                      return (
+                        <div
+                          key={idx}
+                          className="absolute inset-0 bg-cover bg-center"
+                          style={{
+                            backgroundImage: `url(${imgUrl})`,
+                            opacity: idx === heroIndex ? 1 : 0,
+                            transition: 'opacity 1s ease-in-out',
+                            zIndex: idx === heroIndex ? 0 : -1,
+                          }}
+                        />
+                      );
+                    })
+                  : (
+                    <div
+                      className="absolute inset-0 z-0 bg-cover bg-center"
+                      style={{ backgroundImage: `url(${heroBgUrl})` }}
+                    />
+                  )
+                }
+
+                {/* Dark overlay */}
                 <div
-                  className="absolute inset-0 z-0 bg-cover bg-center"
+                  className="absolute inset-0"
                   style={{
-                    backgroundImage: `url(${heroBgUrl})`,
+                    backgroundColor: `rgba(0, 0, 0, ${heroOverlayOpacity})`,
+                    zIndex: 1,
                   }}
-                >
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      backgroundColor: `rgba(0, 0, 0, ${heroOverlayOpacity})`,
-                    }}
-                  />
-                </div>
+                />
+
+                {/* Dot indicators */}
+                {heroBehavior.isCarousel && heroBehavior.slides.length > 1 && (
+                  <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2" style={{ zIndex: 3 }}>
+                    {heroBehavior.slides.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setHeroIndex(idx)}
+                        aria-label={`Go to slide ${idx + 1}`}
+                        className="rounded-full transition-all duration-300"
+                        style={{
+                          width: idx === heroIndex ? '24px' : '8px',
+                          height: '8px',
+                          backgroundColor: idx === heroIndex ? '#c9a961' : 'rgba(255,255,255,0.5)',
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
 
                 <div className="relative z-10 text-center text-white px-4 max-w-4xl">
                   <h1 className="text-5xl md:text-7xl font-serif mb-6 leading-tight">

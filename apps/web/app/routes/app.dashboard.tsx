@@ -358,8 +358,19 @@ export default function DashboardPage() {
   const navigate = useNavigate();
 
   // Store was deleted — show inline create-new-store UI
-  if ('storeDeleted' in data && data.storeDeleted) {
-    return <CreateNewStorePanel />;
+  const isStoreDeleted = 'storeDeleted' in data && data.storeDeleted;
+
+  // Use suppressHydrationWarning pattern: render same structure on SSR and client
+  // but swap content after mount to avoid React #418 hydration mismatch
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => { setMounted(true); }, []);
+
+  if (isStoreDeleted) {
+    return mounted ? <CreateNewStorePanel /> : (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
   const {

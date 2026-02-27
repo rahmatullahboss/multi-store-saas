@@ -9,7 +9,7 @@
 
 import { createCookieSessionStorage, redirect, type Session } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq } from 'drizzle-orm';
+import { eq, and, not } from 'drizzle-orm';
 import { users, stores, adminRoles, passwordResets } from '@db/schema';
 import { Authenticator } from 'remix-auth';
 import { GoogleStrategy } from 'remix-auth-google';
@@ -1014,11 +1014,11 @@ export async function completeGoogleOnboardingForExistingUser({
       return { success: false, error: 'subdomain_taken' };
     }
 
-    // 2. Check phone uniqueness
+    // 2. Check phone uniqueness — exclude current user (they may reuse their own phone)
     const existingPhone = await drizzleDb
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.phone, phone))
+      .where(and(eq(users.phone, phone), not(eq(users.id, userId))))
       .limit(1);
 
     if (existingPhone.length > 0) {
