@@ -23,6 +23,13 @@ export const common = {
   search: 'অনুসন্ধান করুন',
   unauthorized: 'অননুমোদিত',
   storeNotFound: 'স্টোর পাওয়া যায়নি',
+  // Google OAuth error messages
+  googleAuthFailed: 'গুগল লগইন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',
+  googleRedirectMismatch: 'গুগল লগইন কনফিগারেশন এরর। সাপোর্টে যোগাযোগ করুন।',
+  googleTokenInvalid: 'গুগল অথেনটিকেশন টোকেন অবৈধ বা মেয়াদ উত্তীর্ণ। আবার চেষ্টা করুন।',
+  googleScopeError: 'পার্মিশন সমস্যার কারণে গুগল লগইন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।',
+  googleAccessDenied: 'গুগল লগইন বাতিল করা হয়েছে। আবার চেষ্টা করুন।',
+  googleEmailNotVerified: 'আপনার গুগল অ্যাকাউন্টের ইমেইল যাচাই করা হয়নি। যাচাই করে আবার চেষ্টা করুন।',
   filter: 'ফিল্টার',
   sort: 'সাজান',
   all: 'সব',

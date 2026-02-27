@@ -251,12 +251,27 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
       if (userResult[0]?.storeId) {
         const storeResult = await db
-          .select({ onboardingStatus: stores.onboardingStatus })
+          .select({ onboardingStatus: stores.onboardingStatus, isActive: stores.isActive, deletedAt: stores.deletedAt })
           .from(stores)
           .where(eq(stores.id, userResult[0].storeId))
           .limit(1);
 
-        const onboardingStatus = storeResult[0]?.onboardingStatus || 'pending';
+        const storeRow = storeResult[0];
+        const isDeletedOrInactive = !storeRow || !storeRow.isActive || storeRow.deletedAt != null;
+
+        if (isDeletedOrInactive) {
+          console.error(`[onboarding] User ${userId} has deleted/inactive store, clearing session storeId and allowing re-onboarding`);
+          // Clear the stale storeId from session to prevent redirect loops
+          const session = await getSession(request, env);
+          session.unset('storeId');
+          const cookie = await commitSession(session, env);
+          return json(
+            { isGoogleMode, userEmail: userResult[0]?.email || '', userName: userResult[0]?.name || '' },
+            { headers: { 'Set-Cookie': cookie } }
+          );
+        }
+
+        const onboardingStatus = storeRow?.onboardingStatus || 'pending';
         if (onboardingStatus === 'completed') {
           const session = await getSession(request, env);
           if (!session.get('storeId')) {

@@ -24,6 +24,14 @@ import { ordersRouter } from './routes/orders';
 import { analyticsRouter } from './routes/analytics';
 import { webhooksRouter } from './routes/webhooks';
 import { storeRouter } from './routes/store';
+// WooCommerce Power Layer routes
+import { fraudRouter } from './routes/fraud';
+import { trackingWcRouter } from './routes/tracking-wc';
+import { courierWcRouter } from './routes/courier-wc';
+import { smsWcRouter } from './routes/sms-wc';
+import { cartWcRouter } from './routes/cart-wc';
+import { wcWebhookRouter } from './routes/wc-webhook';
+import { storeDataRouter } from './routes/store-data';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 
@@ -90,6 +98,14 @@ v1Router.route('/products',  productsRouter);
 v1Router.route('/orders',    ordersRouter);
 v1Router.route('/analytics', analyticsRouter);
 v1Router.route('/webhooks',  webhooksRouter);
+// ─── WooCommerce Power Layer ──────────────────────────────────────────────────
+v1Router.route('/fraud',       fraudRouter);
+v1Router.route('/tracking',    trackingWcRouter);
+v1Router.route('/courier-wc',  courierWcRouter);
+v1Router.route('/sms',         smsWcRouter);
+v1Router.route('/cart',        cartWcRouter);
+v1Router.route('/wc',          wcWebhookRouter);
+v1Router.route('/store-data',  storeDataRouter);
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────────
 

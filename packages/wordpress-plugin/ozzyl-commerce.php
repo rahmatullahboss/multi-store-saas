@@ -30,7 +30,7 @@ define( 'OZZYL_PLUGIN_FILE', __FILE__ );
 define( 'OZZYL_PLUGIN_DIR',  plugin_dir_path( __FILE__ ) );
 define( 'OZZYL_PLUGIN_URL',  plugin_dir_url( __FILE__ ) );
 define( 'OZZYL_PLUGIN_BASE', plugin_basename( __FILE__ ) );
-define( 'OZZYL_API_BASE',    'https://api.ozzyl.com/v1' );
+define( 'OZZYL_API_BASE',    'https://app.ozzyl.com/api/v1' );
 define( 'OZZYL_MIN_PHP',     '8.0' );
 define( 'OZZYL_MIN_WP',      '6.0' );
 
@@ -51,9 +51,16 @@ if ( version_compare( PHP_VERSION, OZZYL_MIN_PHP, '<' ) ) {
 	return;
 }
 
-// ── Autoload includes ─────────────────────────────────────────────────────────
+// ── Autoload core & module system ─────────────────────────────────────────
 
-require_once OZZYL_PLUGIN_DIR . 'includes/class-ozzyl-api.php';
+// Core module system.
+require_once OZZYL_PLUGIN_DIR . 'core/OzzylModuleInterface.php';
+require_once OZZYL_PLUGIN_DIR . 'core/class-ozzyl-logger.php';
+require_once OZZYL_PLUGIN_DIR . 'core/class-ozzyl-api.php';
+require_once OZZYL_PLUGIN_DIR . 'core/class-ozzyl-license.php';
+require_once OZZYL_PLUGIN_DIR . 'core/class-ozzyl-core.php';
+
+// Backward compatibility: keep old includes path working.
 require_once OZZYL_PLUGIN_DIR . 'includes/class-ozzyl-auth.php';
 require_once OZZYL_PLUGIN_DIR . 'includes/class-ozzyl-webhook.php';
 require_once OZZYL_PLUGIN_DIR . 'includes/class-ozzyl-sync.php';
@@ -83,12 +90,18 @@ add_action( 'before_woocommerce_init', function() {
 /**
  * Main plugin class — singleton bootstrap.
  *
+ * Orchestrates the old legacy systems with the new module architecture.
+ * All new features should be implemented as modules.
+ *
  * @since 1.0.0
  */
 final class Ozzyl_Commerce {
 
 	/** @var Ozzyl_Commerce|null Singleton instance. */
 	private static ?Ozzyl_Commerce $instance = null;
+
+	/** @var Ozzyl_Core Core module coordinator. */
+	public Ozzyl_Core $core;
 
 	/** @var Ozzyl_API API client instance. */
 	public Ozzyl_API $api;
@@ -139,9 +152,12 @@ final class Ozzyl_Commerce {
 	 * @since 1.0.0
 	 */
 	private function init(): void {
-		// Core subsystems (always loaded).
+		// Initialize the new module system (handles API, license, and module loading).
+		$this->core = Ozzyl_Core::instance();
+
+		// Legacy core subsystems (for backward compatibility).
 		$this->auth    = new Ozzyl_Auth();
-		$this->api     = new Ozzyl_API( $this->auth->get_api_key() );
+		$this->api     = $this->core->get_api(); // Use core's API client.
 		$this->webhook = new Ozzyl_Webhook();
 		$this->widget  = new Ozzyl_Widget();
 		$this->public  = new Ozzyl_Public();
@@ -251,6 +267,10 @@ final class Ozzyl_Commerce {
 	 * @since 1.0.0
 	 */
 	public static function deactivate(): void {
+		// Deactivate all modules (clean up hooks and transients).
+		$core = Ozzyl_Core::instance();
+		$core->deactivate_all();
+
 		flush_rewrite_rules();
 		if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
 			error_log( '[Ozzyl] Plugin deactivated.' );

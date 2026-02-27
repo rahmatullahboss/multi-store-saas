@@ -36,9 +36,58 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const authenticator = getAuthenticator(context.cloudflare.env, request.url);
 
   // 1. Get the user profile from Google (via authenticator)
-  const authUser = await authenticator.authenticate('google', request, {
-    failureRedirect: '/auth/login?error=google_auth_failed',
-  });
+  // We use a try/catch to log the actual error before remix-auth swallows it
+  let authUser;
+  try {
+    authUser = await authenticator.authenticate('google', request);
+  } catch (authError) {
+    // Re-throw redirects — these are normal OAuth flow responses (Google redirecting user back)
+    if (authError instanceof Response && authError.status >= 300 && authError.status < 400) {
+      throw authError;
+    }
+
+    // Read error details from Response or Error object
+    let errorMessage = 'Unknown error';
+    let errorCode = 'google_auth_failed';
+
+    // SECURITY: errorMessage contains raw OAuth provider error text (may include infrastructure
+    // details like redirect URIs). It must NEVER be sent to the client — only used for
+    // server-side classification and logging. Only errorCode reaches the browser via URL.
+    if (authError instanceof Response) {
+      // remix-auth throws Response objects for auth failures — read the body for real message
+      try {
+        const rawBody = await authError.clone().text();
+        // Cap at 500 chars — Google can return large HTML error pages
+        errorMessage = rawBody.length > 500 ? rawBody.slice(0, 500) + '...' : rawBody;
+      } catch {
+        errorMessage = `HTTP ${authError.status} ${authError.statusText}`;
+      }
+      console.error('[auth.google.callback] Auth failed with Response:', authError.status, errorMessage);
+    } else if (authError instanceof Error) {
+      errorMessage = authError.message;
+      console.error('[auth.google.callback] Auth failed with Error:', errorMessage);
+      if (authError.stack) console.error('[auth.google.callback] Stack:', authError.stack);
+    } else {
+      errorMessage = String(authError);
+      console.error('[auth.google.callback] Auth failed with unknown:', errorMessage);
+    }
+
+    // Detect specific failure reasons to return more actionable error codes
+    const msgLower = errorMessage.toLowerCase();
+    if (msgLower.includes('redirect_uri') || msgLower.includes('redirect uri') || msgLower.includes('callback')) {
+      errorCode = 'google_redirect_mismatch';
+    } else if (msgLower.includes('access_denied') || msgLower.includes('denied')) {
+      errorCode = 'google_access_denied';
+    } else if (msgLower.includes('token') || msgLower.includes('code')) {
+      errorCode = 'google_token_invalid';
+    } else if (msgLower.includes('email') || msgLower.includes('scope')) {
+      errorCode = 'google_scope_error';
+    }
+
+    console.error('[auth.google.callback] Request URL:', request.url);
+
+    return redirect(`/auth/login?error=${encodeURIComponent(errorCode)}`);
+  }
 
   // 2. Get oauth intent from session
   const session = await getSession(request, context.cloudflare.env);

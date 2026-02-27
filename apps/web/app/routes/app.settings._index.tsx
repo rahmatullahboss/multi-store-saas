@@ -24,11 +24,13 @@ import {
   products,
   customers,
   orders,
+  users,
   emailSubscribers,
   savedLandingConfigs,
   emailCampaigns,
 } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { getStoreId, getUserId } from '~/services/auth.server';
+import { logAuditAction } from '~/services/audit.server';
 import { KVCache, CACHE_KEYS } from '~/services/kv-cache.server';
 import {
   getUnifiedStorefrontSettings,
@@ -53,6 +55,24 @@ import {
   AlertTriangle,
   Palette,
   List,
+  Youtube,
+  Linkedin,
+  Twitter,
+  CreditCard,
+  Truck,
+  Package,
+  Search,
+  Megaphone,
+  Users,
+  ShieldCheck,
+  Clock,
+  Code2,
+  Webhook,
+  Receipt,
+  LogOut,
+  ChevronRight,
+  Settings,
+  Tag,
 } from 'lucide-react';
 import { StoreDeleteWarningModal } from '~/components/StoreDeleteWarningModal';
 import { ThemePreview } from '~/components/ThemePreview';
@@ -190,6 +210,23 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const exitReason = formData.get('exitReason') as string;
     const feedback = formData.get('feedback') as string;
 
+    // Get the authenticated user ID (owner performing the deletion)
+    const currentUserId = await getUserId(request, context.cloudflare.env);
+    if (!currentUserId) {
+      return json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Verify the authenticated user actually owns this store (prevents impersonation abuse)
+    const ownerCheck = await db
+      .select({ storeId: users.storeId })
+      .from(users)
+      .where(eq(users.id, currentUserId))
+      .limit(1);
+    if (ownerCheck[0]?.storeId !== storeId) {
+      console.error(`[STORE_DELETE] Ownership check failed: user ${currentUserId} does not own store ${storeId}`);
+      return json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     // Log exit survey if provided
     if (exitReason) {
       console.warn(`[EXIT_SURVEY] Store ${storeId}: reason=${exitReason}, feedback=${feedback}`);
@@ -203,15 +240,43 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .where(eq(stores.id, storeId))
       .limit(1);
 
-    // Soft delete the store
-    await db
-      .update(stores)
-      .set({
-        deletedAt: new Date(),
-        isActive: false,
-        updatedAt: new Date(),
-      })
-      .where(eq(stores.id, storeId));
+    // Audit log BEFORE deletion so resolveAuditStoreId can find the store record
+    try {
+      await logAuditAction(context.cloudflare.env, {
+        storeId,
+        actorId: currentUserId,
+        action: 'delete',
+        resource: 'store',
+        resourceId: storeId,
+        diff: { exitReason, feedback },
+        ipAddress: request.headers.get('CF-Connecting-IP') || undefined,
+        userAgent: request.headers.get('User-Agent') || undefined,
+      });
+    } catch (e) {
+      console.error('[STORE_DELETE] Failed to log audit:', e);
+    }
+
+    // Soft-delete the store and null the owner's storeId in a single D1 batch round-trip
+    // Note: D1 batch provides best-effort consistency (single HTTP round-trip) but is NOT
+    // full ACID. In rare partial failure scenarios, onboarding.tsx handles recovery.
+    // This prevents partial failure leaving data in inconsistent state
+    await db.batch([
+      db
+        .update(stores)
+        .set({
+          deletedAt: new Date(),
+          isActive: false,
+          updatedAt: new Date(),
+        })
+        .where(eq(stores.id, storeId)),
+      db
+        .update(users)
+        .set({ storeId: null })
+        .where(eq(users.id, currentUserId)),
+    ]);
+
+    // Confirm deletion succeeded
+    console.warn(`[STORE_DELETE] Store ${storeId} successfully deleted by user ${currentUserId}`);
 
     // Invalidate cache so deleted store is immediately inaccessible
     const kvNamespace = context.cloudflare.env.STORE_CACHE;
@@ -612,9 +677,77 @@ export default function SettingsPage() {
     }
   };
 
+  // ============================================================================
+  // SIDEBAR NAV DATA
+  // ============================================================================
+  const sidebarGroups = [
+    {
+      label: t('store') || 'STORE',
+      items: [
+        { href: '/app/settings', label: t('generalSettings') || 'General', icon: Settings, active: true },
+        { href: '/app/settings/domain', label: t('domain') || 'Domain', icon: Globe, active: false },
+        { href: '/app/settings/navigation', label: t('navigationSettings') || 'Navigation', icon: List, active: false },
+      ],
+    },
+    {
+      label: t('appearance') || 'APPEARANCE',
+      items: [
+        { href: '/app/settings/homepage', label: t('storefrontAppearance') || 'Store Design', icon: Palette, active: false },
+      ],
+    },
+    {
+      label: t('sales') || 'SALES',
+      items: [
+        { href: '/app/settings/payment', label: t('paymentMethods') || 'Payment', icon: CreditCard, active: false },
+        { href: '/app/settings/shipping', label: t('shipping') || 'Shipping', icon: Truck, active: false },
+        { href: '/app/settings/courier', label: t('courierApiLink') || 'Courier', icon: Package, active: false },
+        { href: '/app/settings/discounts', label: t('discounts') || 'Discounts', icon: Tag, active: false },
+      ],
+    },
+    {
+      label: t('marketing') || 'MARKETING',
+      items: [
+        { href: '/app/settings/seo', label: 'SEO', icon: Search, active: false },
+        { href: '/app/settings/tracking', label: t('tracking') || 'Tracking', icon: Megaphone, active: false },
+        { href: '/app/settings/lead-gen', label: t('navLeadGenSettings') || 'Messaging', icon: MessageCircle, active: false },
+      ],
+    },
+    {
+      label: t('security') || 'SECURITY',
+      items: [
+        { href: '/app/settings/team', label: t('teamMembers') || 'Team', icon: Users, active: false },
+        { href: '/app/settings/fraud', label: t('fraudDetection') || 'Fraud Detection', icon: ShieldCheck, active: false },
+        { href: '/app/settings/legal', label: t('legal') || 'Legal', icon: FileText, active: false },
+      ],
+    },
+    {
+      label: t('account') || 'ACCOUNT',
+      items: [
+        { href: '/app/settings/activity', label: t('activityLog') || 'Activity Log', icon: Clock, active: false },
+        { href: '/app/settings/developer', label: t('developerApiLink') || 'Developer', icon: Code2, active: false },
+        { href: '/app/settings/webhooks', label: t('webhooks') || 'Webhooks', icon: Webhook, active: false },
+        { href: '/app/billing', label: t('billingAndPlan') || 'Billing', icon: Receipt, active: false },
+      ],
+    },
+  ];
+
+  // Input class helper
+  const inputCls = 'w-full px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition';
+
   return (
     <div className="space-y-6">
-      {/* ===== MOBILE HUB VIEW (visible only on mobile) ===== */}
+      {/* ===== TOAST: success / error (fixed bottom-right, auto-dismiss 3s) ===== */}
+      {(showSuccess || actionData?.error) && (
+        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-xl text-sm font-medium transition-all animate-in slide-in-from-bottom-4 ${showSuccess ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}>
+          {showSuccess ? (
+            <><CheckCircle className="w-5 h-5 flex-shrink-0" /><span>{t('settingsSaved') || 'সেটিংস সংরক্ষিত হয়েছে'}</span></>
+          ) : (
+            <><AlertTriangle className="w-5 h-5 flex-shrink-0" /><span>{t((actionData?.error ?? '') as Parameters<typeof t>[0]) || actionData?.error}</span></>
+          )}
+        </div>
+      )}
+
+      {/* ===== MOBILE HUB VIEW (visible only on mobile, hidden when ?edit=1) ===== */}
       <div className={`md:hidden -m-4 min-h-screen bg-gray-50 flex flex-col pb-10 ${mobileShowForm ? 'hidden' : ''}`}>
 
         {/* Sticky Header */}
@@ -630,22 +763,22 @@ export default function SettingsPage() {
           <h1 className="text-lg font-bold text-gray-900 flex-1">{t('settings')}</h1>
         </header>
 
-        {/* Store Profile Section */}
-        <section className="bg-white border-b border-gray-100 px-6 py-8 flex flex-col items-center">
-          <div className="relative w-24 h-24 mb-4 rounded-full overflow-hidden shadow-sm border-2 border-gray-100">
+        {/* Store Profile Section — gradient hero */}
+        <section className="bg-gradient-to-br from-indigo-600 to-purple-700 px-6 pt-10 pb-8 flex flex-col items-center">
+          <div className="relative w-20 h-20 mb-4 rounded-2xl overflow-hidden shadow-lg border-2 border-white/30">
             {logoPreview ? (
               <img src={logoPreview} alt="Store logo" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                <Store className="w-8 h-8 text-gray-400" />
+              <div className="w-full h-full bg-white/20 flex items-center justify-center">
+                <Store className="w-8 h-8 text-white" />
               </div>
             )}
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-0.5">{(store as any)?.name || 'My Store'}</h2>
-          <p className="text-emerald-600 font-medium text-sm mb-5">{(store as any)?.subdomain}.ozzyl.com</p>
+          <h2 className="text-xl font-bold text-white mb-0.5">{store.name || 'My Store'}</h2>
+          <p className="text-indigo-200 text-sm mb-6">{store.subdomain}.ozzyl.com</p>
           <a
             href="?edit=1"
-            className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-semibold text-sm rounded-full shadow-sm shadow-emerald-500/20 transition-all"
+            className="flex items-center gap-2 px-6 py-2.5 bg-white hover:bg-indigo-50 active:scale-95 text-indigo-700 font-semibold text-sm rounded-full shadow-md transition-all"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -876,585 +1009,343 @@ export default function SettingsPage() {
 
       </div>
 
-      {/* ===== DESKTOP HEADER (hidden on mobile unless ?edit=1) ===== */}
-      <div className={`${mobileShowForm ? 'flex' : 'hidden md:flex'} items-center justify-between`}>
-        {mobileShowForm && (
-          <a href="/app/settings" className="md:hidden flex items-center gap-1 text-emerald-600 font-medium text-sm mr-3">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            {t('back') || 'Back'}
-          </a>
-        )}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('settings')}</h1>
-          <p className="text-sm text-gray-600">{t('settingsSubtitle')}</p>
-        </div>
-      </div>
+      {/* ===== DESKTOP TWO-COLUMN LAYOUT (md+) / MOBILE EDIT FORM ===== */}
+      <div className={`${mobileShowForm ? 'block' : 'hidden md:flex'} md:flex md:-m-6 md:min-h-screen`}>
 
-      {showSuccess && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
-          <CheckCircle className="w-5 h-5" />
-          {t('settingsSaved')}
-        </div>
-      )}
+        {/* ── LEFT SIDEBAR (desktop only) ── */}
+        <aside className="hidden md:flex flex-col w-60 flex-shrink-0 bg-[#0f172a] min-h-screen sticky top-0 h-screen overflow-y-auto">
 
-      {/* Error Message */}
-      {actionData?.error && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-          {t(actionData.error as Parameters<typeof t>[0])}
-        </div>
-      )}
+          {/* Sidebar content restored below */}
+        </aside>
 
-      <Form method="post" id="store-form-desktop" className={`space-y-6 ${mobileShowForm ? '' : 'hidden md:block'}`}>
-        {/* Hidden inputs */}
-        <input type="hidden" name="logo" value={logoUrl} />
-        <input type="hidden" name="favicon" value={faviconUrl} />
+        {/* ── MAIN CONTENT AREA ── */}
+        <div className="flex-1 min-w-0 flex flex-col bg-gray-50 md:bg-gray-50">
 
-        {/* Logo & Favicon Upload Card */}
-        <GlassCard intensity="low" className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Image className="w-5 h-5 text-blue-600" />
+          {/* Mobile edit-form back bar */}
+          {mobileShowForm && (
+            <div className="md:hidden sticky top-0 z-40 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+              <a href="/app/settings" className="flex items-center gap-1.5 text-indigo-600 font-medium text-sm">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                {t('back') || 'Back'}
+              </a>
+              <span className="text-sm font-semibold text-gray-800">{t('generalSettings') || 'সাধারণ সেটিংস'}</span>
+              <div className="w-12" />
             </div>
+          )}
+
+          {/* Desktop sticky top bar */}
+          <div className="hidden md:flex sticky top-0 z-30 bg-white border-b border-gray-200 px-8 py-4 items-center justify-between shadow-sm">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">{t('branding')}</h2>
-              <p className="text-sm text-gray-500">{t('brandingDesc')}</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Logo Upload */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('storeLogo')}
-              </label>
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  {logoPreview ? (
-                    <div className="relative">
-                      <img
-                        src={logoPreview}
-                        alt="Store logo"
-                        className="w-20 h-20 object-contain rounded-lg border border-gray-200 bg-gray-50"
-                      />
-                      {isUploadingLogo && (
-                        <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
-                          <Loader2 className="w-5 h-5 text-white animate-spin" />
-                        </div>
-                      )}
-                      <button
-                        type="button"
-                        onClick={removeLogo}
-                        className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition text-xs"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
-                      <Store className="w-6 h-6 text-gray-400" />
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploadingLogo}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
-                  >
-                    <Upload className="w-4 h-4" />
-                    {isUploadingLogo ? t('uploading') : t('uploadBtn')}
-                  </button>
-                  <p className="text-xs text-gray-500 mt-1">{t('logoHint')}</p>
-                  {logoFetcher.data?.error && (
-                    <p className="text-xs text-red-600 mt-1">{logoFetcher.data.error}</p>
-                  )}
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={handleLogoChange}
-                  className="hidden"
-                />
-              </div>
-            </div>
-
-            {/* Favicon Upload */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('favicon')}</label>
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  {faviconPreview ? (
-                    <div className="relative">
-                      <img
-                        src={faviconPreview}
-                        alt="Favicon"
-                        className="w-10 h-10 object-contain rounded border border-gray-200 bg-gray-50"
-                      />
-                      {isUploadingFavicon && (
-                        <div className="absolute inset-0 bg-black/50 rounded flex items-center justify-center">
-                          <Loader2 className="w-4 h-4 text-white animate-spin" />
-                        </div>
-                      )}
-                      <button
-                        type="button"
-                        onClick={removeFavicon}
-                        className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition"
-                      >
-                        <X className="w-2.5 h-2.5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center border-2 border-dashed border-gray-300">
-                      <Globe className="w-4 h-4 text-gray-400" />
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => faviconInputRef.current?.click()}
-                    disabled={isUploadingFavicon}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
-                  >
-                    <Upload className="w-4 h-4" />
-                    {isUploadingFavicon ? t('uploading') : t('uploadBtn')}
-                  </button>
-                  <p className="text-xs text-gray-500 mt-1">{t('faviconHint')}</p>
-                  {faviconFetcher.data?.error && (
-                    <p className="text-xs text-red-600 mt-1">{faviconFetcher.data.error}</p>
-                  )}
-                </div>
-                <input
-                  ref={faviconInputRef}
-                  type="file"
-                  accept="image/png,image/x-icon,image/ico,image/jpeg,image/webp,image/gif"
-                  onChange={handleFaviconChange}
-                  className="hidden"
-                />
-              </div>
-            </div>
-          </div>
-        </GlassCard>
-
-        {/* Store Info Card */}
-        <GlassCard intensity="low" className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-              <Store className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">{t('storeInformation')}</h2>
-              <p className="text-sm text-gray-500">{t('storeInformationDesc')}</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {/* Store Name */}
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                {t('storeNameLabel')}
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                defaultValue={store.name}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-              />
-            </div>
-
-            {/* Currency */}
-            <div>
-              <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-1">
-                {t('storeCurrency')}
-              </label>
-              <select
-                id="currency"
-                name="currency"
-                defaultValue={store.currency || 'BDT'}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
-              >
-                {currencies.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {t(c.labelKey as Parameters<typeof t>[0])}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Store Language */}
-            <div>
-              <label
-                htmlFor="defaultLanguage"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                {t('storeLanguage')}
-              </label>
-              <select
-                id="defaultLanguage"
-                name="defaultLanguage"
-                defaultValue={store.defaultLanguage || 'en'}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition bg-white"
-              >
-                <option value="en">🇬🇧 {t('english')}</option>
-                <option value="bn">🇧🇩 {t('bengali')}</option>
-              </select>
-              <p className="text-xs text-gray-500 mt-1">{t('storeLanguageDesc')}</p>
-            </div>
-
-            {/* Subdomain + Plan */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-              <div>
-                <label htmlFor="subdomain" className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('subdomainLabel')}
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    id="subdomain"
-                    name="subdomain"
-                    defaultValue={store.subdomain}
-                    minLength={SUBDOMAIN_MIN_LENGTH}
-                    maxLength={SUBDOMAIN_MAX_LENGTH}
-                    pattern="[-a-z0-9]+"
-                    required
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                  />
-                  <span className="text-sm text-gray-600 font-mono">.ozzyl.com</span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">{t('subdomainHint')}</p>
-              </div>
-
-              <div>
-                <label htmlFor="planType" className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('currentPlanLabel')}
-                </label>
-                <input
-                  id="planType"
-                  type="text"
-                  value={store.planType || 'free'}
-                  readOnly
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Plan changes are available only from Plan &amp; Billing.
-                </p>
-                <a
-                  href="/app/billing"
-                  className="inline-flex mt-2 text-sm font-medium text-emerald-700 hover:text-emerald-800"
-                >
-                  Go to Plan &amp; Billing
-                </a>
-              </div>
-            </div>
-          </div>
-        </GlassCard>
-
-        {/* Note: Store Mode Selection Card removed - use Homepage Settings (/app/settings/homepage) instead */}
-
-        {/* Theme Preview Modal */}
-        <ThemePreview
-          isOpen={showPreview}
-          onClose={() => setShowPreview(false)}
-          theme={selectedTheme}
-          fontFamily={selectedFont}
-          storeName={store.name}
-          logo={logoUrl || store.logo}
-        />
-
-        {/* Social Media Links */}
-        <GlassCard intensity="low" className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-              <Instagram className="w-5 h-5 text-pink-600" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">{t('socialMedia')}</h2>
-              <p className="text-sm text-gray-500">{t('connectSocialProfiles')}</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {/* Facebook */}
-            <div>
-              <label htmlFor="facebook" className="block text-sm font-medium text-gray-700 mb-1">
-                <Facebook className="w-4 h-4 inline mr-1 text-blue-600" /> {t('facebookUrl')}
-              </label>
-              <input
-                type="url"
-                id="facebook"
-                name="facebook"
-                defaultValue={store.social?.facebook || ''}
-                placeholder="https://facebook.com/yourpage"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-              />
-            </div>
-
-            {/* Instagram */}
-            <div>
-              <label htmlFor="instagram" className="block text-sm font-medium text-gray-700 mb-1">
-                <Instagram className="w-4 h-4 inline mr-1 text-pink-600" /> {t('instagramUrl')}
-              </label>
-              <input
-                type="url"
-                id="instagram"
-                name="instagram"
-                defaultValue={store.social?.instagram || ''}
-                placeholder="https://instagram.com/yourprofile"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-              />
-            </div>
-
-            {/* WhatsApp */}
-            <div>
-              <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700 mb-1">
-                <MessageCircle className="w-4 h-4 inline mr-1 text-green-600" />{' '}
-                {t('whatsappNumber')}
-              </label>
-              <input
-                type="tel"
-                id="whatsapp"
-                name="whatsapp"
-                defaultValue={store.social?.whatsapp || ''}
-                placeholder="+8801XXXXXXXXX"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-              />
-              <p className="text-xs text-gray-500 mt-1">{t('whatsappCountryCodeHint')}</p>
-            </div>
-          </div>
-        </GlassCard>
-
-        {/* Business Info Card */}
-        <GlassCard intensity="low" className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-              <Phone className="w-5 h-5 text-orange-600" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">{t('businessInformation')}</h2>
-              <p className="text-sm text-gray-500">{t('contactDetailsInvoices')}</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {/* Phone */}
-            <div>
-              <label
-                htmlFor="businessPhone"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                <Phone className="w-4 h-4 inline mr-1" /> {t('businessPhoneLabel')}
-              </label>
-              <input
-                type="tel"
-                id="businessPhone"
-                name="businessPhone"
-                defaultValue={store.business?.phone || ''}
-                placeholder="+880 1XXX-XXXXXX"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-              />
-            </div>
-
-            {/* Email */}
-            <div>
-              <label
-                htmlFor="businessEmail"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                <Mail className="w-4 h-4 inline mr-1" /> {t('businessEmailLabel')}
-              </label>
-              <input
-                type="email"
-                id="businessEmail"
-                name="businessEmail"
-                defaultValue={store.business?.email || ''}
-                placeholder="contact@yourstore.com"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-              />
-            </div>
-
-            {/* Address */}
-            <div>
-              <label
-                htmlFor="businessAddress"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                <MapPin className="w-4 h-4 inline mr-1" /> {t('businessAddressLabel')}
-              </label>
-              <textarea
-                id="businessAddress"
-                name="businessAddress"
-                rows={2}
-                defaultValue={store.business?.address || ''}
-                placeholder="123 Main Street, Dhaka, Bangladesh"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
-              />
-            </div>
-          </div>
-        </GlassCard>
-
-        {/* Quick Links to Other Settings */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('moreSettings')}</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <a
-              href="/app/settings/shipping"
-              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-            >
-              <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <Store className="w-4 h-4 text-emerald-600" />
-              </div>
-              <span className="font-medium text-gray-700">{t('shippingZonesLink')}</span>
-            </a>
-            <a
-              href="/app/settings/seo"
-              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-            >
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Globe className="w-4 h-4 text-blue-600" />
-              </div>
-              <span className="font-medium text-gray-700">{t('seoSettingsLink')}</span>
-            </a>
-            <a
-              href="/app/settings/team"
-              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-            >
-              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Mail className="w-4 h-4 text-purple-600" />
-              </div>
-              <span className="font-medium text-gray-700">{t('teamMembersLink')}</span>
-            </a>
-            <a
-              href="/app/settings/activity"
-              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-            >
-              <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                <Globe className="w-4 h-4 text-amber-600" />
-              </div>
-              <span className="font-medium text-gray-700">{t('activityLogLink')}</span>
-            </a>
-            <a
-              href="/app/settings/landing"
-              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-            >
-              <div className="w-8 h-8 bg-rose-100 rounded-lg flex items-center justify-center">
-                <Palette className="w-4 h-4 text-rose-600" />
-              </div>
-              <span className="font-medium text-gray-700">{t('landingModeLink')}</span>
-            </a>
-            <a
-              href="/app/settings/business-mode"
-              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-            >
-              <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                <Store className="w-4 h-4 text-indigo-600" />
-              </div>
-              <span className="font-medium text-gray-700">
-                {t('navBusinessMode') || 'Business Mode'}
-              </span>
-            </a>
-            <a
-              href="/app/settings/lead-gen"
-              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-            >
-              <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center">
-                <Palette className="w-4 h-4 text-violet-600" />
-              </div>
-              <span className="font-medium text-gray-700">
-                {t('navLeadGenSettings') || 'Lead Gen Settings'}
-              </span>
-            </a>
-            <a
-              href="/app/settings/navigation"
-              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-            >
-              <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <List className="w-4 h-4 text-emerald-600" />
-              </div>
-              <span className="font-medium text-gray-700">
-                {t('navigationSettings') || 'Navigation'}
-              </span>
-            </a>
-            <a
-              href="/app/settings/courier"
-              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-            >
-              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Store className="w-4 h-4 text-purple-600" />
-              </div>
-              <span className="font-medium text-gray-700">{t('courierApiLink')}</span>
-            </a>
-            <a
-              href="/app/settings/developer"
-              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-            >
-              <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                <FileText className="w-4 h-4 text-slate-600" />
-              </div>
-              <span className="font-medium text-gray-700">{t('developerApiLink')}</span>
-            </a>
-          </div>
-        </div>
-
-        {/* Submit Button */}
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={isSubmitting || isUploadingLogo || isUploadingFavicon}
-            className="px-6 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                {t('savingSettings')}
-              </>
-            ) : (
-              t('saveSettings')
-            )}
-          </button>
-        </div>
-      </Form>
-
-      {/* Danger Zone - Delete Store */}
-      <div className="bg-red-50 rounded-xl border border-red-200 p-6 mt-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">{t('dangerZone')}</h2>
-            <p className="text-sm text-gray-500">{t('irreversibleActions')}</p>
-          </div>
-        </div>
-
-        <div className="p-4 bg-white rounded-lg border border-red-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-gray-900">{t('deleteStore')}</h3>
-              <p className="text-sm text-gray-500">{t('permanentlyDeleteStore')}</p>
+              <p className="text-xs text-gray-400 mb-0.5">
+                <a href="/app/settings" className="hover:text-indigo-600">{t('settings') || 'সেটিংস'}</a>
+                <span className="mx-1.5">›</span>
+                <span className="text-gray-600">{t('generalSettings') || 'সাধারণ'}</span>
+              </p>
+              <h1 className="text-xl font-bold text-gray-900">{t('generalSettings') || 'সাধারণ সেটিংস'}</h1>
             </div>
             <button
-              type="button"
-              onClick={() => setShowDeleteModal(true)}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+              type="submit"
+              form="store-form-desktop"
+              disabled={isSubmitting}
+              className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors"
             >
-              {t('delete')}
+              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+              {isSubmitting ? (t('saving') || 'সংরক্ষণ হচ্ছে…') : (t('saveChanges') || 'সংরক্ষণ করুন')}
             </button>
           </div>
-        </div>
-      </div>
 
-      {/* Store Delete Warning Modal */}
+          {/* Scrollable form content */}
+          <Form method="post" id="store-form-desktop" className="flex-1 px-4 md:px-8 py-6 space-y-6">
+            {/* Hidden inputs */}
+            <input type="hidden" name="logo" value={logoUrl} />
+            <input type="hidden" name="favicon" value={faviconUrl} />
+            <input type="hidden" name="customDomain" value={store.customDomain || ''} />
+            <input type="hidden" name="fontFamily" value={store.fontFamily || 'inter'} />
+            <input type="hidden" name="theme" value={store.theme || 'luxe-boutique'} />
+
+            {/* ── CARD 1: Branding ── */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <Image className="w-4.5 h-4.5 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900">{t('branding') || 'ব্র্যান্ডিং'}</h2>
+                  <p className="text-xs text-gray-500">{t('brandingDesc') || 'লোগো ও ফেভিকন আপলোড করুন'}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {/* Logo */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">{t('storeLogo') || 'স্টোর লোগো'}</label>
+                  <div className="flex items-start gap-4">
+                    <div className="relative flex-shrink-0">
+                      {logoPreview ? (
+                        <div className="relative">
+                          <img src={logoPreview} alt="Store logo" className="w-20 h-20 object-contain rounded-xl border border-gray-200 bg-gray-50" />
+                          {isUploadingLogo && (
+                            <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center">
+                              <Loader2 className="w-5 h-5 text-white animate-spin" />
+                            </div>
+                          )}
+                          <button type="button" onClick={removeLogo} className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-sm">
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-20 h-20 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center">
+                          {isUploadingLogo ? <Loader2 className="w-5 h-5 text-gray-400 animate-spin" /> : <Image className="w-6 h-6 text-gray-400" />}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-lg transition-colors mb-1.5">
+                        <Upload className="w-3.5 h-3.5" />{t('uploadLogo') || 'আপলোড করুন'}
+                      </button>
+                      <p className="text-xs text-gray-400">PNG, JPG · সর্বোচ্চ 2MB</p>
+                    </div>
+                  </div>
+                  <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
+                </div>
+                {/* Favicon */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">{t('favicon') || 'ফেভিকন'}</label>
+                  <div className="flex items-start gap-4">
+                    <div className="relative flex-shrink-0">
+                      {faviconPreview ? (
+                        <div className="relative">
+                          <img src={faviconPreview} alt="Favicon" className="w-20 h-20 object-contain rounded-xl border border-gray-200 bg-gray-50" />
+                          {isUploadingFavicon && (
+                            <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center">
+                              <Loader2 className="w-5 h-5 text-white animate-spin" />
+                            </div>
+                          )}
+                          <button type="button" onClick={removeFavicon} className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-sm">
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-20 h-20 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center">
+                          {isUploadingFavicon ? <Loader2 className="w-5 h-5 text-gray-400 animate-spin" /> : <Image className="w-6 h-6 text-gray-400" />}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <button type="button" onClick={() => faviconInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-lg transition-colors mb-1.5">
+                        <Upload className="w-3.5 h-3.5" />{t('uploadFavicon') || 'আপলোড করুন'}
+                      </button>
+                      <p className="text-xs text-gray-400">PNG · 32×32px বা 64×64px</p>
+                    </div>
+                  </div>
+                  <input ref={faviconInputRef} type="file" accept="image/*" className="hidden" onChange={handleFaviconChange} />
+                </div>
+              </div>
+            </div>
+
+            {/* ── CARD 2: Store Information ── */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <Store className="w-4.5 h-4.5 text-green-600" />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900">{t('storeInformation') || 'স্টোর তথ্য'}</h2>
+                  <p className="text-xs text-gray-500">{t('storeDetailsSubtitle') || 'নাম, মুদ্রা, ভাষা, সাবডোমেইন'}</p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                {/* Store Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('storeName') || 'স্টোরের নাম'} <span className="text-red-500">*</span></label>
+                  <input type="text" name="name" defaultValue={store.name} required minLength={2} className={inputCls} placeholder="e.g. Asha Fashion" />
+                </div>
+                {/* Currency + Language */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('currency') || 'মুদ্রা'}</label>
+                    <select name="currency" defaultValue={store.currency || 'BDT'} className={inputCls}>
+                      {currencies.map((c) => (
+                        <option key={c.value} value={c.value}>{t(c.labelKey as Parameters<typeof t>[0]) || c.value}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('language') || 'ভাষা'}</label>
+                    <select name="defaultLanguage" defaultValue={store.defaultLanguage || 'en'} className={inputCls}>
+                      <option value="en">English</option>
+                      <option value="bn">বাংলা</option>
+                    </select>
+                  </div>
+                </div>
+                {/* Subdomain */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('subdomain') || 'সাবডোমেইন'}</label>
+                  <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent bg-white">
+                    <input
+                      type="text"
+                      name="subdomain"
+                      defaultValue={store.subdomain}
+                      className="flex-1 px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none min-w-0"
+                      placeholder="my-store"
+                    />
+                    <span className="flex items-center px-3 bg-gray-50 text-gray-500 text-sm border-l border-gray-200 flex-shrink-0 font-medium">.ozzyl.com</span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">{t('subdomainHelp') || 'শুধুমাত্র ছোট হরফ, সংখ্যা এবং হাইফেন ব্যবহার করুন'}</p>
+                </div>
+                {/* Plan (read-only) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('plan') || 'প্ল্যান'}</label>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 px-3 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-600 font-medium capitalize">{store.planType || 'free'}</div>
+                    <a href="/app/billing" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium whitespace-nowrap">{t('upgradePlan') || 'আপগ্রেড →'}</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── CARD 3: Social Media ── */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-9 h-9 rounded-xl bg-pink-100 flex items-center justify-center flex-shrink-0">
+                  <Instagram className="w-4.5 h-4.5 text-pink-600" />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900">{t('socialMedia') || 'সোশ্যাল মিডিয়া'}</h2>
+                  <p className="text-xs text-gray-500">{t('socialDesc') || 'আপনার সোশ্যাল মিডিয়া লিংক যোগ করুন'}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  { name: 'facebook', label: 'Facebook', icon: Facebook, placeholder: 'https://facebook.com/yourpage', defaultValue: store.social?.facebook },
+                  { name: 'instagram', label: 'Instagram', icon: Instagram, placeholder: 'https://instagram.com/yourhandle', defaultValue: store.social?.instagram },
+                  { name: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, placeholder: '8801XXXXXXXXX', defaultValue: store.social?.whatsapp },
+                  { name: 'twitter', label: 'Twitter / X', icon: Twitter, placeholder: 'https://twitter.com/yourhandle', defaultValue: store.social?.twitter },
+                  { name: 'youtube', label: 'YouTube', icon: Youtube, placeholder: 'https://youtube.com/@yourchannel', defaultValue: store.social?.youtube },
+                  { name: 'linkedin', label: 'LinkedIn', icon: Linkedin, placeholder: 'https://linkedin.com/company/...', defaultValue: store.social?.linkedin },
+                ].map(({ name, label, icon: Icon, placeholder, defaultValue }) => (
+                  <div key={name}>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
+                    <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent bg-white">
+                      <span className="flex items-center px-3 bg-gray-50 border-r border-gray-200 text-gray-400 flex-shrink-0">
+                        <Icon className="w-4 h-4" />
+                      </span>
+                      <input type="text" name={name} defaultValue={defaultValue || ''} className="flex-1 px-3 py-2.5 text-sm text-gray-900 bg-white focus:outline-none min-w-0" placeholder={placeholder} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── CARD 4: Business Info ── */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-4.5 h-4.5 text-orange-600" />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900">{t('businessInfo') || 'ব্যবসার তথ্য'}</h2>
+                  <p className="text-xs text-gray-500">{t('businessInfoDesc') || 'ফোন, ইমেইল ও ঠিকানা'}</p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('phone') || 'ফোন'}</label>
+                    <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent bg-white">
+                      <span className="flex items-center px-3 bg-gray-50 border-r border-gray-200 text-gray-400 flex-shrink-0"><Phone className="w-4 h-4" /></span>
+                      <input type="tel" name="businessPhone" defaultValue={store.business?.phone || ''} className="flex-1 px-3 py-2.5 text-sm bg-white focus:outline-none min-w-0" placeholder="+880 1X-XXXX-XXXX" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('email') || 'ইমেইল'}</label>
+                    <div className="flex rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent bg-white">
+                      <span className="flex items-center px-3 bg-gray-50 border-r border-gray-200 text-gray-400 flex-shrink-0"><Mail className="w-4 h-4" /></span>
+                      <input type="email" name="businessEmail" defaultValue={store.business?.email || ''} className="flex-1 px-3 py-2.5 text-sm bg-white focus:outline-none min-w-0" placeholder="hello@yourstore.com" />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('address') || 'ঠিকানা'}</label>
+                  <textarea name="businessAddress" defaultValue={store.business?.address || ''} rows={3} className={inputCls + ' resize-none'} placeholder={t('enterAddress') || 'ঠিকানা লিখুন…'} />
+                </div>
+              </div>
+            </div>
+
+            {/* ── Mobile sticky save bar ── */}
+            {mobileShowForm && (
+              <div className="md:hidden sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 flex gap-3 shadow-lg -mx-4">
+                <a href="/app/settings" className="flex-1 flex items-center justify-center py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                  {t('cancel') || 'বাতিল'}
+                </a>
+                <button type="submit" disabled={isSubmitting} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-semibold transition-colors">
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {isSubmitting ? (t('saving') || 'সংরক্ষণ…') : (t('saveChanges') || 'সংরক্ষণ করুন')}
+                </button>
+              </div>
+            )}
+
+            {/* ── Desktop sticky footer save bar ── */}
+            <div className="hidden md:block sticky bottom-0 -mx-8 -mb-6 bg-white border-t border-gray-200 px-8 py-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-gray-400">{t('saveHint') || 'পরিবর্তনগুলি সংরক্ষণ করতে ভুলবেন না'}</p>
+                <button type="submit" disabled={isSubmitting} className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors">
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                  {isSubmitting ? (t('saving') || 'সংরক্ষণ হচ্ছে…') : (t('saveChanges') || 'পরিবর্তন সংরক্ষণ করুন')}
+                </button>
+              </div>
+            </div>
+
+            {/* ── CARD 5: Danger Zone ── */}
+            <div className="bg-white rounded-2xl shadow-sm border-2 border-red-200 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle className="w-4.5 h-4.5 text-red-600" />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-red-700">{t('dangerZone') || 'বিপদ অঞ্চল'}</h2>
+                  <p className="text-xs text-red-500">{t('dangerZoneDesc') || 'এই কাজগুলি অপরিবর্তনীয়'}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between py-3 border-t border-red-100">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{t('deleteStore') || 'স্টোর মুছুন'}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{t('deleteStoreDesc') || 'স্টোর এবং সমস্ত ডেটা স্থায়ীভাবে মুছে ফেলুন'}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex-shrink-0 ml-4"
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  {t('deleteStore') || 'মুছুন'}
+                </button>
+              </div>
+            </div>
+
+          </Form>
+        </div>{/* end main content */}
+      </div>{/* end two-column wrapper */}
+
+      {/* ── MODALS ── */}
       <StoreDeleteWarningModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         storeName={store.name}
         dataCounts={dataCounts}
       />
+
+      {showPreview && (
+        <ThemePreview
+          isOpen={showPreview}
+          theme={selectedTheme}
+          fontFamily={selectedFont}
+          storeName={store.name}
+          logo={store.logo}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
     </div>
   );
 }

@@ -223,6 +223,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 }
 
+// Maps URL error codes to i18n translation keys (defined in utils/i18n/*/common.ts)
+const GOOGLE_ERROR_KEY_MAP: Record<string, string> = {
+  google_auth_failed: 'googleAuthFailed',
+  google_redirect_mismatch: 'googleRedirectMismatch',
+  google_token_invalid: 'googleTokenInvalid',
+  google_scope_error: 'googleScopeError',
+  google_access_denied: 'googleAccessDenied',
+  google_email_not_verified: 'googleEmailNotVerified',
+};
+
 export default function LoginPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -240,6 +250,11 @@ export default function LoginPage() {
 
   // Custom message for missing store
   const storeNotFoundError = errorParam === 'store_not_found' ? t('storeNotFound') : null;
+
+  // Resolve Google OAuth error message via i18n (supports EN + BN)
+  const googleAuthError = errorParam && GOOGLE_ERROR_KEY_MAP[errorParam]
+    ? t(GOOGLE_ERROR_KEY_MAP[errorParam] as Parameters<typeof t>[0])
+    : null;
 
   // Password visibility toggle
   const [showPassword, setShowPassword] = useState(false);
@@ -263,9 +278,9 @@ export default function LoginPage() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <Form method="post" className="space-y-6">
             {/* Form Error */}
-            {(errors?.form || storeNotFoundError) && (
+            {(errors?.form || storeNotFoundError || googleAuthError) && (
               <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg text-sm">
-                <p className="font-medium">{errors?.form || storeNotFoundError}</p>
+                <p className="font-medium">{errors?.form || storeNotFoundError || googleAuthError}</p>
                 {errorCode && <p className="text-xs text-red-400 mt-1">Error Code: {errorCode}</p>}
                 {errorDetails && (
                   <details className="mt-2">

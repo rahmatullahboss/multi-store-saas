@@ -23,6 +23,13 @@ export const common = {
   search: 'Search',
   unauthorized: 'Unauthorized',
   storeNotFound: 'Store not found',
+  // Google OAuth error messages
+  googleAuthFailed: 'Google login failed. Please try again.',
+  googleRedirectMismatch: 'Google login configuration error. Please contact support.',
+  googleTokenInvalid: 'Google authentication token was invalid or expired. Please try again.',
+  googleScopeError: 'Google login failed due to a permission issue. Please try again.',
+  googleAccessDenied: 'Google login was cancelled or denied. Please try again.',
+  googleEmailNotVerified: 'Your Google account email is not verified. Please verify it and try again.',
   filter: 'Filter',
   sort: 'Sort',
   all: 'All',

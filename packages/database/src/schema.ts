@@ -2013,21 +2013,37 @@ export type NewSystemLog = typeof systemLogs.$inferInsert;
 // ============================================================================
 // PHASE 6: DEVELOPER TOOLS (API Keys)
 // ============================================================================
-export const apiKeys = sqliteTable('api_keys', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  storeId: integer('store_id')
-    .notNull()
-    .references(() => stores.id),
-  name: text('name').notNull(), // e.g. "Production Key"
-  keyPrefix: text('key_prefix').notNull(), // First 12 chars for display
-  keyHash: text('key_hash').notNull(), // HMAC-SHA256 hash of full key
-  scopes: text('scopes').default('["read_orders","write_orders"]'), // JSON array
-  planId: integer('plan_id'), // References api_plans(id) — added in migration 0016
-  lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),
-  expiresAt: integer('expires_at', { mode: 'timestamp' }), // Optional key expiry
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  revokedAt: integer('revoked_at', { mode: 'timestamp' }),
-});
+// ============================================================================
+// API KEYS TABLE — WooCommerce Power Layer integration
+// ============================================================================
+// Plan/scope system for WC Power Layer:
+// free:    'analytics' — read-only analytics & order sync
+// starter: 'analytics,fraud,tracking,courier,abandoned_cart' — full tracking
+// pro:     'analytics,fraud,tracking,courier,abandoned_cart,sms,automation' — with SMS + automation
+export const apiKeys = sqliteTable(
+  'api_keys',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id),
+    name: text('name').notNull(), // e.g. "Production Key"
+    keyPrefix: text('key_prefix').notNull(), // First 12 chars for display
+    keyHash: text('key_hash').notNull(), // HMAC-SHA256 hash of full key
+    scopes: text('scopes').default('analytics'), // Comma-separated: analytics,fraud,tracking,courier,abandoned_cart,sms,automation
+    plan: text('plan').default('free'), // 'free' | 'starter' | 'pro'
+    planId: integer('plan_id'), // References api_plans(id) — added in migration 0016
+    wcWebhookSecret: text('wc_webhook_secret'), // HMAC secret for WC webhook signature verification
+    lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),
+    expiresAt: integer('expires_at', { mode: 'timestamp' }), // Optional key expiry
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    revokedAt: integer('revoked_at', { mode: 'timestamp' }),
+  },
+  (table) => [
+    index('idx_api_keys_store').on(table.storeId),
+    index('idx_api_keys_plan').on(table.plan),
+  ]
+);
 
 export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
   store: one(stores, {
@@ -2038,6 +2054,97 @@ export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
 
 export type ApiKey = typeof apiKeys.$inferSelect;
 export type NewApiKey = typeof apiKeys.$inferInsert;
+
+// ============================================================================
+// WC_CART_SESSIONS TABLE — Abandoned cart tracking for WooCommerce
+// ============================================================================
+export const wcCartSessions = sqliteTable(
+  'wc_cart_sessions',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    sessionId: text('session_id').notNull(), // WC session ID or cart key
+    customerPhone: text('customer_phone'), // Normalized phone (01XXXXXXXXX)
+    customerEmail: text('customer_email'), // Customer email (optional)
+    items: text('items').notNull(), // JSON array: [{sku, name, qty, price}]
+    total: real('total').notNull().default(0), // Cart total amount
+    converted: integer('converted', { mode: 'boolean' }).notNull().default(false), // Boolean: true if converted to order
+    convertedAt: integer('converted_at', { mode: 'timestamp' }), // When converted
+    lastReminderAt: integer('last_reminder_at', { mode: 'timestamp' }), // Last reminder sent
+    reminderCount: integer('reminder_count').notNull().default(0), // Number of reminders
+    source: text('source').default('woocommerce'), // 'woocommerce' | 'ozzyl'
+    updatedAt: integer('updated_at', { mode: 'timestamp' }), // Last update
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_wc_cart_store_session').on(table.storeId, table.sessionId),
+    index('idx_wc_cart_store_converted').on(table.storeId, table.converted),
+    index('idx_wc_cart_updated').on(table.updatedAt),
+  ]
+);
+
+export const wcCartSessionsRelations = relations(wcCartSessions, ({ one }) => ({
+  store: one(stores, {
+    fields: [wcCartSessions.storeId],
+    references: [stores.id],
+  }),
+}));
+
+// ============================================================================
+// SMS_SUPPRESSION_LIST TABLE — SMS opt-out management
+// ============================================================================
+export const smsSuppression = sqliteTable(
+  'sms_suppression_list',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    phoneNormalized: text('phone_normalized').notNull(), // Normalized BD format: 01XXXXXXXXX
+    optedOutAt: integer('opted_out_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    source: text('source').default('customer'), // 'customer' | 'admin' | 'bounce'
+  },
+  (table) => [index('idx_sms_suppression_store_phone').on(table.storeId, table.phoneNormalized)]
+);
+
+export const smsSuppressionRelations = relations(smsSuppression, ({ one }) => ({
+  store: one(stores, {
+    fields: [smsSuppression.storeId],
+    references: [stores.id],
+  }),
+}));
+
+// ============================================================================
+// WC_WEBHOOK_EVENTS TABLE — Async webhook processing queue
+// ============================================================================
+export const wcWebhookEvents = sqliteTable(
+  'wc_webhook_events',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    topic: text('topic').notNull(), // WC webhook topic: 'order.created', 'order.updated', etc.
+    wcResourceId: text('wc_resource_id'), // WooCommerce resource ID
+    payload: text('payload').notNull(), // Full webhook payload as JSON
+    processed: integer('processed', { mode: 'boolean' }).notNull().default(false), // Boolean: true if processed
+    processedAt: integer('processed_at', { mode: 'timestamp' }), // When processed
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_wc_webhook_store_processed').on(table.storeId, table.processed),
+    index('idx_wc_webhook_created').on(table.createdAt),
+  ]
+);
+
+export const wcWebhookEventsRelations = relations(wcWebhookEvents, ({ one }) => ({
+  store: one(stores, {
+    fields: [wcWebhookEvents.storeId],
+    references: [stores.id],
+  }),
+}));
 
 // ============================================================================
 // PHASE 4: APP ECOSYSTEM & WEBHOOKS

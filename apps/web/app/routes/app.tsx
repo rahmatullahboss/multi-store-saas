@@ -160,7 +160,17 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     let userResult;
     try {
-      userResult = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      userResult = await db
+        .select({
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          role: users.role,
+          avatarUrl: users.avatarUrl,
+        })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
     } catch (userDbError) {
       console.error('[app.loader] Database error fetching user:', userDbError);
       const errorMessage = userDbError instanceof Error ? userDbError.message : String(userDbError);
@@ -170,18 +180,24 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const store = storeResult[0];
     const user = userResult[0];
 
-    if (!store) {
-      console.error('[app.loader] Store not found in database. StoreID:', storeId);
-
-      // CRITICAL: If store is deleted, session is invalid. Logout and redirect with info.
+    if (!store || !store.isActive || store.deletedAt != null) {
+      // Store was deleted — guard all /app/* routes except dashboard
+      const url = new URL(request.url);
+      if (!url.pathname.startsWith('/app/dashboard')) {
+        // Redirect any non-dashboard /app/* route to dashboard so user sees Create New Store UI
+        return redirect('/app/dashboard');
+      }
+      console.warn('[app.loader] Store deleted or inactive for user:', userId, 'storeId:', storeId);
       const session = await getSession(request, context.cloudflare.env);
-      const { destroySession } = await import('~/services/auth.server');
-
-      throw redirect('/auth/login?error=store_not_found', {
-        headers: {
-          'Set-Cookie': await destroySession(session, context.cloudflare.env),
-        },
-      });
+      session.unset('storeId');
+      // Only expose safe user fields — never send passwordHash/googleId to client
+      const safeUser = userResult[0]
+        ? { id: userResult[0].id, name: userResult[0].name, email: userResult[0].email, role: userResult[0].role, avatarUrl: userResult[0].avatarUrl }
+        : null;
+      return json(
+        { storeDeleted: true, userId, user: safeUser },
+        { headers: { 'Set-Cookie': await commitSession(session, context.cloudflare.env) } }
+      );
     }
 
     if (!user) {
@@ -365,13 +381,18 @@ const adminNavItems: NavItem[] = [
 // MAIN COMPONENT
 // ============================================================================
 export default function AppLayout() {
-  const {
-    store,
-    user,
-    saasDomain,
-    systemNotifications: notifications,
-    isImpersonating,
-  } = useLoaderData<typeof loader>();
+  const loaderData = useLoaderData<typeof loader>();
+
+  // When store is deleted, the loader returns a minimal object — child routes (app.dashboard)
+  // handle the "Create New Store" UI. The layout still renders normally here.
+  const isStoreDeleted = 'storeDeleted' in loaderData && loaderData.storeDeleted;
+  const fullData = isStoreDeleted ? null : loaderData as Exclude<typeof loaderData, { storeDeleted: boolean }>;
+
+  const store = fullData?.store;
+  const user = fullData?.user ?? ('user' in loaderData ? loaderData.user : null);
+  const saasDomain = fullData?.saasDomain ?? 'ozzyl.com';
+  const notifications = fullData?.systemNotifications ?? [];
+  const isImpersonating = fullData?.isImpersonating ?? false;
   const location = useLocation();
   const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -391,8 +412,8 @@ export default function AppLayout() {
     }
   }, []);
 
-  // Build store URL
-  const storeUrl = `https://${store.subdomain}.${saasDomain}`;
+  // Build store URL (safe when store is null after deletion)
+  const storeUrl = store ? `https://${store.subdomain}.${saasDomain}` : '#';
 
   // Filter out dismissed notifications
   const visibleNotifications = (notifications || []).filter(
@@ -437,7 +458,7 @@ export default function AppLayout() {
           <div className="flex items-center gap-2">
             <Eye className="w-5 h-5" />
             <span className="font-bold">
-              {t('shadowModeActive')}: {t('viewingAs')} {store.name}
+              {t('shadowModeActive')}: {t('viewingAs')} {store?.name}
             </span>
           </div>
           <Form method="post" action="/admin/stop-impersonation">
@@ -479,9 +500,9 @@ export default function AppLayout() {
                   </div>
                   <div>
                     <h2 className="font-semibold text-gray-900 truncate max-w-[140px]">
-                      {store.name}
+                      {store?.name}
                     </h2>
-                    <p className="text-xs text-gray-500">{store.subdomain}</p>
+                    <p className="text-xs text-gray-500">{store?.subdomain}</p>
                   </div>
                 </div>
                 <button
@@ -507,11 +528,11 @@ export default function AppLayout() {
             <nav className="flex-1 min-h-0 p-4 space-y-4 overflow-y-auto custom-scrollbar">
               {navSections
                 // Filter out entire sections that are storeOnly when store is disabled
-                .filter((section) => !section.storeOnly || store.storeEnabled)
+                .filter((section) => !section.storeOnly || store?.storeEnabled)
                 .map((section) => {
                   // Filter out individual storeOnly items within sections
                   const visibleItems = section.items.filter(
-                    (item) => !item.storeOnly || store.storeEnabled
+                    (item) => !item.storeOnly || store?.storeEnabled
                   );
 
                   // Skip rendering section if no visible items
@@ -532,7 +553,7 @@ export default function AppLayout() {
                         {visibleItems.map((item) => {
                           const Icon = item.icon;
                           const active = isActive(item.to);
-                          const isLocked = item.isPaidOnly && store.planType === 'free';
+                          const isLocked = item.isPaidOnly && (store?.planType ?? 'free') === 'free';
 
                           // Locked items - show disabled state with upgrade prompt
                           if (isLocked) {
@@ -661,7 +682,7 @@ export default function AppLayout() {
             </button>
             <div className="flex items-center gap-1">
               <ShoppingBag className="w-5 h-5 text-emerald-500" />
-              <h1 className="text-lg font-bold tracking-tight text-gray-900">{store.name}</h1>
+              <h1 className="text-lg font-bold tracking-tight text-gray-900">{store?.name}</h1>
               <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
@@ -790,7 +811,7 @@ export default function AppLayout() {
       {!isBuilderRoute && (
         <DashboardChatWidget
           userName={user.name || undefined}
-          storeName={store.name}
+          storeName={store?.name ?? ''}
           isLocked={false}
         />
       )}

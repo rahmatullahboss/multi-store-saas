@@ -244,7 +244,7 @@ export default function PaymentSettings() {
       </div>
 
       {/* ===== SINGLE FORM wrapping both mobile + desktop layouts ===== */}
-      <fetcher.Form method="post">
+      <fetcher.Form method="post" id="payment-form">
 
       {/* ===== MOBILE LAYOUT (below md) ===== */}
       <div className="md:hidden -mx-4 -mt-4">

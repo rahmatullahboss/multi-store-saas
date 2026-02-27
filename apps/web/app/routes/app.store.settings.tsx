@@ -322,8 +322,8 @@ export default function StoreDesignPage() {
   const storeUrl = store.subdomain ? `https://${store.subdomain}.ozzyl.com` : '#';
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="flex flex-col min-h-full">
+      {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">স্টোর ডিজাইন</h1>
@@ -341,16 +341,17 @@ export default function StoreDesignPage() {
         </div>
       </div>
 
-      {/* Success Toast */}
+      {/* ── Success toast (fixed bottom-right) ── */}
       {showSuccess && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
-          <CheckCircle className="w-5 h-5" /> সেটিংস সেভ হয়েছে!
+        <div className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 animate-in slide-in-from-bottom-4 duration-300">
+          <CheckCircle className="w-5 h-5 flex-shrink-0" />
+          <span className="text-sm font-medium">সেটিংস সেভ হয়েছে!</span>
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="flex gap-1 -mb-px overflow-x-auto">
+      {/* ── Tab bar ── */}
+      <div className="bg-white border-b border-gray-200 sticky top-[57px] z-20">
+        <nav className="flex overflow-x-auto scrollbar-none px-4 md:px-6 xl:px-8">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -358,21 +359,22 @@ export default function StoreDesignPage() {
               <button
                 key={tab.id}
                 onClick={() => setTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap ${
+                className={`flex items-center gap-2 px-4 py-3.5 text-sm font-medium border-b-2 transition-all whitespace-nowrap flex-shrink-0 ${
                   isActive
-                    ? 'border-purple-600 text-purple-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300'
                 }`}
               >
-                <Icon className="w-4 h-4" /> {tab.label}
+                <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-600' : 'text-gray-400'}`} />
+                {tab.label}
               </button>
             );
           })}
         </nav>
       </div>
 
-      {/* Tab Content */}
-      <div className="min-h-[400px]">
+      {/* ── Tab Content ── */}
+      <div className="flex-1 px-4 md:px-6 xl:px-8 py-6">
         {activeTab === 'template' && (
           <TemplateTab settings={settings} themes={availableThemes} isSaving={isSaving('template')} />
         )}
@@ -405,130 +407,142 @@ function TemplateTab({
   isSaving: boolean;
 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {themes.map((theme) => {
-        const isActive = settings.theme.templateId === theme.id;
-        const isPremium = !theme.isActive;
-        return (
-          <div
-            key={theme.id}
-            className={`relative rounded-xl border-2 overflow-hidden transition-all ${isActive ? 'border-purple-500 shadow-lg' : isPremium ? 'border-gray-800 opacity-75' : 'border-gray-200 hover:border-gray-300'}`}
-          >
-            {isActive && (
-              <div className="absolute top-3 right-3 z-10 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                <CheckCircle className="w-3 h-3" /> বর্তমানে সক্রিয়
-              </div>
-            )}
-            {isPremium && (
-              <div className="absolute top-3 left-3 z-10 bg-gradient-to-r from-yellow-500 to-amber-600 text-white text-xs px-3 py-1.5 rounded-full font-semibold flex items-center gap-1 shadow-lg">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                প্রিমিয়াম
-              </div>
-            )}
-            <div className="aspect-[4/3] relative overflow-hidden"
-              style={{
-                background: theme.colors
-                  ? `linear-gradient(135deg, ${theme.colors.primary}cc 0%, ${theme.colors.accent}cc 100%)`
-                  : 'linear-gradient(135deg, #4F46E5cc 0%, #F59E0Bcc 100%)',
-              }}
+    <div>
+      {/* Section header */}
+      <div className="mb-6">
+        <h2 className="text-base font-semibold text-gray-900">থিম সিলেক্ট করুন</h2>
+        <p className="text-sm text-gray-500 mt-0.5">আপনার স্টোরের জন্য সেরা থিম বেছে নিন</p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+        {themes.map((theme) => {
+          const isActive = settings.theme.templateId === theme.id;
+          const isPremium = !theme.isActive;
+          return (
+            <div
+              key={theme.id}
+              className={`group relative rounded-2xl border-2 overflow-hidden transition-all duration-200 bg-white ${
+                isActive
+                  ? 'border-indigo-500 shadow-lg shadow-indigo-100 ring-2 ring-indigo-200'
+                  : isPremium
+                  ? 'border-gray-200 opacity-80'
+                  : 'border-gray-200 hover:border-indigo-300 hover:shadow-md hover:-translate-y-0.5'
+              }`}
             >
-              {theme.thumbnail && (
-                <img
-                  src={theme.thumbnail}
-                  alt={theme.name}
-                  className="w-full h-full object-cover opacity-80"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
+              {/* Active badge */}
+              {isActive && (
+                <div className="absolute top-3 right-3 z-10 bg-emerald-500 text-white text-xs px-2.5 py-1 rounded-full flex items-center gap-1 font-medium shadow-sm">
+                  <CheckCircle className="w-3 h-3" /> সক্রিয়
+                </div>
               )}
-              {/* Theme name overlay */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-white font-bold text-lg drop-shadow-lg">{theme.name}</span>
+              {/* Premium badge */}
+              {isPremium && (
+                <div className="absolute top-3 left-3 z-10 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs px-2.5 py-1 rounded-full font-semibold flex items-center gap-1 shadow">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  প্রিমিয়াম
+                </div>
+              )}
+
+              {/* Preview image / gradient */}
+              <div
+                className="aspect-[16/10] relative overflow-hidden"
+                style={{
+                  background: theme.colors
+                    ? `linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.accent} 100%)`
+                    : 'linear-gradient(135deg, #4F46E5 0%, #F59E0B 100%)',
+                }}
+              >
+                {theme.thumbnail && (
+                  <img
+                    src={theme.thumbnail}
+                    alt={theme.name}
+                    className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                )}
+                {/* Gradient overlay with name */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-3">
+                  <span className="text-white font-semibold text-sm drop-shadow">{theme.name}</span>
+                </div>
+                {/* Color swatches */}
+                {theme.colors && (
+                  <div className="absolute top-3 right-3 flex gap-1.5">
+                    <div
+                      className="w-5 h-5 rounded-full border-2 border-white shadow-sm"
+                      style={{ backgroundColor: theme.colors.primary }}
+                      title={`Primary: ${theme.colors.primary}`}
+                    />
+                    <div
+                      className="w-5 h-5 rounded-full border-2 border-white shadow-sm"
+                      style={{ backgroundColor: theme.colors.accent }}
+                      title={`Accent: ${theme.colors.accent}`}
+                    />
+                  </div>
+                )}
               </div>
-              {theme.colors && (
-                <div className="absolute top-3 left-3 flex gap-1">
-                  <div
-                    className="w-5 h-5 rounded-full border-2 border-white/50"
-                    style={{ backgroundColor: theme.colors.primary }}
-                  />
-                  <div
-                    className="w-5 h-5 rounded-full border-2 border-white/50"
-                    style={{ backgroundColor: theme.colors.accent }}
-                  />
-                </div>
-              )}
-            </div>
-            <div className="p-4">
-              <h3 className="font-semibold text-gray-900">{theme.name}</h3>
-              <p className="text-sm text-gray-500 mt-1 line-clamp-2">{theme.description}</p>
-              {theme.colors && (
-                <div className="flex items-center gap-1.5 mt-2">
-                  <span className="text-xs text-gray-400">কালার:</span>
-                  <div
-                    className="w-4 h-4 rounded-full border"
-                    style={{ backgroundColor: theme.colors.primary }}
-                  />
-                  <div
-                    className="w-4 h-4 rounded-full border"
-                    style={{ backgroundColor: theme.colors.accent }}
-                  />
-                </div>
-              )}
-              <Form method="post" className="mt-3">
-                <input type="hidden" name="intent" value="template" />
-                <input type="hidden" name="templateId" value={theme.id} />
-                {isPremium ? (
-                  <div className="space-y-2">
+
+              {/* Card footer */}
+              <div className="p-4">
+                <p className="text-xs text-gray-500 line-clamp-1 mb-3">{theme.description}</p>
+                <Form method="post">
+                  <input type="hidden" name="intent" value="template" />
+                  <input type="hidden" name="templateId" value={theme.id} />
+                  {isPremium ? (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <a
+                          href={`/store-template-preview/${theme.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 py-2 rounded-lg text-xs font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-1 transition"
+                        >
+                          <ExternalLink className="w-3 h-3" /> প্রিভিউ
+                        </a>
+                        <a
+                          href="/app/billing"
+                          className="flex-1 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-amber-500 to-yellow-500 text-white flex items-center justify-center gap-1 hover:opacity-90 transition"
+                        >
+                          আপগ্রেড
+                        </a>
+                      </div>
+                    </div>
+                  ) : (
                     <div className="flex gap-2">
                       <a
                         href={`/store-template-preview/${theme.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex-1 py-2 rounded-lg text-sm font-medium transition border border-gray-600 text-gray-300 hover:bg-gray-800 flex items-center justify-center gap-1"
+                        className="flex-1 py-2 rounded-lg text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-1 transition"
                       >
-                        <ExternalLink className="w-3.5 h-3.5" /> প্রিভিউ
+                        <ExternalLink className="w-3 h-3" /> প্রিভিউ
                       </a>
                       <button
-                        type="button"
-                        disabled
-                        className="flex-1 py-2 rounded-lg text-sm font-medium transition bg-gray-700 text-gray-400 cursor-not-allowed flex items-center justify-center gap-1"
+                        type="submit"
+                        disabled={isActive || isSaving}
+                        className={`flex-1 py-2 rounded-lg text-xs font-semibold transition ${
+                          isActive
+                            ? 'bg-emerald-50 text-emerald-600 cursor-default border border-emerald-200'
+                            : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm'
+                        }`}
                       >
-                        🔒 লক
+                        {isSaving && !isActive ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto" />
+                        ) : isActive ? (
+                          '✓ সক্রিয়'
+                        ) : (
+                          'এপ্লাই করুন'
+                        )}
                       </button>
                     </div>
-                    <p className="text-xs text-center text-amber-400 bg-amber-500/10 py-2 rounded-lg">
-                      ⭐ প্রিমিয়াম প্ল্যানে আপগ্রেড করুন
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <a
-                      href={`/store-template-preview/${theme.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 py-2 rounded-lg text-sm font-medium transition border border-gray-300 text-gray-700 hover:bg-gray-50 flex items-center justify-center gap-1"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" /> প্রিভিউ
-                    </a>
-                    <button
-                      type="submit"
-                      disabled={isActive || isSaving}
-                      className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
-                        isActive
-                          ? 'bg-gray-100 text-emerald-600 cursor-default'
-                          : 'bg-purple-600 text-white hover:bg-purple-700'
-                      }`}
-                    >
-                      {isActive ? 'সক্রিয়' : 'এপ্লাই'}
-                    </button>
-                  </div>
-                )}
-              </Form>
+                  )}
+                </Form>
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -547,107 +561,166 @@ function ThemeTab({
   const [accent, setAccent] = useState(settings.theme.accent);
 
   return (
-    <Form method="post" className="space-y-8">
+    <Form method="post" className="space-y-6 max-w-2xl">
       <input type="hidden" name="intent" value="theme" />
 
-      {/* Color Theme */}
-      <section className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-            <Palette className="w-5 h-5 text-purple-600" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold">কালার থিম</h2>
-            <p className="text-sm text-gray-500">আপনার ব্র্যান্ডের সাথে মেলে এমন রং বেছে নিন।</p>
-          </div>
-        </div>
+      {/* Section header */}
+      <div>
+        <h2 className="text-base font-semibold text-gray-900">কালার থিম</h2>
+        <p className="text-sm text-gray-500 mt-0.5">আপনার ব্র্যান্ডের রং বেছে নিন</p>
+      </div>
 
-        {/* Quick Presets */}
-        <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">কুইক প্রিসেটস</h3>
-          <div className="flex flex-wrap gap-2">
-            {COLOR_PRESETS.map((preset) => (
+      {/* Quick Presets */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">দ্রুত প্রিসেট</p>
+        <div className="flex flex-wrap gap-2">
+          {COLOR_PRESETS.map((preset) => {
+            const isSelected = primary === preset.primary && accent === preset.accent;
+            return (
               <button
                 key={preset.name}
                 type="button"
-                onClick={() => {
-                  setPrimary(preset.primary);
-                  setAccent(preset.accent);
-                }}
-                className={`flex items-center gap-2 px-3 py-2 rounded-full border-2 text-sm transition ${
-                  primary === preset.primary && accent === preset.accent
-                    ? 'border-purple-500 bg-purple-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                onClick={() => { setPrimary(preset.primary); setAccent(preset.accent); }}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-sm font-medium transition-all ${
+                  isSelected
+                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-sm'
+                    : 'border-gray-200 hover:border-gray-300 text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.primary }} />
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.accent }} />
-                <span>{preset.name}</span>
+                <span
+                  className="w-4 h-4 rounded-full border border-white shadow-sm flex-shrink-0"
+                  style={{ background: `linear-gradient(135deg, ${preset.primary} 50%, ${preset.accent} 50%)` }}
+                />
+                {preset.name}
               </button>
-            ))}
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Live Preview Strip */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">লাইভ প্রিভিউ</p>
+        <div className="flex flex-wrap items-center gap-3 p-4 bg-gray-50 rounded-xl">
+          <button
+            type="button"
+            className="px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-sm transition"
+            style={{ backgroundColor: primary }}
+          >
+            অর্ডার করুন
+          </button>
+          <button
+            type="button"
+            className="px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-sm transition"
+            style={{ backgroundColor: accent }}
+          >
+            কার্টে যোগ করুন
+          </button>
+          <span
+            className="px-2.5 py-1 rounded-full text-xs font-bold text-white"
+            style={{ backgroundColor: primary }}
+          >
+            নতুন
+          </span>
+          <span
+            className="px-2.5 py-1 rounded-full text-xs font-bold text-white"
+            style={{ backgroundColor: accent }}
+          >
+            ৳৫০০ ছাড়
+          </span>
+          <a
+            href="#"
+            className="text-sm font-medium underline"
+            style={{ color: primary }}
+            onClick={(e) => e.preventDefault()}
+          >
+            আরও দেখুন →
+          </a>
+        </div>
+      </div>
+
+      {/* Color Pickers */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Primary */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <div
+              className="w-10 h-10 rounded-xl shadow-inner border border-white/20 flex-shrink-0"
+              style={{ backgroundColor: primary }}
+            />
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Primary Color</p>
+              <p className="text-xs text-gray-400">বাটন, হেডার, লিঙ্ক</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              name="primaryColor"
+              value={primary}
+              onChange={(e) => setPrimary(e.target.value)}
+              className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer flex-shrink-0 p-0.5"
+            />
+            <input
+              type="text"
+              value={primary}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (/^#[0-9A-Fa-f]{0,6}$/.test(v)) setPrimary(v);
+              }}
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              maxLength={7}
+              placeholder="#4F46E5"
+            />
           </div>
         </div>
 
-        {/* Color Pickers */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="p-4 bg-gray-50 rounded-xl">
-            <h4 className="font-medium text-gray-900 mb-1">প্রাথমিক রং (Primary Color)</h4>
-            <p className="text-xs text-gray-500 mb-3">
-              বাটন, হেডার এবং অ্যাকসেন্টের জন্য ব্যবহৃত হয়
-            </p>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                name="primaryColor"
-                value={primary}
-                onChange={(e) => setPrimary(e.target.value)}
-                className="w-12 h-12 rounded-lg border border-gray-300 cursor-pointer"
-              />
-              <input
-                type="text"
-                value={primary}
-                onChange={(e) => setPrimary(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
-              />
+        {/* Accent */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <div
+              className="w-10 h-10 rounded-xl shadow-inner border border-white/20 flex-shrink-0"
+              style={{ backgroundColor: accent }}
+            />
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Accent Color</p>
+              <p className="text-xs text-gray-400">হাইলাইট, ব্যাজ, CTA</p>
             </div>
           </div>
-          <div className="p-4 bg-gray-50 rounded-xl">
-            <h4 className="font-medium text-gray-900 mb-1">অ্যাকসেন্ট কালার</h4>
-            <p className="text-xs text-gray-500 mb-3">
-              হাইলাইট এবং সেকেন্ডারি এলিমেন্টের জন্য ব্যবহৃত হয়
-            </p>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                name="accentColor"
-                value={accent}
-                onChange={(e) => setAccent(e.target.value)}
-                className="w-12 h-12 rounded-lg border border-gray-300 cursor-pointer"
-              />
-              <input
-                type="text"
-                value={accent}
-                onChange={(e) => setAccent(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
-              />
-            </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              name="accentColor"
+              value={accent}
+              onChange={(e) => setAccent(e.target.value)}
+              className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer flex-shrink-0 p-0.5"
+            />
+            <input
+              type="text"
+              value={accent}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (/^#[0-9A-Fa-f]{0,6}$/.test(v)) setAccent(v);
+              }}
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              maxLength={7}
+              placeholder="#F59E0B"
+            />
           </div>
         </div>
-      </section>
+      </div>
 
-      <div className="flex justify-center">
+      {/* Save Button */}
+      <div className="flex items-center gap-3 pt-2">
         <button
           type="submit"
           disabled={isSaving}
-          className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition disabled:opacity-50 flex items-center gap-2"
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition disabled:opacity-50 shadow-sm text-sm"
         >
-          {isSaving ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Palette className="w-4 h-4" />
-          )}
-          থিম সেভ করুন
+          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Palette className="w-4 h-4" />}
+          রং সেভ করুন
         </button>
+        <span className="text-xs text-gray-400">পরিবর্তন স্টোরে সাথে সাথে দেখাবে</span>
       </div>
     </Form>
   );
