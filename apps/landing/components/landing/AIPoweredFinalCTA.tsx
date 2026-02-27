@@ -121,10 +121,10 @@ export function AIPoweredFinalCTA() {
 
             <div className="flex items-center justify-center lg:justify-start gap-6">
               <a
-                href="tel:+8801570260118"
+                href="mailto:hello@ozzyl.com"
                 className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm font-medium"
               >
-                <Phone className="w-4 h-4" /> {t('landingFinalCTA_callUs')}
+                <Mail className="w-4 h-4" /> {t('finalCtaSecondaryMail')}
               </a>
             </div>
           </div>
@@ -169,11 +169,10 @@ export function AIPoweredFinalCTA() {
                     className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[85%] p-3 rounded-2xl text-sm ${
-                        msg.type === 'user'
+                      className={`max-w-[85%] p-3 rounded-2xl text-sm ${msg.type === 'user'
                           ? 'bg-emerald-600 text-white rounded-br-none'
                           : 'bg-white/10 text-white/90 rounded-bl-none'
-                      }`}
+                        }`}
                     >
                       {msg.text}
                     </div>

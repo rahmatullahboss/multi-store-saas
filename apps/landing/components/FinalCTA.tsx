@@ -31,87 +31,7 @@ const COLORS = {
   blue: '#3B82F6',
 };
 
-// ============================================================================
-// DEFAULT RECENT SIGNUPS (Fallback if no API data)
-// ============================================================================
-const defaultRecentSignups = [
-  { name: 'র***ক', city: 'ঢাকা', timeAgo: '২ মিনিট আগে' },
-  { name: 'স***া', city: 'চট্টগ্রাম', timeAgo: '৫ মিনিট আগে' },
-  { name: 'ক***ম', city: 'সিলেট', timeAgo: '৮ মিনিট আগে' },
-  { name: 'ফ***া', city: 'রাজশাহী', timeAgo: '১২ মিনিট আগে' },
-  { name: 'আ***ন', city: 'খুলনা', timeAgo: '১৫ মিনিট আগে' },
-];
 
-// Stats prop interface
-interface FinalCTAProps {
-  stats?: {
-    totalUsers?: number;
-    totalStores?: number;
-    recentSignups?: Array<{
-      name: string;
-      city: string;
-      timeAgo: string;
-    }>;
-  };
-}
-
-// ============================================================================
-// LIVE NOTIFICATION COMPONENT
-// ============================================================================
-const LiveNotification = ({ recentSignups }: { recentSignups: typeof defaultRecentSignups }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
-  const { t } = useTranslation();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, rootMargin: '0px 0px -20% 0px' });
-
-  useEffect(() => {
-    if (recentSignups.length === 0) return;
-
-    const interval = setInterval(() => {
-      setIsVisible(false);
-      setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % recentSignups.length);
-        setIsVisible(true);
-      }, 500);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [recentSignups.length]);
-
-  if (recentSignups.length === 0) return null;
-  const current = recentSignups[currentIndex];
-
-  return (
-    <div
-      ref={containerRef}
-      className={`inline-flex items-center gap-3 px-5 py-3 bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl animate-fade-in-up ${
-        isInView ? 'opacity-100' : 'opacity-0'
-      }`}
-    >
-      <div className="w-10 h-10 rounded-full bg-[#006A4E]/20 flex items-center justify-center animate-pulse-soft">
-        <Bell className="w-5 h-5 text-[#006A4E]" />
-      </div>
-
-      {isVisible && (
-        <div
-          key={currentIndex}
-          className="text-sm animate-fade-in-right"
-          style={{ animationDuration: '300ms' }}
-        >
-          <span className="text-white/60">{t('finalCtaLive')}: </span>
-          <span className="text-white font-medium">{current.name}</span>
-          <span className="text-white/60"> {t('finalCtaFrom')} </span>
-          <span className="text-[#F9A825]">{current.city}</span>
-          <span className="text-white/40"> {t('finalCtaJustSignedUp')}</span>
-        </div>
-      )}
-
-      {/* Live indicator */}
-      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse-soft" />
-    </div>
-  );
-};
 
 // ============================================================================
 // GLOWING CTA BUTTON
@@ -187,15 +107,14 @@ const DecorativeDiamonds = () => {
           style={{ animationDelay: `${i * 0.05}s` }}
         >
           <Diamond
-            className={`w-3 h-3 ${
-              i % 4 === 0
+            className={`w-3 h-3 ${i % 4 === 0
                 ? 'text-[#006A4E]'
                 : i % 4 === 1
                   ? 'text-[#F9A825]'
                   : i % 4 === 2
                     ? 'text-[#8B5CF6]'
                     : 'text-white/20'
-            }`}
+              }`}
             fill="currentColor"
           />
         </div>
@@ -204,13 +123,19 @@ const DecorativeDiamonds = () => {
   );
 };
 
+// Stats prop interface
+interface FinalCTAProps {
+  stats?: {
+    totalUsers?: number;
+    totalStores?: number;
+  };
+}
+
 // ============================================================================
 // MAIN FINAL CTA COMPONENT
 // ============================================================================
 export function FinalCTA({ stats }: FinalCTAProps) {
   const { t } = useTranslation();
-  // Only use real data - don't show fake signups
-  const recentSignups = stats?.recentSignups ?? [];
   const totalUsers = stats?.totalUsers || 0;
 
   const sectionRef = useRef<HTMLElement>(null);
@@ -256,9 +181,8 @@ export function FinalCTA({ stats }: FinalCTAProps) {
 
         {/* Main Headline */}
         <h2
-          className={`text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-8 animate-fade-in-up ${
-            isInView ? 'opacity-100' : 'opacity-0'
-          }`}
+          className={`text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-8 animate-fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'
+            }`}
           style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
         >
           {t('finalCtaTitlePart1')}{' '}
@@ -275,9 +199,8 @@ export function FinalCTA({ stats }: FinalCTAProps) {
 
         {/* Mission Statement Card */}
         <div
-          className={`bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-8 mb-10 animate-fade-in-up ${
-            isInView ? 'opacity-100' : 'opacity-0'
-          }`}
+          className={`bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-8 mb-10 animate-fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'
+            }`}
         >
           <p
             className="text-xl md:text-2xl text-white/80 leading-relaxed mb-6"
@@ -312,16 +235,15 @@ export function FinalCTA({ stats }: FinalCTAProps) {
 
         {/* Secondary CTAs */}
         <div
-          className={`flex flex-wrap justify-center gap-4 mb-12 animate-fade-in-up ${
-            isInView ? 'opacity-100' : 'opacity-0'
-          }`}
+          className={`flex flex-wrap justify-center gap-4 mb-12 animate-fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'
+            }`}
         >
           <Link
-            href="tel:+8801570260118"
+            href="mailto:hello@ozzyl.com"
             className="group flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-white/70 hover:text-white transition-all duration-300"
           >
-            <Phone className="w-4 h-4" />
-            <span>📞 {t('finalCtaSecondaryCall')}</span>
+            <Mail className="w-4 h-4" />
+            <span>📧 {t('finalCtaSecondaryCall')}</span>
           </Link>
 
           <Link
@@ -333,12 +255,6 @@ export function FinalCTA({ stats }: FinalCTAProps) {
           </Link>
         </div>
 
-        {/* Live Notification - Only show when real signups exist */}
-        {recentSignups.length > 0 && (
-          <div className={`animate-fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'}`}>
-            <LiveNotification recentSignups={recentSignups} />
-          </div>
-        )}
       </div>
     </section>
   );
