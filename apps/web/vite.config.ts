@@ -32,7 +32,13 @@ export default defineConfig({
 
   plugins: [
     // cloudflareDevProxyVitePlugin MUST come before remix plugin
-    cloudflareDevProxyVitePlugin(),
+    // Only enable in local dev — skip in production builds and CI
+    ...(
+      !process.env.NODE_ENV ||
+      (process.env.NODE_ENV === 'development' && !process.env.CI && !process.env.WRANGLER_CI)
+        ? [cloudflareDevProxyVitePlugin()]
+        : []
+    ),
     tailwindcss(),
     remix({
       future: {
