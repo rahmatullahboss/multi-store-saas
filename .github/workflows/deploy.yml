@@ -34,6 +34,11 @@ on:
           - staging
           - production
 
+permissions:
+  contents: read
+  issues: write
+  actions: read
+
 env:
   NODE_VERSION: '20'
   WORKER_NAME: 'multi-store-saas'
