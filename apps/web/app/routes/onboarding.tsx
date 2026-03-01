@@ -80,6 +80,7 @@ const PLAN_OPTIONS = [
       'feature1Product',
       'feature50Orders',
       'featureFullStoreMode',
+      'featureFbApi',
       'featureBkashNagad',
       'featureFraudDetection',
       'featureBasicSupport',

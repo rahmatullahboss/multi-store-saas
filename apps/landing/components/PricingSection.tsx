@@ -299,8 +299,8 @@ export function PricingSection() {
       price: { monthly: 0, annual: 0 },
       features:
         lang === 'bn'
-          ? ['৫টি প্রোডাক্ট লিমিট', '৫০টি অর্ডার লিমিট', 'বেসিক স্টোর থিম', 'স্ট্যান্ডার্ড সাপোর্ট']
-          : ['5 Products Limit', '50 Orders Limit', 'Basic Store Theme', 'Standard Support'],
+          ? ['২০টি প্রোডাক্ট লিমিট', '৫০টি অর্ডার লিমিট', 'ফুল স্টোর মোড', 'ফেসবুক CAPI', 'বিকাশ ও নগদ', 'ফ্রড ডিটেকশন']
+          : ['20 Products Limit', '50 Orders Limit', 'Full Store Mode', 'Facebook CAPI', 'bKash & Nagad', 'Fraud Detection'],
       cta: lang === 'bn' ? 'বিনামূল্যে শুরু করুন →' : 'Start for Free →',
       popular: false,
       href: 'https://app.ozzyl.com/auth/register',
