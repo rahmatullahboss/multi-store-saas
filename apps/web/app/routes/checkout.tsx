@@ -16,7 +16,7 @@ import {
   type ActionFunctionArgs,
   type MetaFunction,
 } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, useNavigate, Link, useSearchParams } from '@remix-run/react';
+import { useLoaderData, useFetcher, useNavigate, Link, useSearchParams, useRouteError, isRouteErrorResponse } from '@remix-run/react';
 import { eq, and, inArray, desc } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { abandonedCarts, products, orderBumps, productVariants } from '@db/schema';
@@ -1839,5 +1839,33 @@ export default function Checkout() {
     >
       {content}
     </StorePageWrapper>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  if (isRouteErrorResponse(error)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center p-8">
+          <h1 className="text-4xl font-bold text-red-600 mb-4">{error.status}</h1>
+          <p className="text-gray-600 mb-6">{error.data || error.statusText}</p>
+          <a href="/cart" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+            ← Back to Cart
+          </a>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center p-8">
+        <h1 className="text-4xl font-bold text-red-600 mb-4">Oops!</h1>
+        <p className="text-gray-600 mb-6">Something went wrong during checkout. Please try again.</p>
+        <a href="/cart" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+          ← Back to Cart
+        </a>
+      </div>
+    </div>
   );
 }

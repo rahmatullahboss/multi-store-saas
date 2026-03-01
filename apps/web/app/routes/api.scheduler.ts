@@ -16,9 +16,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Create DB instance
   const db = createDb(context.cloudflare.env.DB);
 
-  // In production, use env variable. For now, hardcoded dev key or check env.
   const env = context.cloudflare.env as any;
-  const CRON_SECRET = env.CRON_SECRET || "dev-secret-123";
+  const CRON_SECRET = env.CRON_SECRET;
+
+  if (!CRON_SECRET) {
+    console.error("[Scheduler] CRON_SECRET is not set in environment. Blocking request.");
+    return json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   if (key !== CRON_SECRET) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }

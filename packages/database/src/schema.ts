@@ -290,15 +290,24 @@ export const collections = sqliteTable(
   ]
 );
 
-export const productCollections = sqliteTable('product_collections', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  productId: integer('product_id')
-    .notNull()
-    .references(() => products.id, { onDelete: 'cascade' }),
-  collectionId: integer('collection_id')
-    .notNull()
-    .references(() => collections.id, { onDelete: 'cascade' }),
-});
+export const productCollections = sqliteTable(
+  'product_collections',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    productId: integer('product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    collectionId: integer('collection_id')
+      .notNull()
+      .references(() => collections.id, { onDelete: 'cascade' }),
+  },
+  (table) => [
+    // Lookup all collections a product belongs to (product detail page, related products)
+    index('idx_product_collections_product_id').on(table.productId),
+    // Lookup all products in a collection (collection page, storefront listing)
+    index('idx_product_collections_collection_id').on(table.collectionId),
+  ]
+);
 
 // ============================================================================
 // CUSTOMERS TABLE - Store customers with store_id isolation
