@@ -9,7 +9,7 @@
         "474078d5f990169d7dadf4e1df83214a"
       ],
       "env": {
-        "CLOUDFLARE_API_TOKEN": "DS3K-wT2TbkvIhuHFsoH8OUXCXwwp7w2PBCnBIcS",
+        "CLOUDFLARE_API_TOKEN": "SET_IN_ENV_NOT_HERE",
         "DEBUG": ""
       },
       "disabled": false,
@@ -50,7 +50,7 @@
         "@upstash/context7-mcp@latest"
       ],
       "env": {
-        "CONTEXT7_API_KEY": "ctx7sk-e4f963e4-6fa5-4f1f-a214-2cf3e86300d1"
+        "CONTEXT7_API_KEY": "SET_IN_ENV_NOT_HERE"
       }
     },
     "firebase-mcp-server": {

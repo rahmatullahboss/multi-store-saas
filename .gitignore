@@ -39,3 +39,8 @@ test-results/
 # Turbo
 .turbo/
 .vercel
+
+# MCP config files (may contain API tokens)
+.roo/mcp.json
+.cursor/mcp.json
+.claude/mcp.json
