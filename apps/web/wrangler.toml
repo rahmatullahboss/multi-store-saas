@@ -22,6 +22,7 @@ main = "server/index.ts"
 # ============================================================================
 [env.staging]
 name = "multi-store-saas-staging"
+workers_dev = true
 
 # Observability for staging
 [env.staging.observability]

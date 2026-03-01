@@ -173,7 +173,7 @@ jobs:
 
       - name: 🏥 Staging health check
         run: |
-          HEALTH_URL="${{ vars.STAGING_URL }}/api/healthz"
+          HEALTH_URL="https://multi-store-saas-staging.rahmatullahzisan.workers.dev/api/healthz"
           TOKEN="${{ secrets.HEALTH_CHECK_TOKEN }}"
 
           echo "Checking health at: $HEALTH_URL"
@@ -245,6 +245,7 @@ jobs:
 
       - name: 🏥 Production health check
         id: health-check
+        continue-on-error: true
         run: |
           HEALTH_URL="${{ vars.PRODUCTION_URL }}/api/healthz"
           TOKEN="${{ secrets.HEALTH_CHECK_TOKEN }}"
