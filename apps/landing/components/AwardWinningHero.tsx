@@ -372,7 +372,7 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
               <span style={{ color: colors.text, fontWeight: 600 }}>{t('heroSubtitle3')}</span>
             </p>
 
-            {/* CTA Buttons - simplified */}
+            {/* CTA Buttons - Primary + Secondary */}
             <div className="flex flex-wrap gap-4 mb-4 md:mb-6 animate-fade-in-up">
               <Link
                 href="https://app.ozzyl.com/auth/register"
@@ -387,7 +387,22 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
                   <ArrowRight className="w-5 h-5" />
                 </span>
               </Link>
+              {/* Secondary CTA — Low-friction (Direct Response: Curiosity formula) */}
+              <Link
+                href="#pricing"
+                className="group px-6 md:px-8 py-3 md:py-4 rounded-xl font-semibold flex items-center gap-2 transition-all hover:scale-[1.02] hover:-translate-y-0.5 border"
+                style={{
+                  color: colors.text,
+                  borderColor: isLight ? 'rgba(0,106,78,0.3)' : 'rgba(255,255,255,0.15)',
+                  backgroundColor: isLight ? 'rgba(0,106,78,0.05)' : 'rgba(255,255,255,0.05)',
+                  fontFamily: "'Noto Sans Bengali', sans-serif",
+                }}
+              >
+                <span>{t('heroCtaSecondary') || 'প্ল্যান দেখুন'}</span>
+                <ArrowRight className="w-4 h-4 opacity-60 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
+
 
             {/* Trust badges */}
             <div

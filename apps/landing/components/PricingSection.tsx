@@ -9,6 +9,7 @@
 
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   Check,
   Sparkles,
@@ -98,6 +99,7 @@ interface Plan {
   features: string[];
   cta: string;
   popular: boolean;
+  href: string;
 }
 
 // ============================================================================
@@ -189,8 +191,9 @@ const PricingCard = ({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) => {
       </div>
 
       {/* CTA Button */}
-      <button
-        className={`w-full py-4 rounded-2xl font-bold text-sm transition-all relative z-10 group overflow-hidden ${
+      <Link
+        href={plan.href}
+        className={`w-full py-4 rounded-2xl font-bold text-sm transition-all relative z-10 group overflow-hidden flex items-center justify-center ${
           isPopular
             ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-black shadow-lg hover:shadow-emerald-500/25'
             : 'bg-white/10 text-white hover:bg-white/20'
@@ -203,7 +206,7 @@ const PricingCard = ({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) => {
         {isPopular && (
           <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
         )}
-      </button>
+      </Link>
     </motion.div>
   );
 };
@@ -298,8 +301,9 @@ export function PricingSection() {
         lang === 'bn'
           ? ['৫টি প্রোডাক্ট লিমিট', '৫০টি অর্ডার লিমিট', 'বেসিক স্টোর থিম', 'স্ট্যান্ডার্ড সাপোর্ট']
           : ['5 Products Limit', '50 Orders Limit', 'Basic Store Theme', 'Standard Support'],
-      cta: lang === 'bn' ? 'বিনামূল্যে শুরু করুন' : 'Start for Free',
+      cta: lang === 'bn' ? 'বিনামূল্যে শুরু করুন →' : 'Start for Free →',
       popular: false,
+      href: 'https://app.ozzyl.com/auth/register',
     },
     {
       name: lang === 'bn' ? 'স্টার্টার' : 'Starter',
@@ -322,8 +326,9 @@ export function PricingSection() {
               'Custom Domain',
               'Standard Analytics',
             ],
-      cta: lang === 'bn' ? 'স্টার্টার প্ল্যান নিন' : 'Get Starter',
+      cta: lang === 'bn' ? 'স্টার্টার প্ল্যান নিন →' : 'Get Starter →',
       popular: false,
+      href: 'https://app.ozzyl.com/auth/register?plan=starter',
     },
     {
       name: lang === 'bn' ? 'প্রিমিয়াম' : 'Premium',
@@ -348,6 +353,7 @@ export function PricingSection() {
             ],
       cta: lang === 'bn' ? 'প্রিমিয়াম প্ল্যান নিন' : 'Get Premium',
       popular: true,
+      href: 'https://app.ozzyl.com/auth/register?plan=premium',
     },
     {
       name: lang === 'bn' ? 'বিজনেস' : 'Business',
@@ -370,8 +376,9 @@ export function PricingSection() {
               'Dedicated Manager',
               'API Access',
             ],
-      cta: lang === 'bn' ? 'বিজনেস প্ল্যান নিন' : 'Get Business',
+      cta: lang === 'bn' ? 'আমাদের সাথে যোগাযোগ করুন →' : 'Contact Sales →',
       popular: false,
+      href: 'mailto:contact@ozzyl.com?subject=Business Plan Inquiry',
     },
   ];
 

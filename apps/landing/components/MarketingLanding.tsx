@@ -550,9 +550,10 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
         <CloudflareBenefitsCards />
       </LazySectionWrapper>
 
-      <LazySectionWrapper minHeight="250px">
+      {/* TechnicalSpecs — moved to docs, too deep for landing page */}
+      {/* <LazySectionWrapper minHeight="250px">
         <TechnicalSpecs />
-      </LazySectionWrapper>
+      </LazySectionWrapper> */}
 
       <LazySectionWrapper minHeight="300px">
         <LiveDashboard />
@@ -619,9 +620,10 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
         <TeamManagementSection />
       </LazySectionWrapper>
 
-      <LazySectionWrapper minHeight="300px">
+      {/* ActivityLogsSection — too technical for marketing, moved to docs */}
+      {/* <LazySectionWrapper minHeight="300px">
         <ActivityLogsSection />
-      </LazySectionWrapper>
+      </LazySectionWrapper> */}
 
       <LazySectionWrapper minHeight="300px">
         <ProductReviewsSection />
@@ -635,13 +637,15 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
         <MessengerIntegrationSection />
       </LazySectionWrapper>
 
-      <LazySectionWrapper minHeight="300px">
+      {/* TaxReportsSection — niche use case, better in feature docs */}
+      {/* <LazySectionWrapper minHeight="300px">
         <TaxReportsSection />
-      </LazySectionWrapper>
+      </LazySectionWrapper> */}
 
-      <LazySectionWrapper minHeight="400px">
+      {/* UnifiedCommunicationHub — consolidate into features bento, too deep for landing */}
+      {/* <LazySectionWrapper minHeight="400px">
         <UnifiedCommunicationHub />
-      </LazySectionWrapper>
+      </LazySectionWrapper> */}
 
       <LazySectionWrapper minHeight="400px">
         <BanglaNativeLocalization />
@@ -677,7 +681,7 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
       <Footer />
 
       {/* Sticky CTA Button - FAB Style (All Screens) */}
-      <div className="fixed bottom-4 left-4 z-40">
+      <div className="fixed bottom-6 right-6 z-40">
         <Link
           href="https://app.ozzyl.com/auth/register"
           className="flex items-center justify-center gap-2 px-5 py-3 sm:px-6 sm:py-4 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold rounded-full text-sm sm:text-base shadow-xl shadow-[#006A4E]/40 hover:shadow-2xl hover:shadow-[#006A4E]/50 active:scale-[0.95] hover:scale-[1.05] transition-all duration-200"
