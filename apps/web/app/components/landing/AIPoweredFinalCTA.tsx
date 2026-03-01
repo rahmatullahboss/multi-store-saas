@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from '@remix-run/react';
-import { Bot, Send, ArrowRight, Zap, CheckCircle2, MessageSquare, Phone } from 'lucide-react';
+import { Bot, Send, ArrowRight, Zap, CheckCircle2, MessageSquare, Phone, Mail } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export function AIPoweredFinalCTA() {
