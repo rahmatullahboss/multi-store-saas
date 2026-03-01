@@ -7,10 +7,11 @@
  * with "Liquid Glass" styling and interactive animations.
  */
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
 import { 
-  GripVertical, ArrowRight, Layout, Type, Image as LucideImage, Star, Bell, Check
+  GripVertical, ArrowRight, Layout, Type, Image as LucideImage, Star, Bell, Check,
+  ChevronDown, ShoppingBag, CreditCard, Truck, Shield, Palette, BarChart2, Building2, Smartphone
 } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { ASSETS } from '@/config/assets';
@@ -464,6 +465,181 @@ const ComingSoonTeaser = () => {
 };
 
 // ============================================================================
+// FULL FEATURES GRID
+// ============================================================================
+const FullFeaturesGrid = () => {
+  const { t } = useTranslation();
+
+  const categories = [
+    {
+      icon: ShoppingBag,
+      color: '#10B981',
+      titleKey: 'featCatStoreManagement',
+      descKey: 'featCatStoreDesc',
+      features: [
+        'featSubProductCatalog', 'featSubOrderMgmt', 'featSubInventory',
+        'featSubCategories', 'featSubVariants', 'featSubDiscounts',
+      ],
+    },
+    {
+      icon: CreditCard,
+      color: '#3B82F6',
+      titleKey: 'featCatPayments',
+      descKey: 'featCatPaymentsDesc',
+      features: [
+        'featSubNagadGateway', 'featSubSSLCommerz', 'featSubManualMFS',
+        'featSubCOD', 'featSubMultiGateway',
+      ],
+    },
+    {
+      icon: Truck,
+      color: '#F9A825',
+      titleKey: 'featCatCourier',
+      descKey: 'featCatCourierDesc',
+      features: [
+        'featSubSteadfast', 'featSubPathao', 'featSubRedX',
+        'featSubBulkParcel', 'featSubLiveStatus', 'featSubCourierCost',
+      ],
+    },
+    {
+      icon: Shield,
+      color: '#EF4444',
+      titleKey: 'featCatFraud',
+      descKey: 'featCatFraudDesc',
+      features: [
+        'featSubBlacklist', 'featSubIPFlag', 'featSubCODAutoConfirm',
+        'featSubDeliveryScore', 'featSubCourierStats',
+      ],
+    },
+    {
+      icon: Palette,
+      color: '#8B5CF6',
+      titleKey: 'featCatThemes',
+      descKey: 'featCatThemesDesc',
+      features: [
+        'featSubTemplates', 'featSubColors', 'featSubLogo',
+        'featSubAnnouncement', 'featSubCustomDomain', 'featSubDomainSSL',
+      ],
+    },
+    {
+      icon: BarChart2,
+      color: '#06B6D4',
+      titleKey: 'featCatAnalytics',
+      descKey: 'featCatAnalyticsDesc',
+      features: [
+        'featSubRealtimeCharts', 'featSubRevenueTracking', 'featSubOrderBreakdown',
+        'featSubTopProducts', 'featSubAcquisition',
+      ],
+    },
+    {
+      icon: Building2,
+      color: '#F97316',
+      titleKey: 'featCatMultiTenant',
+      descKey: 'featCatMultiTenantDesc',
+      features: [
+        'featSubPerStoreIsolation', 'featSubEdgeCDN',
+      ],
+    },
+    {
+      icon: Smartphone,
+      color: '#EC4899',
+      titleKey: 'featCatMobile',
+      descKey: 'featCatMobileDesc',
+      features: [
+        'featSubAndroidIOS', 'featSubMobileOrders', 'featSubInventoryMobile',
+        'featSubPushNotif', 'featSubCapacitor',
+      ],
+    },
+  ];
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {categories.map((cat) => {
+        const Icon = cat.icon;
+        return (
+          <motion.div
+            key={cat.titleKey}
+            className="p-5 rounded-2xl border border-white/10 bg-white/[0.03] flex flex-col gap-4 hover:border-white/20 transition-colors"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 16 }}
+          >
+            {/* Category Header */}
+            <div className="flex items-center gap-3">
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: `${cat.color}20`, border: `1px solid ${cat.color}30` }}
+              >
+                <Icon className="w-4 h-4" style={{ color: cat.color }} />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white leading-tight font-bengali">
+                  {t(cat.titleKey as any)}
+                </h4>
+              </div>
+            </div>
+
+            {/* Sub-features */}
+            <ul className="space-y-2">
+              {cat.features.map((fk) => (
+                <li key={fk} className="flex items-start gap-2 text-xs text-white/55 font-bengali">
+                  <span className="mt-0.5 w-3.5 h-3.5 flex-shrink-0 rounded-full flex items-center justify-center" style={{ backgroundColor: `${cat.color}20` }}>
+                    <Check className="w-2 h-2" style={{ color: cat.color }} />
+                  </span>
+                  {t(fk as any)}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+};
+
+// ============================================================================
+// ALL FEATURES TOGGLE WRAPPER
+// ============================================================================
+const AllFeaturesToggle = () => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="flex flex-col items-center gap-6">
+      {/* Toggle Button */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="group flex items-center gap-2.5 px-7 py-3.5 rounded-full border border-white/15 bg-white/[0.04] hover:bg-white/[0.08] hover:border-emerald-500/40 transition-all duration-300 text-white/80 hover:text-white font-semibold text-sm backdrop-blur-sm"
+      >
+        <span>{open ? 'সব Features লুকাও' : 'সব Features দেখুন'}</span>
+        <motion.span
+          animate={{ rotate: open ? 180 : 0 }}
+          transition={{ duration: 0.3 }}
+          className="text-emerald-400"
+        >
+          <ChevronDown className="w-4 h-4" />
+        </motion.span>
+      </button>
+
+      {/* Expandable Grid */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            key="full-features"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.45, ease: [0.32, 0.72, 0, 1] }}
+            className="w-full overflow-hidden"
+          >
+            <FullFeaturesGrid />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 export function BentoFeaturesSection() {
@@ -563,6 +739,9 @@ export function BentoFeaturesSection() {
           >
             <ComingSoonTeaser />
           </motion.div>
+
+          {/* ── Show All Features Toggle ── */}
+          <AllFeaturesToggle />
 
         </div>
       </div>
