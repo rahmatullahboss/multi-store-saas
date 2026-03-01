@@ -40,10 +40,11 @@ jobs:
 
       - name: 🏗️ Build application
         run: npm run build
+        working-directory: apps/web
 
       - name: 📝 Create .dev.vars for Wrangler
         run: |
-          cat > .dev.vars << EOF
+          cat > apps/web/.dev.vars << EOF
           SESSION_SECRET=e2e-test-session-secret-32chars
           COOKIE_SECRET=e2e-test-cookie-secret-32chars
           NODE_ENV=test
@@ -114,10 +115,11 @@ jobs:
 
       - name: 🏗️ Build application
         run: npm run build
+        working-directory: apps/web
 
       - name: 📝 Create .dev.vars for Wrangler
         run: |
-          cat > .dev.vars << EOF
+          cat > apps/web/.dev.vars << EOF
           SESSION_SECRET=e2e-test-session-secret-32chars
           COOKIE_SECRET=e2e-test-cookie-secret-32chars
           NODE_ENV=test
@@ -173,10 +175,11 @@ jobs:
 
       - name: 🏗️ Build application
         run: npm run build
+        working-directory: apps/web
 
       - name: 📝 Create .dev.vars for Wrangler
         run: |
-          cat > .dev.vars << EOF
+          cat > apps/web/.dev.vars << EOF
           SESSION_SECRET=e2e-test-session-secret-32chars
           COOKIE_SECRET=e2e-test-cookie-secret-32chars
           NODE_ENV=test
