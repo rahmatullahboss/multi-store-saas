@@ -97,6 +97,16 @@ export const landing = {
   faq6Q: 'Who can I talk to if I have any issues?',
   faq6A: 'Our Support Team is available 24/7. WhatsApp, Phone, or Email — whatever works for you. We are always ready to help!',
 
+  // Extra FAQs — Objection Handling (Direct Response Copy methodology)
+  faq7Q: 'Can I accept bKash or Nagad payments?',
+  faq7A: 'Yes! Ozzyl supports bKash, Nagad, Cash on Delivery, and SSLCommerz (card payments). Your customers can pay however they are most comfortable — and you receive funds directly in your account.',
+  faq8Q: 'Which courier services do you support?',
+  faq8A: 'We are directly integrated with Pathao, Steadfast, and RedX. Book shipments, track deliveries, and confirm COD collections — all from your Ozzyl dashboard without juggling separate apps.',
+  faq9Q: 'How do customers place orders?',
+  faq9A: 'Customers shop directly through your store link. Share it on WhatsApp, add it to your Facebook bio — wherever orders come from, they all land in one clean dashboard.',
+  faq10Q: 'How many stores can I run from one account?',
+  faq10A: 'Each account includes one store. The Business Plan lets you add team members to manage larger operations. Need multiple stores? Contact us and we will work something out.',
+
   // Footer
   footerAbout: 'The complete e-commerce platform for Bangladeshi merchants. Create, sell, and grow.',
   footerProduct: 'Product',
@@ -135,6 +145,7 @@ export const landing = {
   heroSubtitle2: 'Pick a template, add content —',
   heroSubtitle3: 'Online in 5 mins.',
   heroCtaPrimary: 'Start for Free',
+  heroCtaSecondary: 'View Plans',
   heroTrust1: 'No credit card required',
   heroTrust2: '1-minute signup',
   heroBetaNotice: 'Join Now for Exclusive Launch Pricing',
