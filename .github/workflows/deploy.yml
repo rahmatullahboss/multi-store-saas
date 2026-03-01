@@ -59,6 +59,10 @@ jobs:
       - name: 📥 Install dependencies
         run: npm ci
 
+      - name: 📥 Install platform-specific rollup binary
+        run: npm install --ignore-scripts=false --force
+        working-directory: apps/web
+
       - name: 🔍 Type check
         run: npm run typecheck
         working-directory: apps/web
@@ -99,6 +103,10 @@ jobs:
 
       - name: 📥 Install dependencies
         run: npm ci
+
+      - name: 📥 Install platform-specific rollup binary
+        run: npm install --ignore-scripts=false --force
+        working-directory: apps/web
 
       - name: 🏗️ Build application
         run: npm run build
