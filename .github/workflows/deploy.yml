@@ -110,6 +110,10 @@ jobs:
       - name: 🏗️ Build application
         run: npm run build
         working-directory: apps/web
+        env:
+          NODE_ENV: production
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: 📊 Upload build artifact
         uses: actions/upload-artifact@v4
